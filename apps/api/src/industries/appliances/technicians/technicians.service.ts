@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertTechnicianDto } from './dto/upsert-technician.dto';
 import { endOfDayTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const OPEN_SERVICE = ['REQUESTED', 'SCHEDULED', 'TECHNICIAN_ASSIGNED', 'EN_ROUTE', 'ON_SITE', 'IN_PROGRESS', 'PENDING_PARTS'];
 const OPEN_INSTALL = ['PENDING', 'SCHEDULED', 'ASSIGNED', 'IN_PROGRESS', 'RESCHEDULED'];
@@ -15,7 +16,7 @@ export class TechniciansService {
     const dup = await this.prisma.applianceTechnician.findFirst({
       where: { tenantId: user.tenantId, employeeCode: dto.employeeCode },
     });
-    if (dup) throw new BadRequestException(`Employee code "${dto.employeeCode}" pehle se mojood hai`);
+    if (dup) throw new BadRequestException(apiMessage('Employee code "{{employeeCode}}" pehle se mojood hai', { employeeCode: dto.employeeCode }));
     return this.prisma.applianceTechnician.create({ data: { tenantId: user.tenantId, ...dto } });
   }
 
@@ -152,7 +153,7 @@ export class TechniciansService {
       const dup = await this.prisma.applianceTechnician.findFirst({
         where: { tenantId: user.tenantId, employeeCode: dto.employeeCode, id: { not: id } },
       });
-      if (dup) throw new BadRequestException(`Employee code "${dto.employeeCode}" pehle se mojood hai`);
+      if (dup) throw new BadRequestException(apiMessage('Employee code "{{employeeCode}}" pehle se mojood hai', { employeeCode: dto.employeeCode }));
     }
 
     return this.prisma.applianceTechnician.update({ where: { id }, data: dto });
@@ -176,12 +177,12 @@ export class TechniciansService {
     ]);
     if (openSvc + openInst > 0) {
       throw new BadRequestException(
-        `${t.name} ke paas abhi ${openSvc + openInst} kaam khula hai — pehle kisi aur ko dein`,
+        apiMessage('{{tName}} ke paas abhi {{openSvc}} kaam khula hai — pehle kisi aur ko dein', { tName: t.name, openSvc: openSvc + openInst }),
       );
     }
 
     const updated = await this.prisma.applianceTechnician.update({ where: { id }, data: { isActive: false } });
-    return { ...updated, message: `${t.name} ko band kar diya gaya — purana record mehfooz hai` };
+    return { ...updated, ...apiMessage('{{tName}} ko band kar diya gaya — purana record mehfooz hai', { tName: t.name }) };
   }
 
   async workload(user: AuthenticatedUser, id: string, from: string, to: string) {

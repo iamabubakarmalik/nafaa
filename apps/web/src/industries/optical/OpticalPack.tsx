@@ -16,6 +16,7 @@ import OptometristsPage from './pages/OptometristsPage';
 import LensOrdersPage from './pages/LensOrdersPage';
 import LensOrderFormPage from './pages/LensOrderFormPage';
 import LensOrderDetailPage from './pages/LensOrderDetailPage';
+import { t } from '@core/i18n';
 
 /* Orders have no edit form: price and power are fixed once booked. */
 function ToOrder() {
@@ -26,11 +27,11 @@ function ToOrder() {
 export const OpticalPack: IndustryPack = {
   id: 'optical',
   name: 'Optical & Eyewear',
-  shortName: 'Optical',
+  shortName: t('Optical'),
   emoji: '👓',
   priority: 76,
   description:
-    'Eye tests, nuskhe (SPH/CYL/AXIS/ADD/PD), chashma orders with advance, lab tracking and pickup, repairs, frames and contact lenses.',
+    t('Eye tests, nuskhe (SPH/CYL/AXIS/ADD/PD), chashma orders with advance, lab tracking and pickup, repairs, frames and contact lenses.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -43,19 +44,19 @@ export const OpticalPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Optical',
+      label: t('Optical'),
       icon: Glasses,
       emoji: '👓',
       color: '#06b6d4',
       order: 20,
       items: [
-        { to: '/optical/dashboard', label: 'Optical dashboard', icon: LayoutDashboard },
-        { to: '/optical/lens-orders/new', label: 'New glasses order', icon: FilePlus, permission: PERMISSIONS.POS_USE },
-        { to: '/optical/lens-orders', label: 'Glasses orders', icon: FlaskConical },
-        { to: '/optical/lens-orders?view=repairs', label: 'Repair', icon: Wrench },
-        { to: '/optical/eye-tests', label: 'Eye tests', icon: Eye },
-        { to: '/optical/prescriptions', label: 'Prescriptions', icon: FileText },
-        { to: '/optical/optometrists', label: 'Optometrists', icon: UserCog },
+        { to: '/optical/dashboard', label: t('Optical dashboard'), icon: LayoutDashboard },
+        { to: '/optical/lens-orders/new', label: t('New glasses order'), icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/optical/lens-orders', label: t('Glasses orders'), icon: FlaskConical },
+        { to: '/optical/lens-orders?view=repairs', label: t('Repair'), icon: Wrench },
+        { to: '/optical/eye-tests', label: t('Eye tests'), icon: Eye },
+        { to: '/optical/prescriptions', label: t('Prescriptions'), icon: FileText },
+        { to: '/optical/optometrists', label: t('Optometrists'), icon: UserCog },
       ],
     },
   ],
@@ -90,17 +91,17 @@ export const OpticalPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Piece', hint: '👓', group: 'Count' },
-      { value: 'pair', label: 'Pair', hint: '🕶️', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
-      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Piece'), hint: '👓', group: t('Count') },
+      { value: 'pair', label: t('Pair'), hint: '🕶️', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
+      { value: 'pack', label: t('Pack'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'opticalPrescriptions', label: 'Prescriptions (SPH/CYL/AXIS)', defaultEnabled: true },
-    { key: 'opticalEyeTests', label: 'Eye Tests & Appointments', defaultEnabled: true },
-    { key: 'opticalLensOrders', label: 'Lab Lens Orders', defaultEnabled: true },
-    { key: 'opticalContactLens', label: 'Contact Lenses', defaultEnabled: true },
+    { key: 'opticalPrescriptions', label: t('Prescriptions (SPH/CYL/AXIS)'), defaultEnabled: true },
+    { key: 'opticalEyeTests', label: t('Eye Tests & Appointments'), defaultEnabled: true },
+    { key: 'opticalLensOrders', label: t('Lab Lens Orders'), defaultEnabled: true },
+    { key: 'opticalContactLens', label: t('Contact Lenses'), defaultEnabled: true },
   ],
 };

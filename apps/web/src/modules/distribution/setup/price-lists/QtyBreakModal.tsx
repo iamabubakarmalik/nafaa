@@ -11,6 +11,7 @@ import { Button, Input, Modal, Select } from '@/design-system/components';
 import { DIST_KEY, distError, distSetupApi, type PriceGridRow, type PriceList } from '../../api/distribution.api';
 import { rs } from '../../lib/meta';
 import { num } from '../shared';
+import { t } from '@core/i18n';
 
 export function QtyBreakModal({ list, product, onClose }: {
   list: PriceList; product: { productId: string; name: string; rows: PriceGridRow[] }; onClose: () => void;
@@ -30,27 +31,27 @@ export function QtyBreakModal({ list, product, onClose }: {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [DIST_KEY, 'price-items', list.id] });
       qc.invalidateQueries({ queryKey: [DIST_KEY, 'price-lists'] });
-      toast.success('Qty ka rate save ho gaya');
+      toast.success(t('Qty ka rate save ho gaya'));
       onClose();
     },
-    onError: (e) => toast.error(distError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(distError(e, t('Save nahi hua'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="sm" title="Zyada qty ka rate" description={product.name}
+    <Modal open onClose={onClose} size="sm" title={t('Zyada qty ka rate')} description={product.name}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button data-save-action disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>Save karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button data-save-action disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>{t('Save karein')}</Button>
       </>}>
       <div className="space-y-3">
-        <Select label="Pack" value={unit} onChange={(e) => setUnit(e.target.value)}
+        <Select label={t('Pack')} value={unit} onChange={(e) => setUnit(e.target.value)}
           options={packs.map((r) => ({ value: r.unitId ?? '', label: r.conversionRate > 1 ? `${r.unitName} (${r.conversionRate})` : r.unitName }))} />
         <div className="grid grid-cols-2 gap-3">
-          <Input label={`Kam az kam (${row?.unitName ?? 'pack'})`} inputMode="decimal" value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="10" />
-          <Input label="Rate (Rs)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))}
+          <Input label={t('Kam az kam ({{value}})', { value: row?.unitName ?? 'pack' })} inputMode="decimal" value={minQty} onChange={(e) => setMinQty(e.target.value.replace(/[^\d.]/g, ''))} placeholder="10" />
+          <Input label={t('Rate (Rs)')} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))}
             placeholder={row?.listPrice != null ? String(row.listPrice) : String(Math.round(row?.rulePrice ?? 0))} />
         </div>
-        {ok && row && <p className="rounded-lg bg-violet-50 px-3 py-2 text-[0.8125rem] text-violet-900">{q} {row.unitName} ya zyada lene par har {row.unitName} {rs(p)} ka.</p>}
+        {ok && row && <p className="rounded-lg bg-violet-50 px-3 py-2 text-[0.8125rem] text-violet-900">{t('{{q}} {{unitName}} ya zyada lene par har {{unitName}} {{rs}} ka.', { q, unitName: row.unitName, rs: rs(p) })}</p>}
       </div>
     </Modal>
   );

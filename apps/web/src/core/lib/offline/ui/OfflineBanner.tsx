@@ -1,6 +1,7 @@
 import { WifiOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useOfflineStatus } from '@core/hooks/useOfflineStatus';
+import { t } from '@core/i18n';
 
 export function OfflineBanner() {
   const status = useOfflineStatus();
@@ -22,18 +23,17 @@ export function OfflineBanner() {
           </div>
           <div>
             <p className="text-sm font-semibold leading-tight">
-              Aap offline hain — sales queue me save hongi
+              {t('Aap offline hain — sales queue me save hongi')}
             </p>
             <p className="text-xs text-white/85 leading-tight">
-              Jab connection wapis aayega, sab kuch automatically sync ho jayega
-              {status.pendingSales > 0 && ` • ${status.pendingSales} sales pending`}
+              {t('Jab connection wapis aayega, sab kuch automatically sync ho jayega{{value}}', { value: status.pendingSales > 0 ? t(' • {{pendingSales}} sales pending', { pendingSales: status.pendingSales }) : '' })}
             </p>
           </div>
         </div>
         <button
           onClick={() => setDismissed(true)}
           className="p-1.5 rounded-full hover:bg-white/20 transition"
-          aria-label="Dismiss"
+          aria-label={t('Dismiss')}
         >
           <X className="w-4 h-4" />
         </button>

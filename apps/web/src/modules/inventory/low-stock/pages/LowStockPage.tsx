@@ -40,15 +40,16 @@ import { SettingsModal } from '../components/SettingsModal';
 import { DEFAULT_SETTINGS, STATUS, groupBySupplier, itemMessage, openWhatsApp, qty, type OrderGroup } from '../components/meta';
 import { alertsCsv, alertsDoc } from '../components/print';
 import { useOrderHandoff } from '../components/useOrderHandoff';
+import { t as tr } from '@core/i18n';
 
 const SETTINGS_KEY = 'nafaa-low-stock-settings';
 const SORTS: Array<FilterOption<LowSort>> = [
-  { value: 'urgency', label: 'Sab se zaroori pehle', hint: 'Khatam, phir kam, phir jaldi khatam' },
-  { value: 'lost', label: 'Zyada ruki sale pehle', hint: 'Jo khatam hai aur bikta tha' },
-  { value: 'daysLeft', label: 'Kam din ka maal pehle' },
-  { value: 'value', label: 'Bara order pehle' },
-  { value: 'stock', label: 'Kam stock pehle' },
-  { value: 'name', label: 'Naam (A–Z)' },
+  { value: 'urgency', label: tr('Sab se zaroori pehle'), hint: tr('Khatam, phir kam, phir jaldi khatam') },
+  { value: 'lost', label: tr('Zyada ruki sale pehle'), hint: tr('Jo khatam hai aur bikta tha') },
+  { value: 'daysLeft', label: tr('Kam din ka maal pehle') },
+  { value: 'value', label: tr('Bara order pehle') },
+  { value: 'stock', label: tr('Kam stock pehle') },
+  { value: 'name', label: tr('Naam (A–Z)') },
 ];
 
 function loadSettings(base: LowSettings): LowSettings {
@@ -122,17 +123,17 @@ export default function LowStockPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: [LOW_KEY] });
   const alertM = useMutation({
     mutationFn: ({ r, alert }: { r: LowRow; alert: number }) => lowStockApi.setAlert(r.productId, alert, r.shopId),
-    onSuccess: () => { toast.success('Alert level badal gaya'); void refresh(); },
-    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? 'Alert level nahi badla'),
+    onSuccess: () => { toast.success(tr('Alert level badal gaya')); void refresh(); },
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? tr('Alert level nahi badla')),
   });
   const ignoreM = useMutation({
     mutationFn: ({ rows, ignore }: { rows: LowRow[]; ignore: boolean }) => Promise.all(rows.map((r) => lowStockApi.ignore(r.productId, ignore, r.shopId))),
     onSuccess: (_d, v) => {
-      toast.success(v.ignore ? `${v.rows.length} line chhup gayi — stock theek hone par khud hat jayengi` : 'Line wapas aa gayi');
+      toast.success(v.ignore ? tr('{{count}} line chhup gayi — stock theek hone par khud hat jayengi', { count: v.rows.length }) : tr('Line wapas aa gayi'));
       setSelected(new Map());
       void refresh();
     },
-    onError: () => toast.error('Nahi ho saka'),
+    onError: () => toast.error(tr('Nahi ho saka')),
   });
 
   const saveSettings = (v: LowSettings) => {
@@ -154,7 +155,7 @@ export default function LowStockPage() {
 
   const orderSelected = () => {
     const rows = [...selected.values()].filter((r) => !r.made && r.suggestQty > 0);
-    if (!rows.length) { toast.error('Chuni hui lines me mangwane ke liye kuch nahi'); return; }
+    if (!rows.length) { toast.error(tr('Chuni hui lines me mangwane ke liye kuch nahi')); return; }
     const groups = groupBySupplier(rows);
     if (groups.length === 1) handoff(groups[0]); else setOrderGroups(groups);
   };
@@ -170,12 +171,12 @@ export default function LowStockPage() {
     setExporting(true);
     try {
       const all = await lowStockApi.list({ ...filters, status, sort, limit: 500 });
-      if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
-      alertsCsv(all.items, [`Low stock — ${shopLabel}`, `Sale ${settings.days} din · order ${settings.targetDays} din ka`], !costHidden);
-      toast.success(`${all.items.length} lines CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      if (!all.items.length) { toast.error(tr('Is filter me kuch nahi')); return; }
+      alertsCsv(all.items, [tr('Low stock — {{shopLabel}}', { shopLabel }), tr('Sale {{days}} din · order {{targetDays}} din ka', { days: settings.days, targetDays: settings.targetDays })], !costHidden);
+      toast.success(tr('{{count}} lines CSV me', { count: all.items.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
-  const filterText = [status !== 'all' && (status === 'ordered' ? 'Order me' : status === 'ignored' ? 'Chhupi hui' : STATUS[status].label), query && `"${query}"`].filter(Boolean).join(' · ');
+  const filterText = [status !== 'all' && (status === 'ordered' ? tr('Order me') : status === 'ignored' ? tr('Chhupi hui') : STATUS[status].label), query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => alertsDoc(await lowStockApi.list({ ...filters, status, sort, limit: 500 }), filterText, !costHidden);
 
   useEffect(() => {
@@ -192,15 +193,15 @@ export default function LowStockPage() {
   }, [selected.size]);
 
   const statusOptions: Array<FilterOption<LowStatusFilter>> = [
-    { value: 'all', label: 'Sab', icon: ListChecks, color: '#475569' },
+    { value: 'all', label: tr('Sab'), icon: ListChecks, color: '#475569' },
     ...(['out', 'low', 'soon', 'expiry'] as const).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color, hint: `${counts?.[k] ?? 0}` })),
     ...(config.statuses ?? []).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color, hint: `${counts?.[k] ?? 0}` })),
-    { value: 'ordered', label: 'Order me', icon: Truck, color: '#0284c7', hint: `${counts?.ordered ?? 0} — supplier se aana baqi` },
-    { value: 'ignored', label: 'Chhupi hui', icon: EyeOff, color: '#94a3b8', hint: `${counts?.ignored ?? 0}` },
+    { value: 'ordered', label: tr('Order me'), icon: Truck, color: '#0284c7', hint: tr('{{value}} — supplier se aana baqi', { value: counts?.ordered ?? 0 }) },
+    { value: 'ignored', label: tr('Chhupi hui'), icon: EyeOff, color: '#94a3b8', hint: `${counts?.ignored ?? 0}` },
   ];
   const kpi = (k: 'out' | 'low' | 'soon' | 'expiry', hint: string) => (
     <KpiCard key={k} icon={STATUS[k].icon} color={STATUS[k].color} label={STATUS[k].label} value={String(counts?.[k] ?? 0)}
-      hint={status === k ? 'Filter laga · dobara dabayein' : hint} active={status === k}
+      hint={status === k ? tr('Filter laga · dobara dabayein') : hint} active={status === k}
       onClick={() => { setTab('alerts'); setStatus((s) => (s === k ? 'all' : k)); }} />
   );
   const Banner = config.Banner;
@@ -209,37 +210,37 @@ export default function LowStockPage() {
   return (
     <PageShell>
       <PageHero
-        title="Low stock aur reorder"
-        chip={<><AlertTriangle />{counts ? `${counts.all} cheezein` : '…'}</>}
+        title={tr('Low stock aur reorder')}
+        chip={<><AlertTriangle />{counts ? tr('{{all}} cheezein', { all: counts.all }) : '…'}</>}
         busy={listQ.isFetching && !listQ.isLoading}
         meta={`${config.label} · ${isAll ? 'Sab branches' : shopName ?? tenantName}`}
         loading={listQ.isLoading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
-          <button type="button" onClick={() => setEditSettings(true)} title="Hisaab ki settings" aria-label="Hisaab ki settings" className={heroIconButton}><SlidersHorizontal className="h-4 w-4" /></button>
-          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setTab('reorder')} title="Reorder list (R)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Order banayein</button>
+          <button type="button" onClick={() => setEditSettings(true)} title={tr('Hisaab ki settings')} aria-label={tr('Hisaab ki settings')} className={heroIconButton}><SlidersHorizontal className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void refresh()} title={tr('Taaza karein')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setTab('reorder')} title={tr('Reorder list (R)')} className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />{tr('Order banayein')}</button>
         </>}
         stats={totals ? [
-          { label: 'Order ka expense', value: cost(totals.orderValue), hint: `${totals.orderLines} cheezein · ${settings.targetDays} din ka maal` },
-          { label: 'Ruki hui sale', value: money(totals.lostPerDay), hint: 'roz — khatam maal ki wajah se' },
-          { label: 'Expiry ka maal', value: cost(totals.expiryValue), hint: `${settings.expiryDays} din me` },
-          { label: 'Order me', value: String(counts?.ordered ?? 0), hint: 'cheezein supplier se aani hain' },
-        ] : [{ label: 'Order ka expense', value: '' }, { label: 'Ruki hui sale', value: '' }, { label: 'Expiry ka maal', value: '' }, { label: 'Order me', value: '' }]}
+          { label: tr('Order ka expense'), value: cost(totals.orderValue), hint: tr('{{orderLines}} cheezein · {{targetDays}} din ka maal', { orderLines: totals.orderLines, targetDays: settings.targetDays }) },
+          { label: tr('Ruki hui sale'), value: money(totals.lostPerDay), hint: tr('roz — khatam maal ki wajah se') },
+          { label: tr('Expiry ka maal'), value: cost(totals.expiryValue), hint: tr('{{expiryDays}} din me', { expiryDays: settings.expiryDays }) },
+          { label: tr('Order me'), value: String(counts?.ordered ?? 0), hint: tr('cheezein supplier se aani hain') },
+        ] : [{ label: tr('Order ka expense'), value: '' }, { label: tr('Ruki hui sale'), value: '' }, { label: tr('Expiry ka maal'), value: '' }, { label: tr('Order me'), value: '' }]}
       />
 
       <KpiRow>
         {!counts || !totals ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            {kpi('out', totals.lostPerDay > 0 ? `roz ${money(totals.lostPerDay)} ki sale ruki` : 'dabayein')}
-            {kpi('low', 'alert level se neeche')}
-            {kpi('soon', `${settings.soonDays} din ya kam ka maal`)}
-            {kpi('expiry', `${settings.expiryDays} din me expiry`)}
-            <KpiCard icon={ShoppingCart} color="#2563eb" label="Reorder" value={cost(totals.orderValue)}
-              hint={`${totals.orderLines} cheezein${totals.noSupplier ? ` · ${totals.noSupplier} baghair supplier` : ''}`} onClick={() => setTab('reorder')} active={tab === 'reorder'} />
+            {kpi('out', totals.lostPerDay > 0 ? tr('roz {{lostPerDay}} ki sale ruki', { lostPerDay: money(totals.lostPerDay) }) : 'dabayein')}
+            {kpi('low', tr('alert level se neeche'))}
+            {kpi('soon', tr('{{soonDays}} din ya kam ka maal', { soonDays: settings.soonDays }))}
+            {kpi('expiry', tr('{{expiryDays}} din me expiry', { expiryDays: settings.expiryDays }))}
+            <KpiCard icon={ShoppingCart} color="#2563eb" label={tr('Reorder')} value={cost(totals.orderValue)}
+              hint={tr('{{orderLines}} cheezein{{value}}', { orderLines: totals.orderLines, value: totals.noSupplier ? tr(' · {{noSupplier}} baghair supplier', { noSupplier: totals.noSupplier }) : '' })} onClick={() => setTab('reorder')} active={tab === 'reorder'} />
           </>
         )}
       </KpiRow>
@@ -247,39 +248,39 @@ export default function LowStockPage() {
       {Banner && data && <Suspense fallback={null}><Banner data={data} setStatus={(s) => { setTab('alerts'); setStatus(s); }} openTab={setTab} /></Suspense>}
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode ya supplier…" label="Low stock search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, SKU, barcode ya supplier…')} label={tr('Low stock search')} />}
         chips={filtered ? <>
           {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((o) => o.value === status)?.label}</FilterChip>}
-          {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
-          {supplierId && <FilterChip onRemove={() => setSupplierId(undefined)}>{data?.facets.suppliers.find((c) => c.id === supplierId)?.name ?? 'Supplier'}</FilterChip>}
+          {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? tr('Category')}</FilterChip>}
+          {supplierId && <FilterChip onRemove={() => setSupplierId(undefined)}>{data?.facets.suppliers.find((c) => c.id === supplierId)?.name ?? tr('Supplier')}</FilterChip>}
           {group && <FilterChip onRemove={() => setGroup(undefined)}>{config.groups?.label(group) ?? group}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <FilterMenu icon={ListFilter} label="Halat" value={status} active={status !== 'all'} options={statusOptions} onChange={(v) => { setTab('alerts'); setStatus(v); }} width="w-72" />
+        <FilterMenu icon={ListFilter} label={tr('Halat')} value={status} active={status !== 'all'} options={statusOptions} onChange={(v) => { setTab('alerts'); setStatus(v); }} width="w-72" />
         {(data?.facets.categories.length ?? 0) > 0 && (
-          <FilterMenu icon={Layers} label="Category" value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
-            options={[{ value: 'all', label: 'Sab category' }, ...data!.facets.categories.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein`, color: c.color ?? undefined }))]}
+          <FilterMenu icon={Layers} label={tr('Category')} value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
+            options={[{ value: 'all', label: tr('Sab category') }, ...data!.facets.categories.map((c) => ({ value: c.id, label: c.name ?? '', hint: tr('{{count}} cheezein', { count: c.count }), color: c.color ?? undefined }))]}
             onChange={(v) => setCategoryId(v === 'all' ? undefined : v)} />
         )}
         {(data?.facets.suppliers.length ?? 0) > 0 && (
-          <FilterMenu icon={Truck} label="Supplier" value={supplierId ?? 'all'} active={!!supplierId} width="w-72"
-            options={[{ value: 'all', label: 'Sab supplier' }, ...data!.facets.suppliers.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein${costHidden ? '' : ` · ${cost(c.value)}`}` }))]}
+          <FilterMenu icon={Truck} label={tr('Supplier')} value={supplierId ?? 'all'} active={!!supplierId} width="w-72"
+            options={[{ value: 'all', label: tr('Sab supplier') }, ...data!.facets.suppliers.map((c) => ({ value: c.id, label: c.name ?? '', hint: tr('{{count}} cheezein{{value}}', { count: c.count, value: costHidden ? '' : ` · ${cost(c.value)}` }) }))]}
             onChange={(v) => setSupplierId(v === 'all' ? undefined : v)} />
         )}
         {config.groups && (data?.facets.groups.length ?? 0) > 0 && (
           <FilterMenu icon={ListChecks} label={config.groups.title} value={group ?? 'all'} active={!!group} width="w-64"
-            options={[{ value: 'all', label: 'Sab' }, ...data!.facets.groups.map((g) => ({ value: g.id, label: config.groups!.label(g.id), hint: `${g.count}` }))]}
+            options={[{ value: 'all', label: tr('Sab') }, ...data!.facets.groups.map((g) => ({ value: g.id, label: config.groups!.label(g.id), hint: `${g.count}` }))]}
             onChange={(v) => setGroup(v === 'all' ? undefined : v)} />
         )}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-64" />
+        <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={sort} options={SORTS} onChange={setSort} align="right" width="w-64" />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>R</Kbd> reorder · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> search</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>R</Kbd> {' '}{tr('reorder ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}</>}
         tabs={[
-          { id: 'alerts', label: 'Alerts', icon: AlertTriangle, count: data?.total ?? null },
-          { id: 'reorder', label: 'Reorder list', icon: ShoppingCart, count: totals?.orderLines ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'alerts', label: tr('Alerts'), icon: AlertTriangle, count: data?.total ?? null },
+          { id: 'reorder', label: tr('Reorder list'), icon: ShoppingCart, count: totals?.orderLines ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
           ...(config.extraTab ? [{ id: config.extraTab.id, label: config.extraTab.label, icon: config.extraTab.icon }] : []),
         ]} />
 
@@ -296,23 +297,23 @@ export default function LowStockPage() {
         <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
       ) : listQ.error && !data ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">List nahi aa saki</p>
+          <p className="font-semibold text-slate-900">{tr('List nahi aa saki')}</p>
           <p className="mt-1 text-[0.875rem] text-slate-500">{(listQ.error as Error).message}</p>
-          <div className="mt-4"><Button onClick={() => void listQ.refetch()}>Dobara koshish</Button></div>
+          <div className="mt-4"><Button onClick={() => void listQ.refetch()}>{tr('Dobara koshish')}</Button></div>
         </div>
       ) : !visible.length ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg"><PackageCheck className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Sab stock theek hai'}</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Kuch khatam, kam ya expiry ke qareeb nahi. Alert level product par ya yahan line par badal sakte hain.'}</p>
-          {filtered && <div className="mt-4"><Button variant="secondary" onClick={clear}>Filter hatayein</Button></div>}
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? tr('Is filter me kuch nahi') : tr('Sab stock theek hai')}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? tr('Filter badal kar dekhein ya hata dein.') : tr('Kuch khatam, kam ya expiry ke qareeb nahi. Alert level product par ya yahan line par badal sakte hain.')}</p>
+          {filtered && <div className="mt-4"><Button variant="secondary" onClick={clear}>{tr('Filter hatayein')}</Button></div>}
         </div>
       ) : (
         <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <div className={cn('hidden items-center gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', LINE_GRID)}>
-            <button type="button" onClick={selectVisible} aria-label="Sab chunein"
+            <button type="button" onClick={selectVisible} aria-label={tr('Sab chunein')}
               className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisible ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
-            <span>Cheez</span><span>Stock</span><span>Sale · kitne din</span><span>Kya karna hai</span><span>Supplier</span><span />
+            <span>{tr('Cheez')}</span><span>{tr('Stock')}</span><span>{tr('Sale · kitne din')}</span><span>{tr('Kya karna hai')}</span><span>{tr('Supplier')}</span><span />
           </div>
           <ul className="divide-y divide-slate-100">
             {visible.map((r) => (
@@ -320,7 +321,7 @@ export default function LowStockPage() {
                 groupLabel={config.groups?.label} deviceLink={config.deviceLink}
                 actions={{
                   onOrder: can.order ? () => handoff({ key: r.key, shopId: r.shopId, shopName: r.shopName, supplier: r.supplier, rows: [r] }) : undefined,
-                  onStock: can.stock ? () => (isAll ? toast.error(`Stock ek branch me daalte hain — upar se ${r.shopName} chunein`) : setStockRow(r)) : undefined,
+                  onStock: can.stock ? () => (isAll ? toast.error(tr('Stock ek branch me daalte hain — upar se {{shopName}} chunein', { shopName: r.shopName })) : setStockRow(r)) : undefined,
                   onWhatsApp: () => openWhatsApp(waLink(r.supplier?.phone, itemMessage(r, shopLabel)), itemMessage(r, shopLabel)),
                   onAlert: can.alert ? async (alert) => { await alertM.mutateAsync({ r, alert }); } : undefined,
                   onIgnore: (ignore) => ignoreM.mutate({ rows: [r], ignore }),
@@ -332,21 +333,21 @@ export default function LowStockPage() {
 
       {tab === 'alerts' && data && data.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-          <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
-          <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+          <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: data.pages })}</span>
+          <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
         </div>
       )}
 
       {selected.size > 0 && tab === 'alerts' && (
         <div className="sticky bottom-4 z-30 mx-auto flex w-fit max-w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-2xl">
-          <span className="px-1 text-[0.8125rem] font-semibold">{selected.size} chuni</span>
-          {can.order && <Button size="sm" leftIcon={<ShoppingCart className="h-3.5 w-3.5" />} onClick={orderSelected}>Purchase order banayein</Button>}
-          <Button size="sm" variant="inverse" leftIcon={<MessageCircle className="h-3.5 w-3.5" />} onClick={whatsAppSelected}>WhatsApp list</Button>
+          <span className="px-1 text-[0.8125rem] font-semibold">{tr('{{size}} chuni', { size: selected.size })}</span>
+          {can.order && <Button size="sm" leftIcon={<ShoppingCart className="h-3.5 w-3.5" />} onClick={orderSelected}>{tr('Purchase order banayein')}</Button>}
+          <Button size="sm" variant="inverse" leftIcon={<MessageCircle className="h-3.5 w-3.5" />} onClick={whatsAppSelected}>{tr('WhatsApp list')}</Button>
           <Button size="sm" variant="inverse" leftIcon={<EyeOff className="h-3.5 w-3.5" />} onClick={() => ignoreM.mutate({ rows: [...selected.values()], ignore: status !== 'ignored' })}>
-            {status === 'ignored' ? 'Wapas dikhayein' : 'Chhupayein'}
+            {status === 'ignored' ? tr('Wapas dikhayein') : tr('Chhupayein')}
           </Button>
-          <button type="button" onClick={() => setSelected(new Map())} aria-label="Chunna khatam" className="flex h-8 w-8 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setSelected(new Map())} aria-label={tr('Chunna khatam')} className="flex h-8 w-8 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -358,24 +359,24 @@ export default function LowStockPage() {
       {editSettings && <SettingsModal value={settings} defaults={defaults} onSave={saveSettings} onClose={() => setEditSettings(false)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Low stock aur reorder — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Low stock aur reorder — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: AlertTriangle, color: '#e11d48', title: 'Kya khatam ho raha hai', text: 'Upar ke dabbe: Khatam, Kam, Jaldi khatam, Expiry. Dabayein to sirf wohi lines dikhti hain. Sab se zaroori line sab se upar hai.' },
-            { icon: Clock, color: '#ea580c', title: 'Kitne din ka maal', text: `Har line par roz ki sale (pichhle ${settings.days} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni sale ruk rahi hai.` },
-            { icon: ShoppingCart, color: '#2563eb', title: 'Order banayein', text: '"Reorder list" me har supplier ka alag card hai — quantity badlein, phir "Order banayein". Purchase ka order khul jata hai, sab cheezein pehle se bhari hui.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Ek saath kaam', text: 'Lines chunein, phir neeche kaali patti: Purchase order (supplier war), WhatsApp list ya Chhupayein.' },
-            { icon: MessageCircle, color: '#059669', title: 'Supplier ko WhatsApp', text: 'Har line par hara button supplier ko tayyar message bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.' },
-            { icon: PackagePlus, color: '#7c3aed', title: 'Alert level aur stock', text: '"Alert" par click kar ke wahin had badlein (sirf is branch ki). "…" me stock daalein ya line chhupayein jab tak stock theek na ho.' },
+            { icon: AlertTriangle, color: '#e11d48', title: tr('Kya khatam ho raha hai'), text: tr('Upar ke dabbe: Khatam, Kam, Jaldi khatam, Expiry. Dabayein to sirf wohi lines dikhti hain. Sab se zaroori line sab se upar hai.') },
+            { icon: Clock, color: '#ea580c', title: tr('Kitne din ka maal'), text: tr('Har line par roz ki sale (pichhle {{days}} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni sale ruk rahi hai.', { days: settings.days }) },
+            { icon: ShoppingCart, color: '#2563eb', title: tr('Order banayein'), text: tr('"Reorder list" me har supplier ka alag card hai — quantity badlein, phir "Order banayein". Purchase ka order khul jata hai, sab cheezein pehle se bhari hui.') },
+            { icon: MousePointerClick, color: '#16a34a', title: tr('Ek saath kaam'), text: tr('Lines chunein, phir neeche kaali patti: Purchase order (supplier war), WhatsApp list ya Chhupayein.') },
+            { icon: MessageCircle, color: '#059669', title: tr('Supplier ko WhatsApp'), text: tr('Har line par hara button supplier ko tayyar message bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.') },
+            { icon: PackagePlus, color: '#7c3aed', title: tr('Alert level aur stock'), text: tr('"Alert" par click kar ke wahin had badlein (sirf is branch ki). "…" me stock daalein ya line chhupayein jab tak stock theek na ho.') },
             ...(config.guide ?? []),
           ]}
           tips={[
-            `Order itna banta hai ke maal ${settings.targetDays} din chale; jo pehle se order me hai woh ghata diya jata hai. Settings (slider button) se din badlein.`,
-            'Supplier aur rate pichhli purchase se aata hai. Jo kabhi nahi khareeda, us ke order me supplier khud chunein.',
-            'Sab branches par har branch ki line alag hai — order usi branch ka banta hai.',
+            tr('Order itna banta hai ke maal {{targetDays}} din chale; jo pehle se order me hai woh ghata diya jata hai. Settings (slider button) se din badlein.', { targetDays: settings.targetDays }),
+            tr('Supplier aur rate pichhli purchase se aata hai. Jo kabhi nahi khareeda, us ke order me supplier khud chunein.'),
+            tr('Sab branches par har branch ki line alag hai — order usi branch ka banta hai.'),
             ...(config.tips ?? []),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['R', 'reorder list'], ['A', 'analytics'], ['G', 'guide'], ['Esc', 'chunna khatam']]}
-          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode ya supplier se search</span>}
+          shortcuts={[['/', tr('dhoondein')], ['R', tr('reorder list')], ['A', tr('analytics')], ['G', tr('guide')], [tr('Esc'), tr('chunna khatam')]]}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />{tr('Naam, SKU, barcode ya supplier se search')}</span>}
         />
       )}
     </PageShell>

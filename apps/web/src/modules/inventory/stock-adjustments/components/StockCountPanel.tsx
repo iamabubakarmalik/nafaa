@@ -22,6 +22,7 @@ import { stockAdjustmentsApi, type AdjustmentOptions, type StockCountResult } fr
 import { BranchPicker } from './BranchPicker';
 import { ProductSearch } from './ProductSearch';
 import { ADJ_KEY, CORRECTION_WARNING, EFFECTS, REASONS, STOCK_KEYS, qtyText } from './meta';
+import { t } from '@core/i18n';
 
 /** One countable row: a product, or one variant of it. */
 interface Row { key: string; productId: string; variantId?: string; name: string; unit: string; system: number; cost: number }
@@ -92,78 +93,78 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
     }),
     onSuccess: (r) => {
       setResult(r);
-      toast.success(r.changed ? `Ginti save — ${r.changed} cheezon ka stock theek hua` : 'Ginti save — sab theek tha');
+      toast.success(r.changed ? t('Ginti save — {{changed}} cheezon ka stock theek hua', { changed: r.changed }) : t('Ginti save — sab theek tha'));
       STOCK_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     },
     onError: (e: { response?: { data?: { message?: string | string[] } }; message?: string }) => {
       const m = e?.response?.data?.message;
-      toast.error((Array.isArray(m) ? m[0] : m) || e?.message || 'Ginti save nahi hui');
+      toast.error((Array.isArray(m) ? m[0] : m) || e?.message || t('Ginti save nahi hui'));
     },
   });
 
   const footer = allShops || result
-    ? <Button onClick={onClose}>{result ? 'Theek hai' : 'Band karein'}</Button>
+    ? <Button onClick={onClose}>{result ? t('Theek hai') : t('Band karein')}</Button>
     : step === 'confirm'
-      ? <><Button variant="secondary" onClick={() => setStep('count')}>Wapas</Button><Button onClick={() => save.mutate()} loading={save.isPending}>Haan, stock theek karein</Button></>
-      : <><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => setStep('confirm')} disabled={!entered.length}>Aage — khulasa dekhein ({entered.length})</Button></>;
+      ? <><Button variant="secondary" onClick={() => setStep('count')}>{t('Wapas')}</Button><Button onClick={() => save.mutate()} loading={save.isPending}>{t('Haan, stock theek karein')}</Button></>
+      : <><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={() => setStep('confirm')} disabled={!entered.length}>{t('Aage — khulasa dekhein ({{count}})', { count: entered.length })}</Button></>;
 
   return (
-    <Modal open onClose={onClose} size="xl" closeOnBackdrop={false} title="Stock ginti"
-      description="Shelf par jitna maal hai woh likhein — farq khud barhaya ya kam kiya jayega" footer={footer}>
-      {allShops ? <BranchPicker what="Ginti" /> : result ? (
+    <Modal open onClose={onClose} size="xl" closeOnBackdrop={false} title={t('Stock ginti')}
+      description={t('Shelf par jitna maal hai woh likhein — farq khud barhaya ya kam kiya jayega')} footer={footer}>
+      {allShops ? <BranchPicker what={t('Ginti')} /> : result ? (
         <div className="py-4 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-          <p className="mt-2 text-lg font-bold text-slate-900">Ginti save ho gayi</p>
-          <p className="text-[0.8125rem] text-slate-500">Ref {result.groupRef} · {result.checked} cheezein gini · {result.changed} me farq tha</p>
+          <p className="mt-2 text-lg font-bold text-slate-900">{t('Ginti save ho gayi')}</p>
+          <p className="text-[0.8125rem] text-slate-500">{t('Ref {{groupRef}} · {{checked}} cheezein gini · {{changed}} me farq tha', { groupRef: result.groupRef, checked: result.checked, changed: result.changed })}</p>
           <div className="mx-auto mt-4 grid max-w-lg grid-cols-3 gap-2">
-            <Tile label={result.correction ? 'Zyada nikla' : 'Stock faida'} value={`+${money(result.gained)}`} tone="text-emerald-700" />
-            <Tile label={result.correction ? 'Kam nikla' : 'Stock nuksan'} value={`−${money(result.lost)}`} tone="text-rose-700" />
-            <Tile label={result.correction ? 'Kul farq' : 'Profit par asar'} value={`${result.net >= 0 ? '+' : '−'}${money(Math.abs(result.net))}`} tone={result.net >= 0 ? 'text-emerald-700' : 'text-rose-700'} />
+            <Tile label={result.correction ? t('Zyada nikla') : t('Stock faida')} value={`+${money(result.gained)}`} tone="text-emerald-700" />
+            <Tile label={result.correction ? t('Kam nikla') : t('Stock nuksan')} value={`−${money(result.lost)}`} tone="text-rose-700" />
+            <Tile label={result.correction ? t('Kul farq') : t('Profit par asar')} value={`${result.net >= 0 ? '+' : '−'}${money(Math.abs(result.net))}`} tone={result.net >= 0 ? 'text-emerald-700' : 'text-rose-700'} />
           </div>
           <p className="mt-3 text-[0.75rem] text-slate-500">
-            {result.correction ? 'Data correction — stock theek hua, Profit par asar nahi.' : 'Zyada nikla maal Stock faida (Profit mein plus), kam nikla Stock nuksan (Profit se minus) — cost par.'}
+            {result.correction ? t('Data correction — stock theek hua, Profit par asar nahi.') : t('Zyada nikla maal Stock faida (Profit mein plus), kam nikla Stock nuksan (Profit se minus) — cost par.')}
           </p>
         </div>
       ) : step === 'confirm' ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Tile label="Gini" value={String(entered.length)} />
-            <Tile label="Farq wali" value={String(changed.length)} />
-            <Tile label={correction ? 'Zyada nikla' : EFFECTS.GAIN.label} value={`+${money(gained)}`} tone="text-emerald-700" />
-            <Tile label={correction ? 'Kam nikla' : EFFECTS.LOSS.label} value={`−${money(lost)}`} tone="text-rose-700" />
+            <Tile label={t('Gini')} value={String(entered.length)} />
+            <Tile label={t('Farq wali')} value={String(changed.length)} />
+            <Tile label={correction ? t('Zyada nikla') : EFFECTS.GAIN.label} value={`+${money(gained)}`} tone="text-emerald-700" />
+            <Tile label={correction ? t('Kam nikla') : EFFECTS.LOSS.label} value={`−${money(lost)}`} tone="text-rose-700" />
           </div>
           <p className="-mt-2 text-[0.75rem] text-slate-500">
             {correction
-              ? 'Data correction: stock ginti ke barabar ho jayega, Profit par asar nahi.'
-              : `Zyada nikla = ${EFFECTS.GAIN.label} (${EFFECTS.GAIN.note.toLowerCase()}), kam nikla = ${EFFECTS.LOSS.label} (${EFFECTS.LOSS.note.toLowerCase()}) — cost par. Profit par asar ${gained - lost >= 0 ? '+' : '−'}${money(Math.abs(gained - lost))}.`}
+              ? t('Data correction: stock ginti ke barabar ho jayega, Profit par asar nahi.')
+              : t('Zyada nikla = {{label}} ({{value}}), kam nikla = {{label2}} ({{value2}}) — cost par. Profit par asar {{value3}}{{value4}}.', { label: EFFECTS.GAIN.label, value: EFFECTS.GAIN.note.toLowerCase(), label2: EFFECTS.LOSS.label, value2: EFFECTS.LOSS.note.toLowerCase(), value3: gained - lost >= 0 ? '+' : '−', value4: money(Math.abs(gained - lost)) })}
           </p>
           {canCorrect && changed.length > 0 && (
             <label className={cn('flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5 ring-1', correction ? 'bg-amber-50 ring-amber-300' : 'bg-white ring-slate-200')}>
               <input type="checkbox" checked={correction} onChange={(e) => setCorrection(e.target.checked)} className="mt-0.5 h-4 w-4 accent-amber-600" />
               <span>
-                <span className="block text-[0.8125rem] font-semibold text-slate-900">{REASONS.CORRECTION.label}</span>
+                <span className="block text-[0.8125rem] font-semibold text-slate-900">{t(REASONS.CORRECTION.label)}</span>
                 <span className="mt-0.5 flex items-start gap-1.5 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{CORRECTION_WARNING}</span>
               </span>
             </label>
           )}
           {!changed.length ? (
-            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200">Har cheez system ke barabar hai — save karne se sirf ginti ka record banega, stock nahi badlega.</p>
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200">{t('Har cheez system ke barabar hai — save karne se sirf ginti ka record banega, stock nahi badlega.')}</p>
           ) : (
             <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
               {changed.map((d) => (
                 <li key={d.row.key} className="flex items-center justify-between gap-3 px-3 py-2 text-[0.8125rem]">
                   <span className="min-w-0 truncate text-slate-800">{d.row.name}</span>
                   <span className="shrink-0 tabular-nums text-slate-500">{qtyText(d.row.system)} → {qtyText(d.row.system + d.diff)}</span>
-                  <span className={cn('w-24 shrink-0 text-right font-semibold tabular-nums', d.diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{d.diff > 0 ? '+' : ''}{qtyText(d.diff)} {d.row.unit}</span>
+                  <span className={cn('w-24 shrink-0 text-end font-semibold tabular-nums', d.diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{d.diff > 0 ? '+' : ''}{qtyText(d.diff)} {d.row.unit}</span>
                 </li>
               ))}
             </ul>
           )}
           <div>
-            <label htmlFor="count-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Note</label>
-            <input id="count-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Maslan: Mahine ki ginti, rack A"
+            <label htmlFor="count-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Note')}</label>
+            <input id="count-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder={t('Maslan: Mahine ki ginti, rack A')}
               className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-            <p className="mt-1 text-[0.75rem] text-slate-500">Marzi hai — har badli hui line ke sath likha jayega.</p>
+            <p className="mt-1 text-[0.75rem] text-slate-500">{t('Marzi hai — har badli hui line ke sath likha jayega.')}</p>
           </div>
         </div>
       ) : (
@@ -173,50 +174,50 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
               <ProductSearch sources={sources} byCode={byCode} loading={loading} showUnits={false} onPick={(s) => add([s])} />
             </div>
             {categories.length > 0 && (
-              <FilterMenu icon={FolderOpen} label="Category ke sab" value="" align="right" width="w-72"
-                options={[{ value: '', label: 'Category chunein' }, ...categories.map(([c, n]) => ({ value: c, label: c, hint: `${n} product` }))]}
+              <FilterMenu icon={FolderOpen} label={t('Category ke sab')} value="" align="right" width="w-72"
+                options={[{ value: '', label: t('Category chunein') }, ...categories.map(([c, n]) => ({ value: c, label: c, hint: t('{{n}} product', { n }) }))]}
                 onChange={(c) => {
                   if (!c) return;
                   const list = sources.filter((s) => s.kind === 'product' && s.category === c);
                   add(list.slice(0, CATEGORY_LIMIT));
-                  toast.success(list.length > CATEGORY_LIMIT ? `Pehle ${CATEGORY_LIMIT} products jur gaye` : `${list.length} products jur gaye`);
+                  toast.success(list.length > CATEGORY_LIMIT ? t('Pehle {{CATEGORY_LIMIT}} products jur gaye', { CATEGORY_LIMIT }) : t('{{count}} products jur gaye', { count: list.length }));
                 }} />
             )}
           </div>
-          <p className="-mt-2 text-[0.75rem] text-slate-500">Product search, scan karein ya poori category ek sath layein. Jo khana khali chhorein woh gina nahi jayega.</p>
+          <p className="-mt-2 text-[0.75rem] text-slate-500">{t('Product search, scan karein ya poori category ek sath layein. Jo khana khali chhorein woh gina nahi jayega.')}</p>
 
           {!picked.length ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <ClipboardCheck className="mx-auto h-9 w-9 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-800">Ginti shuru karein</p>
-              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Ek rack ya ek category se shuru karna aasaan hai</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800">{t('Ginti shuru karein')}</p>
+              <p className="mt-0.5 text-[0.8125rem] text-slate-500">{t('Ek rack ya ek category se shuru karna aasaan hai')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
               <Table minWidth="36rem" className="[&>table]:text-sm">
-                <THead className="bg-slate-50 text-left text-[0.75rem] text-slate-500">
-                  <Tr><Th className="px-3 py-2 font-medium">Cheez</Th><Th className="px-3 py-2 text-right font-medium">System</Th><Th className="px-3 py-2 text-right font-medium">Shelf par</Th><Th className="px-3 py-2 text-right font-medium">Farq</Th><Th className="px-3 py-2 text-right font-medium">Amount</Th><Th className="p-0 w-8" /></Tr>
+                <THead className="bg-slate-50 text-start text-[0.75rem] text-slate-500">
+                  <Tr><Th className="px-3 py-2 font-medium">{t('Cheez')}</Th><Th className="px-3 py-2 text-end font-medium">{t('System')}</Th><Th className="px-3 py-2 text-end font-medium">{t('Shelf par')}</Th><Th className="px-3 py-2 text-end font-medium">{t('Farq')}</Th><Th className="px-3 py-2 text-end font-medium">{t('Amount')}</Th><Th className="p-0 w-8" /></Tr>
                 </THead>
                 <TBody className="divide-y divide-slate-100">
                   {groups.map((g) => {
-                    const remove = <button type="button" onClick={() => setPicked((prev) => prev.filter((p) => p.id !== g.source.id))} aria-label="Hatayein" className="rounded-md p-1 text-slate-400 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>;
-                    if (!g.rows) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-slate-500">{g.source.name} — {g.failed ? 'load nahi hua' : 'load ho raha hai…'}</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
-                    if (!g.rows.length) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="mr-1 inline h-3.5 w-3.5" />{g.source.name} — roll ya IMEI wala maal; is ki correction "Naya adjustment" se device / roll chun kar karein</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
+                    const remove = <button type="button" onClick={() => setPicked((prev) => prev.filter((p) => p.id !== g.source.id))} aria-label={t('Hatayein')} className="rounded-md p-1 text-slate-400 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>;
+                    if (!g.rows) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-slate-500">{g.source.name} — {g.failed ? t('load nahi hua') : t('load ho raha hai…')}</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
+                    if (!g.rows.length) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="me-1 inline h-3.5 w-3.5" />{t('{{name}} — roll ya IMEI wala maal; is ki correction "Naya adjustment" se device / roll chun kar karein', { name: g.source.name })}</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
                     return g.rows.map((r, j) => {
                       const v = counted[r.key];
                       const diff = v !== undefined && v !== '' ? Number(v) - r.system : null;
                       return (
                         <Tr key={r.key}>
                           <Td className="max-w-[16rem] truncate px-3 py-1.5 text-slate-800">{r.name}</Td>
-                          <Td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{qtyText(r.system)} <span className="text-[0.6875rem]">{r.unit}</span></Td>
-                          <Td className="text-inherit px-3 py-1.5 text-right">
-                            <input inputMode="decimal" value={v ?? ''} onChange={(e) => setCounted((c) => ({ ...c, [r.key]: e.target.value.replace(/[^\d.]/g, '') }))} placeholder="—" aria-label={`${r.name} ginti`}
-                              className="h-8 w-24 rounded-lg border border-slate-200 bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+                          <Td className="px-3 py-1.5 text-end tabular-nums text-slate-500">{qtyText(r.system)} <span className="text-[0.6875rem]">{r.unit}</span></Td>
+                          <Td className="text-inherit px-3 py-1.5 text-end">
+                            <input inputMode="decimal" value={v ?? ''} onChange={(e) => setCounted((c) => ({ ...c, [r.key]: e.target.value.replace(/[^\d.]/g, '') }))} placeholder="—" aria-label={t('{{name}} ginti', { name: r.name })}
+                              className="h-8 w-24 rounded-lg border border-slate-200 bg-white px-2 text-end tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
                           </Td>
-                          <Td className={cn('px-3 py-1.5 text-right font-semibold tabular-nums', diff === null ? 'text-slate-300' : diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-rose-700' : 'text-slate-500')}>
-                            {diff === null ? '—' : diff === 0 ? 'Theek' : `${diff > 0 ? '+' : ''}${qtyText(diff)}`}
+                          <Td className={cn('px-3 py-1.5 text-end font-semibold tabular-nums', diff === null ? 'text-slate-300' : diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-rose-700' : 'text-slate-500')}>
+                            {diff === null ? '—' : diff === 0 ? t('Theek') : `${diff > 0 ? '+' : ''}${qtyText(diff)}`}
                           </Td>
-                          <Td className={cn('px-3 py-1.5 text-right tabular-nums', diff && diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{diff ? `${diff > 0 ? '+' : '−'}${money(Math.abs(diff * r.cost))}` : ''}</Td>
+                          <Td className={cn('px-3 py-1.5 text-end tabular-nums', diff && diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{diff ? `${diff > 0 ? '+' : '−'}${money(Math.abs(diff * r.cost))}` : ''}</Td>
                           <Td className="p-0 text-inherit">{j === 0 && remove}</Td>
                         </Tr>
                       );
@@ -229,7 +230,7 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
 
           {entered.length > 0 && (
             <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-2xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200">
-              <span className="text-slate-500">{entered.length} gini · {changed.length} me farq</span>
+              <span className="text-slate-500">{t('{{count}} gini · {{count2}} me farq', { count: entered.length, count2: changed.length })}</span>
               <span>{EFFECTS.GAIN.label} <b className="tabular-nums text-emerald-700">+{money(gained)}</b></span>
               <span>{EFFECTS.LOSS.label} <b className="tabular-nums text-rose-700">−{money(lost)}</b></span>
             </div>

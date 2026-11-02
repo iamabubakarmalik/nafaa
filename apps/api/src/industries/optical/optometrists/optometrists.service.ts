@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { startOfDayTz, endOfDayTz, weekdayInTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpdateOptometristDto, UpsertOptometristDto } from './dto/upsert-optometrist.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class OptometristsService {
@@ -12,7 +13,7 @@ export class OptometristsService {
     const dup = await this.prisma.opticalOptometrist.findFirst({
       where: { tenantId: user.tenantId, employeeCode: dto.employeeCode },
     });
-    if (dup) throw new BadRequestException(`Code "${dto.employeeCode}" pehle se kisi aur ka hai`);
+    if (dup) throw new BadRequestException(apiMessage('Code "{{employeeCode}}" pehle se kisi aur ka hai', { employeeCode: dto.employeeCode }));
     this.checkHours(dto);
     return this.prisma.opticalOptometrist.create({ data: { tenantId: user.tenantId, ...dto, employeeCode: dto.employeeCode.trim(), name: dto.name.trim() } });
   }
@@ -75,7 +76,7 @@ export class OptometristsService {
     if (!o) throw new NotFoundException('Optometrist nahi mila');
     if (dto.employeeCode && dto.employeeCode !== o.employeeCode) {
       const dup = await this.prisma.opticalOptometrist.findFirst({ where: { tenantId: user.tenantId, employeeCode: dto.employeeCode, id: { not: id } }, select: { id: true } });
-      if (dup) throw new BadRequestException(`Code "${dto.employeeCode}" pehle se kisi aur ka hai`);
+      if (dup) throw new BadRequestException(apiMessage('Code "{{employeeCode}}" pehle se kisi aur ka hai', { employeeCode: dto.employeeCode }));
     }
     this.checkHours({ workStartTime: dto.workStartTime ?? o.workStartTime, workEndTime: dto.workEndTime ?? o.workEndTime });
     return this.prisma.opticalOptometrist.update({ where: { id }, data: dto });

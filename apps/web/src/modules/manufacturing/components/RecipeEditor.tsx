@@ -20,6 +20,7 @@ import { ProductSearch } from '@modules/inventory/stock-adjustments/components/P
 import { usePurchaseSources, type Source } from '@modules/purchasing/purchases/editor/sources';
 import { MFG_KEY, errText, manufacturingApi, qty, type Recipe, type RecipeInput } from '../api';
 import { baseQty, marginPct, round, unitOptions, wholeUnits, type UnitOption } from '../units';
+import { t } from '@core/i18n';
 
 interface LineDraft {
   key: string;
@@ -109,8 +110,8 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
   const touch = () => setDirty(true);
 
   const add = (s: Source) => {
-    if (s.id === product.id) { toast.error('Product apni hi Recipe me nahi aa sakta'); return; }
-    if (s.hasVariants) { toast.error(`${s.name} ke variants hain — bina variant wala item lein`); return; }
+    if (s.id === product.id) { toast.error(t('Product apni hi Recipe me nahi aa sakta')); return; }
+    if (s.hasVariants) { toast.error(t('{{name}} ke variants hain — bina variant wala item lein', { name: s.name })); return; }
     const existing = lines.find((l) => l.productId === s.id);
     if (existing) { focusKey.current = existing.key; setLines((ls) => [...ls]); return; }
     const options = unitOptions(s.baseUnit, s.units);
@@ -153,9 +154,9 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
 
   const save = async () => {
     if (!canEdit || busy) return;
-    if (!lines.length) { toast.error('Kam se kam ek raw item jorein'); return; }
-    if (!(num(yieldQty) > 0)) { toast.error('Ek batch se kitna banta hai — likhein'); return; }
-    if (lines.some((l) => !(l.quantity > 0))) { toast.error('Har raw item ki quantity likhein'); return; }
+    if (!lines.length) { toast.error(t('Kam se kam ek raw item jorein')); return; }
+    if (!(num(yieldQty) > 0)) { toast.error(t('Ek batch se kitna banta hai — likhein')); return; }
+    if (lines.some((l) => !(l.quantity > 0))) { toast.error(t('Har raw item ki quantity likhein')); return; }
     const body: RecipeInput = {
       yieldQty: num(yieldQty), wastagePercent: num(wastage), packingCost: num(packing), labourCost: num(labour), overheadCost: num(overhead),
       makeOnSale, isActive: active,
@@ -167,22 +168,22 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
     setBusy(true);
     try {
       const res = await manufacturingApi.saveRecipe(product.id, body);
-      toast.success('Recipe save ho gayi');
+      toast.success(t('Recipe save ho gayi'));
       setDirty(false);
       void qc.invalidateQueries({ queryKey: [MFG_KEY] });
       void qc.invalidateQueries({ queryKey: ['product', product.id] });
       onSaved?.(res.recipe);
-    } catch (e) { toast.error(errText(e, 'Save nahi hui')); }
+    } catch (e) { toast.error(errText(e, t('Save nahi hui'))); }
     finally { setBusy(false); }
   };
 
   const del = async () => {
     if (!recipe || !canEdit) return;
-    const ok = await confirmDialog({ title: `"${product.name}" ki Recipe hatayein?`, text: 'Pichhli production ka record rahega. Product waisa hi rahega.', yes: 'Hatayein', danger: true });
+    const ok = await confirmDialog({ title: t('"{{name}}" ki Recipe hatayein?', { name: product.name }), text: t('Pichhli production ka record rahega. Product waisa hi rahega.'), yes: t('Hatayein'), danger: true });
     if (!ok) return;
     try {
       await manufacturingApi.deleteRecipe(product.id);
-      toast.success('Recipe hata di');
+      toast.success(t('Recipe hata di'));
       void qc.invalidateQueries({ queryKey: [MFG_KEY] });
       onSaved?.(null);
     } catch (e) { toast.error(errText(e)); }
@@ -207,17 +208,17 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-[0.9375rem] font-semibold text-slate-900">Raw maal (1 batch)</h3>
-              <p className="text-[0.8125rem] text-slate-500">Ek batch me kya kya lagta hai — g, kg, packing sab chalta hai</p>
+              <h3 className="text-[0.9375rem] font-semibold text-slate-900">{t('Raw maal (1 batch)')}</h3>
+              <p className="text-[0.8125rem] text-slate-500">{t('Ek batch me kya kya lagta hai — g, kg, packing sab chalta hai')}</p>
             </div>
-            {!ro && <p className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Enter</Kbd> agla{!compact && <> · <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</>}</p>}
+            {!ro && <p className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Enter</Kbd> {' '}{t('agla')}{!compact && <> · <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</>}</p>}
           </div>
           {!ro && (
             <ProductSearch sources={sources.filter((s) => s.id !== product.id)} byCode={byCode} loading={loading} showUnits={false}
-              placeholder="Raw item dhoondein — naam, SKU ya barcode…" onPick={(s) => add(s)} />
+              placeholder={t('Raw item dhoondein — naam, SKU ya barcode…')} onPick={(s) => add(s)} />
           )}
           {lines.length === 0 ? (
-            <p className="mt-4 rounded-xl bg-slate-50 px-4 py-6 text-center text-[0.875rem] text-slate-500">Abhi koi raw item nahi. Upar se dhoond kar jorein — jaise moong daal, masoor, packing bag.</p>
+            <p className="mt-4 rounded-xl bg-slate-50 px-4 py-6 text-center text-[0.875rem] text-slate-500">{t('Abhi koi raw item nahi. Upar se dhoond kar jorein — jaise moong daal, masoor, packing bag.')}</p>
           ) : (
             <ul data-enter-next className="mt-3 divide-y divide-slate-100">
               {lines.map((l) => {
@@ -228,19 +229,19 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
                     <div className="col-span-2 min-w-0 sm:col-span-1">
                       <p className="truncate text-[0.875rem] font-medium text-slate-900">{l.name}</p>
                       <p className={cn('text-[0.75rem]', short ? 'text-rose-600' : 'text-slate-500')}>
-                        Stock {qty(l.stock)} {l.stockUnit}{r ? ` · lagega ${qty(round(r.base, 4))} ${l.stockUnit}` : ''}
+                        {t('Stock {{stock}} {{stockUnit}}{{value}}', { stock: qty(l.stock), stockUnit: l.stockUnit, value: r ? t(' · lagega {{qty}} {{stockUnit}}', { qty: qty(round(r.base, 4)), stockUnit: l.stockUnit }) : '' })}
                       </p>
                     </div>
-                    <span className="col-start-3 row-start-2 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-700 sm:col-start-4 sm:row-start-1">{r ? money(r.cost) : '—'}</span>
-                    <input data-qty={l.key} type="number" inputMode="decimal" min={0} step="any" aria-label={`${l.name} quantity`} disabled={ro}
+                    <span className="col-start-3 row-start-2 text-end text-[0.8125rem] font-semibold tabular-nums text-slate-700 sm:col-start-4 sm:row-start-1">{r ? money(r.cost) : '—'}</span>
+                    <input data-qty={l.key} type="number" inputMode="decimal" min={0} step="any" aria-label={t('{{name}} quantity', { name: l.name })} disabled={ro}
                       value={Number.isFinite(l.quantity) ? l.quantity : ''} onChange={(e) => patch(l.key, { quantity: num(e.target.value) })}
                       className={cn(inputCls, 'col-start-1 row-start-2 sm:col-start-2 sm:row-start-1')} />
-                    <select aria-label={`${l.name} unit`} disabled={ro} value={l.unitKey} onChange={(e) => patch(l.key, { unitKey: e.target.value })}
+                    <select aria-label={t('{{name}} unit', { name: l.name })} disabled={ro} value={l.unitKey} onChange={(e) => patch(l.key, { unitKey: e.target.value })}
                       className={cn(inputCls, 'col-start-2 row-start-2 sm:col-start-3 sm:row-start-1')}>
                       {l.options.map((o) => <option key={o.key} value={o.key}>{o.name}{o.packRate ? ` (${qty(o.packRate)} ${l.stockUnit})` : ''}</option>)}
                     </select>
                     {!ro && (
-                      <button type="button" onClick={() => remove(l.key)} aria-label={`${l.name} hatayein`} tabIndex={-1}
+                      <button type="button" onClick={() => remove(l.key)} aria-label={t('{{name}} hatayein', { name: l.name })} tabIndex={-1}
                         className="col-start-3 row-start-1 flex h-9 w-9 items-center justify-center justify-self-end rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-600 sm:col-start-5">
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -254,29 +255,29 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
 
         {/* Yield, wastage and fixed costs */}
         <section data-enter-next className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-          <h3 className="text-[0.9375rem] font-semibold text-slate-900">Batch aur Cost</h3>
+          <h3 className="text-[0.9375rem] font-semibold text-slate-900">{t('Batch aur Cost')}</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">1 batch se kitna banta hai ({product.unit})</span>
+              <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('1 batch se kitna banta hai ({{unit}})', { unit: product.unit })}</span>
               <input type="number" min={0} step="any" inputMode="decimal" disabled={ro} value={yieldQty} onChange={(e) => { setYieldQty(e.target.value); touch(); }} className={inputCls} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Wastage %</span>
+              <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Wastage %')}</span>
               <input type="number" min={0} max={90} step="any" inputMode="decimal" disabled={ro} value={wastage} onChange={(e) => { setWastage(e.target.value); touch(); }} className={inputCls} />
-              <span className="mt-1 block text-[0.6875rem] text-slate-500">Banate waqt zaya hone wala raw maal</span>
+              <span className="mt-1 block text-[0.6875rem] text-slate-500">{t('Banate waqt zaya hone wala raw maal')}</span>
             </label>
             {!costHidden && (
               <>
                 <label className="block">
-                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Packing (Rs / batch)</span>
+                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Packing (Rs / batch)')}</span>
                   <input type="number" min={0} step="any" inputMode="decimal" disabled={ro} value={packing} onChange={(e) => { setPacking(e.target.value); touch(); }} className={inputCls} />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Mazdoori (Rs / batch)</span>
+                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Mazdoori (Rs / batch)')}</span>
                   <input type="number" min={0} step="any" inputMode="decimal" disabled={ro} value={labour} onChange={(e) => { setLabour(e.target.value); touch(); }} className={inputCls} />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Gas / bijli (Rs / batch)</span>
+                  <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Gas / bijli (Rs / batch)')}</span>
                   <input type="number" min={0} step="any" inputMode="decimal" disabled={ro} value={overhead} onChange={(e) => { setOverhead(e.target.value); touch(); }} className={inputCls} />
                 </label>
               </>
@@ -284,10 +285,10 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
           </div>
           <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
             <Switch checked={makeOnSale} disabled={ro} onChange={(e) => { setMakeOnSale(e.target.checked); touch(); }}
-              label={<span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4 text-amber-500" />Bikte waqt banayein</span>}
-              description="Pehle se stock nahi banta — bill par bechte hi raw maal stock se kam ho jata hai (jaise dry fruit box)" />
+              label={<span className="inline-flex items-center gap-1.5"><Zap className="h-4 w-4 text-amber-500" />{t('Bikte waqt banayein')}</span>}
+              description={t('Pehle se stock nahi banta — bill par bechte hi raw maal stock se kam ho jata hai (jaise dry fruit box)')} />
             <Switch checked={active} disabled={ro} onChange={(e) => { setActive(e.target.checked); touch(); }}
-              label="Recipe chalu hai" description="Band Recipe se production nahi hoti" />
+              label={t('Recipe chalu hai')} description={t('Band Recipe se production nahi hoti')} />
           </div>
         </section>
       </div>
@@ -295,16 +296,16 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
       {/* Live cost */}
       <aside className={cn('space-y-3', !compact && 'xl:sticky xl:top-24 xl:self-start')}>
         <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Coins className="h-3.5 w-3.5" />Cost (abhi ke rate par)</p>
+          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Coins className="h-3.5 w-3.5" />{t('Cost (abhi ke rate par)')}</p>
           <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{money(calc.unitCost)}<span className="text-[0.8125rem] font-medium text-slate-500"> / {product.unit}</span></p>
           <dl className="mt-3 space-y-1.5 text-[0.8125rem]">
-            <div className="flex justify-between"><dt className="text-slate-500">Raw maal / batch</dt><dd className="tabular-nums">{money(calc.material)}</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-500">Packing, mazdoori, bijli</dt><dd className="tabular-nums">{money(calc.extra)}</dd></div>
-            <div className="flex justify-between font-semibold"><dt className="text-slate-700">1 batch ({qty(calc.y)} {product.unit})</dt><dd className="tabular-nums">{money(calc.total)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-500">{t('Raw maal / batch')}</dt><dd className="tabular-nums">{money(calc.material)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-500">{t('Packing, mazdoori, bijli')}</dt><dd className="tabular-nums">{money(calc.extra)}</dd></div>
+            <div className="flex justify-between font-semibold"><dt className="text-slate-700">{t('1 batch ({{qty}} {{unit}})', { qty: qty(calc.y), unit: product.unit })}</dt><dd className="tabular-nums">{money(calc.total)}</dd></div>
           </dl>
         </div>
         <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Percent className="h-3.5 w-3.5" />Profit har price par</p>
+          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Percent className="h-3.5 w-3.5" />{t('Profit har price par')}</p>
           <ul className="mt-2 space-y-1.5 text-[0.8125rem]">
             {tiers.map(([label, price]) => {
               const m = marginPct(price, calc.unitCost);
@@ -314,30 +315,30 @@ export function RecipeEditor({ product, recipe, canEdit, onSaved, compact }: {
                   {Number(price) > 0 ? (
                     <span className="tabular-nums">
                       <span className="text-slate-800">{money(Number(price))}</span>
-                      {!costHidden && <span className={cn('ml-2 font-semibold', m !== null && m < 0 ? 'text-rose-600' : 'text-success-700')}>{money(Number(price) - calc.unitCost)} · {marginText(m)}</span>}
+                      {!costHidden && <span className={cn('ms-2 font-semibold', m !== null && m < 0 ? 'text-rose-600' : 'text-success-700')}>{money(Number(price) - calc.unitCost)} · {marginText(m)}</span>}
                     </span>
-                  ) : <span className="text-slate-400">price nahi</span>}
+                  ) : <span className="text-slate-400">{t('price nahi')}</span>}
                 </li>
               );
             })}
           </ul>
           {!costHidden && marginPct(product.price, calc.unitCost) !== null && marginPct(product.price, calc.unitCost)! < 0 && (
-            <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-rose-50 px-2.5 py-1.5 text-[0.75rem] text-rose-800"><AlertTriangle className="h-3.5 w-3.5" />Cost price se zyada hai — nuqsan hoga</p>
+            <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-rose-50 px-2.5 py-1.5 text-[0.75rem] text-rose-800"><AlertTriangle className="h-3.5 w-3.5" />{t('Cost price se zyada hai — nuqsan hoga')}</p>
           )}
         </div>
         <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Factory className="h-3.5 w-3.5" />Stock se ban sakta hai</p>
+          <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500"><Factory className="h-3.5 w-3.5" />{t('Stock se ban sakta hai')}</p>
           <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">{lines.length ? `${qty(wholeUnits(calc.units, product.unit))} ${product.unit}` : '—'}</p>
-          {lines.length > 0 && calc.limitedBy && <p className="text-[0.75rem] text-slate-500">{qty(calc.batches)} batch · sab se pehle {calc.limitedBy} khatam hoga</p>}
-          {makeOnSale && <Badge className="mt-2" size="xs" variant="warning"><Zap className="h-3 w-3" />Bikte waqt banta hai</Badge>}
+          {lines.length > 0 && calc.limitedBy && <p className="text-[0.75rem] text-slate-500">{t('{{batches}} batch · sab se pehle {{limitedBy}} khatam hoga', { batches: qty(calc.batches), limitedBy: calc.limitedBy })}</p>}
+          {makeOnSale && <Badge className="mt-2" size="xs" variant="warning"><Zap className="h-3 w-3" />{t('Bikte waqt banta hai')}</Badge>}
         </div>
         {canEdit && (
           <div className="flex flex-wrap gap-2">
-            <Button className="flex-1" onClick={() => void save()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{recipe ? 'Recipe save karein' : 'Recipe banayein'}</Button>
-            {recipe && <Button variant="critical" onClick={() => void del()} aria-label="Recipe hatayein"><Trash2 className="h-4 w-4" /></Button>}
+            <Button className="flex-1" onClick={() => void save()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{recipe ? t('Recipe save karein') : t('Recipe banayein')}</Button>
+            {recipe && <Button variant="critical" onClick={() => void del()} aria-label={t('Recipe hatayein')}><Trash2 className="h-4 w-4" /></Button>}
           </div>
         )}
-        {dirty && canEdit && <p className="text-center text-[0.75rem] text-amber-700">Badlav save nahi hue</p>}
+        {dirty && canEdit && <p className="text-center text-[0.75rem] text-amber-700">{t('Badlav save nahi hue')}</p>}
       </aside>
     </div>
   );

@@ -20,7 +20,7 @@ describe('scan to pack', () => {
   it('packed only when every line is exact; lines without codes are ticked by hand', () => {
     expect(checkPack(lines, { 0: 2, 1: 1 }, [2])).toEqual({ ok: true });
     expect(checkPack(lines, { 0: 2, 1: 1 }, [])).toMatchObject({ ok: false });
-    expect(checkPack(lines, { 0: 1, 1: 1 }, [2])).toEqual({ ok: false, message: 'Shirt M: 1 abhi scan nahi hue' });
+    expect(checkPack(lines, { 0: 1, 1: 1 }, [2])).toMatchObject({ ok: false, message: 'Shirt M: 1 abhi scan nahi hue' });
     expect(checkPack(lines, { 0: 3, 1: 1 }, [2])).toMatchObject({ ok: false, message: expect.stringContaining('zyada') });
     // A hand tick never stands in for a line that has a barcode.
     expect(checkPack(lines, { 0: 2 }, [1, 2])).toMatchObject({ ok: false });

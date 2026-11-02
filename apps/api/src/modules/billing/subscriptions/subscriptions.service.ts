@@ -11,6 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Months added to the billing period for each interval. */
 const INTERVAL_MONTHS: Record<BillingInterval, number> = {
@@ -192,7 +193,7 @@ export class SubscriptionsService {
 
     if (!amount || amount <= 0) {
       throw new BadRequestException(
-        `${plan.name} ki ${interval.toLowerCase()} price set nahi hai. Doosra interval choose karein.`,
+        apiMessage('{{planName}} ki {{interval}} price set nahi hai. Doosra interval choose karein.', { planName: plan.name, interval: interval.toLowerCase() }),
       );
     }
     return { amount, months: INTERVAL_MONTHS[interval] };
@@ -271,8 +272,7 @@ export class SubscriptionsService {
         }
 
         throw new BadRequestException(
-          `Aap ki ${checkout.plan.name} ki payment abhi review mein hai (${frozenInvoice.invoiceNumber}). ` +
-            `Admin ke approve ya reject karne ka intezaar karein — uske baad plan change kar sakte hain.`,
+          apiMessage('Aap ki {{planName}} ki payment abhi review mein hai ({{invoiceNumber}}). Admin ke approve ya reject karne ka intezaar karein — uske baad plan change kar sakte hain.', { planName: checkout.plan.name, invoiceNumber: frozenInvoice.invoiceNumber }),
         );
       }
 
@@ -438,8 +438,7 @@ export class SubscriptionsService {
     const underReview = sub.invoices.find((inv) => inv.payments.length > 0);
     if (underReview) {
       throw new BadRequestException(
-        `${underReview.invoiceNumber} ki payment review mein hai — cancel nahi ho sakti. ` +
-          `Admin ke reject karne ka intezaar karein.`,
+        apiMessage('{{invoiceNumber}} ki payment review mein hai — cancel nahi ho sakti. Admin ke reject karne ka intezaar karein.', { invoiceNumber: underReview.invoiceNumber }),
       );
     }
 
@@ -651,10 +650,10 @@ export class SubscriptionsService {
       .create({
         tenantId: sub.tenantId,
         type: 'PAYMENT_APPROVED',
-        title: `${sub.plan.name} Active ✅`,
+        title: apiMessage('{{plan}} Active ✅', { plan: sub.plan.name }),
         message: stacked
-          ? `Renew ho gaya — ab ${periodEndLabel} tak chalega.`
-          : `Plan activate ho gaya. ${periodEndLabel} tak valid hai.`,
+          ? apiMessage('Renew ho gaya — ab {{date}} tak chalega.', { date: periodEndLabel })
+          : apiMessage('Plan activate ho gaya. {{date}} tak valid hai.', { date: periodEndLabel }),
         link: '/billing',
       })
       .catch((e: any) =>
@@ -749,9 +748,9 @@ export class SubscriptionsService {
         kept: 1,
         cancelled: cancelIds.length,
         keptId: keep.id,
-        message: cancelIds.length > 0
-          ? `${cancelIds.length} duplicate cancel ho gaye`
-          : 'Sirf 1 pending hai — sab theek hai',
+        ...(cancelIds.length > 0
+          ? apiMessage('{{cancelIdsCount}} duplicate cancel ho gaye', { cancelIdsCount: cancelIds.length })
+          : apiMessage('Sirf 1 pending hai — sab theek hai')),
       };
     });
   }

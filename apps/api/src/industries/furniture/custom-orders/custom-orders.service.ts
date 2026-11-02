@@ -15,6 +15,7 @@ import { CreateCustomOrderDto, RecordPaymentDto, UpdateOrderStatusDto, UpdatePro
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
 import { ensureCustomer, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BILLED, billCustomOrder, billTotal, ensureOrderDelivery, orderSaleNumber, r2 } from './order-billing';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Still in the shop: the price is agreed or being made. */
 const OPEN = ['QUOTATION', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'READY_FOR_DELIVERY'];
@@ -180,7 +181,7 @@ export class CustomOrdersService {
     if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const total = billTotal(o);
     const remaining = r2(total - o.totalPaid);
-    if (amount > remaining + 0.01) throw new BadRequestException(`Sirf Rs ${Math.max(remaining, 0)} baqi hai`);
+    if (amount > remaining + 0.01) throw new BadRequestException(apiMessage('Sirf Rs {{remaining}} baqi hai', { remaining: Math.max(remaining, 0) }));
     const billed = BILLED.includes(o.status);
 
     return this.prisma.$transaction(async (tx) => {

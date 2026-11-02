@@ -11,6 +11,7 @@ import {
 // cheezein kabhi nazar hi na aatin.
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { queueGenericMutation } from './syncEngine';
+import { t } from '@core/i18n';
 
 export interface OfflineProductsResponse {
   items: Product[];
@@ -171,7 +172,7 @@ export const offlineProductsApi = {
         return serverMatch;
       }
     }
-    throw new Error(`Barcode "${code}" se koi product nahi mila`);
+    throw new Error(t('Barcode "{{code}}" se koi product nahi mila', { code }));
   },
 
   lowStock: async (): Promise<Product[]> => {
@@ -272,7 +273,7 @@ export const offlineProductsApi = {
 
   update: async (id: string, payload: UpdateProductPayload): Promise<Product> => {
     const existing = await db.products.get(id);
-    if (!existing) throw new Error('Product nahi mila');
+    if (!existing) throw new Error(t('Product nahi mila'));
 
     // Optimistic local update
     const updated: OfflineProduct = {
@@ -347,13 +348,13 @@ export const offlineProductsApi = {
 
   toggleActive: async (id: string): Promise<Product> => {
     const existing = await db.products.get(id);
-    if (!existing) throw new Error('Product nahi mila');
+    if (!existing) throw new Error(t('Product nahi mila'));
     return offlineProductsApi.update(id, { isActive: !existing.isActive });
   },
 
   toggleFeatured: async (id: string): Promise<Product> => {
     const existing = await db.products.get(id);
-    if (!existing) throw new Error('Product nahi mila');
+    if (!existing) throw new Error(t('Product nahi mila'));
     return offlineProductsApi.update(id, { isFeatured: !existing.isFeatured });
   },
 };

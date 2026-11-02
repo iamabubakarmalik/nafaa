@@ -5,22 +5,23 @@
 
 import type { BrandName } from '@/assets/brands/BrandLogo';
 import type { BreakdownKey, CalcContext, ChannelFees, ChannelKind, QuoteBody, TargetMode } from '../api/growth.api';
+import { t } from '@core/i18n';
 
-export const KIND_LABEL: Record<ChannelKind, string> = { DARAZ: 'Daraz', SHOPIFY: 'Shopify', WOOCOMMERCE: 'WooCommerce', WEBSITE: 'Apni website' };
+export const KIND_LABEL: Record<ChannelKind, string> = { DARAZ: t('Daraz'), SHOPIFY: t('Shopify'), WOOCOMMERCE: t('WooCommerce'), WEBSITE: t('Apni website') };
 export const KIND_BRAND: Record<ChannelKind, BrandName> = { DARAZ: 'daraz', SHOPIFY: 'shopify', WOOCOMMERCE: 'woocommerce', WEBSITE: 'website' };
 
 export const BREAKDOWN: Record<BreakdownKey, { label: string; color: string }> = {
-  cost: { label: 'Product cost', color: '#64748b' },
-  tax: { label: 'GST / tax', color: '#a855f7' },
-  packaging: { label: 'Packaging', color: '#94a3b8' },
-  shipping: { label: 'Courier / shipping', color: '#0ea5e9' },
-  codFee: { label: 'COD fee', color: '#06b6d4' },
-  commission: { label: 'Commission', color: '#f97316' },
-  paymentFee: { label: 'Payment fee', color: '#f59e0b' },
-  fixedFee: { label: 'Fixed fee', color: '#eab308' },
-  ads: { label: 'Ads', color: '#ec4899' },
-  rto: { label: 'RTO (wapsi) ka nuksan', color: '#ef4444' },
-  profit: { label: 'Profit', color: '#16a34a' },
+  cost: { label: t('Product cost'), color: '#64748b' },
+  tax: { label: t('GST / tax'), color: '#a855f7' },
+  packaging: { label: t('Packaging'), color: '#94a3b8' },
+  shipping: { label: t('Courier / shipping'), color: '#0ea5e9' },
+  codFee: { label: t('COD fee'), color: '#06b6d4' },
+  commission: { label: t('Commission'), color: '#f97316' },
+  paymentFee: { label: t('Payment fee'), color: '#f59e0b' },
+  fixedFee: { label: t('Fixed fee'), color: '#eab308' },
+  ads: { label: t('Ads'), color: '#ec4899' },
+  rto: { label: t('RTO (wapsi) ka nuksan'), color: '#ef4444' },
+  profit: { label: t('Profit'), color: '#16a34a' },
 };
 
 /** Typed inputs; an empty box means "use the default". */

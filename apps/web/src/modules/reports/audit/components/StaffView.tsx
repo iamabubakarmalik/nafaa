@@ -15,6 +15,7 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { AUDIT_KEY, auditApi, type AuditEvent, type AuditFilters, type StaffRisk } from '../api';
 import { ROLE_LABEL, TYPE_META, scoreColor, when } from '../meta';
 import { Empty, Panel, ScoreRing, SeverityPill, TypeIcon } from './parts';
+import { t } from '@core/i18n';
 
 interface Fmt { money: (n: number) => string; cost: (n: number) => string; costHidden: boolean }
 
@@ -26,19 +27,19 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
   const chart = rows.filter((s) => s.score > 0).slice(0, 12).map((s) => ({ name: s.name, score: s.score }));
 
   if (loading || !staff) return <div className="grid gap-4"><Skeleton className="h-64 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div>;
-  if (!rows.length) return <Panel icon={Users} title="Staff ka risk"><Empty icon={Users} text="Is period me kisi staff ka koi kaam nahi" /></Panel>;
+  if (!rows.length) return <Panel icon={Users} title={t('Staff ka risk')}><Empty icon={Users} text={t('Is period me kisi staff ka koi kaam nahi')} /></Panel>;
 
   return (
     <div className="space-y-4">
       {chart.length > 0 && (
-        <Panel icon={Gauge} title="Risk score" hint="0 se 100. Har shak wala kaam points deta hai (zaroori 8, dhyan 3, aam 1); dukaan ke ausat se zyada void ya wapsi par aur points. 70+ laal, 40+ peela.">
+        <Panel icon={Gauge} title={t('Risk score')} hint={t('0 se 100. Har shak wala kaam points deta hai (zaroori 8, dhyan 3, aam 1); dukaan ke ausat se zyada void ya wapsi par aur points. 70+ laal, 40+ peela.')}>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => (v.length > 10 ? `${v.slice(0, 9)}…` : v)} />
                 <YAxis domain={[0, 100]} tick={theme.axis} axisLine={false} tickLine={false} width={36} />
-                <Tooltip formatter={(v) => [`${v} / 100`, 'Risk score']} {...theme.tooltip} />
+                <Tooltip formatter={(v) => [`${v} / 100`, t('Risk score')]} {...theme.tooltip} />
                 <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={36}>
                   {chart.map((c) => <Cell key={c.name} fill={scoreColor(c.score)} />)}
                 </Bar>
@@ -48,14 +49,14 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
         </Panel>
       )}
 
-      <Panel icon={Users} title="Har staff" hint="Bande par dabayein: un ke numbers dukaan ke ausat ke saath aur un ke zaroori waqiye." flush>
+      <Panel icon={Users} title={t('Har staff')} hint={t('Bande par dabayein: un ke numbers dukaan ke ausat ke saath aur un ke zaroori waqiye.')} flush>
         <Table minWidth="60rem" className="hidden lg:block [&_table]:text-[0.8125rem]">
           <THead>
             <Tr>
-              <Th className="px-5 py-2">Staff</Th><Th className="px-2 py-2 text-right">Bill</Th><Th className="px-2 py-2 text-right">Void</Th>
-              <Th className="px-2 py-2 text-right">Return</Th><Th className="px-2 py-2 text-right">Discount</Th><Th className="px-2 py-2 text-right">Drawer kam</Th>
-              {!fmt.costHidden && <Th className="px-2 py-2 text-right">Stock nuqsan</Th>}
-              <Th className="px-2 py-2 text-right">Waqiye</Th><Th className="px-5 py-2">Sab se zyada</Th>
+              <Th className="px-5 py-2">{t('Staff')}</Th><Th className="px-2 py-2 text-end">{t('Bill')}</Th><Th className="px-2 py-2 text-end">{t('Void')}</Th>
+              <Th className="px-2 py-2 text-end">{t('Return')}</Th><Th className="px-2 py-2 text-end">{t('Discount')}</Th><Th className="px-2 py-2 text-end">{t('Drawer kam')}</Th>
+              {!fmt.costHidden && <Th className="px-2 py-2 text-end">{t('Stock nuqsan')}</Th>}
+              <Th className="px-2 py-2 text-end">{t('Waqiye')}</Th><Th className="px-5 py-2">{t('Sab se zyada')}</Th>
             </Tr>
           </THead>
           <TBody>
@@ -70,13 +71,13 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
                     </div>
                   </div>
                 </Td>
-                <Td className="px-2 py-2.5 text-right tabular-nums">{s.bills}</Td>
-                <Td className="px-2 py-2.5 text-right tabular-nums">{s.voids}{s.bills > 0 && <span className="block text-[0.6875rem] text-slate-500">{rate(s.voids, s.bills + s.voids).toFixed(1)}%</span>}</Td>
-                <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.refundValue)}<span className="block text-[0.6875rem] text-slate-500">{s.refunds} · {s.cashRefunds} cash</span></Td>
-                <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.discountValue)}<span className="block text-[0.6875rem] text-slate-500">{s.discounts} bill</span></Td>
-                <Td className={cn('px-2 py-2.5 text-right tabular-nums', s.drawerShort > 0 && 'text-rose-600')}>{fmt.money(s.drawerShort)}<span className="block text-[0.6875rem] text-slate-500">{s.shortCount} dafa</span></Td>
-                {!fmt.costHidden && <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.cost(s.cost ?? 0)}</Td>}
-                <Td className="px-2 py-2.5 text-right tabular-nums">{s.events}{s.high > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{s.high} zaroori</span>}</Td>
+                <Td className="px-2 py-2.5 text-end tabular-nums">{s.bills}</Td>
+                <Td className="px-2 py-2.5 text-end tabular-nums">{s.voids}{s.bills > 0 && <span className="block text-[0.6875rem] text-slate-500">{rate(s.voids, s.bills + s.voids).toFixed(1)}%</span>}</Td>
+                <Td className="px-2 py-2.5 text-end tabular-nums">{fmt.money(s.refundValue)}<span className="block text-[0.6875rem] text-slate-500">{t('{{refunds}} · {{cashRefunds}} cash', { refunds: s.refunds, cashRefunds: s.cashRefunds })}</span></Td>
+                <Td className="px-2 py-2.5 text-end tabular-nums">{fmt.money(s.discountValue)}<span className="block text-[0.6875rem] text-slate-500">{t('{{discounts}} bill', { discounts: s.discounts })}</span></Td>
+                <Td className={cn('px-2 py-2.5 text-end tabular-nums', s.drawerShort > 0 && 'text-rose-600')}>{fmt.money(s.drawerShort)}<span className="block text-[0.6875rem] text-slate-500">{t('{{shortCount}} dafa', { shortCount: s.shortCount })}</span></Td>
+                {!fmt.costHidden && <Td className="px-2 py-2.5 text-end tabular-nums">{fmt.cost(s.cost ?? 0)}</Td>}
+                <Td className="px-2 py-2.5 text-end tabular-nums">{s.events}{s.high > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{t('{{high}} zaroori', { high: s.high })}</span>}</Td>
                 <Td className="px-5 py-2.5">{s.topType ? <span className="inline-flex items-center gap-1.5 text-slate-700"><span className="h-2 w-2 rounded-full" style={{ background: TYPE_META[s.topType].color }} />{TYPE_META[s.topType].label}</span> : '—'}</Td>
               </Tr>
             ))}
@@ -85,11 +86,11 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
         <ul className="divide-y divide-slate-100 lg:hidden">
           {rows.map((s) => (
             <li key={s.id ?? 'none'}>
-              <button type="button" onClick={() => onOpen(s)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50">
+              <button type="button" onClick={() => onOpen(s)} className="flex w-full items-center gap-3 px-4 py-3 text-start hover:bg-slate-50">
                 <ScoreRing score={s.score} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-slate-900">{s.name}</span>
-                  <span className="block truncate text-[0.75rem] text-slate-500">{s.bills} bill · {s.voids} void · {fmt.money(s.refundValue)} return · {fmt.money(s.drawerShort)} drawer kam</span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{t('{{bills}} bill · {{voids}} void · {{refundValue}} return · {{drawerShort}} drawer kam', { bills: s.bills, voids: s.voids, refundValue: fmt.money(s.refundValue), drawerShort: fmt.money(s.drawerShort) })}</span>
                 </span>
                 {s.high > 0 && <span className="text-[0.75rem] font-semibold text-rose-600">{s.high}</span>}
               </button>
@@ -127,9 +128,9 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
     discount: rate(all.reduce((x, r) => x + r.discountValue, 0), sales),
   };
   const lines: Array<{ label: string; mine: number; shop: number; text: string }> = [
-    { label: 'Void bill', mine: rate(s.voids, s.bills), shop: avg.void, text: `${s.voids} bill · ${fmt.money(s.voidValue)}` },
-    { label: 'Return (sale ka)', mine: rate(s.refundValue, s.sales), shop: avg.refund, text: `${s.refunds} · ${fmt.money(s.refundValue)} · ${s.cashRefunds} cash` },
-    { label: 'Haath ki discount (sale ka)', mine: rate(s.discountValue, s.sales), shop: avg.discount, text: `${s.discounts} bill · ${fmt.money(s.discountValue)}` },
+    { label: t('Void bill'), mine: rate(s.voids, s.bills), shop: avg.void, text: t('{{voids}} bill · {{voidValue}}', { voids: s.voids, voidValue: fmt.money(s.voidValue) }) },
+    { label: t('Return (sale ka)'), mine: rate(s.refundValue, s.sales), shop: avg.refund, text: t('{{refunds}} · {{refundValue}} · {{cashRefunds}} cash', { refunds: s.refunds, refundValue: fmt.money(s.refundValue), cashRefunds: s.cashRefunds }) },
+    { label: t('Haath ki discount (sale ka)'), mine: rate(s.discountValue, s.sales), shop: avg.discount, text: t('{{discounts}} bill · {{discountValue}}', { discounts: s.discounts, discountValue: fmt.money(s.discountValue) }) },
   ];
 
   return createPortal(
@@ -145,17 +146,17 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
               <p className="text-[0.8125rem] text-slate-500">{[s.role && (ROLE_LABEL[s.role] ?? s.role), s.shop, `${s.bills} bill · ${fmt.money(s.sales)}`].filter(Boolean).join(' · ')}</p>
             </div>
           </div>
-          <IconButton label="Band karein" onClick={onClose}><X className="h-4 w-4" /></IconButton>
+          <IconButton label={t('Band karein')} onClick={onClose}><X className="h-4 w-4" /></IconButton>
         </header>
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
           <section className="space-y-3">
-            <h3 className="text-[0.8125rem] font-semibold text-slate-900">Dukaan ke ausat se muqabla</h3>
+            <h3 className="text-[0.8125rem] font-semibold text-slate-900">{t('Dukaan ke ausat se muqabla')}</h3>
             {lines.map((l) => {
               const max = Math.max(l.mine, l.shop, 0.1);
               const high = l.mine > l.shop * 2 && l.mine > 0.5;
               return (
                 <div key={l.label}>
-                  <div className="flex justify-between text-[0.8125rem]"><span className="text-slate-600">{l.label}</span><span className={cn('font-semibold tabular-nums', high ? 'text-rose-600' : 'text-slate-900')}>{l.mine.toFixed(1)}% <span className="font-normal text-slate-400">/ ausat {l.shop.toFixed(1)}%</span></span></div>
+                  <div className="flex justify-between text-[0.8125rem]"><span className="text-slate-600">{l.label}</span><span className={cn('font-semibold tabular-nums', high ? 'text-rose-600' : 'text-slate-900')}>{l.mine.toFixed(1)}% <span className="font-normal text-slate-400">{t('/ ausat {{value}}%', { value: l.shop.toFixed(1) })}</span></span></div>
                   <div className="mt-1 space-y-1">
                     <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${(l.mine / max) * 100}%`, background: high ? '#e11d48' : '#2563eb' }} /></div>
                     <div className="h-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-slate-400" style={{ width: `${(l.shop / max) * 100}%` }} /></div>
@@ -166,23 +167,23 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
             })}
           </section>
           <section className="grid grid-cols-2 gap-2 text-[0.8125rem]">
-            <Fact label="Drawer kam" value={fmt.money(s.drawerShort)} hint={`${s.shortCount} dafa`} bad={s.drawerShort > 0} />
-            <Fact label="Drawer zyada" value={fmt.money(s.drawerOver)} />
-            <Fact label="Galle se nikale" value={fmt.money(s.cashOut)} />
-            {!fmt.costHidden && <Fact label="Stock nuqsan (cost)" value={fmt.cost(s.cost ?? 0)} />}
-            <Fact label="Cost se kam bechi" value={`${s.belowCost} bill`} />
-            <Fact label="Ghalat PIN" value={String(s.pinFailed)} bad={s.pinFailed >= 3} />
-            <Fact label="Dukaan ke waqt ke baad" value={String(s.afterHours)} bad={s.afterHours >= 3} />
-            <Fact label="Kul waqiye" value={String(s.events)} hint={`${s.high} zaroori`} bad={s.high > 0} />
+            <Fact label={t('Drawer kam')} value={fmt.money(s.drawerShort)} hint={t('{{shortCount}} dafa', { shortCount: s.shortCount })} bad={s.drawerShort > 0} />
+            <Fact label={t('Drawer zyada')} value={fmt.money(s.drawerOver)} />
+            <Fact label={t('Galle se nikale')} value={fmt.money(s.cashOut)} />
+            {!fmt.costHidden && <Fact label={t('Stock nuqsan (cost)')} value={fmt.cost(s.cost ?? 0)} />}
+            <Fact label={t('Cost se kam bechi')} value={`${s.belowCost} bill`} />
+            <Fact label={t('Ghalat PIN')} value={String(s.pinFailed)} bad={s.pinFailed >= 3} />
+            <Fact label={t('Dukaan ke waqt ke baad')} value={String(s.afterHours)} bad={s.afterHours >= 3} />
+            <Fact label={t('Kul waqiye')} value={String(s.events)} hint={t('{{high}} zaroori', { high: s.high })} bad={s.high > 0} />
           </section>
           {s.id && (
             <section>
-              <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-900">Sab se zaroori waqiye</h3>
-              {events.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !events.data?.items.length ? <Empty text="Koi waqiya nahi" /> : (
+              <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-900">{t('Sab se zaroori waqiye')}</h3>
+              {events.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !events.data?.items.length ? <Empty text={t('Koi waqiya nahi')} /> : (
                 <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
                   {events.data.items.map((e) => (
                     <li key={e.id}>
-                      <button type="button" onClick={() => onOpenEvent(e)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
+                      <button type="button" onClick={() => onOpenEvent(e)} className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-slate-50">
                         <TypeIcon type={e.type} size="sm" />
                         <span className="min-w-0 flex-1"><span className="block truncate text-[0.8125rem] font-medium text-slate-900">{e.title}</span><span className="block truncate text-[0.6875rem] text-slate-500">{when(e.at)} · {e.flags.join(', ')}</span></span>
                         <SeverityPill s={e.severity} />
@@ -196,7 +197,7 @@ export function StaffDrawer({ s, all, filters, fmt, onFocus, onOpenEvent, onClos
         </div>
         {s.id && (
           <footer className="border-t border-slate-200 px-5 py-3">
-            <Button className="w-full" onClick={() => { onFocus(); onClose(); }}><Filter className="h-4 w-4" />Poori report sirf {s.name} ki</Button>
+            <Button className="w-full" onClick={() => { onFocus(); onClose(); }}><Filter className="h-4 w-4" />{t('Poori report sirf {{name}} ki', { name: s.name })}</Button>
           </footer>
         )}
       </aside>
@@ -209,7 +210,7 @@ function Fact({ label, value, hint, bad }: { label: string; value: string; hint?
   return (
     <div className="rounded-xl bg-slate-50 p-2.5 ring-1 ring-slate-100">
       <p className="text-[0.6875rem] text-slate-500">{label}</p>
-      <p className={cn('font-semibold tabular-nums', bad ? 'text-rose-600' : 'text-slate-900')}>{value}{hint && <span className="ml-1 text-[0.6875rem] font-normal text-slate-500">{hint}</span>}</p>
+      <p className={cn('font-semibold tabular-nums', bad ? 'text-rose-600' : 'text-slate-900')}>{value}{hint && <span className="ms-1 text-[0.6875rem] font-normal text-slate-500">{hint}</span>}</p>
     </div>
   );
 }

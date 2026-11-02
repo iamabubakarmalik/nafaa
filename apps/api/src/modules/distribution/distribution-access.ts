@@ -7,6 +7,7 @@
 
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const TTL_MS = 30_000;
 
@@ -46,7 +47,9 @@ export class DistributionAccessService {
   /** Throws the reason distribution cannot be used right now. */
   async assertOpen(tenantId: string) {
     const a = await this.read(tenantId);
-    if (!a.planAllows) throw new ForbiddenException(`Aap ke plan${a.planName ? ` (${a.planName})` : ''} me Distribution shamil nahi — plan upgrade karein`);
+    if (!a.planAllows) throw new ForbiddenException(a.planName
+      ? apiMessage('Aap ke plan ({{planName}}) me Distribution shamil nahi — plan upgrade karein', { planName: a.planName })
+      : apiMessage('Aap ke plan me Distribution shamil nahi — plan upgrade karein'));
     if (!a.enabled) throw new ForbiddenException('Distribution band hai — Settings me Distribution on karein');
   }
 }

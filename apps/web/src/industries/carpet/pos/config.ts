@@ -24,6 +24,7 @@ import { useOfflineCarpetSummary } from '../hooks/useOfflineCarpetSummary';
 import { PIECES_KEY, ROLLS_KEY, SUMMARY_KEY, isCarpetUnit, pieceNote, qtyInUnit, r2, readCarpetNote, realFt } from '../lib/meta';
 import { CutModal, type PieceSale, type RollCut } from './CutModal';
 import { PendingCuts } from './PendingCuts';
+import { t } from '@core/i18n';
 
 const isCarpetNote = (note?: string) => !!note && (note.startsWith('Cut from ') || note.startsWith('Cut piece '));
 
@@ -48,10 +49,10 @@ function useCarpetCatalog() {
       ...it,
       rank: rolls || pieces ? 0 : 2,
       dim: !rolls && !pieces,
-      subline: rolls || pieces ? [rolls ? `${rolls} roll` : '', pieces ? `${pieces} tukre` : '', s ? `${Math.round(s.totalSqft)} sqft` : ''].filter(Boolean).join(' · ') : 'Koi roll nahi',
+      subline: rolls || pieces ? [rolls ? `${rolls} roll` : '', pieces ? `${pieces} tukre` : '', s ? `${Math.round(s.totalSqft)} sqft` : ''].filter(Boolean).join(' · ') : t('Koi roll nahi'),
       badges: [
-        ...(rolls ? [{ label: `${rolls} roll`, tone: 'brand' as const, icon: Layers }] : []),
-        ...(pieces ? [{ label: `${pieces} tukre`, tone: 'info' as const, icon: Scissors }] : []),
+        ...(rolls ? [{ label: t('{{rolls}} roll', { rolls }), tone: 'brand' as const, icon: Layers }] : []),
+        ...(pieces ? [{ label: t('{{pieces}} tukre', { pieces }), tone: 'info' as const, icon: Scissors }] : []),
       ],
       meta: { ...it.meta, carpet: true, rolls, pieces },
     };
@@ -89,14 +90,14 @@ function openCut(item: PosItem, api: PosEngineApi, preSelectedRollId?: string) {
       }, 0);
       const left = realFt(c.roll.remainingLengthFt, c.roll.remainingLengthInch);
       if (used + realFt(c.lengthFt, c.lengthInch) > left + 0.001) {
-        toast.error(`${c.roll.rollNumber} me itni lambai nahi — bill me pehle se ${r2(used)}ft is roll se hai`);
+        toast.error(t('{{rollNumber}} me itni lambai nahi — bill me pehle se {{used}}ft is roll se hai', { rollNumber: c.roll.rollNumber, used: r2(used) }));
         return;
       }
       api.closePicker();
       addCarpetLine(api, item, c.qty, c.rate, c.note, c.roll.variantId ? { id: c.roll.variantId, name: c.roll.variant?.name ?? 'Design' } : null);
     },
     onPiece: (p: PieceSale) => {
-      if (api.cart.some((l) => readCarpetNote(l.note)?.ref === p.piece.pieceCode)) { toast.info(`${p.piece.pieceCode} pehle se bill me hai`); return; }
+      if (api.cart.some((l) => readCarpetNote(l.note)?.ref === p.piece.pieceCode)) { toast.info(t('{{pieceCode}} pehle se bill me hai', { pieceCode: p.piece.pieceCode })); return; }
       api.closePicker();
       addCarpetLine(api, item, p.qty, p.rate, p.note, p.piece.variantId ? { id: p.piece.variantId, name: p.piece.variant?.name ?? 'Design' } : null);
     },
@@ -110,27 +111,27 @@ async function settle(saleId: string) {
   try {
     const res = await carpetRollsApi.settleBill(saleId);
     const failed = res.lines.filter((l) => !l.ok);
-    if (failed.length) toast.error(`Bill ${res.saleNumber} ban gaya, lekin stock se nahi kata: ${failed.map((f) => f.message).join(' • ')} — Carpet Rolls page se dobara karein`, { duration: 12000 });
+    if (failed.length) toast.error(t('Bill {{saleNumber}} ban gaya, lekin stock se nahi kata: {{value}} — Carpet Rolls page se dobara karein', { saleNumber: res.saleNumber, value: failed.map((f) => f.message).join(' • ') }), { duration: 12000 });
   } catch {
-    toast.error('Bill ban gaya, roll / tukra stock se nahi kata — Carpet Rolls page par "Kaatna baqi" se karein', { duration: 10000 });
+    toast.error(t('Bill ban gaya, roll / tukra stock se nahi kata — Carpet Rolls page par "Kaatna baqi" se karein'), { duration: 10000 });
   } finally {
     for (const key of [ROLLS_KEY, PIECES_KEY, SUMMARY_KEY, 'carpet-product-summary-pos', 'carpet-unsettled']) void queryClient.invalidateQueries({ queryKey: [key] });
   }
 }
 
 const filters: PosFilter[] = [
-  { id: 'rolls', label: 'Roll wala', icon: Layers, match: (i) => Number(i.meta?.rolls) > 0 },
-  { id: 'pieces', label: 'Tukre', icon: Scissors, match: (i) => Number(i.meta?.pieces) > 0 },
-  { id: 'other', label: 'Rugs / baqi maal', icon: Sparkles, match: (i) => !i.meta?.carpet },
+  { id: 'rolls', label: t('Roll wala'), icon: Layers, match: (i) => Number(i.meta?.rolls) > 0 },
+  { id: 'pieces', label: t('Tukre'), icon: Scissors, match: (i) => Number(i.meta?.pieces) > 0 },
+  { id: 'other', label: t('Rugs / baqi maal'), icon: Sparkles, match: (i) => !i.meta?.carpet },
 ];
 
 export const carpetPos: PosIndustryConfig = {
   id: 'carpet',
-  label: 'Carpet',
+  label: t('Carpet'),
   useCatalog: useCarpetCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Carpet, design, rug, roll number ya barcode…',
+  searchHint: t('Carpet, design, rug, roll number ya barcode…'),
   receiptFooter: 'Naap aur design check kar lein. Kata hua carpet dukaan ki policy ke mutabiq hi wapas hota hai.',
   CartExtra: PendingCuts,
   beforeAdd: (item, opts, api) => {
@@ -148,18 +149,18 @@ export const carpetPos: PosIndustryConfig = {
     const roll = rolls?.items.find((r) => r.rollNumber.toLowerCase() === c.toLowerCase());
     if (roll) {
       const item = api.itemById(roll.productId);
-      if (!item) { toast.error(`${roll.rollNumber} ka product counter par nahi`); return true; }
+      if (!item) { toast.error(t('{{rollNumber}} ka product counter par nahi', { rollNumber: roll.rollNumber })); return true; }
       openCut(item, api, roll.id);
       return true;
     }
     const piece = pieces?.items.find((p) => p.pieceCode.toLowerCase() === c.toLowerCase());
     if (piece) {
       const item = api.itemById(piece.productId);
-      if (!item) { toast.error(`${piece.pieceCode} ka product counter par nahi`); return true; }
-      if (api.cart.some((l) => readCarpetNote(l.note)?.ref === piece.pieceCode)) { toast.info(`${piece.pieceCode} pehle se bill me hai`); return true; }
+      if (!item) { toast.error(t('{{pieceCode}} ka product counter par nahi', { pieceCode: piece.pieceCode })); return true; }
+      if (api.cart.some((l) => readCarpetNote(l.note)?.ref === piece.pieceCode)) { toast.info(t('{{pieceCode}} pehle se bill me hai', { pieceCode: piece.pieceCode })); return true; }
       const qty = qtyInUnit(item.unit, realFt(piece.widthFt, piece.widthInch), realFt(piece.lengthFt, piece.lengthInch));
       const price = Number(piece.salePrice) || 0;
-      if (!(price > 0) || !(qty > 0)) { toast.error(`${piece.pieceCode} ka rate nahi — Cut pieces se rate likhein`); return true; }
+      if (!(price > 0) || !(qty > 0)) { toast.error(t('{{pieceCode}} ka rate nahi — Cut pieces se rate likhein', { pieceCode: piece.pieceCode })); return true; }
       addCarpetLine(api, item, qty, r2(price / qty), pieceNote(piece.pieceCode, piece.widthFt, piece.widthInch, piece.lengthFt, piece.lengthInch), piece.variantId ? { id: piece.variantId, name: piece.variant?.name ?? 'Design' } : null);
       return true;
     }
@@ -174,7 +175,7 @@ export const carpetPos: PosIndustryConfig = {
       if (!d) continue;
       const want = qtyInUnit(l.baseUnit, d.w, d.l);
       if (Math.abs(want - l.baseQuantity) > 0.02) {
-        return `${l.name}: ${readCarpetNote(l.note)?.ref} ki quantity ${want} honi chahiye, bill me ${r2(l.baseQuantity)} hai — line hata kar dobara kaatein`;
+        return t('{{name}}: {{ref}} ki quantity {{want}} honi chahiye, bill me {{qty}} hai — line hata kar dobara kaatein', { name: l.name, ref: readCarpetNote(l.note)?.ref ?? '', want, qty: r2(l.baseQuantity) });
       }
     }
     return null;

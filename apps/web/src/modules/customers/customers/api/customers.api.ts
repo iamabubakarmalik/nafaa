@@ -1,5 +1,6 @@
 import { apiClient } from '@core/api/client';
 import type { PriceTier } from '@core/lib/priceTiers';
+import { t } from '@core/i18n';
 
 export type CustomerGender = 'MALE' | 'FEMALE' | 'OTHER';
 
@@ -196,7 +197,7 @@ async function localList(params?: CustomersListParams): Promise<CustomersRespons
 async function localDetail(id: string): Promise<CustomerDetail> {
   const { db } = await import('@core/lib/offline/db');
   const c: any = await db.customers.get(id);
-  if (!c || c._localDeleted) throw new Error('Customer nahi mila (offline cache me nahi)');
+  if (!c || c._localDeleted) throw new Error(t('Customer nahi mila (offline cache me nahi)'));
   return {
     ...stripLocal(c),
     sales: [],
@@ -256,7 +257,7 @@ async function localUpdate(id: string, payload: UpsertCustomerPayload): Promise<
   const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
 
   const existing = await db.customers.get(id);
-  if (!existing) throw new Error('Customer nahi mila');
+  if (!existing) throw new Error(t('Customer nahi mila'));
 
   const updated: any = {
     ...existing,
@@ -337,7 +338,7 @@ export const customersApi = {
       if (!isNetFail(e)) throw e;
       const { db } = await import('@core/lib/offline/db');
       const c: any = await db.customers.get(id);
-      if (!c) throw new Error('Customer nahi mila');
+      if (!c) throw new Error(t('Customer nahi mila'));
       return localUpdate(id, { ...stripLocal(c), isVip: !c.isVip } as any);
     }
   },
@@ -350,12 +351,12 @@ export const customersApi = {
       const { db, isTempId } = await import('@core/lib/offline/db');
       const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
       const existing: any = await db.customers.get(id);
-      if (!existing) return { message: 'Already removed' };
+      if (!existing) return { message: t('Already removed') };
       if (isTempId(id) && existing._tempId) {
         await db.customers.delete(id);
         const pendingCreate = await db.syncQueue.where('tempId').equals(id).first();
         if (pendingCreate) await db.syncQueue.delete(pendingCreate.id);
-        return { message: 'Removed (was offline-only)' };
+        return { message: t('Removed (was offline-only)') };
       }
       await db.customers.update(id, { _localDeleted: true, _localDirty: true } as any);
       await queueGenericMutation({
@@ -364,7 +365,7 @@ export const customersApi = {
         endpoint: `/customers/${id}`,
         method: 'DELETE',
       });
-      return { message: 'Queued for delete' };
+      return { message: t('Queued for delete') };
     }
   },
 

@@ -1,6 +1,10 @@
 {
   "{{score}} / {{count}} mukammal": "{{score}} / {{count}} poore",
+  "Apna rang, likhai ka size aur safhe ki chaurai": "Apna rang, likhai ka size aur page ki width",
+  "Badlein (E)": "Edit (E)",
   "Hifazat ka haal": "Security ka haal",
+  "Hifazat tab se password badlein. Saath hi baqi devices se logout bhi ho sakta hai.": "Security tab se password badlein. Saath hi baqi devices se logout bhi ho sakta hai.",
+  "Is device se login khatam ho jayega. Data mehfooz rahega.": "Is device se login khatam ho jayega. Data safe rahega.",
   "Kam se kam 8 huroof. Kisi ko na batayein.": "Kam se kam 8 letters. Kisi ko na batayein.",
   "PIN laga hai — cost chhupi rehti hai aur band safhe isi se khulte hain. Poori dukaan ke liye ek.": "PIN laga hai — cost chhupi rehti hai aur band pages isi se khulte hain. Poori dukaan ke liye ek."
 }

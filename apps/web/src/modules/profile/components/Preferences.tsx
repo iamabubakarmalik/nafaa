@@ -7,11 +7,12 @@ import { useAppearance, useAppearanceStore } from '@/design-system';
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
+import { t } from '@core/i18n';
 
 const MODES = [
-  { value: 'light' as const, label: 'Din (light)', icon: Sun },
-  { value: 'dark' as const, label: 'Raat (dark)', icon: Moon },
-  { value: 'system' as const, label: 'Device jaisa', icon: Monitor },
+  { value: 'light' as const, label: t('Din (light)'), icon: Sun },
+  { value: 'dark' as const, label: t('Raat (dark)'), icon: Moon },
+  { value: 'system' as const, label: t('Device jaisa'), icon: Monitor },
 ];
 
 export function Preferences() {
@@ -21,15 +22,15 @@ export function Preferences() {
   const canSettings = usePermission(PERMISSIONS.SETTINGS_VIEW);
 
   const links = [
-    { to: '/settings/appearance', icon: Palette, title: 'Rang, font aur size', text: 'Apna rang, likhai ka size aur safhe ki chaurai', show: true },
-    { to: '/settings/printing', icon: Printer, title: 'Print settings', text: 'Printer, kaghaz ka size aur bill ka design', show: canPrint },
-    { to: '/settings/notifications', icon: Bell, title: 'Notifications', text: 'Kab aur kaise khabar aaye', show: canSettings },
+    { to: '/settings/appearance', icon: Palette, title: t('Rang, font aur size'), text: t('Apna rang, likhai ka size aur safhe ki chaurai'), show: true },
+    { to: '/settings/printing', icon: Printer, title: t('Print settings'), text: t('Printer, kaghaz ka size aur bill ka design'), show: canPrint },
+    { to: '/settings/notifications', icon: Bell, title: t('Notifications'), text: t('Kab aur kaise khabar aaye'), show: canSettings },
   ].filter((l) => l.show);
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Card className="rounded-3xl" title="Theme" description="Sirf aap ke account par lagta hai, har device par">
-        <div role="radiogroup" aria-label="Theme" className="grid grid-cols-3 gap-2">
+      <Card className="rounded-3xl" title={t('Theme')} description={t('Sirf aap ke account par lagta hai, har device par')}>
+        <div role="radiogroup" aria-label={t('Theme')} className="grid grid-cols-3 gap-2">
           {MODES.map((m) => (
             <button key={m.value} type="button" role="radio" aria-checked={mode === m.value} onClick={() => setMode(m.value)}
               className={cn('flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 text-[0.8125rem] font-semibold ring-1 transition',
@@ -40,7 +41,7 @@ export function Preferences() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl" flush title="Aur settings">
+      <Card className="rounded-3xl" flush title={t('Aur settings')}>
         <ul className="divide-y divide-slate-100">
           {links.map((l) => (
             <li key={l.to}>
@@ -50,7 +51,7 @@ export function Preferences() {
                   <span className="block text-[0.875rem] font-semibold text-slate-900">{l.title}</span>
                   <span className="block truncate text-[0.75rem] text-slate-500">{l.text}</span>
                 </span>
-                <ChevronRight className="h-4 w-4 text-slate-400" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rtl-flip" />
               </Link>
             </li>
           ))}

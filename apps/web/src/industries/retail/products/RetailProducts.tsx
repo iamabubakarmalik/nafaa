@@ -8,15 +8,16 @@ import { heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
+import { t } from '@core/i18n';
 
 function QuickSetup() {
   const [open, setOpen] = useState(false);
   if (!usePermission(PERMISSIONS.PRODUCTS_CREATE)) return null;
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} title="2000+ tayyar cheezon mein se chunein"
+      <button type="button" onClick={() => setOpen(true)} title={t('2000+ tayyar cheezon mein se chunein')}
         className={heroButton}>
-        <Sparkles className="h-4 w-4" /><span className="hidden sm:inline">Quick Setup</span>
+        <Sparkles className="h-4 w-4" /><span className="hidden sm:inline">{t('Quick Setup')}</span>
       </button>
       {open && <QuickSetupCatalogModal onClose={() => setOpen(false)} />}
     </>
@@ -24,7 +25,7 @@ function QuickSetup() {
 }
 
 const config: ProductsPageConfig = {
-  label: 'Retail',
+  label: t('Retail'),
   paths: {
     detail: (id) => `/retail-products/${id}`,
     edit: (id) => `/retail-products/${id}/edit`,
@@ -33,7 +34,7 @@ const config: ProductsPageConfig = {
   },
   HeroExtra: QuickSetup,
   filters: ['tags'],
-  guide: [{ icon: Sparkles, color: '#ea580c', title: 'Quick Setup', text: '2000+ aam cheezein (atta, cheeni, sabun…) tayyar hain — chunein aur rate daal dein.' }],
+  guide: [{ icon: Sparkles, color: '#ea580c', title: t('Quick Setup'), text: t('2000+ aam cheezein (atta, cheeni, sabun…) tayyar hain — chunein aur rate daal dein.') }],
 };
 
 export default function RetailProducts() {

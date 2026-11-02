@@ -15,6 +15,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { dateKeyTz, endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { doctorShares } from '../appointments/doctor-share';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const METHODS: PaymentMethod[] = ['CASH', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA'];
 const CATEGORY = { name: 'Doctor share', icon: '🩺', color: '#0891b2' };
@@ -71,7 +72,7 @@ export class PayoutsService {
     const d = await this.due(user, dto?.doctorId, dto?.from, dto?.to);
     const amount = r2(dto?.amount ?? d.due);
     if (!(amount > 0)) throw new BadRequestException(d.due > 0 ? 'Amount likhein' : 'Is muddat ka koi share baqi nahi');
-    if (amount > d.due + 0.009) throw new BadRequestException(`Is muddat ka sirf Rs ${d.due} share baqi hai`);
+    if (amount > d.due + 0.009) throw new BadRequestException(apiMessage('Is muddat ka sirf Rs {{due}} share baqi hai', { due: d.due }));
     const method = (dto?.paymentMethod ?? 'CASH') as PaymentMethod;
     if (!METHODS.includes(method)) throw new BadRequestException('Payment ka tareeqa ghalat hai');
     const note = dto?.note ? String(dto.note).trim().slice(0, 300) : null;

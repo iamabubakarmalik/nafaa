@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { getElectron } from '@core/lib/desktop/electron';
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 
 /**
  * Listen for global scanner shortcut (Ctrl+Shift+B).
@@ -21,7 +22,7 @@ export function useDesktopScanner() {
       if (barcodeInput) {
         barcodeInput.focus();
         barcodeInput.select();
-        toast.info('🔍 Scan karein…', { duration: 1500 });
+        toast.info(t('🔍 Scan karein…'), { duration: 1500 });
         return;
       }
 
@@ -33,9 +34,9 @@ export function useDesktopScanner() {
       if (searchInput) {
         searchInput.focus();
         searchInput.select();
-        toast.info('🔍 Search focus — scan karein', { duration: 1500 });
+        toast.info(t('🔍 Search focus — scan karein'), { duration: 1500 });
       } else {
-        toast.warning('Koi input field visible nahi — pehle POS/products page open karein');
+        toast.warning(t('Koi input field visible nahi — pehle POS/products page open karein'));
       }
     });
   }, []);

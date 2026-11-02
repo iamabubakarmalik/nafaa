@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, MessageCircle, Minus, Package, Plus, Search, Sho
 import { Alert, Button, Card, controlClass, IconButton, Input, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { publicFetch } from './publicApi';
+import { t as tr, Trans } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA ORDER FORM — customer ka safha (login nahi). Dukaan apni
@@ -113,10 +114,10 @@ export default function PublicOrderPage() {
 
   const submit = async () => {
     setFormErr(null);
-    if (form.name.trim().length < 2) return setFormErr('Apna naam likhein');
-    if (form.phone.replace(/\D/g, '').length < 10) return setFormErr('Mobile number sahi likhein (03xxxxxxxxx)');
-    if (form.city.trim().length < 2) return setFormErr('Shehar likhein');
-    if (form.address.trim().length < 8) return setFormErr('Poora address likhein — ghar #, gali, area');
+    if (form.name.trim().length < 2) return setFormErr(tr('Apna naam likhein'));
+    if (form.phone.replace(/\D/g, '').length < 10) return setFormErr(tr('Mobile number sahi likhein (03xxxxxxxxx)'));
+    if (form.city.trim().length < 2) return setFormErr(tr('Shehar likhein'));
+    if (form.address.trim().length < 8) return setFormErr(tr('Poora address likhein — ghar #, gali, area'));
     setBusy(true);
     try {
       const r = await publicFetch<{ orderNumber: string; total: number; message: string | null }>(`/integrations/website/v1/form/${encodeURIComponent(key)}/order`, {
@@ -148,22 +149,22 @@ export default function PublicOrderPage() {
 
   return (
     <Shell embed={embed} onClose={closeEmbed} title={cat.shop} logo={cat.logoUrl} accent={accent}
-      right={<Link to={`/order/${key}/track${embed ? '?embed=1' : ''}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"><Truck className="h-4 w-4" /> Mera order</Link>}>
+      right={<Link to={`/order/${key}/track${embed ? '?embed=1' : ''}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"><Truck className="h-4 w-4" /> {' '}{tr('Mera order')}</Link>}>
       {step === 'done' && done ? (
         <div className="px-6 py-12 text-center">
           <CheckCircle2 className="mx-auto h-14 w-14 text-success-600" />
-          <h2 className="mt-3 text-xl font-bold text-slate-900">Order ho gaya! 🎉</h2>
-          <p className="mt-1 text-slate-600">Order # <b className="font-mono">{done.orderNumber}</b> · {rs(done.total)} (Cash on delivery)</p>
-          <p className="mt-3 text-sm text-slate-500">{done.message || `${cat.shop} jald aap se confirm karne ke liye rabta karega. Shukriya!`}</p>
+          <h2 className="mt-3 text-xl font-bold text-slate-900">{tr('Order ho gaya! 🎉')}</h2>
+          <p className="mt-1 text-slate-600"><Trans text="Order # {{number}} · {{total}} (Cash on delivery)" values={{ number: <b className="font-mono">{done.orderNumber}</b>, total: rs(done.total) }} /></p>
+          <p className="mt-3 text-sm text-slate-500">{done.message || tr('{{shop}} jald aap se confirm karne ke liye rabta karega. Shukriya!', { shop: cat.shop })}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Link to={`/order/${key}/track?no=${done.orderNumber}${embed ? '&embed=1' : ''}`} className="inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white shadow-sm" style={{ background: accent }}>Order ka haal dekhein</Link>
-            <Button variant="secondary" onClick={() => { setDone(null); setStep('shop'); }}>Aur order karein</Button>
+            <Link to={`/order/${key}/track?no=${done.orderNumber}${embed ? '&embed=1' : ''}`} className="inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white shadow-sm" style={{ background: accent }}>{tr('Order ka haal dekhein')}</Link>
+            <Button variant="secondary" onClick={() => { setDone(null); setStep('shop'); }}>{tr('Aur order karein')}</Button>
           </div>
-          <p className="mt-3 text-xs text-slate-400">Order # likh lein — isi se haal dekh sakte hain.</p>
+          <p className="mt-3 text-xs text-slate-400">{tr('Order # likh lein — isi se haal dekh sakte hain.')}</p>
         </div>
       ) : step === 'checkout' ? (
         <div className="space-y-4 p-4 pb-28">
-          <Button variant="ghost" size="sm" onClick={() => setStep('shop')}>← Aur cheezein</Button>
+          <Button variant="ghost" size="sm" onClick={() => setStep('shop')}>{tr('← Aur cheezein')}</Button>
           <Card flush className="rounded-2xl">
             {lines.map((l) => {
               const { p, o } = find(l)!;
@@ -179,17 +180,17 @@ export default function PublicOrderPage() {
                 </div>
               );
             })}
-            {!lines.length && <p className="p-4 text-center text-sm text-slate-500">Cart khali hai</p>}
+            {!lines.length && <p className="p-4 text-center text-sm text-slate-500">{tr('Cart khali hai')}</p>}
           </Card>
 
-          <Card className="rounded-2xl" title="Delivery kahan karni hai?">
+          <Card className="rounded-2xl" title={tr('Delivery kahan karni hai?')}>
             <div className="space-y-3">
-            <Input size="lg" label="Naam" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
-            <Input size="lg" label="Mobile number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="03xxxxxxxxx" inputMode="tel" autoComplete="tel" />
-            <Input size="lg" label="Shehar" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} autoComplete="address-level2" />
-            <Textarea label="Poora address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} autoComplete="street-address"
-              placeholder="Ghar #, gali, area, qareeb koi nishani" />
-            <Input size="lg" label="Koi baat (optional)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Jaise: shaam 5 ke baad" />
+            <Input size="lg" label={tr('Naam')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
+            <Input size="lg" label={tr('Mobile number')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={tr('03xxxxxxxxx')} inputMode="tel" autoComplete="tel" />
+            <Input size="lg" label={tr('Shehar')} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} autoComplete="address-level2" />
+            <Textarea label={tr('Poora address')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} autoComplete="street-address"
+              placeholder={tr('Ghar #, gali, area, qareeb koi nishani')} />
+            <Input size="lg" label={tr('Koi baat (optional)')} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder={tr('Jaise: shaam 5 ke baad')} />
             {/* Bots ke liye — insaan ko nahi dikhta */}
             <input tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} className="hidden" aria-hidden="true" />
             </div>
@@ -199,8 +200,8 @@ export default function PublicOrderPage() {
             <Card className="rounded-2xl">
               <div className="flex gap-2">
                 <Input size="lg" wrapperClassName="flex-1" leftIcon={<Tag className="h-4 w-4" />} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="Discount code" aria-label="Discount code" className="uppercase" />
-                <Button variant="inverse" size="lg" onClick={applyCoupon} disabled={checking || !code.trim()} loading={checking}>Lagao</Button>
+                  placeholder={tr('Discount code')} aria-label={tr('Discount code')} className="uppercase" />
+                <Button variant="inverse" size="lg" onClick={applyCoupon} disabled={checking || !code.trim()} loading={checking}>{tr('Lagao')}</Button>
               </div>
               {coupon && <p className="mt-2 text-sm font-semibold text-success-700">✓ {coupon.code}: {coupon.message}</p>}
               {couponErr && <p className="mt-2 text-sm font-semibold text-rose-600">{couponErr}</p>}
@@ -208,18 +209,18 @@ export default function PublicOrderPage() {
           )}
 
           <div className="space-y-1 rounded-2xl bg-slate-50 p-4 text-sm">
-            <Row l="Cheezein" v={rs(subtotal)} />
-            {discount > 0 && <Row l={`Discount (${coupon!.code})`} v={`− ${rs(discount)}`} />}
-            <Row l="Delivery" v={delivery ? rs(delivery) : 'Free'} />
-            {cat.freeAbove && delivery > 0 && <p className="text-xs text-success-700">{rs(cat.freeAbove - subtotal)} ki aur shopping par delivery free</p>}
-            <div className="flex justify-between pt-1 text-base font-bold text-slate-900"><span>Total</span><span className="tabular-nums">{rs(payable)}</span></div>
-            <p className="text-xs text-slate-500">💵 Cash on delivery — parcel milne par paisa dein</p>
+            <Row l={tr('Cheezein')} v={rs(subtotal)} />
+            {discount > 0 && <Row l={tr('Discount ({{code}})', { code: coupon!.code })} v={`− ${rs(discount)}`} />}
+            <Row l={tr('Delivery')} v={delivery ? rs(delivery) : tr('Free')} />
+            {cat.freeAbove && delivery > 0 && <p className="text-xs text-success-700">{tr('{{rs}} ki aur shopping par delivery free', { rs: rs(cat.freeAbove - subtotal) })}</p>}
+            <div className="flex justify-between pt-1 text-base font-bold text-slate-900"><span>{tr('Total')}</span><span className="tabular-nums">{rs(payable)}</span></div>
+            <p className="text-xs text-slate-500">{tr('💵 Cash on delivery — parcel milne par paisa dein')}</p>
           </div>
           {formErr && <Alert tone="danger" title={formErr} />}
           <Sticky>
             <Button size="xl" fullWidth disabled={busy || !lines.length} onClick={submit} className="rounded-2xl text-white" style={{ background: accent }}
               leftIcon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}>
-              Order confirm karein · {rs(payable)}
+              {tr('Order confirm karein · {{payable}}', { payable: rs(payable) })}
             </Button>
           </Sticky>
         </div>
@@ -227,12 +228,12 @@ export default function PublicOrderPage() {
         <div className="p-4 pb-28">
           {focus && cat.products.some((p) => p.id === focus) && cat.products.length > 1 && (
             <button type="button" onClick={() => setFocus(null)} className="mb-3 text-[0.8125rem] font-semibold underline" style={{ color: accent }}>
-              ← Sab products dekhein
+              {tr('← Sab products dekhein')}
             </button>
           )}
           {!focus && cat.products.length > 6 && (
             <div className="mb-3">
-              <Input size="lg" leftIcon={<Search className="h-4 w-4" />} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" aria-label="Search" />
+              <Input size="lg" leftIcon={<Search className="h-4 w-4" />} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search…')} aria-label={tr('Search')} />
             </div>
           )}
           {cat.categories.length > 1 && (
@@ -241,7 +242,7 @@ export default function PublicOrderPage() {
                 <button key={c || 'all'} onClick={() => setCat2(c)}
                   className={cn('shrink-0 rounded-full border px-3 py-1.5 text-[0.8125rem] font-semibold', cat2 === c ? 'border-transparent text-white' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50')}
                   style={cat2 === c ? { background: accent } : undefined}>
-                  {c || 'Sab'}
+                  {c || tr('Sab')}
                 </button>
               ))}
             </div>
@@ -249,10 +250,10 @@ export default function PublicOrderPage() {
           {cat.phone && (
             <a href={`https://wa.me/${cat.phone.replace(/\D/g, '').replace(/^0/, '92')}`} target="_blank" rel="noreferrer"
               className="mb-3 flex items-center gap-2 rounded-xl bg-success-50 px-3 py-2 text-[0.8125rem] font-semibold text-success-800 ring-1 ring-inset ring-success-200">
-              <MessageCircle className="h-4 w-4" /> Koi sawal? WhatsApp karein: {cat.phone}
+              <MessageCircle className="h-4 w-4" /> {' '}{tr('Koi sawal? WhatsApp karein: {{phone}}', { phone: cat.phone })}
             </a>
           )}
-          {!cat.products.length && <p className="p-10 text-center text-slate-500">Abhi koi cheez dastiyab nahi.</p>}
+          {!cat.products.length && <p className="p-10 text-center text-slate-500">{tr('Abhi koi cheez dastiyab nahi.')}</p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {shown.map((p) => {
               const multi = p.options.length > 1;
@@ -264,12 +265,12 @@ export default function PublicOrderPage() {
                   <div className="aspect-square bg-slate-100">{p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Package className="m-auto mt-[35%] h-8 w-8 text-slate-300" />}</div>
                   <div className="flex flex-1 flex-col p-2.5">
                     <div className="line-clamp-2 text-[0.8125rem] font-semibold leading-snug text-slate-900">{p.name}</div>
-                    <div className="mt-1 text-sm font-bold" style={{ color: accent }}>{chosen ? rs(chosen.price) : `${rs(minPrice)} se`}</div>
+                    <div className="mt-1 text-sm font-bold" style={{ color: accent }}>{chosen ? rs(chosen.price) : tr('{{minPrice}} se', { minPrice: rs(minPrice) })}</div>
                     {multi && (
                       <select value={pick[p.id] ?? ''} onChange={(e) => setPick({ ...pick, [p.id]: e.target.value })}
-                        aria-label="Size" className={cn(controlClass(), 'mt-1.5 h-9 px-2 text-[0.8125rem]')}>
-                        <option value="">Chunein…</option>
-                        {p.options.map((o) => <option key={o.variantId ?? '-'} value={o.variantId ?? '-'} disabled={!o.inStock}>{o.name}{o.inStock ? '' : ' (khatam)'}</option>)}
+                        aria-label={tr('Size')} className={cn(controlClass(), 'mt-1.5 h-9 px-2 text-[0.8125rem]')}>
+                        <option value="">{tr('Chunein…')}</option>
+                        {p.options.map((o) => <option key={o.variantId ?? '-'} value={o.variantId ?? '-'} disabled={!o.inStock}>{o.name}{o.inStock ? '' : tr(' (khatam)')}</option>)}
                       </select>
                     )}
                     <div className="mt-auto pt-2">
@@ -278,7 +279,7 @@ export default function PublicOrderPage() {
                       ) : (
                         <Button variant="inverse" size="sm" fullWidth disabled={!chosen || !chosen.inStock}
                           onClick={() => chosen && setQty({ productId: p.id, variantId: chosen.variantId, quantity: 0 }, 1, chosen.maxQty)}>
-                          {chosen && !chosen.inStock ? 'Khatam' : multi && !chosen ? 'Size chunein' : '+ Cart'}
+                          {chosen && !chosen.inStock ? tr('Khatam') : multi && !chosen ? tr('Size chunein') : tr('+ Cart')}
                         </Button>
                       )}
                     </div>
@@ -290,8 +291,8 @@ export default function PublicOrderPage() {
           {count > 0 && (
             <Sticky>
               <Button size="xl" fullWidth onClick={() => setStep('checkout')} className="justify-between rounded-2xl text-white" style={{ background: accent }}>
-                <span className="inline-flex items-center gap-2"><ShoppingBag className="h-5 w-5" /> {count} cheez</span>
-                <span className="tabular-nums">Aage · {rs(subtotal)}</span>
+                <span className="inline-flex items-center gap-2"><ShoppingBag className="h-5 w-5" /> {' '}{tr('{{count}} cheez', { count })}</span>
+                <span className="tabular-nums">{tr('Aage · {{subtotal}}', { subtotal: rs(subtotal) })}</span>
               </Button>
             </Sticky>
           )}
@@ -311,12 +312,12 @@ export function Shell({ embed, onClose, title, logo, accent = '#059669', right, 
           {logo
             ? <img src={logo} alt="" className="h-9 w-9 rounded-xl object-cover" />
             : <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ background: accent }}><ShoppingBag className="h-5 w-5" /></div>}
-          <div className="min-w-0 flex-1 truncate text-base font-bold text-slate-900">{title ?? 'Order'}</div>
+          <div className="min-w-0 flex-1 truncate text-base font-bold text-slate-900">{title ?? tr('Order')}</div>
           {right}
-          {embed && <IconButton label="Band karein" variant="ghost" onClick={onClose}><X className="h-5 w-5" /></IconButton>}
+          {embed && <IconButton label={tr('Band karein')} variant="ghost" onClick={onClose}><X className="h-5 w-5" /></IconButton>}
         </header>
         {children}
-        <footer className="px-4 pb-24 pt-2 text-center text-[0.6875rem] text-slate-400">Powered by Nafaa</footer>
+        <footer className="px-4 pb-24 pt-2 text-center text-[0.6875rem] text-slate-400">{tr('Powered by Nafaa')}</footer>
       </div>
     </div>
   );
@@ -329,9 +330,9 @@ function Sticky({ children }: { children: React.ReactNode }) {
 function Qty({ value, max, onChange, full }: { value: number; max: number; onChange: (n: number) => void; full?: boolean }) {
   return (
     <div className={cn('inline-flex items-center rounded-xl border border-slate-300 bg-white', full && 'w-full justify-between')}>
-      <button type="button" onClick={() => onChange(value - 1)} className="rounded-l-xl p-2 text-slate-700 hover:bg-slate-50" aria-label="Kam"><Minus className="h-4 w-4" /></button>
+      <button type="button" onClick={() => onChange(value - 1)} className="rounded-s-xl p-2 text-slate-700 hover:bg-slate-50" aria-label={tr('Kam')}><Minus className="h-4 w-4" /></button>
       <span className="min-w-[2ch] text-center text-sm font-bold tabular-nums text-slate-900">{value}</span>
-      <button type="button" onClick={() => onChange(value + 1)} disabled={value >= max} className="rounded-r-xl p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-30" aria-label="Zyada"><Plus className="h-4 w-4" /></button>
+      <button type="button" onClick={() => onChange(value + 1)} disabled={value >= max} className="rounded-e-xl p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-30" aria-label={tr('Zyada')}><Plus className="h-4 w-4" /></button>
     </div>
   );
 }

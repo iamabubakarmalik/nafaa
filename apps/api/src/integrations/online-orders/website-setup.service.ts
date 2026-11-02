@@ -8,6 +8,7 @@ import { startOfBusinessDayTz } from '../../common/helpers/business-time.helper'
 import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { normalizeShopifySiteUrl } from './shopify-shop';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
 export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
@@ -402,7 +403,7 @@ export class WebsiteSetupService {
         try {
           next.statusWebhookUrl = assertSafeWebhookUrl(String(body.statusWebhookUrl));
         } catch (e: any) {
-          throw new BadRequestException(`Status URL: ${e.message}`);
+          throw new BadRequestException(apiMessage('Status URL: {{eMessage}}', { eMessage: e.message }));
         }
       }
     }

@@ -4,6 +4,7 @@ import type { ProductVariant } from './product-variants.api';
 import type { ProductBatch } from './product-batches.api';
 import type { Brand } from '@modules/inventory/brands/api/brands.api';
 import type { Tag } from '@modules/inventory/tags/api/tags.api';
+import { t } from '@core/i18n';
 
 export interface Product {
   id: string;
@@ -217,7 +218,7 @@ async function localUpdate(id: string, payload: UpdateProductPayload): Promise<P
   const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
 
   const existing = await db.products.get(id);
-  if (!existing) throw new Error('Product nahi mila');
+  if (!existing) throw new Error(t('Product nahi mila'));
 
   const updated: any = {
     ...existing,
@@ -243,14 +244,14 @@ async function localRemove(id: string, force = false): Promise<{ message: string
   const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
 
   const existing = await db.products.get(id);
-  if (!existing) return { message: 'Already removed' };
+  if (!existing) return { message: t('Already removed') };
 
   // Temp product (kabhi sync nahi hua) — seedha delete
   if (isTempId(id) && (existing as any)._tempId) {
     await db.products.delete(id);
     const pendingCreate = await db.syncQueue.where('tempId').equals(id).first();
     if (pendingCreate) await db.syncQueue.delete(pendingCreate.id);
-    return { message: 'Removed (was offline-only)' };
+    return { message: t('Removed (was offline-only)') };
   }
 
   await db.products.update(id, { _localDeleted: true, _localDirty: true } as any);
@@ -260,7 +261,7 @@ async function localRemove(id: string, force = false): Promise<{ message: string
     endpoint: `/products/${id}${force ? '?force=true' : ''}`,
     method: 'DELETE',
   });
-  return { message: 'Queued for delete', softDeleted: true };
+  return { message: t('Queued for delete'), softDeleted: true };
 }
 
 export const productsApi = {
@@ -337,7 +338,7 @@ export const productsApi = {
       if (!isNetFail(e)) throw e;
       const { db } = await import('@core/lib/offline/db');
       const p: any = await db.products.get(id);
-      if (!p || p._localDeleted) throw new Error('Product nahi mila (offline cache me nahi)');
+      if (!p || p._localDeleted) throw new Error(t('Product nahi mila (offline cache me nahi)'));
       const { _syncedAt, _localDirty, _localDeleted, _tempId, ...rest } = p;
       return rest as Product;
     }
@@ -357,7 +358,7 @@ export const productsApi = {
       const hit: any =
         (await db.products.where('barcode').equals(trimmed).first()) ||
         (await db.products.where('sku').equals(trimmed).first());
-      if (!hit || hit._localDeleted) throw new Error(`Barcode "${code}" se koi product nahi mila`);
+      if (!hit || hit._localDeleted) throw new Error(t('Barcode "{{code}}" se koi product nahi mila', { code }));
       const { _syncedAt, _localDirty, _localDeleted, _tempId, ...rest } = hit;
       return rest as Product;
     }
@@ -389,7 +390,7 @@ export const productsApi = {
       if (!isNetFail(e)) throw e;
       const { db } = await import('@core/lib/offline/db');
       const p: any = await db.products.get(id);
-      if (!p) throw new Error('Product nahi mila');
+      if (!p) throw new Error(t('Product nahi mila'));
       return localUpdate(id, { isFeatured: !p.isFeatured } as any);
     }
   },
@@ -401,7 +402,7 @@ export const productsApi = {
       if (!isNetFail(e)) throw e;
       const { db } = await import('@core/lib/offline/db');
       const p: any = await db.products.get(id);
-      if (!p) throw new Error('Product nahi mila');
+      if (!p) throw new Error(t('Product nahi mila'));
       return localUpdate(id, { isActive: !p.isActive } as any);
     }
   },
@@ -425,26 +426,26 @@ export const productsApi = {
     productIds: string[],
     action: 'activate' | 'deactivate' | 'delete' | 'feature' | 'unfeature',
   ) => {
-    if (!navigator.onLine) return Promise.reject(new Error('Bulk action ke liye internet chahiye'));
+    if (!navigator.onLine) return Promise.reject(new Error(t('Bulk action ke liye internet chahiye')));
     return apiClient
       .post<{ data: any }>('/products/bulk-action', { productIds, action })
       .then(unwrap);
   },
 
   generateBarcode: (id: string) => {
-    if (!navigator.onLine) return Promise.reject(new Error('Barcode generate ke liye internet chahiye'));
+    if (!navigator.onLine) return Promise.reject(new Error(t('Barcode generate ke liye internet chahiye')));
     return apiClient.post<{ data: Product }>(`/products/${id}/generate-barcode`).then(unwrap);
   },
 
   bulkGenerateBarcodes: (productIds: string[]) => {
-    if (!navigator.onLine) return Promise.reject(new Error('Internet chahiye'));
+    if (!navigator.onLine) return Promise.reject(new Error(t('Internet chahiye')));
     return apiClient
       .post<{ data: { count: number; products: Product[] } }>('/products/bulk-generate-barcodes', { productIds })
       .then(unwrap);
   },
 
   backfillShopStock: () => {
-    if (!navigator.onLine) return Promise.reject(new Error('Internet chahiye'));
+    if (!navigator.onLine) return Promise.reject(new Error(t('Internet chahiye')));
     return apiClient
       .post<{ data: { productsProcessed: number; shopsProcessed: number } }>('/products/backfill-shop-stock')
       .then(unwrap);

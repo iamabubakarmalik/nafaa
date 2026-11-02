@@ -22,11 +22,12 @@ import type { PrintDoc } from '@core/print/types';
 import { deliveriesApi, type Delivery, type DeliveryStatus, type VehicleType } from '../api/deliveries.api';
 import type { Unit } from '../api/products.api';
 import { CHALLAN_STATUS, OPEN_CHALLAN, UNIT_LABEL, VEHICLES, errorText, qty, shortDate, vehicleLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const NEXT: Partial<Record<DeliveryStatus, { to: DeliveryStatus; label: string }>> = {
-  PENDING: { to: 'LOADED', label: 'Load ho gaya' },
-  SCHEDULED: { to: 'LOADED', label: 'Load ho gaya' },
-  LOADED: { to: 'DISPATCHED', label: 'Gaari nikal gayi' },
+  PENDING: { to: 'LOADED', label: t('Load ho gaya') },
+  SCHEDULED: { to: 'LOADED', label: t('Load ho gaya') },
+  LOADED: { to: 'DISPATCHED', label: t('Gaari nikal gayi') },
 };
 
 function challanDoc(d: Delivery): PrintDoc {
@@ -69,7 +70,7 @@ export default function DeliveryDetailPage() {
   const move = useMutation({
     mutationFn: (s: DeliveryStatus) => deliveriesApi.updateStatus(id, s),
     onSuccess: (r) => done(CHALLAN_STATUS[r.status].label)(),
-    onError: (e) => toast.error(errorText(e, 'Status nahi badla')),
+    onError: (e) => toast.error(errorText(e, t('Status nahi badla'))),
   });
 
   if (isLoading || !d) return <PageShell><Skeleton className="h-32 rounded-3xl" /><Skeleton className="h-80 rounded-3xl" /></PageShell>;
@@ -85,42 +86,42 @@ export default function DeliveryDetailPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Challan — safar" onClose={guide.close}
+        <PageGuide title={t('Challan — safar')} onClose={guide.close}
           steps={[
-            { icon: Truck, color: '#7c3aed', title: 'Gaari', text: 'Gaari, number aur driver likhein. Print kar ke driver ko dein — wusool ke dastakhat isi par.' },
-            { icon: PackageCheck, color: '#16a34a', title: 'Pohanch gaya', text: 'Har item ka jitna site par utra wo likhein. Toota hua alag. Kam utra to baqi maal agle challan me.' },
-            { icon: Ban, color: '#e11d48', title: 'Cancel', text: 'Safar na hua to wajah likh kar cancel karein — maal bill par wapas baqi ho jata hai.' },
+            { icon: Truck, color: '#7c3aed', title: t('Gaari'), text: t('Gaari, number aur driver likhein. Print kar ke driver ko dein — wusool ke dastakhat isi par.') },
+            { icon: PackageCheck, color: '#16a34a', title: t('Pohanch gaya'), text: t('Har item ka jitna site par utra wo likhein. Toota hua alag. Kam utra to baqi maal agle challan me.') },
+            { icon: Ban, color: '#e11d48', title: t('Cancel'), text: t('Safar na hua to wajah likh kar cancel karein — maal bill par wapas baqi ho jata hai.') },
           ]}
           shortcuts={[['G', 'guide']]} />
       )}
 
-      <PageHero title={<HeroBack to="/hardware/deliveries" label="Challan">{d.deliveryNumber}</HeroBack>} chip={st.label}
+      <PageHero title={<HeroBack to="/hardware/deliveries" label={t('Challan')}>{d.deliveryNumber}</HeroBack>} chip={st.label}
         meta={`${d.customerName} · ${shortDate(d.createdAt)}`}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => challanDoc(d)} label="Print" /></span>
-          {waTo && <a href={`https://wa.me/${waTo}?text=${waText}`} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-          {open && <button type="button" onClick={() => setVehicle(true)} className={heroButton}><Truck className="h-4 w-4" />Gaari</button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {open && <button type="button" onClick={() => setConfirm(true)} className={heroPrimaryButton}><PackageCheck className="h-4 w-4" />Pohanch gaya</button>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => challanDoc(d)} label={t('Print')} /></span>
+          {waTo && <a href={`https://wa.me/${waTo}?text=${waText}`} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+          {open && <button type="button" onClick={() => setVehicle(true)} className={heroButton}><Truck className="h-4 w-4" />{t('Gaari')}</button>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {open && <button type="button" onClick={() => setConfirm(true)} className={heroPrimaryButton}><PackageCheck className="h-4 w-4" />{t('Pohanch gaya')}</button>}
         </>}
         stats={[
-          { label: 'Items', value: String(d.items.length) },
-          { label: 'Maal ki value', value: formatPKR(value) },
-          { label: 'Kiraya / mazdoori', value: formatPKR(d.totalCharges) },
+          { label: t('Items'), value: String(d.items.length) },
+          { label: t('Maal ki value'), value: formatPKR(value) },
+          { label: t('Kiraya / mazdoori'), value: formatPKR(d.totalCharges) },
         ]} />
 
       {d.status === 'PARTIALLY_DELIVERED' && short.length > 0 && d.saleId && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-orange-50 px-4 py-3 text-orange-900 ring-1 ring-orange-200">
-          <PackageCheck className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{short.map((i) => `${i.itemName} (${qty(i.orderedQty - i.deliveredQty)})`).join(', ')} nahi pohancha — bill par baqi hai</span>
-          <Link to={`/hardware/deliveries/new?sale=${d.saleId}`} className="ml-auto text-[0.8125rem] font-semibold hover:underline">Baqi ka challan →</Link>
+          <PackageCheck className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{t('{{value}} nahi pohancha — bill par baqi hai', { value: short.map((i) => `${i.itemName} (${qty(i.orderedQty - i.deliveredQty)})`).join(', ') })}</span>
+          <Link to={`/hardware/deliveries/new?sale=${d.saleId}`} className="ms-auto text-[0.8125rem] font-semibold hover:underline">{t('Baqi ka challan →')}</Link>
         </div>
       )}
-      {d.status === 'CANCELLED' && <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">Cancel: {d.cancellationReason || '—'}</div>}
+      {d.status === 'CANCELLED' && <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">{t('Cancel: {{value}}', { value: d.cancellationReason || '—' })}</div>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card flush title="Maal">
+        <Card flush title={t('Maal')}>
           <Table minWidth="32rem">
-            <THead><Tr><Th>Item</Th><Th align="right">Challan</Th><Th align="right">Pohancha</Th><Th align="right">Toota</Th></Tr></THead>
+            <THead><Tr><Th>{t('Item')}</Th><Th align="right">{t('Challan')}</Th><Th align="right">{t('Pohancha')}</Th><Th align="right">{t('Toota')}</Th></Tr></THead>
             <TBody>
               {d.items.map((i) => (
                 <Tr key={i.id}>
@@ -135,37 +136,37 @@ export default function DeliveryDetailPage() {
         </Card>
 
         <aside className="space-y-4">
-          <Card title="Kahan">
+          <Card title={t('Kahan')}>
             <dl className="space-y-2 text-[0.875rem]">
               <div className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><dd>{d.deliveryAddress}</dd></div>
               {d.customerPhone && <div className="flex gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><a href={`tel:${d.customerPhone}`} className="text-brand-700">{d.customerPhone}</a></div>}
-              {d.siteContactPhone && <div className="flex gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><span>Site: <a href={`tel:${d.siteContactPhone}`} className="text-brand-700">{d.siteContactPhone}</a></span></div>}
-              {d.project && <div className="text-slate-600">Site: <Link to={`/hardware/projects/${d.project.id}`} className="font-medium text-brand-700 hover:underline">{d.project.name}</Link></div>}
-              {d.saleNumber && <div className="flex gap-2"><Receipt className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><Link to={`/sales?q=${encodeURIComponent(d.saleNumber)}`} className="font-medium text-brand-700 hover:underline">Bill {d.saleNumber}</Link></div>}
+              {d.siteContactPhone && <div className="flex gap-2"><UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><span>{t('Site:')}{' '} <a href={`tel:${d.siteContactPhone}`} className="text-brand-700">{d.siteContactPhone}</a></span></div>}
+              {d.project && <div className="text-slate-600">{t('Site:')}{' '} <Link to={`/hardware/projects/${d.project.id}`} className="font-medium text-brand-700 hover:underline">{d.project.name}</Link></div>}
+              {d.saleNumber && <div className="flex gap-2"><Receipt className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" /><Link to={`/sales?q=${encodeURIComponent(d.saleNumber)}`} className="font-medium text-brand-700 hover:underline">{t('Bill {{saleNumber}}', { saleNumber: d.saleNumber })}</Link></div>}
             </dl>
           </Card>
-          <Card title="Gaari">
+          <Card title={t('Gaari')}>
             <dl className="space-y-1.5 text-[0.875rem]">
-              <div className="flex justify-between"><dt className="text-slate-500">Gaari</dt><dd>{[vehicleLabel(d.vehicleType), d.vehicleNumber].filter(Boolean).join(' · ')}</dd></div>
-              <div className="flex justify-between"><dt className="text-slate-500">Driver</dt><dd>{[d.driverName, d.driverPhone].filter(Boolean).join(' · ') || '—'}</dd></div>
-              <div className="flex justify-between"><dt className="text-slate-500">Tareekh</dt><dd>{d.scheduledDate ? `${shortDate(d.scheduledDate)} ${d.scheduledTime ?? ''}` : '—'}</dd></div>
-              {d.receivedByName && <div className="flex justify-between"><dt className="text-slate-500">Wusool</dt><dd>{d.receivedByName}</dd></div>}
-              {d.issueReported && <div className="text-rose-700">Masla: {d.issueReported}</div>}
+              <div className="flex justify-between"><dt className="text-slate-500">{t('Gaari')}</dt><dd>{[vehicleLabel(d.vehicleType), d.vehicleNumber].filter(Boolean).join(' · ')}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-500">{t('Driver')}</dt><dd>{[d.driverName, d.driverPhone].filter(Boolean).join(' · ') || '—'}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-500">{t('Tareekh')}</dt><dd>{d.scheduledDate ? `${shortDate(d.scheduledDate)} ${d.scheduledTime ?? ''}` : '—'}</dd></div>
+              {d.receivedByName && <div className="flex justify-between"><dt className="text-slate-500">{t('Wusool')}</dt><dd>{d.receivedByName}</dd></div>}
+              {d.issueReported && <div className="text-rose-700">{t('Masla: {{issueReported}}', { issueReported: d.issueReported })}</div>}
             </dl>
             {open && (
               <div className="mt-3 grid gap-2">
                 {next && <Button variant="secondary" loading={move.isPending} leftIcon={<Truck className="h-4 w-4" />} onClick={() => move.mutate(next.to)}>{next.label}</Button>}
-                <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setCancel(true)}>Cancel karein</Button>
+                <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setCancel(true)}>{t('Cancel karein')}</Button>
               </div>
             )}
-            {d.status === 'DELIVERED' && <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-emerald-700"><CheckCircle2 className="h-4 w-4" />{shortDate(d.deliveredAt)} ko pohancha</p>}
+            {d.status === 'DELIVERED' && <p className="mt-3 flex items-center gap-1.5 text-[0.8125rem] font-medium text-emerald-700"><CheckCircle2 className="h-4 w-4" />{t('{{deliveredAt}} ko pohancha', { deliveredAt: shortDate(d.deliveredAt) })}</p>}
           </Card>
         </aside>
       </div>
 
-      {vehicle && <VehicleModal d={d} onClose={() => setVehicle(false)} onDone={done('Gaari save ho gayi')} />}
-      {confirm && <ConfirmModal d={d} onClose={() => setConfirm(false)} onDone={done('Delivery darj ho gayi')} />}
-      {cancel && <CancelModal d={d} onClose={() => setCancel(false)} onDone={done('Challan cancel — maal bill par baqi')} />}
+      {vehicle && <VehicleModal d={d} onClose={() => setVehicle(false)} onDone={done(t('Gaari save ho gayi'))} />}
+      {confirm && <ConfirmModal d={d} onClose={() => setConfirm(false)} onDone={done(t('Delivery darj ho gayi'))} />}
+      {cancel && <CancelModal d={d} onClose={() => setCancel(false)} onDone={done(t('Challan cancel — maal bill par baqi'))} />}
     </PageShell>
   );
 }
@@ -178,18 +179,18 @@ function VehicleModal({ d, onClose, onDone }: { d: Delivery; onClose: () => void
   const save = useMutation({
     mutationFn: () => deliveriesApi.assignVehicle(d.id, { ...v, scheduledDate: v.scheduledDate || undefined }),
     onSuccess: () => { onDone(); onClose(); },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Gaari aur driver"
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={() => save.mutate()}>Save</Button></>}>
+    <Modal open onClose={onClose} size="md" title={t('Gaari aur driver')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{t('Save')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select label="Gaari" value={v.vehicleType} onChange={(e) => setV({ ...v, vehicleType: e.target.value as VehicleType })} options={VEHICLES} />
-        <Input label="Gaari number" value={v.vehicleNumber} onChange={(e) => setV({ ...v, vehicleNumber: e.target.value })} />
-        <Input label="Driver" value={v.driverName} onChange={(e) => setV({ ...v, driverName: e.target.value })} />
-        <Input label="Driver phone" inputMode="tel" value={v.driverPhone} onChange={(e) => setV({ ...v, driverPhone: e.target.value })} />
-        <Input label="Tareekh" type="date" value={v.scheduledDate} onChange={(e) => setV({ ...v, scheduledDate: e.target.value })} />
-        <Input label="Waqt" type="time" value={v.scheduledTime} onChange={(e) => setV({ ...v, scheduledTime: e.target.value })} />
+        <Select label={t('Gaari')} value={v.vehicleType} onChange={(e) => setV({ ...v, vehicleType: e.target.value as VehicleType })} options={VEHICLES} />
+        <Input label={t('Gaari number')} value={v.vehicleNumber} onChange={(e) => setV({ ...v, vehicleNumber: e.target.value })} />
+        <Input label={t('Driver')} value={v.driverName} onChange={(e) => setV({ ...v, driverName: e.target.value })} />
+        <Input label={t('Driver phone')} inputMode="tel" value={v.driverPhone} onChange={(e) => setV({ ...v, driverPhone: e.target.value })} />
+        <Input label={t('Tareekh')} type="date" value={v.scheduledDate} onChange={(e) => setV({ ...v, scheduledDate: e.target.value })} />
+        <Input label={t('Waqt')} type="time" value={v.scheduledTime} onChange={(e) => setV({ ...v, scheduledTime: e.target.value })} />
       </div>
     </Modal>
   );
@@ -207,26 +208,26 @@ function ConfirmModal({ d, onClose, onDone }: { d: Delivery; onClose: () => void
       deliveredItems: d.items.map((i) => ({ itemId: i.id!, deliveredQty: rows[i.id!].delivered, damagedQty: rows[i.id!].damaged })),
     }),
     onSuccess: () => { onDone(); onClose(); },
-    onError: (e) => toast.error(errorText(e, 'Darj nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Darj nahi hua'))),
   });
   const num = (v: string) => Number(v.replace(/[^\d.]/g, '')) || 0;
   return (
-    <Modal open onClose={onClose} size="lg" title="Site par kitna pohancha?" description="Jitna utra wo likhein. Kam utra to baqi bill par agle challan ke liye rehta hai."
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} disabled={!!bad || nothing} onClick={() => save.mutate()}>Darj karein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={t('Site par kitna pohancha?')} description={t('Jitna utra wo likhein. Kam utra to baqi bill par agle challan ke liye rehta hai.')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button loading={save.isPending} disabled={!!bad || nothing} onClick={() => save.mutate()}>{t('Darj karein')}</Button></>}>
       <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
         {d.items.map((i) => (
           <li key={i.id} className="grid grid-cols-[minmax(0,1fr)_6rem_6rem] items-center gap-2 p-3">
-            <div className="min-w-0"><p className="truncate font-medium">{i.itemName}</p><p className="text-[0.75rem] text-slate-500">Challan: {qty(i.orderedQty)}</p></div>
-            <Input aria-label="Pohancha" label="Pohancha" size="sm" inputMode="decimal" value={String(rows[i.id!].delivered)} onChange={(e) => setRows({ ...rows, [i.id!]: { ...rows[i.id!], delivered: num(e.target.value) } })} />
-            <Input aria-label="Toota" label="Toota" size="sm" inputMode="decimal" value={String(rows[i.id!].damaged)} onChange={(e) => setRows({ ...rows, [i.id!]: { ...rows[i.id!], damaged: num(e.target.value) } })} />
+            <div className="min-w-0"><p className="truncate font-medium">{i.itemName}</p><p className="text-[0.75rem] text-slate-500">{t('Challan: {{orderedQty}}', { orderedQty: qty(i.orderedQty) })}</p></div>
+            <Input aria-label={t('Pohancha')} label={t('Pohancha')} size="sm" inputMode="decimal" value={String(rows[i.id!].delivered)} onChange={(e) => setRows({ ...rows, [i.id!]: { ...rows[i.id!], delivered: num(e.target.value) } })} />
+            <Input aria-label={t('Toota')} label={t('Toota')} size="sm" inputMode="decimal" value={String(rows[i.id!].damaged)} onChange={(e) => setRows({ ...rows, [i.id!]: { ...rows[i.id!], damaged: num(e.target.value) } })} />
           </li>
         ))}
       </ul>
-      {bad && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{bad.itemName}: pohancha + toota challan se zyada hai</p>}
-      {nothing && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">Kuch nahi pohancha to challan cancel karein</p>}
+      {bad && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{t('{{itemName}}: pohancha + toota challan se zyada hai', { itemName: bad.itemName })}</p>}
+      {nothing && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{t('Kuch nahi pohancha to challan cancel karein')}</p>}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Input label="Kis ne liya" value={receiver} onChange={(e) => setReceiver(e.target.value)} placeholder="Munshi / customer" />
-        <Textarea label="Koi masla" rows={1} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Raasta band, maal kam" />
+        <Input label={t('Kis ne liya')} value={receiver} onChange={(e) => setReceiver(e.target.value)} placeholder={t('Munshi / customer')} />
+        <Textarea label={t('Koi masla')} rows={1} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder={t('Raasta band, maal kam')} />
       </div>
     </Modal>
   );
@@ -237,12 +238,12 @@ function CancelModal({ d, onClose, onDone }: { d: Delivery; onClose: () => void;
   const save = useMutation({
     mutationFn: () => deliveriesApi.cancel(d.id, reason.trim()),
     onSuccess: () => { onDone(); onClose(); },
-    onError: (e) => toast.error(errorText(e, 'Cancel nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Cancel nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title={`${d.deliveryNumber} cancel karein?`} description="Challan record me rehta hai; maal bill par dobara bhejne ke liye baqi ho jata hai."
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant="danger" loading={save.isPending} disabled={reason.trim().length < 3} onClick={() => save.mutate()}>Cancel karein</Button></>}>
-      <Textarea label="Wajah" required rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Customer ne mana kiya, gaari kharab…" hint="Kam se kam 3 harf" />
+    <Modal open onClose={onClose} size="sm" title={t('{{deliveryNumber}} cancel karein?', { deliveryNumber: d.deliveryNumber })} description={t('Challan record me rehta hai; maal bill par dobara bhejne ke liye baqi ho jata hai.')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button variant="danger" loading={save.isPending} disabled={reason.trim().length < 3} onClick={() => save.mutate()}>{t('Cancel karein')}</Button></>}>
+      <Textarea label={t('Wajah')} required rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Customer ne mana kiya, gaari kharab…')} hint={t('Kam se kam 3 harf')} />
     </Modal>
   );
 }

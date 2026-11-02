@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { t } from '@core/i18n';
 
 export type WorkspaceId = 'pos' | 'marketplace';
 
@@ -14,16 +15,16 @@ export interface Workspace {
 export const WORKSPACES: Record<WorkspaceId, Workspace> = {
   pos: {
     id: 'pos',
-    label: 'Business POS',
-    shortLabel: 'POS',
-    description: 'Inventory, Sales, Customers & Reports',
+    label: t('Business POS'),
+    shortLabel: t('POS'),
+    description: t('Inventory, Sales, Customers & Reports'),
     rootPath: '/dashboard',
   },
   marketplace: {
     id: 'marketplace',
-    label: 'Nafaa Marketplace',
-    shortLabel: 'Marketplace',
-    description: 'Public storefront, orders & customer growth',
+    label: t('Nafaa Marketplace'),
+    shortLabel: t('Marketplace'),
+    description: t('Public storefront, orders & customer growth'),
     rootPath: '/marketplace/dashboard',
   },
 };

@@ -15,6 +15,7 @@ import PurchaseDetailPage from '@modules/purchasing/purchases/pages/PurchaseDeta
 import { electronicsProductsApi } from '../api/products.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { AddUnitsModal } from '../components/AddUnitsModal';
+import { t, Trans } from '@core/i18n';
 
 /** Ids of products whose every piece carries a serial or IMEI. */
 function useSerialProducts() {
@@ -32,7 +33,7 @@ export function ElectronicsPurchaseEditor() {
   return (
     <PurchaseEditorPage config={{
       lineBadge: (productId) => ids.has(productId) ? (
-        <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 text-[0.625rem] font-semibold text-violet-700"><Barcode className="h-2.5 w-2.5" /> Serial</span>
+        <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 text-[0.625rem] font-semibold text-violet-700"><Barcode className="h-2.5 w-2.5" /> {' '}{t('Serial')}</span>
       ) : null,
     }} />
   );
@@ -49,8 +50,8 @@ function LineUnits({ productId, purchaseNumber, onAdd }: { productId: string; pu
   const have = data.filter((s) => s.supplierRef === purchaseNumber).length;
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-violet-50 px-2.5 py-2 ring-1 ring-violet-200">
-      <span className="min-w-0 flex-1 text-[0.75rem] text-violet-800">Serial wali cheez — is bill ke <b>{isLoading ? '…' : have}</b> units darj</span>
-      <Button size="xs" onClick={() => onAdd(have)} leftIcon={<Plus className="h-3 w-3" />} className="shrink-0">Serial daalein</Button>
+      <span className="min-w-0 flex-1 text-[0.75rem] text-violet-800"><Trans text="Serial wali cheez — is bill ke {{count}} units darj" values={{ count: <b>{isLoading ? '…' : have}</b> }} /></span>
+      <Button size="xs" onClick={() => onAdd(have)} leftIcon={<Plus className="h-3 w-3" />} className="shrink-0">{t('Serial daalein')}</Button>
     </div>
   );
 }

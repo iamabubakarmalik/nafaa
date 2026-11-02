@@ -20,12 +20,13 @@ import type { CatalogItem } from '@modules/inventory/products/list/api';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { shoeProductsApi } from '../api/products.api';
 import { META_KEY, genderLabel, typeLabel, type ShoeMeta } from '../components/meta';
+import { t } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/shoe/try-on" className={heroButton}><HandMetal className="h-4 w-4" /><span className="hidden sm:inline">Farmaish</span></Link>
-      <Link to="/shoe/size-charts" className={heroButton}><Ruler className="h-4 w-4" /><span className="hidden sm:inline">Size chart</span></Link>
+      <Link to="/shoe/try-on" className={heroButton}><HandMetal className="h-4 w-4" /><span className="hidden sm:inline">{t('Farmaish')}</span></Link>
+      <Link to="/shoe/size-charts" className={heroButton}><Ruler className="h-4 w-4" /><span className="hidden sm:inline">{t('Size chart')}</span></Link>
     </>
   );
 }
@@ -52,21 +53,21 @@ function SizeReorder() {
   if (q.isLoading) return <Skeleton className="h-64 rounded-2xl" />;
   const items = q.data?.items ?? [];
   return (
-    <Card className="rounded-2xl" flush title="Size ke hisaab se kya mangwana hai"
-      description={items.length ? `${q.data!.products} articles · kul ${q.data!.pairs} joray mangwane ka mashwara (pichle 30 din ki Sale se)` : undefined}
-      actions={<Link to="/purchases/new" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"><PackagePlus className="h-4 w-4" />Purchase</Link>}>
-      {!items.length ? <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">Koi bikne wala size khatam nahi ho raha</p> : (
+    <Card className="rounded-2xl" flush title={t('Size ke hisaab se kya mangwana hai')}
+      description={items.length ? t('{{products}} articles · kul {{pairs}} joray mangwane ka mashwara (pichle 30 din ki Sale se)', { products: q.data!.products, pairs: q.data!.pairs }) : undefined}
+      actions={<Link to="/purchases/new" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"><PackagePlus className="h-4 w-4" />{t('Purchase')}</Link>}>
+      {!items.length ? <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">{t('Koi bikne wala size khatam nahi ho raha')}</p> : (
         <ul className="divide-y divide-slate-100">
           {items.map((g) => (
             <li key={g.productId} className="px-4 py-3 sm:px-5">
               <div className="flex items-center justify-between gap-2">
-                <Link to={`/shoe-products/${g.productId}`} className="min-w-0 truncate font-semibold text-slate-900 hover:text-brand-700">{g.name}{g.brand && <span className="ml-1.5 text-[0.75rem] font-normal text-slate-500">{g.brand}</span>}</Link>
-                <span className="shrink-0 text-[0.75rem] text-slate-500">30 din me {Math.round(g.sold30)} joray bike</span>
+                <Link to={`/shoe-products/${g.productId}`} className="min-w-0 truncate font-semibold text-slate-900 hover:text-brand-700">{g.name}{g.brand && <span className="ms-1.5 text-[0.75rem] font-normal text-slate-500">{g.brand}</span>}</Link>
+                <span className="shrink-0 text-[0.75rem] text-slate-500">{t('30 din me {{sold30}} joray bike', { sold30: Math.round(g.sold30) })}</span>
               </div>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {g.sizes.map((s) => (
                   <span key={s.variantId} className={cn('rounded-lg px-2 py-1 text-[0.75rem] ring-1', s.stock <= 0 ? 'bg-rose-50 text-rose-800 ring-rose-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
-                    <strong>{s.name}</strong> · {Math.round(s.stock)} bache · {Math.round(s.sold30)} bike · <strong>{s.suggest} mangwayein</strong>
+                    <strong>{s.name}</strong> {' '}{t('· {{stock}} bache · {{sold30}} bike ·', { stock: Math.round(s.stock), sold30: Math.round(s.sold30) })}{' '} <strong>{t('{{suggest}} mangwayein', { suggest: s.suggest })}</strong>
                   </span>
                 ))}
               </div>
@@ -98,7 +99,7 @@ export default function ShoeProductsPage() {
   const config = useMemo<ProductsPageConfig>(() => {
     const byId = new Map<string, ShoeMeta>((metaQ.data?.items ?? []).map((m) => [m.productId, m]));
     return {
-      label: 'Shoes',
+      label: t('Shoes'),
       noun: 'joota',
       paths: { detail: (id) => `/shoe-products/${id}`, edit: (id) => `/shoe-products/${id}/edit`, create: '/shoe-products/new' },
       HeroExtra: HeroLinks,
@@ -111,24 +112,24 @@ export default function ShoeProductsPage() {
           line: line || undefined,
           badges: m && (m.onSale || m.isNewArrival || m.isBridal) ? (
             <>
-              {m.onSale && <Badge size="xs" variant="danger" className="gap-1 shadow-sm"><BadgePercent className="h-3 w-3" />Sale {m.offPct}%</Badge>}
-              {m.isNewArrival && <Badge size="xs" variant="info" className="gap-1 shadow-sm"><Sparkles className="h-3 w-3" />Naya</Badge>}
-              {m.isBridal && <Badge size="xs" variant="brand" className="shadow-sm">Bridal</Badge>}
+              {m.onSale && <Badge size="xs" variant="danger" className="gap-1 shadow-sm"><BadgePercent className="h-3 w-3" />{t('Sale {{offPct}}%', { offPct: m.offPct })}</Badge>}
+              {m.isNewArrival && <Badge size="xs" variant="info" className="gap-1 shadow-sm"><Sparkles className="h-3 w-3" />{t('Naya')}</Badge>}
+              {m.isBridal && <Badge size="xs" variant="brand" className="shadow-sm">{t('Bridal')}</Badge>}
             </>
           ) : undefined,
           chips: <SizeStrip item={item} />,
-          ribbon: outSizes > 0 && item.stock > 0 ? { text: `${outSizes} size khatam`, tone: 'amber' } : undefined,
+          ribbon: outSizes > 0 && item.stock > 0 ? { text: t('{{outSizes}} size khatam', { outSizes }), tone: 'amber' } : undefined,
         };
       },
       columns: [
-        { id: 'article', label: 'Article', cell: (i) => byId.get(i.id)?.modelCode || '—' },
-        { id: 'sizes', label: 'Sizes', cell: (i) => <SizeStrip item={i} /> },
+        { id: 'article', label: t('Article'), cell: (i) => byId.get(i.id)?.modelCode || '—' },
+        { id: 'sizes', label: t('Sizes'), cell: (i) => <SizeStrip item={i} /> },
       ],
-      extraTab: { id: 'reorder', label: 'Size reorder', icon: PackagePlus, Component: SizeReorder },
+      extraTab: { id: 'reorder', label: t('Size reorder'), icon: PackagePlus, Component: SizeReorder },
       stockChips: () => [1, 2, 6, 12, 24],
       guide: [
-        { icon: Ruler, color: '#ea580c', title: 'Har size ka stock', text: 'Card par har size ke joray likhe hain. Laal size khatam — "Size reorder" tab batata hai kaunsa size kitna mangwana hai.' },
-        { icon: BadgePercent, color: '#e11d48', title: 'Sale / clearance', text: 'Joote ke dabbe ki MRP likhein aur rate kam rakhein — card aur POS par "Sale %" ka nishan aata hai.' },
+        { icon: Ruler, color: '#ea580c', title: t('Har size ka stock'), text: t('Card par har size ke joray likhe hain. Laal size khatam — "Size reorder" tab batata hai kaunsa size kitna mangwana hai.') },
+        { icon: BadgePercent, color: '#e11d48', title: t('Sale / clearance'), text: t('Joote ke dabbe ki MRP likhein aur rate kam rakhein — card aur POS par "Sale %" ka nishan aata hai.') },
       ],
     };
   }, [metaQ.data]);

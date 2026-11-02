@@ -5,6 +5,7 @@ import { Button, Card, IconButton, Input } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { publicFetch } from './publicApi';
 import { Shell, type Catalog } from './PublicOrderPage';
+import { t } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    CUSTOMER: "mera order kahan hai" — order # + phone ke aakhri 4.
@@ -32,12 +33,12 @@ export default function PublicTrackPage() {
   const [shop, setShop] = useState<Pick<Catalog, 'shop' | 'logoUrl' | 'accent'> | null>(null);
 
   useEffect(() => {
-    publicFetch<Catalog>(`/integrations/website/v1/form/${encodeURIComponent(key)}`).then((c) => { setShop(c); document.title = `${c.shop} — Order ka haal`; }).catch(() => null);
+    publicFetch<Catalog>(`/integrations/website/v1/form/${encodeURIComponent(key)}`).then((c) => { setShop(c); document.title = t('{{shop}} — Order ka haal', { shop: c.shop }); }).catch(() => null);
   }, [key]);
 
   const check = async () => {
     setErr(null); setData(null);
-    if (!no.trim() || phone.replace(/\D/g, '').length < 4) return setErr('Order # aur phone ke aakhri 4 hindse likhein');
+    if (!no.trim() || phone.replace(/\D/g, '').length < 4) return setErr(t('Order # aur phone ke aakhri 4 hindse likhein'));
     setBusy(true);
     try {
       const q = new URLSearchParams({ no: no.trim(), phone: phone.replace(/\D/g, '').slice(-4) });
@@ -53,18 +54,18 @@ export default function PublicTrackPage() {
   const reached = data ? data.steps.filter((s) => s.at).length : 0;
 
   return (
-    <Shell embed={embed} onClose={() => window.parent?.postMessage('nafaa:close', '*')} title={shop?.shop ?? 'Order ka haal'} logo={shop?.logoUrl} accent={accent}
-      right={<Link to={`/order/${key}${embed ? '?embed=1' : ''}`} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">Shopping</Link>}>
+    <Shell embed={embed} onClose={() => window.parent?.postMessage('nafaa:close', '*')} title={shop?.shop ?? t('Order ka haal')} logo={shop?.logoUrl} accent={accent}
+      right={<Link to={`/order/${key}${embed ? '?embed=1' : ''}`} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{t('Shopping')}</Link>}>
       <div className="space-y-4 p-4 pb-16">
-        <Card className="rounded-2xl" title="Mera order kahan hai?">
+        <Card className="rounded-2xl" title={t('Mera order kahan hai?')}>
           <div className="grid gap-2 sm:grid-cols-[1fr_8.75rem_auto]">
-            <Input size="lg" value={no} onChange={(e) => setNo(e.target.value.toUpperCase())} placeholder="Order # (jaise NF1A2B3C4D)" aria-label="Order number"
+            <Input size="lg" value={no} onChange={(e) => setNo(e.target.value.toUpperCase())} placeholder={t('Order # (jaise NF1A2B3C4D)')} aria-label={t('Order number')}
               className="font-mono uppercase" />
-            <Input size="lg" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone ke aakhri 4" aria-label="Phone ke aakhri 4" inputMode="numeric" maxLength={11}
+            <Input size="lg" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('Phone ke aakhri 4')} aria-label={t('Phone ke aakhri 4')} inputMode="numeric" maxLength={11}
               onKeyDown={(e) => { if (e.key === 'Enter') check(); }} />
             <Button size="lg" onClick={check} disabled={busy} className="text-white" style={{ background: accent }}
               leftIcon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}>
-              Dekhein
+              {t('Dekhein')}
             </Button>
           </div>
           {err && <p className="mt-2 text-sm font-semibold text-rose-600">{err}</p>}
@@ -76,7 +77,7 @@ export default function PublicTrackPage() {
               {data.closed ? <XCircle className="h-6 w-6 text-rose-500" /> : <CheckCircle2 className="h-6 w-6" style={{ color: accent }} />}
               <div className="text-lg font-bold text-slate-900">{data.label}</div>
             </div>
-            <div className="mt-1 text-sm text-slate-500">Total <span className="tabular-nums">Rs {Math.round(data.total).toLocaleString('en-PK')}</span> · {data.paid ? <span className="font-semibold text-success-700">Paisa mil gaya</span> : 'Cash on delivery'}</div>
+            <div className="mt-1 text-sm text-slate-500">{t('Total')}{' '} <span className="tabular-nums">Rs {Math.round(data.total).toLocaleString('en-PK')}</span> · {data.paid ? <span className="font-semibold text-success-700">{t('Paisa mil gaya')}</span> : t('Cash on delivery')}</div>
 
             {!data.closed && (
               <ol className="mt-5 space-y-3">
@@ -92,13 +93,13 @@ export default function PublicTrackPage() {
 
             {data.courier && (
               <div className="mt-5 rounded-xl bg-slate-50 p-3 text-sm">
-                <div className="text-xs font-semibold text-slate-500">{data.courier.name} · tracking number</div>
+                <div className="text-xs font-semibold text-slate-500">{t('{{name}} · tracking number', { name: data.courier.name })}</div>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="font-mono text-base font-bold text-slate-900">{data.courier.trackingNumber}</span>
-                  <IconButton size="sm" label="Copy" onClick={() => navigator.clipboard?.writeText(data.courier!.trackingNumber)}><Copy className="h-4 w-4" /></IconButton>
+                  <IconButton size="sm" label={t('Copy')} onClick={() => navigator.clipboard?.writeText(data.courier!.trackingNumber)}><Copy className="h-4 w-4" /></IconButton>
                   {data.courier.site && (
-                    <a href={data.courier.site} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-semibold" style={{ color: accent }}>
-                      {data.courier.name} par dekhein <ExternalLink className="h-3.5 w-3.5" />
+                    <a href={data.courier.site} target="_blank" rel="noreferrer" className="ms-auto inline-flex items-center gap-1 text-xs font-semibold" style={{ color: accent }}>
+                      {t('{{name}} par dekhein', { name: data.courier.name })}{' '} <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}
                 </div>

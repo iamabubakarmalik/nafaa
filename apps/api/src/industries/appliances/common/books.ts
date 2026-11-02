@@ -17,6 +17,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import {
   IndustrySaleLine, ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -92,7 +93,7 @@ export async function billJob(
   let customerId = job.customerId ?? null;
   if (!customerId && (total - paidAtCounter > 0.005 || onKhata > 0)) {
     if (!job.customerName?.trim()) {
-      throw new BadRequestException(`Rs ${r2(total - paidAtCounter)} baqi hai — poori amount lein ya customer ka naam likhein`);
+      throw new BadRequestException(apiMessage('Rs {{total}} baqi hai — poori amount lein ya customer ka naam likhein', { total: r2(total - paidAtCounter) }));
     }
     customerId = await ensureCustomer(db, user, { name: job.customerName, phone: job.customerPhone, shopId });
   }

@@ -2,6 +2,7 @@ import { apiClient } from '@core/api/client';
 import { db, setMeta, getMeta, type PendingSale, type SyncQueueItem, isTempId } from './db';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t as tr } from '@core/i18n';
 
 let isSyncing = false;
 let uploadInterval: ReturnType<typeof setInterval> | null = null;
@@ -188,7 +189,7 @@ export async function downloadAllData(force = false): Promise<{ success: boolean
 
     return { success: true };
   } catch (error: any) {
-    const msg = error?.response?.data?.message || error?.message || 'Sync failed';
+    const msg = error?.response?.data?.message || error?.message || tr('Sync failed');
     console.error('[sync] ❌ Download failed:', msg);
     currentStatus.lastError = msg;
     return { success: false, error: msg };
@@ -295,7 +296,7 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
       await db.syncQueue.update(item.id, { status: 'synced' });
       queueSynced++;
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error?.message || 'Unknown error';
+      const msg = error?.response?.data?.message || error?.message || tr('Unknown error');
 
       // Harmless errors (session delete etc) → success maano, error hide
       if (isHarmlessError(msg)) {
@@ -309,7 +310,7 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
       const permanent = isPermanentFailure(msg);
       await db.syncQueue.update(item.id, {
         status: 'failed',
-        syncError: permanent ? `⚠️ ${msg} — manual review chahiye` : msg,
+        syncError: permanent ? tr('⚠️ {{msg}} — manual review chahiye', { msg }) : msg,
         retryCount: permanent ? MAX_RETRIES : item.retryCount + 1,
       });
     }
@@ -372,15 +373,15 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
       salesSynced++;
     } catch (error: any) {
       failed++;
-      const msg = error?.response?.data?.message || error?.message || 'Unknown error';
+      const msg = error?.response?.data?.message || error?.message || tr('Unknown error');
       if (isPermanentFailure(msg)) {
         await db.pendingSales.update(sale.id, {
           status: 'failed',
           syncError: `⚠️ STOCK CONFLICT: ${msg} — /sync pe review karein`,
           retryCount: MAX_RETRIES,
         });
-        toast.error(`Sale ${sale.saleNumber} sync nahi hui`, {
-          description: 'Stock conflict — Sync Center me review karein',
+        toast.error(tr('Sale {{saleNumber}} sync nahi hui', { saleNumber: sale.saleNumber }), {
+          description: tr('Stock conflict — Sync Center me review karein'),
           duration: 8000,
         });
       } else {
@@ -417,8 +418,8 @@ export async function resetFailedItems(): Promise<number> {
 }
 
 export async function fullSync(silent = false, force = false): Promise<void> {
-  if (isSyncing) { if (!silent) toast.info('Sync already in progress'); return; }
-  if (!navigator.onLine) { if (!silent) toast.error('Offline — cannot sync'); return; }
+  if (isSyncing) { if (!silent) toast.info(tr('Sync already in progress')); return; }
+  if (!navigator.onLine) { if (!silent) toast.error(tr('Offline — cannot sync')); return; }
 
   isSyncing = true;
   currentStatus.isSyncing = true;
@@ -429,9 +430,9 @@ export async function fullSync(silent = false, force = false): Promise<void> {
     await downloadAllData(force);
 
     if (!silent && (uploadResult.salesSynced > 0 || uploadResult.queueSynced > 0)) {
-      toast.success(`Synced: ${uploadResult.salesSynced} sales, ${uploadResult.queueSynced} changes`, { duration: 2500 });
+      toast.success(tr('Synced: {{salesSynced}} sales, {{queueSynced}} changes', { salesSynced: uploadResult.salesSynced, queueSynced: uploadResult.queueSynced }), { duration: 2500 });
     } else if (!silent) {
-      toast.success('Sync complete', { duration: 1500 });
+      toast.success(tr('Sync complete'), { duration: 1500 });
     }
   } finally {
     isSyncing = false;
@@ -444,12 +445,12 @@ export async function fullSync(silent = false, force = false): Promise<void> {
 function setupAutoSync() {
   onlineHandler = () => {
     console.log('[sync] Connection restored');
-    toast.info('🌐 Wapis connect ho gaye', { duration: 2000 });
+    toast.info(tr('🌐 Wapis connect ho gaye'), { duration: 2000 });
     setTimeout(() => fullSync(true, true), 1000);
   };
   offlineHandler = () => {
     console.log('[sync] Offline');
-    toast.warning('📡 Offline — sales queue mein save hongi', { duration: 3000 });
+    toast.warning(tr('📡 Offline — sales queue mein save hongi'), { duration: 3000 });
   };
   window.addEventListener('online', onlineHandler);
   window.addEventListener('offline', offlineHandler);

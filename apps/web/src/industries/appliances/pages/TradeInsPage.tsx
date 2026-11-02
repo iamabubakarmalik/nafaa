@@ -30,14 +30,15 @@ import { tradeInsApi, type ApplianceTradeIn, type TradeInCondition, type TradeIn
 import { TradeInModal } from '../pos/TradeInTake';
 import { Bars, Box, Chips, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
 import { MONEY_KEYS, TRADE_IN_CONDITIONS, TRADE_IN_KEY, apiError, conditionLabel, dayOnly, money, tradeInStatusOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'analytics';
 const VIEWS: Array<{ id: TradeInView; label: string; icon: typeof Archive }> = [
-  { id: 'HELD', label: 'Dukaan me', icon: Archive },
-  { id: 'SOLD', label: 'Bech diya', icon: BadgeDollarSign },
-  { id: 'SCRAPPED', label: 'Kabar', icon: Trash2 },
-  { id: 'RETURNED', label: 'Customer ko wapas', icon: Undo2 },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'HELD', label: tr('Dukaan me'), icon: Archive },
+  { id: 'SOLD', label: tr('Bech diya'), icon: BadgeDollarSign },
+  { id: 'SCRAPPED', label: tr('Kabar'), icon: Trash2 },
+  { id: 'RETURNED', label: tr('Customer ko wapas'), icon: Undo2 },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const viewLabel = (v: TradeInView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 const STATUSES: TradeInStatus[] = ['HELD', 'SOLD', 'SCRAPPED', 'RETURNED'];
@@ -103,22 +104,22 @@ export default function TradeInsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Purana saman"
-        chip={<><Recycle /> Trade-in</>}
-        meta="Customer ka purana AC, fridge ya machine — naye bill se qeemat kati, ab bechein, kabar karein ya wapas dein"
+        title={tr('Purana saman')}
+        chip={<><Recycle /> {' '}{tr('Trade-in')}</>}
+        meta={tr('Customer ka purana AC, fridge ya machine — naye bill se qeemat kati, ab bechein, kabar karein ya wapas dein')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canAdd && <button type="button" onClick={() => setAdding(true)} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Purana saman liya</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => setAdding(true)} title={tr('Naya (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Purana saman liya')}</button>}
         </>}
         stats={c ? [
-          { label: 'Dukaan me', value: c.HELD.count, hint: formatPKR(c.HELD.value) },
-          { label: 'Bech diya', value: c.SOLD.count },
-          { label: 'Kabar', value: c.SCRAPPED.count },
-        ] : [{ label: 'Dukaan me', value: '—' }]}
+          { label: tr('Dukaan me'), value: c.HELD.count, hint: formatPKR(c.HELD.value) },
+          { label: tr('Bech diya'), value: c.SOLD.count },
+          { label: tr('Kabar'), value: c.SCRAPPED.count },
+        ] : [{ label: tr('Dukaan me'), value: '—' }]}
       />
 
       <KpiRow cols={4}>
@@ -131,7 +132,7 @@ export default function TradeInsPage() {
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Code, saman, brand, model…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Code, saman, brand, model…')} label={tr('Search')} />}
         chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined}
         onClear={() => setSearch('')}>
         <div className="flex flex-wrap gap-1.5">
@@ -144,15 +145,15 @@ export default function TradeInsPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canAdd && <><Kbd>N</Kbd> naya · </>}<Kbd>1</Kbd>–<Kbd>5</Kbd> halat · <Kbd>/</Kbd> search</>}
-        tabs={[{ id: 'list', label: 'Saman', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+        hint={<>{canAdd && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>1</Kbd>–<Kbd>5</Kbd> {' '}{tr('halat ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}</>}
+        tabs={[{ id: 'list', label: tr('Saman'), icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <Analytics c={c} /> : (<>
         {data && data.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.total} · {formatPKR(c?.[view].value ?? 0)}</span></Strip>}
         <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={Recycle}
-          title={query ? 'Kuch nahi mila' : view === 'HELD' ? 'Dukaan me koi purana saman nahi' : 'Kuch nahi'}
-          hint="Customer purana saman de to POS par cart ke neeche 'Purana saman liya' dabayein, phir checkout par Trade-in chunein."
-          actions={canAdd ? <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Purana saman liya</Button> : undefined}>
+          title={query ? tr('Kuch nahi mila') : view === 'HELD' ? tr('Dukaan me koi purana saman nahi') : tr('Kuch nahi')}
+          hint={tr('Customer purana saman de to POS par cart ke neeche \'Purana saman liya\' dabayein, phir checkout par Trade-in chunein.')}
+          actions={canAdd ? <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Purana saman liya')}</Button> : undefined}>
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {rows.map((t) => (
               <TradeInRow key={t.id} t={t} canAdd={canAdd} canMove={canMove}
@@ -168,14 +169,14 @@ export default function TradeInsPage() {
       {selling && <SellModal t={selling} onClose={() => setSelling(null)} />}
       {moving && <MoveModal t={moving.t} status={moving.status} onClose={() => setMoving(null)} onDone={() => qc.invalidateQueries({ queryKey: [TRADE_IN_KEY] })} />}
       {guide.isOpen && (
-        <PageGuide title="Purana saman — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Purana saman — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Recycle, color: '#d97706', title: 'Counter par', text: 'Customer purana AC ya fridge de: POS par "Purana saman liya" — kya liya aur kitne ka. Phir checkout par Trade-in me wohi code chunein; qeemat bill se kat jati hai.' },
-            { icon: BadgeDollarSign, color: '#16a34a', title: 'Aage bechna', text: 'Kabari ya kisi aur ko bechein to "Bechein" — iska alag bill banta hai. Trade-in qeemat us ki Cost hai, is liye Profit report me Profit ya nuqsan dikhta hai.' },
-            { icon: Trash2, color: '#64748b', title: 'Kabar / wapas', text: 'Jo bik na sake use Kabar karein. Bill na bana ho to customer ko wapas bhi de sakte hain.' },
-            { icon: Undo2, color: '#0284c7', title: 'Void', text: 'Naya bill void ho to trade-in phir se free ho jata hai. Bechne wala bill void ho to saman wapas "Dukaan me" aa jata hai.' },
+            { icon: Recycle, color: '#d97706', title: tr('Counter par'), text: tr('Customer purana AC ya fridge de: POS par "Purana saman liya" — kya liya aur kitne ka. Phir checkout par Trade-in me wohi code chunein; qeemat bill se kat jati hai.') },
+            { icon: BadgeDollarSign, color: '#16a34a', title: tr('Aage bechna'), text: tr('Kabari ya kisi aur ko bechein to "Bechein" — iska alag bill banta hai. Trade-in qeemat us ki Cost hai, is liye Profit report me Profit ya nuqsan dikhta hai.') },
+            { icon: Trash2, color: '#64748b', title: tr('Kabar / wapas'), text: tr('Jo bik na sake use Kabar karein. Bill na bana ho to customer ko wapas bhi de sakte hain.') },
+            { icon: Undo2, color: '#0284c7', title: tr('Void'), text: tr('Naya bill void ho to trade-in phir se free ho jata hai. Bechne wala bill void ho to saman wapas "Dukaan me" aa jata hai.') },
           ]}
-          tips={['Bechne ke liye saman kisi bill me Trade-in laga hona chahiye.', 'Kabar ya wapas ke liye "Stock adjust" permission chahiye.']}
+          tips={[tr('Bechne ke liye saman kisi bill me Trade-in laga hona chahiye.'), tr('Kabar ya wapas ke liye "Stock adjust" permission chahiye.')]}
           shortcuts={[['N', 'naya'], ['1–5', 'halat'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
@@ -203,18 +204,18 @@ function TradeInRow({ t, canAdd, canMove, onEdit, onSell, onMove }: {
         <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
           {dayOnly(t.createdAt)}
           {t.customer ? ` · ${t.customer.name}${t.customer.phone ? ` (${t.customer.phone})` : ''}` : ''}
-          {t.sale ? <> · bill <Link to={`/sales/${t.sale.id}`} className="text-brand-700 hover:underline">{t.sale.saleNumber}</Link></> : held ? ' · abhi kisi bill par nahi' : ''}
-          {t.resale ? <> · bika <Link to={`/sales/${t.resale.id}`} className="text-brand-700 hover:underline">{t.resale.saleNumber}</Link> {formatPKR(t.resale.total)}</> : ''}
+          {t.sale ? <> {' '}{tr('· bill')}{' '} <Link to={`/sales/${t.sale.id}`} className="text-brand-700 hover:underline">{t.sale.saleNumber}</Link></> : held ? tr(' · abhi kisi bill par nahi') : ''}
+          {t.resale ? <> {' '}{tr('· bika')}{' '} <Link to={`/sales/${t.resale.id}`} className="text-brand-700 hover:underline">{t.resale.saleNumber}</Link> {formatPKR(t.resale.total)}</> : ''}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1.5">
         <span className="font-semibold tabular-nums text-slate-900">{formatPKR(t.value)}</span>
         <span className="flex flex-wrap justify-end gap-1">
-          {held && canAdd && !t.saleId && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={onEdit}>Badlein</Button>}
-          {held && canAdd && t.saleId && <Button size="sm" variant="secondary" leftIcon={<BadgeDollarSign className="h-3.5 w-3.5" />} onClick={onSell}>Bechein</Button>}
-          {held && canMove && <Button size="sm" variant="ghost" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => onMove('SCRAPPED')}>Kabar</Button>}
-          {held && canMove && !t.saleId && <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => onMove('RETURNED')}>Wapas diya</Button>}
-          {(t.status === 'SCRAPPED' || t.status === 'RETURNED') && canMove && <Button size="sm" variant="ghost" leftIcon={<Archive className="h-3.5 w-3.5" />} onClick={() => onMove('HELD')}>Dukaan me wapas</Button>}
+          {held && canAdd && !t.saleId && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={onEdit}>{tr('Badlein')}</Button>}
+          {held && canAdd && t.saleId && <Button size="sm" variant="secondary" leftIcon={<BadgeDollarSign className="h-3.5 w-3.5" />} onClick={onSell}>{tr('Bechein')}</Button>}
+          {held && canMove && <Button size="sm" variant="ghost" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => onMove('SCRAPPED')}>{tr('Kabar')}</Button>}
+          {held && canMove && !t.saleId && <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => onMove('RETURNED')}>{tr('Wapas diya')}</Button>}
+          {(t.status === 'SCRAPPED' || t.status === 'RETURNED') && canMove && <Button size="sm" variant="ghost" leftIcon={<Archive className="h-3.5 w-3.5" />} onClick={() => onMove('HELD')}>{tr('Dukaan me wapas')}</Button>}
         </span>
       </span>
     </li>
@@ -222,9 +223,9 @@ function TradeInRow({ t, canAdd, canMove, onEdit, onSell, onMove }: {
 }
 
 const MOVE_TEXT: Record<Exclude<TradeInStatus, 'SOLD'>, { title: string; text: string; ok: string }> = {
-  SCRAPPED: { title: 'Kabar karein', text: 'Ye saman kisi kaam ka nahi — kabar me likh dein. Paisa kahin nahi hilta.', ok: 'Kabar karein' },
-  RETURNED: { title: 'Customer ko wapas', text: 'Customer ne saman wapas le liya aur ye kisi bill par nahi laga.', ok: 'Wapas likhein' },
-  HELD: { title: 'Dukaan me wapas', text: 'Saman phir se dukaan me hai — bechne ya bill me lagane ke liye.', ok: 'Dukaan me likhein' },
+  SCRAPPED: { title: tr('Kabar karein'), text: tr('Ye saman kisi kaam ka nahi — kabar me likh dein. Paisa kahin nahi hilta.'), ok: tr('Kabar karein') },
+  RETURNED: { title: tr('Customer ko wapas'), text: tr('Customer ne saman wapas le liya aur ye kisi bill par nahi laga.'), ok: tr('Wapas likhein') },
+  HELD: { title: tr('Dukaan me wapas'), text: tr('Saman phir se dukaan me hai — bechne ya bill me lagane ke liye.'), ok: tr('Dukaan me likhein') },
 };
 
 function MoveModal({ t, status, onClose, onDone }: { t: ApplianceTradeIn; status: Exclude<TradeInStatus, 'SOLD'>; onClose: () => void; onDone: () => void }) {
@@ -232,11 +233,11 @@ function MoveModal({ t, status, onClose, onDone }: { t: ApplianceTradeIn; status
   const save = useMutation({
     mutationFn: () => tradeInsApi.setStatus(t.id, status),
     onSuccess: () => { toast.success(`${t.code} — ${tradeInStatusOf(status).label}`); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   return (
     <Modal open onClose={onClose} size="sm" title={`${m.title} — ${t.code}`} description={itemName(t)}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{m.ok}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{m.ok}</Button></>}>
       <p className="text-[0.875rem] text-slate-700">{m.text}</p>
     </Modal>
   );
@@ -249,13 +250,13 @@ function EditModal({ t, onClose }: { t: ApplianceTradeIn; onClose: () => void })
   const set = (patch: Partial<typeof f>) => setF((x) => ({ ...x, ...patch }));
   const value = Number(f.value) || 0;
   const errors = {
-    description: f.description.trim().length < 2 ? 'Kya liya — maslan: purana AC 1.5 ton' : undefined,
-    value: !(value > 0) ? 'Qeemat likhein' : undefined,
+    description: f.description.trim().length < 2 ? tr('Kya liya — maslan: purana AC 1.5 ton') : undefined,
+    value: !(value > 0) ? tr('Qeemat likhein') : undefined,
   };
   const save = useMutation({
     mutationFn: () => tradeInsApi.update(t.id, { description: f.description.trim(), brand: f.brand.trim(), model: f.model.trim(), condition: f.condition || undefined, value }),
-    onSuccess: () => { toast.success(`${t.code} badal gaya`); qc.invalidateQueries({ queryKey: [TRADE_IN_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi badla')),
+    onSuccess: () => { toast.success(tr('{{code}} badal gaya', { code: t.code })); qc.invalidateQueries({ queryKey: [TRADE_IN_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi badla'))),
   });
   const submit = () => { setTried(true); if (!errors.description && !errors.value) save.mutate(); };
   useEffect(() => {
@@ -264,22 +265,22 @@ function EditModal({ t, onClose }: { t: ApplianceTradeIn; onClose: () => void })
     return () => window.removeEventListener('keydown', onKey);
   });
   return (
-    <Modal open onClose={onClose} size="md" title={`Badlein — ${t.code}`} description="Sirf jab tak ye kisi bill par na laga ho"
+    <Modal open onClose={onClose} size="md" title={tr('Badlein — {{code}}', { code: t.code })} description={tr('Sirf jab tak ye kisi bill par na laga ho')}
       footer={<>
-        <span className="mr-auto hidden text-[0.75rem] text-slate-500 sm:inline"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}>Save</Button>
+        <span className="me-auto hidden text-[0.75rem] text-slate-500 sm:inline"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} onClick={submit}>{tr('Save')}</Button>
       </>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Input label="Kya liya" required value={f.description} onChange={(e) => set({ description: e.target.value })} error={tried ? errors.description : undefined} />
+        <Input label={tr('Kya liya')} required value={f.description} onChange={(e) => set({ description: e.target.value })} error={tried ? errors.description : undefined} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Brand" value={f.brand} onChange={(e) => set({ brand: e.target.value })} />
-          <Input label="Model" value={f.model} onChange={(e) => set({ model: e.target.value })} />
+          <Input label={tr('Brand')} value={f.brand} onChange={(e) => set({ brand: e.target.value })} />
+          <Input label={tr('Model')} value={f.model} onChange={(e) => set({ model: e.target.value })} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Halat</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Halat')}</span>
           <Chips options={TRADE_IN_CONDITIONS} value={f.condition} onChange={(condition) => set({ condition })} />
         </div>
-        <Input label="Qeemat" required inputMode="decimal" value={f.value} onChange={(e) => set({ value: money(e.target.value) })} hint="Jitna naye bill se katega" error={tried ? errors.value : undefined} />
+        <Input label={tr('Qeemat')} required inputMode="decimal" value={f.value} onChange={(e) => set({ value: money(e.target.value) })} hint={tr('Jitna naye bill se katega')} error={tried ? errors.value : undefined} />
       </form>
     </Modal>
   );
@@ -294,29 +295,29 @@ function SellModal({ t, onClose }: { t: ApplianceTradeIn; onClose: () => void })
   const [tried, setTried] = useState(false);
   const n = Number(price) || 0;
   const gain = n - t.value;
-  const error = !(n > 0) ? 'Kitne ka becha' : undefined;
+  const error = !(n > 0) ? tr('Kitne ka becha') : undefined;
   const save = useMutation({
     mutationFn: () => tradeInsApi.sell(t.id, { price: n, paymentMethod: method, buyer: buyer.trim() || undefined }),
     onSuccess: (r) => {
-      toast.success(`${t.code} bik gaya${r.saleNumber ? ` — bill ${r.saleNumber}` : ''}`);
+      toast.success(tr('{{code}} bik gaya{{value}}', { code: t.code, value: r.saleNumber ? tr(' — bill {{saleNumber}}', { saleNumber: r.saleNumber }) : '' }));
       [TRADE_IN_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Nahi bika')),
+    onError: (e) => toast.error(apiError(e, tr('Nahi bika'))),
   });
   const submit = () => { setTried(true); if (!error) save.mutate(); };
   return (
-    <Modal open onClose={onClose} size="sm" title={`Bechein — ${t.code}`} description={itemName(t)}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} onClick={submit} leftIcon={<BadgeDollarSign className="h-4 w-4" />}>{n > 0 ? `${formatPKR(n)} me bechein` : 'Bechein'}</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Bechein — {{code}}', { code: t.code })} description={itemName(t)}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={save.isPending} onClick={submit} leftIcon={<BadgeDollarSign className="h-4 w-4" />}>{n > 0 ? tr('{{formatPKR}} me bechein', { formatPKR: formatPKR(n) }) : tr('Bechein')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <dl className="grid grid-cols-2 gap-2">
-          <Box label="Trade-in qeemat (Cost)" value={formatPKR(t.value)} />
-          <Box label={gain >= 0 ? 'Profit' : 'Nuqsan'} value={n > 0 ? formatPKR(Math.abs(gain)) : '—'} tone={n > 0 ? (gain >= 0 ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-500'} />
+          <Box label={tr('Trade-in qeemat (Cost)')} value={formatPKR(t.value)} />
+          <Box label={gain >= 0 ? tr('Profit') : tr('Nuqsan')} value={n > 0 ? formatPKR(Math.abs(gain)) : '—'} tone={n > 0 ? (gain >= 0 ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-500'} />
         </dl>
-        <Input label="Kitne ka becha" required inputMode="decimal" autoFocus value={price} onChange={(e) => setPrice(money(e.target.value))} error={tried ? error : undefined} hint="Poora paisa abhi — iska bill banega" />
+        <Input label={tr('Kitne ka becha')} required inputMode="decimal" autoFocus value={price} onChange={(e) => setPrice(money(e.target.value))} error={tried ? error : undefined} hint={tr('Poora paisa abhi — iska bill banega')} />
         <PaymentMethodPicker value={method} onChange={setMethod} />
-        <Input label="Kisko becha" value={buyer} onChange={(e) => setBuyer(e.target.value)} placeholder="Kabari ya customer ka naam" hint="Bill par chhapta hai" />
+        <Input label={tr('Kisko becha')} value={buyer} onChange={(e) => setBuyer(e.target.value)} placeholder={tr('Kabari ya customer ka naam')} hint={tr('Bill par chhapta hai')} />
       </form>
     </Modal>
   );
@@ -327,17 +328,17 @@ function Analytics({ c }: { c?: Record<TradeInView, { count: number; value: numb
   const rows = STATUSES.map((st) => ({ key: st, label: tradeInStatusOf(st).label, color: tradeInStatusOf(st).color }));
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Kitne units" hint="Halat ke hisaab se">
+      <Panel title={tr('Kitne units')} hint={tr('Halat ke hisaab se')}>
         <Bars rows={rows.map((r) => ({ ...r, value: c[r.key].count })).filter((r) => r.value > 0)} />
       </Panel>
-      <Panel title="Trade-in qeemat" hint="Jo naye bills se kati">
+      <Panel title={tr('Trade-in qeemat')} hint={tr('Jo naye bills se kati')}>
         <dl className="grid grid-cols-2 gap-3">
-          <Box label="Kul" value={formatPKR(c.all.value)} />
-          <Box label="Dukaan me para" value={formatPKR(c.HELD.value)} tone="text-amber-700" />
-          <Box label="Bech diya" value={formatPKR(c.SOLD.value)} tone="text-emerald-700" />
-          <Box label="Kabar" value={formatPKR(c.SCRAPPED.value)} tone="text-slate-600" />
+          <Box label={tr('Kul')} value={formatPKR(c.all.value)} />
+          <Box label={tr('Dukaan me para')} value={formatPKR(c.HELD.value)} tone="text-amber-700" />
+          <Box label={tr('Bech diya')} value={formatPKR(c.SOLD.value)} tone="text-emerald-700" />
+          <Box label={tr('Kabar')} value={formatPKR(c.SCRAPPED.value)} tone="text-slate-600" />
         </dl>
-        <p className="mt-3 text-[0.75rem] text-slate-500">Bechne ka Profit ya nuqsan Profit report me aata hai (bill ka code ATI-…).</p>
+        <p className="mt-3 text-[0.75rem] text-slate-500">{tr('Bechne ka Profit ya nuqsan Profit report me aata hai (bill ka code ATI-…).')}</p>
       </Panel>
     </div>
   );

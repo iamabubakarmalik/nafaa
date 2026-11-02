@@ -14,6 +14,7 @@ import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { cashRegisterApi, type Denominations } from '../api/cash-register.api';
 import { CASH_KEY, COINS, DIFF, NOTES, TX, diffKind, duration, ledgerRows, signed, when } from './meta';
 import { zReportDoc } from './print';
+import { t as tr } from '@core/i18n';
 
 export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => void }) {
   const q = useQuery({ queryKey: [CASH_KEY, 'shift', id], queryFn: () => cashRegisterApi.shift(id) });
@@ -23,34 +24,34 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
 
   return (
     <Modal open onClose={onClose} size="lg"
-      title={r ? `${r.shop?.name ?? 'Shift'} · ${r.registerNumber}` : 'Shift'}
-      description={r ? `${when(r.openedAt)} se ${r.closedAt ? when(r.closedAt) : 'abhi tak'} · ${duration(r.openedAt, r.closedAt)}` : undefined}
+      title={r ? `${r.shop?.name ?? 'Shift'} · ${r.registerNumber}` : tr('Shift')}
+      description={r ? tr('{{openedAt}} se {{value}} · {{openedAt2}}', { openedAt: when(r.openedAt), value: r.closedAt ? when(r.closedAt) : tr('abhi tak'), openedAt2: duration(r.openedAt, r.closedAt) }) : undefined}
       footer={<>
-        <span className="mr-auto text-[0.75rem] text-slate-500">{r?.status === 'OPEN' ? 'Khuli shift ka X-report' : 'Band shift ka Z-report'} — A4, PDF ya thermal</span>
-        <PrintButton doc={() => zReportDoc(s!)} disabled={!s} label={r?.status === 'OPEN' ? 'X-report' : 'Z-report'} />
+        <span className="me-auto text-[0.75rem] text-slate-500">{tr('{{value}} — A4, PDF ya thermal', { value: r?.status === 'OPEN' ? tr('Khuli shift ka X-report') : tr('Band shift ka Z-report') })}</span>
+        <PrintButton doc={() => zReportDoc(s!)} disabled={!s} label={r?.status === 'OPEN' ? tr('X-report') : tr('Z-report')} />
       </>}>
       {!s || !r ? (
         <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
       ) : (
         <div className="space-y-4">
           <div className="grid gap-2 sm:grid-cols-3">
-            <Fact icon={User} k="Kholi" v={r.openedBy?.fullName ?? '—'} sub={when(r.openedAt)} />
-            <Fact icon={StopCircle} k="Band ki" v={r.closedBy?.fullName ?? (r.status === 'OPEN' ? 'Abhi khuli' : '—')} sub={r.closedAt ? when(r.closedAt) : undefined} />
-            <Fact icon={Receipt} k="Total sale" v={formatPKR(s.cash.allSalesTotal)} sub={`${s.cash.billCount} bill`} />
+            <Fact icon={User} k={tr('Kholi')} v={r.openedBy?.fullName ?? '—'} sub={when(r.openedAt)} />
+            <Fact icon={StopCircle} k={tr('Band ki')} v={r.closedBy?.fullName ?? (r.status === 'OPEN' ? tr('Abhi khuli') : '—')} sub={r.closedAt ? when(r.closedAt) : undefined} />
+            <Fact icon={Receipt} k={tr('Total sale')} v={formatPKR(s.cash.allSalesTotal)} sub={tr('{{billCount}} bill', { billCount: s.cash.billCount })} />
           </div>
 
           <section className="rounded-2xl ring-1 ring-slate-200">
-            <h3 className="border-b border-slate-100 px-4 py-2 text-[0.8125rem] font-semibold text-slate-900">Galle ka hisaab</h3>
+            <h3 className="border-b border-slate-100 px-4 py-2 text-[0.8125rem] font-semibold text-slate-900">{tr('Galle ka hisaab')}</h3>
             <ul className="divide-y divide-slate-100 text-[0.8125rem]">
               {ledgerRows(s.cash).filter((x) => x.keep || x.value).map((x) => (
                 <li key={x.label} className="flex items-center justify-between gap-3 px-4 py-1.5">
-                  <span className="text-slate-600"><span className="inline-block w-4 font-bold text-slate-400">{x.sign}</span>{x.label}{x.note && <span className="ml-1.5 text-[0.6875rem] text-slate-400">{x.note}</span>}</span>
+                  <span className="text-slate-600"><span className="inline-block w-4 font-bold text-slate-400">{x.sign}</span>{x.label}{x.note && <span className="ms-1.5 text-[0.6875rem] text-slate-400">{x.note}</span>}</span>
                   <span className={cn('font-semibold tabular-nums', x.sign === '−' ? 'text-rose-700' : 'text-slate-900')}>{formatPKR(x.value)}</span>
                 </li>
               ))}
-              <li className="flex items-center justify-between bg-slate-50 px-4 py-2 font-semibold"><span>= Hona chahiye</span><span className="tabular-nums">{formatPKR(s.expected)}</span></li>
+              <li className="flex items-center justify-between bg-slate-50 px-4 py-2 font-semibold"><span>{tr('= Hona chahiye')}</span><span className="tabular-nums">{formatPKR(s.expected)}</span></li>
               {s.counted != null && (
-                <li className="flex items-center justify-between px-4 py-2 font-semibold"><span>Gina gaya</span><span className="tabular-nums">{formatPKR(s.counted)}</span></li>
+                <li className="flex items-center justify-between px-4 py-2 font-semibold"><span>{tr('Gina gaya')}</span><span className="tabular-nums">{formatPKR(s.counted)}</span></li>
               )}
               {kind && (
                 <li className={cn('flex items-center justify-between px-4 py-2 font-bold ring-1 ring-inset', DIFF[kind].tone)}>
@@ -62,26 +63,26 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">Sale payment ke hisaab se</h3>
-            {!s.cash.byMethod.length ? <p className="text-[0.8125rem] text-slate-500">Is shift me koi sale nahi hui</p> : (
+            <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">{tr('Sale payment ke hisaab se')}</h3>
+            {!s.cash.byMethod.length ? <p className="text-[0.8125rem] text-slate-500">{tr('Is shift me koi sale nahi hui')}</p> : (
               <div className="flex flex-wrap gap-2">
                 {s.cash.byMethod.map((m) => {
                   const pm = POS_PAYMENT_METHODS.find((p) => p.id === m.method);
                   return (
                     <span key={m.method} className="rounded-xl px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200">
-                      <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ background: pm?.color ?? '#64748b' }} />
+                      <span className="me-1.5 inline-block h-2 w-2 rounded-full" style={{ background: pm?.color ?? '#64748b' }} />
                       {pm?.label ?? m.method} <b className="tabular-nums">{formatPKR(m.paid)}</b> <span className="text-slate-400">· {m.count}</span>
                     </span>
                   );
                 })}
-                {s.cash.creditGiven > 0 && <span className="rounded-xl bg-amber-50 px-3 py-1.5 text-[0.8125rem] text-amber-800 ring-1 ring-amber-200">Udhaar <b className="tabular-nums">{formatPKR(s.cash.creditGiven)}</b></span>}
+                {s.cash.creditGiven > 0 && <span className="rounded-xl bg-amber-50 px-3 py-1.5 text-[0.8125rem] text-amber-800 ring-1 ring-amber-200">{tr('Udhaar')}{' '} <b className="tabular-nums">{formatPKR(s.cash.creditGiven)}</b></span>}
               </div>
             )}
           </section>
 
           {s.entries.length > 0 && (
             <section>
-              <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">Cash in / out</h3>
+              <h3 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-900">{tr('Cash in / out')}</h3>
               <ul className="divide-y divide-slate-100 rounded-2xl text-[0.8125rem] ring-1 ring-slate-200">
                 {s.entries.map((e) => {
                   const t = TX[e.type];
@@ -102,13 +103,13 @@ export function ShiftDetailModal({ id, onClose }: { id: string; onClose: () => v
 
           {(s.openingDenominations || s.closingDenominations) && (
             <div className="grid gap-3 sm:grid-cols-2">
-              <Denoms title="Kholte waqt ginti" d={s.openingDenominations} />
-              <Denoms title="Band karte waqt ginti" d={s.closingDenominations} />
+              <Denoms title={tr('Kholte waqt ginti')} d={s.openingDenominations} />
+              <Denoms title={tr('Band karte waqt ginti')} d={s.closingDenominations} />
             </div>
           )}
 
           {r.notes && <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">{r.notes}</p>}
-          {s.recounted && <p className="text-[0.75rem] text-slate-500">Ye purani shift hai; sale ka hisaab aaj dobara gina gaya. "Hona chahiye" aur farak wohi hain jo band karte waqt save hue.</p>}
+          {s.recounted && <p className="text-[0.75rem] text-slate-500">{tr('Ye purani shift hai; sale ka hisaab aaj dobara gina gaya. "Hona chahiye" aur farak wohi hain jo band karte waqt save hue.')}</p>}
         </div>
       )}
     </Modal>
@@ -135,9 +136,9 @@ function Denoms({ title, d }: { title: string; d: Denominations | null }) {
   return (
     <div className="rounded-2xl ring-1 ring-slate-200">
       <p className="border-b border-slate-100 px-3 py-1.5 text-[0.75rem] font-semibold text-slate-700">{title}</p>
-      {!rows.length ? <p className="px-3 py-2 text-[0.75rem] text-slate-500">Note-war ginti nahi hui</p> : (
+      {!rows.length ? <p className="px-3 py-2 text-[0.75rem] text-slate-500">{tr('Note-war ginti nahi hui')}</p> : (
         <ul className="px-3 py-1.5 text-[0.75rem]">
-          {rows.map((v) => <li key={v} className="flex justify-between tabular-nums"><span>Rs {v} × {d![v]}</span><span>{formatPKR(v * d![v])}</span></li>)}
+          {rows.map((v) => <li key={v} className="flex justify-between tabular-nums"><span>{tr('Rs {{v}} × {{value}}', { v, value: d![v] })}</span><span>{formatPKR(v * d![v])}</span></li>)}
         </ul>
       )}
     </div>

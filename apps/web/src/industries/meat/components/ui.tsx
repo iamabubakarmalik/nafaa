@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Button, Modal, Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { t } from '@core/i18n';
 
 export type Tone = 'slate' | 'amber' | 'emerald' | 'rose' | 'violet' | 'sky';
 
@@ -29,8 +30,8 @@ export function ListFrame({ loading, error, onRetry, empty, children }: {
   if (error) {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-        <p className="font-semibold text-slate-900">Load nahi hua</p>
-        {onRetry && <Button className="mt-3" variant="secondary" onClick={onRetry}>Dobara koshish</Button>}
+        <p className="font-semibold text-slate-900">{t('Load nahi hua')}</p>
+        {onRetry && <Button className="mt-3" variant="secondary" onClick={onRetry}>{t('Dobara koshish')}</Button>}
       </div>
     );
   }
@@ -52,9 +53,9 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>Pichla</Button>
-      <span className="text-sm text-slate-600">Safha {page} / {pages}</span>
-      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>Agla</Button>
+      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>{t('Pichla')}</Button>
+      <span className="text-sm text-slate-600">{t('Safha {{page}} / {{pages}}', { page, pages })}</span>
+      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>{t('Agla')}</Button>
     </div>
   );
 }
@@ -99,8 +100,8 @@ export function useConfirm(): [(q: Ask) => Promise<boolean>, ReactNode] {
   const dialog = q && (
     <Modal open onClose={() => close(false)} size="sm" title={q.title} description={q.text}
       footer={<>
-        <Button variant="secondary" onClick={() => close(false)}>Rehne dein</Button>
-        <Button data-autofocus variant={q.danger ? 'danger' : 'primary'} onClick={() => close(true)}>{q.yes ?? 'Haan'}</Button>
+        <Button variant="secondary" onClick={() => close(false)}>{t('Rehne dein')}</Button>
+        <Button data-autofocus variant={q.danger ? 'danger' : 'primary'} onClick={() => close(true)}>{q.yes ?? t('Haan')}</Button>
       </>}>{null}</Modal>
   );
   return [ask, dialog];

@@ -24,15 +24,16 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { quotationsApi, type Quotation, type QuotationQuery, type QuotationTab } from '../api/quotations.api';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { QUOTE_STATUS, shortDate } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 25;
 const TABS: Array<{ id: QuotationTab; label: string; icon: typeof ListChecks }> = [
-  { id: 'all', label: 'Sab', icon: ListChecks },
-  { id: 'open', label: 'Jawab baqi', icon: Send },
-  { id: 'accepted', label: 'Maan li', icon: CheckCircle2 },
-  { id: 'converted', label: 'Bill ban gaya', icon: Receipt },
-  { id: 'expired', label: 'Waqt guzar gaya', icon: CalendarClock },
-  { id: 'rejected', label: 'Band', icon: Ban },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
+  { id: 'open', label: tr('Jawab baqi'), icon: Send },
+  { id: 'accepted', label: tr('Maan li'), icon: CheckCircle2 },
+  { id: 'converted', label: tr('Bill ban gaya'), icon: Receipt },
+  { id: 'expired', label: tr('Waqt guzar gaya'), icon: CalendarClock },
+  { id: 'rejected', label: tr('Band'), icon: Ban },
 ];
 
 async function fetchAll(q: QuotationQuery) {
@@ -74,18 +75,18 @@ export default function QuotationsPage() {
   const go = (t: QuotationTab) => { setTab(t); setPage(1); };
   usePageKeys(searchRef, { n: () => navigate('/hardware/quotations/new') });
 
-  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const label = range ? rangeLabel(range.from, range.to) : tr('Sab waqt');
   const exportCsv = async () => {
     setExporting(true);
     try {
       const rows = await fetchAll(query);
-      if (!rows.length) { toast.error('Is filter me koi quotation nahi'); return; }
+      if (!rows.length) { toast.error(tr('Is filter me koi quotation nahi')); return; }
       downloadCsv('quotations.csv', [
-        ['Number', 'Tareekh', 'Customer', 'Phone', 'Site', 'Items', 'Amount', 'Chalegi', 'Status'],
+        [tr('Number'), tr('Tareekh'), tr('Customer'), tr('Phone'), tr('Site'), tr('Items'), tr('Amount'), tr('Chalegi'), tr('Status')],
         ...rows.map((r) => [r.quotationNumber, r.createdAt.slice(0, 10), r.customerName, r.customerPhone, r.project?.name, r._count?.items ?? r.items.length, r.total, r.validUntil.slice(0, 10), QUOTE_STATUS[r.status].label]),
       ]);
-      toast.success(`${rows.length} quotations CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} quotations CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await fetchAll(query);
@@ -106,52 +107,52 @@ export default function QuotationsPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Quotations — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Quotations — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: FilePlus, color: '#2563eb', title: 'Quotation banayein', text: 'Thekedar ya customer ko rate dena ho to items aur quantity likhein — print ya WhatsApp karein.' },
-            { icon: Send, color: '#0891b2', title: 'Jawab ka intezar', text: '"Jawab baqi" me wo quotations jo customer ke paas hain. Call kar ke poochein; badle to nayi revision.' },
-            { icon: Receipt, color: '#16a34a', title: 'Bill banayein', text: 'Customer maan le to quotation khol kar "Bill banayein" — cash, card, split ya udhaar. Stock aur khata khud update.' },
-            { icon: CalendarClock, color: '#d97706', title: 'Waqt guzar gaya', text: 'Rate purane ho gaye — dobara bhejne se nayi muddat shuru hoti hai.' },
+            { icon: FilePlus, color: '#2563eb', title: tr('Quotation banayein'), text: tr('Thekedar ya customer ko rate dena ho to items aur quantity likhein — print ya WhatsApp karein.') },
+            { icon: Send, color: '#0891b2', title: tr('Jawab ka intezar'), text: tr('"Jawab baqi" me wo quotations jo customer ke paas hain. Call kar ke poochein; badle to nayi revision.') },
+            { icon: Receipt, color: '#16a34a', title: tr('Bill banayein'), text: tr('Customer maan le to quotation khol kar "Bill banayein" — cash, card, split ya udhaar. Stock aur khata khud update.') },
+            { icon: CalendarClock, color: '#d97706', title: tr('Waqt guzar gaya'), text: tr('Rate purane ho gaye — dobara bhejne se nayi muddat shuru hoti hai.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'nayi quotation'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('nayi quotation')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Quotations" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
-        meta="Estimate — customer maan le to ek click me bill"
+      <PageHero title={tr('Quotations')} chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta={tr('Estimate — customer maan le to ek click me bill')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/hardware/quotations/new" className={heroPrimaryButton}><FilePlus className="h-4 w-4" />Nayi quotation</Link>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/hardware/quotations/new" className={heroPrimaryButton}><FilePlus className="h-4 w-4" />{tr('Nayi quotation')}</Link>
         </>}
         stats={[
-          { label: 'Jawab baqi', value: money(data?.values.open ?? 0), hint: `${c?.open ?? 0} quotation` },
-          { label: 'Maan li, bill baqi', value: money(data?.values.accepted ?? 0) },
-          { label: 'Bill ban gaya', value: money(data?.values.converted ?? 0) },
+          { label: tr('Jawab baqi'), value: money(data?.values.open ?? 0), hint: tr('{{value}} quotation', { value: c?.open ?? 0 }) },
+          { label: tr('Maan li, bill baqi'), value: money(data?.values.accepted ?? 0) },
+          { label: tr('Bill ban gaya'), value: money(data?.values.converted ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Send} color="#0891b2" label="Jawab baqi" value={c.open} hint="Customer ko call karein" onClick={() => go('open')} active={tab === 'open'} />
-            <KpiCard icon={CheckCircle2} color="#16a34a" label="Maan li" value={c.accepted} hint="Ab bill banayein" onClick={() => go('accepted')} active={tab === 'accepted'} />
-            <KpiCard icon={Receipt} color="#7c3aed" label="Bill ban gaya" value={c.converted} onClick={() => go('converted')} active={tab === 'converted'} />
-            <KpiCard icon={CalendarClock} color="#d97706" label="Waqt guzar gaya" value={c.expired} hint="Dobara bhejein ya band" onClick={() => go('expired')} active={tab === 'expired'} />
+            <KpiCard icon={Send} color="#0891b2" label={tr('Jawab baqi')} value={c.open} hint={tr('Customer ko call karein')} onClick={() => go('open')} active={tab === 'open'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Maan li')} value={c.accepted} hint={tr('Ab bill banayein')} onClick={() => go('accepted')} active={tab === 'accepted'} />
+            <KpiCard icon={Receipt} color="#7c3aed" label={tr('Bill ban gaya')} value={c.converted} onClick={() => go('converted')} active={tab === 'converted'} />
+            <KpiCard icon={CalendarClock} color="#d97706" label={tr('Waqt guzar gaya')} value={c.expired} hint={tr('Dobara bhejein ya band')} onClick={() => go('expired')} active={tab === 'expired'} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Quotation number, customer, phone ya item…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Quotation number, customer, phone ya item…')} />}
         chips={search.trim() || projectId ? <>
-          {projectId && <FilterChip onRemove={() => navigate('/hardware/quotations')}>Ek site</FilterChip>}
+          {projectId && <FilterChip onRemove={() => navigate('/hardware/quotations')}>{tr('Ek site')}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); if (projectId) navigate('/hardware/quotations'); }}>
-        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Date" />
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label={tr('Date')} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={go} hint={<>Quotation par click kar ke kholein</>}
+      <ViewTabs value={tab} onChange={go} hint={<>{tr('Quotation par click kar ke kholein')}</>}
         tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -160,9 +161,9 @@ export default function QuotationsPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><FileText className="h-7 w-7" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? 'Is filter me koi quotation nahi' : 'Abhi koi quotation nahi'}</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">Thekedar rate maange to "Nayi quotation" banayein.</p>
-            <Link to="/hardware/quotations/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><FilePlus className="h-4 w-4" />Nayi quotation</Link>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? tr('Is filter me koi quotation nahi') : tr('Abhi koi quotation nahi')}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Thekedar rate maange to "Nayi quotation" banayein.')}</p>
+            <Link to="/hardware/quotations/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><FilePlus className="h-4 w-4" />{tr('Nayi quotation')}</Link>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
@@ -174,7 +175,7 @@ export default function QuotationsPage() {
                 <li key={r.id}>
                   <Link to={`/hardware/quotations/${r.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.2fr)_minmax(0,1.6fr)_9rem_8rem] lg:items-center">
                     <div>
-                      <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.quotationNumber}{r.revisionNumber > 0 && <span className="ml-1 text-slate-400">R{r.revisionNumber}</span>}</p>
+                      <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.quotationNumber}{r.revisionNumber > 0 && <span className="ms-1 text-slate-400">{tr('R{{revisionNumber}}', { revisionNumber: r.revisionNumber })}</span>}</p>
                       <p className="text-[0.75rem] text-slate-500">{shortDate(r.createdAt)}</p>
                     </div>
                     <div className="min-w-0">
@@ -186,9 +187,9 @@ export default function QuotationsPage() {
                     </p>
                     <div>
                       <span className={cn('w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1', st.tone)}>{st.label}</span>
-                      {open && <p className={cn('mt-0.5 text-[0.6875rem]', left <= 2 ? 'text-amber-700' : 'text-slate-500')}>{left <= 0 ? 'Aaj aakhri din' : `${left} din baqi`}</p>}
+                      {open && <p className={cn('mt-0.5 text-[0.6875rem]', left <= 2 ? 'text-amber-700' : 'text-slate-500')}>{left <= 0 ? tr('Aaj aakhri din') : tr('{{left}} din baqi', { left })}</p>}
                     </div>
-                    <p className="text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(r.total)}</p>
+                    <p className="text-end text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(r.total)}</p>
                   </Link>
                 </li>
               );
@@ -199,8 +200,8 @@ export default function QuotationsPage() {
           <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
             <span>{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, data.total)} / {data.total}</span>
             <div className="flex gap-2">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
-              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Pichla')}</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Agla')}</button>
             </div>
           </footer>
         )}

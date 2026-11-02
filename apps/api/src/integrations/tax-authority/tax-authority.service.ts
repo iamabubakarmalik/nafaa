@@ -16,6 +16,7 @@ import {
 import {
   RoutingConflict, TaxAuthorityConfig, Terminal, isAuthority, maskSecrets, readSetup, routeFor, routingConflict, salesShopWhere, terminalIn, writeSetup,
 } from './tax-setup';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /* ═════════════════════════════════════════════════════════════
    Every bill to its tax authority. Right after a POS sale the web calls
@@ -181,7 +182,7 @@ export class TaxAuthorityService {
       const posId = String(t?.posId ?? '').trim();
       const ntn = String(t?.ntn ?? '').trim();
       if (!posId || !ntn) throw new BadRequestException('Har POS ke liye POS ID aur NTN zaroori hai');
-      if (authority !== 'KPRA' && !/^\d{1,19}$/.test(posId)) throw new BadRequestException(`POS ID me sirf number (${posId})`);
+      if (authority !== 'KPRA' && !/^\d{1,19}$/.test(posId)) throw new BadRequestException(apiMessage('POS ID me sirf number ({{posId}})', { posId }));
       if (terminals.some((x) => x.shopId === shopId)) throw new BadRequestException('Ek branch ka ek hi POS ID ho sakta hai');
       const old = cur?.terminals.find((x) => x.shopId === shopId);
       const prev = old ? this.creds(old) : ({} as AuthorityCreds);
@@ -192,7 +193,7 @@ export class TaxAuthorityService {
       };
       const secret = { token: pick('token'), user: pick('user'), pass: pick('pass'), key: pick('key') };
       const has = authority === 'PRA' || authority === 'FBR' ? secret.token : authority === 'SRB' ? secret.user && secret.pass : secret.key;
-      if (!has) throw new BadRequestException(authority === 'PRA' || authority === 'FBR' ? `${authority} token zaroori hai` : authority === 'SRB' ? 'SRB user aur password zaroori hain' : 'KPRA key zaroori hai');
+      if (!has) throw new BadRequestException(authority === 'PRA' || authority === 'FBR' ? apiMessage('{{authority}} token zaroori hai', { authority }) : authority === 'SRB' ? 'SRB user aur password zaroori hain' : 'KPRA key zaroori hai');
       terminals.push({ shopId, posId, ntn, secret: encrypt(JSON.stringify(secret)) });
     }
 
@@ -200,7 +201,7 @@ export class TaxAuthorityService {
     if (enabled && !terminals.length) throw new BadRequestException('Pehle kam se kam ek POS ID jorein');
     const pctCode = String(body?.pctCode ?? cur?.pctCode ?? '').trim();
     if (enabled && (authority === 'PRA' || authority === 'FBR') && !/^\d{4}\.?\d{4}$/.test(pctCode)) {
-      throw new BadRequestException(`${authority} ke liye 8 number ka PCT code chahiye (jaise 9801.2000). Yeh registration me milta hai.`);
+      throw new BadRequestException(apiMessage('{{authority}} ke liye 8 number ka PCT code chahiye (jaise 9801.2000). Yeh registration me milta hai.', { authority }));
     }
 
     const next: TaxAuthorityConfig = {
@@ -223,9 +224,9 @@ export class TaxAuthorityService {
   }
 
   private async conflictText(tenantId: string, c: RoutingConflict) {
-    if (c.kind === 'fallback') return `"Sab branches" sirf ek authority me ho sakti hai. ${c.a} me pehle se hai. ${c.b} me har branch alag chunein.`;
+    if (c.kind === 'fallback') return apiMessage('"Sab branches" sirf ek authority me ho sakti hai. {{a}} me pehle se hai. {{b}} me har branch alag chunein.', { a: c.a, b: c.b });
     const shop = await this.prisma.shop.findFirst({ where: { id: c.shopId, tenantId }, select: { name: true } });
-    return `${shop?.name ?? 'Yeh branch'} pehle se ${c.a} me hai. Ek branch ke bill sirf ek authority ko ja sakte hain.`;
+    return apiMessage('{{shop}} pehle se {{a}} me hai. Ek branch ke bill sirf ek authority ko ja sakte hain.', { shop: shop?.name ?? 'Yeh branch', a: c.a });
   }
 
   /** Sends one sample bill on the sandbox. Never on live, where it would be a real tax invoice. */
@@ -553,7 +554,7 @@ export class TaxAuthorityService {
     if (!r) throw new NotFoundException('Invoice nahi mili');
     if (r.status === 'SUCCESS') return this.view(r);
     const profiles = await this.read(user.tenantId);
-    if (!profiles.some((p) => p.authority === r.authority && p.enabled)) throw new BadRequestException(`${r.authority} band hai. Pehle Tax settings me chalu karein.`);
+    if (!profiles.some((p) => p.authority === r.authority && p.enabled)) throw new BadRequestException(apiMessage('{{authority}} band hai. Pehle Tax settings me chalu karein.', { authority: r.authority }));
     if (r.kind === 'SALE') return this.submitSale(user.tenantId, r.saleId);
     return (await this.submitReturn(user.tenantId, profiles, r.returnId)) ?? this.view(await this.prisma.taxAuthorityInvoice.findUniqueOrThrow({ where: { id } }));
   }

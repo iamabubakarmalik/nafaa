@@ -18,24 +18,25 @@ import { PROFIT_KEY, profitApi, type Figures, type UnitKind } from '../../api';
 import type { ProfitFmt, ProfitPanelProps } from '../../config';
 import { pct, qty } from '../meta';
 import { usePeriodItems } from './usePeriodItems';
+import { t } from '@core/i18n';
 
 const KIND_META: Record<string, { label: string; icon: LucideIcon; color: string }> = {
-  IMEI: { label: 'Naye phone', icon: Smartphone, color: '#2563eb' },
-  USED: { label: 'Used phone', icon: RefreshCw, color: '#7c3aed' },
-  SERIAL: { label: 'Serial wala maal', icon: Barcode, color: '#0891b2' },
-  REPAIR: { label: 'Repair', icon: Wrench, color: '#d97706' },
-  OTHER: { label: 'Baqi maal', icon: Cable, color: '#059669' },
+  IMEI: { label: t('Naye phone'), icon: Smartphone, color: '#2563eb' },
+  USED: { label: t('Used phone'), icon: RefreshCw, color: '#7c3aed' },
+  SERIAL: { label: t('Serial wala maal'), icon: Barcode, color: '#0891b2' },
+  REPAIR: { label: t('Repair'), icon: Wrench, color: '#d97706' },
+  OTHER: { label: t('Baqi maal'), icon: Cable, color: '#059669' },
 };
 
 export function MobilePanel(props: ProfitPanelProps) {
-  return <UnitsSection {...props} kinds={['IMEI', 'USED']} otherLabel="Accessories" title="IMEI war profit" />;
+  return <UnitsSection {...props} kinds={['IMEI', 'USED']} otherLabel={t('Accessories')} title={t('IMEI war profit')} />;
 }
 
 export function ElectronicsPanel(props: ProfitPanelProps) {
   return (
     <div className="space-y-4">
       <TypeSplit {...props} />
-      <UnitsSection {...props} kinds={['SERIAL', 'IMEI']} otherLabel="Bina serial maal" title="Serial war profit" />
+      <UnitsSection {...props} kinds={['SERIAL', 'IMEI']} otherLabel={t('Bina serial maal')} title={t('Serial war profit')} />
     </div>
   );
 }
@@ -64,34 +65,34 @@ function UnitsSection({ filters, fmt, kinds, otherLabel, title }: ProfitPanelPro
         })}
       </div>
 
-      <Card className="rounded-2xl" flush title={title} description="Har unit ki apni cost se — sab se naya pehle (500 tak)"
+      <Card className="rounded-2xl" flush title={title} description={t('Har unit ki apni cost se — sab se naya pehle (500 tak)')}
         actions={(
           <div className="flex flex-wrap items-center gap-2">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="IMEI, serial ya bill…" aria-label="Unit search"
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('IMEI, serial ya bill…')} aria-label={t('Unit search')}
               className="h-9 w-48 rounded-lg border border-slate-200 bg-white px-3 text-[0.8125rem] text-slate-900 outline-none focus:ring-2 focus:ring-brand-500" />
-            <Segmented label="Type" value={kind} onChange={setKind} items={[{ value: 'all', label: 'Sab' }, ...kinds.map((k) => ({ value: k, label: KIND_META[k].label }))]} />
+            <Segmented label={t('Type')} value={kind} onChange={setKind} items={[{ value: 'all', label: t('Sab') }, ...kinds.map((k) => ({ value: k, label: KIND_META[k].label }))]} />
           </div>
         )}>
         {q.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}</div>
-          : !q.data?.items.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">Is period me koi IMEI ya serial wala unit nahi bika</p> : (
+          : !q.data?.items.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{t('Is period me koi IMEI ya serial wala unit nahi bika')}</p> : (
           <div className="overflow-x-auto">
             <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
-              <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <Tr><Th className="px-4 py-2">Unit</Th><Th className="px-3 py-2">IMEI / serial</Th><Th className="px-3 py-2">Bill</Th><Th className="px-3 py-2 text-right">Bika</Th><Th className="px-3 py-2 text-right">Cost</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-4 py-2 text-right">Margin</Th></Tr>
+              <THead className="bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">{t('Unit')}</Th><Th className="px-3 py-2">{t('IMEI / serial')}</Th><Th className="px-3 py-2">{t('Bill')}</Th><Th className="px-3 py-2 text-end">{t('Bika')}</Th><Th className="px-3 py-2 text-end">{t('Cost')}</Th><Th className="px-3 py-2 text-end">{t('Profit')}</Th><Th className="px-4 py-2 text-end">{t('Margin')}</Th></Tr>
               </THead>
               <TBody className="divide-y divide-slate-100">
                 {q.data.items.map((u) => (
                   <Tr key={u.id} className={cn(u.returned && 'opacity-60')}>
                     <Td className="text-inherit px-4 py-2">
                       <span className="block font-medium text-slate-900">{u.name}{u.variant ? ` · ${u.variant}` : ''}</span>
-                      <span className="text-[0.6875rem] text-slate-500">{KIND_META[u.kind]?.label}{u.returned ? ' · wapas aa gaya' : ''}{!fmt.costHidden && u.costFallback ? ' · aaj ki cost' : ''}</span>
+                      <span className="text-[0.6875rem] text-slate-500">{KIND_META[u.kind]?.label}{u.returned ? t(' · wapas aa gaya') : ''}{!fmt.costHidden && u.costFallback ? t(' · aaj ki cost') : ''}</span>
                     </Td>
                     <Td className="px-3 py-2 font-mono text-[0.75rem] text-slate-700">{u.imei ?? u.serial ?? '—'}{u.imei && u.serial ? <span className="block text-slate-400">{u.serial}</span> : null}</Td>
                     <Td className="px-3 py-2 text-slate-600">{u.saleNumber}<span className="block text-[0.6875rem] text-slate-400">{new Date(u.soldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span></Td>
-                    <Td className="px-3 py-2 text-right tabular-nums text-slate-900">{fmt.money(u.revenue)}</Td>
-                    <Td className="px-3 py-2 text-right tabular-nums text-slate-600">{fmt.cost(u.cost ?? 0)}</Td>
-                    <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (u.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(u.profit ?? 0)}</Td>
-                    <Td className="px-4 py-2 text-right tabular-nums text-slate-600">{fmt.costHidden ? '••' : pct(u.margin)}</Td>
+                    <Td className="px-3 py-2 text-end tabular-nums text-slate-900">{fmt.money(u.revenue)}</Td>
+                    <Td className="px-3 py-2 text-end tabular-nums text-slate-600">{fmt.cost(u.cost ?? 0)}</Td>
+                    <Td className={cn('px-3 py-2 text-end font-semibold tabular-nums', (u.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(u.profit ?? 0)}</Td>
+                    <Td className="px-4 py-2 text-end tabular-nums text-slate-600">{fmt.costHidden ? '••' : pct(u.margin)}</Td>
                   </Tr>
                 ))}
               </TBody>
@@ -111,8 +112,8 @@ function SplitCard({ label, icon: Icon, color, f, share, fmt }: { label: string;
         <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
       </div>
       <p className="mt-1 text-[1.1875rem] font-bold tabular-nums text-slate-900">{fmt.cost(f?.profit ?? 0)}</p>
-      <p className="text-[0.75rem] text-slate-500">{fmt.money(f?.revenue ?? 0)} sale · {share.toFixed(0)}%{fmt.costHidden ? '' : ` · ${pct(f?.margin)}`}</p>
-      <p className="text-[0.6875rem] text-slate-400">{qty(f?.qty ?? 0)} units · {f?.bills ?? 0} bill</p>
+      <p className="text-[0.75rem] text-slate-500">{t('{{value}} sale · {{value2}}%{{value3}}', { value: fmt.money(f?.revenue ?? 0), value2: share.toFixed(0), value3: fmt.costHidden ? '' : ` · ${pct(f?.margin)}` })}</p>
+      <p className="text-[0.6875rem] text-slate-400">{t('{{qty}} units · {{value}} bill', { qty: qty(f?.qty ?? 0), value: f?.bills ?? 0 })}</p>
     </div>
   );
 }
@@ -129,7 +130,7 @@ function TypeSplit({ filters, fmt }: ProfitPanelProps) {
     for (const r of items.data?.items ?? []) {
       const p = r.productId ? by.get(r.productId) : undefined;
       const id = (dim === 'type' ? p?.categoryType : p?.conditionType) ?? 'NONE';
-      const label = id === 'NONE' ? 'Likha nahi'
+      const label = id === 'NONE' ? t('Likha nahi')
         : dim === 'type' ? `${CATEGORY_META[id as CategoryType]?.emoji ?? ''} ${CATEGORY_META[id as CategoryType]?.label ?? id}`
           : `${CONDITION_META[id as ConditionType]?.emoji ?? ''} ${CONDITION_META[id as ConditionType]?.label ?? id}`;
       const g = groups.get(id) ?? { id, label, revenue: 0, profit: 0, qty: 0, products: 0 };
@@ -141,14 +142,14 @@ function TypeSplit({ filters, fmt }: ProfitPanelProps) {
   const total = rows.reduce((s, r) => s + r.revenue, 0);
 
   return (
-    <Card className="rounded-2xl" title="Type aur halat" description="Kis type ya halat ke maal se kitni kamai"
-      actions={<Segmented label="Kis hisaab se" value={dim} onChange={setDim} items={[{ value: 'type', label: 'Type' }, { value: 'condition', label: 'Halat' }]} />}>
-      {items.isLoading || profiles.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !rows.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
+    <Card className="rounded-2xl" title={t('Type aur halat')} description={t('Kis type ya halat ke maal se kitni kamai')}
+      actions={<Segmented label={t('Kis hisaab se')} value={dim} onChange={setDim} items={[{ value: 'type', label: t('Type') }, { value: 'condition', label: t('Halat') }]} />}>
+      {items.isLoading || profiles.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !rows.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">{t('Koi sale nahi')}</p> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.id}>
               <div className="flex justify-between gap-2 text-[0.8125rem]">
-                <span className="truncate font-medium text-slate-800">{r.label} <span className="text-slate-400">· {r.products} model · {qty(r.qty)} units</span></span>
+                <span className="truncate font-medium text-slate-800">{r.label} <span className="text-slate-400">{t('· {{products}} model · {{qty}} units', { products: r.products, qty: qty(r.qty) })}</span></span>
                 <span className="shrink-0 tabular-nums text-slate-900">{fmt.money(r.revenue)}{fmt.costHidden ? '' : <> · <b className={r.profit < 0 ? 'text-rose-700' : ''}>{fmt.cost(r.profit)}</b> ({pct(r.revenue > 0 ? (r.profit / r.revenue) * 100 : 0)})</>}</span>
               </div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${total > 0 ? (r.revenue / total) * 100 : 0}%` }} /></div>
@@ -156,7 +157,7 @@ function TypeSplit({ filters, fmt }: ProfitPanelProps) {
           ))}
         </ul>
       )}
-      <Link to="/products" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Product ki type badlein →</Link>
+      <Link to="/products" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Product ki type badlein →')}</Link>
     </Card>
   );
 }

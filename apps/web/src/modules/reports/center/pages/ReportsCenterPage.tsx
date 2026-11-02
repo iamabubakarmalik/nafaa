@@ -46,18 +46,19 @@ import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
 import { DistributionReportTab } from '@modules/distribution/reports/DistributionReportTab';
+import { t as tr } from '@core/i18n';
 
 const COMPARE_KEY = 'nafaa-reports-compare';
 type Tab = SectionId | 'distribution';
 const BASE_TABS: Array<{ id: Exclude<SectionId, 'industry'>; label: string; icon: LucideIcon }> = [
-  { id: 'sales', label: 'Sale', icon: TrendingUp },
-  { id: 'items', label: 'Maal', icon: Package },
-  { id: 'customers', label: 'Customers', icon: Users },
-  { id: 'purchases', label: 'Purchase', icon: Truck },
-  { id: 'expenses', label: 'Expenses', icon: Receipt },
-  { id: 'profit', label: 'Profit', icon: PiggyBank },
-  { id: 'tax', label: 'Tax', icon: Landmark },
-  { id: 'returns', label: 'Return', icon: RotateCcw },
+  { id: 'sales', label: tr('Sale'), icon: TrendingUp },
+  { id: 'items', label: tr('Maal'), icon: Package },
+  { id: 'customers', label: tr('Customers'), icon: Users },
+  { id: 'purchases', label: tr('Purchase'), icon: Truck },
+  { id: 'expenses', label: tr('Expenses'), icon: Receipt },
+  { id: 'profit', label: tr('Profit'), icon: PiggyBank },
+  { id: 'tax', label: tr('Tax'), icon: Landmark },
+  { id: 'returns', label: tr('Return'), icon: RotateCcw },
 ];
 
 function useSection<K extends SectionId>(id: K, period: Period, shop: string | undefined, enabled: boolean, industry?: string) {
@@ -105,7 +106,7 @@ export default function ReportsCenterPage() {
   const tabs = useMemo(() => {
     const list: Array<ViewTab<Tab>> = BASE_TABS.map((t) => ({ id: t.id, label: config.labels?.[t.id] ?? t.label, icon: t.icon }));
     if (config.industry) list.push({ id: 'industry', label: config.industry.label, icon: config.industry.icon });
-    if (distribution) list.push({ id: 'distribution', label: 'Distribution', icon: Truck });
+    if (distribution) list.push({ id: 'distribution', label: tr('Distribution'), icon: Truck });
     return list;
   }, [config, distribution]);
 
@@ -127,13 +128,13 @@ export default function ReportsCenterPage() {
   }, [tabs]);
 
   const doc = () => {
-    if (!current.data || tab === 'distribution') throw new Error('Report abhi aa rahi hai');
-    return sectionDoc(section, current.data as SectionData[typeof section], { f, title: `Report — ${tabLabel}`, period: label, shop: shopLabel });
+    if (!current.data || tab === 'distribution') throw new Error(tr('Report abhi aa rahi hai'));
+    return sectionDoc(section, current.data as SectionData[typeof section], { f, title: tr('Report — {{tabLabel}}', { tabLabel }), period: label, shop: shopLabel });
   };
   const exportCsv = () => {
-    if (!current.data) { toast.error('Report abhi aa rahi hai'); return; }
-    downloadCsv(doc(), `report-${section}-${period.from}-${period.to}.csv`);
-    toast.success('CSV ban gayi');
+    if (!current.data) { toast.error(tr('Report abhi aa rahi hai')); return; }
+    downloadCsv(doc(), `report-${section}-${period.from}-${period.to}.csv`); // i18n-ignore
+    toast.success(tr('CSV ban gayi'));
   };
   const refresh = () => qc.invalidateQueries({ queryKey: [REPORTS_KEY] });
 
@@ -148,34 +149,34 @@ export default function ReportsCenterPage() {
   return (
     <PageShell>
       <PageHero
-        title="Reports"
+        title={tr('Reports')}
         chip={<><CalendarRange />{label}</>}
         busy={(sales.isFetching && !sales.isLoading) || (current.isFetching && !current.isLoading)}
         meta={`${config.label} · ${isAll ? 'Sab branches' : shopName ?? tenantName}`}
         loading={sales.isLoading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={exportCsv} disabled={!current.data || tab === 'distribution'} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <button type="button" onClick={exportCsv} disabled={!current.data || tab === 'distribution'} className={heroButton}><Download className="h-4 w-4" />{tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={doc} disabled={!current.data || tab === 'distribution'} /></span>
-          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', current.isFetching && 'animate-spin')} /></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void refresh()} title={tr('Taaza karein')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', current.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={s ? [
-          { label: 'Asal sale', value: f.money(s.net), hint: 'return ke baad' },
-          { label: 'Profit', value: f.cost(s.profit), hint: showCost ? `${(s.margin ?? 0).toFixed(1)}% margin` : 'Cost lock' },
-          { label: 'Bill', value: String(s.bills), hint: `${s.customers} customer` },
-          { label: 'Ausat bill', value: f.money(s.average) },
-        ] : [{ label: 'Asal sale', value: '' }, { label: 'Profit', value: '' }, { label: 'Bill', value: '' }, { label: 'Ausat bill', value: '' }]}
+          { label: tr('Asal sale'), value: f.money(s.net), hint: tr('return ke baad') },
+          { label: tr('Profit'), value: f.cost(s.profit), hint: showCost ? tr('{{value}}% margin', { value: (s.margin ?? 0).toFixed(1) }) : tr('Cost lock') },
+          { label: tr('Bill'), value: String(s.bills), hint: tr('{{customers}} customer', { customers: s.customers }) },
+          { label: tr('Ausat bill'), value: f.money(s.average) },
+        ] : [{ label: tr('Asal sale'), value: '' }, { label: tr('Profit'), value: '' }, { label: tr('Bill'), value: '' }, { label: tr('Ausat bill'), value: '' }]}
       />
 
       <KpiRow>
         {!s || !p ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={TrendingUp} color="#2563eb" label="Sale" value={f.money(s.net)} hint={hint(s.net, sp?.net, `${s.bills} bill`)} onClick={() => setTab('sales')} active={tab === 'sales'} />
-            <KpiCard icon={Wallet} color="#16a34a" label="Haath me aaya" value={f.money(s.cashIn)} hint={hint(s.cashIn, sp?.cashIn, 'cash + online')} />
-            <KpiCard icon={BookOpen} color="#d97706" label="Udhaar par" value={f.money(s.credit)} hint={hint(s.credit, sp?.credit, 'is period me', 'bad')} onClick={() => setTab('customers')} active={tab === 'customers'} />
-            <KpiCard icon={Receipt} color="#e11d48" label="Expenses" value={f.money(p.expenses)} hint={hint(p.expenses, pp?.expenses, `${p.sales ? ((p.expenses / p.sales) * 100).toFixed(0) : 0}% sale ka`, 'bad')} onClick={() => setTab('expenses')} active={tab === 'expenses'} />
-            <KpiCard icon={HandCoins} color="#059669" label="Net profit" value={f.cost(p.netProfit)} hint={showCost ? hint(p.netProfit ?? 0, pp?.netProfit, 'kharchon ke baad') : 'Cost lock'} onClick={() => setTab('profit')} active={tab === 'profit'} />
+            <KpiCard icon={TrendingUp} color="#2563eb" label={tr('Sale')} value={f.money(s.net)} hint={hint(s.net, sp?.net, `${s.bills} bill`)} onClick={() => setTab('sales')} active={tab === 'sales'} />
+            <KpiCard icon={Wallet} color="#16a34a" label={tr('Haath me aaya')} value={f.money(s.cashIn)} hint={hint(s.cashIn, sp?.cashIn, tr('cash + online'))} />
+            <KpiCard icon={BookOpen} color="#d97706" label={tr('Udhaar par')} value={f.money(s.credit)} hint={hint(s.credit, sp?.credit, tr('is period me'), 'bad')} onClick={() => setTab('customers')} active={tab === 'customers'} />
+            <KpiCard icon={Receipt} color="#e11d48" label={tr('Expenses')} value={f.money(p.expenses)} hint={hint(p.expenses, pp?.expenses, tr('{{value}}% sale ka', { value: p.sales ? ((p.expenses / p.sales) * 100).toFixed(0) : 0 }), 'bad')} onClick={() => setTab('expenses')} active={tab === 'expenses'} />
+            <KpiCard icon={HandCoins} color="#059669" label={tr('Net profit')} value={f.cost(p.netProfit)} hint={showCost ? hint(p.netProfit ?? 0, pp?.netProfit, tr('kharchon ke baad')) : tr('Cost lock')} onClick={() => setTab('profit')} active={tab === 'profit'} />
           </>
         )}
       </KpiRow>
@@ -184,24 +185,24 @@ export default function ReportsCenterPage() {
 
       <FilterBar>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
-        <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare ? 'on' : 'off'} active={compare} width="w-72"
+        <FilterMenu icon={GitCompareArrows} label={tr('Muqabla')} value={compare ? 'on' : 'off'} active={compare} width="w-72"
           options={[
-            { value: 'on', label: 'Pichli period se muqabla', hint: 'Itne hi din pehle ke saath — har number ke neeche %' },
-            { value: 'off', label: 'Muqabla band' },
+            { value: 'on', label: tr('Pichli period se muqabla'), hint: tr('Itne hi din pehle ke saath — har number ke neeche %') },
+            { value: 'off', label: tr('Muqabla band') },
           ]}
           onChange={(v) => { if ((v === 'on') !== compare) toggleCompare(); }} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> tab · <Kbd>C</Kbd> muqabla</>} />
+      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> {' '}{tr('tab ·')}{' '} <Kbd>C</Kbd> {' '}{tr('muqabla')}</>} />
 
       {tab === 'distribution' ? (
         <DistributionReportTab period={period} f={f} />
       ) : current.isLoading || !current.data ? (
         current.error ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Report nahi aa saki</p>
+            <p className="font-semibold text-slate-900">{tr('Report nahi aa saki')}</p>
             <p className="mt-1 text-[0.875rem] text-slate-500">{(current.error as Error).message}</p>
-            <div className="mt-4"><Button onClick={() => void current.refetch()}>Dobara koshish</Button></div>
+            <div className="mt-4"><Button onClick={() => void current.refetch()}>{tr('Dobara koshish')}</Button></div>
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className={cn('h-72 rounded-2xl', i === 0 && 'lg:col-span-2')} />)}</div>
@@ -211,28 +212,28 @@ export default function ReportsCenterPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Reports — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Reports — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: '"Period" se Aaj, 7 din, 30 din, is mahine, ya apni date. Har tab ke number isi period ke hain, dukaan ke din ke hisaab se.' },
-            { icon: GitCompareArrows, color: '#7c3aed', title: 'Pichli dafa se muqabla', text: 'Muqabla chalu ho to har bare number ke neeche likha hota hai ke itne hi din pehle se kitna upar ya neeche gaya.' },
-            { icon: TrendingUp, color: '#16a34a', title: 'Sale', text: 'Roz ki sale aur profit, kis ghante aur din rush hota hai, payment tareeqe, staff, website/Daraz aur branch war sale.' },
-            { icon: Package, color: '#0891b2', title: config.labels?.items ?? 'Maal', text: 'Sab se zyada sale, profit aur quantity wali cheezein, category, brand, aur woh maal jo stock me para hai magar bika nahi.' },
-            { icon: Users, color: '#d97706', title: 'Customers aur udhaar', text: 'Naye aur purane customer, sab se bare customer, udhaar diya aur wapas mila, aur kis ka udhaar kitna purana hai.' },
-            { icon: ShoppingCart, color: '#ea580c', title: 'Purchase aur expenses', text: 'Kis supplier se kitna maal aaya, kis ko kitna dena hai, aur expenses kis category me gaye.' },
-            { icon: PiggyBank, color: '#059669', title: 'Profit', text: 'Sale se return, cost, expenses aur kharab maal nikaal kar net profit. Cheez war profit "Cheez war profit" link par.' },
-            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal sale = bill − wapsi (void bill nahi gine jate). Cost = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net profit = profit − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Profit report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Sirf "Wapsi" tab aur Din ka hisaab me wapsi us din dikhti hai jis din hui.' },
-            { icon: BadgePercent, color: '#db2777', title: 'Tax aur return', text: 'Tax authority ne kitne bill maane aur kitna tax bana; wapsi kis wajah se aur kis maal ki, aur void bill.' },
+            { icon: CalendarRange, color: '#2563eb', title: tr('Period chunein'), text: tr('"Period" se Aaj, 7 din, 30 din, is mahine, ya apni date. Har tab ke number isi period ke hain, dukaan ke din ke hisaab se.') },
+            { icon: GitCompareArrows, color: '#7c3aed', title: tr('Pichli dafa se muqabla'), text: tr('Muqabla chalu ho to har bare number ke neeche likha hota hai ke itne hi din pehle se kitna upar ya neeche gaya.') },
+            { icon: TrendingUp, color: '#16a34a', title: tr('Sale'), text: tr('Roz ki sale aur profit, kis ghante aur din rush hota hai, payment tareeqe, staff, website/Daraz aur branch war sale.') },
+            { icon: Package, color: '#0891b2', title: config.labels?.items ?? tr('Maal'), text: tr('Sab se zyada sale, profit aur quantity wali cheezein, category, brand, aur woh maal jo stock me para hai magar bika nahi.') },
+            { icon: Users, color: '#d97706', title: tr('Customers aur udhaar'), text: tr('Naye aur purane customer, sab se bare customer, udhaar diya aur wapas mila, aur kis ka udhaar kitna purana hai.') },
+            { icon: ShoppingCart, color: '#ea580c', title: tr('Purchase aur expenses'), text: tr('Kis supplier se kitna maal aaya, kis ko kitna dena hai, aur expenses kis category me gaye.') },
+            { icon: PiggyBank, color: '#059669', title: tr('Profit'), text: tr('Sale se return, cost, expenses aur kharab maal nikaal kar net profit. Cheez war profit "Cheez war profit" link par.') },
+            { icon: Calculator, color: '#0f766e', title: tr('Hisaab kaise'), text: tr('Asal sale = bill − wapsi (void bill nahi gine jate). Cost = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net profit = profit − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Profit report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Sirf "Wapsi" tab aur Din ka hisaab me wapsi us din dikhti hai jis din hui.') },
+            { icon: BadgePercent, color: '#db2777', title: tr('Tax aur return'), text: tr('Tax authority ne kitne bill maane aur kitna tax bana; wapsi kis wajah se aur kis maal ki, aur void bill.') },
             ...(config.industry ? [config.industry.guide] : []),
-            { icon: FileDown, color: '#475569', title: 'Print aur CSV', text: 'Upar Print se A4, PDF ya thermal slip; CSV se Excel file. Jo tab khula hai wohi report banti hai.' },
+            { icon: FileDown, color: '#475569', title: tr('Print aur CSV'), text: tr('Upar Print se A4, PDF ya thermal slip; CSV se Excel file. Jo tab khula hai wohi report banti hai.') },
           ]}
           tips={[
-            'Cost aur profit sirf unhe dikhta hai jin ke paas cost dekhne ki permission hai. Aankh wale button se screen par chhupa bhi sakte hain.',
-            'Profit sale ke waqt ki cost se hai — baad me cost badle to purani sale ka profit nahi badalta.',
-            'Upar se branch badlein to sari report usi branch ki ho jati hai. Supplier ka baqi aur kuch industry hisaab sab branches ka mila kar hota hai.',
+            tr('Cost aur profit sirf unhe dikhta hai jin ke paas cost dekhne ki permission hai. Aankh wale button se screen par chhupa bhi sakte hain.'),
+            tr('Profit sale ke waqt ki cost se hai — baad me cost badle to purani sale ka profit nahi badalta.'),
+            tr('Upar se branch badlein to sari report usi branch ki ho jati hai. Supplier ka baqi aur kuch industry hisaab sab branches ka mila kar hota hai.'),
             ...(config.tips ?? []),
           ]}
-          shortcuts={[['1–9', 'tab'], ['C', 'muqabla'], ['G', 'guide']]}
-          footer={<Link to="/day-report" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Printer className="h-3.5 w-3.5" />Din ka hisaab (item war) →</Link>}
+          shortcuts={[['1–9', tr('tab')], ['C', tr('muqabla')], ['G', tr('guide')]]}
+          footer={<Link to="/day-report" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Printer className="h-3.5 w-3.5" />{tr('Din ka hisaab (item war) →')}</Link>}
         />
       )}
     </PageShell>
@@ -261,18 +262,18 @@ function Insights({ sales, profit, f }: { sales?: SalesReport; profit?: ProfitRe
   const s = sales.totals;
   const p = profit.totals;
   const list: Array<{ tone: 'good' | 'warn' | 'bad'; text: string }> = [];
-  if (!f.costHidden && s.margin != null && s.net > 0 && s.margin < 10) list.push({ tone: 'bad', text: `Profit sirf ${s.margin.toFixed(1)}% hai — rate ya cost dobara dekhein.` });
-  if (s.net > 0 && s.credit / s.net > 0.3) list.push({ tone: 'warn', text: `Sale ka ${Math.round((s.credit / s.net) * 100)}% udhaar par gaya — wasooli par dhyan dein.` });
-  if (p.sales > 0 && p.expenses / p.sales > 0.25) list.push({ tone: 'warn', text: `Expenses sale ka ${Math.round((p.expenses / p.sales) * 100)}% hain.` });
-  if (s.gross > 0 && s.refunds / s.gross > 0.05) list.push({ tone: 'warn', text: `${((s.refunds / s.gross) * 100).toFixed(1)}% maal wapas aaya — "Return" tab me wajah dekhein.` });
+  if (!f.costHidden && s.margin != null && s.net > 0 && s.margin < 10) list.push({ tone: 'bad', text: tr('Profit sirf {{value}}% hai — rate ya cost dobara dekhein.', { value: s.margin.toFixed(1) }) });
+  if (s.net > 0 && s.credit / s.net > 0.3) list.push({ tone: 'warn', text: tr('Sale ka {{value}}% udhaar par gaya — wasooli par dhyan dein.', { value: Math.round((s.credit / s.net) * 100) }) });
+  if (p.sales > 0 && p.expenses / p.sales > 0.25) list.push({ tone: 'warn', text: tr('Expenses sale ka {{value}}% hain.', { value: Math.round((p.expenses / p.sales) * 100) }) });
+  if (s.gross > 0 && s.refunds / s.gross > 0.05) list.push({ tone: 'warn', text: tr('{{value}}% maal wapas aaya — "Return" tab me wajah dekhein.', { value: ((s.refunds / s.gross) * 100).toFixed(1) }) });
   const prev = sales.previous;
   if (prev && prev.net > 0) {
     const ch = ((s.net - prev.net) / prev.net) * 100;
-    if (ch <= -10) list.push({ tone: 'bad', text: `Sale pichli period se ${Math.abs(ch).toFixed(0)}% kam hai.` });
-    else if (ch >= 10) list.push({ tone: 'good', text: `Sale pichli period se ${ch.toFixed(0)}% zyada hai.` });
+    if (ch <= -10) list.push({ tone: 'bad', text: tr('Sale pichli period se {{value}}% kam hai.', { value: Math.abs(ch).toFixed(0) }) });
+    else if (ch >= 10) list.push({ tone: 'good', text: tr('Sale pichli period se {{value}}% zyada hai.', { value: ch.toFixed(0) }) });
   }
   const best = [...sales.weekdays].sort((a, b) => b.net - a.net)[0];
-  if (best?.net && list.length < 3) list.push({ tone: 'good', text: `${WEEKDAYS[best.day]} sab se acha din hai — us din maal aur staff poora rakhein.` });
+  if (best?.net && list.length < 3) list.push({ tone: 'good', text: tr('{{value}} sab se acha din hai — us din maal aur staff poora rakhein.', { value: WEEKDAYS[best.day] }) });
   if (!list.length) return null;
   const tone = { good: 'bg-emerald-50 text-emerald-900 ring-emerald-100', warn: 'bg-amber-50 text-amber-900 ring-amber-100', bad: 'bg-rose-50 text-rose-900 ring-rose-100' };
   return (

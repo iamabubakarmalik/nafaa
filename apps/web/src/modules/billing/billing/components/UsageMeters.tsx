@@ -8,6 +8,7 @@ import { Button, Card, Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { PlanUsage } from '@modules/billing/plan-usage/api/plan-usage.api';
 import { PLAN_FEATURES, PLAN_LIMITS, limitText } from './helpers';
+import { t } from '@core/i18n';
 
 /** Share of a limit used, 0–100; null when the limit is unlimited. */
 export function usedPercent(current: number, limit: number, unlimitedAt: number) {
@@ -22,7 +23,7 @@ export function UsageMeters({ usage, loading, error, full, onUpgrade }: {
   if (!usage) {
     return (
       <Card className="rounded-3xl">
-        <p className="py-6 text-center text-[0.875rem] text-slate-500">{error ? 'Istemaal ka hisaab load nahi hua — internet check karke dobara kholein.' : 'Abhi koi plan chalu nahi.'}</p>
+        <p className="py-6 text-center text-[0.875rem] text-slate-500">{error ? t('Istemaal ka hisaab load nahi hua — internet check karke dobara kholein.') : t('Abhi koi plan chalu nahi.')}</p>
       </Card>
     );
   }
@@ -48,14 +49,14 @@ export function UsageMeters({ usage, loading, error, full, onUpgrade }: {
                 {current.toLocaleString('en-PK')}<span className="text-[0.8125rem] font-medium text-slate-500"> / {limitText(limit, l.unlimitedAt)}</span>
               </p>
               {pct == null ? (
-                <p className="mt-2 text-[0.75rem] text-emerald-700">Koi had nahi</p>
+                <p className="mt-2 text-[0.75rem] text-emerald-700">{t('Koi had nahi')}</p>
               ) : (
                 <>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={l.label}>
                     <div className={cn('h-full rounded-full', tone === 'danger' ? 'bg-rose-500' : tone === 'warn' ? 'bg-amber-500' : 'bg-brand-600')} style={{ width: `${Math.max(pct, 3)}%` }} />
                   </div>
                   <p className={cn('mt-1 text-[0.75rem]', tone === 'danger' ? 'font-semibold text-rose-700' : tone === 'warn' ? 'font-semibold text-amber-700' : 'text-slate-500')}>
-                    {pct}% istemaal · {Math.max(0, limit - current).toLocaleString('en-PK')} baqi
+                    {t('{{pct}}% istemaal · {{value}} baqi', { pct, value: Math.max(0, limit - current).toLocaleString('en-PK') })}
                   </p>
                 </>
               )}
@@ -66,14 +67,14 @@ export function UsageMeters({ usage, loading, error, full, onUpgrade }: {
 
       {near.length > 0 && onUpgrade && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
-          <p className="flex items-center gap-2 text-[0.8125rem] font-medium text-amber-900"><AlertTriangle className="h-4 w-4" /> {near.map((l) => l.label).join(', ')} had ke qareeb — bara plan dekh lein.</p>
-          <Button size="sm" onClick={onUpgrade}>Plans dekhein</Button>
+          <p className="flex items-center gap-2 text-[0.8125rem] font-medium text-amber-900"><AlertTriangle className="h-4 w-4" /> {' '}{t('{{value}} had ke qareeb — bara plan dekh lein.', { value: near.map((l) => l.label).join(', ') })}</p>
+          <Button size="sm" onClick={onUpgrade}>{t('Plans dekhein')}</Button>
         </div>
       )}
 
       {full && (
-        <Card className="rounded-3xl" title={<span className="flex items-center gap-2"><Gauge className="h-4 w-4 text-brand-600" /> {usage.plan.name} me kya shaamil hai</span>}
-          description={`${on.length} cheezein chalu · ${off.length} bare plan me`}>
+        <Card className="rounded-3xl" title={<span className="flex items-center gap-2"><Gauge className="h-4 w-4 text-brand-600" /> {' '}{t('{{name}} me kya shaamil hai', { name: usage.plan.name })}</span>}
+          description={t('{{count}} cheezein chalu · {{count2}} bare plan me', { count: on.length, count2: off.length })}>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[...on, ...off].map((f) => {
               const has = on.includes(f);

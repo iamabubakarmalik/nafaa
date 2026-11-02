@@ -20,6 +20,7 @@ import { DAY_MS, findBill, garmentClock, opt, ownCustomer, ownProduct, paging, p
 import { billHeldGoods } from '../common/held-goods';
 import { HoldKey, requireFree, resyncRecord, syncReserved } from '../common/held-stock';
 import { CreateLayawayDto, PayInstallmentDto } from './dto/layaway.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 const VIEWS = ['active', 'overdue', 'week', 'completed', 'cancelled', 'all'] as const;
@@ -47,7 +48,7 @@ export class LayawayService {
     if (!name) throw new BadRequestException('Customer ka naam zaroori hai');
     if (opt(dto.productId)) {
       const { product } = await ownProduct(this.db, user, dto.productId!, opt(dto.variantId));
-      if (product.hasVariants && !opt(dto.variantId)) throw new BadRequestException(`${product.name} — size/rang chunein`);
+      if (product.hasVariants && !opt(dto.variantId)) throw new BadRequestException(apiMessage('{{productName}} — size/rang chunein', { productName: product.name }));
     }
     if (opt(dto.tailoringOrderId)) {
       const o = await this.prisma.garmentTailoringOrder.findFirst({ where: { id: dto.tailoringOrderId, tenantId: user.tenantId }, select: { id: true } });
@@ -205,7 +206,7 @@ export class LayawayService {
     if (!plan) throw new NotFoundException('Plan nahi mila');
     if (plan.status !== 'ACTIVE') throw new BadRequestException('Yeh plan band ho chuka hai');
     const amount = r2(dto.amount);
-    if (amount > r2(plan.remainingAmount) + 0.01) throw new BadRequestException(`Baqi sirf Rs ${r2(plan.remainingAmount)} hai`);
+    if (amount > r2(plan.remainingAmount) + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{remainingAmount}} hai', { remainingAmount: r2(plan.remainingAmount) }));
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const unpaid = await tx.garmentLayawayInstallment.findMany({

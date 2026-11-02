@@ -33,18 +33,19 @@ import {
 } from '../helpers/trade-rules';
 import { actorFor, businessCards, notify } from '../trade-network.support';
 import { TradeCatalogService } from './catalog.service';
+import { apiMessage, ApiMessage, apiText } from '../../../common/i18n/api-message';
 
 const STALE_CLAIM_MS = 2 * 60_000;
 const SCAN_OVERLAP_MS = 10 * 60_000;
 
-const STATUS_NEWS: Partial<Record<TradeStatus, { title: string; text: (seller: string, no: string) => string; type: 'INFO' | 'SUCCESS' | 'WARNING' }>> = {
-  APPROVED: { title: 'Order approve ho gaya', text: (s, n) => `${s} ne Order ${n} approve kar diya`, type: 'SUCCESS' },
-  INVOICED: { title: 'Invoice ban gayi', text: (s, n) => `${s} ne Order ${n} ki Invoice bana di`, type: 'INFO' },
-  LOADED: { title: 'Maal raste me hai', text: (s, n) => `${s} ka Order ${n} gaari par load ho gaya`, type: 'INFO' },
-  DELIVERED: { title: 'Maal deliver ho gaya', text: (s, n) => `${s} ka Order ${n} deliver ho gaya — receive karein`, type: 'SUCCESS' },
-  PARTIAL: { title: 'Maal deliver (kuch wapas)', text: (s, n) => `${s} ka Order ${n} deliver hua, kuch maal wapas gaya — receive karein`, type: 'INFO' },
-  RETURNED: { title: 'Order wapas', text: (s, n) => `${s} ka Order ${n} deliver nahi hua, sab maal wapas`, type: 'WARNING' },
-  CANCELLED: { title: 'Order cancel', text: (s, n) => `${s} ne Order ${n} cancel kar diya`, type: 'WARNING' },
+const STATUS_NEWS: Partial<Record<TradeStatus, { title: string; text: (seller: string, no: string) => ApiMessage; type: 'INFO' | 'SUCCESS' | 'WARNING' }>> = {
+  APPROVED: { title: apiText('Order approve ho gaya'), text: (seller, order) => apiMessage('{{seller}} ne Order {{order}} approve kar diya', { seller, order }), type: 'SUCCESS' },
+  INVOICED: { title: apiText('Invoice ban gayi'), text: (seller, order) => apiMessage('{{seller}} ne Order {{order}} ki Invoice bana di', { seller, order }), type: 'INFO' },
+  LOADED: { title: apiText('Maal raste me hai'), text: (seller, order) => apiMessage('{{seller}} ka Order {{order}} gaari par load ho gaya', { seller, order }), type: 'INFO' },
+  DELIVERED: { title: apiText('Maal deliver ho gaya'), text: (seller, order) => apiMessage('{{seller}} ka Order {{order}} deliver ho gaya — receive karein', { seller, order }), type: 'SUCCESS' },
+  PARTIAL: { title: apiText('Maal deliver (kuch wapas)'), text: (seller, order) => apiMessage('{{seller}} ka Order {{order}} deliver hua, kuch maal wapas gaya — receive karein', { seller, order }), type: 'INFO' },
+  RETURNED: { title: apiText('Order wapas'), text: (seller, order) => apiMessage('{{seller}} ka Order {{order}} deliver nahi hua, sab maal wapas', { seller, order }), type: 'WARNING' },
+  CANCELLED: { title: apiText('Order cancel'), text: (seller, order) => apiMessage('{{seller}} ne Order {{order}} cancel kar diya', { seller, order }), type: 'WARNING' },
 };
 
 @Injectable()
@@ -186,7 +187,7 @@ export class TradeSyncService {
       if (first) {
         void notify(this.notifications, {
           tenantId: t.buyerTenantId, kind: 'RECEIVE_NEEDS_MAP', refId: t.id, type: 'WARNING',
-          title: 'Maal receive karne se pehle', message: `Order ${t.orderNumber ?? ''}: ${missing.length} item apne products se milayein — sirf ek dafa`,
+          title: 'Maal receive karne se pehle', message: apiMessage('Order {{order}}: {{count}} item apne products se milayein — sirf ek dafa', { order: t.orderNumber ?? '', count: missing.length }),
           link: `/network/receiving?id=${t.id}`,
         });
       }
@@ -222,7 +223,7 @@ export class TradeSyncService {
     }
     void notify(this.notifications, {
       tenantId: t.buyerTenantId, kind: 'RECEIVE_READY', refId: t.id, type: 'INFO',
-      title: 'Purchase tayyar — maal receive karein', message: `Order ${so.orderNumber}: maal milte hi "Maal mil gaya" dabayein`,
+      title: 'Purchase tayyar — maal receive karein', message: apiMessage('Order {{order}}: maal milte hi "Maal mil gaya" dabayein', { order: so.orderNumber }),
       link: `/network/receiving?id=${t.id}`,
     });
     return 'DRAFT';
@@ -266,7 +267,7 @@ export class TradeSyncService {
     const buyer = (await businessCards(this.prisma, [t.buyerTenantId])).get(t.buyerTenantId)?.name ?? 'Customer';
     void notify(this.notifications, {
       tenantId: t.sellerTenantId, kind: 'ORDER_RECEIVED', refId: t.id, type: 'SUCCESS',
-      title: 'Maal mil gaya', message: `${buyer} ne Order ${t.orderNumber ?? ''} ka maal receive kar liya`, link: '/network/customers',
+      title: 'Maal mil gaya', message: apiMessage('{{buyer}} ne Order {{order}} ka maal receive kar liya', { buyer, order: t.orderNumber ?? '' }), link: '/network/customers',
     });
     return 'RECEIVED';
   }
@@ -302,7 +303,7 @@ export class TradeSyncService {
         if (made) {
           void notify(this.notifications, {
             tenantId: link.buyerTenantId, kind: 'PAYMENT_TO_CONFIRM', refId: made, type: 'PAYMENT_RECEIVED',
-            title: 'Payment confirm karein', message: `${cards.get(link.sellerTenantId)?.name ?? 'Supplier'} ne Rs ${r2(-r.amount).toLocaleString('en-PK')} ki payment likhi hai — confirm karein`,
+            title: 'Payment confirm karein', message: apiMessage('{{party}} ne Rs {{amount}} ki payment likhi hai — confirm karein', { party: cards.get(link.sellerTenantId)?.name ?? 'Supplier', amount: r2(-r.amount).toLocaleString('en-PK') }),
             link: `/network/suppliers/${link.id}?tab=payments`,
           });
         }
@@ -324,7 +325,7 @@ export class TradeSyncService {
         if (made) {
           void notify(this.notifications, {
             tenantId: link.sellerTenantId, kind: 'PAYMENT_TO_CONFIRM', refId: made, type: 'PAYMENT_RECEIVED',
-            title: 'Payment confirm karein', message: `${cards.get(link.buyerTenantId)?.name ?? 'Customer'} ne Rs ${r2(r.amount).toLocaleString('en-PK')} ki payment likhi hai — confirm karein`,
+            title: 'Payment confirm karein', message: apiMessage('{{party}} ne Rs {{amount}} ki payment likhi hai — confirm karein', { party: cards.get(link.buyerTenantId)?.name ?? 'Customer', amount: r2(r.amount).toLocaleString('en-PK') }),
             link: `/network/links/${link.id}?tab=payments`,
           });
         }

@@ -6,6 +6,7 @@
 
 import { apiClient } from '@core/api/client';
 import type { DeliveryMode, OnlineOrder } from './online-orders.api';
+import { t } from '@core/i18n';
 
 function unwrap<T>(r: any): T {
   if (r?.data?.data !== undefined) return r.data.data as T;
@@ -98,7 +99,7 @@ export const orderMoneyApi = {
 };
 
 export const COST_LABEL: Record<CostKind, string> = {
-  courierCharge: 'Courier charge', codFee: 'COD fee', gatewayFee: 'Gateway fee', packagingCost: 'Packaging', rtoCost: 'Wapsi (RTO)',
+  courierCharge: t('Courier charge'), codFee: t('COD fee'), gatewayFee: t('Gateway fee'), packagingCost: t('Packaging'), rtoCost: t('Wapsi (RTO)'),
 };
 
 export interface ScanLine { index: number; name: string; variant: string | null; quantity: number; image: string | null; codes: string[]; matched: boolean }

@@ -51,6 +51,7 @@ import { AiToolsService, type AiToolContext, type AiToolResult } from './ai-tool
 import { ManufacturingService } from '../manufacturing/manufacturing.service';
 import { PAGES } from './ai-action-tools';
 import type { AiActionField, AiActionLine, AiActionProposal, AiActionResult, AiLink } from './ai.types';
+import { apiMessage, type ApiMessage } from '../../common/i18n/api-message';
 
 type Kind = AiActionProposal['kind'];
 
@@ -610,14 +611,15 @@ export class AiActionsService {
       const out = await this.execute(p, user, fields);
       p.state = 'done';
       await this.audit(user, p, out.entityType, out.entityId, out.message);
-      return { ok: true, message: out.message, links: out.links };
+      return { ok: true, message: out.message, messageKey: out.messageKey, params: out.params, links: out.links };
     } catch (e: any) {
       // A refused write (validation, stock, PIN) leaves the card open to fix and retry.
       p.state = 'pending';
       if (e instanceof HttpException) {
         const r = e.getResponse() as any;
         const msg = typeof r === 'string' ? r : Array.isArray(r?.message) ? r.message.join(', ') : r?.message ?? e.message;
-        throw new HttpException({ code: e.getStatus() === 403 ? 'FORBIDDEN' : 'BAD_REQUEST', message: msg }, e.getStatus() >= 500 ? 400 : e.getStatus());
+        const translation = typeof r?.messageKey === 'string' ? { messageKey: r.messageKey, params: r.params } : {};
+        throw new HttpException({ code: e.getStatus() === 403 ? 'FORBIDDEN' : 'BAD_REQUEST', message: msg, ...translation }, e.getStatus() >= 500 ? 400 : e.getStatus());
       }
       this.logger.error(`Action ${p.kind} failed: ${e?.message}`);
       throw new HttpException({ code: 'BAD_REQUEST', message: 'Kaam nahi ho saka. Dobara koshish karein ya screen se karein.' }, 400);
@@ -638,11 +640,11 @@ export class AiActionsService {
     const v = this.field(p, f, key);
     if (v == null || v === '') return null;
     const x = Number(v);
-    if (!Number.isFinite(x) || x < 0 || x > 1e9) throw new BadRequestException(`${key}: sahi number likhein`);
+    if (!Number.isFinite(x) || x < 0 || x > 1e9) throw new BadRequestException(apiMessage('{{key}}: sahi number likhein', { key }));
     return x;
   }
 
-  private async execute(p: Pending, user: AuthenticatedUser, f: Record<string, unknown>): Promise<{ message: string; links: AiLink[]; entityType: string; entityId: string }> {
+  private async execute(p: Pending, user: AuthenticatedUser, f: Record<string, unknown>): Promise<{ message: string; messageKey?: string; params?: ApiMessage['params']; links: AiLink[]; entityType: string; entityId: string }> {
     const write = new ShopScope(p.shopId, !p.shopId);
     switch (p.kind) {
       case 'create_product': {
@@ -659,13 +661,13 @@ export class AiActionsService {
           ...(p.shopId && { shopId: p.shopId }),
         };
         const prod: any = await this.products.create(user, dto as CreateProductDto, write);
-        return { message: `Product ban gaya: ${name}`, links: [{ label: 'Product kholein', to: `/products/${prod.id}` }], entityType: 'Product', entityId: prod.id };
+        return { ...apiMessage('Product ban gaya: {{name}}', { name }), links: [{ label: 'Product kholein', to: `/products/${prod.id}` }], entityType: 'Product', entityId: prod.id };
       }
       case 'update_price': {
         const price = this.num(p, f, 'price');
         if (price == null) throw new BadRequestException('Price likhein');
         await this.products.update(user, p.payload.productId, { price } as any, write);
-        return { message: `${p.payload.name} ki price ${rs(p.payload.oldPrice)} se ${rs(price)} ho gayi`, links: [{ label: 'Product kholein', to: `/products/${p.payload.productId}` }], entityType: 'Product', entityId: p.payload.productId };
+        return { ...apiMessage('{{payloadName}} ki price {{oldPrice}} se {{price}} ho gayi', { payloadName: p.payload.name, oldPrice: rs(p.payload.oldPrice), price: rs(price) }), links: [{ label: 'Product kholein', to: `/products/${p.payload.productId}` }], entityType: 'Product', entityId: p.payload.productId };
       }
       case 'adjust_stock': {
         const qty = this.num(p, f, 'quantity');
@@ -678,13 +680,13 @@ export class AiActionsService {
         const reasonCode = ({ out: 'SHOP_USE', damage: 'DAMAGE', loss: 'THEFT', in: 'AUDIT_FOUND' } as const)[dir as 'in'] ?? 'AUDIT_FOUND';
         const dto: CreateAdjustmentDto = { productId: p.payload.productId, type, reasonCode, quantity: qty, reason, ...(p.shopId && { shopId: p.shopId }), note: 'Nafaa AI se' } as CreateAdjustmentDto;
         const adj: any = await this.adjustments.create(user, write, dto);
-        return { message: `${p.payload.name}: stock adjustment ho gaya`, links: [{ label: 'Stock adjustments', to: '/stock-adjustments' }], entityType: 'StockAdjustment', entityId: adj?.id ?? p.payload.productId };
+        return { ...apiMessage('{{payloadName}}: stock adjustment ho gaya', { payloadName: p.payload.name }), links: [{ label: 'Stock adjustments', to: '/stock-adjustments' }], entityType: 'StockAdjustment', entityId: adj?.id ?? p.payload.productId };
       }
       case 'create_sale': {
         const lines = (p.proposal.lines ?? []).map((l) => {
           const q = f[`qty:${l.productId}`];
           const qty = q == null ? l.qty : Number(q);
-          if (!Number.isFinite(qty) || qty < 0) throw new BadRequestException(`${l.name}: quantity sahi likhein`);
+          if (!Number.isFinite(qty) || qty < 0) throw new BadRequestException(apiMessage('{{lName}}: quantity sahi likhein', { lName: l.name }));
           return { ...l, qty };
         }).filter((l) => l.qty >= 0.01);
         if (!lines.length) throw new BadRequestException('Bill me koi cheez nahi');
@@ -704,7 +706,7 @@ export class AiActionsService {
         } as CreateSaleDto;
         const sale: any = await this.sales.create(user, write, dto, undefined, { counter: true });
         return {
-          message: `Bill ${sale.saleNumber} ban gaya — ${rs(Number(sale.total ?? total))}`,
+          ...apiMessage('Bill {{saleNumber}} ban gaya — {{saleTotal}}', { saleNumber: sale.saleNumber, saleTotal: rs(Number(sale.total ?? total)) }),
           links: [{ label: 'Bill dekhein / Print', to: `/sales/${sale.id}/receipt` }, { label: 'Sales history', to: '/sales' }],
           entityType: 'Sale', entityId: sale.id,
         };
@@ -715,14 +717,14 @@ export class AiActionsService {
         const limit = this.num(p, f, 'creditLimit');
         const dto: CreateCustomerDto = { name, ...(this.str(p, f, 'phone', 20) && { phone: this.str(p, f, 'phone', 20) }), ...(limit != null && { creditLimit: limit }) } as CreateCustomerDto;
         const c: any = await this.customers.create(user, write, dto);
-        return { message: `Customer ban gaya: ${name}`, links: [{ label: 'Customer kholein', to: `/customers/${c.id}` }], entityType: 'Customer', entityId: c.id };
+        return { ...apiMessage('Customer ban gaya: {{name}}', { name }), links: [{ label: 'Customer kholein', to: `/customers/${c.id}` }], entityType: 'Customer', entityId: c.id };
       }
       case 'receive_khata_payment': {
         const amount = this.num(p, f, 'amount');
         if (!amount || amount < 0.01) throw new BadRequestException('Raqam likhein');
         const dto: CreatePaymentDto = { amount, paymentMethod: this.method(this.field(p, f, 'paymentMethod')), note: 'Nafaa AI se' } as CreatePaymentDto;
         await this.ledger.receivePayment(user, write, p.payload.customerId, dto);
-        return { message: `${p.payload.name} se ${rs(amount)} wasool likh liye`, links: [{ label: 'Khata dekhein', to: `/customers/${p.payload.customerId}` }], entityType: 'Customer', entityId: p.payload.customerId };
+        return { ...apiMessage('{{payloadName}} se {{amount}} wasool likh liye', { payloadName: p.payload.name, amount: rs(amount) }), links: [{ label: 'Khata dekhein', to: `/customers/${p.payload.customerId}` }], entityType: 'Customer', entityId: p.payload.customerId };
       }
       case 'create_expense': {
         const title = this.str(p, f, 'title', 120);
@@ -731,7 +733,7 @@ export class AiActionsService {
         const cat = this.str(p, f, 'categoryId', 60);
         const dto: CreateExpenseDto = { title, amount, paymentMethod: this.method(this.field(p, f, 'paymentMethod')), ...(cat && { categoryId: cat }), ...(p.shopId && { shopId: p.shopId }), description: 'Nafaa AI se' } as CreateExpenseDto;
         const e: any = await this.expenses.create(user, write, dto);
-        return { message: `Expense likh liya: ${title} — ${rs(amount)}`, links: [{ label: 'Expenses', to: '/expenses' }], entityType: 'Expense', entityId: e?.id ?? '' };
+        return { ...apiMessage('Expense likh liya: {{title}} — {{amount}}', { title, amount: rs(amount) }), links: [{ label: 'Expenses', to: '/expenses' }], entityType: 'Expense', entityId: e?.id ?? '' };
       }
       case 'create_income': {
         if (!this.income) throw new BadRequestException('Aamdani abhi nahi likh sakte');
@@ -747,7 +749,7 @@ export class AiActionsService {
           receivedVia: via, ...(supplierId && { supplierId }), ...(p.shopId && { shopId: p.shopId }), note: 'Nafaa AI se',
         };
         const i = await this.income.create(user, write, dto);
-        return { message: `Aamdani likh li: ${title} — ${rs(amount)}`, links: [{ label: 'Doosri aamdani', to: '/income' }], entityType: 'OtherIncome', entityId: i.id };
+        return { ...apiMessage('Aamdani likh li: {{title}} — {{amount}}', { title, amount: rs(amount) }), links: [{ label: 'Doosri aamdani', to: '/income' }], entityType: 'OtherIncome', entityId: i.id };
       }
       case 'produce': {
         if (!this.manufacturing) throw new BadRequestException('Manufacturing abhi nahi chal sakti');
@@ -755,7 +757,7 @@ export class AiActionsService {
         if (!qty || qty <= 0) throw new BadRequestException('Quantity likhein');
         const out = await this.manufacturing.produce(user, write, { shopId: p.shopId ?? undefined, items: [{ productId: p.payload.productId, quantity: qty }], notes: 'Nafaa AI se' }, 'AI');
         const run = out.runs[0];
-        return { message: `${p.payload.name}: ${qty} ${p.payload.unit} ban gaya (${run.runNumber})`, links: [{ label: 'Production dekhein', to: `/manufacturing/history?run=${run.id}` }], entityType: 'ProductionRun', entityId: run.id };
+        return { ...apiMessage('{{payloadName}}: {{qty}} {{unit}} ban gaya ({{runNumber}})', { payloadName: p.payload.name, qty, unit: p.payload.unit, runNumber: run.runNumber }), links: [{ label: 'Production dekhein', to: `/manufacturing/history?run=${run.id}` }], entityType: 'ProductionRun', entityId: run.id };
       }
       case 'create_purchase_draft': {
         const supplierId = this.str(p, f, 'supplierId', 60);
@@ -771,7 +773,7 @@ export class AiActionsService {
           ...(p.shopId && { shopId: p.shopId }),
         } as CreatePurchaseDto;
         const po: any = await this.purchases.create(user, write, dto);
-        return { message: `Purchase order ${po.purchaseNumber ?? ''} ban gaya (abhi maal nahi aaya)`.replace('  ', ' '), links: [{ label: 'Order kholein', to: `/purchases/${po.id}` }], entityType: 'Purchase', entityId: po.id };
+        return { ...(po.purchaseNumber ? apiMessage('Purchase order {{purchaseNumber}} ban gaya (abhi maal nahi aaya)', { purchaseNumber: po.purchaseNumber }) : apiMessage('Purchase order ban gaya (abhi maal nahi aaya)')), links: [{ label: 'Order kholein', to: `/purchases/${po.id}` }], entityType: 'Purchase', entityId: po.id };
       }
     }
   }

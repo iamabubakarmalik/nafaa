@@ -15,6 +15,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { bookingsApi, type BookingBucket, type BookingQuery, type BookingStatus } from '../api/bookings.api';
 import { BOOKINGS_KEY, STATUS, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 const weekday = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { weekday: 'short', day: 'numeric' });
@@ -36,21 +37,21 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={BookmarkCheck} label="Bookings" value={String(t.count)} sub={`${money(t.value)} ki · ${t.open} abhi khuli`} />
-        <Kpi icon={ShoppingBag} label="Sale bani" value={t.conversionRate == null ? '—' : `${t.conversionRate}%`}
-          sub={`${t.converted} bik gayi · ${t.cancelled} cancel`} tone="emerald" />
-        <Kpi icon={Wallet} label="Paise mile" value={money(t.received)} sub="Advance aur baad ki payments" tone="emerald" />
-        <Kpi icon={RotateCcw} label="Wapas diye" value={money(t.refunded)} sub="Cancel par return" tone="rose" />
-        <Kpi icon={Percent} label="Ausat advance" value={t.avgAdvancePct == null ? '—' : `${t.avgAdvancePct}%`} sub="Booking ke waqt kul ka kitna" tone="amber" />
-        <Kpi icon={Timer} label="Sale tak ausat" value={t.avgDaysToSale == null ? '—' : `${t.avgDaysToSale} din`} sub="Booking se pickup tak" />
-        <Kpi icon={TrendingUp} label="Sale ki amount" value={money(t.convertedValue)} sub="Jo bookings bik gayi" tone="emerald" />
-        <Kpi icon={CalendarClock} label="Agle 14 din" value={String(load.reduce((s, x) => s + x.count, 0))}
-          sub={`pickup · ${money(load.reduce((s, x) => s + x.balance, 0))} baqi`} tone="amber" />
+        <Kpi icon={BookmarkCheck} label={tr('Bookings')} value={String(t.count)} sub={tr('{{value}} ki · {{open}} abhi khuli', { value: money(t.value), open: t.open })} />
+        <Kpi icon={ShoppingBag} label={tr('Sale bani')} value={t.conversionRate == null ? '—' : `${t.conversionRate}%`}
+          sub={tr('{{converted}} bik gayi · {{cancelled}} cancel', { converted: t.converted, cancelled: t.cancelled })} tone="emerald" />
+        <Kpi icon={Wallet} label={tr('Paise mile')} value={money(t.received)} sub={tr('Advance aur baad ki payments')} tone="emerald" />
+        <Kpi icon={RotateCcw} label={tr('Wapas diye')} value={money(t.refunded)} sub={tr('Cancel par return')} tone="rose" />
+        <Kpi icon={Percent} label={tr('Ausat advance')} value={t.avgAdvancePct == null ? '—' : `${t.avgAdvancePct}%`} sub={tr('Booking ke waqt kul ka kitna')} tone="amber" />
+        <Kpi icon={Timer} label={tr('Sale tak ausat')} value={t.avgDaysToSale == null ? '—' : `${t.avgDaysToSale} din`} sub={tr('Booking se pickup tak')} />
+        <Kpi icon={TrendingUp} label={tr('Sale ki amount')} value={money(t.convertedValue)} sub={tr('Jo bookings bik gayi')} tone="emerald" />
+        <Kpi icon={CalendarClock} label={tr('Agle 14 din')} value={String(load.reduce((s, x) => s + x.count, 0))}
+          sub={tr('pickup · {{value}} baqi', { value: money(load.reduce((s, x) => s + x.balance, 0)) })} tone="amber" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki bookings</span>} description="Har karobari din kitni bookings aayi, aur un ka anjaam">
-          {!trend.length ? <Empty text="Is period me koi booking nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ki bookings')}</span>} description={tr('Har karobari din kitni bookings aayi, aur un ka anjaam')}>
+          {!trend.length ? <Empty text={tr('Is period me koi booking nahi')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trend} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
@@ -68,8 +69,8 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />Aane wale pickup</span>} description="Agle 14 din kis din kitne customer aayenge aur kitna baqi wasool hona hai">
-          {!load.some((x) => x.count) ? <Empty text="Agle 14 din koi pickup nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />{tr('Aane wale pickup')}</span>} description={tr('Agle 14 din kis din kitne customer aayenge aur kitna baqi wasool hona hai')}>
+          {!load.some((x) => x.count) ? <Empty text={tr('Agle 14 din koi pickup nahi')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={load} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -89,12 +90,12 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={BookmarkCheck} title="Haal" description="Is period ki bookings ab kis haal me hain" rows={statuses} money={money}
+        <Ranked icon={BookmarkCheck} title={tr('Haal')} description={tr('Is period ki bookings ab kis haal me hain')} rows={statuses} money={money}
           dot={(r) => (r as typeof statuses[number]).color} sub={(r) => `${r.count} booking`} />
-        <Ranked icon={Package} title="Sab se zyada book hone wala maal" description="Kis cheez ki advance booking zyada hoti hai" rows={d.byProduct} money={money}
+        <Ranked icon={Package} title={tr('Sab se zyada book hone wala maal')} description={tr('Kis cheez ki advance booking zyada hoti hai')} rows={d.byProduct} money={money}
           sub={(r) => `${qtyText(r.qty)} ${(r as typeof d.byProduct[number]).unit} · ${r.count} booking`} />
-        <Ranked icon={Users} title="Staff" description="Kis ne kitni bookings li" rows={d.byStaff} money={money} sub={(r) => `${r.count} booking`} />
-        <Ranked icon={CreditCard} title="Payment ka tareeqa" description="Advance aur baad ki payments kaise aayi" rows={methods} money={money}
+        <Ranked icon={Users} title={tr('Staff')} description={tr('Kis ne kitni bookings li')} rows={d.byStaff} money={money} sub={(r) => `${r.count} booking`} />
+        <Ranked icon={CreditCard} title={tr('Payment ka tareeqa')} description={tr('Advance aur baad ki payments kaise aayi')} rows={methods} money={money}
           dot={(r) => (r as typeof methods[number]).color ?? '#64748b'} sub={(r) => `${r.count} payment`} />
       </div>
     </div>
@@ -108,7 +109,7 @@ function Ranked({ icon: I, title, description, rows, money, sub, dot }: {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{title}</span>} description={description}>
-      {!rows.length ? <Empty text="Koi data nahi" /> : (
+      {!rows.length ? <Empty text={tr('Koi data nahi')} /> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.key}>

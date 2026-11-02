@@ -8,40 +8,45 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { DamageLog, DamageReasonCode, DamageStatus } from '../api/damage.api';
+import { msg, t } from '@core/i18n';
 
 export interface ReasonChip { id: string; code: DamageReasonCode; label: string; icon: LucideIcon; color: string }
 
-/** Reason chips in the report form. "Wapas aaya kharab" is saved as OTHER with its own text. */
+/**
+ * Reason chips in the report form. "Wapas aaya kharab" is saved as OTHER with
+ * its own text. `label` is raw (it is saved and compared); show it with t().
+ */
 export const REASONS: ReasonChip[] = [
-  { id: 'EXPIRY', code: 'EXPIRY', label: 'Expiry ho gaya', icon: CalendarX, color: '#d97706' },
-  { id: 'BREAKAGE', code: 'BREAKAGE', label: 'Toot gaya', icon: Hammer, color: '#ea580c' },
-  { id: 'SPOILAGE', code: 'SPOILAGE', label: 'Kharab ho gaya', icon: Trash2, color: '#65a30d' },
-  { id: 'PEST_DAMAGE', code: 'PEST_DAMAGE', label: 'Chuha / keera', icon: Bug, color: '#e11d48' },
-  { id: 'RETURNED', code: 'OTHER', label: 'Wapas aaya kharab', icon: Undo2, color: '#7c3aed' },
-  { id: 'WATER_DAMAGE', code: 'WATER_DAMAGE', label: 'Paani laga', icon: Droplets, color: '#2563eb' },
-  { id: 'THEFT', code: 'THEFT', label: 'Chori / gum', icon: ShieldAlert, color: '#b91c1c' },
-  { id: 'MANUFACTURING_DEFECT', code: 'MANUFACTURING_DEFECT', label: 'Company ka nuqs', icon: Factory, color: '#0891b2' },
-  { id: 'OTHER', code: 'OTHER', label: 'Kuch aur', icon: HelpCircle, color: '#64748b' },
+  { id: 'EXPIRY', code: 'EXPIRY', label: msg('Expiry ho gaya'), icon: CalendarX, color: '#d97706' },
+  { id: 'BREAKAGE', code: 'BREAKAGE', label: msg('Toot gaya'), icon: Hammer, color: '#ea580c' },
+  { id: 'SPOILAGE', code: 'SPOILAGE', label: msg('Kharab ho gaya'), icon: Trash2, color: '#65a30d' },
+  { id: 'PEST_DAMAGE', code: 'PEST_DAMAGE', label: msg('Chuha / keera'), icon: Bug, color: '#e11d48' },
+  { id: 'RETURNED', code: 'OTHER', label: msg('Wapas aaya kharab'), icon: Undo2, color: '#7c3aed' },
+  { id: 'WATER_DAMAGE', code: 'WATER_DAMAGE', label: msg('Paani laga'), icon: Droplets, color: '#2563eb' },
+  { id: 'THEFT', code: 'THEFT', label: msg('Chori / gum'), icon: ShieldAlert, color: '#b91c1c' },
+  { id: 'MANUFACTURING_DEFECT', code: 'MANUFACTURING_DEFECT', label: msg('Company ka nuqs'), icon: Factory, color: '#0891b2' },
+  { id: 'OTHER', code: 'OTHER', label: msg('Kuch aur'), icon: HelpCircle, color: '#64748b' },
 ];
 
 const BY_CODE = new Map(REASONS.filter((r) => r.id === r.code).map((r) => [r.code, r]));
 
-/** Chip for a saved report: OTHER rows show their own text. */
+/** Chip for a saved report, with its label translated: OTHER rows show their own text. */
 export function reasonOf(code: DamageReasonCode, text?: string): { label: string; icon: LucideIcon; color: string } {
-  if (code !== 'OTHER') return BY_CODE.get(code) ?? REASONS[REASONS.length - 1];
+  const shown = (r: ReasonChip, label = r.label) => ({ ...r, label: t(label) });
+  if (code !== 'OTHER') return shown(BY_CODE.get(code) ?? REASONS[REASONS.length - 1]);
   const returned = REASONS.find((r) => r.id === 'RETURNED')!;
-  if (text && text.trim().toLowerCase() === returned.label.toLowerCase()) return returned;
-  return { ...REASONS[REASONS.length - 1], label: text?.trim() || 'Kuch aur' };
+  if (text && text.trim().toLowerCase() === returned.label.toLowerCase()) return shown(returned);
+  return shown(REASONS[REASONS.length - 1], text?.trim() || REASONS[REASONS.length - 1].label);
 }
 
 /** Codes offered by the reason filter. */
 export const FILTER_REASONS = REASONS.filter((r) => r.id === r.code);
 
 export const STATUS: Record<DamageStatus, { label: string; icon: LucideIcon; tone: string; color: string }> = {
-  REPORTED: { label: 'Approval baqi', icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
-  APPROVED: { label: 'Approve', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
-  REJECTED: { label: 'Rad', icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
-  WRITTEN_OFF: { label: 'Khaate se nikala', icon: PackageX, tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#475569' },
+  REPORTED: { label: t('Approval baqi'), icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
+  APPROVED: { label: t('Approve'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  REJECTED: { label: t('Rad'), icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
+  WRITTEN_OFF: { label: t('Khaate se nikala'), icon: PackageX, tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#475569' },
 };
 
 /** Every query of this page lives under this key. */

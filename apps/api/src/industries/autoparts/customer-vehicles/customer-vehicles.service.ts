@@ -5,6 +5,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ensureCustomer } from '../../_shared/industry-sale.helper';
 import { ListVehiclesQuery, UpsertCustomerVehicleDto } from './dto/upsert-customer-vehicle.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const blank = (v?: string | null) => (v && v.trim() ? v.trim() : undefined);
 const regNo = (v?: string | null) => blank(v)?.toUpperCase().replace(/\s+/g, ' ');
@@ -13,7 +14,7 @@ function toDate(v: string | undefined, label: string): Date | null | undefined {
   if (v === undefined) return undefined;
   if (!v.trim()) return null;
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) throw new BadRequestException(`${label} ki date sahi likhein`);
+  if (Number.isNaN(d.getTime())) throw new BadRequestException(apiMessage('{{label}} ki date sahi likhein', { label }));
   return d;
 }
 
@@ -70,7 +71,7 @@ export class CustomerVehiclesService {
     const dup = await this.prisma.customerVehicle.findFirst({
       where: { tenantId: user.tenantId, registrationNumber: { equals: registrationNumber, mode: 'insensitive' } }, select: { id: true, isActive: true },
     });
-    if (dup) throw new BadRequestException(dup.isActive ? `Gaari "${registrationNumber}" pehle se darj hai` : `Gaari "${registrationNumber}" pehle darj thi aur band hai — usay dobara chalu karein`);
+    if (dup) throw new BadRequestException(dup.isActive ? apiMessage('Gaari "{{registrationNumber}}" pehle se darj hai', { registrationNumber }) : apiMessage('Gaari "{{registrationNumber}}" pehle darj thi aur band hai — usay dobara chalu karein', { registrationNumber }));
     const names = await this.names(user.tenantId, dto);
     const customerId = await this.owner(user, dto);
     return this.prisma.customerVehicle.create({
@@ -170,7 +171,7 @@ export class CustomerVehiclesService {
       const dup = await this.prisma.customerVehicle.findFirst({
         where: { tenantId: user.tenantId, id: { not: id }, registrationNumber: { equals: registrationNumber, mode: 'insensitive' } }, select: { id: true },
       });
-      if (dup) throw new BadRequestException(`Gaari "${registrationNumber}" pehle se darj hai`);
+      if (dup) throw new BadRequestException(apiMessage('Gaari "{{registrationNumber}}" pehle se darj hai', { registrationNumber }));
     }
     const names = dto.makeId !== undefined || dto.modelId !== undefined || dto.makeName !== undefined || dto.modelName !== undefined
       ? await this.names(user.tenantId, dto) : {};

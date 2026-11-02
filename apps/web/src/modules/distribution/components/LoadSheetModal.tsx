@@ -14,6 +14,7 @@ import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
 import { DIST_KEY, distError, distributionApi, type ID } from '../api/distribution.api';
 import { partyName, partySub, rs } from '../lib/meta';
 import { useDeliveryStaff } from '../hooks/useDistribution';
+import { t } from '@core/i18n';
 
 export function LoadSheetModal({ orderIds, addTo, onClose }: { orderIds?: ID[]; addTo?: ID; onClose: () => void }) {
   const qc = useQueryClient();
@@ -42,7 +43,7 @@ export function LoadSheetModal({ orderIds, addTo, onClose }: { orderIds?: ID[]; 
   const shown = preset ? orders.filter((o) => orderIds!.includes(o.id)) : orders;
   const groups = useMemo(() => {
     const m = new Map<string, typeof orders>();
-    shown.forEach((o) => { const k = o.routeName ?? 'Route nahi'; m.set(k, [...(m.get(k) ?? []), o]); });
+    shown.forEach((o) => { const k = o.routeName ?? t('Route nahi'); m.set(k, [...(m.get(k) ?? []), o]); });
     return [...m.entries()];
   }, [shown]);
   const value = shown.filter((o) => chosen.has(o.id)).reduce((a, o) => a + o.total, 0);
@@ -55,9 +56,9 @@ export function LoadSheetModal({ orderIds, addTo, onClose }: { orderIds?: ID[]; 
 
   const save = useMutation({
     mutationFn: () => {
-      if (!ids.length) throw new Error('Kam se kam ek order chunein');
+      if (!ids.length) throw new Error(t('Kam se kam ek order chunein'));
       if (mode === 'add') {
-        if (!sheetId) throw new Error('Load sheet chunein');
+        if (!sheetId) throw new Error(t('Load sheet chunein'));
         return distributionApi.addToSheet(sheetId, ids);
       }
       return distributionApi.createLoadSheet({
@@ -71,7 +72,7 @@ export function LoadSheetModal({ orderIds, addTo, onClose }: { orderIds?: ID[]; 
       onClose();
       navigate(`/distribution/load-sheets/${s.id}`);
     },
-    onError: (e) => toast.error(distError(e, 'Load sheet nahi bani')),
+    onError: (e) => toast.error(distError(e, t('Load sheet nahi bani'))),
   });
 
   const pickRoute = (id: string) => {
@@ -82,40 +83,40 @@ export function LoadSheetModal({ orderIds, addTo, onClose }: { orderIds?: ID[]; 
   };
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Load sheet" description="Invoiced orders gaari par — maal ki list aur invoices ek sheet par"
+    <Modal open onClose={onClose} size="xl" title={t('Load sheet')} description={t('Invoiced orders gaari par — maal ki list aur invoices ek sheet par')}
       footer={<>
-        <span className="mr-auto text-[0.8125rem] text-slate-600">{ids.length} invoices · <b className="text-slate-900">{rs(value)}</b></span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} disabled={!ids.length} leftIcon={<Truck className="h-4 w-4" />} onClick={() => save.mutate()}>{mode === 'add' ? 'Sheet me daalein' : 'Load sheet banayein'}</Button>
+        <span className="me-auto text-[0.8125rem] text-slate-600">{t('{{count}} invoices ·', { count: ids.length })}{' '} <b className="text-slate-900">{rs(value)}</b></span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={save.isPending} disabled={!ids.length} leftIcon={<Truck className="h-4 w-4" />} onClick={() => save.mutate()}>{mode === 'add' ? t('Sheet me daalein') : t('Load sheet banayein')}</Button>
       </>}>
       <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
         <div className="space-y-3">
           {openSheets.length > 0 && !addTo && (
-            <Segmented label="Sheet" value={mode} onChange={(v) => setMode(v as 'new' | 'add')} items={[{ value: 'new', label: 'Nayi sheet' }, { value: 'add', label: 'Khuli sheet me' }]} />
+            <Segmented label={t('Sheet')} value={mode} onChange={(v) => setMode(v as 'new' | 'add')} items={[{ value: 'new', label: t('Nayi sheet') }, { value: 'add', label: t('Khuli sheet me') }]} />
           )}
           {mode === 'add' ? (
-            <Select size="sm" label="Load sheet" value={sheetId} onChange={(e) => setSheetId(e.target.value)}
-              options={[{ value: '', label: 'Chunein' }, ...openSheets.map((s) => ({ value: s.id, label: `${s.number} · ${s.routeName ?? s.deliveryUserName ?? ''} (${s.invoiceCount})` }))]} />
+            <Select size="sm" label={t('Load sheet')} value={sheetId} onChange={(e) => setSheetId(e.target.value)}
+              options={[{ value: '', label: t('Chunein') }, ...openSheets.map((s) => ({ value: s.id, label: `${s.number} · ${s.routeName ?? s.deliveryUserName ?? ''} (${s.invoiceCount})` }))]} />
           ) : <>
-            <Input size="sm" type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <Select size="sm" label="Route" value={routeId} onChange={(e) => pickRoute(e.target.value)}
-              options={[{ value: '', label: 'Mili juli / koi nahi' }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
-            <Select size="sm" label="Delivery wala" value={deliveryUserId} onChange={(e) => setDeliveryUserId(e.target.value)}
-              options={[{ value: '', label: 'Baad me' }, ...deliveryUsers.map((u) => ({ value: u.id, label: u.label }))]} />
+            <Input size="sm" type="date" label={t('Date')} value={date} onChange={(e) => setDate(e.target.value)} />
+            <Select size="sm" label={t('Route')} value={routeId} onChange={(e) => pickRoute(e.target.value)}
+              options={[{ value: '', label: t('Mili juli / koi nahi') }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
+            <Select size="sm" label={t('Delivery wala')} value={deliveryUserId} onChange={(e) => setDeliveryUserId(e.target.value)}
+              options={[{ value: '', label: t('Baad me') }, ...deliveryUsers.map((u) => ({ value: u.id, label: u.label }))]} />
             <div className="grid grid-cols-2 gap-2">
-              <Input size="sm" label="Driver" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
-              <Input size="sm" label="Gaari no." value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} />
+              <Input size="sm" label={t('Driver')} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+              <Input size="sm" label={t('Gaari no.')} value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} />
             </div>
-            <Input size="sm" label="Note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Zaroori nahi" />
+            <Input size="sm" label={t('Note')} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Zaroori nahi')} />
           </>}
         </div>
         <div className="max-h-[55vh] min-w-0 overflow-auto rounded-2xl ring-1 ring-slate-200/80">
-          {ordersQ.isLoading ? <p className="p-6 text-center text-[0.8125rem] text-slate-500">Orders aa rahe hain…</p>
-            : !shown.length ? <p className="p-6 text-center text-[0.8125rem] text-slate-500">Koi invoiced order load ke liye baqi nahi. Pehle orders approve karein.</p>
+          {ordersQ.isLoading ? <p className="p-6 text-center text-[0.8125rem] text-slate-500">{t('Orders aa rahe hain…')}</p>
+            : !shown.length ? <p className="p-6 text-center text-[0.8125rem] text-slate-500">{t('Koi invoiced order load ke liye baqi nahi. Pehle orders approve karein.')}</p>
               : groups.map(([route, list]) => (
                 <div key={route}>
                   <div className="sticky top-0 flex items-center gap-2 bg-slate-50 px-3 py-1.5 text-[0.75rem] font-semibold text-slate-600">
-                    <Checkbox aria-label={`${route} sab`} checked={list.every((o) => chosen.has(o.id))}
+                    <Checkbox aria-label={t('{{route}} sab', { route })} checked={list.every((o) => chosen.has(o.id))}
                       onChange={(e) => setPicked(() => { const n = new Set(chosen); list.forEach((o) => (e.target.checked ? n.add(o.id) : n.delete(o.id))); return n; })} />
                     {route} <span className="font-normal text-slate-400">· {list.length}</span>
                   </div>

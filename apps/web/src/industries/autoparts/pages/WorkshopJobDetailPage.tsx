@@ -40,13 +40,14 @@ import {
   priorityOf, statusOf, vehicleName, waLink,
 } from '../components/meta';
 import { PART_FACTS_KEY } from '../hooks/usePartFacts';
+import { t } from '@core/i18n';
 
 type Dialog = null | 'part' | 'labour' | 'outside' | 'edit' | 'pay' | 'deliver' | 'cancel';
 
 const SIDE: Array<{ status: JobStatus; label: string; icon: typeof Clock }> = [
-  { status: 'WAITING_PARTS', label: 'Parts ka intezar', icon: Package },
-  { status: 'WAITING_APPROVAL', label: 'Customer ki haan', icon: UserRound },
-  { status: 'ON_HOLD', label: 'Rok dein', icon: Clock },
+  { status: 'WAITING_PARTS', label: t('Parts ka intezar'), icon: Package },
+  { status: 'WAITING_APPROVAL', label: t('Customer ki haan'), icon: UserRound },
+  { status: 'ON_HOLD', label: t('Rok dein'), icon: Clock },
 ];
 
 /** Where the job is on the usual path. */
@@ -80,28 +81,28 @@ export default function WorkshopJobDetailPage() {
       if (opts.money) MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       if (opts.close !== false) setDialog(null);
     },
-    onError: (e: unknown) => toast.error(apiError(e, 'Nahi hua — dobara koshish karein')),
+    onError: (e: unknown) => toast.error(apiError(e, t('Nahi hua — dobara koshish karein'))),
   });
 
-  const status = useMutation(act((s: JobStatus) => workshopJobsApi.updateStatus(id, s), 'Halat badal di'));
-  const cancel = useMutation(act((r: string) => workshopJobsApi.updateStatus(id, 'CANCELLED', { cancellationReason: r }), 'Job cancel — stock wale parts wapas shelf par', { stock: true }));
-  const save = useMutation(act((v: JobUpdateInput) => workshopJobsApi.update(id, v), 'Job save ho gaya'));
-  const addPart = useMutation(act((v: PartInput) => workshopJobsApi.addPart(id, v), 'Part jor diya', { stock: true }));
-  const delPart = useMutation(act((partId: string) => workshopJobsApi.removePart(id, partId), 'Part hata diya', { stock: true, close: false }));
-  const addLabour = useMutation(act((v: LaborInput) => workshopJobsApi.addLabor(id, v), 'Mazdoori jor di'));
-  const delLabour = useMutation(act((laborId: string) => workshopJobsApi.removeLabor(id, laborId), 'Mazdoori hata di', { close: false }));
-  const addOutside = useMutation(act((v: ExternalInput) => workshopJobsApi.addExternal(id, v), 'Bahar ka kaam jor diya'));
-  const delOutside = useMutation(act((extId: string) => workshopJobsApi.removeExternal(id, extId), 'Bahar ka kaam hata diya', { close: false }));
+  const status = useMutation(act((s: JobStatus) => workshopJobsApi.updateStatus(id, s), t('Halat badal di')));
+  const cancel = useMutation(act((r: string) => workshopJobsApi.updateStatus(id, 'CANCELLED', { cancellationReason: r }), t('Job cancel — stock wale parts wapas shelf par'), { stock: true }));
+  const save = useMutation(act((v: JobUpdateInput) => workshopJobsApi.update(id, v), t('Job save ho gaya')));
+  const addPart = useMutation(act((v: PartInput) => workshopJobsApi.addPart(id, v), t('Part jor diya'), { stock: true }));
+  const delPart = useMutation(act((partId: string) => workshopJobsApi.removePart(id, partId), t('Part hata diya'), { stock: true, close: false }));
+  const addLabour = useMutation(act((v: LaborInput) => workshopJobsApi.addLabor(id, v), t('Mazdoori jor di')));
+  const delLabour = useMutation(act((laborId: string) => workshopJobsApi.removeLabor(id, laborId), t('Mazdoori hata di'), { close: false }));
+  const addOutside = useMutation(act((v: ExternalInput) => workshopJobsApi.addExternal(id, v), t('Bahar ka kaam jor diya')));
+  const delOutside = useMutation(act((extId: string) => workshopJobsApi.removeExternal(id, extId), t('Bahar ka kaam hata diya'), { close: false }));
   const pay = useMutation(act((v: { amount: number; method: PaymentMethod }) =>
-    workshopJobsApi.addPayment(id, { amount: v.amount, paymentMethod: v.method }), 'Payment mil gayi', { money: true }));
+    workshopJobsApi.addPayment(id, { amount: v.amount, paymentMethod: v.method }), t('Payment mil gayi'), { money: true }));
   const deliver = useMutation({
     mutationFn: (v: DeliverInput) => workshopJobsApi.deliver(id, v),
     onSuccess: (r) => {
-      toast.success(r.sale ? `Gaari de di — bill ${r.sale.saleNumber}` : 'Gaari de di', { action: { label: 'Print', onClick: () => printJobCard(r, shopName) } });
+      toast.success(r.sale ? t('Gaari de di — bill {{saleNumber}}', { saleNumber: r.sale.saleNumber }) : t('Gaari de di'), { action: { label: t('Print'), onClick: () => printJobCard(r, shopName) } });
       [JOB_KEY, VEHICLE_KEY, REMINDER_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       setDialog(null);
     },
-    onError: (e) => toast.error(apiError(e, 'Gaari wapas nahi hui')),
+    onError: (e) => toast.error(apiError(e, t('Gaari wapas nahi hui'))),
   });
 
   useEffect(() => {
@@ -122,8 +123,8 @@ export default function WorkshopJobDetailPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Job nahi mili</p>
-          <Button className="mt-3" variant="secondary" onClick={() => navigate('/autoparts/jobs')}>Jobs par wapas</Button>
+          <p className="font-semibold text-slate-900">{t('Job nahi mili')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/autoparts/jobs')}>{t('Jobs par wapas')}</Button>
         </div>
       </PageShell>
     );
@@ -135,9 +136,9 @@ export default function WorkshopJobDetailPage() {
   const wa = waLink(j.customerPhone, jobMessage(j, shopName));
   const ready = READY.includes(j.status);
   const next: { label: string; icon: typeof Clock; run: () => void } | null = !edit ? null
-    : ready ? { label: 'Gaari dein', icon: Receipt, run: () => setDialog('deliver') }
-      : j.status === 'IN_PROGRESS' ? { label: 'Kaam mukammal', icon: CheckCircle2, run: () => status.mutate('COMPLETED') }
-        : { label: 'Kaam shuru', icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
+    : ready ? { label: t('Gaari dein'), icon: Receipt, run: () => setDialog('deliver') }
+      : j.status === 'IN_PROGRESS' ? { label: t('Kaam mukammal'), icon: CheckCircle2, run: () => status.mutate('COMPLETED') }
+        : { label: t('Kaam shuru'), icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
   const parts = j.partsUsed;
   const mechanics = mechQ.data ?? [];
 
@@ -146,36 +147,36 @@ export default function WorkshopJobDetailPage() {
       <PageHero
         title={<span className="inline-flex items-center gap-2">{j.registrationNumber ?? j.jobNumber}<span className="text-base font-medium text-white/80">{vehicleName(j)}</span></span>}
         chip={<><Wrench /> {st.label}</>}
-        meta={`${j.jobNumber} · ${jobTypeOf(j.jobType)} · aayi ${dateTime(j.receivedAt)}`}
+        meta={t('{{jobNumber}} · {{jobType}} · aayi {{receivedAt}}', { jobNumber: j.jobNumber, jobType: jobTypeOf(j.jobType), receivedAt: dateTime(j.receivedAt) })}
         actions={<>
-          <button type="button" onClick={() => navigate('/autoparts/jobs')} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-          <button type="button" onClick={() => printJobCard(j, shopName)} title="Parchi (P)" className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Parchi</span></button>
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
-          {edit && <button type="button" onClick={() => setDialog('edit')} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => navigate('/autoparts/jobs')} title={t('Wapas (Esc)')} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
+          <button type="button" onClick={() => printJobCard(j, shopName)} title={t('Parchi (P)')} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">{t('Parchi')}</span></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">{t('WhatsApp')}</span></a>}
+          {edit && <button type="button" onClick={() => setDialog('edit')} title={t('Badlein (E)')} className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">{t('Badlein')}</span></button>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {next && <button type="button" onClick={next.run} disabled={status.isPending} className={heroPrimaryButton}><next.icon className="h-4 w-4" />{next.label}</button>}
         </>}
         stats={[
-          { label: 'Bill', value: formatPKR(j.total) },
-          { label: 'Mila', value: formatPKR(j.paidAmount) },
-          { label: j.status === 'DELIVERED' ? 'Khata me baqi' : 'Baqi', value: formatPKR(j.due) },
+          { label: t('Bill'), value: formatPKR(j.total) },
+          { label: t('Mila'), value: formatPKR(j.paidAmount) },
+          { label: j.status === 'DELIVERED' ? t('Khata me baqi') : t('Baqi'), value: formatPKR(j.due) },
         ]}
       />
 
       {late && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] font-medium text-rose-900 ring-1 ring-rose-200">
-          <AlertTriangle className="h-4 w-4" />Waada {dateTime(j.promisedAt)} tha — customer ko bata dein
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className="ml-auto font-semibold hover:underline">WhatsApp →</a>}
+          <AlertTriangle className="h-4 w-4" />{t('Waada {{promisedAt}} tha — customer ko bata dein', { promisedAt: dateTime(j.promisedAt) })}
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="ms-auto font-semibold hover:underline">{t('WhatsApp →')}</a>}
         </div>
       )}
       {j.status === 'CANCELLED' && (
-        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">Cancel {dayOnly(j.cancelledAt)} — {j.cancellationReason}{j.advanceOnKhata > 0 && ` · Rs ${j.advanceOnKhata} advance customer ke khata me jama hai`}</div>
+        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">{t('Cancel {{cancelledAt}} — {{cancellationReason}}{{value}}', { cancelledAt: dayOnly(j.cancelledAt), cancellationReason: j.cancellationReason, value: j.advanceOnKhata > 0 ? t(' · Rs {{advanceOnKhata}} advance customer ke khata me jama hai', { advanceOnKhata: j.advanceOnKhata }) : '' })}</div>
       )}
       {j.status === 'DELIVERED' && j.sale && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-[0.875rem] text-emerald-900 ring-1 ring-emerald-200">
-          <Receipt className="h-4 w-4" />Gaari {dateTime(j.deliveredAt)} ko di — bill <strong>{j.sale.saleNumber}</strong>
-          {j.due > 0 && <span className="text-amber-800">· {formatPKR(j.due)} khata me</span>}
-          <Link to={`/sales?search=${encodeURIComponent(j.sale.saleNumber)}`} className="ml-auto font-semibold hover:underline">Bill dekhein →</Link>
+          <Receipt className="h-4 w-4" />{t('Gaari {{deliveredAt}} ko di — bill', { deliveredAt: dateTime(j.deliveredAt) })}{' '} <strong>{j.sale.saleNumber}</strong>
+          {j.due > 0 && <span className="text-amber-800">{t('· {{due}} khata me', { due: formatPKR(j.due) })}</span>}
+          <Link to={`/sales?search=${encodeURIComponent(j.sale.saleNumber)}`} className="ms-auto font-semibold hover:underline">{t('Bill dekhein →')}</Link>
         </div>
       )}
 
@@ -187,23 +188,23 @@ export default function WorkshopJobDetailPage() {
               <li key={s} className="min-w-0">
                 <div className={cn('h-1.5 rounded-full', i <= step ? 'bg-brand-600' : 'bg-slate-200')} />
                 <p className={cn('mt-1.5 truncate text-[0.75rem] font-medium', i === step ? 'text-brand-700' : i < step ? 'text-slate-700' : 'text-slate-400')}>
-                  {s === 'DRAFT' ? 'Gaari aayi' : s === 'IN_PROGRESS' ? 'Kaam' : s === 'COMPLETED' ? 'Tayyar' : 'Di gayi'}
+                  {s === 'DRAFT' ? t('Gaari aayi') : s === 'IN_PROGRESS' ? t('Kaam') : s === 'COMPLETED' ? t('Tayyar') : t('Di gayi')}
                 </p>
               </li>
             ))}
           </ol>
           {edit && (
             <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
-              <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Ya:</span>
+              <span className="me-1 text-[0.75rem] font-medium text-slate-500">{t('Ya:')}</span>
               {SIDE.map((x) => (
                 <button key={x.status} type="button" onClick={() => status.mutate(j.status === x.status ? 'IN_PROGRESS' : x.status)} disabled={status.isPending}
                   className={cn('inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium ring-1',
                     j.status === x.status ? 'bg-orange-50 text-orange-800 ring-orange-200' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                  <x.icon className="h-3.5 w-3.5" />{j.status === x.status ? `${x.label} — khatam` : x.label}
+                  <x.icon className="h-3.5 w-3.5" />{j.status === x.status ? t('{{label}} — khatam', { label: x.label }) : x.label}
                 </button>
               ))}
-              {ready && <button type="button" onClick={() => status.mutate('IN_PROGRESS')} className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Hammer className="h-3.5 w-3.5" />Kaam baqi hai</button>}
-              <button type="button" onClick={() => { setReason(''); setDialog('cancel'); }} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Ban className="h-3.5 w-3.5" />Cancel</button>
+              {ready && <button type="button" onClick={() => status.mutate('IN_PROGRESS')} className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Hammer className="h-3.5 w-3.5" />{t('Kaam baqi hai')}</button>}
+              <button type="button" onClick={() => { setReason(''); setDialog('cancel'); }} className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Ban className="h-3.5 w-3.5" />{t('Cancel')}</button>
             </div>
           )}
         </div>
@@ -211,39 +212,39 @@ export default function WorkshopJobDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title="Kaam" actions={edit ? <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setDialog('edit')}>Badlein</Button> : undefined}>
+          <Card className="rounded-2xl" title={t('Kaam')} actions={edit ? <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setDialog('edit')}>{t('Badlein')}</Button> : undefined}>
             <dl className="grid gap-3 text-[0.875rem] sm:grid-cols-2">
-              <Fact label="Shikayat">{j.customerComplaint || '—'}</Fact>
-              <Fact label="Check me nikla">{j.diagnosis || <span className="text-slate-400">Abhi nahi likha</span>}</Fact>
-              <Fact label="Mechanic">{j.mechanicName || <span className="text-slate-400">Koi nahi</span>}</Fact>
-              <Fact label="Gaari kab deni hai">{j.promisedAt ? dateTime(j.promisedAt) : '—'}{j.priority !== 'NORMAL' && <span className={cn('ml-2 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}</Fact>
-              {j.recommendations && <Fact label="Mashwara">{j.recommendations}</Fact>}
-              {j.internalNotes && <Fact label="Andar ka note">{j.internalNotes}</Fact>}
+              <Fact label={t('Shikayat')}>{j.customerComplaint || '—'}</Fact>
+              <Fact label={t('Check me nikla')}>{j.diagnosis || <span className="text-slate-400">{t('Abhi nahi likha')}</span>}</Fact>
+              <Fact label={t('Mechanic')}>{j.mechanicName || <span className="text-slate-400">{t('Koi nahi')}</span>}</Fact>
+              <Fact label={t('Gaari kab deni hai')}>{j.promisedAt ? dateTime(j.promisedAt) : '—'}{j.priority !== 'NORMAL' && <span className={cn('ms-2 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}</Fact>
+              {j.recommendations && <Fact label={t('Mashwara')}>{j.recommendations}</Fact>}
+              {j.internalNotes && <Fact label={t('Andar ka note')}>{j.internalNotes}</Fact>}
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title="Bill"
-            description={open ? 'Stock wala part jorte hi stock se nikalta hai; hatane par wapas shelf par' : undefined}
+          <Card className="rounded-2xl" flush title={t('Bill')}
+            description={open ? t('Stock wala part jorte hi stock se nikalta hai; hatane par wapas shelf par') : undefined}
             actions={edit ? (
               <div className="flex flex-wrap gap-1.5">
-                <Button size="sm" leftIcon={<Package className="h-3.5 w-3.5" />} onClick={() => setDialog('part')}>Part</Button>
-                <Button size="sm" variant="secondary" leftIcon={<Hammer className="h-3.5 w-3.5" />} onClick={() => setDialog('labour')}>Mazdoori</Button>
-                <Button size="sm" variant="secondary" leftIcon={<Truck className="h-3.5 w-3.5" />} onClick={() => setDialog('outside')}>Bahar ka kaam</Button>
+                <Button size="sm" leftIcon={<Package className="h-3.5 w-3.5" />} onClick={() => setDialog('part')}>{t('Part')}</Button>
+                <Button size="sm" variant="secondary" leftIcon={<Hammer className="h-3.5 w-3.5" />} onClick={() => setDialog('labour')}>{t('Mazdoori')}</Button>
+                <Button size="sm" variant="secondary" leftIcon={<Truck className="h-3.5 w-3.5" />} onClick={() => setDialog('outside')}>{t('Bahar ka kaam')}</Button>
               </div>
             ) : undefined}>
             {j.laborItems.length + parts.length + j.externalWork.length === 0 ? (
               <div className="px-5 pb-6 pt-4 text-center">
-                <p className="text-[0.875rem] text-slate-600">Abhi koi kaam ya part nahi jora</p>
-                {edit && <Button className="mt-3" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDialog('part')}>Pehla part jorein (A)</Button>}
+                <p className="text-[0.875rem] text-slate-600">{t('Abhi koi kaam ya part nahi jora')}</p>
+                {edit && <Button className="mt-3" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDialog('part')}>{t('Pehla part jorein (A)')}</Button>}
               </div>
             ) : (
               <Table className="mt-3" minWidth="36rem">
-                <THead><Tr><Th>Cheez</Th><Th align="right">Kitne</Th><Th align="right">Qeemat</Th><Th align="right">Kul</Th>{edit && <Th />}</Tr></THead>
+                <THead><Tr><Th>{t('Cheez')}</Th><Th align="right">{t('Kitne')}</Th><Th align="right">{t('Qeemat')}</Th><Th align="right">{t('Kul')}</Th>{edit && <Th />}</Tr></THead>
                 <TBody>
                   {j.laborItems.map((l) => (
                     <Tr key={l.id}>
-                      <Td><span className="font-medium text-slate-900">{l.description}</span><Sub>Mazdoori{l.mechanicName ? ` · ${l.mechanicName}` : ''}</Sub></Td>
-                      <Td align="right">{l.hours !== 1 ? `${l.hours} ghante` : '1'}</Td>
+                      <Td><span className="font-medium text-slate-900">{l.description}</span><Sub>{t('Mazdoori{{value}}', { value: l.mechanicName ? ` · ${l.mechanicName}` : '' })}</Sub></Td>
+                      <Td align="right">{l.hours !== 1 ? t('{{hours}} ghante', { hours: l.hours }) : '1'}</Td>
                       <Td align="right">{formatPKR(l.ratePerHour)}</Td>
                       <Td align="right" className="font-semibold text-slate-900">{formatPKR(l.total)}</Td>
                       {edit && <Td align="right"><Remove label={l.description} busy={delLabour.isPending} onClick={() => delLabour.mutate(l.id)} /></Td>}
@@ -254,8 +255,8 @@ export default function WorkshopJobDetailPage() {
                       <Td>
                         <span className="font-medium text-slate-900">{p.partName}</span>
                         <Sub>
-                          {[p.partNumber, conditionOf(p.condition).label, p.isCustomerSupplied ? 'Customer ka apna' : p.productId ? (p.installedAt ? 'Stock se laga' : 'Dene par stock se niklega') : 'Bahar se liya',
-                            p.warrantyMonths ? `${p.warrantyMonths} mahine warranty` : null].filter(Boolean).join(' · ')}
+                          {[p.partNumber, conditionOf(p.condition).label, p.isCustomerSupplied ? t('Customer ka apna') : p.productId ? (p.installedAt ? t('Stock se laga') : t('Dene par stock se niklega')) : t('Bahar se liya'),
+                            p.warrantyMonths ? t('{{warrantyMonths}} mahine warranty', { warrantyMonths: p.warrantyMonths }) : null].filter(Boolean).join(' · ')}
                         </Sub>
                       </Td>
                       <Td align="right">{Number(p.quantity)}</Td>
@@ -266,7 +267,7 @@ export default function WorkshopJobDetailPage() {
                   ))}
                   {j.externalWork.map((e) => (
                     <Tr key={e.id}>
-                      <Td><span className="font-medium text-slate-900">{e.description}</span><Sub>Bahar ka kaam{e.vendorName ? ` · ${e.vendorName}` : ''} · cost {formatPKR(e.cost)}</Sub></Td>
+                      <Td><span className="font-medium text-slate-900">{e.description}</span><Sub>{t('Bahar ka kaam{{value}} · cost {{cost}}', { value: e.vendorName ? ` · ${e.vendorName}` : '', cost: formatPKR(e.cost) })}</Sub></Td>
                       <Td align="right">1</Td>
                       <Td align="right">{formatPKR(e.total)}</Td>
                       <Td align="right" className="font-semibold text-slate-900">{formatPKR(e.total)}</Td>
@@ -277,16 +278,16 @@ export default function WorkshopJobDetailPage() {
               </Table>
             )}
             <dl className="space-y-1 border-t border-slate-100 px-5 py-4 text-[0.875rem]">
-              <Line label="Mazdoori" value={j.laborTotal} />
-              <Line label="Parts" value={j.partsTotal} />
-              {j.externalTotal > 0 && <Line label="Bahar ka kaam" value={j.externalTotal} />}
-              {j.taxAmount > 0 && <Line label="Tax" value={j.taxAmount} />}
-              {j.discount > 0 && <Line label="Discount" value={-j.discount} />}
-              <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900"><dt>Kul bill</dt><dd className="tabular-nums">{formatPKR(j.total)}</dd></div>
+              <Line label={t('Mazdoori')} value={j.laborTotal} />
+              <Line label={t('Parts')} value={j.partsTotal} />
+              {j.externalTotal > 0 && <Line label={t('Bahar ka kaam')} value={j.externalTotal} />}
+              {j.taxAmount > 0 && <Line label={t('Tax')} value={j.taxAmount} />}
+              {j.discount > 0 && <Line label={t('Discount')} value={-j.discount} />}
+              <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900"><dt>{t('Kul bill')}</dt><dd className="tabular-nums">{formatPKR(j.total)}</dd></div>
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-slate-500" />Job ki history</span>}>
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-slate-500" />{t('Job ki history')}</span>}>
             <ol className="space-y-3 px-5 pb-5 pt-3">
               {j.statusLogs.map((l) => (
                 <li key={l.id} className="flex gap-3 text-[0.8125rem]">
@@ -303,57 +304,57 @@ export default function WorkshopJobDetailPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Car className="h-4 w-4 text-brand-600" />Gaari aur customer</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Car className="h-4 w-4 text-brand-600" />{t('Gaari aur customer')}</span>}>
             <dl className="space-y-2 text-[0.875rem]">
-              <Fact label="Gaari">
+              <Fact label={t('Gaari')}>
                 {j.vehicle ? <Link to={`/autoparts/vehicles?open=${j.vehicle.id}`} className="font-semibold text-brand-700 hover:underline">{j.registrationNumber}</Link> : j.registrationNumber ?? '—'}
                 <span className="text-slate-600"> {vehicleName(j)}</span>
               </Fact>
-              <Fact label="Meter"><span className="inline-flex items-center gap-1"><Gauge className="h-3.5 w-3.5 text-slate-400" />{km(j.odometerKm)}</span></Fact>
-              <Fact label="Customer">
+              <Fact label={t('Meter')}><span className="inline-flex items-center gap-1"><Gauge className="h-3.5 w-3.5 text-slate-400" />{km(j.odometerKm)}</span></Fact>
+              <Fact label={t('Customer')}>
                 {j.customer ? <Link to={`/customers/${j.customer.id}`} className="font-semibold text-brand-700 hover:underline">{j.customer.name}</Link> : j.customerName || '—'}
                 {j.customerPhone && <span className="text-slate-600"> · {j.customerPhone}</span>}
               </Fact>
               {j.customer && j.customer.balance !== 0 && (
-                <Fact label="Khata">
+                <Fact label={t('Khata')}>
                   <span className={j.customer.balance > 0 ? 'font-semibold text-amber-700' : 'font-semibold text-emerald-700'}>
-                    {j.customer.balance > 0 ? `${formatPKR(j.customer.balance)} udhaar` : `${formatPKR(-j.customer.balance)} jama (advance)`}
+                    {j.customer.balance > 0 ? t('{{balance}} udhaar', { balance: formatPKR(j.customer.balance) }) : t('{{formatPKR}} jama (advance)', { formatPKR: formatPKR(-j.customer.balance) })}
                   </span>
                 </Fact>
               )}
               {(j.fuelLevel || j.hasSpareTire || j.hasToolkit || j.externalDamages) && (
-                <Fact label="Aate waqt">{[j.fuelLevel && `Petrol ${j.fuelLevel}`, j.hasSpareTire && 'Stepney', j.hasToolkit && 'Auzaar', j.externalDamages].filter(Boolean).join(' · ')}</Fact>
+                <Fact label={t('Aate waqt')}>{[j.fuelLevel && `Petrol ${j.fuelLevel}`, j.hasSpareTire && 'Stepney', j.hasToolkit && 'Auzaar', j.externalDamages].filter(Boolean).join(' · ')}</Fact>
               )}
               {j.warrantyStatus === 'ACTIVE' && j.warrantyExpiry && (
-                <Fact label="Warranty"><span className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />{dayOnly(j.warrantyExpiry)} tak</span></Fact>
+                <Fact label={t('Warranty')}><span className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />{t('{{warrantyExpiry}} tak', { warrantyExpiry: dayOnly(j.warrantyExpiry) })}</span></Fact>
               )}
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" />Paisa</span>}
-            actions={canManage && j.status !== 'CANCELLED' && (j.due > 0 || (open && j.total <= 0)) ? <Button size="sm" variant="secondary" onClick={() => setDialog('pay')}>{j.status === 'DELIVERED' ? 'Wusooli' : 'Advance lein'}</Button> : undefined}>
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" />{t('Paisa')}</span>}
+            actions={canManage && j.status !== 'CANCELLED' && (j.due > 0 || (open && j.total <= 0)) ? <Button size="sm" variant="secondary" onClick={() => setDialog('pay')}>{j.status === 'DELIVERED' ? t('Wusooli') : t('Advance lein')}</Button> : undefined}>
             <dl className="space-y-1 px-5 pt-3 text-[0.875rem]">
-              <Line label="Bill" value={j.total} />
-              <Line label="Mila" value={j.paidAmount} />
-              <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>Baqi</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
+              <Line label={t('Bill')} value={j.total} />
+              <Line label={t('Mila')} value={j.paidAmount} />
+              <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>{t('Baqi')}</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
             </dl>
             {j.payments.length > 0 ? (
               <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
                 {j.payments.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-5 py-2 text-[0.8125rem]">
-                    <span className="min-w-0 flex-1"><span className="block truncate text-slate-800">{p.notes || 'Payment'}</span><span className="text-[0.75rem] text-slate-500">{dateTime(p.paidAt)} · {p.paymentMethod}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-slate-800">{p.notes || t('Payment')}</span><span className="text-[0.75rem] text-slate-500">{dateTime(p.paidAt)} · {p.paymentMethod}</span></span>
                     <span className={cn('font-semibold tabular-nums', p.amount < 0 ? 'text-rose-600' : 'text-slate-900')}>{formatPKR(p.amount)}</span>
                   </li>
                 ))}
               </ul>
-            ) : <p className="px-5 pb-4 pt-2 text-[0.8125rem] text-slate-500">Abhi koi payment nahi</p>}
+            ) : <p className="px-5 pb-4 pt-2 text-[0.8125rem] text-slate-500">{t('Abhi koi payment nahi')}</p>}
             {j.advanceOnKhata > 0 && j.status !== 'DELIVERED' && (
-              <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{formatPKR(j.advanceOnKhata)} advance khata me jama — bill me katega</p>
+              <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{t('{{advanceOnKhata}} advance khata me jama — bill me katega', { advanceOnKhata: formatPKR(j.advanceOnKhata) })}</p>
             )}
             {(j.coreReturns?.length ?? 0) > 0 && (
               <div className="mx-5 mb-4 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-                <Link to="/autoparts/core-returns" className="font-semibold hover:underline">Purane part</Link>
-                {j.coreReturns!.map((c) => <span key={c.id} className="block">{c.description} · {formatPKR(c.value)}{c.saleId ? ' · bill me laga' : ' · agle bill me katega'}</span>)}
+                <Link to="/autoparts/core-returns" className="font-semibold hover:underline">{t('Purane part')}</Link>
+                {j.coreReturns!.map((c) => <span key={c.id} className="block">{c.description} · {formatPKR(c.value)}{c.saleId ? t(' · bill me laga') : t(' · agle bill me katega')}</span>)}
               </div>
             )}
           </Card>
@@ -368,32 +369,32 @@ export default function WorkshopJobDetailPage() {
       {dialog === 'edit' && <EditJobModal job={j} mechanics={mechanics} pending={save.isPending} onSave={(v) => save.mutate(v)} onClose={() => setDialog(null)} />}
       {dialog === 'deliver' && <DeliverJobModal job={j} pending={deliver.isPending} onClose={() => setDialog(null)} onConfirm={(v) => { if (!deliver.isPending) deliver.mutate(v); }} />}
       {dialog === 'pay' && (
-        <TakePaymentModal title={j.status === 'DELIVERED' ? `Wusooli — ${j.jobNumber}` : `Advance — ${j.jobNumber}`}
+        <TakePaymentModal title={j.status === 'DELIVERED' ? t('Wusooli — {{jobNumber}}', { jobNumber: j.jobNumber }) : t('Advance — {{jobNumber}}', { jobNumber: j.jobNumber })}
           description={[j.registrationNumber, j.customerName].filter(Boolean).join(' · ')}
           amount={j.due > 0 ? j.due : 0} max={j.total > 0 ? j.due : undefined} loading={pay.isPending}
           onConfirm={(amount, method) => pay.mutate({ amount, method })} onClose={() => setDialog(null)} />
       )}
       {dialog === 'cancel' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title={`Job cancel karein — ${j.jobNumber}`}
-          description="Stock se lage parts wapas shelf par chale jayenge. Advance customer ke khata me jama rahega."
+        <Modal open onClose={() => setDialog(null)} size="sm" title={t('Job cancel karein — {{jobNumber}}', { jobNumber: j.jobNumber })}
+          description={t('Stock se lage parts wapas shelf par chale jayenge. Advance customer ke khata me jama rahega.')}
           footer={<>
-            <Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button>
-            <Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate(reason.trim())}>Cancel karein</Button>
+            <Button variant="secondary" onClick={() => setDialog(null)}>{t('Rehne dein')}</Button>
+            <Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate(reason.trim())}>{t('Cancel karein')}</Button>
           </>}>
-          <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Customer ne mana kar diya" />
+          <Input label={t('Wajah')} required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder={t('Customer ne mana kar diya')} />
         </Modal>
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Job card — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Job card — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: PlayCircle, color: '#7c3aed', title: 'Agla qadam', text: 'Upar wala button job ko aage barhata hai: Kaam shuru → Kaam mukammal → Gaari dein. Parts ka intezar ya customer ki haan ho to neeche "Ya" se.' },
-            { icon: Package, color: '#ea580c', title: 'Parts', text: '"Part" se dukaan ka part (stock se nikalta hai), bahar se liya ya customer ka apna jorein. Is gaari me lagne wale parts pehle dikhte hain.' },
-            { icon: Hammer, color: '#2563eb', title: 'Mazdoori', text: 'Har kaam ki mazdoori mechanic ke naam se — Mechanic page par us ka mahine ka kaam aur commission dikhta hai.' },
-            { icon: Receipt, color: '#16a34a', title: 'Gaari dein', text: 'Baqi paisa lein, agli service ka km/date aur warranty likhein. Bill banta hai; jo baqi rahe customer ke khata me.' },
-            { icon: Ban, color: '#e11d48', title: 'Ghalti', text: 'Gaari dene ke baad bill ghalat ho to Sales se void karein — job dobara khul jati hai. Cancel par parts wapas stock me.' },
+            { icon: PlayCircle, color: '#7c3aed', title: t('Agla qadam'), text: t('Upar wala button job ko aage barhata hai: Kaam shuru → Kaam mukammal → Gaari dein. Parts ka intezar ya customer ki haan ho to neeche "Ya" se.') },
+            { icon: Package, color: '#ea580c', title: t('Parts'), text: t('"Part" se dukaan ka part (stock se nikalta hai), bahar se liya ya customer ka apna jorein. Is gaari me lagne wale parts pehle dikhte hain.') },
+            { icon: Hammer, color: '#2563eb', title: t('Mazdoori'), text: t('Har kaam ki mazdoori mechanic ke naam se — Mechanic page par us ka mahine ka kaam aur commission dikhta hai.') },
+            { icon: Receipt, color: '#16a34a', title: t('Gaari dein'), text: t('Baqi paisa lein, agli service ka km/date aur warranty likhein. Bill banta hai; jo baqi rahe customer ke khata me.') },
+            { icon: Ban, color: '#e11d48', title: t('Ghalti'), text: t('Gaari dene ke baad bill ghalat ho to Sales se void karein — job dobara khul jati hai. Cancel par parts wapas stock me.') },
           ]}
-          shortcuts={[['P', 'parchi'], ['E', 'badlein'], ['A', 'part jorein'], ['Esc', 'wapas'], ['G', 'guide']]}
+          shortcuts={[['P', 'parchi'], ['E', 'badlein'], ['A', t('part jorein')], ['Esc', 'wapas'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -414,7 +415,7 @@ function Sub({ children }: { children: ReactNode }) {
 
 function Remove({ label, busy, onClick }: { label: string; busy: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} disabled={busy} aria-label={`${label} hatayein`} title="Hatayein"
+    <button type="button" onClick={onClick} disabled={busy} aria-label={t('{{label}} hatayein', { label })} title={t('Hatayein')}
       className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button>
   );
 }

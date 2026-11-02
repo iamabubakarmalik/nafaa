@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpdateStationDto, UpsertStationDto } from './dto/upsert-station.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type StationInput = UpsertStationDto | UpdateStationDto;
 
@@ -26,7 +27,7 @@ export class StationsService {
         where: { tenantId, isActive: true, categoryIds: { hasSome: ids }, ...(selfId && { id: { not: selfId } }) },
         select: { name: true },
       });
-      if (taken) throw new BadRequestException(`Kuch category pehle se "${taken.name}" station par hain — ek category ek hi station par jati hai`);
+      if (taken) throw new BadRequestException(apiMessage('Kuch category pehle se "{{takenName}}" station par hain — ek category ek hi station par jati hai', { takenName: taken.name }));
       data.categoryIds = ids;
     }
     return data;

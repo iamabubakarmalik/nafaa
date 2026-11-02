@@ -16,6 +16,7 @@ import { formatPKR } from '@core/lib/format';
 import { productUnitsApi, type UnitConversionType } from '@modules/inventory/products/api/product-units.api';
 import type { OverviewProduct, OverviewUnit } from '../api/units-page.api';
 import { TYPE_LABEL, TYPE_ORDER, UNIT_KEYS, packPrice, presetsFor, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const input = 'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
 
@@ -80,26 +81,26 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
       };
       return unit ? productUnitsApi.update(unit.id, data) : productUnitsApi.create({ ...data, productId: product.id, variantId: variantId || null });
     },
-    onSuccess: () => { invalidate(); toast.success(unit ? 'Pack save ho gaya' : `${name.trim()} jur gaya`); onDone(); },
-    onError: (e) => toast.error(apiMessage(e, 'Save nahi hua')),
+    onSuccess: () => { invalidate(); toast.success(unit ? tr('Pack save ho gaya') : tr('{{value}} jur gaya', { value: name.trim() })); onDone(); },
+    onError: (e) => toast.error(apiMessage(e, tr('Save nahi hua'))),
   });
   const gen = useMutation({
     mutationFn: () => productUnitsApi.generateBarcode(unit!.id),
-    onSuccess: (u) => { setBarcode(u.barcode ?? ''); invalidate(); toast.success('Barcode ban gaya'); },
-    onError: (e) => toast.error(apiMessage(e, 'Barcode nahi bana')),
+    onSuccess: (u) => { setBarcode(u.barcode ?? ''); invalidate(); toast.success(tr('Barcode ban gaya')); },
+    onError: (e) => toast.error(apiMessage(e, tr('Barcode nahi bana'))),
   });
 
-  const problem = !name.trim() ? 'Pack ka naam likhein'
-    : !isBase && !(r > 0) ? 'Ek pack me kitne — 0 se zyada likhein'
-      : !isBase && r === 1 ? 'Rate 1 matlab asal unit hi — 1 se alag likhein'
+  const problem = !name.trim() ? tr('Pack ka naam likhein')
+    : !isBase && !(r > 0) ? tr('Ek pack me kitne — 0 se zyada likhein')
+      : !isBase && r === 1 ? tr('Rate 1 matlab asal unit hi — 1 se alag likhein')
         : null;
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (!problem) save.mutate(); }} className="space-y-3 rounded-2xl bg-brand-50/40 p-3 ring-1 ring-brand-100 sm:p-4">
-      {scan && <BarcodeScanner title="Pack ka barcode" hint="Dabbe / carton ka barcode rakhein" onDetected={(code) => { setScan(false); setBarcode(code.trim()); }} onClose={() => setScan(false)} />}
+      {scan && <BarcodeScanner title={tr('Pack ka barcode')} hint={tr('Dabbe / carton ka barcode rakhein')} onDetected={(code) => { setScan(false); setBarcode(code.trim()); }} onClose={() => setScan(false)} />}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-slate-900">{unit ? `${unit.unitName} badlein` : 'Naya pack'} <span className="font-normal text-slate-500">· {product.name}</span></p>
-        <button type="button" onClick={onDone} aria-label="Band" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
+        <p className="text-sm font-semibold text-slate-900">{unit ? tr('{{unitName}} badlein', { unitName: unit.unitName }) : tr('Naya pack')} <span className="font-normal text-slate-500">· {product.name}</span></p>
+        <button type="button" onClick={onDone} aria-label={tr('Band')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
       </div>
 
       {!unit && (
@@ -114,50 +115,50 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
       )}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <L label="Naam *" hint="Jaise counter par bolte hain — carton, dabba, bori">
+        <L label={tr('Naam *')} hint={tr('Jaise counter par bolte hain — carton, dabba, bori')}>
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={40} className={input} disabled={isBase} />
         </L>
-        <L label={`Ek me kitne ${product.unit} *`} hint={isBase ? 'Asal unit hamesha 1 hota hai' : r > 0 ? `1 ${name || 'pack'} = ${qtyText(r)} ${product.unit}` : 'Misaal: carton me 24'}>
+        <L label={tr('Ek me kitne {{unit}} *', { unit: product.unit })} hint={isBase ? tr('Asal unit hamesha 1 hota hai') : r > 0 ? `1 ${name || 'pack'} = ${qtyText(r)} ${product.unit}` : tr('Misaal: carton me 24')}>
           <input value={isBase ? '1' : rate} onChange={(e) => setRate(e.target.value)} inputMode="decimal" disabled={isBase} className={cn(input, 'tabular-nums')} />
         </L>
-        <L label="Bechne ki qeemat" hint={loose > 0 ? `Khula lene par ${formatPKR(loose)}${saving > 0.5 ? ` — ${formatPKR(saving)} bachat` : ''}` : 'Khali = khula rate × quantity'}>
+        <L label={tr('Bechne ki qeemat')} hint={loose > 0 ? tr('Khula lene par {{loose}}{{value}}', { loose: formatPKR(loose), value: saving > 0.5 ? tr(' — {{saving}} bachat', { saving: formatPKR(saving) }) : '' }) : tr('Khali = khula rate × quantity')}>
           <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" placeholder={loose ? String(Math.round(loose)) : '0'} className={cn(input, 'tabular-nums')} />
           {loose > 0 && !isBase && (
             <span className="mt-1 flex flex-wrap gap-1">
               {[0, 2, 5, 10].map((off) => (
                 <button key={off} type="button" onClick={() => setPrice(String(packPrice(basePrice, r, off, loose >= 500 ? 5 : 1)))}
-                  className="rounded-full bg-white px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-800 ring-1 ring-brand-200 hover:bg-brand-50">{off ? `${off}% kam` : 'Barabar'}</button>
+                  className="rounded-full bg-white px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-800 ring-1 ring-brand-200 hover:bg-brand-50">{off ? tr('{{off}}% kam', { off }) : tr('Barabar')}</button>
               ))}
             </span>
           )}
         </L>
         {!costHidden && (
-          <L label="Cost (cost)" hint={`Khali = ${formatPKR(baseCost * (r || 0))} (cost × quantity)`}>
+          <L label={tr('Cost')} hint={tr('Khali = {{formatPKR}} (cost × quantity)', { formatPKR: formatPKR(baseCost * (r || 0)) })}>
             <input value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" placeholder={String(Math.round(baseCost * (r || 0)))} className={cn(input, 'tabular-nums')} />
           </L>
         )}
-        <L label="Wholesale qeemat" hint="Thok wale customer ke liye (ikhtiyari)">
+        <L label={tr('Wholesale qeemat')} hint={tr('Thok wale customer ke liye (ikhtiyari)')}>
           <input value={wholesale} onChange={(e) => setWholesale(e.target.value)} inputMode="decimal" className={cn(input, 'tabular-nums')} />
         </L>
-        <L label="Barcode" hint="Carton par chhapa barcode scan karein — POS par seedha ye pack aata hai">
+        <L label={tr('Barcode')} hint={tr('Carton par chhapa barcode scan karein — POS par seedha ye pack aata hai')}>
           <span className="flex gap-1.5">
             <input value={barcode} onChange={(e) => setBarcode(e.target.value.replace(/\s/g, ''))} maxLength={60} className={cn(input, 'font-mono')} />
-            <button type="button" onClick={() => setScan(true)} title="Camera se scan" aria-label="Scan" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 hover:bg-slate-50"><ScanLine className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setScan(true)} title={tr('Camera se scan')} aria-label={tr('Scan')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 hover:bg-slate-50"><ScanLine className="h-4 w-4" /></button>
             {unit && !barcode && (
-              <button type="button" onClick={() => gen.mutate()} disabled={gen.isPending} title="Naya barcode banayein" aria-label="Barcode banayein" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 hover:bg-slate-50"><Wand2 className="h-4 w-4" /></button>
+              <button type="button" onClick={() => gen.mutate()} disabled={gen.isPending} title={tr('Naya barcode banayein')} aria-label={tr('Barcode banayein')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 hover:bg-slate-50"><Wand2 className="h-4 w-4" /></button>
             )}
           </span>
         </L>
         {!unit && product.variants.length > 0 && (
-          <L label="Type" hint="Sirf ek type ka pack ho to chunein">
+          <L label={tr('Type')} hint={tr('Sirf ek type ka pack ho to chunein')}>
             <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className={input}>
-              <option value="">Sab types</option>
+              <option value="">{tr('Sab types')}</option>
               {product.variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
           </L>
         )}
         {!isBase && (
-          <L label="Type (type)" hint="Reports me chhantne ke liye">
+          <L label={tr('Type')} hint={tr('Reports me chhantne ke liye')}>
             <select value={type} onChange={(e) => setType(e.target.value as UnitConversionType)} className={input}>
               {TYPE_ORDER.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
             </select>
@@ -166,19 +167,19 @@ export function UnitEditor({ product, unit, industryId, costHidden, onDone }: {
       </div>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <Switch size="sm" checked={isDefault} onChange={(e) => setDefault(e.target.checked)} label="POS par pehle ye" description="Product chunte hi yahi pack khulega" />
-        {!isBase && <Switch size="sm" checked={isActive} onChange={(e) => setActive(e.target.checked)} label="Chalu" description="Band pack POS aur purchase me nahi aata" />}
-        {!costHidden && p > 0 && <span className={cn('text-[0.8125rem] font-semibold tabular-nums', margin < 0 ? 'text-rose-700' : 'text-emerald-700')}>Margin {Math.round(margin)}% · profit {formatPKR(p - c)}</span>}
-        {r > 0 && !isBase && <span className="text-[0.8125rem] text-slate-500">Stock me {qtyText(Math.floor(product.stock / r))} {name || 'pack'}</span>}
+        <Switch size="sm" checked={isDefault} onChange={(e) => setDefault(e.target.checked)} label={tr('POS par pehle ye')} description={tr('Product chunte hi yahi pack khulega')} />
+        {!isBase && <Switch size="sm" checked={isActive} onChange={(e) => setActive(e.target.checked)} label={tr('Chalu')} description={tr('Band pack POS aur purchase me nahi aata')} />}
+        {!costHidden && p > 0 && <span className={cn('text-[0.8125rem] font-semibold tabular-nums', margin < 0 ? 'text-rose-700' : 'text-emerald-700')}>{tr('Margin {{margin}}% · profit {{formatPKR}}', { margin: Math.round(margin), formatPKR: formatPKR(p - c) })}</span>}
+        {r > 0 && !isBase && <span className="text-[0.8125rem] text-slate-500">{tr('Stock me {{qtyText}} {{value}}', { qtyText: qtyText(Math.floor(product.stock / r)), value: name || 'pack' })}</span>}
       </div>
 
-      {!isBase && loose > 0 && p > loose + 0.5 && <Warn>Pack khula lene se mehnga hai ({formatPKR(p)} vs {formatPKR(loose)}) — customer khula le lega.</Warn>}
-      {!costHidden && p > 0 && p < c && <Warn>Qeemat cost se kam hai — har pack par nuqsan.</Warn>}
+      {!isBase && loose > 0 && p > loose + 0.5 && <Warn>{tr('Pack khula lene se mehnga hai ({{formatPKR}} vs {{loose}}) — customer khula le lega.', { formatPKR: formatPKR(p), loose: formatPKR(loose) })}</Warn>}
+      {!costHidden && p > 0 && p < c && <Warn>{tr('Qeemat cost se kam hai — har pack par nuqsan.')}</Warn>}
 
       <div className="flex items-center justify-end gap-2">
-        {problem && <span className="mr-auto text-[0.75rem] text-amber-700">{problem}</span>}
-        <Button type="button" variant="secondary" size="sm" onClick={onDone}>Rehne dein</Button>
-        <Button type="submit" size="sm" loading={save.isPending} disabled={!!problem} leftIcon={<Save className="h-4 w-4" />}>{unit ? 'Save' : 'Pack jorein'}</Button>
+        {problem && <span className="me-auto text-[0.75rem] text-amber-700">{problem}</span>}
+        <Button type="button" variant="secondary" size="sm" onClick={onDone}>{tr('Rehne dein')}</Button>
+        <Button type="submit" size="sm" loading={save.isPending} disabled={!!problem} leftIcon={<Save className="h-4 w-4" />}>{unit ? tr('Save') : tr('Pack jorein')}</Button>
       </div>
     </form>
   );

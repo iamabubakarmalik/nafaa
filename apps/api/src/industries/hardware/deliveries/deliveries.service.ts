@@ -8,6 +8,7 @@ import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.
 import { ConfirmDeliveryDto, CreateDeliveryDto, UpdateDeliveryStatusDto } from './dto/create-delivery.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
 import { r2, r4, slipUnit } from '../common/units';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Challans still on their way: their whole quantity counts as sent. */
 const OPEN: HardwareDeliveryStatus[] = ['PENDING', 'SCHEDULED', 'LOADED', 'DISPATCHED', 'IN_TRANSIT'];
@@ -146,12 +147,12 @@ export class DeliveriesService implements OnModuleInit {
       const asked = new Map<string, number>();
       for (const it of dto.items) {
         const line = it.productId ? byProduct.get(it.productId) : undefined;
-        if (!line) throw new BadRequestException(`"${it.itemName}" is bill me nahi hai`);
+        if (!line) throw new BadRequestException(apiMessage('"{{itemName}}" is bill me nahi hai', { itemName: it.itemName }));
         asked.set(line.productId, (asked.get(line.productId) ?? 0) + it.orderedQty);
       }
       for (const [productId, qty] of asked) {
         const line = byProduct.get(productId)!;
-        if (qty > line.remaining + 1e-6) throw new BadRequestException(`"${line.name}" ki sirf ${line.remaining} ${line.unit} bheji ja sakti hai`);
+        if (qty > line.remaining + 1e-6) throw new BadRequestException(apiMessage('"{{lineName}}" ki sirf {{remaining}} {{unit}} bheji ja sakti hai', { lineName: line.name, remaining: line.remaining, unit: line.unit }));
       }
       dto.customerId ??= bill.sale.customerId ?? undefined;
       shopId = bill.sale.shopId ?? shopId;
@@ -382,8 +383,8 @@ export class DeliveriesService implements OnModuleInit {
       const it = d.items.find((i) => i.id === x.itemId);
       if (!it) throw new BadRequestException('Item is challan ka nahi');
       const delivered = Number(x.deliveredQty), damaged = Number(x.damagedQty ?? 0);
-      if (!(delivered >= 0) || !(damaged >= 0)) throw new BadRequestException(`"${it.itemName}" ki quantity ghalat hai`);
-      if (delivered + damaged > it.orderedQty + 1e-6) throw new BadRequestException(`"${it.itemName}" challan (${it.orderedQty}) se zyada nahi pohanch sakta`);
+      if (!(delivered >= 0) || !(damaged >= 0)) throw new BadRequestException(apiMessage('"{{itemName}}" ki quantity ghalat hai', { itemName: it.itemName }));
+      if (delivered + damaged > it.orderedQty + 1e-6) throw new BadRequestException(apiMessage('"{{itemName}}" challan ({{orderedQty}}) se zyada nahi pohanch sakta', { itemName: it.itemName, orderedQty: it.orderedQty }));
     }
     const rows = d.items.map((it) => {
       const x = given.get(it.id);

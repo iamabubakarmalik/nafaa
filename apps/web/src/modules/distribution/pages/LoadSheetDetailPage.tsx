@@ -27,6 +27,7 @@ import { LoadSheetModal } from '../components/LoadSheetModal';
 import { Empty, Fact, Panel, Pill } from '../components/parts';
 import { dayTime, dayYearLabel, ORDER_STATUS, OUTCOME, partyName, partySub, rs, SHEET_STATUS, trim } from '../lib/meta';
 import { printLoadSheet } from '../print/distPrint';
+import { t } from '@core/i18n';
 
 export default function LoadSheetDetailPage() {
   return <DistributionGate><Detail /></DistributionGate>;
@@ -46,20 +47,20 @@ function Detail() {
   const [printing, setPrinting] = useState(false);
 
   const done = (r: LoadSheetDetail, msg: string) => { toast.success(msg); qc.setQueryData([DIST_KEY, 'sheet', id], r); qc.invalidateQueries({ queryKey: [DIST_KEY] }); };
-  const dispatch = useMutation({ mutationFn: () => distributionApi.dispatch(id), onSuccess: (r) => done(r, `${r.number} — gaari nikal gayi`), onError: (e) => toast.error(distError(e)) });
-  const cancel = useMutation({ mutationFn: () => distributionApi.cancelSheet(id), onSuccess: (r) => done(r, `${r.number} cancel — orders wapas Invoiced`), onError: (e) => toast.error(distError(e)) });
-  const remove = useMutation({ mutationFn: (orderId: string) => distributionApi.removeFromSheet(id, orderId), onSuccess: (r) => done(r, 'Order sheet se hat gaya'), onError: (e) => toast.error(distError(e)) });
+  const dispatch = useMutation({ mutationFn: () => distributionApi.dispatch(id), onSuccess: (r) => done(r, t('{{number}} — gaari nikal gayi', { number: r.number })), onError: (e) => toast.error(distError(e)) });
+  const cancel = useMutation({ mutationFn: () => distributionApi.cancelSheet(id), onSuccess: (r) => done(r, t('{{number}} cancel — orders wapas Invoiced', { number: r.number })), onError: (e) => toast.error(distError(e)) });
+  const remove = useMutation({ mutationFn: (orderId: string) => distributionApi.removeFromSheet(id, orderId), onSuccess: (r) => done(r, t('Order sheet se hat gaya')), onError: (e) => toast.error(distError(e)) });
 
   const print = async (withInvoices: boolean) => {
     setPrinting(true);
-    try { printLoadSheet(await distributionApi.printLoadSheet(id, withInvoices), withInvoices); } catch (e) { toast.error(distError(e, 'Print nahi hua')); } finally { setPrinting(false); }
+    try { printLoadSheet(await distributionApi.printLoadSheet(id, withInvoices), withInvoices); } catch (e) { toast.error(distError(e, t('Print nahi hua'))); } finally { setPrinting(false); }
   };
   const askDispatch = async () => {
     if (!s || s.status !== 'OPEN') return;
-    if (await confirmDialog({ title: `${s.number} dispatch karein?`, text: 'Is ke baad orders na jor sakenge na hata sakenge. Wapsi par Settle karein.', yes: 'Dispatch' })) dispatch.mutate();
+    if (await confirmDialog({ title: t('{{number}} dispatch karein?', { number: s.number }), text: t('Is ke baad orders na jor sakenge na hata sakenge. Wapsi par Settle karein.'), yes: t('Dispatch') })) dispatch.mutate();
   };
   const askCancel = async () => {
-    if (await confirmDialog({ title: `${s?.number} cancel karein?`, text: 'Sheet ke sab orders wapas Invoiced ho jayenge — Invoice nahi mitti.', danger: true, yes: 'Cancel karein' })) cancel.mutate();
+    if (await confirmDialog({ title: t('{{number}} cancel karein?', { number: s?.number }), text: t('Sheet ke sab orders wapas Invoiced ho jayenge — Invoice nahi mitti.'), danger: true, yes: t('Cancel karein') })) cancel.mutate();
   };
 
   useEffect(() => {
@@ -84,40 +85,40 @@ function Detail() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution/load-sheets" backLabel="Load sheets"
+        back="/distribution/load-sheets" backLabel={t('Load sheets')}
         title={s.number}
         chip={<><Truck /> {st.label}</>}
         meta={`${dayYearLabel(s.date)} · ${s.routeName ?? 'Mili juli'} · ${s.shopName ?? ''}`}
         busy={q.isFetching}
         actions={<>
-          <button type="button" disabled={printing} onClick={() => void print(false)} title="Print (P)" className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Print</span></button>
-          <button type="button" disabled={printing} onClick={() => void print(true)} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Invoices ke saath</span></button>
-          {canLoad && open && <button type="button" onClick={() => void askDispatch()} title="Dispatch (D)" className={heroButton}><Send className="h-4 w-4" /><span className="hidden sm:inline">Dispatch</span></button>}
-          {canSettle && active && <Link to={`/distribution/load-sheets/${id}/settle`} title="Settle (S)" className={heroPrimaryButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">Settle</span></Link>}
+          <button type="button" disabled={printing} onClick={() => void print(false)} title={t('Print (P)')} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">{t('Print')}</span></button>
+          <button type="button" disabled={printing} onClick={() => void print(true)} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">{t('Invoices ke saath')}</span></button>
+          {canLoad && open && <button type="button" onClick={() => void askDispatch()} title={t('Dispatch (D)')} className={heroButton}><Send className="h-4 w-4" /><span className="hidden sm:inline">{t('Dispatch')}</span></button>}
+          {canSettle && active && <Link to={`/distribution/load-sheets/${id}/settle`} title={t('Settle (S)')} className={heroPrimaryButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">{t('Settle')}</span></Link>}
         </>}
         stats={[
-          { label: 'Invoices', value: String(s.invoiceCount) },
-          { label: 'Value', value: money(s.totalValue) },
-          { label: 'Maal', value: `${s.goodsTotals.packs} carton`, hint: `${trim(s.goodsTotals.baseQty)} pcs kul` },
+          { label: t('Invoices'), value: String(s.invoiceCount) },
+          { label: t('Value'), value: money(s.totalValue) },
+          { label: t('Maal'), value: `${s.goodsTotals.packs} carton`, hint: t('{{baseQty}} pcs kul', { baseQty: trim(s.goodsTotals.baseQty) }) },
         ]}
       />
 
       {s.status === 'SETTLED' && (
         <KpiRow cols={4}>
-          <KpiCard icon={Wallet} color="#2563eb" label="Expected cash" value={rs(s.expectedCash)} hint={s.recoveryCash ? `Recovery ${rs(s.recoveryCash)} shamil` : 'Invoices ka cash'} />
-          <KpiCard icon={Wallet} color="#16a34a" label="Jama hua" value={rs(s.handedIn ?? 0)} hint={s.settledAt ? `${dayTime(s.settledAt)} · ${s.settledByName ?? ''}` : undefined} />
-          <KpiCard icon={Wallet} color={s.shortAmount > 0 ? '#e11d48' : '#16a34a'} label={s.shortAmount > 0 ? 'Kam' : s.shortAmount < 0 ? 'Zyada' : 'Farq'} value={rs(Math.abs(s.shortAmount))} hint={s.shortAmount ? 'Delivery wale se hisaab' : 'Poora'} />
-          <KpiCard icon={Truck} color="#d97706" label="Wapas aaya" value={rs(s.returnsValue)} hint="Khata se kam ho gaya" />
+          <KpiCard icon={Wallet} color="#2563eb" label={t('Expected cash')} value={rs(s.expectedCash)} hint={s.recoveryCash ? t('Recovery {{recoveryCash}} shamil', { recoveryCash: rs(s.recoveryCash) }) : t('Invoices ka cash')} />
+          <KpiCard icon={Wallet} color="#16a34a" label={t('Jama hua')} value={rs(s.handedIn ?? 0)} hint={s.settledAt ? `${dayTime(s.settledAt)} · ${s.settledByName ?? ''}` : undefined} />
+          <KpiCard icon={Wallet} color={s.shortAmount > 0 ? '#e11d48' : '#16a34a'} label={s.shortAmount > 0 ? t('Kam') : s.shortAmount < 0 ? t('Zyada') : t('Farq')} value={rs(Math.abs(s.shortAmount))} hint={s.shortAmount ? t('Delivery wale se hisaab') : t('Poora')} />
+          <KpiCard icon={Truck} color="#d97706" label={t('Wapas aaya')} value={rs(s.returnsValue)} hint={t('Khata se kam ho gaya')} />
         </KpiRow>
       )}
 
       <div className="grid gap-4 lg:grid-cols-3 [&>*]:min-w-0">
         <div className="space-y-4 lg:col-span-2">
-          <Panel flush title="Maal (pick list)" sub={`${s.goodsTotals.lines} products · ${s.goodsTotals.packs} carton/pack · ${trim(s.goodsTotals.baseQty)} pcs`}>
+          <Panel flush title={t('Maal (pick list)')} sub={t('{{lines}} products · {{packs}} carton/pack · {{baseQty}} pcs', { lines: s.goodsTotals.lines, packs: s.goodsTotals.packs, baseQty: trim(s.goodsTotals.baseQty) })}>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[34rem] text-[0.8125rem]">
-                <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                  <tr className="border-b border-slate-100"><th className="px-4 py-2 sm:px-5">Product</th><th className="px-3 py-2 text-right">Carton</th><th className="px-3 py-2 text-right">Pcs</th><th className="px-3 py-2 text-right">Kul</th><th className="px-4 py-2 text-right sm:px-5">Value</th></tr>
+                <thead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <tr className="border-b border-slate-100"><th className="px-4 py-2 sm:px-5">{t('Product')}</th><th className="px-3 py-2 text-end">{t('Carton')}</th><th className="px-3 py-2 text-end">{t('Pcs')}</th><th className="px-3 py-2 text-end">{t('Kul')}</th><th className="px-4 py-2 text-end sm:px-5">{t('Value')}</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {s.goods.map((g) => (
@@ -126,20 +127,20 @@ function Detail() {
                         <div className="font-semibold text-slate-900">{g.name}{g.variantName ? ` · ${g.variantName}` : ''}</div>
                         {g.packSize && g.packSize > 1 && <div className="text-[0.6875rem] text-slate-500">1 {g.packName} = {trim(g.packSize)} {g.baseUnit}</div>}
                       </td>
-                      <td className="px-3 py-2 text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{g.packs || <span className="text-slate-300">—</span>}</td>
-                      <td className="px-3 py-2 text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{g.loose ? trim(g.loose) : <span className="text-slate-300">—</span>}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-600">{trim(g.baseQty)} {g.baseUnit}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-slate-700 sm:px-5">{money(g.value ?? 0)}</td>
+                      <td className="px-3 py-2 text-end text-[0.9375rem] font-bold tabular-nums text-slate-900">{g.packs || <span className="text-slate-300">—</span>}</td>
+                      <td className="px-3 py-2 text-end text-[0.9375rem] font-bold tabular-nums text-slate-900">{g.loose ? trim(g.loose) : <span className="text-slate-300">—</span>}</td>
+                      <td className="px-3 py-2 text-end tabular-nums text-slate-600">{trim(g.baseQty)} {g.baseUnit}</td>
+                      <td className="px-4 py-2 text-end tabular-nums text-slate-700 sm:px-5">{money(g.value ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot><tr className="border-t border-slate-200 font-semibold text-slate-900"><td className="px-4 py-2 sm:px-5">Kul</td><td className="px-3 py-2 text-right tabular-nums">{s.goodsTotals.packs}</td><td /><td className="px-3 py-2 text-right tabular-nums">{trim(s.goodsTotals.baseQty)}</td><td className="px-4 py-2 text-right tabular-nums sm:px-5">{money(s.goodsTotals.value)}</td></tr></tfoot>
+                <tfoot><tr className="border-t border-slate-200 font-semibold text-slate-900"><td className="px-4 py-2 sm:px-5">{t('Kul')}</td><td className="px-3 py-2 text-end tabular-nums">{s.goodsTotals.packs}</td><td /><td className="px-3 py-2 text-end tabular-nums">{trim(s.goodsTotals.baseQty)}</td><td className="px-4 py-2 text-end tabular-nums sm:px-5">{money(s.goodsTotals.value)}</td></tr></tfoot>
               </table>
             </div>
           </Panel>
 
           {s.freeGoods.length > 0 && (
-            <Panel title={<span className="inline-flex items-center gap-1.5"><Gift className="h-4 w-4 text-violet-600" />Free maal (scheme)</span>} sub="Alag rakhein — bill me qeemat nahi">
+            <Panel title={<span className="inline-flex items-center gap-1.5"><Gift className="h-4 w-4 text-violet-600" />{t('Free maal (scheme)')}</span>} sub={t('Alag rakhein — bill me qeemat nahi')}>
               <ul className="divide-y divide-slate-100">
                 {s.freeGoods.map((g) => (
                   <li key={`${g.productId}-${g.variantId}`} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
@@ -151,8 +152,8 @@ function Detail() {
             </Panel>
           )}
 
-          <Panel flush title="Invoices" sub="Route ki tarteeb me" right={canLoad && open && <Button size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>Order jorein</Button>}>
-            {!s.orders.length ? <Empty text="Is sheet par koi invoice nahi." /> : (
+          <Panel flush title={t('Invoices')} sub={t('Route ki tarteeb me')} right={canLoad && open && <Button size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>{t('Order jorein')}</Button>}>
+            {!s.orders.length ? <Empty text={t('Is sheet par koi invoice nahi.')} /> : (
               <ul className="divide-y divide-slate-100">
                 {s.orders.map((o, i) => (
                   <li key={o.id} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
@@ -162,11 +163,11 @@ function Detail() {
                       <span className="block truncate text-[0.75rem] text-slate-500">{o.saleNumber} · {o.orderNumber}{partySub(o.customer) ? ` · ${partySub(o.customer)}` : ''}</span>
                     </span>
                     {o.deliveryStatus ? <Pill tone={OUTCOME[o.deliveryStatus].tone}>{OUTCOME[o.deliveryStatus].label}</Pill> : <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill>}
-                    <span className="w-24 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(o.total)}
+                    <span className="w-24 text-end text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(o.total)}
                       {o.returnsValue > 0 && <span className="block text-[0.6875rem] font-normal text-rose-600">−{rs(o.returnsValue)}</span>}
                     </span>
                     {canLoad && open && (
-                      <button type="button" aria-label="Sheet se hatayein" disabled={remove.isPending} onClick={() => remove.mutate(o.id)}
+                      <button type="button" aria-label={t('Sheet se hatayein')} disabled={remove.isPending} onClick={() => remove.mutate(o.id)}
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     )}
                   </li>
@@ -177,34 +178,34 @@ function Detail() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="Gaari" right={canLoad && active && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(true)}>Badlein</Button>}>
+          <Panel title={t('Gaari')} right={canLoad && active && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(true)}>{t('Badlein')}</Button>}>
             <div className="grid grid-cols-2 gap-3">
-              <Fact label="Delivery">{s.deliveryUserName ?? '—'}</Fact>
-              <Fact label="Driver">{s.driverName ?? '—'}</Fact>
-              <Fact label="Gaari no.">{s.vehicleNo ?? '—'}</Fact>
-              <Fact label="Godown">{s.shopName ?? '—'}</Fact>
-              <Fact label="Banayi">{s.createdByName ?? '—'}</Fact>
-              <Fact label="Dispatch">{s.dispatchedAt ? dayTime(s.dispatchedAt) : '—'}</Fact>
+              <Fact label={t('Delivery')}>{s.deliveryUserName ?? '—'}</Fact>
+              <Fact label={t('Driver')}>{s.driverName ?? '—'}</Fact>
+              <Fact label={t('Gaari no.')}>{s.vehicleNo ?? '—'}</Fact>
+              <Fact label={t('Godown')}>{s.shopName ?? '—'}</Fact>
+              <Fact label={t('Banayi')}>{s.createdByName ?? '—'}</Fact>
+              <Fact label={t('Dispatch')}>{s.dispatchedAt ? dayTime(s.dispatchedAt) : '—'}</Fact>
             </div>
             {s.note && <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">{s.note}</p>}
           </Panel>
           {active && (
-            <Panel title="Aage kya" sub={open ? 'Maal load karein, phir dispatch' : 'Gaari wapas aaye to settle karein'}>
+            <Panel title={t('Aage kya')} sub={open ? t('Maal load karein, phir dispatch') : t('Gaari wapas aaye to settle karein')}>
               <ol className="space-y-2 text-[0.8125rem] text-slate-600">
-                <Step done={!open} n={1}>Print nikal kar godown se maal load karein</Step>
-                <Step done={!open} n={2}>Dispatch — gaari nikal gayi</Step>
-                <Step n={3}>Wapsi par har invoice: deliver, kuch wapas ya sab wapas, aur cash</Step>
+                <Step done={!open} n={1}>{t('Print nikal kar godown se maal load karein')}</Step>
+                <Step done={!open} n={2}>{t('Dispatch — gaari nikal gayi')}</Step>
+                <Step n={3}>{t('Wapsi par har invoice: deliver, kuch wapas ya sab wapas, aur cash')}</Step>
               </ol>
               {canLoad && open && (
-                <button type="button" onClick={() => void askCancel()} className="mt-4 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-rose-600 hover:underline"><Ban className="h-4 w-4" />Sheet cancel karein</button>
+                <button type="button" onClick={() => void askCancel()} className="mt-4 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-rose-600 hover:underline"><Ban className="h-4 w-4" />{t('Sheet cancel karein')}</button>
               )}
             </Panel>
           )}
-          <p className="hidden items-center justify-center gap-1.5 text-[0.75rem] text-slate-400 lg:flex"><Kbd>P</Kbd> print{canLoad && open && <> · <Kbd>D</Kbd> dispatch</>}{canSettle && active && <> · <Kbd>S</Kbd> settle</>}</p>
+          <p className="hidden items-center justify-center gap-1.5 text-[0.75rem] text-slate-400 lg:flex"><Kbd>P</Kbd> {' '}{t('print')}{canLoad && open && <> · <Kbd>D</Kbd> {' '}{t('dispatch')}</>}{canSettle && active && <> · <Kbd>S</Kbd> {' '}{t('settle')}</>}</p>
         </div>
       </div>
 
-      {editing && <VanModal sheet={s} onClose={() => setEditing(false)} onSaved={(r) => done(r, 'Gaari ki details save')} />}
+      {editing && <VanModal sheet={s} onClose={() => setEditing(false)} onSaved={(r) => done(r, t('Gaari ki details save'))} />}
       {adding && <LoadSheetModal addTo={s.id} onClose={() => setAdding(false)} />}
     </PageShell>
   );
@@ -232,16 +233,16 @@ function VanModal({ sheet, onClose, onSaved }: { sheet: LoadSheetDetail; onClose
     onError: (e) => toast.error(distError(e)),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Gaari ki details"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()}>Save</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Gaari ki details')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{t('Save')}</Button></>}>
       <div className="space-y-3">
-        <Select label="Delivery wala" value={deliveryUserId} onChange={(e) => setDeliveryUserId(e.target.value)}
-          options={[{ value: '', label: 'Koi nahi' }, ...users.map((u) => ({ value: u.id, label: u.label }))]} />
+        <Select label={t('Delivery wala')} value={deliveryUserId} onChange={(e) => setDeliveryUserId(e.target.value)}
+          options={[{ value: '', label: t('Koi nahi') }, ...users.map((u) => ({ value: u.id, label: u.label }))]} />
         <div className="grid grid-cols-2 gap-2">
-          <Input label="Driver" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
-          <Input label="Gaari no." value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} />
+          <Input label={t('Driver')} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+          <Input label={t('Gaari no.')} value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} />
         </div>
-        <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} />
+        <Input label={t('Note')} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
     </Modal>
   );

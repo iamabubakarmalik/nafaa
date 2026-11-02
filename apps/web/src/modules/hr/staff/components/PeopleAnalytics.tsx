@@ -16,6 +16,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { peopleApi } from '../api/people.api';
 import { PEOPLE_KEY, ROLES, STATUS, type RoleKey } from './meta';
+import { t } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 const monthLabel = (k: string) => new Date(`${k}-15T12:00:00`).toLocaleDateString('en-PK', { month: 'short', year: '2-digit' });
@@ -25,7 +26,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
   const q = useQuery({ queryKey: [PEOPLE_KEY, 'analytics', period], queryFn: () => peopleApi.analytics(period ?? {}), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Analytics load nahi hui — internet check karein aur dobara kholein.</p>;
+  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{t('Analytics load nahi hui — internet check karein aur dobara kholein.')}</p>;
   if (!d) return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
 
   const top = d.sellers?.[0];
@@ -39,22 +40,22 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Users} label="Log (kaam par ya chhutti)" value={String(d.headcount.total)} sub={d.headcount.byStatus.map((s) => `${STATUS[s.key as keyof typeof STATUS]?.label ?? s.key} ${s.count}`).join(' · ')} />
-        <Kpi icon={Trophy} label="Sab se zyada sale" value={top ? top.name : '—'} sub={d.sellers ? (top ? `${formatPKR(top.sales)} · ${top.bills} bill` : 'Is period me koi sale nahi') : 'Sale dekhne ki permission nahi'} tone="emerald" />
-        <Kpi icon={CalendarCheck} label="Haazri" value={rate == null ? '—' : `${rate}%`} sub={rate == null ? 'Is period me haazri nahi lagi' : `${att.present} din haazir · ${att.absent} ghair haazir`} tone={rate != null && rate < 85 ? 'amber' : 'brand'} />
-        <Kpi icon={ShieldAlert} label="Ghalat login" value={d.logins ? String(d.logins.failed) : '—'} sub={d.logins ? (d.logins.failed ? 'Ghalat password ki koshishein' : 'Koi ghalat koshish nahi') : 'Team dekhne ki permission nahi'} tone={d.logins?.failed ? 'rose' : 'brand'} />
+        <Kpi icon={Users} label={t('Log (kaam par ya chhutti)')} value={String(d.headcount.total)} sub={d.headcount.byStatus.map((s) => `${STATUS[s.key as keyof typeof STATUS]?.label ?? s.key} ${s.count}`).join(' · ')} />
+        <Kpi icon={Trophy} label={t('Sab se zyada sale')} value={top ? top.name : '—'} sub={d.sellers ? (top ? t('{{sales}} · {{bills}} bill', { sales: formatPKR(top.sales), bills: top.bills }) : t('Is period me koi sale nahi')) : t('Sale dekhne ki permission nahi')} tone="emerald" />
+        <Kpi icon={CalendarCheck} label={t('Haazri')} value={rate == null ? '—' : `${rate}%`} sub={rate == null ? t('Is period me haazri nahi lagi') : t('{{present}} din haazir · {{absent}} ghair haazir', { present: att.present, absent: att.absent })} tone={rate != null && rate < 85 ? 'amber' : 'brand'} />
+        <Kpi icon={ShieldAlert} label={t('Ghalat login')} value={d.logins ? String(d.logins.failed) : '—'} sub={d.logins ? (d.logins.failed ? t('Ghalat password ki koshishein') : t('Koi ghalat koshish nahi')) : t('Team dekhne ki permission nahi')} tone={d.logins?.failed ? 'rose' : 'brand'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={ShoppingBag}>Kis ne kitna becha</Title>} description="Counter par jis ka naam chuna gaya, warna jis ne bill banaya — return ghata kar">
-          {!d.sellers ? <Note text='Yeh dekhne ke liye "Sale dekhna" ki permission chahiye.' /> : !sellers.length ? <Empty /> : (
+        <Card className="rounded-2xl" title={<Title icon={ShoppingBag}>{t('Kis ne kitna becha')}</Title>} description={t('Counter par jis ka naam chuna gaya, warna jis ne bill banaya — return ghata kar')}>
+          {!d.sellers ? <Note text={t('Yeh dekhne ke liye "Sale dekhna" ki permission chahiye.')} /> : !sellers.length ? <Empty /> : (
             <div style={{ height: Math.max(180, sellers.length * 34) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sellers} layout="vertical" margin={{ left: 0, right: 12 }}>
                   <CartesianGrid horizontal={false} stroke={theme.grid} />
                   <XAxis type="number" tickFormatter={axisMoney} tick={theme.axis} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="name" width={96} tick={theme.axis} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v, _n, item) => [`${formatPKR(Number(v))} · ${(item?.payload as { bills: number }).bills} bill`, 'Sale']} {...theme.tooltip} />
+                  <Tooltip formatter={(v, _n, item) => [`${formatPKR(Number(v))} · ${(item?.payload as { bills: number }).bills} bill`, t('Sale')]} {...theme.tooltip} />
                   <Bar dataKey="sales" fill={theme.primary} radius={[0, 6, 6, 0]} maxBarSize={22} />
                 </BarChart>
               </ResponsiveContainer>
@@ -62,8 +63,8 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<Title icon={CalendarCheck}>Haazri</Title>} description="Har bande ke din: haazir, ghair haazir aur chhutti">
-          {!attRows.length ? <Note text="Is period me haazri nahi lagi. Haazri ka safha: Staff → Haazri." /> : (
+        <Card className="rounded-2xl" title={<Title icon={CalendarCheck}>{t('Haazri')}</Title>} description={t('Har bande ke din: haazir, ghair haazir aur chhutti')}>
+          {!attRows.length ? <Note text={t('Is period me haazri nahi lagi. Haazri ka safha: Staff → Haazri.')} /> : (
             <div style={{ height: Math.max(180, attRows.length * 34) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={attRows} layout="vertical" margin={{ left: 0, right: 12 }}>
@@ -82,7 +83,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl" title={<Title icon={Users}>Role</Title>} description="Kaam par aur chhutti wale log">
+        <Card className="rounded-2xl" title={<Title icon={Users}>{t('Role')}</Title>} description={t('Kaam par aur chhutti wale log')}>
           {!roles.length ? <Empty /> : (
             <div className="grid items-center gap-3 sm:grid-cols-[9rem_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[9rem_minmax(0,1fr)]">
               <div className="mx-auto h-36 w-36">
@@ -107,7 +108,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<Title icon={UserPlus}>Aaye aur gaye</Title>} description="Pichle 12 mahine — kitne jure, kitne chhor gaye">
+        <Card className="rounded-2xl" title={<Title icon={UserPlus}>{t('Aaye aur gaye')}</Title>} description={t('Pichle 12 mahine — kitne jure, kitne chhor gaye')}>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={months}>
@@ -122,9 +123,9 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<Title icon={Clock}>Kitne arse se</Title>} description="Kaam par logon ka arsa">
+        <Card className="rounded-2xl" title={<Title icon={Clock}>{t('Kitne arse se')}</Title>} description={t('Kaam par logon ka arsa')}>
           <ul className="space-y-2">
-            {([['3 mahine se kam', d.headcount.tenure.under3m], ['3 se 12 mahine', d.headcount.tenure.under1y], ['1 se 3 saal', d.headcount.tenure.under3y], ['3 saal se zyada', d.headcount.tenure.over3y]] as const).map(([k, n]) => {
+            {([[t('3 mahine se kam'), d.headcount.tenure.under3m], [t('3 se 12 mahine'), d.headcount.tenure.under1y], [t('1 se 3 saal'), d.headcount.tenure.under3y], [t('3 saal se zyada'), d.headcount.tenure.over3y]] as const).map(([k, n]) => {
               const pct = d.headcount.total ? (n / d.headcount.total) * 100 : 0;
               return (
                 <li key={k} className="text-[0.8125rem]">
@@ -136,7 +137,7 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
           </ul>
           {d.headcount.byBranch.length > 1 && (
             <div className="mt-4 border-t border-slate-100 pt-3">
-              <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-500">Branch</p>
+              <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-500">{t('Branch')}</p>
               <ul className="space-y-1 text-[0.8125rem]">
                 {d.headcount.byBranch.map((b) => <li key={b.key} className="flex justify-between"><span className="truncate text-slate-700">{b.key}</span><span className="font-semibold tabular-nums">{b.count}</span></li>)}
               </ul>
@@ -145,8 +146,8 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={LogIn}>Login</Title>} description="Roz kitni dafa login hua, aur ghalat password ki koshishein">
-        {!d.logins ? <Note text='Yeh dekhne ke liye "Team dekhna" ki permission chahiye.' /> : (
+      <Card className="rounded-2xl" title={<Title icon={LogIn}>{t('Login')}</Title>} description={t('Roz kitni dafa login hua, aur ghalat password ki koshishein')}>
+        {!d.logins ? <Note text={t('Yeh dekhne ke liye "Team dekhna" ki permission chahiye.')} /> : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             {!d.logins.daily.length ? <Empty /> : (
               <div className="h-52">
@@ -163,8 +164,8 @@ export function PeopleAnalytics({ period }: { period: { from: string; to: string
               </div>
             )}
             <div>
-              <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-500">Abhi tak login nahi kiya</p>
-              {!d.logins.neverLoggedIn.length ? <p className="text-[0.8125rem] text-emerald-700">Sab ne login kar liya</p> : (
+              <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-500">{t('Abhi tak login nahi kiya')}</p>
+              {!d.logins.neverLoggedIn.length ? <p className="text-[0.8125rem] text-emerald-700">{t('Sab ne login kar liya')}</p> : (
                 <ul className="space-y-1 text-[0.8125rem]">
                   {d.logins.neverLoggedIn.map((p) => <li key={p.id}><Link to={`/staff/${p.id}`} className="text-brand-700 hover:underline">{p.name}</Link></li>)}
                 </ul>
@@ -188,5 +189,5 @@ function Kpi({ icon: Icon, label, value, sub, tone = 'brand' }: { icon: LucideIc
   );
 }
 const Title = ({ icon: Icon, children }: { icon: LucideIcon; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
-const Empty = () => <p className="py-10 text-center text-sm text-slate-500">Is period me kuch nahi</p>;
+const Empty = () => <p className="py-10 text-center text-sm text-slate-500">{t('Is period me kuch nahi')}</p>;
 const Note = ({ text }: { text: string }) => <p className="py-10 text-center text-sm text-slate-500">{text}</p>;

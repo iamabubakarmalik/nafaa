@@ -1,0 +1,20 @@
+{
+  "{{button}} → fake order banao": "{{button}} → fake order banayein",
+  "2. \"Create App\" karo → App Name: \"Nafaa POS\"": "2. \"Create App\" karein → App Name: \"Nafaa POS\"",
+  "3. App Key + App Secret yahan enter karo": "3. App Key + App Secret yahan likhein",
+  "4. Connect karne ke baad \"Authorize\" button pe click karo": "4. Connect karne ke baad \"Authorize\" button dabayein",
+  "Channel Orders tab kholo aur \"Convert to Sale\" click karo.": "Channel Orders tab kholein aur \"Convert to Sale\" dabayein.",
+  "Channel se Products Pull Karo": "Channel se products pull karein",
+  "Demo order dekho → {{button}} click karo": "Demo order dekhein → {{button}} dabayein",
+  "Foodpanda/Daraz ke saare products ek click mein Nafaa POS mein import karo. Mapping automatic ban jayegi.": "Foodpanda/Daraz ke saare products ek click me Nafaa POS me import karein. Mapping khud ban jayegi.",
+  "Import All Products dabao": "Import All Products dabayein",
+  "Integration Connect Karein": "Integration connect karein",
+  "Is integration ke liye koi credentials required nahi": "Is integration ke liye koi credentials nahi chahiye",
+  "Modal band karo → {{tab}} tab kholo": "Modal band karein → {{tab}} tab kholein",
+  "pe jao": "par jayein",
+  "POS ke {{section}} section mein sale check karo": "POS ke {{section}} section me sale check karein",
+  "Product name likho...": "Product name likhein...",
+  "Website pe \"Chicken Karahi\" → Nafaa mein \"Chicken Handi\" hai? Yahan map karo. Order aane pe smart matching hogi.": "Website pe \"Chicken Karahi\" → Nafaa me \"Chicken Handi\" hai? Yahan map karein. Order aane pe smart matching hogi.",
+  "Website se products bhejo ya Import button dabao": "Website se products bhejein ya Import button dabayein",
+  "Website se Products Import Karo": "Website se products import karein"
+}

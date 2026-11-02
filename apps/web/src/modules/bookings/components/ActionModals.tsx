@@ -20,6 +20,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { carpetRollsApi } from '@industries/carpet/api/carpet-rolls.api';
 import { bookingsApi, type Booking } from '../api/bookings.api';
 import { BOOKINGS_KEY, apiError } from './meta';
+import { msg, t } from '@core/i18n';
 
 const CUSTOMER_KEYS = ['customers', 'customers-directory', 'customer', 'customer-ledger', 'customers-for-pos'];
 const SALE_KEYS = ['sales-history', 'sales-list', 'sales-summary', 'products-for-pos', ...STOCK_KEYS];
@@ -43,7 +44,7 @@ function Hint({ children }: { children: ReactNode }) {
 
 function MethodPicker({ value, onChange }: { value: PaymentMethod; onChange: (m: PaymentMethod) => void }) {
   return (
-    <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5" role="radiogroup" aria-label="Kaise diya">
+    <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5" role="radiogroup" aria-label={t('Kaise diya')}>
       {POS_PAYMENT_METHODS.map((m) => (
         <button key={m.id} type="button" role="radio" aria-checked={value === m.id} onClick={() => onChange(m.id as PaymentMethod)}
           className={cn('inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-[0.8125rem] font-medium ring-1 transition',
@@ -58,9 +59,9 @@ function MethodPicker({ value, onChange }: { value: PaymentMethod; onChange: (m:
 function Money({ b }: { b: Booking }) {
   return (
     <div className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
-      <div><p className="text-[0.6875rem] text-slate-500">Kul</p><p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.total)}</p></div>
-      <div><p className="text-[0.6875rem] text-slate-500">Diya</p><p className="font-semibold tabular-nums text-emerald-700">{formatPKR(b.totalPaid)}</p></div>
-      <div><p className="text-[0.6875rem] text-slate-500">Baqi</p><p className="font-semibold tabular-nums text-amber-700">{formatPKR(b.balanceDue)}</p></div>
+      <div><p className="text-[0.6875rem] text-slate-500">{t('Kul')}</p><p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.total)}</p></div>
+      <div><p className="text-[0.6875rem] text-slate-500">{t('Diya')}</p><p className="font-semibold tabular-nums text-emerald-700">{formatPKR(b.totalPaid)}</p></div>
+      <div><p className="text-[0.6875rem] text-slate-500">{t('Baqi')}</p><p className="font-semibold tabular-nums text-amber-700">{formatPKR(b.balanceDue)}</p></div>
     </div>
   );
 }
@@ -72,7 +73,7 @@ function AmountField({ id, value, onChange, max, label, hint }: { id: string; va
       <input id={id} type="number" inputMode="decimal" min={0} max={max} step="any" value={value} onChange={(e) => onChange(e.target.value)} data-autofocus
         placeholder="0" className={cn(inputCls, 'h-12 text-lg font-semibold tabular-nums')} />
       <div className="mt-1.5 flex flex-wrap gap-1.5">
-        {[['Poora', 1], ['Aadha', 0.5], ['25%', 0.25]].map(([l, f]) => (
+        {[[t('Poora'), 1], [t('Aadha'), 0.5], ['25%', 0.25]].map(([l, f]) => (
           <button key={l} type="button" onClick={() => onChange(String(Math.round(max * Number(f))))}
             className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
             {l}{f === 1 ? ` (${formatPKR(max)})` : ''}
@@ -90,31 +91,31 @@ export function PaymentModal({ booking, onClose }: { booking: Booking; onClose: 
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
   const [note, setNote] = useState('');
   const n = Number(amount) || 0;
-  const bad = n <= 0 ? 'Amount likhein' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
+  const bad = n <= 0 ? t('Amount likhein') : n > booking.balanceDue + 0.01 ? t('Baqi sirf {{balanceDue}} hai', { balanceDue: formatPKR(booking.balanceDue) }) : '';
 
   const run = useMutation({
     mutationFn: () => bookingsApi.addPayment(booking.id, { amount: n, paymentMethod: method, notes: note.trim() || undefined }),
-    onSuccess: (b) => { toast.success(b.balanceDue <= 0 ? 'Poori payment aa gayi, booking tayyar' : `${formatPKR(n)} mil gaye`); refresh(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Payment nahi likhi gayi')),
+    onSuccess: (b) => { toast.success(b.balanceDue <= 0 ? t('Poori payment aa gayi, booking tayyar') : t('{{formatPKR}} mil gaye', { formatPKR: formatPKR(n) })); refresh(); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Payment nahi likhi gayi'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title="Payment lein" description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
+    <Modal open onClose={onClose} size="md" title={t('Payment lein')} description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button loading={run.isPending} disabled={!!bad} onClick={() => run.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>
-          {formatPKR(n)} likhein
+          {t('{{formatPKR}} likhein', { formatPKR: formatPKR(n) })}
         </Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (!bad && !run.isPending) run.mutate(); }}>
         <Money b={booking} />
-        <AmountField id="pay-amount" value={amount} onChange={setAmount} max={booking.balanceDue} label="Kitne mile"
-          hint={bad || 'Customer ke khate me jama hota hai; sale par bill me lag jata hai'} />
-        <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kaise diya</p><MethodPicker value={method} onChange={setMethod} /></div>
+        <AmountField id="pay-amount" value={amount} onChange={setAmount} max={booking.balanceDue} label={t('Kitne mile')}
+          hint={bad || t('Customer ke khate me jama hota hai; sale par bill me lag jata hai')} />
+        <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Kaise diya')}</p><MethodPicker value={method} onChange={setMethod} /></div>
         <div>
-          <Label htmlFor="pay-note">Note</Label>
-          <input id="pay-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Maslan: transaction ID" className={inputCls} />
-          <Hint>Marzi hai. Bank ya JazzCash ka number likh dein to baad me milana aasaan.</Hint>
+          <Label htmlFor="pay-note">{t('Note')}</Label>
+          <input id="pay-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder={t('Maslan: transaction ID')} className={inputCls} />
+          <Hint>{t('Marzi hai. Bank ya JazzCash ka number likh dein to baad me milana aasaan.')}</Hint>
         </div>
         <button type="submit" hidden />
       </form>
@@ -129,45 +130,46 @@ export function ConvertModal({ booking, onClose }: { booking: Booking; onClose: 
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
   const n = Number(amount) || 0;
   const udhaar = Math.max(booking.balanceDue - n, 0);
-  const bad = n < 0 ? 'Amount ghalat hai' : n > booking.balanceDue + 0.01 ? `Baqi sirf ${formatPKR(booking.balanceDue)} hai` : '';
+  const bad = n < 0 ? t('Amount ghalat hai') : n > booking.balanceDue + 0.01 ? t('Baqi sirf {{balanceDue}} hai', { balanceDue: formatPKR(booking.balanceDue) }) : '';
 
   const run = useMutation({
     mutationFn: () => bookingsApi.convert(booking.id, { additionalPayment: n, paymentMethod: method }),
     onSuccess: ({ sale }) => {
-      toast.success(`Bill ${sale.saleNumber} ban gaya`);
+      toast.success(t('Bill {{saleNumber}} ban gaya', { saleNumber: sale.saleNumber }));
       // Carpet lines: cut the roll or sell the piece now. Safe to repeat; a failure stays under "Kaatna baqi".
       if (booking.items?.some((i) => i.rollId || i.cutPieceId)) {
-        carpetRollsApi.settleBill(sale.id).catch(() => toast.info('Carpet ka kaatna baqi hai — Rolls page se kaat lein'));
+        carpetRollsApi.settleBill(sale.id).catch(() => toast.info(t('Carpet ka kaatna baqi hai — Rolls page se kaat lein')));
       }
       refresh(true);
       onClose();
       navigate(`/sales/${sale.id}/receipt`);
     },
-    onError: (e) => toast.error(apiError(e, 'Sale nahi hui')),
+    onError: (e) => toast.error(apiError(e, t('Sale nahi hui'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title="Sale karein (pickup)" description="Maal customer ko dein: bill banega aur stock is branch se nikal jayega"
+    <Modal open onClose={onClose} size="md" title={t('Sale karein (pickup)')} description={t('Maal customer ko dein: bill banega aur stock is branch se nikal jayega')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={run.isPending} disabled={!!bad} onClick={() => run.mutate()} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bill banayein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={run.isPending} disabled={!!bad} onClick={() => run.mutate()} leftIcon={<ShoppingCart className="h-4 w-4" />}>{t('Bill banayein')}</Button>
       </>}>
       <div className="space-y-4">
         <Money b={booking} />
         {booking.balanceDue > 0 ? (<>
-          <AmountField id="convert-amount" value={amount} onChange={setAmount} max={booking.balanceDue} label="Abhi kitne mile"
-            hint={bad || (udhaar > 0 ? `${formatPKR(udhaar)} customer ke khate me udhaar likha jayega` : 'Poora hisaab saaf')} />
-          <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kaise diya</p><MethodPicker value={method} onChange={setMethod} /></div>
+          <AmountField id="convert-amount" value={amount} onChange={setAmount} max={booking.balanceDue} label={t('Abhi kitne mile')}
+            hint={bad || (udhaar > 0 ? t('{{udhaar}} customer ke khate me udhaar likha jayega', { udhaar: formatPKR(udhaar) }) : t('Poora hisaab saaf'))} />
+          <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Kaise diya')}</p><MethodPicker value={method} onChange={setMethod} /></div>
         </>) : (
-          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200">Poori payment pehle aa chuki hai. Bas bill banayein.</p>
+          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200">{t('Poori payment pehle aa chuki hai. Bas bill banayein.')}</p>
         )}
-        <p className="text-[0.75rem] text-slate-500">Advance khud bill me lag jata hai. Reserve kiye IMEI aur cut piece "bik gaye" ho jate hain.</p>
+        <p className="text-[0.75rem] text-slate-500">{t('Advance khud bill me lag jata hai. Reserve kiye IMEI aur cut piece "bik gaye" ho jate hain.')}</p>
       </div>
     </Modal>
   );
 }
 
-const CANCEL_CHIPS = ['Customer ne mana kar diya', 'Maal nahi mila', 'Customer nahi aaya', 'Qeemat par baat nahi bani'];
+/** Stored as written; translated where shown. */
+const CANCEL_CHIPS = [msg('Customer ne mana kar diya'), msg('Maal nahi mila'), msg('Customer nahi aaya'), msg('Qeemat par baat nahi bani')];
 
 export function CancelModal({ booking, onClose }: { booking: Booking; onClose: () => void }) {
   const refresh = useRefreshBookings();
@@ -176,41 +178,41 @@ export function CancelModal({ booking, onClose }: { booking: Booking; onClose: (
   const [method, setMethod] = useState<PaymentMethod>(booking.paymentMethod ?? 'CASH');
 
   const run = useMutation({
-    mutationFn: () => withManagerPin('Advance return', (managerPin) =>
+    mutationFn: () => withManagerPin(t('Advance return'), (managerPin) =>
       bookingsApi.cancel(booking.id, { reason: reason.trim() || undefined, refundAdvance: refund, refundMethod: method, managerPin }), 'refund'),
-    onSuccess: () => { toast.success(refund && booking.totalPaid > 0 ? `Booking cancel, ${formatPKR(booking.totalPaid)} wapas` : 'Booking cancel ho gayi'); refresh(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Cancel nahi hui')),
+    onSuccess: () => { toast.success(refund && booking.totalPaid > 0 ? t('Booking cancel, {{totalPaid}} wapas', { totalPaid: formatPKR(booking.totalPaid) }) : t('Booking cancel ho gayi')); refresh(); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Cancel nahi hui'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title="Booking cancel karein" description="Reserve kiye IMEI, roll aur cut piece wapas stock me aa jayenge"
+    <Modal open onClose={onClose} size="md" title={t('Booking cancel karein')} description={t('Reserve kiye IMEI, roll aur cut piece wapas stock me aa jayenge')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()} leftIcon={<Ban className="h-4 w-4" />}>Cancel karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()} leftIcon={<Ban className="h-4 w-4" />}>{t('Cancel karein')}</Button>
       </>}>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="cancel-reason">Wajah</Label>
+          <Label htmlFor="cancel-reason">{t('Wajah')}</Label>
           <textarea id="cancel-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} data-autofocus
-            placeholder="Kyun cancel hui?" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+            placeholder={t('Kyun cancel hui?')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {CANCEL_CHIPS.map((c) => (
-              <button key={c} type="button" onClick={() => setReason(c)} className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">{c}</button>
+              <button key={c} type="button" onClick={() => setReason(c)} className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">{t(c)}</button>
             ))}
           </div>
-          <Hint>Record me rehti hai, baad me analytics me kaam aati hai.</Hint>
+          <Hint>{t('Record me rehti hai, baad me analytics me kaam aati hai.')}</Hint>
         </div>
         {booking.totalPaid > 0 && (<>
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
             <input type="checkbox" checked={refund} onChange={(e) => setRefund(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-600" />
             <span>
-              <span className="block text-sm font-medium text-slate-900">Advance wapas dein ({formatPKR(booking.totalPaid)})</span>
+              <span className="block text-sm font-medium text-slate-900">{t('Advance wapas dein ({{totalPaid}})', { totalPaid: formatPKR(booking.totalPaid) })}</span>
               <span className="block text-[0.75rem] text-slate-500">
-                {refund ? 'Paise customer ko abhi wapas. Settings me ho to malik ka PIN mangega.' : 'Wapas nahi: advance customer ke khate me jama rahega, agli purchase me kaam aayega.'}
+                {refund ? t('Paise customer ko abhi wapas. Settings me ho to malik ka PIN mangega.') : t('Wapas nahi: advance customer ke khate me jama rahega, agli purchase me kaam aayega.')}
               </span>
             </span>
           </label>
-          {refund && <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kaise wapas diya</p><MethodPicker value={method} onChange={setMethod} /></div>}
+          {refund && <div><p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Kaise wapas diya')}</p><MethodPicker value={method} onChange={setMethod} /></div>}
         </>)}
       </div>
     </Modal>
@@ -238,32 +240,32 @@ export function RescheduleModal({ booking, onClose }: { booking: Booking; onClos
       expectedPickupAt: pickup ? new Date(pickup).toISOString() : null,
       expiresAt: expires ? new Date(expires).toISOString() : null,
     }),
-    onSuccess: () => { toast.success('Date badal gayi'); refresh(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Date nahi badli')),
+    onSuccess: () => { toast.success(t('Date badal gayi')); refresh(); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Date nahi badli'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="sm" title="Pickup ki date" description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
+    <Modal open onClose={onClose} size="sm" title={t('Pickup ki date')} description={`${booking.bookingNumber} · ${booking.customer?.name ?? ''}`}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={run.isPending} disabled={!!pickup && !!expires && new Date(expires) < new Date(pickup)} onClick={() => run.mutate()} leftIcon={<CalendarClock className="h-4 w-4" />}>Save</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={run.isPending} disabled={!!pickup && !!expires && new Date(expires) < new Date(pickup)} onClick={() => run.mutate()} leftIcon={<CalendarClock className="h-4 w-4" />}>{t('Save')}</Button>
       </>}>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="re-pickup">Customer kab lega</Label>
+          <Label htmlFor="re-pickup">{t('Customer kab lega')}</Label>
           <input id="re-pickup" type="datetime-local" value={pickup} onChange={(e) => setPickup(e.target.value)} className={inputCls} data-autofocus />
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {[['+1 din', 1], ['+3 din', 3], ['+1 hafta', 7]].map(([l, d]) => (
               <button key={l} type="button" onClick={() => shift(Number(d))} className="rounded-full bg-white px-2.5 py-1 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">{l}</button>
             ))}
-            {pickup && <button type="button" onClick={() => setPickup('')} className="rounded-full px-2.5 py-1 text-[0.75rem] font-medium text-rose-700 hover:bg-rose-50">Hatayein</button>}
+            {pickup && <button type="button" onClick={() => setPickup('')} className="rounded-full px-2.5 py-1 text-[0.75rem] font-medium text-rose-700 hover:bg-rose-50">{t('Hatayein')}</button>}
           </div>
-          <Hint>Upcoming list, calendar aur yaad dihani isi date se chalti hai.</Hint>
+          <Hint>{t('Upcoming list, calendar aur yaad dihani isi date se chalti hai.')}</Hint>
         </div>
         <div>
-          <Label htmlFor="re-expires">Aakhri din (deadline)</Label>
+          <Label htmlFor="re-expires">{t('Aakhri din (deadline)')}</Label>
           <input id="re-expires" type="datetime-local" value={expires} onChange={(e) => setExpires(e.target.value)} className={inputCls} />
-          <Hint>{pickup && expires && new Date(expires) < new Date(pickup) ? 'Aakhri din pickup se pehle nahi ho sakta' : 'Marzi hai. Is ke baad booking par laal nishan aata hai; khud cancel nahi hoti.'}</Hint>
+          <Hint>{pickup && expires && new Date(expires) < new Date(pickup) ? t('Aakhri din pickup se pehle nahi ho sakta') : t('Marzi hai. Is ke baad booking par laal nishan aata hai; khud cancel nahi hoti.')}</Hint>
         </div>
       </div>
     </Modal>
@@ -275,7 +277,7 @@ export function useMarkReady() {
   const refresh = useRefreshBookings();
   return useMutation({
     mutationFn: ({ id, ready }: { id: string; ready: boolean }) => bookingsApi.markReady(id, ready),
-    onSuccess: (_b, v) => { toast.success(v.ready ? 'Tayyar likh diya' : 'Tayyar ka nishan hata diya'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Haal nahi badla')),
+    onSuccess: (_b, v) => { toast.success(v.ready ? t('Tayyar likh diya') : t('Tayyar ka nishan hata diya')); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Haal nahi badla'))),
   });
 }

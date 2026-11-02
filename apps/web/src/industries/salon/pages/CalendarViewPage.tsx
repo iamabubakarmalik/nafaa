@@ -20,6 +20,7 @@ import { useStylists } from '../components/fields';
 import { EmptyList } from '../components/ui';
 import { SALON_KEYS, STATUS, dayKey, staffName, timeOf } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 const START = 8;
 const END = 23;
@@ -75,24 +76,24 @@ export default function CalendarViewPage() {
   return (
     <PageShell>
       <PageHero
-        title="Calendar"
+        title={tr('Calendar')}
         chip={<><Scissors /> {day.toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long' })}</>}
-        meta="Har stylist ka din — khali jagah par click se booking"
+        meta={tr('Har stylist ka din — khali jagah par click se booking')}
         busy={weekQ.isFetching && !weekQ.isLoading}
         actions={<>
-          <Link to="/salon/appointments" className={heroButton}><ListChecks className="h-4 w-4" /><span className="hidden sm:inline">List</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {can.book && <Link to={`/salon/appointments/new?date=${dayKey(day)}`} className={heroPrimaryButton}><CalendarPlus className="h-4 w-4" /> Booking</Link>}
+          <Link to="/salon/appointments" className={heroButton}><ListChecks className="h-4 w-4" /><span className="hidden sm:inline">{tr('List')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.book && <Link to={`/salon/appointments/new?date=${dayKey(day)}`} className={heroPrimaryButton}><CalendarPlus className="h-4 w-4" /> {' '}{tr('Booking')}</Link>}
         </>}
         stats={[
-          { label: 'Is din bookings', value: today.length },
-          { label: 'Ho gaye', value: today.filter((a) => a.status === 'COMPLETED').length },
-          { label: 'Is hafte', value: all.filter((a) => a.status !== 'CANCELLED').length },
+          { label: tr('Is din bookings'), value: today.length },
+          { label: tr('Ho gaye'), value: today.filter((a) => a.status === 'COMPLETED').length },
+          { label: tr('Is hafte'), value: all.filter((a) => a.status !== 'CANCELLED').length },
         ]}
       />
 
       <div className="flex flex-wrap items-center gap-2 rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
-        <Button size="sm" variant="ghost" aria-label="Pichla din" onClick={() => shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" aria-label={tr('Pichla din')} onClick={() => shift(-1)}><ChevronLeft className="h-4 w-4 rtl-flip" /></Button>
         <div className="flex flex-1 gap-1 overflow-x-auto">
           {Array.from({ length: 7 }, (_, i) => new Date(weekStart.getTime() + i * DAY_MS)).map((d) => {
             const n = all.filter((a) => dayKey(new Date(a.scheduledStart)) === dayKey(d) && a.status !== 'CANCELLED').length;
@@ -102,36 +103,36 @@ export default function CalendarViewPage() {
                 className={cn('flex min-w-[4.5rem] flex-1 flex-col items-center rounded-2xl px-2 py-1.5 transition', active ? 'bg-slate-900 text-white' : dayKey(d) === dayKey(now) ? 'bg-brand-50 text-brand-800' : 'hover:bg-slate-50')}>
                 <span className="text-[0.6875rem] opacity-80">{d.toLocaleDateString('en-PK', { weekday: 'short' })}</span>
                 <span className="text-[0.9375rem] font-bold">{d.getDate()}</span>
-                <span className={cn('text-[0.625rem]', active ? 'text-white/80' : 'text-slate-500')}>{n ? `${n} booking` : '—'}</span>
+                <span className={cn('text-[0.625rem]', active ? 'text-white/80' : 'text-slate-500')}>{n ? tr('{{n}} booking', { n }) : '—'}</span>
               </button>
             );
           })}
         </div>
-        <Button size="sm" variant="ghost" aria-label="Agla din" onClick={() => shift(1)}><ChevronRight className="h-4 w-4" /></Button>
-        {!isToday && <Button size="sm" variant="secondary" onClick={() => setDay(atMidnight(new Date()))}>Aaj</Button>}
+        <Button size="sm" variant="ghost" aria-label={tr('Agla din')} onClick={() => shift(1)}><ChevronRight className="h-4 w-4 rtl-flip" /></Button>
+        {!isToday && <Button size="sm" variant="secondary" onClick={() => setDay(atMidnight(new Date()))}>{tr('Aaj')}</Button>}
       </div>
 
       {weekQ.isLoading || stylists.loading ? <Skeleton className="h-[32rem] rounded-3xl" /> : !cols.length ? (
-        <EmptyList icon={Users} title="Koi stylist nahi" text="Pehle Staff page par stylist banayein — phir har stylist ka din yahan dikhta hai.">
-          <Link to="/salon/staff" className="inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">Staff kholein</Link>
+        <EmptyList icon={Users} title={tr('Koi stylist nahi')} text={tr('Pehle Staff page par stylist banayein — phir har stylist ka din yahan dikhta hai.')}>
+          <Link to="/salon/staff" className="inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">{tr('Staff kholein')}</Link>
         </EmptyList>
       ) : (
         <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <div className="flex" style={{ minWidth: `${4 + cols.length * 11}rem` }}>
-            <div className="w-16 shrink-0 border-r border-slate-100">
+            <div className="w-16 shrink-0 border-e border-slate-100">
               <div className="h-10 border-b border-slate-100" />
               <div className="relative" style={{ height: (END - START) * ROW }}>
                 {Array.from({ length: END - START }, (_, i) => (
-                  <span key={i} className="absolute right-2 -translate-y-1/2 text-[0.6875rem] text-slate-400" style={{ top: i * ROW }}>{((START + i) % 12) || 12}{START + i < 12 ? 'am' : 'pm'}</span>
+                  <span key={i} className="absolute end-2 -translate-y-1/2 text-[0.6875rem] text-slate-400" style={{ top: i * ROW }}>{((START + i) % 12) || 12}{START + i < 12 ? 'am' : 'pm'}</span>
                 ))}
               </div>
             </div>
             {cols.map((c) => (
-              <div key={c.id || 'none'} className="min-w-[11rem] flex-1 border-r border-slate-100 last:border-0">
+              <div key={c.id || 'none'} className="min-w-[11rem] flex-1 border-e border-slate-100 last:border-0">
                 <div className="flex h-10 items-center justify-center border-b border-slate-100 px-2 text-[0.8125rem] font-semibold text-slate-800"><span className="truncate">{c.name}</span></div>
                 <div className="relative" style={{ height: (END - START) * ROW }}>
                   {Array.from({ length: (END - START) * 2 }, (_, i) => (
-                    <button key={i} type="button" aria-label={`${c.name} ${START + i / 2} baje booking`} onClick={() => book(c.id, START + i / 2)}
+                    <button key={i} type="button" aria-label={tr('{{name}} {{value}} baje booking', { name: c.name, value: START + i / 2 })} onClick={() => book(c.id, START + i / 2)}
                       className={cn('absolute inset-x-0 block hover:bg-brand-50/60', i % 2 === 0 ? 'border-t border-slate-100' : 'border-t border-dashed border-slate-50')}
                       style={{ top: (i * ROW) / 2, height: ROW / 2 }} />
                   ))}
@@ -145,16 +146,16 @@ export default function CalendarViewPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Calendar — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Calendar — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Users, color: '#db2777', title: 'Har stylist ka column', text: 'Har column ek stylist ka din hai. Rang se halat: neela booked, jamni aa gaye, narangi chair par, hara ho gaya, laal nahi aaye.' },
-            { icon: MousePointerClick, color: '#7c3aed', title: 'Khali jagah = booking', text: 'Kisi stylist ke khali waqt par click karein — booking form us stylist aur waqt ke saath khulta hai.' },
-            { icon: CalendarPlus, color: '#0891b2', title: 'Din badlein', text: 'Upar hafte ki patti se din chunein, ya ← → dabayein. "Aaj" se wapas aaj par.' },
+            { icon: Users, color: '#db2777', title: tr('Har stylist ka column'), text: tr('Har column ek stylist ka din hai. Rang se halat: neela booked, jamni aa gaye, narangi chair par, hara ho gaya, laal nahi aaye.') },
+            { icon: MousePointerClick, color: '#7c3aed', title: tr('Khali jagah = booking'), text: tr('Kisi stylist ke khali waqt par click karein — booking form us stylist aur waqt ke saath khulta hai.') },
+            { icon: CalendarPlus, color: '#0891b2', title: tr('Din badlein'), text: tr('Upar hafte ki patti se din chunein, ya ← → dabayein. "Aaj" se wapas aaj par.') },
           ]}
-          shortcuts={[['←', 'pichla din'], ['→', 'agla din'], ['T', 'aaj'], ['N', 'nayi booking'], ['G', 'guide']]}
+          shortcuts={[['←', tr('pichla din')], ['→', tr('agla din')], ['T', 'aaj'], ['N', tr('nayi booking')], ['G', 'guide']]}
         />
       )}
-      <p className="hidden text-center text-[0.75rem] text-slate-500 sm:block"><Kbd>←</Kbd> <Kbd>→</Kbd> din · <Kbd>T</Kbd> aaj · <Kbd>N</Kbd> booking</p>
+      <p className="hidden text-center text-[0.75rem] text-slate-500 sm:block"><Kbd>←</Kbd> <Kbd>→</Kbd> {' '}{tr('din ·')}{' '} <Kbd>T</Kbd> {' '}{tr('aaj ·')}{' '} <Kbd>N</Kbd> {' '}{tr('booking')}</p>
     </PageShell>
   );
 }
@@ -169,7 +170,7 @@ function Block({ a }: { a: Appointment }) {
     <Link to={`/salon/appointments/${a.id}`} className="absolute inset-x-1 z-[5] overflow-hidden rounded-lg px-2 py-1 text-[0.75rem] shadow-sm ring-1 hover:z-20 hover:shadow-md"
       style={{ top, height, background: `${st.color}1a`, borderLeft: `3px solid ${st.color}`, color: '#0f172a' }}
       title={`${a.customerName ?? 'Walk-in'} · ${timeOf(a.scheduledStart)} – ${timeOf(a.scheduledEnd)} · ${st.label}`}>
-      <p className="truncate font-semibold">{a.customerName || 'Walk-in'}</p>
+      <p className="truncate font-semibold">{a.customerName || tr('Walk-in')}</p>
       <p className="truncate text-slate-600">{timeOf(a.scheduledStart)} · {a.services.map((x) => x.serviceName).join(', ')}</p>
     </Link>
   );

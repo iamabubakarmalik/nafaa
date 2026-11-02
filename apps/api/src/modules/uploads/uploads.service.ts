@@ -12,6 +12,7 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { CloudinaryService } from './cloudinary.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const ALLOWED_MIME = [
   'image/jpeg',
@@ -52,7 +53,7 @@ export class UploadsService {
     }
     if (!ALLOWED_MIME.includes(file.mimetype)) {
       this.logger.warn(`Upload failed: bad mime ${file.mimetype}`);
-      throw new BadRequestException(`Unsupported type: ${file.mimetype}`);
+      throw new BadRequestException(apiMessage('Unsupported type: {{mimetype}}', { mimetype: file.mimetype }));
     }
 
     this.logger.log(
@@ -103,7 +104,7 @@ export class UploadsService {
         err?.message ||
         'Unknown storage error';
       throw new InternalServerErrorException(
-        `Image upload failed: ${detail}`,
+        apiMessage('Image upload failed: {{detail}}', { detail }),
       );
     }
 
@@ -136,7 +137,7 @@ export class UploadsService {
         this.cloudinary.deleteByPublicId(publicId).catch(() => {});
       }
       throw new InternalServerErrorException(
-        `Database save failed: ${err?.message || 'unknown'}`,
+        apiMessage('Database save failed: {{errMessage}}', { errMessage: err?.message || 'unknown' }),
       );
     }
   }

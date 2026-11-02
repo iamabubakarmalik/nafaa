@@ -20,6 +20,7 @@ import {
 import {
   BookingPaymentDto, CancelBookingDto, ChangeRoomDto, CheckInGuestDto, CheckOutDto, CreateBookingDto, RefundAdvanceDto, UpdateBookingDto,
 } from '../common/hotel.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const INCLUDE = { bookedRooms: true } as const;
 type BookingRow = Prisma.HotelBookingGetPayload<{ include: { bookedRooms: true } }>;
@@ -69,9 +70,9 @@ export class BookingsService {
       const adults = line.adults ?? 1;
       const children = line.children ?? 0;
       const extraBeds = line.extraBeds ?? 0;
-      if (extraBeds > 0 && !type.extraBedAllowed) throw new BadRequestException(`${type.name} me extra bed nahi lagta`);
+      if (extraBeds > 0 && !type.extraBedAllowed) throw new BadRequestException(apiMessage('{{typeName}} me extra bed nahi lagta', { typeName: type.name }));
       if (adults + children > type.maxOccupancy + extraBeds) {
-        throw new BadRequestException(`Room ${room.roomNumber} (${type.name}) me zyada se zyada ${type.maxOccupancy + extraBeds} log`);
+        throw new BadRequestException(apiMessage('Room {{roomNumber}} ({{typeName}}) me zyada se zyada {{maxOccupancy}} log', { roomNumber: room.roomNumber, typeName: type.name, maxOccupancy: type.maxOccupancy + extraBeds }));
       }
       const nightly = quoteNights(type, room.customPrice, checkIn, nights, plans, source);
       const stay = line.ratePerNight != null ? r2(line.ratePerNight * nights) : r2(nightly.reduce((s, n) => s + n.rate, 0));
@@ -90,7 +91,7 @@ export class BookingsService {
     const serviceCharge = r2(dto.serviceCharge ?? 0);
     const discount = r2(dto.discount ?? 0);
     const grandTotal = r2(Math.max(roomTotal + taxAmount + serviceCharge - discount, 0));
-    if (advancePaid > grandTotal + 0.009) throw new BadRequestException(`Advance kul bill (Rs ${grandTotal}) se zyada hai`);
+    if (advancePaid > grandTotal + 0.009) throw new BadRequestException(apiMessage('Advance kul bill (Rs {{grandTotal}}) se zyada hai', { grandTotal }));
     const balanceAmount = r2(Math.max(grandTotal - advancePaid, 0));
 
     const created = await this.withNumber(user.tenantId, async (bookingNumber) => this.prisma.$transaction(async (tx) => {
@@ -160,8 +161,8 @@ export class BookingsService {
       let room;
       if (line.roomId) {
         room = found(await this.prisma.hotelRoom.findFirst({ where: { id: line.roomId, tenantId, isActive: true }, include: { roomType: true } }), 'Room');
-        if (room.shopId && room.shopId !== shopId) throw new BadRequestException(`Room ${room.roomNumber} doosri branch ka hai`);
-        if (line.roomTypeId && room.roomTypeId !== line.roomTypeId) throw new BadRequestException(`Room ${room.roomNumber} is type ka nahi`);
+        if (room.shopId && room.shopId !== shopId) throw new BadRequestException(apiMessage('Room {{roomNumber}} doosri branch ka hai', { roomNumber: room.roomNumber }));
+        if (line.roomTypeId && room.roomTypeId !== line.roomTypeId) throw new BadRequestException(apiMessage('Room {{roomNumber}} is type ka nahi', { roomNumber: room.roomNumber }));
       } else {
         if (!line.roomTypeId) throw new BadRequestException('Room ya room type chunein');
         room = await this.prisma.hotelRoom.findFirst({
@@ -175,7 +176,7 @@ export class BookingsService {
         if (!room) throw new BadRequestException('Is type ka koi room in dates me khali nahi');
         taken.add(room.id);
       }
-      if (!room.roomType.isActive) throw new BadRequestException(`${room.roomType.name} band hai`);
+      if (!room.roomType.isActive) throw new BadRequestException(apiMessage('{{roomTypeName}} band hai', { roomTypeName: room.roomType.name }));
       out.push({ line, room, type: room.roomType });
     }
     return out;
@@ -202,7 +203,7 @@ export class BookingsService {
       },
       include: { booking: { select: { bookingNumber: true } } },
     });
-    if (clash) throw new BadRequestException(`Room ${clash.roomNumber ?? ''} in dates me ${clash.booking.bookingNumber} ke paas hai`);
+    if (clash) throw new BadRequestException(apiMessage('Room {{roomNumber}} in dates me {{bookingNumber}} ke paas hai', { roomNumber: clash.roomNumber ?? '', bookingNumber: clash.booking.bookingNumber }));
   }
 
   /**
@@ -520,7 +521,7 @@ export class BookingsService {
     let guest = b.primaryGuestId ? await tx.hotelGuest.findFirst({ where: { id: b.primaryGuestId, tenantId: user.tenantId } }) : null;
     if (!guest && idNumber) guest = await tx.hotelGuest.findFirst({ where: { tenantId: user.tenantId, idNumber, isActive: true } });
     if (!guest) guest = await tx.hotelGuest.findFirst({ where: { tenantId: user.tenantId, phone: b.guestPhone, isActive: true }, orderBy: { updatedAt: 'desc' } });
-    if (guest?.isBlacklisted) throw new BadRequestException(`${guest.fullName} blacklist me hai${guest.blacklistReason ? `: ${guest.blacklistReason}` : ''}`);
+    if (guest?.isBlacklisted) throw new BadRequestException(apiMessage('{{fullName}} blacklist me hai{{value}}', { fullName: guest.fullName, value: guest.blacklistReason ? `: ${guest.blacklistReason}` : '' }));
     if (!idNumber && !guest?.idNumber) throw new BadRequestException('Guest ka CNIC ya passport number likhein (police record ke liye zaroori)');
     const patch = {
       ...(idNumber && { idType: dto.idType ?? 'CNIC', idNumber }),
@@ -542,7 +543,7 @@ export class BookingsService {
     const b = found(await this.prisma.hotelBooking.findFirst({ where: { id, tenantId: user.tenantId }, include: INCLUDE }), 'Booking');
     if (!(OPEN_RESERVATION as readonly string[]).includes(b.status)) throw new BadRequestException('Ye booking check-in ke liye khuli nahi');
     const t = today();
-    if (b.checkInDate > t) throw new BadRequestException(`Booking ${keyOf(b.checkInDate)} ki hai — jaldi aaye hain to pehle dates badlein`);
+    if (b.checkInDate > t) throw new BadRequestException(apiMessage('Booking {{checkInDate}} ki hai — jaldi aaye hain to pehle dates badlein', { checkInDate: keyOf(b.checkInDate) }));
     if (b.checkOutDate <= t) throw new BadRequestException('Check-out ki date guzar chuki — pehle dates badlein');
     const roomIds = b.bookedRooms.map((r) => r.roomId).filter(Boolean) as string[];
     if (roomIds.length !== b.bookedRooms.length) throw new BadRequestException('Har room ka number lagayein (Room badlein)');
@@ -550,7 +551,9 @@ export class BookingsService {
       where: { id: { in: roomIds }, tenantId: user.tenantId, status: { in: ['OCCUPIED', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'] } },
       select: { roomNumber: true, status: true },
     });
-    if (busy) throw new BadRequestException(`Room ${busy.roomNumber} abhi ${busy.status === 'OCCUPIED' ? 'bhara hua' : 'marammat / band'} hai — room badlein`);
+    if (busy) throw new BadRequestException(busy.status === 'OCCUPIED'
+      ? apiMessage('Room {{roomNumber}} abhi bhara hua hai — room badlein', { roomNumber: busy.roomNumber })
+      : apiMessage('Room {{roomNumber}} abhi marammat / band hai — room badlein', { roomNumber: busy.roomNumber }));
 
     return this.prisma.$transaction(async (tx) => {
       const guest = await this.ensureGuest(tx, user, b, dto);
@@ -619,7 +622,7 @@ export class BookingsService {
     const t = today();
     const from = inHouse && t > b.checkInDate ? t : b.checkInDate;
     await this.assertRoomsFree(user.tenantId, [room.id], from, b.checkOutDate, b.id);
-    if (inHouse && ['OCCUPIED', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'].includes(room.status)) throw new BadRequestException(`Room ${room.roomNumber} abhi khali nahi`);
+    if (inHouse && ['OCCUPIED', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'].includes(room.status)) throw new BadRequestException(apiMessage('Room {{roomNumber}} abhi khali nahi', { roomNumber: room.roomNumber }));
     const left = Math.max(nightsBetween(from, b.checkOutDate), 0);
     const rate = dto.ratePerNight != null ? r2(dto.ratePerNight) : line.ratePerNight;
     const delta = r2((rate - line.ratePerNight) * left);
@@ -665,7 +668,7 @@ export class BookingsService {
     const value = r2(dto.amount);
     const due = r2(b.grandTotal - b.paidAmount);
     if (due <= 0.009) throw new BadRequestException('Is booking ka koi baqi nahi');
-    if (value > due + 0.009) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);
+    if (value > due + 0.009) throw new BadRequestException(apiMessage('Baqi sirf Rs {{due}} hai', { due }));
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, b.shopId);
@@ -703,7 +706,7 @@ export class BookingsService {
     if (!(IN_HOUSE as readonly string[]).includes(b.status)) throw new BadRequestException('Guest ka check-in nahi hua');
     const t = today();
     const over = nightsBetween(b.checkOutDate, t);
-    if (over > 0) throw new BadRequestException(`Guest ${over} raat zyada ruka — pehle stay ${keyOf(t)} tak barhayein`);
+    if (over > 0) throw new BadRequestException(apiMessage('Guest {{over}} raat zyada ruka — pehle stay {{t}} tak barhayein', { over, t: keyOf(t) }));
 
     return this.prisma.$transaction(async (tx) => {
       let booking: BookingRow = b;
@@ -778,7 +781,7 @@ export class BookingsService {
     if (!reason) throw new BadRequestException('Cancel ki wajah likhein');
     const charge = r2(dto.charge ?? 0);
     if (charge > 0) requireAny(user, [PERMISSIONS.POS_USE], 'Charge ka bill banane');
-    if (charge > b.grandTotal + 0.009) throw new BadRequestException(`Charge booking ke bill (Rs ${b.grandTotal}) se zyada nahi ho sakta`);
+    if (charge > b.grandTotal + 0.009) throw new BadRequestException(apiMessage('Charge booking ke bill (Rs {{grandTotal}}) se zyada nahi ho sakta', { grandTotal: b.grandTotal }));
     if (dto.noShow && b.checkInDate > today()) throw new BadRequestException('No-show sirf aane ki date ke baad lagta hai');
 
     return this.prisma.$transaction(async (tx) => {

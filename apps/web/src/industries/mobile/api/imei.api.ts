@@ -1,15 +1,16 @@
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 export type ImeiStatus = 'IN_STOCK' | 'SOLD' | 'RETURNED' | 'DAMAGED' | 'RESERVED' | 'LOST';
 
 export type PtaStatus = 'APPROVED' | 'NON_PTA' | 'PATCH' | 'PENDING' | 'EXEMPT';
 
 export const PTA_STATUS_LABELS: Record<PtaStatus, string> = {
-  APPROVED: 'PTA Approved',
-  NON_PTA: 'Non-PTA',
-  PATCH: 'Patched',
-  PENDING: 'PTA baqi',
-  EXEMPT: 'Exempt',
+  APPROVED: t('PTA Approved'),
+  NON_PTA: t('Non-PTA'),
+  PATCH: t('Patched'),
+  PENDING: t('PTA baqi'),
+  EXEMPT: t('Exempt'),
 };
 
 export const PTA_STATUS_COLORS: Record<PtaStatus, { bg: string; text: string; border: string }> = {

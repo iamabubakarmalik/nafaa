@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
 export type DiscountStatus = 'active' | 'inactive' | 'expired' | 'scheduled' | 'used_up';
@@ -87,13 +88,13 @@ async function validateOffline(code: string, amount: number, shopId?: string | n
   const { db } = await import('@core/lib/offline/db');
   const items = ((await db.meta.get(CACHE_KEY))?.value ?? []) as DiscountCode[];
   const dc = items.find((c) => c.code === code.toUpperCase().replace(/\s+/g, '') && c.isActive);
-  if (!dc) throw new Error('Yeh code nahi chalta');
+  if (!dc) throw new Error(t('Yeh code nahi chalta'));
   const now = Date.now();
-  if (dc.validFrom && now < new Date(dc.validFrom).getTime()) throw new Error('Yeh code abhi shuru nahi hua');
-  if (dc.validUntil && now > new Date(dc.validUntil).getTime()) throw new Error('Is code ki period khatam ho gayi');
-  if (dc.usageLimit && dc.usageCount >= dc.usageLimit) throw new Error('Is code ki had poori ho chuki hai');
-  if (dc.shopIds?.length && shopId && !dc.shopIds.includes(shopId)) throw new Error('Yeh code is branch par nahi chalta');
-  if (amount < dc.minPurchase) throw new Error(`Kam se kam Rs ${dc.minPurchase} ki khareedari par chalta hai`);
+  if (dc.validFrom && now < new Date(dc.validFrom).getTime()) throw new Error(t('Yeh code abhi shuru nahi hua'));
+  if (dc.validUntil && now > new Date(dc.validUntil).getTime()) throw new Error(t('Is code ki period khatam ho gayi'));
+  if (dc.usageLimit && dc.usageCount >= dc.usageLimit) throw new Error(t('Is code ki had poori ho chuki hai'));
+  if (dc.shopIds?.length && shopId && !dc.shopIds.includes(shopId)) throw new Error(t('Yeh code is branch par nahi chalta'));
+  if (amount < dc.minPurchase) throw new Error(t('Kam se kam Rs {{minPurchase}} ki khareedari par chalta hai', { minPurchase: dc.minPurchase }));
   let discount = dc.type === 'PERCENTAGE' ? (amount * dc.value) / 100 : dc.value;
   if (dc.type === 'PERCENTAGE' && dc.maxDiscount && discount > dc.maxDiscount) discount = dc.maxDiscount;
   discount = Math.min(discount, amount);
@@ -114,7 +115,7 @@ export const discountsApi = {
     try {
       return await apiClient.get<{ data: DiscountValidation }>('/discounts/validate', { params: { code, amount, customerId: opts.customerId ?? undefined } }).then(unwrap);
     } catch (e) {
-      if (!isNetFail(e)) throw new Error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Code nahi chala');
+      if (!isNetFail(e)) throw new Error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('Code nahi chala'));
       return validateOffline(code, amount, opts.shopId);
     }
   },

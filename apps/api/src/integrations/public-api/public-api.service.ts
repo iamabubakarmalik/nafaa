@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ApiCaller } from './api-keys.service';
 import { serialize } from './events';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /**
  * Nafaa Public API (v1) ke jawab — sirf apne business ka data, key branch
@@ -18,7 +19,7 @@ const pageOf = (q: ListQuery) => {
 const date = (v: string | undefined, name: string) => {
   if (!v) return undefined;
   const d = new Date(v);
-  if (Number.isNaN(d.getTime())) throw new BadRequestException({ error: 'bad_date', message: `${name} sahi date nahi (ISO 8601, jaise 2026-09-30T00:00:00+05:00)` });
+  if (Number.isNaN(d.getTime())) throw new BadRequestException({ error: 'bad_date', ...apiMessage('{{name}} sahi date nahi (ISO 8601, jaise 2026-09-30T00:00:00+05:00)', { name }) });
   return d;
 };
 const out = <T>(rows: T[], p: { limit: number; page: number }, map: (r: T) => unknown) => ({

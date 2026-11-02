@@ -24,6 +24,7 @@ import { useBusinessDayStart } from '@core/lib/business-day';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { taxonomyApi, type TaxonomyItem, type TaxonomyKind } from './api';
+import { t } from '@core/i18n';
 
 export type Draft = Record<string, any>;
 
@@ -149,14 +150,14 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       const payload = config.toPayload ? config.toPayload(draft) : draft;
       return id ? api.update(id, payload) : api.create(payload);
     },
-    onSuccess: (_r, v) => { toast.success(v.id ? 'Save ho gaya' : `${cap(config.one)} ban gayi`); setEditing(null); refresh(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save nahi hua'),
+    onSuccess: (_r, v) => { toast.success(v.id ? t('Save ho gaya') : t('{{one}} ban gayi', { one: cap(config.one) })); setEditing(null); refresh(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Save nahi hua')),
   });
 
   const toggle = useMutation({
     mutationFn: (i: TaxonomyItem) => api.update(i.id, { isActive: !i.isActive }),
-    onSuccess: (_r, i) => { toast.success(i.isActive ? 'Band kar diya' : 'Chalu kar diya'); refresh(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
+    onSuccess: (_r, i) => { toast.success(i.isActive ? t('Band kar diya') : t('Chalu kar diya')); refresh(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Nahi hua')),
   });
 
   const addPresets = useMutation({
@@ -165,15 +166,15 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       for (const p of list) { try { await api.create(config.toPayload ? config.toPayload(p) : p); ok++; } catch { /* already there */ } }
       return ok;
     },
-    onSuccess: (ok) => { toast.success(`${ok} ${config.title.toLowerCase()} add ho gaye`); refresh(); },
+    onSuccess: (ok) => { toast.success(t('{{ok}} {{value}} add ho gaye', { ok, value: config.title.toLowerCase() })); refresh(); },
   });
 
   const exportCsv = () => {
-    const head = ['Naam', 'Products', 'Chalu products', 'Stock units', ...(costHidden ? [] : ['Stock qeemat']), 'Sale', 'Quantity', ...(costHidden ? [] : ['Profit']), 'Halat'];
+    const head = [t('Naam'), t('Products'), t('Chalu products'), t('Stock units'), ...(costHidden ? [] : [t('Stock qeemat')]), t('Sale'), t('Quantity'), ...(costHidden ? [] : [t('Profit')]), t('Halat')];
     const rows = list.map((i) => {
       const s = i.stats;
       return [i.name, s?.products ?? 0, s?.activeProducts ?? 0, Math.round(s?.stockUnits ?? 0), ...(costHidden ? [] : [Math.round(s?.stockValue ?? 0)]),
-        Math.round(s?.revenue ?? 0), s?.quantity ?? 0, ...(costHidden ? [] : [Math.round(s?.profit ?? 0)]), i.isActive ? 'Chalu' : 'Band'];
+        Math.round(s?.revenue ?? 0), s?.quantity ?? 0, ...(costHidden ? [] : [Math.round(s?.profit ?? 0)]), i.isActive ? t('Chalu') : t('Band')];
     });
     const csv = [head, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const a = document.createElement('a');
@@ -195,11 +196,11 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
   }), [items]);
   const toggleShow = (v: Show) => setShow((x) => (x === v ? 'all' : v));
   const SHOWS: Array<{ value: Show; label: string }> = [
-    { value: 'all', label: 'Sab' },
-    { value: 'used', label: 'Products wali' },
-    { value: 'unused', label: 'Khaali (koi product nahi)' },
-    { value: 'low', label: 'Kam ya khatam stock' },
-    ...(config.canSwitchOff ? [{ value: 'off' as const, label: 'Band' }] : []),
+    { value: 'all', label: t('Sab') },
+    { value: 'used', label: t('Products wali') },
+    { value: 'unused', label: t('Khaali (koi product nahi)') },
+    { value: 'low', label: t('Kam ya khatam stock') },
+    ...(config.canSwitchOff ? [{ value: 'off' as const, label: t('Band') }] : []),
   ];
 
   return (
@@ -210,15 +211,15 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         busy={isFetching && !isLoading}
         loading={isLoading}
         actions={<>
-          <button type="button" className={heroButton} onClick={exportCsv} disabled={!list.length}><Download className="h-4 w-4" /> CSV</button>
-          <button type="button" className={heroIconButton} onClick={guide.open} title="Guide" aria-label="Guide"><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" className={heroPrimaryButton} onClick={() => setEditing('new')}><Plus className="h-4 w-4" /> Nayi {config.one}</button>
+          <button type="button" className={heroButton} onClick={exportCsv} disabled={!list.length}><Download className="h-4 w-4" /> {' '}{t('CSV')}</button>
+          <button type="button" className={heroIconButton} onClick={guide.open} title={t('Guide')} aria-label={t('Guide')}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" className={heroPrimaryButton} onClick={() => setEditing('new')}><Plus className="h-4 w-4" /> {' '}{t('Nayi {{one}}', { one: config.one })}</button>
         </>}
         stats={totals ? [
-          { label: `Kul ${config.title.toLowerCase()}`, value: totals.count, hint: config.canSwitchOff ? `${totals.active} chalu` : undefined },
-          { label: 'Sale (is period)', value: money(totals.revenue) },
-          { label: 'Products jure hue', value: `${linked}/${totals.totalProducts}` },
-          { label: 'Stock ki qeemat', value: cost(totals.stockValue) },
+          { label: t('Kul {{value}}', { value: config.title.toLowerCase() }), value: totals.count, hint: config.canSwitchOff ? t('{{active}} chalu', { active: totals.active }) : undefined },
+          { label: t('Sale (is period)'), value: money(totals.revenue) },
+          { label: t('Products jure hue'), value: `${linked}/${totals.totalProducts}` },
+          { label: t('Stock ki qeemat'), value: cost(totals.stockValue) },
         ] : undefined}
       />
 
@@ -226,10 +227,10 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       <KpiRow cols={config.canSwitchOff ? 4 : 3}>
         {isLoading ? Array.from({ length: config.canSwitchOff ? 4 : 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Package} color="#16a34a" label="Products wali" value={counts.used} hint={`${linked} products jure`} onClick={() => toggleShow('used')} active={show === 'used'} />
-            <KpiCard icon={Inbox} color="#64748b" label="Khaali" value={counts.unused} hint="koi product nahi" onClick={() => toggleShow('unused')} active={show === 'unused'} />
-            <KpiCard icon={AlertTriangle} color="#d97706" label="Kam ya khatam stock" value={counts.low} hint="dabayein" onClick={() => toggleShow('low')} active={show === 'low'} />
-            {config.canSwitchOff && <KpiCard icon={EyeOff} color="#e11d48" label="Band" value={counts.off} hint="dabayein" onClick={() => toggleShow('off')} active={show === 'off'} />}
+            <KpiCard icon={Package} color="#16a34a" label={t('Products wali')} value={counts.used} hint={t('{{linked}} products jure', { linked })} onClick={() => toggleShow('used')} active={show === 'used'} />
+            <KpiCard icon={Inbox} color="#64748b" label={t('Khaali')} value={counts.unused} hint={t('koi product nahi')} onClick={() => toggleShow('unused')} active={show === 'unused'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label={t('Kam ya khatam stock')} value={counts.low} hint="dabayein" onClick={() => toggleShow('low')} active={show === 'low'} />
+            {config.canSwitchOff && <KpiCard icon={EyeOff} color="#e11d48" label={t('Band')} value={counts.off} hint="dabayein" onClick={() => toggleShow('off')} active={show === 'off'} />}
           </>
         )}
       </KpiRow>
@@ -237,9 +238,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       {totals && totals.unlinked > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          <span className="flex-1"><b>{totals.unlinked}</b> products ki koi {config.one} nahi — reports me alag nahi dikhenge.</span>
+          <span className="flex-1"><b>{totals.unlinked}</b> {' '}{t('products ki koi {{one}} nahi — reports me alag nahi dikhenge.', { one: config.one })}</span>
           {config.noneFilter && (
-            <Link to={`/products?${config.productParam}=none`} className="inline-flex items-center gap-1 font-semibold hover:underline">Dekhein <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link to={`/products?${config.productParam}=none`} className="inline-flex items-center gap-1 font-semibold hover:underline">{t('Dekhein')}{' '} <ArrowRight className="h-3.5 w-3.5 rtl-flip" /></Link>
           )}
         </div>
       )}
@@ -248,8 +249,8 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-4">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <Sparkles className="h-4 w-4 text-brand-600" />
-            <p className="flex-1 text-sm font-semibold text-slate-800">{config.industry.name} ke liye mashware</p>
-            <Button size="sm" variant="secondary" loading={addPresets.isPending} onClick={() => addPresets.mutate(suggestions)}>Sab add karein ({suggestions.length})</Button>
+            <p className="flex-1 text-sm font-semibold text-slate-800">{t('{{name}} ke liye mashware', { name: config.industry.name })}</p>
+            <Button size="sm" variant="secondary" loading={addPresets.isPending} onClick={() => addPresets.mutate(suggestions)}>{t('Sab add karein ({{count}})', { count: suggestions.length })}</Button>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {suggestions.slice(0, 24).map((p) => (
@@ -264,21 +265,21 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
 
       {/* Filters */}
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${cap(config.one)} search…`} label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('{{one}} search…', { one: cap(config.one) })} label={t('Search')} />}
         chips={show !== 'all' || search.trim() ? <>
           {show !== 'all' && <FilterChip onRemove={() => setShow('all')}>{SHOWS.find((o) => o.value === show)?.label}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setShow('all'); setSearch(''); }}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" />
-        <FilterMenu icon={Filter} label="Dikhayein" value={show} active={show !== 'all'} onChange={setShow} options={SHOWS} />
-        <FilterMenu icon={ArrowDownUp} label="Sort" value={sort} active={sort !== 'sales'} onChange={setSort} align="right"
+        <FilterMenu icon={Filter} label={t('Dikhayein')} value={show} active={show !== 'all'} onChange={setShow} options={SHOWS} />
+        <FilterMenu icon={ArrowDownUp} label={t('Sort')} value={sort} active={sort !== 'sales'} onChange={setSort} align="right"
           options={[
-            { value: 'sales', label: 'Sab se zyada sale' }, { value: 'products', label: 'Sab se zyada products' },
-            { value: 'stock', label: 'Stock ki qeemat' }, { value: 'name', label: 'Naam (A–Z)' }, { value: 'new', label: 'Naye pehle' },
+            { value: 'sales', label: t('Sab se zyada sale') }, { value: 'products', label: t('Sab se zyada products') },
+            { value: 'stock', label: t('Stock ki qeemat') }, { value: 'name', label: t('Naam (A–Z)') }, { value: 'new', label: t('Naye pehle') },
           ]} />
-        <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Shakal">
-          {([['grid', LayoutGrid, 'Cards'], ['list', List, 'List']] as const).map(([v, Icon, label]) => (
+        <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label={t('Shakal')}>
+          {([['grid', LayoutGrid, t('Cards')], ['list', List, t('List')]] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)} title={label} aria-label={label}
               className={cn('flex h-9 w-9 items-center justify-center rounded-xl transition', view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
               <Icon className="h-4 w-4" />
@@ -291,15 +292,15 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-36 rounded-2xl" />)}</div>
       ) : isError ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Load nahi hua</p>
-          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
+          <p className="font-semibold text-slate-900">{t('Load nahi hua')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>{t('Dobara koshish')}</Button>
         </div>
       ) : list.length === 0 ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <config.icon className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{items.length ? 'Is filter me kuch nahi' : `Abhi koi ${config.one} nahi`}</p>
-          <p className="mt-1 text-sm text-slate-500">{items.length ? 'Filter ya search badlein' : 'Upar mashware se ya "Nayi" dabakar banayein'}</p>
-          {!items.length && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi {config.one}</Button>}
+          <p className="mt-3 font-semibold text-slate-900">{items.length ? t('Is filter me kuch nahi') : t('Abhi koi {{one}} nahi', { one: config.one })}</p>
+          <p className="mt-1 text-sm text-slate-500">{items.length ? t('Filter ya search badlein') : t('Upar mashware se ya "Nayi" dabakar banayein')}</p>
+          {!items.length && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Nayi {{one}}', { one: config.one })}</Button>}
         </div>
       ) : view === 'grid' ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -309,32 +310,32 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
             return (
               <div key={i.id} className={cn('group relative rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md', on ? 'ring-2 ring-brand-500' : 'ring-1 ring-slate-200/80', !i.isActive && 'opacity-70')}>
                 <div className="flex items-start gap-3">
-                  <button type="button" onClick={() => pick(i.id)} aria-label={on ? 'Chunna hatayein' : 'Chunein'} className="relative">
+                  <button type="button" onClick={() => pick(i.id)} aria-label={on ? t('Chunna hatayein') : t('Chunein')} className="relative">
                     <Avatar item={i} size="lg" />
-                    {on && <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white ring-2 ring-white"><Check className="h-3 w-3" /></span>}
+                    {on && <span className="absolute -end-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white ring-2 ring-white"><Check className="h-3 w-3" /></span>}
                   </button>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="truncate font-semibold text-slate-900">{i.name}</p>
-                      {i.isFeatured && <span title="Khaas" className="text-amber-500">★</span>}
+                      {i.isFeatured && <span title={t('Khaas')} className="text-amber-500">★</span>}
                     </div>
                     <p className="text-[0.8125rem] text-slate-500">
-                      {s?.products ?? 0} products{!i.isActive && <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-600">Band</span>}
+                      {t('{{value}} products', { value: s?.products ?? 0 })}{!i.isActive && <span className="ms-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-600">{t('Band')}</span>}
                     </p>
                   </div>
                   <RowMenu item={i} config={config} onEdit={() => setEditing(i)} onMerge={() => setMerging(i)} onDelete={() => setDeleting([i])} onToggle={() => toggle.mutate(i)} productsLink={productsLink(i)} />
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <Metric label="Sale" value={money(s?.revenue ?? 0)} />
-                  <Metric label="Becha" value={Number((s?.quantity ?? 0).toFixed(2)).toLocaleString()} />
-                  <Metric label="Stock" value={cost(s?.stockValue ?? 0)} />
+                  <Metric label={t('Sale')} value={money(s?.revenue ?? 0)} />
+                  <Metric label={t('Becha')} value={Number((s?.quantity ?? 0).toFixed(2)).toLocaleString()} />
+                  <Metric label={t('Stock')} value={cost(s?.stockValue ?? 0)} />
                 </div>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
                   <div className="h-full rounded-full" style={{ width: `${((s?.revenue ?? 0) / maxRevenue) * 100}%`, background: i.color || hashColor(i.name) }} />
                 </div>
                 {((s?.lowStock ?? 0) > 0 || (s?.outOfStock ?? 0) > 0) && (
                   <p className="mt-2 text-[0.75rem] text-amber-700">
-                    {s?.outOfStock ? `${s.outOfStock} khatam` : ''}{s?.outOfStock && s?.lowStock ? ' · ' : ''}{s?.lowStock ? `${s.lowStock} kam` : ''}
+                    {s?.outOfStock ? t('{{outOfStock}} khatam', { outOfStock: s.outOfStock }) : ''}{s?.outOfStock && s?.lowStock ? ' · ' : ''}{s?.lowStock ? t('{{lowStock}} kam', { lowStock: s.lowStock }) : ''}
                   </p>
                 )}
               </div>
@@ -346,9 +347,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           <Table minWidth="40rem">
             <THead>
               <Tr>
-                <Th className="w-10 px-3"><span className="sr-only">Chunein</span></Th>
-                <Th className="px-3">Naam</Th><Th align="right" className="px-3">Products</Th><Th align="right" className="px-3">Sale</Th>
-                <Th align="right" className="px-3">Profit</Th><Th align="right" className="px-3">Stock</Th><Th className="w-10 px-3" />
+                <Th className="w-10 px-3"><span className="sr-only">{t('Chunein')}</span></Th>
+                <Th className="px-3">{t('Naam')}</Th><Th align="right" className="px-3">{t('Products')}</Th><Th align="right" className="px-3">{t('Sale')}</Th>
+                <Th align="right" className="px-3">{t('Profit')}</Th><Th align="right" className="px-3">{t('Stock')}</Th><Th className="w-10 px-3" />
               </Tr>
             </THead>
             <TBody>
@@ -356,9 +357,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
                 const s = i.stats;
                 return (
                   <Tr key={i.id} className={cn('transition hover:bg-slate-50', selected.has(i.id) && 'bg-brand-50/50', !i.isActive && 'opacity-70')}>
-                    <Td className="px-3 py-2"><Checkbox checked={selected.has(i.id)} onChange={() => pick(i.id)} aria-label={`${i.name} chunein`} /></Td>
+                    <Td className="px-3 py-2"><Checkbox checked={selected.has(i.id)} onChange={() => pick(i.id)} aria-label={t('{{name}} chunein', { name: i.name })} /></Td>
                     <Td className="px-3 py-2">
-                      <div className="flex items-center gap-2.5"><Avatar item={i} /><span className="font-medium text-slate-900">{i.name}</span>{!i.isActive && <span className="rounded-full bg-slate-100 px-1.5 text-[0.6875rem] text-slate-600">Band</span>}</div>
+                      <div className="flex items-center gap-2.5"><Avatar item={i} /><span className="font-medium text-slate-900">{i.name}</span>{!i.isActive && <span className="rounded-full bg-slate-100 px-1.5 text-[0.6875rem] text-slate-600">{t('Band')}</span>}</div>
                     </Td>
                     <Td align="right" className="px-3 py-2">{s?.products ?? 0}</Td>
                     <Td align="right" className="px-3 py-2">{money(s?.revenue ?? 0)}</Td>
@@ -376,11 +377,11 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex w-[min(32rem,calc(100%-2rem))] items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-white shadow-xl">
           <CheckSquare className="h-4 w-4" />
-          <span className="flex-1 text-sm">{selected.size} chuni</span>
-          <button type="button" onClick={() => setSelected(new Set(list.map((i) => i.id)))} className="text-sm text-white/80 hover:text-white">Sab</button>
-          <button type="button" onClick={() => setSelected(new Set())} className="text-sm text-white/80 hover:text-white">Hatayein</button>
+          <span className="flex-1 text-sm">{t('{{size}} chuni', { size: selected.size })}</span>
+          <button type="button" onClick={() => setSelected(new Set(list.map((i) => i.id)))} className="text-sm text-white/80 hover:text-white">{t('Sab')}</button>
+          <button type="button" onClick={() => setSelected(new Set())} className="text-sm text-white/80 hover:text-white">{t('Hatayein')}</button>
           <button type="button" onClick={() => setDeleting(items.filter((i) => selected.has(i.id)))}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-rose-500 px-3 text-sm font-semibold hover:bg-rose-600"><Trash2 className="h-3.5 w-3.5" /> Mitayein</button>
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-rose-500 px-3 text-sm font-semibold hover:bg-rose-600"><Trash2 className="h-3.5 w-3.5" /> {' '}{t('Mitayein')}</button>
         </div>
       )}
 
@@ -391,9 +392,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       {merging && <MergeModal config={config} from={merging} items={items} onClose={() => setMerging(null)} onDone={() => { setMerging(null); refresh(); }} />}
       {deleting && <DeleteModal config={config} list={deleting} onClose={() => setDeleting(null)} onDone={() => { setDeleting(null); setSelected(new Set()); refresh(); }} />}
       {guide.isOpen && (
-        <PageGuide title={`${config.title} — kaise chalayein`} onClose={guide.close}
+        <PageGuide title={t('{{title}} — kaise chalayein', { title: config.title })} onClose={guide.close}
           steps={config.guide.map((g, n) => ({ icon: config.icon, color: GUIDE_COLORS[n % GUIDE_COLORS.length], title: g.title, text: g.body }))}
-          shortcuts={[['/', 'Search'], ['N', `Nayi ${config.one}`], ['G', 'Guide']]} />
+          shortcuts={[['/', t('Search')], ['N', t('Nayi {{one}}', { one: config.one })], ['G', t('Guide')]]} />
       )}
     </PageShell>
   );
@@ -423,24 +424,24 @@ function RowMenu({ item, config, productsLink, onEdit, onMerge, onDelete, onTogg
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
   const run = (fn: () => void) => () => { setOpen(false); fn(); };
-  const row = 'flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50';
+  const row = 'flex w-full items-center gap-2 px-3 py-2 text-start text-sm text-slate-700 hover:bg-slate-50';
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-label={`${item.name} ke options`} aria-expanded={open}
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-label={t('{{name}} ke options', { name: item.name })} aria-expanded={open}
         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100">
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
-          <button type="button" role="menuitem" className={row} onClick={run(onEdit)}><Pencil className="h-4 w-4" /> Badlein</button>
-          <Link role="menuitem" to={productsLink} className={row}><Package className="h-4 w-4" /> Products dekhein</Link>
-          <button type="button" role="menuitem" className={row} onClick={run(onMerge)}><GitMerge className="h-4 w-4" /> Doosri me milayein</button>
+        <div role="menu" className="absolute end-0 top-full z-30 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+          <button type="button" role="menuitem" className={row} onClick={run(onEdit)}><Pencil className="h-4 w-4" /> {' '}{t('Badlein')}</button>
+          <Link role="menuitem" to={productsLink} className={row}><Package className="h-4 w-4" /> {' '}{t('Products dekhein')}</Link>
+          <button type="button" role="menuitem" className={row} onClick={run(onMerge)}><GitMerge className="h-4 w-4" /> {' '}{t('Doosri me milayein')}</button>
           {config.canSwitchOff && (
             <button type="button" role="menuitem" className={row} onClick={run(onToggle)}>
-              {item.isActive ? <><EyeOff className="h-4 w-4" /> Band karein</> : <><Eye className="h-4 w-4" /> Chalu karein</>}
+              {item.isActive ? <><EyeOff className="h-4 w-4" /> {' '}{t('Band karein')}</> : <><Eye className="h-4 w-4" /> {' '}{t('Chalu karein')}</>}
             </button>
           )}
-          <button type="button" role="menuitem" className={cn(row, 'text-rose-600 hover:bg-rose-50')} onClick={run(onDelete)}><Trash2 className="h-4 w-4" /> Mitayein</button>
+          <button type="button" role="menuitem" className={cn(row, 'text-rose-600 hover:bg-rose-50')} onClick={run(onDelete)}><Trash2 className="h-4 w-4" /> {' '}{t('Mitayein')}</button>
         </div>
       )}
     </div>
@@ -455,20 +456,20 @@ function EditorModal({ config, item, busy, onClose, onSave }: {
   const name = String(d.name ?? '').trim();
   const submit = () => { if (name) onSave({ ...d, name }); };
   return (
-    <Modal open onClose={onClose} size={config.extraFields ? 'lg' : 'md'} title={item ? `${cap(config.one)} badlein` : `Nayi ${config.one}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={busy} disabled={!name} onClick={submit}>{item ? 'Save karein' : 'Banayein'}</Button></>}>
+    <Modal open onClose={onClose} size={config.extraFields ? 'lg' : 'md'} title={item ? t('{{one}} badlein', { one: cap(config.one) }) : t('Nayi {{one}}', { one: config.one })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={busy} disabled={!name} onClick={submit}>{item ? t('Save karein') : t('Banayein')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div className="flex items-center gap-3">
           <Avatar item={{ name: name || '?', color: config.color ? d.color : undefined, icon: config.emoji ? d.icon : undefined, logoUrl: d.logoUrl }} size="lg" />
           <label className="block flex-1">
-            <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">Naam</span>
-            <input data-autofocus value={d.name ?? ''} onChange={(e) => set('name', e.target.value)} maxLength={80} placeholder={`${cap(config.one)} ka naam`}
+            <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">{t('Naam')}</span>
+            <input data-autofocus value={d.name ?? ''} onChange={(e) => set('name', e.target.value)} maxLength={80} placeholder={t('{{one}} ka naam', { one: cap(config.one) })}
               className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
           </label>
         </div>
         {config.color && (
           <div>
-            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Rang</p>
+            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Rang')}</p>
             <div className="flex flex-wrap gap-1.5">
               {COLORS.map((c) => (
                 <button key={c} type="button" onClick={() => set('color', c)} aria-label={c} aria-pressed={d.color === c}
@@ -479,10 +480,10 @@ function EditorModal({ config, item, busy, onClose, onSave }: {
         )}
         {config.emoji && (
           <div>
-            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Nishani (emoji)</p>
+            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Nishani (emoji)')}</p>
             <div className="flex flex-wrap gap-1">
               <button type="button" onClick={() => set('icon', '')} aria-pressed={!d.icon}
-                className={cn('h-9 rounded-lg px-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200', !d.icon && 'bg-slate-900 text-white ring-slate-900')}>Koi nahi</button>
+                className={cn('h-9 rounded-lg px-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200', !d.icon && 'bg-slate-900 text-white ring-slate-900')}>{t('Koi nahi')}</button>
               {EMOJIS.map((em) => (
                 <button key={em} type="button" onClick={() => set('icon', em)} aria-pressed={d.icon === em}
                   className={cn('h-9 w-9 rounded-lg text-lg transition hover:bg-slate-100', d.icon === em && 'bg-brand-50 ring-2 ring-brand-500')}>{em}</button>
@@ -508,23 +509,23 @@ function MergeModal({ config, from, items, onClose, onDone }: {
   const mut = useMutation({
     mutationFn: () => api.merge(from.id, into),
     onSuccess: (r) => { toast.success(r.message); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Nahi hua')),
   });
   return (
-    <Modal open onClose={onClose} size="md" title={`"${from.name}" ko milayein`}
-      description={`Is ke ${from.stats?.products ?? 0} products chuni hui ${config.one} me chale jayenge, phir "${from.name}" mit jayegi.`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={mut.isPending} disabled={!into} onClick={() => mut.mutate()} leftIcon={<GitMerge className="h-4 w-4" />}>Milayein</Button></>}>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" data-autofocus aria-label="Search"
+    <Modal open onClose={onClose} size="md" title={t('"{{name}}" ko milayein', { name: from.name })}
+      description={t('Is ke {{value}} products chuni hui {{one}} me chale jayenge, phir "{{name}}" mit jayegi.', { value: from.stats?.products ?? 0, one: config.one, name: from.name })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={mut.isPending} disabled={!into} onClick={() => mut.mutate()} leftIcon={<GitMerge className="h-4 w-4" />}>{t('Milayein')}</Button></>}>
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search…')} data-autofocus aria-label={t('Search')}
         className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-brand-500" />
       <div role="radiogroup" className="max-h-72 space-y-1 overflow-y-auto">
         {options.map((i) => (
           <button key={i.id} type="button" role="radio" aria-checked={into === i.id} onClick={() => setInto(i.id)}
-            className={cn('flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition', into === i.id ? 'bg-brand-50 ring-1 ring-brand-500' : 'hover:bg-slate-50')}>
+            className={cn('flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-start transition', into === i.id ? 'bg-brand-50 ring-1 ring-brand-500' : 'hover:bg-slate-50')}>
             <Avatar item={i} /><span className="flex-1 truncate text-sm font-medium text-slate-900">{i.name}</span>
-            <span className="text-[0.75rem] text-slate-500">{i.stats?.products ?? 0} products</span>
+            <span className="text-[0.75rem] text-slate-500">{t('{{value}} products', { value: i.stats?.products ?? 0 })}</span>
           </button>
         ))}
-        {!options.length && <p className="py-6 text-center text-sm text-slate-500">Koi aur {config.one} nahi</p>}
+        {!options.length && <p className="py-6 text-center text-sm text-slate-500">{t('Koi aur {{one}} nahi', { one: config.one })}</p>}
       </div>
       {target && <p className="mt-3 rounded-xl bg-brand-50 px-3 py-2 text-[0.8125rem] text-brand-900">{from.name} → <b>{target.name}</b></p>}
     </Modal>
@@ -540,21 +541,21 @@ function DeleteModal({ config, list, onClose, onDone }: { config: TaxonomyConfig
       for (const i of list) { try { await api.remove(i.id); ok++; } catch { /* reported below */ } }
       return ok;
     },
-    onSuccess: (ok) => { if (ok < list.length) toast.error(`${list.length - ok} nahi mitin`); else toast.success(`${ok} mita di gayin`); onDone(); },
+    onSuccess: (ok) => { if (ok < list.length) toast.error(t('{{value}} nahi mitin', { value: list.length - ok })); else toast.success(t('{{ok}} mita di gayin', { ok })); onDone(); },
   });
   const one = list.length === 1 ? `"${list[0].name}"` : `${list.length} ${config.title.toLowerCase()}`;
   return (
-    <Modal open onClose={onClose} size="sm" title={`${one} mitayein?`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()} leftIcon={<Trash2 className="h-4 w-4" />}>Mitayein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('{{one}} mitayein?', { one })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()} leftIcon={<Trash2 className="h-4 w-4" />}>{t('Mitayein')}</Button></>}>
       <p className="text-sm text-slate-700">
         {products > 0
           ? config.kind === 'tag'
-            ? `${products} products se yeh tag hat jayega. Products aur un ki sale wese hi rahegi.`
-            : `${products} products bina ${config.one} ke reh jayenge. Products aur un ki sale wese hi rahegi.`
-          : 'Is me koi product nahi — seedha mit jayegi.'}
+            ? t('{{products}} products se yeh tag hat jayega. Products aur un ki sale wese hi rahegi.', { products })
+            : t('{{products}} products bina {{one}} ke reh jayenge. Products aur un ki sale wese hi rahegi.', { products, one: config.one })
+          : t('Is me koi product nahi — seedha mit jayegi.')}
       </p>
       {products > 0 && config.kind !== 'tag' && (
-        <p className="mt-2 text-[0.8125rem] text-slate-500">Behtar: mitane ki bajaye "Doosri me milayein" se products kisi aur {config.one} me le jayein.</p>
+        <p className="mt-2 text-[0.8125rem] text-slate-500">{t('Behtar: mitane ki bajaye "Doosri me milayein" se products kisi aur {{one}} me le jayein.', { one: config.one })}</p>
       )}
     </Modal>
   );

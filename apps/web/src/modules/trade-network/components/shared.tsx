@@ -9,6 +9,7 @@ import { cn } from '@core/lib/cn';
 import { Pill } from '@modules/distribution/components/parts';
 import { TRADE_KEY, tradeApi, tradeError, type BusinessCard, type FoundSeller } from '../api/trade.api';
 import { LINK_STATUS, initials } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export function BizAvatar({ card, size = 'md' }: { card: Pick<BusinessCard, 'name' | 'logoUrl'> | null | undefined; size?: 'sm' | 'md' | 'lg' }) {
   const box = size === 'lg' ? 'h-12 w-12 text-[0.9375rem]' : size === 'sm' ? 'h-8 w-8 text-[0.6875rem]' : 'h-10 w-10 text-[0.8125rem]';
@@ -49,7 +50,7 @@ export function ConnectModal({ open, onClose, initialCode }: { open: boolean; on
   });
   const send = useMutation({
     mutationFn: () => tradeApi.request({ ...(mode === 'code' ? { code } : { phone }), note: note.trim() || undefined }),
-    onSuccess: () => { toast.success('Request bhej di — supplier approve karega'); qc.invalidateQueries({ queryKey: [TRADE_KEY] }); close(); },
+    onSuccess: () => { toast.success(tr('Request bhej di — supplier approve karega')); qc.invalidateQueries({ queryKey: [TRADE_KEY] }); close(); },
     onError: (e) => toast.error(tradeError(e)),
   });
   const close = () => { setFound(null); setNote(''); onClose(); };
@@ -57,18 +58,18 @@ export function ConnectModal({ open, onClose, initialCode }: { open: boolean; on
   const already = hit?.link && ['PENDING', 'ACTIVE', 'PAUSED'].includes(hit.link.status);
 
   return (
-    <Modal open={open} onClose={close} title="Add supplier" description="Apne distributor ka invite code ya phone number likhein. Woh approve karega, phir aap seedha Order bhej sakenge."
+    <Modal open={open} onClose={close} title={tr('Add supplier')} description={tr('Apne distributor ka invite code ya phone number likhein. Woh approve karega, phir aap seedha Order bhej sakenge.')}
       footer={<>
-        <Button variant="secondary" onClick={close}>Close</Button>
+        <Button variant="secondary" onClick={close}>{tr('Close')}</Button>
         {hit && !already
-          ? <Button loading={send.isPending} onClick={() => send.mutate()}>Send request</Button>
-          : <Button loading={find.isPending} leftIcon={<Search className="h-4 w-4" />} disabled={mode === 'code' ? code.trim().length < 6 : phone.replace(/\D/g, '').length < 10} onClick={() => find.mutate()}>Find</Button>}
+          ? <Button loading={send.isPending} onClick={() => send.mutate()}>{tr('Send request')}</Button>
+          : <Button loading={find.isPending} leftIcon={<Search className="h-4 w-4" />} disabled={mode === 'code' ? code.trim().length < 6 : phone.replace(/\D/g, '').length < 10} onClick={() => find.mutate()}>{tr('Find')}</Button>}
       </>}>
       <div className="space-y-4">
-        <Segmented value={mode} onChange={(v) => { setMode(v); setFound(null); }} items={[{ value: 'code', label: 'Invite code' }, { value: 'phone', label: 'Phone' }]} />
+        <Segmented value={mode} onChange={(v) => { setMode(v); setFound(null); }} items={[{ value: 'code', label: tr('Invite code') }, { value: 'phone', label: tr('Phone') }]} />
         {mode === 'code'
-          ? <Input label="Invite code" placeholder="NF-7K2P9Q" leftIcon={<Hash className="h-4 w-4" />} value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setFound(null); }} />
-          : <Input label="Distributor ka phone" placeholder="0300 1234567" inputMode="tel" leftIcon={<Phone className="h-4 w-4" />} value={phone} onChange={(e) => { setPhone(e.target.value); setFound(null); }} />}
+          ? <Input label={tr('Invite code')} placeholder={tr('NF-7K2P9Q')} leftIcon={<Hash className="h-4 w-4" />} value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setFound(null); }} />
+          : <Input label={tr('Distributor ka phone')} placeholder="0300 1234567" inputMode="tel" leftIcon={<Phone className="h-4 w-4" />} value={phone} onChange={(e) => { setPhone(e.target.value); setFound(null); }} />}
         {hit?.seller && (
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
             <BizAvatar card={hit.seller} />
@@ -79,8 +80,8 @@ export function ConnectModal({ open, onClose, initialCode }: { open: boolean; on
             {hit.link && <Pill tone={LINK_STATUS[hit.link.status].tone}>{LINK_STATUS[hit.link.status].label}</Pill>}
           </div>
         )}
-        {hit && !already && <Textarea label="Note (marzi)" rows={2} placeholder="Misal: Madina Kiryana, Main Bazar — har hafte order" value={note} onChange={(e) => setNote(e.target.value)} />}
-        {already && <p className="text-[0.8125rem] text-slate-500">Is supplier se aap ka link pehle se hai.</p>}
+        {hit && !already && <Textarea label={tr('Note (marzi)')} rows={2} placeholder={tr('Misal: Madina Kiryana, Main Bazar — har hafte order')} value={note} onChange={(e) => setNote(e.target.value)} />}
+        {already && <p className="text-[0.8125rem] text-slate-500">{tr('Is supplier se aap ka link pehle se hai.')}</p>}
       </div>
     </Modal>
   );

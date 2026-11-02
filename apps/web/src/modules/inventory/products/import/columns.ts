@@ -6,6 +6,7 @@
 
 import type { BusinessFeatures } from '@modules/organization/settings/api/business-config.api';
 import type { ImportField, ImportRow, PriceSheetRow } from './api';
+import { t as tr } from '@core/i18n';
 
 export type ImportMode = 'create' | 'prices';
 
@@ -17,30 +18,30 @@ export interface FieldDef {
 }
 
 export const FIELDS: Record<ImportField, FieldDef> = {
-  name: { key: 'name', label: 'Name', hint: 'Product ka naam — zaroori', aliases: ['name', 'product', 'product name', 'item', 'item name', 'items', 'title', 'description of goods', 'article', 'naam', 'product naam', 'item naam', 'cheez', 'maal', 'نام', 'پروڈکٹ', 'آئٹم'] },
-  price: { key: 'price', label: 'Price', hint: 'Bechne ki price (sale price)', aliases: ['price', 'sale price', 'selling price', 'sell price', 'retail price', 'mrp', 'rate', 'sale rate', 'retail', 'retail rate', 'unit price', 'sp', 'qeemat', 'keemat', 'bechne ki qeemat', 'new price', 'nayi price', 'قیمت', 'ریٹ'] },
-  costPrice: { key: 'costPrice', label: 'Cost Price', hint: 'Company / kharid ki price — Profit isi se banta hai', aliases: ['cost', 'cost price', 'company price', 'company rate', 'purchase price', 'buy price', 'buying price', 'purchase rate', 'purchase', 'cp', 'kharid', 'khareed', 'kharid qeemat', 'new cost', 'nayi cost', 'لاگت', 'خرید'] },
-  wholesalePrice: { key: 'wholesalePrice', label: 'Wholesale Price', hint: 'Thok (wholesale) grahak ki price', aliases: ['wholesale', 'wholesale price', 'wholesale rate', 'trade price', 'tp', 'b2b', 'thok', 'thok rate'] },
-  creditPrice: { key: 'creditPrice', label: 'Credit Price', hint: 'Udhaar grahak ki price — khaali ho to Retail price lagegi', aliases: ['credit', 'credit price', 'credit rate', 'udhaar', 'udhaar price', 'udhaar rate', 'udhar', 'udhar price', 'udhar rate', 'ادھار'] },
-  stock: { key: 'stock', label: 'Stock', hint: 'Abhi dukaan me kitna maal hai — chuni hui branch me opening stock banta hai', aliases: ['stock', 'qty', 'quantity', 'opening stock', 'opening qty', 'opening', 'in stock', 'on hand', 'qty in hand', 'qty on hand', 'stock in hand', 'current stock', 'closing stock', 'balance', 'stock qty', 'available', 'available qty', 'inventory', 'units', 'pcs', 'maujooda', 'maujooda stock', 'mojood', 'mojooda', 'miqdar', 'tadad', 'ginti', 'اسٹاک', 'سٹاک', 'مقدار', 'تعداد', 'موجودہ'] },
-  unit: { key: 'unit', label: 'Unit', hint: 'pcs, kg, liter, dozen, meter…', aliases: ['unit', 'uom', 'measure', 'unit of measure', 'packing unit', 'ikai', 'یونٹ'] },
-  category: { key: 'category', label: 'Category', hint: 'Nayi category khud ban jati hai', aliases: ['category', 'category name', 'cat', 'department', 'section', 'group', 'type of item', 'qisam', 'kism', 'قسم', 'کیٹیگری'] },
-  brand: { key: 'brand', label: 'Brand', hint: 'Naya brand khud ban jata hai', aliases: ['brand', 'brand name', 'company', 'company name', 'manufacturer', 'maker', 'make', 'برانڈ', 'کمپنی'] },
-  sku: { key: 'sku', label: 'SKU', hint: 'Apna code — har product ka alag', aliases: ['sku', 'code', 'item code', 'product code', 'ref', 'article no', 'item no', 'model', 'model no', 'کوڈ'] },
-  barcode: { key: 'barcode', label: 'Barcode', hint: 'Packet par chhapa code — har product ka alag', aliases: ['barcode', 'bar code', 'barcode no', 'ean', 'upc', 'gtin', 'بارکوڈ'] },
-  lowStockAlert: { key: 'lowStockAlert', label: 'Low Stock Alert', hint: 'Stock is se kam ho to yaad dilayein', aliases: ['low stock', 'low stock alert', 'reorder', 'reorder level', 'reorder point', 'min stock', 'minimum stock', 'minimum', 'min qty', 'alert'] },
-  taxRate: { key: 'taxRate', label: 'Tax %', hint: 'Sales tax percent, jaise 18', aliases: ['tax', 'tax %', 'tax rate', 'gst', 'gst %', 'vat', 'sales tax'] },
-  description: { key: 'description', label: 'Description', hint: 'Product ki tafseel', aliases: ['description', 'details', 'detail', 'notes', 'tafseel'] },
-  variant: { key: 'variant', label: 'Variant', hint: 'Ek naam ki kai lines = ek product, har line ek variant', aliases: ['variant', 'variants', 'variant name', 'variant names', 'option', 'flavour', 'flavor'] },
-  size: { key: 'size', label: 'Size', hint: 'Size ho to variant ban jata hai', aliases: ['size', 'sizes', 'naap', 'saiz', 'سائز'] },
-  color: { key: 'color', label: 'Color', hint: 'Color ho to variant ban jata hai', aliases: ['color', 'colour', 'colors', 'rang', 'رنگ'] },
-  packName: { key: 'packName', label: 'Pack Name', hint: 'Carton, Dozen, Box, Strip…', aliases: ['pack', 'pack name', 'pack type', 'carton name', 'pack unit', 'packing'] },
-  packQty: { key: 'packQty', label: 'Pack Qty', hint: 'Ek pack me kitne pcs', aliases: ['pack qty', 'pack size', 'per pack', 'pcs per pack', 'carton qty', 'pcs per carton', 'units per pack', 'pack me kitne', 'carton me kitne'] },
-  packPrice: { key: 'packPrice', label: 'Pack Price', hint: 'Khali ho to price × pack qty', aliases: ['pack price', 'carton price', 'box price', 'carton rate', 'pack rate'] },
-  packBarcode: { key: 'packBarcode', label: 'Pack Barcode', hint: 'Carton/box par chhapa code', aliases: ['pack barcode', 'carton barcode', 'box barcode'] },
-  batchNumber: { key: 'batchNumber', label: 'Batch No', hint: 'Opening stock ka batch', aliases: ['batch', 'batch no', 'batch number', 'lot', 'lot no', 'lot number'] },
-  expiryDate: { key: 'expiryDate', label: 'Expiry Date', hint: '2027-03-31 ya 31/03/2027', aliases: ['expiry', 'expiry date', 'exp', 'exp date', 'expires', 'expire', 'expiration', 'best before', 'mayaad'] },
-  imei: { key: 'imei', label: 'IMEI', hint: 'Phone ke 15 number wale IMEI, comma se alag — phone ka stock IMEI ginti se banta hai', aliases: ['imei', 'imeis', 'imei no', 'imei number', 'imei 1', 'imei1', 'serial imei'] },
+  name: { key: 'name', label: tr('Name'), hint: tr('Product ka naam — zaroori'), aliases: ['name', 'product', 'product name', 'item', 'item name', 'items', 'title', 'description of goods', 'article', 'naam', 'product naam', 'item naam', 'cheez', 'maal', 'نام', 'پروڈکٹ', 'آئٹم'] },
+  price: { key: 'price', label: tr('Price'), hint: tr('Bechne ki price (sale price)'), aliases: ['price', 'sale price', 'selling price', 'sell price', 'retail price', 'mrp', 'rate', 'sale rate', 'retail', 'retail rate', 'unit price', 'sp', 'qeemat', 'keemat', 'bechne ki qeemat', 'new price', 'nayi price', 'قیمت', 'ریٹ'] },
+  costPrice: { key: 'costPrice', label: tr('Cost Price'), hint: tr('Company / kharid ki price — Profit isi se banta hai'), aliases: ['cost', 'cost price', 'company price', 'company rate', 'purchase price', 'buy price', 'buying price', 'purchase rate', 'purchase', 'cp', 'kharid', 'khareed', 'kharid qeemat', 'new cost', 'nayi cost', 'لاگت', 'خرید'] },
+  wholesalePrice: { key: 'wholesalePrice', label: tr('Wholesale Price'), hint: tr('Thok (wholesale) grahak ki price'), aliases: ['wholesale', 'wholesale price', 'wholesale rate', 'trade price', 'tp', 'b2b', 'thok', 'thok rate'] },
+  creditPrice: { key: 'creditPrice', label: tr('Credit Price'), hint: tr('Udhaar grahak ki price — khaali ho to Retail price lagegi'), aliases: ['credit', 'credit price', 'credit rate', 'udhaar', 'udhaar price', 'udhaar rate', 'udhar', 'udhar price', 'udhar rate', 'ادھار'] },
+  stock: { key: 'stock', label: tr('Stock'), hint: tr('Abhi dukaan me kitna maal hai — chuni hui branch me opening stock banta hai'), aliases: ['stock', 'qty', 'quantity', 'opening stock', 'opening qty', 'opening', 'in stock', 'on hand', 'qty in hand', 'qty on hand', 'stock in hand', 'current stock', 'closing stock', 'balance', 'stock qty', 'available', 'available qty', 'inventory', 'units', 'pcs', 'maujooda', 'maujooda stock', 'mojood', 'mojooda', 'miqdar', 'tadad', 'ginti', 'اسٹاک', 'سٹاک', 'مقدار', 'تعداد', 'موجودہ'] },
+  unit: { key: 'unit', label: tr('Unit'), hint: tr('pcs, kg, liter, dozen, meter…'), aliases: ['unit', 'uom', 'measure', 'unit of measure', 'packing unit', 'ikai', 'یونٹ'] },
+  category: { key: 'category', label: tr('Category'), hint: tr('Nayi category khud ban jati hai'), aliases: ['category', 'category name', 'cat', 'department', 'section', 'group', 'type of item', 'qisam', 'kism', 'قسم', 'کیٹیگری'] },
+  brand: { key: 'brand', label: tr('Brand'), hint: tr('Naya brand khud ban jata hai'), aliases: ['brand', 'brand name', 'company', 'company name', 'manufacturer', 'maker', 'make', 'برانڈ', 'کمپنی'] },
+  sku: { key: 'sku', label: tr('SKU'), hint: tr('Apna code — har product ka alag'), aliases: ['sku', 'code', 'item code', 'product code', 'ref', 'article no', 'item no', 'model', 'model no', 'کوڈ'] },
+  barcode: { key: 'barcode', label: tr('Barcode'), hint: tr('Packet par chhapa code — har product ka alag'), aliases: ['barcode', 'bar code', 'barcode no', 'ean', 'upc', 'gtin', 'بارکوڈ'] },
+  lowStockAlert: { key: 'lowStockAlert', label: tr('Low Stock Alert'), hint: tr('Stock is se kam ho to yaad dilayein'), aliases: ['low stock', 'low stock alert', 'reorder', 'reorder level', 'reorder point', 'min stock', 'minimum stock', 'minimum', 'min qty', 'alert'] },
+  taxRate: { key: 'taxRate', label: tr('Tax %'), hint: tr('Sales tax percent, jaise 18'), aliases: ['tax', 'tax %', 'tax rate', 'gst', 'gst %', 'vat', 'sales tax'] },
+  description: { key: 'description', label: tr('Description'), hint: tr('Product ki tafseel'), aliases: ['description', 'details', 'detail', 'notes', 'tafseel'] },
+  variant: { key: 'variant', label: tr('Variant'), hint: tr('Ek naam ki kai lines = ek product, har line ek variant'), aliases: ['variant', 'variants', 'variant name', 'variant names', 'option', 'flavour', 'flavor'] },
+  size: { key: 'size', label: tr('Size'), hint: tr('Size ho to variant ban jata hai'), aliases: ['size', 'sizes', 'naap', 'saiz', 'سائز'] },
+  color: { key: 'color', label: tr('Color'), hint: tr('Color ho to variant ban jata hai'), aliases: ['color', 'colour', 'colors', 'rang', 'رنگ'] },
+  packName: { key: 'packName', label: tr('Pack Name'), hint: tr('Carton, Dozen, Box, Strip…'), aliases: ['pack', 'pack name', 'pack type', 'carton name', 'pack unit', 'packing'] },
+  packQty: { key: 'packQty', label: tr('Pack Qty'), hint: tr('Ek pack me kitne pcs'), aliases: ['pack qty', 'pack size', 'per pack', 'pcs per pack', 'carton qty', 'pcs per carton', 'units per pack', 'pack me kitne', 'carton me kitne'] },
+  packPrice: { key: 'packPrice', label: tr('Pack Price'), hint: tr('Khali ho to price × pack qty'), aliases: ['pack price', 'carton price', 'box price', 'carton rate', 'pack rate'] },
+  packBarcode: { key: 'packBarcode', label: tr('Pack Barcode'), hint: tr('Carton/box par chhapa code'), aliases: ['pack barcode', 'carton barcode', 'box barcode'] },
+  batchNumber: { key: 'batchNumber', label: tr('Batch No'), hint: tr('Opening stock ka batch'), aliases: ['batch', 'batch no', 'batch number', 'lot', 'lot no', 'lot number'] },
+  expiryDate: { key: 'expiryDate', label: tr('Expiry Date'), hint: tr('2027-03-31 ya 31/03/2027'), aliases: ['expiry', 'expiry date', 'exp', 'exp date', 'expires', 'expire', 'expiration', 'best before', 'mayaad'] },
+  imei: { key: 'imei', label: tr('IMEI'), hint: tr('Phone ke 15 number wale IMEI, comma se alag — phone ka stock IMEI ginti se banta hai'), aliases: ['imei', 'imeis', 'imei no', 'imei number', 'imei 1', 'imei1', 'serial imei'] },
 };
 
 export const CREATE_FIELDS: ImportField[] = [
@@ -308,7 +309,7 @@ export async function readFile(file: File): Promise<Sheet> {
 export function readPasted(text: string): Sheet {
   const lines = text.replace(/\r/g, '').split('\n');
   const sep = text.includes('\t') ? '\t' : ',';
-  const { hits: _hits, ...sheet } = fromGrid('Paste kiya data', lines.map((l) => l.split(sep)));
+  const { hits: _hits, ...sheet } = fromGrid(tr('Paste kiya data'), lines.map((l) => l.split(sep)));
   return sheet;
 }
 
@@ -375,20 +376,20 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 function guideSheet(keys: ImportField[], features: Features): unknown[][] {
   return [
-    ['Column', 'Kya likhna hai'],
+    [tr('Column'), tr('Kya likhna hai')],
     ...keys.map((k) => [FIELDS[k].label, FIELDS[k].hint]),
     [],
-    ['Yaad rakhein'],
-    ['Pehli line column ke naam hain — inhe na badlein, baqi lines me apna maal likhein.'],
-    ['Sample lines mita kar apni lines likhein. Khaali lines khud chhor di jati hain.'],
-    ['Stock: abhi dukaan me jitna maal hai wo likhein (jaise 24 ya 12.5). Import ke waqt jo branch chunenge stock usi me "Opening stock" ban kar jata hai.'],
-    ['Stock, Price aur Cost me "Rs 1,250" ya "1250" dono chalte hain — comma aur Rs khud hat jate hain.'],
-    ['Jo product pehle se hai: import ke waqt chun sakte hain — stock jama karein, stock file wala kar dein, ya chhor dein.'],
-    ['SKU aur Barcode column ko Text format me rakhein taake shuru ke 0 na katein.'],
-    ...(features.sizeMatrix || features.variantImages ? [['Ek hi naam ki kai lines me Size/Color/Variant ho to ek product ke variants bante hain — har line ka stock us variant ka hai.']] : []),
-    ...(features.multiUnit ? [['Pack Name + Pack Qty (jaise Carton, 24) se pack lag jata hai. Stock hamesha khule (Unit) me likhein, carton me nahi.']] : []),
-    ...(features.expiry || features.batches ? [['Batch No aur Expiry Date us stock ke hain jo is line me likha hai.']] : []),
-    ...(features.imei ? [['Mobile phone: IMEI column me har phone ka 15 number wala IMEI likhein (comma se alag). Phone ka stock IMEI ginti se banta hai — Stock khaali chhor dein. Accessories ka stock seedha likhein.']] : []),
+    [tr('Yaad rakhein')],
+    [tr('Pehli line column ke naam hain — inhe na badlein, baqi lines me apna maal likhein.')],
+    [tr('Sample lines mita kar apni lines likhein. Khaali lines khud chhor di jati hain.')],
+    [tr('Stock: abhi dukaan me jitna maal hai wo likhein (jaise 24 ya 12.5). Import ke waqt jo branch chunenge stock usi me "Opening stock" ban kar jata hai.')],
+    [tr('Stock, Price aur Cost me "Rs 1,250" ya "1250" dono chalte hain — comma aur Rs khud hat jate hain.')],
+    [tr('Jo product pehle se hai: import ke waqt chun sakte hain — stock jama karein, stock file wala kar dein, ya chhor dein.')],
+    [tr('SKU aur Barcode column ko Text format me rakhein taake shuru ke 0 na katein.')],
+    ...(features.sizeMatrix || features.variantImages ? [[tr('Ek hi naam ki kai lines me Size/Color/Variant ho to ek product ke variants bante hain — har line ka stock us variant ka hai.')]] : []),
+    ...(features.multiUnit ? [[tr('Pack Name + Pack Qty (jaise Carton, 24) se pack lag jata hai. Stock hamesha khule (Unit) me likhein, carton me nahi.')]] : []),
+    ...(features.expiry || features.batches ? [[tr('Batch No aur Expiry Date us stock ke hain jo is line me likha hai.')]] : []),
+    ...(features.imei ? [[tr('Mobile phone: IMEI column me har phone ka 15 number wala IMEI likhein (comma se alag). Phone ka stock IMEI ginti se banta hai — Stock khaali chhor dein. Accessories ka stock seedha likhein.')]] : []),
   ];
 }
 
@@ -398,9 +399,9 @@ export async function downloadTemplate(opts: { features: Features; businessType:
   const head = keys.map((k) => FIELDS[k].label);
   const rows = samples(opts.businessType, opts.unit).slice(0, 2).map((s) => keys.map((k) => s[k] ?? ''));
   await save(`products-template-${today()}.xlsx`, [
-    { title: 'Products', rows: [head, ...rows], widths: keys.map((k) => (k === 'name' ? 28 : k === 'imei' ? 36 : 14)) },
-    { title: 'Hidayat', rows: guideSheet(keys, opts.features), widths: [18, 90] },
-    ...(opts.categories.length ? [{ title: 'Categories', rows: [['Pehle se bani categories'], ...opts.categories.map((c) => [c])], widths: [30] }] : []),
+    { title: tr('Products'), rows: [head, ...rows], widths: keys.map((k) => (k === 'name' ? 28 : k === 'imei' ? 36 : 14)) },
+    { title: tr('Hidayat'), rows: guideSheet(keys, opts.features), widths: [18, 90] },
+    ...(opts.categories.length ? [{ title: tr('Categories'), rows: [[tr('Pehle se bani categories')], ...opts.categories.map((c) => [c])], widths: [30] }] : []),
   ]);
 }
 
@@ -411,8 +412,8 @@ export async function downloadSample(opts: { features: Features; businessType: s
   // Only columns the examples use, so the sample stays easy to read.
   const used = keys.filter((k) => k === 'name' || k === 'stock' || list.some((s) => s[k] !== undefined && s[k] !== ''));
   await save(`sample-products-${kindOf(opts.businessType).toLowerCase()}.xlsx`, [
-    { title: 'Products', rows: [used.map((k) => FIELDS[k].label), ...list.map((s) => used.map((k) => s[k] ?? ''))], widths: used.map((k) => (k === 'name' ? 28 : k === 'imei' ? 36 : 14)) },
-    { title: 'Hidayat', rows: guideSheet(used, opts.features), widths: [18, 90] },
+    { title: tr('Products'), rows: [used.map((k) => FIELDS[k].label), ...list.map((s) => used.map((k) => s[k] ?? ''))], widths: used.map((k) => (k === 'name' ? 28 : k === 'imei' ? 36 : 14)) },
+    { title: tr('Hidayat'), rows: guideSheet(used, opts.features), widths: [18, 90] },
   ]);
 }
 
@@ -420,7 +421,7 @@ export async function downloadSample(opts: { features: Features; businessType: s
 export async function downloadPriceSheet(rows: PriceSheetRow[], withCost: boolean) {
   const head = ['Name', 'Variant', 'Pack Name', 'Category', 'SKU', 'Barcode', 'Price', ...(withCost ? ['Cost Price'] : [])];
   const body = rows.map((r) => [r.name, r.variant, r.packName, r.category, r.sku, r.barcode, r.price, ...(withCost ? [r.costPrice ?? ''] : [])]);
-  await save(`price-list-${today()}.xlsx`, [{ title: 'Prices', rows: [head, ...body], widths: [30, 14, 12, 16, 14, 16, 10, 10] }]);
+  await save(`price-list-${today()}.xlsx`, [{ title: tr('Prices'), rows: [head, ...body], widths: [30, 14, 12, 16, 14, 16, 10, 10] }]);
 }
 
 /** Grid rows that need fixing, in the import's own columns, with the reason in the last column. */
@@ -431,14 +432,14 @@ export async function downloadProblemRows(
 ) {
   const body = rows.filter((r) => problems.has(r.id)).map((r) => [...fields.map((f) => r.cells[f] ?? ''), r.id, problems.get(r.id)]);
   await save(`import-ghaltiyan-${today()}.xlsx`, [
-    { title: 'Theek karein', rows: [[...fields.map((f) => FIELDS[f].label), 'File line', 'Kya ghalat hai'], ...body], widths: [...fields.map((f) => (f === 'name' ? 28 : 14)), 9, 60] },
+    { title: tr('Theek karein'), rows: [[...fields.map((f) => FIELDS[f].label), tr('File line'), tr('Kya ghalat hai')], ...body], widths: [...fields.map((f) => (f === 'name' ? 28 : 14)), 9, 60] },
   ]);
 }
 
 /** Failed rows saved with an earlier import (the file itself is not kept). */
 export async function downloadJobErrors(fileName: string, errors: Array<{ row: number; name: string; error: string }>) {
   await save(`ghaltiyan-${fileName.replace(/\.[^.]+$/, '')}.xlsx`, [
-    { title: 'Ghaltiyan', rows: [['File line', 'Name', 'Kya ghalat hai'], ...errors.map((e) => [e.row, e.name, e.error])], widths: [9, 30, 70] },
+    { title: tr('Ghaltiyan'), rows: [[tr('File line'), tr('Name'), tr('Kya ghalat hai')], ...errors.map((e) => [e.row, e.name, e.error])], widths: [9, 30, 70] },
   ]);
 }
 
@@ -448,7 +449,7 @@ export async function downloadJobChanges(
   changes: Array<{ row: number; name: string; price?: { from: number; to: number }; costPrice?: { from: number; to: number } }>,
   withCost: boolean,
 ) {
-  const head = ['File line', 'Name', 'Purani price', 'Nayi price', ...(withCost ? ['Purani cost', 'Nayi cost'] : [])];
+  const head = [tr('File line'), tr('Name'), tr('Purani price'), tr('Nayi price'), ...(withCost ? [tr('Purani cost'), tr('Nayi cost')] : [])];
   const rows = changes.map((c) => [c.row, c.name, c.price?.from ?? '', c.price?.to ?? '', ...(withCost ? [c.costPrice?.from ?? '', c.costPrice?.to ?? ''] : [])]);
-  await save(`price-changes-${fileName.replace(/\.[^.]+$/, '')}.xlsx`, [{ title: 'Changes', rows: [head, ...rows], widths: [9, 32, 12, 12, 12, 12] }]);
+  await save(`price-changes-${fileName.replace(/\.[^.]+$/, '')}.xlsx`, [{ title: tr('Changes'), rows: [head, ...rows], widths: [9, 32, 12, 12, 12, 12] }]);
 }

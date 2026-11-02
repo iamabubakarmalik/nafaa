@@ -25,10 +25,11 @@ import { useMoney } from '../hooks/useDistribution';
 import { LoadSheetModal } from '../components/LoadSheetModal';
 import { Empty, Pill } from '../components/parts';
 import { dayLabel, rs, SHEET_STATUS, typingInField } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = LoadSheetStatus | 'ALL';
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'OPEN', label: 'Tayyar ho rahi' }, { id: 'DISPATCHED', label: 'Raste me' }, { id: 'SETTLED', label: 'Settle' }, { id: 'ALL', label: 'Sab' },
+  { id: 'OPEN', label: tr('Tayyar ho rahi') }, { id: 'DISPATCHED', label: tr('Raste me') }, { id: 'SETTLED', label: tr('Settle') }, { id: 'ALL', label: tr('Sab') },
 ];
 
 export default function LoadSheetsPage() {
@@ -76,51 +77,51 @@ function Sheets() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution" backLabel="Distribution"
-        title="Load sheets"
-        chip={<><Truck /> Gaari ki trip</>}
-        meta="Invoiced orders gaari par — maal ki list, delivery aur wapsi ke baad cash ka hisaab"
+        back="/distribution" backLabel={tr('Distribution')}
+        title={tr('Load sheets')}
+        chip={<><Truck /> {' '}{tr('Gaari ki trip')}</>}
+        meta={tr('Invoiced orders gaari par — maal ki list, delivery aur wapsi ke baad cash ka hisaab')}
         busy={q.isFetching && !q.isLoading}
         loading={q.isLoading}
         actions={<>
-          <button type="button" onClick={() => void q.refetch()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
-          {canLoad && <button type="button" onClick={() => setCreating(true)} title="Nayi load sheet (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">Nayi load sheet</span></button>}
+          <button type="button" onClick={() => void q.refetch()} title={tr('Taaza karein')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
+          {canLoad && <button type="button" onClick={() => setCreating(true)} title={tr('Nayi load sheet (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">{tr('Nayi load sheet')}</span></button>}
         </>}
         stats={[
-          { label: 'Load baqi', value: toLoad ? String(toLoad.total) : '—', hint: toLoad ? money(toLoad.totalValue) : undefined },
-          { label: 'Sheets', value: q.data ? String(total) : '—' },
+          { label: tr('Load baqi'), value: toLoad ? String(toLoad.total) : '—', hint: toLoad ? money(toLoad.totalValue) : undefined },
+          { label: tr('Sheets'), value: q.data ? String(total) : '—' },
         ]}
       />
 
       {toLoad && toLoad.total > 0 && canLoad && (
         <button type="button" onClick={() => setCreating(true)}
-          className="flex w-full items-center gap-3 rounded-2xl bg-violet-50 px-4 py-3 text-left ring-1 ring-violet-200 hover:bg-violet-100/70">
+          className="flex w-full items-center gap-3 rounded-2xl bg-violet-50 px-4 py-3 text-start ring-1 ring-violet-200 hover:bg-violet-100/70">
           <ClipboardCheck className="h-5 w-5 shrink-0 text-violet-700" />
-          <span className="min-w-0 flex-1 text-[0.875rem] text-violet-900"><b>{toLoad.total} Invoiced orders</b> ({money(toLoad.totalValue)}) abhi kisi load sheet par nahi</span>
-          <span className="hidden items-center gap-1 text-[0.8125rem] font-semibold text-violet-800 sm:inline-flex">Load sheet banayein <ArrowRight className="h-4 w-4" /></span>
+          <span className="min-w-0 flex-1 text-[0.875rem] text-violet-900"><b>{tr('{{total}} Invoiced orders', { total: toLoad.total })}</b> {' '}{tr('({{totalValue}}) abhi kisi load sheet par nahi', { totalValue: money(toLoad.totalValue) })}</span>
+          <span className="hidden items-center gap-1 text-[0.8125rem] font-semibold text-violet-800 sm:inline-flex">{tr('Load sheet banayein')}{' '} <ArrowRight className="h-4 w-4 rtl-flip" /></span>
         </button>
       )}
 
       <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: t.id === tab ? total : null }))}
         right={<div className="flex items-center gap-3">
-          <span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex">{canLoad && <><Kbd>N</Kbd> nayi · </>}<Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>Enter</Kbd> kholein</span>
+          <span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex">{canLoad && <><Kbd>N</Kbd> {' '}{tr('nayi ·')}{' '} </>}<Kbd>1</Kbd>-<Kbd>4</Kbd> {' '}{tr('tabs ·')}{' '} <Kbd>Enter</Kbd> {' '}{tr('kholein')}</span>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="all" />
         </div>} />
 
       <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {q.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-          : !sheets.length ? <Empty icon={<Truck className="h-5 w-5" />} text="Is filter me koi load sheet nahi." action={canLoad ? <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>Nayi load sheet</Button> : undefined} />
+          : !sheets.length ? <Empty icon={<Truck className="h-5 w-5" />} text={tr('Is filter me koi load sheet nahi.')} action={canLoad ? <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>{tr('Nayi load sheet')}</Button> : undefined} />
             : <>
               <div className="hidden overflow-x-auto md:block">
                 <Table minWidth="56rem" className="[&_table]:text-[0.8125rem]">
-                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                     <Tr>
-                      <Th className="px-4 py-2 sm:px-5">Sheet</Th>
-                      <Th className="px-3 py-2">Route · Gaari</Th>
-                      <Th className="px-3 py-2 text-right">Invoices</Th>
-                      <Th className="px-3 py-2 text-right">Value</Th>
-                      <Th className="px-3 py-2 text-right">Cash</Th>
-                      <Th className="px-3 py-2">Halat</Th>
+                      <Th className="px-4 py-2 sm:px-5">{tr('Sheet')}</Th>
+                      <Th className="px-3 py-2">{tr('Route · Gaari')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Invoices')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Value')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Cash')}</Th>
+                      <Th className="px-3 py-2">{tr('Halat')}</Th>
                       <Th className="px-4 py-2 sm:px-5" />
                     </Tr>
                   </THead>
@@ -133,23 +134,23 @@ function Sheets() {
                           <div className="whitespace-nowrap text-[0.75rem] text-slate-500">{dayLabel(s.date)}</div>
                         </Td>
                         <Td className="max-w-[16rem] px-3 py-2.5">
-                          <div className="truncate text-slate-800">{s.routeName ?? 'Mili juli'}</div>
-                          <div className="truncate text-[0.75rem] text-slate-500">{[s.deliveryUserName, s.driverName, s.vehicleNo].filter(Boolean).join(' · ') || 'Delivery wala nahi lagaya'}</div>
+                          <div className="truncate text-slate-800">{s.routeName ?? tr('Mili juli')}</div>
+                          <div className="truncate text-[0.75rem] text-slate-500">{[s.deliveryUserName, s.driverName, s.vehicleNo].filter(Boolean).join(' · ') || tr('Delivery wala nahi lagaya')}</div>
                         </Td>
-                        <Td className="px-3 py-2.5 text-right tabular-nums">{s.invoiceCount}</Td>
-                        <Td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900">{money(s.totalValue)}
-                          {s.returnsValue > 0 && <div className="whitespace-nowrap text-[0.6875rem] font-normal text-rose-600">wapas {rs(s.returnsValue)}</div>}</Td>
-                        <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
+                        <Td className="px-3 py-2.5 text-end tabular-nums">{s.invoiceCount}</Td>
+                        <Td className="whitespace-nowrap px-3 py-2.5 text-end font-semibold tabular-nums text-slate-900">{money(s.totalValue)}
+                          {s.returnsValue > 0 && <div className="whitespace-nowrap text-[0.6875rem] font-normal text-rose-600">{tr('wapas {{returnsValue}}', { returnsValue: rs(s.returnsValue) })}</div>}</Td>
+                        <Td className="whitespace-nowrap px-3 py-2.5 text-end tabular-nums">
                           {s.status === 'SETTLED' ? <>
                             <div className="text-slate-800">{rs(s.handedIn ?? 0)} <span className="text-slate-400">/ {rs(s.expectedCash)}</span></div>
-                            {s.shortAmount !== 0 && <div className={cn('text-[0.6875rem] font-semibold', s.shortAmount > 0 ? 'text-rose-600' : 'text-success-700')}>{s.shortAmount > 0 ? 'Kam' : 'Zyada'} {rs(Math.abs(s.shortAmount))}</div>}
+                            {s.shortAmount !== 0 && <div className={cn('text-[0.6875rem] font-semibold', s.shortAmount > 0 ? 'text-rose-600' : 'text-success-700')}>{s.shortAmount > 0 ? tr('Kam') : tr('Zyada')} {rs(Math.abs(s.shortAmount))}</div>}
                           </> : <span className="text-slate-400">—</span>}
                         </Td>
                         <Td className="px-3 py-2.5"><Pill tone={SHEET_STATUS[s.status].tone}>{SHEET_STATUS[s.status].label}</Pill></Td>
-                        <Td className="px-4 py-2.5 text-right sm:px-5" onClick={(e) => e.stopPropagation()}>
+                        <Td className="px-4 py-2.5 text-end sm:px-5" onClick={(e) => e.stopPropagation()}>
                           {canSettle && (s.status === 'DISPATCHED' || s.status === 'OPEN')
-                            ? <Link to={`/distribution/load-sheets/${s.id}/settle`}><Button size="sm" variant={s.status === 'DISPATCHED' ? 'primary' : 'secondary'}>Settle</Button></Link>
-                            : <ArrowRight className="ml-auto h-4 w-4 text-slate-300" />}
+                            ? <Link to={`/distribution/load-sheets/${s.id}/settle`}><Button size="sm" variant={s.status === 'DISPATCHED' ? 'primary' : 'secondary'}>{tr('Settle')}</Button></Link>
+                            : <ArrowRight className="ms-auto h-4 w-4 text-slate-300 rtl-flip" />}
                         </Td>
                       </Tr>
                     ))}
@@ -164,10 +165,10 @@ function Sheets() {
                         <span className="text-[0.875rem] font-semibold text-slate-900">{s.number} <span className="font-normal text-slate-500">· {dayLabel(s.date)}</span></span>
                         <Pill tone={SHEET_STATUS[s.status].tone}>{SHEET_STATUS[s.status].label}</Pill>
                       </span>
-                      <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{s.routeName ?? 'Mili juli'} · {s.invoiceCount} invoices · {[s.deliveryUserName, s.vehicleNo].filter(Boolean).join(' · ')}</span>
+                      <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{tr('{{value}} · {{invoiceCount}} invoices · {{value2}}', { value: s.routeName ?? 'Mili juli', invoiceCount: s.invoiceCount, value2: [s.deliveryUserName, s.vehicleNo].filter(Boolean).join(' · ') })}</span>
                       <span className="mt-1 flex items-center justify-between text-[0.8125rem]">
                         <span className="font-semibold tabular-nums text-slate-900">{money(s.totalValue)}</span>
-                        {s.status === 'SETTLED' && s.shortAmount !== 0 && <span className={cn('text-[0.75rem] font-semibold', s.shortAmount > 0 ? 'text-rose-600' : 'text-success-700')}>{s.shortAmount > 0 ? 'Kam' : 'Zyada'} {rs(Math.abs(s.shortAmount))}</span>}
+                        {s.status === 'SETTLED' && s.shortAmount !== 0 && <span className={cn('text-[0.75rem] font-semibold', s.shortAmount > 0 ? 'text-rose-600' : 'text-success-700')}>{s.shortAmount > 0 ? tr('Kam') : tr('Zyada')} {rs(Math.abs(s.shortAmount))}</span>}
                       </span>
                     </Link>
                   </li>
@@ -177,8 +178,8 @@ function Sheets() {
                 <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-600 sm:px-5">
                   <span>{(page - 1) * 30 + 1}–{Math.min(page * 30, total)} / {total}</span>
                   <span className="flex gap-2">
-                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Pichla</Button>
-                    <Button size="sm" variant="secondary" disabled={page * 30 >= total} onClick={() => setPage(page + 1)}>Agla</Button>
+                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>{tr('Pichla')}</Button>
+                    <Button size="sm" variant="secondary" disabled={page * 30 >= total} onClick={() => setPage(page + 1)}>{tr('Agla')}</Button>
                   </span>
                 </div>
               )}

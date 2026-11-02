@@ -3,6 +3,7 @@ import type { PrismaService } from '../../../prisma/prisma.service';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import type { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Taking back a dish the kitchen already has is a void. Staff with the
@@ -12,7 +13,7 @@ import type { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-pay
  */
 export async function approveKitchenVoid(prisma: PrismaService, user: AuthenticatedUser, pin: string | undefined, action: string) {
   if (!hasPermission(user.role, user.permissions, PERMISSIONS.SALES_VOID)) {
-    if (!pin) throw new ForbiddenException(`${action} ke liye malik ya manager ka PIN chahiye`);
+    if (!pin) throw new ForbiddenException(apiMessage('{{action}} ke liye malik ya manager ka PIN chahiye', { action }));
     return requireManagerPin(prisma, user, pin, action, true, PIN_NEEDS.void);
   }
   const rules = await prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForVoid: true } });

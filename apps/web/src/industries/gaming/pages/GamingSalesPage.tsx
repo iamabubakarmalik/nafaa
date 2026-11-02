@@ -10,15 +10,16 @@ import { CreditCard, PackageOpen, Timer, Trophy } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
 import { BILL_PREFIX } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold hover:underline';
 const stop = (e: MouseEvent) => e.stopPropagation();
 
 const MARKS = [
-  { prefix: BILL_PREFIX.session, to: '/gaming/cafe', icon: Timer, label: 'Station', tone: 'bg-violet-50 text-violet-700' },
-  { prefix: BILL_PREFIX.rental, to: '/gaming/rentals', icon: PackageOpen, label: 'Rental', tone: 'bg-sky-50 text-sky-700' },
-  { prefix: BILL_PREFIX.tournament, to: '/gaming/tournaments', icon: Trophy, label: 'Tournament entry', tone: 'bg-amber-50 text-amber-800' },
-  { prefix: BILL_PREFIX.topup, to: '/gaming/topups', icon: CreditCard, label: 'Card', tone: 'bg-emerald-50 text-emerald-700' },
+  { prefix: BILL_PREFIX.session, to: '/gaming/cafe', icon: Timer, label: t('Station'), tone: 'bg-violet-50 text-violet-700' },
+  { prefix: BILL_PREFIX.rental, to: '/gaming/rentals', icon: PackageOpen, label: t('Rental'), tone: 'bg-sky-50 text-sky-700' },
+  { prefix: BILL_PREFIX.tournament, to: '/gaming/tournaments', icon: Trophy, label: t('Tournament entry'), tone: 'bg-amber-50 text-amber-800' },
+  { prefix: BILL_PREFIX.topup, to: '/gaming/topups', icon: CreditCard, label: t('Card'), tone: 'bg-emerald-50 text-emerald-700' },
 ];
 
 function useGamingExtras() {
@@ -34,7 +35,7 @@ function useGamingExtras() {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Gaming', useBillExtras: useGamingExtras };
+const config: SalesHistoryConfig = { label: t('Gaming'), useBillExtras: useGamingExtras };
 
 export default function GamingSalesPage() {
   return <SalesHistoryPage config={config} />;

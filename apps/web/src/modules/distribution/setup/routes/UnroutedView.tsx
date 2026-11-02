@@ -12,6 +12,7 @@ import { cn } from '@core/lib/cn';
 import { DIST_KEY, distError, distSetupApi, type Route } from '../../api/distribution.api';
 import type { RosterCustomer } from '../shared';
 import { partyName, rs } from '../../lib/meta';
+import { t } from '@core/i18n';
 
 export function UnroutedView({ routes, customers, loading, error }: { routes: Route[]; customers: RosterCustomer[]; loading: boolean; error: unknown }) {
   const qc = useQueryClient();
@@ -25,7 +26,7 @@ export function UnroutedView({ routes, customers, loading, error }: { routes: Ro
     const m = new Map<string, RosterCustomer[]>();
     for (const c of customers) {
       if (q && !`${c.name} ${c.businessName ?? ''} ${c.phone ?? ''} ${c.area ?? ''} ${c.city ?? ''}`.toLowerCase().includes(q)) continue;
-      const k = c.area?.trim() || c.city?.trim() || 'Ilaqa nahi likha';
+      const k = c.area?.trim() || c.city?.trim() || t('Ilaqa nahi likha');
       m.set(k, [...(m.get(k) ?? []), c]);
     }
     return [...m.entries()].sort((a, b) => b[1].length - a[1].length);
@@ -35,29 +36,29 @@ export function UnroutedView({ routes, customers, loading, error }: { routes: Ro
     mutationFn: () => distSetupApi.setRouteCustomers(routeId, picked),
     onSuccess: () => {
       const r = routes.find((x) => x.id === routeId);
-      toast.success(`${picked.length} dukaanein ${r?.name ?? 'route'} par lag gayin`);
+      toast.success(t('{{count}} dukaanein {{value}} par lag gayin', { count: picked.length, value: r?.name ?? 'route' }));
       setPicked([]);
       qc.invalidateQueries({ queryKey: [DIST_KEY] });
     },
-    onError: (e) => toast.error(distError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(distError(e, t('Save nahi hua'))),
   });
   const toggleAll = (ids: string[]) => setPicked((p) => (ids.every((id) => p.includes(id)) ? p.filter((x) => !ids.includes(x)) : [...new Set([...p, ...ids])]));
 
-  if (error) return <Alert tone="warning">{distError(error, 'Customers nahi aaye')}</Alert>;
+  if (error) return <Alert tone="warning">{distError(error, t('Customers nahi aaye'))}</Alert>;
   if (loading) return <Skeleton className="h-72 rounded-2xl" />;
   if (!customers.length) {
-    return <div className="rounded-2xl bg-white px-5 py-12 text-center text-sm text-slate-500 shadow-sm ring-1 ring-slate-200/80">Har customer kisi route par hai.</div>;
+    return <div className="rounded-2xl bg-white px-5 py-12 text-center text-sm text-slate-500 shadow-sm ring-1 ring-slate-200/80">{t('Har customer kisi route par hai.')}</div>;
   }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
-        <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, dukaan, phone ya ilaqa" aria-label="Dhoondein"
+        <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Naam, dukaan, phone ya ilaqa')} aria-label={t('Dhoondein')}
           leftIcon={<Search className="h-4 w-4" />} wrapperClassName="min-w-[12rem] flex-1" />
-        <Select size="sm" aria-label="Route" value={routeId} onChange={(e) => setRouteId(e.target.value)} wrapperClassName="w-56"
-          options={[{ value: '', label: '— Route chunein —' }, ...active.map((r) => ({ value: r.id, label: r.name }))]} />
+        <Select size="sm" aria-label={t('Route')} value={routeId} onChange={(e) => setRouteId(e.target.value)} wrapperClassName="w-56"
+          options={[{ value: '', label: t('— Route chunein —') }, ...active.map((r) => ({ value: r.id, label: r.name }))]} />
         <Button size="sm" disabled={!picked.length || !routeId} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<MapPin className="h-4 w-4" />}>
-          {picked.length ? `${picked.length} route par daalein` : 'Route par daalein'}
+          {picked.length ? t('{{count}} route par daalein', { count: picked.length }) : t('Route par daalein')}
         </Button>
       </div>
 
@@ -68,7 +69,7 @@ export function UnroutedView({ routes, customers, loading, error }: { routes: Ro
           return (
             <section key={area} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <header className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
-                <input type="checkbox" checked={all} onChange={() => toggleAll(ids)} aria-label={`${area} sab`} className="h-4 w-4 rounded border-slate-300 accent-brand-600" />
+                <input type="checkbox" checked={all} onChange={() => toggleAll(ids)} aria-label={t('{{area}} sab', { area })} className="h-4 w-4 rounded border-slate-300 accent-brand-600" />
                 <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-semibold text-slate-900">{area}</span>
                 <span className="rounded-full bg-slate-100 px-2 text-[0.6875rem] font-semibold text-slate-600">{list.length}</span>
               </header>

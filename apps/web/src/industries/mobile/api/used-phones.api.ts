@@ -1,5 +1,6 @@
 import { apiClient } from '@core/api/client';
 import type { PtaStatus } from './imei.api';
+import { t } from '@core/i18n';
 
 export type UsedPhoneCondition = 'EXCELLENT' | 'VERY_GOOD' | 'GOOD' | 'FAIR' | 'POOR';
 export type UsedPhoneStatus = 'PENDING_INSPECTION' | 'IN_STOCK' | 'IN_TRANSIT' | 'REPAIRING' | 'SOLD' | 'RETURNED' | 'DISCARDED';
@@ -7,11 +8,11 @@ export type UsedPhoneSort = 'new' | 'old' | 'priceHigh' | 'margin' | 'sold';
 export type TradeInSource = 'CASH_BUYBACK' | 'EXCHANGE' | 'CONSIGNMENT';
 
 export const CONDITION_LABELS: Record<UsedPhoneCondition, string> = {
-  EXCELLENT: 'Excellent (10/10)',
-  VERY_GOOD: 'Very Good (9/10)',
-  GOOD: 'Good (8/10)',
-  FAIR: 'Fair (6-7/10)',
-  POOR: 'Poor (<6/10)',
+  EXCELLENT: t('Excellent (10/10)'),
+  VERY_GOOD: t('Very Good (9/10)'),
+  GOOD: t('Good (8/10)'),
+  FAIR: t('Fair (6-7/10)'),
+  POOR: t('Poor (<6/10)'),
 };
 
 export interface UsedPhone {

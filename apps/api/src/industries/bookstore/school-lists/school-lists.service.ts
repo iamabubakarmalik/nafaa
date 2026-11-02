@@ -3,6 +3,7 @@ import { Prisma, SchoolListStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { cleanInput } from '../bookstore-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const STATUSES: SchoolListStatus[] = ['DRAFT', 'ACTIVE', 'CLOSED', 'ARCHIVED'];
@@ -39,13 +40,13 @@ export class SchoolListsService {
     return input.map((it, i) => {
       const p = it.productId ? byId.get(it.productId) : undefined;
       const itemName = text(it.itemName) ?? p?.name;
-      if (!itemName) throw new BadRequestException(`Line ${i + 1}: naam likhein`);
+      if (!itemName) throw new BadRequestException(apiMessage('Line {{i}}: naam likhein', { i: i + 1 }));
       const quantity = Math.floor(Number(it.quantity ?? 1));
-      if (!(quantity >= 1)) throw new BadRequestException(`${itemName}: quantity kam se kam 1`);
+      if (!(quantity >= 1)) throw new BadRequestException(apiMessage('{{itemName}}: quantity kam se kam 1', { itemName }));
       const unitPrice = r2(it.unitPrice === undefined || it.unitPrice === null ? (p?.price ?? 0) : Number(it.unitPrice));
       const discount = r2(Number(it.discount ?? 0));
-      if (unitPrice < 0 || discount < 0) throw new BadRequestException(`${itemName}: price ya discount manfi nahi ho sakta`);
-      if (discount > unitPrice * quantity) throw new BadRequestException(`${itemName}: discount line ki amount se zyada hai`);
+      if (unitPrice < 0 || discount < 0) throw new BadRequestException(apiMessage('{{itemName}}: price ya discount manfi nahi ho sakta', { itemName }));
+      if (discount > unitPrice * quantity) throw new BadRequestException(apiMessage('{{itemName}}: discount line ki amount se zyada hai', { itemName }));
       const itemType = ITEM_TYPES.includes(String(it.itemType ?? '').toUpperCase()) ? String(it.itemType).toUpperCase() : 'BOOK';
       const isOptional = !!it.isOptional;
       return {

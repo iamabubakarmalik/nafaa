@@ -13,6 +13,7 @@ import { ShopScope } from '../../common/shop-scope';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId } from '../_shared/industry-sale.helper';
+import { MessageText } from '../../common/i18n/api-message';
 
 export const DAY_MS = 86_400_000;
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -139,7 +140,7 @@ export async function writeShopId(prisma: PrismaService, tenantId: string, scope
 }
 
 /** Positive finite number or a 400 with the given message. */
-export function positive(value: unknown, message: string): number {
+export function positive(value: unknown, message: MessageText): number {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(message);
   return n;

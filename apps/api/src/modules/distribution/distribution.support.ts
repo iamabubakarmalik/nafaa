@@ -10,6 +10,7 @@ import { businessDayKey, zonedToUtc } from '../../common/helpers/business-time.h
 import type { BusinessClock } from '../../common/helpers/tenant-timezone.service';
 import { tidyCustomerBalance } from '../sales/returns/returns.helpers';
 import { docNumber } from './helpers/logistics';
+import { apiMessage } from '../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -42,7 +43,7 @@ export function weekdayOfKey(key: string): number {
 
 export function checkKey(v: string | undefined | null, label = 'Date'): string | null {
   if (v == null || v === '') return null;
-  if (!KEY.test(v)) throw new BadRequestException(`${label} YYYY-MM-DD me likhein`);
+  if (!KEY.test(v)) throw new BadRequestException(apiMessage('{{label}} YYYY-MM-DD me likhein', { label }));
   return v;
 }
 
@@ -104,7 +105,7 @@ export async function customerCards(db: Db, tenantId: string, ids: Array<string 
 export async function assertUser(db: Db, tenantId: string, id: string | null | undefined, label = 'User') {
   if (!id) return null;
   const u = await db.user.findFirst({ where: { id, tenantId, isActive: true }, select: { id: true, fullName: true } });
-  if (!u) throw new BadRequestException(`${label} nahi mila ya band hai`);
+  if (!u) throw new BadRequestException(apiMessage('{{label}} nahi mila ya band hai', { label }));
   return u;
 }
 
@@ -202,20 +203,20 @@ export function returnPlan(
   lines?: ReturnLineInput[],
 ): ReturnPlan {
   const back: ReturnPlan = new Map();
-  if (outcome === 'RETURNED' && cash > 0) throw new BadRequestException(`${order.orderNumber}: sab maal wapas aaya to cash nahi likh sakte`);
+  if (outcome === 'RETURNED' && cash > 0) throw new BadRequestException(apiMessage('{{orderNumber}}: sab maal wapas aaya to cash nahi likh sakte', { orderNumber: order.orderNumber }));
   if (outcome === 'RETURNED') {
     for (const it of order.items) back.set(it.id, { paid: it.baseQty, free: it.freeBaseQty, damaged: false });
   } else if (outcome === 'PARTIAL') {
-    if (!lines?.length) throw new BadRequestException(`${order.orderNumber}: PARTIAL me wapas aane wala maal likhein`);
+    if (!lines?.length) throw new BadRequestException(apiMessage('{{orderNumber}}: PARTIAL me wapas aane wala maal likhein', { orderNumber: order.orderNumber }));
     for (const l of lines) {
       const it = order.items.find((x) => x.id === l.orderItemId);
-      if (!it) throw new BadRequestException(`${order.orderNumber}: line is Order ki nahi`);
+      if (!it) throw new BadRequestException(apiMessage('{{orderNumber}}: line is Order ki nahi', { orderNumber: order.orderNumber }));
       const paid = r4(l.returnBaseQty ?? 0);
       const free = r4(l.returnFreeQty ?? 0);
-      if (paid > it.baseQty + 1e-6 || free > it.freeBaseQty + 1e-6) throw new BadRequestException(`${order.orderNumber}: wapsi Order se zyada hai`);
+      if (paid > it.baseQty + 1e-6 || free > it.freeBaseQty + 1e-6) throw new BadRequestException(apiMessage('{{orderNumber}}: wapsi Order se zyada hai', { orderNumber: order.orderNumber }));
       if (paid > 0 || free > 0) back.set(it.id, { paid, free, damaged: !!l.damaged });
     }
-    if (!back.size) throw new BadRequestException(`${order.orderNumber}: PARTIAL me kam se kam ek cheez wapas likhein`);
+    if (!back.size) throw new BadRequestException(apiMessage('{{orderNumber}}: PARTIAL me kam se kam ek cheez wapas likhein', { orderNumber: order.orderNumber }));
   }
   return back;
 }

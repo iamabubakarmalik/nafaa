@@ -7,6 +7,7 @@ import { getCachedSettings } from './offlineSettings';
 import { nextOfflineSaleNumber } from './offlineDevice';
 import { fiscalizeSale } from '@integrations/tax-authority/taxAuthority.api';
 import { askManagerPin } from '@core/security/ManagerPin';
+import { t } from '@core/i18n';
 
 type SaleItemInput = CreateSalePayload['items'][number] & {
   usedPhoneId?: string;
@@ -36,6 +37,7 @@ async function buildItemSnapshots(
         productId: null,
         productName: up
           ? `${up.brand} ${up.model} (${up.usedPhoneCode})`
+          // i18n-ignore: stored product name on the offline bill
           : 'Used Phone',
         sku: up?.usedPhoneCode ?? null,
         barcode: null,
@@ -436,7 +438,7 @@ async function warnLowStockAfterSale(items: CreateSalePayload['items']): Promise
       if (it.usedPhoneId || !it.productId) continue;
       const p = await db.products.get(it.productId);
       if (p && p.lowStockAlert > 0 && p.stock <= p.lowStockAlert) {
-        toast.warning(`⚠️ Low stock: ${p.name} — sirf ${p.stock} ${p.unit} bache`, { duration: 4000 });
+        toast.warning(t('⚠️ Low stock: {{name}} — sirf {{stock}} {{unit}} bache', { name: p.name, stock: p.stock, unit: p.unit }), { duration: 4000 });
       }
     }
   } catch {}

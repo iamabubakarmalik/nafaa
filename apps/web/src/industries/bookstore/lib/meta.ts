@@ -1,5 +1,6 @@
 /** Bookstore labels, query keys and small helpers shared by its pages. */
 
+import { t } from '@core/i18n';
 export const KEYS = {
   facts: 'bookstore-facts',
   schools: 'bookstore-schools',
@@ -24,50 +25,50 @@ export const digits = (v: string) => v.replace(/\D/g, '');
 
 export type ItemKind = 'BOOK' | 'STATIONERY' | 'ART' | 'OTHER';
 export const KINDS: Array<{ value: ItemKind; label: string; hint: string }> = [
-  { value: 'BOOK', label: 'Kitab', hint: 'ISBN, author, publisher, class' },
-  { value: 'STATIONERY', label: 'Stationery', hint: 'Copy, pen, register, geometry' },
-  { value: 'ART', label: 'Art', hint: 'Rang, brush, canvas' },
-  { value: 'OTHER', label: 'Aur', hint: 'Uniform, bag, gift' },
+  { value: 'BOOK', label: t('Kitab'), hint: t('ISBN, author, publisher, class') },
+  { value: 'STATIONERY', label: t('Stationery'), hint: t('Copy, pen, register, geometry') },
+  { value: 'ART', label: t('Art'), hint: t('Rang, brush, canvas') },
+  { value: 'OTHER', label: t('Aur'), hint: t('Uniform, bag, gift') },
 ];
 
 /** Book types a Pakistani shop deals in most; the rest stay "Other". */
 export const BOOK_CATEGORIES: Array<[string, string]> = [
-  ['TEXTBOOK', 'Textbook'], ['GUIDE', 'Guide / key book'], ['WORKBOOK', 'Workbook'], ['EXAM_PREP', 'Test / past papers'],
-  ['DICTIONARY', 'Dictionary'], ['REFERENCE', 'Reference'], ['NOVEL', 'Novel'], ['STORYBOOK', 'Kahani'],
-  ['CHILDREN', 'Bachon ki'], ['COLORING_BOOK', 'Coloring'], ['ISLAMIC_STUDIES', 'Islamiyat'], ['QURAN', 'Quran'],
-  ['URDU', 'Urdu adab'], ['POETRY', 'Shairi'], ['BIOGRAPHY', 'Biography'], ['HISTORY', 'Tareekh'],
-  ['SELF_HELP', 'Self help'], ['BUSINESS', 'Business'], ['MAGAZINE', 'Magazine'], ['OTHER', 'Other'],
+  ['TEXTBOOK', t('Textbook')], ['GUIDE', t('Guide / key book')], ['WORKBOOK', t('Workbook')], ['EXAM_PREP', t('Test / past papers')],
+  ['DICTIONARY', t('Dictionary')], ['REFERENCE', t('Reference')], ['NOVEL', t('Novel')], ['STORYBOOK', t('Kahani')],
+  ['CHILDREN', t('Bachon ki')], ['COLORING_BOOK', t('Coloring')], ['ISLAMIC_STUDIES', t('Islamiyat')], ['QURAN', t('Quran')],
+  ['URDU', t('Urdu adab')], ['POETRY', t('Shairi')], ['BIOGRAPHY', t('Biography')], ['HISTORY', t('Tareekh')],
+  ['SELF_HELP', t('Self help')], ['BUSINESS', t('Business')], ['MAGAZINE', t('Magazine')], ['OTHER', t('Other')],
 ];
-export const BINDINGS: Array<[string, string]> = [['PAPERBACK', 'Paperback'], ['HARDCOVER', 'Hardcover'], ['SPIRAL', 'Spiral'], ['STAPLED', 'Stapled']];
-export const CONDITIONS: Array<[string, string]> = [['NEW', 'Nayi'], ['USED_LIKE_NEW', 'Purani — achhi'], ['USED_GOOD', 'Purani'], ['OLD_STOCK', 'Purana edition']];
+export const BINDINGS: Array<[string, string]> = [['PAPERBACK', t('Paperback')], ['HARDCOVER', t('Hardcover')], ['SPIRAL', t('Spiral')], ['STAPLED', t('Stapled')]];
+export const CONDITIONS: Array<[string, string]> = [['NEW', t('Nayi')], ['USED_LIKE_NEW', t('Purani — achhi')], ['USED_GOOD', t('Purani')], ['OLD_STOCK', t('Purana edition')]];
 export const LANGUAGES = ['English', 'Urdu', 'Arabic', 'Sindhi', 'Pashto', 'Punjabi'];
 export const BOARDS = ['Punjab Board', 'Federal Board', 'Sindh Board', 'KPK Board', 'Cambridge (O/A Level)', 'Oxford', 'Single National Curriculum'];
 export const GRADES = ['Play group', 'Nursery', 'Prep', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12', 'O Level', 'A Level'];
 export const SUBJECTS = ['English', 'Urdu', 'Maths', 'Science', 'Islamiyat', 'Social Studies', 'Computer', 'General Knowledge', 'Physics', 'Chemistry', 'Biology', 'Pak Studies', 'Arabic', 'Nazra'];
 
 export const STATIONERY_CATEGORIES: Array<[string, string]> = [
-  ['NOTEBOOK', 'Copy / notebook'], ['REGISTER', 'Register'], ['PEN_BALLPOINT', 'Ball pen'], ['PEN_GEL', 'Gel pen'],
-  ['PENCIL_HB', 'Pencil'], ['PENCIL_COLOR', 'Color pencil'], ['ERASER', 'Rubber'], ['SHARPENER', 'Sharpener'],
-  ['GEOMETRY_BOX', 'Geometry box'], ['RULER', 'Scale'], ['MARKER_PERMANENT', 'Marker'], ['HIGHLIGHTER', 'Highlighter'],
-  ['CHART_PAPER', 'Chart paper'], ['FILE_FOLDER', 'File / folder'], ['GLUE', 'Glue / gum'], ['TAPE', 'Tape'],
-  ['CALCULATOR', 'Calculator'], ['SCHOOL_BAG', 'School bag'], ['LUNCH_BOX', 'Lunch box'], ['WATER_BOTTLE', 'Bottle'],
-  ['BOOK_COVER', 'Book cover'], ['OTHER', 'Other'],
+  ['NOTEBOOK', t('Copy / notebook')], ['REGISTER', t('Register')], ['PEN_BALLPOINT', t('Ball pen')], ['PEN_GEL', t('Gel pen')],
+  ['PENCIL_HB', t('Pencil')], ['PENCIL_COLOR', t('Color pencil')], ['ERASER', t('Rubber')], ['SHARPENER', t('Sharpener')],
+  ['GEOMETRY_BOX', t('Geometry box')], ['RULER', t('Scale')], ['MARKER_PERMANENT', t('Marker')], ['HIGHLIGHTER', t('Highlighter')],
+  ['CHART_PAPER', t('Chart paper')], ['FILE_FOLDER', t('File / folder')], ['GLUE', t('Glue / gum')], ['TAPE', t('Tape')],
+  ['CALCULATOR', t('Calculator')], ['SCHOOL_BAG', t('School bag')], ['LUNCH_BOX', t('Lunch box')], ['WATER_BOTTLE', t('Bottle')],
+  ['BOOK_COVER', t('Book cover')], ['OTHER', t('Other')],
 ];
 export const ART_CATEGORIES: Array<[string, string]> = [
-  ['WATERCOLOR_PAINT', 'Water color'], ['POSTER_PAINT', 'Poster color'], ['ACRYLIC_PAINT', 'Acrylic'], ['OIL_PAINT', 'Oil paint'],
-  ['BRUSH_SET', 'Brush set'], ['BRUSH_ROUND', 'Brush'], ['CANVAS_STRETCHED', 'Canvas'], ['SKETCH_PAPER', 'Sketch paper'],
-  ['CHARCOAL', 'Charcoal'], ['PASTEL_OIL', 'Oil pastel'], ['CLAY', 'Clay'], ['CALLIGRAPHY_PEN', 'Calligraphy pen'],
-  ['QALAM', 'Qalam'], ['DAWAT', 'Dawat'], ['GLITTER', 'Glitter'], ['FOAM_SHEET', 'Foam sheet'], ['EASEL', 'Easel'], ['OTHER', 'Other'],
+  ['WATERCOLOR_PAINT', t('Water color')], ['POSTER_PAINT', t('Poster color')], ['ACRYLIC_PAINT', t('Acrylic')], ['OIL_PAINT', t('Oil paint')],
+  ['BRUSH_SET', t('Brush set')], ['BRUSH_ROUND', t('Brush')], ['CANVAS_STRETCHED', t('Canvas')], ['SKETCH_PAPER', t('Sketch paper')],
+  ['CHARCOAL', t('Charcoal')], ['PASTEL_OIL', t('Oil pastel')], ['CLAY', t('Clay')], ['CALLIGRAPHY_PEN', t('Calligraphy pen')],
+  ['QALAM', t('Qalam')], ['DAWAT', t('Dawat')], ['GLITTER', t('Glitter')], ['FOAM_SHEET', t('Foam sheet')], ['EASEL', t('Easel')], ['OTHER', t('Other')],
 ];
 
 export const labelOf = (list: Array<[string, string]>, v?: string | null) => (v ? list.find(([k]) => k === v)?.[1] ?? v.replace(/_/g, ' ').toLowerCase() : '');
 
 export const SCHOOL_TYPES = ['School', 'College', 'Academy', 'Madrassa', 'University', 'Tuition centre'];
 export const LIST_STATUS: Record<string, { label: string; tone: string }> = {
-  DRAFT: { label: 'Draft', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  ACTIVE: { label: 'Counter par', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  CLOSED: { label: 'Band', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  ARCHIVED: { label: 'Purani', tone: 'bg-slate-100 text-slate-500 ring-slate-200' },
+  DRAFT: { label: t('Draft'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  ACTIVE: { label: t('Counter par'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  CLOSED: { label: t('Band'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  ARCHIVED: { label: t('Purani'), tone: 'bg-slate-100 text-slate-500 ring-slate-200' },
 };
 
 /** Current school session, e.g. "2026-2027" (sessions start in spring). */

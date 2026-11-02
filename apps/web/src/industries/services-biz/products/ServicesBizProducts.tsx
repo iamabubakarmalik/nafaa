@@ -10,20 +10,21 @@ import { Briefcase, Package, Tag, Wrench } from 'lucide-react';
 import { heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
+import { t } from '@core/i18n';
 
 const isService = (sku?: string | null, unit?: string | null) => String(sku ?? '').startsWith('SVCB-') || String(unit ?? '').toLowerCase() === 'service';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/services-biz/catalog" className={heroButton}><Tag className="h-4 w-4" /><span className="hidden sm:inline">Rate list</span></Link>
-      <Link to="/services-biz/jobs" className={heroButton}><Briefcase className="h-4 w-4" /><span className="hidden sm:inline">Jobs</span></Link>
+      <Link to="/services-biz/catalog" className={heroButton}><Tag className="h-4 w-4" /><span className="hidden sm:inline">{t('Rate list')}</span></Link>
+      <Link to="/services-biz/jobs" className={heroButton}><Briefcase className="h-4 w-4" /><span className="hidden sm:inline">{t('Jobs')}</span></Link>
     </>
   );
 }
 
 const config: ProductsPageConfig = {
-  label: 'Parts aur saman',
+  label: t('Parts aur saman'),
   noun: 'part',
   paths: {
     detail: (id) => `/products/${id}`,
@@ -36,13 +37,13 @@ const config: ProductsPageConfig = {
   stockChips: () => [1, 5, 10, 25, 50],
   extras: (item) => (isService(item.sku, item.unit)
     ? {
-      badges: <span className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Wrench className="h-3 w-3" />Service</span>,
-      line: 'Rate list ki service — stock nahi, rate Service Catalog se',
+      badges: <span className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Wrench className="h-3 w-3" />{t('Service')}</span>,
+      line: t('Rate list ki service — stock nahi, rate Service Catalog se'),
     }
     : {}),
   guide: [
-    { icon: Package, color: '#2563eb', title: 'Parts aur saman', text: 'Capacitor, gas, pipe, wire — jo dukaan me rakhte hain. Job par jorne se bill banne par stock se nikalta hai.' },
-    { icon: Wrench, color: '#0284c7', title: 'Services', text: 'Neele "Service" nishan wali cheezein rate list se aati hain — un ka rate Service Catalog me badlein.' },
+    { icon: Package, color: '#2563eb', title: t('Parts aur saman'), text: t('Capacitor, gas, pipe, wire — jo dukaan me rakhte hain. Job par jorne se bill banne par stock se nikalta hai.') },
+    { icon: Wrench, color: '#0284c7', title: t('Services'), text: t('Neele "Service" nishan wali cheezein rate list se aati hain — un ka rate Service Catalog me badlein.') },
   ],
 };
 

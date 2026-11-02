@@ -19,10 +19,11 @@ import { downloadCsv, segmentListDoc } from '../print';
 import { SEGMENT_META, SEGMENT_ORDER } from './meta';
 import { CustomerCell, DataTable, Empty, Panel, daysAgo, type Formatter } from './parts';
 import { WhatsAppList } from './WhatsAppList';
+import { t } from '@core/i18n';
 
 type Sort = 'spend' | 'recent' | 'visits' | 'owing';
-const R_LABELS = ['120+ din', '61–120', '31–60', '15–30', '0–14 din'];
-const F_LABELS = ['1 din', '2', '3–5', '6–11', '12+ din'];
+const R_LABELS = [t('120+ din'), '61–120', '31–60', '15–30', t('0–14 din')];
+const F_LABELS = [t('1 din'), '2', '3–5', '6–11', t('12+ din')];
 
 export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSelect }: {
   data: Segments; f: Formatter; shop: string; shopKey: string | null; branch?: string; selected: SegmentKey; onSelect: (k: SegmentKey) => void;
@@ -56,11 +57,11 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
 
   const chart = d.segments.map((s) => ({ name: SEGMENT_META[s.key].label, key: s.key, customers: s.customers, share: s.share }));
   const max = Math.max(1, ...d.grid.flat());
-  const ctx = { f, period: '', shop, noun: 'Customers' };
+  const ctx = { f, period: '', shop, noun: t('Customers') };
   const exportCsv = () => {
-    if (!rows.length) { toast.error('List khali hai'); return; }
-    downloadCsv(segmentListDoc(selected, rows, ctx), `customers-${selected}.csv`);
-    toast.success(`${rows.length} customers CSV me`);
+    if (!rows.length) { toast.error(t('List khali hai')); return; }
+    downloadCsv(segmentListDoc(selected, rows, ctx), `customers-${selected}.csv`); // i18n-ignore
+    toast.success(t('{{count}} customers CSV me', { count: rows.length }));
   };
 
   return (
@@ -71,7 +72,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
           const s = d.segments.find((x) => x.key === k);
           return (
             <button key={k} type="button" onClick={() => onSelect(k)}
-              className={cn('flex min-w-0 flex-col rounded-2xl bg-white p-3 text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md',
+              className={cn('flex min-w-0 flex-col rounded-2xl bg-white p-3 text-start shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md',
                 selected === k ? 'ring-2' : 'ring-slate-200/80')}
               style={selected === k ? { boxShadow: `0 0 0 2px ${m.color}` } : undefined}>
               <span className="flex items-center gap-2">
@@ -80,7 +81,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
               </span>
               <span className="mt-1.5 text-xl font-bold tabular-nums text-slate-900">{count(k)}</span>
               <span className="text-[0.6875rem] leading-snug text-slate-500">
-                {s ? <>{f.pct(s.share)} sale · ausat {s.avgDays} din pehle</> : 'naam likha, bill nahi'}
+                {s ? <>{t('{{share}} sale · ausat {{avgDays}} din pehle', { share: f.pct(s.share), avgDays: s.avgDays })}</> : t('naam likha, bill nahi')}
               </span>
             </button>
           );
@@ -88,8 +89,8 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
       </div>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        <Panel icon={Grid3x3} className="lg:col-span-3" title="Kab aaye × kitni dafa"
-          hint="Upar wale haal hi me aaye, daayein wale saal me zyada din aaye. Khana dabayein to woh group khulega.">
+        <Panel icon={Grid3x3} className="lg:col-span-3" title={t('Kab aaye × kitni dafa')}
+          hint={t('Upar wale haal hi me aaye, daayein wale saal me zyada din aaye. Khana dabayein to woh group khulega.')}>
           <div className="overflow-x-auto">
             <div className="inline-grid min-w-full gap-1" style={{ gridTemplateColumns: '5rem repeat(5, minmax(3rem, 1fr))' }}>
               <span />
@@ -102,7 +103,7 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
                     const seg = segmentOf(ri + 1, fi + 1);
                     const color = SEGMENT_META[seg].color;
                     return (
-                      <button key={fi} type="button" onClick={() => onSelect(seg)} title={`${SEGMENT_META[seg].label} — ${v} customers`}
+                      <button key={fi} type="button" onClick={() => onSelect(seg)} title={t('{{label}} — {{v}} customers', { label: SEGMENT_META[seg].label, v })}
                         className={cn('flex h-11 items-center justify-center rounded-lg text-[0.75rem] font-bold tabular-nums transition hover:ring-2 hover:ring-slate-300',
                           selected === seg && 'ring-2 ring-slate-900/20')}
                         style={{ backgroundColor: `${color}${alpha(v, max)}`, color: v / max > 0.5 ? '#fff' : color }}>
@@ -114,18 +115,18 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
               ))}
             </div>
           </div>
-          <p className="mt-2 text-[0.6875rem] text-slate-500">Hisaab aaj tak ka hai: aakhri dafa kab aaye, aur pichle 12 mahine me kitne alag din khareeda.</p>
+          <p className="mt-2 text-[0.6875rem] text-slate-500">{t('Hisaab aaj tak ka hai: aakhri dafa kab aaye, aur pichle 12 mahine me kitne alag din khareeda.')}</p>
         </Panel>
 
-        <Panel icon={PieIcon} className="lg:col-span-2" title="Group war customers" hint="Kis group me kitne log — bar par hover karein to sale ka hissa">
-          {d.customers === 0 ? <Empty text="Abhi kisi naam wale customer ne khareeda nahi" /> : (
+        <Panel icon={PieIcon} className="lg:col-span-2" title={t('Group war customers')} hint={t('Kis group me kitne log — bar par hover karein to sale ka hissa')}>
+          {d.customers === 0 ? <Empty text={t('Abhi kisi naam wale customer ne khareeda nahi')} /> : (
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chart} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} />
                   <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={96} />
-                  <Tooltip {...theme.tooltip} formatter={(v, _n, item) => [`${v} customers · ${(item?.payload as { share: number }).share.toFixed(1)}% sale`, '']} />
+                  <Tooltip {...theme.tooltip} formatter={(v, _n, item) => [t('{{v}} customers · {{value}}% sale', { v: String(v), value: (item?.payload as { share: number }).share.toFixed(1) }), '']} />
                   <Bar dataKey="customers" radius={[0, 6, 6, 0]} maxBarSize={22} onClick={(x) => { const k = (x as { payload?: { key?: SegmentKey } }).payload?.key; if (k) onSelect(k); }} cursor="pointer">
                     {chart.map((c) => <Cell key={c.key} fill={SEGMENT_META[c.key].color} />)}
                   </Bar>
@@ -140,40 +141,40 @@ export function SegmentsView({ data: d, f, shop, shopKey, branch, selected, onSe
         title={<span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: meta.color }} />{meta.label} · {count(selected)}</span>}
         hint={meta.rule}
         actions={<>
-          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!rows.length}><Download className="h-4 w-4" />CSV</Button>
+          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!rows.length}><Download className="h-4 w-4" />{t('CSV')}</Button>
           <PrintButton size="sm" doc={() => segmentListDoc(selected, rows, ctx)} disabled={!rows.length} />
-          <Button size="sm" onClick={() => setWa(true)} disabled={!rows.length}><MessageCircle className="h-4 w-4" />WhatsApp</Button>
+          <Button size="sm" onClick={() => setWa(true)} disabled={!rows.length}><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</Button>
         </>}>
         <div className="space-y-3 px-4 pb-3 sm:px-5">
           <p className="flex items-start gap-2 rounded-xl px-3 py-2 text-[0.8125rem]" style={{ backgroundColor: `${meta.color}12`, color: meta.color }}>
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" /><span className="text-slate-800">{meta.action}</span>
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <SearchField value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Group me search" />
+            <SearchField value={search} onChange={setSearch} placeholder={t('Naam, phone ya shehar…')} label={t('Group me search')} />
             {selected !== 'never' && (
-              <Segmented label="Sort" value={sort} onChange={setSort} items={[
-                { value: 'spend', label: 'Kharch' }, { value: 'recent', label: 'Haal hi' }, { value: 'visits', label: 'Dafa' }, { value: 'owing', label: 'Udhaar' },
+              <Segmented label={t('Sort')} value={sort} onChange={setSort} items={[
+                { value: 'spend', label: t('Kharch') }, { value: 'recent', label: t('Haal hi') }, { value: 'visits', label: t('Dafa') }, { value: 'owing', label: t('Udhaar') },
               ]} />
             )}
           </div>
           {list.isLoading ? <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10 rounded-lg" />)}</div> : (
-            <DataTable rows={rows.slice(0, 300)} rowKey={(r) => r.id} empty={search ? 'Is naam ka koi nahi' : 'Is group me koi nahi'}
+            <DataTable rows={rows.slice(0, 300)} rowKey={(r) => r.id} empty={search ? t('Is naam ka koi nahi') : t('Is group me koi nahi')}
               columns={[
-                { label: 'Customer', render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.city} /> },
-                { label: selected === 'never' ? 'Register hue' : 'Aakhri dafa', render: (r) => (r.lastAt ? daysAgo(r.days) : f.date(r.joinedAt)) },
-                { label: 'Din (12 m)', align: 'right', hide: selected === 'never', render: (r) => r.visits },
-                { label: 'Sale (12 m)', align: 'right', hide: selected === 'never', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
-                { label: 'Kul kharch', align: 'right', hide: selected === 'never', render: (r) => f.money(r.lifetime) },
-                { label: 'Udhaar', align: 'right', render: (r) => (r.balance > 0 ? <span className="text-amber-700">{f.money(r.balance)}</span> : '—') },
-                { label: 'Points', align: 'right', render: (r) => (r.points ? f.count(r.points) : '—') },
+                { label: t('Customer'), render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.city} /> },
+                { label: selected === 'never' ? t('Register hue') : t('Aakhri dafa'), render: (r) => (r.lastAt ? daysAgo(r.days) : f.date(r.joinedAt)) },
+                { label: t('Din (12 m)'), align: 'right', hide: selected === 'never', render: (r) => r.visits },
+                { label: t('Sale (12 m)'), align: 'right', hide: selected === 'never', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
+                { label: t('Kul kharch'), align: 'right', hide: selected === 'never', render: (r) => f.money(r.lifetime) },
+                { label: t('Udhaar'), align: 'right', render: (r) => (r.balance > 0 ? <span className="text-amber-700">{f.money(r.balance)}</span> : '—') },
+                { label: t('Points'), align: 'right', render: (r) => (r.points ? f.count(r.points) : '—') },
               ]} />
           )}
-          {rows.length > 300 && <p className="text-center text-[0.75rem] text-slate-500">Pehle 300 dikh rahe hain — poori list ({rows.length}) CSV ya print me.</p>}
+          {rows.length > 300 && <p className="text-center text-[0.75rem] text-slate-500">{t('Pehle 300 dikh rahe hain — poori list ({{count}}) CSV ya print me.', { count: rows.length })}</p>}
         </div>
       </Panel>
 
       {wa && (
-        <WhatsAppList kind="segment" title={`WhatsApp — ${meta.label}`} message={meta.message} onClose={() => setWa(false)}
+        <WhatsAppList kind="segment" title={t('WhatsApp — {{label}}', { label: meta.label })} message={meta.message} onClose={() => setWa(false)}
           people={rows.map((r) => ({ id: r.id, name: r.name, phone: r.phone, gender: r.gender }))} />
       )}
     </div>

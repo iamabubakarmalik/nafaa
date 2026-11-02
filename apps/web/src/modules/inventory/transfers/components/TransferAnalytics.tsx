@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { TransferAnalytics as Data } from '../api/transfers.api';
 import { STATUS, qty } from './transferMeta';
+import { t as tr } from '@core/i18n';
 
 const PALETTE = ['#0f766e', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#ca8a04', '#16a34a', '#0891b2'];
 
@@ -33,17 +34,17 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Truck} label="Kul maal gaya" value={money(t.value)} sub={`${t.count} transfer · ${t.cancelled} cancel`} />
-        <Kpi icon={Clock} label="Raste me" value={String(t.inTransit)} sub={t.inTransit ? 'Receive hona baqi' : 'Sab pohanch gaya'} tone={t.inTransit ? 'amber' : 'emerald'} />
-        <Kpi icon={TrendingUp} label="Ausat receiving waqt" value={t.avgHours == null ? '—' : `${t.avgHours} ghante`} sub={t.avgHours == null ? 'Abhi koi receive nahi' : 'Bhejne se receive tak'} />
-        <Kpi icon={AlertTriangle} label="Kam aaya" value={money(t.shortValue)} sub={t.shortValue > 0 ? 'Raste me gum / toota' : 'Koi kami nahi'} tone={t.shortValue > 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={Truck} label={tr('Kul maal gaya')} value={money(t.value)} sub={tr('{{count}} transfer · {{cancelled}} cancel', { count: t.count, cancelled: t.cancelled })} />
+        <Kpi icon={Clock} label={tr('Raste me')} value={String(t.inTransit)} sub={t.inTransit ? tr('Receive hona baqi') : tr('Sab pohanch gaya')} tone={t.inTransit ? 'amber' : 'emerald'} />
+        <Kpi icon={TrendingUp} label={tr('Ausat receiving waqt')} value={t.avgHours == null ? '—' : `${t.avgHours} ghante`} sub={t.avgHours == null ? tr('Abhi koi receive nahi') : tr('Bhejne se receive tak')} />
+        <Kpi icon={AlertTriangle} label={tr('Kam aaya')} value={money(t.shortValue)} sub={t.shortValue > 0 ? tr('Raste me gum / toota') : tr('Koi kami nahi')} tone={t.shortValue > 0 ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Din war</span>}
-          description="Har din kitna maal bheja gaya"
-          actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'value', label: 'Qeemat' }, { value: 'count', label: 'Transfers' }]} />}>
-          {!trend.length ? <Empty text="Is period me koi transfer nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Din war')}</span>}
+          description={tr('Har din kitna maal bheja gaya')}
+          actions={<Segmented label={tr('Kya dikhayein')} value={metric} onChange={setMetric} items={[{ value: 'value', label: tr('Qeemat') }, { value: 'count', label: tr('Transfers') }]} />}>
+          {!trend.length ? <Empty text={tr('Is period me koi transfer nahi')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -55,7 +56,7 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'count' ? undefined : axisMoney} width={44} allowDecimals={false} />
-                  <Tooltip formatter={(v) => [metric === 'count' ? String(v) : formatPKR(Number(v)), metric === 'count' ? 'Transfers' : 'Qeemat']} {...tip} />
+                  <Tooltip formatter={(v) => [metric === 'count' ? String(v) : formatPKR(Number(v)), metric === 'count' ? tr('Transfers') : tr('Qeemat')]} {...tip} />
                   <Area type="monotone" dataKey={metric} stroke={theme.primary} strokeWidth={2.25} fill="url(#tr-trend)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -63,8 +64,8 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Halat</span>} description="Raste me, receive aur cancel">
-          {!status.length ? <Empty text="Koi transfer nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />{tr('Halat')}</span>} description={tr('Raste me, receive aur cancel')}>
+          {!status.length ? <Empty text={tr('Koi transfer nahi')} /> : (
             <>
               <div className="h-[170px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -90,39 +91,39 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />Raaste</span>} description="Kis branch se kis branch ko sab se zyada maal gaya">
-          {!data.routes.length ? <Empty text="Koi transfer nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />{tr('Raaste')}</span>} description={tr('Kis branch se kis branch ko sab se zyada maal gaya')}>
+          {!data.routes.length ? <Empty text={tr('Koi transfer nahi')} /> : (
             <ul className="space-y-2.5">
               {data.routes.map((r, i) => (
                 <li key={`${r.from}>${r.to}`}>
                   <div className="flex justify-between gap-2 text-[0.8125rem]">
-                    <span className="flex min-w-0 items-center gap-1 font-medium text-slate-800"><span className="truncate">{r.from}</span><ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{r.to}</span></span>
+                    <span className="flex min-w-0 items-center gap-1 font-medium text-slate-800"><span className="truncate">{r.from}</span><ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 rtl-flip" /><span className="truncate">{r.to}</span></span>
                     <span className="shrink-0 tabular-nums text-slate-900">{money(r.value)}</span>
                   </div>
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full" style={{ width: `${(r.value / routeMax) * 100}%`, background: PALETTE[i % PALETTE.length] }} />
                   </div>
-                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{r.count} transfer</p>
+                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{count}} transfer', { count: r.count })}</p>
                 </li>
               ))}
             </ul>
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada bheja maal</span>} description="Quantity base unit me, qeemat cost par">
-          {!data.topProducts.length ? <Empty text="Koi transfer nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />{tr('Sab se zyada bheja maal')}</span>} description={tr('Quantity base unit me, qeemat cost par')}>
+          {!data.topProducts.length ? <Empty text={tr('Koi transfer nahi')} /> : (
             <div className="overflow-x-auto">
               <Table minWidth="22rem" className="[&>table]:text-sm">
-                <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                  <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">Cheez</Th><Th className="px-0 py-2 text-right">Quantity</Th><Th className="px-0 py-2 text-right">Qeemat</Th></Tr>
+                <THead className="text-start text-[0.75rem] uppercase tracking-wide text-slate-500">
+                  <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">{tr('Cheez')}</Th><Th className="px-0 py-2 text-end">{tr('Quantity')}</Th><Th className="px-0 py-2 text-end">{tr('Qeemat')}</Th></Tr>
                 </THead>
                 <TBody className="divide-y divide-slate-100">
                   {data.topProducts.map((p, n) => (
                     <Tr key={`${p.name}${n}`}>
                       <Td className="px-0 py-2 text-slate-400">{n + 1}</Td>
                       <Td className="px-0 py-2 font-medium text-slate-900">{p.name}</Td>
-                      <Td className="px-0 text-inherit py-2 text-right tabular-nums">{qty(p.qty)} {p.unit}</Td>
-                      <Td className="px-0 text-inherit py-2 text-right font-semibold tabular-nums">{money(p.value)}</Td>
+                      <Td className="px-0 text-inherit py-2 text-end tabular-nums">{qty(p.qty)} {p.unit}</Td>
+                      <Td className="px-0 text-inherit py-2 text-end font-semibold tabular-nums">{money(p.value)}</Td>
                     </Tr>
                   ))}
                 </TBody>

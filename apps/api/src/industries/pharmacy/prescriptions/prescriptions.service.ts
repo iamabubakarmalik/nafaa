@@ -8,6 +8,7 @@ import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { ControlledLogService, IN_REGISTER } from '../controlled-log/controlled-log.service';
 import { dayRange, round2 } from '../common/pharmacy-time';
 import { CreatePrescriptionDto, DispenseDto, ListPrescriptionsDto } from './dto/create-prescription.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES: PrescriptionStatus[] = ['PENDING', 'VERIFIED', 'PARTIALLY_DISPENSED', 'DISPENSED', 'REJECTED', 'CANCELLED'];
 
@@ -297,15 +298,15 @@ export class PrescriptionsService {
       if (!(d.dispensedQty > 0)) continue;
       const rxItem = rx.items.find((r) => r.id === d.itemId);
       if (!rxItem) throw new BadRequestException('Ye dawai is nuskhe me nahi hai');
-      if (seen.has(rxItem.id)) throw new BadRequestException(`${rxItem.medicineName} do dafa bheji gayi`);
+      if (seen.has(rxItem.id)) throw new BadRequestException(apiMessage('{{medicineName}} do dafa bheji gayi', { medicineName: rxItem.medicineName }));
       seen.add(rxItem.id);
       const remaining = rxItem.prescribedQty - rxItem.dispensedQty;
       if (d.dispensedQty > remaining + 1e-9) {
-        throw new BadRequestException(`${rxItem.medicineName}: sirf ${remaining} baqi hai`);
+        throw new BadRequestException(apiMessage('{{medicineName}}: sirf {{remaining}} baqi hai', { medicineName: rxItem.medicineName, remaining }));
       }
       const productId = d.productId || rxItem.productId;
       if (!productId) {
-        throw new BadRequestException(`${rxItem.medicineName}: pehle is dawai ko stock wale product se jorein`);
+        throw new BadRequestException(apiMessage('{{medicineName}}: pehle is dawai ko stock wale product se jorein', { medicineName: rxItem.medicineName }));
       }
       const substituted = !!rxItem.productId && productId !== rxItem.productId;
       lines.push({
@@ -329,7 +330,7 @@ export class PrescriptionsService {
         where: { id: l.batchId, productId: l.productId, tenantId: user.tenantId },
         select: { id: true },
       });
-      if (!batch) throw new NotFoundException(`${l.rxItem.medicineName}: batch nahi mila`);
+      if (!batch) throw new NotFoundException(apiMessage('{{medicineName}}: batch nahi mila', { medicineName: l.rxItem.medicineName }));
     }
 
     const billed = round2(lines.reduce((s, l) => s + l.unitPrice * l.qty, 0) - (dto.discount ?? 0));

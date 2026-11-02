@@ -8,6 +8,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { ExpensePage, ExpenseStatus } from '../api/expenses.api';
 import { STATUS, catOf, day, methodOf } from './meta';
+import { t as tr } from '@core/i18n';
 
 /** Only paid expenses add up to "Kharch hua"; with a status filter the footer sums that status. */
 export function expensesDoc(list: ExpensePage, period: string, filter: string, status?: ExpenseStatus): PrintDoc {
@@ -17,38 +18,38 @@ export function expensesDoc(list: ExpensePage, period: string, filter: string, s
   for (const e of list.items) if (e.status === 'PAID') byCat.set(catOf(e).name, (byCat.get(catOf(e).name) ?? 0) + e.amount);
   const cats = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
   return {
-    title: 'Expenses (Expenses)',
+    title: tr('Expenses (Expenses)'),
     subtitle: period,
-    meta: [['Expenses', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Kharch hua', formatPKR(t.paid)], ...(t.pending > 0 ? [['Baqi bill', formatPKR(t.pending)] as [string, string]] : [])],
+    meta: [[tr('Expenses'), String(list.total)], ...(filter ? [[tr('Filter'), filter] as [string, string]] : []), [tr('Kharch hua'), formatPKR(t.paid)], ...(t.pending > 0 ? [[tr('Baqi bill'), formatPKR(t.pending)] as [string, string]] : [])],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'Date' }, { label: 'No.', wideOnly: true }, { label: 'Expense' }, { label: 'Category', wideOnly: true },
-          { label: 'Kaise', wideOnly: true }, { label: 'Haal', wideOnly: true }, { label: 'Amount', align: 'right' },
+          { label: tr('Date') }, { label: tr('No.'), wideOnly: true }, { label: tr('Expense') }, { label: tr('Category'), wideOnly: true },
+          { label: tr('Kaise'), wideOnly: true }, { label: tr('Haal'), wideOnly: true }, { label: tr('Amount'), align: 'right' },
         ],
         rows: list.items.map((e) => [
           day(e.expenseDate), e.expenseNumber, e.title, catOf(e).name, methodOf(e.paymentMethod).label, STATUS[e.status].label,
           e.status === 'CANCELLED' ? `(${formatPKR(e.amount)})` : formatPKR(e.amount),
         ]),
-        footer: ['', '', status ? `Kul (${STATUS[status].label})` : 'Kul (ada)', '', '', '', formatPKR(foot)],
+        footer: ['', '', status ? tr('Kul ({{label}})', { label: STATUS[status].label }) : tr('Kul (ada)'), '', '', '', formatPKR(foot)],
       },
       ...(cats.length > 1 ? [{
         kind: 'rows' as const,
-        title: 'Category ke hisaab se (ada)',
+        title: tr('Category ke hisaab se (ada)'),
         rows: cats.map(([name, amount]) => ({ label: name, value: formatPKR(amount) })),
       }] : []),
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          { label: `Ada ho gaya (${t.paidCount})`, value: formatPKR(t.paid) },
-          ...(t.pendingCount ? [{ label: `Baqi bill (${t.pendingCount})`, value: formatPKR(t.pending) }] : []),
-          ...(t.cancelledCount ? [{ label: `Cancel (${t.cancelledCount}) — kul me nahi`, value: formatPKR(t.cancelled) }] : []),
-          { label: 'Kharch hua (sirf ada)', value: formatPKR(t.paid), strong: true },
+          { label: tr('Ada ho gaya ({{paidCount}})', { paidCount: t.paidCount }), value: formatPKR(t.paid) },
+          ...(t.pendingCount ? [{ label: tr('Baqi bill ({{pendingCount}})', { pendingCount: t.pendingCount }), value: formatPKR(t.pending) }] : []),
+          ...(t.cancelledCount ? [{ label: tr('Cancel ({{cancelledCount}}) — kul me nahi', { cancelledCount: t.cancelledCount }), value: formatPKR(t.cancelled) }] : []),
+          { label: tr('Kharch hua (sirf ada)'), value: formatPKR(t.paid), strong: true },
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehle ${list.items.length} expenses dikhaye gaye hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? tr('Pehle {{count}} expenses dikhaye gaye hain (kul {{total}})', { count: list.items.length, total: list.total }) : undefined,
   };
 }

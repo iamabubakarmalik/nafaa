@@ -8,12 +8,13 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { AdjustmentList, StockAdjustment } from '../api/stock-adjustments.api';
 import { TYPES, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const day = (v: string) => new Date(v).toLocaleString('en-PK', { day: 'numeric', month: 'short', year: '2-digit', hour: 'numeric', minute: '2-digit' });
 
 /** Product with its variant, roll or device. */
 export function itemLabel(a: StockAdjustment) {
-  const extra = a.variant?.name ?? (a.carpetRoll ? `Roll ${a.carpetRoll.rollNumber}` : a.imei ? `IMEI ${a.imei.imei1}` : '');
+  const extra = a.variant?.name ?? (a.carpetRoll ? tr('Roll {{rollNumber}}', { rollNumber: a.carpetRoll.rollNumber }) : a.imei ? tr('IMEI {{imei1}}', { imei1: a.imei.imei1 }) : '');
   return extra ? `${a.product.name} (${extra})` : a.product.name;
 }
 
@@ -26,31 +27,31 @@ export function adjustmentsDoc(list: AdjustmentList, period: string, filter: str
   const t = list.totals;
   const lost = t.outValue + t.damageValue + t.lossValue;
   return {
-    title: 'Stock adjustments',
+    title: tr('Stock adjustments'),
     subtitle: period,
-    meta: [['Lines', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Barha', formatPKR(t.inValue)], ['Ghata', formatPKR(lost)]],
+    meta: [[tr('Lines'), String(list.total)], ...(filter ? [[tr('Filter'), filter] as [string, string]] : []), [tr('Barha'), formatPKR(t.inValue)], [tr('Ghata'), formatPKR(lost)]],
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'Cheez' }, { label: 'Type', wideOnly: true }, { label: 'Quantity', align: 'right' }, { label: 'Amount', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Kis ne', wideOnly: true }],
+        columns: [{ label: tr('Waqt') }, { label: tr('Cheez') }, { label: tr('Type'), wideOnly: true }, { label: tr('Quantity'), align: 'right' }, { label: tr('Amount'), align: 'right' }, { label: tr('Wajah'), wideOnly: true }, { label: tr('Kis ne'), wideOnly: true }],
         rows: list.items.map((a) => [
           day(a.createdAt), itemLabel(a), TYPES[a.type].label, qtyLabel(a), formatPKR(a.value),
-          `${a.reason}${a.note ? ` — ${a.note}` : ''}`, a.createdBy?.fullName ?? '',
+          `${tr(a.reason)}${a.note ? ` — ${a.note}` : ''}`, a.createdBy?.fullName ?? '',
         ]),
       },
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          ...(t.openingValue ? [{ label: `${TYPES.OPENING_BALANCE.label} (farq me nahi)`, value: `+${formatPKR(t.openingValue)}` }] : []),
+          ...(t.openingValue ? [{ label: tr('{{label}} (farq me nahi)', { label: TYPES.OPENING_BALANCE.label }), value: `+${formatPKR(t.openingValue)}` }] : []),
           { label: TYPES.ADJUSTMENT_IN.label, value: `+${formatPKR(t.inValue)}` },
           { label: TYPES.ADJUSTMENT_OUT.label, value: `−${formatPKR(t.outValue)}` },
           { label: TYPES.DAMAGE.label, value: `−${formatPKR(t.damageValue)}` },
           { label: TYPES.LOSS.label, value: `−${formatPKR(t.lossValue)}` },
-          { label: 'Kul farq', value: `${t.net >= 0 ? '+' : '−'}${formatPKR(Math.abs(t.net))}`, strong: true },
+          { label: tr('Kul farq'), value: `${t.net >= 0 ? '+' : '−'}${formatPKR(Math.abs(t.net))}`, strong: true },
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehli ${list.items.length} lines dikhayi gayi hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? tr('Pehli {{count}} lines dikhayi gayi hain (kul {{total}})', { count: list.items.length, total: list.total }) : undefined,
   };
 }

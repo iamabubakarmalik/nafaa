@@ -20,6 +20,7 @@ import { checkRefundPin, paging, r2, refundAdvance, refundedOnKhata } from '../c
 import {
   ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const OPEN = ['RECEIVED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED'];
 export const REPAIR_VIEWS = ['active', 'work', 'ready', 'late', 'advance', 'done', 'all'] as const;
@@ -110,7 +111,7 @@ export class RepairServicesService {
     return parts.map((p) => {
       const product = byId.get(p.productId);
       if (!product) throw new BadRequestException('Part is dukaan ka nahi');
-      if (p.variantId && !product.variants.some((v) => v.id === p.variantId)) throw new BadRequestException(`${product.name}: size is product ka nahi`);
+      if (p.variantId && !product.variants.some((v) => v.id === p.variantId)) throw new BadRequestException(apiMessage('{{productName}}: size is product ka nahi', { productName: product.name }));
       return { productId: p.productId, variantId: p.variantId, name: p.name?.trim() || product.name, quantity: Number(p.quantity), price: r2(p.price) };
     });
   }
@@ -223,7 +224,9 @@ export class RepairServicesService {
     const r = await this.prisma.sportsRepairService.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Repair service not found');
     if ((r.status === 'DELIVERED' || r.status === 'CANCELLED') && dto.status !== r.status) {
-      throw new BadRequestException(`${r.serviceNumber} pehle hi ${r.status === 'DELIVERED' ? 'deliver' : 'cancel'} ho chuka hai`);
+      throw new BadRequestException(r.status === 'DELIVERED'
+        ? apiMessage('{{serviceNumber}} pehle hi deliver ho chuka hai', { serviceNumber: r.serviceNumber })
+        : apiMessage('{{serviceNumber}} pehle hi cancel ho chuka hai', { serviceNumber: r.serviceNumber }));
     }
     if (r.status === 'DELIVERED' && dto.finalCost !== undefined && Math.abs(dto.finalCost - Number(r.finalCost ?? 0)) > 0.009) {
       throw new BadRequestException('Deliver ke baad bill ki amount nahi badal sakti');
@@ -253,7 +256,7 @@ export class RepairServicesService {
     if (parts.length) patch.partsUsed = parts;
     const advance = r2(r.advancePaid);
     if (advance > total + 0.01) {
-      throw new BadRequestException(`Rs ${advance} pehle liye ja chuke hain — bill is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Rs {{advance}} pehle liye ja chuke hain — bill is se kam nahi ho sakta', { advance }));
     }
     const due = r2(Math.max(total - advance, 0));
     const takenNow = r2(Math.max(dto.paidNow ?? due, 0));
@@ -317,7 +320,7 @@ export class RepairServicesService {
     const bill = Number(r.finalCost || r.estimatedCost || 0);
     const due = r2(bill - Number(r.advancePaid || 0));
     if (bill > 0 && amount > due + 0.01) {
-      throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori amount mil chuki hai');
+      throw new BadRequestException(due > 0 ? apiMessage('Baqi sirf Rs {{due}} hai', { due }) : 'Poori amount mil chuki hai');
     }
 
     return this.prisma.$transaction(async (tx) => {

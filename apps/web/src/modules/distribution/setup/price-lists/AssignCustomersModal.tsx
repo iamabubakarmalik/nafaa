@@ -13,6 +13,7 @@ import { cn } from '@core/lib/cn';
 import { DIST_KEY, distError, distSetupApi, type PriceList } from '../../api/distribution.api';
 import { partyName } from '../../lib/meta';
 import { PRICE_LISTS_KEY, useCustomerRoster } from '../shared';
+import { t as tr } from '@core/i18n';
 
 /** Runs `fn` over `items`, `size` at a time; returns how many failed. */
 export async function inBatches<T>(items: T[], size: number, fn: (t: T) => Promise<unknown>) {
@@ -58,8 +59,8 @@ export function AssignCustomersModal({ list, onClose }: { list: PriceList; onClo
         (x) => distSetupApi.patchCustomer(x.id, { priceListId: x.v }));
       qc.invalidateQueries({ queryKey: [DIST_KEY] });
       ['customers', 'customers-for-pos', 'customer-directory'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      if (failed) toast.error(`${failed} customers save nahi hue — dobara koshish karein`);
-      else { toast.success(`${added.length + removed.length} customers badle`); onClose(); }
+      if (failed) toast.error(tr('{{failed}} customers save nahi hue — dobara koshish karein', { failed }));
+      else { toast.success(tr('{{value}} customers badle', { value: added.length + removed.length })); onClose(); }
     } catch (e) {
       toast.error(distError(e));
     } finally {
@@ -68,21 +69,21 @@ export function AssignCustomersModal({ list, onClose }: { list: PriceList; onClo
   };
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`${list.name} — customers`}
-      description="Nishan wale customers is list ke rate par khareedte hain — POS aur booker app dono par."
+    <Modal open onClose={onClose} size="lg" title={tr('{{name}} — customers', { name: list.name })}
+      description={tr('Nishan wale customers is list ke rate par khareedte hain — POS aur booker app dono par.')}
       footer={<>
-        <span className="mr-auto text-[0.8125rem] text-slate-600">{picked.size} customers{added.length + removed.length ? ` · ${added.length} naye, ${removed.length} hataye` : ''}</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button data-save-action disabled={!added.length && !removed.length} loading={saving} onClick={save}>Save karein</Button>
+        <span className="me-auto text-[0.8125rem] text-slate-600">{tr('{{size}} customers{{value}}', { size: picked.size, value: added.length + removed.length ? tr(' · {{count}} naye, {{count2}} hataye', { count: added.length, count2: removed.length }) : '' })}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button data-save-action disabled={!added.length && !removed.length} loading={saving} onClick={save}>{tr('Save karein')}</Button>
       </>}>
-      {rosterQ.isError ? <Alert tone="danger">{distError(rosterQ.error, 'Customers nahi aaye')}</Alert>
-        : !rosterQ.isFetched && rosterQ.fetchStatus === 'idle' ? <Alert tone="warning">Customers lagane ke liye "Customers dekhein" ki permission chahiye.</Alert>
+      {rosterQ.isError ? <Alert tone="danger">{distError(rosterQ.error, tr('Customers nahi aaye'))}</Alert>
+        : !rosterQ.isFetched && rosterQ.fetchStatus === 'idle' ? <Alert tone="warning">{tr('Customers lagane ke liye "Customers dekhein" ki permission chahiye.')}</Alert>
         : (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, dukaan, phone ya ilaqa" aria-label="Customer dhoondein"
+              <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr('Naam, dukaan, phone ya ilaqa')} aria-label={tr('Customer dhoondein')}
                 leftIcon={<Search className="h-4 w-4" />} wrapperClassName="min-w-[12rem] flex-1" />
-              <Segmented label="Dikhayein" value={view} onChange={setView} items={[{ value: 'all', label: 'Sab' }, { value: 'on', label: 'Is list wale', count: picked.size }]} />
+              <Segmented label={tr('Dikhayein')} value={view} onChange={setView} items={[{ value: 'all', label: tr('Sab') }, { value: 'on', label: tr('Is list wale'), count: picked.size }]} />
             </div>
             {rosterQ.isLoading ? <Skeleton className="h-72" /> : (
               <ul className="max-h-[22rem] divide-y divide-slate-100 overflow-auto rounded-xl ring-1 ring-slate-200">
@@ -102,7 +103,7 @@ export function AssignCustomersModal({ list, onClose }: { list: PriceList; onClo
                     </li>
                   );
                 })}
-                {!shown.length && <li className="px-3 py-8 text-center text-sm text-slate-500">Koi customer nahi mila</li>}
+                {!shown.length && <li className="px-3 py-8 text-center text-sm text-slate-500">{tr('Koi customer nahi mila')}</li>}
               </ul>
             )}
           </div>

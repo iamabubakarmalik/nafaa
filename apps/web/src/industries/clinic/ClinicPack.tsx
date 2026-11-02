@@ -17,6 +17,7 @@ import ClinicPrescriptionsPage from './pages/ClinicPrescriptionsPage';
 import LabOrdersPage from './pages/LabOrdersPage';
 import VaccinationsPage from './pages/VaccinationsPage';
 import QueuePage from './pages/QueuePage';
+import { t } from '@core/i18n';
 
 const BOOKINGS = PERMISSIONS.SERVICE_BOOKINGS_VIEW;
 const RECORDS = PERMISSIONS.CLINIC_RECORDS_VIEW;
@@ -31,11 +32,11 @@ const RECORDS = PERMISSIONS.CLINIC_RECORDS_VIEW;
 export const ClinicPack: IndustryPack = {
   id: 'clinic',
   name: 'Clinic / Doctor',
-  shortName: 'Clinic',
+  shortName: t('Clinic'),
   emoji: '🩺',
   priority: 66,
   description:
-    'Reception tokens, live line, visits with prescriptions and lab, patient records, doctor fees and day close, vaccines.',
+    t('Reception tokens, live line, visits with prescriptions and lab, patient records, doctor fees and day close, vaccines.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -55,22 +56,22 @@ export const ClinicPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Clinic',
+      label: t('Clinic'),
       icon: Stethoscope,
       emoji: '🩺',
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/clinic/dashboard', label: 'Clinic dashboard', icon: LayoutDashboard },
-        { to: '/clinic/appointments/new', label: 'Reception (token)', icon: CalendarPlus, permission: BOOKINGS },
-        { to: '/clinic/queue', label: 'Live queue', icon: Timer, permission: BOOKINGS },
-        { to: '/clinic/appointments', label: 'Appointments', icon: Calendar, permission: BOOKINGS },
-        { to: '/clinic/patients', label: 'Patients', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/clinic/doctors', label: 'Doctors', icon: UserCog, permission: BOOKINGS },
-        { to: '/clinic/panels', label: 'Panels', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/clinic/prescriptions', label: 'Prescriptions', icon: Pill, permission: RECORDS },
-        { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: RECORDS },
-        { to: '/clinic/vaccinations', label: 'Vaccinations', icon: Syringe, permission: RECORDS },
+        { to: '/clinic/dashboard', label: t('Clinic dashboard'), icon: LayoutDashboard },
+        { to: '/clinic/appointments/new', label: t('Reception (token)'), icon: CalendarPlus, permission: BOOKINGS },
+        { to: '/clinic/queue', label: t('Live queue'), icon: Timer, permission: BOOKINGS },
+        { to: '/clinic/appointments', label: t('Appointments'), icon: Calendar, permission: BOOKINGS },
+        { to: '/clinic/patients', label: t('Patients'), icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/clinic/doctors', label: t('Doctors'), icon: UserCog, permission: BOOKINGS },
+        { to: '/clinic/panels', label: t('Panels'), icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/clinic/prescriptions', label: t('Prescriptions'), icon: Pill, permission: RECORDS },
+        { to: '/clinic/lab-orders', label: t('Lab'), icon: TestTube, permission: RECORDS },
+        { to: '/clinic/vaccinations', label: t('Vaccinations'), icon: Syringe, permission: RECORDS },
       ],
     },
   ],
@@ -97,25 +98,25 @@ export const ClinicPack: IndustryPack = {
   productForm: {
     defaultUnit: 'service',
     unitOptions: [
-      { value: 'service', label: 'Consultation / Service', hint: '🩺', group: 'Service' },
-      { value: 'session', label: 'Session', hint: '⏱️', group: 'Service' },
-      { value: 'visit', label: 'Visit', hint: '🚪', group: 'Service' },
-      { value: 'procedure', label: 'Procedure', hint: '⚕️', group: 'Service' },
-      { value: 'test', label: 'Lab Test', hint: '🧪', group: 'Lab' },
-      { value: 'panel', label: 'Test Panel', hint: '🧪', group: 'Lab' },
-      { value: 'dose', label: 'Dose (vaccine)', hint: '💉', group: 'Vaccine' },
-      { value: 'vial', label: 'Vial', hint: '💉', group: 'Vaccine' },
-      { value: 'hour', label: 'Hour', hint: '⏰', group: 'Time' },
-      { value: 'pcs', label: 'Piece (supplies)', hint: '🔢', group: 'Supplies' },
+      { value: 'service', label: t('Consultation / Service'), hint: '🩺', group: t('Service') },
+      { value: 'session', label: t('Session'), hint: '⏱️', group: t('Service') },
+      { value: 'visit', label: t('Visit'), hint: '🚪', group: t('Service') },
+      { value: 'procedure', label: t('Procedure'), hint: '⚕️', group: t('Service') },
+      { value: 'test', label: t('Lab Test'), hint: '🧪', group: t('Lab') },
+      { value: 'panel', label: t('Test Panel'), hint: '🧪', group: t('Lab') },
+      { value: 'dose', label: t('Dose (vaccine)'), hint: '💉', group: t('Vaccine') },
+      { value: 'vial', label: t('Vial'), hint: '💉', group: t('Vaccine') },
+      { value: 'hour', label: t('Hour'), hint: '⏰', group: t('Time') },
+      { value: 'pcs', label: t('Piece (supplies)'), hint: '🔢', group: t('Supplies') },
     ],
   },
 
   featureFlags: [
-    { key: 'clinicAppointments', label: 'Appointment Booking', defaultEnabled: true },
-    { key: 'clinicQueue', label: 'Live Token Queue', defaultEnabled: true },
-    { key: 'clinicPrescriptions', label: 'e-Prescriptions', defaultEnabled: true },
-    { key: 'clinicLabOrders', label: 'Lab Orders', defaultEnabled: false },
-    { key: 'clinicVaccinations', label: 'Vaccination Register', defaultEnabled: false },
-    { key: 'clinicVitals', label: 'Vitals Recording', defaultEnabled: true },
+    { key: 'clinicAppointments', label: t('Appointment Booking'), defaultEnabled: true },
+    { key: 'clinicQueue', label: t('Live Token Queue'), defaultEnabled: true },
+    { key: 'clinicPrescriptions', label: t('e-Prescriptions'), defaultEnabled: true },
+    { key: 'clinicLabOrders', label: t('Lab Orders'), defaultEnabled: false },
+    { key: 'clinicVaccinations', label: t('Vaccination Register'), defaultEnabled: false },
+    { key: 'clinicVitals', label: t('Vitals Recording'), defaultEnabled: true },
   ],
 };

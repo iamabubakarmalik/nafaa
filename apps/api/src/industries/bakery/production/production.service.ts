@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope, applyStockDelta, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
 import { CLOSED_ORDER, DAY_MS, SOLD_STATUSES, bakeQty, isDayKey, planNumbers, productUnit, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withNextNumber, withUnits, writeShopId } from '../bakery-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface PlanItemInput {
   productId?: string;
@@ -50,7 +51,7 @@ const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : nul
 /** Planned quantity: decimals for goods sold by weight, whole pieces otherwise. */
 const planQty = (v: unknown, label: string, unit: string | null) => {
   const n = bakeQty(v, unit);
-  if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(`${label} — quantity likhein`);
+  if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(apiMessage('{{label}} — quantity likhein', { label }));
   return n;
 };
 

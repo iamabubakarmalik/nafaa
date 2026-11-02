@@ -15,6 +15,7 @@ import { useMobileOps } from './useMobileOps';
 import {
   MobileEmi, MobileProfitSources, MobileRepairs, MobileStock, mobileKpis, useMobileAttention, useMobileMoneyTiles,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/mobile-products/${id}`;
 
@@ -24,40 +25,40 @@ function useMobileActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS counter', hint: 'Sale karein' },
-    { to: '/mobile-products/new', icon: Plus, label: 'Naya phone', hint: 'Maal me daalein' },
-    { to: '/imei-inventory', icon: ShieldCheck, label: 'IMEI stock', hint: `${stock.inStock} phone` },
-    { to: '/repair-tickets', icon: Wrench, label: 'Repairs', hint: repairs.ready ? `${repairs.ready} tayyar` : `${repairs.open} khule` },
-    { to: '/emi-plans', icon: CreditCard, label: 'Kist (EMI)', hint: emi.overdueCount ? `${emi.overdueCount} late` : `${emi.active} chal rahe` },
-    { to: '/used-phones', icon: RotateCcw, label: 'Used phone', hint: `${used.inStock} stock me` },
-    { to: '/products', icon: Package, label: 'Products', hint: `${s?.totalProducts ?? 0} items` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purani receipts' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Mobile hisaab' },
-    { to: '/products/bulk-import', icon: Upload, label: 'Bulk import', hint: 'Excel / CSV' },
+    { to: '/pos', icon: ShoppingCart, label: t('POS counter'), hint: t('Sale karein') },
+    { to: '/mobile-products/new', icon: Plus, label: t('Naya phone'), hint: t('Maal me daalein') },
+    { to: '/imei-inventory', icon: ShieldCheck, label: t('IMEI stock'), hint: t('{{inStock}} phone', { inStock: stock.inStock }) },
+    { to: '/repair-tickets', icon: Wrench, label: t('Repairs'), hint: repairs.ready ? t('{{ready}} tayyar', { ready: repairs.ready }) : t('{{open}} khule', { open: repairs.open }) },
+    { to: '/emi-plans', icon: CreditCard, label: t('Kist (EMI)'), hint: emi.overdueCount ? t('{{overdueCount}} late', { overdueCount: emi.overdueCount }) : t('{{active}} chal rahe', { active: emi.active }) },
+    { to: '/used-phones', icon: RotateCcw, label: t('Used phone'), hint: t('{{inStock}} stock me', { inStock: used.inStock }) },
+    { to: '/products', icon: Package, label: t('Products'), hint: t('{{value}} items', { value: s?.totalProducts ?? 0 }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sales history'), hint: t('Purani receipts') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Mobile hisaab') },
+    { to: '/products/bulk-import', icon: Upload, label: t('Bulk import'), hint: t('Excel / CSV') },
   ];
 }
 
 export const mobileDashboard = createDashboard({
-  label: 'Mobile shop',
+  label: t('Mobile shop'),
   productPath,
   openFrom: 10,
   kpis: mobileKpis,
   defaultKpis: ['mobile-imei', 'mobile-repairs', 'mobile-emi', 'profit', 'cash', 'month'],
   useAttention: useMobileAttention,
   widgets: [
-    { id: 'mobile-repairs', title: 'Repair desk', description: 'Khule repair har marhale par, aur pickup ke liye tayyar phone', size: 'third', sizes: ANY_SIZE, Component: MobileRepairs },
-    { id: 'mobile-emi', title: 'Kist (EMI)', description: 'Late kiston wale customer aur is mahine ki receiving', size: 'third', sizes: ANY_SIZE, Component: MobileEmi },
-    { id: 'mobile-stock', title: 'Phone stock', description: 'IMEI stock, aaj ki sale, used phone aur PTA status', size: 'third', sizes: ['third', 'half'], Component: MobileStock },
+    { id: 'mobile-repairs', title: t('Repair desk'), description: t('Khule repair har marhale par, aur pickup ke liye tayyar phone'), size: 'third', sizes: ANY_SIZE, Component: MobileRepairs },
+    { id: 'mobile-emi', title: t('Kist (EMI)'), description: t('Late kiston wale customer aur is mahine ki receiving'), size: 'third', sizes: ANY_SIZE, Component: MobileEmi },
+    { id: 'mobile-stock', title: t('Phone stock'), description: t('IMEI stock, aaj ki sale, used phone aur PTA status'), size: 'third', sizes: ['third', 'half'], Component: MobileStock },
   ],
   lateWidgets: [
-    { id: 'mobile-profit-sources', title: 'Kamai ka rasta', description: 'Naye phone, used phone, accessories aur repair ka 30 din ka profit', size: 'third', sizes: ['third', 'half', 'wide'], sensitive: true, Component: MobileProfitSources },
+    { id: 'mobile-profit-sources', title: t('Kamai ka rasta'), description: t('Naye phone, used phone, accessories aur repair ka 30 din ka profit'), size: 'third', sizes: ['third', 'half', 'wide'], sensitive: true, Component: MobileProfitSources },
   ],
   useQuickActions: useMobileActions,
   moneyMap: { useExtraTiles: useMobileMoneyTiles, productsPath: '/products' },
   guide: [
-    { icon: Smartphone, title: 'Phone stock aur PTA', text: 'Har phone IMEI se ginti hota hai. Non-PTA ya PTA pending phone alag nazar aate hain — bechte waqt customer ko zaroor batayein.' },
-    { icon: CreditCard, title: 'Repair aur kist', text: 'Tayyar repair ka customer ko foran call karein, aur late kist wale customer upar list me hain — "Aaj ka kaam" me sab se zaroori pehle.' },
+    { icon: Smartphone, title: t('Phone stock aur PTA'), text: t('Har phone IMEI se ginti hota hai. Non-PTA ya PTA pending phone alag nazar aate hain — bechte waqt customer ko zaroor batayein.') },
+    { icon: CreditCard, title: t('Repair aur kist'), text: t('Tayyar repair ka customer ko foran call karein, aur late kist wale customer upar list me hain — "Aaj ka kaam" me sab se zaroori pehle.') },
   ],
 });

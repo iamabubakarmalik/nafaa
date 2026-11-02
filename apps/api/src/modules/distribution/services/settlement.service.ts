@@ -32,6 +32,7 @@ import { readSettings } from '../helpers/pricing-loader';
 import { postCollection, r2, r4, returnPlan, userNames, type ReturnLineInput } from '../distribution.support';
 import { LoadSheetsService } from './load-sheets.service';
 import { CollectionsService } from './collections.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type SheetOrder = Prisma.SalesOrderGetPayload<{ include: { items: true } }>;
 type DeliveryReport = Prisma.DistDeliveryReportGetPayload<object>;
@@ -89,7 +90,7 @@ export class SettlementService {
   async settle(user: AuthenticatedUser, id: string, dto: SettleLoadSheetDto) {
     const tenantId = user.tenantId;
     const sheet = await this.sheets.sheet(tenantId, id);
-    if (sheet.status !== 'OPEN' && sheet.status !== 'DISPATCHED') throw new BadRequestException(`${sheet.status} load sheet settle nahi ho sakti`);
+    if (sheet.status !== 'OPEN' && sheet.status !== 'DISPATCHED') throw new BadRequestException(apiMessage('{{sheetStatus}} load sheet settle nahi ho sakti', { sheetStatus: sheet.status }));
     const settings = await readSettings(this.prisma, tenantId);
     const canVerify = hasPermission(user.role, user.permissions, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY);
     if (dto.verifyRecoveries && !canVerify) throw new BadRequestException('Recovery verify karne ki permission nahi (collections.verify)');
@@ -139,8 +140,8 @@ export class SettlementService {
   }
 
   private async settleOrder(user: AuthenticatedUser, sheet: { id: string; deliveryUserId: string | null }, order: SheetOrder, s: SettleOrderDto, managerPin?: string) {
-    if (order.deliveryStatus) throw new BadRequestException(`Order ${order.orderNumber} pehle hi settle ho chuka (${order.deliveryStatus})`);
-    if (!order.saleId) throw new BadRequestException(`Order ${order.orderNumber} ki Invoice nahi bani`);
+    if (order.deliveryStatus) throw new BadRequestException(apiMessage('Order {{orderNumber}} pehle hi settle ho chuka ({{deliveryStatus}})', { orderNumber: order.orderNumber, deliveryStatus: order.deliveryStatus }));
+    if (!order.saleId) throw new BadRequestException(apiMessage('Order {{orderNumber}} ki Invoice nahi bani', { orderNumber: order.orderNumber }));
     const outcome = s.outcome as 'DELIVERED' | 'PARTIAL' | 'RETURNED';
     const cash = r2(s.cashCollected ?? 0);
     // What comes back, per order line, in base units.
@@ -154,11 +155,11 @@ export class SettlementService {
       const b = back.get(it.id);
       if (!b) continue;
       if (b.paid > 0) {
-        if (!it.saleItemId) throw new BadRequestException(`${order.orderNumber}: Invoice line nahi mili`);
+        if (!it.saleItemId) throw new BadRequestException(apiMessage('{{orderNumber}}: Invoice line nahi mili', { orderNumber: order.orderNumber }));
         returnItems.push({ saleItemId: it.saleItemId, quantity: b.paid, restock: !b.damaged });
       }
       if (b.free > 0) {
-        if (!it.freeSaleItemId) throw new BadRequestException(`${order.orderNumber}: free maal ki Invoice line nahi mili`);
+        if (!it.freeSaleItemId) throw new BadRequestException(apiMessage('{{orderNumber}}: free maal ki Invoice line nahi mili', { orderNumber: order.orderNumber }));
         returnItems.push({ saleItemId: it.freeSaleItemId, quantity: b.free, restock: !b.damaged });
       }
     }
@@ -201,7 +202,7 @@ export class SettlementService {
           returnReason: s.returnReason?.trim() || null,
         },
       });
-      if (!done.count) throw new BadRequestException(`Order ${order.orderNumber} pehle hi settle ho chuka`);
+      if (!done.count) throw new BadRequestException(apiMessage('Order {{orderNumber}} pehle hi settle ho chuka', { orderNumber: order.orderNumber }));
       // The delivery man's report is closed: USED when the office kept it, CHANGED when it did not.
       const report = await tx.distDeliveryReport.findUnique({ where: { tenantId_salesOrderId: { tenantId: order.tenantId, salesOrderId: order.id } } });
       if (report && report.status === 'PENDING') {

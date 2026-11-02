@@ -12,6 +12,7 @@ import { hasPermission, type PermissionKey } from '../../../common/constants/per
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { dateKeyTz, tzParts, zonedToUtc } from '../../../common/helpers/business-time.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -196,6 +197,6 @@ export function withSource<T extends { source: SalonAppointmentSource; internalN
 /** Refuses the request unless the person holds one of the permissions. */
 export function assertCan(user: AuthenticatedUser, perms: PermissionKey[], action: string) {
   if (!perms.some((p) => hasPermission(user.role, user.permissions, p))) {
-    throw new ForbiddenException(`${action} ki permission nahi (${perms.join(' / ')})`);
+    throw new ForbiddenException(apiMessage('{{action}} ki permission nahi ({{perms}})', { action, perms: perms.join(' / ') }));
   }
 }

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Store } from 'lucide-react';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
+import { t } from '@core/i18n';
 
 /**
  * Multi-branch: naya order ghalat branch me aa gaya to accept se pehle doosri branch me bhejo.
@@ -18,7 +19,7 @@ export function OrderBranchPicker({ order, onChanged }: { order: OnlineOrderDeta
   const move = useMutation({
     mutationFn: (shopId: string) => onlineOrdersApi.moveBranch(order.id, { shopId, remember: remember && !!route }),
     onSuccess: (r) => {
-      toast.success(`Order ${r.shopName} me chala gaya`, { description: r.remembered ? 'Aage se isi tarah ke orders seedha isi branch me aayenge' : undefined });
+      toast.success(t('Order {{shopName}} me chala gaya', { shopName: r.shopName }), { description: r.remembered ? t('Aage se isi tarah ke orders seedha isi branch me aayenge') : undefined });
       onChanged();
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
@@ -30,7 +31,7 @@ export function OrderBranchPicker({ order, onChanged }: { order: OnlineOrderDeta
     <section className="rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">
       <div className="flex flex-wrap items-center gap-2">
         <Store className="h-4 w-4 text-slate-400" />
-        <span className="text-[0.8125rem] font-bold text-slate-700">Branch</span>
+        <span className="text-[0.8125rem] font-bold text-slate-700">{t('Branch')}</span>
         <span className="flex-1" />
         <select
           value={current}
@@ -38,14 +39,14 @@ export function OrderBranchPicker({ order, onChanged }: { order: OnlineOrderDeta
           onChange={(e) => e.target.value && e.target.value !== current && move.mutate(e.target.value)}
           className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-semibold"
         >
-          {!current && <option value="">— chunein —</option>}
+          {!current && <option value="">{t('— chunein —')}</option>}
           {active.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
       {route && (
         <label className="mt-2 flex items-center gap-2 text-[0.75rem] text-slate-500">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-3.5 w-3.5 accent-brand-600" />
-          Aage se is website branch ke orders bhi seedha isi branch me
+          {t('Aage se is website branch ke orders bhi seedha isi branch me')}
         </label>
       )}
     </section>

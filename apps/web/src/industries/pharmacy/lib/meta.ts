@@ -4,15 +4,16 @@
  */
 
 import type { PrescriptionStatus } from '../api/prescriptions.api';
+import { t } from '@core/i18n';
 
 export const SCHEDULE_META: Record<string, { label: string; hint: string; tone: string }> = {
-  OTC: { label: 'OTC', hint: 'Bagair nuskhe ke bik sakti hai', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
-  SCHEDULE_G: { label: 'Schedule G', hint: 'Doctor ki hidayat zaroori', tone: 'bg-sky-50 text-sky-700 ring-sky-100' },
-  SCHEDULE_H: { label: 'Schedule H', hint: 'Sirf nuskhe par', tone: 'bg-amber-50 text-amber-800 ring-amber-100' },
-  SCHEDULE_X: { label: 'Schedule X', hint: 'Nuskha aur register dono', tone: 'bg-orange-50 text-orange-800 ring-orange-100' },
-  CONTROLLED: { label: 'Controlled', hint: 'Register me har sale likhi jati hai', tone: 'bg-rose-50 text-rose-700 ring-rose-100' },
-  NARCOTIC: { label: 'Narcotic', hint: 'Register me mareez aur doctor zaroori', tone: 'bg-rose-100 text-rose-800 ring-rose-200' },
-  PSYCHOTROPIC: { label: 'Psychotropic', hint: 'Register me mareez aur doctor zaroori', tone: 'bg-violet-50 text-violet-800 ring-violet-100' },
+  OTC: { label: t('OTC'), hint: t('Bagair nuskhe ke bik sakti hai'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+  SCHEDULE_G: { label: t('Schedule G'), hint: t('Doctor ki hidayat zaroori'), tone: 'bg-sky-50 text-sky-700 ring-sky-100' },
+  SCHEDULE_H: { label: t('Schedule H'), hint: t('Sirf nuskhe par'), tone: 'bg-amber-50 text-amber-800 ring-amber-100' },
+  SCHEDULE_X: { label: t('Schedule X'), hint: t('Nuskha aur register dono'), tone: 'bg-orange-50 text-orange-800 ring-orange-100' },
+  CONTROLLED: { label: t('Controlled'), hint: t('Register me har sale likhi jati hai'), tone: 'bg-rose-50 text-rose-700 ring-rose-100' },
+  NARCOTIC: { label: t('Narcotic'), hint: t('Register me mareez aur doctor zaroori'), tone: 'bg-rose-100 text-rose-800 ring-rose-200' },
+  PSYCHOTROPIC: { label: t('Psychotropic'), hint: t('Register me mareez aur doctor zaroori'), tone: 'bg-violet-50 text-violet-800 ring-violet-100' },
 };
 export const SCHEDULES = Object.keys(SCHEDULE_META);
 
@@ -22,22 +23,22 @@ export const REGISTER_CLASSES = ['CONTROLLED', 'NARCOTIC', 'PSYCHOTROPIC', 'SCHE
 export const DOSAGE_FORMS = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Drops', 'Cream', 'Ointment', 'Gel', 'Inhaler', 'Sachet', 'Suppository', 'Spray', 'Lotion'];
 
 export const STORAGE_META: Record<string, string> = {
-  ROOM_TEMPERATURE: 'Kamre ka temperature',
-  COOL: 'Thandi jagah',
-  REFRIGERATED: 'Fridge (2–8°C)',
-  FROZEN: 'Freezer',
-  CONTROLLED_ROOM: 'Controlled room',
-  PROTECT_FROM_LIGHT: 'Dhoop se bachayein',
-  PROTECT_FROM_MOISTURE: 'Nami se bachayein',
+  ROOM_TEMPERATURE: t('Kamre ka temperature'),
+  COOL: t('Thandi jagah'),
+  REFRIGERATED: t('Fridge (2–8°C)'),
+  FROZEN: t('Freezer'),
+  CONTROLLED_ROOM: t('Controlled room'),
+  PROTECT_FROM_LIGHT: t('Dhoop se bachayein'),
+  PROTECT_FROM_MOISTURE: t('Nami se bachayein'),
 };
 
 export const RX_STATUS: Record<PrescriptionStatus, { label: string; tone: string }> = {
-  PENDING: { label: 'Check baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  VERIFIED: { label: 'Dene ko tayyar', tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
-  PARTIALLY_DISPENSED: { label: 'Kuch di', tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
-  DISPENSED: { label: 'Poori di', tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  REJECTED: { label: 'Radd', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  CANCELLED: { label: 'Band', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  PENDING: { label: t('Check baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  VERIFIED: { label: t('Dene ko tayyar'), tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  PARTIALLY_DISPENSED: { label: t('Kuch di'), tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
+  DISPENSED: { label: t('Poori di'), tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  REJECTED: { label: t('Radd'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  CANCELLED: { label: t('Band'), tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
 /** Patient and doctor written on a narcotic bill line. */
@@ -80,10 +81,10 @@ export function formatCnic(v: string): string {
 
 /** Days left as words: "aaj", "3 din", "expire (5 din pehle)". */
 export function daysLabel(days: number): string {
-  if (days < 0) return `expire (${-days} din pehle)`;
+  if (days < 0) return t('expire ({{value}} din pehle)', { value: -days });
   if (days === 0) return 'aaj';
-  if (days < 60) return `${days} din`;
-  return `${Math.round(days / 30)} mahine`;
+  if (days < 60) return t('{{days}} din', { days });
+  return t('{{value}} mahine', { value: Math.round(days / 30) });
 }
 
 /** Calendar date for a business-day key or ISO string. */

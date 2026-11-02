@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { apiMessage } from '../../../../common/i18n/api-message';
 
 /** PKR notes and coins a till can be counted in. */
 export const PKR_DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1] as const;
@@ -18,10 +19,10 @@ export function checkDenominations(sheet: Denominations | undefined, amount: num
     const value = Number(key);
     const count = Number(raw);
     if (!PKR_DENOMINATIONS.includes(value as (typeof PKR_DENOMINATIONS)[number])) {
-      throw new BadRequestException(`Rs ${key} ka note ya sikka nahi hota`);
+      throw new BadRequestException(apiMessage('Rs {{key}} ka note ya sikka nahi hota', { key }));
     }
     if (!Number.isInteger(count) || count < 0 || count > 100_000) {
-      throw new BadRequestException(`Rs ${key} ki ginti sahi nahi`);
+      throw new BadRequestException(apiMessage('Rs {{key}} ki ginti sahi nahi', { key }));
     }
     if (count > 0) {
       clean[key] = count;
@@ -29,7 +30,7 @@ export function checkDenominations(sheet: Denominations | undefined, amount: num
     }
   }
   if (Math.abs(sum - amount) > 0.01) {
-    throw new BadRequestException(`Notes ki ginti (Rs ${sum}) aur likhi amount (Rs ${amount}) barabar nahi`);
+    throw new BadRequestException(apiMessage('Notes ki ginti (Rs {{sum}}) aur likhi amount (Rs {{amount}}) barabar nahi', { sum, amount }));
   }
   return clean;
 }

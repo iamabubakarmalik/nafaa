@@ -6,6 +6,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { addDaysTz, dayKey, dayStart, parseDay, tzParts } from '../meat-common';
 import { mustChange, positive, r2, r3, str, withNextNumber } from '../meat-money';
 import { SUB_PREFIX, WeightOrdersService } from '../weight-orders/weight-orders.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies here are untyped
 type Body = any;
@@ -113,7 +114,7 @@ export class SubscriptionsService {
       where: { tenantId: user.tenantId, occasion: `${SUB_PREFIX}${s.subscriptionNumber}`, status: { notIn: ['DELIVERED', 'CANCELLED'] } },
       select: { orderNumber: true },
     });
-    if (open) throw new BadRequestException(`Is subscription ka order ${open.orderNumber} abhi khula hai — pehle wo de dein`);
+    if (open) throw new BadRequestException(apiMessage('Is subscription ka order {{orderNumber}} abhi khula hai — pehle wo de dein', { orderNumber: open.orderNumber }));
     const products = await this.prisma.product.findMany({ where: { tenantId: user.tenantId, id: { in: list.map((i) => i.productId) }, isActive: true }, select: { id: true, price: true } });
     const price = new Map(products.map((p) => [p.id, p.price]));
     const subtotal = list.reduce((sum, i) => sum + i.kg * (price.get(i.productId) ?? 0), 0);
@@ -156,8 +157,8 @@ export class SubscriptionsService {
       const P = new Map(products.map((p) => [p.id, p]));
       const list: StandardItem[] = raw.map((r: Body, i: number) => {
         const p = P.get(String(r?.productId));
-        if (!p) throw new BadRequestException(`Line ${i + 1}: item nahi mila`);
-        return { productId: p.id, productName: p.name, kg: r3(positive(r?.kg, `${p.name}: kitne kg — likhein`)) };
+        if (!p) throw new BadRequestException(apiMessage('Line {{i}}: item nahi mila', { i: i + 1 }));
+        return { productId: p.id, productName: p.name, kg: r3(positive(r?.kg, apiMessage('{{name}}: kitne kg — likhein', { name: p.name }))) };
       });
       const freq = String(out.frequency ?? dto?.frequency ?? 'WEEKLY');
       const perDelivery = list.reduce((s, i) => s + i.kg * (P.get(i.productId)?.price ?? 0), 0);

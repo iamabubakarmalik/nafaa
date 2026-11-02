@@ -17,6 +17,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { MONEY_METHODS, saveSalePayments } from '../../common/helpers/sale-payments.helper';
+import { apiMessage } from '../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -163,7 +164,7 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
   const costOfGoods = r2(lines.reduce((s, l) => s + r2(l.cost ?? 0), 0));
 
   if (creditAmount > 0 && !input.customerId) {
-    throw new BadRequestException(`Rs ${creditAmount} baqi hai — udhaar ke liye customer select karein ya poori amount lein`);
+    throw new BadRequestException(apiMessage('Rs {{creditAmount}} baqi hai — udhaar ke liye customer select karein ya poori amount lein', { creditAmount }));
   }
 
   const shopId = await resolveIndustryShopId(db, user, input.shopId);

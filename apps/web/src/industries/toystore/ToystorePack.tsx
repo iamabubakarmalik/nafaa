@@ -14,15 +14,16 @@ import BirthdayRemindersPage from './pages/BirthdayRemindersPage';
 import BirthdayDetailPage from './pages/BirthdayDetailPage';
 import ToySafetyReviewPage from './pages/ToySafetyReviewPage';
 import GiftFinderPage from './pages/GiftFinderPage';
+import { t } from '@core/i18n';
 
 export const ToystorePack: IndustryPack = {
   id: 'toystore',
   name: 'Toy Store',
-  shortName: 'Toys',
+  shortName: t('Toys'),
   emoji: '🧸',
   priority: 76,
   description:
-    'Age-appropriate filtering, safety certifications, gift packs, birthday reminders, RC toys, educational focus.',
+    t('Age-appropriate filtering, safety certifications, gift packs, birthday reminders, RC toys, educational focus.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -32,17 +33,17 @@ export const ToystorePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Toy store',
+      label: t('Toy store'),
       icon: Baby,
       emoji: '🧸',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/toystore/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/toystore/gift-finder', label: 'Gift finder', icon: Sparkles },
-        { to: '/toystore/gift-packs', label: 'Gift packs', icon: Gift },
-        { to: '/toystore/birthdays', label: 'Birthdays', icon: Cake },
-        { to: '/toystore/safety-review', label: 'Safety review', icon: ShieldAlert },
+        { to: '/toystore/dashboard', label: t('Dashboard'), icon: LayoutDashboard },
+        { to: '/toystore/gift-finder', label: t('Gift finder'), icon: Sparkles },
+        { to: '/toystore/gift-packs', label: t('Gift packs'), icon: Gift },
+        { to: '/toystore/birthdays', label: t('Birthdays'), icon: Cake },
+        { to: '/toystore/safety-review', label: t('Safety review'), icon: ShieldAlert },
       ],
     },
   ],
@@ -81,17 +82,17 @@ export const ToystorePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🧸', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
-      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Pieces'), hint: '🧸', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
+      { value: 'pack', label: t('Pack'), hint: '📦', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'toystoreBirthdayReminders', label: 'Birthday Reminders', defaultEnabled: true },
-    { key: 'toystoreGiftPacks', label: 'Gift Packs', defaultEnabled: true },
-    { key: 'toystoreSafetyReview', label: 'Safety Certification Review', defaultEnabled: true },
-    { key: 'toystoreAgeFilter', label: 'Age-Appropriate Filter', defaultEnabled: true },
+    { key: 'toystoreBirthdayReminders', label: t('Birthday Reminders'), defaultEnabled: true },
+    { key: 'toystoreGiftPacks', label: t('Gift Packs'), defaultEnabled: true },
+    { key: 'toystoreSafetyReview', label: t('Safety Certification Review'), defaultEnabled: true },
+    { key: 'toystoreAgeFilter', label: t('Age-Appropriate Filter'), defaultEnabled: true },
   ],
 };

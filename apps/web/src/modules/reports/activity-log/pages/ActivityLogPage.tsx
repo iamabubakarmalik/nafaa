@@ -31,6 +31,7 @@ import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { ROLE_LABEL } from '@modules/reports/audit/meta';
 import { activityLogApi, type ActivityEntry, type ActivityFeed, type ActivityFilters } from '../api/activity-log.api';
 import { actionLabel, detailOf, deviceOf, entityLabel, iconOf, kindOf, linkOf, sentence } from '../meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'people';
 const PAGE = 50;
@@ -81,7 +82,7 @@ export default function ActivityLogPage() {
   const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
   const facets = first?.facets;
   const total = first?.total ?? 0;
-  const label = period ? rangeLabel(period.from, period.to) : 'Shuru se ab tak';
+  const label = period ? rangeLabel(period.from, period.to) : tr('Shuru se ab tak');
 
   const stats = useMemo(() => {
     const count = (test: (a: string) => boolean) => (facets?.actions ?? []).filter((a) => test(a.key)).reduce((s, a) => s + a.count, 0);
@@ -105,8 +106,8 @@ export default function ActivityLogPage() {
   const dayTitle = (key: string) => {
     const today = businessDayKey(new Date(), startHour);
     const y = new Date(); y.setDate(y.getDate() - 1);
-    if (key === today) return 'Aaj';
-    if (key === businessDayKey(y, startHour)) return 'Kal';
+    if (key === today) return tr('Aaj');
+    if (key === businessDayKey(y, startHour)) return tr('Kal');
     return new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${key}T12:00:00`));
   };
 
@@ -127,25 +128,25 @@ export default function ActivityLogPage() {
     setExporting(true);
     try {
       const rows = await fetchAll();
-      if (!rows.length) return void toast.error('Is filter me kuch nahi');
-      downloadCsv(`activity-log-${period?.from ?? 'all'}-${period?.to ?? ''}.csv`, [
-        [`Activity log — ${tenantName ?? ''}`], [`Period: ${label}`], [],
-        ['Waqt', 'Kis ne', 'Role', 'Kya kiya', 'Details', 'Record', 'Record id', 'IP', 'Device'],
-        ...rows.map((e) => [stamp(e.createdAt), e.user?.fullName ?? 'System', e.user ? ROLE_LABEL[e.user.role] ?? e.user.role : '', sentence(e), detailOf(e),
+      if (!rows.length) return void toast.error(tr('Is filter me kuch nahi'));
+      downloadCsv(`activity-log-${period?.from ?? 'all'}-${period?.to ?? ''}.csv`, [ // i18n-ignore
+        [tr('Activity log — {{value}}', { value: tenantName ?? '' })], [tr('Period: {{label}}', { label })], [],
+        [tr('Waqt'), tr('Kis ne'), tr('Role'), tr('Kya kiya'), tr('Details'), tr('Record'), tr('Record id'), 'IP', tr('Device')],
+        ...rows.map((e) => [stamp(e.createdAt), e.user?.fullName ?? tr('System'), e.user ? ROLE_LABEL[e.user.role] ?? e.user.role : '', sentence(e), detailOf(e),
           e.entityType ? entityLabel(e.entityType) : '', e.entityId ?? '', e.ipAddress ?? '', deviceOf(e.userAgent) ?? '']),
       ]);
-      toast.success(`${rows.length} entries CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} entries CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await fetchAll();
     return {
-      title: 'Activity log',
+      title: tr('Activity log'),
       subtitle: label,
-      meta: [['Entries', String(rows.length)], ...(userId && facets ? [['Banda', facets.users.find((u) => u.id === userId)?.name ?? ''] as [string, string]] : [])],
+      meta: [[tr('Entries'), String(rows.length)], ...(userId && facets ? [[tr('Banda'), facets.users.find((u) => u.id === userId)?.name ?? ''] as [string, string]] : [])],
       sections: [{
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Details', wideOnly: true }],
+        columns: [{ label: tr('Waqt') }, { label: tr('Kya hua') }, { label: tr('Details'), wideOnly: true }],
         rows: rows.map((e) => [stamp(e.createdAt), sentence(e), detailOf(e)]),
       }],
     };
@@ -162,72 +163,72 @@ export default function ActivityLogPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const userName = (id: string) => facets?.users.find((u) => u.id === id)?.name ?? 'Banda';
+  const userName = (id: string) => facets?.users.find((u) => u.id === id)?.name ?? tr('Banda');
   const loading = q.isLoading;
 
   return (
     <PageShell>
       <PageHero
-        title="Activity log"
+        title={tr('Activity log')}
         chip={<><History />{label}</>}
         meta={tenantName}
         busy={q.isFetching && !q.isLoading && !q.isFetchingNextPage}
         loading={loading}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting || !total} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting || !total} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!total} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Kul kaam', value: total.toLocaleString('en-PK') },
-          { label: 'Log', value: String(stats.people), hint: stats.top ? `sab se zyada: ${stats.top.name}` : undefined },
-          { label: 'Mitaye / void', value: String(stats.deletes) },
-          { label: 'Security', value: String(stats.security), hint: stats.pinFailed ? `${stats.pinFailed} ghalat PIN` : undefined },
+          { label: tr('Kul kaam'), value: total.toLocaleString('en-PK') },
+          { label: tr('Log'), value: String(stats.people), hint: stats.top ? tr('sab se zyada: {{name}}', { name: stats.top.name }) : undefined },
+          { label: tr('Mitaye / void'), value: String(stats.deletes) },
+          { label: tr('Security'), value: String(stats.security), hint: stats.pinFailed ? tr('{{pinFailed}} ghalat PIN', { pinFailed: stats.pinFailed }) : undefined },
         ]}
       />
 
       <KpiRow cols={4}>
         {loading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Users} color="#2563eb" label="Sab se zyada kaam" value={stats.top?.name ?? '—'} hint={stats.top ? `${stats.top.count} kaam · dabayein` : undefined}
+            <KpiCard icon={Users} color="#2563eb" label={tr('Sab se zyada kaam')} value={stats.top?.name ?? '—'} hint={stats.top ? tr('{{count}} kaam · dabayein', { count: stats.top.count }) : undefined}
               onClick={stats.top ? () => setUserId(userId === stats.top!.id ? '' : stats.top!.id) : undefined} active={!!stats.top && userId === stats.top.id} />
-            <KpiCard icon={Trash2} color="#e11d48" label="Mitaya gaya" value={String(stats.deletes)} hint="Mitaye, void aur radd" />
-            <KpiCard icon={ShieldCheck} color="#7c3aed" label="PIN aur security" value={String(stats.security)} hint={stats.pinFailed ? `${stats.pinFailed} ghalat PIN · dabayein` : 'PIN, logout, download'}
+            <KpiCard icon={Trash2} color="#e11d48" label={tr('Mitaya gaya')} value={String(stats.deletes)} hint={tr('Mitaye, void aur radd')} />
+            <KpiCard icon={ShieldCheck} color="#7c3aed" label={tr('PIN aur security')} value={String(stats.security)} hint={stats.pinFailed ? tr('{{pinFailed}} ghalat PIN · dabayein', { pinFailed: stats.pinFailed }) : tr('PIN, logout, download')}
               onClick={stats.pinFailed ? () => setAction(action === 'PIN_VERIFY_FAILED' ? '' : 'PIN_VERIFY_FAILED') : undefined} active={action === 'PIN_VERIFY_FAILED'} />
-            <KpiCard icon={FileText} color="#0891b2" label="Record ki type" value={String(facets?.entities.length ?? 0)} hint={facets?.entities[0] ? `zyada: ${entityLabel(facets.entities[0].key)}` : undefined} />
+            <KpiCard icon={FileText} color="#0891b2" label={tr('Record ki type')} value={String(facets?.entities.length ?? 0)} hint={facets?.entities[0] ? tr('zyada: {{key}}', { key: entityLabel(facets.entities[0].key) }) : undefined} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Details, naam ya record id…" label="Activity search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Details, naam ya record id…')} label={tr('Activity search')} />}
         chips={hasFilters ? <>
           {range.preset !== 'week' && <FilterChip onRemove={() => setRange({ preset: 'week', custom: { from: '', to: '' } })}>{label}</FilterChip>}
           {userId && <FilterChip onRemove={() => setUserId('')}>{userName(userId)}</FilterChip>}
           {action && <FilterChip onRemove={() => setAction('')}>{actionLabel(action)}</FilterChip>}
           {entity && <FilterChip onRemove={() => setEntity('')}>{entityLabel(entity)}</FilterChip>}
-          {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((s) => s.id === shopId)?.name ?? 'Branch'}</FilterChip>}
+          {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((s) => s.id === shopId)?.name ?? tr('Branch')}</FilterChip>}
           {needle && <FilterChip onRemove={() => setSearch('')}>"{needle}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="week" />
-        <FilterMenu icon={UserRound} label="Banda" value={userId} active={!!userId} onChange={setUserId} width="w-72"
-          options={[{ value: '', label: 'Sab log' }, ...(facets?.users ?? []).map((u) => ({ value: u.id, label: u.name, hint: `${u.role ? `${ROLE_LABEL[u.role] ?? u.role} · ` : ''}${u.count} kaam` }))]} />
-        <FilterMenu icon={ListFilter} label="Kaam" value={action} active={!!action} onChange={setAction} width="w-72"
-          options={[{ value: '', label: 'Har kaam' }, ...(facets?.actions ?? []).map((a) => ({ value: a.key, label: actionLabel(a.key), hint: `${a.count}` }))]} />
-        <FilterMenu icon={FileText} label="Record" value={entity} active={!!entity} onChange={setEntity}
-          options={[{ value: '', label: 'Har record' }, ...(facets?.entities ?? []).map((x) => ({ value: x.key, label: entityLabel(x.key), hint: `${x.count}` }))]} />
+        <FilterMenu icon={UserRound} label={tr('Banda')} value={userId} active={!!userId} onChange={setUserId} width="w-72"
+          options={[{ value: '', label: tr('Sab log') }, ...(facets?.users ?? []).map((u) => ({ value: u.id, label: u.name, hint: tr('{{value}}{{count}} kaam', { value: u.role ? `${ROLE_LABEL[u.role] ?? u.role} · ` : '', count: u.count }) }))]} />
+        <FilterMenu icon={ListFilter} label={tr('Kaam')} value={action} active={!!action} onChange={setAction} width="w-72"
+          options={[{ value: '', label: tr('Har kaam') }, ...(facets?.actions ?? []).map((a) => ({ value: a.key, label: actionLabel(a.key), hint: `${a.count}` }))]} />
+        <FilterMenu icon={FileText} label={tr('Record')} value={entity} active={!!entity} onChange={setEntity}
+          options={[{ value: '', label: tr('Har record') }, ...(facets?.entities ?? []).map((x) => ({ value: x.key, label: entityLabel(x.key), hint: `${x.count}` }))]} />
         {isOwner && shops.length > 1 && (
-          <FilterMenu icon={Building2} label="Branch" value={shopId} active={!!shopId} onChange={setShopId} align="right"
-            options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name, hint: 'Is branch ke staff ke kaam' }))]} />
+          <FilterMenu icon={Building2} label={tr('Branch')} value={shopId} active={!!shopId} onChange={setShopId} align="right"
+            options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name, hint: tr('Is branch ke staff ke kaam') }))]} />
         )}
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> <Kbd>2</Kbd> se badlein</>}
-        tabs={[{ id: 'list', label: 'Sab kaam', icon: Activity, count: total }, { id: 'people', label: 'Log', icon: Users, count: stats.people }]} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> <Kbd>2</Kbd> {' '}{tr('se badlein')}</>}
+        tabs={[{ id: 'list', label: tr('Sab kaam'), icon: Activity, count: total }, { id: 'people', label: tr('Log'), icon: Users, count: stats.people }]} />
 
       {q.isError && !first ? (
-        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Log load nahi hua — internet check karein aur dobara kholein.</p>
+        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('Log load nahi hua — internet check karein aur dobara kholein.')}</p>
       ) : loading ? (
         <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
       ) : tab === 'people' ? (
@@ -235,9 +236,9 @@ export default function ActivityLogPage() {
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><History className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? 'Is filter me kuch nahi' : 'Abhi koi activity nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? 'Filter badal kar ya period barha kar dekhein' : 'Branch, staff, settings ya PIN me badlav yahan likhe jate hain'}</p>
-          {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>Filter hatayein</Button>}
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{hasFilters ? tr('Is filter me kuch nahi') : tr('Abhi koi activity nahi')}</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{hasFilters ? tr('Filter badal kar ya period barha kar dekhein') : tr('Branch, staff, settings ya PIN me badlav yahan likhe jate hain')}</p>
+          {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>{tr('Filter hatayein')}</Button>}
         </div>
       ) : (
         <div className="space-y-4">
@@ -245,7 +246,7 @@ export default function ActivityLogPage() {
             <section key={key} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <header className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 sm:px-5">
                 <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(key)}</h2>
-                <span className="text-[0.75rem] text-slate-500">{list.length} kaam</span>
+                <span className="text-[0.75rem] text-slate-500">{tr('{{count}} kaam', { count: list.length })}</span>
               </header>
               <ul className="divide-y divide-slate-100">
                 {list.map((e) => <EntryRow key={e.id} e={e} expanded={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} onUser={(id) => setUserId(id)} />)}
@@ -255,25 +256,25 @@ export default function ActivityLogPage() {
           {q.hasNextPage && (
             <button type="button" onClick={() => void q.fetchNextPage()} disabled={q.isFetchingNextPage}
               className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
-              {q.isFetchingNextPage ? 'Aa rahe hain…' : `Aur dikhayein (${items.length} / ${total})`}
+              {q.isFetchingNextPage ? tr('Aa rahe hain…') : tr('Aur dikhayein ({{count}} / {{total}})', { count: items.length, total })}
             </button>
           )}
         </div>
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Activity log — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Activity log — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: History, color: '#2563eb', title: 'Kya likha jata hai', text: 'Branch, login, staff, settings, PIN, tankhwah, void bill aur mitaye gaye expenses — kis ne kab kiya.' },
-            { icon: ListFilter, color: '#d97706', title: 'Filter', text: 'Period, banda, kaam aur record chunein. Lage filter neeche dikhte hain, X se hat jate hain.' },
-            { icon: MousePointerClick, color: '#16a34a', title: 'Details', text: 'Kisi line par click karein: poori baat, IP, device, aur record kholne ka link.' },
-            { icon: Users, color: '#7c3aed', title: 'Log', text: '"Log" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.' },
-            { icon: ShieldCheck, color: '#e11d48', title: 'Khatre ki baat', text: 'Ghalat PIN, mitaye gaye expenses aur void bill par nazar rakhein. Poori jaanch ke liye Audit report.' },
-            { icon: Download, color: '#0891b2', title: 'Export', text: 'CSV ya Print/PDF — is filter ki saari entries aa jati hain.' },
+            { icon: History, color: '#2563eb', title: tr('Kya likha jata hai'), text: tr('Branch, login, staff, settings, PIN, tankhwah, void bill aur mitaye gaye expenses — kis ne kab kiya.') },
+            { icon: ListFilter, color: '#d97706', title: tr('Filter'), text: tr('Period, banda, kaam aur record chunein. Lage filter neeche dikhte hain, X se hat jate hain.') },
+            { icon: MousePointerClick, color: '#16a34a', title: tr('Details'), text: tr('Kisi line par click karein: poori baat, IP, device, aur record kholne ka link.') },
+            { icon: Users, color: '#7c3aed', title: tr('Log'), text: tr('"Log" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.') },
+            { icon: ShieldCheck, color: '#e11d48', title: tr('Khatre ki baat'), text: tr('Ghalat PIN, mitaye gaye expenses aur void bill par nazar rakhein. Poori jaanch ke liye Audit report.') },
+            { icon: Download, color: '#0891b2', title: tr('Export'), text: tr('CSV ya Print/PDF — is filter ki saari entries aa jati hain.') },
           ]}
-          tips={['Din dukaan ke apne waqt par badalta hai.', 'Branch filter us branch ke staff ke kaam dikhata hai.']}
-          shortcuts={[['/', 'dhoondein'], ['1', 'sab kaam'], ['2', 'log'], ['G', 'guide']]}
-          footer={<Link to="/audit" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Audit report →</Link>}
+          tips={[tr('Din dukaan ke apne waqt par badalta hai.'), tr('Branch filter us branch ke staff ke kaam dikhata hai.')]}
+          shortcuts={[['/', tr('dhoondein')], ['1', tr('sab kaam')], ['2', tr('log')], ['G', tr('guide')]]}
+          footer={<Link to="/audit" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Audit report →')}</Link>}
         />
       )}
     </PageShell>
@@ -287,7 +288,7 @@ function EntryRow({ e, expanded, onToggle, onUser }: { e: ActivityEntry; expande
   const detail = detailOf(e);
   return (
     <li>
-      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50/70 sm:px-5">
+      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex w-full items-start gap-3 px-4 py-3 text-start transition hover:bg-slate-50/70 sm:px-5">
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-4 w-4" /></span>
         <span className="min-w-0 flex-1">
           <span className="block text-[0.875rem] font-semibold text-slate-900">{sentence(e)}</span>
@@ -299,16 +300,16 @@ function EntryRow({ e, expanded, onToggle, onUser }: { e: ActivityEntry; expande
         </span>
       </button>
       {expanded && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-slate-100 bg-slate-50/50 px-4 py-2.5 pl-16 text-[0.75rem] text-slate-600 sm:px-5 sm:pl-[4.25rem]">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-dashed border-slate-100 bg-slate-50/50 px-4 py-2.5 ps-16 text-[0.75rem] text-slate-600 sm:px-5 sm:ps-[4.25rem]">
           <span>{stamp(e.createdAt)}</span>
           {e.user && (
             <button type="button" onClick={() => onUser(e.user!.id)} className="inline-flex items-center gap-1 font-medium text-slate-700 hover:text-brand-700">
               <UserRound className="h-3.5 w-3.5" />{e.user.fullName}{e.user.role ? ` · ${ROLE_LABEL[e.user.role] ?? e.user.role}` : ''}{e.user.assignedShop ? ` · ${e.user.assignedShop.name}` : ''}
             </button>
           )}
-          {e.entityType && <span>{entityLabel(e.entityType)}{e.entityId ? <span className="ml-1 font-mono text-[0.6875rem] text-slate-400">{e.entityId.slice(0, 8)}</span> : null}</span>}
+          {e.entityType && <span>{entityLabel(e.entityType)}{e.entityId ? <span className="ms-1 font-mono text-[0.6875rem] text-slate-400">{e.entityId.slice(0, 8)}</span> : null}</span>}
           {(e.ipAddress || device) && <span className="inline-flex items-center gap-1"><MonitorSmartphone className="h-3.5 w-3.5" />{[device, e.ipAddress].filter(Boolean).join(' · ')}</span>}
-          {link && <Link to={link.to} className="ml-auto font-semibold text-brand-700 hover:underline">{link.label} →</Link>}
+          {link && <Link to={link.to} className="ms-auto font-semibold text-brand-700 hover:underline">{link.label} →</Link>}
         </div>
       )}
     </li>
@@ -320,18 +321,18 @@ function PeopleView({ feed, onPick }: { feed: ActivityFeed; onPick: (id: string)
   const actions = feed.facets.actions.slice(0, 12);
   const maxU = Math.max(1, ...users.map((u) => u.count));
   const maxA = Math.max(1, ...actions.map((a) => a.count));
-  if (!users.length) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is period me koi activity nahi</p>;
+  if (!users.length) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('Is period me koi activity nahi')}</p>;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Users className="h-4 w-4 text-brand-600" />Kis ne kitne kaam kiye</h2>
-        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Naam dabayein — sirf us ke kaam dikhenge</p>
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Users className="h-4 w-4 text-brand-600" />{tr('Kis ne kitne kaam kiye')}</h2>
+        <p className="mt-0.5 text-[0.8125rem] text-slate-500">{tr('Naam dabayein — sirf us ke kaam dikhenge')}</p>
         <ul className="mt-4 space-y-2">
           {users.map((u) => (
             <li key={u.id}>
-              <button type="button" onClick={() => onPick(u.id)} className="group block w-full text-left">
+              <button type="button" onClick={() => onPick(u.id)} className="group block w-full text-start">
                 <span className="flex items-center justify-between gap-3 text-[0.8125rem]">
-                  <span className="truncate font-medium text-slate-800 group-hover:text-brand-700">{u.name}{u.role ? <span className="ml-1.5 text-[0.75rem] font-normal text-slate-500">{ROLE_LABEL[u.role] ?? u.role}</span> : null}</span>
+                  <span className="truncate font-medium text-slate-800 group-hover:text-brand-700">{u.name}{u.role ? <span className="ms-1.5 text-[0.75rem] font-normal text-slate-500">{ROLE_LABEL[u.role] ?? u.role}</span> : null}</span>
                   <span className="tabular-nums text-slate-600">{u.count}</span>
                 </span>
                 <span className="mt-1 block h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${(u.count / maxU) * 100}%` }} /></span>
@@ -341,8 +342,8 @@ function PeopleView({ feed, onPick }: { feed: ActivityFeed; onPick: (id: string)
         </ul>
       </section>
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Search className="h-4 w-4 text-brand-600" />Kaun se kaam zyada hue</h2>
-        <p className="mt-0.5 text-[0.8125rem] text-slate-500">Is period ke sab se aam kaam</p>
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Search className="h-4 w-4 text-brand-600" />{tr('Kaun se kaam zyada hue')}</h2>
+        <p className="mt-0.5 text-[0.8125rem] text-slate-500">{tr('Is period ke sab se aam kaam')}</p>
         <ul className="mt-4 space-y-2">
           {actions.map((a) => {
             const { icon: Icon, color } = iconOf({ action: a.key, entityType: null });

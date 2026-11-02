@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -103,7 +104,7 @@ export class PromotionsService {
     if (promo.usageLimit && promo.usageCount >= promo.usageLimit) throw new BadRequestException('Coupon limit reached');
     if (dto.shopId && promo.shopId && promo.shopId !== dto.shopId) throw new BadRequestException('Coupon not valid for this shop');
     if (dto.orderSubtotal !== undefined && Number(promo.minOrderAmount) > dto.orderSubtotal) {
-      throw new BadRequestException(`Minimum order PKR ${promo.minOrderAmount} required`);
+      throw new BadRequestException(apiMessage('Minimum order PKR {{minOrderAmount}} required', { minOrderAmount: Number(promo.minOrderAmount) }));
     }
     if (customerId && promo.perCustomerLimit) {
       const used = await this.prisma.promoRedemption.count({ where: { promotionId: promo.id, customerId } });

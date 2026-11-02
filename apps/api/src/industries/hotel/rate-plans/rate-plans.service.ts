@@ -12,6 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { dayOf, found } from '../common/hotel-common';
 import { RatePlanDto } from '../common/hotel.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class RatePlansService {
@@ -54,7 +55,7 @@ export class RatePlansService {
     if (!dto.startDate || !dto.endDate) throw new BadRequestException('Plan kab se kab tak — dono dates likhein');
     const code = (dto.code?.trim() || dto.name.trim().replace(/[^A-Za-z0-9]+/g, '-').slice(0, 20)).toUpperCase();
     const dup = await this.prisma.hotelRatePlan.findFirst({ where: { tenantId: user.tenantId, code } });
-    if (dup) throw new BadRequestException(`Code "${code}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Code "{{code}}" pehle se hai', { code }));
     const data = await this.clean(user, { ...dto, code });
     return this.prisma.hotelRatePlan.create({ data: { ...(data as Prisma.HotelRatePlanUncheckedCreateInput), tenantId: user.tenantId, planType: dto.planType ?? 'SEASON' } });
   }
@@ -74,7 +75,7 @@ export class RatePlansService {
     const rp = await this.getOne(user, id);
     if (dto.code && dto.code.trim().toUpperCase() !== rp.code) {
       const dup = await this.prisma.hotelRatePlan.findFirst({ where: { tenantId: user.tenantId, code: dto.code.trim().toUpperCase(), id: { not: id } } });
-      if (dup) throw new BadRequestException(`Code "${dto.code.trim().toUpperCase()}" pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('Code "{{dtoCode}}" pehle se hai', { dtoCode: dto.code.trim().toUpperCase() }));
     }
     return this.prisma.hotelRatePlan.update({ where: { id }, data: await this.clean(user, dto, rp) });
   }

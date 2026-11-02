@@ -27,6 +27,7 @@ import { EmptyList, LoadFailed } from '../components/charts';
 import { HOLD_KEY, MONEY_KEYS, apiError, dayFull, opt, r2 } from '../components/meta';
 import { useGarmentsCan } from '../components/permissions';
 import { ProductPick, type PickedProduct } from '../components/ProductPick';
+import { t } from '@core/i18n';
 
 interface NewLine extends PickedProduct { key: string; quantity: number }
 
@@ -66,7 +67,7 @@ export default function ExchangePage() {
   const addLine = () => {
     if (!pick) return;
     const qty = Number(pickQty);
-    if (!(qty > 0)) { toast.error('Ginti likhein'); return; }
+    if (!(qty > 0)) { toast.error(t('Ginti likhein')); return; }
     const key = `${pick.productId}:${pick.variantId ?? ''}`;
     setLines((prev) => (prev.some((l) => l.key === key)
       ? prev.map((l) => (l.key === key ? { ...l, quantity: r2(l.quantity + qty) } : l))
@@ -85,72 +86,72 @@ export default function ExchangePage() {
     }),
     onSuccess: (r) => {
       setDone(r);
-      toast.success(`Exchange ho gaya — naya bill ${r.sale.saleNumber}`);
+      toast.success(t('Exchange ho gaya — naya bill {{saleNumber}}', { saleNumber: r.sale.saleNumber }));
       [HOLD_KEY, 'garments-exchange', 'returns', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     },
-    onError: (e) => toast.error(apiError(e, 'Exchange nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Exchange nahi hua'))),
   });
 
-  const problem = !returning.length ? 'Wapas aane wala maal chunein' : !lines.length ? 'Naya maal jorein' : null;
+  const problem = !returning.length ? t('Wapas aane wala maal chunein') : !lines.length ? t('Naya maal jorein') : null;
 
   return (
     <PageShell>
-      <PageHero title="Exchange" chip={<><ArrowLeftRight /> Badalna</>} meta="Purane bill ka maal wapas, naya maal usi waqt — sirf farq lein ya dein"
+      <PageHero title={t('Exchange')} chip={<><ArrowLeftRight /> {' '}{t('Badalna')}</>} meta={t('Purane bill ka maal wapas, naya maal usi waqt — sirf farq lein ya dein')}
         loading={previewQ.isLoading && !!saleId}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canExchange && <button type="button" onClick={() => setFinding(true)} title="Bill dhoondein (/)" className={heroPrimaryButton}><Search className="h-4 w-4" /> Bill dhoondein</button>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canExchange && <button type="button" onClick={() => setFinding(true)} title={t('Bill dhoondein (/)')} className={heroPrimaryButton}><Search className="h-4 w-4" /> {' '}{t('Bill dhoondein')}</button>}
         </>}
         stats={p ? [
-          { label: 'Bill', value: p.sale.saleNumber, hint: dayFull(p.sale.soldAt) },
-          { label: 'Kitne din', value: `${p.days} din`, hint: p.exchangeDays ? `Had ${p.exchangeDays} din` : 'Had set nahi' },
-          { label: 'Customer', value: p.sale.customer?.name ?? 'Walk-in' },
+          { label: t('Bill'), value: p.sale.saleNumber, hint: dayFull(p.sale.soldAt) },
+          { label: t('Kitne din'), value: `${p.days} din`, hint: p.exchangeDays ? t('Had {{exchangeDays}} din', { exchangeDays: p.exchangeDays }) : t('Had set nahi') },
+          { label: t('Customer'), value: p.sale.customer?.name ?? 'Walk-in' },
         ] : undefined}
       />
 
       {!canExchange ? (
-        <EmptyList icon={ArrowLeftRight} title="Exchange ki permission nahi" text="Exchange ke liye Return aur POS dono ki permission chahiye. Malik se kahein." />
+        <EmptyList icon={ArrowLeftRight} title={t('Exchange ki permission nahi')} text={t('Exchange ke liye Return aur POS dono ki permission chahiye. Malik se kahein.')} />
       ) : done ? (
-        <Card title="Exchange ho gaya" description={`Wapsi ${done.returnNumber} · naya bill ${done.sale.saleNumber}`}>
+        <Card title={t('Exchange ho gaya')} description={t('Wapsi {{returnNumber}} · naya bill {{saleNumber}}', { returnNumber: done.returnNumber, saleNumber: done.sale.saleNumber })}>
           <dl className="grid gap-2 text-[0.875rem] sm:grid-cols-2">
-            <Row label="Wapas aaye maal ki value" value={formatPKR(done.refundAmount)} />
-            {done.khataAmount > 0 && <Row label="Purane bill ka udhaar kata" value={formatPKR(done.khataAmount)} />}
-            <Row label="Naye bill me laga credit" value={formatPKR(Math.min(done.credit, done.sale.total))} />
-            <Row label="Naya bill" value={formatPKR(done.sale.total)} />
-            {done.paidNow > 0 && <Row label="Customer ne diya" value={formatPKR(done.paidNow)} />}
-            {done.sale.changeAmount > 0 && <Row label="Customer ko wapas" value={formatPKR(done.sale.changeAmount)} strong />}
-            {done.sale.creditAmount > 0 && <Row label="Khate me (udhaar)" value={formatPKR(done.sale.creditAmount)} strong />}
+            <Row label={t('Wapas aaye maal ki value')} value={formatPKR(done.refundAmount)} />
+            {done.khataAmount > 0 && <Row label={t('Purane bill ka udhaar kata')} value={formatPKR(done.khataAmount)} />}
+            <Row label={t('Naye bill me laga credit')} value={formatPKR(Math.min(done.credit, done.sale.total))} />
+            <Row label={t('Naya bill')} value={formatPKR(done.sale.total)} />
+            {done.paidNow > 0 && <Row label={t('Customer ne diya')} value={formatPKR(done.paidNow)} />}
+            {done.sale.changeAmount > 0 && <Row label={t('Customer ko wapas')} value={formatPKR(done.sale.changeAmount)} strong />}
+            {done.sale.creditAmount > 0 && <Row label={t('Khate me (udhaar)')} value={formatPKR(done.sale.creditAmount)} strong />}
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link to={receiptLink(done.sale.id)}><Button leftIcon={<Receipt className="h-4 w-4" />}>Naya bill kholein</Button></Link>
-            <Button variant="secondary" onClick={reset} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Naya exchange</Button>
+            <Link to={receiptLink(done.sale.id)}><Button leftIcon={<Receipt className="h-4 w-4" />}>{t('Naya bill kholein')}</Button></Link>
+            <Button variant="secondary" onClick={reset} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>{t('Naya exchange')}</Button>
           </div>
         </Card>
       ) : !saleId ? (
-        <EmptyList icon={ArrowLeftRight} title="Pehle purana bill dhoondein" text="Bill number scan karein, ya customer ka naam / phone likhein. Phir chunein kya wapas aaya aur kya naya diya.">
-          <Button onClick={() => setFinding(true)} leftIcon={<Search className="h-4 w-4" />}>Bill dhoondein</Button>
+        <EmptyList icon={ArrowLeftRight} title={t('Pehle purana bill dhoondein')} text={t('Bill number scan karein, ya customer ka naam / phone likhein. Phir chunein kya wapas aaya aur kya naya diya.')}>
+          <Button onClick={() => setFinding(true)} leftIcon={<Search className="h-4 w-4" />}>{t('Bill dhoondein')}</Button>
         </EmptyList>
       ) : previewQ.isLoading ? (
         <Skeleton className="h-64 rounded-3xl" />
       ) : previewQ.isError || !p ? (
-        <LoadFailed what="Bill" retry={() => previewQ.refetch()} />
+        <LoadFailed what={t('Bill')} retry={() => previewQ.refetch()} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-4">
             {p.late ? (
-              <Alert tone="warning" title={`Bill ${p.days} din purana hai`}>
-                Dukaan ki had {p.exchangeDays} din hai. Exchange par malik ya manager ka PIN lagega.
+              <Alert tone="warning" title={t('Bill {{days}} din purana hai', { days: p.days })}>
+                {t('Dukaan ki had {{exchangeDays}} din hai. Exchange par malik ya manager ka PIN lagega.', { exchangeDays: p.exchangeDays })}
               </Alert>
             ) : p.exchangeDays === 0 ? (
-              <Alert tone="info">Exchange ke din ki had abhi set nahi — Settings me "Exchange din" likhein.</Alert>
+              <Alert tone="info">{t('Exchange ke din ki had abhi set nahi — Settings me "Exchange din" likhein.')}</Alert>
             ) : null}
             {p.sale.creditAmount > 0 && (
-              <Alert tone="info">Is bill par udhaar tha. Wapsi pehle udhaar se kategi, is liye credit kam ho sakta hai — aakhri hisaab server batayega.</Alert>
+              <Alert tone="info">{t('Is bill par udhaar tha. Wapsi pehle udhaar se kategi, is liye credit kam ho sakta hai — aakhri hisaab server batayega.')}</Alert>
             )}
 
-            <Card flush title="1. Kya wapas aaya" description={`${p.sale.saleNumber} · ${p.sale.shop?.name ?? ''}`}
-              actions={<Button size="sm" variant="ghost" onClick={() => { reset(); setFinding(true); }}>Bill badlein</Button>}>
-              {!p.lines.length ? <p className="px-5 pb-5 text-[0.875rem] text-slate-500">Is bill ka koi maal wapas nahi ho sakta</p> : (
+            <Card flush title={t('1. Kya wapas aaya')} description={`${p.sale.saleNumber} · ${p.sale.shop?.name ?? ''}`}
+              actions={<Button size="sm" variant="ghost" onClick={() => { reset(); setFinding(true); }}>{t('Bill badlein')}</Button>}>
+              {!p.lines.length ? <p className="px-5 pb-5 text-[0.875rem] text-slate-500">{t('Is bill ka koi maal wapas nahi ho sakta')}</p> : (
                 <ul className="divide-y divide-slate-100">
                   {p.lines.map((l) => {
                     const v = back[l.saleItemId] ?? { qty: 0, damaged: false };
@@ -159,11 +160,11 @@ export default function ExchangePage() {
                       <li key={l.saleItemId} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{l.name}{l.variantName ? ` · ${l.variantName}` : ''}</p>
-                          <p className="text-[0.75rem] text-slate-500">{formatPKR(l.unitRefund)} / {l.unit} · {l.returnable} wapas ho sakte</p>
+                          <p className="text-[0.75rem] text-slate-500">{t('{{unitRefund}} / {{unit}} · {{returnable}} wapas ho sakte', { unitRefund: formatPKR(l.unitRefund), unit: l.unit, returnable: l.returnable })}</p>
                         </div>
                         <Stepper value={v.qty} max={l.returnable} onChange={(qty) => set({ qty })} />
                         {v.qty > 0 && (
-                          <Checkbox checked={v.damaged} onChange={(e) => set({ damaged: e.target.checked })} label="Kharab hai" description="Shelf par nahi jayega" />
+                          <Checkbox checked={v.damaged} onChange={(e) => set({ damaged: e.target.checked })} label={t('Kharab hai')} description={t('Shelf par nahi jayega')} />
                         )}
                       </li>
                     );
@@ -172,11 +173,11 @@ export default function ExchangePage() {
               )}
             </Card>
 
-            <Card title="2. Naya maal" description="Jo customer ab le raha hai">
+            <Card title={t('2. Naya maal')} description={t('Jo customer ab le raha hai')}>
               <div className="flex flex-wrap items-end gap-2">
-                <div className="min-w-[14rem] flex-1"><ProductPick value={pick} onChange={setPick} label="Product" hint="Naam likhein ya size ka barcode scan karein" /></div>
-                <div className="w-24"><Input label="Ginti" inputMode="decimal" value={pickQty} onChange={(e) => setPickQty(e.target.value.replace(/[^\d.]/g, ''))} hint="Kitne piece" /></div>
-                <Button onClick={addLine} disabled={!pick} leftIcon={<Plus className="h-4 w-4" />} className="mb-6">Jorein</Button>
+                <div className="min-w-[14rem] flex-1"><ProductPick value={pick} onChange={setPick} label={t('Product')} hint={t('Naam likhein ya size ka barcode scan karein')} /></div>
+                <div className="w-24"><Input label={t('Ginti')} inputMode="decimal" value={pickQty} onChange={(e) => setPickQty(e.target.value.replace(/[^\d.]/g, ''))} hint={t('Kitne piece')} /></div>
+                <Button onClick={addLine} disabled={!pick} leftIcon={<Plus className="h-4 w-4" />} className="mb-6">{t('Jorein')}</Button>
               </div>
               {lines.length > 0 && (
                 <ul className="mt-3 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -188,7 +189,7 @@ export default function ExchangePage() {
                         <p className="text-[0.75rem] text-slate-500">{l.quantity} × {formatPKR(l.price)}</p>
                       </div>
                       <span className="text-[0.875rem] font-semibold tabular-nums">{formatPKR(r2(l.quantity * l.price))}</span>
-                      <button type="button" onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} aria-label="Hatayein"
+                      <button type="button" onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} aria-label={t('Hatayein')}
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     </li>
                   ))}
@@ -197,21 +198,21 @@ export default function ExchangePage() {
             </Card>
           </div>
 
-          <Card title="3. Hisaab" className="h-fit lg:sticky lg:top-4">
+          <Card title={t('3. Hisaab')} className="h-fit lg:sticky lg:top-4">
             <dl className="space-y-2 text-[0.875rem]">
-              <Row icon={RotateCcw} label="Wapsi credit" value={formatPKR(credit)} />
-              <Row icon={ShoppingBag} label="Naya maal" value={formatPKR(newTotal)} />
+              <Row icon={RotateCcw} label={t('Wapsi credit')} value={formatPKR(credit)} />
+              <Row icon={ShoppingBag} label={t('Naya maal')} value={formatPKR(newTotal)} />
               <div className="border-t border-slate-100 pt-2">
-                <Row icon={Wallet} strong label={diff > 0 ? 'Customer dega' : diff < 0 ? 'Customer ko wapas (cash)' : 'Barabar'} value={formatPKR(Math.abs(diff))} />
+                <Row icon={Wallet} strong label={diff > 0 ? t('Customer dega') : diff < 0 ? t('Customer ko wapas (cash)') : t('Barabar')} value={formatPKR(Math.abs(diff))} />
               </div>
             </dl>
-            {diff > 0 && <PaymentMethodPicker className="mt-3" value={method} onChange={setMethod} label="Farq kaise mila" />}
-            <Input className="mt-3" label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Size chhota tha" hint="Marzi hai — Return report me dikhegi" />
+            {diff > 0 && <PaymentMethodPicker className="mt-3" value={method} onChange={setMethod} label={t('Farq kaise mila')} />}
+            <Input className="mt-3" label={t('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder={t('Size chhota tha')} hint={t('Marzi hai — Return report me dikhegi')} />
             {problem && <p className="mt-3 text-[0.8125rem] text-amber-800">{problem}</p>}
             <Button className="mt-3" fullWidth disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>
-              Exchange karein
+              {t('Exchange karein')}
             </Button>
-            {p.needsPin && <p className="mt-2 text-center text-[0.75rem] text-slate-500">Malik ya manager ka PIN poocha jayega</p>}
+            {p.needsPin && <p className="mt-2 text-center text-[0.75rem] text-slate-500">{t('Malik ya manager ka PIN poocha jayega')}</p>}
           </Card>
         </div>
       )}
@@ -219,14 +220,14 @@ export default function ExchangePage() {
       {finding && <FindBillModal onClose={() => setFinding(false)} onPick={(sale) => { reset(); setSaleId(sale.id); setFinding(false); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Exchange — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Exchange — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Search, color: '#2563eb', title: 'Bill dhoondein', text: 'Bill ka number scan karein ya customer ka naam / phone likhein.' },
-            { icon: RotateCcw, color: '#e11d48', title: 'Kya wapas aaya', text: 'Har cheez ki ginti chunein. Kharab ho to "Kharab hai" — wo shelf par nahi jati.' },
-            { icon: ShoppingBag, color: '#16a34a', title: 'Naya maal', text: 'Jo customer le raha hai wo jorein. Wapsi ki value naye bill me lag jati hai, sirf farq lein ya dein.' },
-            { icon: Wallet, color: '#d97706', title: 'Din ki had', text: 'Settings me "Exchange din" se zyada purane bill par malik ya manager ka PIN lagta hai.' },
+            { icon: Search, color: '#2563eb', title: t('Bill dhoondein'), text: t('Bill ka number scan karein ya customer ka naam / phone likhein.') },
+            { icon: RotateCcw, color: '#e11d48', title: t('Kya wapas aaya'), text: t('Har cheez ki ginti chunein. Kharab ho to "Kharab hai" — wo shelf par nahi jati.') },
+            { icon: ShoppingBag, color: '#16a34a', title: t('Naya maal'), text: t('Jo customer le raha hai wo jorein. Wapsi ki value naye bill me lag jati hai, sirf farq lein ya dein.') },
+            { icon: Wallet, color: '#d97706', title: t('Din ki had'), text: t('Settings me "Exchange din" se zyada purane bill par malik ya manager ka PIN lagta hai.') },
           ]}
-          shortcuts={[['/', 'bill dhoondein'], ['G', 'guide']]} />
+          shortcuts={[['/', t('bill dhoondein')], ['G', t('guide')]]} />
       )}
     </PageShell>
   );
@@ -244,10 +245,10 @@ function Row({ label, value, strong, icon: Icon }: { label: string; value: strin
 function Stepper({ value, max, onChange }: { value: number; max: number; onChange: (v: number) => void }) {
   return (
     <div className="flex items-center gap-1">
-      <button type="button" aria-label="Kam" disabled={value <= 0} onClick={() => onChange(Math.max(r2(value - 1), 0))}
+      <button type="button" aria-label={t('Kam')} disabled={value <= 0} onClick={() => onChange(Math.max(r2(value - 1), 0))}
         className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40"><Minus className="h-4 w-4" /></button>
       <span className="w-10 text-center text-[0.9375rem] font-bold tabular-nums">{value}</span>
-      <button type="button" aria-label="Zyada" disabled={value >= max} onClick={() => onChange(Math.min(r2(value + 1), max))}
+      <button type="button" aria-label={t('Zyada')} disabled={value >= max} onClick={() => onChange(Math.min(r2(value + 1), max))}
         className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40"><Plus className="h-4 w-4" /></button>
     </div>
   );

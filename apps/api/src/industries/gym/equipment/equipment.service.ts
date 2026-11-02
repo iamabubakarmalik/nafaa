@@ -8,6 +8,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { DAY_MS, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { CreateEquipmentDto, MaintenanceDto, UpdateEquipmentDto } from './dto/equipment.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const REPAIR_CATEGORY = { name: 'Gym machine repair', icon: '🔧', color: '#0ea5e9' };
 const day = (v?: string | null) => (v ? new Date(v) : v === null ? null : undefined);
@@ -37,7 +38,7 @@ export class EquipmentService {
       let equipmentNumber = opt(dto.equipmentNumber);
       if (equipmentNumber) {
         const dup = await tx.gymEquipment.findFirst({ where: { tenantId, equipmentNumber }, select: { id: true } });
-        if (dup) throw new BadRequestException(`Number ${equipmentNumber} pehle se kisi machine ka hai`);
+        if (dup) throw new BadRequestException(apiMessage('Number {{equipmentNumber}} pehle se kisi machine ka hai', { equipmentNumber }));
       } else {
         equipmentNumber = await nextNumber(tx, tenantId, 'EQ-', async () => (await tx.gymEquipment.findFirst({
           where: { tenantId, equipmentNumber: { startsWith: 'EQ-' } }, orderBy: { equipmentNumber: 'desc' }, select: { equipmentNumber: true },

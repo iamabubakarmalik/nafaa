@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { DAY_MS, GYM_SALE, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { BookClassDto, CreateClassDto, UpdateClassDto } from './dto/class.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** At most this many classes are made by one repeat schedule. */
 const MAX_REPEATS = 120;
@@ -132,7 +133,7 @@ export class ClassesService {
     const minutes = Math.round((end.getTime() - start.getTime()) / 60000);
     if (!(minutes >= 10 && minutes <= 480)) throw new BadRequestException('Class 10 minute se 8 ghante tak ki ho');
     if (dto.maxParticipants !== undefined && dto.maxParticipants < c.currentEnrolled) {
-      throw new BadRequestException(`${c.currentEnrolled} log pehle se booked hain — seats is se kam nahi ho sakti`);
+      throw new BadRequestException(apiMessage('{{currentEnrolled}} log pehle se booked hain — seats is se kam nahi ho sakti', { currentEnrolled: c.currentEnrolled }));
     }
     return this.prisma.gymClass.update({
       where: { id },

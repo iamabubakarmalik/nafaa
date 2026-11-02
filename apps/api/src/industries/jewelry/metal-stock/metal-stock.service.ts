@@ -7,6 +7,7 @@ import { JewelryMetalType, JewelryPurity, Prisma } from '@prisma/client';
 import { METAL_IN_TYPES, metalBalance, postMetalEntry } from '../common/metal-ledger';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Entry types a person may add by hand. */
 const MANUAL = ['PURCHASE', 'OPENING', 'ADJUSTMENT', 'SALE'];
@@ -24,7 +25,7 @@ export class MetalStockService {
     if (dto.ratePerGram != null && dto.ratePerGram !== '' && !(Number(dto.ratePerGram) >= 0)) throw new BadRequestException('Rate sahi likhein');
     if (!METAL_IN_TYPES.includes(dto.entryType)) {
       const have = await metalBalance(this.prisma, user.tenantId, dto.metalType, dto.purity);
-      if (grams > have + 0.001) throw new BadRequestException(`Stock me sirf ${Math.round(have * 1000) / 1000}g hai`);
+      if (grams > have + 0.001) throw new BadRequestException(apiMessage('Stock me sirf {{have}}g hai', { have: Math.round(have * 1000) / 1000 }));
     }
     return postMetalEntry(this.prisma, user.tenantId, user.id, {
       entryType: dto.entryType,

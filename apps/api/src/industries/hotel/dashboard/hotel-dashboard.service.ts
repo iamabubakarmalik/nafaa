@@ -21,6 +21,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { ShopScope } from '../../../common/shop-scope';
 import { RoomsService, roomScope } from '../rooms/rooms.service';
 import { IN_HOUSE, OPEN_RESERVATION, addDays, dayOf, keyOf, nightsBetween, r2, today } from '../common/hotel-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STAYED = ['CHECKED_IN', 'EXTENDED', 'CHECKED_OUT'] as const;
 const BOOKED = ['TENTATIVE', 'CONFIRMED'] as const;
@@ -243,7 +244,7 @@ export class HotelDashboardService {
       // The unique index treats a null shop as distinct, so the check is done here under a lock.
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`hotel-audit:${tenantId}:${shopId}`}))::text`;
       const done = await tx.hotelNightAudit.findFirst({ where: { tenantId, shopId, businessDate: day } });
-      if (done) throw new BadRequestException(`${keyOf(day)} ka night audit pehle hi band ho chuka`);
+      if (done) throw new BadRequestException(apiMessage('{{day}} ka night audit pehle hi band ho chuka', { day: keyOf(day) }));
       return tx.hotelNightAudit.create({
         data: {
           tenantId, shopId, businessDate: day,

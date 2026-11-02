@@ -40,19 +40,20 @@ import { loadTemplates, reminderText, thanksText, toneFor, waLink } from './mess
 import { KhataActionModal, type KhataAction } from './components/KhataActionModal';
 import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
 import { CustomerDistributionPanel } from '@modules/distribution/customers/CustomerDistribution';
+import { t as tr, Trans } from '@core/i18n';
 
-const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const WEEKDAYS = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 const LEDGER: Record<string, { label: string; tone: string }> = {
-  SALE_CREDIT: { label: 'Udhaar sale', tone: 'text-rose-700' }, PAYMENT_RECEIVED: { label: 'Payment aayi', tone: 'text-success-700' },
-  ADJUSTMENT: { label: 'Udhaar / tabdeeli', tone: 'text-amber-700' }, OPENING_BALANCE: { label: 'Purana khata', tone: 'text-slate-700' },
-  REFUND: { label: 'Maal wapas', tone: 'text-sky-700' }, LOYALTY_REDEEMED: { label: 'Points istemal', tone: 'text-violet-700' },
+  SALE_CREDIT: { label: tr('Udhaar sale'), tone: 'text-rose-700' }, PAYMENT_RECEIVED: { label: tr('Payment aayi'), tone: 'text-success-700' },
+  ADJUSTMENT: { label: tr('Udhaar / tabdeeli'), tone: 'text-amber-700' }, OPENING_BALANCE: { label: tr('Purana khata'), tone: 'text-slate-700' },
+  REFUND: { label: tr('Maal wapas'), tone: 'text-sky-700' }, LOYALTY_REDEEMED: { label: tr('Points istemal'), tone: 'text-violet-700' },
 };
 const when = (v: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(v));
 const day = (v: string | null) => (v ? new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(v)) : '—');
 const ago = (v: string | null) => {
-  if (!v) return 'kabhi nahi';
+  if (!v) return tr('kabhi nahi');
   const d = Math.floor((Date.now() - new Date(v).getTime()) / 86_400_000);
-  return d === 0 ? 'aaj' : d === 1 ? 'kal' : d < 30 ? `${d} din pehle` : d < 365 ? `${Math.floor(d / 30)} mahine pehle` : `${Math.floor(d / 365)} saal pehle`;
+  return d === 0 ? 'aaj' : d === 1 ? 'kal' : d < 30 ? tr('{{d}} din pehle', { d }) : d < 365 ? tr('{{value}} mahine pehle', { value: Math.floor(d / 30) }) : tr('{{value}} saal pehle', { value: Math.floor(d / 365) });
 };
 
 function Tile({ label, value, hint }: { label: string; value: React.ReactNode; hint?: React.ReactNode }) {
@@ -71,7 +72,7 @@ export function CustomerProfilePage() {
   const theme = useChartTheme();
   const startHour = useBusinessDayStart();
   const { sales: money, cost } = useMasked();
-  const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const shopName = useAuthStore((s) => s.tenant?.name) ?? tr('Hamari dukaan');
   const { refresh } = useDirectory({ status: 'all', type: 'all', activity: 'all', sort: 'recent' }, 'nafaa-customer-profile');
   const distOn = useDistributionEnabled();
   const can = {
@@ -111,11 +112,11 @@ export function CustomerProfilePage() {
   const reload = () => { refresh(); void customer.refetch(); void insights.refetch(); void ledger.refetch(); };
 
   const tabs = [
-    { id: 'overview', label: 'Khulasa', icon: LineChart },
-    { id: 'bills', label: 'Bills', icon: Receipt },
-    { id: 'khata', label: 'Khata', icon: BookOpen },
-    ...((c?.loyaltyTransactions?.length ?? 0) > 0 ? [{ id: 'loyalty', label: 'Points', icon: Gift }] : []),
-    { id: 'details', label: 'Details', icon: User },
+    { id: 'overview', label: tr('Khulasa'), icon: LineChart },
+    { id: 'bills', label: tr('Bills'), icon: Receipt },
+    { id: 'khata', label: tr('Khata'), icon: BookOpen },
+    ...((c?.loyaltyTransactions?.length ?? 0) > 0 ? [{ id: 'loyalty', label: tr('Points'), icon: Gift }] : []),
+    { id: 'details', label: tr('Details'), icon: User },
   ];
 
   useEffect(() => {
@@ -135,8 +136,8 @@ export function CustomerProfilePage() {
   if (!c) {
     return (
       <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
-        <p className="font-semibold text-slate-900">Customer nahi mila</p>
-        <Link to="/customers" className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">Customers →</Link>
+        <p className="font-semibold text-slate-900">{tr('Customer nahi mila')}</p>
+        <Link to="/customers" className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">{tr('Customers →')}</Link>
       </div>
     );
   }
@@ -151,38 +152,38 @@ export function CustomerProfilePage() {
   const months = (ins?.months ?? []).map((m) => ({ ...m, label: new Intl.DateTimeFormat('en-PK', { month: 'short' }).format(new Date(`${m.key}-15T12:00:00`)) }));
 
   const toggleVip = async () => {
-    try { await customersApi.toggleVip(id); toast.success(c.isVip ? 'VIP hata diya' : 'VIP bana diya'); reload(); } catch (e) { toast.error((e as Error).message || 'Nahi hua'); }
+    try { await customersApi.toggleVip(id); toast.success(c.isVip ? tr('VIP hata diya') : tr('VIP bana diya')); reload(); } catch (e) { toast.error((e as Error).message || tr('Nahi hua')); }
   };
   const remove = async () => {
     try {
       const r = await customersApi.remove(id) as { softDeleted?: boolean; message?: string };
-      toast.success(r.message ?? 'Ho gaya');
+      toast.success(r.message ?? tr('Ho gaya'));
       refresh();
       if (r.softDeleted) { setConfirmDelete(false); void customer.refetch(); } else navigate('/customers');
-    } catch (e) { toast.error((e as Error).message || 'Nahi hua'); }
+    } catch (e) { toast.error((e as Error).message || tr('Nahi hua')); }
   };
   const copyDetails = async () => {
     await navigator.clipboard.writeText([c.name, c.phone, c.email, [c.address, c.area, c.city].filter(Boolean).join(', ')].filter(Boolean).join('\n'));
-    toast.success('Copy ho gaya');
+    toast.success(tr('Copy ho gaya'));
   };
   const statement = (): PrintDoc => ({
-    title: `Khata — ${c.name}`,
+    title: tr('Khata — {{name}}', { name: c.name }),
     subtitle: [c.phone, c.city].filter(Boolean).join(' · ') || undefined,
-    meta: [['Baqi', money(balance)], ['Date', day(new Date().toISOString())]],
+    meta: [[tr('Baqi'), money(balance)], [tr('Date'), day(new Date().toISOString())]],
     sections: [
-      { kind: 'rows', title: 'Khulasa', rows: [
-        { label: 'Kul udhaar liya', value: money(ins?.credit.taken ?? 0) },
-        { label: 'Payment di', value: money(ins?.credit.paid ?? 0) },
-        ...(ins?.credit.reduced ? [{ label: 'Return / void se kam hua', value: money(ins.credit.reduced) }] : []),
-        { label: owes ? 'Baqi' : advance ? 'Advance' : 'Hisaab', value: owes || advance ? money(Math.abs(balance)) : 'Saaf', strong: true },
+      { kind: 'rows', title: tr('Khulasa'), rows: [
+        { label: tr('Kul udhaar liya'), value: money(ins?.credit.taken ?? 0) },
+        { label: tr('Payment di'), value: money(ins?.credit.paid ?? 0) },
+        ...(ins?.credit.reduced ? [{ label: tr('Return / void se kam hua'), value: money(ins.credit.reduced) }] : []),
+        { label: owes ? tr('Baqi') : advance ? tr('Advance') : tr('Hisaab'), value: owes || advance ? money(Math.abs(balance)) : tr('Saaf'), strong: true },
       ] },
-      { kind: 'table', title: 'Details', columns: [{ label: 'Date' }, { label: 'Kya' }, { label: 'Amount', align: 'right' }, { label: 'Baqi', align: 'right' }],
+      { kind: 'table', title: tr('Details'), columns: [{ label: tr('Date') }, { label: tr('Kya') }, { label: tr('Amount'), align: 'right' }, { label: tr('Baqi'), align: 'right' }],
         rows: [...entries].reverse().map((e) => [day(e.createdAt), `${LEDGER[e.type]?.label ?? e.type}${e.reference ? ` · ${e.reference}` : ''}`, `${e.amount > 0 ? '+' : '−'}${formatPKR(Math.abs(e.amount))}`, formatPKR(e.balanceAfter)]) },
     ],
-    footer: owes ? 'Baraye meherbani baqi amount jald ada karein. Shukriya!' : 'Shukriya!',
+    footer: owes ? tr('Baraye meherbani baqi amount jald ada karein. Shukriya!') : tr('Shukriya!'),
   });
   const ledgerCsv = () => {
-    const rows = [['Date', 'Kya', 'Reference', 'Note', 'Amount', 'Baqi', 'Kis ne', 'Branch'], ...entries.map((e: LedgerEntry) => [
+    const rows = [[tr('Date'), tr('Kya'), tr('Reference'), tr('Note'), tr('Amount'), tr('Baqi'), tr('Kis ne'), tr('Branch')], ...entries.map((e: LedgerEntry) => [
       when(e.createdAt), LEDGER[e.type]?.label ?? e.type, e.reference ?? '', e.note ?? '', e.amount.toFixed(2), e.balanceAfter.toFixed(2), e.createdBy?.fullName ?? '', e.shop?.name ?? '',
     ])];
     const url = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' }));
@@ -193,26 +194,26 @@ export function CustomerProfilePage() {
     <PageShell>
       {action && <KhataActionModal action={action} customer={{ id, name: c.name, balance }} money={money} onClose={() => setAction(null)} onDone={reload} />}
       {confirmDelete && (
-        <Modal open onClose={() => setConfirmDelete(false)} size="sm" title={`${c.name} ko mitayein?`}
-          description={c._count.sales || c._count.ledgers || Math.abs(c.balance) > 0.009 ? 'Is ki sale ya khata hai — mitaya nahi jayega, sirf band hoga. Purane bill aur khata salamat rahenge.' : 'Is ki koi sale ya khata nahi — poori tarah mit jayega.'}
-          footer={<><Button variant="secondary" onClick={() => setConfirmDelete(false)}>Rehne dein</Button><Button variant="danger" onClick={() => void remove()}>Haan</Button></>}>
+        <Modal open onClose={() => setConfirmDelete(false)} size="sm" title={tr('{{name}} ko mitayein?', { name: c.name })}
+          description={c._count.sales || c._count.ledgers || Math.abs(c.balance) > 0.009 ? tr('Is ki sale ya khata hai — mitaya nahi jayega, sirf band hoga. Purane bill aur khata salamat rahenge.') : tr('Is ki koi sale ya khata nahi — poori tarah mit jayega.')}
+          footer={<><Button variant="secondary" onClick={() => setConfirmDelete(false)}>{tr('Rehne dein')}</Button><Button variant="danger" onClick={() => void remove()}>{tr('Haan')}</Button></>}>
           <span />
         </Modal>
       )}
 
       <PageHero
         back="/customers"
-        backLabel="Customers par wapas"
+        backLabel={tr('Customers par wapas')}
         title={c.name}
-        chip={!c.isActive ? 'Band' : birthdayToday ? <><Cake />Aaj salgirah!</> : undefined}
-        subtitle={`Customer ${day(c.createdAt)} se`}
+        chip={!c.isActive ? tr('Band') : birthdayToday ? <><Cake />{tr('Aaj salgirah!')}</> : undefined}
+        subtitle={tr('Customer {{createdAt}} se', { createdAt: day(c.createdAt) })}
         actions={<>
           <PrivacyToggle compact />
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label="Statement" /></span>
-          <button type="button" onClick={() => void copyDetails()} title="Details copy" aria-label="Details copy" className={heroIconButton}><Copy className="h-4 w-4" /></button>
-          {can.edit && <button type="button" onClick={() => void toggleVip()} title={c.isVip ? 'VIP hatayein' : 'VIP banayein'} aria-label="VIP" className={cn(heroIconButton, c.isVip && 'bg-amber-400 text-amber-950 hover:bg-amber-300')}><Crown className="h-4 w-4" /></button>}
-          {can.edit && <button type="button" onClick={() => setConfirmDelete(true)} title="Mitayein" aria-label="Mitayein" className={heroIconButton}><Trash2 className="h-4 w-4" /></button>}
-          {can.edit && <Link to={`/customers/${id}/edit`} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label={tr('Statement')} /></span>
+          <button type="button" onClick={() => void copyDetails()} title={tr('Details copy')} aria-label={tr('Details copy')} className={heroIconButton}><Copy className="h-4 w-4" /></button>
+          {can.edit && <button type="button" onClick={() => void toggleVip()} title={c.isVip ? tr('VIP hatayein') : tr('VIP banayein')} aria-label={tr('VIP')} className={cn(heroIconButton, c.isVip && 'bg-amber-400 text-amber-950 hover:bg-amber-300')}><Crown className="h-4 w-4" /></button>}
+          {can.edit && <button type="button" onClick={() => setConfirmDelete(true)} title={tr('Mitayein')} aria-label={tr('Mitayein')} className={heroIconButton}><Trash2 className="h-4 w-4" /></button>}
+          {can.edit && <Link to={`/customers/${id}/edit`} title={tr('Badlein (E)')} className={heroPrimaryButton}><Pencil className="h-4 w-4" />{tr('Badlein')}</Link>}
         </>}
       />
 
@@ -220,7 +221,7 @@ export function CustomerProfilePage() {
         <div className="flex min-w-0 gap-4">
           <span className="relative shrink-0">
             <Avatar name={c.name} url={c.avatarUrl ?? undefined} size={80} />
-            {c.isVip && <span className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-amber-950 ring-2 ring-white"><Crown className="h-4 w-4" /></span>}
+            {c.isVip && <span className="absolute -end-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-amber-950 ring-2 ring-white"><Crown className="h-4 w-4" /></span>}
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-slate-600">
@@ -228,71 +229,71 @@ export function CustomerProfilePage() {
               {c.email && <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 hover:text-brand-700"><Mail className="h-3.5 w-3.5" />{c.email}</a>}
               {(c.city || c.area) && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{[c.area, c.city].filter(Boolean).join(', ')}</span>}
             </div>
-            {c.notes && <p className="mt-2 line-clamp-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.8125rem] text-amber-900"><StickyNote className="mr-1 inline h-3.5 w-3.5" />{c.notes}</p>}
+            {c.notes && <p className="mt-2 line-clamp-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.8125rem] text-amber-900"><StickyNote className="me-1 inline h-3.5 w-3.5" />{c.notes}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
-              {wa && <a href={wa} target="_blank" rel="noreferrer" className={cn('inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold', owes ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-success-50 text-success-700 hover:bg-success-100')}><MessageCircle className="h-4 w-4" />{owes ? 'Udhaar yaad dilayein' : 'WhatsApp'}</a>}
-              {c.phone && <a href={`tel:${c.phone}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 px-3 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200"><Phone className="h-4 w-4" />Call</a>}
+              {wa && <a href={wa} target="_blank" rel="noreferrer" className={cn('inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold', owes ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-success-50 text-success-700 hover:bg-success-100')}><MessageCircle className="h-4 w-4" />{owes ? tr('Udhaar yaad dilayein') : tr('WhatsApp')}</a>}
+              {c.phone && <a href={`tel:${c.phone}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 px-3 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200"><Phone className="h-4 w-4" />{tr('Call')}</a>}
             </div>
           </div>
         </div>
         <div className={cn('rounded-2xl p-4', owes ? 'bg-rose-50' : advance ? 'bg-success-50' : 'bg-slate-50')}>
-          <p className="text-[0.75rem] font-medium text-slate-600">{owes ? 'Baqi udhaar' : advance ? 'Advance jama' : 'Khata'}{ledger.data && !ledger.data.isAllShops && Math.abs(ledger.data.totalBalance - balance) > 0.009 ? ' · is branch par' : ''}</p>
-          <p className={cn('text-[2rem] font-bold leading-tight tabular-nums', owes ? 'text-rose-700' : advance ? 'text-success-700' : 'text-slate-500')}>{owes || advance ? money(Math.abs(balance)) : 'Saaf'}</p>
-          {owes && dueDays !== null && <p className="text-[0.75rem] text-rose-800">Sab se purana udhaar {dueDays} din se baqi</p>}
-          {ledger.data && Math.abs(ledger.data.totalBalance - balance) > 0.009 && <p className="text-[0.75rem] text-slate-600">Saari branches: {money(ledger.data.totalBalance)}</p>}
+          <p className="text-[0.75rem] font-medium text-slate-600">{owes ? tr('Baqi udhaar') : advance ? tr('Advance jama') : tr('Khata')}{ledger.data && !ledger.data.isAllShops && Math.abs(ledger.data.totalBalance - balance) > 0.009 ? tr(' · is branch par') : ''}</p>
+          <p className={cn('text-[2rem] font-bold leading-tight tabular-nums', owes ? 'text-rose-700' : advance ? 'text-success-700' : 'text-slate-500')}>{owes || advance ? money(Math.abs(balance)) : tr('Saaf')}</p>
+          {owes && dueDays !== null && <p className="text-[0.75rem] text-rose-800">{tr('Sab se purana udhaar {{dueDays}} din se baqi', { dueDays })}</p>}
+          {ledger.data && Math.abs(ledger.data.totalBalance - balance) > 0.009 && <p className="text-[0.75rem] text-slate-600">{tr('Saari branches: {{totalBalance}}', { totalBalance: money(ledger.data.totalBalance) })}</p>}
           {limitPct !== null && (
             <div className="mt-2">
               <div className="h-1.5 overflow-hidden rounded-full bg-white/70"><div className={cn('h-full rounded-full', limitPct >= 100 ? 'bg-rose-500' : limitPct >= 75 ? 'bg-amber-400' : 'bg-success-500')} style={{ width: `${limitPct}%` }} /></div>
-              <p className="mt-0.5 text-[0.6875rem] text-slate-600">Had {money(c.creditLimit)}{limitPct >= 100 ? ' — paar ho gayi' : ''}</p>
+              <p className="mt-0.5 text-[0.6875rem] text-slate-600">{tr('Had {{creditLimit}}{{value}}', { creditLimit: money(c.creditLimit), value: limitPct >= 100 ? tr(' — paar ho gayi') : '' })}</p>
             </div>
           )}
           {can.khata && (
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Button size="sm" variant="success" disabled={!owes} onClick={() => setAction('payment')} leftIcon={<Wallet className="h-4 w-4" />}>Payment</Button>
-              <Button size="sm" variant="secondary" onClick={() => setAction('udhaar')} leftIcon={<Plus className="h-4 w-4" />}>Udhaar</Button>
-              <button type="button" onClick={() => setAction('opening')} className="col-span-2 text-[0.75rem] font-semibold text-slate-600 hover:underline">Kaapi ka purana khata jorein</button>
+              <Button size="sm" variant="success" disabled={!owes} onClick={() => setAction('payment')} leftIcon={<Wallet className="h-4 w-4" />}>{tr('Payment')}</Button>
+              <Button size="sm" variant="secondary" onClick={() => setAction('udhaar')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Udhaar')}</Button>
+              <button type="button" onClick={() => setAction('opening')} className="col-span-2 text-[0.75rem] font-semibold text-slate-600 hover:underline">{tr('Kaapi ka purana khata jorein')}</button>
             </div>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Tile label="Kul khareedari" value={money(ins?.visits.spent ?? 0)} hint={`${ins?.visits.count ?? 0} bill`} />
-        <Tile label="Ausat bill" value={money(ins?.visits.average ?? 0)} hint={ins?.visits.best ? `sab se bara ${money(ins.visits.best)}` : undefined} />
-        <Tile label="Aakhri dafa" value={ago(ins?.visits.last ?? null)} hint={ins?.visits.first ? `pehli dafa ${day(ins.visits.first)}` : undefined} />
-        <Tile label="Har kitne din baad" value={ins?.visits.averageGapDays != null ? `${Math.round(ins.visits.averageGapDays)} din` : '—'} hint="aam tor par aata hai" />
-        <Tile label="Pasandida din" value={ins?.visits.favouriteWeekday != null ? WEEKDAYS[ins.visits.favouriteWeekday] : '—'} hint={ins?.visits.favouriteHour != null ? `aksar ${ins.visits.favouriteHour % 12 || 12} ${ins.visits.favouriteHour < 12 ? 'AM' : 'PM'} ke qareeb` : undefined} />
-        <Tile label="Points" value={c.loyaltyPoints} hint={ins?.visits.returned ? `${ins.visits.returned} dafa maal wapas` : undefined} />
+        <Tile label={tr('Kul khareedari')} value={money(ins?.visits.spent ?? 0)} hint={tr('{{value}} bill', { value: ins?.visits.count ?? 0 })} />
+        <Tile label={tr('Ausat bill')} value={money(ins?.visits.average ?? 0)} hint={ins?.visits.best ? tr('sab se bara {{best}}', { best: money(ins.visits.best) }) : undefined} />
+        <Tile label={tr('Aakhri dafa')} value={ago(ins?.visits.last ?? null)} hint={ins?.visits.first ? tr('pehli dafa {{first}}', { first: day(ins.visits.first) }) : undefined} />
+        <Tile label={tr('Har kitne din baad')} value={ins?.visits.averageGapDays != null ? `${Math.round(ins.visits.averageGapDays)} din` : '—'} hint={tr('aam tor par aata hai')} />
+        <Tile label={tr('Pasandida din')} value={ins?.visits.favouriteWeekday != null ? WEEKDAYS[ins.visits.favouriteWeekday] : '—'} hint={ins?.visits.favouriteHour != null ? tr('aksar {{value}} {{value2}} ke qareeb', { value: ins.visits.favouriteHour % 12 || 12, value2: ins.visits.favouriteHour < 12 ? tr('AM') : tr('PM') }) : undefined} />
+        <Tile label={tr('Points')} value={c.loyaltyPoints} hint={ins?.visits.returned ? tr('{{returned}} dafa maal wapas', { returned: ins.visits.returned }) : undefined} />
       </div>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>{tabs.length}</Kbd> se badlein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>{tabs.length}</Kbd> {' '}{tr('se badlein')}</>}
         tabs={tabs.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))} />
 
       {tab === 'overview' && (
         <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="rounded-2xl lg:col-span-2" title="Har mahine kitna khareeda" description="Pichhle 12 mahine">
-            {!ins ? <Skeleton className="h-60 rounded-xl" /> : ins.visits.count === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Abhi tak kuch nahi khareeda</p> : (
+          <Card className="rounded-2xl lg:col-span-2" title={tr('Har mahine kitna khareeda')} description={tr('Pichhle 12 mahine')}>
+            {!ins ? <Skeleton className="h-60 rounded-xl" /> : ins.visits.count === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">{tr('Abhi tak kuch nahi khareeda')}</p> : (
               <div className="h-[15rem]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                     <CartesianGrid stroke={theme.grid} vertical={false} />
                     <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                     <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                    <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p.payload as { bills: number }).bills} bill`, 'Khareeda']} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
+                    <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p.payload as { bills: number }).bills} bill`, tr('Khareeda')]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
                     <Bar dataKey="spent" fill={theme.primary} radius={[5, 5, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
           </Card>
-          <Card className="rounded-2xl" title="Kya leta hai" flush>
-            {!ins?.products.length ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</p> : (
+          <Card className="rounded-2xl" title={tr('Kya leta hai')} flush>
+            {!ins?.products.length ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">{tr('Abhi kuch nahi')}</p> : (
               <ul className="divide-y divide-slate-100 pb-1">
                 {ins.products.map((p, i) => (
                   <li key={p.productId}>
                     <Link to={`/products/${p.productId}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 sm:px-5">
                       <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[0.6875rem] font-bold', i < 3 ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-600')}>{i + 1}</span>
-                      <span className="min-w-0 flex-1"><span className="block truncate text-[0.8125rem] font-medium text-slate-900">{p.name}</span><span className="block text-[0.6875rem] text-slate-500">{Number(p.qty.toFixed(2))} {p.unit} · {p.times} dafa · aakhri {ago(p.lastAt)}</span></span>
+                      <span className="min-w-0 flex-1"><span className="block truncate text-[0.8125rem] font-medium text-slate-900">{p.name}</span><span className="block text-[0.6875rem] text-slate-500">{tr('{{value}} {{unit}} · {{times}} dafa · aakhri {{lastAt}}', { value: Number(p.qty.toFixed(2)), unit: p.unit, times: p.times, lastAt: ago(p.lastAt) })}</span></span>
                       <span className="text-[0.8125rem] font-semibold tabular-nums">{money(p.spent)}</span>
                     </Link>
                   </li>
@@ -300,8 +301,8 @@ export function CustomerProfilePage() {
               </ul>
             )}
           </Card>
-          <Card className="rounded-2xl" title="Kaise paise deta hai">
-            {!ins?.payments.length ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</p> : (
+          <Card className="rounded-2xl" title={tr('Kaise paise deta hai')}>
+            {!ins?.payments.length ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">{tr('Abhi kuch nahi')}</p> : (
               <ul className="space-y-2.5">
                 {ins.payments.map((p) => {
                   const total = ins.payments.reduce((s, x) => s + x.total, 0) || 1;
@@ -315,17 +316,17 @@ export function CustomerProfilePage() {
               </ul>
             )}
           </Card>
-          <Card className="rounded-2xl lg:col-span-2" title="Udhaar ka hisaab">
+          <Card className="rounded-2xl lg:col-span-2" title={tr('Udhaar ka hisaab')}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Tile label="Kul udhaar liya" value={money(ins?.credit.taken ?? 0)} />
-              <Tile label="Payment di" value={money(ins?.credit.paid ?? 0)} />
-              <Tile label="Return / void" value={money(ins?.credit.reduced ?? 0)} />
-              <Tile label="Sab se purana baqi" value={dueDays !== null ? `${dueDays} din` : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
+              <Tile label={tr('Kul udhaar liya')} value={money(ins?.credit.taken ?? 0)} />
+              <Tile label={tr('Payment di')} value={money(ins?.credit.paid ?? 0)} />
+              <Tile label={tr('Return / void')} value={money(ins?.credit.reduced ?? 0)} />
+              <Tile label={tr('Sab se purana baqi')} value={dueDays !== null ? `${dueDays} din` : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
             </div>
             {ins?.credit.pendingProfit != null && (ins.credit.billProfit ?? 0) > 0.5 && (
               <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
-                Udhaar bills ka profit {cost(ins.credit.billProfit ?? 0)}: haath mein aaya <b className="tabular-nums">{cost(ins.credit.realised ?? 0)}</b>
-                {' · '}udhaar mein profit (abhi aana hai) <b className="tabular-nums">{cost(ins.credit.pendingProfit)}</b>
+                <Trans text="Udhaar bills ka profit {{total}}: haath mein aaya {{realised}} · udhaar mein profit (abhi aana hai) {{pending}}"
+                  values={{ total: cost(ins.credit.billProfit ?? 0), realised: <b className="tabular-nums">{cost(ins.credit.realised ?? 0)}</b>, pending: <b className="tabular-nums">{cost(ins.credit.pendingProfit)}</b> }} />
               </p>
             )}
           </Card>
@@ -333,8 +334,8 @@ export function CustomerProfilePage() {
       )}
 
       {tab === 'bills' && (
-        <Card className="rounded-2xl" flush title="Saare bill" description={bills.data ? `${bills.data.pages[0].count} bill · kul ${money(bills.data.pages[0].stats.total)}` : undefined}>
-          {bills.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-xl" /></div> : !bills.data?.pages[0].count ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi bill nahi</p> : (
+        <Card className="rounded-2xl" flush title={tr('Saare bill')} description={bills.data ? tr('{{count}} bill · kul {{total}}', { count: bills.data.pages[0].count, total: money(bills.data.pages[0].stats.total) }) : undefined}>
+          {bills.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-xl" /></div> : !bills.data?.pages[0].count ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">{tr('Koi bill nahi')}</p> : (
             <>
               <ul className="divide-y divide-slate-100">
                 {bills.data.pages.flatMap((p) => p.items).map((s) => (
@@ -344,26 +345,26 @@ export function CustomerProfilePage() {
                       <span className="w-36 shrink-0 text-slate-500">{when(s.soldAt)}</span>
                       <span className="min-w-0 flex-1 truncate text-slate-600">{s.items.slice(0, 3).map((i) => `${Number(i.quantity)} × ${i.name}`).join(', ')}{s.items.length > 3 ? ` +${s.items.length - 3}` : ''}</span>
                       <BillTierBadge tier={s.priceTier} />
-                      {s.status === 'VOIDED' && <span className="text-rose-600">void</span>}
-                      {s.creditAmount > 0 && s.status !== 'VOIDED' && <span className="rounded bg-rose-50 px-1.5 text-[0.6875rem] font-semibold text-rose-700">udhaar {money(s.creditAmount)}</span>}
-                      <span className="w-24 text-right font-semibold tabular-nums text-slate-900">{money(s.total)}</span>
+                      {s.status === 'VOIDED' && <span className="text-rose-600">{tr('void')}</span>}
+                      {s.creditAmount > 0 && s.status !== 'VOIDED' && <span className="rounded bg-rose-50 px-1.5 text-[0.6875rem] font-semibold text-rose-700">{tr('udhaar {{creditAmount}}', { creditAmount: money(s.creditAmount) })}</span>}
+                      <span className="w-24 text-end font-semibold tabular-nums text-slate-900">{money(s.total)}</span>
                     </Link>
                   </li>
                 ))}
               </ul>
-              {bills.hasNextPage && <button type="button" onClick={() => void bills.fetchNextPage()} className="w-full border-t border-slate-100 py-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">{bills.isFetchingNextPage ? 'Aa rahe hain…' : 'Aur dikhayein'}</button>}
+              {bills.hasNextPage && <button type="button" onClick={() => void bills.fetchNextPage()} className="w-full border-t border-slate-100 py-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">{bills.isFetchingNextPage ? tr('Aa rahe hain…') : tr('Aur dikhayein')}</button>}
             </>
           )}
         </Card>
       )}
 
       {tab === 'khata' && (
-        <Card className="rounded-2xl" flush title="Khata" description="Aakhri 100 entries — naye upar"
+        <Card className="rounded-2xl" flush title={tr('Khata')} description={tr('Aakhri 100 entries — naye upar')}
           actions={<div className="flex gap-2">
-            <button type="button" onClick={ledgerCsv} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-200"><Download className="h-3.5 w-3.5" />CSV</button>
-            <Link to="/khata" className="inline-flex h-8 items-center rounded-lg bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-200">Poora khata</Link>
+            <button type="button" onClick={ledgerCsv} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-200"><Download className="h-3.5 w-3.5" />{tr('CSV')}</button>
+            <Link to="/khata" className="inline-flex h-8 items-center rounded-lg bg-slate-100 px-2.5 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-200">{tr('Poora khata')}</Link>
           </div>}>
-          {ledger.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-xl" /></div> : entries.length === 0 ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">Koi entry nahi — hisaab saaf</p> : (
+          {ledger.isLoading ? <div className="p-5"><Skeleton className="h-40 rounded-xl" /></div> : entries.length === 0 ? <p className="px-5 py-10 text-center text-[0.8125rem] text-slate-500">{tr('Koi entry nahi — hisaab saaf')}</p> : (
             <ul className="divide-y divide-slate-100">
               {entries.map((e) => {
                 const t = LEDGER[e.type] ?? { label: e.type, tone: 'text-slate-700' };
@@ -372,8 +373,8 @@ export function CustomerProfilePage() {
                     <span className="w-36 shrink-0 text-slate-500">{when(e.createdAt)}</span>
                     <span className={cn('w-32 shrink-0 font-medium', t.tone)}>{t.label}</span>
                     <span className="min-w-0 flex-1 truncate text-slate-500">{[e.reference, e.note, e.createdBy?.fullName, e.shop?.name].filter(Boolean).join(' · ')}</span>
-                    <span className={cn('w-24 text-right font-semibold tabular-nums', e.amount > 0 ? 'text-rose-700' : 'text-success-700')}>{e.amount > 0 ? '+' : '−'}{money(Math.abs(e.amount))}</span>
-                    <span className="w-24 text-right tabular-nums text-slate-600">= {money(e.balanceAfter)}</span>
+                    <span className={cn('w-24 text-end font-semibold tabular-nums', e.amount > 0 ? 'text-rose-700' : 'text-success-700')}>{e.amount > 0 ? '+' : '−'}{money(Math.abs(e.amount))}</span>
+                    <span className="w-24 text-end tabular-nums text-slate-600">= {money(e.balanceAfter)}</span>
                   </li>
                 );
               })}
@@ -383,14 +384,14 @@ export function CustomerProfilePage() {
       )}
 
       {tab === 'loyalty' && (
-        <Card className="rounded-2xl" flush title="Points" description={`Abhi ${c.loyaltyPoints} points`}>
+        <Card className="rounded-2xl" flush title={tr('Points')} description={tr('Abhi {{loyaltyPoints}} points', { loyaltyPoints: c.loyaltyPoints })}>
           <ul className="divide-y divide-slate-100">
             {c.loyaltyTransactions.map((t) => (
               <li key={t.id} className="flex items-center gap-3 px-5 py-2.5 text-[0.8125rem]">
                 <span className="w-36 shrink-0 text-slate-500">{when(t.createdAt)}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-700">{t.note ?? t.type}{t.reference ? ` · ${t.reference}` : ''}</span>
                 <span className={cn('font-semibold tabular-nums', t.points > 0 ? 'text-success-700' : 'text-rose-700')}>{t.points > 0 ? '+' : ''}{t.points}</span>
-                <span className="w-16 text-right tabular-nums text-slate-500">= {t.balanceAfter}</span>
+                <span className="w-16 text-end tabular-nums text-slate-500">= {t.balanceAfter}</span>
               </li>
             ))}
           </ul>
@@ -398,15 +399,15 @@ export function CustomerProfilePage() {
       )}
 
       {tab === 'details' && (
-        <Card className="rounded-2xl" title="Details">
+        <Card className="rounded-2xl" title={tr('Details')}>
           <dl className="grid gap-x-8 sm:grid-cols-2">
             {([
-              ['Phone', c.phone], ['Email', c.email], ['CNIC', c.cnic], ['NTN', (c as { ntn?: string | null }).ntn],
-              ['Gender', c.gender === 'MALE' ? 'Mard' : c.gender === 'FEMALE' ? 'Aurat' : c.gender ? 'Doosra' : null],
-              ['Salgirah', c.dateOfBirth ? day(c.dateOfBirth) : null], ['Pata', c.address], ['Ilaqa', c.area], ['Sheher', c.city],
-              ['Udhaar ki had', c.creditLimit ? cost(c.creditLimit) : 'Koi had nahi'], ['Customer kab se', day(c.createdAt)], ['Notes', c.notes],
+              [tr('Phone'), c.phone], [tr('Email'), c.email], ['CNIC', c.cnic], ['NTN', (c as { ntn?: string | null }).ntn],
+              [tr('Gender'), c.gender === 'MALE' ? tr('Mard') : c.gender === 'FEMALE' ? tr('Aurat') : c.gender ? tr('Doosra') : null],
+              [tr('Salgirah'), c.dateOfBirth ? day(c.dateOfBirth) : null], [tr('Pata'), c.address], [tr('Ilaqa'), c.area], [tr('Sheher'), c.city],
+              [tr('Udhaar ki had'), c.creditLimit ? cost(c.creditLimit) : tr('Koi had nahi')], [tr('Customer kab se'), day(c.createdAt)], [tr('Notes'), c.notes],
             ] as Array<[string, string | null | undefined]>).filter(([, v]) => v).map(([l, v]) => (
-              <div key={l} className="flex justify-between gap-3 border-b border-slate-100 py-2 text-[0.8125rem]"><dt className="text-slate-500">{l}</dt><dd className="text-right font-medium text-slate-800">{v}</dd></div>
+              <div key={l} className="flex justify-between gap-3 border-b border-slate-100 py-2 text-[0.8125rem]"><dt className="text-slate-500">{l}</dt><dd className="text-end font-medium text-slate-800">{v}</dd></div>
             ))}
           </dl>
         </Card>

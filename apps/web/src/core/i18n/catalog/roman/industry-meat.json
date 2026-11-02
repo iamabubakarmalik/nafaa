@@ -1,0 +1,11 @@
+{
+  "{{subscriptionNumber}} badlein": "Edit {{subscriptionNumber}}",
+  "Cutting ke liye \"Stock adjustment\" ki ijazat chahiye.": "Cutting ke liye \"Stock adjustment\" ki permission chahiye.",
+  "Order likhne aur bill ke liye POS ki ijazat chahiye; advance wapsi ke liye Returns ki.": "Order likhne aur bill ke liye POS ki permission chahiye; advance wapsi ke liye Returns ki.",
+  "Paisa lene ke liye \"Khata sambhalna\" ki ijazat chahiye.": "Paisa lene ke liye \"Khata sambhalna\" ki permission chahiye.",
+  "Plan banane ke liye Customers edit ki ijazat; order ke liye POS ki.": "Plan banane ke liye Customers edit ki permission; order ke liye POS ki.",
+  "Purchase ke liye Purchases ki ijazat chahiye; chare ke liye Expenses ki.": "Purchase ke liye Purchases ki permission chahiye; chare ke liye Expenses ki.",
+  "Rate badalne ke liye \"Products edit\" ki ijazat chahiye.": "Rate badalne ke liye \"Products edit\" ki permission chahiye.",
+  "Rozana kharcha": "Rozana expense",
+  "Zibah ke liye \"Stock adjustment\" ki ijazat chahiye.": "Zibah ke liye \"Stock adjustment\" ki permission chahiye."
+}

@@ -14,6 +14,7 @@ import { electronicsAnalyticsApi } from '@industries/electronics/api/analytics.a
 import { CONDITION_META } from '@industries/electronics/constants';
 import { appliancesAnalyticsApi } from '@industries/appliances/api/analytics.api';
 import { DeviceUnits, type DeviceReport } from './DeviceUnits';
+import { t } from '@core/i18n';
 
 const WARRANTY_SOON = 60;
 
@@ -31,15 +32,15 @@ export function MobileDevices() {
       buckets: d.buckets.map((b) => ({ key: b.key, label: b.label, units: b.phones + b.usedPhones, cost: b.phoneValue + b.usedValue })),
       units: d.items.map((i) => ({
         id: i.id, name: [i.name, i.variantName].filter(Boolean).join(' · '), ref: i.ref, brand: i.brand,
-        tag: i.kind === 'USED' ? `Used${i.condition ? ` · ${i.condition}` : ''}` : i.ptaStatus ? PTA_STATUS_LABELS[i.ptaStatus] : null,
+        tag: i.kind === 'USED' ? t('Used{{value}}', { value: i.condition ? ` · ${i.condition}` : '' }) : i.ptaStatus ? PTA_STATUS_LABELS[i.ptaStatus] : null,
         cost: i.cost, price: i.price, ageDays: i.ageDays, bucket: i.bucket, warrantyDaysLeft: null,
       })),
       dead: { count: d.deadStock.count, cost: d.deadStock.value },
       warranty: [],
       totals: { units: d.totals.phones + d.totals.usedPhones, cost: d.totals.phoneValue + d.totals.usedValue, retail: d.items.reduce((a, i) => a + i.price, 0) },
       chips: [
-        { label: 'Naye phone', value: `${d.totals.phones} · ${cost(d.totals.phoneValue)}` },
-        { label: 'Used phone', value: `${d.totals.usedPhones} · ${cost(d.totals.usedValue)}` },
+        { label: t('Naye phone'), value: `${d.totals.phones} · ${cost(d.totals.phoneValue)}` },
+        { label: t('Used phone'), value: `${d.totals.usedPhones} · ${cost(d.totals.usedValue)}` },
         ...(pta.data ?? []).filter((p) => p.count > 0).map((p) => ({ label: PTA_STATUS_LABELS[p.ptaStatus], value: String(p.count) })),
       ],
     };
@@ -60,13 +61,13 @@ export function ElectronicsSerials() {
       cost: s.cost, price: s.price, ageDays: s.ageDays, bucket: s.bucket, warrantyDaysLeft: s.warrantyDaysLeft,
     }));
     return {
-      unitLabel: 'Serial',
+      unitLabel: t('Serial'),
       buckets: d.buckets.map((b) => ({ key: b.key, label: b.label, units: b.units, cost: b.value })),
       units,
       dead: { count: d.deadStock.count, cost: d.deadStock.value },
       warranty: units.filter((u) => u.warrantyDaysLeft !== null && u.warrantyDaysLeft <= WARRANTY_SOON).sort((a, b) => a.warrantyDaysLeft! - b.warrantyDaysLeft!),
       totals: { units: d.totals.serialUnits, cost: d.totals.serialValue, retail: units.reduce((a, u) => a + u.price, 0) },
-      chips: [{ label: 'Baghair serial ka maal', value: `${d.totals.productLines} cheezein · ${d.totals.productUnits} units` }],
+      chips: [{ label: t('Baghair serial ka maal'), value: `${d.totals.productLines} cheezein · ${d.totals.productUnits} units` }],
     };
   }, [q.data]);
   return <DeviceUnits data={data} loading={q.isLoading} error={q.error} />;
@@ -84,15 +85,15 @@ export function AppliancesSerials() {
       warrantyDaysLeft: [s.warrantyDaysLeft, s.compressorDaysLeft, s.motorDaysLeft].filter((x): x is number => x !== null).sort((a, b) => a - b)[0] ?? null,
     }));
     return {
-      unitLabel: 'Serial',
+      unitLabel: t('Serial'),
       buckets: d.buckets.map((b) => ({ key: b.key, label: b.label, units: b.units, cost: b.value })),
       units,
       dead: { count: d.deadStock.count, cost: d.deadStock.value },
       warranty: units.filter((u) => u.warrantyDaysLeft !== null && u.warrantyDaysLeft <= WARRANTY_SOON).sort((a, b) => a.warrantyDaysLeft! - b.warrantyDaysLeft!),
       totals: { units: d.totals.serialUnits, cost: d.totals.serialValue, retail: units.reduce((a, u) => a + u.price, 0) },
       chips: [
-        { label: 'Bik gaya, laga nahi', value: String(d.pendingInstall.count) },
-        { label: 'Baghair serial ka maal', value: `${d.totals.productLines} cheezein · ${d.totals.productUnits} units` },
+        { label: t('Bik gaya, laga nahi'), value: String(d.pendingInstall.count) },
+        { label: t('Baghair serial ka maal'), value: `${d.totals.productLines} cheezein · ${d.totals.productUnits} units` },
       ],
     };
   }, [q.data]);

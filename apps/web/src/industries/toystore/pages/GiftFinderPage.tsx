@@ -18,6 +18,7 @@ import { toyProductsApi } from '../api/products.api';
 import { cellsNeeded } from '../hooks/useToyFacts';
 import { CATEGORIES, labelOf } from '../lib/meta';
 import { EmptyBox, useDebounced } from '../components/ui';
+import { t as tr } from '@core/i18n';
 
 interface Found {
   productId: string; categoryType?: string; brand?: string; isEducational: boolean; chokingHazard: boolean;
@@ -49,41 +50,41 @@ export default function GiftFinderPage() {
   return (
     <PageShell>
       <PageHero
-        title="Gift finder"
-        chip={<><Gift /> Umar aur budget se</>}
-        meta="Customer ki baat sunein — umar, larka/larki aur budget chunein, stock wale khilone saamne"
+        title={tr('Gift finder')}
+        chip={<><Gift /> {' '}{tr('Umar aur budget se')}</>}
+        meta={tr('Customer ki baat sunein — umar, larka/larki aur budget chunein, stock wale khilone saamne')}
         loading={q.isFetching}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
-        stats={[{ label: 'Mile', value: items.length }]}
+        actions={<button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        stats={[{ label: tr('Mile'), value: items.length }]}
       />
 
       <Card className="rounded-2xl">
         <div className="space-y-4">
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bachay ki umar (saal)</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Bachay ki umar (saal)')}</span>
             <div className="flex flex-wrap gap-1.5">{AGES.map((a) => <button key={a} type="button" onClick={() => setYears(a)} className={chip(years === a)}>{a}{a === 14 ? '+' : ''}</button>)}</div>
           </div>
           <div className="flex flex-wrap items-end gap-4">
             <div>
-              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kis ke liye</span>
+              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kis ke liye')}</span>
               <div className="flex gap-1.5">
-                {([['', 'Koi bhi'], ['BOYS', 'Larka'], ['GIRLS', 'Larki']] as const).map(([v, l]) => <button key={v} type="button" onClick={() => setGender(v)} className={chip(gender === v)}>{l}</button>)}
+                {([['', tr('Koi bhi')], ['BOYS', tr('Larka')], ['GIRLS', tr('Larki')]] as const).map(([v, l]) => <button key={v} type="button" onClick={() => setGender(v)} className={chip(gender === v)}>{l}</button>)}
               </div>
             </div>
             <div className="w-40">
-              <Input label="Budget (Rs)" inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value.replace(/\D/g, ''))} placeholder="Koi had nahi" />
+              <Input label={tr('Budget (Rs)')} inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value.replace(/\D/g, ''))} placeholder={tr('Koi had nahi')} />
             </div>
-            <div className="flex flex-wrap gap-1.5 pb-0.5">{BUDGETS.map((b) => <button key={b} type="button" onClick={() => setBudget(String(b))} className={chip(Number(budget) === b)}>{b.toLocaleString()} tak</button>)}</div>
-            <Switch checked={educational} onChange={(e) => setEducational(e.target.checked)} label="Sirf seekhne wale" />
+            <div className="flex flex-wrap gap-1.5 pb-0.5">{BUDGETS.map((b) => <button key={b} type="button" onClick={() => setBudget(String(b))} className={chip(Number(budget) === b)}>{tr('{{b}} tak', { b: b.toLocaleString() })}</button>)}</div>
+            <Switch checked={educational} onChange={(e) => setEducational(e.target.checked)} label={tr('Sirf seekhne wale')} />
           </div>
-          {years < 3 && <p className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200"><ShieldCheck className="h-4 w-4" />3 saal se chhote bachay ke liye chhote purze wale khilone nahi dikhaye ja rahe.</p>}
+          {years < 3 && <p className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200"><ShieldCheck className="h-4 w-4" />{tr('3 saal se chhote bachay ke liye chhote purze wale khilone nahi dikhaye ja rahe.')}</p>}
         </div>
       </Card>
 
       {q.isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}</div>
       ) : items.length === 0 ? (
-        <EmptyBox icon={Baby} title="Is umar aur budget me kuch nahi" text="Budget barha kar dekhein, ya khilonon par umar likhein — jin khilonon par umar nahi likhi wo yahan nahi aate." />
+        <EmptyBox icon={Baby} title={tr('Is umar aur budget me kuch nahi')} text={tr('Budget barha kar dekhein, ya khilonon par umar likhein — jin khilonon par umar nahi likhi wo yahan nahi aate.')} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((t) => {
@@ -95,12 +96,12 @@ export default function GiftFinderPage() {
                   : <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-pink-50 text-pink-500"><Gift className="h-6 w-6" /></span>}
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-[0.875rem] font-semibold text-slate-900">{t.product.name}</p>
-                  <p className="truncate text-[0.75rem] text-slate-500">{[labelOf(CATEGORIES, t.categoryType), t.brand].filter(Boolean).join(' · ') || `Stock ${t.product.stock}`}</p>
+                  <p className="truncate text-[0.75rem] text-slate-500">{[labelOf(CATEGORIES, t.categoryType), t.brand].filter(Boolean).join(' · ') || tr('Stock {{stock}}', { stock: t.product.stock })}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1">
                     <span className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{sales(t.product.price)}</span>
-                    {t.isEducational && <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-violet-700"><Sparkles className="mr-0.5 inline h-3 w-3" />Seekhne wala</span>}
-                    {t.chokingHazard && <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-amber-800"><AlertTriangle className="mr-0.5 inline h-3 w-3" />Purze</span>}
-                    {cells && <span className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-sky-700"><BatteryCharging className="mr-0.5 inline h-3 w-3" />{cells}</span>}
+                    {t.isEducational && <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-violet-700"><Sparkles className="me-0.5 inline h-3 w-3" />{tr('Seekhne wala')}</span>}
+                    {t.chokingHazard && <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-amber-800"><AlertTriangle className="me-0.5 inline h-3 w-3" />{tr('Purze')}</span>}
+                    {cells && <span className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[0.625rem] font-semibold text-sky-700"><BatteryCharging className="me-0.5 inline h-3 w-3" />{cells}</span>}
                   </div>
                 </div>
               </Link>
@@ -109,16 +110,16 @@ export default function GiftFinderPage() {
         </div>
       )}
 
-      {canSell && items.length > 0 && <Link to="/pos" className="inline-flex h-10 w-fit items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-white hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />POS par bechein</Link>}
+      {canSell && items.length > 0 && <Link to="/pos" className="inline-flex h-10 w-fit items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-white hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />{tr('POS par bechein')}</Link>}
 
       {guide.isOpen && (
-        <PageGuide title="Gift finder — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Gift finder — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Baby, color: '#db2777', title: 'Umar', text: 'Jis bachay ke liye gift hai us ki umar chunein. Sirf wo khilone aate hain jin par ye umar likhi hai aur stock me hain.' },
-            { icon: Gift, color: '#16a34a', title: 'Budget', text: 'Customer ka budget likhein — is se mehnge khilone nahi aate.' },
-            { icon: ShieldCheck, color: '#0891b2', title: 'Chhote bachay', text: '3 saal se kam par chhote purze wale khilone khud hi hat jate hain.' },
+            { icon: Baby, color: '#db2777', title: tr('Umar'), text: tr('Jis bachay ke liye gift hai us ki umar chunein. Sirf wo khilone aate hain jin par ye umar likhi hai aur stock me hain.') },
+            { icon: Gift, color: '#16a34a', title: tr('Budget'), text: tr('Customer ka budget likhein — is se mehnge khilone nahi aate.') },
+            { icon: ShieldCheck, color: '#0891b2', title: tr('Chhote bachay'), text: tr('3 saal se kam par chhote purze wale khilone khud hi hat jate hain.') },
           ]}
-          shortcuts={[['G', 'guide']]}
+          shortcuts={[['G', tr('guide')]]}
         />
       )}
     </PageShell>

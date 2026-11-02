@@ -14,6 +14,7 @@ import { apiErrorMessage } from '../../api/online-orders.api';
 import { onlineProductsApi, type LinkedCell, type OnlineChannel } from '../../api/online-products.api';
 import { timeAgo } from '../../lib/labels';
 import { ChannelMark, channelName, refreshOnlineProducts, rs, ruleText } from './meta';
+import { t } from '@core/i18n';
 
 export function CellModal({ channel, cell, title, productId, canManage, onRelink, onClose }: {
   channel: OnlineChannel; cell: LinkedCell; title: string; productId: string; canManage: boolean;
@@ -25,21 +26,21 @@ export function CellModal({ channel, cell, title, productId, canManage, onRelink
 
   const price = useMutation({
     mutationFn: (v: number | null) => onlineProductsApi.setPrice(cell.mappingId, v),
-    onSuccess: (_r, v) => { done(v === null ? 'Ab rule wali Price lagegi' : 'Apni Price save ho gayi'); onClose(); },
+    onSuccess: (_r, v) => { done(v === null ? t('Ab rule wali Price lagegi') : t('Apni Price save ho gayi')); onClose(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const sync = useMutation({
     mutationFn: () => onlineProductsApi.syncProduct(productId),
     onSuccess: (r) => {
       const bad = r.results.find((x) => !x.ok);
-      if (bad) toast.error(`${bad.name}: ${bad.error}`); else done('Stock aur Price bhej diye');
+      if (bad) toast.error(`${bad.name}: ${bad.error}`); else done(t('Stock aur Price bhej diye'));
       refreshOnlineProducts(qc);
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const unlink = useMutation({
     mutationFn: () => onlineProductsApi.unlink(cell.mappingId),
-    onSuccess: () => { done('Link hata diya'); onClose(); },
+    onSuccess: () => { done(t('Link hata diya')); onClose(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
@@ -57,52 +58,52 @@ export function CellModal({ channel, cell, title, productId, canManage, onRelink
           failed ? 'bg-rose-50 text-rose-900 ring-rose-200' : cell.status === 'SUCCESS' ? 'bg-success-50 text-success-800 ring-success-200' : 'bg-slate-50 text-slate-700 ring-slate-200')}>
           {failed ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> : cell.status === 'SUCCESS' ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <Clock className="mt-0.5 h-4 w-4 shrink-0" />}
           <div className="min-w-0 text-[0.8125rem]">
-            <p className="font-semibold">{failed ? 'Pichli dafa nahi gaya' : cell.status === 'SUCCESS' ? 'Channel par barabar' : 'Abhi nahi bheja'}</p>
+            <p className="font-semibold">{failed ? t('Pichli dafa nahi gaya') : cell.status === 'SUCCESS' ? t('Channel par barabar') : t('Abhi nahi bheja')}</p>
             {failed && cell.error && <p className="mt-0.5">{cell.error}</p>}
-            {cell.lastSyncedAt && <p className="mt-0.5 opacity-80">Aakhri dafa {timeAgo(cell.lastSyncedAt)}</p>}
+            {cell.lastSyncedAt && <p className="mt-0.5 opacity-80">{t('Aakhri dafa {{lastSyncedAt}}', { lastSyncedAt: timeAgo(cell.lastSyncedAt) })}</p>}
           </div>
         </div> : (
           <p className="rounded-2xl bg-slate-50 p-3 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">
             {channel.mode === 'indolj'
-              ? 'Indolj ka har order is product se bill banata hai. Price Indolj panel se badlein; Stock Indolj par track nahi hota.'
-              : 'Website Stock aur Price khud Nafaa se leti hai — yahan se bhejna nahi padta.'}
+              ? t('Indolj ka har order is product se bill banata hai. Price Indolj panel se badlein; Stock Indolj par track nahi hota.')
+              : t('Website Stock aur Price khud Nafaa se leti hai — yahan se bhejna nahi padta.')}
           </p>
         )}
 
         <dl className="grid grid-cols-2 gap-3 text-[0.8125rem]">
           <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">
-            <dt className="text-slate-500">{channel.mode === 'website' ? 'Stock jo website ko dikhta hai' : 'Stock jo channel ko jata hai'}</dt>
-            <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{channel.tracksStock ? cell.stock ?? '—' : 'Track nahi'}</dd>
-            <dd className="text-[0.75rem] text-slate-500">Nafaa me {cell.nafaaStock}{channel.tracksStock && channel.stockBuffer ? ` · ${channel.stockBuffer} rakh kar` : ''}</dd>
+            <dt className="text-slate-500">{channel.mode === 'website' ? t('Stock jo website ko dikhta hai') : t('Stock jo channel ko jata hai')}</dt>
+            <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{channel.tracksStock ? cell.stock ?? '—' : t('Track nahi')}</dd>
+            <dd className="text-[0.75rem] text-slate-500">{t('Nafaa me {{nafaaStock}}{{value}}', { nafaaStock: cell.nafaaStock, value: channel.tracksStock && channel.stockBuffer ? t(' · {{stockBuffer}} rakh kar', { stockBuffer: channel.stockBuffer }) : '' })}</dd>
           </div>
           <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">
-            <dt className="text-slate-500">{push ? 'Channel ki Price' : 'Nafaa price'}</dt>
+            <dt className="text-slate-500">{push ? t('Channel ki Price') : t('Nafaa price')}</dt>
             <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{rs(cell.price)}</dd>
             <dd className={cn('text-[0.75rem]', cell.priceDiffers ? 'font-semibold text-amber-700' : 'text-slate-500')}>
-              {channel.mode === 'website' ? 'Website ko yahi jati hai' : cell.channelPrice === null ? 'Channel par abhi nahi dekhi' : cell.priceDiffers ? `Channel par abhi ${rs(cell.channelPrice)}` : 'Channel par bhi yahi'}
+              {channel.mode === 'website' ? t('Website ko yahi jati hai') : cell.channelPrice === null ? t('Channel par abhi nahi dekhi') : cell.priceDiffers ? t('Channel par abhi {{channelPrice}}', { channelPrice: rs(cell.channelPrice) }) : t('Channel par bhi yahi')}
             </dd>
           </div>
         </dl>
 
-        {channel.mode === 'indolj' && <p className="text-[0.75rem] font-medium text-amber-700">Price Indolj panel se badlein.</p>}
+        {channel.mode === 'indolj' && <p className="text-[0.75rem] font-medium text-amber-700">{t('Price Indolj panel se badlein.')}</p>}
         {push && <section className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
-          <p className="text-[0.8125rem] font-semibold text-slate-800">Is channel par apni Price</p>
-          <p className="text-[0.75rem] text-slate-500">Khali chhorein to rule lagega: {ruleText(channel.priceRule)}.</p>
+          <p className="text-[0.8125rem] font-semibold text-slate-800">{t('Is channel par apni Price')}</p>
+          <p className="text-[0.75rem] text-slate-500">{t('Khali chhorein to rule lagega: {{priceRule}}.', { priceRule: ruleText(channel.priceRule) })}</p>
           <div className="flex flex-wrap items-start gap-2">
-            <Input inputMode="decimal" value={own} onChange={(e) => setOwn(e.target.value.replace(/[^\d.]/g, ''))} placeholder="Rule wali" aria-label="Apni Price"
-              disabled={!canManage} wrapperClassName="min-w-[8rem] flex-1" rightIcon={<span className="text-[0.75rem] text-slate-500">Rs</span>} error={ownOk ? undefined : 'Price sahi nahi'} />
-            {canManage && <Button variant="secondary" loading={price.isPending} disabled={!ownOk} onClick={() => price.mutate(own === '' ? null : ownValue)}>Save</Button>}
+            <Input inputMode="decimal" value={own} onChange={(e) => setOwn(e.target.value.replace(/[^\d.]/g, ''))} placeholder={t('Rule wali')} aria-label={t('Apni Price')}
+              disabled={!canManage} wrapperClassName="min-w-[8rem] flex-1" rightIcon={<span className="text-[0.75rem] text-slate-500">Rs</span>} error={ownOk ? undefined : t('Price sahi nahi')} />
+            {canManage && <Button variant="secondary" loading={price.isPending} disabled={!ownOk} onClick={() => price.mutate(own === '' ? null : ownValue)}>{t('Save')}</Button>}
           </div>
-          {!channel.pushPrice && <p className="text-[0.75rem] font-medium text-amber-700">Price is channel par haath se badlein — Price bhejna band hai.</p>}
+          {!channel.pushPrice && <p className="text-[0.75rem] font-medium text-amber-700">{t('Price is channel par haath se badlein — Price bhejna band hai.')}</p>}
         </section>}
 
         {canManage && (
           <div className="flex flex-wrap gap-2">
-            {push && <Button variant="primary" loading={sync.isPending} onClick={() => sync.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>Abhi bhejein</Button>}
-            {channel.canFetch && <Button variant="secondary" onClick={onRelink} leftIcon={<Link2 className="h-4 w-4" />}>Doosre se jorein</Button>}
+            {push && <Button variant="primary" loading={sync.isPending} onClick={() => sync.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>{t('Abhi bhejein')}</Button>}
+            {channel.canFetch && <Button variant="secondary" onClick={onRelink} leftIcon={<Link2 className="h-4 w-4" />}>{t('Doosre se jorein')}</Button>}
             <Button variant="ghost" className="text-rose-700" loading={unlink.isPending} leftIcon={<Link2Off className="h-4 w-4" />}
-              onClick={async () => { if (await confirmDialog({ title: 'Link hatayein?', text: push ? 'Is product ka Stock aur Price is channel par jana band ho jayega. Channel par product waise hi rahega.' : 'Is channel ke orders me ye product khud nahi milega — agle order par dobara jorna hoga.', danger: true })) unlink.mutate(); }}>
-              Link hatayein
+              onClick={async () => { if (await confirmDialog({ title: t('Link hatayein?'), text: push ? t('Is product ka Stock aur Price is channel par jana band ho jayega. Channel par product waise hi rahega.') : t('Is channel ke orders me ye product khud nahi milega — agle order par dobara jorna hoga.'), danger: true })) unlink.mutate(); }}>
+              {t('Link hatayein')}
             </Button>
           </div>
         )}

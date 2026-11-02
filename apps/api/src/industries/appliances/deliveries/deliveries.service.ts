@@ -19,6 +19,7 @@ import {
   ApplianceDeliveryPaymentDto, AssignApplianceVehicleDto, ConfirmApplianceDeliveryDto, CreateApplianceDeliveryDto,
   UpdateApplianceDeliveryStatusDto,
 } from './dto/create-delivery.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const OPEN = ['PENDING', 'SCHEDULED', 'DISPATCHED', 'ARRIVED'];
 const CLOSED = ['DELIVERED', 'FAILED', 'CANCELLED'];
@@ -201,7 +202,9 @@ export class ApplianceDeliveriesService {
     const advance = await paidOnKhata(this.prisma, user.tenantId, d.deliveryNumber);
     const paidNow = r2(dto.paidAmount ?? Math.max(total - advance, 0));
     if (advance + paidNow > total + 0.005) {
-      throw new BadRequestException(`Delivery ke charges Rs ${total} hain${advance ? `, Rs ${advance} pehle mil chuka` : ''} — is se zyada nahi`);
+      throw new BadRequestException(advance
+        ? apiMessage('Delivery ke charges Rs {{total}} hain, Rs {{advance}} pehle mil chuka — is se zyada nahi', { total, advance })
+        : apiMessage('Delivery ke charges Rs {{total}} hain — is se zyada nahi', { total }));
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -248,7 +251,7 @@ export class ApplianceDeliveriesService {
     const [row] = await this.withMoney(user.tenantId, [d]);
     const due = d.status === 'DELIVERED' ? row.dueAmount : r2(Math.max(Number(d.totalCharge) - row.paidAmount, 0));
     if (due <= 0) throw new BadRequestException('Is delivery ka koi paisa baqi nahi');
-    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf Rs ${due} baqi hai`);
+    if (dto.amount > due + 0.005) throw new BadRequestException(apiMessage('Sirf Rs {{due}} baqi hai', { due }));
     return this.prisma.$transaction(async (tx) => {
       const customerId = await receiveJobMoney(tx, user, party(d), dto.amount, `Delivery ${d.deliveryNumber} wusooli`, dto.paymentMethod);
       return tx.applianceDelivery.update({

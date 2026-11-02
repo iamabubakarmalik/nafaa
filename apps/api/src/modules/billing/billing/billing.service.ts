@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { SubmitPaymentDto } from './dto/submit-payment.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class BillingService {
@@ -120,14 +121,13 @@ export class BillingService {
     // and the admin approves it twice.
     if (invoice.payments.length > 0) {
       throw new BadRequestException(
-        `Is invoice ki ek payment pehle hi review mein hai. ` +
-          `Admin ke faisle ka intezaar karein — reject hone par dobara upload kar sakte hain.`,
+        'Is invoice ki ek payment pehle hi review mein hai. Admin ke faisle ka intezaar karein — reject hone par dobara upload kar sakte hain.',
       );
     }
 
     if (dto.amount > invoice.amountDue) {
       throw new BadRequestException(
-        `Amount invoice se zyada hai. Due amount Rs ${this.formatAmount(invoice.amountDue)} hai.`,
+        apiMessage('Amount invoice se zyada hai. Due amount Rs {{amountDue}} hai.', { amountDue: this.formatAmount(invoice.amountDue) }),
       );
     }
 
@@ -154,7 +154,7 @@ export class BillingService {
       tenantId: user.tenantId,
       type: 'INFO',
       title: 'Payment Submitted ✅',
-      message: `Aap ki payment Rs ${dto.amount} review ke liye submit ho gayi. Admin 24 hours mein approve karega.`,
+      message: apiMessage('Aap ki payment Rs {{amount}} review ke liye submit ho gayi. Admin 24 hours mein approve karega.', { amount: dto.amount }),
       link: '/billing',
     });
 

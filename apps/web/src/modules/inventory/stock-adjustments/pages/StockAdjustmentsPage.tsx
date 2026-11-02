@@ -29,6 +29,7 @@ import { AdjustmentForm } from '../components/AdjustmentForm';
 import { StockCountPanel } from '../components/StockCountPanel';
 import { ADJ_KEY, EFFECTS, TYPES, TYPE_ORDER, effectOf, when } from '../components/meta';
 import { adjustmentsDoc, itemLabel, qtyLabel } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type TypeFilter = 'all' | AdjustmentType;
 
@@ -59,8 +60,8 @@ export default function StockAdjustmentsPage() {
   const lost = t ? t.outValue + t.damageValue + t.lossValue : 0;
   const filtered = type !== 'all' || !!reason || !!query;
 
-  const filterText = [type !== 'all' && TYPES[type].label, reason, query && `"${query}"`].filter(Boolean).join(' · ');
-  const printDoc = async () => adjustmentsDoc(await stockAdjustmentsApi.list({ ...filters, page: 1, limit: 200 }), period ? `${period.from} — ${period.to}` : 'Sab tareekhen', filterText);
+  const filterText = [type !== 'all' && TYPES[type].label, reason && tr(reason), query && `"${query}"`].filter(Boolean).join(' · ');
+  const printDoc = async () => adjustmentsDoc(await stockAdjustmentsApi.list({ ...filters, page: 1, limit: 200 }), period ? `${period.from} — ${period.to}` : tr('Sab tareekhen'), filterText);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -81,29 +82,29 @@ export default function StockAdjustmentsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Stock adjustments"
-        chip={<><SlidersHorizontal /> Stock ki correction</>}
-        meta="Kam, zyada, kharab, gum aur ginti — sab ka hisaab"
+        title={tr('Stock adjustments')}
+        chip={<><SlidersHorizontal /> {' '}{tr('Stock ki correction')}</>}
+        meta={tr('Kam, zyada, kharab, gum aur ginti — sab ka hisaab')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
-          <button type="button" onClick={() => setForm('count')} title="Stock ginti (C)" className={heroButton}><ClipboardCheck className="h-4 w-4" /> Stock ginti</button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setForm('new')} title="Naya adjustment (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya adjustment</button>
+          <button type="button" onClick={() => setForm('count')} title={tr('Stock ginti (C)')} className={heroButton}><ClipboardCheck className="h-4 w-4" /> {' '}{tr('Stock ginti')}</button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setForm('new')} title={tr('Naya adjustment (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya adjustment')}</button>
         </>}
         stats={t ? [
-          { label: 'Is period me', value: t.count, hint: 'adjustment' },
-          { label: 'Stock barha', value: money(t.inValue) },
-          { label: 'Stock ghata', value: money(lost), hint: t.damageValue + t.lossValue > 0 ? `kharab/gum ${money(t.damageValue + t.lossValue)}` : undefined },
-          { label: 'Stock nuksan', value: `−${money(t.stockLoss ?? t.outValue + t.damageValue + t.lossValue)}`, hint: 'Profit se minus' },
-          { label: 'Stock faida', value: `+${money(t.stockGain ?? t.inValue)}`, hint: 'Profit mein plus' },
+          { label: tr('Is period me'), value: t.count, hint: 'adjustment' },
+          { label: tr('Stock barha'), value: money(t.inValue) },
+          { label: tr('Stock ghata'), value: money(lost), hint: t.damageValue + t.lossValue > 0 ? tr('kharab/gum {{value}}', { value: money(t.damageValue + t.lossValue) }) : undefined },
+          { label: tr('Stock nuksan'), value: `−${money(t.stockLoss ?? t.outValue + t.damageValue + t.lossValue)}`, hint: tr('Profit se minus') },
+          { label: tr('Stock faida'), value: `+${money(t.stockGain ?? t.inValue)}`, hint: tr('Profit mein plus') },
           {
-            label: 'Profit par asar',
+            label: tr('Profit par asar'),
             value: `${(t.profitNet ?? t.net) >= 0 ? '+' : '−'}${money(Math.abs(t.profitNet ?? t.net))}`,
-            hint: t.correctionValue ? `correction ${money(t.correctionValue)} alag` : 'faida − nuksan',
+            hint: t.correctionValue ? tr('correction {{correctionValue}} alag', { correctionValue: money(t.correctionValue) }) : tr('faida − nuksan'),
           },
-        ] : [{ label: 'Is period me', value: '—' }]}
+        ] : [{ label: tr('Is period me'), value: '—' }]}
       />
 
       {/* Value per type; a card toggles its type filter */}
@@ -111,29 +112,29 @@ export default function StockAdjustmentsPage() {
         {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : TYPE_ORDER.map((k) => (
           <KpiCard key={k} icon={TYPES[k].icon} color={TYPES[k].color} label={TYPES[k].label}
             value={money(k === 'OPENING_BALANCE' ? t.openingValue ?? 0 : k === 'ADJUSTMENT_IN' ? t.inValue : k === 'ADJUSTMENT_OUT' ? t.outValue : k === 'DAMAGE' ? t.damageValue : t.lossValue)}
-            hint={type === k ? 'Filter laga · dobara dabayein' : 'dabayein'} onClick={() => toggleType(k)} active={type === k} />
+            hint={type === k ? tr('Filter laga · dobara dabayein') : 'dabayein'} onClick={() => toggleType(k)} active={type === k} />
         ))}
       </KpiRow>
 
       {/* Filters */}
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product, SKU, wajah ya note…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Product, SKU, wajah ya note…')} label={tr('Search')} />}
         chips={filtered ? <>
           {type !== 'all' && <FilterChip onRemove={() => setType('all')}>{TYPES[type].label}</FilterChip>}
-          {reason && <FilterChip onRemove={() => setReason('')}>{reason}</FilterChip>}
+          {reason && <FilterChip onRemove={() => setReason('')}>{tr(reason)}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
-        <FilterMenu icon={Filter} label="Type" value={type} active={type !== 'all'} onChange={setType}
-          options={[{ value: 'all', label: 'Sab' }, ...TYPE_ORDER.map((k) => ({ value: k, label: TYPES[k].label, icon: TYPES[k].icon, color: TYPES[k].color }))]} />
-        <FilterMenu icon={MessageSquareText} label="Wajah" value={reason} active={!!reason} onChange={setReason} width="w-72" align="right"
-          options={[{ value: '', label: 'Sab wajah' }, ...(reasonsQ.data ?? []).map((r) => ({ value: r, label: r }))]} />
+        <FilterMenu icon={Filter} label={tr('Type')} value={type} active={type !== 'all'} onChange={setType}
+          options={[{ value: 'all', label: tr('Sab') }, ...TYPE_ORDER.map((k) => ({ value: k, label: TYPES[k].label, icon: TYPES[k].icon, color: TYPES[k].color }))]} />
+        <FilterMenu icon={MessageSquareText} label={tr('Wajah')} value={reason} active={!!reason} onChange={setReason} width="w-72" align="right"
+          options={[{ value: '', label: tr('Sab wajah') }, ...(reasonsQ.data ?? []).map((r) => ({ value: r, label: tr(r) }))]} />
       </FilterBar>
 
       {/* Tabs */}
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya · <Kbd>C</Kbd> ginti · <Kbd>/</Kbd> search</>}
-        tabs={[{ id: 'record', label: 'Record', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} <Kbd>C</Kbd> {' '}{tr('ginti ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}</>}
+        tabs={[{ id: 'record', label: tr('Record'), icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <AdjustmentAnalytics filters={filters} money={money} /> : (<>
         {listQ.isLoading ? (
@@ -141,12 +142,12 @@ export default function StockAdjustmentsPage() {
         ) : !groups.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <PackageSearch className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi adjustment nahi' : 'Is period me koi adjustment nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">Maal toota, gum hua ya ginti me farq nikla? Yahan likhein taake stock aur hisaab sahi rahe.</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi adjustment nahi') : tr('Is period me koi adjustment nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Maal toota, gum hua ya ginti me farq nikla? Yahan likhein taake stock aur hisaab sahi rahe.')}</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya adjustment</Button>
-              <Button variant="secondary" onClick={() => setForm('count')} leftIcon={<ClipboardCheck className="h-4 w-4" />}>Stock ginti karein</Button>
-              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+              <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya adjustment')}</Button>
+              <Button variant="secondary" onClick={() => setForm('count')} leftIcon={<ClipboardCheck className="h-4 w-4" />}>{tr('Stock ginti karein')}</Button>
+              {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
             </div>
           </div>
         ) : (
@@ -157,9 +158,9 @@ export default function StockAdjustmentsPage() {
 
         {data && data.pages > 1 && (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-            <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
-            <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+            <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: data.pages })}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
           </div>
         )}
       </>)}
@@ -168,22 +169,22 @@ export default function StockAdjustmentsPage() {
       {form === 'count' && <StockCountPanel onClose={() => setForm(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Stock adjustment — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Stock adjustment — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: ArrowUpCircle, color: '#16a34a', title: 'Barhayein ya kam karein', text: '"Naya adjustment" dabayein, product search ya scan karein. Shelf par zyada nikla to "Stock barhayein", kam hai ya apne kaam me liya to "Kam karein".' },
-            { icon: ShieldAlert, color: '#e11d48', title: 'Kharab aur gum', text: 'Toota, expiry ya kharab maal "Kharab" me, chori ya gum "Gum" me likhein. Dono stock kam karte hain aur nuqsan ki report me aate hain.' },
-            { icon: ClipboardCheck, color: '#2563eb', title: 'Stock ginti', text: '"Stock ginti" me shelf ka maal gin kar likhein. System aur ginti ka farq khud barhaya ya kam kiya jata hai — save se pehle khulasa dikhta hai.' },
-            { icon: MessageSquareText, color: '#7c3aed', title: 'Wajah zaroor likhein', text: 'Har adjustment ki wajah zaroori hai. Neeche wale chips se jaldi chunein — Analytics me dikhta hai kis wajah se kitna maal gaya.' },
-            { icon: Layers, color: '#d97706', title: 'Carton, variants, roll, IMEI', text: 'Carton ya box chun kar likhein, stock khud pieces me badalta hai. Variant wale product me type, carpet me roll, mobile me device (IMEI) chunna hota hai.' },
-            { icon: Store, color: '#0891b2', title: 'Branch ka usool', text: 'Adjustment hamesha khuli branch ka hota hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ka stock badal sakta hai.' },
+            { icon: ArrowUpCircle, color: '#16a34a', title: tr('Barhayein ya kam karein'), text: tr('"Naya adjustment" dabayein, product search ya scan karein. Shelf par zyada nikla to "Stock barhayein", kam hai ya apne kaam me liya to "Kam karein".') },
+            { icon: ShieldAlert, color: '#e11d48', title: tr('Kharab aur gum'), text: tr('Toota, expiry ya kharab maal "Kharab" me, chori ya gum "Gum" me likhein. Dono stock kam karte hain aur nuqsan ki report me aate hain.') },
+            { icon: ClipboardCheck, color: '#2563eb', title: tr('Stock ginti'), text: tr('"Stock ginti" me shelf ka maal gin kar likhein. System aur ginti ka farq khud barhaya ya kam kiya jata hai — save se pehle khulasa dikhta hai.') },
+            { icon: MessageSquareText, color: '#7c3aed', title: tr('Wajah zaroor likhein'), text: tr('Har adjustment ki wajah zaroori hai. Neeche wale chips se jaldi chunein — Analytics me dikhta hai kis wajah se kitna maal gaya.') },
+            { icon: Layers, color: '#d97706', title: tr('Carton, variants, roll, IMEI'), text: tr('Carton ya box chun kar likhein, stock khud pieces me badalta hai. Variant wale product me type, carpet me roll, mobile me device (IMEI) chunna hota hai.') },
+            { icon: Store, color: '#0891b2', title: tr('Branch ka usool'), text: tr('Adjustment hamesha khuli branch ka hota hai. "Sab branches" par pehle branch chunein. Staff sirf apni branch ka stock badal sakta hai.') },
           ]}
           tips={[
-            'Stock minus me nahi ja sakta, jab tak Settings > Inventory me minus stock ki permission na ho.',
-            'Kai products ek sath save hon to un ka ek hi ref banta hai — record me woh ek sath dikhte hain.',
-            'Amount cost price se nikalti hai, is liye nuqsan rupay me sahi pata chalta hai.',
-            'Print button se is filter ki poori list A4, PDF ya thermal par nikaalein.',
+            tr('Stock minus me nahi ja sakta, jab tak Settings > Inventory me minus stock ki permission na ho.'),
+            tr('Kai products ek sath save hon to un ka ek hi ref banta hai — record me woh ek sath dikhte hain.'),
+            tr('Amount cost price se nikalti hai, is liye nuqsan rupay me sahi pata chalta hai.'),
+            tr('Print button se is filter ki poori list A4, PDF ya thermal par nikaalein.'),
           ]}
-          shortcuts={[['N', 'naya adjustment'], ['C', 'stock ginti'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', tr('naya adjustment')], ['C', tr('stock ginti')], ['/', tr('dhoondein')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -213,11 +214,11 @@ function Group({ rows, money }: { rows: StockAdjustment[]; money: (n: number) =>
       {many && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.75rem] sm:px-5">
           <span className={cn('rounded-full px-2 py-0.5 font-semibold ring-1', count ? 'bg-blue-50 text-blue-700 ring-blue-200' : 'bg-white text-slate-700 ring-slate-200')}>
-            {count ? 'Stock ginti' : 'Ek sath'} · {rows.length} line
+            {tr('{{value}} · {{count}} line', { value: count ? tr('Stock ginti') : tr('Ek sath'), count: rows.length })}
           </span>
           <span className="font-mono text-slate-400">{head.groupRef}</span>
           <span className="text-slate-500">{by}</span>
-          <span className={cn('ml-auto font-semibold tabular-nums', net >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{net >= 0 ? '+' : '−'}{money(Math.abs(net))}</span>
+          <span className={cn('ms-auto font-semibold tabular-nums', net >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{net >= 0 ? '+' : '−'}{money(Math.abs(net))}</span>
         </div>
       )}
       <ul className="divide-y divide-slate-100">
@@ -243,11 +244,11 @@ function Line({ a, money, showMeta }: { a: StockAdjustment; money: (n: number) =
           {a.variant?.colorHex && <span className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10" style={{ background: a.variant.colorHex }} />}
         </div>
         <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">
-          {a.reason}{counted ? ` · gina ${a.countedQty}, system ${a.systemQty}` : a.note ? ` — ${a.note}` : ''}
+          {tr(a.reason)}{counted ? tr(' · gina {{countedQty}}, system {{systemQty}}', { countedQty: a.countedQty, systemQty: a.systemQty }) : a.note ? ` — ${a.note}` : ''}
         </p>
-        {showMeta && <p className="mt-0.5 text-[0.75rem] text-slate-400">{meta}{a.groupRef ? <span className="ml-1.5 font-mono">{a.groupRef}</span> : null}</p>}
+        {showMeta && <p className="mt-0.5 text-[0.75rem] text-slate-400">{meta}{a.groupRef ? <span className="ms-1.5 font-mono">{a.groupRef}</span> : null}</p>}
       </div>
-      <div className="ml-auto text-right">
+      <div className="ms-auto text-end">
         <p className={cn('text-base font-bold tabular-nums', m.sign > 0 ? 'text-emerald-700' : 'text-rose-700')}>{qtyLabel(a)}</p>
         <p className={cn('text-[0.75rem] tabular-nums', effect === 'NONE' ? 'text-slate-500' : EFFECTS[effect].text)}>{effect === 'GAIN' ? '+' : effect === 'LOSS' ? '−' : ''}{money(a.value)}</p>
       </div>

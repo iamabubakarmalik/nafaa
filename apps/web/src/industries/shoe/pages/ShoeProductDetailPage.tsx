@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { ProductDetailPage, type DetailConfig } from '@modules/inventory/products/detail/ProductDetailPage';
 import { shoeProductsApi, type ShoeProductProfile, type SizeGrid } from '../api/products.api';
 import { genderLabel, systemLabel, typeLabel } from '../components/meta';
+import { t } from '@core/i18n';
 
 interface Extra { profile: ShoeProductProfile | null; grid: SizeGrid | null }
 
@@ -28,8 +29,8 @@ function Grid({ grid }: { grid: SizeGrid }) {
       <ul className="divide-y divide-slate-100">
         {grid.variants.map((v) => (
           <li key={v.id} className="flex items-center justify-between gap-3 px-4 py-2 text-[0.8125rem] sm:px-5">
-            <span className="font-medium text-slate-800">{v.name}{v.barcode && <span className="ml-2 font-mono text-[0.6875rem] text-slate-400">{v.barcode}</span>}</span>
-            <span className={cn('rounded-lg px-2 py-0.5 font-semibold tabular-nums', tone(v.stock, v.lowStockAlert))}>{Math.round(v.stock)} · {Math.round(v.sold30)} bike</span>
+            <span className="font-medium text-slate-800">{v.name}{v.barcode && <span className="ms-2 font-mono text-[0.6875rem] text-slate-400">{v.barcode}</span>}</span>
+            <span className={cn('rounded-lg px-2 py-0.5 font-semibold tabular-nums', tone(v.stock, v.lowStockAlert))}>{t('{{stock}} · {{sold30}} bike', { stock: Math.round(v.stock), sold30: Math.round(v.sold30) })}</span>
           </li>
         ))}
       </ul>
@@ -48,7 +49,7 @@ function Grid({ grid }: { grid: SizeGrid }) {
                 <div key={s} title={v.byShop.map((b) => `${b.name}: ${b.stock}`).join(' · ')} className={cn('rounded-xl p-2 text-center ring-1 ring-black/5', tone(v.stock, v.lowStockAlert), !v.isActive && 'opacity-50')}>
                   <p className="text-[0.75rem] font-medium">{s}</p>
                   <p className="text-lg font-bold tabular-nums">{Math.round(v.stock)}</p>
-                  <p className="text-[0.6875rem] opacity-80">{Math.round(v.sold30)} bike{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</p>
+                  <p className="text-[0.6875rem] opacity-80">{t('{{sold30}} bike{{value}}', { sold30: Math.round(v.sold30), value: grid.shops.length > 1 ? t(' · kul {{allStock}}', { allStock: Math.round(v.allStock) }) : '' })}</p>
                 </div>
               );
             })}
@@ -60,7 +61,7 @@ function Grid({ grid }: { grid: SizeGrid }) {
 }
 
 const config: DetailConfig<Extra> = {
-  label: 'Shoes',
+  label: t('Shoes'),
   paths: { list: '/shoe-products', edit: (id) => `/shoe-products/${id}/edit` },
   stockChips: [1, 2, 6, 12, 24],
   extra: {
@@ -82,9 +83,9 @@ const config: DetailConfig<Extra> = {
       <>
         <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.75rem] font-medium text-slate-700">{genderLabel(p.gender)}</span>
         {p.categoryType && <span className="rounded-md bg-orange-50 px-2 py-0.5 text-[0.75rem] font-medium text-orange-700">{typeLabel(p.categoryType)}</span>}
-        {off > 0 && <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[0.75rem] font-bold text-white">Sale {off}%</span>}
-        {p.isNewArrival && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">Naya</span>}
-        {p.isBridal && <span className="rounded-md bg-pink-50 px-2 py-0.5 text-[0.75rem] font-semibold text-pink-700">Bridal</span>}
+        {off > 0 && <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[0.75rem] font-bold text-white">{t('Sale {{off}}%', { off })}</span>}
+        {p.isNewArrival && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">{t('Naya')}</span>}
+        {p.isBridal && <span className="rounded-md bg-pink-50 px-2 py-0.5 text-[0.75rem] font-semibold text-pink-700">{t('Bridal')}</span>}
       </>
     );
   },
@@ -92,15 +93,15 @@ const config: DetailConfig<Extra> = {
     const p = extra?.profile;
     if (!p) return [];
     const rows: Array<[string, ReactNode]> = [
-      ['Article', p.modelCode || '—'],
-      ['Season', p.season || '—'],
-      ['Size system', systemLabel(p.sizeSystem)],
+      [t('Article'), p.modelCode || '—'],
+      [t('Season'), p.season || '—'],
+      [t('Size system'), systemLabel(p.sizeSystem)],
       ['MRP', p.mrp ? formatPKR(p.mrp) : '—'],
-      ['Fitting', p.runsSmall ? 'Chhota aata hai — ek size bara dein' : p.runsLarge ? 'Bara aata hai — ek size chhota dein' : 'Sahi size'],
-      ['Material', [p.upperMaterial, p.soleMaterial && `sole ${p.soleMaterial}`].filter(Boolean).join(' · ') || '—'],
-      ['Warranty', p.warrantyMonths ? `${p.warrantyMonths} mahine` : '—'],
+      [t('Fitting'), p.runsSmall ? t('Chhota aata hai — ek size bara dein') : p.runsLarge ? t('Bara aata hai — ek size chhota dein') : t('Sahi size')],
+      [t('Material'), [p.upperMaterial, p.soleMaterial && t('sole {{soleMaterial}}', { soleMaterial: p.soleMaterial })].filter(Boolean).join(' · ') || '—'],
+      [t('Warranty'), p.warrantyMonths ? t('{{count}} mahine', { count: p.warrantyMonths }) : '—'],
     ];
-    if (p.sizingNotes) rows.push(['Fitting ki baat', p.sizingNotes]);
+    if (p.sizingNotes) rows.push([t('Fitting ki baat'), p.sizingNotes]);
     return rows;
   },
   tile: ({ extra }) => {
@@ -108,7 +109,7 @@ const config: DetailConfig<Extra> = {
     if (!g) return null;
     const active = g.variants.filter((v) => v.isActive);
     const empty = active.filter((v) => v.stock <= 0).length;
-    return { label: 'Sizes', value: `${active.length - empty}/${active.length}`, hint: empty ? `${empty} khatam` : 'Sab stock me' };
+    return { label: t('Sizes'), value: `${active.length - empty}/${active.length}`, hint: empty ? t('{{empty}} khatam', { empty }) : t('Sab stock me') };
   },
   alerts: ({ extra }) => {
     const empty = (extra?.grid?.variants ?? []).filter((v) => v.isActive && v.stock <= 0 && v.sold30 > 0);
@@ -116,23 +117,23 @@ const config: DetailConfig<Extra> = {
     return (
       <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
         <Ruler className="h-4 w-4" />
-        <span className="text-[0.875rem] font-medium">Bikne wale size khatam: {empty.map((v) => v.name).join(', ')}</span>
-        <Link to="/purchases/new" className="ml-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold hover:underline"><PackagePlus className="h-4 w-4" />Purchase</Link>
+        <span className="text-[0.875rem] font-medium">{t('Bikne wale size khatam: {{value}}', { value: empty.map((v) => v.name).join(', ') })}</span>
+        <Link to="/purchases/new" className="ms-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold hover:underline"><PackagePlus className="h-4 w-4" />{t('Purchase')}</Link>
       </div>
     );
   },
   tabs: [
     {
-      id: 'sizes', label: 'Sizes', icon: Grid3x3, when: ({ extra }) => !!extra?.grid,
+      id: 'sizes', label: t('Sizes'), icon: Grid3x3, when: ({ extra }) => !!extra?.grid,
       render: ({ extra }) => (
-        <Card className="rounded-2xl" flush title="Har size ke joray" description="Is branch ka stock · pichle 30 din ki Sale. Khane par mouse rakhein to har branch ka stock.">
+        <Card className="rounded-2xl" flush title={t('Har size ke joray')} description={t('Is branch ka stock · pichle 30 din ki Sale. Khane par mouse rakhein to har branch ka stock.')}>
           <Grid grid={extra!.grid!} />
         </Card>
       ),
     },
   ],
   guide: [
-    { icon: Grid3x3, color: '#ea580c', title: 'Sizes', text: 'Har size (aur rang) ke joray is branch me — laal khatam, peela kam. Doosri branch me ho to Transfer karein.' },
+    { icon: Grid3x3, color: '#ea580c', title: t('Sizes'), text: t('Har size (aur rang) ke joray is branch me — laal khatam, peela kam. Doosri branch me ho to Transfer karein.') },
   ],
 };
 

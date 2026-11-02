@@ -25,6 +25,7 @@ import { MethodPicker } from '../components/MethodPicker';
 import {
   ALL_HOTEL_KEYS, HK_STATUS, ID_TYPES, MEAL_PLANS, SOURCES, addDaysKey, apiError, cnicOk, formatCnic, moneyInput, nightsBetween, num, phoneOk, stayDay, todayKey,
 } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 interface Line { roomId: string; roomNumber: string; roomTypeId: string; typeName: string; quoted: number; rate: string; custom: boolean; adults: string; children: string; extraBeds: string }
 
@@ -113,13 +114,13 @@ export default function NewBookingPage() {
   const name = guest?.fullName ?? guestName.trim();
   const phone = guest?.phone ?? guestPhone.trim();
   const errors = {
-    dates: !datesOk ? (nights < 1 ? 'Check-out, check-in ke baad ki date honi chahiye' : 'Guzri hui date par booking nahi banti') : null,
-    rooms: !lines.length ? 'Kam az kam ek room chunein' : null,
-    name: !name ? 'Guest ka naam likhein' : null,
-    phone: !phoneOk(phone) ? 'Phone number sahi likhein (kam az kam 10 hindse)' : null,
-    id: checkInNow && !guest?.idNumber ? (!idNumber.trim() ? 'Check-in ke liye CNIC ya passport number likhein' : idType === 'CNIC' && !cnicOk(idNumber) ? 'CNIC 13 hindson ka hota hai' : null) : null,
-    advance: adv > total + 0.005 ? `Advance kul bill (${formatPKR(total)}) se zyada hai` : null,
-    occupancy: lines.find((l) => { const t = typeOf(l.roomTypeId); return t && (num(l.adults) || 1) + num(l.children) > t.maxOccupancy + num(l.extraBeds); }) ? 'Kisi room me zyada log likhe hain — extra bed lagayein ya doosra room' : null,
+    dates: !datesOk ? (nights < 1 ? tr('Check-out, check-in ke baad ki date honi chahiye') : tr('Guzri hui date par booking nahi banti')) : null,
+    rooms: !lines.length ? tr('Kam az kam ek room chunein') : null,
+    name: !name ? tr('Guest ka naam likhein') : null,
+    phone: !phoneOk(phone) ? tr('Phone number sahi likhein (kam az kam 10 hindse)') : null,
+    id: checkInNow && !guest?.idNumber ? (!idNumber.trim() ? tr('Check-in ke liye CNIC ya passport number likhein') : idType === 'CNIC' && !cnicOk(idNumber) ? tr('CNIC 13 hindson ka hota hai') : null) : null,
+    advance: adv > total + 0.005 ? tr('Advance kul bill ({{total}}) se zyada hai', { total: formatPKR(total) }) : null,
+    occupancy: lines.find((l) => { const t = typeOf(l.roomTypeId); return t && (num(l.adults) || 1) + num(l.children) > t.maxOccupancy + num(l.extraBeds); }) ? tr('Kisi room me zyada log likhe hain — extra bed lagayein ya doosra room') : null,
   };
   const firstError = Object.values(errors).find(Boolean) ?? null;
 
@@ -137,10 +138,10 @@ export default function NewBookingPage() {
     }),
     onSuccess: (b) => {
       ALL_HOTEL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(checkInNow ? `${b.guestName} check-in ho gaya` : `Booking ${b.bookingNumber} ban gayi`);
+      toast.success(checkInNow ? tr('{{guestName}} check-in ho gaya', { guestName: b.guestName }) : tr('Booking {{bookingNumber}} ban gayi', { bookingNumber: b.bookingNumber }));
       navigate(`/hotel/bookings/${b.id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Booking nahi bani')),
+    onError: (e) => toast.error(apiError(e, tr('Booking nahi bani'))),
   });
   const submit = () => { setTried(true); if (firstError) { toast.error(firstError); return; } save.mutate(); };
 
@@ -159,43 +160,43 @@ export default function NewBookingPage() {
     <PageShell>
       <PageHero
         back="/hotel/bookings"
-        title={checkInNow ? 'Walk-in check-in' : 'Nayi booking'}
-        subtitle="Dates → room → guest → advance"
-        meta={<span className="inline-flex items-center gap-1"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>}
-        actions={<button type="button" onClick={guide.open} className={heroButton}><GraduationCap className="h-4 w-4" />Guide</button>}
+        title={checkInNow ? tr('Walk-in check-in') : tr('Nayi booking')}
+        subtitle={tr('Dates → room → guest → advance')}
+        meta={<span className="inline-flex items-center gap-1"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</span>}
+        actions={<button type="button" onClick={guide.open} className={heroButton}><GraduationCap className="h-4 w-4" />{tr('Guide')}</button>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
           <Card className="space-y-3 p-4">
-            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><CalendarDays className="h-4 w-4 text-slate-400" />Kab se kab tak</h2>
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><CalendarDays className="h-4 w-4 text-slate-400" />{tr('Kab se kab tak')}</h2>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Input type="date" label="Check-in" value={checkIn} min={addDaysKey(today, -1)} onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(addDaysKey(e.target.value, 1)); }} />
-              <Input type="date" label="Check-out" value={checkOut} min={addDaysKey(checkIn, 1)} onChange={(e) => setCheckOut(e.target.value)} error={err('dates')} hint={nights >= 1 ? `${nights} raat · ${stayDay(checkIn, { day: true })} se` : undefined} />
-              <Select label="Booking kahan se" value={source} onChange={(e) => setSource(e.target.value as BookingSource)} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} />
+              <Input type="date" label={tr('Check-in')} value={checkIn} min={addDaysKey(today, -1)} onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(addDaysKey(e.target.value, 1)); }} />
+              <Input type="date" label={tr('Check-out')} value={checkOut} min={addDaysKey(checkIn, 1)} onChange={(e) => setCheckOut(e.target.value)} error={err('dates')} hint={nights >= 1 ? tr('{{nights}} raat · {{checkIn}} se', { nights, checkIn: stayDay(checkIn, { day: true }) }) : undefined} />
+              <Select label={tr('Booking kahan se')} value={source} onChange={(e) => setSource(e.target.value as BookingSource)} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} />
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {[1, 2, 3, 7].map((n) => <Button key={n} size="sm" variant={nights === n ? 'primary' : 'secondary'} onClick={() => setCheckOut(addDaysKey(checkIn, n))}>{n} raat</Button>)}
+              {[1, 2, 3, 7].map((n) => <Button key={n} size="sm" variant={nights === n ? 'primary' : 'secondary'} onClick={() => setCheckOut(addDaysKey(checkIn, n))}>{tr('{{n}} raat', { n })}</Button>)}
             </div>
             {checkIn === today && (
-              <Switch checked={checkInNow} onChange={(e) => { setCheckInNow(e.target.checked); if (e.target.checked) setSource('WALK_IN'); }} label="Guest saamne hai — abhi check-in karein" description="Walk-in: booking ke saath check-in bhi; CNIC abhi likhna hoga" />
+              <Switch checked={checkInNow} onChange={(e) => { setCheckInNow(e.target.checked); if (e.target.checked) setSource('WALK_IN'); }} label={tr('Guest saamne hai — abhi check-in karein')} description={tr('Walk-in: booking ke saath check-in bhi; CNIC abhi likhna hoga')} />
             )}
           </Card>
 
           <Card className="space-y-3 p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><BedDouble className="h-4 w-4 text-slate-400" />Room chunein</h2>
-              <p className="text-[0.75rem] text-slate-500">Sirf wo room jo har raat khaali hain · weekend aur season rate shamil</p>
+              <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><BedDouble className="h-4 w-4 text-slate-400" />{tr('Room chunein')}</h2>
+              <p className="text-[0.75rem] text-slate-500">{tr('Sirf wo room jo har raat khaali hain · weekend aur season rate shamil')}</p>
             </div>
             {err('rooms') && <p className="text-[0.8125rem] text-rose-600">{err('rooms')}</p>}
-            {!datesOk ? <p className="text-[0.8125rem] text-slate-500">Pehle sahi dates chunein.</p> : quote.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : !types.length ? (
-              <p className="text-[0.8125rem] text-slate-500">Koi room type nahi. <Link to="/hotel-room-types/new" className="text-brand-700 hover:underline">Room type banayein</Link></p>
+            {!datesOk ? <p className="text-[0.8125rem] text-slate-500">{tr('Pehle sahi dates chunein.')}</p> : quote.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : !types.length ? (
+              <p className="text-[0.8125rem] text-slate-500">{tr('Koi room type nahi.')}{' '} <Link to="/hotel-room-types/new" className="text-brand-700 hover:underline">{tr('Room type banayein')}</Link></p>
             ) : types.map((t) => (
               <div key={t.roomTypeId} className="rounded-2xl p-3 ring-1 ring-slate-200">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-[0.875rem] font-semibold text-slate-900">{t.name} <span className="font-normal text-slate-500">· {t.maxOccupancy} log</span></p>
-                  <p className="text-[0.8125rem] text-slate-600"><b className="tabular-nums text-slate-900">{formatPKR(t.avgRate)}</b> fi raat · {nights} raat {formatPKR(t.total)}
-                    {t.nightly.some((n) => n.label !== 'Normal') && <span className="ml-1 text-[0.75rem] text-amber-700">({[...new Set(t.nightly.filter((n) => n.label !== 'Normal').map((n) => n.label))].join(', ')})</span>}
+                  <p className="text-[0.875rem] font-semibold text-slate-900">{t.name} <span className="font-normal text-slate-500">{tr('· {{maxOccupancy}} log', { maxOccupancy: t.maxOccupancy })}</span></p>
+                  <p className="text-[0.8125rem] text-slate-600"><b className="tabular-nums text-slate-900">{formatPKR(t.avgRate)}</b> {' '}{tr('fi raat · {{nights}} raat {{total}}', { nights, total: formatPKR(t.total) })}
+                    {t.nightly.some((n) => n.label !== 'Normal') && <span className="ms-1 text-[0.75rem] text-amber-700">({[...new Set(t.nightly.filter((n) => n.label !== 'Normal').map((n) => n.label))].join(', ')})</span>}
                   </p>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -207,7 +208,7 @@ export default function NewBookingPage() {
                         {r.roomNumber}
                       </button>
                     );
-                  }) : <span className="text-[0.8125rem] text-slate-500">In dates me is type ka koi room khaali nahi ({t.roomsTotal} me se)</span>}
+                  }) : <span className="text-[0.8125rem] text-slate-500">{tr('In dates me is type ka koi room khaali nahi ({{roomsTotal}} me se)', { roomsTotal: t.roomsTotal })}</span>}
                 </div>
               </div>
             ))}
@@ -219,11 +220,11 @@ export default function NewBookingPage() {
                   return (
                     <li key={l.roomId} className="grid grid-cols-2 items-end gap-2 p-3 sm:grid-cols-[5rem_1fr_5rem_5rem_5rem_auto]">
                       <div className="col-span-2 sm:col-span-1"><p className="text-[1rem] font-bold text-slate-900">{l.roomNumber}</p><p className="truncate text-[0.6875rem] text-slate-500">{l.typeName}</p></div>
-                      <Input size="sm" label="Rate fi raat" inputMode="decimal" value={l.rate} onChange={(e) => setLine(l.roomId, 'rate', moneyInput(e.target.value))} hint={l.custom ? `System rate ${formatPKR(Math.round(l.quoted / Math.max(nights, 1)))}` : undefined} />
-                      <Input size="sm" label="Bade" inputMode="numeric" value={l.adults} onChange={(e) => setLine(l.roomId, 'adults', e.target.value.replace(/\D/g, ''))} />
-                      <Input size="sm" label="Bachay" inputMode="numeric" value={l.children} onChange={(e) => setLine(l.roomId, 'children', e.target.value.replace(/\D/g, ''))} />
-                      {t?.extraBedAllowed ? <Input size="sm" label="Extra bed" inputMode="numeric" value={l.extraBeds} onChange={(e) => setLine(l.roomId, 'extraBeds', e.target.value.replace(/\D/g, ''))} hint={formatPKR(t.extraBedPrice)} /> : <span />}
-                      <button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.roomId !== l.roomId))} className="mb-1 justify-self-end rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Hatayein"><Trash2 className="h-4 w-4" /></button>
+                      <Input size="sm" label={tr('Rate fi raat')} inputMode="decimal" value={l.rate} onChange={(e) => setLine(l.roomId, 'rate', moneyInput(e.target.value))} hint={l.custom ? tr('System rate {{formatPKR}}', { formatPKR: formatPKR(Math.round(l.quoted / Math.max(nights, 1))) }) : undefined} />
+                      <Input size="sm" label={tr('Bade')} inputMode="numeric" value={l.adults} onChange={(e) => setLine(l.roomId, 'adults', e.target.value.replace(/\D/g, ''))} />
+                      <Input size="sm" label={tr('Bachay')} inputMode="numeric" value={l.children} onChange={(e) => setLine(l.roomId, 'children', e.target.value.replace(/\D/g, ''))} />
+                      {t?.extraBedAllowed ? <Input size="sm" label={tr('Extra bed')} inputMode="numeric" value={l.extraBeds} onChange={(e) => setLine(l.roomId, 'extraBeds', e.target.value.replace(/\D/g, ''))} hint={formatPKR(t.extraBedPrice)} /> : <span />}
+                      <button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.roomId !== l.roomId))} className="mb-1 justify-self-end rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label={tr('Hatayein')}><Trash2 className="h-4 w-4" /></button>
                     </li>
                   );
                 })}
@@ -233,94 +234,94 @@ export default function NewBookingPage() {
           </Card>
 
           <Card className="space-y-3 p-4">
-            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><UserRound className="h-4 w-4 text-slate-400" />Guest</h2>
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><UserRound className="h-4 w-4 text-slate-400" />{tr('Guest')}</h2>
             {guest ? (
               <div className="flex items-center gap-3 rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-100">
                 <span className="min-w-0 flex-1">
                   <span className="block text-[0.875rem] font-semibold text-slate-900">{guest.fullName} {guest.isVIP && <Star className="inline h-3.5 w-3.5 fill-amber-400 text-amber-500" />}</span>
-                  <span className="block text-[0.75rem] text-slate-600">{guest.phone} · {guest.idNumber ?? 'ID nahi'} · {guest.totalStays} stays</span>
-                  {guest.isBlacklisted && <span className="block text-[0.75rem] font-semibold text-rose-700">Blacklist: {guest.blacklistReason}</span>}
+                  <span className="block text-[0.75rem] text-slate-600">{tr('{{phone}} · {{value}} · {{totalStays}} stays', { phone: guest.phone, value: guest.idNumber ?? 'ID nahi', totalStays: guest.totalStays })}</span>
+                  {guest.isBlacklisted && <span className="block text-[0.75rem] font-semibold text-rose-700">{tr('Blacklist: {{blacklistReason}}', { blacklistReason: guest.blacklistReason })}</span>}
                 </span>
-                <button type="button" onClick={() => setGuest(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white" aria-label="Hatayein"><X className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setGuest(null)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white" aria-label={tr('Hatayein')}><X className="h-4 w-4" /></button>
               </div>
             ) : (<>
-              <Input leftIcon={<Search className="h-4 w-4" />} label="Purana guest dhoondein" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Naam, phone ya CNIC" hint="Pehle aa chuka ho to us ka ID aur khata khud jur jata hai" />
+              <Input leftIcon={<Search className="h-4 w-4" />} label={tr('Purana guest dhoondein')} value={find} onChange={(e) => setFind(e.target.value)} placeholder={tr('Naam, phone ya CNIC')} hint={tr('Pehle aa chuka ho to us ka ID aur khata khud jur jata hai')} />
               {findQ.length >= 3 && (guests.data ?? []).length > 0 && (
                 <ul className="max-h-48 divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200">
                   {(guests.data ?? []).slice(0, 8).map((g) => (
-                    <li key={g.id}><button type="button" onClick={() => { setGuest(g); setFind(''); if (g.companyName) setBookedBy(g.companyName); }} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50">
-                      <span>{g.fullName} <span className="text-slate-500">· {g.phone}</span></span><span className="text-slate-500">{g.totalStays} stays</span>
+                    <li key={g.id}><button type="button" onClick={() => { setGuest(g); setFind(''); if (g.companyName) setBookedBy(g.companyName); }} className="flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-[0.8125rem] hover:bg-slate-50">
+                      <span>{g.fullName} <span className="text-slate-500">· {g.phone}</span></span><span className="text-slate-500">{tr('{{totalStays}} stays', { totalStays: g.totalStays })}</span>
                     </button></li>
                   ))}
                 </ul>
               )}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Naam" required value={guestName} onChange={(e) => setGuestName(e.target.value)} error={err('name')} placeholder="Ali Raza" />
-                <Input label="Phone" required inputMode="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} error={err('phone')} placeholder="0300 1234567" />
+                <Input label={tr('Naam')} required value={guestName} onChange={(e) => setGuestName(e.target.value)} error={err('name')} placeholder={tr('Ali Raza')} />
+                <Input label={tr('Phone')} required inputMode="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} error={err('phone')} placeholder="0300 1234567" />
               </div>
             </>)}
             {checkInNow && !guest?.idNumber && (
               <div className="grid gap-3 sm:grid-cols-[9rem_1fr_1fr]">
-                <Select label="ID" value={idType} onChange={(e) => setIdType(e.target.value)} options={ID_TYPES.map((t) => ({ value: t.id, label: t.label }))} />
-                <Input label="ID number" required leftIcon={<IdCard className="h-4 w-4" />} value={idNumber} error={err('id')} placeholder="35202-1234567-1"
-                  onChange={(e) => setIdNumber(idType === 'CNIC' ? formatCnic(e.target.value) : e.target.value.toUpperCase())} hint="Police record ke liye zaroori" />
-                <Input label="Shehar" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Lahore" />
+                <Select label={tr('ID')} value={idType} onChange={(e) => setIdType(e.target.value)} options={ID_TYPES.map((t) => ({ value: t.id, label: t.label }))} />
+                <Input label={tr('ID number')} required leftIcon={<IdCard className="h-4 w-4" />} value={idNumber} error={err('id')} placeholder="35202-1234567-1"
+                  onChange={(e) => setIdNumber(idType === 'CNIC' ? formatCnic(e.target.value) : e.target.value.toUpperCase())} hint={tr('Police record ke liye zaroori')} />
+                <Input label={tr('Shehar')} value={city} onChange={(e) => setCity(e.target.value)} placeholder={tr('Lahore')} />
               </div>
             )}
           </Card>
 
           <Card className="space-y-3 p-4">
-            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Building2 className="h-4 w-4 text-slate-400" />Company aur baqi tafseel</h2>
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Building2 className="h-4 w-4 text-slate-400" />{tr('Company aur baqi tafseel')}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Input label="Company / agent (bill par)" value={company?.name ?? bookedBy} disabled={!!company} onChange={(e) => setBookedBy(e.target.value)} placeholder="Engro, Travel agent…" />
+                <Input label={tr('Company / agent (bill par)')} value={company?.name ?? bookedBy} disabled={!!company} onChange={(e) => setBookedBy(e.target.value)} placeholder={tr('Engro, Travel agent…')} />
                 <div className="mt-1.5 flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>{company ? 'Khata badlein' : 'Company ka khata jorein'}</Button>
-                  {company && <Button size="sm" variant="ghost" onClick={() => setCompany(null)}>Hatayein</Button>}
+                  <Button size="sm" variant="secondary" onClick={() => setPicking(true)}>{company ? tr('Khata badlein') : tr('Company ka khata jorein')}</Button>
+                  {company && <Button size="sm" variant="ghost" onClick={() => setCompany(null)}>{tr('Hatayein')}</Button>}
                 </div>
-                <p className="mt-1 text-[0.75rem] text-slate-500">Company advance de ya baad me bill bhare to us ka khata jorein.</p>
+                <p className="mt-1 text-[0.75rem] text-slate-500">{tr('Company advance de ya baad me bill bhare to us ka khata jorein.')}</p>
               </div>
-              <Input label="Online booking ID" value={sourceRef} onChange={(e) => setSourceRef(e.target.value)} placeholder="Booking.com / Agoda number" />
-              <Select label="Khana" value={mealPlan} onChange={(e) => setMealPlan(e.target.value as MealPlan)} options={MEAL_PLANS.map((m) => ({ value: m.id, label: m.label }))} />
-              {!checkInNow && <Select label="Booking" value={status} onChange={(e) => setStatus(e.target.value as 'CONFIRMED' | 'TENTATIVE')} options={[{ value: 'CONFIRMED', label: 'Pakki' }, { value: 'TENTATIVE', label: 'Kachi (abhi tay nahi)' }]} />}
-              {!checkInNow && <Input label="Aane ka waqt" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} placeholder="Shaam 6 baje" />}
-              <Textarea wrapperClassName="sm:col-span-2" label="Guest ki farmaish" rows={2} value={requests} onChange={(e) => setRequests(e.target.value)} placeholder="Neeche wali manzil, extra takiya…" />
+              <Input label={tr('Online booking ID')} value={sourceRef} onChange={(e) => setSourceRef(e.target.value)} placeholder={tr('Booking.com / Agoda number')} />
+              <Select label={tr('Khana')} value={mealPlan} onChange={(e) => setMealPlan(e.target.value as MealPlan)} options={MEAL_PLANS.map((m) => ({ value: m.id, label: m.label }))} />
+              {!checkInNow && <Select label={tr('Booking')} value={status} onChange={(e) => setStatus(e.target.value as 'CONFIRMED' | 'TENTATIVE')} options={[{ value: 'CONFIRMED', label: tr('Pakki') }, { value: 'TENTATIVE', label: tr('Kachi (abhi tay nahi)') }]} />}
+              {!checkInNow && <Input label={tr('Aane ka waqt')} value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} placeholder={tr('Shaam 6 baje')} />}
+              <Textarea wrapperClassName="sm:col-span-2" label={tr('Guest ki farmaish')} rows={2} value={requests} onChange={(e) => setRequests(e.target.value)} placeholder={tr('Neeche wali manzil, extra takiya…')} />
             </div>
           </Card>
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
           <Card className="space-y-3 p-4">
-            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Wallet className="h-4 w-4 text-slate-400" />Paisa</h2>
+            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Wallet className="h-4 w-4 text-slate-400" />{tr('Paisa')}</h2>
             <div className="space-y-1 text-[0.8125rem]">
-              <div className="flex justify-between"><span className="text-slate-500">{lines.length} room · {Math.max(nights, 0)} raat</span><span className="tabular-nums">{formatPKR(roomTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{tr('{{count}} room · {{nights}} raat', { count: lines.length, nights: Math.max(nights, 0) })}</span><span className="tabular-nums">{formatPKR(roomTotal)}</span></div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input size="sm" label="Discount" inputMode="decimal" value={discount} onChange={(e) => setDiscount(moneyInput(e.target.value))} />
-              <Input size="sm" label="Tax" inputMode="decimal" value={tax} onChange={(e) => setTax(moneyInput(e.target.value))} hint="Bed tax" />
+              <Input size="sm" label={tr('Discount')} inputMode="decimal" value={discount} onChange={(e) => setDiscount(moneyInput(e.target.value))} />
+              <Input size="sm" label={tr('Tax')} inputMode="decimal" value={tax} onChange={(e) => setTax(moneyInput(e.target.value))} hint={tr('Bed tax')} />
             </div>
-            <div className="flex justify-between border-t border-slate-100 pt-2 text-[1rem] font-bold"><span>Kul</span><span className="tabular-nums">{formatPKR(total)}</span></div>
-            <Input label="Advance abhi liya" inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} error={err('advance')} hint="Khate me jama hota hai; check-out ke bill me kat jata hai" />
+            <div className="flex justify-between border-t border-slate-100 pt-2 text-[1rem] font-bold"><span>{tr('Kul')}</span><span className="tabular-nums">{formatPKR(total)}</span></div>
+            <Input label={tr('Advance abhi liya')} inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} error={err('advance')} hint={tr('Khate me jama hota hai; check-out ke bill me kat jata hai')} />
             {adv > 0 && <MethodPicker value={method} onChange={setMethod} />}
-            <div className="flex justify-between text-[0.875rem] font-semibold"><span>Check-out par baqi</span><span className="tabular-nums">{formatPKR(Math.max(total - adv, 0))}</span></div>
-            <Button fullWidth size="lg" loading={save.isPending} onClick={submit} leftIcon={checkInNow ? <LogIn className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}>
-              {checkInNow ? 'Booking + check-in' : 'Booking save karein'}
+            <div className="flex justify-between text-[0.875rem] font-semibold"><span>{tr('Check-out par baqi')}</span><span className="tabular-nums">{formatPKR(Math.max(total - adv, 0))}</span></div>
+            <Button fullWidth size="lg" loading={save.isPending} onClick={submit} leftIcon={checkInNow ? <LogIn className="h-4 w-4 rtl-flip" /> : <CalendarDays className="h-4 w-4" />}>
+              {checkInNow ? tr('Booking + check-in') : tr('Booking save karein')}
             </Button>
             {tried && firstError && <p className="text-center text-[0.8125rem] text-rose-600">{firstError}</p>}
           </Card>
         </div>
       </div>
 
-      {picking && <CustomerPicker title="Company ka khata" money={formatPKR} onClose={() => setPicking(false)} onPick={(c) => { setCompany({ id: c.id, name: c.name }); setPicking(false); if (source === 'PHONE') setSource('CORPORATE'); }} />}
+      {picking && <CustomerPicker title={tr('Company ka khata')} money={formatPKR} onClose={() => setPicking(false)} onPick={(c) => { setCompany({ id: c.id, name: c.name }); setPicking(false); if (source === 'PHONE') setSource('CORPORATE'); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Nayi booking — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Nayi booking — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CalendarDays, color: '#4f46e5', title: 'Dates', text: 'Check-in aur check-out ki date. Raat ka hisaab khud lagta hai; Juma aur Hafta ki raat weekend rate.' },
-            { icon: BedDouble, color: '#0891b2', title: 'Room', text: 'Sirf wo room dikhte hain jo har raat khaali hain. Ek se zyada room bhi chun sakte hain. Rate badalna ho to line me likhein.' },
-            { icon: UserRound, color: '#16a34a', title: 'Guest', text: 'Purana guest dhoondein to ID aur khata jur jata hai. Naya ho to naam aur phone.' },
-            { icon: Wallet, color: '#ea580c', title: 'Advance', text: 'Advance usi din drawer / bank aur guest (ya company) ke khate me jata hai. Check-out par bill se kat jata hai.' },
-            { icon: LogIn, color: '#7c3aed', title: 'Walk-in', text: '"Abhi check-in" chunein to CNIC likh kar guest seedha room me.' },
+            { icon: CalendarDays, color: '#4f46e5', title: tr('Dates'), text: tr('Check-in aur check-out ki date. Raat ka hisaab khud lagta hai; Juma aur Hafta ki raat weekend rate.') },
+            { icon: BedDouble, color: '#0891b2', title: tr('Room'), text: tr('Sirf wo room dikhte hain jo har raat khaali hain. Ek se zyada room bhi chun sakte hain. Rate badalna ho to line me likhein.') },
+            { icon: UserRound, color: '#16a34a', title: tr('Guest'), text: tr('Purana guest dhoondein to ID aur khata jur jata hai. Naya ho to naam aur phone.') },
+            { icon: Wallet, color: '#ea580c', title: tr('Advance'), text: tr('Advance usi din drawer / bank aur guest (ya company) ke khate me jata hai. Check-out par bill se kat jata hai.') },
+            { icon: LogIn, color: '#7c3aed', title: tr('Walk-in'), text: tr('"Abhi check-in" chunein to CNIC likh kar guest seedha room me.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]}
         />

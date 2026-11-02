@@ -45,7 +45,7 @@ export function ProductDeleteButton({
     const ok = await confirmDialog({
       title: t('"{{name}}" hatayein?', { name }),
       text: t('Jis cheez ki sale ya purchase hui ho wo mitti nahi, sirf band hoti hai — purane bill aur stock record salamat rehte hain.'),
-      yes: 'Hatayein',
+      yes: t('Hatayein'),
       danger: true,
     });
     if (ok) remove.mutate();

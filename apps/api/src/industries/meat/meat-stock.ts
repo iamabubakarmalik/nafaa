@@ -14,6 +14,7 @@ import { Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { applyStockDelta } from '../../common/shop-scope';
 import { r2, r3, r4 } from './meat-money';
+import { apiMessage } from '../../common/i18n/api-message';
 
 export interface ConvertLine { productId: string; qty: number }
 
@@ -50,7 +51,7 @@ export async function convertStock(tx: Prisma.TransactionClient, user: Authentic
   for (const id of ids) {
     const p = byId.get(id);
     if (!p) throw new NotFoundException('Ek item nahi mila ya band hai');
-    if (p.hasVariants) throw new BadRequestException(`${p.name} ke variants hain — gosht ke liye bina variant ka item chunein`);
+    if (p.hasVariants) throw new BadRequestException(apiMessage('{{pName}} ke variants hain — gosht ke liye bina variant ka item chunein', { pName: p.name }));
   }
   if (take.some((t) => give.some((g) => g.productId === t.productId))) throw new BadRequestException('Jo item nikal raha hai wohi stock me nahi aa sakta');
 

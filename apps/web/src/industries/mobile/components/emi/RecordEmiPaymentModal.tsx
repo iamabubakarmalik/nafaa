@@ -13,6 +13,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { emiApi, type EmiPlan } from '../../api/emi.api';
 import { EMI_KEY, METHODS, MONEY_KEYS, apiError, dayOnly, money } from '../meta';
+import { t } from '@core/i18n';
 
 export function RecordEmiPaymentModal({ plan, onClose }: { plan: EmiPlan; onClose: () => void }) {
   const qc = useQueryClient();
@@ -23,7 +24,7 @@ export function RecordEmiPaymentModal({ plan, onClose }: { plan: EmiPlan; onClos
   const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [notes, setNotes] = useState('');
   const n = Number(amount) || 0;
-  const problem = !(n > 0) ? 'Amount likhein' : n > total + 0.01 ? `Kul baqi sirf ${formatPKR(total)} hai` : null;
+  const problem = !(n > 0) ? t('Amount likhein') : n > total + 0.01 ? t('Kul baqi sirf {{total}} hai', { total: formatPKR(total) }) : null;
 
   // Which installments this money settles.
   const preview = useMemo(() => {
@@ -38,19 +39,19 @@ export function RecordEmiPaymentModal({ plan, onClose }: { plan: EmiPlan; onClos
 
   const save = useMutation({
     mutationFn: () => emiApi.collect(plan.id, { amount: n, paymentMethod: method, notes: notes.trim() || undefined }),
-    onSuccess: () => { toast.success(`${formatPKR(n)} qist mili — khata me jama`); [EMI_KEY, 'emi-stats', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Qist save nahi hui')),
+    onSuccess: () => { toast.success(t('{{formatPKR}} qist mili — khata me jama', { formatPKR: formatPKR(n) })); [EMI_KEY, 'emi-stats', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Qist save nahi hui'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title={`Qist lein — ${plan.planNumber}`} description={`${plan.customerName} · kul baqi ${formatPKR(total)}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => save.mutate()} disabled={!!problem} loading={save.isPending}>{formatPKR(n)} lein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={t('Qist lein — {{planNumber}}', { planNumber: plan.planNumber })} description={t('{{customerName}} · kul baqi {{total}}', { customerName: plan.customerName, total: formatPKR(total) })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={() => save.mutate()} disabled={!!problem} loading={save.isPending}>{t('{{formatPKR}} lein', { formatPKR: formatPKR(n) })}</Button></>}>
       <div className="space-y-3">
-        <Input label="Kitne mile" inputMode="decimal" value={amount} onChange={(e) => setAmount(money(e.target.value))} autoFocus error={amount && problem ? problem : undefined} />
+        <Input label={t('Kitne mile')} inputMode="decimal" value={amount} onChange={(e) => setAmount(money(e.target.value))} autoFocus error={amount && problem ? problem : undefined} />
         <div className="flex flex-wrap gap-1.5">
-          {plan.overdueAmount > 0 && <Quick onClick={() => setAmount(String(plan.overdueAmount))}>Late {formatPKR(plan.overdueAmount)}</Quick>}
-          {first > 0 && <Quick onClick={() => setAmount(String(first))}>Ek qist {formatPKR(first)}</Quick>}
-          {total > 0 && <Quick onClick={() => setAmount(String(Math.round(total * 100) / 100))}>Poora {formatPKR(total)}</Quick>}
+          {plan.overdueAmount > 0 && <Quick onClick={() => setAmount(String(plan.overdueAmount))}>{t('Late {{overdueAmount}}', { overdueAmount: formatPKR(plan.overdueAmount) })}</Quick>}
+          {first > 0 && <Quick onClick={() => setAmount(String(first))}>{t('Ek qist {{first}}', { first: formatPKR(first) })}</Quick>}
+          {total > 0 && <Quick onClick={() => setAmount(String(Math.round(total * 100) / 100))}>{t('Poora {{total}}', { total: formatPKR(total) })}</Quick>}
         </div>
         <div className="flex flex-wrap gap-1.5">
           {METHODS.map((m) => (
@@ -62,13 +63,13 @@ export function RecordEmiPaymentModal({ plan, onClose }: { plan: EmiPlan; onClos
           <ul className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
             {preview.map(({ i, take, full }) => (
               <li key={i.id} className="flex justify-between">
-                <span className="text-slate-600">Qist {i.installmentNumber} · {dayOnly(i.dueDate)}</span>
-                <span className={cn('font-semibold tabular-nums', full ? 'text-emerald-700' : 'text-amber-700')}>{formatPKR(take)}{full ? ' ✓' : ' (adhoori)'}</span>
+                <span className="text-slate-600">{t('Qist {{installmentNumber}} · {{dueDate}}', { installmentNumber: i.installmentNumber, dueDate: dayOnly(i.dueDate) })}</span>
+                <span className={cn('font-semibold tabular-nums', full ? 'text-emerald-700' : 'text-amber-700')}>{formatPKR(take)}{full ? ' ✓' : t(' (adhoori)')}</span>
               </li>
             ))}
           </ul>
         )}
-        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} hint="Marzi hai — jaise transaction number" />
+        <Input label={t('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} hint={t('Marzi hai — jaise transaction number')} />
       </div>
     </Modal>
   );

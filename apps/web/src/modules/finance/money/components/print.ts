@@ -8,6 +8,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { AccountStatement, MoneyLedger } from '../api/money.api';
 import { ACCOUNTS, KINDS, SOURCES, STATEMENT_KINDS, entryTitle, maskNumber, when } from './meta';
+import { t as tr } from '@core/i18n';
 
 /** Ledger for the current filter: every printed movement, a running net from the first one, then totals. */
 export function statementDoc(ledger: MoneyLedger, opts: { title: string; period: string; filter: string }): PrintDoc {
@@ -40,37 +41,37 @@ export function statementDoc(ledger: MoneyLedger, opts: { title: string; period:
     title: opts.title,
     subtitle: opts.period,
     meta: [
-      ['Entries', String(ledger.total)],
-      ...(opts.filter ? [['Filter', opts.filter] as [string, string]] : []),
-      ['Aaya', formatPKR(t.in)],
-      ['Gaya', formatPKR(t.out)],
+      [tr('Entries'), String(ledger.total)],
+      ...(opts.filter ? [[tr('Filter'), opts.filter] as [string, string]] : []),
+      [tr('Aaya'), formatPKR(t.in)],
+      [tr('Gaya'), formatPKR(t.out)],
     ],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'Waqt' }, { label: 'Type', wideOnly: true }, { label: 'Details' }, { label: 'Ref', wideOnly: true },
-          { label: 'Account', wideOnly: true }, { label: 'Aaya', align: 'right' }, { label: 'Gaya', align: 'right' }, { label: 'Net', align: 'right', wideOnly: true },
+          { label: tr('Waqt') }, { label: tr('Type'), wideOnly: true }, { label: tr('Details') }, { label: tr('Ref'), wideOnly: true },
+          { label: tr('Account'), wideOnly: true }, { label: tr('Aaya'), align: 'right' }, { label: tr('Gaya'), align: 'right' }, { label: tr('Net'), align: 'right', wideOnly: true },
         ],
         rows: lines,
       },
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
           ...[...bySource.entries()].map(([s, v]) => ({
             label: `${SOURCES[s as keyof typeof SOURCES].label} (${v.count})`,
             value: `${v.dir === 'in' ? '+' : '−'}${formatPKR(v.amount)}`,
             sub: true,
           })),
-          { label: 'Kul aaya', value: formatPKR(t.in) },
-          { label: 'Kul gaya', value: `−${formatPKR(t.out)}` },
-          { label: 'Bacha (net)', value: formatPKR(t.net), strong: true },
+          { label: tr('Kul aaya'), value: formatPKR(t.in) },
+          { label: tr('Kul gaya'), value: `−${formatPKR(t.out)}` },
+          { label: tr('Bacha (net)'), value: formatPKR(t.net), strong: true },
         ],
       },
     ],
     footer: ledger.total > ledger.items.length
-      ? `Pehli ${ledger.items.length} entries chhapi hain (kul ${ledger.total}). Khulasa poori period ka hai; source wali lines sirf chhapi hui entries ki hain.`
+      ? tr('Pehli {{count}} entries chhapi hain (kul {{total}}). Khulasa poori period ka hai; source wali lines sirf chhapi hui entries ki hain.', { count: ledger.items.length, total: ledger.total })
       : undefined,
   };
 }
@@ -83,25 +84,25 @@ export function accountStatementDoc(s: AccountStatement, period: string): PrintD
   const a = s.account;
   const number = [a.bankName, a.accountNumber && maskNumber(a.accountNumber)].filter(Boolean).join(' · ');
   return {
-    title: `${a.name} statement`,
+    title: tr('{{name}} statement', { name: a.name }),
     subtitle: period,
     meta: [
-      ['Type', KINDS[a.kind].label],
-      ...(number ? [['Account', number] as [string, string]] : []),
-      ...(a.accountTitle ? [['Title', a.accountTitle] as [string, string]] : []),
-      ['Branch', a.shop ?? 'Poora karobar'],
-      ['Shuru', formatPKR(s.opening)],
-      ['Aakhir', formatPKR(s.closing)],
+      [tr('Type'), KINDS[a.kind].label],
+      ...(number ? [[tr('Account'), number] as [string, string]] : []),
+      ...(a.accountTitle ? [[tr('Title'), a.accountTitle] as [string, string]] : []),
+      [tr('Branch'), a.shop ?? tr('Poora karobar')],
+      [tr('Shuru'), formatPKR(s.opening)],
+      [tr('Aakhir'), formatPKR(s.closing)],
     ],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'Waqt' }, { label: 'Type', wideOnly: true }, { label: 'Details' }, { label: 'Ref', wideOnly: true },
-          { label: 'Aaya', align: 'right' }, { label: 'Gaya', align: 'right' }, { label: 'Balance', align: 'right', wideOnly: true },
+          { label: tr('Waqt') }, { label: tr('Type'), wideOnly: true }, { label: tr('Details') }, { label: tr('Ref'), wideOnly: true },
+          { label: tr('Aaya'), align: 'right' }, { label: tr('Gaya'), align: 'right' }, { label: tr('Balance'), align: 'right', wideOnly: true },
         ],
         rows: [
-          ['', '', 'Shuru ka balance', '', '', '', formatPKR(s.opening)],
+          ['', '', tr('Shuru ka balance'), '', '', '', formatPKR(s.opening)],
           ...s.lines.map((l) => [
             when(l.at),
             STATEMENT_KINDS[l.kind].label,
@@ -115,15 +116,15 @@ export function accountStatementDoc(s: AccountStatement, period: string): PrintD
       },
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          { label: 'Shuru ka balance', value: formatPKR(s.opening) },
-          { label: `Aaya (${s.lines.filter((l) => l.direction === 'in').length})`, value: `+${formatPKR(s.in)}`, sub: true },
-          { label: `Gaya (${s.lines.filter((l) => l.direction === 'out').length})`, value: `−${formatPKR(s.out)}`, sub: true },
-          { label: 'Aakhri balance', value: formatPKR(s.closing), strong: true },
+          { label: tr('Shuru ka balance'), value: formatPKR(s.opening) },
+          { label: tr('Aaya ({{count}})', { count: s.lines.filter((l) => l.direction === 'in').length }), value: `+${formatPKR(s.in)}`, sub: true },
+          { label: tr('Gaya ({{count}})', { count: s.lines.filter((l) => l.direction === 'out').length }), value: `−${formatPKR(s.out)}`, sub: true },
+          { label: tr('Aakhri balance'), value: formatPKR(s.closing), strong: true },
         ],
       },
     ],
-    footer: a.auto ? 'Sale, return, kharch aur payment is account ke payment tareeqe se khud judti hain.' : undefined,
+    footer: a.auto ? tr('Sale, return, kharch aur payment is account ke payment tareeqe se khud judti hain.') : undefined,
   };
 }

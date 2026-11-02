@@ -14,6 +14,7 @@ import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
 import { DarazConnectCard } from '../components/daraz/Daraz';
 import { ShopifyConnectFlow } from '../components/website/ShopifyConnectFlow';
 import type { ShopifyPath } from '../components/website/ShopifySetup';
+import { t as tr } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    SALES CHANNEL JOREIN — Google Search Console jaisa:
@@ -26,10 +27,10 @@ type Method = 'auto' | 'manual';
 const BRAND_OF: Record<Platform, BrandName> = { woocommerce: 'woocommerce', shopify: 'shopify', custom: 'website', daraz: 'daraz' };
 
 const PLATFORMS: { key: Platform; type: WebsiteType; name: string; desc: string }[] = [
-  { key: 'woocommerce', type: 'WOOCOMMERCE', name: 'WordPress / WooCommerce', desc: 'WordPress par bani dukaan' },
-  { key: 'shopify', type: 'SHOPIFY', name: 'Shopify', desc: 'myshopify.com store' },
-  { key: 'custom', type: 'CUSTOM_WEBSITE', name: 'Apni website / Instagram', desc: 'Code ke bina order form, button, ya developer' },
-  { key: 'daraz', type: 'DARAZ', name: 'Daraz', desc: 'Daraz seller account — orders, stock, label' },
+  { key: 'woocommerce', type: 'WOOCOMMERCE', name: 'WordPress / WooCommerce', desc: tr('WordPress par bani dukaan') },
+  { key: 'shopify', type: 'SHOPIFY', name: 'Shopify', desc: tr('myshopify.com store') },
+  { key: 'custom', type: 'CUSTOM_WEBSITE', name: 'Apni website / Instagram', desc: tr('Code ke bina order form, button, ya developer') },
+  { key: 'daraz', type: 'DARAZ', name: 'Daraz', desc: tr('Daraz seller account — orders, stock, label') },
 ];
 
 export default function ConnectChannelPage() {
@@ -50,7 +51,7 @@ export default function ConnectChannelPage() {
   const conn = useChannelConnect(platform === 'shopify' ? 'shopify' : 'woocommerce');
   const autoAvailable = platform !== 'custom' && (platform !== 'shopify' || conn.shopifyOAuth);
   const effectiveMethod: Method = autoAvailable ? method : 'manual';
-  const shortName = platform === 'shopify' ? 'Shopify' : platform === 'woocommerce' ? 'WooCommerce' : 'website';
+  const shortName = platform === 'shopify' ? tr('Shopify') : platform === 'woocommerce' ? tr('WooCommerce') : 'website';
   const typeOf = PLATFORMS.find((p) => p.key === platform)!.type;
 
   useEffect(() => { conn.reset(); }, [platform, method]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -60,11 +61,11 @@ export default function ConnectChannelPage() {
       type: typeOf,
       displayName: name.trim() || undefined,
       shopId: shopId || undefined,
-      siteUrl: platform === 'shopify' && site.trim() ? `${site.trim().replace('.myshopify.com', '')}.myshopify.com` : site.trim() || undefined,
+      siteUrl: platform === 'shopify' && site.trim() ? tr('{{value}}.myshopify.com', { value: site.trim().replace('.myshopify.com', '') }) : site.trim() || undefined,
     }),
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: CHANNELS_KEY });
-      toast.success(typeOf === 'CUSTOM_WEBSITE' ? 'Channel ban gaya — ab jorne ka aasaan tareeqa chunein' : 'Channel ban gaya — ab setup ke steps');
+      toast.success(typeOf === 'CUSTOM_WEBSITE' ? tr('Channel ban gaya — ab jorne ka aasaan tareeqa chunein') : tr('Channel ban gaya — ab setup ke steps'));
       navigate(`/online-store/channels/${d.integration!.id}${typeOf === 'CUSTOM_WEBSITE' ? '' : '?tab=developer'}`);
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
@@ -72,7 +73,7 @@ export default function ConnectChannelPage() {
 
   const submit = () => {
     if (effectiveMethod === 'auto') {
-      if (!site.trim()) return toast.error(platform === 'shopify' ? 'Store ka naam daalein — jaise nafaa-test' : 'Website ka address daalein — jaise ahmedstore.pk');
+      if (!site.trim()) return toast.error(platform === 'shopify' ? tr('Store ka naam daalein — jaise nafaa-test') : tr('Website ka address daalein — jaise ahmedstore.pk'));
       conn.start({ siteUrl: site.trim(), displayName: name.trim() || undefined, shopId: shopId || undefined });
     } else {
       create.mutate();
@@ -84,11 +85,11 @@ export default function ConnectChannelPage() {
   const showForm = !['waiting', 'denied', 'connected', 'manual'].includes(conn.phase);
 
   return (
-    <Page back={{ to: '/online-store/channels', label: 'Sales channels' }} title="Sales channel jorein"
-      subtitle="Website ke orders Nafaa me — ghanti, bill, stock aur status khud.">
+    <Page back={{ to: '/online-store/channels', label: tr('Sales channels') }} title={tr('Sales channel jorein')}
+      subtitle={tr('Website ke orders Nafaa me — ghanti, bill, stock aur status khud.')}>
       {channels && channels.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-[0.78125rem] text-slate-500">
-          Pehle se jure:
+          {tr('Pehle se jure:')}
           {channels.map((c) => (
             <Link key={c.id} to={channelPath(c)} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 hover:border-slate-400 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200">
               {channelMeta(c.type).emoji} {c.displayName}
@@ -101,13 +102,13 @@ export default function ConnectChannelPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">
           {/* ─── 1. Platform ─── */}
-          <Card title={<Step n={1}>Kahan bechte hain?</Step>}>
+          <Card title={<Step n={1}>{tr('Kahan bechte hain?')}</Step>}>
             <div className="grid gap-2 sm:grid-cols-2">
               {PLATFORMS.map((p) => {
                 const on = platform === p.key;
                 return (
                   <button key={p.key} onClick={() => setPlatform(p.key)}
-                    className={cn('flex items-start gap-3 rounded-lg border p-3 text-left transition',
+                    className={cn('flex items-start gap-3 rounded-lg border p-3 text-start transition',
                       on ? 'border-slate-900 ring-1 ring-slate-900 dark:border-ink-white dark:ring-ink-white' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
                     <BrandLogo name={BRAND_OF[p.key]} size="md" />
                     <span className="min-w-0">
@@ -128,38 +129,38 @@ export default function ConnectChannelPage() {
 
           {platform !== 'daraz' && platform !== 'shopify' && <>
           {/* ─── 2. Tareeqa ─── */}
-          <Card title={<Step n={2}>Kaise jorna hai?</Step>}>
+          <Card title={<Step n={2}>{tr('Kaise jorna hai?')}</Step>}>
             <div className="grid gap-2 sm:grid-cols-2">
               <MethodCard active={effectiveMethod === 'auto'} disabled={!autoAvailable} onClick={() => setMethod('auto')}
-                icon={<Zap className="h-4 w-4" />} title="Automatic" badge={autoAvailable ? <Badge tone="success">Recommended</Badge> : undefined}
-                desc={platform === 'custom' ? 'Apni banayi website ke liye automatic nahi hota'
-                  : `Popup me ${shortName} khulega, Approve dabayein — keys, webhooks aur stock sync Nafaa khud karta hai.`} />
+                icon={<Zap className="h-4 w-4" />} title={tr('Automatic')} badge={autoAvailable ? <Badge tone="success">{tr('Recommended')}</Badge> : undefined}
+                desc={platform === 'custom' ? tr('Apni banayi website ke liye automatic nahi hota')
+                  : tr('Popup me {{shortName}} khulega, Approve dabayein — keys, webhooks aur stock sync Nafaa khud karta hai.', { shortName })} />
               <MethodCard active={effectiveMethod === 'manual'} onClick={() => setMethod('manual')}
-                icon={<KeyRound className="h-4 w-4" />} title="Manual"
-                desc={platform === 'custom' ? 'Developer ko tayyar code aur key dein — 15 minute ka kaam.'
-                  : 'REST keys, Nafaa plugin, ya WooCommerce webhook khud lagayein.'} />
+                icon={<KeyRound className="h-4 w-4" />} title={tr('Manual')}
+                desc={platform === 'custom' ? tr('Developer ko tayyar code aur key dein — 15 minute ka kaam.')
+                  : tr('REST keys, Nafaa plugin, ya WooCommerce webhook khud lagayein.')} />
             </div>
           </Card>
 
           {/* ─── 3. Details / halat ─── */}
-          <Card title={<Step n={3}>{effectiveMethod === 'auto' ? `${shortName} se jorein` : 'Channel banayein'}</Step>}>
+          <Card title={<Step n={3}>{effectiveMethod === 'auto' ? tr('{{shortName}} se jorein', { shortName }) : tr('Channel banayein')}</Step>}>
             {conn.phase === 'connected' && conn.channelId ? (
               <Connected channelId={conn.channelId} name={shortName} />
             ) : conn.phase === 'waiting' ? (
               <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4 dark:border-ink-700">
                 <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{shortName} window me "Approve" dabayein</div>
-                  <div className="text-[0.78125rem] text-slate-500">Login nahi hain to pehle {shortName} login maangega. Window khud band hogi.</div>
+                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{tr('{{shortName}} window me "Approve" dabayein', { shortName })}</div>
+                  <div className="text-[0.78125rem] text-slate-500">{tr('Login nahi hain to pehle {{shortName}} login maangega. Window khud band hogi.', { shortName })}</div>
                 </div>
-                <Btn size="sm" onClick={() => conn.reopen()} icon={<ExternalLink className="h-3.5 w-3.5" />}>Window dobara</Btn>
-                <Btn size="sm" variant="plain" onClick={() => conn.reopen(true)}>Isi tab me</Btn>
+                <Btn size="sm" onClick={() => conn.reopen()} icon={<ExternalLink className="h-3.5 w-3.5" />}>{tr('Window dobara')}</Btn>
+                <Btn size="sm" variant="plain" onClick={() => conn.reopen(true)}>{tr('Isi tab me')}</Btn>
               </div>
             ) : conn.phase === 'denied' ? (
               <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-4 text-center dark:border-rose-500/30 dark:bg-rose-500/5">
                 <XCircle className="mx-auto h-8 w-8 text-rose-500" />
-                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Permission nahi di gayi</div>
-                <Btn className="mt-3" onClick={() => conn.reset()}>Dobara koshish</Btn>
+                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{tr('Permission nahi di gayi')}</div>
+                <Btn className="mt-3" onClick={() => conn.reset()}>{tr('Dobara koshish')}</Btn>
               </div>
             ) : conn.phase === 'manual' && conn.channelId ? (
               <div className="space-y-3">
@@ -172,7 +173,7 @@ export default function ConnectChannelPage() {
               <div className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <Field label="Website ka address" help={platform === 'custom' ? 'Optional — sirf pehchan ke liye' : undefined}>
+                    <Field label={tr('Website ka address')} help={platform === 'custom' ? tr('Optional — sirf pehchan ke liye') : undefined}>
                       <div className="relative">
                         <input autoFocus value={site} onChange={(e) => setSite(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter' && !busy) submit(); }}
@@ -181,12 +182,12 @@ export default function ConnectChannelPage() {
                       </div>
                     </Field>
                   </div>
-                  <Field label="Naam (optional)" help="Sidebar me yahi dikhega">
-                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="jaise Ahmed Store" className={inputCls} />
+                  <Field label={tr('Naam (optional)')} help={tr('Sidebar me yahi dikhega')}>
+                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('jaise Ahmed Store')} className={inputCls} />
                   </Field>
-                  <Field label="Stock kis branch se" help="Isi branch ka stock website par jayega">
+                  <Field label={tr('Stock kis branch se')} help={tr('Isi branch ka stock website par jayega')}>
                     <select value={shopId} onChange={(e) => setShopId(e.target.value)} className={inputCls}>
-                      <option value="">Main branch</option>
+                      <option value="">{tr('Main branch')}</option>
                       {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   </Field>
@@ -198,10 +199,10 @@ export default function ConnectChannelPage() {
                 <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 dark:border-ink-800">
                   <Btn variant="primary" loading={busy} onClick={submit}
                     icon={effectiveMethod === 'auto' ? <span>{channelMeta(typeOf).emoji}</span> : undefined}>
-                    {effectiveMethod === 'auto' ? `${shortName} se jorein` : 'Channel banao aur steps dekho'}
+                    {effectiveMethod === 'auto' ? tr('{{shortName}} se jorein', { shortName }) : tr('Channel banao aur steps dekho')}
                   </Btn>
                   {effectiveMethod === 'auto' && (
-                    <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> Password Nafaa tak nahi aata</span>
+                    <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> {' '}{tr('Password Nafaa tak nahi aata')}</span>
                   )}
                 </div>
               </div>
@@ -211,23 +212,23 @@ export default function ConnectChannelPage() {
         </div>
 
         <aside className="space-y-4">
-          <Card title={asideAuto ? 'Jorne ke baad khud' : 'Manual me'}>
+          <Card title={asideAuto ? tr('Jorne ke baad khud') : tr('Manual me')}>
             <ul className="space-y-2.5 text-[0.8125rem] text-slate-600 dark:text-ink-300">
               {(platform === 'shopify' && !asideAuto
-                ? ['Apni app ka Admin API token — encrypt karke', 'Shopify products dekhna aur Nafaa se jorna', 'Stock aur qeemat Shopify par', 'Webhooks ek click me, ya hath se', '"Check karein" har hissa alag batata hai']
+                ? [tr('Apni app ka Admin API token — encrypt karke'), tr('Shopify products dekhna aur Nafaa se jorna'), tr('Stock aur qeemat Shopify par'), tr('Webhooks ek click me, ya hath se'), tr('"Check karein" har hissa alag batata hai')]
                 : asideAuto
-                ? ['Webhooks khud lagte hain — har naya order Nafaa me', 'Naye order par ghanti aur sidebar me ginti', 'Accept → bill, receipt, stock kam', `Status wapas ${shortName} par${platform === 'shopify' ? ' (fulfillment + tracking)' : ''}`, 'Stock har 15 minute, accept/cancel par foran', 'Products tab me har variant jorna']
-                : ['Aap ko Key aur Secret milte hain', platform === 'custom' ? 'Developer ke liye PHP/Node/Python code' : platform === 'shopify' ? 'Shopify me webhook URL paste' : 'Plugin, REST keys ya webhook', 'Test order se poora flow check', 'Baad me Automatic par badal sakte hain']
+                ? [tr('Webhooks khud lagte hain — har naya order Nafaa me'), tr('Naye order par ghanti aur sidebar me ginti'), tr('Accept → bill, receipt, stock kam'), tr('Status wapas {{shortName}} par{{value}}', { shortName, value: platform === 'shopify' ? tr(' (fulfillment + tracking)') : '' }), tr('Stock har 15 minute, accept/cancel par foran'), tr('Products tab me har variant jorna')]
+                : [tr('Aap ko Key aur Secret milte hain'), platform === 'custom' ? tr('Developer ke liye PHP/Node/Python code') : platform === 'shopify' ? tr('Shopify me webhook URL paste') : tr('Plugin, REST keys ya webhook'), tr('Test order se poora flow check'), tr('Baad me Automatic par badal sakte hain')]
               ).map((t) => (
                 <li key={t} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> {t}</li>
               ))}
             </ul>
           </Card>
-          <Card title="Kaun si permission">
+          <Card title={tr('Kaun si permission')}>
             <ul className="space-y-1.5 text-[0.78125rem] text-slate-600 dark:text-ink-300">
-              <li>✓ Orders dekhna aur status badalna</li>
-              <li>✓ Products aur stock</li>
-              <li className="text-slate-400">✗ Password ya payment details — kabhi nahi</li>
+              <li>{tr('✓ Orders dekhna aur status badalna')}</li>
+              <li>{tr('✓ Products aur stock')}</li>
+              <li className="text-slate-400">{tr('✗ Password ya payment details — kabhi nahi')}</li>
             </ul>
           </Card>
         </aside>
@@ -250,7 +251,7 @@ function MethodCard({ active, disabled, onClick, icon, title, badge, desc }: {
 }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      className={cn('rounded-lg border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50',
+      className={cn('rounded-lg border p-4 text-start transition disabled:cursor-not-allowed disabled:opacity-50',
         active ? 'border-slate-900 ring-1 ring-slate-900 dark:border-ink-white dark:ring-ink-white' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
       <div className="flex items-center gap-2">
         <span className={cn('flex h-4 w-4 items-center justify-center rounded-full border', active ? 'border-slate-900 dark:border-ink-white' : 'border-slate-300')}>
@@ -260,7 +261,7 @@ function MethodCard({ active, disabled, onClick, icon, title, badge, desc }: {
         <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{title}</span>
         {badge}
       </div>
-      <p className="mt-1.5 pl-6 text-[0.78125rem] text-slate-500">{desc}</p>
+      <p className="mt-1.5 ps-6 text-[0.78125rem] text-slate-500">{desc}</p>
     </button>
   );
 }
@@ -275,12 +276,12 @@ function Connected({ channelId, name }: { channelId: string; name: string }) {
   return (
     <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/5">
       <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-      <div className="mt-2 text-[1rem] font-semibold text-slate-900 dark:text-ink-white">{name} jur gaya</div>
-      <p className="mt-1 text-[0.8125rem] text-slate-600 dark:text-ink-300">Webhooks lag gaye aur stock sync shuru. Ab products jorein — har variant ke saath.</p>
+      <div className="mt-2 text-[1rem] font-semibold text-slate-900 dark:text-ink-white">{tr('{{name}} jur gaya', { name })}</div>
+      <p className="mt-1 text-[0.8125rem] text-slate-600 dark:text-ink-300">{tr('Webhooks lag gaye aur stock sync shuru. Ab products jorein — har variant ke saath.')}</p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <Btn variant="primary" onClick={() => navigate(`/online-store/channels/${channelId}?tab=products`)} icon={<Package className="h-4 w-4" />}>Products jorein</Btn>
-        <Btn loading={test.isPending} onClick={() => test.mutate()} icon={<Send className="h-4 w-4" />}>Test order</Btn>
-        <Btn variant="plain" onClick={() => navigate(`/online-store/channels/${channelId}`)}>Channel kholo</Btn>
+        <Btn variant="primary" onClick={() => navigate(`/online-store/channels/${channelId}?tab=products`)} icon={<Package className="h-4 w-4" />}>{tr('Products jorein')}</Btn>
+        <Btn loading={test.isPending} onClick={() => test.mutate()} icon={<Send className="h-4 w-4" />}>{tr('Test order')}</Btn>
+        <Btn variant="plain" onClick={() => navigate(`/online-store/channels/${channelId}`)}>{tr('Channel kholo')}</Btn>
       </div>
     </div>
   );

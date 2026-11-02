@@ -17,6 +17,7 @@ import {
 import {
   DAY_MS, findBill, garmentClock, opt, ownCustomer, ownProduct, paging, parseDay, payStatus, personNames, r2, withNextNumber,
 } from '../common/garments-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 const CLOSED: GarmentAlterationStatus[] = ['DELIVERED', 'CANCELLED'];
@@ -49,7 +50,7 @@ export class AlterationsService {
     const name = opt(dto.customerName) ?? customer?.name;
     const charges = r2(dto.charges ?? 0);
     const advance = r2(dto.advanceAmount ?? 0);
-    if (advance > charges + 0.01) throw new BadRequestException(`Advance charges (Rs ${charges}) se zyada nahi ho sakta`);
+    if (advance > charges + 0.01) throw new BadRequestException(apiMessage('Advance charges (Rs {{charges}}) se zyada nahi ho sakta', { charges }));
     if (advance > 0 && !name) throw new BadRequestException('Advance ke liye customer ka naam likhein');
     const shopId = await resolveIndustryShopId(this.db, user, dto.shopId || activeShopId);
 
@@ -228,14 +229,14 @@ export class AlterationsService {
   async update(user: AuthenticatedUser, id: string, dto: UpdateAlterationDto) {
     const t = await this.prisma.garmentAlterationTicket.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Ticket nahi mila');
-    if (CLOSED.includes(t.status)) throw new BadRequestException(`${t.ticketNumber} band ho chuka — badla nahi ja sakta`);
+    if (CLOSED.includes(t.status)) throw new BadRequestException(apiMessage('{{ticketNumber}} band ho chuka — badla nahi ja sakta', { ticketNumber: t.ticketNumber }));
     const clock = await garmentClock(this.tz, user.tenantId);
     await this.checkLinks(user, dto);
     if (dto.customerId !== undefined && (opt(dto.customerId) ?? null) !== t.customerId && t.paidAmount > 0) {
       throw new BadRequestException('Advance mil chuka hai — customer nahi badla ja sakta');
     }
     if (dto.charges !== undefined && r2(dto.charges) + 0.01 < t.paidAmount) {
-      throw new BadRequestException(`Rs ${r2(t.paidAmount)} pehle mil chuke — charges is se kam nahi ho sakte`);
+      throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — charges is se kam nahi ho sakte', { paidAmount: r2(t.paidAmount) }));
     }
     const charges = dto.charges !== undefined ? r2(dto.charges) : t.charges;
     await this.prisma.garmentAlterationTicket.update({
@@ -273,7 +274,9 @@ export class AlterationsService {
     const t = await this.prisma.garmentAlterationTicket.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Ticket nahi mila');
     if (CLOSED.includes(t.status) && status !== t.status) {
-      throw new BadRequestException(`${t.ticketNumber} pehle hi ${t.status === 'DELIVERED' ? 'deliver' : 'cancel'} ho chuka hai`);
+      throw new BadRequestException(t.status === 'DELIVERED'
+        ? apiMessage('{{ticketNumber}} pehle hi deliver ho chuka hai', { ticketNumber: t.ticketNumber })
+        : apiMessage('{{ticketNumber}} pehle hi cancel ho chuka hai', { ticketNumber: t.ticketNumber }));
     }
     if (status === t.status) return this.getOne(user, id);
     const patch: Prisma.GarmentAlterationTicketUpdateInput = { status };
@@ -294,7 +297,7 @@ export class AlterationsService {
     const advance = r2(t.paidAmount);
     const balance = r2(Math.max(total - advance, 0));
     const takenNow = r2(Math.max(paidNow ?? balance, 0));
-    if (takenNow > balance + 0.01) throw new BadRequestException(balance > 0 ? `Baqi sirf Rs ${balance} hai` : 'Poori amount mil chuki hai');
+    if (takenNow > balance + 0.01) throw new BadRequestException(balance > 0 ? apiMessage('Baqi sirf Rs {{balance}} hai', { balance }) : 'Poori amount mil chuki hai');
     const stillOwed = r2(balance - takenNow);
 
     await this.prisma.$transaction(async (tx) => {
@@ -302,7 +305,7 @@ export class AlterationsService {
       let customerId = t.customerId;
       if (!customerId && stillOwed > 0) {
         if (!t.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein`);
+          throw new BadRequestException(apiMessage('Rs {{stillOwed}} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein', { stillOwed }));
         }
         customerId = await ensureCustomer(tx, user, { name: t.customerName, phone: t.customerPhone, shopId });
       }
@@ -354,7 +357,7 @@ export class AlterationsService {
         : 'Cancel shuda ticket par payment nahi li ja sakti');
     }
     const left = due(t);
-    if (amount > left + 0.01) throw new BadRequestException(left > 0 ? `Baqi sirf Rs ${left} hai` : 'Poori amount mil chuki hai');
+    if (amount > left + 0.01) throw new BadRequestException(left > 0 ? apiMessage('Baqi sirf Rs {{left}} hai', { left }) : 'Poori amount mil chuki hai');
     await this.prisma.$transaction((tx) => this.takeAdvance(tx, user, t, r2(amount), paymentMethod));
     return this.getOne(user, id);
   }

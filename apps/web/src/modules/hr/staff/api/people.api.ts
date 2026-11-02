@@ -193,5 +193,6 @@ export const peopleApi = {
   clearApprovalPin: (userId: string) =>
     apiClient.delete<{ data: { id: string; hasApprovalPin: boolean } }>(`/team/${userId}/approval-pin`).then(unwrap),
   signOut: (userId: string, sessionId?: string) =>
+    // i18n-ignore: API paths
     apiClient.delete<{ data: { ok: boolean; sessionsClosed: number } }>(sessionId ? `/team/${userId}/sessions/${sessionId}` : `/team/${userId}/sessions`).then(unwrap),
 };

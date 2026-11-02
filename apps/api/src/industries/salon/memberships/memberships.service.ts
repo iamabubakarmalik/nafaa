@@ -12,6 +12,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale } from '../../_shared/industry-sale.helper';
 import { DAY_MS, r2, withNextNumber } from '../common/salon-common';
 import { CreatePlanDto, SubscribeDto, UpdatePlanDto } from './dto/membership.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class MembershipsService {
@@ -21,7 +22,7 @@ export class MembershipsService {
     const dup = await this.prisma.salonMembershipPlan.findFirst({
       where: { tenantId, name: { equals: name.trim(), mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) }, select: { id: true },
     });
-    if (dup) throw new BadRequestException(`"${name.trim()}" naam ka plan pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('"{{name}}" naam ka plan pehle se hai', { name: name.trim() }));
   }
 
   private async assertServices(tenantId: string, ids?: string[]) {
@@ -64,12 +65,12 @@ export class MembershipsService {
     const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
     if (!customer) throw new NotFoundException('Customer nahi mila');
     const amountPaid = r2(dto.amountPaid);
-    if (amountPaid > plan.price + 0.01) throw new BadRequestException(`Plan ki qeemat sirf Rs ${plan.price} hai`);
+    if (amountPaid > plan.price + 0.01) throw new BadRequestException(apiMessage('Plan ki qeemat sirf Rs {{price}} hai', { price: plan.price }));
     const running = await this.prisma.salonMembership.findFirst({
       where: { tenantId: user.tenantId, customerId: dto.customerId, planId: plan.id, status: 'ACTIVE', expiryDate: { gte: new Date() } },
       select: { membershipNumber: true },
     });
-    if (running) throw new BadRequestException(`Is customer ki ${plan.name} membership pehle se chal rahi hai (${running.membershipNumber})`);
+    if (running) throw new BadRequestException(apiMessage('Is customer ki {{planName}} membership pehle se chal rahi hai ({{membershipNumber}})', { planName: plan.name, membershipNumber: running.membershipNumber }));
 
     const expiryDate = new Date(Date.now() + plan.durationDays * DAY_MS);
     const year = new Date().getUTCFullYear();

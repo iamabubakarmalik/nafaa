@@ -17,6 +17,7 @@ import { serialTrackingApi } from '../api/serial-tracking.api';
 import { BundleSerialPickerModal, type BundleSerialNeed } from '../components/pos/BundleSerialPickerModal';
 import { SerialPickerModal } from '../components/pos/SerialPickerModal';
 import { CATEGORY_GROUPS, CATEGORY_META } from '../constants';
+import { t as tr } from '@core/i18n';
 
 const CATALOG_KEY = 'electronics-pos-catalog';
 
@@ -43,10 +44,10 @@ function toItem(p: PosElectronicsProduct): PosItem {
     hasVariants: p.hasVariants && !serial,
     searchText: [p.brandName, p.modelNumber, p.colorName, ...(p.serials ?? []).flatMap((s) => [s.serialNumber, s.imei ?? ''])].filter(Boolean).join(' '),
     badges: [
-      ...(serial ? [{ label: p.hasImei ? 'IMEI' : 'Serial', tone: 'neutral' as const, icon: Barcode }] : []),
+      ...(serial ? [{ label: p.hasImei ? tr('IMEI') : tr('Serial'), tone: 'neutral' as const, icon: Barcode }] : []),
       ...(used ? [{ label: String(p.conditionType).replace(/_/g, ' ').toLowerCase(), tone: 'warning' as const, icon: Recycle }] : []),
-      ...(p.isBestSeller ? [{ label: 'Best seller', tone: 'brand' as const, icon: Award }] : []),
-      ...(p.isNewArrival ? [{ label: 'Naya', tone: 'success' as const, icon: Sparkles }] : []),
+      ...(p.isBestSeller ? [{ label: tr('Best seller'), tone: 'brand' as const, icon: Award }] : []),
+      ...(p.isNewArrival ? [{ label: tr('Naya'), tone: 'success' as const, icon: Sparkles }] : []),
     ],
     subline: [p.brandName, p.modelNumber, p.warrantyMonths ? `${p.warrantyMonths}m warranty` : ''].filter(Boolean).join(' · ') || undefined,
     dim: p.notInShop,
@@ -94,19 +95,19 @@ const filters: PosFilter[] = CATEGORY_GROUPS.flatMap((g) => g.items)
 
 export const electronicsPos: PosIndustryConfig = {
   id: 'electronics',
-  label: 'Electronics',
+  label: tr('Electronics'),
   useCatalog: useElectronicsCatalog,
   useBundles: useElectronicsBundles,
   filters,
-  searchHint: 'Naam, brand, model — ya barcode / serial / IMEI scan karein',
+  searchHint: tr('Naam, brand, model — ya barcode / serial / IMEI scan karein'),
   receiptFooter: 'Warranty claim ke liye ye bill aur dabba zaroori. Physical ya paani ka nuqsan warranty mein nahi.',
   beforeAdd: (item, opts, api) => {
     if (item.meta?.notInShop) {
-      toast.error(`${item.name} is branch mein assign nahi — Transfer ya Purchase entry karein`);
+      toast.error(tr('{{name}} is branch mein assign nahi — Transfer ya Purchase entry karein', { name: item.name }));
       return 'handled';
     }
     if (item.meta?.serial && !opts.serial) {
-      if (item.stock <= 0) { toast.error(`${item.name} — koi unit stock mein nahi`); return 'handled'; }
+      if (item.stock <= 0) { toast.error(tr('{{name}} — koi unit stock mein nahi', { name: item.name })); return 'handled'; }
       api.openPicker(createElement(SerialPickerModal, {
         product: item.product,
         taken: takenSerials(api.cart),
@@ -150,10 +151,10 @@ export const electronicsPos: PosIndustryConfig = {
     try {
       const s = await serialTrackingApi.lookup(code);
       if (!s) return false;
-      if (s.status !== 'IN_STOCK') { toast.error(`Serial ${s.serialNumber} — ${String(s.status).toLowerCase().replace(/_/g, ' ')}`); return true; }
+      if (s.status !== 'IN_STOCK') { toast.error(tr('Serial {{serialNumber}} — {{value}}', { serialNumber: s.serialNumber, value: String(s.status).toLowerCase().replace(/_/g, ' ') })); return true; }
       const item = api.itemById(s.productId);
-      if (!item) { toast.error('Is serial ka product is branch ke catalog mein nahi'); return true; }
-      if (api.cart.some((l) => l.serialId === s.id)) { toast.info('Ye unit pehle se bill mein hai'); return true; }
+      if (!item) { toast.error(tr('Is serial ka product is branch ke catalog mein nahi')); return true; }
+      if (api.cart.some((l) => l.serialId === s.id)) { toast.info(tr('Ye unit pehle se bill mein hai')); return true; }
       api.addItem(item, { serial: { id: s.id, serialNumber: s.serialNumber, imei: s.imei }, warrantyMonths: item.meta?.warrantyMonths as number | undefined });
       return true;
     } catch {

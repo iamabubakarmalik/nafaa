@@ -34,29 +34,30 @@ import { weightOrdersApi, type OrderStatus, type OrderTab, type WeightOrder } fr
 import { CancelModal, CheckoutModal, PayModal, RefundModal } from '../components/money';
 import { ListFrame, Pager, Pill, usePageKeys, type Tone } from '../components/ui';
 import { KEYS, MONEY_KEYS, apiError, dateTime, decimal, kg } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type View = 'orders' | 'analytics';
 
 const TABS: Array<{ id: OrderTab; label: string }> = [
-  { id: 'open', label: 'Chal rahe' }, { id: 'today', label: 'Aaj dene' }, { id: 'ready', label: 'Tayyar' },
-  { id: 'delivery', label: 'Delivery' }, { id: 'delivered', label: 'De diye' }, { id: 'cancelled', label: 'Cancel' }, { id: 'all', label: 'Sab' },
+  { id: 'open', label: tr('Chal rahe') }, { id: 'today', label: tr('Aaj dene') }, { id: 'ready', label: tr('Tayyar') },
+  { id: 'delivery', label: tr('Delivery') }, { id: 'delivered', label: tr('De diye') }, { id: 'cancelled', label: tr('Cancel') }, { id: 'all', label: tr('Sab') },
 ];
 const tabLabel = (t: OrderTab) => TABS.find((x) => x.id === t)?.label ?? t;
 
 const STATUS: Record<OrderStatus, { label: string; tone: Tone }> = {
-  DRAFT: { label: 'Kaccha', tone: 'slate' }, CONFIRMED: { label: 'Pakka', tone: 'sky' }, PROCESSING: { label: 'Tayyari', tone: 'violet' },
-  CUTTING: { label: 'Cutting', tone: 'violet' }, PACKED: { label: 'Pack', tone: 'amber' }, READY: { label: 'Tayyar', tone: 'emerald' },
-  OUT_FOR_DELIVERY: { label: 'Raste me', tone: 'amber' }, DELIVERED: { label: 'De diya', tone: 'emerald' }, CANCELLED: { label: 'Cancel', tone: 'rose' },
+  DRAFT: { label: tr('Kaccha'), tone: 'slate' }, CONFIRMED: { label: tr('Pakka'), tone: 'sky' }, PROCESSING: { label: tr('Tayyari'), tone: 'violet' },
+  CUTTING: { label: tr('Cutting'), tone: 'violet' }, PACKED: { label: tr('Pack'), tone: 'amber' }, READY: { label: tr('Tayyar'), tone: 'emerald' },
+  OUT_FOR_DELIVERY: { label: tr('Raste me'), tone: 'amber' }, DELIVERED: { label: tr('De diya'), tone: 'emerald' }, CANCELLED: { label: tr('Cancel'), tone: 'rose' },
 };
 
 /** The next work step of an open order. */
 function nextStep(o: WeightOrder): { status: OrderStatus; label: string } | null {
   switch (o.status) {
-    case 'DRAFT': return { status: 'CONFIRMED', label: 'Pakka karein' };
-    case 'CONFIRMED': case 'PROCESSING': return { status: 'CUTTING', label: 'Cutting shuru' };
-    case 'CUTTING': return { status: 'PACKED', label: 'Pack ho gaya' };
-    case 'PACKED': return { status: 'READY', label: 'Tayyar' };
-    case 'READY': return o.isDelivery ? { status: 'OUT_FOR_DELIVERY', label: 'Rider ko diya' } : null;
+    case 'DRAFT': return { status: 'CONFIRMED', label: tr('Pakka karein') };
+    case 'CONFIRMED': case 'PROCESSING': return { status: 'CUTTING', label: tr('Cutting shuru') };
+    case 'CUTTING': return { status: 'PACKED', label: tr('Pack ho gaya') };
+    case 'PACKED': return { status: 'READY', label: tr('Tayyar') };
+    case 'READY': return o.isDelivery ? { status: 'OUT_FOR_DELIVERY', label: tr('Rider ko diya') } : null;
     default: return null;
   }
 }
@@ -87,23 +88,23 @@ function WeighModal({ o, onClose, onDone }: { o: WeightOrder; onClose: () => voi
   const total = o.items.reduce((s, i) => s + (Number(kgs[i.id!]) || 0) * i.pricePerKg, 0) + o.deliveryCharges - o.discount;
   const save = useMutation({
     mutationFn: () => weightOrdersApi.updateActualWeights(o.id, o.items.map((i) => ({ itemId: i.id!, actualKg: Number(kgs[i.id!]) || 0 }))),
-    onSuccess: () => { toast.success('Wazan likh diya'); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Wazan save nahi hua')),
+    onSuccess: () => { toast.success(tr('Wazan likh diya')); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Wazan save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Asal wazan likhein" description={`${o.orderNumber} · scale par jitna aaya`}
+    <Modal open onClose={onClose} size="md" title={tr('Asal wazan likhein')} description={tr('{{orderNumber}} · scale par jitna aaya', { orderNumber: o.orderNumber })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Scale className="h-4 w-4" />}>Save · {formatPKR(total)}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Scale className="h-4 w-4" />}>{tr('Save · {{total}}', { total: formatPKR(total) })}</Button>
       </>}>
       <ul className="divide-y divide-slate-100">
         {o.items.map((i, idx) => (
           <li key={i.id} className="flex items-center gap-3 py-2">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[0.875rem] font-medium text-slate-900">{i.productName}</span>
-              <span className="text-[0.75rem] text-slate-500">Maanga {kg(i.requestedKg)} · {formatPKR(i.pricePerKg)}/kg</span>
+              <span className="text-[0.75rem] text-slate-500">{tr('Maanga {{requestedKg}} · {{pricePerKg}}/kg', { requestedKg: kg(i.requestedKg), pricePerKg: formatPKR(i.pricePerKg) })}</span>
             </span>
-            <Input data-autofocus={idx === 0 ? true : undefined} inputMode="decimal" aria-label={`${i.productName} kg`} value={kgs[i.id!]} onChange={(e) => setKgs((k) => ({ ...k, [i.id!]: decimal(e.target.value) }))} className="w-28 text-right font-semibold tabular-nums" />
+            <Input data-autofocus={idx === 0 ? true : undefined} inputMode="decimal" aria-label={tr('{{productName}} kg', { productName: i.productName })} value={kgs[i.id!]} onChange={(e) => setKgs((k) => ({ ...k, [i.id!]: decimal(e.target.value) }))} className="w-28 text-end font-semibold tabular-nums" />
           </li>
         ))}
       </ul>
@@ -139,7 +140,7 @@ export default function WeightOrdersPage() {
   useEffect(() => {
     const id = params.get('open');
     if (!id) return;
-    weightOrdersApi.getOne(id).then((o) => { setTab('all'); setSearch(o.orderNumber); }).catch(() => toast.error('Order nahi mila'));
+    weightOrdersApi.getOne(id).then((o) => { setTab('all'); setSearch(o.orderNumber); }).catch(() => toast.error(tr('Order nahi mila')));
     params.delete('open'); setParams(params, { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,7 +158,7 @@ export default function WeightOrdersPage() {
   const step = useMutation({
     mutationFn: ({ o, status }: { o: WeightOrder; status: OrderStatus }) => weightOrdersApi.updateStatus(o.id, status),
     onSuccess: (o) => { toast.success(`${o.orderNumber}: ${STATUS[o.status].label}`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onError: (e) => toast.error(apiError(e, tr('Halat nahi badli'))),
   });
 
   usePageKeys({ n: canPos ? () => navigate('/meat/weight-orders/new') : undefined, '1': () => setView('orders'), '2': () => setView('analytics'), g: guide.open }, searchRef);
@@ -193,74 +194,74 @@ export default function WeightOrdersPage() {
   return (
     <PageShell>
       <PageHero
-        title="Wazan wale order"
-        chip={<><Package /> Order, delivery, restaurant</>}
-        meta="Order likhein, cutting karein, asal wazan tolein aur bill bana kar dein — advance khud kat jata hai"
+        title={tr('Wazan wale order')}
+        chip={<><Package /> {' '}{tr('Order, delivery, restaurant')}</>}
+        meta={tr('Order likhein, cutting karein, asal wazan tolein aur bill bana kar dein — advance khud kat jata hai')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} disabled={!rows.length} /></span>
-          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
-            onClick={() => downloadCsv('meat-orders.csv', [['Order', 'Customer', 'Phone', 'Kab', 'Halat', 'Delivery', 'Kul', 'Mila'], ...rows.map((o) => [o.orderNumber, o.customerName, o.customerPhone, dateTime(o.neededBy), STATUS[o.status].label, o.isDelivery ? 'Haan' : '', o.total, o.paidAmount])])}>
+          <button type="button" title={tr('CSV')} className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('meat-orders.csv', [[tr('Order'), tr('Customer'), tr('Phone'), tr('Kab'), tr('Halat'), tr('Delivery'), tr('Kul'), tr('Mila')], ...rows.map((o) => [o.orderNumber, o.customerName, o.customerPhone, dateTime(o.neededBy), STATUS[o.status].label, o.isDelivery ? tr('Haan') : '', o.total, o.paidAmount])])}>
             <FileSpreadsheet className="h-4 w-4" />
           </button>
-          <Link to="/meat/subscriptions" className={heroButton}><CalendarClock className="h-4 w-4" /><span className="hidden sm:inline">Subscriptions</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canPos && <Link to="/meat/weight-orders/new" title="Naya order (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya order</Link>}
+          <Link to="/meat/subscriptions" className={heroButton}><CalendarClock className="h-4 w-4" /><span className="hidden sm:inline">{tr('Subscriptions')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canPos && <Link to="/meat/weight-orders/new" title={tr('Naya order (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya order')}</Link>}
         </>}
         stats={data ? [
-          { label: 'Chal rahe', value: counts?.open ?? 0, hint: sales(data.openValue) },
-          { label: 'Aaj dene', value: counts?.today ?? 0 },
-          { label: 'Advance mila', value: sales(data.advances) },
-        ] : [{ label: 'Chal rahe', value: '—' }]}
+          { label: tr('Chal rahe'), value: counts?.open ?? 0, hint: sales(data.openValue) },
+          { label: tr('Aaj dene'), value: counts?.today ?? 0 },
+          { label: tr('Advance mila'), value: sales(data.advances) },
+        ] : [{ label: tr('Chal rahe'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!counts ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ClipboardList} color="#7c3aed" label="Chal rahe" value={counts.open} hint={sales(data?.openValue)} onClick={() => { setView('orders'); setTab('open'); }} active={view === 'orders' && tab === 'open'} />
-          <KpiCard icon={CalendarClock} color="#d97706" label="Aaj dene" value={counts.today} hint="Aaj ya pehle ka waqt" onClick={() => { setView('orders'); setTab('today'); }} active={view === 'orders' && tab === 'today'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar" value={counts.ready} hint="Customer ko bulayein" onClick={() => { setView('orders'); setTab('ready'); }} active={view === 'orders' && tab === 'ready'} />
-          <KpiCard icon={Truck} color="#0891b2" label="Delivery" value={counts.delivery} hint="Ghar / restaurant" onClick={() => { setView('orders'); setTab('delivery'); }} active={view === 'orders' && tab === 'delivery'} />
-          <KpiCard icon={Wallet} color="#0f766e" label="Advance mila" value={sales(data?.advances)} hint="Chalte orders par" />
+          <KpiCard icon={ClipboardList} color="#7c3aed" label={tr('Chal rahe')} value={counts.open} hint={sales(data?.openValue)} onClick={() => { setView('orders'); setTab('open'); }} active={view === 'orders' && tab === 'open'} />
+          <KpiCard icon={CalendarClock} color="#d97706" label={tr('Aaj dene')} value={counts.today} hint={tr('Aaj ya pehle ka waqt')} onClick={() => { setView('orders'); setTab('today'); }} active={view === 'orders' && tab === 'today'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Tayyar')} value={counts.ready} hint={tr('Customer ko bulayein')} onClick={() => { setView('orders'); setTab('ready'); }} active={view === 'orders' && tab === 'ready'} />
+          <KpiCard icon={Truck} color="#0891b2" label={tr('Delivery')} value={counts.delivery} hint={tr('Ghar / restaurant')} onClick={() => { setView('orders'); setTab('delivery'); }} active={view === 'orders' && tab === 'delivery'} />
+          <KpiCard icon={Wallet} color="#0f766e" label={tr('Advance mila')} value={sales(data?.advances)} hint={tr('Chalte orders par')} />
         </>}
       </KpiRow>
 
       {view === 'orders' && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order #, customer, phone, pata, item…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Order #, customer, phone, pata, item…')} label={tr('Search')} />}
           chips={filtered ? <>
-            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Order: {rangeLabel(period.from, period.to)}</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{tr('Order: {{from}}', { from: rangeLabel(period.from, period.to) })}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <FilterMenu icon={ClipboardList} label={tabLabel(tab)} value={tab} active={tab !== 'open'} onChange={setTab}
-            options={TABS.map((t) => ({ value: t.id, label: t.label, hint: counts ? `${counts[t.id]} orders` : undefined }))} />
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Order ki date" />
+            options={TABS.map((t) => ({ value: t.id, label: t.label, hint: counts ? tr('{{value}} orders', { value: counts[t.id] }) : undefined }))} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Order ki date')} />
         </FilterBar>
       )}
 
-      <ViewTabs value={view} onChange={setView} hint={<>{canPos ? 'N naya · ' : ''}/ search · 1-2 tabs</>}
-        tabs={[{ id: 'orders', label: 'Orders', icon: Package, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+      <ViewTabs value={view} onChange={setView} hint={<>{tr('{{value}}/ search · 1-2 tabs', { value: canPos ? tr('N naya · ') : '' })}</>}
+        tabs={[{ id: 'orders', label: tr('Orders'), icon: Package, count: data?.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {view === 'analytics' ? (
         openQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : (
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
-              <h3 className="font-semibold text-slate-900">Chalte orders me kya tolna hai</h3>
-              <p className="text-[0.8125rem] text-slate-500">Sab chalte orders ka maal jama — subah mandi / zibah ka andaza</p>
+              <h3 className="font-semibold text-slate-900">{tr('Chalte orders me kya tolna hai')}</h3>
+              <p className="text-[0.8125rem] text-slate-500">{tr('Sab chalte orders ka maal jama — subah mandi / zibah ka andaza')}</p>
               <ul className="mt-3 divide-y divide-slate-100">
                 {analytics.items.map(([name, r]) => (
                   <li key={name} className="flex items-center justify-between py-2 text-[0.875rem]"><span className="text-slate-700">{name}</span><span className="font-semibold tabular-nums">{kg(r.kg)} · {sales(r.value)}</span></li>
                 ))}
-                {!analytics.items.length && <li className="py-6 text-center text-sm text-slate-500">Koi chalta order nahi</li>}
+                {!analytics.items.length && <li className="py-6 text-center text-sm text-slate-500">{tr('Koi chalta order nahi')}</li>}
               </ul>
             </div>
             <div className="grid grid-cols-2 gap-3 content-start">
               {[
-                { l: 'Chalte orders', v: analytics.count, c: 'text-slate-900' },
-                { l: 'Late', v: analytics.late, c: analytics.late ? 'text-rose-600' : 'text-slate-900' },
-                { l: 'Delivery wale', v: analytics.delivery, c: 'text-slate-900' },
-                { l: 'Bina advance', v: analytics.noAdvance, c: analytics.noAdvance ? 'text-amber-700' : 'text-slate-900' },
+                { l: tr('Chalte orders'), v: analytics.count, c: 'text-slate-900' },
+                { l: tr('Late'), v: analytics.late, c: analytics.late ? 'text-rose-600' : 'text-slate-900' },
+                { l: tr('Delivery wale'), v: analytics.delivery, c: 'text-slate-900' },
+                { l: tr('Bina advance'), v: analytics.noAdvance, c: analytics.noAdvance ? 'text-amber-700' : 'text-slate-900' },
               ].map((x) => (
                 <div key={x.l} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80"><p className="text-[0.75rem] text-slate-500">{x.l}</p><p className={cn('text-2xl font-bold tabular-nums', x.c)}>{x.v}</p></div>
               ))}
@@ -270,12 +271,12 @@ export default function WeightOrdersPage() {
       ) : (<>
         <ListFrame loading={listQ.isLoading} error={listQ.isError && !data} onRetry={() => listQ.refetch()}
           empty={!rows.length ? {
-            icon: Package, title: filtered ? 'Is filter me koi order nahi' : tab === 'today' ? 'Aaj dene ko koi order nahi' : 'Koi order nahi',
-            text: 'Shadi, Eid ya restaurant ka order — kitne kg, kab chahiye, advance. Counter par seedhi sale POS se hoti hai.',
+            icon: Package, title: filtered ? tr('Is filter me koi order nahi') : tab === 'today' ? tr('Aaj dene ko koi order nahi') : tr('Koi order nahi'),
+            text: tr('Shadi, Eid ya restaurant ka order — kitne kg, kab chahiye, advance. Counter par seedhi sale POS se hoti hai.'),
             actions: <>
-              {canPos && <Button onClick={() => navigate('/meat/weight-orders/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya order</Button>}
-              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
-              {!filtered && tab !== 'all' && <Button variant="ghost" onClick={() => setTab('all')}>Sab orders</Button>}
+              {canPos && <Button onClick={() => navigate('/meat/weight-orders/new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya order')}</Button>}
+              {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
+              {!filtered && tab !== 'all' && <Button variant="ghost" onClick={() => setTab('all')}>{tr('Sab orders')}</Button>}
             </>,
           } : null}>
           {rows.map((o) => {
@@ -287,39 +288,39 @@ export default function WeightOrdersPage() {
                 <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-semibold text-slate-900">{o.customerName || o.customerPhone || 'Customer'}</span>
+                      <span className="font-semibold text-slate-900">{o.customerName || o.customerPhone || tr('Customer')}</span>
                       <span className="text-[0.75rem] text-slate-500">{o.orderNumber}</span>
                       <Pill tone={STATUS[o.status].tone}>{STATUS[o.status].label}</Pill>
-                      {isLate(o) && <Pill tone="rose"><AlertTriangle className="h-3 w-3" />Late</Pill>}
-                      {o.isDelivery && <Pill tone="sky"><Truck className="h-3 w-3" />Delivery</Pill>}
+                      {isLate(o) && <Pill tone="rose"><AlertTriangle className="h-3 w-3" />{tr('Late')}</Pill>}
+                      {o.isDelivery && <Pill tone="sky"><Truck className="h-3 w-3" />{tr('Delivery')}</Pill>}
                       {o.occasion && <Pill>{o.occasion}</Pill>}
                     </div>
                     <p className="mt-1 text-[0.8125rem] text-slate-600">{o.items.map((i) => `${i.productName} ${kg(i.actualKg ?? i.requestedKg)}`).join(' · ')}</p>
                     <p className="mt-0.5 text-[0.75rem] text-slate-500">
-                      {o.neededBy ? `Kab: ${dateTime(o.neededBy)}` : 'Waqt nahi likha'}{o.customerPhone ? ` · ${o.customerPhone}` : ''}{o.isDelivery && o.deliveryAddress ? ` · ${o.deliveryAddress}` : ''}
-                      {o.cancellationReason ? ` · Wajah: ${o.cancellationReason}` : ''}
+                      {o.neededBy ? tr('Kab: {{neededBy}}', { neededBy: dateTime(o.neededBy) }) : tr('Waqt nahi likha')}{o.customerPhone ? ` · ${o.customerPhone}` : ''}{o.isDelivery && o.deliveryAddress ? ` · ${o.deliveryAddress}` : ''}
+                      {o.cancellationReason ? tr(' · Wajah: {{cancellationReason}}', { cancellationReason: o.cancellationReason }) : ''}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="font-bold tabular-nums text-slate-900">{sales(o.total)}</p>
-                    <p className="text-[0.75rem] text-slate-500">{kg(kgs)}{o.paidAmount > 0 ? ` · mila ${sales(o.paidAmount)}` : ''}</p>
-                    {isOpen(o) && due > 0 && <p className="text-[0.75rem] font-semibold text-amber-700">Baqi {sales(due)}</p>}
+                    <p className="text-[0.75rem] text-slate-500">{kg(kgs)}{o.paidAmount > 0 ? tr(' · mila {{paidAmount}}', { paidAmount: sales(o.paidAmount) }) : ''}</p>
+                    {isOpen(o) && due > 0 && <p className="text-[0.75rem] font-semibold text-amber-700">{tr('Baqi {{due}}', { due: sales(due) })}</p>}
                   </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                   {isOpen(o) && canPos && <>
-                    {nx && <Button size="sm" variant="secondary" loading={step.isPending && step.variables?.o.id === o.id} onClick={() => step.mutate({ o, status: nx.status })} rightIcon={<ArrowRight className="h-3.5 w-3.5" />}>{nx.label}</Button>}
-                    <Button size="sm" variant="secondary" leftIcon={<Scale className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'weigh', o })}>Wazan</Button>
-                    {due > 0 && <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'pay', o })}>Paisa mila</Button>}
-                    <Button size="sm" variant="success" leftIcon={<Receipt className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'bill', o })}>Bill bana kar dein</Button>
-                    <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => navigate(`/meat/weight-orders/new?id=${o.id}`)}>Badlein</Button>
-                    <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', o })}>Cancel</Button>
+                    {nx && <Button size="sm" variant="secondary" loading={step.isPending && step.variables?.o.id === o.id} onClick={() => step.mutate({ o, status: nx.status })} rightIcon={<ArrowRight className="h-3.5 w-3.5 rtl-flip" />}>{nx.label}</Button>}
+                    <Button size="sm" variant="secondary" leftIcon={<Scale className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'weigh', o })}>{tr('Wazan')}</Button>
+                    {due > 0 && <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'pay', o })}>{tr('Paisa mila')}</Button>}
+                    <Button size="sm" variant="success" leftIcon={<Receipt className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'bill', o })}>{tr('Bill bana kar dein')}</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => navigate(`/meat/weight-orders/new?id=${o.id}`)}>{tr('Badlein')}</Button>
+                    <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', o })}>{tr('Cancel')}</Button>
                   </>}
-                  {o.status === 'CANCELLED' && o.paidAmount > 0 && canRefund && <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'refund', o })}>Advance wapas</Button>}
-                  {o.status === 'DELIVERED' && <Link to={`/sales?search=${encodeURIComponent(o.orderNumber)}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Bill dekhein →</Link>}
-                  <span className="ml-auto flex gap-1.5">
-                    <PrintButton size="sm" label="Cutting parchi" doc={() => slip(o, false)} />
-                    <PrintButton size="sm" label="Customer parchi" doc={() => slip(o, true)} />
+                  {o.status === 'CANCELLED' && o.paidAmount > 0 && canRefund && <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'refund', o })}>{tr('Advance wapas')}</Button>}
+                  {o.status === 'DELIVERED' && <Link to={`/sales?search=${encodeURIComponent(o.orderNumber)}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Bill dekhein →')}</Link>}
+                  <span className="ms-auto flex gap-1.5">
+                    <PrintButton size="sm" label={tr('Cutting parchi')} doc={() => slip(o, false)} />
+                    <PrintButton size="sm" label={tr('Customer parchi')} doc={() => slip(o, true)} />
                   </span>
                 </div>
               </li>
@@ -342,16 +343,16 @@ export default function WeightOrdersPage() {
       {dialog?.kind === 'refund' && <RefundDialog o={dialog.o} onClose={() => { setDialog(null); refresh(); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Wazan wale order — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Wazan wale order — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#7c3aed', title: 'Order likhein', text: 'Customer, kitne kg kaunsa cut, kab chahiye, delivery ka pata. Advance mila to usi waqt likhein — aaj ke galle me aata hai.' },
-            { icon: Scissors, color: '#d97706', title: 'Cutting aur pack', text: 'Row par agla qadam dabayein: Cutting → Pack → Tayyar. "Cutting parchi" kaarigar ko dein — us me rate nahi hota.' },
-            { icon: Scale, color: '#0891b2', title: 'Asal wazan', text: 'Tolne ke baad "Wazan" me asal kg likhein — bill asal wazan par banta hai.' },
-            { icon: Receipt, color: '#16a34a', title: 'Bill bana kar dein', text: 'Dete waqt bill banta hai: stock kam, Sale me, cash / card / split. Advance khate se kat jata hai, baqi udhaar khate me.' },
-            { icon: Undo2, color: '#e11d48', title: 'Cancel aur wapsi', text: 'Cancel ke baad advance khate me rehta hai; "Advance wapas" se cash lautayein (PIN lag sakta hai).' },
+            { icon: Plus, color: '#7c3aed', title: tr('Order likhein'), text: tr('Customer, kitne kg kaunsa cut, kab chahiye, delivery ka pata. Advance mila to usi waqt likhein — aaj ke galle me aata hai.') },
+            { icon: Scissors, color: '#d97706', title: tr('Cutting aur pack'), text: tr('Row par agla qadam dabayein: Cutting → Pack → Tayyar. "Cutting parchi" kaarigar ko dein — us me rate nahi hota.') },
+            { icon: Scale, color: '#0891b2', title: tr('Asal wazan'), text: tr('Tolne ke baad "Wazan" me asal kg likhein — bill asal wazan par banta hai.') },
+            { icon: Receipt, color: '#16a34a', title: tr('Bill bana kar dein'), text: tr('Dete waqt bill banta hai: stock kam, Sale me, cash / card / split. Advance khate se kat jata hai, baqi udhaar khate me.') },
+            { icon: Undo2, color: '#e11d48', title: tr('Cancel aur wapsi'), text: tr('Cancel ke baad advance khate me rehta hai; "Advance wapas" se cash lautayein (PIN lag sakta hai).') },
           ]}
-          tips={['Bill void karne se order wapas "Tayyar" ho jata hai aur dobara bill ban sakta hai.', 'Order likhne aur bill ke liye POS ki ijazat chahiye; advance wapsi ke liye Returns ki.']}
-          shortcuts={[['N', 'naya order'], ['/', 'dhoondein'], ['1', 'orders'], ['2', 'analytics'], ['G', 'guide']]}
+          tips={[tr('Bill void karne se order wapas "Tayyar" ho jata hai aur dobara bill ban sakta hai.'), tr('Order likhne aur bill ke liye POS ki ijazat chahiye; advance wapsi ke liye Returns ki.')]}
+          shortcuts={[['N', tr('naya order')], ['/', 'dhoondein'], ['1', 'orders'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -362,16 +363,16 @@ export default function WeightOrdersPage() {
 function BillDialog({ o, onClose }: { o: WeightOrder; onClose: () => void }) {
   const one = useQuery({ queryKey: [KEYS.orders, 'one', o.id], queryFn: () => weightOrdersApi.getOne(o.id), staleTime: 0 });
   if (one.isLoading) return null;
-  if (!one.data) { toast.error('Order load nahi hua'); onClose(); return null; }
+  if (!one.data) { toast.error(tr('Order load nahi hua')); onClose(); return null; }
   const d = one.data;
   return (
     <CheckoutModal title={`${d.orderNumber} · ${d.customerName ?? ''}`} total={d.total} held={d.khataPaid} legacy={d.legacyPaid} customerName={d.customerName}
       lines={[...d.items.map((i) => ({ label: `${i.productName} ${kg(i.actualKg ?? i.requestedKg)} × ${formatPKR(i.pricePerKg)}`, value: formatPKR(i.total) })),
-        ...(d.deliveryCharges ? [{ label: 'Delivery', value: formatPKR(d.deliveryCharges) }] : []), ...(d.discount ? [{ label: 'Discount', value: `− ${formatPKR(d.discount)}` }] : [])]}
+        ...(d.deliveryCharges ? [{ label: tr('Delivery'), value: formatPKR(d.deliveryCharges) }] : []), ...(d.discount ? [{ label: tr('Discount'), value: `− ${formatPKR(d.discount)}` }] : [])]}
       onClose={onClose}
       onConfirm={async (payments) => {
         const r = await weightOrdersApi.checkout(d.id, { payments, expectedTotal: d.total });
-        toast.success(`${r.orderNumber} de diya — bill ban gaya`);
+        toast.success(tr('{{orderNumber}} de diya — bill ban gaya', { orderNumber: r.orderNumber }));
       }} />
   );
 }

@@ -35,14 +35,15 @@ import {
   BOOKED, JOB_KEY, MONEY_KEYS, READY, STEPS, TECH_KEY, WARRANTY_KEY, apiError, categoryOf, dateInput, dateTime, dayOnly, isClosed, isOnSite, itemName,
   locationOf, priorityOf, statusOf, stepOf, waLink,
 } from '../components/meta';
+import { t } from '@core/i18n';
 
 type Dialog = null | 'part' | 'assign' | 'bill' | 'pay' | 'cancel' | 'return' | 'rate';
 
 const SIDE: Array<{ status: JobStatus; label: string; icon: typeof Clock }> = [
-  { status: 'AWAITING_PARTS', label: 'Parts ka intezar', icon: Package },
-  { status: 'AWAITING_APPROVAL', label: 'Customer ki haan', icon: UserRound },
-  { status: 'PAUSED', label: 'Rok dein', icon: PauseCircle },
-  { status: 'UNABLE_TO_COMPLETE', label: 'Kaam nahi ho saka', icon: AlertTriangle },
+  { status: 'AWAITING_PARTS', label: t('Parts ka intezar'), icon: Package },
+  { status: 'AWAITING_APPROVAL', label: t('Customer ki haan'), icon: UserRound },
+  { status: 'PAUSED', label: t('Rok dein'), icon: PauseCircle },
+  { status: 'UNABLE_TO_COMPLETE', label: t('Kaam nahi ho saka'), icon: AlertTriangle },
 ];
 
 export default function JobDetailPage() {
@@ -68,29 +69,29 @@ export default function JobDetailPage() {
   const act = <V,>(fn: (v: V) => Promise<unknown>, ok: string, opts: { money?: boolean; close?: boolean } = {}) => ({
     mutationFn: fn,
     onSuccess: () => { toast.success(ok); refresh(opts.money); if (opts.close !== false) setDialog(null); },
-    onError: (e: unknown) => toast.error(apiError(e, 'Nahi hua — dobara koshish karein')),
+    onError: (e: unknown) => toast.error(apiError(e, t('Nahi hua — dobara koshish karein'))),
   });
 
-  const status = useMutation(act((s: JobStatus) => jobsApi.updateStatus(id, s), 'Halat badal di'));
-  const cancel = useMutation(act((r: string) => jobsApi.cancel(id, r), 'Job cancel — advance customer ke khata me jama hai'));
-  const assign = useMutation(act((v: { primary: string; helpers: string[] }) => jobsApi.assign(id, v.primary, v.helpers), 'Technician laga diya'));
-  const addPart = useMutation(act((v: PartInput) => jobsApi.addPart(id, v), 'Part jor diya'));
-  const delPart = useMutation(act((partId: string) => jobsApi.removePart(id, partId), 'Part hata diya', { close: false }));
-  const pay = useMutation(act((v: { amount: number; method: PaymentMethod }) => jobsApi.addPayment(id, v.amount, v.method), 'Payment mil gayi', { money: true }));
+  const status = useMutation(act((s: JobStatus) => jobsApi.updateStatus(id, s), t('Halat badal di')));
+  const cancel = useMutation(act((r: string) => jobsApi.cancel(id, r), t('Job cancel — advance customer ke khata me jama hai')));
+  const assign = useMutation(act((v: { primary: string; helpers: string[] }) => jobsApi.assign(id, v.primary, v.helpers), t('Technician laga diya')));
+  const addPart = useMutation(act((v: PartInput) => jobsApi.addPart(id, v), t('Part jor diya')));
+  const delPart = useMutation(act((partId: string) => jobsApi.removePart(id, partId), t('Part hata diya'), { close: false }));
+  const pay = useMutation(act((v: { amount: number; method: PaymentMethod }) => jobsApi.addPayment(id, v.amount, v.method), t('Payment mil gayi'), { money: true }));
   const returnVisit = useMutation({
     mutationFn: () => jobsApi.returnVisit(id, { returnVisitDate: new Date(`${visitDate}T10:00`).toISOString(), reason: reason.trim() }),
-    onSuccess: (child) => { toast.success(`Wapsi visit ${child.jobNumber} ban gayi`); refresh(); setDialog(null); navigate(`/services-biz/jobs/${child.id}`); },
-    onError: (e) => toast.error(apiError(e, 'Wapsi visit nahi bani')),
+    onSuccess: (child) => { toast.success(t('Wapsi visit {{jobNumber}} ban gayi', { jobNumber: child.jobNumber })); refresh(); setDialog(null); navigate(`/services-biz/jobs/${child.id}`); },
+    onError: (e) => toast.error(apiError(e, t('Wapsi visit nahi bani'))),
   });
-  const rate = useMutation(act((v: { rating: number; feedback?: string }) => jobsApi.rate(id, v), 'Rating save ho gayi'));
+  const rate = useMutation(act((v: { rating: number; feedback?: string }) => jobsApi.rate(id, v), t('Rating save ho gayi')));
   const bill = useMutation({
     mutationFn: (v: BillInput) => jobsApi.bill(id, v),
     onSuccess: (r) => {
-      toast.success(r.sale ? `Bill ${r.sale.saleNumber} ban gaya${r.change > 0 ? ` — ${formatPKR(r.change)} wapas dein` : ''}` : 'Job mukammal', { action: { label: 'Print', onClick: () => printJobCard(r, shopName) } });
+      toast.success(r.sale ? t('Bill {{saleNumber}} ban gaya{{value}}', { saleNumber: r.sale.saleNumber, value: r.change > 0 ? t(' — {{change}} wapas dein', { change: formatPKR(r.change) }) : '' }) : t('Job mukammal'), { action: { label: t('Print'), onClick: () => printJobCard(r, shopName) } });
       refresh(true);
       setDialog(null);
     },
-    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+    onError: (e) => toast.error(apiError(e, t('Bill nahi bana'))),
   });
 
   useEffect(() => {
@@ -112,8 +113,8 @@ export default function JobDetailPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Job nahi mili</p>
-          <Button className="mt-3" variant="secondary" onClick={() => navigate('/services-biz/jobs')}>Jobs par wapas</Button>
+          <p className="font-semibold text-slate-900">{t('Job nahi mili')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/services-biz/jobs')}>{t('Jobs par wapas')}</Button>
         </div>
       </PageShell>
     );
@@ -126,13 +127,13 @@ export default function JobDetailPage() {
   const ready = READY.includes(j.status);
   const noTech = !j.primaryTechnicianId;
   const next: { label: string; icon: typeof Clock; run: () => void } | null = !edit ? null
-    : ready ? (canMoney ? { label: 'Bill banayein', icon: Receipt, run: () => setDialog('bill') } : null)
-      : noTech && BOOKED.includes(j.status) ? { label: 'Technician lagayein', icon: UserCheck, run: () => setDialog('assign') }
-        : j.status === 'IN_PROGRESS' ? { label: 'Kaam mukammal', icon: CheckCircle2, run: () => status.mutate('QUALITY_CHECK') }
-          : onSite && ['ASSIGNED', 'DISPATCHED', ...BOOKED].includes(j.status) ? { label: 'Raste me', icon: Car, run: () => status.mutate('EN_ROUTE') }
-            : onSite && j.status === 'EN_ROUTE' ? { label: 'Pohanch gaya', icon: MapPin, run: () => status.mutate('ARRIVED') }
-              : { label: 'Kaam shuru', icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
-  const charges: Array<[string, number]> = ([['Visit charge', j.visitCharge], ['Kaam (labour)', j.labourCharge], ['Transport', j.transportCharge], ['Emergency charge', j.emergencyCharge], ['Tax', j.taxAmount]] as Array<[string, number]>).filter(([, v]) => v > 0);
+    : ready ? (canMoney ? { label: t('Bill banayein'), icon: Receipt, run: () => setDialog('bill') } : null)
+      : noTech && BOOKED.includes(j.status) ? { label: t('Technician lagayein'), icon: UserCheck, run: () => setDialog('assign') }
+        : j.status === 'IN_PROGRESS' ? { label: t('Kaam mukammal'), icon: CheckCircle2, run: () => status.mutate('QUALITY_CHECK') }
+          : onSite && ['ASSIGNED', 'DISPATCHED', ...BOOKED].includes(j.status) ? { label: t('Raste me'), icon: Car, run: () => status.mutate('EN_ROUTE') }
+            : onSite && j.status === 'EN_ROUTE' ? { label: t('Pohanch gaya'), icon: MapPin, run: () => status.mutate('ARRIVED') }
+              : { label: t('Kaam shuru'), icon: PlayCircle, run: () => status.mutate('IN_PROGRESS') };
+  const charges: Array<[string, number]> = ([[t('Visit charge'), j.visitCharge], [t('Kaam (labour)'), j.labourCharge], [t('Transport'), j.transportCharge], [t('Emergency charge'), j.emergencyCharge], [t('Tax'), j.taxAmount]] as Array<[string, number]>).filter(([, v]) => v > 0);
   const returnedParts = j.parts.reduce((s, p) => s + (p.returnedAmount ?? 0), 0);
   const warrantyLeft = j.jobWarrantyExpiryDate ? Math.ceil((new Date(j.jobWarrantyExpiryDate).getTime() - Date.now()) / 86_400_000) : null;
 
@@ -143,41 +144,41 @@ export default function JobDetailPage() {
         chip={<><Wrench /> {st.label}</>}
         meta={[j.jobNumber, itemName(j), categoryOf(j.category), `bani ${dateTime(j.createdAt)}`].filter(Boolean).join(' · ')}
         actions={<>
-          <button type="button" onClick={() => navigate('/services-biz/jobs')} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-          <button type="button" onClick={() => printJobCard(j, shopName)} title="Parchi (P)" className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">Parchi</span></button>
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
-          {edit && <Link to={`/services-biz/jobs/${j.id}/edit`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></Link>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => navigate('/services-biz/jobs')} title={t('Wapas (Esc)')} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
+          <button type="button" onClick={() => printJobCard(j, shopName)} title={t('Parchi (P)')} className={heroButton}><Printer className="h-4 w-4" /><span className="hidden sm:inline">{t('Parchi')}</span></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">{t('WhatsApp')}</span></a>}
+          {edit && <Link to={`/services-biz/jobs/${j.id}/edit`} title={t('Badlein (E)')} className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">{t('Badlein')}</span></Link>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {next && <button type="button" onClick={next.run} disabled={status.isPending} className={heroPrimaryButton}><next.icon className="h-4 w-4" />{next.label}</button>}
         </>}
         stats={[
-          { label: 'Bill', value: formatPKR(j.totalCharge) },
-          { label: 'Mila', value: formatPKR(j.paidAmount) },
-          { label: j.status === 'COMPLETED' ? 'Khata me baqi' : 'Baqi', value: formatPKR(j.due) },
+          { label: t('Bill'), value: formatPKR(j.totalCharge) },
+          { label: t('Mila'), value: formatPKR(j.paidAmount) },
+          { label: j.status === 'COMPLETED' ? t('Khata me baqi') : t('Baqi'), value: formatPKR(j.due) },
         ]}
       />
 
       {j.isLate && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] font-medium text-rose-900 ring-1 ring-rose-200">
-          <AlertTriangle className="h-4 w-4" />Waqt {dateTime(j.scheduledEnd ?? j.scheduledStart)} tha — customer ko bata dein
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className="ml-auto font-semibold hover:underline">WhatsApp →</a>}
+          <AlertTriangle className="h-4 w-4" />{t('Waqt {{dateTime}} tha — customer ko bata dein', { dateTime: dateTime(j.scheduledEnd ?? j.scheduledStart) })}
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="ms-auto font-semibold hover:underline">{t('WhatsApp →')}</a>}
         </div>
       )}
       {j.status === 'CANCELLED' && (
-        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">Cancel {dayOnly(j.cancelledAt)} — {j.cancellationReason}{j.advanceOnKhata > 0 && ` · ${formatPKR(j.advanceOnKhata)} advance customer ke khata me jama hai`}</div>
+        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-[0.875rem] text-slate-700">{t('Cancel {{cancelledAt}} — {{cancellationReason}}{{value}}', { cancelledAt: dayOnly(j.cancelledAt), cancellationReason: j.cancellationReason, value: j.advanceOnKhata > 0 ? t(' · {{advanceOnKhata}} advance customer ke khata me jama hai', { advanceOnKhata: formatPKR(j.advanceOnKhata) }) : '' })}</div>
       )}
       {j.status === 'COMPLETED' && j.billSale && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-[0.875rem] text-emerald-900 ring-1 ring-emerald-200">
-          <Receipt className="h-4 w-4" />Mukammal {dateTime(j.completedAt)} — bill <strong>{j.billSale.saleNumber}</strong>
-          {j.due > 0 && <span className="text-amber-800">· {formatPKR(j.due)} khata me</span>}
-          <Link to={`/sales?search=${encodeURIComponent(j.billSale.saleNumber)}`} className="ml-auto font-semibold hover:underline">Bill dekhein →</Link>
+          <Receipt className="h-4 w-4" />{t('Mukammal {{completedAt}} — bill', { completedAt: dateTime(j.completedAt) })}{' '} <strong>{j.billSale.saleNumber}</strong>
+          {j.due > 0 && <span className="text-amber-800">{t('· {{due}} khata me', { due: formatPKR(j.due) })}</span>}
+          <Link to={`/sales?search=${encodeURIComponent(j.billSale.saleNumber)}`} className="ms-auto font-semibold hover:underline">{t('Bill dekhein →')}</Link>
         </div>
       )}
       {(j.amc || j.warrantyClaim || j.parentJobId) && (
         <div className="flex flex-wrap gap-2 text-[0.8125rem]">
-          {j.amc && <Link to={`/services-biz/amc?open=${j.amc.id}`} className="rounded-full bg-violet-50 px-3 py-1 font-medium text-violet-800 ring-1 ring-violet-200 hover:underline">AMC {j.amc.amcNumber}{j.amc.includesLabour ? ' · kaam muft' : ''}{j.amc.includesParts ? ' · parts muft' : ''}</Link>}
-          {j.warrantyClaim && <Link to="/services-biz/warranty?tab=claims" className="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-800 ring-1 ring-amber-200 hover:underline">Warranty claim {j.warrantyClaim.claimNumber}</Link>}
-          {j.parentJobId && <Link to={`/services-biz/jobs/${j.parentJobId}`} className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 ring-1 ring-slate-200 hover:underline">Pichli job dekhein</Link>}
+          {j.amc && <Link to={`/services-biz/amc?open=${j.amc.id}`} className="rounded-full bg-violet-50 px-3 py-1 font-medium text-violet-800 ring-1 ring-violet-200 hover:underline">{t('AMC {{amcNumber}}{{value}}{{value2}}', { amcNumber: j.amc.amcNumber, value: j.amc.includesLabour ? t(' · kaam muft') : '', value2: j.amc.includesParts ? t(' · parts muft') : '' })}</Link>}
+          {j.warrantyClaim && <Link to="/services-biz/warranty?tab=claims" className="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-800 ring-1 ring-amber-200 hover:underline">{t('Warranty claim {{claimNumber}}', { claimNumber: j.warrantyClaim.claimNumber })}</Link>}
+          {j.parentJobId && <Link to={`/services-biz/jobs/${j.parentJobId}`} className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 ring-1 ring-slate-200 hover:underline">{t('Pichli job dekhein')}</Link>}
         </div>
       )}
 
@@ -193,16 +194,16 @@ export default function JobDetailPage() {
           </ol>
           {edit && (
             <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
-              <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Ya:</span>
+              <span className="me-1 text-[0.75rem] font-medium text-slate-500">{t('Ya:')}</span>
               {SIDE.map((x) => (
                 <button key={x.status} type="button" onClick={() => status.mutate(j.status === x.status ? 'IN_PROGRESS' : x.status)} disabled={status.isPending}
                   className={cn('inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium ring-1',
                     j.status === x.status ? 'bg-orange-50 text-orange-800 ring-orange-200' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                  <x.icon className="h-3.5 w-3.5" />{j.status === x.status ? `${x.label} — khatam` : x.label}
+                  <x.icon className="h-3.5 w-3.5" />{j.status === x.status ? t('{{label}} — khatam', { label: x.label }) : x.label}
                 </button>
               ))}
-              {ready && <button type="button" onClick={() => status.mutate('IN_PROGRESS')} className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Hammer className="h-3.5 w-3.5" />Kaam baqi hai</button>}
-              <button type="button" onClick={() => { setReason(''); setDialog('cancel'); }} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Ban className="h-3.5 w-3.5" />Cancel</button>
+              {ready && <button type="button" onClick={() => status.mutate('IN_PROGRESS')} className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Hammer className="h-3.5 w-3.5" />{t('Kaam baqi hai')}</button>}
+              <button type="button" onClick={() => { setReason(''); setDialog('cancel'); }} className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Ban className="h-3.5 w-3.5" />{t('Cancel')}</button>
             </div>
           )}
         </div>
@@ -210,32 +211,32 @@ export default function JobDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title="Kaam" actions={edit ? <Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />}>Badlein</Button></Link> : undefined}>
+          <Card className="rounded-2xl" title={t('Kaam')} actions={edit ? <Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />}>{t('Badlein')}</Button></Link> : undefined}>
             <dl className="grid gap-3 text-[0.875rem] sm:grid-cols-2">
-              <Fact label="Kharabi / kya karna hai">{j.problemDescription || '—'}</Fact>
-              <Fact label="Cheez">{itemName(j) || <span className="text-slate-400">Nahi likha</span>}{j.underWarranty && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">Company warranty</span>}</Fact>
-              <Fact label="Technician">
-                {j.technician ? <span>{j.technician.staff.fullName}{j.technician.staff.phone ? <span className="text-slate-500"> · {j.technician.staff.phone}</span> : null}</span> : <span className="text-slate-400">Koi nahi</span>}
-                {j.assistantNames.length > 0 && <span className="block text-[0.75rem] text-slate-500">Helper: {j.assistantNames.join(', ')}</span>}
-                {edit && <button type="button" onClick={() => setDialog('assign')} className="ml-2 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{noTech ? 'Lagayein' : 'Badlein'}</button>}
+              <Fact label={t('Kharabi / kya karna hai')}>{j.problemDescription || '—'}</Fact>
+              <Fact label={t('Cheez')}>{itemName(j) || <span className="text-slate-400">{t('Nahi likha')}</span>}{j.underWarranty && <span className="ms-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">{t('Company warranty')}</span>}</Fact>
+              <Fact label={t('Technician')}>
+                {j.technician ? <span>{j.technician.staff.fullName}{j.technician.staff.phone ? <span className="text-slate-500"> · {j.technician.staff.phone}</span> : null}</span> : <span className="text-slate-400">{t('Koi nahi')}</span>}
+                {j.assistantNames.length > 0 && <span className="block text-[0.75rem] text-slate-500">{t('Helper: {{value}}', { value: j.assistantNames.join(', ') })}</span>}
+                {edit && <button type="button" onClick={() => setDialog('assign')} className="ms-2 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{noTech ? t('Lagayein') : t('Badlein')}</button>}
               </Fact>
-              <Fact label={onSite ? 'Visit ka waqt' : 'Kab tayyar'}>{j.scheduledStart ? dateTime(j.scheduledStart) : '—'}{j.priority !== 'NORMAL' && <span className={cn('ml-2 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}</Fact>
-              {j.technicianNotes && <Fact label="Technician ke liye">{j.technicianNotes}</Fact>}
-              {j.internalNotes && <Fact label="Andar ka note">{j.internalNotes}</Fact>}
+              <Fact label={onSite ? t('Visit ka waqt') : t('Kab tayyar')}>{j.scheduledStart ? dateTime(j.scheduledStart) : '—'}{j.priority !== 'NORMAL' && <span className={cn('ms-2 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', priorityOf(j.priority).tone)}>{priorityOf(j.priority).label}</span>}</Fact>
+              {j.technicianNotes && <Fact label={t('Technician ke liye')}>{j.technicianNotes}</Fact>}
+              {j.internalNotes && <Fact label={t('Andar ka note')}>{j.internalNotes}</Fact>}
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title="Bill"
-            description={open ? 'Dukaan ka part bill banne par stock se nikalta hai' : undefined}
-            actions={edit ? <Button size="sm" leftIcon={<Package className="h-3.5 w-3.5" />} onClick={() => setDialog('part')}>Part (A)</Button> : undefined}>
+          <Card className="rounded-2xl" flush title={t('Bill')}
+            description={open ? t('Dukaan ka part bill banne par stock se nikalta hai') : undefined}
+            actions={edit ? <Button size="sm" leftIcon={<Package className="h-3.5 w-3.5" />} onClick={() => setDialog('part')}>{t('Part (A)')}</Button> : undefined}>
             {charges.length + j.parts.length === 0 ? (
               <div className="px-5 pb-6 pt-4 text-center">
-                <p className="text-[0.875rem] text-slate-600">Abhi koi charge ya part nahi</p>
-                {edit && <div className="mt-3 flex justify-center gap-2"><Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="secondary">Charges likhein</Button></Link><Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDialog('part')}>Part jorein</Button></div>}
+                <p className="text-[0.875rem] text-slate-600">{t('Abhi koi charge ya part nahi')}</p>
+                {edit && <div className="mt-3 flex justify-center gap-2"><Link to={`/services-biz/jobs/${j.id}/edit`}><Button size="sm" variant="secondary">{t('Charges likhein')}</Button></Link><Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDialog('part')}>{t('Part jorein')}</Button></div>}
               </div>
             ) : (
               <Table className="mt-3" minWidth="34rem">
-                <THead><Tr><Th>Cheez</Th><Th align="right">Kitne</Th><Th align="right">Qeemat</Th><Th align="right">Kul</Th>{edit && <Th />}</Tr></THead>
+                <THead><Tr><Th>{t('Cheez')}</Th><Th align="right">{t('Kitne')}</Th><Th align="right">{t('Qeemat')}</Th><Th align="right">{t('Kul')}</Th>{edit && <Th />}</Tr></THead>
                 <TBody>
                   {charges.map(([label, v]) => (
                     <Tr key={label}><Td><span className="font-medium text-slate-900">{label}</span></Td><Td align="right">1</Td><Td align="right">{formatPKR(v)}</Td><Td align="right" className="font-semibold text-slate-900">{formatPKR(v)}</Td>{edit && <Td />}</Tr>
@@ -244,25 +245,25 @@ export default function JobDetailPage() {
                     <Tr key={p.id}>
                       <Td>
                         <span className="font-medium text-slate-900">{p.partName}</span>
-                        <Sub>{[p.isCustomerSupplied ? 'Customer ka apna' : p.productId ? (j.status === 'COMPLETED' ? 'Stock se laga' : 'Bill par stock se niklega') : 'Bahar se liya', p.isUnderWarranty ? 'Warranty me muft' : null, p.serialNumber ? `SN ${p.serialNumber}` : null].filter(Boolean).join(' · ')}</Sub>
+                        <Sub>{[p.isCustomerSupplied ? t('Customer ka apna') : p.productId ? (j.status === 'COMPLETED' ? t('Stock se laga') : t('Bill par stock se niklega')) : t('Bahar se liya'), p.isUnderWarranty ? t('Warranty me muft') : null, p.serialNumber ? t('SN {{serialNumber}}', { serialNumber: p.serialNumber }) : null].filter(Boolean).join(' · ')}</Sub>
                       </Td>
-                      <Td align="right">{Number(p.quantity)}{(p.returnedQty ?? 0) > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{Number(p.returnedQty)} wapas</span>}</Td>
+                      <Td align="right">{Number(p.quantity)}{(p.returnedQty ?? 0) > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{t('{{returnedQty}} wapas', { returnedQty: Number(p.returnedQty) })}</span>}</Td>
                       <Td align="right">{formatPKR(p.isUnderWarranty ? 0 : p.unitPrice)}</Td>
                       <Td align="right" className="font-semibold text-slate-900">{formatPKR(p.isUnderWarranty ? 0 : p.total)}{(p.returnedAmount ?? 0) > 0 && <span className="block text-[0.6875rem] text-rose-600">−{formatPKR(p.returnedAmount!)}</span>}</Td>
-                      {edit && <Td align="right"><button type="button" onClick={() => delPart.mutate(p.id)} disabled={delPart.isPending} aria-label={`${p.partName} hatayein`} title="Hatayein" className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button></Td>}
+                      {edit && <Td align="right"><button type="button" onClick={() => delPart.mutate(p.id)} disabled={delPart.isPending} aria-label={t('{{partName}} hatayein', { partName: p.partName })} title={t('Hatayein')} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40"><Trash2 className="h-4 w-4" /></button></Td>}
                     </Tr>
                   ))}
                 </TBody>
               </Table>
             )}
             <dl className="space-y-1 border-t border-slate-100 px-5 py-4 text-[0.875rem]">
-              {j.partsCharge > 0 && <Line label="Parts" value={j.partsCharge} />}
-              {j.discountAmount > 0 && <Line label="Discount" value={-j.discountAmount} />}
-              <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900"><dt>Kul bill</dt><dd className="tabular-nums">{formatPKR(j.totalCharge)}</dd></div>
+              {j.partsCharge > 0 && <Line label={t('Parts')} value={j.partsCharge} />}
+              {j.discountAmount > 0 && <Line label={t('Discount')} value={-j.discountAmount} />}
+              <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900"><dt>{t('Kul bill')}</dt><dd className="tabular-nums">{formatPKR(j.totalCharge)}</dd></div>
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-slate-500" />Job ki history</span>}>
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4 text-slate-500" />{t('Job ki history')}</span>}>
             <ol className="space-y-3 px-5 pb-5 pt-3">
               {j.statusHistory.map((l) => (
                 <li key={l.id} className="flex gap-3 text-[0.8125rem]">
@@ -276,53 +277,53 @@ export default function JobDetailPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />Customer aur jagah</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />{t('Customer aur jagah')}</span>}>
             <dl className="space-y-2 text-[0.875rem]">
-              <Fact label="Customer">
+              <Fact label={t('Customer')}>
                 {j.customer ? <Link to={`/customers/${j.customer.id}`} className="font-semibold text-brand-700 hover:underline">{j.customer.name}</Link> : j.customerName || '—'}
                 {j.customerPhone && <span className="text-slate-600"> · {j.customerPhone}</span>}
               </Fact>
               {j.customer && j.customer.balance !== 0 && (
-                <Fact label="Khata">
+                <Fact label={t('Khata')}>
                   <span className={j.customer.balance > 0 ? 'font-semibold text-amber-700' : 'font-semibold text-emerald-700'}>
-                    {j.customer.balance > 0 ? `${formatPKR(j.customer.balance)} udhaar` : `${formatPKR(-j.customer.balance)} jama (advance)`}
+                    {j.customer.balance > 0 ? t('{{balance}} udhaar', { balance: formatPKR(j.customer.balance) }) : t('{{formatPKR}} jama (advance)', { formatPKR: formatPKR(-j.customer.balance) })}
                   </span>
                 </Fact>
               )}
-              <Fact label="Kahan">{locationOf(j.locationType)}{onSite && <span className="block text-slate-600">{[j.serviceAddress, j.area, j.city].filter(Boolean).join(', ')}{j.landmark ? ` (${j.landmark})` : ''}</span>}</Fact>
+              <Fact label={t('Kahan')}>{locationOf(j.locationType)}{onSite && <span className="block text-slate-600">{[j.serviceAddress, j.area, j.city].filter(Boolean).join(', ')}{j.landmark ? ` (${j.landmark})` : ''}</span>}</Fact>
               {j.jobWarrantyDays > 0 && (
-                <Fact label="Kaam ki warranty">
+                <Fact label={t('Kaam ki warranty')}>
                   <span className={cn('inline-flex items-center gap-1', warrantyLeft !== null && warrantyLeft < 0 ? 'text-slate-500' : 'text-emerald-700')}><ShieldCheck className="h-3.5 w-3.5" />
-                    {j.jobWarrantyExpiryDate ? (warrantyLeft! < 0 ? `Khatam ${dayOnly(j.jobWarrantyExpiryDate)}` : `${dayOnly(j.jobWarrantyExpiryDate)} tak`) : `${j.jobWarrantyDays} din (bill se)`}
+                    {j.jobWarrantyExpiryDate ? (warrantyLeft! < 0 ? t('Khatam {{jobWarrantyExpiryDate}}', { jobWarrantyExpiryDate: dayOnly(j.jobWarrantyExpiryDate) }) : t('{{jobWarrantyExpiryDate}} tak', { jobWarrantyExpiryDate: dayOnly(j.jobWarrantyExpiryDate) })) : t('{{jobWarrantyDays}} din (bill se)', { jobWarrantyDays: j.jobWarrantyDays })}
                   </span>
                 </Fact>
               )}
             </dl>
           </Card>
 
-          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" />Paisa</span>}
-            actions={canManage && canMoney && j.status !== 'CANCELLED' && (j.due > 0 || (open && j.totalCharge <= 0)) ? <Button size="sm" variant="secondary" onClick={() => setDialog('pay')}>{j.status === 'COMPLETED' ? 'Wusooli' : 'Advance lein'}</Button> : undefined}>
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" />{t('Paisa')}</span>}
+            actions={canManage && canMoney && j.status !== 'CANCELLED' && (j.due > 0 || (open && j.totalCharge <= 0)) ? <Button size="sm" variant="secondary" onClick={() => setDialog('pay')}>{j.status === 'COMPLETED' ? t('Wusooli') : t('Advance lein')}</Button> : undefined}>
             <dl className="space-y-1 px-5 pb-4 pt-3 text-[0.875rem]">
-              <Line label="Bill" value={j.totalCharge} />
-              <Line label="Mila" value={j.paidAmount} />
-              {j.returned > 0 && <Line label="Return hua" value={-j.returned} />}
-              {j.returned > 0 && returnedParts > 0 && <p className="text-[0.75rem] text-slate-500">Is me parts {formatPKR(returnedParts)} — technician ki commission sirf kaam ke return par kam hoti hai</p>}
-              <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>Baqi</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
+              <Line label={t('Bill')} value={j.totalCharge} />
+              <Line label={t('Mila')} value={j.paidAmount} />
+              {j.returned > 0 && <Line label={t('Return hua')} value={-j.returned} />}
+              {j.returned > 0 && returnedParts > 0 && <p className="text-[0.75rem] text-slate-500">{t('Is me parts {{returnedParts}} — technician ki commission sirf kaam ke return par kam hoti hai', { returnedParts: formatPKR(returnedParts) })}</p>}
+              <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold text-slate-900"><dt>{t('Baqi')}</dt><dd className={cn('tabular-nums', j.due > 0 && 'text-amber-700')}>{formatPKR(j.due)}</dd></div>
             </dl>
             {j.advanceOnKhata > 0 && j.status !== 'COMPLETED' && (
-              <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{formatPKR(j.advanceOnKhata)} advance khata me jama — bill me katega</p>
+              <p className="mx-5 mb-4 flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600"><BookOpen className="h-3.5 w-3.5" />{t('{{advanceOnKhata}} advance khata me jama — bill me katega', { advanceOnKhata: formatPKR(j.advanceOnKhata) })}</p>
             )}
             {edit && canMoney && (
-              <div className="border-t border-slate-100 px-5 py-3"><Button className="w-full" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setDialog('bill')}>Bill banayein (B)</Button></div>
+              <div className="border-t border-slate-100 px-5 py-3"><Button className="w-full" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setDialog('bill')}>{t('Bill banayein (B)')}</Button></div>
             )}
           </Card>
 
           {j.status === 'COMPLETED' && canManage && (
-            <Card className="rounded-2xl" title="Kaam ke baad">
+            <Card className="rounded-2xl" title={t('Kaam ke baad')}>
               <div className="space-y-2">
-                <Button className="w-full" variant="secondary" leftIcon={<Star className="h-4 w-4" />} onClick={() => setDialog('rate')}>{j.customerRating ? `Rating ${j.customerRating}/5 — badlein` : 'Customer ki rating'}</Button>
-                <Button className="w-full" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={() => { setReason(''); setDialog('return'); }}>Wapsi visit (muft)</Button>
-                {warrantyLeft !== null && warrantyLeft >= 0 && <Link to={`/services-biz/warranty?claim=${j.id}`}><Button className="mt-2 w-full" variant="secondary" leftIcon={<ShieldCheck className="h-4 w-4" />}>Warranty claim</Button></Link>}
+                <Button className="w-full" variant="secondary" leftIcon={<Star className="h-4 w-4" />} onClick={() => setDialog('rate')}>{j.customerRating ? t('Rating {{customerRating}}/5 — badlein', { customerRating: j.customerRating }) : t('Customer ki rating')}</Button>
+                <Button className="w-full" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={() => { setReason(''); setDialog('return'); }}>{t('Wapsi visit (muft)')}</Button>
+                {warrantyLeft !== null && warrantyLeft >= 0 && <Link to={`/services-biz/warranty?claim=${j.id}`}><Button className="mt-2 w-full" variant="secondary" leftIcon={<ShieldCheck className="h-4 w-4" />}>{t('Warranty claim')}</Button></Link>}
               </div>
             </Card>
           )}
@@ -334,42 +335,42 @@ export default function JobDetailPage() {
         onAssign={(primary, helpers) => assign.mutate({ primary, helpers })} onClose={() => setDialog(null)} />}
       {dialog === 'bill' && <BillJobModal job={j} pending={bill.isPending} onClose={() => setDialog(null)} onConfirm={(v) => { if (!bill.isPending) bill.mutate(v); }} />}
       {dialog === 'pay' && (
-        <TakePaymentModal title={j.status === 'COMPLETED' ? `Wusooli — ${j.jobNumber}` : `Advance — ${j.jobNumber}`} description={[j.serviceName, j.customerName].filter(Boolean).join(' · ')}
+        <TakePaymentModal title={j.status === 'COMPLETED' ? t('Wusooli — {{jobNumber}}', { jobNumber: j.jobNumber }) : t('Advance — {{jobNumber}}', { jobNumber: j.jobNumber })} description={[j.serviceName, j.customerName].filter(Boolean).join(' · ')}
           amount={j.due > 0 ? j.due : 0} max={j.totalCharge > 0 ? j.due : undefined} loading={pay.isPending}
           onConfirm={(amount, method) => pay.mutate({ amount, method })} onClose={() => setDialog(null)} />
       )}
       {dialog === 'cancel' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title={`Job cancel karein — ${j.jobNumber}`} description="Advance customer ke khata me jama rahega — wapas karna ho to khata se dein."
-          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate(reason.trim())}>Cancel karein</Button></>}>
-          <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Customer ne mana kar diya" error={reason && reason.trim().length < 3 ? 'Thori tafseel likhein' : undefined} />
+        <Modal open onClose={() => setDialog(null)} size="sm" title={t('Job cancel karein — {{jobNumber}}', { jobNumber: j.jobNumber })} description={t('Advance customer ke khata me jama rahega — wapas karna ho to khata se dein.')}
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{t('Rehne dein')}</Button><Button variant="danger" disabled={reason.trim().length < 3} loading={cancel.isPending} onClick={() => cancel.mutate(reason.trim())}>{t('Cancel karein')}</Button></>}>
+          <Input label={t('Wajah')} required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder={t('Customer ne mana kar diya')} error={reason && reason.trim().length < 3 ? t('Thori tafseel likhein') : undefined} />
         </Modal>
       )}
       {dialog === 'return' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title="Wapsi visit" description="Kaam ke baad shikayat — muft visit ki nayi job banti hai, isi technician ke naam"
-          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button disabled={reason.trim().length < 3 || !visitDate} loading={returnVisit.isPending} onClick={() => returnVisit.mutate()}>Visit banayein</Button></>}>
+        <Modal open onClose={() => setDialog(null)} size="sm" title={t('Wapsi visit')} description={t('Kaam ke baad shikayat — muft visit ki nayi job banti hai, isi technician ke naam')}
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{t('Rehne dein')}</Button><Button disabled={reason.trim().length < 3 || !visitDate} loading={returnVisit.isPending} onClick={() => returnVisit.mutate()}>{t('Visit banayein')}</Button></>}>
           <div className="space-y-3">
-            <Input label="Shikayat" required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder="Phir se pani tapak raha hai" />
-            <Input label="Kab" type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)} />
+            <Input label={t('Shikayat')} required value={reason} onChange={(e) => setReason(e.target.value)} autoFocus placeholder={t('Phir se pani tapak raha hai')} />
+            <Input label={t('Kab')} type="date" value={visitDate} onChange={(e) => setVisitDate(e.target.value)} />
           </div>
         </Modal>
       )}
       {dialog === 'rate' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title="Customer ki rating" description="Technician ki rating me jurti hai"
-          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={rate.isPending} onClick={() => rate.mutate({ rating, feedback: reason.trim() || undefined })}>Save</Button></>}>
+        <Modal open onClose={() => setDialog(null)} size="sm" title={t('Customer ki rating')} description={t('Technician ki rating me jurti hai')}
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{t('Rehne dein')}</Button><Button loading={rate.isPending} onClick={() => rate.mutate({ rating, feedback: reason.trim() || undefined })}>{t('Save')}</Button></>}>
           <div className="space-y-3">
-            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((r) => <button key={r} type="button" onClick={() => setRating(r)} aria-label={`${r} star`} className={cn('h-10 w-10 rounded-lg', r <= rating ? 'text-amber-500' : 'text-slate-300')}><Star className="mx-auto h-6 w-6 fill-current" /></button>)}</div>
-            <Input label="Customer ne kya kaha" value={reason} onChange={(e) => setReason(e.target.value)} hint="Marzi hai" />
+            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((r) => <button key={r} type="button" onClick={() => setRating(r)} aria-label={t('{{r}} star', { r })} className={cn('h-10 w-10 rounded-lg', r <= rating ? 'text-amber-500' : 'text-slate-300')}><Star className="mx-auto h-6 w-6 fill-current" /></button>)}</div>
+            <Input label={t('Customer ne kya kaha')} value={reason} onChange={(e) => setReason(e.target.value)} hint={t('Marzi hai')} />
           </div>
         </Modal>
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Job card — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Job card — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: PlayCircle, color: '#7c3aed', title: 'Agla qadam', text: 'Upar wala button job ko aage barhata hai: Technician → Raste me → Pohanch gaya → Kaam shuru → Kaam mukammal → Bill. Parts ya customer ki haan ka intezar ho to neeche "Ya" se.' },
-            { icon: Package, color: '#ea580c', title: 'Parts', text: '"Part" se dukaan ka saman (bill par stock se nikalta hai), bahar se liya ya customer ka apna jorein. Warranty me muft part ka Cost profit me dikhta hai.' },
-            { icon: Receipt, color: '#16a34a', title: 'Bill', text: 'Baqi paisa lein — Cash, Card, JazzCash ya split. Advance khud katta hai, jo baqi rahe khata me. Bill ke saath warranty ke din likhein.' },
-            { icon: Ban, color: '#e11d48', title: 'Ghalti', text: 'Bill ghalat ho to Sales se void karein — job dobara "Tayyar" ho jati hai. Saman wapas ho to Sales se return karein.' },
+            { icon: PlayCircle, color: '#7c3aed', title: t('Agla qadam'), text: t('Upar wala button job ko aage barhata hai: Technician → Raste me → Pohanch gaya → Kaam shuru → Kaam mukammal → Bill. Parts ya customer ki haan ka intezar ho to neeche "Ya" se.') },
+            { icon: Package, color: '#ea580c', title: t('Parts'), text: t('"Part" se dukaan ka saman (bill par stock se nikalta hai), bahar se liya ya customer ka apna jorein. Warranty me muft part ka Cost profit me dikhta hai.') },
+            { icon: Receipt, color: '#16a34a', title: t('Bill'), text: t('Baqi paisa lein — Cash, Card, JazzCash ya split. Advance khud katta hai, jo baqi rahe khata me. Bill ke saath warranty ke din likhein.') },
+            { icon: Ban, color: '#e11d48', title: t('Ghalti'), text: t('Bill ghalat ho to Sales se void karein — job dobara "Tayyar" ho jati hai. Saman wapas ho to Sales se return karein.') },
           ]}
           shortcuts={[['P', 'parchi'], ['E', 'badlein'], ['A', 'part'], ['B', 'bill'], ['Esc', 'wapas'], ['G', 'guide']]}
         />

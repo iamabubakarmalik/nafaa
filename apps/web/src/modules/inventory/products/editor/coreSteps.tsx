@@ -17,6 +17,7 @@ import { BrandField, CategoryField, Chip, CodeFields, ImagesField, MarginCard, N
 import { PriceCalculatorModal } from '@modules/growth/price-calculator/PriceCalculatorModal';
 import { openingStock } from './save';
 import type { BatchDraft, CoreOptions, Errors, StepContext, StepDef, UnitDraft, VariantDraft } from './types';
+import { t as tr, Trans } from '@core/i18n';
 
 type Slot<X> = (ctx: StepContext<X>) => ReactNode;
 const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
@@ -25,46 +26,46 @@ const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
 
 export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?: Slot<X>; categorySuggestions?: string[]; namePlaceholder?: string } = {}): StepDef<X> {
   return {
-    id: 'basic', title: 'Pehchaan', hint: 'Naam, category, code', icon: Tag,
+    id: 'basic', title: tr('Pehchaan'), hint: tr('Naam, category, code'), icon: Tag,
     validate: (d) => {
       const e: Errors = {};
-      if (!d.core.name.trim()) e.name = 'Naam likhein';
-      if (!d.core.unit.trim()) e.unit = 'Unit chunein';
+      if (!d.core.name.trim()) e.name = tr('Naam likhein');
+      if (!d.core.unit.trim()) e.unit = tr('Unit chunein');
       return e;
     },
     render: (ctx) => {
       const c = ctx.draft.core;
       return (
         <div className="space-y-4">
-          <Section icon={Tag} title="Cheez kya hai" hint="Wohi naam likhein jo grahak bolta hai — POS par isi se milegi">
+          <Section icon={Tag} title={tr('Cheez kya hai')} hint={tr('Wohi naam likhein jo grahak bolta hai — POS par isi se milegi')}>
             <div className="space-y-4">
-              <TextField label="Naam" required big autoFocus value={c.name} onChange={(name) => ctx.setCore({ name })} onBlur={() => ctx.touch('name')}
-                error={ctx.errors.name} placeholder={opts.namePlaceholder ?? 'Jaise: Tapal Danedar 95g'} hint="POS search, bill aur label par yahi naam aata hai" />
+              <TextField label={tr('Naam')} required big autoFocus value={c.name} onChange={(name) => ctx.setCore({ name })} onBlur={() => ctx.touch('name')}
+                error={ctx.errors.name} placeholder={opts.namePlaceholder ?? tr('Jaise: Tapal Danedar 95g')} hint={tr('POS search, bill aur label par yahi naam aata hai')} />
               {opts.extra?.(ctx)}
-              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} suggestions={opts.categorySuggestions} hint="POS ke filter aur reports isi se bante hain" />
-              <BrandField value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} hint="Marzi hai — brand se dhoondna aur report aasaan" />
+              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} suggestions={opts.categorySuggestions} hint={tr('POS ke filter aur reports isi se bante hain')} />
+              <BrandField value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} hint={tr('Marzi hai — brand se dhoondna aur report aasaan')} />
               <CodeFields name={c.name} sku={c.sku} barcode={c.barcode} prefix={core.skuPrefix} onSku={(sku) => ctx.setCore({ sku })} onBarcode={(barcode) => ctx.setCore({ barcode })} />
             </div>
           </Section>
-          <Section icon={Package} title="Kis hisaab se bikti hai" hint="Stock aur rate isi unit mein ginay jayenge">
+          <Section icon={Package} title={tr('Kis hisaab se bikti hai')} hint={tr('Stock aur rate isi unit mein ginay jayenge')}>
             <Tiles value={c.unit} onChange={(unit) => ctx.setCore({ unit })} options={core.units} columns="grid-cols-3 sm:grid-cols-6" />
           </Section>
-          <Section title="Tasveerein" hint="POS aur online store par yahi dikhegi">
+          <Section title={tr('Tasveerein')} hint={tr('POS aur online store par yahi dikhegi')}>
             <ImagesField value={c.images} onChange={(images) => ctx.setCore({ images })} />
           </Section>
-          <Section title="Aur" hint="Zaroori nahi — baad mein bhi bhar sakte hain">
+          <Section title={tr('Aur')} hint={tr('Zaroori nahi — baad mein bhi bhar sakte hain')}>
             <div className="space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Details</span>
-                <textarea value={c.description} onChange={(e) => ctx.setCore({ description: e.target.value })} rows={3} placeholder="Size, flavour, kis kaam aati hai…"
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Details')}</span>
+                <textarea value={c.description} onChange={(e) => ctx.setCore({ description: e.target.value })} rows={3} placeholder={tr('Size, flavour, kis kaam aati hai…')}
                   className={cn(inputClass, 'h-auto py-2.5')} />
-                <span className="mt-1.5 block text-xs text-slate-500">Marzi hai — online store aur product ke safhe par dikhti hai</span>
+                <span className="mt-1.5 block text-xs text-slate-500">{tr('Marzi hai — online store aur product ke safhe par dikhti hai')}</span>
               </label>
               <TagsField value={c.tagIds} onChange={(tagIds) => ctx.setCore({ tagIds })} />
               <div className="grid gap-2 sm:grid-cols-2">
-                <Toggle on={c.isActive} onChange={(isActive) => ctx.setCore({ isActive })} title="Chalu" hint="Band ho to POS par nahi dikhti" />
-                <Toggle on={c.isFeatured} onChange={(isFeatured) => ctx.setCore({ isFeatured })} title="Khaas" hint="POS aur store mein upar dikhti hai" />
-                <Toggle on={c.isRawMaterial} onChange={(isRawMaterial) => ctx.setCore({ isRawMaterial })} title="Raw material (kacha maal)" hint="Sirf purchase aur banane me — POS par nahi bikti" />
+                <Toggle on={c.isActive} onChange={(isActive) => ctx.setCore({ isActive })} title={tr('Chalu')} hint={tr('Band ho to POS par nahi dikhti')} />
+                <Toggle on={c.isFeatured} onChange={(isFeatured) => ctx.setCore({ isFeatured })} title={tr('Khaas')} hint={tr('POS aur store mein upar dikhti hai')} />
+                <Toggle on={c.isRawMaterial} onChange={(isRawMaterial) => ctx.setCore({ isRawMaterial })} title={tr('Raw material (kacha maal)')} hint={tr('Sirf purchase aur banane me — POS par nahi bikti')} />
               </div>
               {opts.after?.(ctx)}
             </div>
@@ -85,9 +86,9 @@ const PACK_PRESETS: Array<{ name: string; rate: number; type: UnitDraft['convers
 /** Switch for saved packs and variants: they are turned off, never deleted. */
 function OnOff({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
-    <button type="button" onClick={() => onChange(!on)} title={on ? 'Band karein — POS par nahi aayega, history rahegi' : 'Chalu karein'}
+    <button type="button" onClick={() => onChange(!on)} title={on ? tr('Band karein — POS par nahi aayega, history rahegi') : tr('Chalu karein')}
       className={cn('inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1', on ? 'bg-success-50 text-success-700 ring-success-200' : 'bg-slate-100 text-slate-500 ring-slate-200')}>
-      {on ? 'Chalu' : 'Band'}
+      {on ? tr('Chalu') : tr('Band')}
     </button>
   );
 }
@@ -108,7 +109,7 @@ function MarginPill({ price, cost }: { price: number | null | undefined; cost: n
   return (
     <span className={cn('shrink-0 rounded-full px-1.5 py-px text-[0.6875rem] font-semibold tabular-nums',
       m < 0 ? 'bg-rose-50 text-rose-700' : m < 10 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>
-      Margin {m.toFixed(1)}%
+      {tr('Margin {{value}}%', { value: m.toFixed(1) })}
     </span>
   );
 }
@@ -134,15 +135,15 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
   };
   const update = (i: number, patch: Partial<UnitDraft>) => set(units.map((u, x) => (x === i ? { ...u, ...patch } : u)));
   return (
-    <Section icon={Boxes} title="Packing (darjan, dabba, carton)" hint="Ek cheez kai tarah bikti ho to — POS par har packing ka apna rate aur barcode. Save hui packing band hoti hai, mitti nahi."
-      actions={units.length > 0 && units.every((u) => !u.id) ? <button type="button" onClick={() => set([])} className="text-[0.75rem] font-semibold text-rose-700 hover:underline">Sab hatayein</button> : undefined}>
+    <Section icon={Boxes} title={tr('Packing (darjan, dabba, carton)')} hint={tr('Ek cheez kai tarah bikti ho to — POS par har packing ka apna rate aur barcode. Save hui packing band hoti hai, mitti nahi.')}
+      actions={units.length > 0 && units.every((u) => !u.id) ? <button type="button" onClick={() => set([])} className="text-[0.75rem] font-semibold text-rose-700 hover:underline">{tr('Sab hatayein')}</button> : undefined}>
       <div className="flex flex-wrap gap-1.5">
         {PACK_PRESETS.filter((p) => !units.some((u) => u.unitName === p.name)).map((p) => (
           <button key={p.name} type="button" onClick={() => add(p.name, p.rate, p.type)} className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-100 px-3 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200">
             <Plus className="h-3.5 w-3.5" />{p.name}
           </button>
         ))}
-        <button type="button" onClick={() => add('Nayi packing', 2, 'CUSTOM')} className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-3.5 w-3.5" />Apni</button>
+        <button type="button" onClick={() => add(tr('Nayi packing'), 2, 'CUSTOM')} className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-3.5 w-3.5" />{tr('Apni')}</button>
       </div>
       {units.length > 0 && (
         <div className="mt-4 space-y-2">
@@ -152,47 +153,47 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
             return (
               <div key={u.id ?? i} className={cn('rounded-xl border p-3', u.isBase ? 'border-brand-200 bg-brand-50/40' : 'border-slate-200', !u.isActive && 'opacity-60')}>
                 <div className="grid gap-2 sm:grid-cols-[1.4fr_0.8fr_1fr_1fr_1fr_auto] sm:items-end">
-                  <label className="text-[0.75rem] font-medium text-slate-500">Naam
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Naam')}
                     <input value={u.unitName} disabled={u.isBase} onChange={(e) => update(i, { unitName: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} />
                   </label>
-                  <label className="text-[0.75rem] font-medium text-slate-500">Kitne {c.unit}
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Kitne {{unit}}', { unit: c.unit })}
                     <input inputMode="decimal" value={u.conversionRate || ''} disabled={u.isBase} onChange={(e) => update(i, { conversionRate: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
                   </label>
-                  <label className="text-[0.75rem] font-medium text-slate-500">Rate
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Rate')}
                     <input inputMode="decimal" value={u.price || ''} onChange={(e) => update(i, { price: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
                   </label>
-                  <label className="text-[0.75rem] font-medium text-slate-500">Cost
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Cost')}
                     <input inputMode="decimal" value={u.costPrice || ''} onChange={(e) => update(i, { costPrice: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
                   </label>
-                  <label className="text-[0.75rem] font-medium text-slate-500">Barcode
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Barcode')}
                     <input value={u.barcode} onChange={(e) => update(i, { barcode: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} />
                   </label>
                   {u.isBase ? <span className="hidden h-10 w-10 sm:block" />
                     : u.id ? <OnOff on={u.isActive} onChange={(isActive) => update(i, { isActive })} />
-                      : <button type="button" onClick={() => set(units.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                      : <button type="button" onClick={() => set(units.filter((_, x) => x !== i))} aria-label={tr('Hatayein')} className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
                 </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-[1.4fr_0.8fr_1fr_1fr_1fr_auto] sm:items-end">
                   <span className="hidden sm:block" />
                   <span className="hidden sm:block" />
-                  <label className="text-[0.75rem] font-medium text-slate-500">Wholesale
-                    <input inputMode="decimal" value={u.wholesalePrice ?? ''} placeholder={u.price ? String(u.price) : 'Retail'} onChange={(e) => update(i, { wholesalePrice: optionalAmount(e.target.value) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Wholesale')}
+                    <input inputMode="decimal" value={u.wholesalePrice ?? ''} placeholder={u.price ? String(u.price) : tr('Retail')} onChange={(e) => update(i, { wholesalePrice: optionalAmount(e.target.value) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
                   </label>
-                  <label className="text-[0.75rem] font-medium text-slate-500">Credit (udhaar)
-                    <input inputMode="decimal" value={u.creditPrice ?? ''} placeholder={u.price ? String(u.price) : 'Retail'} onChange={(e) => update(i, { creditPrice: optionalAmount(e.target.value) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
+                  <label className="text-[0.75rem] font-medium text-slate-500">{tr('Credit (udhaar)')}
+                    <input inputMode="decimal" value={u.creditPrice ?? ''} placeholder={u.price ? String(u.price) : tr('Retail')} onChange={(e) => update(i, { creditPrice: optionalAmount(e.target.value) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />
                   </label>
                   <span className="hidden sm:block" />
                   <span className="hidden w-10 sm:block" />
                 </div>
                 {belowCost(u.wholesalePrice, u.costPrice) || belowCost(u.creditPrice, u.costPrice) ? (
                   <p className="mt-1.5 text-[0.75rem] font-medium text-amber-700">
-                    {[belowCost(u.wholesalePrice, u.costPrice) && 'Wholesale', belowCost(u.creditPrice, u.costPrice) && 'Credit'].filter(Boolean).join(' aur ')} price Cost se kam hai — is rate par loss hoga
+                    {tr('{{value}} price Cost se kam hai — is rate par loss hoga', { value: [belowCost(u.wholesalePrice, u.costPrice) && 'Wholesale', belowCost(u.creditPrice, u.costPrice) && 'Credit'].filter(Boolean).join(' aur ') })}
                   </p>
                 ) : null}
                 {!u.isBase && (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
-                    <span>Fi {c.unit}: <strong className="tabular-nums text-slate-700">{formatPKR(perPiece)}</strong></span>
-                    {saving > 0.5 && <span className="rounded-full bg-success-50 px-2 py-0.5 font-semibold text-success-700">{saving.toFixed(0)}% sasta</span>}
-                    <span className="ml-auto">Discount:</span>
+                    <span>{tr('Fi {{unit}}:', { unit: c.unit })}{' '} <strong className="tabular-nums text-slate-700">{formatPKR(perPiece)}</strong></span>
+                    {saving > 0.5 && <span className="rounded-full bg-success-50 px-2 py-0.5 font-semibold text-success-700">{tr('{{value}}% sasta', { value: saving.toFixed(0) })}</span>}
+                    <span className="ms-auto">{tr('Discount:')}</span>
                     {[0, 3, 5, 8, 10].map((d) => (
                       <button key={d} type="button" onClick={() => update(i, { price: Math.round(c.price * u.conversionRate * (1 - d / 100)) })}
                         className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-700 hover:bg-slate-200">{d}%</button>
@@ -211,43 +212,43 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
 export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZeroPrice?: boolean } = {}): StepDef<X> {
   const markups = core.markups ?? [10, 15, 20, 25, 30, 50];
   return {
-    id: 'price', title: 'Qeemat', hint: 'Cost, rate, profit', icon: Wallet,
+    id: 'price', title: tr('Qeemat'), hint: tr('Cost, rate, profit'), icon: Wallet,
     validate: (d) => {
       const e: Errors = {};
-      if (!opts.allowZeroPrice && !(d.core.price > 0)) e.price = 'Bechne ki qeemat likhein';
-      if (d.core.costPrice < 0) e.costPrice = 'Cost ulti nahi ho sakti';
+      if (!opts.allowZeroPrice && !(d.core.price > 0)) e.price = tr('Bechne ki qeemat likhein');
+      if (d.core.costPrice < 0) e.costPrice = tr('Cost ulti nahi ho sakti');
       d.core.units.forEach((u, i) => {
-        if (!u.unitName.trim()) e[`unit${i}`] = 'Packing ka naam likhein';
-        if (!(u.conversionRate > 0)) e[`unit${i}`] = `${u.unitName || 'Packing'}: kitne aate hain likhein`;
+        if (!u.unitName.trim()) e[`unit${i}`] = tr('Packing ka naam likhein');
+        if (!(u.conversionRate > 0)) e[`unit${i}`] = tr('{{value}}: kitne aate hain likhein', { value: u.unitName || 'Packing' });
       });
       const codes = d.core.units.map((u) => u.barcode.trim()).filter(Boolean);
-      if (new Set(codes).size !== codes.length) e.units = 'Do packing ka barcode ek jaisa hai';
+      if (new Set(codes).size !== codes.length) e.units = tr('Do packing ka barcode ek jaisa hai');
       return e;
     },
     render: (ctx) => {
       const c = ctx.draft.core;
       return (
         <div className="space-y-4">
-          <Section icon={Wallet} title={`Ek ${c.unit} ki qeemat`} hint="Cost likhein to profit khud nikal aata hai">
+          <Section icon={Wallet} title={tr('Ek {{unit}} ki qeemat', { unit: c.unit })} hint={tr('Cost likhein to profit khud nikal aata hai')}>
             {/* The profit card sits beside the prices only when the step is wide enough for both. */}
             <div className="grid gap-4 min-[1800px]:grid-cols-[1fr_18rem]">
               <div className="min-w-0 space-y-4">
                 {/* Cost, Retail, Wholesale and Credit as one 2 x 2 grid; labels stay on one line so the boxes line up. */}
                 <div className="grid items-start gap-x-3 gap-y-4 sm:grid-cols-2">
                   <NumberField label={COST_PRICE_LABEL} prefix="Rs" value={c.costPrice} onChange={(v) => ctx.setCore({ costPrice: v ?? 0 })} allowEmpty error={ctx.errors.costPrice}
-                    hint="Ek unit company se kitne ki aati hai" />
+                    hint={tr('Ek unit company se kitne ki aati hai')} />
                   <NumberField label={PRICE_TIER_FIELD.RETAIL} prefix="Rs" required value={c.price} onChange={(v) => ctx.setCore({ price: v ?? 0 })} onBlur={() => ctx.touch('price')} allowEmpty error={ctx.errors.price}
-                    hint={<PriceHint price={c.price} cost={c.costPrice}>Aam grahak ka rate</PriceHint>} />
+                    hint={<PriceHint price={c.price} cost={c.costPrice}>{tr('Aam grahak ka rate')}</PriceHint>} />
                   <NumberField label={PRICE_TIER_FIELD.WHOLESALE} prefix="Rs" value={c.wholesalePrice} allowEmpty
-                    onChange={(v) => ctx.setCore({ wholesalePrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
-                    hint={<PriceHint price={c.wholesalePrice} cost={c.costPrice}>Dukandar ka rate · khaali ho to Retail</PriceHint>} />
+                    onChange={(v) => ctx.setCore({ wholesalePrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : tr('Retail')}
+                    hint={<PriceHint price={c.wholesalePrice} cost={c.costPrice}>{tr('Dukandar ka rate · khaali ho to Retail')}</PriceHint>} />
                   <NumberField label={PRICE_TIER_FIELD.CREDIT} prefix="Rs" value={c.creditPrice} allowEmpty
-                    onChange={(v) => ctx.setCore({ creditPrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
-                    hint={<PriceHint price={c.creditPrice} cost={c.costPrice}>Udhaar ka rate · khaali ho to Retail</PriceHint>} />
+                    onChange={(v) => ctx.setCore({ creditPrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : tr('Retail')}
+                    hint={<PriceHint price={c.creditPrice} cost={c.costPrice}>{tr('Udhaar ka rate · khaali ho to Retail')}</PriceHint>} />
                 </div>
                 {c.costPrice > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
-                    <span className="mr-1">Cost par profit jorein:</span>
+                    <span className="me-1">{tr('Cost par profit jorein:')}</span>
                     {markups.map((m) => {
                       const p = Math.round(c.costPrice * (1 + m / 100));
                       return <Chip key={m} on={c.price === p} onClick={() => ctx.setCore({ price: p })}>+{m}% · {p}</Chip>;
@@ -257,11 +258,11 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
                 <PriceCalcButton productId={ctx.productId} name={c.name} cost={c.costPrice} onUse={(price) => ctx.setCore({ price })} />
                 {(belowCost(c.wholesalePrice, c.costPrice) || belowCost(c.creditPrice, c.costPrice)) && (
                   <Alert tone="warning">
-                    {[belowCost(c.wholesalePrice, c.costPrice) && 'Wholesale price', belowCost(c.creditPrice, c.costPrice) && 'Credit price'].filter(Boolean).join(' aur ')} Cost ({formatPKR(c.costPrice)}) se kam hai — is rate par har sale par loss hoga.
+                    {tr('{{value}} Cost ({{costPrice}}) se kam hai — is rate par har sale par loss hoga.', { value: [belowCost(c.wholesalePrice, c.costPrice) && 'Wholesale price', belowCost(c.creditPrice, c.costPrice) && 'Credit price'].filter(Boolean).join(' aur '), costPrice: formatPKR(c.costPrice) })}
                   </Alert>
                 )}
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <NumberField label="Tax" suffix="%" value={c.taxRate} allowEmpty onChange={(v) => ctx.setCore({ taxRate: v ?? 0 })} hint="Agar bill par tax lagta hai" />
+                  <NumberField label={tr('Tax')} suffix="%" value={c.taxRate} allowEmpty onChange={(v) => ctx.setCore({ taxRate: v ?? 0 })} hint={tr('Agar bill par tax lagta hai')} />
                 </div>
                 {opts.extra?.(ctx)}
               </div>
@@ -285,8 +286,8 @@ function PriceCalcButton({ productId, name, cost, onUse }: { productId?: string;
     <>
       <button type="button" onClick={() => setOpen(true)}
         className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-[0.8125rem] font-semibold text-brand-800 ring-1 ring-brand-200 transition hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-        <BadgePercent className="h-4 w-4" /> Price nikalein
-        <span className="font-normal text-brand-700/80">— courier, COD, Daraz fees, ads ke baad</span>
+        <BadgePercent className="h-4 w-4" /> {' '}{tr('Price nikalein')}
+        <span className="font-normal text-brand-700/80">{tr('— courier, COD, Daraz fees, ads ke baad')}</span>
       </button>
       {open && <PriceCalculatorModal productId={productId} name={name} cost={cost} onUse={onUse} onClose={() => setOpen(false)} />}
     </>
@@ -311,29 +312,29 @@ function VariantsEditor<X>({ ctx, presets }: { ctx: StepContext<X>; presets: Arr
           {p.values.map((v) => <Chip key={v} on={c.variants.some((x) => x.name === v)} onClick={() => (c.variants.some((x) => x.name === v) ? set(c.variants.filter((x) => x.name !== v || x.id)) : add(v))}>{v}</Chip>)}
         </div>
       ))}
-      <input placeholder="Apna variant likh kar Enter dabayein (jaise: Laal 128GB)" className={cn(inputClass, 'h-10 text-[0.875rem]')}
+      <input placeholder={tr('Apna variant likh kar Enter dabayein (jaise: Laal 128GB)')} className={cn(inputClass, 'h-10 text-[0.875rem]')}
         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(e.currentTarget.value); e.currentTarget.value = ''; } }} />
       {c.variants.length > 0 && (
         <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
           <Table minWidth="40rem" className="[&>table]:text-[0.8125rem]">
-            <THead><Tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <Th className="px-3 py-2">Variant</Th><Th className="px-2 py-2">Stock</Th><Th className="px-2 py-2">Rate</Th><Th className="px-2 py-2">SKU</Th><Th className="px-2 py-2">Barcode</Th><Th className="px-2 py-2">Rang</Th><Th className="p-0" />
+            <THead><Tr className="bg-slate-50 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+              <Th className="px-3 py-2">{tr('Variant')}</Th><Th className="px-2 py-2">{tr('Stock')}</Th><Th className="px-2 py-2">{tr('Rate')}</Th><Th className="px-2 py-2">{tr('SKU')}</Th><Th className="px-2 py-2">{tr('Barcode')}</Th><Th className="px-2 py-2">{tr('Rang')}</Th><Th className="p-0" />
             </Tr></THead>
             <TBody className="divide-y divide-slate-100">
               {c.variants.map((v, i) => (
                 <Tr key={v.id ?? i} className={cn(!v.isActive && 'opacity-60')}>
                   <Td className="text-inherit px-3 py-1.5"><input value={v.name} onChange={(e) => update(i, { name: e.target.value })} className={cn(inputClass, 'h-9 text-[0.8125rem]')} /></Td>
                   <Td className="text-inherit px-2 py-1.5">
-                    {v.id ? <span className="block w-20 text-center tabular-nums text-slate-600" title="Stock Adjustment ya Purchase se badlega">{fmt(v.stock)}</span>
+                    {v.id ? <span className="block w-20 text-center tabular-nums text-slate-600" title={tr('Stock Adjustment ya Purchase se badlega')}>{fmt(v.stock)}</span>
                       : <input inputMode="decimal" value={v.stock || ''} placeholder="0" onChange={(e) => update(i, { stock: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'h-9 w-20 text-[0.8125rem] tabular-nums')} />}
                   </Td>
                   <Td className="text-inherit px-2 py-1.5"><input inputMode="decimal" value={v.price ?? ''} placeholder={String(c.price || '')} onChange={(e) => update(i, { price: e.target.value === '' ? null : Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'h-9 w-24 text-[0.8125rem] tabular-nums')} /></Td>
                   <Td className="text-inherit px-2 py-1.5"><input value={v.sku} onChange={(e) => update(i, { sku: e.target.value })} className={cn(inputClass, 'h-9 w-28 text-[0.8125rem]')} /></Td>
                   <Td className="text-inherit px-2 py-1.5"><input value={v.barcode} onChange={(e) => update(i, { barcode: e.target.value })} className={cn(inputClass, 'h-9 w-32 text-[0.8125rem]')} /></Td>
-                  <Td className="text-inherit px-2 py-1.5"><input type="color" value={v.colorHex || '#94a3b8'} onChange={(e) => update(i, { colorHex: e.target.value })} className="h-9 w-10 cursor-pointer rounded-lg border border-slate-200 bg-white p-1" aria-label="Rang" /></Td>
+                  <Td className="text-inherit px-2 py-1.5"><input type="color" value={v.colorHex || '#94a3b8'} onChange={(e) => update(i, { colorHex: e.target.value })} className="h-9 w-10 cursor-pointer rounded-lg border border-slate-200 bg-white p-1" aria-label={tr('Rang')} /></Td>
                   <Td className="text-inherit px-2 py-1.5">
                     {v.id ? <OnOff on={v.isActive} onChange={(isActive) => update(i, { isActive })} />
-                      : <button type="button" onClick={() => set(c.variants.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+                      : <button type="button" onClick={() => set(c.variants.filter((_, x) => x !== i))} aria-label={tr('Hatayein')} className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
                   </Td>
                 </Tr>
               ))}
@@ -357,24 +358,24 @@ function BatchesEditor<X>({ ctx }: { ctx: StepContext<X> }) {
         const tone = b.expiryDate && b.expiryDate < today ? 'border-rose-300 bg-rose-50/50' : b.expiryDate && b.expiryDate <= soon ? 'border-amber-300 bg-amber-50/50' : 'border-slate-200';
         return (
           <div key={b.id ?? i} className={cn('grid gap-2 rounded-xl border p-3 sm:grid-cols-[1fr_1fr_1fr_0.8fr_0.8fr_auto] sm:items-end', tone)}>
-            <label className="text-[0.75rem] font-medium text-slate-500">Batch number<input value={b.batchNumber} onChange={(e) => update(i, { batchNumber: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
-            <label className="text-[0.75rem] font-medium text-slate-500">Bani<input type="date" value={b.manufactureDate} onChange={(e) => update(i, { manufactureDate: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
-            <label className="text-[0.75rem] font-medium text-slate-500">Expiry<input type="date" value={b.expiryDate} onChange={(e) => update(i, { expiryDate: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
-            <label className="text-[0.75rem] font-medium text-slate-500">Kitna
+            <label className="text-[0.75rem] font-medium text-slate-500">{tr('Batch number')}<input value={b.batchNumber} onChange={(e) => update(i, { batchNumber: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
+            <label className="text-[0.75rem] font-medium text-slate-500">{tr('Bani')}<input type="date" value={b.manufactureDate} onChange={(e) => update(i, { manufactureDate: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
+            <label className="text-[0.75rem] font-medium text-slate-500">{tr('Expiry')}<input type="date" value={b.expiryDate} onChange={(e) => update(i, { expiryDate: e.target.value })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem]')} /></label>
+            <label className="text-[0.75rem] font-medium text-slate-500">{tr('Kitna')}
               {b.id ? <span className="mt-1 flex h-10 items-center px-1 tabular-nums text-slate-700">{fmt(b.quantity)}</span>
                 : <input inputMode="decimal" value={b.quantity || ''} onChange={(e) => update(i, { quantity: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} />}
             </label>
-            <label className="text-[0.75rem] font-medium text-slate-500">Cost<input inputMode="decimal" value={b.costPrice || ''} onChange={(e) => update(i, { costPrice: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} /></label>
+            <label className="text-[0.75rem] font-medium text-slate-500">{tr('Cost')}<input inputMode="decimal" value={b.costPrice || ''} onChange={(e) => update(i, { costPrice: Number(e.target.value.replace(/[^\d.]/g, '')) })} className={cn(inputClass, 'mt-1 h-10 text-[0.875rem] tabular-nums')} /></label>
             {b.id ? <span className="hidden h-10 w-10 sm:block" />
-              : <button type="button" onClick={() => set(c.batches.filter((_, x) => x !== i))} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+              : <button type="button" onClick={() => set(c.batches.filter((_, x) => x !== i))} aria-label={tr('Hatayein')} className="flex h-10 w-10 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
           </div>
         );
       })}
       {ctx.isEdit ? (
-        <p className="text-[0.75rem] text-slate-500">{c.batches.length ? 'Batch number, date aur cost yahan theek kar sakte hain. ' : ''}Naya batch Purchase ke saath aata hai — wahan batch number aur expiry likhein.</p>
+        <p className="text-[0.75rem] text-slate-500">{tr('{{value}}Naya batch Purchase ke saath aata hai — wahan batch number aur expiry likhein.', { value: c.batches.length ? tr('Batch number, date aur cost yahan theek kar sakte hain. ') : '' })}</p>
       ) : (
         <button type="button" onClick={() => set([...c.batches, { batchNumber: `B-${String(c.batches.length + 1).padStart(3, '0')}`, manufactureDate: '', expiryDate: '', quantity: 0, costPrice: c.costPrice, notes: '' }])}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />Batch jorein</button>
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />{tr('Batch jorein')}</button>
       )}
     </div>
   );
@@ -387,13 +388,13 @@ function StockLocked({ stock, unit, productId }: { stock: number; unit: string; 
   const link = 'inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50';
   return (
     <div className="rounded-2xl bg-slate-50 p-4">
-      <p className="text-[0.75rem] font-medium text-slate-500">Is branch mein</p>
+      <p className="text-[0.75rem] font-medium text-slate-500">{tr('Is branch mein')}</p>
       <p className="text-[1.75rem] font-bold tabular-nums text-slate-900">{fmt(stock)} <span className="text-[0.875rem] font-medium text-slate-500">{unit}</span></p>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {canAdjust && <Link to="/stock-adjustments" className={link}><ClipboardList className="h-3.5 w-3.5" />Adjustments</Link>}
-        {canBuy && <Link to="/purchases/new" className={link}><Plus className="h-3.5 w-3.5" />Purchase</Link>}
+        {canAdjust && <Link to="/stock-adjustments" className={link}><ClipboardList className="h-3.5 w-3.5" />{tr('Adjustments')}</Link>}
+        {canBuy && <Link to="/purchases/new" className={link}><Plus className="h-3.5 w-3.5" />{tr('Purchase')}</Link>}
       </div>
-      {productId && canAdjust && <p className="mt-2 text-[0.75rem] text-slate-500">Ya product ke safhe par "Stock" button dabayein.</p>}
+      {productId && canAdjust && <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Ya product ke safhe par "Stock" button dabayein.')}</p>}
     </div>
   );
 }
@@ -401,19 +402,19 @@ function StockLocked({ stock, unit, productId }: { stock: number; unit: string; 
 export function stockStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; title?: string; quick?: number[] } = {}): StepDef<X> {
   const quick = opts.quick ?? [10, 25, 50, 100, 200, 500];
   return {
-    id: 'stock', title: opts.title ?? 'Stock', hint: 'Kitna maal hai', icon: Layers,
+    id: 'stock', title: opts.title ?? tr('Stock'), hint: tr('Kitna maal hai'), icon: Layers,
     validate: (d) => {
       const e: Errors = {};
       const names = d.core.variants.map((v) => v.name.trim().toLowerCase());
-      if (names.some((n) => !n)) e.variants = 'Har variant ka naam likhein';
-      else if (new Set(names).size !== names.length) e.variants = 'Do variants ka naam ek jaisa hai';
+      if (names.some((n) => !n)) e.variants = tr('Har variant ka naam likhein');
+      else if (new Set(names).size !== names.length) e.variants = tr('Do variants ka naam ek jaisa hai');
       const codes = d.core.variants.map((v) => v.barcode.trim()).filter(Boolean);
-      if (new Set(codes).size !== codes.length) e.variants = 'Do variants ka barcode ek jaisa hai';
+      if (new Set(codes).size !== codes.length) e.variants = tr('Do variants ka barcode ek jaisa hai');
       d.core.batches.forEach((b, i) => {
-        if (!b.batchNumber.trim()) e[`batch${i}`] = 'Batch number likhein';
-        else if (!b.id && !(b.quantity > 0)) e[`batch${i}`] = `${b.batchNumber}: kitna maal likhein`;
+        if (!b.batchNumber.trim()) e[`batch${i}`] = tr('Batch number likhein');
+        else if (!b.id && !(b.quantity > 0)) e[`batch${i}`] = tr('{{batchNumber}}: kitna maal likhein', { batchNumber: b.batchNumber });
       });
-      if (d.core.lowStockAlert < 0) e.lowStockAlert = 'Had ulti nahi ho sakti';
+      if (d.core.lowStockAlert < 0) e.lowStockAlert = tr('Had ulti nahi ho sakti');
       return e;
     },
     render: (ctx) => {
@@ -423,49 +424,49 @@ export function stockStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; title?:
       return (
         <div className="space-y-4">
           {ctx.isEdit ? (
-            <Section icon={Lock} title="Abhi ka stock" hint="Edit karne se stock nahi badalta — Adjustment ya Purchase se badlein, taake har badlao ka record rahe">
+            <Section icon={Lock} title={tr('Abhi ka stock')} hint={tr('Edit karne se stock nahi badalta — Adjustment ya Purchase se badlein, taake har badlao ka record rahe')}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <StockLocked stock={c.stock} unit={c.unit} productId={ctx.productId} />
-                <NumberField label="Kam stock ki had" value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
-                  hint={`Itna ya kam bachne par "Kam" ki patti lagegi`} suffix={c.unit} />
+                <NumberField label={tr('Kam stock ki had')} value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
+                  hint={tr('Itna ya kam bachne par "Kam" ki patti lagegi')} suffix={c.unit} />
               </div>
             </Section>
           ) : (
-            <Section icon={Layers} title="Shuru ka stock" hint="Sirf pehli dafa — baad mein stock Adjustment ya Purchase se badlega">
+            <Section icon={Layers} title={tr('Shuru ka stock')} hint={tr('Sirf pehli dafa — baad mein stock Adjustment ya Purchase se badlega')}>
               <div className="grid gap-4 sm:grid-cols-2">
                 {!simple ? (
                   <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="text-[0.75rem] font-medium text-slate-500">Variants / batches se</p>
+                    <p className="text-[0.75rem] font-medium text-slate-500">{tr('Variants / batches se')}</p>
                     <p className="text-[1.75rem] font-bold tabular-nums text-slate-900">{fmt(openingStock(c))} <span className="text-[0.875rem] font-medium text-slate-500">{c.unit}</span></p>
-                    <p className="text-[0.75rem] text-slate-500">Neeche har variant ya batch ka stock likhein</p>
+                    <p className="text-[0.75rem] text-slate-500">{tr('Neeche har variant ya batch ka stock likhein')}</p>
                   </div>
                 ) : (
                   <div>
-                    <NumberField label={`Kitna ${c.unit}`} big value={c.stock} allowEmpty onChange={(v) => ctx.setCore({ stock: v ?? 0 })} hint="Abhi shelf par kitna hai — khali chhorein to 0" />
+                    <NumberField label={tr('Kitna {{unit}}', { unit: c.unit })} big value={c.stock} allowEmpty onChange={(v) => ctx.setCore({ stock: v ?? 0 })} hint={tr('Abhi shelf par kitna hai — khali chhorein to 0')} />
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {quick.map((q) => <button key={q} type="button" onClick={() => ctx.setCore({ stock: (Number(c.stock) || 0) + q })} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">+{q}</button>)}
-                      {c.stock > 0 && <button type="button" onClick={() => ctx.setCore({ stock: 0 })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-rose-700 hover:bg-rose-50">Saaf</button>}
+                      {c.stock > 0 && <button type="button" onClick={() => ctx.setCore({ stock: 0 })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-rose-700 hover:bg-rose-50">{tr('Saaf')}</button>}
                     </div>
                   </div>
                 )}
-                <NumberField label="Kam stock ki had" value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
-                  hint={`Itna ya kam bachne par "Kam" ki patti lagegi`} suffix={c.unit} />
+                <NumberField label={tr('Kam stock ki had')} value={c.lowStockAlert} allowEmpty onChange={(v) => ctx.setCore({ lowStockAlert: v ?? 0 })} error={ctx.errors.lowStockAlert}
+                  hint={tr('Itna ya kam bachne par "Kam" ki patti lagegi')} suffix={c.unit} />
               </div>
               {c.price > 0 && openingStock(c) > 0 && (
                 <p className="mt-3 text-[0.8125rem] text-slate-600">
-                  Is stock ki value: <strong className="tabular-nums">{formatPKR(openingStock(c) * c.costPrice)}</strong> cost · <strong className="tabular-nums">{formatPKR(openingStock(c) * c.price)}</strong> bechne par
+                  <Trans text="Is stock ki value: {{cost}} cost · {{sale}} bechne par" values={{ cost: <strong className="tabular-nums">{formatPKR(openingStock(c) * c.costPrice)}</strong>, sale: <strong className="tabular-nums">{formatPKR(openingStock(c) * c.price)}</strong> }} />
                 </p>
               )}
             </Section>
           )}
           {core.variants && (
-            <Section icon={Boxes} title="Variants (size, rang, flavour)" hint={ctx.isEdit ? "Naye variant ka shuru ka stock record ke saath judta hai; purane variant band hote hain, mitte nahi" : "Ek hi cheez ke alag size, rang ya flavour — har ek ka apna stock aur rate"}>
+            <Section icon={Boxes} title={tr('Variants (size, rang, flavour)')} hint={ctx.isEdit ? tr('Naye variant ka shuru ka stock record ke saath judta hai; purane variant band hote hain, mitte nahi') : tr('Ek hi cheez ke alag size, rang ya flavour — har ek ka apna stock aur rate')}>
               <VariantsEditor ctx={ctx} presets={core.variants.presets} />
               {ctx.errors.variants && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{ctx.errors.variants}</p>}
             </Section>
           )}
           {core.batches && (
-            <Section icon={CalendarClock} title="Batch aur expiry" hint="Dawai, khane ki cheezein — jo pehle expire ho woh pehle bechein">
+            <Section icon={CalendarClock} title={tr('Batch aur expiry')} hint={tr('Dawai, khane ki cheezein — jo pehle expire ho woh pehle bechein')}>
               <BatchesEditor ctx={ctx} />
               {batchErr && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{batchErr}</p>}
             </Section>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function CodeBlock({
   code,
@@ -29,8 +30,8 @@ export function CodeBlock({
       <button
         type="button"
         onClick={copy}
-        className="absolute top-2 right-2 z-10 h-7 w-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 flex items-center justify-center transition opacity-0 group-hover:opacity-100"
-        title="Copy"
+        className="absolute top-2 end-2 z-10 h-7 w-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 flex items-center justify-center transition opacity-0 group-hover:opacity-100"
+        title={t('Copy')}
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-emerald-400" />
@@ -88,7 +89,7 @@ export function CopyField({
             onClick={() => setRevealed(!revealed)}
             className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-[0.6875rem] font-extrabold text-slate-600 shrink-0"
           >
-            {revealed ? 'HIDE' : 'SHOW'}
+            {revealed ? t('HIDE') : t('SHOW')}
           </button>
         )}
         <button

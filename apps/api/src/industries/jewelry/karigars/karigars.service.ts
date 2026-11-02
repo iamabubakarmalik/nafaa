@@ -13,6 +13,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { toPaymentMethod } from '../../_shared/industry-sale.helper';
 import { issueToKarigar, receiveFromKarigar } from '../common/karigar-metal';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const FIELDS = ['fullName', 'fatherName', 'cnic', 'phone', 'address', 'photoUrl', 'specializations', 'skillLevel', 'isActive', 'isInHouse', 'notes'] as const;
 const pick = (dto: any) => Object.fromEntries(FIELDS.filter((k) => dto?.[k] !== undefined).map((k) => [k, dto[k] === '' ? null : dto[k]]));
@@ -159,7 +160,7 @@ export class KarigarsService {
     if (!(amount > 0)) throw new BadRequestException('Mazdoori ki amount likhein');
     const due = r2(k.totalEarnings - k.paidLabour);
     if (amount > due + 0.01) {
-      throw new BadRequestException(due > 0 ? `${k.fullName} ki baqi mazdoori sirf Rs ${due} hai` : `${k.fullName} ki koi mazdoori baqi nahi — pehle kaam ki mazdoori likhein`);
+      throw new BadRequestException(due > 0 ? apiMessage('{{fullName}} ki baqi mazdoori sirf Rs {{due}} hai', { fullName: k.fullName, due }) : apiMessage('{{fullName}} ki koi mazdoori baqi nahi — pehle kaam ki mazdoori likhein', { fullName: k.fullName }));
     }
     const expense = await this.expenses.create(user, scope, {
       title: `Karigar mazdoori ${labourTag(k.karigarNumber)}: ${k.fullName}`.slice(0, 120),
@@ -212,7 +213,7 @@ export class KarigarsService {
 
   async remove(user: AuthenticatedUser, id: string) {
     const k = await this.getOne(user, id);
-    if (k.outstandingGrams > 0.001) throw new BadRequestException(`${k.fullName} ke paas abhi ${k.outstandingGrams}g sona hai — pehle wapas lein`);
+    if (k.outstandingGrams > 0.001) throw new BadRequestException(apiMessage('{{fullName}} ke paas abhi {{outstandingGrams}}g sona hai — pehle wapas lein', { fullName: k.fullName, outstandingGrams: k.outstandingGrams }));
     return this.prisma.jewelryKarigar.update({ where: { id }, data: { isActive: false } });
   }
 

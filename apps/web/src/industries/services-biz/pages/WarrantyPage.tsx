@@ -24,15 +24,16 @@ import { usePermission } from '@core/hooks/usePermission';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { warrantyApi, type ClaimStatus, type Resolution, type WarrantyClaim, type WarrantyJob } from '../api/warranty.api';
 import { JOB_KEY, TONES, WARRANTY_KEY, apiError, dayOnly, daysTo, itemName } from '../components/meta';
+import { t } from '@core/i18n';
 
 type Tab = 'register' | 'claims';
 const CLAIM: Record<ClaimStatus, { label: string; tone: string }> = {
-  SUBMITTED: { label: 'Faisla baqi', tone: TONES.amber }, APPROVED: { label: 'Manzoor', tone: TONES.blue }, IN_PROGRESS: { label: 'Kaam chal raha', tone: TONES.violet },
-  RESOLVED: { label: 'Hal ho gaya', tone: TONES.green }, REJECTED: { label: 'Mana', tone: TONES.rose },
+  SUBMITTED: { label: t('Faisla baqi'), tone: TONES.amber }, APPROVED: { label: t('Manzoor'), tone: TONES.blue }, IN_PROGRESS: { label: t('Kaam chal raha'), tone: TONES.violet },
+  RESOLVED: { label: t('Hal ho gaya'), tone: TONES.green }, REJECTED: { label: t('Mana'), tone: TONES.rose },
 };
 const RESOLUTIONS: Array<{ value: Resolution; label: string }> = [
-  { value: 'REPAIR', label: 'Muft marammat (job banegi)' }, { value: 'REPLACE', label: 'Part badalna (job banegi)' },
-  { value: 'REFUND', label: 'Paisa wapas (Sales → Return)' }, { value: 'NO_FAULT', label: 'Koi kharabi nahi nikli' },
+  { value: 'REPAIR', label: t('Muft marammat (job banegi)') }, { value: 'REPLACE', label: t('Part badalna (job banegi)') },
+  { value: 'REFUND', label: t('Paisa wapas (Sales → Return)') }, { value: 'NO_FAULT', label: t('Koi kharabi nahi nikli') },
 ];
 
 export default function WarrantyPage() {
@@ -73,13 +74,13 @@ export default function WarrantyPage() {
   const refresh = () => [WARRANTY_KEY, JOB_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const create = useMutation({
     mutationFn: () => warrantyApi.create({ originalJobId: claimFor!.id, issueDescription: issue.trim() }),
-    onSuccess: (c) => { toast.success(`Claim ${c.claimNumber} darj`); refresh(); setClaimFor(null); setTab('claims'); },
-    onError: (e) => toast.error(apiError(e, 'Claim nahi bana')),
+    onSuccess: (c) => { toast.success(t('Claim {{claimNumber}} darj', { claimNumber: c.claimNumber })); refresh(); setClaimFor(null); setTab('claims'); },
+    onError: (e) => toast.error(apiError(e, t('Claim nahi bana'))),
   });
   const decide = useMutation({
     mutationFn: () => (deciding!.approve ? warrantyApi.approve(deciding!.claim.id, resolution, note.trim() || undefined) : warrantyApi.reject(deciding!.claim.id, note.trim())),
-    onSuccess: (c) => { toast.success(c.newJob ? `Manzoor — job ${c.newJob.jobNumber} ban gayi` : deciding!.approve ? 'Manzoor' : 'Mana kar diya'); refresh(); setDeciding(null); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (c) => { toast.success(c.newJob ? t('Manzoor — job {{jobNumber}} ban gayi', { jobNumber: c.newJob.jobNumber }) : deciding!.approve ? t('Manzoor') : t('Mana kar diya')); refresh(); setDeciding(null); },
+    onError: (e) => toast.error(apiError(e, t('Nahi hua'))),
   });
 
   useEffect(() => {
@@ -94,39 +95,39 @@ export default function WarrantyPage() {
   }, []);
 
   const exportCsv = () => (tab === 'register'
-    ? downloadCsv('warranty-register.csv', [['Job', 'Kaam', 'Customer', 'Phone', 'Cheez', 'Mukammal', 'Warranty (din)', 'Kab tak', 'Shartein'],
+    ? downloadCsv('warranty-register.csv', [[t('Job'), t('Kaam'), t('Customer'), t('Phone'), t('Cheez'), t('Mukammal'), t('Warranty (din)'), t('Kab tak'), t('Shartein')],
       ...regRows.map((j) => [j.jobNumber, j.serviceName, j.customerName ?? '', j.customerPhone ?? '', itemName(j), dayOnly(j.completedAt), j.jobWarrantyDays, dayOnly(j.jobWarrantyExpiryDate), j.jobWarrantyTerms ?? ''])])
-    : downloadCsv('warranty-claims.csv', [['Claim', 'Date', 'Customer', 'Phone', 'Shikayat', 'Asal job', 'Nayi job', 'Halat', 'Faisla', 'Cost'],
+    : downloadCsv('warranty-claims.csv', [[t('Claim'), t('Date'), t('Customer'), t('Phone'), t('Shikayat'), t('Asal job'), t('Nayi job'), t('Halat'), t('Faisla'), t('Cost')],
       ...claimRows.map((c) => [c.claimNumber, dayOnly(c.claimDate), c.customerName, c.customerPhone, c.issueDescription, c.originalJob?.jobNumber ?? '', c.newJob?.jobNumber ?? '', CLAIM[c.status].label, c.resolutionType ?? c.rejectionReason ?? '', c.costToCompany])]));
 
   return (
     <PageShell>
       <PageHero
-        title="Warranty"
-        chip={<><ShieldCheck /> Kaam ki warranty</>}
-        meta="Kis kaam ki warranty chal rahi hai, aur shikayat aaye to muft kaam ka hisaab"
+        title={t('Warranty')}
+        chip={<><ShieldCheck /> {' '}{t('Kaam ki warranty')}</>}
+        meta={t('Kis kaam ki warranty chal rahi hai, aur shikayat aaye to muft kaam ka hisaab')}
         loading={regQ.isLoading}
         actions={<>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setTab('register')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> Claim</button>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{t('CSV')}</span></button>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setTab('register')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Claim')}</button>}
         </>}
-        stats={[{ label: 'Warranty chal rahi', value: live.length }, { label: 'Khule claim', value: open.length }, { label: 'Warranty ka Cost', value: formatPKR(cost) }]}
+        stats={[{ label: t('Warranty chal rahi'), value: live.length }, { label: t('Khule claim'), value: open.length }, { label: t('Warranty ka Cost'), value: formatPKR(cost) }]}
       />
       <KpiRow cols={4}>
         {regQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ShieldCheck} color="#16a34a" label="Warranty chal rahi" value={live.length} onClick={() => setTab('register')} active={tab === 'register'} />
-          <KpiCard icon={ShieldAlert} color={soon.length ? '#d97706' : '#64748b'} label="7 din me khatam" value={soon.length} />
-          <KpiCard icon={ClipboardList} color={open.length ? '#7c3aed' : '#64748b'} label="Khule claim" value={open.length} onClick={() => setTab('claims')} active={tab === 'claims'} />
-          <KpiCard icon={XCircle} color="#e11d48" label="Warranty ka Cost" value={formatPKR(cost)} hint="Muft kaam me lage parts" />
+          <KpiCard icon={ShieldCheck} color="#16a34a" label={t('Warranty chal rahi')} value={live.length} onClick={() => setTab('register')} active={tab === 'register'} />
+          <KpiCard icon={ShieldAlert} color={soon.length ? '#d97706' : '#64748b'} label={t('7 din me khatam')} value={soon.length} />
+          <KpiCard icon={ClipboardList} color={open.length ? '#7c3aed' : '#64748b'} label={t('Khule claim')} value={open.length} onClick={() => setTab('claims')} active={tab === 'claims'} />
+          <KpiCard icon={XCircle} color="#e11d48" label={t('Warranty ka Cost')} value={formatPKR(cost)} hint={t('Muft kaam me lage parts')} />
         </>}
       </KpiRow>
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Job / claim #, customer, phone, serial…" label="Search" />} />
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>2</Kbd> tabs · <Kbd>/</Kbd> search</>}
-        tabs={[{ id: 'register', label: 'Register', icon: ListChecks, count: regRows.length }, { id: 'claims', label: 'Claims', icon: ClipboardList, count: claimRows.length }]} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Job / claim #, customer, phone, serial…')} label={t('Search')} />} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{t('tabs ·')}{' '} <Kbd>/</Kbd> {' '}{t('search')}</>}
+        tabs={[{ id: 'register', label: t('Register'), icon: ListChecks, count: regRows.length }, { id: 'claims', label: t('Claims'), icon: ClipboardList, count: claimRows.length }]} />
 
       {tab === 'register' ? (regQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !regRows.length ? (
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><ShieldCheck className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">Kisi job ki warranty nahi chal rahi</p><p className="mt-1 text-sm text-slate-500">Bill banate waqt warranty ke din likhein — job yahan aa jayegi.</p></div>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><ShieldCheck className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">{t('Kisi job ki warranty nahi chal rahi')}</p><p className="mt-1 text-sm text-slate-500">{t('Bill banate waqt warranty ke din likhein — job yahan aa jayegi.')}</p></div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           {regRows.map((j) => {
@@ -137,15 +138,15 @@ export default function WarrantyPage() {
                 <Link to={`/services-biz/jobs/${j.id}`} className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-slate-900">{j.serviceName} <span className="font-mono text-[0.6875rem] font-normal text-slate-400">{j.jobNumber}</span></span>
                   <span className="block truncate text-[0.8125rem] text-slate-600">{[j.customerName, j.customerPhone, itemName(j)].filter(Boolean).join(' · ')}</span>
-                  <span className="text-[0.75rem] text-slate-500">{left < 0 ? `Khatam ${dayOnly(j.jobWarrantyExpiryDate)}` : `${dayOnly(j.jobWarrantyExpiryDate)} tak · ${left} din baqi`}</span>
+                  <span className="text-[0.75rem] text-slate-500">{left < 0 ? t('Khatam {{jobWarrantyExpiryDate}}', { jobWarrantyExpiryDate: dayOnly(j.jobWarrantyExpiryDate) }) : t('{{jobWarrantyExpiryDate}} tak · {{left}} din baqi', { jobWarrantyExpiryDate: dayOnly(j.jobWarrantyExpiryDate), left })}</span>
                 </Link>
-                {canManage && left >= 0 && <Button size="sm" variant="secondary" onClick={() => { setClaimFor(j); setIssue(''); }}>Claim</Button>}
+                {canManage && left >= 0 && <Button size="sm" variant="secondary" onClick={() => { setClaimFor(j); setIssue(''); }}>{t('Claim')}</Button>}
               </li>
             );
           })}
         </ul>
       )) : (claimsQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !claimRows.length ? (
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><ClipboardList className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">Koi claim nahi</p><p className="mt-1 text-sm text-slate-500">Customer shikayat le kar aaye to Register se us ki job par "Claim" dabayein.</p></div>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><ClipboardList className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">{t('Koi claim nahi')}</p><p className="mt-1 text-sm text-slate-500">{t('Customer shikayat le kar aaye to Register se us ki job par "Claim" dabayein.')}</p></div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           {claimRows.map((c) => (
@@ -160,16 +161,16 @@ export default function WarrantyPage() {
                 <p className="mt-0.5 text-[0.8125rem] text-slate-600">{c.issueDescription}</p>
                 <p className="mt-0.5 flex flex-wrap gap-x-2 text-[0.75rem] text-slate-500">
                   <span>{dayOnly(c.claimDate)}</span>
-                  {c.originalJob && <Link to={`/services-biz/jobs/${c.originalJob.id}`} className="text-brand-700 hover:underline">Asal: {c.originalJob.jobNumber}</Link>}
-                  {c.newJob && <Link to={`/services-biz/jobs/${c.newJob.id}`} className="text-brand-700 hover:underline">Muft job: {c.newJob.jobNumber}</Link>}
-                  {c.costToCompany > 0 && <span>Cost {formatPKR(c.costToCompany)}</span>}
-                  {c.rejectionReason && <span>Mana: {c.rejectionReason}</span>}
+                  {c.originalJob && <Link to={`/services-biz/jobs/${c.originalJob.id}`} className="text-brand-700 hover:underline">{t('Asal: {{jobNumber}}', { jobNumber: c.originalJob.jobNumber })}</Link>}
+                  {c.newJob && <Link to={`/services-biz/jobs/${c.newJob.id}`} className="text-brand-700 hover:underline">{t('Muft job: {{jobNumber}}', { jobNumber: c.newJob.jobNumber })}</Link>}
+                  {c.costToCompany > 0 && <span>{t('Cost {{costToCompany}}', { costToCompany: formatPKR(c.costToCompany) })}</span>}
+                  {c.rejectionReason && <span>{t('Mana: {{rejectionReason}}', { rejectionReason: c.rejectionReason })}</span>}
                 </p>
               </div>
               {canManage && c.status === 'SUBMITTED' && (
                 <div className="flex gap-1.5">
-                  <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => { setNote(''); setDeciding({ claim: c, approve: false }); }}>Mana</Button>
-                  <Button size="sm" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => { setNote(''); setResolution('REPAIR'); setDeciding({ claim: c, approve: true }); }}>Manzoor</Button>
+                  <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => { setNote(''); setDeciding({ claim: c, approve: false }); }}>{t('Mana')}</Button>
+                  <Button size="sm" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => { setNote(''); setResolution('REPAIR'); setDeciding({ claim: c, approve: true }); }}>{t('Manzoor')}</Button>
                 </div>
               )}
             </li>
@@ -178,30 +179,30 @@ export default function WarrantyPage() {
       ))}
 
       {claimFor && (
-        <Modal open onClose={() => setClaimFor(null)} size="sm" title={`Warranty claim — ${claimFor.jobNumber}`} description={`${claimFor.serviceName} · ${dayOnly(claimFor.jobWarrantyExpiryDate)} tak`}
-          footer={<><Button variant="secondary" onClick={() => setClaimFor(null)}>Rehne dein</Button><Button disabled={issue.trim().length < 3} loading={create.isPending} onClick={() => create.mutate()}>Claim darj karein</Button></>}>
-          <Textarea label="Customer ki shikayat" required rows={3} value={issue} onChange={(e) => setIssue(e.target.value)} autoFocus placeholder="Do din baad phir se band ho gaya" />
+        <Modal open onClose={() => setClaimFor(null)} size="sm" title={t('Warranty claim — {{jobNumber}}', { jobNumber: claimFor.jobNumber })} description={t('{{serviceName}} · {{jobWarrantyExpiryDate}} tak', { serviceName: claimFor.serviceName, jobWarrantyExpiryDate: dayOnly(claimFor.jobWarrantyExpiryDate) })}
+          footer={<><Button variant="secondary" onClick={() => setClaimFor(null)}>{t('Rehne dein')}</Button><Button disabled={issue.trim().length < 3} loading={create.isPending} onClick={() => create.mutate()}>{t('Claim darj karein')}</Button></>}>
+          <Textarea label={t('Customer ki shikayat')} required rows={3} value={issue} onChange={(e) => setIssue(e.target.value)} autoFocus placeholder={t('Do din baad phir se band ho gaya')} />
         </Modal>
       )}
       {deciding && (
-        <Modal open onClose={() => setDeciding(null)} size="sm" title={deciding.approve ? `Manzoor — ${deciding.claim.claimNumber}` : `Mana — ${deciding.claim.claimNumber}`}
-          description={deciding.approve ? 'Marammat ya badalne par isi technician ke naam muft job banti hai' : 'Customer ko wajah batayein'}
-          footer={<><Button variant="secondary" onClick={() => setDeciding(null)}>Rehne dein</Button><Button variant={deciding.approve ? 'primary' : 'danger'} disabled={!deciding.approve && note.trim().length < 3} loading={decide.isPending} onClick={() => decide.mutate()}>{deciding.approve ? 'Manzoor' : 'Mana karein'}</Button></>}>
+        <Modal open onClose={() => setDeciding(null)} size="sm" title={deciding.approve ? t('Manzoor — {{claimNumber}}', { claimNumber: deciding.claim.claimNumber }) : t('Mana — {{claimNumber}}', { claimNumber: deciding.claim.claimNumber })}
+          description={deciding.approve ? t('Marammat ya badalne par isi technician ke naam muft job banti hai') : t('Customer ko wajah batayein')}
+          footer={<><Button variant="secondary" onClick={() => setDeciding(null)}>{t('Rehne dein')}</Button><Button variant={deciding.approve ? 'primary' : 'danger'} disabled={!deciding.approve && note.trim().length < 3} loading={decide.isPending} onClick={() => decide.mutate()}>{deciding.approve ? t('Manzoor') : t('Mana karein')}</Button></>}>
           <div className="space-y-3">
-            {deciding.approve && <Select label="Kya karenge" value={resolution} onChange={(e) => setResolution(e.target.value as Resolution)} options={RESOLUTIONS} />}
-            <Input label={deciding.approve ? 'Note' : 'Wajah'} required={!deciding.approve} value={note} onChange={(e) => setNote(e.target.value)} placeholder={deciding.approve ? 'Marzi hai' : 'Customer ki ghalti se toota'} />
+            {deciding.approve && <Select label={t('Kya karenge')} value={resolution} onChange={(e) => setResolution(e.target.value as Resolution)} options={RESOLUTIONS} />}
+            <Input label={deciding.approve ? t('Note') : t('Wajah')} required={!deciding.approve} value={note} onChange={(e) => setNote(e.target.value)} placeholder={deciding.approve ? t('Marzi hai') : t('Customer ki ghalti se toota')} />
           </div>
         </Modal>
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Warranty — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Warranty — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: ShieldCheck, color: '#16a34a', title: 'Register', text: 'Bill par jitne din ki warranty likhi, job yahan us din tak rehti hai. Customer aaye to number ya phone se dhoondein.' },
-            { icon: ClipboardList, color: '#7c3aed', title: 'Claim', text: 'Job par "Claim" — shikayat likhein. Manzoor karte hi muft job isi technician ko jati hai.' },
-            { icon: XCircle, color: '#e11d48', title: 'Cost', text: 'Muft job me dukaan ka part laga to us ka Cost profit me minus hota hai — yahan har claim ka Cost dikhta hai.' },
+            { icon: ShieldCheck, color: '#16a34a', title: t('Register'), text: t('Bill par jitne din ki warranty likhi, job yahan us din tak rehti hai. Customer aaye to number ya phone se dhoondein.') },
+            { icon: ClipboardList, color: '#7c3aed', title: t('Claim'), text: t('Job par "Claim" — shikayat likhein. Manzoor karte hi muft job isi technician ko jati hai.') },
+            { icon: XCircle, color: '#e11d48', title: t('Cost'), text: t('Muft job me dukaan ka part laga to us ka Cost profit me minus hota hai — yahan har claim ka Cost dikhta hai.') },
           ]}
-          tips={['Warranty sambhalne ke liye "Warranty manage" ki permission chahiye.']}
+          tips={[t('Warranty sambhalne ke liye "Warranty manage" ki permission chahiye.')]}
           shortcuts={[['1', 'register'], ['2', 'claims'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}

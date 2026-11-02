@@ -22,6 +22,7 @@ import { qistApi, type QistGuarantor } from '../api/qist.api';
 import { printQistAgreement, type QistPlanLike } from '../receipt/appliancePrints';
 import { Box, Panel } from '../components/ui';
 import { apiError, cnicOk, phoneOk } from '../components/meta';
+import { t } from '@core/i18n';
 
 const PLAN_KEY = 'appliance-qist-plan';
 
@@ -57,22 +58,22 @@ export default function QistPlanPage() {
         <PageShell>
           {q.isLoading ? <Skeleton className="h-28 rounded-3xl" /> : p && (
             <Panel
-              title={<span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand-600" />Zamin (guarantor)</span>}
-              hint={<>Qist na milne par zimmedar · <Kbd>I</Kbd> iqrarnama{canEdit && <> · <Kbd>Z</Kbd> badlein</>}</>}
+              title={<span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand-600" />{t('Zamin (guarantor)')}</span>}
+              hint={<>{t('Qist na milne par zimmedar ·')}{' '} <Kbd>I</Kbd> {' '}{t('iqrarnama')}{canEdit && <> · <Kbd>Z</Kbd> {' '}{t('badlein')}</>}</>}
               actions={<>
-                <Button size="sm" variant="secondary" leftIcon={<FileSignature className="h-4 w-4" />} onClick={() => printQistAgreement(p, shopName)}>Iqrarnama print</Button>
-                {canEdit && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEditing(true)}>{p.guarantorName ? 'Badlein' : 'Zamin likhein'}</Button>}
+                <Button size="sm" variant="secondary" leftIcon={<FileSignature className="h-4 w-4" />} onClick={() => printQistAgreement(p, shopName)}>{t('Iqrarnama print')}</Button>
+                {canEdit && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEditing(true)}>{p.guarantorName ? t('Badlein') : t('Zamin likhein')}</Button>}
               </>}>
               {p.guarantorName ? (
                 <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Box label="Naam" value={p.guarantorName} />
-                  <Box label="Phone" value={p.guarantorPhone || '—'} />
-                  <Box label="CNIC" value={p.guarantorCnic || '—'} />
-                  <Box label="Pata" value={p.guarantorAddress || '—'} />
+                  <Box label={t('Naam')} value={p.guarantorName} />
+                  <Box label={t('Phone')} value={p.guarantorPhone || '—'} />
+                  <Box label={t('CNIC')} value={p.guarantorCnic || '—'} />
+                  <Box label={t('Pata')} value={p.guarantorAddress || '—'} />
                 </dl>
               ) : (
                 <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-                  <UserRound className="h-4 w-4 shrink-0" />Is plan par abhi koi zamin nahi. Qist par saman dene se pehle zamin ka naam aur CNIC zaroor likhein.
+                  <UserRound className="h-4 w-4 shrink-0" />{t('Is plan par abhi koi zamin nahi. Qist par saman dene se pehle zamin ka naam aur CNIC zaroor likhein.')}
                 </p>
               )}
             </Panel>
@@ -91,10 +92,10 @@ function GuarantorModal({ plan, onClose }: { plan: Plan; onClose: () => void }) 
   const set = (patch: Partial<typeof f>) => setF((x) => ({ ...x, ...patch }));
   const customerPhone = (plan.customerPhone ?? plan.customer?.phone ?? '').replace(/\D/g, '').slice(-10);
   const errors = {
-    name: f.name.trim().length < 2 ? 'Zamin ka naam likhein' : undefined,
-    phone: f.phone.trim() && !phoneOk(f.phone) ? 'Phone 03XX-XXXXXXX likhein'
-      : f.phone.trim() && customerPhone && f.phone.replace(/\D/g, '').slice(-10) === customerPhone ? 'Zamin customer khud nahi ho sakta' : undefined,
-    cnic: !f.cnic.trim() || !cnicOk(f.cnic) ? 'CNIC 13 hindse (35202-1234567-1)' : undefined,
+    name: f.name.trim().length < 2 ? t('Zamin ka naam likhein') : undefined,
+    phone: f.phone.trim() && !phoneOk(f.phone) ? t('Phone 03XX-XXXXXXX likhein')
+      : f.phone.trim() && customerPhone && f.phone.replace(/\D/g, '').slice(-10) === customerPhone ? t('Zamin customer khud nahi ho sakta') : undefined,
+    cnic: !f.cnic.trim() || !cnicOk(f.cnic) ? t('CNIC 13 hindse (35202-1234567-1)') : undefined,
   };
   const ok = !errors.name && !errors.phone && !errors.cnic;
   const save = useMutation({
@@ -102,12 +103,12 @@ function GuarantorModal({ plan, onClose }: { plan: Plan; onClose: () => void }) 
       guarantorName: f.name.trim(), guarantorPhone: f.phone.replace(/[\s-]/g, '') || undefined, guarantorCnic: f.cnic.trim(), guarantorAddress: f.address.trim() || undefined,
     } satisfies QistGuarantor),
     onSuccess: () => {
-      toast.success('Zamin save ho gaya');
+      toast.success(t('Zamin save ho gaya'));
       qc.invalidateQueries({ queryKey: [PLAN_KEY] });
       qc.invalidateQueries({ queryKey: ['emi-plans'] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Zamin save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Zamin save nahi hua'))),
   });
   const submit = () => { setTried(true); if (ok) save.mutate(); };
   useEffect(() => {
@@ -116,17 +117,17 @@ function GuarantorModal({ plan, onClose }: { plan: Plan; onClose: () => void }) 
     return () => window.removeEventListener('keydown', onKey);
   });
   return (
-    <Modal open onClose={onClose} size="md" title={`Zamin — ${plan.planNumber}`} description="Jo customer ki qist ki zimmedari leta hai; iqrarnama par sign karta hai"
+    <Modal open onClose={onClose} size="md" title={t('Zamin — {{planNumber}}', { planNumber: plan.planNumber })} description={t('Jo customer ki qist ki zimmedari leta hai; iqrarnama par sign karta hai')}
       footer={<>
-        <span className="mr-auto hidden text-[0.75rem] text-slate-500 sm:inline"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} onClick={submit}>Save</Button>
+        <span className="me-auto hidden text-[0.75rem] text-slate-500 sm:inline"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={save.isPending} onClick={submit}>{t('Save')}</Button>
       </>}>
       <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Input label="Naam" required value={f.name} onChange={(e) => set({ name: e.target.value })} error={tried ? errors.name : undefined} data-autofocus />
-        <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="0300-1234567" hint="Qist late ho to isi par rabta" error={tried ? errors.phone : undefined} />
-        <Input label="CNIC" required value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} placeholder="35202-1234567-1" error={tried ? errors.cnic : undefined} />
-        <Input label="Pata" value={f.address} onChange={(e) => set({ address: e.target.value })} placeholder="Ghar ya dukaan ka pata" />
+        <Input label={t('Naam')} required value={f.name} onChange={(e) => set({ name: e.target.value })} error={tried ? errors.name : undefined} data-autofocus />
+        <Input label={t('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="0300-1234567" hint={t('Qist late ho to isi par rabta')} error={tried ? errors.phone : undefined} />
+        <Input label={t('CNIC')} required value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} placeholder="35202-1234567-1" error={tried ? errors.cnic : undefined} />
+        <Input label={t('Pata')} value={f.address} onChange={(e) => set({ address: e.target.value })} placeholder={t('Ghar ya dukaan ka pata')} />
       </form>
     </Modal>
   );

@@ -45,7 +45,7 @@ export function NoCostWarning({ count, className }: { count: number; className?:
     <p className={cn('flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[0.75rem] leading-snug text-amber-900', className)}>
       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span>
-        {t('{{count}} {{value}} ki Cost nahi likhi — un ki poori sale Profit gini gayi.', { count: count.toLocaleString('en-PK'), value: count === 1 ? t('cheez') : t('cheezon') })}{' '}
+        {t('{{count}} cheezon ki Cost nahi likhi — un ki poori sale Profit gini gayi.', { count: count.toLocaleString('en-PK') })}{' '}
         <Link to={NO_COST_LINK} className="whitespace-nowrap font-semibold underline-offset-2 hover:underline">{t('Cost bharein →')}</Link>
       </span>
     </p>

@@ -1,0 +1,21 @@
+{
+  "{{percent}}% ho gaya": "{{percent}}% done",
+  "{{value}} pending": "{{value}} pending",
+  "All synced": "All synced",
+  "Band karein": "Close",
+  "Cache saaf ho gaya": "Cache cleared",
+  "Cache saaf kar ke app dobara kholein?": "Clear the cache and reopen the app?",
+  "Linux": "Linux",
+  "Nafaa ka naya version aa gaya": "A new version of Nafaa is here",
+  "Offline": "Offline",
+  "Online": "Online",
+  "Reload (Ctrl+R) — Right-click: force reload": "Reload (Ctrl+R) — Right-click: force reload",
+  "Restart & Install": "Restart & Install",
+  "Syncing…": "Syncing…",
+  "Update download ho raha hai…": "Downloading update…",
+  "Update install ke liye tayyar": "Update ready to install",
+  "Update nahi hua": "Update failed",
+  "Version {{version}} download ho raha hai…": "Downloading version {{version}}…",
+  "Version {{version}} install karne ke liye app restart karein.": "Restart the app to install version {{version}}.",
+  "Windows": "Windows"
+}

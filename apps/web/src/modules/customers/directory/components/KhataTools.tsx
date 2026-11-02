@@ -8,13 +8,14 @@ import { cn } from '@core/lib/cn';
 import { directoryApi, type DirectoryCustomer } from '../api';
 import { DEFAULT_TEMPLATES, loadTemplates, reminderText, saveTemplates, toneFor, waLink, type Salutation, type Tone } from '../messages';
 import { QuickAddModal } from './QuickAddModal';
+import { t as tr } from '@core/i18n';
 
 const TONES: Array<{ v: Tone; l: string; d: string }> = [
-  { v: 'polite', l: 'Narm', d: 'Pehli dafa' }, { v: 'firm', l: 'Sakht', d: 'Dobara' }, { v: 'final', l: 'Aakhri', d: 'Bohat purana' },
+  { v: 'polite', l: tr('Narm'), d: 'Pehli dafa' }, { v: 'firm', l: tr('Sakht'), d: 'Dobara' }, { v: 'final', l: tr('Aakhri'), d: 'Bohat purana' },
 ];
 const SALUTATIONS: Array<{ v: Salutation; l: string }> = [
-  { v: 'auto', l: 'Khud' }, { v: 'bhai', l: 'Bhai' }, { v: 'baji', l: 'Baji' }, { v: 'uncle', l: 'Uncle' }, { v: 'aunty', l: 'Aunty' },
-  { v: 'sahib', l: 'Sahib' }, { v: 'none', l: 'Kuch nahi' },
+  { v: 'auto', l: tr('Khud') }, { v: 'bhai', l: tr('Bhai') }, { v: 'baji', l: tr('Baji') }, { v: 'uncle', l: tr('Uncle') }, { v: 'aunty', l: tr('Aunty') },
+  { v: 'sahib', l: tr('Sahib') }, { v: 'none', l: tr('Kuch nahi') },
 ];
 
 export function CustomerPicker({ title, onPick, onClose, money }: { title: string; onPick: (c: DirectoryCustomer) => void; onClose: () => void; money: (n: number) => string }) {
@@ -36,26 +37,26 @@ export function CustomerPicker({ title, onPick, onClose, money }: { title: strin
     }} />;
   }
   return (
-    <Modal open onClose={onClose} size="md" title={title} description="Naam ya phone likhein">
+    <Modal open onClose={onClose} size="md" title={title} description={tr('Naam ya phone likhein')}>
       <div className="space-y-3">
         <label className="relative block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ahmed, 0300…" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-[0.9375rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Ahmed, 0300…')} className="h-11 w-full rounded-xl border border-slate-200 bg-white ps-9 pe-3 text-[0.9375rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
         </label>
         <ul className={cn('max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200', isFetching && 'opacity-70')}>
           {(data?.items ?? []).map((c) => (
             <li key={c.id}>
-              <button type="button" onClick={() => onPick(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
+              <button type="button" onClick={() => onPick(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-slate-50">
                 <Avatar name={c.name} url={c.avatarUrl ?? undefined} size={32} />
                 <span className="min-w-0 flex-1"><span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.name}</span><span className="block text-[0.75rem] text-slate-500">{c.phone ?? '—'}</span></span>
                 {Math.abs(c.balance) > 0.009 && <span className={cn('text-[0.8125rem] font-semibold tabular-nums', c.balance > 0 ? 'text-rose-700' : 'text-success-700')}>{money(Math.abs(c.balance))}</span>}
-                <ChevronRight className="h-4 w-4 text-slate-300" />
+                <ChevronRight className="h-4 w-4 text-slate-300 rtl-flip" />
               </button>
             </li>
           ))}
-          {data && data.items.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">Koi nahi mila</li>}
+          {data && data.items.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">{tr('Koi nahi mila')}</li>}
         </ul>
-        <Button variant="secondary" fullWidth leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>Naya customer banayein</Button>
+        <Button variant="secondary" fullWidth leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>{tr('Naya customer banayein')}</Button>
       </div>
     </Modal>
   );
@@ -76,22 +77,22 @@ export function ReminderWizard({ customers, shop, money, onClose }: { customers:
   const next = () => setI((x) => x + 1);
 
   if (!list.length) {
-    return <Modal open onClose={onClose} size="sm" title="Yaad-dihani"><p className="text-[0.875rem] text-slate-600">Is list mein kisi udhaar wale ka phone nahi.</p></Modal>;
+    return <Modal open onClose={onClose} size="sm" title={tr('Yaad-dihani')}><p className="text-[0.875rem] text-slate-600">{tr('Is list mein kisi udhaar wale ka phone nahi.')}</p></Modal>;
   }
   if (!c) {
     return (
-      <Modal open onClose={onClose} size="sm" title="Ho gaya" footer={<Button onClick={onClose}>Band karein</Button>}>
-        <p className="text-[0.875rem] text-slate-700">{sent} customers ko yaad-dihani bheji, {list.length - sent} chhor diye.</p>
+      <Modal open onClose={onClose} size="sm" title={tr('Ho gaya')} footer={<Button onClick={onClose}>{tr('Band karein')}</Button>}>
+        <p className="text-[0.875rem] text-slate-700">{tr('{{sent}} customers ko yaad-dihani bheji, {{value}} chhor diye.', { sent, value: list.length - sent })}</p>
       </Modal>
     );
   }
   const link = waLink(c.phone, text);
   return (
-    <Modal open onClose={onClose} size="lg" title={`Yaad-dihani ${i + 1} / ${list.length}`} description={`${c.name} · ${money(c.balance)} baqi${c.dueDays !== null ? ` · ${c.dueDays} din se` : ''}`}
+    <Modal open onClose={onClose} size="lg" title={tr('Yaad-dihani {{value}} / {{count}}', { value: i + 1, count: list.length })} description={tr('{{name}} · {{balance}} baqi{{value}}', { name: c.name, balance: money(c.balance), value: c.dueDays !== null ? tr(' · {{dueDays}} din se', { dueDays: c.dueDays }) : '' })}
       footer={<>
-        <Button variant="ghost" onClick={onClose}>Band karein</Button>
-        <Button variant="secondary" leftIcon={<SkipForward className="h-4 w-4" />} onClick={next}>Chhor dein</Button>
-        <Button variant="success" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => { if (link) window.open(link, '_blank'); setSent((s) => s + 1); next(); }}>WhatsApp par bhejein</Button>
+        <Button variant="ghost" onClick={onClose}>{tr('Band karein')}</Button>
+        <Button variant="secondary" leftIcon={<SkipForward className="h-4 w-4" />} onClick={next}>{tr('Chhor dein')}</Button>
+        <Button variant="success" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => { if (link) window.open(link, '_blank'); setSent((s) => s + 1); next(); }}>{tr('WhatsApp par bhejein')}</Button>
       </>}>
       <div className="space-y-3">
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${(i / list.length) * 100}%` }} /></div>
@@ -118,10 +119,10 @@ export function TemplatesModal({ onClose }: { onClose: () => void }) {
   const [t, setT] = useState(loadTemplates);
   const [tone, setTone] = useState<Tone>('polite');
   return (
-    <Modal open onClose={onClose} size="lg" title="Yaad-dihani ke messages" description="{name} {sal} {amount} {days} {shop} khud bhar jate hain"
+    <Modal open onClose={onClose} size="lg" title={tr('Yaad-dihani ke messages')} description={tr('{name} {sal} {amount} {days} {shop} khud bhar jate hain')}
       footer={<>
-        <Button variant="ghost" onClick={() => setT({ ...DEFAULT_TEMPLATES })}>Pehle jaisa</Button>
-        <Button onClick={() => { saveTemplates(t); onClose(); }}>Save karein</Button>
+        <Button variant="ghost" onClick={() => setT({ ...DEFAULT_TEMPLATES })}>{tr('Pehle jaisa')}</Button>
+        <Button onClick={() => { saveTemplates(t); onClose(); }}>{tr('Save karein')}</Button>
       </>}>
       <div className="space-y-3">
         <div className="inline-flex gap-1 rounded-xl bg-slate-100 p-1">

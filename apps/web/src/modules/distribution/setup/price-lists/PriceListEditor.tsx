@@ -20,6 +20,7 @@ import { ruleText } from './PriceListFormModal';
 import { PriceImportModal } from './PriceImportModal';
 import { AssignCustomersModal } from './AssignCustomersModal';
 import { QtyBreakModal } from './QtyBreakModal';
+import { t, Trans } from '@core/i18n';
 
 const LIMIT = 50;
 const keyOf = (productId: string, unitId: string | null) => `${productId}|${unitId ?? ''}`;
@@ -86,9 +87,9 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
     onSuccess: (r) => {
       setDraft({});
       [['price-grid', list.id], ['price-items', list.id], ['price-lists']].forEach((k) => qc.invalidateQueries({ queryKey: [DIST_KEY, ...k] }));
-      toast.success(`${r.saved} rate save${r.removed ? ` · ${r.removed} rule par wapas` : ''}`);
+      toast.success(t('{{saved}} rate save{{value}}', { saved: r.saved, value: r.removed ? t(' · {{removed}} rule par wapas', { removed: r.removed }) : '' }));
     },
-    onError: (e) => toast.error(distError(e, 'Rates save nahi hue')),
+    onError: (e) => toast.error(distError(e, t('Rates save nahi hue'))),
   });
   const removeBreak = useMutation({
     mutationFn: (id: string) => distSetupApi.removePriceItems(list.id, [id]),
@@ -99,7 +100,7 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
     mutationFn: () => distSetupApi.deletePriceList(list.id),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: [DIST_KEY] });
-      toast.success(r.deleted ? 'List mita di' : `List band kar di — ${r.customers} customer ya Settings is par the`);
+      toast.success(r.deleted ? t('List mita di') : t('List band kar di — {{customers}} customer ya Settings is par the', { customers: r.customers }));
     },
     onError: (e) => toast.error(distError(e)),
   });
@@ -117,7 +118,7 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
       n++;
     }
     setDraft(next);
-    toast.success(`${n} rates bhar diye — dekh kar Save karein`);
+    toast.success(t('{{n}} rates bhar diye — dekh kar Save karein', { n }));
   };
   const clearPage = () => {
     const next = { ...draft };
@@ -134,15 +135,15 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
     const v = num(value);
     const below = v != null && r.cost != null && v < r.cost;
     return (
-      <div className="shrink-0 text-right">
+      <div className="shrink-0 text-end">
         <div className="flex items-center justify-end gap-1">
-          <input inputMode="decimal" aria-label={`${p.name} ${r.unitName} rate`} disabled={!canManage} value={value} placeholder="Rule"
+          <input inputMode="decimal" aria-label={t('{{name}} {{unitName}} rate', { name: p.name, unitName: r.unitName })} disabled={!canManage} value={value} placeholder={t('Rule')}
             onChange={(e) => setDraft((d) => ({ ...d, [k]: e.target.value.replace(/[^\d.]/g, '') }))}
-            className={cn('h-8 w-28 rounded-lg border bg-white px-2 text-right text-[0.8125rem] font-semibold tabular-nums outline-none focus:ring-2 focus:ring-brand-500/40 disabled:bg-slate-50',
+            className={cn('h-8 w-28 rounded-lg border bg-white px-2 text-end text-[0.8125rem] font-semibold tabular-nums outline-none focus:ring-2 focus:ring-brand-500/40 disabled:bg-slate-50',
               edited ? 'border-amber-400 bg-amber-50/60' : r.listPrice != null ? 'border-brand-300' : 'border-slate-200 text-slate-900 placeholder:font-normal placeholder:text-slate-300')} />
-          {edited && <button type="button" aria-label="Wapas" onClick={() => setDraft((d) => { const n = { ...d }; delete n[k]; return n; })} className="rounded p-1 text-slate-400 hover:bg-slate-100"><Undo2 className="h-3.5 w-3.5" /></button>}
+          {edited && <button type="button" aria-label={t('Wapas')} onClick={() => setDraft((d) => { const n = { ...d }; delete n[k]; return n; })} className="rounded p-1 text-slate-400 hover:bg-slate-100"><Undo2 className="h-3.5 w-3.5" /></button>}
         </div>
-        {below && <p className="mt-0.5 text-[0.6875rem] font-semibold text-rose-600">Cost se kam</p>}
+        {below && <p className="mt-0.5 text-[0.6875rem] font-semibold text-rose-600">{t('Cost se kam')}</p>}
       </div>
     );
   };
@@ -151,62 +152,62 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
     return (
       <div className="flex flex-wrap items-center gap-1">
         {br.map((b) => (
-          <span key={b.id} className="inline-flex h-6 items-center gap-1 rounded-full bg-violet-50 pl-2 pr-0.5 text-[0.6875rem] font-semibold text-violet-800 ring-1 ring-violet-100">
+          <span key={b.id} className="inline-flex h-6 items-center gap-1 rounded-full bg-violet-50 ps-2 pe-0.5 text-[0.6875rem] font-semibold text-violet-800 ring-1 ring-violet-100">
             {Number(b.minQty)}+ · {rs(b.price)}
-            {canManage && <button type="button" aria-label="Hatayein" onClick={() => removeBreak.mutate(b.id)} className="rounded-full p-0.5 hover:bg-violet-100"><X className="h-3 w-3" /></button>}
+            {canManage && <button type="button" aria-label={t('Hatayein')} onClick={() => removeBreak.mutate(b.id)} className="rounded-full p-0.5 hover:bg-violet-100"><X className="h-3 w-3" /></button>}
           </span>
         ))}
         {canManage && i === 0 && (
-          <button type="button" onClick={() => setModal({ productId: p.productId, name: p.name, rows: p.rows })} aria-label={`${p.name} zyada qty ka rate`}
-            className="inline-flex h-6 items-center gap-0.5 rounded-full px-1.5 text-[0.6875rem] font-semibold text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Plus className="h-3 w-3" />Qty</button>
+          <button type="button" onClick={() => setModal({ productId: p.productId, name: p.name, rows: p.rows })} aria-label={t('{{name}} zyada qty ka rate', { name: p.name })}
+            className="inline-flex h-6 items-center gap-0.5 rounded-full px-1.5 text-[0.6875rem] font-semibold text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Plus className="h-3 w-3" />{t('Qty')}</button>
         )}
       </div>
     );
   };
 
   const pages = grid ? Math.max(1, Math.ceil(grid.total / grid.limit)) : 1;
-  const catOptions = [{ value: '', label: 'Sab categories' }, ...((catsQ.data ?? []) as Array<{ id: string; name: string }>).map((c) => ({ value: c.id, label: c.name }))];
+  const catOptions = [{ value: '', label: t('Sab categories') }, ...((catsQ.data ?? []) as Array<{ id: string; name: string }>).map((c) => ({ value: c.id, label: c.name }))];
 
   return (
     <div className="min-w-0 space-y-3">
       <Card className="rounded-2xl"
-        title={<span className="inline-flex flex-wrap items-center gap-2">{list.name}{list.isDefault && <Badge size="xs" variant="warning"><Star className="h-3 w-3" />Default</Badge>}{!list.isActive && <Badge size="xs" variant="danger">Band</Badge>}</span>}
-        description={<>List me na ho to: <b className="text-slate-700">{ruleText(list)}</b> · {list.itemCount ?? 0} apne rates · {list.customerCount ?? 0} customers</>}
+        title={<span className="inline-flex flex-wrap items-center gap-2">{list.name}{list.isDefault && <Badge size="xs" variant="warning"><Star className="h-3 w-3" />{t('Default')}</Badge>}{!list.isActive && <Badge size="xs" variant="danger">{t('Band')}</Badge>}</span>}
+        description={<Trans text="List me na ho to: {{rule}} · {{rates}} apne rates · {{customers}} customers" values={{ rule: <b className="text-slate-700">{ruleText(list)}</b>, rates: list.itemCount ?? 0, customers: list.customerCount ?? 0 }} />}
         >
         {canManage && (
           <div className="-mt-1 mb-3 flex flex-wrap gap-1.5">
-            <Button size="sm" variant="secondary" leftIcon={<Users className="h-4 w-4" />} onClick={() => setModal('customers')}>Customers</Button>
-            <Button size="sm" variant="secondary" leftIcon={<FileSpreadsheet className="h-4 w-4" />} onClick={() => setModal('import')}>Excel import</Button>
-            <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-4 w-4" />} onClick={onEdit}>Badlein</Button>
-            <Button size="sm" variant="ghost" aria-label="List mitayein" onClick={async () => {
-              if (await confirmDialog({ title: `${list.name} mitayein?`, text: 'Customers ya Settings is list par hon to list sirf band hogi, mitegi nahi.', yes: 'Mitayein', danger: true })) del.mutate();
+            <Button size="sm" variant="secondary" leftIcon={<Users className="h-4 w-4" />} onClick={() => setModal('customers')}>{t('Customers')}</Button>
+            <Button size="sm" variant="secondary" leftIcon={<FileSpreadsheet className="h-4 w-4" />} onClick={() => setModal('import')}>{t('Excel import')}</Button>
+            <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-4 w-4" />} onClick={onEdit}>{t('Badlein')}</Button>
+            <Button size="sm" variant="ghost" aria-label={t('List mitayein')} onClick={async () => {
+              if (await confirmDialog({ title: t('{{name}} mitayein?', { name: list.name }), text: t('Customers ya Settings is list par hon to list sirf band hogi, mitegi nahi.'), yes: t('Mitayein'), danger: true })) del.mutate();
             }}><Trash2 className="h-4 w-4 text-rose-600" /></Button>
           </div>
         )}
         {canManage && (
           <div className="flex flex-wrap items-end gap-2 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
-            <div className="mr-1 min-w-[10rem] flex-1">
-              <p className="text-[0.8125rem] font-semibold text-slate-800">Jaldi bharein</p>
-              <p className="text-[0.75rem] text-slate-500">Is page ke sab rows: base ± % (poore rupay)</p>
+            <div className="me-1 min-w-[10rem] flex-1">
+              <p className="text-[0.8125rem] font-semibold text-slate-800">{t('Jaldi bharein')}</p>
+              <p className="text-[0.75rem] text-slate-500">{t('Is page ke sab rows: base ± % (poore rupay)')}</p>
             </div>
-            <Segmented label="Base" value={fillBase} onChange={setFillBase}
-              items={[{ value: 'PRICE', label: 'Retail' }, { value: 'WHOLESALE', label: 'Wholesale' }, ...(showCost ? [{ value: 'COST' as ListBase, label: 'Cost' }] : [])]} />
-            <Input size="sm" type="number" aria-label="Percent" value={fillPct} onChange={(e) => setFillPct(e.target.value)} wrapperClassName="w-24" rightIcon={<span className="text-xs">%</span>} />
-            <Button size="sm" leftIcon={<Wand2 className="h-4 w-4" />} onClick={fill} disabled={!rowsOnPage.length}>Bharein</Button>
-            <Button size="sm" variant="ghost" onClick={clearPage} disabled={!rowsOnPage.some((x) => x.r.listPrice != null)}>Sab rule par</Button>
+            <Segmented label={t('Base')} value={fillBase} onChange={setFillBase}
+              items={[{ value: 'PRICE', label: t('Retail') }, { value: 'WHOLESALE', label: t('Wholesale') }, ...(showCost ? [{ value: 'COST' as ListBase, label: t('Cost') }] : [])]} />
+            <Input size="sm" type="number" aria-label={t('Percent')} value={fillPct} onChange={(e) => setFillPct(e.target.value)} wrapperClassName="w-24" rightIcon={<span className="text-xs">%</span>} />
+            <Button size="sm" leftIcon={<Wand2 className="h-4 w-4" />} onClick={fill} disabled={!rowsOnPage.length}>{t('Bharein')}</Button>
+            <Button size="sm" variant="ghost" onClick={clearPage} disabled={!rowsOnPage.some((x) => x.r.listPrice != null)}>{t('Sab rule par')}</Button>
           </div>
         )}
       </Card>
 
       <Card flush className="rounded-2xl">
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
-          <Input size="sm" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Item, SKU ya barcode" aria-label="Item dhoondein"
+          <Input size="sm" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder={t('Item, SKU ya barcode')} aria-label={t('Item dhoondein')}
             leftIcon={<Search className="h-4 w-4" />} wrapperClassName="min-w-[12rem] flex-1" />
-          <Select size="sm" aria-label="Category" value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} options={catOptions} wrapperClassName="w-48" />
+          <Select size="sm" aria-label={t('Category')} value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} options={catOptions} wrapperClassName="w-48" />
         </div>
 
         {gridQ.isLoading ? <div className="p-4"><Skeleton className="h-72" /></div> : !grid?.products.length ? (
-          <p className="px-5 py-12 text-center text-sm text-slate-500">{q || categoryId ? 'Is search me koi item nahi' : 'Koi item nahi — pehle Products me maal daalein'}</p>
+          <p className="px-5 py-12 text-center text-sm text-slate-500">{q || categoryId ? t('Is search me koi item nahi') : t('Koi item nahi — pehle Products me maal daalein')}</p>
         ) : (
           <>
           {/* Phones: one card per item, packs stacked. */}
@@ -221,7 +222,7 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
                   <div key={keyOf(p.productId, r.unitId)} className="flex items-center gap-2 rounded-xl bg-slate-50 px-2.5 py-2 ring-1 ring-slate-100">
                     <div className="min-w-0 flex-1 text-[0.75rem]">
                       <p className="font-semibold text-slate-800">{r.unitName}{r.conversionRate > 1 && <span className="font-normal text-slate-400"> · {r.conversionRate} {p.baseUnit}</span>}</p>
-                      <p className="truncate text-slate-500">Retail {money(r.retail)} · Rule {money(r.rulePrice)}</p>
+                      <p className="truncate text-slate-500">{t('Retail {{retail}} · Rule {{rulePrice}}', { retail: money(r.retail), rulePrice: money(r.rulePrice) })}</p>
                     </div>
                     {rateCell(p, r)}
                   </div>
@@ -233,9 +234,9 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
           <Table minWidth={showCost ? '52rem' : '46rem'}>
             <THead>
               <Tr>
-                <Th>Item</Th><Th>Pack</Th><Th align="right">Retail / Wholesale</Th>
-                {showCost && <Th align="right">Cost</Th>}
-                <Th align="right">Rule se</Th><Th align="right">List rate</Th><Th>Qty par</Th>
+                <Th>{t('Item')}</Th><Th>{t('Pack')}</Th><Th align="right">{t('Retail / Wholesale')}</Th>
+                {showCost && <Th align="right">{t('Cost')}</Th>}
+                <Th align="right">{t('Rule se')}</Th><Th align="right">{t('List rate')}</Th><Th>{t('Qty par')}</Th>
               </Tr>
             </THead>
             <TBody>
@@ -263,10 +264,10 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
 
         {grid && grid.total > grid.limit && (
           <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-600">
-            <span>{(page - 1) * grid.limit + 1}–{Math.min(page * grid.limit, grid.total)} / {grid.total} items</span>
+            <span>{t('{{value}}–{{value2}} / {{total}} items', { value: (page - 1) * grid.limit + 1, value2: Math.min(page * grid.limit, grid.total), total: grid.total })}</span>
             <div className="flex gap-1">
-              <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => setPage((x) => x - 1)} aria-label="Pichla page"><ChevronLeft className="h-4 w-4" /></Button>
-              <Button size="sm" variant="ghost" disabled={page >= pages} onClick={() => setPage((x) => x + 1)} aria-label="Agla page"><ChevronRight className="h-4 w-4" /></Button>
+              <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => setPage((x) => x - 1)} aria-label={t('Pichla page')}><ChevronLeft className="h-4 w-4 rtl-flip" /></Button>
+              <Button size="sm" variant="ghost" disabled={page >= pages} onClick={() => setPage((x) => x + 1)} aria-label={t('Agla page')}><ChevronRight className="h-4 w-4 rtl-flip" /></Button>
             </div>
           </div>
         )}
@@ -274,9 +275,9 @@ export function PriceListEditor({ list, canManage, onEdit }: { list: PriceList; 
 
       {dirty && (
         <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
-          <p className="mr-auto text-[0.8125rem] text-slate-600"><b className="text-slate-900">{changes.length}</b> rate badle — khali box rule par chala jata hai</p>
-          <Button variant="secondary" onClick={() => setDraft({})}>Rehne dein</Button>
-          <Button data-save-action loading={save.isPending} leftIcon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Save karein</Button>
+          <p className="me-auto text-[0.8125rem] text-slate-600"><b className="text-slate-900">{changes.length}</b> {' '}{t('rate badle — khali box rule par chala jata hai')}</p>
+          <Button variant="secondary" onClick={() => setDraft({})}>{t('Rehne dein')}</Button>
+          <Button data-save-action loading={save.isPending} leftIcon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>{t('Save karein')}</Button>
         </div>
       )}
 

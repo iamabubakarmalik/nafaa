@@ -1,20 +1,21 @@
 /** Clinic service categories; `emoji` is used by the online catalog cards. */
+import { t } from '@core/i18n';
 export const SERVICE_CATEGORIES = [
-  { value: 'CONSULTATION', label: 'Consultation', emoji: '🩺' },
-  { value: 'PROCEDURE', label: 'Procedure', emoji: '⚕️' },
-  { value: 'SURGERY', label: 'Surgery', emoji: '🏥' },
-  { value: 'DIAGNOSTIC', label: 'Diagnostic', emoji: '🔬' },
-  { value: 'LAB_TEST', label: 'Lab test', emoji: '🧪' },
-  { value: 'IMAGING', label: 'X-ray / Ultrasound', emoji: '📷' },
-  { value: 'VACCINATION', label: 'Vaccine', emoji: '💉' },
-  { value: 'DENTAL', label: 'Dental', emoji: '🦷' },
-  { value: 'PHYSIOTHERAPY', label: 'Physiotherapy', emoji: '💪' },
-  { value: 'COUNSELING', label: 'Counseling', emoji: '🧘' },
-  { value: 'HEALTH_PACKAGE', label: 'Health package', emoji: '📦' },
-  { value: 'EMERGENCY', label: 'Emergency', emoji: '🚨' },
-  { value: 'HOME_VISIT', label: 'Ghar par visit', emoji: '🏠' },
-  { value: 'TELEMEDICINE', label: 'Online consultation', emoji: '📹' },
-  { value: 'OTHER', label: 'Other', emoji: '🩹' },
+  { value: 'CONSULTATION', label: t('Consultation'), emoji: '🩺' },
+  { value: 'PROCEDURE', label: t('Procedure'), emoji: '⚕️' },
+  { value: 'SURGERY', label: t('Surgery'), emoji: '🏥' },
+  { value: 'DIAGNOSTIC', label: t('Diagnostic'), emoji: '🔬' },
+  { value: 'LAB_TEST', label: t('Lab test'), emoji: '🧪' },
+  { value: 'IMAGING', label: t('X-ray / Ultrasound'), emoji: '📷' },
+  { value: 'VACCINATION', label: t('Vaccine'), emoji: '💉' },
+  { value: 'DENTAL', label: t('Dental'), emoji: '🦷' },
+  { value: 'PHYSIOTHERAPY', label: t('Physiotherapy'), emoji: '💪' },
+  { value: 'COUNSELING', label: t('Counseling'), emoji: '🧘' },
+  { value: 'HEALTH_PACKAGE', label: t('Health package'), emoji: '📦' },
+  { value: 'EMERGENCY', label: t('Emergency'), emoji: '🚨' },
+  { value: 'HOME_VISIT', label: t('Ghar par visit'), emoji: '🏠' },
+  { value: 'TELEMEDICINE', label: t('Online consultation'), emoji: '📹' },
+  { value: 'OTHER', label: t('Other'), emoji: '🩹' },
 ] as const;
 
 export const COMMON_TESTS = [
@@ -23,7 +24,7 @@ export const COMMON_TESTS = [
 ];
 
 export const URGENCY_LEVELS = [
-  { value: 'ROUTINE', label: 'Aam' },
-  { value: 'URGENT', label: 'Jaldi' },
-  { value: 'STAT', label: 'Foran (STAT)' },
+  { value: 'ROUTINE', label: t('Aam') },
+  { value: 'URGENT', label: t('Jaldi') },
+  { value: 'STAT', label: t('Foran (STAT)') },
 ] as const;

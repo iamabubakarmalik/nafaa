@@ -11,6 +11,7 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import { ReferralsService } from '../../modules/customers/referrals/referrals.service';
 import { SmsService } from '../../modules/sms/sms.service';
 import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class AdminBillingService {
@@ -167,7 +168,7 @@ export class AdminBillingService {
         tenantId: payment.tenantId,
         type: 'PAYMENT_APPROVED',
         title: 'Partial Payment Approved ✅',
-        message: `Rs ${payment.amount} receive ho gaya. Baqi amount pay karne par plan activate hoga.`,
+        message: apiMessage('Rs {{amount}} receive ho gaya. Baqi amount pay karne par plan activate hoga.', { amount: payment.amount }),
         link: '/billing',
       });
     }
@@ -218,9 +219,10 @@ export class AdminBillingService {
       tenantId: payment.tenantId,
       type: 'PAYMENT_REJECTED',
       title: 'Payment Rejected ❌',
-      message:
-        `Aap ka Rs ${payment.amount} payment reject ho gaya. Reason: ${reason || 'Not specified'}. ` +
-        `Invoice abhi bhi open hai — sahi receipt dobara upload karein.`,
+      message: apiMessage(
+        'Aap ka Rs {{amount}} payment reject ho gaya. Reason: {{reason}}. Invoice abhi bhi open hai — sahi receipt dobara upload karein.',
+        { amount: payment.amount, reason: reason || 'Not specified' },
+      ),
       link: payment.invoiceId ? `/billing/invoice/${payment.invoiceId}/pay` : '/billing',
     });
 

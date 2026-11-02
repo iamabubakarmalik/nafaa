@@ -1,5 +1,6 @@
 import { apiClient } from '@core/api/client';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 export type PaymentProvider =
   | 'MANUAL_BANK' | 'JAZZCASH' | 'EASYPAISA' | 'NAYAPAY' | 'STRIPE' | 'CASH';
@@ -111,7 +112,7 @@ export const billingApi = {
     if (!res.ok) {
       // Surface what the server actually said. Swallowing this is how
       // "Upload fail — try again" hid a 402 from an expired trial for so long.
-      let detail = `Upload failed (${res.status})`;
+      let detail = t('Upload nahi hua ({{status}})', { status: res.status });
       try {
         const body = await res.json();
         if (body?.message) {

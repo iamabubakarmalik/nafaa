@@ -15,6 +15,7 @@ import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pi
 import { MONEY_METHODS, saveSalePayments, splitTender, type PaymentPart } from '../../../common/helpers/sale-payments.helper';
 import { hasPermission, type PermissionKey } from '../../../common/constants/permissions.constants';
 import { ensureCustomer, paidOnKhata, postIndustrySale, resolveIndustryShopId, toPaymentMethod } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export type Db = Prisma.TransactionClient;
 
@@ -35,11 +36,11 @@ const KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Shop's calendar date as a stay date (UTC midnight of that day). */
 export function dayOf(input: string | Date | undefined | null, field = 'Date'): Date {
-  if (input == null || input === '') throw new BadRequestException(`${field} zaroori hai`);
+  if (input == null || input === '') throw new BadRequestException(apiMessage('{{field}} zaroori hai', { field }));
   const s = typeof input === 'string' ? input.trim() : '';
   const key = KEY.test(s) ? s : (() => {
     const d = new Date(input as string | Date);
-    if (Number.isNaN(d.getTime())) throw new BadRequestException(`${field} sahi nahi`);
+    if (Number.isNaN(d.getTime())) throw new BadRequestException(apiMessage('{{field}} sahi nahi', { field }));
     return dateKeyTz(d);
   })();
   return new Date(`${key}T00:00:00.000Z`);
@@ -57,7 +58,7 @@ export const nightsBetween = (from: Date, to: Date) => Math.round((to.getTime() 
 /** Throws unless the user has at least one of the permissions. */
 export function requireAny(user: AuthenticatedUser, perms: PermissionKey[], what: string) {
   if (perms.some((p) => hasPermission(user.role, user.permissions, p))) return;
-  throw new ForbiddenException(`${what} ki permission nahi`);
+  throw new ForbiddenException(apiMessage('{{what}} ki permission nahi', { what }));
 }
 
 /** Pakistani CNIC as 12345-1234567-1, or a cleaned passport / other ID number. */
@@ -75,7 +76,7 @@ export function cleanIdNumber(idType: string | null | undefined, idNumber: strin
 
 export function cleanPhone(phone: string | null | undefined, field = 'Phone'): string {
   const p = String(phone ?? '').trim();
-  if (p.replace(/\D/g, '').length < 10) throw new BadRequestException(`${field} number sahi likhein (kam az kam 10 hindse)`);
+  if (p.replace(/\D/g, '').length < 10) throw new BadRequestException(apiMessage('{{field}} number sahi likhein (kam az kam 10 hindse)', { field }));
   return p;
 }
 
@@ -203,7 +204,7 @@ export async function refundAdvance(
   const most = r2(Math.min(khataPaid, held));
   const amount = input.amount != null ? r2(input.amount) : most;
   if (!customer || !(most > 0)) throw new BadRequestException('Is booking ka koi advance khata par baqi nahi — wapas karne ko kuch nahi');
-  if (!(amount > 0) || amount > most + 0.009) throw new BadRequestException(`Zyada se zyada Rs ${most} wapas ho sakte hain`);
+  if (!(amount > 0) || amount > most + 0.009) throw new BadRequestException(apiMessage('Zyada se zyada Rs {{most}} wapas ho sakte hain', { most }));
 
   const shopId = await resolveIndustryShopId(tx, user, input.shopId);
   const register = await tx.cashRegister.findFirst({ where: { tenantId: user.tenantId, shopId, status: 'OPEN' }, orderBy: { openedAt: 'desc' }, select: { id: true } });
@@ -325,6 +326,6 @@ export function folioStock(c: { productId?: string | null; unitCost?: number | n
 
 /** Throws a clean 404 when a row is missing. */
 export function found<T>(row: T | null | undefined, what: string): T {
-  if (!row) throw new NotFoundException(`${what} nahi mila`);
+  if (!row) throw new NotFoundException(apiMessage('{{what}} nahi mila', { what }));
   return row;
 }

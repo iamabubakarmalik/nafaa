@@ -4,6 +4,7 @@ import { comparePassword, hashPassword } from '../../../../common/utils/password
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { matchStaffPin, PIN_NEEDS, type PinKind } from '../../../../common/helpers/manager-pin.helper';
 import { hasPermission } from '../../../../common/constants/permissions.constants';
+import { apiMessage } from '../../../../common/i18n/api-message';
 
 @Injectable()
 export class SettingsSecurityService {
@@ -201,7 +202,7 @@ export class SettingsSecurityService {
       const staff = await matchStaffPin(this.prisma, user.tenantId, pin);
       if (staff) {
         if (!hasPermission(staff.role, staff.permissions, PIN_NEEDS[kind] as never)) {
-          return { valid: false, message: `${staff.fullName} ke paas is kaam ki permission nahi` };
+          return { valid: false, ...apiMessage('{{fullName}} ke paas is kaam ki permission nahi', { fullName: staff.fullName }) };
         }
         ok = true;
       }

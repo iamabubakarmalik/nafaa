@@ -17,6 +17,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BILL_PREFIX, TOPUP_SKU_PREFIX, r2, syncTopupProduct, topupName, topupSku } from '../common/gaming-catalog';
 import { BulkCreateTopupDto, CreateTopupDto, SellTopupDto } from './dto/create-topup.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Note on a card taken off stock by hand. */
 const REMOVED = 'Hata diya';
@@ -76,7 +77,7 @@ export class DigitalTopupsService {
     const codes = cards.map((c) => c.cardCode);
     if (new Set(codes).size !== codes.length) throw new BadRequestException('Ek hi code do baar likha hai');
     const dup = await this.prisma.gamingDigitalTopup.findFirst({ where: { tenantId: user.tenantId, cardCode: { in: codes } }, select: { cardCode: true } });
-    if (dup) throw new BadRequestException(`Code ${dup.cardCode} pehle se stock me hai`);
+    if (dup) throw new BadRequestException(apiMessage('Code {{cardCode}} pehle se stock me hai', { cardCode: dup.cardCode }));
 
     return this.prisma.$transaction(async (tx) => {
       const numbers = await this.nextNumbers(tx, user.tenantId, cards.length);

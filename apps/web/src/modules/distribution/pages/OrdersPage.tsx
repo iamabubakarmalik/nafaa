@@ -34,14 +34,15 @@ import { dayTime, ORDER_STATUS, partyName, partySub, typingInField } from '../li
 import { printInvoices, printTaxInvoices } from '../print/distPrint';
 import { phase2Api } from '../api/phase2.api';
 import { StockWarning } from '../phase2/StockWarning';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'BOOKED' | 'APPROVED' | 'INVOICED' | 'LOADED' | 'DONE' | 'ALL';
 const TAB_STATUS: Record<Tab, string | undefined> = {
   BOOKED: 'BOOKED', APPROVED: 'APPROVED,INVOICING', INVOICED: 'INVOICED', LOADED: 'LOADED', DONE: 'DELIVERED,PARTIAL,RETURNED', ALL: undefined,
 };
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'BOOKED', label: 'Booked' }, { id: 'APPROVED', label: 'Approved' }, { id: 'INVOICED', label: 'Invoiced' },
-  { id: 'LOADED', label: 'Gaari par' }, { id: 'DONE', label: 'Delivered' }, { id: 'ALL', label: 'Sab' },
+  { id: 'BOOKED', label: tr('Booked') }, { id: 'APPROVED', label: tr('Approved') }, { id: 'INVOICED', label: tr('Invoiced') },
+  { id: 'LOADED', label: tr('Gaari par') }, { id: 'DONE', label: tr('Delivered') }, { id: 'ALL', label: tr('Sab') },
 ];
 const PAGE = 50;
 
@@ -87,7 +88,7 @@ function Desk() {
   const rows = listQ.data?.orders ?? [];
   const bookers = useMemo(() => {
     const m = new Map<string, string>();
-    (routesQ.data ?? []).forEach((r) => { if (r.bookerId) m.set(r.bookerId, r.bookerName ?? 'Booker'); });
+    (routesQ.data ?? []).forEach((r) => { if (r.bookerId) m.set(r.bookerId, r.bookerName ?? tr('Booker')); });
     rows.forEach((o) => { if (o.bookedByName) m.set(o.bookedById, o.bookedByName); });
     return [...m.entries()];
   }, [routesQ.data, rows]);
@@ -104,10 +105,10 @@ function Desk() {
     onSuccess: (r, v) => {
       const bad = r.results.filter((x) => !x.ok);
       setFailures(bad);
-      if (r.invoiced) toast.success(`${r.invoiced} Invoice ban gaye`);
-      if (bad.length) toast.error(`${bad.length} order me masla — upar dekhein`);
-      if (r.pinSkipped) toast.message('PIN ke bagair credit wale orders Approved par ruk gaye');
-      if (!r.invoiced && !bad.length) toast.message(v.kind === 'approve' ? 'Koi order approve nahi hua' : 'Kuch nahi badla');
+      if (r.invoiced) toast.success(tr('{{invoiced}} Invoice ban gaye', { invoiced: r.invoiced }));
+      if (bad.length) toast.error(tr('{{count}} order me masla — upar dekhein', { count: bad.length }));
+      if (r.pinSkipped) toast.message(tr('PIN ke bagair credit wale orders Approved par ruk gaye'));
+      if (!r.invoiced && !bad.length) toast.message(v.kind === 'approve' ? tr('Koi order approve nahi hua') : tr('Kuch nahi badla'));
       setPicked(new Set());
       refresh();
     },
@@ -119,7 +120,7 @@ function Desk() {
     onSuccess: (r) => {
       const ok = r.results.filter((x) => x.ok).length;
       const bad = r.results.filter((x) => !x.ok);
-      if (ok) toast.success(`${ok} order cancel`);
+      if (ok) toast.success(tr('{{ok}} order cancel', { ok }));
       bad.forEach((b) => toast.error(`${b.orderNumber}: ${b.error}`));
       setPicked(new Set());
       refresh();
@@ -129,36 +130,36 @@ function Desk() {
 
   const doApprove = (list = targets()) => {
     const ids = list.filter((o) => o.status === 'BOOKED').map((o) => o.id);
-    if (!canManage) return toast.error('Approve ki permission nahi');
-    if (!ids.length) return toast.message('Sirf Booked orders approve hote hain');
+    if (!canManage) return toast.error(tr('Approve ki permission nahi'));
+    if (!ids.length) return toast.message(tr('Sirf Booked orders approve hote hain'));
     run.mutate({ kind: 'approve', ids });
   };
   const doInvoice = (list = targets()) => {
     const ids = list.filter((o) => o.status === 'APPROVED' || o.status === 'INVOICING').map((o) => o.id);
-    if (!canManage) return toast.error('Invoice ki permission nahi');
-    if (!ids.length) return toast.message('Invoice sirf Approved orders ka banta hai — Booked ko A se approve karein');
+    if (!canManage) return toast.error(tr('Invoice ki permission nahi'));
+    if (!ids.length) return toast.message(tr('Invoice sirf Approved orders ka banta hai — Booked ko A se approve karein'));
     run.mutate({ kind: 'invoice', ids });
   };
   const doLoad = (list = targets()) => {
     const ids = list.filter((o) => o.status === 'INVOICED' && !o.loadSheetId).map((o) => o.id);
-    if (!canLoad) return toast.error('Load sheet ki permission nahi');
-    if (!ids.length) return toast.message('Sirf Invoiced orders load sheet me jate hain');
+    if (!canLoad) return toast.error(tr('Load sheet ki permission nahi'));
+    if (!ids.length) return toast.message(tr('Sirf Invoiced orders load sheet me jate hain'));
     setLoadIds(ids);
   };
   const doPrint = async (list = targets()) => {
     const ids = list.filter((o) => o.saleId).map((o) => o.id);
-    if (!ids.length) return toast.message('Pehle Invoice banayein');
-    try { printInvoices(await distributionApi.printInvoices(ids)); } catch (e) { toast.error(distError(e, 'Print nahi hua')); }
+    if (!ids.length) return toast.message(tr('Pehle Invoice banayein'));
+    try { printInvoices(await distributionApi.printInvoices(ids)); } catch (e) { toast.error(distError(e, tr('Print nahi hua'))); }
   };
   const doTaxPrint = async (list = targets()) => {
     const ids = list.filter((o) => o.saleId).map((o) => o.id);
-    if (!ids.length) return toast.message('Pehle Invoice banayein');
-    try { printTaxInvoices(await phase2Api.printTaxInvoices(ids)); } catch (e) { toast.error(distError(e, 'Print nahi hua')); }
+    if (!ids.length) return toast.message(tr('Pehle Invoice banayein'));
+    try { printTaxInvoices(await phase2Api.printTaxInvoices(ids)); } catch (e) { toast.error(distError(e, tr('Print nahi hua'))); }
   };
   const doCancel = async (list = targets()) => {
     const ids = list.filter((o) => o.status === 'BOOKED' || o.status === 'APPROVED').map((o) => o.id);
-    if (!ids.length) return toast.message('Sirf Booked ya Approved order cancel hota hai');
-    if (await confirmDialog({ title: `${ids.length} order cancel karein?`, text: 'Cancel order wapas nahi aata. Booker ko naya order book karna hoga.', danger: true, yes: 'Cancel karein' })) cancel.mutate({ ids });
+    if (!ids.length) return toast.message(tr('Sirf Booked ya Approved order cancel hota hai'));
+    if (await confirmDialog({ title: tr('{{count}} order cancel karein?', { count: ids.length }), text: tr('Cancel order wapas nahi aata. Booker ko naya order book karna hoga.'), danger: true, yes: tr('Cancel karein') })) cancel.mutate({ ids });
   };
 
   const step = useCallback((dir: 1 | -1) => {
@@ -204,66 +205,66 @@ function Desk() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution" backLabel="Distribution"
-        title="Orders"
-        chip={<><ClipboardList /> Order desk</>}
-        meta="Booker ke orders approve karein — Invoice khud banta hai — phir load sheet me daalein"
+        back="/distribution" backLabel={tr('Distribution')}
+        title={tr('Orders')}
+        chip={<><ClipboardList /> {' '}{tr('Order desk')}</>}
+        meta={tr('Booker ke orders approve karein — Invoice khud banta hai — phir load sheet me daalein')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
-          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
-          {canLoad && <button type="button" onClick={() => setLoadIds([])} className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Load sheet</span></button>}
-          {canBook && <button type="button" onClick={() => setEditor('new')} title="Naya order (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">Naya order</span></button>}
+          <button type="button" onClick={() => void refresh()} title={tr('Taaza karein')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
+          {canLoad && <button type="button" onClick={() => setLoadIds([])} className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">{tr('Load sheet')}</span></button>}
+          {canBook && <button type="button" onClick={() => setEditor('new')} title={tr('Naya order (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">{tr('Naya order')}</span></button>}
         </>}
         stats={listQ.data ? [
-          { label: 'Orders', value: String(total) },
-          { label: 'Value', value: money(listQ.data.totalValue) },
-        ] : [{ label: 'Orders', value: '—' }]}
+          { label: tr('Orders'), value: String(total) },
+          { label: tr('Value'), value: money(listQ.data.totalValue) },
+        ] : [{ label: tr('Orders'), value: '—' }]}
       />
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Order no., customer, dukaan ya phone" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Order no., customer, dukaan ya phone')} />}
         chips={(routeId || bookerId) && <>
-          {routeId && <FilterChip onRemove={() => setRouteId('')}>{routeName ?? 'Route'}</FilterChip>}
-          {bookerId && <FilterChip onRemove={() => setBookerId('')}>{bookerName ?? 'Booker'}</FilterChip>}
+          {routeId && <FilterChip onRemove={() => setRouteId('')}>{routeName ?? tr('Route')}</FilterChip>}
+          {bookerId && <FilterChip onRemove={() => setBookerId('')}>{bookerName ?? tr('Booker')}</FilterChip>}
         </>}
         onClear={routeId || bookerId ? () => { setRouteId(''); setBookerId(''); } : undefined}>
-        <FilterMenu icon={MapPin} label="Route" value={routeId} active={!!routeId} valueLabel={routeName}
-          options={[{ value: '', label: 'Sab routes' }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name, hint: r.area ?? undefined }))]} onChange={setRouteId} />
-        <FilterMenu icon={UserRound} label="Booker" value={bookerId} active={!!bookerId} valueLabel={bookerName}
-          options={[{ value: '', label: 'Sab bookers' }, ...bookers.map(([id, name]) => ({ value: id, label: name }))]} onChange={setBookerId} />
+        <FilterMenu icon={MapPin} label={tr('Route')} value={routeId} active={!!routeId} valueLabel={routeName}
+          options={[{ value: '', label: tr('Sab routes') }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name, hint: r.area ?? undefined }))]} onChange={setRouteId} />
+        <FilterMenu icon={UserRound} label={tr('Booker')} value={bookerId} active={!!bookerId} valueLabel={bookerName}
+          options={[{ value: '', label: tr('Sab bookers') }, ...bookers.map(([id, name]) => ({ value: id, label: name }))]} onChange={setBookerId} />
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="all" />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: t.id === tab ? total : null }))}
-        hint={<><Kbd>A</Kbd> approve · <Kbd>I</Kbd> invoice · <Kbd>L</Kbd> load · <Kbd>Space</Kbd> chunein · <Kbd>Enter</Kbd> kholein</>} />
+        hint={<><Kbd>A</Kbd> {' '}{tr('approve ·')}{' '} <Kbd>I</Kbd> {' '}{tr('invoice ·')}{' '} <Kbd>L</Kbd> {' '}{tr('load ·')}{' '} <Kbd>Space</Kbd> {' '}{tr('chunein ·')}{' '} <Kbd>Enter</Kbd> {' '}{tr('kholein')}</>} />
 
       <StockWarning ids={rows.filter((o) => o.status === 'BOOKED' || o.status === 'APPROVED').map((o) => o.id)} />
 
       {failures.length > 0 && (
         <Alert tone="danger" icon={<AlertTriangle className="h-4 w-4" />}
-          action={<button type="button" onClick={() => setFailures([])} aria-label="Band" className="rounded-lg p-1 hover:bg-rose-100"><X className="h-4 w-4" /></button>}>
-          <div className="font-semibold">{failures.length} order ka Invoice nahi bana</div>
-          <ul className="mt-1 space-y-0.5">{failures.slice(0, 6).map((f) => <li key={f.id}><b>{f.orderNumber}</b>: {f.error ?? 'Masla'}</li>)}</ul>
+          action={<button type="button" onClick={() => setFailures([])} aria-label={tr('Band')} className="rounded-lg p-1 hover:bg-rose-100"><X className="h-4 w-4" /></button>}>
+          <div className="font-semibold">{tr('{{count}} order ka Invoice nahi bana', { count: failures.length })}</div>
+          <ul className="mt-1 space-y-0.5">{failures.slice(0, 6).map((f) => <li key={f.id}><b>{f.orderNumber}</b>: {f.error ?? tr('Masla')}</li>)}</ul>
         </Alert>
       )}
 
       <section ref={tableRef} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {listQ.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
-          : !rows.length ? <Empty icon={<ClipboardList className="h-5 w-5" />} text={tab === 'BOOKED' ? 'Koi order approve ke liye baqi nahi. Booker ke naye orders yahan aayenge.' : 'Is filter me koi order nahi.'}
-            action={canBook && tab === 'BOOKED' ? <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditor('new')}>Naya order</Button> : undefined} />
+          : !rows.length ? <Empty icon={<ClipboardList className="h-5 w-5" />} text={tab === 'BOOKED' ? tr('Koi order approve ke liye baqi nahi. Booker ke naye orders yahan aayenge.') : tr('Is filter me koi order nahi.')}
+            action={canBook && tab === 'BOOKED' ? <Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditor('new')}>{tr('Naya order')}</Button> : undefined} />
             : <>
               <div className="hidden overflow-x-auto md:block">
                 <Table minWidth="58rem" className="[&_table]:text-[0.8125rem]">
-                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                     <Tr>
-                      <Th className="w-10 px-4 py-2 sm:px-5"><Checkbox aria-label="Sab chunein (X)" checked={rows.length > 0 && rows.every((o) => picked.has(o.id))} onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((o) => o.id)) : new Set())} /></Th>
-                      <Th className="px-3 py-2">Order</Th>
-                      <Th className="px-3 py-2">Customer</Th>
-                      <Th className="px-3 py-2">Route · Booker</Th>
-                      <Th className="px-3 py-2 text-right">Total</Th>
-                      <Th className="px-3 py-2">Halat</Th>
-                      <Th className="px-4 py-2 sm:px-5">Invoice · Sheet</Th>
+                      <Th className="w-10 px-4 py-2 sm:px-5"><Checkbox aria-label={tr('Sab chunein (X)')} checked={rows.length > 0 && rows.every((o) => picked.has(o.id))} onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((o) => o.id)) : new Set())} /></Th>
+                      <Th className="px-3 py-2">{tr('Order')}</Th>
+                      <Th className="px-3 py-2">{tr('Customer')}</Th>
+                      <Th className="px-3 py-2">{tr('Route · Booker')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Total')}</Th>
+                      <Th className="px-3 py-2">{tr('Halat')}</Th>
+                      <Th className="px-4 py-2 sm:px-5">{tr('Invoice · Sheet')}</Th>
                     </Tr>
                   </THead>
                   <TBody className="divide-y divide-slate-100">
@@ -274,7 +275,7 @@ function Desk() {
                           <Checkbox aria-label={o.orderNumber} checked={picked.has(o.id)} onChange={() => setPicked((p) => { const n = new Set(p); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; })} />
                         </Td>
                         <Td className="px-3 py-2.5">
-                          <div className="whitespace-nowrap font-semibold text-slate-900">{o.orderNumber} <span className="ml-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] font-medium text-slate-500">{o.itemCount} items</span></div>
+                          <div className="whitespace-nowrap font-semibold text-slate-900">{o.orderNumber} <span className="ms-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] font-medium text-slate-500">{tr('{{itemCount}} items', { itemCount: o.itemCount })}</span></div>
                           <div className="whitespace-nowrap text-[0.75rem] text-slate-500">{dayTime(o.bookedAt)}</div>
                         </Td>
                         <Td className="max-w-[16rem] px-3 py-2.5">
@@ -285,14 +286,14 @@ function Desk() {
                           <div className="truncate text-slate-700">{o.routeName ?? '—'}</div>
                           <div className="truncate text-[0.75rem] text-slate-500">{o.bookedByName}</div>
                         </Td>
-                        <Td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900">{money(o.total)}
-                          {o.schemeDiscount > 0 && <div className="whitespace-nowrap text-[0.6875rem] font-normal text-success-700">scheme −{money(o.schemeDiscount)}</div>}</Td>
+                        <Td className="whitespace-nowrap px-3 py-2.5 text-end font-semibold tabular-nums text-slate-900">{money(o.total)}
+                          {o.schemeDiscount > 0 && <div className="whitespace-nowrap text-[0.6875rem] font-normal text-success-700">{tr('scheme −{{schemeDiscount}}', { schemeDiscount: money(o.schemeDiscount) })}</div>}</Td>
                         <Td className="px-3 py-2.5">
                           <div className="flex flex-wrap items-center gap-1">
                             <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill>
-                            {o.source === 'NETWORK' && <Pill tone="teal">Nafaa order</Pill>}
-                            {o.creditWarning && <span title={o.creditWarning} className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><AlertTriangle className="h-3 w-3" />Credit</span>}
-                            {o.invoiceError && <span title={o.invoiceError} className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-rose-700"><XCircle className="h-3 w-3" />Masla</span>}
+                            {o.source === 'NETWORK' && <Pill tone="teal">{tr('Nafaa order')}</Pill>}
+                            {o.creditWarning && <span title={o.creditWarning} className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><AlertTriangle className="h-3 w-3" />{tr('Credit')}</span>}
+                            {o.invoiceError && <span title={o.invoiceError} className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-rose-700"><XCircle className="h-3 w-3" />{tr('Masla')}</span>}
                           </div>
                         </Td>
                         <Td className="px-4 py-2.5 text-[0.75rem] text-slate-600 sm:px-5">
@@ -308,7 +309,7 @@ function Desk() {
                 {rows.map((o, i) => (
                   <li key={o.id} className={cn('flex items-start gap-3 px-4 py-3', picked.has(o.id) && 'bg-brand-50/40')}>
                     <Checkbox aria-label={o.orderNumber} checked={picked.has(o.id)} onChange={() => setPicked((p) => { const n = new Set(p); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; })} />
-                    <button type="button" onClick={() => { setCursor(i); setOpenId(o.id); }} className="min-w-0 flex-1 text-left">
+                    <button type="button" onClick={() => { setCursor(i); setOpenId(o.id); }} className="min-w-0 flex-1 text-start">
                       <span className="flex items-center justify-between gap-2">
                         <span className="truncate text-[0.875rem] font-semibold text-slate-900">{partyName(o.customer)}</span>
                         <span className="shrink-0 text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(o.total)}</span>
@@ -316,9 +317,9 @@ function Desk() {
                       <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{o.orderNumber} · {o.routeName ?? '—'} · {dayTime(o.bookedAt)}</span>
                       <span className="mt-1 flex flex-wrap gap-1">
                         <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill>
-                        {o.source === 'NETWORK' && <Pill tone="teal">Nafaa order</Pill>}
-                        {o.creditWarning && <Pill tone="amber">Credit</Pill>}
-                        {o.invoiceError && <Pill tone="rose">Masla</Pill>}
+                        {o.source === 'NETWORK' && <Pill tone="teal">{tr('Nafaa order')}</Pill>}
+                        {o.creditWarning && <Pill tone="amber">{tr('Credit')}</Pill>}
+                        {o.invoiceError && <Pill tone="rose">{tr('Masla')}</Pill>}
                         {o.saleNumber && <span className="text-[0.6875rem] text-slate-500">{o.saleNumber}</span>}
                       </span>
                     </button>
@@ -329,29 +330,29 @@ function Desk() {
                 <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-600 sm:px-5">
                   <span>{(page - 1) * PAGE + 1}–{Math.min(page * PAGE, total)} / {total}</span>
                   <span className="flex gap-2">
-                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Pichla</Button>
-                    <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setPage(page + 1)}>Agla</Button>
+                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>{tr('Pichla')}</Button>
+                    <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => setPage(page + 1)}>{tr('Agla')}</Button>
                   </span>
                 </div>
               )}
               {picked.size > 0 && (
                 <BulkBar>
-                  <span className="text-[0.8125rem] font-semibold">{picked.size} chune · {money(pickedValue)}</span>
+                  <span className="text-[0.8125rem] font-semibold">{tr('{{size}} chune · {{pickedValue}}', { size: picked.size, pickedValue: money(pickedValue) })}</span>
                   <span className="flex-1" />
-                  {canManage && pickedRows.some((o) => o.status === 'BOOKED') && <Button size="sm" variant="success" loading={run.isPending} leftIcon={<BadgeCheck className="h-4 w-4" />} onClick={() => doApprove(pickedRows)}>Approve + Invoice</Button>}
-                  {canManage && pickedRows.some((o) => o.status === 'APPROVED') && <Button size="sm" loading={run.isPending} leftIcon={<Receipt className="h-4 w-4" />} onClick={() => doInvoice(pickedRows)}>Invoice</Button>}
-                  {canLoad && pickedRows.some((o) => o.status === 'INVOICED' && !o.loadSheetId) && <Button size="sm" leftIcon={<Truck className="h-4 w-4" />} onClick={() => doLoad(pickedRows)}>Load sheet</Button>}
-                  {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doPrint(pickedRows)}>Print</Button>}
-                  {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doTaxPrint(pickedRows)}>Tax invoice</Button>}
-                  {canManage && pickedRows.some((o) => o.status === 'BOOKED' || o.status === 'APPROVED') && <Button size="sm" variant="ghost" className="text-white hover:bg-white/10" onClick={() => void doCancel(pickedRows)}>Cancel</Button>}
-                  <button type="button" onClick={() => setPicked(new Set())} aria-label="Chunna khatam" className="rounded-lg p-1.5 text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
+                  {canManage && pickedRows.some((o) => o.status === 'BOOKED') && <Button size="sm" variant="success" loading={run.isPending} leftIcon={<BadgeCheck className="h-4 w-4" />} onClick={() => doApprove(pickedRows)}>{tr('Approve + Invoice')}</Button>}
+                  {canManage && pickedRows.some((o) => o.status === 'APPROVED') && <Button size="sm" loading={run.isPending} leftIcon={<Receipt className="h-4 w-4" />} onClick={() => doInvoice(pickedRows)}>{tr('Invoice')}</Button>}
+                  {canLoad && pickedRows.some((o) => o.status === 'INVOICED' && !o.loadSheetId) && <Button size="sm" leftIcon={<Truck className="h-4 w-4" />} onClick={() => doLoad(pickedRows)}>{tr('Load sheet')}</Button>}
+                  {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doPrint(pickedRows)}>{tr('Print')}</Button>}
+                  {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doTaxPrint(pickedRows)}>{tr('Tax invoice')}</Button>}
+                  {canManage && pickedRows.some((o) => o.status === 'BOOKED' || o.status === 'APPROVED') && <Button size="sm" variant="ghost" className="text-white hover:bg-white/10" onClick={() => void doCancel(pickedRows)}>{tr('Cancel')}</Button>}
+                  <button type="button" onClick={() => setPicked(new Set())} aria-label={tr('Chunna khatam')} className="rounded-lg p-1.5 text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
                 </BulkBar>
               )}
             </>}
       </section>
 
       <p className="hidden items-center justify-center gap-1.5 text-[0.75rem] text-slate-400 md:flex">
-        <CalendarDays className="h-3.5 w-3.5" /><Kbd>↑</Kbd><Kbd>↓</Kbd> ya <Kbd>J</Kbd><Kbd>K</Kbd> chalein · <Kbd>X</Kbd> sab · <Kbd>P</Kbd> print · <Kbd>N</Kbd> naya · <Kbd>1</Kbd>–<Kbd>6</Kbd> tabs · <Kbd>/</Kbd> search
+        <CalendarDays className="h-3.5 w-3.5" /><Kbd>↑</Kbd><Kbd>↓</Kbd> {' '}{tr('ya')}{' '} <Kbd>J</Kbd><Kbd>K</Kbd> {' '}{tr('chalein ·')}{' '} <Kbd>X</Kbd> {' '}{tr('sab ·')}{' '} <Kbd>P</Kbd> {' '}{tr('print ·')}{' '} <Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} <Kbd>1</Kbd>–<Kbd>6</Kbd> {' '}{tr('tabs ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}
       </p>
 
       {drawerOrder && (

@@ -11,6 +11,7 @@ import { assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /**
  * WooCommerce — ek click me jorna (Shopify jaisa):
@@ -128,7 +129,7 @@ export class WooCommerceService {
     try {
       await new WooClient(siteUrl, creds.consumerKey, creds.consumerSecret).ping();
     } catch (e: any) {
-      throw new BadRequestException(`WooCommerce ne keys qubool nahi ki: ${e.message}`);
+      throw new BadRequestException(apiMessage('WooCommerce ne keys qubool nahi ki: {{eMessage}}', { eMessage: e.message }));
     }
     await this.prisma.integration.update({
       where: { id: integration.id },
@@ -575,7 +576,7 @@ export class WooCommerceService {
     try {
       assertSafeWebhookUrl(clean);
     } catch (e: any) {
-      throw new BadRequestException(`Website: ${e.message}`);
+      throw new BadRequestException(apiMessage('Website: {{eMessage}}', { eMessage: e.message }));
     }
     return clean;
   }

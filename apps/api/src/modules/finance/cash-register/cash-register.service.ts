@@ -10,6 +10,7 @@ import { CloseRegisterDto } from './dto/close-register.dto';
 import { CashTransactionDto } from './dto/cash-transaction.dto';
 import { checkDenominations, type Denominations } from './dto/denominations';
 import { computeLiveCash, type CashWindow } from '../../../common/helpers/live-cash.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -172,11 +173,11 @@ export class CashRegisterService {
       expected: live.expected,
       after,
       short,
-      message: !short
-        ? null
+      ...(!short
+        ? { message: null }
         : live.expected > 0
-          ? `Drawer me hisaab se sirf Rs ${live.expected.toLocaleString('en-PK')} hain — Rs ${pay.toLocaleString('en-PK')} dene ke baad Rs ${Math.abs(after).toLocaleString('en-PK')} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.`
-          : `Drawer ka hisaab pehle hi Rs ${Math.abs(live.expected).toLocaleString('en-PK')} minus hai — yeh payment bhi drawer se likhi to Rs ${Math.abs(after).toLocaleString('en-PK')} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.`,
+          ? apiMessage('Drawer me hisaab se sirf Rs {{expected}} hain — Rs {{pay}} dene ke baad Rs {{after}} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.', { expected: live.expected.toLocaleString('en-PK'), pay: pay.toLocaleString('en-PK'), after: Math.abs(after).toLocaleString('en-PK') })
+          : apiMessage('Drawer ka hisaab pehle hi Rs {{expected}} minus hai — yeh payment bhi drawer se likhi to Rs {{after}} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.', { expected: Math.abs(live.expected).toLocaleString('en-PK'), after: Math.abs(after).toLocaleString('en-PK') })),
     };
   }
 
@@ -269,7 +270,7 @@ export class CashRegisterService {
         select: { id: true },
       });
       if (existing) {
-        throw new BadRequestException(`${shop.name} ka register pehle se open hai. Pehle close karein.`);
+        throw new BadRequestException(apiMessage('{{shopName}} ka register pehle se open hai. Pehle close karein.', { shopName: shop.name }));
       }
 
       const registerNumber = `CR-${shop.name.replace(/[^a-z0-9]/gi, '').slice(0, 3).toUpperCase() || 'REG'}-${Date.now().toString().slice(-7)}`;

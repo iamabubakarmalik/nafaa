@@ -11,6 +11,7 @@ import { BadRequestException } from '@nestjs/common';
 import { CarpetRoll, CarpetRollStatus, Prisma } from '@prisma/client';
 import { nextCode } from './next-code';
 import { calcSqft, codeYear, r2, realFt, splitFt, syncCarpetStock } from './carpet-stock';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -34,7 +35,7 @@ export interface CutInput {
 
 export async function cutRoll(db: Db, userId: string, roll: CarpetRoll, input: CutInput) {
   if (roll.status !== CarpetRollStatus.ACTIVE && roll.status !== CarpetRollStatus.RESERVED) {
-    throw new BadRequestException(`Roll ${roll.rollNumber} ${roll.status} hai, is se kaata nahi ja sakta`);
+    throw new BadRequestException(apiMessage('Roll {{rollNumber}} {{rollStatus}} hai, is se kaata nahi ja sakta', { rollNumber: roll.rollNumber, rollStatus: roll.status }));
   }
   const lengthInch = Number(input.lengthInch ?? 0);
   if (lengthInch >= 12) throw new BadRequestException('Inch 12 se kam likhein');
@@ -44,13 +45,13 @@ export async function cutRoll(db: Db, userId: string, roll: CarpetRoll, input: C
   const available = realFt(roll.remainingLengthFt, roll.remainingLengthInch);
   if (cutLength > available + 0.001) {
     throw new BadRequestException(
-      `Roll ${roll.rollNumber} me sirf ${roll.remainingLengthFt}ft ${roll.remainingLengthInch}in bacha hai, ${input.lengthFt}ft ${lengthInch}in nahi kat sakta`,
+      apiMessage('Roll {{rollNumber}} me sirf {{remainingLengthFt}}ft {{remainingLengthInch}}in bacha hai, {{lengthFt}}ft {{lengthInch}}in nahi kat sakta', { rollNumber: roll.rollNumber, remainingLengthFt: roll.remainingLengthFt, remainingLengthInch: roll.remainingLengthInch, lengthFt: input.lengthFt, lengthInch }),
     );
   }
   const fullWidth = realFt(roll.widthFt, roll.widthInch);
   const customerWidth = input.customerWidthFt ?? fullWidth;
   if (customerWidth > fullWidth + 0.001) {
-    throw new BadRequestException(`Customer ki chaurai ${customerWidth}ft roll ki chaurai ${r2(fullWidth)}ft se zyada hai`);
+    throw new BadRequestException(apiMessage('Customer ki chaurai {{customerWidth}}ft roll ki chaurai {{fullWidth}}ft se zyada hai', { customerWidth, fullWidth: r2(fullWidth) }));
   }
 
   const cutSqft = calcSqft(roll.widthFt, roll.widthInch, input.lengthFt, lengthInch);

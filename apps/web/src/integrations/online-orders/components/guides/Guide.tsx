@@ -10,6 +10,7 @@ import { BookOpen, CheckCircle2, ChevronRight, ExternalLink, FlaskConical, LifeB
 import { Button, Modal } from '@/design-system/components';
 import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
+import { t as tr } from '@core/i18n';
 
 export interface GuideStep {
   title: ReactNode;
@@ -38,7 +39,7 @@ function Path({ parts }: { parts: string[] }) {
     <span className="mt-1 flex flex-wrap items-center gap-1 text-[0.75rem] font-medium text-slate-600">
       {parts.map((p, i) => (
         <span key={i} className="inline-flex items-center gap-1">
-          {i > 0 && <ChevronRight className="h-3 w-3 text-slate-400" />}
+          {i > 0 && <ChevronRight className="h-3 w-3 text-slate-400 rtl-flip" />}
           <span className="rounded-md bg-slate-100 px-1.5 py-0.5">{p}</span>
         </span>
       ))}
@@ -73,9 +74,9 @@ export function GuideFixes({ errors }: { errors: GuideFix[] }) {
         <li key={x.q}>
           <details className="group py-2.5">
             <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.84375rem] font-medium text-slate-900">
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" /> {x.q}
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90 rtl-flip rtl:group-open:-rotate-90" /> {x.q}
             </summary>
-            <div className="mt-1.5 pl-6 text-[0.8125rem] leading-relaxed text-slate-600">{x.a}</div>
+            <div className="mt-1.5 ps-6 text-[0.8125rem] leading-relaxed text-slate-600">{x.a}</div>
           </details>
         </li>
       ))}
@@ -92,15 +93,15 @@ export function GuideBody({ guide, children }: { guide: GuideData; children?: Re
       {children}
       {guide.test && guide.test.length > 0 && (
         <div className="rounded-2xl bg-success-50 p-3.5 ring-1 ring-inset ring-success-200">
-          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-success-900"><FlaskConical className="h-4 w-4" /> Test kaise karein</p>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[0.8125rem] text-success-900">
+          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-success-900"><FlaskConical className="h-4 w-4" /> {' '}{tr('Test kaise karein')}</p>
+          <ul className="mt-1.5 list-disc space-y-1 ps-5 text-[0.8125rem] text-success-900">
             {guide.test.map((t, i) => <li key={i}>{t}</li>)}
           </ul>
         </div>
       )}
       {guide.errors && guide.errors.length > 0 && (
         <div>
-          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900"><LifeBuoy className="h-4 w-4 text-slate-500" /> Aam masle aur hal</p>
+          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900"><LifeBuoy className="h-4 w-4 text-slate-500" /> {' '}{tr('Aam masle aur hal')}</p>
           <div className="mt-1"><GuideFixes errors={guide.errors} /></div>
         </div>
       )}
@@ -125,7 +126,7 @@ export function GuideCard({ guide, actions, children, className }: { guide: Guid
         <BrandLogo name={guide.brand} size={36} />
         <div className="min-w-0 flex-1">
           <h2 className="text-[0.9375rem] font-semibold text-slate-900">{guide.title}</h2>
-          <p className="text-[0.75rem] text-slate-500">{guide.steps.length} qadam · har qadam par kahan click karna hai</p>
+          <p className="text-[0.75rem] text-slate-500">{tr('{{count}} qadam · har qadam par kahan click karna hai', { count: guide.steps.length })}</p>
         </div>
         {actions}
       </header>
@@ -135,7 +136,7 @@ export function GuideCard({ guide, actions, children, className }: { guide: Guid
 }
 
 /** "Guide" button that opens the guide in a dialog (bottom sheet on phones). */
-export function GuideButton({ guide, label = 'Guide', variant = 'secondary', size = 'sm', className }: {
+export function GuideButton({ guide, label = tr('Guide'), variant = 'secondary', size = 'sm', className }: {
   guide: GuideData; label?: string; variant?: 'secondary' | 'ghost' | 'outline'; size?: 'xs' | 'sm'; className?: string;
 }) {
   const [open, setOpen] = useState(false);

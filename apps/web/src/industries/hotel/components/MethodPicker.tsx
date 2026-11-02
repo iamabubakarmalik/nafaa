@@ -3,8 +3,9 @@
 import { cn } from '@core/lib/cn';
 import type { PayMethod } from '../api/bookings.api';
 import { PAY_METHODS } from './meta';
+import { t } from '@core/i18n';
 
-export function MethodPicker({ value, onChange, label = 'Paisa kaise mila' }: { value: PayMethod; onChange: (m: PayMethod) => void; label?: string }) {
+export function MethodPicker({ value, onChange, label = t('Paisa kaise mila') }: { value: PayMethod; onChange: (m: PayMethod) => void; label?: string }) {
   return (
     <div role="radiogroup" aria-label={label} className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
       {PAY_METHODS.map((m) => (

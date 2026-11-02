@@ -13,6 +13,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { ShopScope } from '../../../common/shop-scope';
 import { PurchasesService } from '../../../modules/purchasing/purchases/purchases.service';
 import { DAY_MS, positive, r2, r3, recipeOf, shopClock } from '../bakery-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Body = Record<string, unknown>;
 
@@ -60,7 +61,7 @@ export class IngredientsService {
     const name = typeof dto?.name === 'string' ? dto.name.trim().replace(/\s+/g, ' ') : '';
     if (!name) throw new BadRequestException('Saamaan ka naam likhein');
     const dup = await this.prisma.bakeryIngredient.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' } }, select: { id: true, isActive: true } });
-    if (dup) throw new BadRequestException(dup.isActive ? `"${name}" pehle se saamaan me hai` : `"${name}" pehle hataya gaya tha — "Hataye hue" me se wapas layein`);
+    if (dup) throw new BadRequestException(dup.isActive ? apiMessage('"{{name}}" pehle se saamaan me hai', { name }) : apiMessage('"{{name}}" pehle hataya gaya tha — "Hataye hue" me se wapas layein', { name }));
     const stock = dto.currentStock === undefined || dto.currentStock === '' ? 0 : Number(dto.currentStock);
     if (!Number.isFinite(stock) || stock < 0) throw new BadRequestException('Shuru ka stock sahi number ho');
     const fields = cleanFields(dto) as Prisma.BakeryIngredientUncheckedCreateInput;
@@ -110,7 +111,7 @@ export class IngredientsService {
       if (!name) throw new BadRequestException('Saamaan ka naam likhein');
       if (name.toLowerCase() !== current.name.toLowerCase()) {
         const dup = await this.prisma.bakeryIngredient.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, id: { not: id } }, select: { id: true } });
-        if (dup) throw new BadRequestException(`"${name}" pehle se saamaan me hai`);
+        if (dup) throw new BadRequestException(apiMessage('"{{name}}" pehle se saamaan me hai', { name }));
       }
       data.name = name;
     }
@@ -200,7 +201,7 @@ export class IngredientsService {
         where: { id, tenantId: user.tenantId, currentStock: { gte: qty - 0.0001 } },
         data: { currentStock: { decrement: qty }, totalConsumed: { increment: qty } },
       });
-      if (!taken.count) throw new BadRequestException(`${i.name} itna stock me nahi`);
+      if (!taken.count) throw new BadRequestException(apiMessage('{{iName}} itna stock me nahi', { iName: i.name }));
       await tx.bakeryIngredientTransaction.create({
         data: {
           tenantId: user.tenantId, ingredientId: id, transactionType: 'CONSUMPTION', quantity: qty, unit: i.unit,

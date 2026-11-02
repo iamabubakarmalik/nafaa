@@ -37,28 +37,29 @@ import { customersCsv, customersDoc, fetchAllCustomers } from './exportCustomers
 import { ago, waFor } from './components/CustomerCard';
 import { KhataActionModal, type KhataAction } from './components/KhataActionModal';
 import { CustomerPicker, ReminderWizard, TemplatesModal } from './components/KhataTools';
+import { t as tr, Trans } from '@core/i18n';
 
 const TYPES: Array<{ id: DirectoryType; label: string; icon: typeof Users }> = [
-  { id: 'khata', label: 'Udhaar wale', icon: BookOpen },
-  { id: 'overLimit', label: 'Had se zyada', icon: AlertTriangle },
-  { id: 'advance', label: 'Advance', icon: Wallet },
-  { id: 'all', label: 'Sab customers', icon: Users },
+  { id: 'khata', label: tr('Udhaar wale'), icon: BookOpen },
+  { id: 'overLimit', label: tr('Had se zyada'), icon: AlertTriangle },
+  { id: 'advance', label: tr('Advance'), icon: Wallet },
+  { id: 'all', label: tr('Sab customers'), icon: Users },
 ];
 const AGING: Array<{ id: AgingBucket; label: string; tone: string; color: string }> = [
-  { id: 'd0', label: '7 din se kam', tone: 'bg-success-500', color: '#16a34a' }, { id: 'd7', label: '7–30 din', tone: 'bg-amber-400', color: '#d97706' },
-  { id: 'd30', label: '30–90 din', tone: 'bg-orange-500', color: '#ea580c' }, { id: 'd90', label: '90+ din', tone: 'bg-rose-500', color: '#e11d48' },
+  { id: 'd0', label: tr('7 din se kam'), tone: 'bg-success-500', color: '#16a34a' }, { id: 'd7', label: tr('7–30 din'), tone: 'bg-amber-400', color: '#d97706' },
+  { id: 'd30', label: tr('30–90 din'), tone: 'bg-orange-500', color: '#ea580c' }, { id: 'd90', label: tr('90+ din'), tone: 'bg-rose-500', color: '#e11d48' },
 ];
 const SORTS: Array<FilterOption<DirectoryFilters['sort']>> = [
-  { value: 'balance', label: 'Zyada baqi pehle' }, { value: 'aging', label: 'Purana udhaar pehle' },
-  { value: 'lastVisit', label: 'Haal hi mein aaye' }, { value: 'name', label: 'Naam (A–Z)' },
+  { value: 'balance', label: tr('Zyada baqi pehle') }, { value: 'aging', label: tr('Purana udhaar pehle') },
+  { value: 'lastVisit', label: tr('Haal hi mein aaye') }, { value: 'name', label: tr('Naam (A–Z)') },
 ];
 const LEDGER_LABEL: Record<string, string> = {
-  SALE_CREDIT: 'Udhaar sale', PAYMENT_RECEIVED: 'Payment aayi', ADJUSTMENT: 'Udhaar / tabdeeli', OPENING_BALANCE: 'Purana khata', REFUND: 'Maal wapas', LOYALTY_REDEEMED: 'Points',
+  SALE_CREDIT: tr('Udhaar sale'), PAYMENT_RECEIVED: tr('Payment aayi'), ADJUSTMENT: tr('Udhaar / tabdeeli'), OPENING_BALANCE: tr('Purana khata'), REFUND: tr('Maal wapas'), LOYALTY_REDEEMED: tr('Points'),
 };
 
 export function KhataBookPage() {
   return (
-    <AppLockGate title="Khata band hai" description="Kholne ke liye PIN daalein">
+    <AppLockGate title={tr('Khata band hai')} description={tr('Kholne ke liye PIN daalein')}>
       <KhataBook />
     </AppLockGate>
   );
@@ -70,7 +71,7 @@ function KhataBook() {
   const hasShop = !!currentShop && currentShop !== 'all';
   const [guide, setGuide] = useState(false);
   const { sales: money } = useMasked();
-  const shop = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const shop = useAuthStore((s) => s.tenant?.name) ?? tr('Hamari dukaan');
   const canManage = usePermission(PERMISSIONS.KHATA_MANAGE);
   const searchRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<'list' | 'analytics'>('list');
@@ -86,7 +87,7 @@ function KhataBook() {
     try {
       const { items } = await fetchAllCustomers({ ...d.filters, type: d.f.type === 'all' ? 'khata' : d.f.type });
       setWizard(items);
-    } catch { toast.error('List nahi aayi'); }
+    } catch { toast.error(tr('List nahi aayi')); }
   };
   const done = () => { d.refresh(); void summary.refetch(); };
 
@@ -115,56 +116,56 @@ function KhataBook() {
 
   const exportCsv = async () => {
     const { items } = await fetchAllCustomers(d.filters);
-    if (!items.length) return toast.error('Koi nahi');
-    customersCsv(items, [`Khata — ${shop}`, `Kul baqi: ${items.reduce((s, c) => s + Math.max(0, c.balance), 0).toFixed(2)}`], 'khata');
+    if (!items.length) return toast.error(tr('Koi nahi'));
+    customersCsv(items, [tr('Khata — {{shop}}', { shop }), tr('Kul baqi: {{value}}', { value: items.reduce((s, c) => s + Math.max(0, c.balance), 0).toFixed(2) })], 'khata');
   };
-  const printDoc = async () => customersDoc((await fetchAllCustomers(d.filters, 5000)).items, 'Udhaar ki list', money, true);
+  const printDoc = async () => customersDoc((await fetchAllCustomers(d.filters, 5000)).items, tr('Udhaar ki list'), money, true);
   const month = summary.data?.thisMonth;
 
   return (
     <PageShell>
       {act && <KhataActionModal action={act.action} customer={act.customer} money={money} onClose={() => setAct(null)} onDone={done} />}
-      {picking && <CustomerPicker title={picking === 'opening' ? 'Kis ka purana khata?' : 'Kis ko udhaar?'} money={money} onClose={() => setPicking(null)} onPick={(c) => { setAct({ action: picking, customer: c }); setPicking(null); }} />}
+      {picking && <CustomerPicker title={picking === 'opening' ? tr('Kis ka purana khata?') : tr('Kis ko udhaar?')} money={money} onClose={() => setPicking(null)} onPick={(c) => { setAct({ action: picking, customer: c }); setPicking(null); }} />}
       {wizard && <ReminderWizard customers={wizard} shop={shop} money={money} onClose={() => setWizard(null)} />}
       {templates && <TemplatesModal onClose={() => setTemplates(false)} />}
       {guide && <KhataGuide onClose={() => setGuide(false)} />}
 
       <PageHero
-        title="Khata"
-        chip={<><BookOpen />{st ? `${st.owingCount} se lena hai` : '…'}</>}
+        title={tr('Khata')}
+        chip={<><BookOpen />{st ? tr('{{owingCount}} se lena hai', { owingCount: st.owingCount }) : '…'}</>}
         busy={d.fetching && !d.loading}
         meta={shop}
         loading={d.loading || !st}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={() => void startReminders()} title="Sab ko ek ek kar ke (N)" className={heroButton}><MessagesSquare className="h-4 w-4" /><span className="hidden sm:inline">Yaad-dihani</span></button>
-          <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title="CSV"><Download className="h-4 w-4" /></button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={() => setTemplates(true)} title="Message badlein" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setPicking('opening')} title="Kaapi ka purana khata" className={heroButton}><History className="h-4 w-4" /><span className="hidden sm:inline">Purana khata</span></button>}
-          {canManage && <button type="button" onClick={() => setPicking('udhaar')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Udhaar</button>}
+          <button type="button" onClick={() => void startReminders()} title={tr('Sab ko ek ek kar ke (N)')} className={heroButton}><MessagesSquare className="h-4 w-4" /><span className="hidden sm:inline">{tr('Yaad-dihani')}</span></button>
+          <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title={tr('CSV')}><Download className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={() => setTemplates(true)} title={tr('Message badlein')} className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setGuide(true)} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setPicking('opening')} title={tr('Kaapi ka purana khata')} className={heroButton}><History className="h-4 w-4" /><span className="hidden sm:inline">{tr('Purana khata')}</span></button>}
+          {canManage && <button type="button" onClick={() => setPicking('udhaar')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Udhaar')}</button>}
         </>}
         stats={[
-          { label: 'Kul lena hai', value: st ? money(st.receivable) : '', hint: st ? `${st.owingCount} customers` : '' },
-          { label: '30 din se purana', value: st ? money(old) : '', hint: st ? `${st.aging.d30.count + st.aging.d90.count} customers` : '' },
-          { label: 'Is mahine receive', value: month ? money(month.wasooli) : '…', hint: month ? `udhaar gaya ${money(month.udhaar)}` : '' },
-          { label: 'Advance jama', value: st ? money(st.advance) : '', hint: st ? `${st.advanceCount} customers` : '' },
+          { label: tr('Kul lena hai'), value: st ? money(st.receivable) : '', hint: st ? tr('{{owingCount}} customers', { owingCount: st.owingCount }) : '' },
+          { label: tr('30 din se purana'), value: st ? money(old) : '', hint: st ? tr('{{value}} customers', { value: st.aging.d30.count + st.aging.d90.count }) : '' },
+          { label: tr('Is mahine receive'), value: month ? money(month.wasooli) : '…', hint: month ? tr('udhaar gaya {{udhaar}}', { udhaar: money(month.udhaar) }) : '' },
+          { label: tr('Advance jama'), value: st ? money(st.advance) : '', hint: st ? tr('{{advanceCount}} customers', { advanceCount: st.advanceCount }) : '' },
         ]}
       />
 
       {d.offline && (
         <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
-          <CloudOff className="h-4 w-4" />Internet nahi — computer par save khata dikh raha hai. Payment aur udhaar abhi bhi likh sakte hain, internet aate hi server par chale jayenge.
+          <CloudOff className="h-4 w-4" />{tr('Internet nahi — computer par save khata dikh raha hai. Payment aur udhaar abhi bhi likh sakte hain, internet aate hi server par chale jayenge.')}
         </p>
       )}
       {d.data?.period && (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80">
           <span className="text-[0.8125rem] font-semibold text-slate-900">{rangeLabel(d.data.period.from, d.data.period.to)}</span>
-          <span className="text-[0.8125rem] text-slate-600">Udhaar diya <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong></span>
-          <span className="text-[0.8125rem] text-slate-600">Receive hua <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
-          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Wapas aaya <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
-          <span className="text-[0.8125rem] text-slate-500">{d.count} customers ka len-den</span>
+          <span className="text-[0.8125rem] text-slate-600">{tr('Udhaar diya')}{' '} <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong></span>
+          <span className="text-[0.8125rem] text-slate-600">{tr('Receive hua')}{' '} <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
+          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">{tr('Wapas aaya')}{' '} <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
+          <span className="text-[0.8125rem] text-slate-500">{tr('{{count}} customers ka len-den', { count: d.count })}</span>
         </div>
       )}
 
@@ -174,7 +175,7 @@ function KhataBook() {
             const on = d.f.aging === a.id;
             const b = st.aging[a.id];
             return (
-              <KpiCard key={a.id} icon={Clock3} color={a.color} label={a.label} value={money(b.amount)} hint={`${b.count} customers`} active={on}
+              <KpiCard key={a.id} icon={Clock3} color={a.color} label={a.label} value={money(b.amount)} hint={tr('{{count}} customers', { count: b.count })} active={on}
                 onClick={() => { d.set('aging', on ? undefined : a.id); if (!on && d.f.type !== 'khata') d.set('type', 'khata'); }} />
             );
           })}
@@ -182,7 +183,7 @@ function KhataBook() {
       )}
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={d.search} onChange={d.setSearch} placeholder="Naam ya phone…" label="Search" />}
+        search={<SearchField ref={searchRef} value={d.search} onChange={d.setSearch} placeholder={tr('Naam ya phone…')} label={tr('Search')} />}
         chips={(d.f.aging || d.search || d.period) ? <>
           {d.period && <FilterChip onRemove={() => d.setRange({ preset: 'all', custom: { from: '', to: '' } })}>{rangeLabel(d.period.from, d.period.to)}</FilterChip>}
           {d.f.aging && <FilterChip onRemove={() => d.set('aging', undefined)}>{AGING.find((a) => a.id === d.f.aging)?.label}</FilterChip>}
@@ -201,40 +202,40 @@ function KhataBook() {
             );
           })}
         </div>
-        <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} label="Len-den" />
+        <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} label={tr('Len-den')} />
         {hasShop && (
-          <button type="button" onClick={() => d.set('scope', d.f.scope === 'all' ? undefined : 'all')} title="Saari branches ka khata" aria-pressed={d.f.scope === 'all'}
+          <button type="button" onClick={() => d.set('scope', d.f.scope === 'all' ? undefined : 'all')} title={tr('Saari branches ka khata')} aria-pressed={d.f.scope === 'all'}
             className={cn('h-11 rounded-2xl px-3 text-[0.8125rem] font-semibold transition', d.f.scope === 'all' ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/70')}>
-            {d.f.scope === 'all' ? 'Saari branches' : 'Is branch ka'}
+            {d.f.scope === 'all' ? tr('Saari branches') : tr('Is branch ka')}
           </button>
         )}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
+        <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
       </FilterBar>
 
       <ViewTabs
-        tabs={[{ id: 'list', label: 'Khata', icon: BookOpen, count: d.count }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]}
+        tabs={[{ id: 'list', label: tr('Khata'), icon: BookOpen, count: d.count }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]}
         value={tab} onChange={setTab}
-        hint={<><Kbd>/</Kbd> search · <Kbd>U</Kbd> udhaar · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+        hint={<><Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>U</Kbd> {' '}{tr('udhaar ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</>}
       />
 
       {tab === 'analytics' ? (
         <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="rounded-2xl" title="Is mahine">
+          <Card className="rounded-2xl" title={tr('Is mahine')}>
             {!month ? <Skeleton className="h-32 rounded-xl" /> : (
               <div className="space-y-3">
-                {[['Udhaar gaya', month.udhaar, 'bg-rose-500'], ['Receive hua', month.wasooli, 'bg-success-500']].map(([l, v, c]) => (
+                {[[tr('Udhaar gaya'), month.udhaar, 'bg-rose-500'], [tr('Receive hua'), month.wasooli, 'bg-success-500']].map(([l, v, c]) => (
                   <div key={l as string}>
                     <div className="flex justify-between text-[0.8125rem]"><span className="text-slate-700">{l}</span><span className="font-semibold tabular-nums">{money(v as number)}</span></div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', c as string)} style={{ width: `${(Number(v) / Math.max(1, month.udhaar, month.wasooli)) * 100}%` }} /></div>
                   </div>
                 ))}
                 <p className="text-[0.8125rem] text-slate-600">
-                  {month.udhaar > 0 ? <>Jitna udhaar gaya us ka <strong>{Math.round((month.wasooli / month.udhaar) * 100)}%</strong> wapas aaya.</> : 'Is mahine koi udhaar nahi gaya.'}
+                  {month.udhaar > 0 ? <Trans text="Jitna udhaar gaya us ka {{pct}} wapas aaya." values={{ pct: <strong>{Math.round((month.wasooli / month.udhaar) * 100)}%</strong> }} /> : tr('Is mahine koi udhaar nahi gaya.')}
                 </p>
               </div>
             )}
           </Card>
-          <Card className="rounded-2xl" title="Udhaar kitna purana" description="Pehle wala pehle chukta maana">
+          <Card className="rounded-2xl" title={tr('Udhaar kitna purana')} description={tr('Pehle wala pehle chukta maana')}>
             {st && (
               <ul className="space-y-3">
                 {AGING.map((a) => {
@@ -249,7 +250,7 @@ function KhataBook() {
               </ul>
             )}
           </Card>
-          <Card className="rounded-2xl" title="Aakhri harkatein" flush>
+          <Card className="rounded-2xl" title={tr('Aakhri harkatein')} flush>
             <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
               {(summary.data?.recentActivity ?? []).map((a) => (
                 <li key={a.id} className="flex items-center gap-2 px-4 py-2 text-[0.8125rem]">
@@ -257,7 +258,7 @@ function KhataBook() {
                   <span className={cn('font-semibold tabular-nums', a.amount > 0 ? 'text-rose-700' : 'text-success-700')}>{a.amount > 0 ? '+' : '−'}{money(Math.abs(a.amount))}</span>
                 </li>
               ))}
-              {summary.data && !summary.data.recentActivity.length && <li className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</li>}
+              {summary.data && !summary.data.recentActivity.length && <li className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">{tr('Abhi kuch nahi')}</li>}
             </ul>
           </Card>
         </div>
@@ -265,9 +266,9 @@ function KhataBook() {
         <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
       ) : d.items.length === 0 ? (
         <div className="rounded-3xl bg-white ring-1 ring-slate-200/80">
-          <EmptyState icon={<BookOpen className="h-6 w-6" />} title={d.hasFilters ? 'Is filter mein koi nahi' : 'Kisi ka udhaar baqi nahi'}
-            description={d.hasFilters ? 'Filter hata kar dekhein.' : 'Mubarak ho — sab ka hisaab saaf hai.'}
-            action={d.hasFilters ? <Button variant="secondary" onClick={d.clear}>Filter hatayein</Button> : undefined} />
+          <EmptyState icon={<BookOpen className="h-6 w-6" />} title={d.hasFilters ? tr('Is filter mein koi nahi') : tr('Kisi ka udhaar baqi nahi')}
+            description={d.hasFilters ? tr('Filter hata kar dekhein.') : tr('Mubarak ho — sab ka hisaab saaf hai.')}
+            action={d.hasFilters ? <Button variant="secondary" onClick={d.clear}>{tr('Filter hatayein')}</Button> : undefined} />
         </div>
       ) : (
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -280,28 +281,28 @@ function KhataBook() {
                     <Avatar name={c.name} url={c.avatarUrl ?? undefined} size={40} />
                     <span className="min-w-0">
                       <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{c.name}</span>
-                      <span className="block truncate text-[0.75rem] text-slate-500">{c.phone ?? 'Phone nahi'} · aakhri dafa {ago(c.daysSinceVisit)}</span>
+                      <span className="block truncate text-[0.75rem] text-slate-500">{tr('{{value}} · aakhri dafa {{daysSinceVisit}}', { value: c.phone ?? 'Phone nahi', daysSinceVisit: ago(c.daysSinceVisit) })}</span>
                     </span>
                   </Link>
                   {c.balance > 0.009 && c.dueDays !== null && (
-                    <span className={cn('shrink-0 rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', c.dueDays >= 90 ? 'bg-rose-100 font-bold text-rose-800 ring-1 ring-inset ring-rose-300' : c.dueDays >= 30 ? 'bg-orange-50 text-orange-700' : c.dueDays >= 7 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600')}>{c.dueDays} din</span>
+                    <span className={cn('shrink-0 rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', c.dueDays >= 90 ? 'bg-rose-100 font-bold text-rose-800 ring-1 ring-inset ring-rose-300' : c.dueDays >= 30 ? 'bg-orange-50 text-orange-700' : c.dueDays >= 7 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600')}>{tr('{{dueDays}} din', { dueDays: c.dueDays })}</span>
                   )}
-                  {c.overLimit && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-[0.75rem] font-semibold text-rose-700">Had paar</span>}
+                  {c.overLimit && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-[0.75rem] font-semibold text-rose-700">{tr('Had paar')}</span>}
                   {c.period && (
-                    <span className="hidden shrink-0 text-right text-[0.75rem] leading-tight md:block">
-                      {c.period.credit > 0 && <span className="block whitespace-nowrap text-rose-700">+{money(c.period.credit)} diya</span>}
-                      {c.period.paid > 0 && <span className="block whitespace-nowrap text-success-700">−{money(c.period.paid)} aaya</span>}
+                    <span className="hidden shrink-0 text-end text-[0.75rem] leading-tight md:block">
+                      {c.period.credit > 0 && <span className="block whitespace-nowrap text-rose-700">{tr('+{{credit}} diya', { credit: money(c.period.credit) })}</span>}
+                      {c.period.paid > 0 && <span className="block whitespace-nowrap text-success-700">{tr('−{{paid}} aaya', { paid: money(c.period.paid) })}</span>}
                     </span>
                   )}
-                  <span className={cn('min-w-[7rem] shrink-0 whitespace-nowrap text-right text-[1.0625rem] font-bold tabular-nums', c.balance > 0 ? 'text-rose-700' : c.balance < 0 ? 'text-success-700' : 'text-slate-400')}>
-                    {Math.abs(c.balance) > 0.009 ? money(Math.abs(c.balance)) : 'Saaf'}
-                    {c.balance < -0.009 && <span className="block text-[0.625rem] font-semibold uppercase">advance</span>}
+                  <span className={cn('min-w-[7rem] shrink-0 whitespace-nowrap text-end text-[1.0625rem] font-bold tabular-nums', c.balance > 0 ? 'text-rose-700' : c.balance < 0 ? 'text-success-700' : 'text-slate-400')}>
+                    {Math.abs(c.balance) > 0.009 ? money(Math.abs(c.balance)) : tr('Saaf')}
+                    {c.balance < -0.009 && <span className="block text-[0.625rem] font-semibold uppercase">{tr('advance')}</span>}
                   </span>
                   <div className="flex shrink-0 items-center gap-1">
-                    {canManage && c.balance > 0.009 && <Button size="sm" variant="success" onClick={() => setAct({ action: 'payment', customer: c })}>Payment</Button>}
-                    {canManage && <IconButton label="Udhaar chadhayein" onClick={() => setAct({ action: 'udhaar', customer: c })}><Plus className="h-4 w-4" /></IconButton>}
-                    {wa && <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp yaad-dihani" className="flex h-9 w-9 items-center justify-center rounded-xl text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>}
-                    <Link to={`/customers/${c.id}?tab=khata`} title="Statement" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
+                    {canManage && c.balance > 0.009 && <Button size="sm" variant="success" onClick={() => setAct({ action: 'payment', customer: c })}>{tr('Payment')}</Button>}
+                    {canManage && <IconButton label={tr('Udhaar chadhayein')} onClick={() => setAct({ action: 'udhaar', customer: c })}><Plus className="h-4 w-4" /></IconButton>}
+                    {wa && <a href={wa} target="_blank" rel="noreferrer" title={tr('WhatsApp yaad-dihani')} className="flex h-9 w-9 items-center justify-center rounded-xl text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>}
+                    <Link to={`/customers/${c.id}?tab=khata`} title={tr('Statement')} className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
                   </div>
                 </li>
               );
@@ -313,7 +314,7 @@ function KhataBook() {
       {tab === 'list' && d.hasMore && (
         <div ref={sentinel}>
           <Button variant="secondary" fullWidth size="lg" loading={d.loadingMore} onClick={() => void d.loadMore()}>
-            {d.loadingMore ? 'Aa rahe hain…' : `Aur dikhayein (${d.items.length} / ${d.count})`}
+            {d.loadingMore ? tr('Aa rahe hain…') : tr('Aur dikhayein ({{count}} / {{count2}})', { count: d.items.length, count2: d.count })}
           </Button>
         </div>
       )}
@@ -323,17 +324,17 @@ function KhataBook() {
 
 function KhataGuide({ onClose }: { onClose: () => void }) {
   const steps: GuideStep[] = [
-    { icon: Wallet, color: '#16a34a', title: 'Payment lein', text: 'Customer ke saamne "Payment" dabayein, amount likhein. Poora baqi ek click mein bhar jata hai.' },
-    { icon: Plus, color: '#e11d48', title: 'Udhaar chadhayein', text: 'Bina bill ke udhaar (naqd paise diye) — upar "Udhaar" ya customer ke saamne "+".' },
-    { icon: History, color: '#7c3aed', title: 'Kaapi ka purana khata', text: '"Purana khata" — register ka purana baqi. Jo udhaar pehle se hai us mein jurta hai, kuch nahi mitta.' },
-    { icon: AlertTriangle, color: '#ea580c', title: 'Kitna purana', text: 'Upar ke chaar dabbe: 7 din, 30 din, 90 din se purana. Jo payment aati hai woh sab se purane udhaar mein ginti hai.' },
-    { icon: MessagesSquare, color: '#0891b2', title: 'Yaad-dihani', text: '"Yaad-dihani" sab udhaar walon ko ek ek kar ke WhatsApp. Purane udhaar par lehja khud sakht ho jata hai.' },
-    { icon: FileText, color: '#475569', title: 'Statement', text: 'Customer ke saamne kaghaz wala button — poora khata, print ya PDF.' },
-    { icon: Lock, color: '#db2777', title: 'Hifazat', text: 'Khata PIN ke peeche hai. Aankh wala button amount chhupata hai — grahak saamne ho to.' },
-    { icon: CloudOff, color: '#0284c7', title: 'Internet ke bagair', text: 'Internet na ho to bhi payment aur udhaar likhein — internet aate hi khud server par chale jate hain.' },
+    { icon: Wallet, color: '#16a34a', title: tr('Payment lein'), text: tr('Customer ke saamne "Payment" dabayein, amount likhein. Poora baqi ek click mein bhar jata hai.') },
+    { icon: Plus, color: '#e11d48', title: tr('Udhaar chadhayein'), text: tr('Bina bill ke udhaar (naqd paise diye) — upar "Udhaar" ya customer ke saamne "+".') },
+    { icon: History, color: '#7c3aed', title: tr('Kaapi ka purana khata'), text: tr('"Purana khata" — register ka purana baqi. Jo udhaar pehle se hai us mein jurta hai, kuch nahi mitta.') },
+    { icon: AlertTriangle, color: '#ea580c', title: tr('Kitna purana'), text: tr('Upar ke chaar dabbe: 7 din, 30 din, 90 din se purana. Jo payment aati hai woh sab se purane udhaar mein ginti hai.') },
+    { icon: MessagesSquare, color: '#0891b2', title: tr('Yaad-dihani'), text: tr('"Yaad-dihani" sab udhaar walon ko ek ek kar ke WhatsApp. Purane udhaar par lehja khud sakht ho jata hai.') },
+    { icon: FileText, color: '#475569', title: tr('Statement'), text: tr('Customer ke saamne kaghaz wala button — poora khata, print ya PDF.') },
+    { icon: Lock, color: '#db2777', title: tr('Hifazat'), text: tr('Khata PIN ke peeche hai. Aankh wala button amount chhupata hai — grahak saamne ho to.') },
+    { icon: CloudOff, color: '#0284c7', title: tr('Internet ke bagair'), text: tr('Internet na ho to bhi payment aur udhaar likhein — internet aate hi khud server par chale jate hain.') },
   ];
   return (
-    <PageGuide title="Khata — aasaan tareeqa" steps={steps} onClose={onClose}
-      shortcuts={[['/', 'dhoondein'], ['U', 'udhaar'], ['N', 'yaad-dihani'], ['A', 'analytics'], ['G', 'guide']]} />
+    <PageGuide title={tr('Khata — aasaan tareeqa')} steps={steps} onClose={onClose}
+      shortcuts={[['/', tr('dhoondein')], ['U', tr('udhaar')], ['N', tr('yaad-dihani')], ['A', tr('analytics')], ['G', tr('guide')]]} />
   );
 }

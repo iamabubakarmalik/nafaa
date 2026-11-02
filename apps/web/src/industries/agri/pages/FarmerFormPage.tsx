@@ -22,6 +22,7 @@ import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { farmersApi, type Farmer } from '../api/farmers.api';
 import { useSaveKey } from '../hooks/usePageKeys';
 import { CROPS, SEASON_LABEL, amountInput, cnicOk, errorText, formatCnic, phoneOk } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const PROVINCES = ['Punjab', 'Sindh', 'KPK', 'Balochistan', 'Gilgit-Baltistan', 'AJK', 'ICT'];
 const FARMING = ['Fasal', 'Mawayshi', 'Murghi', 'Dairy', 'Baghbani', 'Machhli'];
@@ -88,12 +89,12 @@ export default function FarmerFormPage() {
 
   const errors = useMemo(() => {
     const e: Partial<Record<keyof Form, string>> = {};
-    if (!form.fullName.trim()) e.fullName = 'Farmer ka naam likhein';
-    if (!form.phone.trim()) e.phone = 'Phone number likhein';
-    else if (!phoneOk(form.phone)) e.phone = 'Phone poora likhein (03XX-XXXXXXX)';
-    if (!cnicOk(form.cnic)) e.cnic = 'CNIC 13 hindsay ka hota hai';
-    if (form.landAreaAcres && !(Number(form.landAreaAcres) >= 0)) e.landAreaAcres = 'Acre sahi likhein';
-    if (form.creditDays && (Number(form.creditDays) > 400)) e.creditDays = '400 din se zyada nahi';
+    if (!form.fullName.trim()) e.fullName = t('Farmer ka naam likhein');
+    if (!form.phone.trim()) e.phone = t('Phone number likhein');
+    else if (!phoneOk(form.phone)) e.phone = t('Phone poora likhein (03XX-XXXXXXX)');
+    if (!cnicOk(form.cnic)) e.cnic = t('CNIC 13 hindsay ka hota hai');
+    if (form.landAreaAcres && !(Number(form.landAreaAcres) >= 0)) e.landAreaAcres = t('Acre sahi likhein');
+    if (form.creditDays && (Number(form.creditDays) > 400)) e.creditDays = t('400 din se zyada nahi');
     return e;
   }, [form]);
   const show = (k: keyof Form) => (tried ? errors[k] : undefined);
@@ -115,10 +116,10 @@ export default function FarmerFormPage() {
       qc.invalidateQueries({ queryKey: ['agri-farmers-all'] });
       qc.invalidateQueries({ queryKey: ['agri-farmer'] });
       qc.invalidateQueries({ queryKey: ['agri-farmer-by-customer'] });
-      toast.success(editing ? 'Save ho gaya' : `${f.fullName} jur gaya (${f.farmerNumber}) — khata bhi ban gaya`);
+      toast.success(editing ? t('Save ho gaya') : t('{{fullName}} jur gaya ({{farmerNumber}}) — khata bhi ban gaya', { fullName: f.fullName, farmerNumber: f.farmerNumber }));
       navigate(`/agri/farmers/${f.id}`);
     },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Save nahi hua'))),
     onSettled: () => { lock.current = false; },
   });
   const submit = () => {
@@ -137,79 +138,79 @@ export default function FarmerFormPage() {
   });
 
   if (editing && farmerQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
-  if (editing && !farmerQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye farmer nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/agri/farmers')}>Farmers par wapas</Button></div></PageShell>;
+  if (editing && !farmerQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Ye farmer nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/agri/farmers')}>{t('Farmers par wapas')}</Button></div></PageShell>;
 
   const limit = Number(form.creditLimit) || 0;
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Farmer form" onClose={guide.close}
+        <PageGuide title={t('Farmer form')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#2563eb', title: 'Naam aur phone', text: 'Isi phone ka customer pehle se ho to farmer usi khate se jurta hai — ek shakhs ka ek khata.' },
-            { icon: Sprout, color: '#65a30d', title: 'Zameen aur fasal', text: 'Fasal POS par farmer ke saath dikhti hai aur mashwara dene me kaam aati hai.' },
-            { icon: Wallet, color: '#d97706', title: 'Udhaar ki had', text: 'Had se upar udhaar par POS manager PIN maangta hai. 0 ka matlab koi had nahi.' },
+            { icon: UserRound, color: '#2563eb', title: t('Naam aur phone'), text: t('Isi phone ka customer pehle se ho to farmer usi khate se jurta hai — ek shakhs ka ek khata.') },
+            { icon: Sprout, color: '#65a30d', title: t('Zameen aur fasal'), text: t('Fasal POS par farmer ke saath dikhti hai aur mashwara dene me kaam aati hai.') },
+            { icon: Wallet, color: '#d97706', title: t('Udhaar ki had'), text: t('Had se upar udhaar par POS manager PIN maangta hai. 0 ka matlab koi had nahi.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
       <PageHero
-        title={editing ? `${farmerQ.data?.fullName} — badlein` : 'Naya farmer'}
-        subtitle={editing ? 'Jo badalna hai badlein — khata waisa hi rahega' : customerQ.data ? `${customerQ.data.name} ke khate se jura farmer` : 'Naam, gaon, zameen aur season ka udhaar'}
+        title={editing ? t('{{fullName}} — badlein', { fullName: farmerQ.data?.fullName }) : t('Naya farmer')}
+        subtitle={editing ? t('Jo badalna hai badlein — khata waisa hi rahega') : customerQ.data ? t('{{name}} ke khate se jura farmer', { name: customerQ.data.name }) : t('Naam, gaon, zameen aur season ka udhaar')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={t('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</span>}
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Farmer</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Farmer')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Poora naam" required value={form.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Ghulam Rasool" maxLength={100} error={show('fullName')} hint="Bill aur khate par yahi naam" data-autofocus />
-              <Input label="Walid ka naam" value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} placeholder="Muhammad Din" hint="Marzi hai — gaon me pehchaan ke liye" />
-              <Input label="Phone" required inputMode="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} error={show('phone')} hint="WhatsApp yaad dihani isi par" />
-              <Input label="Doosra phone" inputMode="tel" value={form.altPhone} onChange={(e) => set('altPhone', e.target.value)} placeholder="Beta / ghar" hint="Marzi hai" />
-              <Input label="CNIC" inputMode="numeric" value={form.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} placeholder="35202-1234567-1" leftIcon={<IdCard className="h-4 w-4" />} error={show('cnic')} hint="Subsidy claim ke liye zaroori. Ek CNIC do farmers par nahi." />
+              <Input label={t('Poora naam')} required value={form.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder={t('Ghulam Rasool')} maxLength={100} error={show('fullName')} hint={t('Bill aur khate par yahi naam')} data-autofocus />
+              <Input label={t('Walid ka naam')} value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} placeholder={t('Muhammad Din')} hint={t('Marzi hai — gaon me pehchaan ke liye')} />
+              <Input label={t('Phone')} required inputMode="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} error={show('phone')} hint={t('WhatsApp yaad dihani isi par')} />
+              <Input label={t('Doosra phone')} inputMode="tel" value={form.altPhone} onChange={(e) => set('altPhone', e.target.value)} placeholder={t('Beta / ghar')} hint={t('Marzi hai')} />
+              <Input label={t('CNIC')} inputMode="numeric" value={form.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} placeholder="35202-1234567-1" leftIcon={<IdCard className="h-4 w-4" />} error={show('cnic')} hint={t('Subsidy claim ke liye zaroori. Ek CNIC do farmers par nahi.')} />
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<T icon={MapPin}>Gaon</T>}>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>{t('Gaon')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Gaon / chak" value={form.village} onChange={(e) => set('village', e.target.value)} placeholder="Chak 45/2L" />
-              <Input label="Tehsil" value={form.tehsil} onChange={(e) => set('tehsil', e.target.value)} placeholder="Renala" />
-              <Input label="Zila" value={form.district} onChange={(e) => set('district', e.target.value)} placeholder="Okara" />
-              <Select label="Soobah" value={form.province} onChange={(e) => set('province', e.target.value)} options={[{ value: '', label: '—' }, ...PROVINCES.map((p) => ({ value: p, label: p }))]} />
-              <Input wrapperClassName="sm:col-span-2" label="Pata" value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="Delivery ke liye raasta" hint="Marzi hai — bulk order delivery me kaam aata hai" />
+              <Input label={t('Gaon / chak')} value={form.village} onChange={(e) => set('village', e.target.value)} placeholder={t('Chak 45/2L')} />
+              <Input label={t('Tehsil')} value={form.tehsil} onChange={(e) => set('tehsil', e.target.value)} placeholder={t('Renala')} />
+              <Input label={t('Zila')} value={form.district} onChange={(e) => set('district', e.target.value)} placeholder={t('Okara')} />
+              <Select label={t('Soobah')} value={form.province} onChange={(e) => set('province', e.target.value)} options={[{ value: '', label: '—' }, ...PROVINCES.map((p) => ({ value: p, label: p }))]} />
+              <Input wrapperClassName="sm:col-span-2" label={t('Pata')} value={form.address} onChange={(e) => set('address', e.target.value)} placeholder={t('Delivery ke liye raasta')} hint={t('Marzi hai — bulk order delivery me kaam aata hai')} />
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<T icon={Sprout}>Zameen aur fasal</T>}>
+          <Card className="rounded-2xl" title={<T icon={Sprout}>{t('Zameen aur fasal')}</T>}>
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Zameen (acre)" inputMode="decimal" value={form.landAreaAcres} onChange={(e) => set('landAreaAcres', amountInput(e.target.value))} placeholder="12" error={show('landAreaAcres')} hint="1 acre = 8 kanal" />
-                <Select label="Zameen kis ki" value={form.landOwnership} onChange={(e) => set('landOwnership', e.target.value)} options={[{ value: '', label: '—' }, ...OWNERSHIP.map((o) => ({ value: o, label: o }))]} />
-                <Select label="Paani" value={form.waterSource} onChange={(e) => set('waterSource', e.target.value)} options={[{ value: '', label: '—' }, ...WATER.map((o) => ({ value: o, label: o }))]} />
-                <Select label="Mitti" value={form.soilType} onChange={(e) => set('soilType', e.target.value)} options={[{ value: '', label: '—' }, ...SOILS.map((o) => ({ value: o, label: o }))]} />
-                <Input label="Abhi kya laga hai" value={form.currentCrop} onChange={(e) => set('currentCrop', e.target.value)} placeholder="Gandum" />
-                <Select label="Season" value={form.currentSeason} onChange={(e) => set('currentSeason', e.target.value)} options={[{ value: '', label: '—' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))]} />
+                <Input label={t('Zameen (acre)')} inputMode="decimal" value={form.landAreaAcres} onChange={(e) => set('landAreaAcres', amountInput(e.target.value))} placeholder="12" error={show('landAreaAcres')} hint={t('1 acre = 8 kanal')} />
+                <Select label={t('Zameen kis ki')} value={form.landOwnership} onChange={(e) => set('landOwnership', e.target.value)} options={[{ value: '', label: '—' }, ...OWNERSHIP.map((o) => ({ value: o, label: o }))]} />
+                <Select label={t('Paani')} value={form.waterSource} onChange={(e) => set('waterSource', e.target.value)} options={[{ value: '', label: '—' }, ...WATER.map((o) => ({ value: o, label: o }))]} />
+                <Select label={t('Mitti')} value={form.soilType} onChange={(e) => set('soilType', e.target.value)} options={[{ value: '', label: '—' }, ...SOILS.map((o) => ({ value: o, label: o }))]} />
+                <Input label={t('Abhi kya laga hai')} value={form.currentCrop} onChange={(e) => set('currentCrop', e.target.value)} placeholder={t('Gandum')} />
+                <Select label={t('Season')} value={form.currentSeason} onChange={(e) => set('currentSeason', e.target.value)} options={[{ value: '', label: '—' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))]} />
               </div>
-              <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaun si fasal ugata hai</span><Chips options={CROPS} value={form.primaryCrops} onChange={(v) => set('primaryCrops', v)} /></div>
-              <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaam</span><Chips options={FARMING} value={form.farmingType} onChange={(v) => set('farmingType', v)} /></div>
+              <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Kaun si fasal ugata hai')}</span><Chips options={CROPS} value={form.primaryCrops} onChange={(v) => set('primaryCrops', v)} /></div>
+              <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Kaam')}</span><Chips options={FARMING} value={form.farmingType} onChange={(v) => set('farmingType', v)} /></div>
             </div>
           </Card>
         </div>
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Season ka udhaar</T>} description="Rabi ka udhaar 31 May tak, Kharif ka 15 Dec tak — katai ke baad">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Season ka udhaar')}</T>} description={t('Rabi ka udhaar 31 May tak, Kharif ka 15 Dec tak — katai ke baad')}>
             <div className="space-y-3">
-              <Input label="Udhaar ki had (Rs)" inputMode="decimal" value={form.creditLimit} onChange={(e) => set('creditLimit', amountInput(e.target.value))} placeholder="0" className="text-right font-semibold tabular-nums"
-                hint={limit > 0 ? `${formatPKR(limit)} se upar udhaar par POS manager PIN maangega` : '0 = koi had nahi'} />
+              <Input label={t('Udhaar ki had (Rs)')} inputMode="decimal" value={form.creditLimit} onChange={(e) => set('creditLimit', amountInput(e.target.value))} placeholder="0" className="text-end font-semibold tabular-nums"
+                hint={limit > 0 ? t('{{limit}} se upar udhaar par POS manager PIN maangega', { limit: formatPKR(limit) }) : t('0 = koi had nahi')} />
               <div className="flex flex-wrap gap-1.5">{[25000, 50000, 100000, 200000].map((v) => <button key={v} type="button" onClick={() => set('creditLimit', String(v))} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-semibold text-slate-700 hover:bg-slate-200">{formatPKR(v)}</button>)}</div>
-              <Input label="Udhaar ke din" inputMode="numeric" value={form.creditDays} onChange={(e) => set('creditDays', e.target.value.replace(/\D/g, ''))} placeholder="Season tak" error={show('creditDays')} hint="Marzi hai — season ke ilawa koi khaas waada ho to" />
+              <Input label={t('Udhaar ke din')} inputMode="numeric" value={form.creditDays} onChange={(e) => set('creditDays', e.target.value.replace(/\D/g, ''))} placeholder={t('Season tak')} error={show('creditDays')} hint={t('Marzi hai — season ke ilawa koi khaas waada ho to')} />
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<T icon={Tractor}>Note</T>}>
-            <Textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={4} placeholder="Jo baat yaad rakhni ho — zamin, guarantor, waada…" maxLength={2000} />
+          <Card className="rounded-2xl" title={<T icon={Tractor}>{t('Note')}</T>}>
+            <Textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={4} placeholder={t('Jo baat yaad rakhni ho — zamin, guarantor, waada…')} maxLength={2000} />
           </Card>
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => navigate(-1)}>Wapas</Button>
-            <Button className="flex-1" loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : 'Farmer banayein'}</Button>
+            <Button variant="secondary" className="flex-1" onClick={() => navigate(-1)}>{t('Wapas')}</Button>
+            <Button className="flex-1" loading={save.isPending} onClick={submit}>{editing ? t('Save karein') : t('Farmer banayein')}</Button>
           </div>
         </div>
       </div>

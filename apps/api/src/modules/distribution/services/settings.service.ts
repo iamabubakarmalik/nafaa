@@ -15,6 +15,7 @@ import {
 import { UpdateDistributionSettingsDto } from '../dto/setup.dto';
 import { LIST_BASES } from '../helpers/pricing';
 import { SCHEME_TYPES } from '../helpers/scheme-resolver';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const PUBLIC_FIELDS = {
   enabled: true, mode: true, creditMode: true, requireCheckIn: true, checkInRadiusM: true, orderPrefix: true, loadSheetPrefix: true,
@@ -56,7 +57,9 @@ export class DistributionSettingsService {
     if (dto.enabled === true) {
       this.access.forget(tenantId);
       const a = await this.access.read(tenantId);
-      if (!a.planAllows) throw new ForbiddenException(`Aap ke plan${a.planName ? ` (${a.planName})` : ''} me Distribution shamil nahi — plan upgrade karein`);
+      if (!a.planAllows) throw new ForbiddenException(a.planName
+        ? apiMessage('Aap ke plan ({{planName}}) me Distribution shamil nahi — plan upgrade karein', { planName: a.planName })
+        : apiMessage('Aap ke plan me Distribution shamil nahi — plan upgrade karein'));
     }
     if (dto.defaultPriceListId) {
       const ok = await this.prisma.priceList.findFirst({ where: { id: dto.defaultPriceListId, tenantId }, select: { id: true } });

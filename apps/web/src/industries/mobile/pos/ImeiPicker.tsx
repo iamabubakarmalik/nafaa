@@ -10,6 +10,7 @@ import { Input, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { PosPhone } from '../api/mobile-pos.api';
 import { PTA_STATUS_LABELS } from '../api/imei.api';
+import { t as tr } from '@core/i18n';
 
 interface Props {
   name: string;
@@ -40,7 +41,7 @@ export function ImeiPicker({ name, phones, inCart, onPick, onClose }: Props) {
     const m = new Map<string, { label: string; price: number; rows: PosPhone[] }>();
     for (const p of list) {
       const key = p.variantId ?? '';
-      const g = m.get(key) ?? { label: p.variant?.name ?? 'Phone', price: Number(p.salePrice) || 0, rows: [] };
+      const g = m.get(key) ?? { label: p.variant?.name ?? tr('Phone'), price: Number(p.salePrice) || 0, rows: [] };
       g.rows.push(p);
       m.set(key, g);
     }
@@ -55,7 +56,7 @@ export function ImeiPicker({ name, phones, inCart, onPick, onClose }: Props) {
       open
       onClose={onClose}
       title={name}
-      description={`IMEI chunein · ${phones.length} phone`}
+      description={tr('IMEI chunein · {{count}} phone', { count: phones.length })}
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 border-b border-slate-200 bg-white px-5 py-3">
         <Input
@@ -65,7 +66,7 @@ export function ImeiPicker({ name, phones, inCart, onPick, onClose }: Props) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
-          placeholder="IMEI scan karein ya likhein"
+          placeholder={tr('IMEI scan karein ya likhein')}
           className="font-mono text-sm"
           leftIcon={<ScanLine className="h-4 w-4" />}
         />
@@ -74,7 +75,7 @@ export function ImeiPicker({ name, phones, inCart, onPick, onClose }: Props) {
       <div>
         {groups.length === 0 ? (
           <p className="py-10 text-center text-sm text-slate-500">
-            {phones.length ? 'Is IMEI ka phone nahi mila' : 'Is branch me is model ka koi phone stock me nahi'}
+            {phones.length ? tr('Is IMEI ka phone nahi mila') : tr('Is branch me is model ka koi phone stock me nahi')}
           </p>
         ) : groups.map((g) => (
           <section key={g.label} className="mb-3 last:mb-0">
@@ -87,17 +88,17 @@ export function ImeiPicker({ name, phones, inCart, onPick, onClose }: Props) {
                 const taken = inCart.has(p.id);
                 return (
                   <button key={p.id} type="button" disabled={taken} onClick={() => onPick(p)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left transition hover:border-brand-400 hover:bg-brand-50/40 disabled:cursor-not-allowed disabled:opacity-50">
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-start transition hover:border-brand-400 hover:bg-brand-50/40 disabled:cursor-not-allowed disabled:opacity-50">
                     <div className="min-w-0 flex-1">
                       <div className="font-mono text-sm font-semibold text-slate-900">{p.imei1}</div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
                         {p.imei2 && <span className="font-mono">{p.imei2}</span>}
                         {p.color && <span>{p.color}</span>}
-                        {p.warrantyMonths ? <span className="inline-flex items-center gap-0.5"><ShieldCheck className="h-3 w-3" />{p.warrantyMonths} mahine</span> : null}
+                        {p.warrantyMonths ? <span className="inline-flex items-center gap-0.5"><ShieldCheck className="h-3 w-3" />{tr('{{warrantyMonths}} mahine', { warrantyMonths: p.warrantyMonths })}</span> : null}
                       </div>
                     </div>
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${ptaTone(p.ptaStatus)}`}>{PTA_STATUS_LABELS[p.ptaStatus]}</span>
-                    {taken && <span className="shrink-0 text-xs font-semibold text-amber-700">Bill me hai</span>}
+                    {taken && <span className="shrink-0 text-xs font-semibold text-amber-700">{tr('Bill me hai')}</span>}
                   </button>
                 );
               })}

@@ -33,6 +33,7 @@ import { usePurchaseSources, type Source, type UnitChoice } from '@modules/purch
 import { combosApi, type ComboPayload, type ComboStatus, type ProductCombo } from '../api/combos.api';
 import { COMBO_KEY, COMBO_KEYS, STATUS, nameExample, qtyText, tagIdeas, useBranchName } from '../components/meta';
 import { comboSheet } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 interface Part {
   key: string;
@@ -178,12 +179,12 @@ export default function ComboFormPage() {
   const badQty = parts.some((p) => !(Number(p.quantity) > 0));
   const datesWrong = !!f.validFrom && !!f.validTo && f.validTo < f.validFrom;
   const problems = [
-    f.name.trim().length < 2 && 'Combo ka naam likhein',
-    !parts.length && 'Kam az kam ek cheez daalein',
-    oneThing && 'Do cheezein daalein, ya ek cheez ki quantity 1 se zyada rakhein',
-    badQty && 'Har cheez ki quantity 0 se zyada honi chahiye',
-    !(price > 0) && 'Combo ki qeemat likhein',
-    datesWrong && 'Khatam ki date shuru se pehle hai',
+    f.name.trim().length < 2 && tr('Combo ka naam likhein'),
+    !parts.length && tr('Kam az kam ek cheez daalein'),
+    oneThing && tr('Do cheezein daalein, ya ek cheez ki quantity 1 se zyada rakhein'),
+    badQty && tr('Har cheez ki quantity 0 se zyada honi chahiye'),
+    !(price > 0) && tr('Combo ki qeemat likhein'),
+    datesWrong && tr('Khatam ki date shuru se pehle hai'),
   ].filter(Boolean) as string[];
 
   const payload = (): ComboPayload => ({
@@ -212,12 +213,12 @@ export default function ComboFormPage() {
     mutationFn: () => (editing ? combosApi.update(id!, payload()) : combosApi.create(payload())),
     onSuccess: (c) => {
       COMBO_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(editing ? 'Combo save ho gaya' : `${c.name} ban gaya${c.status === 'ACTIVE' ? ' — POS par dikhega' : ''}`);
+      toast.success(editing ? tr('Combo save ho gaya') : tr('{{name}} ban gaya{{value}}', { name: c.name, value: c.status === 'ACTIVE' ? tr(' — POS par dikhega') : '' }));
       navigate('/combos');
     },
     onError: (e: { response?: { data?: { message?: string | string[] } } }) => {
       const m = e?.response?.data?.message;
-      toast.error(Array.isArray(m) ? m[0] : m || 'Save nahi hua');
+      toast.error(Array.isArray(m) ? m[0] : m || tr('Save nahi hua'));
     },
   });
   const submit = () => {
@@ -234,13 +235,13 @@ export default function ComboFormPage() {
   }, []);
 
   const upload = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error('Tasveer 10 MB se chhoti honi chahiye'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error(tr('Tasveer 10 MB se chhoti honi chahiye')); return; }
     setUploading(true);
     try {
       const r = await uploadsApi.single({ file, name: file.name, type: file.type }, { purpose: 'product-image' });
       set('imageUrl', r.url);
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Tasveer upload nahi hui');
+      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || tr('Tasveer upload nahi hui'));
     } finally {
       setUploading(false);
     }
@@ -256,8 +257,8 @@ export default function ComboFormPage() {
   if (editing && existing.isError) {
     return (
       <div className="mx-auto max-w-md py-24 text-center">
-        <p className="font-semibold text-slate-900">Combo nahi mila</p>
-        <Button className="mt-4" variant="secondary" onClick={() => navigate('/combos')}>Combos par wapas</Button>
+        <p className="font-semibold text-slate-900">{tr('Combo nahi mila')}</p>
+        <Button className="mt-4" variant="secondary" onClick={() => navigate('/combos')}>{tr('Combos par wapas')}</Button>
       </div>
     );
   }
@@ -268,66 +269,66 @@ export default function ComboFormPage() {
   return (
     <PageShell className="pb-28">
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-      {scanBarcode && <BarcodeScanner title="Combo ka barcode" hint="Combo par lagne wala barcode dabbe me rakhein" onDetected={(c) => { setScanBarcode(false); set('barcode', c.trim()); }} onClose={() => setScanBarcode(false)} />}
+      {scanBarcode && <BarcodeScanner title={tr('Combo ka barcode')} hint={tr('Combo par lagne wala barcode dabbe me rakhein')} onDetected={(c) => { setScanBarcode(false); set('barcode', c.trim()); }} onClose={() => setScanBarcode(false)} />}
 
-      <PageHero title={editing ? `${existing.data?.name ?? 'Combo'} — badlein` : 'Naya combo'} chip={<><Gift />Combo</>}
-        meta="Kai cheezein ek qeemat par — POS par ek line, stock har cheez ka apna ghatta hai"
+      <PageHero title={editing ? tr('{{value}} — badlein', { value: existing.data?.name ?? 'Combo' }) : tr('Naya combo')} chip={<><Gift />{tr('Combo')}</>}
+        meta={tr('Kai cheezein ek qeemat par — POS par ek line, stock har cheez ka apna ghatta hai')}
         actions={<>
-          <button type="button" onClick={() => navigate('/combos')} className={heroButton}><ArrowLeft className="h-4 w-4" />Combos</button>
+          <button type="button" onClick={() => navigate('/combos')} className={heroButton}><ArrowLeft className="h-4 w-4 rtl-flip" />{tr('Combos')}</button>
           {preview && <PrintButton doc={() => comboSheet(preview, !costHidden, branch)} size="sm" />}
-          <button type="button" onClick={guide.open} title="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-4">
-          <Section icon={<Gift className="h-4 w-4" />} title="Combo">
-            <Field label="Naam *" hint="Customer aur cashier ko yahi naam dikhega — bill par bhi" span>
+          <Section icon={<Gift className="h-4 w-4" />} title={tr('Combo')}>
+            <Field label={tr('Naam *')} hint={tr('Customer aur cashier ko yahi naam dikhega — bill par bhi')} span>
               <input autoFocus={!editing} value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={120} placeholder={nameExample(industry?.id)} className={input} />
             </Field>
-            <Field label="Chhota tag" hint="POS card par chhota sa label — neeche se jaldi chunein" span>
-              <input value={f.tagLine} onChange={(e) => set('tagLine', e.target.value)} maxLength={60} placeholder="Best deal" className={input} />
+            <Field label={tr('Chhota tag')} hint={tr('POS card par chhota sa label — neeche se jaldi chunein')} span>
+              <input value={f.tagLine} onChange={(e) => set('tagLine', e.target.value)} maxLength={60} placeholder={tr('Best deal')} className={input} />
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {ideas.map((t) => <button key={t} type="button" onClick={() => set('tagLine', f.tagLine === t ? '' : t)} className={cn('rounded-full px-2.5 py-0.5 text-[0.75rem] ring-1', f.tagLine === t ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200 hover:bg-slate-50')}>{t}</button>)}
               </div>
             </Field>
-            <Field label="Category" hint="Reports aur POS me chhantne ke liye (ikhtiyari)">
+            <Field label={tr('Category')} hint={tr('Reports aur POS me chhantne ke liye (ikhtiyari)')}>
               <select value={f.categoryId} onChange={(e) => set('categoryId', e.target.value)} className={input}>
-                <option value="">Koi nahi</option>
+                <option value="">{tr('Koi nahi')}</option>
                 {(categoriesQ.data ?? []).filter((c) => c.isActive || c.id === f.categoryId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </Field>
             <div className="block text-[0.8125rem] font-medium text-slate-700">
-              Tasveer
+              {tr('Tasveer')}
               <div className="mt-1 flex items-center gap-3">
                 <button type="button" onClick={() => fileRef.current?.click()} className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 hover:border-brand-400">
                   {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : f.imageUrl ? <img src={f.imageUrl} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-5 w-5" />}
                 </button>
                 <div className="flex flex-col items-start gap-1">
-                  <Button type="button" size="sm" variant="secondary" onClick={() => fileRef.current?.click()} loading={uploading}>{f.imageUrl ? 'Badlein' : 'Tasveer lagayein'}</Button>
-                  {f.imageUrl && <button type="button" onClick={() => set('imageUrl', '')} className="text-[0.75rem] text-rose-600 hover:underline">Hatayein</button>}
+                  <Button type="button" size="sm" variant="secondary" onClick={() => fileRef.current?.click()} loading={uploading}>{f.imageUrl ? tr('Badlein') : tr('Tasveer lagayein')}</Button>
+                  {f.imageUrl && <button type="button" onClick={() => set('imageUrl', '')} className="text-[0.75rem] text-rose-600 hover:underline">{tr('Hatayein')}</button>}
                 </div>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void upload(file); e.target.value = ''; }} />
               </div>
-              <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Na lagayein to pehli cheez ki tasveer dikhegi</span>
+              <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{tr('Na lagayein to pehli cheez ki tasveer dikhegi')}</span>
             </div>
-            <Field label="Details" hint="Andar kya hai, kab tak — print sheet par aata hai (ikhtiyari)" span>
+            <Field label={tr('Details')} hint={tr('Andar kya hai, kab tak — print sheet par aata hai (ikhtiyari)')} span>
               <textarea value={f.description} onChange={(e) => set('description', e.target.value)} rows={2} maxLength={2000} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
             </Field>
           </Section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 font-semibold text-slate-900"><ShoppingBag className="h-4 w-4" />Is combo me kya hai</h2>
-              <span className="text-[0.75rem] text-slate-500">{parts.length} cheezein</span>
+              <h2 className="flex items-center gap-2 font-semibold text-slate-900"><ShoppingBag className="h-4 w-4" />{tr('Is combo me kya hai')}</h2>
+              <span className="text-[0.75rem] text-slate-500">{tr('{{count}} cheezein', { count: parts.length })}</span>
             </div>
-            <ProductSearch sources={sources} byCode={byCode} loading={loading} onPick={add} placeholder="Cheez ka naam, SKU ya barcode — Enter ya scan…" />
-            <p className="mt-1.5 text-[0.75rem] text-slate-500">Pack ka barcode scan karein to wohi pack (dozen, carton) jur jata hai. Dobara same cheez daalein to quantity barh jati hai.</p>
+            <ProductSearch sources={sources} byCode={byCode} loading={loading} onPick={add} placeholder={tr('Cheez ka naam, SKU ya barcode — Enter ya scan…')} />
+            <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Pack ka barcode scan karein to wohi pack (dozen, carton) jur jata hai. Dobara same cheez daalein to quantity barh jati hai.')}</p>
 
             {!parts.length ? (
               <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-200 px-4 py-8 text-center">
                 <Boxes className="mx-auto h-8 w-8 text-slate-300" />
-                <p className="mt-2 text-sm font-medium text-slate-700">Upar se cheezein search</p>
-                <p className="text-[0.75rem] text-slate-500">Misaal: 1 tel + 5 kg chawal + 1 kg cheeni</p>
+                <p className="mt-2 text-sm font-medium text-slate-700">{tr('Upar se cheezein search')}</p>
+                <p className="text-[0.75rem] text-slate-500">{tr('Misaal: 1 tel + 5 kg chawal + 1 kg cheeni')}</p>
               </div>
             ) : (
               <ul className="mt-3 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -341,74 +342,74 @@ export default function ComboFormPage() {
                         <p className="truncate text-sm font-semibold text-slate-900">{p.name}</p>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           {p.hasVariants && (
-                            <select value={p.variantId ?? ''} onChange={(e) => patch(p.key, { variantId: e.target.value || null })} aria-label="Type"
+                            <select value={p.variantId ?? ''} onChange={(e) => patch(p.key, { variantId: e.target.value || null })} aria-label={tr('Type')}
                               className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
-                              <option value="">Koi bhi type</option>
+                              <option value="">{tr('Koi bhi type')}</option>
                               {variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                             </select>
                           )}
                           {(s?.units.length ?? 0) > 1 ? (
-                            <select value={p.unitId ?? ''} aria-label="Unit"
+                            <select value={p.unitId ?? ''} aria-label={tr('Unit')}
                               onChange={(e) => { const u = s!.units.find((uu) => (uu.id ?? '') === e.target.value) ?? s!.units[0]; patch(p.key, { unitId: u.id, unitName: u.name, rate: u.rate, price: '' }); }}
                               className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
                               {s!.units.map((u) => <option key={u.id ?? 'base'} value={u.id ?? ''}>{u.name}{u.rate !== 1 ? ` (${qtyText(u.rate)} ${p.baseUnit})` : ''}</option>)}
                             </select>
                           ) : <span className="rounded-lg bg-slate-100 px-2 py-1 text-[0.75rem] text-slate-600">{p.unitName}</span>}
                           <span className={cn('text-[0.75rem]', x.canMake <= 3 ? 'text-amber-700' : 'text-slate-500')}>
-                            Stock {qtyText(x.stock)} {p.baseUnit} · {x.canMake} combo
+                            {tr('Stock {{stock}} {{baseUnit}} · {{canMake}} combo', { stock: qtyText(x.stock), baseUnit: p.baseUnit, canMake: x.canMake })}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button type="button" aria-label="Kam" onClick={() => patch(p.key, { quantity: String(Math.max(0, (Number(p.quantity) || 0) - 1)) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Minus className="h-3.5 w-3.5" /></button>
-                        <input value={p.quantity} onChange={(e) => patch(p.key, { quantity: e.target.value })} inputMode="decimal" aria-label="Quantity"
+                        <button type="button" aria-label={tr('Kam')} onClick={() => patch(p.key, { quantity: String(Math.max(0, (Number(p.quantity) || 0) - 1)) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Minus className="h-3.5 w-3.5" /></button>
+                        <input value={p.quantity} onChange={(e) => patch(p.key, { quantity: e.target.value })} inputMode="decimal" aria-label={tr('Quantity')}
                           className={cn('h-9 w-16 rounded-lg border px-2 text-center text-sm tabular-nums outline-none focus:border-brand-500', Number(p.quantity) > 0 ? 'border-slate-200' : 'border-rose-300')} />
-                        <button type="button" aria-label="Zyada" onClick={() => patch(p.key, { quantity: String((Number(p.quantity) || 0) + 1) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Plus className="h-3.5 w-3.5" /></button>
+                        <button type="button" aria-label={tr('Zyada')} onClick={() => patch(p.key, { quantity: String((Number(p.quantity) || 0) + 1) })} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50"><Plus className="h-3.5 w-3.5" /></button>
                       </div>
-                      <label className="w-28 text-right">
-                        <span className="sr-only">Alag qeemat</span>
+                      <label className="w-28 text-end">
+                        <span className="sr-only">{tr('Alag qeemat')}</span>
                         <input value={p.price} onChange={(e) => patch(p.key, { price: e.target.value })} inputMode="decimal" placeholder={String(Math.round(x.today))}
-                          title="Ek unit ki normal qeemat — khali chhorein to aaj ki qeemat" className="h-9 w-full rounded-lg border border-slate-200 px-2 text-right text-sm tabular-nums outline-none focus:border-brand-500" />
+                          title={tr('Ek unit ki normal qeemat — khali chhorein to aaj ki qeemat')} className="h-9 w-full rounded-lg border border-slate-200 px-2 text-end text-sm tabular-nums outline-none focus:border-brand-500" />
                         <span className="mt-0.5 block text-[0.6875rem] tabular-nums text-slate-500">= {formatPKR(x.line)}</span>
                       </label>
-                      <button type="button" onClick={() => setParts((l) => l.filter((y) => y.key !== p.key))} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => setParts((l) => l.filter((y) => y.key !== p.key))} aria-label={tr('Hatayein')} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     </li>
                   );
                 })}
               </ul>
             )}
-            {!!parts.length && <p className="mt-2 text-[0.75rem] text-slate-500">Qeemat ka khana ek unit ki normal qeemat hai — bachat isi se nikalti hai. Khali chhorein to aaj ki qeemat lagegi.</p>}
+            {!!parts.length && <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Qeemat ka khana ek unit ki normal qeemat hai — bachat isi se nikalti hai. Khali chhorein to aaj ki qeemat lagegi.')}</p>}
           </section>
 
-          <Section icon={<Percent className="h-4 w-4" />} title="Qeemat">
-            <Field label="Combo ki qeemat *" hint={separate > 0 ? `Alag alag lene par ${formatPKR(separate)} — is se kam rakhein taake customer ko bachat dikhe` : 'Pehle cheezein daalein, phir qeemat'}>
-              <input value={f.comboPrice} onChange={(e) => set('comboPrice', e.target.value)} inputMode="decimal" placeholder="0" className={cn(input, 'text-right text-base font-semibold tabular-nums')} />
+          <Section icon={<Percent className="h-4 w-4" />} title={tr('Qeemat')}>
+            <Field label={tr('Combo ki qeemat *')} hint={separate > 0 ? tr('Alag alag lene par {{separate}} — is se kam rakhein taake customer ko bachat dikhe', { separate: formatPKR(separate) }) : tr('Pehle cheezein daalein, phir qeemat')}>
+              <input value={f.comboPrice} onChange={(e) => set('comboPrice', e.target.value)} inputMode="decimal" placeholder="0" className={cn(input, 'text-end text-base font-semibold tabular-nums')} />
             </Field>
             <div className="text-[0.8125rem] font-medium text-slate-700">
-              Jaldi qeemat
+              {tr('Jaldi qeemat')}
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {[5, 10, 15, 20].map((off) => (
                   <button key={off} type="button" disabled={!(separate > 0)} onClick={() => priceAt(off)}
-                    className="rounded-full px-3 py-1 text-[0.75rem] font-semibold text-brand-800 ring-1 ring-brand-200 hover:bg-brand-50 disabled:opacity-40">{off}% kam</button>
+                    className="rounded-full px-3 py-1 text-[0.75rem] font-semibold text-brand-800 ring-1 ring-brand-200 hover:bg-brand-50 disabled:opacity-40">{tr('{{off}}% kam', { off })}</button>
                 ))}
               </div>
-              <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Alag qeemat se itna kam, gol rupay me</span>
+              <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{tr('Alag qeemat se itna kam, gol rupay me')}</span>
             </div>
           </Section>
 
-          <Section icon={<Barcode className="h-4 w-4" />} title="Barcode aur POS">
-            <Field label="Barcode" hint="Combo par label lagayein to POS par scan ho jata hai — kisi aur cheez wala nahi ho sakta">
+          <Section icon={<Barcode className="h-4 w-4" />} title={tr('Barcode aur POS')}>
+            <Field label={tr('Barcode')} hint={tr('Combo par label lagayein to POS par scan ho jata hai — kisi aur cheez wala nahi ho sakta')}>
               <div className="flex gap-1.5">
                 <input value={f.barcode} onChange={(e) => set('barcode', e.target.value.replace(/\s/g, ''))} maxLength={60} className={cn(input, 'font-mono')} />
-                <button type="button" onClick={() => setScanBarcode(true)} title="Camera se scan" aria-label="Scan" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50"><ScanLine className="h-4 w-4" /></button>
-                <button type="button" onClick={() => set('barcode', inStoreEan())} title="Naya barcode banayein" aria-label="Barcode banayein" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50"><Wand2 className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setScanBarcode(true)} title={tr('Camera se scan')} aria-label={tr('Scan')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50"><ScanLine className="h-4 w-4" /></button>
+                <button type="button" onClick={() => set('barcode', inStoreEan())} title={tr('Naya barcode banayein')} aria-label={tr('Barcode banayein')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50"><Wand2 className="h-4 w-4" /></button>
               </div>
             </Field>
-            <Field label="SKU / code" hint="Apna chhota code — search me kaam aata hai (ikhtiyari)">
+            <Field label={tr('SKU / code')} hint={tr('Apna chhota code — search me kaam aata hai (ikhtiyari)')}>
               <input value={f.sku} onChange={(e) => set('sku', e.target.value)} maxLength={60} className={cn(input, 'font-mono')} />
             </Field>
             <div className="sm:col-span-2">
-              <p className="text-[0.8125rem] font-medium text-slate-700">Haal</p>
+              <p className="text-[0.8125rem] font-medium text-slate-700">{tr('Haal')}</p>
               <div className="mt-1 inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
                 {(['ACTIVE', 'DRAFT', 'INACTIVE'] as ComboStatus[]).map((s) => (
                   <button key={s} type="button" onClick={() => set('status', s)}
@@ -417,25 +418,25 @@ export default function ComboFormPage() {
                   </button>
                 ))}
               </div>
-              <span className="mt-1 block text-[0.75rem] text-slate-500">Sirf "Chalu" combo POS par dikhta hai. Kacha = abhi tayyar ho raha hai. Band = kuch der ke liye roka hua.</span>
+              <span className="mt-1 block text-[0.75rem] text-slate-500">{tr('Sirf "Chalu" combo POS par dikhta hai. Kacha = abhi tayyar ho raha hai. Band = kuch der ke liye roka hua.')}</span>
             </div>
             <div className="sm:col-span-2">
-              <Switch checked={f.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} label={<span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-amber-500" />Featured</span>} description="POS ke Combos tab me sab se upar dikhega" />
+              <Switch checked={f.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} label={<span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-amber-500" />{tr('Featured')}</span>} description={tr('POS ke Combos tab me sab se upar dikhega')} />
             </div>
           </Section>
 
-          <Section icon={<CalendarClock className="h-4 w-4" />} title="Period aur had">
-            <Field label="Kab se" hint="Khali = abhi se">
+          <Section icon={<CalendarClock className="h-4 w-4" />} title={tr('Period aur had')}>
+            <Field label={tr('Kab se')} hint={tr('Khali = abhi se')}>
               <input type="date" value={f.validFrom} onChange={(e) => set('validFrom', e.target.value)} className={input} />
             </Field>
-            <Field label="Kab tak" hint={datesWrong ? 'Ye date shuru se pehle hai' : 'Khali = hamesha. Is din ke baad POS se khud hat jata hai'}>
+            <Field label={tr('Kab tak')} hint={datesWrong ? tr('Ye date shuru se pehle hai') : tr('Khali = hamesha. Is din ke baad POS se khud hat jata hai')}>
               <input type="date" value={f.validTo} min={f.validFrom || undefined} onChange={(e) => set('validTo', e.target.value)} className={cn(input, datesWrong && 'border-rose-400')} />
             </Field>
-            <Field label="Zyada se zyada kitne bechne hain" hint="Offer sirf itne combo tak — khali = jitne stock se ban sakein">
-              <input value={f.stockAvailable} onChange={(e) => set('stockAvailable', e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder="Koi had nahi" className={cn(input, 'tabular-nums')} />
+            <Field label={tr('Zyada se zyada kitne bechne hain')} hint={tr('Offer sirf itne combo tak — khali = jitne stock se ban sakein')}>
+              <input value={f.stockAvailable} onChange={(e) => set('stockAvailable', e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder={tr('Koi had nahi')} className={cn(input, 'tabular-nums')} />
             </Field>
-            <Field label="Ek customer kitne le sakta hai" hint="Yaad dihani ke liye — khali = koi had nahi">
-              <input value={f.maxPurchasePerCustomer} onChange={(e) => set('maxPurchasePerCustomer', e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder="Koi had nahi" className={cn(input, 'tabular-nums')} />
+            <Field label={tr('Ek customer kitne le sakta hai')} hint={tr('Yaad dihani ke liye — khali = koi had nahi')}>
+              <input value={f.maxPurchasePerCustomer} onChange={(e) => set('maxPurchasePerCustomer', e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder={tr('Koi had nahi')} className={cn(input, 'tabular-nums')} />
             </Field>
           </Section>
         </div>
@@ -447,54 +448,54 @@ export default function ComboFormPage() {
                 {f.imageUrl || parts[0]?.image ? <img src={f.imageUrl || parts[0]?.image || ''} alt="" className="h-full w-full object-cover" /> : <Gift className="absolute inset-0 m-auto h-6 w-6 text-brand-500" />}
               </div>
               <div className="min-w-0">
-                <p className="truncate font-semibold text-slate-900">{f.name.trim() || 'Combo ka naam'}</p>
+                <p className="truncate font-semibold text-slate-900">{f.name.trim() || tr('Combo ka naam')}</p>
                 {f.tagLine && <p className="inline-flex items-center gap-1 text-[0.75rem] text-brand-700"><Sparkles className="h-3 w-3" />{f.tagLine}</p>}
               </div>
             </div>
             <dl className="space-y-1.5 text-sm">
-              <Row label="Alag alag lene par" value={formatPKR(separate)} />
-              <Row label="Combo ki qeemat" value={Number.isFinite(price) ? formatPKR(price) : '—'} strong />
-              <Row label="Customer ki bachat" value={Number.isFinite(price) && separate > 0 ? `${formatPKR(Math.max(saving, 0))} (${Math.max(0, Math.round((saving / separate) * 100))}%)` : '—'} tone={saving > 0 ? 'emerald' : undefined} />
+              <Row label={tr('Alag alag lene par')} value={formatPKR(separate)} />
+              <Row label={tr('Combo ki qeemat')} value={Number.isFinite(price) ? formatPKR(price) : '—'} strong />
+              <Row label={tr('Customer ki bachat')} value={Number.isFinite(price) && separate > 0 ? `${formatPKR(Math.max(saving, 0))} (${Math.max(0, Math.round((saving / separate) * 100))}%)` : '—'} tone={saving > 0 ? 'emerald' : undefined} />
               <div className="my-2 border-t border-dashed border-slate-200" />
-              <Row label="Cost" value={costMoney(cost)} />
-              <Row label="Profit" value={Number.isFinite(price) ? costMoney(profit) : '—'} tone={profit < 0 ? 'rose' : 'emerald'} />
-              <Row label="Margin" value={costHidden ? '••••' : Number.isFinite(price) && price > 0 ? `${Math.round(margin)}%` : '—'} />
+              <Row label={tr('Cost')} value={costMoney(cost)} />
+              <Row label={tr('Profit')} value={Number.isFinite(price) ? costMoney(profit) : '—'} tone={profit < 0 ? 'rose' : 'emerald'} />
+              <Row label={tr('Margin')} value={costHidden ? '••••' : Number.isFinite(price) && price > 0 ? `${Math.round(margin)}%` : '—'} />
               <div className="my-2 border-t border-dashed border-slate-200" />
-              <Row label="Stock se ban sakte" value={parts.length ? String(Math.max(0, canMake)) : '—'} tone={parts.length && canMake <= 3 ? 'amber' : undefined} />
-              {parts.length > 0 && limiting && <p className="text-right text-[0.6875rem] text-slate-500">{Number.isFinite(limit) && limit <= fromStock ? 'Aap ki had' : `${limiting} se had`}</p>}
+              <Row label={tr('Stock se ban sakte')} value={parts.length ? String(Math.max(0, canMake)) : '—'} tone={parts.length && canMake <= 3 ? 'amber' : undefined} />
+              {parts.length > 0 && limiting && <p className="text-end text-[0.6875rem] text-slate-500">{Number.isFinite(limit) && limit <= fromStock ? tr('Aap ki had') : tr('{{limiting}} se had', { limiting })}</p>}
             </dl>
-            {Number.isFinite(price) && price > 0 && separate > 0 && saving <= 0 && <Warn>Combo alag alag lene se mehnga ya barabar hai — customer ko koi bachat nahi.</Warn>}
-            {!costHidden && Number.isFinite(price) && price > 0 && profit < 0 && <Warn>Qeemat cost se kam hai — har combo par nuqsan hoga.</Warn>}
-            {parts.length > 0 && canMake === 0 && <Warn>Kisi cheez ka stock nahi — abhi ek bhi combo nahi ban sakta.</Warn>}
-            <p className="text-[0.6875rem] text-slate-400">Stock product list se — save ke baad Combos list par {branch} ka pakka hisaab</p>
+            {Number.isFinite(price) && price > 0 && separate > 0 && saving <= 0 && <Warn>{tr('Combo alag alag lene se mehnga ya barabar hai — customer ko koi bachat nahi.')}</Warn>}
+            {!costHidden && Number.isFinite(price) && price > 0 && profit < 0 && <Warn>{tr('Qeemat cost se kam hai — har combo par nuqsan hoga.')}</Warn>}
+            {parts.length > 0 && canMake === 0 && <Warn>{tr('Kisi cheez ka stock nahi — abhi ek bhi combo nahi ban sakta.')}</Warn>}
+            <p className="text-[0.6875rem] text-slate-400">{tr('Stock product list se — save ke baad Combos list par {{branch}} ka pakka hisaab', { branch })}</p>
           </div>
         </aside>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className={cn(PAGE_WIDTH_CLASS, 'flex items-center justify-end gap-2')}>
-          {problems.length > 0 && <span className="mr-auto hidden items-center gap-1.5 text-[0.8125rem] text-amber-700 sm:inline-flex"><AlertTriangle className="h-4 w-4" />{problems[0]}</span>}
-          <Button type="button" variant="secondary" onClick={() => navigate('/combos')}>Rehne dein</Button>
-          <Button id="combo-save" type="submit" loading={save.isPending} disabled={problems.length > 0} leftIcon={<Save className="h-4 w-4" />}>{editing ? 'Save karein' : 'Combo banayein'}</Button>
+          {problems.length > 0 && <span className="me-auto hidden items-center gap-1.5 text-[0.8125rem] text-amber-700 sm:inline-flex"><AlertTriangle className="h-4 w-4" />{problems[0]}</span>}
+          <Button type="button" variant="secondary" onClick={() => navigate('/combos')}>{tr('Rehne dein')}</Button>
+          <Button id="combo-save" type="submit" loading={save.isPending} disabled={problems.length > 0} leftIcon={<Save className="h-4 w-4" />}>{editing ? tr('Save karein') : tr('Combo banayein')}</Button>
         </div>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title="Combo kaise banayein" onClose={guide.close}
+        <PageGuide title={tr('Combo kaise banayein')} onClose={guide.close}
           steps={[
-            { icon: Tag, color: '#16a34a', title: 'Naam aur tag', text: 'Aisa naam likhein jo customer foran samjhe. Tag (Best deal, Family pack) POS card par chhota label banta hai.' },
-            { icon: ShoppingBag, color: '#2563eb', title: 'Cheezein daalein', text: 'Naam likh kar Enter, ya barcode scan karein. Miqdar + − se badlein. Pack wale product me dozen/carton chun sakte hain; variant wale me type.' },
-            { icon: Percent, color: '#7c3aed', title: 'Qeemat', text: 'Upar "alag alag" ki amount dikhti hai. "10% kam" jaise button se jaldi qeemat lagayein. Daayein panel me bachat, profit aur margin live dikhte hain.' },
-            { icon: Boxes, color: '#d97706', title: 'Stock se kitne', text: 'Har cheez ke saath likha hai us ke stock se kitne combo bante hain — sab se kam wali cheez hi had hai.' },
-            { icon: CalendarClock, color: '#e11d48', title: 'Period', text: 'Offer ki tareekhen daalein — period ke bahar POS par nahi dikhta. "Zyada se zyada" se offer ko gine chune combo tak rakhein.' },
-            { icon: Barcode, color: '#0891b2', title: 'Barcode', text: 'Jadoo wale button se naya barcode banayein ya camera se scan karein. Label print karke combo par lagayein — POS par scan ho jayega.' },
+            { icon: Tag, color: '#16a34a', title: tr('Naam aur tag'), text: tr('Aisa naam likhein jo customer foran samjhe. Tag (Best deal, Family pack) POS card par chhota label banta hai.') },
+            { icon: ShoppingBag, color: '#2563eb', title: tr('Cheezein daalein'), text: tr('Naam likh kar Enter, ya barcode scan karein. Miqdar + − se badlein. Pack wale product me dozen/carton chun sakte hain; variant wale me type.') },
+            { icon: Percent, color: '#7c3aed', title: tr('Qeemat'), text: tr('Upar "alag alag" ki amount dikhti hai. "10% kam" jaise button se jaldi qeemat lagayein. Daayein panel me bachat, profit aur margin live dikhte hain.') },
+            { icon: Boxes, color: '#d97706', title: tr('Stock se kitne'), text: tr('Har cheez ke saath likha hai us ke stock se kitne combo bante hain — sab se kam wali cheez hi had hai.') },
+            { icon: CalendarClock, color: '#e11d48', title: tr('Period'), text: tr('Offer ki tareekhen daalein — period ke bahar POS par nahi dikhta. "Zyada se zyada" se offer ko gine chune combo tak rakhein.') },
+            { icon: Barcode, color: '#0891b2', title: tr('Barcode'), text: tr('Jadoo wale button se naya barcode banayein ya camera se scan karein. Label print karke combo par lagayein — POS par scan ho jayega.') },
           ]}
           tips={[
-            'Bill me combo ki har cheez alag line banti hai, is liye stock aur reports sahi rehte hain.',
-            'Ek hi cheez ka combo bhi ban sakta hai — misaal: 3 sabun ek qeemat par.',
-            'Cost aur profit sirf unhein dikhte hain jin ke paas cost dekhne ki permission hai.',
+            tr('Bill me combo ki har cheez alag line banti hai, is liye stock aur reports sahi rehte hain.'),
+            tr('Ek hi cheez ka combo bhi ban sakta hai — misaal: 3 sabun ek qeemat par.'),
+            tr('Cost aur profit sirf unhein dikhte hain jin ke paas cost dekhne ki permission hai.'),
           ]}
-          shortcuts={[['Ctrl+S', 'save'], ['Enter', 'pehli cheez jorein'], ['G', 'guide']]}
+          shortcuts={[['Ctrl+S', tr('save')], [tr('Enter'), tr('pehli cheez jorein')], ['G', tr('guide')]]}
         />
       )}
     </form>

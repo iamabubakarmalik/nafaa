@@ -13,15 +13,16 @@ import CustomOrderDetailPage from './pages/CustomOrderDetailPage';
 import CustomOrderFormPage from './pages/CustomOrderFormPage';
 import CarpentersPage from './pages/CarpentersPage';
 import DeliveriesPage from './pages/DeliveriesPage';
+import { t } from '@core/i18n';
 
 export const FurniturePack: IndustryPack = {
   id: 'furniture',
   name: 'Furniture Store',
-  shortName: 'Furniture',
+  shortName: t('Furniture'),
   emoji: '🪑',
   priority: 76,
   description:
-    'Custom furniture, showroom + workshop, deposit-based custom orders, carpenter workload, large-vehicle deliveries with assembly.',
+    t('Custom furniture, showroom + workshop, deposit-based custom orders, carpenter workload, large-vehicle deliveries with assembly.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -33,16 +34,16 @@ export const FurniturePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Furniture',
+      label: t('Furniture'),
       icon: Sofa,
       emoji: '🪑',
       color: '#a16207',
       order: 20,
       items: [
-        { to: '/furniture/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/furniture/custom-orders', label: 'Custom orders', icon: ClipboardList, badge: 'HOT' },
-        { to: '/furniture/deliveries', label: 'Deliveries', icon: Truck },
-        { to: '/furniture/carpenters', label: 'Craftsmen', icon: Hammer },
+        { to: '/furniture/dashboard', label: t('Dashboard'), icon: LayoutDashboard },
+        { to: '/furniture/custom-orders', label: t('Custom orders'), icon: ClipboardList, badge: t('HOT') },
+        { to: '/furniture/deliveries', label: t('Deliveries'), icon: Truck },
+        { to: '/furniture/carpenters', label: t('Craftsmen'), icon: Hammer },
       ],
     },
   ],
@@ -72,18 +73,18 @@ export const FurniturePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🪑', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🛋️', group: 'Count' },
-      { value: 'sqft', label: 'Sq. Ft', hint: '📐', group: 'Area' },
-      { value: 'meter', label: 'Meter', hint: '📏', group: 'Length' },
+      { value: 'pcs', label: t('Pieces'), hint: '🪑', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🛋️', group: t('Count') },
+      { value: 'sqft', label: t('Sq. Ft'), hint: '📐', group: t('Area') },
+      { value: 'meter', label: t('Meter'), hint: '📏', group: t('Length') },
     ],
   },
 
   featureFlags: [
-    { key: 'furnitureCustomOrders', label: 'Custom / Made-to-order', defaultEnabled: true },
-    { key: 'furnitureShowroom', label: 'Showroom Layout Mapping', defaultEnabled: true },
-    { key: 'furnitureCarpenters', label: 'Workshop / Carpenter Mgmt', defaultEnabled: true },
-    { key: 'furnitureDeliveries', label: 'Large-vehicle Delivery + Assembly', defaultEnabled: true },
-    { key: 'furnitureEmi', label: 'EMI / Installment Plans', defaultEnabled: false },
+    { key: 'furnitureCustomOrders', label: t('Custom / Made-to-order'), defaultEnabled: true },
+    { key: 'furnitureShowroom', label: t('Showroom Layout Mapping'), defaultEnabled: true },
+    { key: 'furnitureCarpenters', label: t('Workshop / Carpenter Mgmt'), defaultEnabled: true },
+    { key: 'furnitureDeliveries', label: t('Large-vehicle Delivery + Assembly'), defaultEnabled: true },
+    { key: 'furnitureEmi', label: t('EMI / Installment Plans'), defaultEnabled: false },
   ],
 };

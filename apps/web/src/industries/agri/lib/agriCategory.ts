@@ -4,6 +4,7 @@
  * checks (same approach as bakery/lib/bakeryCategory.ts).
  */
 
+import { t } from '@core/i18n';
 export type AgriKind =
   | 'SEEDS' | 'FERTILIZER' | 'PESTICIDE' | 'HERBICIDE' | 'FUNGICIDE'
   | 'INSECTICIDE' | 'ANIMAL_FEED' | 'POULTRY_FEED' | 'CATTLE_FEED' | 'FISH_FEED'
@@ -93,26 +94,26 @@ export function prettyAgriKind(k: AgriKind): string {
 }
 
 const AGRI_KIND_LABEL: Record<AgriKind, string> = {
-  SEEDS: 'Beej',
-  FERTILIZER: 'Khaad',
-  PESTICIDE: 'Keeray ki dawa',
-  HERBICIDE: 'Ghaas ki dawa',
-  FUNGICIDE: 'Fungus ki dawa',
-  INSECTICIDE: 'Insecticide',
-  ANIMAL_FEED: 'Jaanwar ka feed',
-  POULTRY_FEED: 'Murghi ka feed',
-  CATTLE_FEED: 'Mawayshi feed',
-  FISH_FEED: 'Machhli feed',
-  VETERINARY_MEDICINE: 'Jaanwar ki dawa',
-  FARM_TOOLS: 'Auzaar',
-  IRRIGATION: 'Paani ka saamaan',
-  MACHINERY_PART: 'Machine ka purza',
-  MULCH_COVER: 'Tarpal / cover',
-  GROWTH_HORMONE: 'Growth hormone',
-  SOIL_CONDITIONER: 'Zameen sudhaar',
-  PLANT_NUTRIENT: 'Poday ki ghiza',
-  ORGANIC_INPUT: 'Organic',
-  OTHER: 'Aur koi',
+  SEEDS: t('Beej'),
+  FERTILIZER: t('Khaad'),
+  PESTICIDE: t('Keeray ki dawa'),
+  HERBICIDE: t('Ghaas ki dawa'),
+  FUNGICIDE: t('Fungus ki dawa'),
+  INSECTICIDE: t('Insecticide'),
+  ANIMAL_FEED: t('Jaanwar ka feed'),
+  POULTRY_FEED: t('Murghi ka feed'),
+  CATTLE_FEED: t('Mawayshi feed'),
+  FISH_FEED: t('Machhli feed'),
+  VETERINARY_MEDICINE: t('Jaanwar ki dawa'),
+  FARM_TOOLS: t('Auzaar'),
+  IRRIGATION: t('Paani ka saamaan'),
+  MACHINERY_PART: t('Machine ka purza'),
+  MULCH_COVER: t('Tarpal / cover'),
+  GROWTH_HORMONE: t('Growth hormone'),
+  SOIL_CONDITIONER: t('Zameen sudhaar'),
+  PLANT_NUTRIENT: t('Poday ki ghiza'),
+  ORGANIC_INPUT: t('Organic'),
+  OTHER: t('Aur koi'),
 };
 
 /** Emoji per kind for cards and lists. */

@@ -2,6 +2,7 @@
 
 import type { FloristDeliveryTimeSlot, FloristOrderStatus, FloristOrderType } from '../api/orders.api';
 import type { FloristCategoryType, FloristFreshnessGrade } from '../api/products.api';
+import { t as tr } from '@core/i18n';
 
 export const FLORIST_KEYS = {
   orders: 'florist-orders',
@@ -16,63 +17,63 @@ export const FLORIST_KEYS = {
 export const MONEY_KEYS = ['sales-list', 'sales-summary', 'customers', 'customers-for-pos', 'khata', 'cash-register', 'dashboard-overview'];
 
 export const ORDER_STATUS: Record<FloristOrderStatus, { label: string; tone: string }> = {
-  DRAFT: { label: 'Kacha', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  CONFIRMED: { label: 'Pakka', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
-  IN_PREPARATION: { label: 'Ban raha hai', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  READY_FOR_DELIVERY: { label: 'Tayyar', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  OUT_FOR_DELIVERY: { label: 'Raste me', tone: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
-  DELIVERED: { label: 'Pohanch gaya', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  CANCELLED: { label: 'Cancel', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  DRAFT: { label: tr('Kacha'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  CONFIRMED: { label: tr('Pakka'), tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  IN_PREPARATION: { label: tr('Ban raha hai'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  READY_FOR_DELIVERY: { label: tr('Tayyar'), tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  OUT_FOR_DELIVERY: { label: tr('Raste me'), tone: 'bg-indigo-50 text-indigo-700 ring-indigo-200' },
+  DELIVERED: { label: tr('Pohanch gaya'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 /** Next step button for an open order. */
 export const NEXT_STEP: Partial<Record<FloristOrderStatus, { to: FloristOrderStatus; label: string }>> = {
-  DRAFT: { to: 'CONFIRMED', label: 'Pakka karein' },
-  CONFIRMED: { to: 'IN_PREPARATION', label: 'Banana shuru' },
-  IN_PREPARATION: { to: 'READY_FOR_DELIVERY', label: 'Tayyar hai' },
-  READY_FOR_DELIVERY: { to: 'OUT_FOR_DELIVERY', label: 'Rider ko diya' },
+  DRAFT: { to: 'CONFIRMED', label: tr('Pakka karein') },
+  CONFIRMED: { to: 'IN_PREPARATION', label: tr('Banana shuru') },
+  IN_PREPARATION: { to: 'READY_FOR_DELIVERY', label: tr('Tayyar hai') },
+  READY_FOR_DELIVERY: { to: 'OUT_FOR_DELIVERY', label: tr('Rider ko diya') },
 };
 
 export const ORDER_TYPE: Record<FloristOrderType, string> = {
-  WALK_IN: 'Counter se',
-  DELIVERY: 'Ghar delivery',
-  EVENT: 'Event / function',
-  WEDDING: 'Shaadi',
-  SUBSCRIPTION: 'Subscription',
-  CORPORATE: 'Office / company',
+  WALK_IN: tr('Counter se'),
+  DELIVERY: tr('Ghar delivery'),
+  EVENT: tr('Event / function'),
+  WEDDING: tr('Shaadi'),
+  SUBSCRIPTION: tr('Subscription'),
+  CORPORATE: tr('Office / company'),
 };
 
 export const SLOT: Record<FloristDeliveryTimeSlot, string> = {
-  MORNING_9_12: 'Subah 9–12',
-  AFTERNOON_12_3: 'Dopahar 12–3',
-  EVENING_3_6: 'Shaam 3–6',
-  NIGHT_6_9: 'Raat 6–9',
-  URGENT: 'Foran (2 ghante)',
-  SCHEDULED: 'Khaas waqt',
+  MORNING_9_12: tr('Subah 9–12'),
+  AFTERNOON_12_3: tr('Dopahar 12–3'),
+  EVENING_3_6: tr('Shaam 3–6'),
+  NIGHT_6_9: tr('Raat 6–9'),
+  URGENT: tr('Foran (2 ghante)'),
+  SCHEDULED: tr('Khaas waqt'),
 };
 
 export const WEDDING_STATUS: Record<string, { label: string; tone: string }> = {
-  QUOTED: { label: 'Quote diya', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  CONFIRMED: { label: 'Pakka', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
-  IN_PROGRESS: { label: 'Kaam jari', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  COMPLETED: { label: 'Mukammal', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  CANCELLED: { label: 'Cancel', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  QUOTED: { label: tr('Quote diya'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  CONFIRMED: { label: tr('Pakka'), tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  IN_PROGRESS: { label: tr('Kaam jari'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  COMPLETED: { label: tr('Mukammal'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const SUB_STATUS: Record<string, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Chalu', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  PAUSED: { label: 'Ruki hui', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  CANCELLED: { label: 'Band', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  ACTIVE: { label: tr('Chalu'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  PAUSED: { label: tr('Ruki hui'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  CANCELLED: { label: tr('Band'), tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
-export const FREQUENCY: Record<string, string> = { DAILY: 'Roz', WEEKLY: 'Har hafta', BIWEEKLY: 'Har 2 hafte', MONTHLY: 'Har mahina' };
+export const FREQUENCY: Record<string, string> = { DAILY: tr('Roz'), WEEKLY: tr('Har hafta'), BIWEEKLY: tr('Har 2 hafte'), MONTHLY: tr('Har mahina') };
 
 export const PAY_METHODS = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'JAZZCASH', label: 'JazzCash' },
-  { value: 'EASYPAISA', label: 'EasyPaisa' },
-  { value: 'BANK_TRANSFER', label: 'Bank' },
-  { value: 'CARD', label: 'Card' },
+  { value: 'CASH', label: tr('Cash') },
+  { value: 'JAZZCASH', label: tr('JazzCash') },
+  { value: 'EASYPAISA', label: tr('EasyPaisa') },
+  { value: 'BANK_TRANSFER', label: tr('Bank') },
+  { value: 'CARD', label: tr('Card') },
 ];
 
 export const errorText = (e: unknown, fallback: string) =>
@@ -111,27 +112,27 @@ export const daysFromToday = (v?: string | null) => {
 
 /** Product kinds grouped the way the shop thinks of them. */
 export const CATEGORY_GROUPS: Array<{ id: 'stem' | 'made' | 'decor' | 'plant' | 'gift'; label: string; items: Array<[FloristCategoryType, string]> }> = [
-  { id: 'stem', label: 'Khule phool', items: [
-    ['ROSE_RED', 'Gulab laal'], ['ROSE_WHITE', 'Gulab safed'], ['ROSE_PINK', 'Gulab gulabi'], ['ROSE_YELLOW', 'Gulab peela'], ['ROSE_MIXED', 'Gulab mix'],
-    ['TULIP', 'Tulip'], ['LILY', 'Lily'], ['ORCHID', 'Orchid'], ['SUNFLOWER', 'Sunflower'], ['CARNATION', 'Carnation'], ['GERBERA', 'Gerbera'],
-    ['CHRYSANTHEMUM', 'Guldaudi'], ['DAISY', 'Daisy'], ['JASMINE', 'Motia'], ['MARIGOLD', 'Genda'], ['IRIS', 'Iris'], ['HYDRANGEA', 'Hydrangea'],
-    ['PEONY', 'Peony'], ['ANTHURIUM', 'Anthurium'], ['BIRD_OF_PARADISE', 'Bird of paradise'], ['BABY_BREATH', "Baby's breath"], ['GREENERY_FILLER', 'Hariyali / filler'],
+  { id: 'stem', label: tr('Khule phool'), items: [
+    ['ROSE_RED', tr('Gulab laal')], ['ROSE_WHITE', tr('Gulab safed')], ['ROSE_PINK', tr('Gulab gulabi')], ['ROSE_YELLOW', tr('Gulab peela')], ['ROSE_MIXED', tr('Gulab mix')],
+    ['TULIP', tr('Tulip')], ['LILY', tr('Lily')], ['ORCHID', tr('Orchid')], ['SUNFLOWER', tr('Sunflower')], ['CARNATION', tr('Carnation')], ['GERBERA', tr('Gerbera')],
+    ['CHRYSANTHEMUM', tr('Guldaudi')], ['DAISY', tr('Daisy')], ['JASMINE', tr('Motia')], ['MARIGOLD', tr('Genda')], ['IRIS', tr('Iris')], ['HYDRANGEA', tr('Hydrangea')],
+    ['PEONY', tr('Peony')], ['ANTHURIUM', tr('Anthurium')], ['BIRD_OF_PARADISE', tr('Bird of paradise')], ['BABY_BREATH', tr('Baby\'s breath')], ['GREENERY_FILLER', tr('Hariyali / filler')],
   ] },
-  { id: 'made', label: 'Bouquet / arrangement', items: [
-    ['BOUQUET_BIRTHDAY', 'Birthday bouquet'], ['BOUQUET_ANNIVERSARY', 'Anniversary bouquet'], ['BOUQUET_WEDDING', 'Shaadi bouquet'], ['BOUQUET_ROMANCE', 'Romance bouquet'],
-    ['BOUQUET_CONDOLENCE', 'Taziyat bouquet'], ['BOUQUET_GET_WELL', 'Get well bouquet'], ['BOUQUET_CONGRATULATIONS', 'Mubarakbad bouquet'], ['BOUQUET_MIXED', 'Mix bouquet'],
-    ['BASKET_ARRANGEMENT', 'Tokri'], ['VASE_ARRANGEMENT', 'Vase arrangement'], ['BOX_ARRANGEMENT', 'Box arrangement'], ['TABLE_CENTREPIECE', 'Table centrepiece'],
-    ['STANDING_ARRANGEMENT', 'Stand arrangement'], ['BRIDAL_BOUQUET', 'Dulhan bouquet'], ['BOUTONNIERE', 'Boutonniere'], ['FUNERAL_WREATH', 'Wreath'], ['SYMPATHY_ARRANGEMENT', 'Taziyat arrangement'],
+  { id: 'made', label: tr('Bouquet / arrangement'), items: [
+    ['BOUQUET_BIRTHDAY', tr('Birthday bouquet')], ['BOUQUET_ANNIVERSARY', tr('Anniversary bouquet')], ['BOUQUET_WEDDING', tr('Shaadi bouquet')], ['BOUQUET_ROMANCE', tr('Romance bouquet')],
+    ['BOUQUET_CONDOLENCE', tr('Taziyat bouquet')], ['BOUQUET_GET_WELL', tr('Get well bouquet')], ['BOUQUET_CONGRATULATIONS', tr('Mubarakbad bouquet')], ['BOUQUET_MIXED', tr('Mix bouquet')],
+    ['BASKET_ARRANGEMENT', tr('Tokri')], ['VASE_ARRANGEMENT', tr('Vase arrangement')], ['BOX_ARRANGEMENT', tr('Box arrangement')], ['TABLE_CENTREPIECE', tr('Table centrepiece')],
+    ['STANDING_ARRANGEMENT', tr('Stand arrangement')], ['BRIDAL_BOUQUET', tr('Dulhan bouquet')], ['BOUTONNIERE', tr('Boutonniere')], ['FUNERAL_WREATH', tr('Wreath')], ['SYMPATHY_ARRANGEMENT', tr('Taziyat arrangement')],
   ] },
-  { id: 'decor', label: 'Sajawat / haar', items: [
-    ['WEDDING_GARLAND', 'Haar / sehra'], ['CAR_DECORATION', 'Gaari sajawat'], ['STAGE_DECORATION', 'Stage sajawat'], ['MEHNDI_DECORATION', 'Mehndi sajawat'],
+  { id: 'decor', label: tr('Sajawat / haar'), items: [
+    ['WEDDING_GARLAND', tr('Haar / sehra')], ['CAR_DECORATION', tr('Gaari sajawat')], ['STAGE_DECORATION', tr('Stage sajawat')], ['MEHNDI_DECORATION', tr('Mehndi sajawat')],
   ] },
-  { id: 'plant', label: 'Paude', items: [
-    ['POTTED_PLANT_INDOOR', 'Gamla (andar)'], ['POTTED_PLANT_OUTDOOR', 'Gamla (bahar)'], ['SUCCULENT', 'Succulent'], ['BONSAI', 'Bonsai'], ['AIR_PLANT', 'Air plant'],
+  { id: 'plant', label: tr('Paude'), items: [
+    ['POTTED_PLANT_INDOOR', tr('Gamla (andar)')], ['POTTED_PLANT_OUTDOOR', tr('Gamla (bahar)')], ['SUCCULENT', tr('Succulent')], ['BONSAI', tr('Bonsai')], ['AIR_PLANT', tr('Air plant')],
   ] },
-  { id: 'gift', label: 'Gift / saman', items: [
-    ['CHOCOLATE_BOX', 'Chocolate'], ['TEDDY_BEAR', 'Teddy'], ['BALLOON', 'Balloon'], ['GREETING_CARD', 'Card'], ['GIFT_ITEM', 'Gift'],
-    ['VASE_EMPTY', 'Khali vase'], ['RIBBON', 'Ribbon'], ['WRAPPING_PAPER', 'Wrapping'], ['FLORAL_FOAM', 'Foam'], ['OTHER', 'Aur'],
+  { id: 'gift', label: tr('Gift / saman'), items: [
+    ['CHOCOLATE_BOX', tr('Chocolate')], ['TEDDY_BEAR', tr('Teddy')], ['BALLOON', tr('Balloon')], ['GREETING_CARD', tr('Card')], ['GIFT_ITEM', tr('Gift')],
+    ['VASE_EMPTY', tr('Khali vase')], ['RIBBON', tr('Ribbon')], ['WRAPPING_PAPER', tr('Wrapping')], ['FLORAL_FOAM', tr('Foam')], ['OTHER', tr('Aur')],
   ] },
 ];
 
@@ -140,7 +141,7 @@ export const categoryLabel = (v?: string | null) => (v ? CATEGORY_INDEX.get(v as
 export const categoryGroup = (v?: string | null) => (v ? CATEGORY_INDEX.get(v as FloristCategoryType)?.group ?? null : null);
 
 export const GRADE: Record<FloristFreshnessGrade, string> = {
-  A_PREMIUM: 'A — premium', B_STANDARD: 'B — aam', C_ECONOMY: 'C — sasta', IMPORTED: 'Imported', LOCAL: 'Local',
+  A_PREMIUM: 'A — premium', B_STANDARD: 'B — aam', C_ECONOMY: 'C — sasta', IMPORTED: tr('Imported'), LOCAL: tr('Local'),
 };
 
 export const OCCASIONS = ['Birthday', 'Anniversary', 'Shaadi', 'Mehndi', 'Valentine', 'Eid', 'Get well', 'Taziyat', 'Mubarakbad', 'Mother day', 'Office'];

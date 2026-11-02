@@ -13,6 +13,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma, type SalonGiftVoucher } from '@prisma/client';
 import { r2 } from '../common/salon-common';
+import { apiMessage, apiText } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -26,12 +27,12 @@ export const normalizeCode = (code: string) => code.trim().toUpperCase().replace
 
 /** Why a voucher cannot pay a bill now, or null when it can. */
 export async function voucherProblem(db: Db, v: SalonGiftVoucher): Promise<string | null> {
-  if (v.status === 'CANCELLED') return 'Ye voucher cancel ho chuka hai';
-  if (v.status === 'USED' || v.balance <= 0.009) return 'Is voucher me koi balance baqi nahi';
-  if (v.status === 'EXPIRED' || (v.expiryDate && v.expiryDate < new Date())) return 'Is voucher ki muddat khatam ho chuki';
+  if (v.status === 'CANCELLED') return apiText('Ye voucher cancel ho chuka hai');
+  if (v.status === 'USED' || v.balance <= 0.009) return apiText('Is voucher me koi balance baqi nahi');
+  if (v.status === 'EXPIRED' || (v.expiryDate && v.expiryDate < new Date())) return apiText('Is voucher ki muddat khatam ho chuki');
   if (v.saleId) {
     const sale = await db.sale.findFirst({ where: { id: v.saleId, tenantId: v.tenantId }, select: { status: true } });
-    if (sale && DEAD_SALE.includes(sale.status)) return 'Is voucher ka bill void / wapas ho chuka hai';
+    if (sale && DEAD_SALE.includes(sale.status)) return apiText('Is voucher ka bill void / wapas ho chuka hai');
   }
   return null;
 }
@@ -39,9 +40,9 @@ export async function voucherProblem(db: Db, v: SalonGiftVoucher): Promise<strin
 /** The voucher a bill may be paid with; refuses one that cannot be used. */
 export async function usableVoucher(db: Db, tenantId: string, code: string) {
   const v = await db.salonGiftVoucher.findFirst({ where: { tenantId, code: normalizeCode(code) } });
-  if (!v) throw new NotFoundException(`Voucher ${normalizeCode(code)} nahi mila`);
+  if (!v) throw new NotFoundException(apiMessage('Voucher {{code}} nahi mila', { code: normalizeCode(code) }));
   const problem = await voucherProblem(db, v);
-  if (problem) throw new BadRequestException(`${v.code}: ${problem}`);
+  if (problem) throw new BadRequestException(apiMessage('{{code}}: {{problem}}', { code: v.code, problem }));
   return v;
 }
 

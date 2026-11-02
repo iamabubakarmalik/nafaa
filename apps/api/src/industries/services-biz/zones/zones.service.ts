@@ -4,6 +4,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import type { UpsertZoneDto } from './dto/zone.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ZonesService {
@@ -20,7 +21,7 @@ export class ZonesService {
   async create(user: AuthenticatedUser, dto: UpsertZoneDto) {
     const data = this.clean(dto);
     const dup = await this.prisma.serviceZone.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' } } });
-    if (dup?.isActive) throw new BadRequestException(`"${data.name}" zone pehle se hai`);
+    if (dup?.isActive) throw new BadRequestException(apiMessage('"{{dataName}}" zone pehle se hai', { dataName: data.name }));
     // A switched-off zone with the same name comes back instead of a duplicate.
     if (dup) return this.prisma.serviceZone.update({ where: { id: dup.id }, data: { ...data, isActive: true } });
     return this.prisma.serviceZone.create({ data: { tenantId: user.tenantId, ...data } });
@@ -40,7 +41,7 @@ export class ZonesService {
     await this.getOne(user, id);
     const data = this.clean(dto);
     const dup = await this.prisma.serviceZone.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' }, id: { not: id } } });
-    if (dup) throw new BadRequestException(`"${data.name}" zone pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('"{{dataName}}" zone pehle se hai', { dataName: data.name }));
     return this.prisma.serviceZone.update({ where: { id }, data });
   }
 

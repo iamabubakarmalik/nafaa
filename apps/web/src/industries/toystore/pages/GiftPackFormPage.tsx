@@ -20,6 +20,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import { toyGiftPacksApi, type GiftPackBody } from '../api/gift-packs.api';
 import { AGE_GROUPS, GENDERS, KEYS, OCCASIONS, apiError } from '../lib/meta';
 import { useDebounced, useSaveKey } from '../components/ui';
+import { t } from '@core/i18n';
 
 interface Line { key: string; productId: string; name: string; hasVariants: boolean; variantId: string; quantity: number; unitPrice: number; stock: number }
 interface Draft {
@@ -78,12 +79,12 @@ export default function GiftPackFormPage() {
 
   const problems = useMemo(() => {
     const out: string[] = [];
-    if (!d.name.trim()) out.push('Pack ka naam likhein');
-    if (d.lines.length < 2) out.push('Kam se kam 2 khilone chunein');
-    if (d.lines.some((l) => !(l.quantity >= 1) || !Number.isInteger(l.quantity))) out.push('Har khilone ki quantity poori ginti me, kam se kam 1');
-    if (d.lines.some((l) => l.hasVariants && !l.variantId)) out.push('Rang / model wale khilone ka rang chunein');
-    if (!(price > 0)) out.push('Pack ki qeemat likhein');
-    if (d.validFrom && d.validUntil && d.validUntil < d.validFrom) out.push('Khatam ki tareekh shuru se pehle hai');
+    if (!d.name.trim()) out.push(t('Pack ka naam likhein'));
+    if (d.lines.length < 2) out.push(t('Kam se kam 2 khilone chunein'));
+    if (d.lines.some((l) => !(l.quantity >= 1) || !Number.isInteger(l.quantity))) out.push(t('Har khilone ki quantity poori ginti me, kam se kam 1'));
+    if (d.lines.some((l) => l.hasVariants && !l.variantId)) out.push(t('Rang / model wale khilone ka rang chunein'));
+    if (!(price > 0)) out.push(t('Pack ki qeemat likhein'));
+    if (d.validFrom && d.validUntil && d.validUntil < d.validFrom) out.push(t('Khatam ki tareekh shuru se pehle hai'));
     return out;
   }, [d, price]);
 
@@ -102,10 +103,10 @@ export default function GiftPackFormPage() {
     },
     onSuccess: () => {
       [KEYS.packs, KEYS.posPacks].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(editing ? 'Pack save ho gaya' : 'Pack ban gaya — counter ke Combos tab me hai');
+      toast.success(editing ? t('Pack save ho gaya') : t('Pack ban gaya — counter ke Combos tab me hai'));
       navigate('/toystore/gift-packs');
     },
-    onError: (e) => toast.error(apiError(e, (e as Error).message || 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, (e as Error).message || t('Save nahi hua'))),
     onSettled: () => { lock.current = false; },
   });
   const submit = () => { if (lock.current || save.isPending) return; lock.current = true; save.mutate(); };
@@ -124,25 +125,25 @@ export default function GiftPackFormPage() {
   };
 
   if (editing && packQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
-  if (editing && !packQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye pack nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/toystore/gift-packs')}>Gift packs par wapas</Button></div></PageShell>;
+  if (editing && !packQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Ye pack nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/toystore/gift-packs')}>{t('Gift packs par wapas')}</Button></div></PageShell>;
 
   return (
     <PageShell>
       <PageHero
-        title={editing ? `${packQ.data?.name} — badlein` : 'Naya gift pack'}
-        subtitle="Khilone chunein, pack ki qeemat rakhein — counter par ek tap me bikta hai"
+        title={editing ? t('{{name}} — badlein', { name: packQ.data?.name }) : t('Naya gift pack')}
+        subtitle={t('Khilone chunein, pack ki qeemat rakhein — counter par ek tap me bikta hai')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        backLabel={t('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</span>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Gift}>Pack</T>}>
+          <Card className="rounded-2xl" title={<T icon={Gift}>{t('Pack')}</T>}>
             <div className="space-y-3">
-              <Input label="Naam" required value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="Eid box larkon ke liye" maxLength={100} hint="Counter aur receipt par yahi naam aata hai" />
+              <Input label={t('Naam')} required value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder={t('Eid box larkon ke liye')} maxLength={100} hint={t('Counter aur receipt par yahi naam aata hai')} />
               <div>
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Mauqa</span>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Mauqa')}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {OCCASIONS.map(([v, l]) => (
                     <button key={v} type="button" onClick={() => set({ occasion: d.occasion === v ? '' : v })}
@@ -151,26 +152,26 @@ export default function GiftPackFormPage() {
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Select label="Umar" value={d.targetAgeGroup} onChange={(e) => set({ targetAgeGroup: e.target.value })} options={[{ value: '', label: 'Har umar' }, ...AGE_GROUPS.map(([v, l]) => ({ value: v, label: l }))]} hint="Gift finder isi se pack dikhata hai" />
-                <Select label="Kis ke liye" value={d.targetGender} onChange={(e) => set({ targetGender: e.target.value })} options={[{ value: '', label: 'Sab' }, ...GENDERS.map(([v, l]) => ({ value: v, label: l }))]} />
+                <Select label={t('Umar')} value={d.targetAgeGroup} onChange={(e) => set({ targetAgeGroup: e.target.value })} options={[{ value: '', label: t('Har umar') }, ...AGE_GROUPS.map(([v, l]) => ({ value: v, label: l }))]} hint={t('Gift finder isi se pack dikhata hai')} />
+                <Select label={t('Kis ke liye')} value={d.targetGender} onChange={(e) => set({ targetGender: e.target.value })} options={[{ value: '', label: t('Sab') }, ...GENDERS.map(([v, l]) => ({ value: v, label: l }))]} />
               </div>
-              <Textarea label="Tafseel" value={d.description} onChange={(e) => set({ description: e.target.value })} rows={2} maxLength={500} placeholder="Car, ball aur chocolate — wrap ke saath" hint="Marzi hai" />
+              <Textarea label={t('Tafseel')} value={d.description} onChange={(e) => set({ description: e.target.value })} rows={2} maxLength={500} placeholder={t('Car, ball aur chocolate — wrap ke saath')} hint={t('Marzi hai')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Package}>Khilone</T>} description="Har khilona pack bikne par stock se nikalta hai">
+          <Card className="rounded-2xl" title={<T icon={Package}>{t('Khilone')}</T>} description={t('Har khilona pack bikne par stock se nikalta hai')}>
             <div className="relative">
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Khilone ka naam ya barcode likhein" leftIcon={<Search className="h-4 w-4" />} aria-label="Khilona dhoondein" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Khilone ka naam ya barcode likhein')} leftIcon={<Search className="h-4 w-4" />} aria-label={t('Khilona dhoondein')} />
               {term.length >= 2 && (
                 <ul className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
                   {(found.data?.items ?? []).length === 0
-                    ? <li className="px-3 py-2.5 text-[0.8125rem] text-slate-500">{found.isFetching ? 'Dhoond rahe hain…' : 'Kuch nahi mila'}</li>
+                    ? <li className="px-3 py-2.5 text-[0.8125rem] text-slate-500">{found.isFetching ? t('Dhoond rahe hain…') : t('Kuch nahi mila')}</li>
                     : (found.data?.items ?? []).map((p) => (
                       <li key={p.id}>
-                        <button type="button" onClick={() => add(p)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50">
+                        <button type="button" onClick={() => add(p)} className="flex w-full items-center gap-2 px-3 py-2 text-start hover:bg-slate-50">
                           <Plus className="h-4 w-4 text-brand-600" />
-                          <span className="min-w-0 flex-1 truncate text-[0.875rem]">{p.name}{p.hasVariants ? ' (rang / model)' : ''}</span>
-                          <span className="text-[0.75rem] tabular-nums text-slate-500">Stock {p.stock}</span>
+                          <span className="min-w-0 flex-1 truncate text-[0.875rem]">{p.name}{p.hasVariants ? t(' (rang / model)') : ''}</span>
+                          <span className="text-[0.75rem] tabular-nums text-slate-500">{t('Stock {{stock}}', { stock: p.stock })}</span>
                           <span className="text-[0.8125rem] font-semibold tabular-nums">{formatPKR(p.price)}</span>
                         </button>
                       </li>
@@ -179,19 +180,19 @@ export default function GiftPackFormPage() {
               )}
             </div>
             {d.lines.length === 0 ? (
-              <p className="mt-3 rounded-xl bg-slate-50 px-3 py-6 text-center text-[0.8125rem] text-slate-500">Upar se kam se kam 2 khilone chunein.</p>
+              <p className="mt-3 rounded-xl bg-slate-50 px-3 py-6 text-center text-[0.8125rem] text-slate-500">{t('Upar se kam se kam 2 khilone chunein.')}</p>
             ) : (
               <ul className="mt-3 divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
                 {d.lines.map((l) => (
                   <li key={l.key} className="grid grid-cols-[1fr_auto] gap-2 p-3 sm:grid-cols-[1fr_5rem_7rem_auto] sm:items-end">
                     <div className="min-w-0">
                       <p className="truncate text-[0.875rem] font-medium text-slate-900">{l.name}</p>
-                      <p className={cn('text-[0.75rem]', l.stock < l.quantity ? 'text-rose-600' : 'text-slate-500')}>Stock {l.stock}</p>
+                      <p className={cn('text-[0.75rem]', l.stock < l.quantity ? 'text-rose-600' : 'text-slate-500')}>{t('Stock {{stock}}', { stock: l.stock })}</p>
                       {l.hasVariants && <VariantSelect productId={l.productId} value={l.variantId} onChange={(variantId, stock, rate) => setLine(l.key, { variantId, stock: stock ?? l.stock, unitPrice: rate ?? l.unitPrice })} />}
                     </div>
-                    <Input label="Qty" inputMode="numeric" value={String(l.quantity)} onChange={(e) => setLine(l.key, { quantity: Number(e.target.value.replace(/\D/g, '')) || 0 })} className="text-right tabular-nums" />
-                    <Input label="Rate (Rs)" inputMode="decimal" value={String(l.unitPrice)} onChange={(e) => setLine(l.key, { unitPrice: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className="text-right tabular-nums" hint="Asal rate" />
-                    <button type="button" onClick={() => set({ lines: d.lines.filter((x) => x.key !== l.key) })} aria-label="Hatayein" className="flex h-10 w-10 items-center justify-center self-end rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                    <Input label={t('Qty')} inputMode="numeric" value={String(l.quantity)} onChange={(e) => setLine(l.key, { quantity: Number(e.target.value.replace(/\D/g, '')) || 0 })} className="text-end tabular-nums" />
+                    <Input label={t('Rate (Rs)')} inputMode="decimal" value={String(l.unitPrice)} onChange={(e) => setLine(l.key, { unitPrice: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className="text-end tabular-nums" hint={t('Asal rate')} />
+                    <button type="button" onClick={() => set({ lines: d.lines.filter((x) => x.key !== l.key) })} aria-label={t('Hatayein')} className="flex h-10 w-10 items-center justify-center self-end rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                   </li>
                 ))}
               </ul>
@@ -200,35 +201,35 @@ export default function GiftPackFormPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title="Qeemat">
-            <Input label="Pack ki qeemat (Rs)" required inputMode="decimal" value={d.price} onChange={(e) => set({ price: e.target.value.replace(/[^\d.]/g, '') })}
-              placeholder={original ? String(Math.round(original * 0.9)) : '0'} className="text-right text-lg font-semibold tabular-nums"
-              hint={original ? `Alag alag ${formatPKR(original)} — 10% kam: ${formatPKR(Math.round(original * 0.9))}` : 'Khilone chunne ke baad'} />
+          <Card className="rounded-2xl" title={t('Qeemat')}>
+            <Input label={t('Pack ki qeemat (Rs)')} required inputMode="decimal" value={d.price} onChange={(e) => set({ price: e.target.value.replace(/[^\d.]/g, '') })}
+              placeholder={original ? String(Math.round(original * 0.9)) : '0'} className="text-end text-lg font-semibold tabular-nums"
+              hint={original ? t('Alag alag {{original}} — 10% kam: {{formatPKR}}', { original: formatPKR(original), formatPKR: formatPKR(Math.round(original * 0.9)) }) : t('Khilone chunne ke baad')} />
             <dl className="mt-3 grid grid-cols-3 gap-2 text-[0.8125rem]">
-              <div><dt className="text-slate-500">Alag alag</dt><dd className="font-semibold tabular-nums">{formatPKR(original)}</dd></div>
-              <div><dt className="text-slate-500">Bachat</dt><dd className="font-semibold tabular-nums text-success-700">{formatPKR(savings)}</dd></div>
-              <div><dt className="text-slate-500">Stock se</dt><dd className={cn('font-semibold tabular-nums', packs === 0 && d.lines.length ? 'text-rose-600' : '')}>{packs} pack</dd></div>
+              <div><dt className="text-slate-500">{t('Alag alag')}</dt><dd className="font-semibold tabular-nums">{formatPKR(original)}</dd></div>
+              <div><dt className="text-slate-500">{t('Bachat')}</dt><dd className="font-semibold tabular-nums text-success-700">{formatPKR(savings)}</dd></div>
+              <div><dt className="text-slate-500">{t('Stock se')}</dt><dd className={cn('font-semibold tabular-nums', packs === 0 && d.lines.length ? 'text-rose-600' : '')}>{t('{{packs}} pack', { packs })}</dd></div>
             </dl>
-            {price > original && original > 0 && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">Pack alag alag se mehnga hai — customer alag le lega.</p>}
+            {price > original && original > 0 && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">{t('Pack alag alag se mehnga hai — customer alag le lega.')}</p>}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={CalendarClock}>Kab tak</T>} description="Khali chhorein to hamesha counter par">
+          <Card className="rounded-2xl" title={<T icon={CalendarClock}>{t('Kab tak')}</T>} description={t('Khali chhorein to hamesha counter par')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Shuru" type="date" value={d.validFrom} onChange={(e) => set({ validFrom: e.target.value })} />
-              <Input label="Khatam" type="date" value={d.validUntil} min={d.validFrom || undefined} onChange={(e) => set({ validUntil: e.target.value })} hint="Is din ke baad counter se hat jata hai" />
+              <Input label={t('Shuru')} type="date" value={d.validFrom} onChange={(e) => set({ validFrom: e.target.value })} />
+              <Input label={t('Khatam')} type="date" value={d.validUntil} min={d.validFrom || undefined} onChange={(e) => set({ validUntil: e.target.value })} hint={t('Is din ke baad counter se hat jata hai')} />
             </div>
             <div className="mt-3 space-y-3">
-              <Switch checked={d.isSeasonal} onChange={(e) => set({ isSeasonal: e.target.checked })} label="Season ka pack" description="Eid, saalgirah ka season — packs page par alag tab" />
-              {d.isSeasonal && <Input label="Season" value={d.seasonName} onChange={(e) => set({ seasonName: e.target.value })} placeholder="Eid ul Fitr 2027" />}
+              <Switch checked={d.isSeasonal} onChange={(e) => set({ isSeasonal: e.target.checked })} label={t('Season ka pack')} description={t('Eid, saalgirah ka season — packs page par alag tab')} />
+              {d.isSeasonal && <Input label={t('Season')} value={d.seasonName} onChange={(e) => set({ seasonName: e.target.value })} placeholder={t('Eid ul Fitr 2027')} />}
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Settings2}>Aur</T>}>
+          <Card className="rounded-2xl" title={<T icon={Settings2}>{t('Aur')}</T>}>
             <div className="space-y-3">
-              <Switch checked={d.isActive} onChange={(e) => set({ isActive: e.target.checked })} label="Counter par chalu" />
-              <Switch checked={d.isFeatured} onChange={(e) => set({ isFeatured: e.target.checked })} label="Upar dikhayein" description="Combos tab me sab se pehle" />
-              <Switch checked={d.isGiftWrapped} onChange={(e) => set({ isGiftWrapped: e.target.checked })} label="Wrap ke saath" description="Pack ki qeemat me wrap shamil hai" />
-              <Switch checked={d.includesCard} onChange={(e) => set({ includesCard: e.target.checked })} label="Card ke saath" />
+              <Switch checked={d.isActive} onChange={(e) => set({ isActive: e.target.checked })} label={t('Counter par chalu')} />
+              <Switch checked={d.isFeatured} onChange={(e) => set({ isFeatured: e.target.checked })} label={t('Upar dikhayein')} description={t('Combos tab me sab se pehle')} />
+              <Switch checked={d.isGiftWrapped} onChange={(e) => set({ isGiftWrapped: e.target.checked })} label={t('Wrap ke saath')} description={t('Pack ki qeemat me wrap shamil hai')} />
+              <Switch checked={d.includesCard} onChange={(e) => set({ includesCard: e.target.checked })} label={t('Card ke saath')} />
             </div>
           </Card>
         </div>
@@ -236,10 +237,10 @@ export default function GiftPackFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (d.name || d.lines.length || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{d.lines.length} khilone · {formatPKR(price)}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending}>{editing ? 'Save karein' : 'Pack banayein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{t('{{count}} khilone · {{price}}', { count: d.lines.length, price: formatPKR(price) })}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending}>{editing ? t('Save karein') : t('Pack banayein')}</Button>
       </div>
     </PageShell>
   );
@@ -252,8 +253,8 @@ function VariantSelect({ productId, value, onChange }: { productId: string; valu
   const { data: variants = [] } = useQuery({ queryKey: ['toy-pack-variants', productId], queryFn: () => productVariantsApi.list(productId), staleTime: 60_000 });
   const active = variants.filter((v) => v.isActive !== false);
   return (
-    <Select size="sm" aria-label="Rang / model" value={value} error={!value ? 'Rang chunein' : undefined}
+    <Select size="sm" aria-label={t('Rang / model')} value={value} error={!value ? t('Rang chunein') : undefined}
       onChange={(e) => { const v = active.find((x) => x.id === e.target.value); onChange(e.target.value, v ? Number(v.stock) : undefined, v?.price != null ? Number(v.price) : undefined); }}
-      options={[{ value: '', label: 'Rang / model chunein' }, ...active.map((v) => ({ value: v.id, label: `${v.name} (${v.stock})` }))]} />
+      options={[{ value: '', label: t('Rang / model chunein') }, ...active.map((v) => ({ value: v.id, label: `${v.name} (${v.stock})` }))]} />
   );
 }

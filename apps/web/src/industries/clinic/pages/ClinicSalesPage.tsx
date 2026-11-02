@@ -8,6 +8,7 @@ import { createElement } from 'react';
 import { Stethoscope } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
+import { t } from '@core/i18n';
 
 /** Name of the catalogue line every clinic fee is billed against (see the API fee billing). */
 const FEE_LINE = 'Doctor / Clinic Fee';
@@ -20,7 +21,7 @@ function useFeeMarks(_sales: HistorySale[]) {
     : null);
 }
 
-const config: SalesHistoryConfig = { label: 'Clinic', useBillExtras: useFeeMarks };
+const config: SalesHistoryConfig = { label: t('Clinic'), useBillExtras: useFeeMarks };
 
 export default function ClinicSalesPage() {
   return <SalesHistoryPage config={config} />;

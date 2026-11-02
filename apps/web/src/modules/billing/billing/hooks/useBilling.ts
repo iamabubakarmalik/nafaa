@@ -14,6 +14,7 @@ import { plansApi } from '@modules/billing/plans/api/plans.api';
 import { planUsageApi } from '@modules/billing/plan-usage/api/plan-usage.api';
 import { subscriptionsApi, type BillingInterval } from '@modules/billing/subscriptions/api/subscriptions.api';
 import { daysUntil } from '../components/helpers';
+import { t } from '@core/i18n';
 
 const KEYS = ['subscription-current', 'subscription-pending', 'billing-invoices', 'billing-payments', 'plan-usage', 'plans'];
 const errorText = (e: unknown, fallback: string) =>
@@ -63,22 +64,22 @@ export function useBilling() {
   const start = useMutation({
     mutationFn: ({ planId, interval }: { planId: string; interval: BillingInterval }) => subscriptionsApi.start(planId, interval),
     onSuccess: () => refresh(),
-    onError: (e) => toast.error(errorText(e, 'Plan shuru nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Plan shuru nahi hua'))),
   });
   const cancel = useMutation({
     mutationFn: subscriptionsApi.cancel,
-    onSuccess: () => { toast.success('Plan period ke aakhir par band ho jayega', { description: 'Tab tak sab kuch chalta rahega. Kabhi bhi wapas chalu kar sakte hain.' }); refresh(); },
-    onError: (e) => toast.error(errorText(e, 'Band nahi hua')),
+    onSuccess: () => { toast.success(t('Plan period ke aakhir par band ho jayega'), { description: t('Tab tak sab kuch chalta rahega. Kabhi bhi wapas chalu kar sakte hain.') }); refresh(); },
+    onError: (e) => toast.error(errorText(e, t('Band nahi hua'))),
   });
   const reactivate = useMutation({
     mutationFn: subscriptionsApi.reactivate,
-    onSuccess: () => { toast.success('Plan wapas chalu — khud renew hota rahega'); refresh(); },
-    onError: (e) => toast.error(errorText(e, 'Chalu nahi hua')),
+    onSuccess: () => { toast.success(t('Plan wapas chalu — khud renew hota rahega')); refresh(); },
+    onError: (e) => toast.error(errorText(e, t('Chalu nahi hua'))),
   });
   const cleanup = useMutation({
     mutationFn: subscriptionsApi.cleanupPending,
-    onSuccess: (d) => { toast.success(d?.message || 'Faltu bill band ho gaye'); refresh(); },
-    onError: (e) => toast.error(errorText(e, 'Saaf nahi hua')),
+    onSuccess: (d) => { toast.success(d?.message || t('Faltu bill band ho gaye')); refresh(); },
+    onError: (e) => toast.error(errorText(e, t('Saaf nahi hua'))),
   });
 
   return {

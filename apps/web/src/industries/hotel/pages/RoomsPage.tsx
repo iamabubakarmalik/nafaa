@@ -30,6 +30,7 @@ import { roomsApi, type BoardRoom, type HotelRoom, type RoomStatus } from '../ap
 import { roomTypesApi } from '../api/room-types.api';
 import { useConfirm } from '../components/useConfirm';
 import { ALL_HOTEL_KEYS, HK_STATUS, HOTEL_KEYS, MANUAL_ROOM_STATUS, ROOM_STATUS, apiError, moneyInput, num, roomStatusOf, stayDay, todayKey } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'board' | 'setup';
 
@@ -38,7 +39,7 @@ function RoomTile({ r, onClick }: { r: BoardRoom; onClick: () => void }) {
   const stay = r.current ?? r.arrival;
   return (
     <button type="button" onClick={onClick}
-      className={cn('relative flex min-h-[6.5rem] flex-col rounded-2xl p-3 text-left ring-1 transition hover:-translate-y-0.5 hover:shadow-md', st.tile)}>
+      className={cn('relative flex min-h-[6.5rem] flex-col rounded-2xl p-3 text-start ring-1 transition hover:-translate-y-0.5 hover:shadow-md', st.tile)}>
       <span className="flex items-start justify-between gap-2">
         <span className="text-[1.25rem] font-bold leading-none text-slate-900">{r.roomNumber}</span>
         <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-1.5 py-0.5 text-[0.625rem] font-semibold text-slate-700"><span className={cn('h-1.5 w-1.5 rounded-full', st.dot)} />{st.label}</span>
@@ -46,11 +47,11 @@ function RoomTile({ r, onClick }: { r: BoardRoom; onClick: () => void }) {
       <span className="mt-0.5 truncate text-[0.6875rem] text-slate-500">{r.roomType?.name}</span>
       {stay && <span className="mt-auto truncate pt-1 text-[0.8125rem] font-medium text-slate-800">{stay.guestName}</span>}
       <span className="flex flex-wrap gap-1 pt-0.5 text-[0.625rem] font-semibold">
-        {r.overdue && <span className="rounded bg-rose-600 px-1 text-white">Late</span>}
-        {!r.overdue && r.departingToday && <span className="rounded bg-rose-100 px-1 text-rose-700">Aaj ja raha</span>}
-        {r.current && !r.departingToday && r.nightsLeft != null && <span className="text-slate-500">{r.nightsLeft} raat baqi</span>}
-        {!r.current && !r.arrival && r.next && <span className="text-slate-500">Agli: {stayDay(r.next.checkInDate)}</span>}
-        {r.housekeepingStatus === 'DIRTY' && <span className="rounded bg-amber-100 px-1 text-amber-800">Ganda</span>}
+        {r.overdue && <span className="rounded bg-rose-600 px-1 text-white">{tr('Late')}</span>}
+        {!r.overdue && r.departingToday && <span className="rounded bg-rose-100 px-1 text-rose-700">{tr('Aaj ja raha')}</span>}
+        {r.current && !r.departingToday && r.nightsLeft != null && <span className="text-slate-500">{tr('{{nightsLeft}} raat baqi', { nightsLeft: r.nightsLeft })}</span>}
+        {!r.current && !r.arrival && r.next && <span className="text-slate-500">{tr('Agli: {{checkInDate}}', { checkInDate: stayDay(r.next.checkInDate) })}</span>}
+        {r.housekeepingStatus === 'DIRTY' && <span className="rounded bg-amber-100 px-1 text-amber-800">{tr('Ganda')}</span>}
       </span>
     </button>
   );
@@ -62,42 +63,42 @@ function RoomActions({ r, canManage, onClose, onDone }: { r: BoardRoom; canManag
   const [notes, setNotes] = useState(r.maintenanceNotes ?? '');
   const save = useMutation({
     mutationFn: () => roomsApi.updateStatus(r.id, status, notes.trim() || undefined),
-    onSuccess: () => { toast.success(`Room ${r.roomNumber}: ${roomStatusOf(status).label}`); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Status nahi badla')),
+    onSuccess: () => { toast.success(tr('Room {{roomNumber}}: {{label}}', { roomNumber: r.roomNumber, label: roomStatusOf(status).label })); onDone(); },
+    onError: (e) => toast.error(apiError(e, tr('Status nahi badla'))),
   });
   const clean = useMutation({
     mutationFn: () => roomsApi.updateHousekeeping(r.id, 'CLEAN'),
-    onSuccess: () => { toast.success(`Room ${r.roomNumber} saaf`); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(tr('Room {{roomNumber}} saaf', { roomNumber: r.roomNumber })); onDone(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const stay = r.current ?? r.arrival;
   const free = !r.current && !['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'].includes(r.status);
   return (
-    <Modal open onClose={onClose} size="sm" title={`Room ${r.roomNumber}`} description={`${r.roomType?.name ?? ''} · ${roomStatusOf(r.live).label} · ${HK_STATUS[r.housekeepingStatus]?.label ?? ''}`}>
+    <Modal open onClose={onClose} size="sm" title={tr('Room {{roomNumber}}', { roomNumber: r.roomNumber })} description={`${r.roomType?.name ?? ''} · ${roomStatusOf(r.live).label} · ${HK_STATUS[r.housekeepingStatus]?.label ?? ''}`}>
       <div className="space-y-3">
         {stay && (
           <Link to={`/hotel/bookings/${stay.id}`} className="block rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200 hover:bg-slate-100">
             <span className="block text-[0.875rem] font-semibold text-slate-900">{stay.guestName} · {stay.bookingNumber}</span>
-            <span className="block text-[0.75rem] text-slate-500">{stayDay(stay.checkInDate)} → {stayDay(stay.checkOutDate)} · {r.current ? 'andar hai' : 'aaj aana hai'}{stay.balanceAmount > 0 ? ` · ${formatPKR(stay.balanceAmount)} baqi` : ''}</span>
+            <span className="block text-[0.75rem] text-slate-500">{stayDay(stay.checkInDate)} → {stayDay(stay.checkOutDate)} · {r.current ? tr('andar hai') : tr('aaj aana hai')}{stay.balanceAmount > 0 ? tr(' · {{balanceAmount}} baqi', { balanceAmount: formatPKR(stay.balanceAmount) }) : ''}</span>
           </Link>
         )}
         {canManage && free && (
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" leftIcon={<CalendarPlus className="h-4 w-4" />} onClick={() => navigate(`/hotel/bookings/new?roomId=${r.id}&checkIn=${todayKey()}`)}>Booking</Button>
-            <Button leftIcon={<LogIn className="h-4 w-4" />} onClick={() => navigate(`/hotel/bookings/new?roomId=${r.id}&checkIn=${todayKey()}&walkin=1`)}>Walk-in</Button>
+            <Button variant="secondary" leftIcon={<CalendarPlus className="h-4 w-4" />} onClick={() => navigate(`/hotel/bookings/new?roomId=${r.id}&checkIn=${todayKey()}`)}>{tr('Booking')}</Button>
+            <Button leftIcon={<LogIn className="h-4 w-4 rtl-flip" />} onClick={() => navigate(`/hotel/bookings/new?roomId=${r.id}&checkIn=${todayKey()}&walkin=1`)}>{tr('Walk-in')}</Button>
           </div>
         )}
         {canManage && r.housekeepingStatus !== 'CLEAN' && r.housekeepingStatus !== 'INSPECTED' && (
-          <Button fullWidth variant="success" loading={clean.isPending} leftIcon={<Sparkles className="h-4 w-4" />} onClick={() => clean.mutate()}>Saaf ho gaya</Button>
+          <Button fullWidth variant="success" loading={clean.isPending} leftIcon={<Sparkles className="h-4 w-4" />} onClick={() => clean.mutate()}>{tr('Saaf ho gaya')}</Button>
         )}
         {canManage && !r.current && (
           <div className="space-y-2 rounded-xl p-3 ring-1 ring-slate-200">
-            <Select label="Room ki halat" value={status} onChange={(e) => setStatus(e.target.value as RoomStatus)} options={MANUAL_ROOM_STATUS.map((s) => ({ value: s, label: ROOM_STATUS[s].label }))} />
-            {['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'].includes(status) && <Textarea rows={2} label="Kya masla hai" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="AC ki gas, nalka tapak raha…" />}
-            <Button fullWidth variant="secondary" loading={save.isPending} disabled={status === r.status && notes === (r.maintenanceNotes ?? '')} onClick={() => save.mutate()}>Save</Button>
+            <Select label={tr('Room ki halat')} value={status} onChange={(e) => setStatus(e.target.value as RoomStatus)} options={MANUAL_ROOM_STATUS.map((s) => ({ value: s, label: ROOM_STATUS[s].label }))} />
+            {['MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'].includes(status) && <Textarea rows={2} label={tr('Kya masla hai')} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('AC ki gas, nalka tapak raha…')} />}
+            <Button fullWidth variant="secondary" loading={save.isPending} disabled={status === r.status && notes === (r.maintenanceNotes ?? '')} onClick={() => save.mutate()}>{tr('Save')}</Button>
           </div>
         )}
-        {r.current && <p className="text-[0.75rem] text-slate-500">Guest andar hai — room ki halat check-out ya room change se badalti hai.</p>}
+        {r.current && <p className="text-[0.75rem] text-slate-500">{tr('Guest andar hai — room ki halat check-out ya room change se badalti hai.')}</p>}
         {r.maintenanceNotes && <p className="flex gap-2 text-[0.8125rem] text-orange-800"><Wrench className="mt-0.5 h-4 w-4 shrink-0" />{r.maintenanceNotes}</p>}
       </div>
     </Modal>
@@ -118,7 +119,7 @@ function RoomForm({ room, onClose, onDone }: { room: HotelRoom | null; onClose: 
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
   useEffect(() => { if (!f.roomTypeId && types.data?.[0]) set('roomTypeId', types.data[0].id); }, [types.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const [tried, setTried] = useState(false);
-  const bad = !f.roomNumber.trim() ? 'Room number likhein' : !f.roomTypeId ? 'Room type chunein' : null;
+  const bad = !f.roomNumber.trim() ? tr('Room number likhein') : !f.roomTypeId ? tr('Room type chunein') : null;
   const go = useMutation({
     mutationFn: () => {
       const body = {
@@ -128,8 +129,8 @@ function RoomForm({ room, onClose, onDone }: { room: HotelRoom | null; onClose: 
       };
       return room ? roomsApi.update(room.id, body) : roomsApi.create(body);
     },
-    onSuccess: () => { toast.success(room ? 'Room badal gaya' : `Room ${f.roomNumber} ban gaya`); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(room ? tr('Room badal gaya') : tr('Room {{roomNumber}} ban gaya', { roomNumber: f.roomNumber })); onDone(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   const submit = () => { setTried(true); if (!bad) go.mutate(); };
   useEffect(() => {
@@ -138,21 +139,21 @@ function RoomForm({ room, onClose, onDone }: { room: HotelRoom | null; onClose: 
     return () => window.removeEventListener('keydown', onKey);
   });
   return (
-    <Modal open onClose={onClose} size="md" title={room ? `Room ${room.roomNumber} badlein` : 'Naya room'} description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={go.isPending} onClick={submit}>Save</Button></>}>
+    <Modal open onClose={onClose} size="md" title={room ? tr('Room {{roomNumber}} badlein', { roomNumber: room.roomNumber }) : tr('Naya room')} description={tr('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={go.isPending} onClick={submit}>{tr('Save')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input data-autofocus label="Room number" required value={f.roomNumber} onChange={(e) => set('roomNumber', e.target.value)} placeholder="101" error={tried && !f.roomNumber.trim() ? 'Room number likhein' : undefined} />
-        <Select label="Room type" required value={f.roomTypeId} onChange={(e) => set('roomTypeId', e.target.value)} options={(types.data ?? []).map((t) => ({ value: t.id, label: `${t.name} · ${formatPKR(t.basePrice)}` }))} error={tried && !f.roomTypeId ? 'Room type chunein' : undefined} />
-        <Input label="Manzil" value={f.floor} onChange={(e) => set('floor', e.target.value)} placeholder="1" hint="Board par manzil ke hisaab se lagte hain" />
-        <Input label="Block / building" value={f.building} onChange={(e) => set('building', e.target.value)} />
-        <Input label="Is room ka apna rate" inputMode="decimal" value={f.customPrice} onChange={(e) => set('customPrice', moneyInput(e.target.value))} hint="Khaali chhorein to room type ka rate" />
-        <Input label="View" value={f.viewType} onChange={(e) => set('viewType', e.target.value)} placeholder="Pahar, sarak…" />
+        <Input data-autofocus label={tr('Room number')} required value={f.roomNumber} onChange={(e) => set('roomNumber', e.target.value)} placeholder="101" error={tried && !f.roomNumber.trim() ? tr('Room number likhein') : undefined} />
+        <Select label={tr('Room type')} required value={f.roomTypeId} onChange={(e) => set('roomTypeId', e.target.value)} options={(types.data ?? []).map((t) => ({ value: t.id, label: `${t.name} · ${formatPKR(t.basePrice)}` }))} error={tried && !f.roomTypeId ? tr('Room type chunein') : undefined} />
+        <Input label={tr('Manzil')} value={f.floor} onChange={(e) => set('floor', e.target.value)} placeholder="1" hint={tr('Board par manzil ke hisaab se lagte hain')} />
+        <Input label={tr('Block / building')} value={f.building} onChange={(e) => set('building', e.target.value)} />
+        <Input label={tr('Is room ka apna rate')} inputMode="decimal" value={f.customPrice} onChange={(e) => set('customPrice', moneyInput(e.target.value))} hint={tr('Khaali chhorein to room type ka rate')} />
+        <Input label={tr('View')} value={f.viewType} onChange={(e) => set('viewType', e.target.value)} placeholder={tr('Pahar, sarak…')} />
         {shops.length > 1 && (
-          <Select wrapperClassName="sm:col-span-2" label="Branch" value={shopId} onChange={(e) => setShopId(e.target.value)}
-            options={[{ value: '', label: 'Har branch me dikhe' }, ...shops.map((x) => ({ value: x.id, label: x.name }))]}
-            hint="Room sirf isi branch ke board, booking aur night audit me aata hai" />
+          <Select wrapperClassName="sm:col-span-2" label={tr('Branch')} value={shopId} onChange={(e) => setShopId(e.target.value)}
+            options={[{ value: '', label: tr('Har branch me dikhe') }, ...shops.map((x) => ({ value: x.id, label: x.name }))]}
+            hint={tr('Room sirf isi branch ke board, booking aur night audit me aata hai')} />
         )}
-        <Textarea wrapperClassName="sm:col-span-2" rows={2} label="Note" value={f.customNotes} onChange={(e) => set('customNotes', e.target.value)} />
+        <Textarea wrapperClassName="sm:col-span-2" rows={2} label={tr('Note')} value={f.customNotes} onChange={(e) => set('customNotes', e.target.value)} />
       </div>
     </Modal>
   );
@@ -179,8 +180,8 @@ export default function RoomsPage() {
   const refresh = () => { ALL_HOTEL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setOpen(null); setForm(null); };
   const off = useMutation({
     mutationFn: (r: HotelRoom) => (r.isActive ? roomsApi.remove(r.id) : roomsApi.update(r.id, { isActive: true })),
-    onSuccess: (_, r) => { toast.success(r.isActive ? `Room ${r.roomNumber} band` : `Room ${r.roomNumber} chalu`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (_, r) => { toast.success(r.isActive ? tr('Room {{roomNumber}} band', { roomNumber: r.roomNumber }) : tr('Room {{roomNumber}} chalu', { roomNumber: r.roomNumber })); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
 
   const rooms = useMemo(() => board.data?.rooms ?? [], [board.data]);
@@ -208,88 +209,88 @@ export default function RoomsPage() {
   }, [canCreate]);
 
   const toggleRoom = async (r: HotelRoom) => {
-    if (r.isActive && !(await ask({ title: `Room ${r.roomNumber} band karein?`, text: 'Nayi booking nahi le ga. Purana record rehta hai; baad me dobara chalu kar sakte hain.', yes: 'Band karein', danger: true }))) return;
+    if (r.isActive && !(await ask({ title: tr('Room {{roomNumber}} band karein?', { roomNumber: r.roomNumber }), text: tr('Nayi booking nahi le ga. Purana record rehta hai; baad me dobara chalu kar sakte hain.'), yes: tr('Band karein'), danger: true }))) return;
     off.mutate(r);
   };
 
   return (
     <PageShell>
       <PageHero
-        title="Room board"
+        title={tr('Room board')}
         chip={<><LayoutGrid /> {stayDay(board.data?.today ?? todayKey(), { day: true })}</>}
-        meta="Har room ka haal — guest, aamad, safai, marammat"
+        meta={tr('Har room ka haal — guest, aamad, safai, marammat')}
         busy={board.isFetching && !board.isLoading}
         loading={board.isLoading}
         actions={<>
-          <Link to="/hotel/housekeeping" className={heroButton}><Sparkles className="h-4 w-4" /><span className="hidden sm:inline">Housekeeping</span></Link>
-          <Link to="/hotel/room-types" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">Room types</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <Link to="/hotel/bookings/new" className={heroPrimaryButton}><CalendarPlus className="h-4 w-4" /> Nayi booking</Link>}
+          <Link to="/hotel/housekeeping" className={heroButton}><Sparkles className="h-4 w-4" /><span className="hidden sm:inline">{tr('Housekeeping')}</span></Link>
+          <Link to="/hotel/room-types" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{tr('Room types')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/hotel/bookings/new" className={heroPrimaryButton}><CalendarPlus className="h-4 w-4" /> {' '}{tr('Nayi booking')}</Link>}
         </>}
         stats={[
-          { label: 'Occupancy', value: rooms.length ? `${Math.round((occupied / rooms.length) * 100)}%` : '—', hint: `${occupied}/${rooms.length} room` },
-          { label: 'Khaali', value: count('AVAILABLE') },
-          { label: 'Safai baqi', value: count('CLEANING') },
+          { label: tr('Occupancy'), value: rooms.length ? `${Math.round((occupied / rooms.length) * 100)}%` : '—', hint: tr('{{occupied}}/{{count}} room', { occupied, count: rooms.length }) },
+          { label: tr('Khaali'), value: count('AVAILABLE') },
+          { label: tr('Safai baqi'), value: count('CLEANING') },
         ]}
       />
 
       <KpiRow cols={5}>
         {board.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={DoorOpen} color="#16a34a" label="Khaali" value={count('AVAILABLE')} hint="Abhi bik sakte hain" onClick={() => setStatus(status === 'AVAILABLE' ? '' : 'AVAILABLE')} active={status === 'AVAILABLE'} />
-          <KpiCard icon={BedDouble} color="#4f46e5" label="Guest hai" value={occupied} hint={late ? `${late} late check-out` : 'Andar guests'} onClick={() => setStatus(status === 'OCCUPIED' ? '' : 'OCCUPIED')} active={status === 'OCCUPIED'} />
-          <KpiCard icon={CalendarCheck} color="#d97706" label="Aaj aane wale" value={count('RESERVED')} hint="Room tayyar rakhein" onClick={() => setStatus(status === 'RESERVED' ? '' : 'RESERVED')} active={status === 'RESERVED'} />
-          <KpiCard icon={Sparkles} color="#0284c7" label="Safai" value={count('CLEANING')} hint={`${rooms.filter((r) => r.housekeepingStatus === 'DIRTY').length} ganday`} onClick={() => setStatus(status === 'CLEANING' ? '' : 'CLEANING')} active={status === 'CLEANING'} />
-          <KpiCard icon={Wrench} color="#ea580c" label="Marammat / band" value={count('MAINTENANCE') + count('OUT_OF_ORDER') + count('BLOCKED')} hint="Bik nahi sakte" onClick={() => setStatus(status === 'MAINTENANCE' ? '' : 'MAINTENANCE')} active={status === 'MAINTENANCE'} />
+          <KpiCard icon={DoorOpen} color="#16a34a" label={tr('Khaali')} value={count('AVAILABLE')} hint={tr('Abhi bik sakte hain')} onClick={() => setStatus(status === 'AVAILABLE' ? '' : 'AVAILABLE')} active={status === 'AVAILABLE'} />
+          <KpiCard icon={BedDouble} color="#4f46e5" label={tr('Guest hai')} value={occupied} hint={late ? tr('{{late}} late check-out', { late }) : tr('Andar guests')} onClick={() => setStatus(status === 'OCCUPIED' ? '' : 'OCCUPIED')} active={status === 'OCCUPIED'} />
+          <KpiCard icon={CalendarCheck} color="#d97706" label={tr('Aaj aane wale')} value={count('RESERVED')} hint={tr('Room tayyar rakhein')} onClick={() => setStatus(status === 'RESERVED' ? '' : 'RESERVED')} active={status === 'RESERVED'} />
+          <KpiCard icon={Sparkles} color="#0284c7" label={tr('Safai')} value={count('CLEANING')} hint={tr('{{count}} ganday', { count: rooms.filter((r) => r.housekeepingStatus === 'DIRTY').length })} onClick={() => setStatus(status === 'CLEANING' ? '' : 'CLEANING')} active={status === 'CLEANING'} />
+          <KpiCard icon={Wrench} color="#ea580c" label={tr('Marammat / band')} value={count('MAINTENANCE') + count('OUT_OF_ORDER') + count('BLOCKED')} hint={tr('Bik nahi sakte')} onClick={() => setStatus(status === 'MAINTENANCE' ? '' : 'MAINTENANCE')} active={status === 'MAINTENANCE'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Room number, guest ka naam ya phone…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Room number, guest ka naam ya phone…')} label={tr('Search')} />}
         chips={filtered ? <>
           {status && <FilterChip onRemove={() => setStatus('')}>{roomStatusOf(status).label}</FilterChip>}
           {typeId && <FilterChip onRemove={() => setTypeId('')}>{types.find(([id]) => id === typeId)?.[1]}</FilterChip>}
           {q && <FilterChip onRemove={() => setSearch('')}>"{search}"</FilterChip>}
         </> : undefined}
         onClear={() => { setStatus(''); setTypeId(''); setSearch(''); }}>
-        <FilterMenu icon={Filter} label={status ? roomStatusOf(status).label : 'Halat'} value={status} active={!!status} onChange={setStatus}
-          options={[{ value: '' as const, label: 'Sab' }, ...(['AVAILABLE', 'OCCUPIED', 'RESERVED', 'CLEANING', 'MAINTENANCE'] as RoomStatus[]).map((s) => ({ value: s, label: ROOM_STATUS[s].label }))]} />
-        <FilterMenu icon={Layers} label={typeId ? types.find(([id]) => id === typeId)?.[1] ?? 'Type' : 'Room type'} value={typeId} active={!!typeId} onChange={setTypeId} align="right"
-          options={[{ value: '', label: 'Sab types' }, ...types.map(([id, name]) => ({ value: id, label: name }))]} />
+        <FilterMenu icon={Filter} label={status ? roomStatusOf(status).label : tr('Halat')} value={status} active={!!status} onChange={setStatus}
+          options={[{ value: '' as const, label: tr('Sab') }, ...(['AVAILABLE', 'OCCUPIED', 'RESERVED', 'CLEANING', 'MAINTENANCE'] as RoomStatus[]).map((s) => ({ value: s, label: ROOM_STATUS[s].label }))]} />
+        <FilterMenu icon={Layers} label={typeId ? types.find(([id]) => id === typeId)?.[1] ?? tr('Type') : tr('Room type')} value={typeId} active={!!typeId} onChange={setTypeId} align="right"
+          options={[{ value: '', label: tr('Sab types') }, ...types.map(([id, name]) => ({ value: id, label: name }))]} />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs{canCreate && <> · <Kbd>N</Kbd> naya room</>}</>}
-        tabs={[{ id: 'board', label: 'Board', icon: LayoutGrid, count: shown.length }, { id: 'setup', label: 'Rooms setup', icon: Settings2 }]} />
+        hint={<><Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}{canCreate && <> · <Kbd>N</Kbd> {' '}{tr('naya room')}</>}</>}
+        tabs={[{ id: 'board', label: tr('Board'), icon: LayoutGrid, count: shown.length }, { id: 'setup', label: tr('Rooms setup'), icon: Settings2 }]} />
 
       {tab === 'board' ? (
         board.isLoading ? <Skeleton className="h-72 rounded-3xl" /> : !rooms.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <BedDouble className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">Abhi koi room nahi</p>
-            <p className="mt-1 text-sm text-slate-500">Pehle room type banayein (rate, kitne log) aur us ke room numbers.</p>
-            {canCreate && <Link to="/hotel-room-types/new"><Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />}>Room type + rooms</Button></Link>}
+            <p className="mt-3 font-semibold text-slate-900">{tr('Abhi koi room nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Pehle room type banayein (rate, kitne log) aur us ke room numbers.')}</p>
+            {canCreate && <Link to="/hotel-room-types/new"><Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />}>{tr('Room type + rooms')}</Button></Link>}
           </div>
         ) : !shown.length ? (
-          <div className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is filter me koi room nahi</div>
+          <div className="rounded-3xl bg-white px-6 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('Is filter me koi room nahi')}</div>
         ) : (
           <div className="space-y-4">
             {floors.map((fl) => (
               <section key={fl} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-                <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-500">{fl === '—' ? 'Manzil nahi likhi' : `Manzil ${fl}`}</h3>
+                <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-500">{fl === '—' ? tr('Manzil nahi likhi') : tr('Manzil {{fl}}', { fl })}</h3>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-8">
                   {shown.filter((r) => (r.floor || '—') === fl).map((r) => <RoomTile key={r.id} r={r} onClick={() => setOpen(r)} />)}
                 </div>
               </section>
             ))}
-            {late > 0 && <p className="flex items-center gap-2 text-[0.8125rem] text-rose-700"><AlertTriangle className="h-4 w-4" />{late} guest ki check-out date guzar chuki — stay barhayein ya check-out karein.</p>}
+            {late > 0 && <p className="flex items-center gap-2 text-[0.8125rem] text-rose-700"><AlertTriangle className="h-4 w-4" />{tr('{{late}} guest ki check-out date guzar chuki — stay barhayein ya check-out karein.', { late })}</p>}
           </div>
         )
       ) : (
         <div className="space-y-3">
-          {canCreate && <div className="flex justify-end"><Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setForm('new')}>Naya room</Button></div>}
+          {canCreate && <div className="flex justify-end"><Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setForm('new')}>{tr('Naya room')}</Button></div>}
           {all.isLoading ? <Skeleton className="h-60 rounded-3xl" /> : (
             <Table minWidth="40rem">
-              <THead><Tr><Th>Room</Th><Th>Type</Th><Th>Manzil</Th><Th align="right">Rate</Th><Th>Halat</Th><Th /></Tr></THead>
+              <THead><Tr><Th>{tr('Room')}</Th><Th>{tr('Type')}</Th><Th>{tr('Manzil')}</Th><Th align="right">{tr('Rate')}</Th><Th>{tr('Halat')}</Th><Th /></Tr></THead>
               <TBody>
                 {(all.data ?? []).filter((r) => !q || r.roomNumber.toLowerCase().includes(q)).map((r) => (
                   <Tr key={r.id} className={cn(!r.isActive && 'opacity-50')}>
@@ -297,17 +298,17 @@ export default function RoomsPage() {
                     <Td>{r.roomType?.name}</Td>
                     <Td>{r.floor ?? '—'}</Td>
                     <Td align="right" className="tabular-nums">{formatPKR(r.customPrice || r.roomType?.basePrice || 0)}{r.customPrice ? ' *' : ''}</Td>
-                    <Td>{r.isActive ? roomStatusOf(r.status).label : 'Band'}</Td>
+                    <Td>{r.isActive ? roomStatusOf(r.status).label : tr('Band')}</Td>
                     <Td align="right" className="whitespace-nowrap">
-                      {canEdit && <button type="button" onClick={() => setForm(r)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Badlein"><Pencil className="h-4 w-4" /></button>}
-                      {(r.isActive ? canDelete : canEdit) && <button type="button" onClick={() => toggleRoom(r)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={r.isActive ? 'Band karein' : 'Chalu karein'}><Power className="h-4 w-4" /></button>}
+                      {canEdit && <button type="button" onClick={() => setForm(r)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr('Badlein')}><Pencil className="h-4 w-4" /></button>}
+                      {(r.isActive ? canDelete : canEdit) && <button type="button" onClick={() => toggleRoom(r)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={r.isActive ? tr('Band karein') : tr('Chalu karein')}><Power className="h-4 w-4" /></button>}
                     </Td>
                   </Tr>
                 ))}
               </TBody>
             </Table>
           )}
-          <p className="text-[0.75rem] text-slate-500">* is room ka apna rate. Band room ka record rehta hai; wo nayi booking nahi leta.</p>
+          <p className="text-[0.75rem] text-slate-500">{tr('* is room ka apna rate. Band room ka record rehta hai; wo nayi booking nahi leta.')}</p>
         </div>
       )}
 
@@ -316,15 +317,15 @@ export default function RoomsPage() {
       {confirmDialog}
 
       {guide.isOpen && (
-        <PageGuide title="Room board — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Room board — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: LayoutGrid, color: '#4f46e5', title: 'Rang se haal', text: 'Hara khaali, neela-jamni guest hai, peela aaj aane wala, aasmani safai, naranji marammat.' },
-            { icon: LogIn, color: '#16a34a', title: 'Room par tap', text: 'Khaali room: booking ya walk-in. Bhara room: stay kholein (charges, check-out).' },
-            { icon: Sparkles, color: '#0284c7', title: 'Safai', text: 'Check-out ke baad room khud "Safai" me jata hai aur housekeeping ka kaam banta hai. "Saaf ho gaya" se room dobara khaali.' },
-            { icon: Wrench, color: '#ea580c', title: 'Marammat', text: 'AC, nalka — room ko marammat ya band karein; wo booking me nahi aata.' },
+            { icon: LayoutGrid, color: '#4f46e5', title: tr('Rang se haal'), text: tr('Hara khaali, neela-jamni guest hai, peela aaj aane wala, aasmani safai, naranji marammat.') },
+            { icon: LogIn, color: '#16a34a', title: tr('Room par tap'), text: tr('Khaali room: booking ya walk-in. Bhara room: stay kholein (charges, check-out).') },
+            { icon: Sparkles, color: '#0284c7', title: tr('Safai'), text: tr('Check-out ke baad room khud "Safai" me jata hai aur housekeeping ka kaam banta hai. "Saaf ho gaya" se room dobara khaali.') },
+            { icon: Wrench, color: '#ea580c', title: tr('Marammat'), text: tr('AC, nalka — room ko marammat ya band karein; wo booking me nahi aata.') },
           ]}
-          tips={['Rooms setup (naya room, rate, band karna) ke liye products ki permission chahiye.', 'Board har 30 second me khud taaza hota hai.']}
-          shortcuts={[['/', 'dhoondein'], ['1', 'board'], ['2', 'setup'], ['N', 'naya room'], ['G', 'guide']]}
+          tips={[tr('Rooms setup (naya room, rate, band karna) ke liye products ki permission chahiye.'), tr('Board har 30 second me khud taaza hota hai.')]}
+          shortcuts={[['/', 'dhoondein'], ['1', 'board'], ['2', 'setup'], ['N', tr('naya room')], ['G', 'guide']]}
         />
       )}
     </PageShell>

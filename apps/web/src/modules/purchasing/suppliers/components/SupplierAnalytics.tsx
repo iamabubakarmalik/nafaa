@@ -13,6 +13,7 @@ import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { suppliersApi } from '../api/suppliers.api';
+import { t as tr } from '@core/i18n';
 
 export function SupplierAnalytics() {
   const theme = useChartTheme();
@@ -32,13 +33,13 @@ export function SupplierAnalytics() {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Kul dena hai" value={formatPKR(s.totalOutstanding)} sub={`${s.suppliersWithDebt} supplier`} tone="text-rose-600" />
-        <Stat label="Is mahine purchase" value={formatPKR(s.monthPurchases)} sub={`${s.growthVsLastMonth >= 0 ? '▲' : '▼'} ${Math.abs(s.growthVsLastMonth).toFixed(0)}% pichle mahine se`} />
-        <Stat label="Is mahine diye" value={formatPKR((s.monthLedgerPaid ?? 0) + (s.monthPaid ?? 0))} />
-        <Stat label="Ausat bill" value={formatPKR(s.avgOrderValue)} sub={`${s.activeSuppliers} chalu supplier`} />
+        <Stat label={tr('Kul dena hai')} value={formatPKR(s.totalOutstanding)} sub={tr('{{suppliersWithDebt}} supplier', { suppliersWithDebt: s.suppliersWithDebt })} tone="text-rose-600" />
+        <Stat label={tr('Is mahine purchase')} value={formatPKR(s.monthPurchases)} sub={tr('{{value}} {{value2}}% pichle mahine se', { value: s.growthVsLastMonth >= 0 ? '▲' : '▼', value2: Math.abs(s.growthVsLastMonth).toFixed(0) })} />
+        <Stat label={tr('Is mahine diye')} value={formatPKR((s.monthLedgerPaid ?? 0) + (s.monthPaid ?? 0))} />
+        <Stat label={tr('Ausat bill')} value={formatPKR(s.avgOrderValue)} sub={tr('{{activeSuppliers}} chalu supplier', { activeSuppliers: s.activeSuppliers })} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />12 mahine — purchase aur payment</span>}>
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('12 mahine — purchase aur payment')}</span>}>
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -55,28 +56,28 @@ export function SupplierAnalytics() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-amber-600" />Baqi kitna purana</span>} description="Aakhri payment ke hisaab se">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-amber-600" />{tr('Baqi kitna purana')}</span>} description={tr('Aakhri payment ke hisaab se')}>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={aging} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="bucket" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Baqi']} {...tip} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Baqi')]} {...tip} />
                 <Bar dataKey="amount" fill={theme.highlight} radius={[6, 6, 0, 0]} barSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Sab se zyada dena</span>}>
-          {!debtors.length ? <Empty text="Kisi ka kuch baqi nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />{tr('Sab se zyada dena')}</span>}>
+          {!debtors.length ? <Empty text={tr('Kisi ka kuch baqi nahi')} /> : (
             <ul className="divide-y divide-slate-100">
               {debtors.slice(0, 8).map((d) => (
                 <li key={d.id}>
                   <Link to={`/suppliers/${d.id}`} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem] hover:opacity-80">
                     <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{d.name}</span>
-                      <span className="text-[0.75rem] text-slate-500">{d.daysSincePayment == null ? 'Kabhi payment nahi' : `Aakhri payment ${d.daysSincePayment} din pehle`}</span></span>
+                      <span className="text-[0.75rem] text-slate-500">{d.daysSincePayment == null ? tr('Kabhi payment nahi') : tr('Aakhri payment {{daysSincePayment}} din pehle', { daysSincePayment: d.daysSincePayment })}</span></span>
                     <span className="shrink-0 font-semibold tabular-nums text-rose-600">{formatPKR(d.outstandingDue)}</span>
                   </Link>
                 </li>
@@ -87,27 +88,27 @@ export function SupplierAnalytics() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Bare suppliers</span>} description="Ab tak ki kul purchase">
-          {!top.length ? <Empty text="Abhi koi purchase nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />{tr('Bare suppliers')}</span>} description={tr('Ab tak ki kul purchase')}>
+          {!top.length ? <Empty text={tr('Abhi koi purchase nahi')} /> : (
             <ul className="space-y-2.5">
               {top.map((t) => (
                 <li key={t.supplierId}>
                   <Link to={`/suppliers/${t.supplierId}`} className="block hover:opacity-80">
                     <div className="flex justify-between gap-2 text-[0.8125rem]"><span className="truncate font-medium text-slate-800">{t.supplier?.name ?? '—'}</span><span className="tabular-nums text-slate-900">{formatPKR(t.totalSpent)}</span></div>
                     <div className="mt-1 h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${(t.totalSpent / topMax) * 100}%` }} /></div>
-                    <p className="mt-0.5 text-[0.6875rem] text-slate-500">{t.orderCount} bill{t.outstanding > 0 ? ` · baqi ${formatPKR(t.outstanding)}` : ''}</p>
+                    <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{orderCount}} bill{{value}}', { orderCount: t.orderCount, value: t.outstanding > 0 ? tr(' · baqi {{outstanding}}', { outstanding: formatPKR(t.outstanding) }) : '' })}</p>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-slate-600" />Khamosh suppliers</span>} description="Kaafi din se maal nahi liya">
-          {!dormant.length ? <Empty text="Sab se maal aa raha hai" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-slate-600" />{tr('Khamosh suppliers')}</span>} description={tr('Kaafi din se maal nahi liya')}>
+          {!dormant.length ? <Empty text={tr('Sab se maal aa raha hai')} /> : (
             <ul className="divide-y divide-slate-100">
               {dormant.slice(0, 6).map((d) => (
                 <li key={d.id}><Link to={`/suppliers/${d.id}`} className="flex justify-between gap-2 py-2 text-[0.8125rem] hover:opacity-80">
-                  <span className="truncate text-slate-800">{d.name}</span><span className="shrink-0 text-slate-500">{d.daysSincePurchase == null ? 'Kabhi nahi' : `${d.daysSincePurchase} din`}</span>
+                  <span className="truncate text-slate-800">{d.name}</span><span className="shrink-0 text-slate-500">{d.daysSincePurchase == null ? tr('Kabhi nahi') : tr('{{daysSincePurchase}} din', { daysSincePurchase: d.daysSincePurchase })}</span>
                 </Link></li>
               ))}
             </ul>
@@ -116,13 +117,13 @@ export function SupplierAnalytics() {
       </div>
 
       {cities.length > 0 && (
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-brand-600" />Shehar</span>}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-brand-600" />{tr('Shehar')}</span>}>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {cities.map((c) => (
               <div key={c.city} className="rounded-xl bg-slate-50 p-3">
                 <p className="font-medium text-slate-900">{c.city}</p>
-                <p className="text-[0.75rem] text-slate-500">{c.count} supplier · {formatPKR(c.totalPurchased)}</p>
-                {c.outstanding > 0 && <p className="text-[0.75rem] text-rose-600">Baqi {formatPKR(c.outstanding)}</p>}
+                <p className="text-[0.75rem] text-slate-500">{tr('{{count}} supplier · {{totalPurchased}}', { count: c.count, totalPurchased: formatPKR(c.totalPurchased) })}</p>
+                {c.outstanding > 0 && <p className="text-[0.75rem] text-rose-600">{tr('Baqi {{outstanding}}', { outstanding: formatPKR(c.outstanding) })}</p>}
               </div>
             ))}
           </div>

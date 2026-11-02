@@ -16,6 +16,7 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { CommissionBasis, CommissionPerson, CommissionRule, CommissionValueType, RulePayload } from '../api/commission.api';
 import { BASIS } from './meta';
+import { t } from '@core/i18n';
 
 export function CommissionRuleModal({ rule, people, categories, saving, onClose, onSave, onDelete }: {
   rule?: CommissionRule | null;
@@ -51,7 +52,7 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
 
   const errors = {
     value: !(n > 0) ? 'Amount likhein' : type === 'PERCENT' && n > 100 ? 'Percent 100 se zyada nahi' : '',
-    bonus: target && !(Number(bonus) > 0) ? 'Target ke saath bonus bhi likhein' : '',
+    bonus: target && !(Number(bonus) > 0) ? t('Target ke saath bonus bhi likhein') : '',
     target: bonus && !(Number(target) > 0) ? 'Bonus ke liye target likhein' : '',
   };
   const invalid = Object.values(errors).some(Boolean);
@@ -78,69 +79,70 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
 
   const example = (() => {
     if (!(n > 0)) return null;
-    if (perBill) return `Mahine me 300 bill = ${formatPKR(n * 300)}`;
-    if (type === 'FIXED') return `Mahine me 200 cheezein bikin = ${formatPKR(n * 200)}`;
-    return `${formatPKR(200_000)} ki ${basis === 'PROFIT' ? 'profit' : 'sale'} par = ${formatPKR((200_000 * n) / 100)}`;
+    if (perBill) return t('Mahine me 300 bill = {{formatPKR}}', { formatPKR: formatPKR(n * 300) });
+    if (type === 'FIXED') return t('Mahine me 200 cheezein bikin = {{formatPKR}}', { formatPKR: formatPKR(n * 200) });
+    const p = { base: formatPKR(200_000), result: formatPKR((200_000 * n) / 100) };
+    return basis === 'PROFIT' ? t('{{base}} ki profit par = {{result}}', p) : t('{{base}} ki sale par = {{result}}', p);
   })();
 
   const sellers = people.filter((p) => p.userId);
   const person = sellers.find((p) => p.userId === userId);
 
   return (
-    <Modal open onClose={onClose} size="lg" title={rule ? 'Rule badlein' : 'Naya commission rule'}
-      description="Kis par, kitna, aur kis ke liye — baqi sab hisab khud banta hai"
+    <Modal open onClose={onClose} size="lg" title={rule ? t('Rule badlein') : t('Naya commission rule')}
+      description={t('Kis par, kitna, aur kis ke liye — baqi sab hisab khud banta hai')}
       footer={<>
         {onDelete && (
-          <Button variant="ghost" className="mr-auto text-rose-700" leftIcon={<Trash2 className="h-4 w-4" />} disabled={saving}
-            onClick={async () => { if ((await confirmDialog({ title: 'Ye rule hamesha ke liye hatayein?', text: 'Jo mahine abhi ada nahi hue un ka hisab is ke baghair banega. Behtar hai rule band kar dein.', danger: true }))) onDelete(); }}>
-            Hatayein
+          <Button variant="ghost" className="me-auto text-rose-700" leftIcon={<Trash2 className="h-4 w-4" />} disabled={saving}
+            onClick={async () => { if ((await confirmDialog({ title: t('Ye rule hamesha ke liye hatayein?'), text: t('Jo mahine abhi ada nahi hue un ka hisab is ke baghair banega. Behtar hai rule band kar dein.'), danger: true }))) onDelete(); }}>
+            {t('Hatayein')}
           </Button>
         )}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={saving}>{rule ? 'Save karein' : 'Rule banayein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={saving}>{rule ? t('Save karein') : t('Rule banayein')}</Button>
       </>}>
       <div className="space-y-5">
         <div>
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Commission kis par</p>
+          <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Commission kis par')}</p>
           <div className="grid gap-2 sm:grid-cols-3">
             {(Object.keys(BASIS) as CommissionBasis[]).map((b) => (
               <button key={b} type="button" onClick={() => setBasis(b)} aria-pressed={basis === b}
-                className={cn('rounded-xl px-3 py-2.5 text-left ring-1 transition', basis === b ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
+                className={cn('rounded-xl px-3 py-2.5 text-start ring-1 transition', basis === b ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
                 <span className="block text-sm font-semibold text-slate-900">{BASIS[b].label}</span>
                 <span className="mt-0.5 block text-[0.6875rem] leading-snug text-slate-500">{BASIS[b].hint}</span>
               </button>
             ))}
           </div>
-          {basis === 'PROFIT' && <p className="mt-1.5 text-xs text-slate-500">Jis cheez ki cost bill par nahi likhi, us ki aaj ki cost lagti hai.</p>}
+          {basis === 'PROFIT' && <p className="mt-1.5 text-xs text-slate-500">{t('Jis cheez ki cost bill par nahi likhi, us ki aaj ki cost lagti hai.')}</p>}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           {!perBill && (
             <div>
-              <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kitna</p>
-              <Segmented label="Kitna" value={valueType} onChange={(v) => setValueType(v as CommissionValueType)}
-                items={[{ value: 'PERCENT', label: 'Percent (%)' }, { value: 'FIXED', label: 'Har cheez par Rs' }]} />
-              <p className="mt-1.5 text-xs text-slate-500">{valueType === 'PERCENT' ? 'Sale ya profit ka hissa' : 'Har biki hui cheez (unit) par fixed amount'}</p>
+              <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Kitna')}</p>
+              <Segmented label={t('Kitna')} value={valueType} onChange={(v) => setValueType(v as CommissionValueType)}
+                items={[{ value: 'PERCENT', label: t('Percent (%)') }, { value: 'FIXED', label: t('Har cheez par Rs') }]} />
+              <p className="mt-1.5 text-xs text-slate-500">{valueType === 'PERCENT' ? t('Sale ya profit ka hissa') : t('Har biki hui cheez (unit) par fixed amount')}</p>
             </div>
           )}
-          <Input label={type === 'PERCENT' ? 'Percent' : perBill ? 'Har bill par (Rs)' : 'Har cheez par (Rs)'} type="number" inputMode="decimal" min={0} step="0.01"
+          <Input label={type === 'PERCENT' ? t('Percent') : perBill ? t('Har bill par (Rs)') : t('Har cheez par (Rs)')} type="number" inputMode="decimal" min={0} step="0.01"
             value={value} onChange={(e) => setValue(e.target.value)} required autoFocus
-            error={tried ? errors.value : undefined} hint={example ?? (type === 'PERCENT' ? 'Maslan 2.5' : 'Maslan 20')} />
+            error={tried ? errors.value : undefined} hint={example ?? (type === 'PERCENT' ? t('Maslan 2.5') : t('Maslan 20'))} />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Select label="Kis ke liye" value={userId} onChange={(e) => setUserId(e.target.value)}
-            options={[{ value: '', label: 'Sab chaalu bande' }, ...sellers.map((p) => ({ value: p.userId!, label: p.name }))]}
-            hint={userId ? `${person?.name ?? 'Is bande'} par sirf is ke apne rules chalenge, "sab" wale nahi` : 'Jis bande ka apna rule na ho, us par ye chalta hai'} />
-          <Input label="Naam (marzi se)" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-            placeholder={BASIS[basis].label} hint='Yaad rakhne ke liye, maslan "Cake par 5%"' />
+          <Select label={t('Kis ke liye')} value={userId} onChange={(e) => setUserId(e.target.value)}
+            options={[{ value: '', label: t('Sab chaalu bande') }, ...sellers.map((p) => ({ value: p.userId!, label: p.name }))]}
+            hint={userId ? t('{{value}} par sirf is ke apne rules chalenge, "sab" wale nahi', { value: person?.name ?? 'Is bande' }) : t('Jis bande ka apna rule na ho, us par ye chalta hai')} />
+          <Input label={t('Naam (marzi se)')} value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
+            placeholder={BASIS[basis].label} hint={t('Yaad rakhne ke liye, maslan "Cake par 5%"')} />
         </div>
 
         {!perBill && (
           <div>
-            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Sirf in categories par</p>
+            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Sirf in categories par')}</p>
             {categories.length === 0 ? (
-              <p className="text-xs text-slate-500">Koi category nahi bani — rule har cheez par chalega.</p>
+              <p className="text-xs text-slate-500">{t('Koi category nahi bani — rule har cheez par chalega.')}</p>
             ) : (
               <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto">
                 {categories.map((c) => {
@@ -154,34 +156,34 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
                 })}
               </div>
             )}
-            <p className="mt-1.5 text-xs text-slate-500">{cats.length ? `${cats.length} category chuni — baqi maal par ye rule nahi lagega` : 'Kuch na chunein to har cheez par lagega'}</p>
+            <p className="mt-1.5 text-xs text-slate-500">{cats.length ? t('{{count}} category chuni — baqi maal par ye rule nahi lagega', { count: cats.length }) : t('Kuch na chunein to har cheez par lagega')}</p>
           </div>
         )}
 
         {!perBill && (brandsQ.data?.length ?? 0) > 0 && (
-          <ChipPicker label="Sirf in brands par" items={(brandsQ.data ?? []).map((b) => ({ id: b.id, name: b.name }))} value={brandIds} onChange={setBrandIds}
-            hint={brandIds.length ? `${brandIds.length} brand chune` : 'Kuch na chunein to har brand par'} />
+          <ChipPicker label={t('Sirf in brands par')} items={(brandsQ.data ?? []).map((b) => ({ id: b.id, name: b.name }))} value={brandIds} onChange={setBrandIds}
+            hint={brandIds.length ? t('{{count}} brand chune', { count: brandIds.length }) : t('Kuch na chunein to har brand par')} />
         )}
         {!perBill && principals.length > 0 && (
-          <ChipPicker label="Sirf in principals (company) ke maal par" items={principals.map((s) => ({ id: s.id, name: s.name }))} value={supplierIds} onChange={setSupplierIds}
-            hint="Principal brand se tay hota hai (Distribution → Claims → Principals). Category, brand aur principal sab chune hon to sab ka milna zaroori." />
+          <ChipPicker label={t('Sirf in principals (company) ke maal par')} items={principals.map((s) => ({ id: s.id, name: s.name }))} value={supplierIds} onChange={setSupplierIds}
+            hint={t('Principal brand se tay hota hai (Distribution → Claims → Principals). Category, brand aur principal sab chune hon to sab ka milna zaroori.')} />
         )}
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input label="Kam se kam sale (mahina)" type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
-            hint="Is se kam sale par ye rule nahi chalta; poori ho jaye to mahine ki poori sale par lagta hai. Do rules = slab." />
-          <Input label="Target (mahina)" type="number" inputMode="decimal" min={0} value={target} onChange={(e) => setTarget(e.target.value)}
-            error={tried ? errors.target : undefined} hint="Mahine ki sale itni ho jaye to upar se bonus" />
-          <Input label="Target bonus (Rs)" type="number" inputMode="decimal" min={0} value={bonus} onChange={(e) => setBonus(e.target.value)}
-            error={tried ? errors.bonus : undefined} hint="Target poora hone par ek dafa" />
+          <Input label={t('Kam se kam sale (mahina)')} type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
+            hint={t('Is se kam sale par ye rule nahi chalta; poori ho jaye to mahine ki poori sale par lagta hai. Do rules = slab.')} />
+          <Input label={t('Target (mahina)')} type="number" inputMode="decimal" min={0} value={target} onChange={(e) => setTarget(e.target.value)}
+            error={tried ? errors.target : undefined} hint={t('Mahine ki sale itni ho jaye to upar se bonus')} />
+          <Input label={t('Target bonus (Rs)')} type="number" inputMode="decimal" min={0} value={bonus} onChange={(e) => setBonus(e.target.value)}
+            error={tried ? errors.bonus : undefined} hint={t('Target poora hone par ek dafa')} />
         </div>
 
-        <Textarea label="Note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} hint="Sirf aap ke liye — bande ko nahi dikhta" />
-        <Switch label="Rule chaalu hai" description="Band rule hisab me nahi lagta, magar mitta nahi" checked={active} onChange={(e) => setActive(e.target.checked)} />
+        <Textarea label={t('Note')} rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} hint={t('Sirf aap ke liye — bande ko nahi dikhta')} />
+        <Switch label={t('Rule chaalu hai')} description={t('Band rule hisab me nahi lagta, magar mitta nahi')} checked={active} onChange={(e) => setActive(e.target.checked)} />
 
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Hisab har dafa asli sale se banta hai. Rule badalne se wo mahine bhi badal jate hain jo abhi ada nahi hue. Jo payment likhi ja chuki hai woh nahi badalti.
+          {t('Hisab har dafa asli sale se banta hai. Rule badalne se wo mahine bhi badal jate hain jo abhi ada nahi hue. Jo payment likhi ja chuki hai woh nahi badalti.')}
         </p>
       </div>
     </Modal>

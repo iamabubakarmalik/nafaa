@@ -29,10 +29,11 @@ import { Pager } from '../components/Pager';
 import { ProductPick } from '../components/ProductPick';
 import { useDebounced, usePageKeys, useSaveKey } from '../hooks/usePageKeys';
 import { CROPS, SEASON_LABEL, dayPhrase, daysTo, errorText, seasonLabel, shortDate, isoDay } from '../lib/meta';
+import { t } from '@core/i18n';
 
 type View = AdvisoryTab | 'analytics';
 const KEY = 'agri-advisory';
-const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: 'Har season' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
+const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: t('Har season') }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
 const STAGES = ['Zameen ki tayyari', 'Bijai', 'Ugaao', 'Barhwar', 'Phool', 'Phal / daana', 'Pakai', 'Katai'];
 
 /** Advice lines, whatever shape an older row stored them in. */
@@ -44,7 +45,7 @@ function products(v: unknown): Array<{ productId?: string; name: string }> {
   if (!Array.isArray(v)) return [];
   return v.map((x) => (typeof x === 'string' ? { name: x } : { productId: (x as { productId?: string })?.productId, name: String((x as { name?: string })?.name ?? '') })).filter((p) => p.name);
 }
-const farmerName = (a: CropAdvisory) => a.farmer?.fullName ?? 'Farmer ke bagair';
+const farmerName = (a: CropAdvisory) => a.farmer?.fullName ?? t('Farmer ke bagair');
 
 function slip(a: CropAdvisory): PrintDoc {
   const recs = lines(a.recommendations);
@@ -97,15 +98,15 @@ export default function AdvisoryPage() {
 
   const done = useMutation({
     mutationFn: (id: string) => advisoryApi.complete(id),
-    onSuccess: (a) => { toast.success('Mashwara mukammal'); changed({ ...open!, ...a }); },
-    onError: (e) => toast.error(errorText(e, 'Mukammal nahi hua')),
+    onSuccess: (a) => { toast.success(t('Mashwara mukammal')); changed({ ...open!, ...a }); },
+    onError: (e) => toast.error(errorText(e, t('Mukammal nahi hua'))),
   });
 
   const exportCsv = () => {
-    if (!rows.length) { toast.error('Is list me kuch nahi'); return; }
+    if (!rows.length) { toast.error(t('Is list me kuch nahi')); return; }
     downloadCsv('fasal-mashwara.csv', [
-      ['Number', 'Date', 'Farmer', 'Phone', 'Fasal', 'Season', 'Acre', 'Marhala', 'Masla', 'Mashwara', 'Maal', 'Follow-up', 'Mukammal'],
-      ...rows.map((a) => [a.advisoryNumber, isoDay(a.createdAt), farmerName(a), a.farmer?.phone, a.cropName, seasonLabel(a.season), a.landAreaAcres, a.stage, a.currentIssues, lines(a.recommendations).join(' / '), products(a.productSuggestions).map((p) => p.name).join(' / '), isoDay(a.followUpDate), a.completed ? 'Haan' : 'Nahi']),
+      [t('Number'), t('Date'), t('Farmer'), t('Phone'), t('Fasal'), t('Season'), t('Acre'), t('Marhala'), t('Masla'), t('Mashwara'), t('Maal'), t('Follow-up'), t('Mukammal')],
+      ...rows.map((a) => [a.advisoryNumber, isoDay(a.createdAt), farmerName(a), a.farmer?.phone, a.cropName, seasonLabel(a.season), a.landAreaAcres, a.stage, a.currentIssues, lines(a.recommendations).join(' / '), products(a.productSuggestions).map((p) => p.name).join(' / '), isoDay(a.followUpDate), a.completed ? t('Haan') : t('Nahi')]),
     ]);
   };
   const listDoc = (): PrintDoc => ({
@@ -117,65 +118,65 @@ export default function AdvisoryPage() {
     <>
       {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
       {season && <FilterChip onRemove={() => setSeason('')}>{SEASON_LABEL[season]}</FilterChip>}
-      {farmerId && <FilterChip onRemove={() => { params.delete('farmer'); setParams(params); }}>Ek farmer</FilterChip>}
+      {farmerId && <FilterChip onRemove={() => { params.delete('farmer'); setParams(params); }}>{t('Ek farmer')}</FilterChip>}
     </>
   ) : undefined;
 
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Fasal ka mashwara — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Fasal ka mashwara — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Likhein', text: 'Farmer, fasal, marhala aur masla likhein — jaise "kapas par safed makhi".' },
-            { icon: Leaf, color: '#16a34a', title: 'Mashwara aur maal', text: 'Har line par ek kaam likhein aur jo maal bataya woh chunein. Slip print kar ke farmer ko dein.' },
-            { icon: CalendarClock, color: '#d97706', title: 'Follow-up', text: 'Wapas dekhne ki date dein. "Follow-up" tab me aaj aur guzri dates dikhti hain.' },
-            { icon: CheckCircle2, color: '#7c3aed', title: 'Mukammal', text: 'Fasal theek ho jaye to mukammal karein — record mehfooz rehta hai.' },
+            { icon: Plus, color: '#2563eb', title: t('Likhein'), text: t('Farmer, fasal, marhala aur masla likhein — jaise "kapas par safed makhi".') },
+            { icon: Leaf, color: '#16a34a', title: t('Mashwara aur maal'), text: t('Har line par ek kaam likhein aur jo maal bataya woh chunein. Slip print kar ke farmer ko dein.') },
+            { icon: CalendarClock, color: '#d97706', title: t('Follow-up'), text: t('Wapas dekhne ki date dein. "Follow-up" tab me aaj aur guzri dates dikhti hain.') },
+            { icon: CheckCircle2, color: '#7c3aed', title: t('Mukammal'), text: t('Fasal theek ho jaye to mukammal karein — record mehfooz rehta hai.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya mashwara'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', t('naya mashwara')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Fasal ka mashwara" chip={`${c?.open ?? 0} khule`} busy={isFetching && !isLoading} loading={isLoading}
-        meta="Farmer ki fasal ka masla, mashwara aur follow-up"
+      <PageHero title={t('Fasal ka mashwara')} chip={`${c?.open ?? 0} khule`} busy={isFetching && !isLoading} loading={isLoading}
+        meta={t('Farmer ki fasal ka masla, mashwara aur follow-up')}
         actions={<>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya mashwara</button>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />{t('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label={t('Print')} /></span>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{t('Naya mashwara')}</button>}
         </>}
         stats={[
-          { label: 'Khule', value: c?.open ?? 0 },
-          { label: 'Follow-up baqi', value: c?.due ?? 0 },
-          { label: 'Mukammal', value: c?.done ?? 0 },
+          { label: t('Khule'), value: c?.open ?? 0 },
+          { label: t('Follow-up baqi'), value: c?.due ?? 0 },
+          { label: t('Mukammal'), value: c?.done ?? 0 },
         ]} />
 
       <KpiRow cols={4}>
         {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={ListChecks} color="#2563eb" label="Khule" value={c?.open ?? 0} onClick={() => setTab('open')} active={view === 'open'} />
-            <KpiCard icon={CalendarClock} color="#d97706" label="Follow-up aaj / guzra" value={c?.due ?? 0} onClick={() => setTab('due')} active={view === 'due'} />
-            <KpiCard icon={CheckCircle2} color="#16a34a" label="Mukammal" value={c?.done ?? 0} onClick={() => setTab('done')} active={view === 'done'} />
-            <KpiCard icon={Sprout} color="#65a30d" label="Sab se zyada" value={data?.analytics.crops[0]?.crop ?? '—'} />
+            <KpiCard icon={ListChecks} color="#2563eb" label={t('Khule')} value={c?.open ?? 0} onClick={() => setTab('open')} active={view === 'open'} />
+            <KpiCard icon={CalendarClock} color="#d97706" label={t('Follow-up aaj / guzra')} value={c?.due ?? 0} onClick={() => setTab('due')} active={view === 'due'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label={t('Mukammal')} value={c?.done ?? 0} onClick={() => setTab('done')} active={view === 'done'} />
+            <KpiCard icon={Sprout} color="#65a30d" label={t('Sab se zyada')} value={data?.analytics.crops[0]?.crop ?? '—'} />
           </>
         )}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Number, fasal, masla ya marhala…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={t('Number, fasal, masla ya marhala…')} />}
         chips={chips} onClear={() => { setSearch(''); setSeason(''); if (farmerId) { params.delete('farmer'); setParams(params); } }}>
-        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : 'Season'} value={season} options={SEASON_OPTIONS} onChange={(v) => { setSeason(v); setPage(1); }} active={!!season} align="right" />
+        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : t('Season')} value={season} options={SEASON_OPTIONS} onChange={(v) => { setSeason(v); setPage(1); }} active={!!season} align="right" />
       </FilterBar>
 
       <ViewTabs value={view} onChange={setTab} tabs={[
-        { id: 'open', label: 'Khule', icon: ListChecks, count: c?.open ?? 0 },
-        { id: 'due', label: 'Follow-up', icon: CalendarClock, count: c?.due ?? 0 },
-        { id: 'done', label: 'Mukammal', icon: CheckCircle2, count: c?.done ?? 0 },
-        { id: 'all', label: 'Sab', icon: ClipboardList, count: c?.all ?? 0 },
-        { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        { id: 'open', label: t('Khule'), icon: ListChecks, count: c?.open ?? 0 },
+        { id: 'due', label: t('Follow-up'), icon: CalendarClock, count: c?.due ?? 0 },
+        { id: 'done', label: t('Mukammal'), icon: CheckCircle2, count: c?.done ?? 0 },
+        { id: 'all', label: t('Sab'), icon: ClipboardList, count: c?.all ?? 0 },
+        { id: 'analytics', label: t('Analytics'), icon: BarChart3 },
       ]} />
 
       {view === 'analytics' ? (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Bars title="Kis fasal ka mashwara" rows={(data?.analytics.crops ?? []).map((x) => ({ label: x.crop, value: x.notes }))} tone="bg-lime-500" />
-          <Bars title="Kis marhale par" rows={(data?.analytics.stages ?? []).map((x) => ({ label: x.stage, value: x.notes }))} tone="bg-sky-500" />
+          <Bars title={t('Kis fasal ka mashwara')} rows={(data?.analytics.crops ?? []).map((x) => ({ label: x.crop, value: x.notes }))} tone="bg-lime-500" />
+          <Bars title={t('Kis marhale par')} rows={(data?.analytics.stages ?? []).map((x) => ({ label: x.stage, value: x.notes }))} tone="bg-sky-500" />
         </div>
       ) : (
         <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -183,14 +184,14 @@ export default function AdvisoryPage() {
             : rows.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-16 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-700"><Leaf className="h-7 w-7" /></span>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? 'Is search me kuch nahi' : view === 'due' ? 'Koi follow-up baqi nahi' : 'Is list me kuch nahi'}</h3>
-                <p className="mt-1 text-[0.875rem] text-slate-500">Farmer fasal ka masla le kar aaye to yahan likhein aur slip de dein.</p>
-                {canManage && <Button className="mt-4" onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya mashwara</Button>}
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? t('Is search me kuch nahi') : view === 'due' ? t('Koi follow-up baqi nahi') : t('Is list me kuch nahi')}</h3>
+                <p className="mt-1 text-[0.875rem] text-slate-500">{t('Farmer fasal ka masla le kar aaye to yahan likhein aur slip de dein.')}</p>
+                {canManage && <Button className="mt-4" onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Naya mashwara')}</Button>}
               </div>
             ) : (
               <>
                 <Table minWidth="54rem">
-                  <THead><Tr><Th>Number</Th><Th>Farmer</Th><Th>Fasal</Th><Th>Masla</Th><Th>Follow-up</Th><Th>Status</Th></Tr></THead>
+                  <THead><Tr><Th>{t('Number')}</Th><Th>{t('Farmer')}</Th><Th>{t('Fasal')}</Th><Th>{t('Masla')}</Th><Th>{t('Follow-up')}</Th><Th>{t('Status')}</Th></Tr></THead>
                   <TBody>{rows.map((a) => {
                     const d = a.followUpDate ? daysTo(a.followUpDate) : null;
                     return (
@@ -200,7 +201,7 @@ export default function AdvisoryPage() {
                         <Td><p className="font-medium text-slate-800">{a.cropName}</p><p className="text-[0.75rem] text-slate-500">{[a.cropVariety, a.stage, a.landAreaAcres ? `${a.landAreaAcres} acre` : ''].filter(Boolean).join(' · ')}</p></Td>
                         <Td className="max-w-[16rem] text-[0.8125rem] text-slate-600"><p className="truncate">{a.currentIssues || '—'}</p></Td>
                         <Td className={cn('text-[0.8125rem]', !a.completed && d !== null && d <= 0 ? 'font-semibold text-amber-700' : 'text-slate-600')}>{a.followUpDate ? `${shortDate(a.followUpDate)} · ${dayPhrase(d)}` : '—'}</Td>
-                        <Td><span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', a.completed ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-sky-50 text-sky-800 ring-sky-200')}>{a.completed ? 'Mukammal' : 'Khula'}</span></Td>
+                        <Td><span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', a.completed ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-sky-50 text-sky-800 ring-sky-200')}>{a.completed ? t('Mukammal') : t('Khula')}</span></Td>
                       </Tr>
                     );
                   })}</TBody>
@@ -215,9 +216,9 @@ export default function AdvisoryPage() {
         <Modal open onClose={() => setOpen(null)} size="lg" title={`${open.advisoryNumber} · ${open.cropName}`}
           description={[farmerName(open), open.farmer?.phone, seasonLabel(open.season) !== '—' ? seasonLabel(open.season) : '', open.landAreaAcres ? `${open.landAreaAcres} acre` : ''].filter(Boolean).join(' · ')}
           footer={<>
-            <span className="mr-auto"><PrintButton doc={() => slip(open)} label="Slip print" /></span>
-            {canManage && <Button variant="secondary" onClick={() => setForm(open)} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>}
-            {canManage && !open.completed && <Button loading={done.isPending} onClick={() => done.mutate(open.id)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Mukammal</Button>}
+            <span className="me-auto"><PrintButton doc={() => slip(open)} label={t('Slip print')} /></span>
+            {canManage && <Button variant="secondary" onClick={() => setForm(open)} leftIcon={<Pencil className="h-4 w-4" />}>{t('Badlein')}</Button>}
+            {canManage && !open.completed && <Button loading={done.isPending} onClick={() => done.mutate(open.id)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>{t('Mukammal')}</Button>}
           </>}>
           <AdvisoryView a={open} />
         </Modal>
@@ -232,7 +233,7 @@ function Bars({ title, rows, tone }: { title: string; rows: Array<{ label: strin
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
       <h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">{title}</h3>
-      {rows.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">Abhi kuch nahi</p> : (
+      {rows.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">{t('Abhi kuch nahi')}</p> : (
         <ul className="space-y-2">{rows.map((r) => (
           <li key={r.label} className="text-[0.8125rem]">
             <div className="flex justify-between"><span className="font-medium text-slate-700">{r.label}</span><span className="tabular-nums text-slate-600">{r.value}</span></div>
@@ -248,23 +249,23 @@ function AdvisoryView({ a }: { a: CropAdvisory }) {
   const recs = lines(a.recommendations);
   const prods = products(a.productSuggestions);
   const facts: Array<[string, string]> = [
-    ['Variety', a.cropVariety ?? ''], ['Marhala', a.stage ?? ''], ['Bijai', a.sowingDate ? shortDate(a.sowingDate) : ''],
-    ['Katai (andaza)', a.expectedHarvest ? shortDate(a.expectedHarvest) : ''], ['Follow-up', a.followUpDate ? `${shortDate(a.followUpDate)} · ${dayPhrase(daysTo(a.followUpDate))}` : ''],
-    ['Mashwara diya', a.advisorName ?? ''],
+    [t('Variety'), a.cropVariety ?? ''], [t('Marhala'), a.stage ?? ''], [t('Bijai'), a.sowingDate ? shortDate(a.sowingDate) : ''],
+    [t('Katai (andaza)'), a.expectedHarvest ? shortDate(a.expectedHarvest) : ''], [t('Follow-up'), a.followUpDate ? `${shortDate(a.followUpDate)} · ${dayPhrase(daysTo(a.followUpDate))}` : ''],
+    [t('Mashwara diya'), a.advisorName ?? ''],
   ].filter(([, v]) => v) as Array<[string, string]>;
   return (
     <div className="space-y-4">
       <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-3">
         {facts.map(([k, v]) => <div key={k}><dt className="text-[0.75rem] text-slate-500">{k}</dt><dd className="text-[0.875rem] font-medium text-slate-800">{v}</dd></div>)}
       </dl>
-      {a.currentIssues && <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900"><span className="font-semibold">Masla: </span>{a.currentIssues}</div>}
+      {a.currentIssues && <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900"><span className="font-semibold">{t('Masla:')}{' '} </span>{a.currentIssues}</div>}
       <div>
-        <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Mashwara</h4>
-        {recs.length ? <ol className="list-decimal space-y-1 pl-5 text-[0.875rem] text-slate-700">{recs.map((r, i) => <li key={i}>{r}</li>)}</ol> : <p className="text-[0.8125rem] text-slate-500">Abhi kuch nahi likha</p>}
+        <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">{t('Mashwara')}</h4>
+        {recs.length ? <ol className="list-decimal space-y-1 ps-5 text-[0.875rem] text-slate-700">{recs.map((r, i) => <li key={i}>{r}</li>)}</ol> : <p className="text-[0.8125rem] text-slate-500">{t('Abhi kuch nahi likha')}</p>}
       </div>
       {prods.length > 0 && (
         <div>
-          <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Bataya gaya maal</h4>
+          <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">{t('Bataya gaya maal')}</h4>
           <div className="flex flex-wrap gap-1.5">{prods.map((p, i) => (
             p.productId
               ? <Link key={i} to={`/agri-products/${p.productId}`} className="inline-flex items-center gap-1 rounded-lg bg-lime-50 px-2 py-1 text-[0.8125rem] font-medium text-lime-800 ring-1 ring-lime-200 hover:underline"><Package className="h-3.5 w-3.5" />{p.name}</Link>
@@ -301,9 +302,9 @@ function AdvisoryForm({ editing, farmerId, onClose, onSaved }: { editing: CropAd
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const errors = useMemo(() => {
     const e: Partial<Record<keyof Draft, string>> = {};
-    if (!d.cropName.trim()) e.cropName = 'Fasal ka naam likhein';
-    if (d.landAreaAcres && !(Number(d.landAreaAcres) >= 0)) e.landAreaAcres = 'Zameen sahi likhein';
-    if (d.sowingDate && d.expectedHarvest && d.expectedHarvest < d.sowingDate) e.expectedHarvest = 'Katai bijai se pehle nahi ho sakti';
+    if (!d.cropName.trim()) e.cropName = t('Fasal ka naam likhein');
+    if (d.landAreaAcres && !(Number(d.landAreaAcres) >= 0)) e.landAreaAcres = t('Zameen sahi likhein');
+    if (d.sowingDate && d.expectedHarvest && d.expectedHarvest < d.sowingDate) e.expectedHarvest = t('Katai bijai se pehle nahi ho sakti');
     return e;
   }, [d]);
   const show = (k: keyof Draft) => (tried ? errors[k] : undefined);
@@ -319,10 +320,10 @@ function AdvisoryForm({ editing, farmerId, onClose, onSaved }: { editing: CropAd
       return editing ? advisoryApi.update(editing.id, body) : advisoryApi.create(body);
     },
     onSuccess: (a) => {
-      toast.success(editing ? 'Mashwara badal gaya' : 'Mashwara likh liya');
+      toast.success(editing ? t('Mashwara badal gaya') : t('Mashwara likh liya'));
       onSaved({ ...a, farmer: farmer ? { id: farmer.id, fullName: farmer.fullName, phone: farmer.phone, village: farmer.village ?? null } : null });
     },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Save nahi hua'))),
   });
   const submit = () => {
     setTried(true);
@@ -332,42 +333,42 @@ function AdvisoryForm({ editing, farmerId, onClose, onSaved }: { editing: CropAd
   useSaveKey(submit);
 
   return (
-    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={editing ? `${editing.advisoryNumber} — badlein` : 'Naya fasal ka mashwara'}
-      description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={editing ? t('{{advisoryNumber}} — badlein', { advisoryNumber: editing.advisoryNumber }) : t('Naya fasal ka mashwara')}
+      description={t('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button loading={save.isPending} onClick={submit}>{t('Save')}</Button></>}>
       <div className="space-y-4">
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Farmer</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Farmer')}</span>
           <FarmerPick value={farmer as Farmer | null} onChange={(f) => set('farmer', f)} />
-          <p className="mt-1 text-[0.75rem] text-slate-500">Marzi hai — chunein to farmer ke record me dikhega</p>
+          <p className="mt-1 text-[0.75rem] text-slate-500">{t('Marzi hai — chunein to farmer ke record me dikhega')}</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Fasal" required list="agri-crops" value={d.cropName} onChange={(e) => set('cropName', e.target.value)} placeholder="Kapas" error={show('cropName')} hint="List se chunein ya likhein" data-autofocus />
+          <Input label={t('Fasal')} required list="agri-crops" value={d.cropName} onChange={(e) => set('cropName', e.target.value)} placeholder={t('Kapas')} error={show('cropName')} hint={t('List se chunein ya likhein')} data-autofocus />
           <datalist id="agri-crops">{CROPS.map((x) => <option key={x} value={x} />)}</datalist>
-          <Input label="Variety" value={d.cropVariety} onChange={(e) => set('cropVariety', e.target.value)} placeholder="FH-142" hint="Beej ka naam" />
-          <Select label="Season" value={d.season} onChange={(e) => set('season', e.target.value)} options={[{ value: '', label: '—' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))]} />
-          <Input label="Zameen (acre)" inputMode="decimal" value={d.landAreaAcres} onChange={(e) => set('landAreaAcres', e.target.value.replace(/[^\d.]/g, ''))} placeholder="5" error={show('landAreaAcres')} hint="Dawa ki miqdaar isi se" />
-          <Input label="Marhala" list="agri-stages" value={d.stage} onChange={(e) => set('stage', e.target.value)} placeholder="Phool" hint="Fasal abhi kis haal me" />
+          <Input label={t('Variety')} value={d.cropVariety} onChange={(e) => set('cropVariety', e.target.value)} placeholder={t('FH-142')} hint={t('Beej ka naam')} />
+          <Select label={t('Season')} value={d.season} onChange={(e) => set('season', e.target.value)} options={[{ value: '', label: '—' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))]} />
+          <Input label={t('Zameen (acre)')} inputMode="decimal" value={d.landAreaAcres} onChange={(e) => set('landAreaAcres', e.target.value.replace(/[^\d.]/g, ''))} placeholder="5" error={show('landAreaAcres')} hint={t('Dawa ki miqdaar isi se')} />
+          <Input label={t('Marhala')} list="agri-stages" value={d.stage} onChange={(e) => set('stage', e.target.value)} placeholder={t('Phool')} hint={t('Fasal abhi kis haal me')} />
           <datalist id="agri-stages">{STAGES.map((x) => <option key={x} value={x} />)}</datalist>
-          <Input label="Follow-up" type="date" value={d.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} hint="Kab wapas dekhna hai" />
-          <Input label="Bijai" type="date" value={d.sowingDate} onChange={(e) => set('sowingDate', e.target.value)} />
-          <Input label="Katai (andaza)" type="date" value={d.expectedHarvest} onChange={(e) => set('expectedHarvest', e.target.value)} error={show('expectedHarvest')} />
+          <Input label={t('Follow-up')} type="date" value={d.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} hint={t('Kab wapas dekhna hai')} />
+          <Input label={t('Bijai')} type="date" value={d.sowingDate} onChange={(e) => set('sowingDate', e.target.value)} />
+          <Input label={t('Katai (andaza)')} type="date" value={d.expectedHarvest} onChange={(e) => set('expectedHarvest', e.target.value)} error={show('expectedHarvest')} />
         </div>
-        <Textarea label="Masla" rows={2} value={d.currentIssues} onChange={(e) => set('currentIssues', e.target.value)} placeholder="Patte peele, safed makhi, sundi…" hint="Farmer ne kya bataya" />
-        <Textarea label="Mashwara" rows={4} value={d.recommendations} onChange={(e) => set('recommendations', e.target.value)} placeholder={'Har line par ek kaam\nImidacloprid 250 ml per acre spray\n7 din baad dobara dekhein'} hint="Har line slip par alag number se chhapegi" />
+        <Textarea label={t('Masla')} rows={2} value={d.currentIssues} onChange={(e) => set('currentIssues', e.target.value)} placeholder={t('Patte peele, safed makhi, sundi…')} hint={t('Farmer ne kya bataya')} />
+        <Textarea label={t('Mashwara')} rows={4} value={d.recommendations} onChange={(e) => set('recommendations', e.target.value)} placeholder={t('Har line par ek kaam\nImidacloprid 250 ml per acre spray\n7 din baad dobara dekhein')} hint={t('Har line slip par alag number se chhapegi')} />
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bataya gaya maal</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Bataya gaya maal')}</span>
           <ProductPick onPick={(i) => { if (!d.products.some((p) => p.productId === i.id)) set('products', [...d.products, { productId: i.id, name: i.name }]); }} />
           {d.products.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">{d.products.map((p) => (
-              <span key={p.productId} className="inline-flex items-center gap-1 rounded-lg bg-lime-50 py-1 pl-2 pr-1 text-[0.8125rem] font-medium text-lime-800 ring-1 ring-lime-200">
+              <span key={p.productId} className="inline-flex items-center gap-1 rounded-lg bg-lime-50 py-1 ps-2 pe-1 text-[0.8125rem] font-medium text-lime-800 ring-1 ring-lime-200">
                 {p.name}
-                <button type="button" aria-label={`${p.name} hatayein`} onClick={() => set('products', d.products.filter((x) => x.productId !== p.productId))} className="rounded p-0.5 hover:bg-lime-100"><X className="h-3.5 w-3.5" /></button>
+                <button type="button" aria-label={t('{{name}} hatayein', { name: p.name })} onClick={() => set('products', d.products.filter((x) => x.productId !== p.productId))} className="rounded p-0.5 hover:bg-lime-100"><X className="h-3.5 w-3.5" /></button>
               </span>
             ))}</div>
           )}
         </div>
-        <Textarea label="Note" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} hint="Marzi hai — sirf dukaan ke liye" />
+        <Textarea label={t('Note')} rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} hint={t('Marzi hai — sirf dukaan ke liye')} />
       </div>
     </Modal>
   );

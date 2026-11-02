@@ -12,6 +12,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { JobsService } from '../jobs/jobs.service';
 import { blank, nextDocNumber, r2 } from '../jobs/job-rules';
 import type { ConvertQuoteDto, ListQuotesQuery, QuoteLineDto, UpsertQuoteDto } from './dto/quote.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface StoredLine { kind: QuoteLineDto['kind']; description: string; quantity: number; unitPrice: number; total: number; productId?: string | null }
 
@@ -49,7 +50,7 @@ export class QuotesService {
     const discount = r2(dto.discount ?? prev?.discount ?? 0);
     const taxAmount = r2(dto.taxAmount ?? prev?.taxAmount ?? 0);
     const gross = r2(charges.visitCharge + charges.labourCharge + charges.partsCharge + charges.otherCharges + taxAmount);
-    if (discount > gross + 0.001) throw new BadRequestException(`Discount quote (Rs ${gross}) se zyada nahi ho sakta`);
+    if (discount > gross + 0.001) throw new BadRequestException(apiMessage('Discount quote (Rs {{gross}}) se zyada nahi ho sakta', { gross }));
 
     let customerName = blank(dto.customerName) ?? prev?.customerName;
     let customerPhone = blank(dto.customerPhone) ?? prev?.customerPhone;
@@ -102,7 +103,9 @@ export class QuotesService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpsertQuoteDto) {
     const q = await this.find(user, id);
-    if (!EDITABLE.includes(q.status)) throw new BadRequestException(`${q.quoteNumber} ${q.status === 'ACCEPTED' ? 'maan liya gaya' : 'band hai'} — badla nahi ja sakta`);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException(q.status === 'ACCEPTED'
+      ? apiMessage('{{quoteNumber}} maan liya gaya — badla nahi ja sakta', { quoteNumber: q.quoteNumber })
+      : apiMessage('{{quoteNumber}} band hai — badla nahi ja sakta', { quoteNumber: q.quoteNumber }));
     const data = await this.values(user, dto, q);
     // A quote changed after sending goes back to the customer as revised.
     const status: QuoteStatus = q.status === 'SENT' ? 'REVISED' : q.status;
@@ -168,7 +171,9 @@ export class QuotesService {
 
   async accept(user: AuthenticatedUser, id: string) {
     const q = await this.find(user, id);
-    if (!EDITABLE.includes(q.status)) throw new BadRequestException(`${q.quoteNumber} pehle hi ${q.status === 'ACCEPTED' ? 'maan liya gaya' : 'band hai'}`);
+    if (!EDITABLE.includes(q.status)) throw new BadRequestException(q.status === 'ACCEPTED'
+      ? apiMessage('{{quoteNumber}} pehle hi maan liya gaya', { quoteNumber: q.quoteNumber })
+      : apiMessage('{{quoteNumber}} pehle hi band hai', { quoteNumber: q.quoteNumber }));
     const now = new Date();
     return this.shape(await this.prisma.serviceQuote.update({ where: { id }, data: { status: 'ACCEPTED', acceptedAt: now, respondedAt: now } }));
   }

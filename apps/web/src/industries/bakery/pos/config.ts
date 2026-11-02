@@ -18,6 +18,7 @@ import { unitEmoji, unitKeyOf, type PosUnitOption } from '@modules/pos/lib/posUn
 import { bakeryProductsApi, type BakeryProduct } from '../api/products.api';
 import { freshnessApi, type FreshnessLog } from '../api/freshness.api';
 import { extraUnitsFor, priceField, rateBetween, unitDef } from '../lib/bakeryUnits';
+import { t as tr } from '@core/i18n';
 
 /** Under this many hours left, an item is "sell first". */
 const URGENT_HOURS = 12;
@@ -57,16 +58,16 @@ function useBakeryCatalog() {
     const made = !!profile && !!(profile.isCakeCustomizable || profile.isCustomizable);
     const slice = Number(profile?.pricePerSlice || 0);
     const badges = [
-      ...(expired ? [{ label: 'Waqt guzra', tone: 'danger' as const, icon: Flame }] : []),
-      ...(soon ? [{ label: `${Math.max(1, Math.round(left!))}h baqi`, tone: 'warning' as const, icon: Timer }] : []),
-      ...(profile?.requiresRefrigeration ? [{ label: 'Fridge', tone: 'info' as const, icon: Snowflake }] : []),
+      ...(expired ? [{ label: tr('Waqt guzra'), tone: 'danger' as const, icon: Flame }] : []),
+      ...(soon ? [{ label: tr('{{value}}h baqi', { value: Math.max(1, Math.round(left!)) }), tone: 'warning' as const, icon: Timer }] : []),
+      ...(profile?.requiresRefrigeration ? [{ label: tr('Fridge'), tone: 'info' as const, icon: Snowflake }] : []),
     ];
     return {
       ...it,
       badges,
       rank: soon ? 0 : expired || it.stock <= 0 ? 3 : 1,
       dim: expired,
-      subline: slice > 0 ? `per ${it.unit} · slice ${formatPKR(slice)}` : undefined,
+      subline: slice > 0 ? tr('per {{unit}} · slice {{slice}}', { unit: it.unit, slice: formatPKR(slice) }) : undefined,
       meta: { profile, hoursLeft: left, made },
     };
   }, [profileBy, hoursLeft]);
@@ -98,32 +99,32 @@ function bakeryUnits(item: PosItem, units: PosUnitOption[]): PosUnitOption[] {
 
 export const bakeryPos: PosIndustryConfig = {
   id: 'bakery',
-  label: 'Bakery',
+  label: tr('Bakery'),
   useCatalog: useBakeryCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   extraUnits: bakeryUnits,
   filters: [
-    { id: 'urgent', label: 'Jald bechna', icon: Timer, match: (i) => i.meta?.hoursLeft !== undefined },
-    { id: 'made', label: 'Khud banaya', icon: Cake, match: (i) => !!i.meta?.made },
-    { id: 'bought', label: 'Bahar se', icon: Package, match: (i) => !i.meta?.made },
+    { id: 'urgent', label: tr('Jald bechna'), icon: Timer, match: (i) => i.meta?.hoursLeft !== undefined },
+    { id: 'made', label: tr('Khud banaya'), icon: Cake, match: (i) => !!i.meta?.made },
+    { id: 'bought', label: tr('Bahar se'), icon: Package, match: (i) => !i.meta?.made },
   ],
   beforeAdd: (item, opts, api) => {
     const left = item.meta?.hoursLeft as number | undefined;
     const confirmed = opts.confirmed ?? [];
     if (left !== undefined && left <= 0 && !confirmed.includes('expired')) {
       // A dialog (not a toast button) so the cashier can answer from the keyboard.
-      void confirmDialog({ title: `${item.name} — freshness ka waqt guzar chuka`, text: 'Batch check kar lein, kharab maal na bike.', yes: 'Phir bhi bechein', danger: true })
+      void confirmDialog({ title: tr('{{name}} — freshness ka waqt guzar chuka', { name: item.name }), text: tr('Batch check kar lein, kharab maal na bike.'), yes: tr('Phir bhi bechein'), danger: true })
         .then((ok) => { if (ok) api.addItem(item, { ...opts, confirmed: [...confirmed, 'expired'] }); });
       return 'handled';
     }
     if (item.stock <= 0 && !opts.oversell) {
-      void confirmDialog({ title: `${item.name} — stock 0 hai`, text: 'Abhi bana hai aur stock mein nahi chadha?', yes: 'Phir bhi bechein' })
+      void confirmDialog({ title: tr('{{name}} — stock 0 hai', { name: item.name }), text: tr('Abhi bana hai aur stock mein nahi chadha?'), yes: tr('Phir bhi bechein') })
         .then((ok) => { if (ok) api.addItem(item, { ...opts, oversell: true }); });
       return 'handled';
     }
     if (left !== undefined && left > 0 && !api.cart.some((l) => l.productId === item.id)) {
-      toast.info(`${item.name} ${Math.max(1, Math.round(left))} ghante mein kharab hoga`, { description: 'Bill mein rate par click kar ke discount de sakte hain', duration: 2500 });
+      toast.info(tr('{{name}} {{value}} ghante mein kharab hoga', { name: item.name, value: Math.max(1, Math.round(left)) }), { description: tr('Bill mein rate par click kar ke discount de sakte hain'), duration: 2500 });
     }
     return 'continue';
   },
@@ -133,5 +134,5 @@ export const bakeryPos: PosIndustryConfig = {
     'double roti': 'bread double roti', bread: 'bread double roti', bun: 'bun', 'nan khatai': 'nan khatai',
     biscuit: 'biscuit cookies', cookies: 'biscuit cookies', pizza: 'pizza', sandwich: 'sandwich', mithai: 'mithai sweet',
   },
-  searchHint: 'Cake, patties, bread… ya barcode scan karein',
+  searchHint: tr('Cake, patties, bread… ya barcode scan karein'),
 };

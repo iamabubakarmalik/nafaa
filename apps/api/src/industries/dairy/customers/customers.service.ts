@@ -16,6 +16,7 @@ import {
   cleanInput, dayEnd, dayStart, khataBalances, linkKhata, nextNumbered, r2, settleBills, shopYear, withLiveBalance,
 } from '../dairy-common';
 import { CustomerPaymentDto, PauseDeliveryDto, UpdateCustomerDto, UpsertCustomerDto } from './dto/upsert-customer.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Tab = 'all' | 'active' | 'paused' | 'owing' | 'closed';
 
@@ -33,7 +34,7 @@ export class DairyCustomersService {
       const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId }, select: { id: true } });
       if (!c) throw new BadRequestException('Customer nahi mila');
       const other = await this.prisma.dairyCustomer.findFirst({ where: { customerId: dto.customerId, ...(selfId && { id: { not: selfId } }) }, select: { name: true } });
-      if (other) throw new BadRequestException(`Ye khata pehle se ${other.name} ki delivery se jura hai`);
+      if (other) throw new BadRequestException(apiMessage('Ye khata pehle se {{otherName}} ki delivery se jura hai', { otherName: other.name }));
     }
     if ((dto.morningQuantity ?? 0) < 0 || (dto.eveningQuantity ?? 0) < 0) throw new BadRequestException('Quantity manfi nahi ho sakti');
     if (dto.customRate != null && dto.customRate < 0) throw new BadRequestException('Rate manfi nahi ho sakta');
@@ -242,7 +243,7 @@ export class DairyCustomersService {
     const c = await this.prisma.dairyCustomer.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Customer nahi mila');
     const live = withLiveBalance(c, await khataBalances(this.prisma, user.tenantId, [c.customerId]));
-    if (live.currentBalance > 0.01) throw new BadRequestException(`Rs ${Math.round(live.currentBalance)} baqi hain — pehle hisaab saaf karein`);
+    if (live.currentBalance > 0.01) throw new BadRequestException(apiMessage('Rs {{currentBalance}} baqi hain — pehle hisaab saaf karein', { currentBalance: Math.round(live.currentBalance) }));
     const updated = await this.prisma.dairyCustomer.update({
       where: { id },
       data: { status: 'CLOSED', notes: [c.notes, `Khata band: ${reason?.trim() || 'wajah nahi likhi'}`].filter(Boolean).join('\n') },

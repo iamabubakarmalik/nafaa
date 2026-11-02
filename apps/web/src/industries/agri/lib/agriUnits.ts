@@ -4,6 +4,7 @@
  * pack size the shop entered on the product.
  */
 
+import { t as tr } from '@core/i18n';
 export interface AgriUnitDef {
   key: string;
   label: string;
@@ -14,24 +15,24 @@ export interface AgriUnitDef {
 }
 
 export const AGRI_UNITS: AgriUnitDef[] = [
-  { key: 'bag',    label: 'Bori',   emoji: '🎒', hint: 'Sab se aam — urea, DAP, beej ki bori' },
-  { key: 'kg',     label: 'Kilo',   emoji: '⚖️', measured: true, hint: 'Khula maal — beej, feed' },
-  { key: 'ton',    label: 'Ton',    emoji: '🚛', measured: true, hint: 'Bara sauda — 1000 kg' },
-  { key: 'gram',   label: 'Gram',   emoji: '⚖️', measured: true, hint: 'Chhoti quantity — mehnga beej, hormone' },
-  { key: 'litre',  label: 'Litre',  emoji: '🧴', measured: true, hint: 'Spray, liquid fertilizer' },
-  { key: 'ml',     label: 'ML',     emoji: '💧', measured: true, hint: 'Chhoti bottle — pesticide' },
-  { key: 'bottle', label: 'Bottle', emoji: '🍾', hint: 'Bandh bottle — spray, dawa' },
-  { key: 'packet', label: 'Packet', emoji: '📦', hint: 'Chhota packet — sabzi ka beej' },
-  { key: 'pcs',    label: 'Piece',  emoji: '🔧', hint: 'Auzaar, pipe, nozzle' },
-  { key: 'bundle', label: 'Bundle', emoji: '🪢', hint: 'Gattha — pipe, tarpal' },
-  { key: 'custom', label: 'Apna',   emoji: '⚙️', hint: 'Jo naam aap ki dukaan par chalta hai' },
+  { key: 'bag',    label: tr('Bori'),   emoji: '🎒', hint: tr('Sab se aam — urea, DAP, beej ki bori') },
+  { key: 'kg',     label: tr('Kilo'),   emoji: '⚖️', measured: true, hint: tr('Khula maal — beej, feed') },
+  { key: 'ton',    label: tr('Ton'),    emoji: '🚛', measured: true, hint: tr('Bara sauda — 1000 kg') },
+  { key: 'gram',   label: tr('Gram'),   emoji: '⚖️', measured: true, hint: tr('Chhoti quantity — mehnga beej, hormone') },
+  { key: 'litre',  label: tr('Litre'),  emoji: '🧴', measured: true, hint: tr('Spray, liquid fertilizer') },
+  { key: 'ml',     label: tr('ML'),     emoji: '💧', measured: true, hint: tr('Chhoti bottle — pesticide') },
+  { key: 'bottle', label: tr('Bottle'), emoji: '🍾', hint: tr('Bandh bottle — spray, dawa') },
+  { key: 'packet', label: tr('Packet'), emoji: '📦', hint: tr('Chhota packet — sabzi ka beej') },
+  { key: 'pcs',    label: tr('Piece'),  emoji: '🔧', hint: tr('Auzaar, pipe, nozzle') },
+  { key: 'bundle', label: tr('Bundle'), emoji: '🪢', hint: tr('Gattha — pipe, tarpal') },
+  { key: 'custom', label: tr('Apna'),   emoji: '⚙️', hint: tr('Jo naam aap ki dukaan par chalta hai') },
 ];
 
 export const agriUnitDef = (key: string): AgriUnitDef =>
   AGRI_UNITS.find((u) => u.key === key) ?? AGRI_UNITS[0];
 
 export function agriUnitLabel(key: string, customName?: string): string {
-  if (key === 'custom') return (customName || '').trim() || 'apna naap';
+  if (key === 'custom') return (customName || '').trim() || tr('apna naap');
   return agriUnitDef(key).label.toLowerCase();
 }
 
@@ -114,19 +115,19 @@ export function certStatus(expiry?: string | null): {
   days: number | null;
   text: string;
 } {
-  if (!expiry) return { state: 'none', days: null, text: 'Registration ki date nahi bhari' };
+  if (!expiry) return { state: 'none', days: null, text: tr('Registration ki date nahi bhari') };
   const t = new Date(expiry).getTime();
-  if (Number.isNaN(t)) return { state: 'none', days: null, text: 'Date theek nahi' };
+  if (Number.isNaN(t)) return { state: 'none', days: null, text: tr('Date theek nahi') };
   const days = Math.round((t - Date.now()) / 86_400_000);
-  if (days < 0) return { state: 'expired', days, text: `Registration ${Math.abs(days)} din pehle khatam — bechna ghair-qanooni hai` };
-  if (days <= 60) return { state: 'soon', days, text: `Registration ${days} din me khatam — renew karwa lein` };
-  return { state: 'ok', days, text: `Registration ${days} din aur chalegi` };
+  if (days < 0) return { state: 'expired', days, text: tr('Registration {{days}} din pehle khatam — bechna ghair-qanooni hai', { days: Math.abs(days) }) };
+  if (days <= 60) return { state: 'soon', days, text: tr('Registration {{days}} din me khatam — renew karwa lein', { days }) };
+  return { state: 'ok', days, text: tr('Registration {{days}} din aur chalegi', { days }) };
 }
 
 /** Crop season on the Pakistani calendar. */
 export const SEASONS: Array<{ v: string; l: string; e: string; hint: string }> = [
-  { v: 'KHARIF', l: 'Kharif', e: '🌧️', hint: 'Mai–Oct: chawal, kapas, makai' },
-  { v: 'RABI', l: 'Rabi', e: '❄️', hint: 'Nov–Apr: gandum, chana, sarson' },
-  { v: 'ZAID', l: 'Zaid', e: '☀️', hint: 'Mar–Jun: tarbooz, sabzi' },
-  { v: 'ALL_SEASON', l: 'Har mausam', e: '🔄', hint: 'Saal bhar chalta hai' },
+  { v: 'KHARIF', l: tr('Kharif'), e: '🌧️', hint: tr('Mai–Oct: chawal, kapas, makai') },
+  { v: 'RABI', l: tr('Rabi'), e: '❄️', hint: tr('Nov–Apr: gandum, chana, sarson') },
+  { v: 'ZAID', l: tr('Zaid'), e: '☀️', hint: tr('Mar–Jun: tarbooz, sabzi') },
+  { v: 'ALL_SEASON', l: tr('Har mausam'), e: '🔄', hint: tr('Saal bhar chalta hai') },
 ];

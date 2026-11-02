@@ -23,6 +23,7 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { roomTypesApi, type HotelRoomType } from '../api/room-types.api';
 import { useConfirm } from '../components/useConfirm';
 import { ALL_HOTEL_KEYS, HOTEL_KEYS, apiError, roomStatusOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 export default function RoomTypesPage() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ export default function RoomTypesPage() {
   const toggle = useMutation({
     mutationFn: (t: HotelRoomType) => (t.isActive ? roomTypesApi.remove(t.id) : roomTypesApi.update(t.id, { isActive: true })),
     onSuccess: (_, t) => { toast.success(t.isActive ? `${t.name} band` : `${t.name} chalu`); ALL_HOTEL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
 
   useEffect(() => {
@@ -62,46 +63,46 @@ export default function RoomTypesPage() {
   const avg = active.length ? active.reduce((s, t) => s + t.basePrice, 0) / active.length : 0;
 
   const off = async (t: HotelRoomType) => {
-    if (t.isActive && !(await ask({ title: `${t.name} band karein?`, text: 'Is type ke room nayi booking nahi lenge. Record rehta hai; baad me chalu kar sakte hain.', yes: 'Band karein', danger: true }))) return;
+    if (t.isActive && !(await ask({ title: tr('{{name}} band karein?', { name: t.name }), text: tr('Is type ke room nayi booking nahi lenge. Record rehta hai; baad me chalu kar sakte hain.'), yes: tr('Band karein'), danger: true }))) return;
     toggle.mutate(t);
   };
 
   return (
     <PageShell>
       <PageHero
-        title="Room types"
-        chip={<><Layers /> {active.length} types</>}
-        meta="Rate, weekend rate, kitne log aur sahulat"
+        title={tr('Room types')}
+        chip={<><Layers /> {' '}{tr('{{count}} types', { count: active.length })}</>}
+        meta={tr('Rate, weekend rate, kitne log aur sahulat')}
         busy={q.isFetching && !q.isLoading}
         loading={q.isLoading}
         actions={<>
-          <Link to="/hotel/rate-plans" className={heroButton}><Award className="h-4 w-4" /><span className="hidden sm:inline">Season rates</span></Link>
-          <Link to="/hotel/rooms" className={heroButton}><DoorOpen className="h-4 w-4" /><span className="hidden sm:inline">Room board</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canCreate && <Link to="/hotel-room-types/new" title="Naya type (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya room type</Link>}
+          <Link to="/hotel/rate-plans" className={heroButton}><Award className="h-4 w-4" /><span className="hidden sm:inline">{tr('Season rates')}</span></Link>
+          <Link to="/hotel/rooms" className={heroButton}><DoorOpen className="h-4 w-4" /><span className="hidden sm:inline">{tr('Room board')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <Link to="/hotel-room-types/new" title={tr('Naya type (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya room type')}</Link>}
         </>}
-        stats={[{ label: 'Room', value: rooms }, { label: 'Abhi khaali', value: free }, { label: 'Ausat rate', value: formatPKR(Math.round(avg)) }]}
+        stats={[{ label: tr('Room'), value: rooms }, { label: tr('Abhi khaali'), value: free }, { label: tr('Ausat rate'), value: formatPKR(Math.round(avg)) }]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Layers} color="#4f46e5" label="Types" value={active.length} hint={all.length > active.length ? `${all.length - active.length} band` : 'Sab chalu'} />
-        <KpiCard icon={BedDouble} color="#0891b2" label="Room" value={rooms} />
-        <KpiCard icon={DoorOpen} color="#16a34a" label="Abhi khaali" value={free} />
-        <KpiCard icon={Users} color="#7c3aed" label="Kul jagah" value={active.reduce((s, t) => s + t.maxOccupancy * (t.rooms?.length ?? 0), 0)} hint="Log ek saath" />
+        <KpiCard icon={Layers} color="#4f46e5" label={tr('Types')} value={active.length} hint={all.length > active.length ? tr('{{value}} band', { value: all.length - active.length }) : tr('Sab chalu')} />
+        <KpiCard icon={BedDouble} color="#0891b2" label={tr('Room')} value={rooms} />
+        <KpiCard icon={DoorOpen} color="#16a34a" label={tr('Abhi khaali')} value={free} />
+        <KpiCard icon={Users} color="#7c3aed" label={tr('Kul jagah')} value={active.reduce((s, t) => s + t.maxOccupancy * (t.rooms?.length ?? 0), 0)} hint={tr('Log ek saath')} />
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya code…" label="Search" />}>
-        <FilterMenu icon={Filter} label={show === 'active' ? 'Chalu' : show === 'off' ? 'Band' : 'Sab'} value={show} active={show !== 'active'} onChange={setShow}
-          options={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam ya code…')} label={tr('Search')} />}>
+        <FilterMenu icon={Filter} label={show === 'active' ? tr('Chalu') : show === 'off' ? tr('Band') : tr('Sab')} value={show} active={show !== 'active'} onChange={setShow}
+          options={[{ value: 'active', label: tr('Chalu') }, { value: 'off', label: tr('Band') }, { value: 'all', label: tr('Sab') }]} />
       </FilterBar>
 
 
       {q.isLoading ? <Skeleton className="h-60 rounded-3xl" /> : !rows.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <Layers className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{all.length ? 'Is filter me kuch nahi' : 'Abhi koi room type nahi'}</p>
-          <p className="mt-1 text-sm text-slate-500">Jaise "Deluxe Double — Rs 8,000 raat, 2 log" — saath hi room numbers bhi likh dein.</p>
-          {canCreate && !all.length && <Button className="mt-4" onClick={() => navigate('/hotel-room-types/new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla room type</Button>}
+          <p className="mt-3 font-semibold text-slate-900">{all.length ? tr('Is filter me kuch nahi') : tr('Abhi koi room type nahi')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Jaise "Deluxe Double — Rs 8,000 raat, 2 log" — saath hi room numbers bhi likh dein.')}</p>
+          {canCreate && !all.length && <Button className="mt-4" onClick={() => navigate('/hotel-room-types/new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Pehla room type')}</Button>}
         </div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -110,21 +111,21 @@ export default function RoomTypesPage() {
               <Link to={`/hotel-room-types/${t.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-[0.75rem] font-bold text-brand-800 ring-1 ring-brand-100">{t.code}</span>
                 <span className="min-w-0">
-                  <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{t.name}{!t.isActive && ' · band'}</span>
-                  <span className="block truncate text-[0.75rem] text-slate-500">{t.maxOccupancy} log · {t.rooms?.length ?? 0} room{t.extraBedAllowed ? ` · extra bed ${formatPKR(t.extraBedPrice)}` : ''}</span>
+                  <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{t.name}{!t.isActive && tr(' · band')}</span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{tr('{{maxOccupancy}} log · {{value}} room{{value2}}', { maxOccupancy: t.maxOccupancy, value: t.rooms?.length ?? 0, value2: t.extraBedAllowed ? tr(' · extra bed {{extraBedPrice}}', { extraBedPrice: formatPKR(t.extraBedPrice) }) : '' })}</span>
                   <span className="mt-1 flex flex-wrap gap-1">
                     {(t.rooms ?? []).slice(0, 14).map((r) => <span key={r.id} title={roomStatusOf(r.status).label} className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-1.5 text-[0.6875rem] font-semibold text-slate-700 ring-1 ring-slate-200"><span className={cn('h-1.5 w-1.5 rounded-full', roomStatusOf(r.status).dot)} />{r.roomNumber}</span>)}
                   </span>
                 </span>
               </Link>
-              <span className="text-right">
+              <span className="text-end">
                 <span className="block text-[0.9375rem] font-bold tabular-nums text-slate-900">{formatPKR(t.basePrice)}</span>
-                <span className="block text-[0.75rem] text-slate-500">{t.weekendPrice ? `Weekend ${formatPKR(t.weekendPrice)}` : 'fi raat'}</span>
+                <span className="block text-[0.75rem] text-slate-500">{t.weekendPrice ? tr('Weekend {{weekendPrice}}', { weekendPrice: formatPKR(t.weekendPrice) }) : tr('fi raat')}</span>
               </span>
               <span className="flex items-center">
-                {canEdit && <Link to={`/hotel-room-types/${t.id}/edit`} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Badlein"><Pencil className="h-4 w-4" /></Link>}
-                {(t.isActive ? canDelete : canEdit) && <button type="button" onClick={() => off(t)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={t.isActive ? 'Band' : 'Chalu'}><Power className="h-4 w-4" /></button>}
-                <ChevronRight className="h-4 w-4 text-slate-300" />
+                {canEdit && <Link to={`/hotel-room-types/${t.id}/edit`} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr('Badlein')}><Pencil className="h-4 w-4" /></Link>}
+                {(t.isActive ? canDelete : canEdit) && <button type="button" onClick={() => off(t)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100" aria-label={t.isActive ? tr('Band') : tr('Chalu')}><Power className="h-4 w-4" /></button>}
+                <ChevronRight className="h-4 w-4 text-slate-300 rtl-flip" />
               </span>
             </li>
           ))}
@@ -133,14 +134,14 @@ export default function RoomTypesPage() {
       {confirmDialog}
 
       {guide.isOpen && (
-        <PageGuide title="Room types — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Room types — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Layers, color: '#4f46e5', title: 'Type', text: 'Ek jaise room ek type: naam, rate fi raat, kitne log. Weekend (Juma, Hafta ki raat) ka alag rate de sakte hain.' },
-            { icon: BedDouble, color: '#0891b2', title: 'Room numbers', text: 'Type banate waqt hi 101–110 jaise number likh dein; baad me Room board → setup se bhi.' },
-            { icon: Award, color: '#d97706', title: 'Season rates', text: 'Eid, garmiyon ki chhuttiyan, company rate — "Season rates" me date ke hisaab se.' },
+            { icon: Layers, color: '#4f46e5', title: tr('Type'), text: tr('Ek jaise room ek type: naam, rate fi raat, kitne log. Weekend (Juma, Hafta ki raat) ka alag rate de sakte hain.') },
+            { icon: BedDouble, color: '#0891b2', title: tr('Room numbers'), text: tr('Type banate waqt hi 101–110 jaise number likh dein; baad me Room board → setup se bhi.') },
+            { icon: Award, color: '#d97706', title: tr('Season rates'), text: tr('Eid, garmiyon ki chhuttiyan, company rate — "Season rates" me date ke hisaab se.') },
           ]}
-          tips={['Type band karne se purani bookings par asar nahi hota.', 'Banane / badalne ke liye products ki permission chahiye.']}
-          shortcuts={[['N', 'naya type'], ['/', 'dhoondein'], ['G', 'guide']]}
+          tips={[tr('Type band karne se purani bookings par asar nahi hota.'), tr('Banane / badalne ke liye products ki permission chahiye.')]}
+          shortcuts={[['N', tr('naya type')], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
     </PageShell>

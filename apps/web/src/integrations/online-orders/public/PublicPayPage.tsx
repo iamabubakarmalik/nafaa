@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, CreditCard, Loader2, Lock, XCircle } from 'lucide-react';
 import { Alert, Button, Card, Input } from '@/design-system/components';
 import { publicFetch } from './publicApi';
+import { t as tr } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    CUSTOMER KA PAY SAFHA — /pay/:token. Dukaan ne WhatsApp par bheja.
@@ -47,8 +48,8 @@ export default function PublicPayPage() {
   const pay = async () => {
     setErr(null);
     if (wallet) {
-      if (mobile.replace(/\D/g, '').length < 10) return setErr(`Apna ${info!.provider} number likhein (03xxxxxxxxx)`);
-      if (info!.collect.includes('cnic') && cnic.replace(/\D/g, '').length < 6) return setErr('CNIC ke aakhri 6 hindse likhein');
+      if (mobile.replace(/\D/g, '').length < 10) return setErr(tr('Apna {{provider}} number likhein (03xxxxxxxxx)', { provider: info!.provider }));
+      if (info!.collect.includes('cnic') && cnic.replace(/\D/g, '').length < 6) return setErr(tr('CNIC ke aakhri 6 hindse likhein'));
     }
     setBusy(true);
     if (wallet) setWalletWait(true);
@@ -59,8 +60,8 @@ export default function PublicPayPage() {
       else {
         setWalletWait(false); setBusy(false);
         if (c.status === 'PAID') setInfo((i) => (i ? { ...i, status: 'PAID' } : i));
-        else if (c.status === 'FAILED') setErr(`Payment nahi hui${c.message ? `: ${c.message}` : ''} — dobara try karein`);
-        else setWalletMsg('Phone par approve karne ke baad yahan khud ✓ aa jayega…');
+        else if (c.status === 'FAILED') setErr(tr('Payment nahi hui{{value}} — dobara try karein', { value: c.message ? `: ${c.message}` : '' }));
+        else setWalletMsg(tr('Phone par approve karne ke baad yahan khud ✓ aa jayega…'));
       }
     } catch (e: any) {
       setErr(e.message);
@@ -82,50 +83,50 @@ export default function PublicPayPage() {
               <div className="text-sm font-semibold text-slate-500">{info.shop}</div>
               <div className="mt-1 text-3xl font-black tabular-nums text-slate-900">{rs(info.amount)}</div>
               <div className="mt-1 text-sm text-slate-500">
-                Order #{info.orderNumber}{info.kind === 'ADVANCE' ? ` · advance (kul ${rs(info.orderTotal)}, baqi delivery par)` : ''}
+                {tr('Order #{{orderNumber}}{{value}}', { orderNumber: info.orderNumber, value: info.kind === 'ADVANCE' ? tr(' · advance (kul {{orderTotal}}, baqi delivery par)', { orderTotal: rs(info.orderTotal) }) : '' })}
               </div>
             </div>
 
             {info.status === 'PAID' ? (
               <div className="mt-6 rounded-2xl bg-success-50 p-5 text-center ring-1 ring-success-200">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-success-600" />
-                <div className="mt-2 text-lg font-bold text-success-900">Payment ho gayi — shukriya {info.customer}! 🎉</div>
-                <p className="mt-1 text-sm text-success-800">{info.shop} ko khabar ho gayi hai.</p>
+                <div className="mt-2 text-lg font-bold text-success-900">{tr('Payment ho gayi — shukriya {{customer}}! 🎉', { customer: info.customer })}</div>
+                <p className="mt-1 text-sm text-success-800">{tr('{{shop}} ko khabar ho gayi hai.', { shop: info.shop })}</p>
               </div>
             ) : info.status === 'EXPIRED' || info.status === 'FAILED' ? (
               <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center">
                 <XCircle className="mx-auto h-10 w-10 text-slate-400" />
-                <p className="mt-2 text-sm font-semibold text-slate-700">{info.status === 'EXPIRED' ? 'Is link ki period khatam ho gayi.' : 'Payment nahi hui.'} {info.shop} se naya link maangein.</p>
+                <p className="mt-2 text-sm font-semibold text-slate-700">{tr('{{value}} {{shop}} se naya link maangein.', { value: info.status === 'EXPIRED' ? tr('Is link ki period khatam ho gayi.') : tr('Payment nahi hui.'), shop: info.shop })}</p>
               </div>
             ) : (
               <>
                 {checking && (
-                  <Alert tone="info" className="mt-5" icon={<Loader2 className="h-4 w-4 animate-spin text-blue-600" />} title="Payment ki tasdeeq ho rahi hai…" />
+                  <Alert tone="info" className="mt-5" icon={<Loader2 className="h-4 w-4 animate-spin text-blue-600" />} title={tr('Payment ki tasdeeq ho rahi hai…')} />
                 )}
-                {cancelled && <Alert tone="warning" className="mt-5" title="Payment cancel ho gayi — dobara try kar sakte hain." />}
+                {cancelled && <Alert tone="warning" className="mt-5" title={tr('Payment cancel ho gayi — dobara try kar sakte hain.')} />}
                 {wallet && (
                   <div className="mt-5 space-y-2">
-                    <Input size="lg" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" aria-label="Mobile number"
-                      placeholder={`Apna ${info.provider} number (03xxxxxxxxx)`} />
+                    <Input size="lg" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" aria-label={tr('Mobile number')}
+                      placeholder={tr('Apna {{provider}} number (03xxxxxxxxx)', { provider: info.provider })} />
                     {info.collect.includes('cnic') && (
-                      <Input size="lg" value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} aria-label="CNIC"
-                        placeholder="CNIC ke aakhri 6 hindse" />
+                      <Input size="lg" value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} aria-label={tr('CNIC')}
+                        placeholder={tr('CNIC ke aakhri 6 hindse')} />
                     )}
                   </div>
                 )}
                 {walletWait && (
-                  <Alert tone="info" className="mt-4" title={`📱 Apne phone par ${info.provider} ka message dekhein aur MPIN / approve karein… (1 minute tak)`} />
+                  <Alert tone="info" className="mt-4" title={tr('📱 Apne phone par {{provider}} ka message dekhein aur MPIN / approve karein… (1 minute tak)', { provider: info.provider })} />
                 )}
                 {walletMsg && <Alert tone="info" className="mt-4" title={walletMsg} />}
                 <Button size="xl" fullWidth className="mt-6" onClick={pay} disabled={busy}
                   leftIcon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}>
-                  {rs(info.amount)} pay karein
+                  {tr('{{amount}} pay karein', { amount: rs(info.amount) })}
                 </Button>
-                <p className="mt-3 text-center text-xs text-slate-500">{info.methods.join(' · ')} — {info.provider} ke zariye</p>
+                <p className="mt-3 text-center text-xs text-slate-500">{tr('{{value}} — {{provider}} ke zariye', { value: info.methods.join(' · '), provider: info.provider })}</p>
                 {err && <p className="mt-3 text-center text-sm font-semibold text-rose-600">{err}</p>}
               </>
             )}
-            <p className="mt-6 flex items-center justify-center gap-1 text-[0.6875rem] text-slate-400"><Lock className="h-3 w-3" /> Card ki maloomat {info.provider} ke safhe par — Nafaa ya dukaan ke paas nahi aati</p>
+            <p className="mt-6 flex items-center justify-center gap-1 text-[0.6875rem] text-slate-400"><Lock className="h-3 w-3" /> {' '}{tr('Card ki maloomat {{provider}} ke safhe par — Nafaa ya dukaan ke paas nahi aati', { provider: info.provider })}</p>
           </>
         )}
         {form && (

@@ -8,6 +8,7 @@ import { dateKeyTz, subDaysTz } from '../../common/helpers/business-time.helper'
 import { AccountMapping, DayData, buildDailyJournal } from './daily-journal';
 import { ACCT_PROVIDERS, acctProvider } from './registry';
 import { AcctApiError, AcctConnection } from './types';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const key = (tenantId: string) => `accounting:${tenantId}`;
 const MANAGERS = ['OWNER', 'MANAGER', 'SUPER_ADMIN'];
@@ -120,7 +121,7 @@ export class AccountingService {
   start(user: AuthenticatedUser, provider: string, returnOrigin?: string) {
     this.assertManager(user);
     const p = this.providerOrThrow(provider);
-    if (!p.configured()) throw new BadRequestException(`${p.name} app ki keys server par nahi lagi — Nafaa admin se kahein`);
+    if (!p.configured()) throw new BadRequestException(apiMessage('{{pName}} app ki keys server par nahi lagi — Nafaa admin se kahein', { pName: p.name }));
     return { authUrl: p.authorizeUrl(this.signState(user.tenantId, p.code, this.webOrigin(returnOrigin)), this.redirectUri(p.code)) };
   }
 
@@ -244,7 +245,7 @@ export class AccountingService {
     try {
       const data = await this.dayData(tenantId, day, s.includeExpenses);
       const j = buildDailyJournal(data, s.mapping, { includeCogs: s.includeCogs });
-      if (j.missing.length) throw new BadRequestException(`Pehle accounts chunein: ${j.missing.join(', ')}`);
+      if (j.missing.length) throw new BadRequestException(apiMessage('Pehle accounts chunein: {{missing}}', { missing: j.missing.join(', ') }));
       if (!j.lines.length) {
         result = record({ status: 'SKIPPED', error: 'Is din koi sale / kharcha nahi', totals: j.totals });
       } else {

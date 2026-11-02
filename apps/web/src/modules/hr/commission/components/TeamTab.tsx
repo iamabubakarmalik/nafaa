@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { staffApi } from '@modules/organization/staff/api/staff.api';
 import type { CommissionPerson, CommissionRow } from '../api/commission.api';
 import { COMMISSION_KEY, apiError } from './meta';
+import { t } from '@core/i18n';
 
 export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }: {
   people: CommissionPerson[];
@@ -32,10 +33,10 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
     setLinking(p.userId);
     try {
       await staffApi.linkUser(p.userId!);
-      toast.success(`${p.name} ka HR record ban gaya — tankhwah Staff safhe par daalein`);
+      toast.success(t('{{name}} ka HR record ban gaya — tankhwah Staff safhe par daalein', { name: p.name }));
       qc.invalidateQueries({ queryKey: [COMMISSION_KEY] });
     } catch (e) {
-      toast.error(apiError(e, 'HR record nahi bana'));
+      toast.error(apiError(e, t('HR record nahi bana')));
     } finally {
       setLinking(null);
     }
@@ -46,8 +47,8 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Users className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">Abhi koi banda nahi</p>
-        <p className="mt-1 text-sm text-slate-500">Team me log daalein — har bande ka apna login ho, tabhi pata chalta hai kis ne becha.</p>
+        <p className="mt-3 font-semibold text-slate-900">{t('Abhi koi banda nahi')}</p>
+        <p className="mt-1 text-sm text-slate-500">{t('Team me log daalein — har bande ka apna login ho, tabhi pata chalta hai kis ne becha.')}</p>
       </div>
     );
   }
@@ -55,7 +56,7 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
   const on = people.filter((p) => p.enrolled).length;
   return (<>
     <p className="rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200/80">
-      <b className="text-slate-900">{on}/{people.length}</b> bandon par commission chaalu. Har bande ko alag se chaalu karna parta hai — band switch par commission nahi banti, aur POS par "sale kis ke naam" me sirf chaalu bande aate hain.
+      <b className="text-slate-900">{on}/{people.length}</b> {' '}{t('bandon par commission chaalu. Har bande ko alag se chaalu karna parta hai — band switch par commission nahi banti, aur POS par "sale kis ke naam" me sirf chaalu bande aate hain.')}
     </p>
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {people.map((p) => {
@@ -66,15 +67,15 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
               <Avatar name={p.name} url={p.staff?.avatarUrl ?? undefined} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-slate-900">{p.name}</p>
-                <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? p.role ?? 'Login'}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
+                <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? p.role ?? t('Login')}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
               </div>
             </div>
-            <p className="mt-2 text-[0.75rem] text-slate-600">{r ? `Is mahine ${r.bills} bill · ${formatPKR(r.sale)}` : 'Is mahine koi sale nahi'}</p>
-            {p.staff?.linkedByGuess && <p className="mt-1 text-[0.6875rem] text-amber-700">HR record email/phone se mila — chaalu karte hi pakka jur jayega</p>}
+            <p className="mt-2 text-[0.75rem] text-slate-600">{r ? t('Is mahine {{bills}} bill · {{sale}}', { bills: r.bills, sale: formatPKR(r.sale) }) : t('Is mahine koi sale nahi')}</p>
+            {p.staff?.linkedByGuess && <p className="mt-1 text-[0.6875rem] text-amber-700">{t('HR record email/phone se mila — chaalu karte hi pakka jur jayega')}</p>}
             <div className="mt-3 flex items-center justify-between gap-2">
-              <Switch size="sm" label={p.enrolled ? 'Chaalu' : 'Band'} checked={p.enrolled} disabled={busy} onChange={(e) => onToggle(p, e.target.checked)} />
+              <Switch size="sm" label={p.enrolled ? t('Chaalu') : t('Band')} checked={p.enrolled} disabled={busy} onChange={(e) => onToggle(p, e.target.checked)} />
               {!p.staff && (
-                <Button size="sm" variant="ghost" loading={linking === p.userId} leftIcon={<UserPlus className="h-4 w-4" />} onClick={() => makeStaff(p)}>HR record</Button>
+                <Button size="sm" variant="ghost" loading={linking === p.userId} leftIcon={<UserPlus className="h-4 w-4" />} onClick={() => makeStaff(p)}>{t('HR record')}</Button>
               )}
             </div>
           </div>
@@ -86,11 +87,11 @@ export function TeamTab({ people, withoutLogin, rows, loading, busy, onToggle }:
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500"><UserX className="h-5 w-5" /></span>
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold text-slate-900">{p.name}</p>
-              <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? 'Employee'}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
+              <p className="truncate text-[0.75rem] text-slate-500">{p.staff?.designation ?? t('Employee')}{p.staff?.staffNumber ? ` · ${p.staff.staffNumber}` : ''}</p>
             </div>
           </div>
-          <p className="mt-2 text-[0.75rem] text-slate-600">Is ka apna login nahi, is liye sale is ke naam darj nahi hoti. Team me isi email ya phone se login banayein.</p>
-          <Link to="/team" className="mt-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Link2 className="h-3.5 w-3.5" />Login banayein</Link>
+          <p className="mt-2 text-[0.75rem] text-slate-600">{t('Is ka apna login nahi, is liye sale is ke naam darj nahi hoti. Team me isi email ya phone se login banayein.')}</p>
+          <Link to="/team" className="mt-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Link2 className="h-3.5 w-3.5" />{t('Login banayein')}</Link>
         </div>
       ))}
     </div>

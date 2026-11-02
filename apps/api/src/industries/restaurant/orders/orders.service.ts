@@ -17,6 +17,7 @@ import {
 import { approveKitchenVoid } from './void-approval';
 import { menuBranch, offAtBranch } from '../menu-items/branch-availability';
 import { OPEN_ORDER, withTokens } from './order-tokens';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const MODE_LABEL: Record<string, string> = {
   DINE_IN: 'Dine-in', TAKEAWAY: 'Takeaway', DELIVERY: 'Delivery',
@@ -104,16 +105,18 @@ export class OrdersService {
     });
     if (products.length !== productIds.length) throw new NotFoundException('Menu ka ek ya zyada item nahi mila (band ya mita hua)');
     const raw = products.find((p) => p.isRawMaterial);
-    if (raw) throw new BadRequestException(`"${raw.name}" kachcha maal hai — menu par nahi bikta`);
+    if (raw) throw new BadRequestException(apiMessage('"{{rawName}}" kachcha maal hai — menu par nahi bikta', { rawName: raw.name }));
     const menuIds = products.map((p) => p.menuItem?.id).filter(Boolean) as string[];
     const offHere = await offAtBranch(this.prisma, user.tenantId, await menuBranch(this.prisma, user.tenantId, shopId), menuIds);
     const branchOff = products.find((p) => p.menuItem && offHere.has(p.menuItem.id));
     if (branchOff) {
       const until = offHere.get(branchOff.menuItem!.id);
-      throw new BadRequestException(`"${branchOff.name}" is branch me abhi khatam hai (86)${until ? ' — waqt poora hone par khud chalu ho jayegi' : ''}. Menu se chalu karein`);
+      throw new BadRequestException(until
+        ? apiMessage('"{{item}}" is branch me abhi khatam hai (86) — waqt poora hone par khud chalu ho jayegi. Menu se chalu karein', { item: branchOff.name })
+        : apiMessage('"{{item}}" is branch me abhi khatam hai (86). Menu se chalu karein', { item: branchOff.name }));
     }
     const off = products.find((p) => p.menuItem && !p.menuItem.isAvailable);
-    if (off) throw new BadRequestException(`"${off.name}" abhi khatam hai (86) — Menu se dobara chalu karein`);
+    if (off) throw new BadRequestException(apiMessage('"{{offName}}" abhi khatam hai (86) — Menu se dobara chalu karein', { offName: off.name }));
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     const variantIds = items.map((i) => i.variantId).filter(Boolean) as string[];
@@ -256,12 +259,12 @@ export class OrdersService {
     const table = await this.prisma.restaurantTableV2.findFirst({ where: { id: tableId, tenantId, isActive: true } });
     if (!table) throw new NotFoundException('Table nahi mili');
     if (table.shopId && shopId && table.shopId !== shopId) throw new BadRequestException('Ye table doosri branch ki hai');
-    if (table.status === 'OUT_OF_SERVICE') throw new BadRequestException(`Table ${table.tableNumber} band hai`);
+    if (table.status === 'OUT_OF_SERVICE') throw new BadRequestException(apiMessage('Table {{tableNumber}} band hai', { tableNumber: table.tableNumber }));
     const busy = await this.prisma.restaurantOrder.findFirst({
       where: { tenantId, tableId, status: { in: OPEN_ORDER }, saleId: null, ...(exceptOrderId && { id: { not: exceptOrderId } }) },
       select: { orderNumber: true },
     });
-    if (busy) throw new BadRequestException(`Table ${table.tableNumber} par pehle se order ${busy.orderNumber} chal raha hai — usi me item daalein`);
+    if (busy) throw new BadRequestException(apiMessage('Table {{tableNumber}} par pehle se order {{orderNumber}} chal raha hai — usi me item daalein', { tableNumber: table.tableNumber, orderNumber: busy.orderNumber }));
     return table;
   }
 
@@ -548,7 +551,7 @@ export class OrdersService {
     const sum = round2(splits.reduce((s, sp) => s + sp.amount, 0));
     const remaining = round2(o.total - o.paidAmount);
     if (Math.abs(sum - remaining) > 0.01) {
-      throw new BadRequestException(`Hisson ka jor (${sum}) baqi amount (${remaining}) ke barabar nahi`);
+      throw new BadRequestException(apiMessage('Hisson ka jor ({{sum}}) baqi amount ({{remaining}}) ke barabar nahi', { sum, remaining }));
     }
     await this.settle(user, scope, orderId, splits.map((s) => ({ amount: s.amount, paymentMethod: s.paymentMethod, paidBy: s.paidBy })), { managerPin: dto.managerPin });
     await this.prisma.restaurantOrder.update({ where: { id: orderId }, data: { isSplitBill: splits.length > 1 } });
@@ -566,7 +569,7 @@ export class OrdersService {
     const parts = dto.payments.map((p) => ({ ...p, amount: round2(p.amount) }));
     let over = round2(parts.reduce((s, p) => s + p.amount, 0) - remaining);
     if (over < -0.01 && !dto.closeOnCredit) {
-      throw new BadRequestException(`Rs ${Math.abs(over)} kam hain — poori payment lein ya baqi udhaar karein`);
+      throw new BadRequestException(apiMessage('Rs {{over}} kam hain — poori payment lein ya baqi udhaar karein', { over: Math.abs(over) }));
     }
     // Change comes off the cash, last part first; card or wallet never gives change.
     for (let i = parts.length - 1; i >= 0 && over > 0.005; i--) {
@@ -971,7 +974,7 @@ export class OrdersService {
     const subtotal = items.reduce((s, r) => s + r.total, 0);
     this.checkDiscount(charges, subtotal);
     const total = this.totals(charges, subtotal).total;
-    if (total < o.paidAmount - 0.01) throw new BadRequestException(`Rs ${o.paidAmount} pehle mil chuke — bill is se kam nahi ho sakta`);
+    if (total < o.paidAmount - 0.01) throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — bill is se kam nahi ho sakta', { paidAmount: o.paidAmount }));
     await this.prisma.restaurantOrder.update({
       where: { id },
       data: {

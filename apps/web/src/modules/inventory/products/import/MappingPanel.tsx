@@ -7,6 +7,7 @@ import { ArrowRight, Columns3 } from 'lucide-react';
 import type { ImportField } from './api';
 import { fieldsOf, type ImportMode, type Sheet } from './columns';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function MappingPanel({ sheet, mode, mapping, onChange }: {
   sheet: Sheet;
@@ -23,8 +24,8 @@ export function MappingPanel({ sheet, mode, mapping, onChange }: {
   return (
     <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Columns3 className="h-4 w-4 text-brand-600" />Columns milayein</h2>
-        <p className="text-[0.75rem] text-slate-500">{mapping.filter(Boolean).length} / {sheet.headers.length} column istemal honge · baqi chhor diye jayenge</p>
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Columns3 className="h-4 w-4 text-brand-600" />{t('Columns milayein')}</h2>
+        <p className="text-[0.75rem] text-slate-500">{t('{{count}} / {{count2}} column istemal honge · baqi chhor diye jayenge', { count: mapping.filter(Boolean).length, count2: sheet.headers.length })}</p>
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {sheet.headers.map((h, i) => {
@@ -34,15 +35,15 @@ export function MappingPanel({ sheet, mode, mapping, onChange }: {
           return (
             <div key={`${h}-${i}`} className={cn('rounded-2xl p-3 ring-1', field ? 'bg-brand-50/40 ring-brand-100' : 'bg-slate-50 ring-slate-200')}>
               <div className="flex items-center gap-2">
-                <p className="min-w-0 flex-1 truncate text-[0.8125rem] font-semibold text-slate-800" title={h}>{h || `Column ${i + 1}`}</p>
-                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                <select value={field} onChange={(e) => set(i, e.target.value as ImportField | '')} aria-label={`${h} kis cheez ka column hai`}
+                <p className="min-w-0 flex-1 truncate text-[0.8125rem] font-semibold text-slate-800" title={h}>{h || t('Column {{value}}', { value: i + 1 })}</p>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 rtl-flip" />
+                <select value={field} onChange={(e) => set(i, e.target.value as ImportField | '')} aria-label={t('{{h}} kis cheez ka column hai', { h })}
                   className="h-9 w-40 shrink-0 rounded-lg border border-slate-300 bg-white px-2 text-[0.8125rem] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
-                  <option value="">— Chhor dein —</option>
+                  <option value="">{t('— Chhor dein —')}</option>
                   {fields.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
                 </select>
               </div>
-              <p className="mt-1.5 truncate text-[0.75rem] text-slate-500">{samples.length ? samples.join(' · ') : 'Pehli lines khaali'}</p>
+              <p className="mt-1.5 truncate text-[0.75rem] text-slate-500">{samples.length ? samples.join(' · ') : t('Pehli lines khaali')}</p>
               {def && <p className="mt-0.5 text-[0.6875rem] text-brand-700">{def.hint}</p>}
             </div>
           );

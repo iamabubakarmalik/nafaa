@@ -6,6 +6,7 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import { StockPushService } from './stock-push.service';
 import { OnlineProductsService, PRODUCT_CHANNEL_TYPES } from './online-products.service';
 import { AlertKind, alertDue, itemKey, pickSureLinks, watchStep } from './catalog-watch';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /** How often a channel's list is read again, by its size (big lists cost many requests). */
 export function scanEveryMs(remoteItems: number) {
@@ -133,9 +134,19 @@ export class CatalogWatchService {
   private async alert(i: Integration, kind: AlertKind, info: { failed: number; staleNew: number; reason: string | null }) {
     const filter = kind === 'unlinked' ? 'unlinked' : 'errors';
     const text = {
-      sync: { title: `${i.displayName}: Stock/Price nahi ja raha`, message: `${info.failed} ${info.failed === 1 ? 'product' : 'products'} par sync ruka hua hai — Online products me dekhein` },
-      unlinked: { title: `${i.displayName}: naye products jure nahi`, message: `${info.staleNew} naye ${info.staleNew === 1 ? 'product' : 'products'} 24 ghante se Nafaa se jure nahi — Stock nahi ja raha` },
-      disconnected: { title: `${i.displayName} jura nahi`, message: info.reason ?? 'Channel ki permission khatam — dobara jorein' },
+      sync: {
+        title: apiMessage('{{channel}}: Stock/Price nahi ja raha', { channel: i.displayName }),
+        message: info.failed === 1
+          ? 'Ek product par sync ruka hua hai — Online products me dekhein'
+          : apiMessage('{{count}} products par sync ruka hua hai — Online products me dekhein', { count: info.failed }),
+      },
+      unlinked: {
+        title: apiMessage('{{channel}}: naye products jure nahi', { channel: i.displayName }),
+        message: info.staleNew === 1
+          ? 'Ek naya product 24 ghante se Nafaa se jura nahi — Stock nahi ja raha'
+          : apiMessage('{{count}} naye products 24 ghante se Nafaa se jure nahi — Stock nahi ja raha', { count: info.staleNew }),
+      },
+      disconnected: { title: apiMessage('{{channel}} jura nahi', { channel: i.displayName }), message: info.reason ?? 'Channel ki permission khatam — dobara jorein' },
     }[kind];
     await this.notifications.create({
       tenantId: i.tenantId,

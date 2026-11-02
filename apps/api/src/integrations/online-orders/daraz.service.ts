@@ -15,6 +15,7 @@ import { readWebsiteConfig } from './website-config';
 import { DARAZ_AUTHORIZE, DarazClient, DarazError, priceXml, readTokenResponse, stockXml, darazOptionTitle } from './daraz.client';
 import { PAGE_DELAY_MS, trackLinks } from './link-sync';
 import type { RemoteProduct } from './channel-catalog.service';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 /** Pehli dafa kitne din pichhe ke orders laane hain */
@@ -530,7 +531,7 @@ export class DarazService {
       }, 'POST');
       const found = collect(pack, 'package_id');
       const errs = collect(pack, 'item_err_code').filter((x: any) => String(x.item_err_code) !== '0');
-      if (errs.length && !found.length) throw new BadRequestException(`Daraz ne pack nahi kiya: ${errs[0].msg ?? errs[0].item_err_code}`);
+      if (errs.length && !found.length) throw new BadRequestException(apiMessage('Daraz ne pack nahi kiya: {{msg}}', { msg: errs[0].msg ?? errs[0].item_err_code }));
       packages = [...new Set(found.map((x: any) => String(x.package_id)))];
       tracking = found.find((x: any) => x.tracking_number)?.tracking_number ?? null;
       provider = found.find((x: any) => x.shipment_provider)?.shipment_provider ?? null;

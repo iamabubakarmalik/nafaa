@@ -14,6 +14,7 @@ import { schoolListsApi, type PosSchoolList } from '../api/school-lists.api';
 import { factLine, isbnOf, useBookFacts } from '../hooks/useBookFacts';
 import { KEYS } from '../lib/meta';
 import { SchoolSetPicker, lineRate } from './SchoolSetPicker';
+import { t } from '@core/i18n';
 
 const SET_PREFIX = 'school:';
 
@@ -31,7 +32,7 @@ function useBookCatalog() {
       badges: [
         ...(it.badges ?? []),
         ...(book?.isTextbook && book.grade ? [{ label: book.grade, tone: 'brand' as const, icon: GraduationCap }] : []),
-        ...(book?.isRentable ? [{ label: 'Kiraya', tone: 'info' as const, icon: Timer }] : []),
+        ...(book?.isRentable ? [{ label: t('Kiraya'), tone: 'info' as const, icon: Timer }] : []),
       ],
       meta: { ...(it.meta ?? {}), kind: f.kind, textbook: !!book?.isTextbook, isbn },
     };
@@ -88,19 +89,19 @@ function pickSet(bundle: PosBundle, _qty: number, api: PosEngineApi): 'continue'
 }
 
 const filters: PosFilter[] = [
-  { id: 'books', label: 'Kitaben', icon: BookOpen, match: (i) => i.meta?.kind === 'BOOK' },
-  { id: 'textbooks', label: 'School ki kitaben', icon: GraduationCap, match: (i) => !!i.meta?.textbook },
-  { id: 'stationery', label: 'Stationery', icon: Pencil, match: (i) => i.meta?.kind === 'STATIONERY' },
-  { id: 'art', label: 'Art', icon: Palette, match: (i) => i.meta?.kind === 'ART' },
+  { id: 'books', label: t('Kitaben'), icon: BookOpen, match: (i) => i.meta?.kind === 'BOOK' },
+  { id: 'textbooks', label: t('School ki kitaben'), icon: GraduationCap, match: (i) => !!i.meta?.textbook },
+  { id: 'stationery', label: t('Stationery'), icon: Pencil, match: (i) => i.meta?.kind === 'STATIONERY' },
+  { id: 'art', label: t('Art'), icon: Palette, match: (i) => i.meta?.kind === 'ART' },
 ];
 
 export const bookstorePos: PosIndustryConfig = {
   id: 'bookstore',
-  label: 'Bookstore',
+  label: t('Bookstore'),
   useCatalog: useBookCatalog,
   useBundles: useSchoolSets,
   beforeAddBundle: pickSet,
   quickKeys: true,
   filters,
-  searchHint: 'Kitab, author, publisher, ISBN ya class',
+  searchHint: t('Kitab, author, publisher, ISBN ya class'),
 };

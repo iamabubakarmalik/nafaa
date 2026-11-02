@@ -15,6 +15,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -92,7 +93,9 @@ export async function requireFree(db: Db, key: HoldKey, quantity: number, except
   const { stock, reserved } = await syncReserved(db, key, except);
   const free = stock - reserved;
   if (free < quantity) {
-    throw new BadRequestException(`Is branch me ${Math.max(free, 0)} hi khaali hain${reserved ? ` (${reserved} pehle se hold ya qist par)` : ''}`);
+    throw new BadRequestException(reserved
+      ? apiMessage('Is branch me {{free}} hi khaali hain ({{reserved}} pehle se hold ya qist par)', { free: Math.max(free, 0), reserved })
+      : apiMessage('Is branch me {{free}} hi khaali hain', { free: Math.max(free, 0) }));
   }
 }
 

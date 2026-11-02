@@ -8,6 +8,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { BookingRecords } from '../api/bookings.api';
 import { STATUS, itemsSummary } from './meta';
+import { t as tr } from '@core/i18n';
 
 const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' }) : '—');
 
@@ -16,13 +17,13 @@ export function bookingsDoc(list: BookingRecords, title: string, period: string,
   return {
     title,
     subtitle: period,
-    meta: [['Bookings', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Kul', formatPKR(t.value)], ['Baqi', formatPKR(t.balance)]],
+    meta: [[tr('Bookings'), String(list.total)], ...(filter ? [[tr('Filter'), filter] as [string, string]] : []), [tr('Kul'), formatPKR(t.value)], [tr('Baqi'), formatPKR(t.balance)]],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'No.' }, { label: 'Customer' }, { label: 'Phone', wideOnly: true }, { label: 'Cheezen', wideOnly: true },
-          { label: 'Pickup' }, { label: 'Haal', wideOnly: true }, { label: 'Kul', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' },
+          { label: tr('No.') }, { label: tr('Customer') }, { label: tr('Phone'), wideOnly: true }, { label: tr('Cheezen'), wideOnly: true },
+          { label: tr('Pickup') }, { label: tr('Haal'), wideOnly: true }, { label: tr('Kul'), align: 'right', wideOnly: true }, { label: tr('Baqi'), align: 'right' },
         ],
         rows: list.items.map((b) => [
           b.bookingNumber, b.customer?.name ?? '', b.customer?.phone ?? '', itemsSummary(b, 3), day(b.expectedPickupAt),
@@ -31,14 +32,14 @@ export function bookingsDoc(list: BookingRecords, title: string, period: string,
       },
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          { label: 'Kul amount', value: formatPKR(t.value) },
-          { label: 'Mil chuka', value: formatPKR(t.paid) },
-          { label: 'Baqi', value: formatPKR(t.balance), strong: true },
+          { label: tr('Kul amount'), value: formatPKR(t.value) },
+          { label: tr('Mil chuka'), value: formatPKR(t.paid) },
+          { label: tr('Baqi'), value: formatPKR(t.balance), strong: true },
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehli ${list.items.length} bookings dikhayi gayi hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? tr('Pehli {{count}} bookings dikhayi gayi hain (kul {{total}})', { count: list.items.length, total: list.total }) : undefined,
   };
 }

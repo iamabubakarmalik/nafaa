@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import * as crypto from 'crypto';
 import { mappingKey } from '../online-orders/mapping-key';
+import { apiMessage } from '../../common/i18n/api-message';
 
 type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
 
@@ -715,10 +716,10 @@ export class IntegrationService {
       if (!credentials.apiKey) {
         return {
           success: false,
-          message: `${integration.type.replace('_', ' ')} ke liye API Key zaroori hai.`,
+          ...apiMessage('{{integrationType}} ke liye API Key zaroori hai.', { integrationType: integration.type.replace('_', ' ') }),
         };
       }
-      return { success: true, message: `${integration.displayName} credentials configured. Actual booking pe verify hoga.` };
+      return { success: true, ...apiMessage('{{displayName}} credentials configured. Actual booking pe verify hoga.', { displayName: integration.displayName }) };
     }
 
     return { success: true, message: 'Integration configured. Ready to use.' };
@@ -893,7 +894,7 @@ export class IntegrationService {
 
       return {
         success: true,
-        message: `${imported} naye products, ${updated} update hue, ${failed} fail`,
+        ...apiMessage('{{imported}} naye products, {{updated}} update hue, {{failed}} fail', { imported, updated, failed }),
         imported, updated, failed,
       };
     } catch (e: any) {
@@ -1212,7 +1213,7 @@ export class IntegrationService {
       return this.pushProductToFoodpanda(integration, product);
     }
 
-    return { success: false, message: `Push not supported for ${integration.type}` };
+    return { success: false, ...apiMessage('Push not supported for {{integrationType}}', { integrationType: integration.type }) };
   }
 
   private async pushProductToDaraz(integration: any, product: any) {

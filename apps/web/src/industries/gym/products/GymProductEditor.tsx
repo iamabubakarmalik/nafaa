@@ -9,23 +9,24 @@ import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEdi
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { VARIANT_PRESETS } from '@modules/inventory/products/editor/units';
 import type { CoreOptions, EditorConfig } from '@modules/inventory/products/editor/types';
+import { t } from '@core/i18n';
 
 const UNITS = [
-  { value: 'pcs', label: 'Adad (pcs)' }, { value: 'bottle', label: 'Botal' }, { value: 'kg', label: 'Kilo' },
-  { value: 'day-pass', label: 'Day pass' }, { value: 'visit', label: 'Ek visit' }, { value: 'month', label: 'Mahina' },
-  { value: 'session', label: 'Session' }, { value: 'class', label: 'Class' }, { value: 'hour', label: 'Ghanta' },
+  { value: 'pcs', label: t('Adad (pcs)') }, { value: 'bottle', label: t('Botal') }, { value: 'kg', label: t('Kilo') },
+  { value: 'day-pass', label: t('Day pass') }, { value: 'visit', label: t('Ek visit') }, { value: 'month', label: t('Mahina') },
+  { value: 'session', label: t('Session') }, { value: 'class', label: t('Class') }, { value: 'hour', label: t('Ghanta') },
 ];
 
 const core: CoreOptions = { units: UNITS, skuPrefix: 'GYM', packs: true, variants: { presets: VARIANT_PRESETS }, batches: true };
 
 const config: EditorConfig<Record<string, never>> = {
-  label: 'Gym',
+  label: t('Gym'),
   draftKey: 'nafaa.product-editor.gym',
   paths: { list: '/products', detail: (id) => `/products/${id}`, create: '/products/new' },
   core,
   extra: { initial: {} },
   steps: [
-    basicStep(core, { namePlaceholder: 'Whey protein 2 lb, Day pass, Locker mahina', categorySuggestions: ['Supplements', 'Drinks', 'Gear', 'Services'] }),
+    basicStep(core, { namePlaceholder: t('Whey protein 2 lb, Day pass, Locker mahina'), categorySuggestions: ['Supplements', 'Drinks', 'Gear', 'Services'] }),
     priceStep(core),
     stockStep(core),
   ],

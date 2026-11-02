@@ -4,6 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { PanelsService } from '../panels/panels.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const GENDERS = Object.values(ClinicGender);
 const BLOOD = Object.values(ClinicBloodGroup);
@@ -50,7 +51,7 @@ function readPatient(dto: any, partial: boolean): Prisma.ClinicPatientProfileUnc
   for (const k of NUM_FIELDS) {
     if (dto[k] === undefined) continue;
     const n = dto[k] === null || dto[k] === '' ? null : Number(dto[k]);
-    if (n !== null && (!Number.isFinite(n) || n < 0)) throw new BadRequestException(`${k} sahi likhein`);
+    if (n !== null && (!Number.isFinite(n) || n < 0)) throw new BadRequestException(apiMessage('{{k}} sahi likhein', { k }));
     out[k] = n;
   }
   for (const k of LIST_FIELDS) {
@@ -109,7 +110,7 @@ export class PatientsService {
         where: { tenantId: user.tenantId, isActive: true, OR: [...(data.cnic ? [{ cnic: data.cnic as string }] : []), ...(data.phonePrimary ? [{ phonePrimary: data.phonePrimary as string, fullName: { equals: data.fullName as string, mode: 'insensitive' as const } }] : [])] },
         select: { mrn: true, fullName: true },
       });
-      if (dup && !dto.allowDuplicate) throw new ConflictException(`${dup.fullName} pehle se registered hai (${dup.mrn})`);
+      if (dup && !dto.allowDuplicate) throw new ConflictException(apiMessage('{{fullName}} pehle se registered hai ({{mrn}})', { fullName: dup.fullName, mrn: dup.mrn }));
     }
 
     let customerId: string | undefined = dto.customerId;
@@ -117,7 +118,7 @@ export class PatientsService {
       const c = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
       if (!c) throw new NotFoundException('Customer nahi mila');
       const taken = await this.prisma.clinicPatientProfile.findUnique({ where: { customerId }, select: { mrn: true } });
-      if (taken) throw new ConflictException(`Is customer ka record pehle se hai (${taken.mrn})`);
+      if (taken) throw new ConflictException(apiMessage('Is customer ka record pehle se hai ({{mrn}})', { mrn: taken.mrn }));
     } else {
       const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope).catch(() => null);
       const defaults = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { defaultCreditLimit: true } });

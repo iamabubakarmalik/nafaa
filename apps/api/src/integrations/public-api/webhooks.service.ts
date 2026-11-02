@@ -9,6 +9,7 @@ import { dateKeyTz } from '../../common/helpers/business-time.helper';
 import { assertSafeWebhookUrl, isPrivateIp } from '../online-orders/website-config';
 import { EVENT_TYPES, WebhookEvent, WebhookEventType, serialize } from './events';
 import { K, readJson, writeJson } from './store';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /* ═════════════════════════════════════════════════════════════
    WEBHOOKS — Nafaa me kuch hua (sale, naya customer, order deliver,
@@ -83,7 +84,7 @@ export class WebhooksService {
     const arr = Array.isArray(events) ? events.map(String) : [];
     if (!arr.length || arr.includes('*')) return ['*'];
     const bad = arr.filter((e) => !EVENT_TYPES.includes(e));
-    if (bad.length) throw new BadRequestException(`Ye event nahi hote: ${bad.join(', ')}`);
+    if (bad.length) throw new BadRequestException(apiMessage('Ye event nahi hote: {{bad}}', { bad: bad.join(', ') }));
     return [...new Set(arr)];
   }
 
@@ -93,7 +94,7 @@ export class WebhooksService {
 
   async create(tenantId: string, body: { url?: string; events?: string[]; description?: string }, source: Endpoint['source'] = 'dashboard', key?: { keyId: string; shopId: string | null }) {
     const list = await this.endpoints(tenantId);
-    if (list.length >= MAX_ENDPOINTS) throw new BadRequestException(`Zyada se zyada ${MAX_ENDPOINTS} webhooks`);
+    if (list.length >= MAX_ENDPOINTS) throw new BadRequestException(apiMessage('Zyada se zyada {{mAXENDPOINTS}} webhooks', { mAXENDPOINTS: MAX_ENDPOINTS }));
     const secret = `whsec_${crypto.randomBytes(24).toString('base64url')}`;
     const ep: Endpoint = {
       id: `wh_${crypto.randomBytes(8).toString('hex')}`,

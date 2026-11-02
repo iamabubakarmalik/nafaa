@@ -26,6 +26,7 @@ import {
 import { DistributionGate } from '../components/DistributionGate';
 import { Panel, Pill } from '../components/parts';
 import { METHOD_LABEL, METHODS, OUTCOME, packText, partyName, partySub, RETURN_REASONS, rs, trim } from '../lib/meta';
+import { t } from '@core/i18n';
 
 interface LineDraft { ret: string; freeRet: string; damaged: boolean }
 interface Draft { outcome: DeliveryOutcome; cash: string; method: MoneyMethod; reason: string; lines: Record<string, LineDraft>; open: boolean }
@@ -132,13 +133,13 @@ function Settle() {
     mutationFn: async (): Promise<SettleResult> => {
       for (const o of pending) {
         const d = drafts[o.id];
-        if (d.outcome === 'PARTIAL' && !o.items.some((i) => num(d.lines[i.id]?.ret ?? '') > 0 || num(d.lines[i.id]?.freeRet ?? '') > 0)) throw new Error(`${partyName(o.customer)}: wapas aane wala maal likhein`);
-        if (num(d.cash) > dueOf(o, d) + 0.5) throw new Error(`${partyName(o.customer)}: cash invoice se zyada hai`);
+        if (d.outcome === 'PARTIAL' && !o.items.some((i) => num(d.lines[i.id]?.ret ?? '') > 0 || num(d.lines[i.id]?.freeRet ?? '') > 0)) throw new Error(t('{{customer}}: wapas aane wala maal likhein', { customer: partyName(o.customer) }));
+        if (num(d.cash) > dueOf(o, d) + 0.5) throw new Error(t('{{customer}}: cash invoice se zyada hai', { customer: partyName(o.customer) }));
       }
       let r = await distributionApi.settle(id, body());
       const pinFails = r.results.filter((x) => !x.ok && /PIN/i.test(x.error ?? ''));
       if (pinFails.length) {
-        const pin = await askManagerPin(`${pinFails.length} invoice ka maal wapas — Return`, 'refund');
+        const pin = await askManagerPin(t('{{count}} invoice ka maal wapas — Return', { count: pinFails.length }), 'refund');
         if (pin) {
           const again = await distributionApi.settle(id, body(pin, new Set(pinFails.map((x) => x.orderId))));
           const byId = new Map(again.results.map((x) => [x.orderId, x]));
@@ -150,17 +151,17 @@ function Settle() {
     onSuccess: (r) => {
       const bad = r.results.filter((x) => !x.ok);
       const badRec = r.recoveries.filter((x) => !x.ok);
-      setErrors(Object.fromEntries(bad.map((x) => [x.orderId, x.error ?? 'Settle nahi hua'])));
+      setErrors(Object.fromEntries(bad.map((x) => [x.orderId, x.error ?? t('Settle nahi hua')])));
       qc.invalidateQueries({ queryKey: [DIST_KEY] });
       if (!bad.length) setRecoveries([]);
-      badRec.forEach((x) => toast.error(x.error ?? 'Recovery save nahi hui'));
+      badRec.forEach((x) => toast.error(x.error ?? t('Recovery save nahi hui')));
       if (r.sheet.status === 'SETTLED') {
-        toast.success(`${r.sheet.number} settle ho gayi${r.sheet.shortAmount ? ` · ${r.sheet.shortAmount > 0 ? 'kam' : 'zyada'} ${rs(Math.abs(r.sheet.shortAmount))}` : ''}`);
+        toast.success(t('{{number}} settle ho gayi{{value}}', { number: r.sheet.number, value: r.sheet.shortAmount ? ` · ${r.sheet.shortAmount > 0 ? 'kam' : 'zyada'} ${rs(Math.abs(r.sheet.shortAmount))}` : '' }));
         navigate(`/distribution/load-sheets/${id}`);
-      } else if (bad.length) toast.error(`${bad.length} invoice settle nahi hui — neeche dekhein`);
-      else toast.success(handed == null ? 'Invoices settle — ab jama hua cash likh kar Finish karein' : 'Save ho gaya');
+      } else if (bad.length) toast.error(t('{{count}} invoice settle nahi hui — neeche dekhein', { count: bad.length }));
+      else toast.success(handed == null ? t('Invoices settle — ab jama hua cash likh kar Finish karein') : t('Save ho gaya'));
     },
-    onError: (e) => toast.error(distError(e, 'Settle nahi hua')),
+    onError: (e) => toast.error(distError(e, t('Settle nahi hua'))),
   });
 
   if (!p) return <PageShell><Skeleton className="h-40 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
@@ -168,8 +169,8 @@ function Settle() {
   if (sheet.status === 'SETTLED' || sheet.status === 'CANCELLED') {
     return (
       <PageShell>
-        <PageHero back={`/distribution/load-sheets/${id}`} backLabel={sheet.number} title={`${sheet.number} settle`} />
-        <Alert tone="info">Ye load sheet {sheet.status === 'SETTLED' ? 'settle ho chuki hai' : 'cancel hai'}. <Link to={`/distribution/load-sheets/${id}`} className="font-semibold underline">Sheet dekhein</Link></Alert>
+        <PageHero back={`/distribution/load-sheets/${id}`} backLabel={sheet.number} title={t('{{number}} settle', { number: sheet.number })} />
+        <Alert tone="info">{t('Ye load sheet {{value}}.', { value: sheet.status === 'SETTLED' ? t('settle ho chuki hai') : t('cancel hai') })}{' '} <Link to={`/distribution/load-sheets/${id}`} className="font-semibold underline">{t('Sheet dekhein')}</Link></Alert>
       </PageShell>
     );
   }
@@ -181,14 +182,14 @@ function Settle() {
     <PageShell>
       <PageHero
         back={`/distribution/load-sheets/${id}`} backLabel={sheet.number}
-        title={`${sheet.number} settle`}
-        chip={<><Truck /> {sheet.routeName ?? 'Mili juli'}</>}
-        meta={[sheet.deliveryUserName, sheet.driverName, sheet.vehicleNo].filter(Boolean).join(' · ') || 'Gaari wapas aayi — har invoice ka hisaab'}
-        actions={<Link to={`/distribution/load-sheets/${id}`} className={heroButton}>Sheet</Link>}
+        title={t('{{number}} settle', { number: sheet.number })}
+        chip={<><Truck /> {sheet.routeName ?? t('Mili juli')}</>}
+        meta={[sheet.deliveryUserName, sheet.driverName, sheet.vehicleNo].filter(Boolean).join(' · ') || t('Gaari wapas aayi — har invoice ka hisaab')}
+        actions={<Link to={`/distribution/load-sheets/${id}`} className={heroButton}>{t('Sheet')}</Link>}
         stats={[
-          { label: 'Invoices', value: `${settledCount}/${p.orders.length}`, hint: 'settle hui' },
-          { label: 'Value', value: rs(sheet.totalValue) },
-          { label: 'Expected cash', value: rs(expected) },
+          { label: t('Invoices'), value: `${settledCount}/${p.orders.length}`, hint: t('settle hui') },
+          { label: t('Value'), value: rs(sheet.totalValue) },
+          { label: t('Expected cash'), value: rs(expected) },
         ]}
       />
 
@@ -204,7 +205,7 @@ function Settle() {
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-success-600" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[0.875rem] font-semibold text-slate-900">{partyName(o.customer)}</span>
-                    <span className="block text-[0.75rem] text-slate-500">{o.saleNumber} · cash {rs(o.cashCollected)}{o.returnsValue ? ` · wapas ${rs(o.returnsValue)}` : ''}</span>
+                    <span className="block text-[0.75rem] text-slate-500">{t('{{saleNumber}} · cash {{cashCollected}}{{value}}', { saleNumber: o.saleNumber, cashCollected: rs(o.cashCollected), value: o.returnsValue ? t(' · wapas {{returnsValue}}', { returnsValue: rs(o.returnsValue) }) : '' })}</span>
                   </span>
                   {o.deliveryStatus && <Pill tone={OUTCOME[o.deliveryStatus].tone}>{OUTCOME[o.deliveryStatus].label}</Pill>}
                 </section>
@@ -220,9 +221,9 @@ function Settle() {
                     <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{partyName(o.customer)}</span>
                     <span className="block truncate text-[0.75rem] text-slate-500">{o.saleNumber} · {o.orderNumber}{partySub(o.customer) ? ` · ${partySub(o.customer)}` : ''}</span>
                   </span>
-                  <span className="text-right">
+                  <span className="text-end">
                     <span className="block text-[0.9375rem] font-bold tabular-nums text-slate-900">{rs(o.total)}</span>
-                    {ret > 0 && <span className="block text-[0.75rem] text-rose-600">wapas −{rs(ret)}</span>}
+                    {ret > 0 && <span className="block text-[0.75rem] text-rose-600">{t('wapas −{{ret}}', { ret: rs(ret) })}</span>}
                   </span>
                 </div>
                 {errors[o.id] && <div className="px-4 pt-2"><Alert tone="danger" icon={<AlertTriangle className="h-4 w-4" />}>{errors[o.id]}</Alert></div>}
@@ -230,22 +231,22 @@ function Settle() {
                   <div className={cn('mx-4 mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl px-3 py-1.5 text-[0.75rem]', matchesReport(o, d) ? 'bg-sky-50 text-sky-800' : 'bg-amber-50 text-amber-800')}>
                     <Smartphone className="h-3.5 w-3.5 shrink-0" />
                     <span className="min-w-0 flex-1">
-                      <b>Phone report:</b> {OUTCOME[o.report.outcome].label}
+                      <b>{t('Phone report:')}</b> {OUTCOME[o.report.outcome].label}
                       {o.report.cashCollected > 0 && <> · {METHOD_LABEL[o.report.method]} {rs(o.report.cashCollected)}</>}
                       {o.report.returnReason && <> · {o.report.returnReason}</>}
                       {o.report.note && <> · “{o.report.note}”</>}
                     </span>
-                    {matchesReport(o, d) ? <span className="font-semibold">Report ke mutabiq</span> : (
+                    {matchesReport(o, d) ? <span className="font-semibold">{t('Report ke mutabiq')}</span> : (
                       <button type="button" onClick={() => set(o.id, draftFor(o))} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline">
-                        <RotateCcw className="h-3 w-3" /> Aap ne badla — report wala lagayein
+                        <RotateCcw className="h-3 w-3" /> {' '}{t('Aap ne badla — report wala lagayein')}
                       </button>
                     )}
                   </div>
                 ) : p.deliveryReport ? (
-                  <p className="mx-4 mt-2.5 rounded-xl bg-slate-50 px-3 py-1.5 text-[0.75rem] text-slate-500">Is invoice ki phone report nahi aayi — khud bharein</p>
+                  <p className="mx-4 mt-2.5 rounded-xl bg-slate-50 px-3 py-1.5 text-[0.75rem] text-slate-500">{t('Is invoice ki phone report nahi aayi — khud bharein')}</p>
                 ) : null}
                 <div className="flex flex-wrap items-end gap-3 px-4 py-3">
-                  <div role="radiogroup" aria-label="Delivery" className="inline-flex rounded-xl bg-slate-100 p-1">
+                  <div role="radiogroup" aria-label={t('Delivery')} className="inline-flex rounded-xl bg-slate-100 p-1">
                     {(['DELIVERED', 'PARTIAL', 'RETURNED'] as DeliveryOutcome[]).map((k) => (
                       <button key={k} type="button" role="radio" aria-checked={d.outcome === k}
                         onClick={() => set(o.id, { outcome: k, open: k === 'PARTIAL', ...(k === 'RETURNED' ? { cash: '' } : {}) })}
@@ -259,40 +260,40 @@ function Settle() {
                   {d.outcome !== 'RETURNED' && (
                     <div className="flex items-end gap-2">
                       <label className="block">
-                        <span className="mb-1 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Cash mila</span>
+                        <span className="mb-1 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{t('Cash mila')}</span>
                         <span className="flex">
                           <input inputMode="decimal" value={d.cash} placeholder="0" onChange={(e) => set(o.id, { cash: e.target.value.replace(/[^\d.]/g, '') })}
-                            className="h-9 w-28 rounded-l-lg border border-slate-200 bg-white px-2 text-right text-[0.875rem] font-semibold tabular-nums outline-none focus:border-brand-500" />
-                          <button type="button" onClick={() => set(o.id, { cash: String(due) })} title="Poora amount"
-                            className="h-9 rounded-r-lg border border-l-0 border-slate-200 bg-slate-50 px-2 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-100">Poora</button>
+                            className="h-9 w-28 rounded-s-lg border border-slate-200 bg-white px-2 text-end text-[0.875rem] font-semibold tabular-nums outline-none focus:border-brand-500" />
+                          <button type="button" onClick={() => set(o.id, { cash: String(due) })} title={t('Poora amount')}
+                            className="h-9 rounded-e-lg border border-s-0 border-slate-200 bg-slate-50 px-2 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-100">{t('Poora')}</button>
                         </span>
                       </label>
-                      <select aria-label="Tareeqa" value={d.method} onChange={(e) => set(o.id, { method: e.target.value as MoneyMethod })}
+                      <select aria-label={t('Tareeqa')} value={d.method} onChange={(e) => set(o.id, { method: e.target.value as MoneyMethod })}
                         className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500">
                         {METHODS.map((m) => <option key={m} value={m}>{METHOD_LABEL[m]}</option>)}
                       </select>
                     </div>
                   )}
                   {d.outcome !== 'DELIVERED' && (
-                    <select aria-label="Wapsi ki wajah" value={d.reason} onChange={(e) => set(o.id, { reason: e.target.value })}
+                    <select aria-label={t('Wapsi ki wajah')} value={d.reason} onChange={(e) => set(o.id, { reason: e.target.value })}
                       className="h-9 min-w-[10rem] flex-1 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500 sm:flex-none">
-                      <option value="">Wajah chunein</option>
-                      {d.reason && !RETURN_REASONS.includes(d.reason) && <option value={d.reason}>{d.reason}</option>}
-                      {RETURN_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      <option value="">{t('Wajah chunein')}</option>
+                      {d.reason && !RETURN_REASONS.includes(d.reason) && <option value={d.reason}>{t(d.reason)}</option>}
+                      {RETURN_REASONS.map((r) => <option key={r} value={r}>{t(r)}</option>)}
                     </select>
                   )}
-                  <span className="ml-auto text-right text-[0.75rem] text-slate-500">Khata me jayega<br /><b className="text-[0.875rem] text-slate-900">{rs(Math.max(0, due - (d.outcome === 'RETURNED' ? 0 : num(d.cash))))}</b></span>
+                  <span className="ms-auto text-end text-[0.75rem] text-slate-500">{t('Khata me jayega')}<br /><b className="text-[0.875rem] text-slate-900">{rs(Math.max(0, due - (d.outcome === 'RETURNED' ? 0 : num(d.cash))))}</b></span>
                 </div>
                 {d.outcome === 'PARTIAL' && (
                   <div className="border-t border-slate-100">
                     <button type="button" onClick={() => set(o.id, { open: !d.open })} className="flex w-full items-center gap-1 px-4 py-2 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-50">
-                      {d.open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />} Kya wapas aaya (pcs me)
+                      {d.open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />} {' '}{t('Kya wapas aaya (pcs me)')}
                     </button>
                     {d.open && (
                       <div className="overflow-x-auto px-4 pb-3">
                         <table className="w-full min-w-[27rem] text-[0.8125rem]">
-                          <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                            <tr><th className="py-1.5">Product</th><th className="py-1.5 text-right">Gaya</th><th className="w-20 py-1.5 text-right">Wapas pcs</th><th className="w-20 py-1.5 text-right">Free wapas</th><th className="w-14 py-1.5 text-center">Kharab</th></tr>
+                          <thead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                            <tr><th className="py-1.5">{t('Product')}</th><th className="py-1.5 text-end">{t('Gaya')}</th><th className="w-20 py-1.5 text-end">{t('Wapas pcs')}</th><th className="w-20 py-1.5 text-end">{t('Free wapas')}</th><th className="w-14 py-1.5 text-center">{t('Kharab')}</th></tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {o.items.map((i) => {
@@ -300,20 +301,20 @@ function Settle() {
                               const over = num(l.ret) > i.baseQty;
                               return (
                                 <tr key={i.id}>
-                                  <td className="py-1.5 pr-2"><div className="font-semibold text-slate-900">{i.productName}</div>{num(l.ret) > 0 && <div className="text-[0.6875rem] text-rose-600">−{rs(Math.min(num(l.ret), i.baseQty) * i.netPerBase)}</div>}</td>
-                                  <td className="py-1.5 text-right tabular-nums text-slate-600">{packText(i.baseQty, i.conversionRate, i.unitName, i.baseUnit)}
-                                    {i.freeBaseQty > 0 && <div className="flex items-center justify-end gap-0.5 text-[0.6875rem] text-violet-700"><Gift className="h-3 w-3" />+{trim(i.freeBaseQty)} free</div>}</td>
-                                  <td className="py-1.5 pl-2"><input inputMode="decimal" value={l.ret} placeholder="0" aria-label={`${i.productName} wapas`} onChange={(e) => setLine(o.id, i.id, { ret: e.target.value.replace(/[^\d.]/g, '') })}
-                                    className={cn('h-8 w-full rounded-lg border bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500', over ? 'border-rose-400' : 'border-slate-200')} /></td>
-                                  <td className="py-1.5 pl-2">{i.freeBaseQty > 0 ? <input inputMode="decimal" value={l.freeRet} placeholder="0" aria-label={`${i.productName} free wapas`} onChange={(e) => setLine(o.id, i.id, { freeRet: e.target.value.replace(/[^\d.]/g, '') })}
-                                    className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500" /> : <span className="block text-right text-slate-300">—</span>}</td>
-                                  <td className="py-1.5 text-center"><Checkbox aria-label={`${i.productName} kharab`} checked={l.damaged} onChange={(e) => setLine(o.id, i.id, { damaged: e.target.checked })} /></td>
+                                  <td className="py-1.5 pe-2"><div className="font-semibold text-slate-900">{i.productName}</div>{num(l.ret) > 0 && <div className="text-[0.6875rem] text-rose-600">−{rs(Math.min(num(l.ret), i.baseQty) * i.netPerBase)}</div>}</td>
+                                  <td className="py-1.5 text-end tabular-nums text-slate-600">{packText(i.baseQty, i.conversionRate, i.unitName, i.baseUnit)}
+                                    {i.freeBaseQty > 0 && <div className="flex items-center justify-end gap-0.5 text-[0.6875rem] text-violet-700"><Gift className="h-3 w-3" />{t('+{{freeBaseQty}} free', { freeBaseQty: trim(i.freeBaseQty) })}</div>}</td>
+                                  <td className="py-1.5 ps-2"><input inputMode="decimal" value={l.ret} placeholder="0" aria-label={t('{{productName}} wapas', { productName: i.productName })} onChange={(e) => setLine(o.id, i.id, { ret: e.target.value.replace(/[^\d.]/g, '') })}
+                                    className={cn('h-8 w-full rounded-lg border bg-white px-2 text-end tabular-nums outline-none focus:border-brand-500', over ? 'border-rose-400' : 'border-slate-200')} /></td>
+                                  <td className="py-1.5 ps-2">{i.freeBaseQty > 0 ? <input inputMode="decimal" value={l.freeRet} placeholder="0" aria-label={t('{{productName}} free wapas', { productName: i.productName })} onChange={(e) => setLine(o.id, i.id, { freeRet: e.target.value.replace(/[^\d.]/g, '') })}
+                                    className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-end tabular-nums outline-none focus:border-brand-500" /> : <span className="block text-end text-slate-300">—</span>}</td>
+                                  <td className="py-1.5 text-center"><Checkbox aria-label={t('{{productName}} kharab', { productName: i.productName })} checked={l.damaged} onChange={(e) => setLine(o.id, i.id, { damaged: e.target.checked })} /></td>
                                 </tr>
                               );
                             })}
                           </tbody>
                         </table>
-                        <p className="mt-1.5 text-[0.6875rem] text-slate-500">Kharab maal stock me wapas nahi jata. Baqi wapsi godown ke stock me jati hai.</p>
+                        <p className="mt-1.5 text-[0.6875rem] text-slate-500">{t('Kharab maal stock me wapas nahi jata. Baqi wapsi godown ke stock me jati hai.')}</p>
                       </div>
                     )}
                   </div>
@@ -324,26 +325,26 @@ function Settle() {
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
-          <Panel title={<span className="inline-flex items-center gap-1.5"><HandCoins className="h-4 w-4 text-success-600" />Recovery (purana udhaar)</span>} sub="Trip me purane bills ka paisa mila ho to"
-            right={<Button size="sm" variant="ghost" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => setRecoveries((r) => [...r, { key: Math.random().toString(36).slice(2), customerId: customers[0]?.[0] ?? '', amount: '', method: 'CASH' }])}>Jorein</Button>}>
+          <Panel title={<span className="inline-flex items-center gap-1.5"><HandCoins className="h-4 w-4 text-success-600" />{t('Recovery (purana udhaar)')}</span>} sub={t('Trip me purane bills ka paisa mila ho to')}
+            right={<Button size="sm" variant="ghost" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => setRecoveries((r) => [...r, { key: Math.random().toString(36).slice(2), customerId: customers[0]?.[0] ?? '', amount: '', method: 'CASH' }])}>{t('Jorein')}</Button>}>
             {pendingCollections.length > 0 && (
-              <p className="mb-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800">{pendingCollections.length} recovery phone se aayi, verify baqi ({rs(pendingCollections.reduce((a, c) => a + c.amount, 0))})</p>
+              <p className="mb-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800">{t('{{count}} recovery phone se aayi, verify baqi ({{rs}})', { count: pendingCollections.length, rs: rs(pendingCollections.reduce((a, c) => a + c.amount, 0)) })}</p>
             )}
-            {!recoveries.length ? <p className="text-[0.8125rem] text-slate-500">Koi recovery nahi likhi.</p> : (
+            {!recoveries.length ? <p className="text-[0.8125rem] text-slate-500">{t('Koi recovery nahi likhi.')}</p> : (
               <ul className="space-y-2">
                 {recoveries.map((r) => (
                   <li key={r.key} className="grid grid-cols-[minmax(0,1fr)_6rem_auto] gap-1.5">
-                    <select aria-label="Customer" value={r.customerId} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, customerId: e.target.value } : x)))}
+                    <select aria-label={t('Customer')} value={r.customerId} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, customerId: e.target.value } : x)))}
                       className="col-span-3 h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500">
                       {customers.map(([cid, name]) => <option key={cid} value={cid}>{name}</option>)}
                     </select>
-                    <input inputMode="decimal" aria-label="Amount" placeholder="Amount" value={r.amount} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, amount: e.target.value.replace(/[^\d.]/g, '') } : x)))}
-                      className="col-span-1 h-9 rounded-lg border border-slate-200 bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500" />
-                    <select aria-label="Tareeqa" value={r.method} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, method: e.target.value as MoneyMethod } : x)))}
+                    <input inputMode="decimal" aria-label={t('Amount')} placeholder={t('Amount')} value={r.amount} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, amount: e.target.value.replace(/[^\d.]/g, '') } : x)))}
+                      className="col-span-1 h-9 rounded-lg border border-slate-200 bg-white px-2 text-end tabular-nums outline-none focus:border-brand-500" />
+                    <select aria-label={t('Tareeqa')} value={r.method} onChange={(e) => setRecoveries((l) => l.map((x) => (x.key === r.key ? { ...x, method: e.target.value as MoneyMethod } : x)))}
                       className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500">
                       {METHODS.map((m) => <option key={m} value={m}>{METHOD_LABEL[m]}</option>)}
                     </select>
-                    <button type="button" aria-label="Hatayein" onClick={() => setRecoveries((l) => l.filter((x) => x.key !== r.key))} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                    <button type="button" aria-label={t('Hatayein')} onClick={() => setRecoveries((l) => l.filter((x) => x.key !== r.key))} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                   </li>
                 ))}
               </ul>
@@ -351,34 +352,34 @@ function Settle() {
             {canVerify && (recoveries.length > 0 || pendingCollections.length > 0) && (
               <label className="mt-3 flex items-start gap-2 text-[0.8125rem] text-slate-700">
                 <Checkbox checked={verifyNow} onChange={(e) => setVerifyNow(e.target.checked)} />
-                <span>Abhi verify karein — seedha khata me jaye</span>
+                <span>{t('Abhi verify karein — seedha khata me jaye')}</span>
               </label>
             )}
           </Panel>
 
-          <Panel title={<span className="inline-flex items-center gap-1.5"><Wallet className="h-4 w-4 text-brand-600" />Cash ka hisaab</span>}>
+          <Panel title={<span className="inline-flex items-center gap-1.5"><Wallet className="h-4 w-4 text-brand-600" />{t('Cash ka hisaab')}</span>}>
             <dl className="space-y-1.5 text-[0.8125rem]">
-              {(p.money.invoiceCollected > 0 || p.money.recoveries > 0) && <Row label="Pehle se likha (phone recovery waghera)" value={rs(p.money.expectedCash)} />}
-              <Row label="Abhi likha cash" value={rs(newCash)} />
-              <div className="flex justify-between border-t border-slate-200 pt-1.5 text-[0.9375rem] font-bold text-slate-900"><dt>Expected</dt><dd className="tabular-nums">{rs(expected)}</dd></div>
+              {(p.money.invoiceCollected > 0 || p.money.recoveries > 0) && <Row label={t('Pehle se likha (phone recovery waghera)')} value={rs(p.money.expectedCash)} />}
+              <Row label={t('Abhi likha cash')} value={rs(newCash)} />
+              <div className="flex justify-between border-t border-slate-200 pt-1.5 text-[0.9375rem] font-bold text-slate-900"><dt>{t('Expected')}</dt><dd className="tabular-nums">{rs(expected)}</dd></div>
             </dl>
             <label className="mt-3 block">
-              <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600">Delivery wale ne jama karaya</span>
+              <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600">{t('Delivery wale ne jama karaya')}</span>
               <input inputMode="decimal" value={handedIn} placeholder={String(expected)} onChange={(e) => setHandedIn(e.target.value.replace(/[^\d.]/g, ''))}
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-right text-[1.125rem] font-bold tabular-nums outline-none focus:border-brand-500" />
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-end text-[1.125rem] font-bold tabular-nums outline-none focus:border-brand-500" />
             </label>
             {diff != null && (
               <div className={cn('mt-2 rounded-xl px-3 py-2 text-center text-[0.875rem] font-semibold', diff > 0 ? 'bg-rose-50 text-rose-700' : diff < 0 ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-700')}>
-                {diff > 0 ? `${rs(diff)} kam hai` : diff < 0 ? `${rs(-diff)} zyada hai` : 'Poora — koi farq nahi'}
+                {diff > 0 ? t('{{diff}} kam hai', { diff: rs(diff) }) : diff < 0 ? t('{{rs}} zyada hai', { rs: rs(-diff) }) : t('Poora — koi farq nahi')}
               </div>
             )}
             <Button fullWidth className="mt-3" size="lg" variant="success" loading={settle.isPending} disabled={!pending.length && handed == null}
               leftIcon={<CheckCircle2 className="h-5 w-5" />} onClick={() => settle.mutate()}>
-              {handed == null ? 'Invoices settle karein' : 'Finish — sheet band karein'}
+              {handed == null ? t('Invoices settle karein') : t('Finish — sheet band karein')}
             </Button>
-            <p className="mt-2 text-[0.6875rem] text-slate-500">Wapsi bill se hoti hai aur khata kam karti hai. Cash usi waqt khata me jama hota hai. Sheet tab band hoti hai jab sab invoices settle hon aur jama cash likha ho.</p>
+            <p className="mt-2 text-[0.6875rem] text-slate-500">{t('Wapsi bill se hoti hai aur khata kam karti hai. Cash usi waqt khata me jama hota hai. Sheet tab band hoti hai jab sab invoices settle hon aur jama cash likha ho.')}</p>
           </Panel>
-          <p className="hidden items-center justify-center gap-1 text-[0.75rem] text-slate-400 xl:flex"><Kbd>Tab</Kbd> agla khana</p>
+          <p className="hidden items-center justify-center gap-1 text-[0.75rem] text-slate-400 xl:flex"><Kbd>Tab</Kbd> {' '}{t('agla khana')}</p>
         </aside>
       </div>
     </PageShell>
@@ -388,28 +389,28 @@ function Settle() {
 function ReportBanner({ r }: { r: DeliveryReportSummary }) {
   const when = new Date(r.lastReportedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
   const parts = [
-    r.delivered ? `${r.delivered} poora deliver` : null,
-    r.partial ? `${r.partial} kuch wapas` : null,
-    r.returned ? `${r.returned} sab wapas` : null,
+    r.delivered ? t('{{delivered}} poora deliver', { delivered: r.delivered }) : null,
+    r.partial ? t('{{partial}} kuch wapas', { partial: r.partial }) : null,
+    r.returned ? t('{{returned}} sab wapas', { returned: r.returned }) : null,
   ].filter(Boolean).join(' · ');
   return (
     <section className="rounded-2xl bg-sky-50 px-4 py-3 ring-1 ring-sky-200/80">
       <div className="flex flex-wrap items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white"><Smartphone className="h-[1.125rem] w-[1.125rem]" /></span>
         <div className="min-w-0 flex-1 basis-[14rem]">
-          <h2 className="text-[0.9375rem] font-semibold text-sky-950">Delivery wale ki report</h2>
+          <h2 className="text-[0.9375rem] font-semibold text-sky-950">{t('Delivery wale ki report')}</h2>
           <p className="text-[0.8125rem] text-sky-900/80">
-            {r.reportedByName ?? 'Delivery wala'} ne phone se {r.reported}/{r.invoices} invoices ki report bheji · {when}
+            {t('{{value}} ne phone se {{reported}}/{{invoices}} invoices ki report bheji · {{when}}', { value: r.reportedByName ?? 'Delivery wala', reported: r.reported, invoices: r.invoices, when })}
             {parts && <> · {parts}</>}
           </p>
         </div>
-        <div className="basis-full pl-12 sm:basis-auto sm:pl-0 sm:text-right">
-          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-sky-700">Cash bataya</div>
+        <div className="basis-full ps-12 sm:basis-auto sm:ps-0 sm:text-end">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-sky-700">{t('Cash bataya')}</div>
           <div className="text-[1.0625rem] font-bold tabular-nums text-sky-950">{rs(r.cash)}</div>
-          {r.otherMoney > 0 && <div className="text-[0.6875rem] text-sky-800">+ {rs(r.otherMoney)} bank / wallet</div>}
+          {r.otherMoney > 0 && <div className="text-[0.6875rem] text-sky-800">{t('+ {{otherMoney}} bank / wallet', { otherMoney: rs(r.otherMoney) })}</div>}
         </div>
       </div>
-      <p className="mt-2 text-[0.75rem] text-sky-900/70">Neeche har invoice isi report se bhari hai. Maal aur cash gin kar check karein, jo ghalat ho badlein, phir Finish. Cash yahin ek baar ginti hota hai.</p>
+      <p className="mt-2 text-[0.75rem] text-sky-900/70">{t('Neeche har invoice isi report se bhari hai. Maal aur cash gin kar check karein, jo ghalat ho badlein, phir Finish. Cash yahin ek baar ginti hota hai.')}</p>
     </section>
   );
 }

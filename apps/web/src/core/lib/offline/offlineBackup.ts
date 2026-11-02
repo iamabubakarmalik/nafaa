@@ -1,5 +1,6 @@
 import { db } from './db';
 import { getDeviceId } from './offlineDevice';
+import { t as tr } from '@core/i18n';
 
 export async function exportBackup(): Promise<void> {
   const [products, customers, expenses, lookups, pendingSales, syncQueue, meta] =
@@ -39,7 +40,7 @@ export async function exportBackup(): Promise<void> {
 export async function importBackup(file: File): Promise<{ restored: number }> {
   const text = await file.text();
   const backup = JSON.parse(text);
-  if (backup?.app !== 'nafaa-pos' || !backup?.tables) throw new Error('Ye Nafaa backup file nahi hai');
+  if (backup?.app !== 'nafaa-pos' || !backup?.tables) throw new Error(tr('Ye Nafaa backup file nahi hai'));
 
   const t = backup.tables;
   let restored = 0;

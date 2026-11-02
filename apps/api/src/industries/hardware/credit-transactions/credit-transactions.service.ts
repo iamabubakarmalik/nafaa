@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateCreditTransactionDto } from './dto/create-transaction.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Totals on the account that each entry type feeds. */
 const TOTAL_FIELD: Partial<Record<string, 'totalPurchases' | 'totalPayments' | 'totalWriteOffs' | 'totalInterest'>> = {
@@ -53,7 +54,7 @@ export class CreditTransactionsService {
       // Check credit limit for sales
       if (dto.transactionType === 'SALE' && fresh.creditLimit > 0 && newBalance > fresh.creditLimit) {
         throw new BadRequestException(
-          `Udhaar had se zyada ho jayega. Baqi: ${newBalance - signedAmount}, Had: ${fresh.creditLimit}, Naya: ${dto.amount}`,
+          apiMessage('Udhaar had se zyada ho jayega. Baqi: {{newBalance}}, Had: {{creditLimit}}, Naya: {{dtoAmount}}', { newBalance: newBalance - signedAmount, creditLimit: fresh.creditLimit, dtoAmount: dto.amount }),
         );
       }
 

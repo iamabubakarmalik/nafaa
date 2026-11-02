@@ -37,13 +37,18 @@ const AREA_OVERRIDES = [
 
 /**
  * Server folders whose messages the web app translates (catalog area "api").
- * Add a folder here when converting a server module's messages.
+ * Covers the whole API except the marketplace (its own app) and the
+ * marketing admin; scripts, config and prisma send no user-facing text.
  */
 export const API_DIRS = [
-  'common/filters',
-  'modules/auth',
-  'modules/pos',
-  'modules/sales',
+  'admin',
+  'app.controller.ts',
+  'common',
+  'core',
+  'health',
+  'industries',
+  'integrations',
+  'modules',
 ];
 
 export function areaOf(file) {

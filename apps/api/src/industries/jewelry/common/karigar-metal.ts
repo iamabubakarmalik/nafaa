@@ -7,6 +7,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { JewelryPurity, Prisma } from '@prisma/client';
 import { metalTypeForPurity, postMetalEntry } from './metal-ledger';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 const r3 = (n: number) => Math.round((Number(n) || 0) * 1000) / 1000;
@@ -47,7 +48,7 @@ export async function receiveFromKarigar(
   if (!(settled > 0)) throw new BadRequestException('Wapas aane wala wazan likhein');
   const k = await lockKarigar(tx, tenantId, input.karigarId);
   if (settled > k.outstandingGrams + 0.001) {
-    throw new BadRequestException(`${k.fullName} ke paas sirf ${r3(k.outstandingGrams)}g hai — ${settled}g wapas nahi ho sakta`);
+    throw new BadRequestException(apiMessage('{{fullName}} ke paas sirf {{outstandingGrams}}g hai — {{settled}}g wapas nahi ho sakta', { fullName: k.fullName, outstandingGrams: r3(k.outstandingGrams), settled }));
   }
   if (back > 0) {
     await postMetalEntry(tx, tenantId, userId, {

@@ -17,6 +17,7 @@ import { isTyping } from '@core/lib/shortcuts';
 import { DIST_KEY, distributionApi, type OrderDetail } from '../api/distribution.api';
 import { dayTime, ORDER_STATUS, OUTCOME, packText, partyName, rs, trim } from '../lib/meta';
 import { Pill } from './parts';
+import { t } from '@core/i18n';
 
 const innerModalOpen = () => !!document.querySelector('[role="dialog"][aria-modal="true"]:not([data-drawer])');
 
@@ -57,16 +58,16 @@ export function OrderDrawer({ orderId, onClose, onStep, actions }: {
   return createPortal(
     <div className="fixed inset-0 z-[90] flex justify-end print:hidden">
       <div className="absolute inset-0 bg-slate-950/40 animate-in fade-in" onClick={onClose} aria-hidden />
-      <aside role="dialog" aria-modal="true" data-drawer aria-label="Order ki details"
+      <aside role="dialog" aria-modal="true" data-drawer aria-label={t('Order ki details')}
         className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-4 py-1.5 text-[0.75rem] text-slate-500">
-          <span className="hidden items-center gap-1 sm:inline-flex">{onStep && <><Kbd>J</Kbd> agla · <Kbd>K</Kbd> pichla · </>}<Kbd>Esc</Kbd> band</span>
-          <span className="ml-auto flex gap-1">
+          <span className="hidden items-center gap-1 sm:inline-flex">{onStep && <><Kbd>J</Kbd> {' '}{t('agla ·')}{' '} <Kbd>K</Kbd> {' '}{t('pichla ·')}{' '} </>}<Kbd>Esc</Kbd> {' '}{t('band')}</span>
+          <span className="ms-auto flex gap-1">
             {onStep && <>
-              <IconButton size="sm" label="Pichla order (K)" onClick={() => onStep(-1)}><ChevronUp className="h-4 w-4" /></IconButton>
-              <IconButton size="sm" label="Agla order (J)" onClick={() => onStep(1)}><ChevronDown className="h-4 w-4" /></IconButton>
+              <IconButton size="sm" label={t('Pichla order (K)')} onClick={() => onStep(-1)}><ChevronUp className="h-4 w-4" /></IconButton>
+              <IconButton size="sm" label={t('Agla order (J)')} onClick={() => onStep(1)}><ChevronDown className="h-4 w-4" /></IconButton>
             </>}
-            <IconButton size="sm" label="Band karein" onClick={onClose}><X className="h-4 w-4" /></IconButton>
+            <IconButton size="sm" label={t('Band karein')} onClick={onClose}><X className="h-4 w-4" /></IconButton>
           </span>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -98,32 +99,32 @@ function Body({ o }: { o: OrderDetail }) {
       </header>
 
       {o.creditWarning && <Alert tone="warning" icon={<AlertTriangle className="h-4 w-4" />}>{o.creditWarning}</Alert>}
-      {o.invoiceError && <Alert tone="danger" icon={<XCircle className="h-4 w-4" />}>Invoice nahi bana: {o.invoiceError}</Alert>}
-      {o.cancelReason && o.status === 'CANCELLED' && <Alert tone="info">Cancel ki wajah: {o.cancelReason}</Alert>}
+      {o.invoiceError && <Alert tone="danger" icon={<XCircle className="h-4 w-4" />}>{t('Invoice nahi bana: {{invoiceError}}', { invoiceError: o.invoiceError })}</Alert>}
+      {o.cancelReason && o.status === 'CANCELLED' && <Alert tone="info">{t('Cancel ki wajah: {{cancelReason}}', { cancelReason: o.cancelReason })}</Alert>}
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl bg-slate-50 p-3 text-[0.8125rem]">
-        <Item label="Booked" icon={<Clock className="h-3.5 w-3.5" />}>{dayTime(o.bookedAt)} · {o.bookedByName ?? '—'}</Item>
-        <Item label="Jagah" icon={<MapPin className="h-3.5 w-3.5" />}>
-          {map ? <a href={map} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">Map par dekhein<ExternalLink className="h-3 w-3" /></a> : 'GPS nahi'}
-          {o.gpsAccuracy != null && <span className="text-slate-500"> · ±{Math.round(o.gpsAccuracy)} m</span>}
+        <Item label={t('Booked')} icon={<Clock className="h-3.5 w-3.5" />}>{dayTime(o.bookedAt)} · {o.bookedByName ?? '—'}</Item>
+        <Item label={t('Jagah')} icon={<MapPin className="h-3.5 w-3.5" />}>
+          {map ? <a href={map} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">{t('Map par dekhein')}<ExternalLink className="h-3 w-3" /></a> : t('GPS nahi')}
+          {o.gpsAccuracy != null && <span className="text-slate-500"> {' '}{t('· ±{{gpsAccuracy}} m', { gpsAccuracy: Math.round(o.gpsAccuracy) })}</span>}
         </Item>
-        <Item label="Route">{o.routeName ?? '—'}</Item>
-        <Item label="Godown">{o.shopName ?? '—'}</Item>
-        {o.deliveryDate && <Item label="Delivery date">{dayTime(o.deliveryDate).split(',')[0]}</Item>}
-        {o.approvedAt && <Item label="Approve">{dayTime(o.approvedAt)} · {o.approvedByName ?? ''}</Item>}
-        <Item label="Invoice" icon={<Receipt className="h-3.5 w-3.5" />}>
-          {o.saleId ? <Link to={`/sales/${o.saleId}`} className="font-semibold text-brand-700 hover:underline">{o.saleNumber}</Link> : 'Abhi nahi bana'}
+        <Item label={t('Route')}>{o.routeName ?? '—'}</Item>
+        <Item label={t('Godown')}>{o.shopName ?? '—'}</Item>
+        {o.deliveryDate && <Item label={t('Delivery date')}>{dayTime(o.deliveryDate).split(',')[0]}</Item>}
+        {o.approvedAt && <Item label={t('Approve')}>{dayTime(o.approvedAt)} · {o.approvedByName ?? ''}</Item>}
+        <Item label={t('Invoice')} icon={<Receipt className="h-3.5 w-3.5" />}>
+          {o.saleId ? <Link to={`/sales/${o.saleId}`} className="font-semibold text-brand-700 hover:underline">{o.saleNumber}</Link> : t('Abhi nahi bana')}
         </Item>
-        <Item label="Load sheet" icon={<Truck className="h-3.5 w-3.5" />}>
+        <Item label={t('Load sheet')} icon={<Truck className="h-3.5 w-3.5" />}>
           {o.loadSheetId ? <Link to={`/distribution/load-sheets/${o.loadSheetId}`} className="font-semibold text-brand-700 hover:underline">{o.loadSheetNumber}</Link> : '—'}
         </Item>
-        {c && <Item label="Khata">{rs(c.balance)}{c.creditLimit ? <span className="text-slate-500"> / had {rs(c.creditLimit)}</span> : null}{c.creditDays ? <span className="text-slate-500"> · {c.creditDays} din</span> : null}</Item>}
+        {c && <Item label={t('Khata')}>{rs(c.balance)}{c.creditLimit ? <span className="text-slate-500"> {' '}{t('/ had {{creditLimit}}', { creditLimit: rs(c.creditLimit) })}</span> : null}{c.creditDays ? <span className="text-slate-500"> {' '}{t('· {{creditDays}} din', { creditDays: c.creditDays })}</span> : null}</Item>}
       </dl>
 
       <section className="overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
         <table className="w-full text-[0.8125rem]">
-          <thead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-            <tr><th className="px-3 py-2">Product</th><th className="px-2 py-2 text-right">Quantity</th><th className="px-2 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Amount</th></tr>
+          <thead className="bg-slate-50 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+            <tr><th className="px-3 py-2">{t('Product')}</th><th className="px-2 py-2 text-end">{t('Quantity')}</th><th className="px-2 py-2 text-end">{t('Rate')}</th><th className="px-3 py-2 text-end">{t('Amount')}</th></tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {o.items.map((i) => (
@@ -132,11 +133,11 @@ function Body({ o }: { o: OrderDetail }) {
                   <div className="font-semibold text-slate-900">{i.productName}{i.variantName ? ` · ${i.variantName}` : ''}</div>
                   {i.conversionRate > 1 && <div className="text-[0.6875rem] text-slate-500">{trim(i.baseQty)} {i.baseUnit}</div>}
                   {i.schemeNote && <div className="mt-0.5 inline-flex items-center gap-1 text-[0.6875rem] font-medium text-violet-700"><Gift className="h-3 w-3" />{i.schemeNote}</div>}
-                  {i.deliveredBaseQty != null && i.deliveredBaseQty < i.baseQty && <div className="text-[0.6875rem] text-rose-600">Wapas: {trim(i.baseQty - i.deliveredBaseQty)} {i.baseUnit}</div>}
+                  {i.deliveredBaseQty != null && i.deliveredBaseQty < i.baseQty && <div className="text-[0.6875rem] text-rose-600">{t('Wapas: {{trim}} {{baseUnit}}', { trim: trim(i.baseQty - i.deliveredBaseQty), baseUnit: i.baseUnit })}</div>}
                 </td>
-                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums">{trim(i.qty)} {i.unitName ?? i.baseUnit}</td>
-                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-slate-600">{rs(i.price)}</td>
-                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
+                <td className="whitespace-nowrap px-2 py-2 text-end tabular-nums">{trim(i.qty)} {i.unitName ?? i.baseUnit}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-end tabular-nums text-slate-600">{rs(i.price)}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-end tabular-nums">
                   <div className="font-semibold text-slate-900">{rs(i.total)}</div>
                   {i.schemeDiscount + i.discount > 0 && <div className="text-[0.6875rem] text-success-700">−{rs(i.schemeDiscount + i.discount)}</div>}
                 </td>
@@ -146,24 +147,24 @@ function Body({ o }: { o: OrderDetail }) {
               <tr key={`f-${i.id}`} className="bg-violet-50/40">
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-1.5 font-semibold text-slate-900"><Gift className="h-3.5 w-3.5 text-violet-600" />{i.freeProductName ?? i.productName}</div>
-                  <div className="text-[0.6875rem] text-slate-500">Free · {i.schemeNote}</div>
+                  <div className="text-[0.6875rem] text-slate-500">{t('Free · {{schemeNote}}', { schemeNote: i.schemeNote })}</div>
                 </td>
-                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums" colSpan={2}>{packText(i.freeBaseQty, i.freeProductId ? null : i.conversionRate, i.unitName, i.baseUnit)}</td>
-                <td className="px-3 py-2 text-right font-semibold text-violet-700">Free</td>
+                <td className="whitespace-nowrap px-2 py-2 text-end tabular-nums" colSpan={2}>{packText(i.freeBaseQty, i.freeProductId ? null : i.conversionRate, i.unitName, i.baseUnit)}</td>
+                <td className="px-3 py-2 text-end font-semibold text-violet-700">{t('Free')}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="space-y-1 border-t border-slate-100 bg-slate-50/60 px-3 py-2.5 text-[0.8125rem]">
-          <Row label="Gross" value={rs(o.subtotal)} />
-          {o.schemeDiscount > 0 && <Row label="Scheme discount" value={`−${rs(o.schemeDiscount)}`} />}
-          {o.discount > 0 && <Row label="Discount" value={`−${rs(o.discount)}`} />}
-          <Row label="Total" value={rs(o.total)} strong />
-          {o.returnsValue > 0 && <Row label="Wapas aaya" value={`−${rs(o.returnsValue)}`} />}
-          {o.cashCollected > 0 && <Row label="Delivery par cash" value={rs(o.cashCollected)} />}
+          <Row label={t('Gross')} value={rs(o.subtotal)} />
+          {o.schemeDiscount > 0 && <Row label={t('Scheme discount')} value={`−${rs(o.schemeDiscount)}`} />}
+          {o.discount > 0 && <Row label={t('Discount')} value={`−${rs(o.discount)}`} />}
+          <Row label={t('Total')} value={rs(o.total)} strong />
+          {o.returnsValue > 0 && <Row label={t('Wapas aaya')} value={`−${rs(o.returnsValue)}`} />}
+          {o.cashCollected > 0 && <Row label={t('Delivery par cash')} value={rs(o.cashCollected)} />}
         </div>
       </section>
-      {o.note && <p className="rounded-2xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600"><FileText className="mr-1 inline h-3.5 w-3.5" />{o.note}</p>}
+      {o.note && <p className="rounded-2xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600"><FileText className="me-1 inline h-3.5 w-3.5" />{o.note}</p>}
     </div>
   );
 }
@@ -172,13 +173,13 @@ function Footer({ o, a }: { o: OrderDetail; a: DrawerActions }) {
   const s = o.status;
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3">
-      {s === 'BOOKED' && (a.canManage || a.canBook) && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => a.onEdit(o)}>Badlein</Button>}
-      {(s === 'BOOKED' || s === 'APPROVED') && a.canManage && <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => a.onCancel(o)}>Cancel</Button>}
-      {o.saleId && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => a.onPrint(o)}>Invoice print</Button>}
+      {s === 'BOOKED' && (a.canManage || a.canBook) && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => a.onEdit(o)}>{t('Badlein')}</Button>}
+      {(s === 'BOOKED' || s === 'APPROVED') && a.canManage && <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => a.onCancel(o)}>{t('Cancel')}</Button>}
+      {o.saleId && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => a.onPrint(o)}>{t('Invoice print')}</Button>}
       <span className="flex-1" />
-      {s === 'BOOKED' && a.canManage && <Button size="sm" loading={a.busy} leftIcon={<BadgeCheck className="h-4 w-4" />} onClick={() => a.onApprove(o)}>Approve + Invoice</Button>}
-      {s === 'APPROVED' && a.canManage && <Button size="sm" loading={a.busy} leftIcon={<Receipt className="h-4 w-4" />} onClick={() => a.onInvoice(o)}>Invoice banayein</Button>}
-      {s === 'INVOICED' && !o.loadSheetId && a.canLoad && <Button size="sm" leftIcon={<Truck className="h-4 w-4" />} onClick={() => a.onLoad(o)}>Load sheet me</Button>}
+      {s === 'BOOKED' && a.canManage && <Button size="sm" loading={a.busy} leftIcon={<BadgeCheck className="h-4 w-4" />} onClick={() => a.onApprove(o)}>{t('Approve + Invoice')}</Button>}
+      {s === 'APPROVED' && a.canManage && <Button size="sm" loading={a.busy} leftIcon={<Receipt className="h-4 w-4" />} onClick={() => a.onInvoice(o)}>{t('Invoice banayein')}</Button>}
+      {s === 'INVOICED' && !o.loadSheetId && a.canLoad && <Button size="sm" leftIcon={<Truck className="h-4 w-4" />} onClick={() => a.onLoad(o)}>{t('Load sheet me')}</Button>}
     </div>
   );
 }

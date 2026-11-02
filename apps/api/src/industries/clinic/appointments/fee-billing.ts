@@ -4,6 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Catalogue line every clinic fee is billed against. */
 const FEE_SKU = 'CLINIC-FEE';
@@ -44,7 +45,7 @@ const inFlight = new Map<string, number>();
 export function readFeePayment(body: any, due: number) {
   const amount = r2(body?.amount);
   if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
-  if (amount > due + 0.009) throw new BadRequestException(due > 0 ? `Sirf Rs ${due} baqi hain` : 'Poori fees mil chuki hai');
+  if (amount > due + 0.009) throw new BadRequestException(due > 0 ? apiMessage('Sirf Rs {{due}} baqi hain', { due }) : 'Poori fees mil chuki hai');
   const method = (body?.paymentMethod ?? 'CASH') as PaymentMethod;
   if (!BILL_METHODS.includes(method)) throw new BadRequestException('Payment ka tareeqa ghalat hai');
   let payments: FeePart[] | undefined;

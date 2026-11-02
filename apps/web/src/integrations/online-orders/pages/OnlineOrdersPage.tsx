@@ -42,16 +42,17 @@ import { brandIcon, sourceOf, timeAgo } from '../lib/labels';
 import { BrandLogo, brandForChannel, brandLabel } from '@/assets/brands/BrandLogo';
 import { ORDER_TABS, downloadCsv, itemQty, orderNo, statusShort, tabCount, type OrderTab } from '../lib/orders';
 import { ordersDoc } from '../lib/print';
+import { t as tr } from '@core/i18n';
 
 type View = OrderTab | 'analytics';
 type Pay = '' | 'COD' | 'PAID';
 type Confirm = '' | 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
 const CONFIRM_OPTIONS: Array<{ value: Confirm; label: string; hint?: string }> = [
-  { value: '', label: 'Sab' },
-  { value: 'NONE', label: 'Abhi poocha nahi', hint: 'Confirm karwana baqi' },
-  { value: 'CONFIRMED', label: 'Confirm ho gaya', hint: 'Customer ne haan kaha' },
-  { value: 'NO_ANSWER', label: 'Jawab nahi', hint: 'Dobara koshish karein' },
-  { value: 'REFUSED', label: 'Mana kiya' },
+  { value: '', label: tr('Sab') },
+  { value: 'NONE', label: tr('Abhi poocha nahi'), hint: tr('Confirm karwana baqi') },
+  { value: 'CONFIRMED', label: tr('Confirm ho gaya'), hint: tr('Customer ne haan kaha') },
+  { value: 'NO_ANSWER', label: tr('Jawab nahi'), hint: tr('Dobara koshish karein') },
+  { value: 'REFUSED', label: tr('Mana kiya') },
 ];
 const PAGE = 50;
 const YEAR_BACK = 364;
@@ -107,7 +108,7 @@ export default function OnlineOrdersPage() {
   const period = resolveRange(range, startHour);
   const today = businessDayKey(new Date(), startHour);
   const reportRange = period ?? { from: shift(today, -YEAR_BACK), to: today };
-  const periodText = period ? rangeLabel(period.from, period.to) : 'Pichhle 12 mahine';
+  const periodText = period ? rangeLabel(period.from, period.to) : tr('Pichhle 12 mahine');
   const tab: OrderTab = view === 'analytics' ? 'ALL' : view;
   const queue = ORDER_TABS.find((t) => t.id === tab)?.queue ?? false;
   // Search looks through every date; queue tabs never hide old orders.
@@ -177,7 +178,7 @@ export default function OnlineOrdersPage() {
   const clear = () => { setSearch(''); setPay(''); setConfirm(''); };
   const goTab = (v: View) => { setView(v); stopSelecting(); };
   const refresh = () => { void listQ.refetch(); void countsQ.refetch(); void reportQ.refetch(); };
-  const listName = view === 'analytics' ? 'Analytics' : ORDER_TABS.find((x) => x.id === tab)?.label ?? '';
+  const listName = view === 'analytics' ? tr('Analytics') : ORDER_TABS.find((x) => x.id === tab)?.label ?? '';
   const filterText = [channel?.displayName, pay === 'COD' ? 'Sirf COD' : pay === 'PAID' ? 'Sirf paid' : '', confirm && CONFIRM_OPTIONS.find((c) => c.value === confirm)?.label, query && `"${query}"`].filter(Boolean).join(' · ');
 
   /** Every order for the current filter, page by page (up to 1,000). */
@@ -196,24 +197,24 @@ export default function OnlineOrdersPage() {
     setExporting(true);
     try {
       const { items } = await fetchAll();
-      if (!items.length) { toast.error('Is list me koi order nahi'); return; }
+      if (!items.length) { toast.error(tr('Is list me koi order nahi')); return; }
       downloadCsv(`online-orders-${today}.csv`, [
-        [`Online orders — ${tenantName ?? ''}`],
-        [`List: ${listName} · Period: ${dated ? periodText : 'Har date'}${filterText ? ` · ${filterText}` : ''}`],
+        [tr('Online orders — {{value}}', { value: tenantName ?? '' })],
+        [tr('List: {{listName}} · Period: {{value}}{{value2}}', { listName, value: dated ? periodText : tr('Har date'), value2: filterText ? ` · ${filterText}` : '' })],
         [],
-        ['Order', 'Date', 'Customer', 'Phone', 'Shehar', 'Channel', 'Cheezein', 'Qty', 'Total', 'COD', 'Payment', 'Halat', 'Courier', 'CN', 'Test'],
+        [tr('Order'), tr('Date'), tr('Customer'), tr('Phone'), tr('Shehar'), tr('Channel'), tr('Cheezein'), tr('Qty'), tr('Total'), 'COD', tr('Payment'), tr('Halat'), tr('Courier'), 'CN', tr('Test')],
         ...items.map((o) => [
           orderNo(o), new Date(o.receivedAt).toLocaleString('en-PK'), o.customerName, o.customerPhone ?? '', o.customerCity ?? '',
           o.integration?.displayName ?? sourceOf(o).label, o.items.length, itemQty(o), Number(o.total || 0).toFixed(2),
-          o.isCod ? 'Haan' : 'Nahi', o.paymentStatus, statusShort(o.orderStatus), o.courierLabel ?? '', o.trackingNumber ?? '', o.isTest ? 'Haan' : '',
+          o.isCod ? tr('Haan') : tr('Nahi'), o.paymentStatus, statusShort(o.orderStatus), o.courierLabel ?? '', o.trackingNumber ?? '', o.isTest ? tr('Haan') : '',
         ]),
       ]);
-      toast.success(`${items.length} order CSV me`);
-    } catch { toast.error('CSV nahi bani'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} order CSV me', { count: items.length }));
+    } catch { toast.error(tr('CSV nahi bani')); } finally { setExporting(false); }
   };
   const printDoc = async () => {
     const { items, total } = await fetchAll();
-    return ordersDoc(items, listName, dated ? periodText : 'Har date', filterText, total);
+    return ordersDoc(items, listName, dated ? periodText : tr('Har date'), filterText, total);
   };
 
   useEffect(() => {
@@ -224,7 +225,7 @@ export default function OnlineOrdersPage() {
       else if (k === 'a') setView((v) => (v === 'analytics' ? 'PENDING' : 'analytics'));
       else if (k === 'n') goTab('PENDING');
       else if (k === 's' && view !== 'analytics') setSelecting((v) => !v);
-      else if (k === 'r') { refresh(); toast.success('Taaza kar diya'); }
+      else if (k === 'r') { refresh(); toast.success(tr('Taaza kar diya')); }
       else if ((k === 'j' || k === 'k') && view !== 'analytics') { e.preventDefault(); step(k === 'j' ? 1 : -1); }
     };
     window.addEventListener('keydown', onKey);
@@ -238,47 +239,47 @@ export default function OnlineOrdersPage() {
   return (
     <PageShell>
       <PageHero
-        title={channel ? <span className="inline-flex min-w-0 items-center gap-2.5"><BrandLogo name={brandForChannel(channel.type, { platform: channel.platform })} size={28} /><span className="truncate">{channel.displayName}</span></span> : 'Online orders'}
-        chip={<><ShoppingBag />{(counts.PENDING ?? 0) > 0 ? `${counts.PENDING} naye` : periodText}</>}
-        meta="Accept karein — bill aur receipt khud banti hai, stock kam ho jata hai"
+        title={channel ? <span className="inline-flex min-w-0 items-center gap-2.5"><BrandLogo name={brandForChannel(channel.type, { platform: channel.platform })} size={28} /><span className="truncate">{channel.displayName}</span></span> : tr('Online orders')}
+        chip={<><ShoppingBag />{(counts.PENDING ?? 0) > 0 ? tr('{{PENDING}} naye', { PENDING: counts.PENDING }) : periodText}</>}
+        meta={tr('Accept karein — bill aur receipt khud banti hai, stock kam ho jata hai')}
         busy={fetching}
         loading={reportQ.isLoading}
         actions={<>
           <PrivacyToggle compact />
           {!canNotify && (
-            <button type="button" onClick={() => Notification.requestPermission().finally(() => setCanNotify(true))} title="Naye order par desktop alert" className={heroButton}>
-              <Bell className="h-4 w-4" /> <span className="hidden sm:inline">Alert on</span>
+            <button type="button" onClick={() => Notification.requestPermission().finally(() => setCanNotify(true))} title={tr('Naye order par desktop alert')} className={heroButton}>
+              <Bell className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Alert on')}</span>
             </button>
           )}
-          <button type="button" onClick={refresh} title="Taaza (R)" className={heroIconButton}><RefreshCw className={fetching ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /></button>
+          <button type="button" onClick={refresh} title={tr('Taaza (R)')} className={heroIconButton}><RefreshCw className={fetching ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /></button>
           <button type="button" onClick={() => void exportCsv()} disabled={exporting || view === 'analytics'} className={heroButton}>
-            <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
+            <Download className="h-4 w-4" /> {exporting ? tr('Ban raha…') : tr('CSV')}
           </button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={view === 'analytics'} /></span>
-          <Link to="/online-store/channels" title="Channels jorein" className={heroButton}><Globe className="h-4 w-4" /> <span className="hidden sm:inline">Channels</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/online-store/channels" title={tr('Channels jorein')} className={heroButton}><Globe className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Channels')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={t ? [
-          { label: `Online sale · ${t.netOrders} order`, value: money(t.netValue) },
-          { label: 'Ausat order', value: money(t.avgOrderValue), hint: `${r!.payment.cod.orders} COD` },
-          { label: 'Delivered', value: money(t.deliveredValue), hint: `${t.delivered} order` },
-          { label: 'RTO (wapas)', value: `${t.rtoRate}%`, hint: `${t.returned} / ${t.dispatched}` },
-        ] : [{ label: 'Online sale', value: '' }, { label: 'Ausat order', value: '' }, { label: 'Delivered', value: '' }, { label: 'RTO', value: '' }]}
+          { label: tr('Online sale · {{netOrders}} order', { netOrders: t.netOrders }), value: money(t.netValue) },
+          { label: tr('Ausat order'), value: money(t.avgOrderValue), hint: tr('{{orders}} COD', { orders: r!.payment.cod.orders }) },
+          { label: tr('Delivered'), value: money(t.deliveredValue), hint: tr('{{delivered}} order', { delivered: t.delivered }) },
+          { label: tr('RTO (wapas)'), value: `${t.rtoRate}%`, hint: `${t.returned} / ${t.dispatched}` },
+        ] : [{ label: tr('Online sale'), value: '' }, { label: tr('Ausat order'), value: '' }, { label: tr('Delivered'), value: '' }, { label: tr('RTO'), value: '' }]}
       />
 
       {firstRun ? <FirstRun hasChannels={(channels?.length ?? 0) > 0} /> : (<>
         <KpiRow>
           {!c || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-            <KpiCard icon={Zap} color="#d97706" label="Naye orders" value={counts.PENDING ?? 0}
-              hint={alerts?.stalePending.count ? `${alerts.stalePending.count} der se ruke` : 'Accept karne hain'}
+            <KpiCard icon={Zap} color="#d97706" label={tr('Naye orders')} value={counts.PENDING ?? 0}
+              hint={alerts?.stalePending.count ? tr('{{count}} der se ruke', { count: alerts.stalePending.count }) : tr('Accept karne hain')}
               onClick={() => goTab('PENDING')} active={view === 'PENDING'} />
-            <KpiCard icon={Truck} color="#0284c7" label="Chal rahe" value={tabCount('ACTIVE', counts, null, 0)} hint="Pack ya raste me"
+            <KpiCard icon={Truck} color="#0284c7" label={tr('Chal rahe')} value={tabCount('ACTIVE', counts, null, 0)} hint={tr('Pack ya raste me')}
               onClick={() => goTab('ACTIVE')} active={view === 'ACTIVE'} />
-            <KpiCard icon={Wallet} color="#ea580c" label="COD paisa baqi" value={money(codDue?.codDueValue ?? 0)} hint={`${codDue?.codDueCount ?? 0} order · dabayein`}
+            <KpiCard icon={Wallet} color="#ea580c" label={tr('COD paisa baqi')} value={money(codDue?.codDueValue ?? 0)} hint={tr('{{value}} order · dabayein', { value: codDue?.codDueCount ?? 0 })}
               onClick={() => goTab('COD_DUE')} active={view === 'COD_DUE'} />
-            <KpiCard icon={XCircle} color="#e11d48" label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order is period me`}
+            <KpiCard icon={XCircle} color="#e11d48" label={tr('Cancel / reject')} value={`${t.cancelRate}%`} hint={tr('{{cancelled}} order is period me', { cancelled: t.cancelled })}
               onClick={() => goTab('CLOSED')} active={view === 'CLOSED'} />
-            <KpiCard icon={Trophy} color="#16a34a" label="Sab se bara order" value={r?.biggest ? money(r.biggest.total) : '—'}
+            <KpiCard icon={Trophy} color="#16a34a" label={tr('Sab se bara order')} value={r?.biggest ? money(r.biggest.total) : '—'}
               hint={r?.biggest ? `${r.biggest.customerName} · #${r.biggest.number}` : undefined}
               onClick={r?.biggest ? () => open(r.biggest!.id) : undefined} />
           </>}
@@ -288,15 +289,15 @@ export default function OnlineOrdersPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             {alerts.stalePending.count > 0 && (
               <Alert tone="rose" icon={Timer}
-                title={`${alerts.stalePending.count} naya order ${alerts.staleMinutes} minute se zyada ruka hai`}
-                text="Der hone par customer cancel kar deta hai — jaldi accept karein."
+                title={tr('{{count}} naya order {{staleMinutes}} minute se zyada ruka hai', { count: alerts.stalePending.count, staleMinutes: alerts.staleMinutes })}
+                text={tr('Der hone par customer cancel kar deta hai — jaldi accept karein.')}
                 items={alerts.stalePending.oldest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${timeAgo(o.receivedAt)}` }))}
                 onPick={(id) => { goTab('PENDING'); open(id); }} />
             )}
             {alerts.cancelRequests.count > 0 && (
               <Alert tone="amber" icon={AlertTriangle}
-                title={`${alerts.cancelRequests.count} customer ne cancel maanga hai`}
-                text="Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono."
+                title={tr('{{count}} customer ne cancel maanga hai', { count: alerts.cancelRequests.count })}
+                text={tr('Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono.')}
                 items={alerts.cancelRequests.latest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${statusShort(o.orderStatus)}` }))}
                 onPick={(id) => { goTab('ALL'); open(id); }} />
             )}
@@ -305,37 +306,37 @@ export default function OnlineOrdersPage() {
 
         <FilterBar
           search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (view === 'analytics') setView('ALL'); }}
-            placeholder="Order #, naam, phone ya CN…" label="Order search" />}
+            placeholder={tr('Order #, naam, phone ya CN…')} label={tr('Order search')} />}
           chips={hasFilters ? <>
-            {pay && <FilterChip onRemove={() => setPay('')}>{pay === 'COD' ? 'Sirf COD' : 'Sirf paid'}</FilterChip>}
+            {pay && <FilterChip onRemove={() => setPay('')}>{pay === 'COD' ? tr('Sirf COD') : tr('Sirf paid')}</FilterChip>}
             {confirm && <FilterChip onRemove={() => setConfirm('')}>{CONFIRM_OPTIONS.find((c) => c.value === confirm)?.label}</FilterChip>}
-            {query && <FilterChip onRemove={() => setSearch('')}>"{query}" · har date</FilterChip>}
+            {query && <FilterChip onRemove={() => setSearch('')}>{tr('"{{query}}" · har date', { query })}</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
           {(channels?.length ?? 0) > 1 && (
-            <FilterMenu icon={Globe} label="Channel" value={channelId ?? ''} active={!!channelId} width="w-72"
+            <FilterMenu icon={Globe} label={tr('Channel')} value={channelId ?? ''} active={!!channelId} width="w-72"
               onChange={(v) => setParam('channel', v || null)}
-              options={[{ value: '', label: 'Sab channels' }, ...channels!.map((ch) => ({
+              options={[{ value: '', label: tr('Sab channels') }, ...channels!.map((ch) => ({
                 value: ch.id, label: ch.displayName, icon: brandIcon(brandForChannel(ch.type, { platform: ch.platform })),
-                hint: ch.pendingOrders ? `${ch.pendingOrders} naye` : brandLabel(brandForChannel(ch.type, { platform: ch.platform })),
+                hint: ch.pendingOrders ? tr('{{pendingOrders}} naye', { pendingOrders: ch.pendingOrders }) : brandLabel(brandForChannel(ch.type, { platform: ch.platform })),
               }))]} />
           )}
-          <FilterMenu icon={Wallet} label="Paisa" value={pay} active={!!pay} onChange={setPay} align="right"
-            options={[{ value: '' as Pay, label: 'Sab' }, { value: 'COD', label: 'Sirf COD', hint: 'Delivery par cash' }, { value: 'PAID', label: 'Sirf paid', hint: 'Paisa mil chuka' }]} />
-          <FilterMenu icon={PhoneCall} label="Confirm" value={confirm} active={!!confirm} onChange={setConfirm} align="right" options={CONFIRM_OPTIONS} />
+          <FilterMenu icon={Wallet} label={tr('Paisa')} value={pay} active={!!pay} onChange={setPay} align="right"
+            options={[{ value: '' as Pay, label: tr('Sab') }, { value: 'COD', label: tr('Sirf COD'), hint: tr('Delivery par cash') }, { value: 'PAID', label: tr('Sirf paid'), hint: tr('Paisa mil chuka') }]} />
+          <FilterMenu icon={PhoneCall} label={tr('Confirm')} value={confirm} active={!!confirm} onChange={setConfirm} align="right" options={CONFIRM_OPTIONS} />
         </FilterBar>
 
         <ViewTabs value={view} onChange={goTab}
           tabs={[
             ...ORDER_TABS.map((x) => ({ id: x.id as View, label: x.label, count: c ? tabCount(x.id, counts, c.rangeCounts, codDue?.codDueCount ?? 0) : null })),
-            { id: 'analytics' as View, label: 'Analytics', icon: BarChart3 },
+            { id: 'analytics' as View, label: tr('Analytics'), icon: BarChart3 },
           ]}
           right={view !== 'analytics' ? (
             <div className="flex items-center gap-2">
-              <span className="hidden text-[0.75rem] text-slate-500 lg:inline">{queue ? 'Is list par date nahi lagti' : query ? 'Talaash har date me' : periodText}</span>
+              <span className="hidden text-[0.75rem] text-slate-500 lg:inline">{queue ? tr('Is list par date nahi lagti') : query ? tr('Talaash har date me') : periodText}</span>
               <Button size="sm" variant={selecting ? 'inverse' : 'secondary'} leftIcon={<CheckSquare className="h-4 w-4" />} onClick={() => (selecting ? stopSelecting() : setSelecting(true))}>
-                {selecting ? 'Chhoro' : 'Kai chunein'}
+                {selecting ? tr('Chhoro') : tr('Kai chunein')}
               </Button>
             </div>
           ) : undefined} />
@@ -347,15 +348,15 @@ export default function OnlineOrdersPage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
         ) : listQ.isError && !orders.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Orders load nahi hue</p>
-            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+            <p className="font-semibold text-slate-900">{tr('Orders load nahi hue')}</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !orders.length ? (
           <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">{query ? `"${query}" se koi order nahi mila` : tab === 'PENDING' ? 'Koi naya order nahi' : 'Is list me koi order nahi'}</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">{tab === 'PENDING' ? 'Naya order aate hi ghanti bajegi aur yahan dikhega.' : 'Date ya filter badal kar dekhein.'}</p>
-            {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>Filter hatayein</Button>}
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{query ? tr('"{{query}}" se koi order nahi mila', { query }) : tab === 'PENDING' ? tr('Koi naya order nahi') : tr('Is list me koi order nahi')}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tab === 'PENDING' ? tr('Naya order aate hi ghanti bajegi aur yahan dikhega.') : tr('Date ya filter badal kar dekhein.')}</p>
+            {hasFilters && <Button className="mt-4" variant="secondary" onClick={clear}>{tr('Filter hatayein')}</Button>}
           </div>
         ) : (
           <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -363,7 +364,7 @@ export default function OnlineOrdersPage() {
               <label className="flex items-center gap-2 border-b border-slate-100 px-4 py-2.5 text-[0.8125rem] font-medium text-slate-600 sm:px-5">
                 <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={orders.every((o) => picked.has(o.id))}
                   onChange={(e) => setPicked(e.target.checked ? new Set(orders.map((o) => o.id)) : new Set())} />
-                Dikhaye gaye sab {orders.length} chunein
+                {tr('Dikhaye gaye sab {{count}} chunein', { count: orders.length })}
               </label>
             )}
             <ul className="divide-y divide-slate-100 [&>li:first-child]:rounded-t-3xl [&>li:last-child]:rounded-b-3xl">
@@ -378,39 +379,39 @@ export default function OnlineOrdersPage() {
         {view !== 'analytics' && listQ.hasNextPage && (
           <button type="button" onClick={() => void listQ.fetchNextPage()} disabled={listQ.isFetchingNextPage}
             className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
-            {listQ.isFetchingNextPage ? 'Aa rahe hain…' : `Aur orders dikhayein (${orders.length} / ${total})`}
+            {listQ.isFetchingNextPage ? tr('Aa rahe hain…') : tr('Aur orders dikhayein ({{count}} / {{total}})', { count: orders.length, total })}
           </button>
         )}
-        {salesHidden && <p className="text-center text-[0.75rem] text-slate-400">Amount chhupi hai — upar aankh wale button se dikhayein</p>}
+        {salesHidden && <p className="text-center text-[0.75rem] text-slate-400">{tr('Amount chhupi hai — upar aankh wale button se dikhayein')}</p>}
       </>)}
 
       {selectedId && <OrderDrawer orderId={selectedId} onClose={() => open(null)} onStep={view !== 'analytics' && orders.length > 1 ? step : undefined} />}
       {cancelTarget && (
         <CancelOrderModal open hasBill={!!cancelTarget.nafaaSaleId} loading={actions.pending}
-          title={cancelTarget.orderStatus === 'PENDING' ? `#${orderNo(cancelTarget)} reject karein?` : `#${orderNo(cancelTarget)} cancel karein?`}
+          title={cancelTarget.orderStatus === 'PENDING' ? tr('#{{cancelTarget}} reject karein?', { cancelTarget: orderNo(cancelTarget) }) : tr('#{{cancelTarget}} cancel karein?', { cancelTarget: orderNo(cancelTarget) })}
           onClose={() => setCancelTarget(null)}
           onConfirm={(reason) => { actions.run(cancelTarget, { kind: 'cancel', reason }); setCancelTarget(null); }} />
       )}
       <BulkBar orders={orders} picked={picked} onClear={stopSelecting} onKeep={(ids) => setPicked(new Set(ids))} />
 
       {guide.isOpen && (
-        <PageGuide title="Online orders — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Online orders — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Zap, color: '#d97706', title: 'Naya order', text: `Ghanti bajti hai aur "Naye" me dikhta hai. ${alerts?.staleMinutes ?? 15} minute se zyada ruka ho to laal warning aati hai.` },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Accept', text: 'Accept dabate hi bill aur receipt ban jati hai aur stock kam ho jata hai. Reject par kuch nahi katta.' },
-            { icon: Truck, color: '#0284c7', title: 'Order ka safar', text: 'Naya → Accept → Packing → Ready → Raste me → Delivered. Har order par agla qadam ka button hai; "…" me courier booking, label aur invoice.' },
-            { icon: MousePointerClick, color: '#7c3aed', title: 'Order kholein', text: 'Order par click karein: items, customer, payment, courier aur sab buttons. J aur K se agla / pichla.' },
-            { icon: ListChecks, color: '#0891b2', title: 'Kai orders ek saath', text: '"Kai chunein" dabayein: accept, confirm, agla qadam, courier booking, invoice print ya cancel — ek dafa me.' },
-            { icon: Wallet, color: '#ea580c', title: 'COD baqi', text: 'Parcel pohanch gaya magar paisa courier se nahi aaya — "COD baqi" me rehta hai. Settlement "COD & courier" safhe par.' },
+            { icon: Zap, color: '#d97706', title: tr('Naya order'), text: tr('Ghanti bajti hai aur "Naye" me dikhta hai. {{value}} minute se zyada ruka ho to laal warning aati hai.', { value: alerts?.staleMinutes ?? 15 }) },
+            { icon: CheckCircle2, color: '#16a34a', title: tr('Accept'), text: tr('Accept dabate hi bill aur receipt ban jati hai aur stock kam ho jata hai. Reject par kuch nahi katta.') },
+            { icon: Truck, color: '#0284c7', title: tr('Order ka safar'), text: tr('Naya → Accept → Packing → Ready → Raste me → Delivered. Har order par agla qadam ka button hai; "…" me courier booking, label aur invoice.') },
+            { icon: MousePointerClick, color: '#7c3aed', title: tr('Order kholein'), text: tr('Order par click karein: items, customer, payment, courier aur sab buttons. J aur K se agla / pichla.') },
+            { icon: ListChecks, color: '#0891b2', title: tr('Kai orders ek saath'), text: tr('"Kai chunein" dabayein: accept, confirm, agla qadam, courier booking, invoice print ya cancel — ek dafa me.') },
+            { icon: Wallet, color: '#ea580c', title: tr('COD baqi'), text: tr('Parcel pohanch gaya magar paisa courier se nahi aaya — "COD baqi" me rehta hai. Settlement "COD & courier" safhe par.') },
           ]}
           tips={[
-            '"Naye", "Chal rahe" aur "COD baqi" par date nahi lagti — koi purana ruka order chhupe na.',
-            'Talaash (search) har date me dhoondti hai.',
-            'Test order analytics aur report me nahi gine jate.',
-            'Laal "Customer ne cancel maanga" wala order bhejne se pehle zaroor dekhein.',
+            tr('"Naye", "Chal rahe" aur "COD baqi" par date nahi lagti — koi purana ruka order chhupe na.'),
+            tr('Talaash (search) har date me dhoondti hai.'),
+            tr('Test order analytics aur report me nahi gine jate.'),
+            tr('Laal "Customer ne cancel maanga" wala order bhejne se pehle zaroor dekhein.'),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['N', 'naye'], ['A', 'analytics'], ['S', 'kai chunein'], ['J', 'agla'], ['K', 'pichla'], ['R', 'taaza'], ['G', 'guide']]}
-          footer={<Link to="/online-orders/reports" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Poori online report →</Link>}
+          shortcuts={[['/', 'dhoondein'], ['N', 'naye'], ['A', 'analytics'], ['S', tr('kai chunein')], ['J', 'agla'], ['K', 'pichla'], ['R', 'taaza'], ['G', 'guide']]}
+          footer={<Link to="/online-orders/reports" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Poori online report →')}</Link>}
         />
       )}
     </PageShell>
@@ -446,10 +447,9 @@ function FirstRun({ hasChannels }: { hasChannels: boolean }) {
     return (
       <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
-        <h3 className="mt-4 text-lg font-semibold text-slate-900">{branch ? `${branch} me abhi koi online order nahi` : 'Abhi koi online order nahi'}</h3>
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">{branch ? tr('{{branch}} me abhi koi online order nahi', { branch }) : tr('Abhi koi online order nahi')}</h3>
         <p className="mt-1 max-w-lg text-[0.875rem] text-slate-500">
-          Channel jura hua hai — naya order aate hi yahan aayega aur ghanti bajegi.
-          {branch && (shops?.length ?? 0) > 1 && ' Doosri branch ke orders dekhne ke liye upar se branch badlein.'}
+          {tr('Channel jura hua hai — naya order aate hi yahan aayega aur ghanti bajegi.{{value}}', { value: branch && (shops?.length ?? 0) > 1 ? tr(' Doosri branch ke orders dekhne ke liye upar se branch badlein.') : '' })}
         </p>
       </div>
     );
@@ -459,12 +459,12 @@ function FirstRun({ hasChannels }: { hasChannels: boolean }) {
       <span className="mx-auto flex w-fit items-center gap-2">
         {(['shopify', 'woocommerce', 'daraz', 'foodpanda', 'website'] as const).map((b) => <BrandLogo key={b} name={b} size={40} />)}
       </span>
-      <h3 className="mt-4 text-lg font-semibold text-slate-900">Abhi koi online order nahi aaya</h3>
+      <h3 className="mt-4 text-lg font-semibold text-slate-900">{tr('Abhi koi online order nahi aaya')}</h3>
       <p className="mx-auto mt-1 max-w-lg text-[0.875rem] text-slate-500">
-        Apni website, Shopify, WooCommerce, Daraz ya Foodpanda Nafaa se jodein — 2 minute ka kaam hai. Phir har order yahan aayega, ghanti bajegi aur ek click me bill banega.
+        {tr('Apni website, Shopify, WooCommerce, Daraz ya Foodpanda Nafaa se jodein — 2 minute ka kaam hai. Phir har order yahan aayega, ghanti bajegi aur ek click me bill banega.')}
       </p>
-      <div className="mx-auto mt-5 grid max-w-2xl gap-2 text-left sm:grid-cols-3">
-        {[['1', 'Channel jodein', 'Plugin, app ya link'], ['2', 'Test order bhejein', 'TEST ka nishan lagta hai'], ['3', 'Accept karein', 'Bill aur stock khud']].map(([n, title, d]) => (
+      <div className="mx-auto mt-5 grid max-w-2xl gap-2 text-start sm:grid-cols-3">
+        {[['1', tr('Channel jodein'), tr('Plugin, app ya link')], ['2', tr('Test order bhejein'), tr('TEST ka nishan lagta hai')], ['3', tr('Accept karein'), tr('Bill aur stock khud')]].map(([n, title, d]) => (
           <div key={n} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-inset ring-brand-100">{n}</span>
             <p className="mt-1.5 text-[0.875rem] font-semibold text-slate-900">{title}</p>
@@ -472,7 +472,7 @@ function FirstRun({ hasChannels }: { hasChannels: boolean }) {
           </div>
         ))}
       </div>
-      <Link to="/online-store/connect"><Button className="mt-5" leftIcon={<Globe className="h-4 w-4" />}>Channel jodein</Button></Link>
+      <Link to="/online-store/connect"><Button className="mt-5" leftIcon={<Globe className="h-4 w-4" />}>{tr('Channel jodein')}</Button></Link>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export function ChoiceGrid<T extends string>({ label, value, options, onChange, 
             aria-checked={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              'group relative flex flex-col overflow-hidden rounded-xl border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+              'group relative flex flex-col overflow-hidden rounded-xl border text-start transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
               active ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300',
             )}
           >

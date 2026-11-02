@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertVehicleModelDto } from './dto/upsert-vehicle-model.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class VehicleModelsService {
@@ -15,7 +16,7 @@ export class VehicleModelsService {
     if (!name) throw new BadRequestException('Model ka naam likhein');
     if (dto.yearFrom && dto.yearTo && dto.yearFrom > dto.yearTo) throw new BadRequestException('Saal "se" saal "tak" se bara hai');
     const dup = await this.prisma.vehicleModel.findFirst({ where: { tenantId: user.tenantId, makeId: dto.makeId, name: { equals: name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`Model "${name}" is company me pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Model "{{name}}" is company me pehle se hai', { name }));
 
     return this.prisma.vehicleModel.create({ data: { tenantId: user.tenantId, ...dto, name } });
   }
@@ -52,7 +53,7 @@ export class VehicleModelsService {
     }
     const name = dto.name?.trim() || m.name;
     const dup = await this.prisma.vehicleModel.findFirst({ where: { tenantId: user.tenantId, makeId, name, id: { not: id } }, select: { id: true } });
-    if (dup) throw new BadRequestException(`Model "${name}" is company me pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Model "{{name}}" is company me pehle se hai', { name }));
     if (dto.yearFrom && dto.yearTo && dto.yearFrom > dto.yearTo) throw new BadRequestException('Saal "se" saal "tak" se bara hai');
     return this.prisma.vehicleModel.update({ where: { id }, data: { ...dto, makeId, name } });
   }

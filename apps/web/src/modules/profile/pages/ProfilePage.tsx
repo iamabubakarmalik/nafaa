@@ -20,6 +20,7 @@ import { AccountSecurity } from '../components/AccountSecurity';
 import { ActiveSessions } from '../components/ActiveSessions';
 import { Preferences } from '../components/Preferences';
 import { ROLE, day } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'profile' | 'security' | 'devices' | 'preferences';
 const TABS: Tab[] = ['profile', 'security', 'devices', 'preferences'];
@@ -56,7 +57,7 @@ export default function ProfilePage() {
     const { refreshToken, logout: clear } = useAuthStore.getState();
     try { if (refreshToken) await authApi.logout(refreshToken); } catch { /* the local sign-out still happens */ }
     clear();
-    toast.success('Logout ho gaya');
+    toast.success(tr('Logout ho gaya'));
     navigate('/login');
   };
 
@@ -67,9 +68,9 @@ export default function ProfilePage() {
     <PageShell>
       {guide.isOpen && <ProfileGuide onClose={guide.close} />}
       {confirmLogout && (
-        <Modal open onClose={() => setConfirmLogout(false)} size="sm" title="Logout karein?" description="Is device se login khatam ho jayega. Data mehfooz rahega."
-          footer={<><Button variant="secondary" onClick={() => setConfirmLogout(false)}>Wapas</Button><Button variant="danger" onClick={() => void logout()}><LogOut className="h-4 w-4" /> Logout</Button></>}>
-          <p className="text-[0.8125rem] text-slate-600">Dobara aane ke liye email aur password (ya Google) chahiye hoga.</p>
+        <Modal open onClose={() => setConfirmLogout(false)} size="sm" title={tr('Logout karein?')} description={tr('Is device se login khatam ho jayega. Data mehfooz rahega.')}
+          footer={<><Button variant="secondary" onClick={() => setConfirmLogout(false)}>{tr('Wapas')}</Button><Button variant="danger" onClick={() => void logout()}><LogOut className="h-4 w-4 rtl-flip" /> {' '}{tr('Logout')}</Button></>}>
+          <p className="text-[0.8125rem] text-slate-600">{tr('Dobara aane ke liye email aur password (ya Google) chahiye hoga.')}</p>
         </Modal>
       )}
 
@@ -83,27 +84,27 @@ export default function ProfilePage() {
         chip={<><role.icon />{role.label}</>}
         subtitle={(
           <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
-            <span className="inline-flex min-w-0 items-center gap-1"><Mail className="h-3.5 w-3.5 shrink-0" aria-hidden /><span className="truncate">{user.email}</span>{user.emailVerified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-white" aria-label="Verified" />}</span>
+            <span className="inline-flex min-w-0 items-center gap-1"><Mail className="h-3.5 w-3.5 shrink-0" aria-hidden /><span className="truncate">{user.email}</span>{user.emailVerified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-white" aria-label={tr('Verified')} />}</span>
             {tenant?.name && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden />{tenant.name}{user.assignedShop?.name ? ` · ${user.assignedShop.name}` : ''}</span>}
-            <span>Kab se: {day(user.createdAt)}</span>
+            <span>{tr('Kab se: {{createdAt}}', { createdAt: day(user.createdAt) })}</span>
           </span>
         )}
         actions={(
           <>
-            <button type="button" onClick={edit} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" /> Badlein</button>
-            <button type="button" onClick={() => setTab('security')} className={heroButton}><KeyRound className="h-4 w-4" /> Password</button>
-            <button type="button" onClick={() => setConfirmLogout(true)} className={heroButton}><LogOut className="h-4 w-4" /> Logout</button>
-            <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+            <button type="button" onClick={edit} title={tr('Badlein (E)')} className={heroPrimaryButton}><Pencil className="h-4 w-4" /> {' '}{tr('Badlein')}</button>
+            <button type="button" onClick={() => setTab('security')} className={heroButton}><KeyRound className="h-4 w-4" /> {' '}{tr('Password')}</button>
+            <button type="button" onClick={() => setConfirmLogout(true)} className={heroButton}><LogOut className="h-4 w-4 rtl-flip" /> {' '}{tr('Logout')}</button>
+            <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           </>
         )}
       />
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>4</Kbd> se badlein</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>4</Kbd> {' '}{tr('se badlein')}</>}
         tabs={[
-          { id: 'profile', label: 'Profile', icon: UserRound },
-          { id: 'security', label: 'Hifazat', icon: Shield },
-          { id: 'devices', label: 'Devices', icon: MonitorSmartphone },
-          { id: 'preferences', label: 'Pasand', icon: Settings2 },
+          { id: 'profile', label: tr('Profile'), icon: UserRound },
+          { id: 'security', label: tr('Hifazat'), icon: Shield },
+          { id: 'devices', label: tr('Devices'), icon: MonitorSmartphone },
+          { id: 'preferences', label: tr('Pasand'), icon: Settings2 },
         ]} />
 
       {tab === 'profile' && <ProfileInfo user={user} tenantName={tenant?.name} focusKey={focusKey} />}
@@ -116,16 +117,16 @@ export default function ProfilePage() {
 
 function ProfileGuide({ onClose }: { onClose: () => void }) {
   return (
-    <PageGuide title="Meri profile — aasaan tareeqa" onClose={onClose}
+    <PageGuide title={tr('Meri profile — aasaan tareeqa')} onClose={onClose}
       steps={[
-        { icon: UserRound, color: '#2563eb', title: 'Naam aur phone', text: 'Profile tab me naam, phone aur tasveer badlein, phir "Save karein".' },
-        { icon: KeyRound, color: '#7c3aed', title: 'Password', text: 'Hifazat tab se password badlein. Saath hi baqi devices se logout bhi ho sakta hai.' },
-        { icon: Shield, color: '#16a34a', title: 'Email aur PIN', text: 'Email verify karein. Malik apna PIN yahin se laga ya badal sakta hai.' },
-        { icon: MonitorSmartphone, color: '#d97706', title: 'Devices', text: 'Kahan kahan login hai, aur kis ne kab login ki koshish ki. Anjaan device ko logout karein.' },
-        { icon: Settings2, color: '#0891b2', title: 'Pasand', text: 'Din ya raat ka theme, aur rang, print aur notifications ki settings.' },
+        { icon: UserRound, color: '#2563eb', title: tr('Naam aur phone'), text: tr('Profile tab me naam, phone aur tasveer badlein, phir "Save karein".') },
+        { icon: KeyRound, color: '#7c3aed', title: tr('Password'), text: tr('Hifazat tab se password badlein. Saath hi baqi devices se logout bhi ho sakta hai.') },
+        { icon: Shield, color: '#16a34a', title: tr('Email aur PIN'), text: tr('Email verify karein. Malik apna PIN yahin se laga ya badal sakta hai.') },
+        { icon: MonitorSmartphone, color: '#d97706', title: tr('Devices'), text: tr('Kahan kahan login hai, aur kis ne kab login ki koshish ki. Anjaan device ko logout karein.') },
+        { icon: Settings2, color: '#0891b2', title: tr('Pasand'), text: tr('Din ya raat ka theme, aur rang, print aur notifications ki settings.') },
       ]}
-      tips={['Phone gum ho jaye to Devices tab se "Baqi sab se logout" karein aur password badal lein.']}
-      shortcuts={[['1-4', 'tabs'], ['E', 'badlein'], ['G', 'guide']]}
+      tips={[tr('Phone gum ho jaye to Devices tab se "Baqi sab se logout" karein aur password badal lein.')]}
+      shortcuts={[['1-4', tr('tabs')], ['E', tr('badlein')], ['G', tr('guide')]]}
     />
   );
 }

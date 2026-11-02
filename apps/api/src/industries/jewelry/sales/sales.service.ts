@@ -12,6 +12,7 @@ import { SalesService as CoreSalesService } from '../../../modules/sales/sales/s
 import { ShopScope } from '../../../common/shop-scope';
 import { PURITY_FACTOR, metalTypeForPurity, postMetalEntry } from '../common/metal-ledger';
 import { AddPaymentDto, CreateJewelrySaleDto, UpdateSaleStatusDto } from './dto/create-sale.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -73,7 +74,7 @@ export class SalesService implements OnModuleInit {
       const netWeight = Number(it.netWeight) || 0;
       const rate = Number(it.ratePerGram) || 0;
       const quantity = Math.max(1, Math.round(Number(it.quantity) || 1));
-      if (netWeight < 0 || rate < 0) throw new BadRequestException(`${it.productName}: weight ya rate ghalat hai`);
+      if (netWeight < 0 || rate < 0) throw new BadRequestException(apiMessage('{{productName}}: weight ya rate ghalat hai', { productName: it.productName }));
 
       const metalValue = r2(netWeight * rate);
       const makingCharge = r2(
@@ -295,7 +296,7 @@ export class SalesService implements OnModuleInit {
       select: { id: true, exchangeNumber: true, netWeight: true, grossWeight: true, testedPurity: true, claimedPurity: true },
     });
     const missing = codes.find((c) => !rows.some((r) => r.exchangeNumber.toUpperCase() === c.toUpperCase()));
-    if (missing) throw new BadRequestException(`Purana sona ${missing} nahi mila ya pehle hi kisi bill par lag chuka hai`);
+    if (missing) throw new BadRequestException(apiMessage('Purana sona {{missing}} nahi mila ya pehle hi kisi bill par lag chuka hai', { missing }));
     return codes.map((c) => rows.find((r) => r.exchangeNumber.toUpperCase() === c.toUpperCase())!);
   }
 

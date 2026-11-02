@@ -2,6 +2,7 @@ import { useDesktop } from '@core/lib/desktop/useDesktop';
 import { useOfflineStatus } from '@core/hooks/useOfflineStatus';
 import { Wifi, WifiOff, RefreshCw, Zap, HardDrive } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { t } from '@core/i18n';
 
 /**
  * Bottom status bar — shows only in Electron desktop app.
@@ -13,7 +14,7 @@ export function DesktopStatusBar() {
 
   if (!isDesktop) return null;
 
-  const platformLabel = platform === 'darwin' ? 'macOS' : platform === 'win32' ? 'Windows' : 'Linux';
+  const platformLabel = platform === 'darwin' ? 'macOS' : platform === 'win32' ? t('Windows') : t('Linux');
 
   return (
     <div className="h-7 flex items-center px-3 border-t border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-900 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-400 print:hidden select-none">
@@ -22,12 +23,12 @@ export function DesktopStatusBar() {
         {status.isOnline ? (
           <>
             <Wifi className="h-3 w-3 text-emerald-600" />
-            <span className="text-emerald-700 dark:text-emerald-400">Online</span>
+            <span className="text-emerald-700 dark:text-emerald-400">{t('Online')}</span>
           </>
         ) : (
           <>
             <WifiOff className="h-3 w-3 text-amber-600" />
-            <span className="text-amber-700 dark:text-amber-400">Offline</span>
+            <span className="text-amber-700 dark:text-amber-400">{t('Offline')}</span>
           </>
         )}
       </div>
@@ -38,7 +39,7 @@ export function DesktopStatusBar() {
       {status.isSyncing ? (
         <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
           <RefreshCw className="h-3 w-3 animate-spin" />
-          <span>Syncing…</span>
+          <span>{t('Syncing…')}</span>
           {status.progress && status.progress.total > 0 && (
             <span className="text-slate-500">
               {status.progress.done}/{status.progress.total}
@@ -51,7 +52,7 @@ export function DesktopStatusBar() {
           className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 hover:underline"
         >
           <Zap className="h-3 w-3" />
-          <span>{status.pendingSales + status.pendingQueue} pending</span>
+          <span>{t('{{value}} pending', { value: status.pendingSales + status.pendingQueue })}</span>
         </Link>
       ) : (
         <Link
@@ -59,12 +60,12 @@ export function DesktopStatusBar() {
           className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 hover:underline"
         >
           <HardDrive className="h-3 w-3" />
-          <span>All synced</span>
+          <span>{t('All synced')}</span>
         </Link>
       )}
 
       {/* Right — version */}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ms-auto flex items-center gap-2">
         <span className="opacity-70">{platformLabel} ({arch})</span>
         <span className="opacity-30">|</span>
         <span className="font-mono">v{version || '…'}</span>

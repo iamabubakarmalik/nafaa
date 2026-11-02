@@ -29,6 +29,7 @@ import { LoginSlipModal } from '../components/LoginSlipModal';
 import { useRoleDefaults } from '../components/PermissionPicker';
 import type { LoginSlip } from '../components/print';
 import { AFFECTED_KEYS, ASSIGNABLE, PEOPLE_KEY, ROLES, SALARY_TYPES, apiError, salaryTypeOf, type AssignableRole } from '../components/meta';
+import { t } from '@core/i18n';
 
 interface Hr {
   fullName: string; fatherName: string; gender: '' | StaffGender; dateOfBirth: string; cnic: string; phone: string; altPhone: string; email: string;
@@ -109,15 +110,15 @@ export default function StaffFormPage() {
   const roleChanged = editsLogin && loginEdit.role !== login!.role;
   const problems = useMemo(() => {
     const out: string[] = [];
-    if (!hr.fullName.trim()) out.push('Naam likhein');
-    if (!hr.phone.trim()) out.push('Phone number likhein');
-    if (!hr.designation.trim()) out.push('Kaam (designation) likhein');
-    if (!hr.joinDate) out.push('Joining ki date chunein');
-    if (hr.email.trim() && !/^\S+@\S+\.\S+$/.test(hr.email.trim())) out.push('Email theek nahi');
-    if (hr.cnic.trim() && hr.cnic.replace(/\D/g, '').length !== 13) out.push('CNIC 13 hindsay ka hota hai');
+    if (!hr.fullName.trim()) out.push(t('Naam likhein'));
+    if (!hr.phone.trim()) out.push(t('Phone number likhein'));
+    if (!hr.designation.trim()) out.push(t('Kaam (designation) likhein'));
+    if (!hr.joinDate) out.push(t('Joining ki date chunein'));
+    if (hr.email.trim() && !/^\S+@\S+\.\S+$/.test(hr.email.trim())) out.push(t('Email theek nahi'));
+    if (hr.cnic.trim() && hr.cnic.replace(/\D/g, '').length !== 13) out.push(t('CNIC 13 hindsay ka hota hai'));
     if (!editing && giveLogin) { const lp = loginProblem(draft); if (lp) out.push(lp); }
-    if (editsLogin && (loginEdit.role === 'MANAGER' || loginEdit.role === 'CASHIER') && !loginEdit.shopId) out.push(`${ROLES[loginEdit.role].label} ke liye branch chunein`);
-    if (editsLogin && !/^\S+@\S+\.\S+$/.test(loginEdit.email.trim())) out.push('Login email theek nahi');
+    if (editsLogin && (loginEdit.role === 'MANAGER' || loginEdit.role === 'CASHIER') && !loginEdit.shopId) out.push(t('{{label}} ke liye branch chunein', { label: ROLES[loginEdit.role].label }));
+    if (editsLogin && !/^\S+@\S+\.\S+$/.test(loginEdit.email.trim())) out.push(t('Login email theek nahi'));
     return out;
   }, [hr, editing, giveLogin, draft, editsLogin, loginEdit]);
 
@@ -154,20 +155,20 @@ export default function StaffFormPage() {
     onSuccess: (r) => {
       AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       if (r.kind === 'invite') {
-        toast.success(r.res.linked === 'matched' ? 'Login ban gaya aur purane HR record se jur gaya' : 'Login aur HR record ban gaye');
-        if (!r.detailsSaved) toast.error('Kuch details (CNIC, bank waghera) save nahi hui — profile se dobara bharein');
-        if (draft.sendEmail && !r.res.emailSent) toast.error('Email nahi gaya — parchi ya WhatsApp se dein');
+        toast.success(r.res.linked === 'matched' ? t('Login ban gaya aur purane HR record se jur gaya') : t('Login aur HR record ban gaye'));
+        if (!r.detailsSaved) toast.error(t('Kuch details (CNIC, bank waghera) save nahi hui — profile se dobara bharein'));
+        if (draft.sendEmail && !r.res.emailSent) toast.error(t('Email nahi gaya — parchi ya WhatsApp se dein'));
         setSlip({
           slip: { name: r.res.fullName, email: r.res.email, password: draft.password, role: ROLES[draft.role].label, branch: shops.find((s) => s.id === draft.shopId)?.name ?? null },
           phone: hr.phone, next: `/staff/${r.res.staffId}`,
         });
         return;
       }
-      if (r.kind === 'hr') { toast.success(`${r.staff.fullName} jur gaya (${r.staff.staffNumber})`); navigate(`/staff/${r.staff.id}`); return; }
-      toast.success(roleChanged ? 'Save ho gaya — naye role ke liye banda dobara login karega' : 'Save ho gaya');
+      if (r.kind === 'hr') { toast.success(t('{{fullName}} jur gaya ({{staffNumber}})', { fullName: r.staff.fullName, staffNumber: r.staff.staffNumber })); navigate(`/staff/${r.staff.id}`); return; }
+      toast.success(roleChanged ? t('Save ho gaya — naye role ke liye banda dobara login karega') : t('Save ho gaya'));
       navigate(`/staff/${r.staffId ?? id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
     onSettled: () => { lock.current = false; },
   });
   const submit = () => { if (lock.current || save.isPending) return; lock.current = true; save.mutate(); };
@@ -182,7 +183,7 @@ export default function StaffFormPage() {
   });
 
   if (editing && profileQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
-  if (editing && !prof) return <PageShell><Card><EmptyState title="Yeh banda nahi mila" action={<Button variant="secondary" onClick={() => navigate('/staff')}>Staff par wapas</Button>} /></Card></PageShell>;
+  if (editing && !prof) return <PageShell><Card><EmptyState title={t('Yeh banda nahi mila')} action={<Button variant="secondary" onClick={() => navigate('/staff')}>{t('Staff par wapas')}</Button>} /></Card></PageShell>;
 
   const salary = Number(hr.baseSalary) || 0;
   const st = salaryTypeOf(hr.salaryType);
@@ -192,44 +193,44 @@ export default function StaffFormPage() {
     <PageShell>
       <PageHero
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        title={editing ? `${prof?.person.fullName} — badlein` : 'Naya banda'}
-        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, kaam aur tankhwah. App chalana hai to login bhi yahin dein.'}
-        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        backLabel={t('Wapas (Esc)')}
+        title={editing ? t('{{fullName}} — badlein', { fullName: prof?.person.fullName }) : t('Naya banda')}
+        subtitle={editing ? t('Jo badalna hai badlein — baqi waisa hi rahega') : t('Naam, kaam aur tankhwah. App chalana hai to login bhi yahin dein.')}
+        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{t('save')}</span>}
       />
 
-      {hrLocked && <Alert tone="warning">HR record badalne ke liye "Staff sambhalna" ki permission chahiye. Aap sirf dekh sakte hain.</Alert>}
+      {hrLocked && <Alert tone="warning">{t('HR record badalne ke liye "Staff sambhalna" ki permission chahiye. Aap sirf dekh sakte hain.')}</Alert>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Bunyadi details</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Bunyadi details')}</T>}>
             <fieldset disabled={hrLocked} className="space-y-4">
               <div className="flex flex-wrap items-start gap-4">
                 <AvatarUpload value={hr.avatarUrl || null} onChange={(u) => set('avatarUrl', u ?? '')} purpose="avatar" size="md" fallbackText={hr.fullName || 'N'} />
                 <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
-                  <Input label="Poora naam" required value={hr.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Bilal Ahmad" maxLength={100} hint="Bill, parchi aur tankhwah par yahi naam chhapta hai" />
-                  <Input label="Walid ka naam" value={hr.fatherName} onChange={(e) => set('fatherName', e.target.value)} placeholder="Ahmad Ali" hint="Marzi hai — pehchaan ke liye" />
+                  <Input label={t('Poora naam')} required value={hr.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder={t('Bilal Ahmad')} maxLength={100} hint={t('Bill, parchi aur tankhwah par yahi naam chhapta hai')} />
+                  <Input label={t('Walid ka naam')} value={hr.fatherName} onChange={(e) => set('fatherName', e.target.value)} placeholder={t('Ahmad Ali')} hint={t('Marzi hai — pehchaan ke liye')} />
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Phone" required inputMode="tel" value={hr.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} hint="Call aur WhatsApp isi par. Login wale ka phone doosre login par nahi ho sakta." />
-                <Input label="Doosra phone" inputMode="tel" value={hr.altPhone} onChange={(e) => set('altPhone', e.target.value)} placeholder="Ghar ka number" hint="Marzi hai" />
-                <Input label="Email" type="email" value={hr.email} onChange={(e) => set('email', e.target.value)} placeholder="bilal@gmail.com" hint={giveLogin ? 'HR record ka email. Login ka email neeche alag hai.' : 'Marzi hai'} />
-                <Input label="CNIC" inputMode="numeric" value={hr.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" hint="13 hindsay. Ek CNIC do record par nahi ho sakta." />
-                <Select label="Jins" value={hr.gender} onChange={(e) => set('gender', e.target.value as Hr['gender'])}
-                  options={[{ value: '', label: '—' }, { value: 'MALE', label: 'Mard' }, { value: 'FEMALE', label: 'Aurat' }, { value: 'OTHER', label: 'Doosra' }]} hint="Marzi hai" />
-                <Input label="Paidaish ki date" type="date" value={hr.dateOfBirth} max={today()} onChange={(e) => set('dateOfBirth', e.target.value)} hint="Marzi hai" />
-                <Input label="Pata" value={hr.address} onChange={(e) => set('address', e.target.value)} placeholder="Gali, mohalla" hint="Marzi hai" />
-                <Input label="Shehar" value={hr.city} onChange={(e) => set('city', e.target.value)} placeholder="Lahore" hint="Marzi hai" />
+                <Input label={t('Phone')} required inputMode="tel" value={hr.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} hint={t('Call aur WhatsApp isi par. Login wale ka phone doosre login par nahi ho sakta.')} />
+                <Input label={t('Doosra phone')} inputMode="tel" value={hr.altPhone} onChange={(e) => set('altPhone', e.target.value)} placeholder={t('Ghar ka number')} hint={t('Marzi hai')} />
+                <Input label={t('Email')} type="email" value={hr.email} onChange={(e) => set('email', e.target.value)} placeholder="bilal@gmail.com" hint={giveLogin ? t('HR record ka email. Login ka email neeche alag hai.') : t('Marzi hai')} />
+                <Input label={t('CNIC')} inputMode="numeric" value={hr.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" hint={t('13 hindsay. Ek CNIC do record par nahi ho sakta.')} />
+                <Select label={t('Jins')} value={hr.gender} onChange={(e) => set('gender', e.target.value as Hr['gender'])}
+                  options={[{ value: '', label: '—' }, { value: 'MALE', label: t('Mard') }, { value: 'FEMALE', label: t('Aurat') }, { value: 'OTHER', label: t('Doosra') }]} hint={t('Marzi hai')} />
+                <Input label={t('Paidaish ki date')} type="date" value={hr.dateOfBirth} max={today()} onChange={(e) => set('dateOfBirth', e.target.value)} hint={t('Marzi hai')} />
+                <Input label={t('Pata')} value={hr.address} onChange={(e) => set('address', e.target.value)} placeholder={t('Gali, mohalla')} hint={t('Marzi hai')} />
+                <Input label={t('Shehar')} value={hr.city} onChange={(e) => set('city', e.target.value)} placeholder={t('Lahore')} hint={t('Marzi hai')} />
               </div>
             </fieldset>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Briefcase}>Kaam</T>}>
+          <Card className="rounded-2xl" title={<T icon={Briefcase}>{t('Kaam')}</T>}>
             <fieldset disabled={hrLocked} className="space-y-3">
               <div>
-                <Input label="Kaam (designation)" required value={hr.designation} onChange={(e) => set('designation', e.target.value)} placeholder="Cashier" maxLength={80}
-                  hint="Dukaan me kya karta hai. Yeh role nahi — role login ke saath hai." />
+                <Input label={t('Kaam (designation)')} required value={hr.designation} onChange={(e) => set('designation', e.target.value)} placeholder={t('Cashier')} maxLength={80}
+                  hint={t('Dukaan me kya karta hai. Yeh role nahi — role login ke saath hai.')} />
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {JOBS.map((j) => (
                     <button key={j} type="button" onClick={() => set('designation', j)} className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', hr.designation === j ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>{j}</button>
@@ -237,38 +238,38 @@ export default function StaffFormPage() {
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Shoba" value={hr.department} onChange={(e) => set('department', e.target.value)} placeholder="Sales" hint="Marzi hai — maslan Sales, Godown" />
-                <Input label="Joining" required type="date" value={hr.joinDate} max={today()} onChange={(e) => set('joinDate', e.target.value)} hint="Kab se kaam par hai" />
-                <Select label="Branch" value={hr.shopId} onChange={(e) => set('shopId', e.target.value)} options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name }))]}
-                  hint={giveLogin || login ? 'HR ki branch. Login ki branch alag set hoti hai.' : 'Kahan kaam karta hai'} />
+                <Input label={t('Shoba')} value={hr.department} onChange={(e) => set('department', e.target.value)} placeholder={t('Sales')} hint={t('Marzi hai — maslan Sales, Godown')} />
+                <Input label={t('Joining')} required type="date" value={hr.joinDate} max={today()} onChange={(e) => set('joinDate', e.target.value)} hint={t('Kab se kaam par hai')} />
+                <Select label={t('Branch')} value={hr.shopId} onChange={(e) => set('shopId', e.target.value)} options={[{ value: '', label: t('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name }))]}
+                  hint={giveLogin || login ? t('HR ki branch. Login ki branch alag set hoti hai.') : t('Kahan kaam karta hai')} />
               </div>
             </fieldset>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Tankhwah</T>} description="Tankhwah ka hisaab aur payment Tankhwah wale safhe par hoti hai">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Tankhwah')}</T>} description={t('Tankhwah ka hisaab aur payment Tankhwah wale safhe par hoti hai')}>
             <fieldset disabled={hrLocked} className="grid gap-3 sm:grid-cols-2">
-              <Select label="Tankhwah ki type" value={hr.salaryType} onChange={(e) => set('salaryType', e.target.value as SalaryType)} options={SALARY_TYPES.map((s) => ({ value: s.id, label: s.label }))}
-                hint={hr.salaryType === 'COMMISSION' ? 'Sirf commission — rules Commission ke safhe par' : hr.salaryType === 'HYBRID' ? 'Pakki tankhwah ke upar commission' : 'Haazri ke hisaab se banti hai'} />
+              <Select label={t('Tankhwah ki type')} value={hr.salaryType} onChange={(e) => set('salaryType', e.target.value as SalaryType)} options={SALARY_TYPES.map((s) => ({ value: s.id, label: s.label }))}
+                hint={hr.salaryType === 'COMMISSION' ? t('Sirf commission — rules Commission ke safhe par') : hr.salaryType === 'HYBRID' ? t('Pakki tankhwah ke upar commission') : t('Haazri ke hisaab se banti hai')} />
               {hr.salaryType !== 'COMMISSION' && (
-                <Input label={`Amount (Rs)${st.unit ? ` — ${st.unit}` : ''}`} inputMode="decimal" value={hr.baseSalary} onChange={(e) => set('baseSalary', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
-                  hint={salary > 0 ? formatPKR(salary) : 'Khali chhorein to 0'} className="text-right font-semibold tabular-nums" />
+                <Input label={t('Amount (Rs){{value}}', { value: st.unit ? ` — ${st.unit}` : '' })} inputMode="decimal" value={hr.baseSalary} onChange={(e) => set('baseSalary', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
+                  hint={salary > 0 ? formatPKR(salary) : t('Khali chhorein to 0')} className="text-end font-semibold tabular-nums" />
               )}
-              <Input label="Roz ke ghante" inputMode="decimal" value={hr.workingHoursPerDay} onChange={(e) => set('workingHoursPerDay', e.target.value.replace(/[^\d.]/g, ''))} hint="Is se zyada kaam overtime ginta hai" />
-              <Input label="Mahine ke kaam ke din" inputMode="numeric" value={hr.workingDaysPerMonth} onChange={(e) => set('workingDaysPerMonth', e.target.value.replace(/\D/g, ''))}
-                hint={hr.salaryType === 'MONTHLY' && salary > 0 ? `Ek din = ${formatPKR(salary / (Number(hr.workingDaysPerMonth) || 26))}` : 'Aam tor par 26'} />
+              <Input label={t('Roz ke ghante')} inputMode="decimal" value={hr.workingHoursPerDay} onChange={(e) => set('workingHoursPerDay', e.target.value.replace(/[^\d.]/g, ''))} hint={t('Is se zyada kaam overtime ginta hai')} />
+              <Input label={t('Mahine ke kaam ke din')} inputMode="numeric" value={hr.workingDaysPerMonth} onChange={(e) => set('workingDaysPerMonth', e.target.value.replace(/\D/g, ''))}
+                hint={hr.salaryType === 'MONTHLY' && salary > 0 ? t('Ek din = {{formatPKR}}', { formatPKR: formatPKR(salary / (Number(hr.workingDaysPerMonth) || 26)) }) : t('Aam tor par 26')} />
             </fieldset>
           </Card>
         </div>
 
         <div className="space-y-4">
           {!editing && (
-            <Card className="rounded-2xl" title={<T icon={KeyRound}>App ka login</T>}>
+            <Card className="rounded-2xl" title={<T icon={KeyRound}>{t('App ka login')}</T>}>
               {!isOwner ? (
-                <p className="text-sm text-slate-500">Login sirf malik bana sakta hai. Aap HR record bana dein — malik baad me profile se login de sakta hai.</p>
+                <p className="text-sm text-slate-500">{t('Login sirf malik bana sakta hai. Aap HR record bana dein — malik baad me profile se login de sakta hai.')}</p>
               ) : (
                 <div className="space-y-4">
-                  <Switch checked={giveLogin} onChange={(e) => setGiveLogin(e.target.checked)} label="Is bande ko login dein"
-                    description="POS chalana, sale karna ya reports dekhna hai to on karein. Helper, driver ko login ki zaroorat nahi." />
+                  <Switch checked={giveLogin} onChange={(e) => setGiveLogin(e.target.checked)} label={t('Is bande ko login dein')}
+                    description={t('POS chalana, sale karna ya reports dekhna hai to on karein. Helper, driver ko login ki zaroorat nahi.')} />
                   {giveLogin && <LoginFields value={draft} onChange={setDraft} shops={shops} />}
                 </div>
               )}
@@ -276,50 +277,50 @@ export default function StaffFormPage() {
           )}
 
           {editing && login && (
-            <Card className="rounded-2xl" title={<T icon={ShieldCheck}>Login</T>}
-              description={editsLogin ? 'Permissions profile ke "Permissions" tab me badlein' : login.role === 'OWNER' ? 'Malik ka login Profile se badalta hai' : 'Login sirf malik badal sakta hai'}>
+            <Card className="rounded-2xl" title={<T icon={ShieldCheck}>{t('Login')}</T>}
+              description={editsLogin ? t('Permissions profile ke "Permissions" tab me badlein') : login.role === 'OWNER' ? t('Malik ka login Profile se badalta hai') : t('Login sirf malik badal sakta hai')}>
               <fieldset disabled={!editsLogin} className="space-y-3">
-                <Input label="Login email" type="email" value={loginEdit.email} onChange={(e) => setLoginEdit((l) => ({ ...l, email: e.target.value }))} hint="Isi se login karta hai" />
+                <Input label={t('Login email')} type="email" value={loginEdit.email} onChange={(e) => setLoginEdit((l) => ({ ...l, email: e.target.value }))} hint={t('Isi se login karta hai')} />
                 {login.role !== 'OWNER' && (
                   <>
-                    <Select label="Role" value={loginEdit.role} onChange={(e) => setLoginEdit((l) => ({ ...l, role: e.target.value as AssignableRole }))}
+                    <Select label={t('Role')} value={loginEdit.role} onChange={(e) => setLoginEdit((l) => ({ ...l, role: e.target.value as AssignableRole }))}
                       options={ASSIGNABLE.map((r) => ({ value: r, label: `${ROLES[r].label} — ${ROLES[r].hint}` }))}
-                      hint={roleChanged ? 'Permissions wohi rahengi. Naye role ki permission chahiye to profile ke Permissions tab me "role wali" dabayein.' : 'Role badalne se banda sab devices se logout hoga'} />
-                    <Select label="Login ki branch" value={loginEdit.shopId} onChange={(e) => setLoginEdit((l) => ({ ...l, shopId: e.target.value }))}
-                      options={[...(loginEdit.role === 'STAFF' ? [{ value: '', label: 'Sab branches' }] : [{ value: '', label: '— Chunein —' }]), ...shops.map((s) => ({ value: s.id, label: s.name }))]}
-                      hint="Sirf isi branch ka data dekhega aur isi me sale karega" />
+                      hint={roleChanged ? t('Permissions wohi rahengi. Naye role ki permission chahiye to profile ke Permissions tab me "role wali" dabayein.') : t('Role badalne se banda sab devices se logout hoga')} />
+                    <Select label={t('Login ki branch')} value={loginEdit.shopId} onChange={(e) => setLoginEdit((l) => ({ ...l, shopId: e.target.value }))}
+                      options={[...(loginEdit.role === 'STAFF' ? [{ value: '', label: t('Sab branches') }] : [{ value: '', label: t('— Chunein —') }]), ...shops.map((s) => ({ value: s.id, label: s.name }))]}
+                      hint={t('Sirf isi branch ka data dekhega aur isi me sale karega')} />
                   </>
                 )}
               </fieldset>
-              {roleChanged && <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Role {ROLES[login.role as AssignableRole]?.label} se {ROLES[loginEdit.role].label} ho raha hai. Permissions khud nahi badlengi.</p>}
+              {roleChanged && <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Role {{label}} se {{label2}} ho raha hai. Permissions khud nahi badlengi.', { label: ROLES[login.role as AssignableRole]?.label, label2: ROLES[loginEdit.role].label })}</p>}
             </Card>
           )}
-          {editing && !login && prof?.person.hasLogin && <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">Is bande ka login hai. Login ki details dekhne ke liye "Team dekhna" ki permission chahiye.</p>}
+          {editing && !login && prof?.person.hasLogin && <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">{t('Is bande ka login hai. Login ki details dekhne ke liye "Team dekhna" ki permission chahiye.')}</p>}
           {editing && !prof?.person.hasLogin && isOwner && staff && (
-            <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">Login nahi hai. <Link to={`/staff/${staff.id}`} className="font-semibold text-brand-700 hover:underline">Profile se "Login dein"</Link></p>
+            <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">{t('Login nahi hai.')}{' '} <Link to={`/staff/${staff.id}`} className="font-semibold text-brand-700 hover:underline">{t('Profile se "Login dein"')}</Link></p>
           )}
 
-          <Card className="rounded-2xl" title={<T icon={IdCard}>CNIC ki photo</T>} description="Marzi hai — kaghaz ke record ke liye">
+          <Card className="rounded-2xl" title={<T icon={IdCard}>{t('CNIC ki photo')}</T>} description={t('Marzi hai — kaghaz ke record ke liye')}>
             <fieldset disabled={hrLocked} className="flex flex-wrap gap-4">
-              <div><p className="mb-1.5 text-[0.75rem] text-slate-500">Saamne</p><AvatarUpload value={hr.cnicFrontUrl || null} onChange={(u) => set('cnicFrontUrl', u ?? '')} purpose="document" size="lg" shape="square" fallbackText="F" /></div>
-              <div><p className="mb-1.5 text-[0.75rem] text-slate-500">Peeche</p><AvatarUpload value={hr.cnicBackUrl || null} onChange={(u) => set('cnicBackUrl', u ?? '')} purpose="document" size="lg" shape="square" fallbackText="B" /></div>
+              <div><p className="mb-1.5 text-[0.75rem] text-slate-500">{t('Saamne')}</p><AvatarUpload value={hr.cnicFrontUrl || null} onChange={(u) => set('cnicFrontUrl', u ?? '')} purpose="document" size="lg" shape="square" fallbackText="F" /></div>
+              <div><p className="mb-1.5 text-[0.75rem] text-slate-500">{t('Peeche')}</p><AvatarUpload value={hr.cnicBackUrl || null} onChange={(u) => set('cnicBackUrl', u ?? '')} purpose="document" size="lg" shape="square" fallbackText="B" /></div>
             </fieldset>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Landmark}>Bank aur emergency</T>}>
+          <Card className="rounded-2xl" title={<T icon={Landmark}>{t('Bank aur emergency')}</T>}>
             <fieldset disabled={hrLocked} className="grid gap-3 sm:grid-cols-2">
-              <Input label="Bank" value={hr.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder="Meezan, JazzCash…" hint="Tankhwah transfer ke liye" />
-              <Input label="Account #" value={hr.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} className="font-mono" hint="Marzi hai" />
-              <Input label="IBAN" value={hr.iban} onChange={(e) => set('iban', e.target.value.toUpperCase())} placeholder="PK36…" className="font-mono" wrapperClassName="sm:col-span-2" hint="24 harf, PK se shuru" />
-              <Input label="Emergency me kis ko" value={hr.emergencyName} onChange={(e) => set('emergencyName', e.target.value)} placeholder="Walid / bhai" hint="Haadse me kis ko batayein" />
-              <Input label="Un ka phone" inputMode="tel" value={hr.emergencyPhone} onChange={(e) => set('emergencyPhone', e.target.value)} hint="Marzi hai" />
-              <Input label="Rishta" value={hr.emergencyRelation} onChange={(e) => set('emergencyRelation', e.target.value)} placeholder="Walid" wrapperClassName="sm:col-span-2" hint="Marzi hai" />
+              <Input label={t('Bank')} value={hr.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder={t('Meezan, JazzCash…')} hint={t('Tankhwah transfer ke liye')} />
+              <Input label={t('Account #')} value={hr.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} className="font-mono" hint={t('Marzi hai')} />
+              <Input label={t('IBAN')} value={hr.iban} onChange={(e) => set('iban', e.target.value.toUpperCase())} placeholder={t('PK36…')} className="font-mono" wrapperClassName="sm:col-span-2" hint={t('24 harf, PK se shuru')} />
+              <Input label={t('Emergency me kis ko')} value={hr.emergencyName} onChange={(e) => set('emergencyName', e.target.value)} placeholder={t('Walid / bhai')} hint={t('Haadse me kis ko batayein')} />
+              <Input label={t('Un ka phone')} inputMode="tel" value={hr.emergencyPhone} onChange={(e) => set('emergencyPhone', e.target.value)} hint={t('Marzi hai')} />
+              <Input label={t('Rishta')} value={hr.emergencyRelation} onChange={(e) => set('emergencyRelation', e.target.value)} placeholder={t('Walid')} wrapperClassName="sm:col-span-2" hint={t('Marzi hai')} />
             </fieldset>
           </Card>
 
-          <Card className="rounded-2xl" title="Note">
+          <Card className="rounded-2xl" title={t('Note')}>
             <fieldset disabled={hrLocked}>
-              <Textarea value={hr.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={1000} placeholder="Maslan: shaam ki shift, guarantee kis ne di" hint="Sirf andar ke liye — kahin chhapta nahi" />
+              <Textarea value={hr.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={1000} placeholder={t('Maslan: shaam ki shift, guarantee kis ne di')} hint={t('Sirf andar ke liye — kahin chhapta nahi')} />
             </fieldset>
           </Card>
         </div>
@@ -327,13 +328,13 @@ export default function StaffFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (hr.fullName || hr.phone || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{!editing && giveLogin ? `Login (${ROLES[draft.role].label}) aur HR record dono banenge` : !editing ? 'Sirf HR record banega — login baad me bhi de sakte hain' : 'Save karein'}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} disabled={hrLocked && !editsLogin}>{editing ? 'Save karein' : giveLogin ? 'Banda aur login banayein' : 'Banda jorein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{!editing && giveLogin ? t('Login ({{label}}) aur HR record dono banenge', { label: ROLES[draft.role].label }) : !editing ? t('Sirf HR record banega — login baad me bhi de sakte hain') : t('Save karein')}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} disabled={hrLocked && !editsLogin}>{editing ? t('Save karein') : giveLogin ? t('Banda aur login banayein') : t('Banda jorein')}</Button>
       </div>
 
-      {slip && <LoginSlipModal slip={slip.slip} phone={slip.phone} title="Login ban gaya" onClose={() => navigate(slip.next)} />}
+      {slip && <LoginSlipModal slip={slip.slip} phone={slip.phone} title={t('Login ban gaya')} onClose={() => navigate(slip.next)} />}
     </PageShell>
   );
 }

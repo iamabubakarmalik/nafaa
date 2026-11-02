@@ -44,7 +44,7 @@ export function LanguageCards({ className }: { className?: string }) {
   useUrduFont();
   const { active, pending, choose } = useSwitcher();
   return (
-    <div role="radiogroup" aria-label="Language / Zaban / زبان" className={cn('grid gap-3 sm:grid-cols-3', className)}>
+    <div role="radiogroup" aria-label="Language / Zaban / زبان" /* i18n-ignore: same in every language */ className={cn('grid gap-3 sm:grid-cols-3', className)}>
       {LOCALES.map((l) => {
         const on = l.id === active;
         const script = scriptProps(l);
@@ -91,7 +91,7 @@ export function LanguageSwitch({ className, showIcon = false }: { className?: st
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {showIcon && <Languages className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />}
-      <div role="radiogroup" aria-label="Language / Zaban / زبان" className="grid flex-1 grid-cols-3 rounded-xl bg-slate-100 p-1">
+      <div role="radiogroup" aria-label="Language / Zaban / زبان" /* i18n-ignore: same in every language */ className="grid flex-1 grid-cols-3 rounded-xl bg-slate-100 p-1">
         {LOCALES.map((l) => {
           const on = l.id === active;
           return (

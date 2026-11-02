@@ -34,12 +34,13 @@ import { usedPhonesApi, type TradeInSource, type UsedPhone, type UsedPhoneCondit
 import type { PtaStatus } from '../api/imei.api';
 import { mobileReportsApi } from '../api/mobile-reports.api';
 import { CONDITIONS, PTA_LIST, SOURCES, USED_KEY, USED_STATUSES, ageText, conditionOf, dayOnly, ptaOf, sourceOf, usedStatusOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'analytics';
 type StatusPick = UsedPhoneStatus | 'all';
 const SORTS: Array<{ value: UsedPhoneSort; label: string }> = [
-  { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' }, { value: 'priceHigh', label: 'Mehnge pehle' },
-  { value: 'margin', label: 'Zyada profit pehle' }, { value: 'sold', label: 'Abhi bike pehle' },
+  { value: 'new', label: tr('Naye pehle') }, { value: 'old', label: tr('Purane pehle') }, { value: 'priceHigh', label: tr('Mehnge pehle') },
+  { value: 'margin', label: tr('Zyada profit pehle') }, { value: 'sold', label: tr('Abhi bike pehle') },
 ];
 
 export default function UsedPhonesPage() {
@@ -90,7 +91,7 @@ export default function UsedPhonesPage() {
   const filtered = !!source || !!condition || !!pta || !!aged || !!query || range.preset !== 'all';
   const clear = () => { setSource(''); setCondition(''); setPta(''); setAged(''); setSearch(''); setRange({ preset: 'all', custom: { from: '', to: '' } }); };
   const pick = (st: StatusPick) => { setTab('list'); setStatus(st); };
-  const statusLabel = status === 'all' ? 'Sab phone' : usedStatusOf(status).label;
+  const statusLabel = status === 'all' ? tr('Sab phone') : usedStatusOf(status).label;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -133,76 +134,76 @@ export default function UsedPhonesPage() {
   return (
     <PageShell>
       <PageHero
-        title="Used phones"
-        chip={<><Recycle /> Khareed aur exchange</>}
-        meta="Khareedein, check karein, POS par bechein — CNIC aur IMEI ke saath"
+        title={tr('Used phones')}
+        chip={<><Recycle /> {' '}{tr('Khareed aur exchange')}</>}
+        meta={tr('Khareedein, check karein, POS par bechein — CNIC aur IMEI ke saath')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'list' || !rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <Link to="/imei-inventory" className={heroButton}><Smartphone className="h-4 w-4" /><span className="hidden sm:inline">IMEI check</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <Link to="/used-phones/new" title="Phone lein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Phone lein</Link>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <Link to="/imei-inventory" className={heroButton}><Smartphone className="h-4 w-4" /><span className="hidden sm:inline">{tr('IMEI check')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/used-phones/new" title={tr('Phone lein (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Phone lein')}</Link>}
         </>}
         stats={s ? [
-          { label: 'Bikne ko tayyar', value: by('IN_STOCK'), hint: cost(Number(s.inStockCost)) },
-          { label: 'Bechne par profit', value: cost(Number(s.potentialProfit)) },
-          { label: 'Ab tak bike', value: s.totalSold, hint: `profit ${cost(Number(s.totalProfit))}` },
-        ] : [{ label: 'Bikne ko tayyar', value: '—' }]}
+          { label: tr('Bikne ko tayyar'), value: by('IN_STOCK'), hint: cost(Number(s.inStockCost)) },
+          { label: tr('Bechne par profit'), value: cost(Number(s.potentialProfit)) },
+          { label: tr('Ab tak bike'), value: s.totalSold, hint: tr('profit {{cost}}', { cost: cost(Number(s.totalProfit)) }) },
+        ] : [{ label: tr('Bikne ko tayyar'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ShoppingCart} color="#10b981" label="Bikne ko tayyar" value={by('IN_STOCK')} hint={sales(Number(s.inStockResaleValue))} onClick={() => pick('IN_STOCK')} active={tab === 'list' && status === 'IN_STOCK'} />
-          <KpiCard icon={ClipboardCheck} color={by('PENDING_INSPECTION') ? '#d97706' : '#64748b'} label="Check baqi" value={by('PENDING_INSPECTION')} hint="Check ke baad POS par aate hain" onClick={() => pick('PENDING_INSPECTION')} active={tab === 'list' && status === 'PENDING_INSPECTION'} />
-          <KpiCard icon={Wrench} color="#f97316" label="Repair me" value={by('REPAIRING')} onClick={() => pick('REPAIRING')} active={tab === 'list' && status === 'REPAIRING'} />
-          <KpiCard icon={BadgeCheck} color="#8b5cf6" label="Bik gaye" value={by('SOLD')} hint={sales(Number(s.totalRevenue))} onClick={() => { pick('SOLD'); setSort('sold'); }} active={tab === 'list' && status === 'SOLD'} />
-          <KpiCard icon={Clock} color="#64748b" label="Purane (60+ din)" value="Dekhein" hint="Jo bik nahi rahe" onClick={() => { pick('IN_STOCK'); setAged('60'); }} active={tab === 'list' && aged === '60'} />
+          <KpiCard icon={ShoppingCart} color="#10b981" label={tr('Bikne ko tayyar')} value={by('IN_STOCK')} hint={sales(Number(s.inStockResaleValue))} onClick={() => pick('IN_STOCK')} active={tab === 'list' && status === 'IN_STOCK'} />
+          <KpiCard icon={ClipboardCheck} color={by('PENDING_INSPECTION') ? '#d97706' : '#64748b'} label={tr('Check baqi')} value={by('PENDING_INSPECTION')} hint={tr('Check ke baad POS par aate hain')} onClick={() => pick('PENDING_INSPECTION')} active={tab === 'list' && status === 'PENDING_INSPECTION'} />
+          <KpiCard icon={Wrench} color="#f97316" label={tr('Repair me')} value={by('REPAIRING')} onClick={() => pick('REPAIRING')} active={tab === 'list' && status === 'REPAIRING'} />
+          <KpiCard icon={BadgeCheck} color="#8b5cf6" label={tr('Bik gaye')} value={by('SOLD')} hint={sales(Number(s.totalRevenue))} onClick={() => { pick('SOLD'); setSort('sold'); }} active={tab === 'list' && status === 'SOLD'} />
+          <KpiCard icon={Clock} color="#64748b" label={tr('Purane (60+ din)')} value="Dekhein" hint={tr('Jo bik nahi rahe')} onClick={() => { pick('IN_STOCK'); setAged('60'); }} active={tab === 'list' && aged === '60'} />
         </>}
       </KpiRow>
 
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Pichle 30 din ki Sale aur shelf ki halat</p>} />
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Pichle 30 din ki Sale aur shelf ki halat')}</p>} />
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="IMEI, code, brand, model, bechne wala, CNIC…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('IMEI, code, brand, model, bechne wala, CNIC…')} label={tr('Search')} />}
           chips={filtered ? <>
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
             {source && <FilterChip onRemove={() => setSource('')}>{sourceOf(source).label}</FilterChip>}
             {condition && <FilterChip onRemove={() => setCondition('')}>{conditionOf(condition).label}</FilterChip>}
             {pta && <FilterChip onRemove={() => setPta('')}>{ptaOf(pta).label}</FilterChip>}
-            {aged && <FilterChip onRemove={() => setAged('')}>{aged}+ din</FilterChip>}
+            {aged && <FilterChip onRemove={() => setAged('')}>{tr('{{aged}}+ din', { aged })}</FilterChip>}
             {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{rangeLabel(period.from, period.to)}</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <FilterMenu icon={Filter} label={statusLabel} value={status} active={status !== 'IN_STOCK'} onChange={setStatus} width="w-64"
-            options={[...USED_STATUSES.map((st) => ({ value: st as StatusPick, label: usedStatusOf(st).label, hint: counts?.[st] != null ? `${counts[st]} phone` : undefined })), { value: 'all' as StatusPick, label: 'Sab phone' }]} />
-          <FilterMenu icon={Recycle} label={source ? sourceOf(source).label : 'Kaise aaya'} value={source} active={!!source} onChange={setSource}
-            options={[{ value: '' as TradeInSource | '', label: 'Sab' }, ...SOURCES.map((x) => ({ value: x as TradeInSource | '', label: sourceOf(x).label }))]} />
-          <FilterMenu icon={BadgeCheck} label={condition ? conditionOf(condition).label : 'Halat'} value={condition} active={!!condition} onChange={setCondition}
-            options={[{ value: '' as UsedPhoneCondition | '', label: 'Sab' }, ...CONDITIONS.map((c) => ({ value: c as UsedPhoneCondition | '', label: `${conditionOf(c).label} (${conditionOf(c).score})` }))]} />
-          <FilterMenu icon={ShieldCheck} label={pta ? ptaOf(pta).label : 'PTA'} value={pta} active={!!pta} onChange={setPta}
-            options={[{ value: '' as PtaStatus | '', label: 'Sab' }, ...PTA_LIST.map((p) => ({ value: p as PtaStatus | '', label: ptaOf(p).label }))]} />
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={status === 'SOLD' ? 'Bikne ki date' : 'Aane ki date'} />
-          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? 'Tarteeb'} value={sort} onChange={setSort} align="right" options={SORTS} />
+            options={[...USED_STATUSES.map((st) => ({ value: st as StatusPick, label: usedStatusOf(st).label, hint: counts?.[st] != null ? tr('{{value}} phone', { value: counts[st] }) : undefined })), { value: 'all' as StatusPick, label: tr('Sab phone') }]} />
+          <FilterMenu icon={Recycle} label={source ? sourceOf(source).label : tr('Kaise aaya')} value={source} active={!!source} onChange={setSource}
+            options={[{ value: '' as TradeInSource | '', label: tr('Sab') }, ...SOURCES.map((x) => ({ value: x as TradeInSource | '', label: sourceOf(x).label }))]} />
+          <FilterMenu icon={BadgeCheck} label={condition ? conditionOf(condition).label : tr('Halat')} value={condition} active={!!condition} onChange={setCondition}
+            options={[{ value: '' as UsedPhoneCondition | '', label: tr('Sab') }, ...CONDITIONS.map((c) => ({ value: c as UsedPhoneCondition | '', label: `${conditionOf(c).label} (${conditionOf(c).score})` }))]} />
+          <FilterMenu icon={ShieldCheck} label={pta ? ptaOf(pta).label : tr('PTA')} value={pta} active={!!pta} onChange={setPta}
+            options={[{ value: '' as PtaStatus | '', label: tr('Sab') }, ...PTA_LIST.map((p) => ({ value: p as PtaStatus | '', label: ptaOf(p).label }))]} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={status === 'SOLD' ? tr('Bikne ki date') : tr('Aane ki date')} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? tr('Tarteeb')} value={sort} onChange={setSort} align="right" options={SORTS} />
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> phone lein · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('phone lein ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'list', label: 'Phone', icon: ListChecks, count: data?.total ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'list', label: tr('Phone'), icon: ListChecks, count: data?.total ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <UsedAnalytics onCondition={(c) => { setCondition(c); pick('IN_STOCK'); }} /> : (<>
         {data && data.total > 0 && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
             <span className="text-slate-500">{statusLabel}</span>
-            <span className="font-semibold text-slate-900">{data.total} phone · cost {cost(data.totals.cost)}</span>
-            {status !== 'SOLD' && <span className="text-emerald-700">bechne par {sales(data.totals.resale)}</span>}
-            {data.totals.sold > 0 && <span className="text-violet-700">bike {sales(data.totals.sold)}</span>}
+            <span className="font-semibold text-slate-900">{tr('{{total}} phone · cost {{cost}}', { total: data.total, cost: cost(data.totals.cost) })}</span>
+            {status !== 'SOLD' && <span className="text-emerald-700">{tr('bechne par {{resale}}', { resale: sales(data.totals.resale) })}</span>}
+            {data.totals.sold > 0 && <span className="text-violet-700">{tr('bike {{sold}}', { sold: sales(data.totals.sold) })}</span>}
           </div>
         )}
 
@@ -210,18 +211,18 @@ export default function UsedPhonesPage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : listQ.isError && !data ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Phone load nahi hue</p>
-            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+            <p className="font-semibold text-slate-900">{tr('Phone load nahi hue')}</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <Recycle className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi phone nahi' : status === 'PENDING_INSPECTION' ? 'Koi phone check ke liye nahi' : 'Koi phone nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">Customer se phone khareedein ya exchange me lein — CNIC aur IMEI ke saath record rahega.</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi phone nahi') : status === 'PENDING_INSPECTION' ? tr('Koi phone check ke liye nahi') : tr('Koi phone nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Customer se phone khareedein ya exchange me lein — CNIC aur IMEI ke saath record rahega.')}</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {canManage && <Button onClick={() => navigate('/used-phones/new')} leftIcon={<Plus className="h-4 w-4" />}>Phone lein</Button>}
-              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
-              {!filtered && status !== 'all' && <Button variant="ghost" onClick={() => setStatus('all')}>Sab phone dekhein</Button>}
+              {canManage && <Button onClick={() => navigate('/used-phones/new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Phone lein')}</Button>}
+              {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
+              {!filtered && status !== 'all' && <Button variant="ghost" onClick={() => setStatus('all')}>{tr('Sab phone dekhein')}</Button>}
             </div>
           </div>
         ) : (
@@ -232,25 +233,25 @@ export default function UsedPhonesPage() {
 
         {data && data.totalPages > 1 && (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-            <span className="text-sm text-slate-600">Safha {page} / {data.totalPages}</span>
-            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+            <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{totalPages}}', { page, totalPages: data.totalPages })}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
           </div>
         )}
       </>)}
 
       {guide.isOpen && (
-        <PageGuide title="Used phones — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Used phones — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#6366f1', title: 'Phone lein', text: '"Phone lein": bechne wale ka naam, phone aur CNIC; phone ka IMEI, PTA aur halat; aur kitne me liya. Cash me liya to paise galle se nikalte hain.' },
-            { icon: IdCard, color: '#e11d48', title: 'Pehle check', text: 'IMEI check se dekhein ke phone pehle kahin record me to nahi, aur CNIC ki tasveer rakhein.' },
-            { icon: ClipboardCheck, color: '#d97706', title: 'Check aur tayyar', text: 'Naya aaya phone "Check baqi" me hota hai. Check ke baad "Bikne ko tayyar" ho kar POS ke Used tab me aata hai.' },
-            { icon: ShoppingCart, color: '#10b981', title: 'Bechna', text: 'POS par Used tab se phone bill me daalein. Bill se hi profit, cash aur khata theek rehte hain.' },
-            { icon: Recycle, color: '#f97316', title: 'Exchange', text: 'Naya phone lene wale ka purana phone "Exchange" me lein. Phir POS par Split / Trade-in se us ki qeemat bill se katein.' },
-            { icon: Wallet, color: '#0891b2', title: 'Profit', text: 'Cost = khareed + repair. Bikne par profit Sales aur Profit report me aata hai.' },
+            { icon: Plus, color: '#6366f1', title: tr('Phone lein'), text: tr('"Phone lein": bechne wale ka naam, phone aur CNIC; phone ka IMEI, PTA aur halat; aur kitne me liya. Cash me liya to paise galle se nikalte hain.') },
+            { icon: IdCard, color: '#e11d48', title: tr('Pehle check'), text: tr('IMEI check se dekhein ke phone pehle kahin record me to nahi, aur CNIC ki tasveer rakhein.') },
+            { icon: ClipboardCheck, color: '#d97706', title: tr('Check aur tayyar'), text: tr('Naya aaya phone "Check baqi" me hota hai. Check ke baad "Bikne ko tayyar" ho kar POS ke Used tab me aata hai.') },
+            { icon: ShoppingCart, color: '#10b981', title: tr('Bechna'), text: tr('POS par Used tab se phone bill me daalein. Bill se hi profit, cash aur khata theek rehte hain.') },
+            { icon: Recycle, color: '#f97316', title: tr('Exchange'), text: tr('Naya phone lene wale ka purana phone "Exchange" me lein. Phir POS par Split / Trade-in se us ki qeemat bill se katein.') },
+            { icon: Wallet, color: '#0891b2', title: tr('Profit'), text: tr('Cost = khareed + repair. Bikne par profit Sales aur Profit report me aata hai.') },
           ]}
-          tips={['60 din se zyada para phone sasta hota jata hai — "Purane" card se dekhein.', 'Phone lene aur badalne ke liye "Mobile IMEI sambhalna" ki permission chahiye.']}
-          shortcuts={[['N', 'phone lein'], ['/', 'dhoondein'], ['1', 'phone'], ['2', 'analytics'], ['G', 'guide']]}
+          tips={[tr('60 din se zyada para phone sasta hota jata hai — "Purane" card se dekhein.'), tr('Phone lene aur badalne ke liye "Mobile IMEI sambhalna" ki permission chahiye.')]}
+          shortcuts={[['N', tr('phone lein')], ['/', 'dhoondein'], ['1', 'phone'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -277,13 +278,13 @@ function UsedRow({ p, money, costOf }: { p: UsedPhone; money: (n: number) => str
           </div>
           <p className="mt-0.5 font-mono text-[0.75rem] text-slate-500">{p.usedPhoneCode} · {p.imei1}</p>
           <p className="mt-0.5 flex flex-wrap gap-x-2 text-[0.75rem] text-slate-500">
-            <span>{sourceOf(p.source).label}{p.fromCustomerName ? ` · ${p.fromCustomerName}` : ''}{p.fromCustomerCnic ? '' : p.source !== 'CONSIGNMENT' ? ' · CNIC nahi' : ''}</span>
-            <span className={cn(old && 'font-semibold text-amber-700')}>{sold ? `Bika ${dayOnly(p.soldAt)}` : `${ageText(p.daysInStock)} se`}</span>
+            <span>{sourceOf(p.source).label}{p.fromCustomerName ? ` · ${p.fromCustomerName}` : ''}{p.fromCustomerCnic ? '' : p.source !== 'CONSIGNMENT' ? tr(' · CNIC nahi') : ''}</span>
+            <span className={cn(old && 'font-semibold text-amber-700')}>{sold ? tr('Bika {{soldAt}}', { soldAt: dayOnly(p.soldAt) }) : tr('{{daysInStock}} se', { daysInStock: ageText(p.daysInStock) })}</span>
           </p>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 text-end">
           <p className="font-semibold tabular-nums text-slate-900">{money(sold ? Number(p.finalSoldPrice ?? 0) : p.resalePrice)}</p>
-          <p className="text-[0.75rem] tabular-nums text-slate-500">cost {costOf(p.totalCost)}</p>
+          <p className="text-[0.75rem] tabular-nums text-slate-500">{tr('cost {{totalCost}}', { totalCost: costOf(p.totalCost) })}</p>
           {(sold || Number(p.resalePrice) > 0) && <p className={cn('text-[0.75rem] font-semibold tabular-nums', margin < 0 ? 'text-rose-600' : 'text-emerald-700')}>{margin >= 0 ? '+' : ''}{costOf(margin)}</p>}
         </div>
       </Link>
@@ -300,23 +301,23 @@ function UsedAnalytics({ onCondition }: { onCondition: (c: UsedPhoneCondition) =
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h3 className="font-semibold text-slate-900">Pichle 30 din</h3>
+        <h3 className="font-semibold text-slate-900">{tr('Pichle 30 din')}</h3>
         <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.8125rem]">
-          <Box label="Bike" value={String(d.soldCount)} />
-          <Box label="Sale" value={sales(d.soldRevenue)} />
-          <Box label="Cost" value={cost(d.soldCogs)} />
-          <Box label="Profit" value={cost(d.soldProfit)} tone={d.soldProfit < 0 ? 'text-rose-600' : 'text-emerald-700'} />
+          <Box label={tr('Bike')} value={String(d.soldCount)} />
+          <Box label={tr('Sale')} value={sales(d.soldRevenue)} />
+          <Box label={tr('Cost')} value={cost(d.soldCogs)} />
+          <Box label={tr('Profit')} value={cost(d.soldProfit)} tone={d.soldProfit < 0 ? 'text-rose-600' : 'text-emerald-700'} />
         </dl>
-        <p className="mt-3 text-[0.75rem] text-slate-500">Shelf par {d.inStockCount} phone · cost {cost(d.inStockCost)} · bechne par profit {cost(d.inStockPotentialProfit)}</p>
+        <p className="mt-3 text-[0.75rem] text-slate-500">{tr('Shelf par {{inStockCount}} phone · cost {{inStockCost}} · bechne par profit {{inStockPotentialProfit}}', { inStockCount: d.inStockCount, inStockCost: cost(d.inStockCost), inStockPotentialProfit: cost(d.inStockPotentialProfit) })}</p>
       </section>
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h3 className="font-semibold text-slate-900">Shelf ke phone — halat</h3>
+        <h3 className="font-semibold text-slate-900">{tr('Shelf ke phone — halat')}</h3>
         <ul className="mt-4 space-y-3">
-          {d.byCondition.length === 0 && <li className="text-[0.8125rem] text-slate-500">Shelf par koi phone nahi</li>}
+          {d.byCondition.length === 0 && <li className="text-[0.8125rem] text-slate-500">{tr('Shelf par koi phone nahi')}</li>}
           {d.byCondition.map((c) => (
             <li key={c.condition}>
-              <button type="button" onClick={() => onCondition(c.condition)} className="w-full text-left">
-                <div className="flex justify-between text-[0.8125rem]"><span className="font-medium text-slate-700">{conditionOf(c.condition).label}</span><span className="tabular-nums text-slate-600">{c.count} · cost {cost(c.totalCost)}</span></div>
+              <button type="button" onClick={() => onCondition(c.condition)} className="w-full text-start">
+                <div className="flex justify-between text-[0.8125rem]"><span className="font-medium text-slate-700">{conditionOf(c.condition).label}</span><span className="tabular-nums text-slate-600">{tr('{{count}} · cost {{totalCost}}', { count: c.count, totalCost: cost(c.totalCost) })}</span></div>
                 <div className="mt-1 h-2.5 rounded-full bg-slate-100"><div className="h-2.5 rounded-full" style={{ width: `${(c.count / max) * 100}%`, backgroundColor: conditionOf(c.condition).color }} /></div>
               </button>
             </li>

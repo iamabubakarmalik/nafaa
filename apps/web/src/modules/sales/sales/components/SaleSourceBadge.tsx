@@ -7,17 +7,18 @@
 import { Truck, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
+import { t } from '@core/i18n';
 
 type Source = { label: string; cls: string; brand?: BrandName; icon?: LucideIcon; refTitle: (ref: string) => string; refPrefix: string };
 
-const online = (ref: string) => `Online order #${ref}`;
+const online = (ref: string) => t('Online order #{{ref}}', { ref });
 const SOURCE: Record<string, Source> = {
-  WEBSITE: { label: 'Website', brand: 'website', cls: 'bg-sky-50 text-sky-800 ring-sky-200', refTitle: online, refPrefix: '#' },
-  DARAZ: { label: 'Daraz', brand: 'daraz', cls: 'bg-orange-50 text-orange-800 ring-orange-200', refTitle: online, refPrefix: '#' },
-  FOODPANDA: { label: 'Foodpanda', brand: 'foodpanda', cls: 'bg-pink-50 text-pink-800 ring-pink-200', refTitle: online, refPrefix: '#' },
-  SHOPIFY: { label: 'Shopify', brand: 'shopify', cls: 'bg-success-50 text-success-800 ring-success-200', refTitle: online, refPrefix: '#' },
-  MARKETPLACE: { label: 'Marketplace', brand: 'other', cls: 'bg-violet-50 text-violet-800 ring-violet-200', refTitle: online, refPrefix: '#' },
-  DISTRIBUTION: { label: 'Distribution', icon: Truck, cls: 'bg-orange-50 text-orange-800 ring-orange-200', refTitle: (ref) => `Booker order ${ref}`, refPrefix: '' },
+  WEBSITE: { label: t('Website'), brand: 'website', cls: 'bg-sky-50 text-sky-800 ring-sky-200', refTitle: online, refPrefix: '#' },
+  DARAZ: { label: t('Daraz'), brand: 'daraz', cls: 'bg-orange-50 text-orange-800 ring-orange-200', refTitle: online, refPrefix: '#' },
+  FOODPANDA: { label: t('Foodpanda'), brand: 'foodpanda', cls: 'bg-pink-50 text-pink-800 ring-pink-200', refTitle: online, refPrefix: '#' },
+  SHOPIFY: { label: t('Shopify'), brand: 'shopify', cls: 'bg-success-50 text-success-800 ring-success-200', refTitle: online, refPrefix: '#' },
+  MARKETPLACE: { label: t('Marketplace'), brand: 'other', cls: 'bg-violet-50 text-violet-800 ring-violet-200', refTitle: online, refPrefix: '#' },
+  DISTRIBUTION: { label: t('Distribution'), icon: Truck, cls: 'bg-orange-50 text-orange-800 ring-orange-200', refTitle: (ref) => t('Booker order {{ref}}', { ref }), refPrefix: '' },
 };
 
 export const SALE_SOURCES = Object.entries(SOURCE).map(([value, s]) => ({ value, label: s.label }));

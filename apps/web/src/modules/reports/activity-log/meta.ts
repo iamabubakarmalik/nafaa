@@ -10,66 +10,67 @@ import {
 } from 'lucide-react';
 import { receiptLink } from '@modules/sales/history/receiptPrefs';
 import type { ActivityEntry } from './api/activity-log.api';
+import { t } from '@core/i18n';
 
 /** Words after "<name> ne …" for actions with their own meaning. */
 const ACTION_TEXT: Record<string, string> = {
-  SALE_VOIDED: 'bill void kiya',
-  REFUND_PIN_APPROVED: 'PIN se return approve ki',
-  EXPENSE_DELETED: 'expense mitaya',
-  LEAVE_REQUESTED: 'chhutti maangi',
-  LEAVE_APPROVED: 'chhutti approve ki',
-  LEAVE_REJECTED: 'chhutti radd ki',
-  LEAVE_CANCELLED: 'chhutti cancel ki',
-  PAYROLL_RUN: 'tankhwah banayi',
-  SALARY_ADVANCE: 'advance diya',
-  SALARY_CANCELLED: 'tankhwah radd ki',
-  SALARY_ADVANCE_CANCELLED: 'advance radd kiya',
-  COMMISSION_PAID: 'commission di',
-  COMMISSION_PAY_UNDONE: 'commission ki payment wapas li',
-  PIN_VERIFY_FAILED: 'ghalat PIN dala',
-  PIN_SET: 'malik ka PIN lagaya',
-  PIN_RESET: 'PIN badla',
-  PIN_RESET_FAILED: 'PIN badalne ki nakam koshish ki',
-  PIN_REMOVED: 'PIN hataya',
-  PAGE_LOCKS_UPDATED: 'pages ke taale badle',
-  SESSION_REVOKED: 'kisi device se logout karaya',
-  DATA_EXPORTED: 'data download kiya',
-  BACKUP_DOWNLOADED: 'backup download kiya',
-  SETTINGS_UPDATED: 'settings badlin',
-  SETTINGS_RESET: 'settings pehle jaisi kin',
-  OWNERSHIP_TRANSFERRED: 'malikana kisi aur ko diya',
-  TENANT_DELETION_REQUESTED: 'account band karne ki darkhwast di',
-  INTEGRATION_UPDATED: 'integration badli',
-  ONLINE_ORDER_VIEWED: 'online order dekha',
-  COLLECTION_SALE_STARTED: 'collection par Sale lagayi',
-  COLLECTION_SALE_CHANGED: 'collection ki Sale badli',
-  COLLECTION_SALE_ENDED: 'collection ki Sale khatam ki',
-  GARMENT_EXCHANGE: 'exchange kiya',
+  SALE_VOIDED: t('bill void kiya'),
+  REFUND_PIN_APPROVED: t('PIN se return approve ki'),
+  EXPENSE_DELETED: t('expense mitaya'),
+  LEAVE_REQUESTED: t('chhutti maangi'),
+  LEAVE_APPROVED: t('chhutti approve ki'),
+  LEAVE_REJECTED: t('chhutti radd ki'),
+  LEAVE_CANCELLED: t('chhutti cancel ki'),
+  PAYROLL_RUN: t('tankhwah banayi'),
+  SALARY_ADVANCE: t('advance diya'),
+  SALARY_CANCELLED: t('tankhwah radd ki'),
+  SALARY_ADVANCE_CANCELLED: t('advance radd kiya'),
+  COMMISSION_PAID: t('commission di'),
+  COMMISSION_PAY_UNDONE: t('commission ki payment wapas li'),
+  PIN_VERIFY_FAILED: t('ghalat PIN dala'),
+  PIN_SET: t('malik ka PIN lagaya'),
+  PIN_RESET: t('PIN badla'),
+  PIN_RESET_FAILED: t('PIN badalne ki nakam koshish ki'),
+  PIN_REMOVED: t('PIN hataya'),
+  PAGE_LOCKS_UPDATED: t('pages ke taale badle'),
+  SESSION_REVOKED: t('kisi device se logout karaya'),
+  DATA_EXPORTED: t('data download kiya'),
+  BACKUP_DOWNLOADED: t('backup download kiya'),
+  SETTINGS_UPDATED: t('settings badlin'),
+  SETTINGS_RESET: t('settings pehle jaisi kin'),
+  OWNERSHIP_TRANSFERRED: t('malikana kisi aur ko diya'),
+  TENANT_DELETION_REQUESTED: t('account band karne ki darkhwast di'),
+  INTEGRATION_UPDATED: t('integration badli'),
+  ONLINE_ORDER_VIEWED: t('online order dekha'),
+  COLLECTION_SALE_STARTED: t('collection par Sale lagayi'),
+  COLLECTION_SALE_CHANGED: t('collection ki Sale badli'),
+  COLLECTION_SALE_ENDED: t('collection ki Sale khatam ki'),
+  GARMENT_EXCHANGE: t('exchange kiya'),
 };
 
 /** Short labels for the action filter. */
 const ACTION_LABEL: Record<string, string> = {
-  CREATE: 'Banaya', UPDATE: 'Badla', DELETE: 'Mitaya', FORCE_DELETE: 'Poora mitaya', ACTIVATE: 'Chalu kiya', DEACTIVATE: 'Band kiya',
-  SALE_VOIDED: 'Bill void', REFUND_PIN_APPROVED: 'PIN se return', EXPENSE_DELETED: 'Expense mitaya',
-  LEAVE_REQUESTED: 'Chhutti maangi', LEAVE_APPROVED: 'Chhutti approve', LEAVE_REJECTED: 'Chhutti radd', LEAVE_CANCELLED: 'Chhutti cancel',
-  PAYROLL_RUN: 'Tankhwah', SALARY_ADVANCE: 'Advance', SALARY_CANCELLED: 'Tankhwah radd', SALARY_ADVANCE_CANCELLED: 'Advance radd',
-  COMMISSION_PAID: 'Commission di', COMMISSION_PAY_UNDONE: 'Commission wapas',
-  PIN_VERIFY_FAILED: 'Ghalat PIN', PIN_SET: 'PIN lagaya', PIN_RESET: 'PIN badla', PIN_RESET_FAILED: 'PIN badalna nakam', PIN_REMOVED: 'PIN hataya',
-  PAGE_LOCKS_UPDATED: 'Page locks', SESSION_REVOKED: 'Device logout', DATA_EXPORTED: 'Data download', BACKUP_DOWNLOADED: 'Backup download',
-  SETTINGS_UPDATED: 'Settings badlin', SETTINGS_RESET: 'Settings reset', OWNERSHIP_TRANSFERRED: 'Malikana diya',
-  TENANT_DELETION_REQUESTED: 'Account band', INTEGRATION_UPDATED: 'Integration', ONLINE_ORDER_VIEWED: 'Online order dekha',
-  COLLECTION_SALE_STARTED: 'Collection Sale shuru', COLLECTION_SALE_CHANGED: 'Collection Sale badli', COLLECTION_SALE_ENDED: 'Collection Sale khatam',
-  GARMENT_EXCHANGE: 'Exchange',
+  CREATE: t('Banaya'), UPDATE: t('Badla'), DELETE: t('Mitaya'), FORCE_DELETE: t('Poora mitaya'), ACTIVATE: t('Chalu kiya'), DEACTIVATE: t('Band kiya'),
+  SALE_VOIDED: t('Bill void'), REFUND_PIN_APPROVED: t('PIN se return'), EXPENSE_DELETED: t('Expense mitaya'),
+  LEAVE_REQUESTED: t('Chhutti maangi'), LEAVE_APPROVED: t('Chhutti approve'), LEAVE_REJECTED: t('Chhutti radd'), LEAVE_CANCELLED: t('Chhutti cancel'),
+  PAYROLL_RUN: t('Tankhwah'), SALARY_ADVANCE: t('Advance'), SALARY_CANCELLED: t('Tankhwah radd'), SALARY_ADVANCE_CANCELLED: t('Advance radd'),
+  COMMISSION_PAID: t('Commission di'), COMMISSION_PAY_UNDONE: t('Commission wapas'),
+  PIN_VERIFY_FAILED: t('Ghalat PIN'), PIN_SET: t('PIN lagaya'), PIN_RESET: t('PIN badla'), PIN_RESET_FAILED: t('PIN badalna nakam'), PIN_REMOVED: t('PIN hataya'),
+  PAGE_LOCKS_UPDATED: t('Page locks'), SESSION_REVOKED: t('Device logout'), DATA_EXPORTED: t('Data download'), BACKUP_DOWNLOADED: t('Backup download'),
+  SETTINGS_UPDATED: t('Settings badlin'), SETTINGS_RESET: t('Settings reset'), OWNERSHIP_TRANSFERRED: t('Malikana diya'),
+  TENANT_DELETION_REQUESTED: t('Account band'), INTEGRATION_UPDATED: t('Integration'), ONLINE_ORDER_VIEWED: t('Online order dekha'),
+  COLLECTION_SALE_STARTED: t('Collection Sale shuru'), COLLECTION_SALE_CHANGED: t('Collection Sale badli'), COLLECTION_SALE_ENDED: t('Collection Sale khatam'),
+  GARMENT_EXCHANGE: t('Exchange'),
 };
 
 const ENTITY_LABEL: Record<string, string> = {
   Shop: 'branch', TeamMember: 'login', Staff: 'staff', Sale: 'bill', SaleReturn: 'wapsi', Expense: 'kharcha', StaffLeave: 'chhutti',
   SalaryPayment: 'tankhwah', CommissionPayout: 'commission', TenantSettings: 'settings', Integration: 'integration', Session: 'session',
-  backup: 'backup', ChannelOrder: 'online order', Tenant: 'account', Attendance: 'haazri', GarmentCollection: 'collection',
+  backup: 'backup', ChannelOrder: t('online order'), Tenant: 'account', Attendance: 'haazri', GarmentCollection: 'collection',
 };
 
 const VERB: Record<string, string> = {
-  CREATE: 'banaya', UPDATE: 'badla', DELETE: 'mitaya', FORCE_DELETE: 'poora mita diya', ACTIVATE: 'chalu kiya', DEACTIVATE: 'band kiya',
+  CREATE: 'banaya', UPDATE: 'badla', DELETE: 'mitaya', FORCE_DELETE: t('poora mita diya'), ACTIVATE: t('chalu kiya'), DEACTIVATE: t('band kiya'),
 };
 
 const humanize = (k: string) => k.toLowerCase().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
@@ -116,12 +117,12 @@ export function iconOf(e: Pick<ActivityEntry, 'action' | 'entityType'>): { icon:
 
 /** "Bilal ne branch badla" style sentence; the record's name comes from the detail line. */
 export function sentence(e: ActivityEntry): string {
-  const who = e.user?.fullName ?? 'System';
+  const who = e.user?.fullName ?? t('System');
   const own = ACTION_TEXT[e.action];
-  if (own) return `${who} ne ${own}`;
+  if (own) return t('{{who}} ne {{own}}', { who, own });
   const verb = VERB[e.action];
   const what = e.entityType ? ENTITY_LABEL[e.entityType] ?? humanize(e.entityType).toLowerCase() : '';
-  if (verb) return `${who} ne ${what ? `${what} ` : ''}${verb}`;
+  if (verb) return t('{{who}} ne {{value}}{{verb}}', { who, value: what ? `${what} ` : '', verb });
   return `${who}: ${humanize(e.action)}${what ? ` (${what})` : ''}`;
 }
 
@@ -134,26 +135,26 @@ export function detailOf(e: ActivityEntry): string {
 export function linkOf(e: ActivityEntry): { to: string; label: string } | null {
   const id = e.entityId;
   switch (e.entityType) {
-    case 'Shop': return id && e.action !== 'DELETE' && e.action !== 'FORCE_DELETE' ? { to: `/shops/${id}/edit`, label: 'Branch kholein' } : { to: '/shops', label: 'Branches' };
+    case 'Shop': return id && e.action !== 'DELETE' && e.action !== 'FORCE_DELETE' ? { to: `/shops/${id}/edit`, label: t('Branch kholein') } : { to: '/shops', label: t('Branches') };
     case 'TeamMember':
-    case 'Staff': return id && e.action !== 'DELETE' ? { to: `/staff/${id}`, label: 'Profile kholein' } : { to: '/staff', label: 'Staff' };
-    case 'Sale': return id ? { to: receiptLink(id), label: 'Bill kholein' } : null;
-    case 'SaleReturn': return { to: '/returns', label: 'Return dekhein' };
-    case 'Expense': return { to: '/expenses', label: 'Expenses' };
-    case 'StaffLeave': return { to: '/staff/attendance', label: 'Haazri' };
-    case 'CommissionPayout': return { to: '/staff/commission', label: 'Commission' };
+    case 'Staff': return id && e.action !== 'DELETE' ? { to: `/staff/${id}`, label: t('Profile kholein') } : { to: '/staff', label: t('Staff') };
+    case 'Sale': return id ? { to: receiptLink(id), label: t('Bill kholein') } : null;
+    case 'SaleReturn': return { to: '/returns', label: t('Return dekhein') };
+    case 'Expense': return { to: '/expenses', label: t('Expenses') };
+    case 'StaffLeave': return { to: '/staff/attendance', label: t('Haazri') };
+    case 'CommissionPayout': return { to: '/staff/commission', label: t('Commission') };
     case 'TenantSettings':
-    case 'Integration': return { to: '/settings', label: 'Settings' };
-    case 'Session': return { to: '/settings/security', label: 'Security' };
-    case 'ChannelOrder': return id ? { to: `/online-orders?order=${id}`, label: 'Order kholein' } : null;
-    default: return e.action.startsWith('PIN_') || e.action === 'PAGE_LOCKS_UPDATED' ? { to: '/settings/security', label: 'Security' } : null;
+    case 'Integration': return { to: '/settings', label: t('Settings') };
+    case 'Session': return { to: '/settings/security', label: t('Security') };
+    case 'ChannelOrder': return id ? { to: `/online-orders?order=${id}`, label: t('Order kholein') } : null;
+    default: return e.action.startsWith('PIN_') || e.action === 'PAGE_LOCKS_UPDATED' ? { to: '/settings/security', label: t('Security') } : null;
   }
 }
 
 /** "Windows · Chrome" from a user agent. */
 export function deviceOf(ua?: string | null): string | null {
   if (!ua) return null;
-  const os = /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iPhone' : /Windows/i.test(ua) ? 'Windows' : /Mac OS/i.test(ua) ? 'Mac' : /Linux/i.test(ua) ? 'Linux' : '';
-  const app = /Electron/i.test(ua) ? 'Desktop app' : /Expo|okhttp/i.test(ua) ? 'Mobile app' : /Edg\//i.test(ua) ? 'Edge' : /Chrome/i.test(ua) ? 'Chrome' : /Firefox/i.test(ua) ? 'Firefox' : /Safari/i.test(ua) ? 'Safari' : 'Browser';
+  const os = /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iPhone' : /Windows/i.test(ua) ? 'Windows' : /Mac OS/i.test(ua) ? 'Mac' : /Linux/i.test(ua) ? 'Linux' : ''; // i18n-ignore
+  const app = /Electron/i.test(ua) ? t('Desktop app') : /Expo|okhttp/i.test(ua) ? t('Mobile app') : /Edg\//i.test(ua) ? t('Edge') : /Chrome/i.test(ua) ? t('Chrome') : /Firefox/i.test(ua) ? t('Firefox') : /Safari/i.test(ua) ? t('Safari') : t('Browser');
   return [os, app].filter(Boolean).join(' · ');
 }

@@ -12,9 +12,10 @@ import { Kbd, PageHero, PageShell, ViewTabs, heroButton } from '@/design-system/
 import { PrintButton, type PrintDoc } from '@core/print';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { LEGAL_UPDATED, PRIVACY, TERMS } from '../content';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'terms' | 'privacy';
-const TITLE: Record<Tab, string> = { terms: 'Istemaal ki shartein (Terms)', privacy: 'Privacy policy' };
+const TITLE: Record<Tab, string> = { terms: tr('Istemaal ki shartein (Terms)'), privacy: tr('Privacy policy') };
 
 export default function LegalPage() {
   const [params, setParams] = useSearchParams();
@@ -34,35 +35,35 @@ export default function LegalPage() {
 
   const doc = (): PrintDoc => ({
     title: TITLE[tab],
-    subtitle: 'Nafaa POS',
-    meta: [['Aakhri tabdeeli', LEGAL_UPDATED]],
+    subtitle: tr('Nafaa POS'),
+    meta: [[tr('Aakhri tabdeeli'), LEGAL_UPDATED]],
     sections: sections.map((s) => ({ kind: 'text' as const, title: s.title, text: s.content })),
   });
 
   return (
     <PageShell>
       <PageHero
-        title="Terms aur privacy"
-        chip={<><CalendarDays />Aakhri tabdeeli: {LEGAL_UPDATED}</>}
-        meta="Nafaa istemaal karne ki shartein aur aap ke data ki hifazat"
+        title={tr('Terms aur privacy')}
+        chip={<><CalendarDays />{tr('Aakhri tabdeeli: {{LEGAL_UPDATED}}', { LEGAL_UPDATED })}</>}
+        meta={tr('Nafaa istemaal karne ki shartein aur aap ke data ki hifazat')}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={doc} label="Print" /></span>
-          <Link to="/help" className={heroButton}><HelpCircle className="h-4 w-4" /> Madad</Link>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={doc} label={tr('Print')} /></span>
+          <Link to="/help" className={heroButton}><HelpCircle className="h-4 w-4" /> {' '}{tr('Madad')}</Link>
         </>}
       />
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> / <Kbd>2</Kbd> se badlein</>}
-        tabs={[{ id: 'terms', label: 'Terms', icon: FileText }, { id: 'privacy', label: 'Privacy', icon: Shield }]} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> / <Kbd>2</Kbd> {' '}{tr('se badlein')}</>}
+        tabs={[{ id: 'terms', label: tr('Terms'), icon: FileText }, { id: 'privacy', label: tr('Privacy'), icon: Shield }]} />
 
       {tab === 'privacy' && (
         <p className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-[0.8125rem] font-medium text-emerald-900 ring-1 ring-emerald-100">
-          <Lock className="h-4 w-4 shrink-0" /> Aap ka karobari data aap ka hai — kabhi bhi Backup page se poora download kar sakte hain.
+          <Lock className="h-4 w-4 shrink-0" /> {' '}{tr('Aap ka karobari data aap ka hai — kabhi bhi Backup page se poora download kar sakte hain.')}
         </p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
-        <nav aria-label="Fehrist" className="h-fit rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 lg:sticky lg:top-4">
-          <p className="px-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">Fehrist</p>
+        <nav aria-label={tr('Fehrist')} className="h-fit rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 lg:sticky lg:top-4">
+          <p className="px-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">{tr('Fehrist')}</p>
           <ol className="space-y-0.5">
             {sections.map((s, i) => (
               <li key={s.title}>

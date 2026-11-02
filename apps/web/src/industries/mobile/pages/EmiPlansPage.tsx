@@ -33,18 +33,19 @@ import { CreateEmiPlanModal } from '../components/emi/CreateEmiPlanModal';
 import { RecordEmiPaymentModal } from '../components/emi/RecordEmiPaymentModal';
 import { emiMessage } from '../components/slips';
 import { EMI_KEY, dayOnly, daysTo, planStatusOf, waLink } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'plans' | 'analytics';
 const VIEWS: Array<{ id: EmiView; label: string; icon: typeof CreditCard }> = [
-  { id: 'active', label: 'Chal rahe', icon: CreditCard },
-  { id: 'overdue', label: 'Late qist wale', icon: AlertTriangle },
-  { id: 'upcoming', label: 'Is hafte qist', icon: CalendarClock },
-  { id: 'done', label: 'Mukammal / band', icon: CheckCircle2 },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'active', label: tr('Chal rahe'), icon: CreditCard },
+  { id: 'overdue', label: tr('Late qist wale'), icon: AlertTriangle },
+  { id: 'upcoming', label: tr('Is hafte qist'), icon: CalendarClock },
+  { id: 'done', label: tr('Mukammal / band'), icon: CheckCircle2 },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const viewLabel = (v: EmiView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 const SORTS: Array<{ value: EmiSort; label: string }> = [
-  { value: 'due', label: 'Jis ki qist pehle' }, { value: 'remaining', label: 'Zyada baqi pehle' }, { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' },
+  { value: 'due', label: tr('Jis ki qist pehle') }, { value: 'remaining', label: tr('Zyada baqi pehle') }, { value: 'new', label: tr('Naye pehle') }, { value: 'old', label: tr('Purane pehle') },
 ];
 
 export default function EmiPlansPage() {
@@ -122,61 +123,61 @@ export default function EmiPlansPage() {
   return (
     <PageShell>
       <PageHero
-        title="Qist plans"
-        chip={<><CreditCard /> Installments</>}
-        meta="Udhaar par phone — har mahine ki qist, late aur baqi ek nazar me"
+        title={tr('Qist plans')}
+        chip={<><CreditCard /> {' '}{tr('Installments')}</>}
+        meta={tr('Udhaar par phone — har mahine ki qist, late aur baqi ek nazar me')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'plans' || !rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <Link to="/khata" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">Khata</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setCreating(true)} title="Naya plan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya plan</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <Link to="/khata" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">{tr('Khata')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setCreating(true)} title={tr('Naya plan (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya plan')}</button>}
         </>}
         stats={s ? [
-          { label: 'Qiston me baqi', value: sales(s.activeRemaining) },
-          { label: 'Late', value: sales(s.overdueAmount), hint: `${s.overdueCount} qist` },
-          { label: 'Is mahine mila', value: sales(s.collectedThisMonth), hint: `${s.collectedCountThisMonth} dafa` },
-        ] : [{ label: 'Qiston me baqi', value: '—' }]}
+          { label: tr('Qiston me baqi'), value: sales(s.activeRemaining) },
+          { label: tr('Late'), value: sales(s.overdueAmount), hint: tr('{{overdueCount}} qist', { overdueCount: s.overdueCount }) },
+          { label: tr('Is mahine mila'), value: sales(s.collectedThisMonth), hint: tr('{{collectedCountThisMonth}} dafa', { collectedCountThisMonth: s.collectedCountThisMonth }) },
+        ] : [{ label: tr('Qiston me baqi'), value: '—' }]}
       />
 
       <KpiRow cols={4}>
         {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={CreditCard} color="#2563eb" label="Chal rahe" value={s.byStatus.find((x) => x.status === 'ACTIVE')?.count ?? 0} hint={`Baqi ${sales(s.activeRemaining)}`} onClick={() => pick('active')} active={tab === 'plans' && view === 'active'} />
-          <KpiCard icon={AlertTriangle} color={s.overdueCount ? '#e11d48' : '#64748b'} label="Late qist" value={s.overdueCount} hint={s.overdueCount ? sales(s.overdueAmount) : 'Koi late nahi'} onClick={() => pick('overdue')} active={tab === 'plans' && view === 'overdue'} />
-          <KpiCard icon={CalendarClock} color="#d97706" label="Is hafte" value={s.upcomingCount} hint={sales(s.upcomingAmount)} onClick={() => pick('upcoming')} active={tab === 'plans' && view === 'upcoming'} />
-          <KpiCard icon={HandCoins} color="#16a34a" label="Is mahine mila" value={sales(s.collectedThisMonth)} hint={`${s.collectedCountThisMonth} dafa`} onClick={() => pick('all')} active={tab === 'plans' && view === 'all'} />
+          <KpiCard icon={CreditCard} color="#2563eb" label={tr('Chal rahe')} value={s.byStatus.find((x) => x.status === 'ACTIVE')?.count ?? 0} hint={tr('Baqi {{activeRemaining}}', { activeRemaining: sales(s.activeRemaining) })} onClick={() => pick('active')} active={tab === 'plans' && view === 'active'} />
+          <KpiCard icon={AlertTriangle} color={s.overdueCount ? '#e11d48' : '#64748b'} label={tr('Late qist')} value={s.overdueCount} hint={s.overdueCount ? sales(s.overdueAmount) : tr('Koi late nahi')} onClick={() => pick('overdue')} active={tab === 'plans' && view === 'overdue'} />
+          <KpiCard icon={CalendarClock} color="#d97706" label={tr('Is hafte')} value={s.upcomingCount} hint={sales(s.upcomingAmount)} onClick={() => pick('upcoming')} active={tab === 'plans' && view === 'upcoming'} />
+          <KpiCard icon={HandCoins} color="#16a34a" label={tr('Is mahine mila')} value={sales(s.collectedThisMonth)} hint={tr('{{collectedCountThisMonth}} dafa', { collectedCountThisMonth: s.collectedCountThisMonth })} onClick={() => pick('all')} active={tab === 'plans' && view === 'all'} />
         </>}
       </KpiRow>
 
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Sab plans — halat ke hisaab se</p>} />
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Sab plans — halat ke hisaab se')}</p>} />
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, plan #…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer, phone, plan #…')} label={tr('Search')} />}
           chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined}
           onClear={() => setSearch('')}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-64"
-            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? `${counts[v.id]} plan` : undefined }))} />
-          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? 'Tarteeb'} value={sort} onChange={setSort} align="right" options={SORTS} />
+            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? tr('{{value}} plan', { value: counts[v.id] }) : undefined }))} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={SORTS.find((x) => x.value === sort)?.label ?? tr('Tarteeb')} value={sort} onChange={setSort} align="right" options={SORTS} />
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'plans', label: 'Plans', icon: ListChecks, count: data?.total ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'plans', label: tr('Plans'), icon: ListChecks, count: data?.total ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <EmiAnalyticsView /> : (<>
         {data && data.total > 0 && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
             <span className="text-slate-500">{viewLabel(view)}</span>
-            <span className="font-semibold text-slate-900">{data.total} plan · qiston me {sales(data.totals.financed)}</span>
-            <span className="text-emerald-700">mila {sales(data.totals.collected)}</span>
-            <span className="text-amber-700">baqi {sales(data.totals.remaining)}</span>
+            <span className="font-semibold text-slate-900">{tr('{{total}} plan · qiston me {{financed}}', { total: data.total, financed: sales(data.totals.financed) })}</span>
+            <span className="text-emerald-700">{tr('mila {{collected}}', { collected: sales(data.totals.collected) })}</span>
+            <span className="text-amber-700">{tr('baqi {{remaining}}', { remaining: sales(data.totals.remaining) })}</span>
           </div>
         )}
 
@@ -184,17 +185,17 @@ export default function EmiPlansPage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
         ) : listQ.isError && !data ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Plans load nahi hue</p>
-            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+            <p className="font-semibold text-slate-900">{tr('Plans load nahi hue')}</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <CreditCard className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{query ? 'Is search me koi plan nahi' : view === 'overdue' ? 'Koi qist late nahi — shabash' : 'Koi plan nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">POS par phone udhaar par bechein, phir yahan us bill ki qistein banayein.</p>
+            <p className="mt-3 font-semibold text-slate-900">{query ? tr('Is search me koi plan nahi') : view === 'overdue' ? tr('Koi qist late nahi — shabash') : tr('Koi plan nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('POS par phone udhaar par bechein, phir yahan us bill ki qistein banayein.')}</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {canManage && <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya plan</Button>}
-              {view !== 'all' && <Button variant="ghost" onClick={() => setView('all')}>Sab plans dekhein</Button>}
+              {canManage && <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya plan')}</Button>}
+              {view !== 'all' && <Button variant="ghost" onClick={() => setView('all')}>{tr('Sab plans dekhein')}</Button>}
             </div>
           </div>
         ) : (
@@ -205,9 +206,9 @@ export default function EmiPlansPage() {
 
         {data && data.totalPages > 1 && (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-            <span className="text-sm text-slate-600">Safha {page} / {data.totalPages}</span>
-            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+            <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{totalPages}}', { page, totalPages: data.totalPages })}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
           </div>
         )}
       </>)}
@@ -216,16 +217,16 @@ export default function EmiPlansPage() {
       {collect && <RecordEmiPaymentModal plan={collect} onClose={() => setCollect(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Qist plans — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Qist plans — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CreditCard, color: '#2563eb', title: 'Pehle udhaar bill', text: 'POS par phone bechein — down payment lein, baqi udhaar. Bill ka udhaar customer ke khata me chala jata hai.' },
-            { icon: Plus, color: '#7c3aed', title: 'Plan banayein', text: '"Naya plan": customer aur us ka udhaar bill chunein, kitne mahine, pehli qist kab. Udhaar barabar qiston me bat jata hai.' },
-            { icon: HandCoins, color: '#16a34a', title: 'Qist lein', text: '"Qist lein" me jitne paise mile likhein — purani qist pehle poori hoti hai. Paise galla aur khata dono me aate hain.' },
-            { icon: AlertTriangle, color: '#e11d48', title: 'Late', text: 'Tareekh guzarte hi qist late ho jati hai. Laal card se late wale dekhein aur WhatsApp se yaad dilayein.' },
-            { icon: Wallet, color: '#0891b2', title: 'Khata', text: 'Plan sirf udhaar ko qiston me torta hai. Customer ka asal hisaab Khata me hai — dono saath chalte hain.' },
+            { icon: CreditCard, color: '#2563eb', title: tr('Pehle udhaar bill'), text: tr('POS par phone bechein — down payment lein, baqi udhaar. Bill ka udhaar customer ke khata me chala jata hai.') },
+            { icon: Plus, color: '#7c3aed', title: tr('Plan banayein'), text: tr('"Naya plan": customer aur us ka udhaar bill chunein, kitne mahine, pehli qist kab. Udhaar barabar qiston me bat jata hai.') },
+            { icon: HandCoins, color: '#16a34a', title: tr('Qist lein'), text: tr('"Qist lein" me jitne paise mile likhein — purani qist pehle poori hoti hai. Paise galla aur khata dono me aate hain.') },
+            { icon: AlertTriangle, color: '#e11d48', title: tr('Late'), text: tr('Tareekh guzarte hi qist late ho jati hai. Laal card se late wale dekhein aur WhatsApp se yaad dilayein.') },
+            { icon: Wallet, color: '#0891b2', title: tr('Khata'), text: tr('Plan sirf udhaar ko qiston me torta hai. Customer ka asal hisaab Khata me hai — dono saath chalte hain.') },
           ]}
-          tips={['Qist lene aur plan banane ke liye "Khata sambhalna" ki permission chahiye.', 'Plan cancel karne se udhaar khatam nahi hota — wo khata me rehta hai.']}
-          shortcuts={[['N', 'naya plan'], ['/', 'dhoondein'], ['1', 'plans'], ['2', 'analytics'], ['G', 'guide']]}
+          tips={[tr('Qist lene aur plan banane ke liye "Khata sambhalna" ki permission chahiye.'), tr('Plan cancel karne se udhaar khatam nahi hota — wo khata me rehta hai.')]}
+          shortcuts={[['N', tr('naya plan')], ['/', 'dhoondein'], ['1', 'plans'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -252,18 +253,18 @@ function PlanRow({ p, money, shopName, canManage, onCollect }: { p: EmiPlan; mon
         </div>
         <div className="mt-1 flex items-center gap-2">
           <div className="h-1.5 w-32 rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
-          <span className="text-[0.75rem] text-slate-500">{done}/{p.installmentCount} qist</span>
+          <span className="text-[0.75rem] text-slate-500">{tr('{{done}}/{{installmentCount}} qist', { done, installmentCount: p.installmentCount })}</span>
         </div>
         <p className={cn('mt-0.5 text-[0.75rem]', late ? 'font-semibold text-rose-700' : 'text-slate-500')}>
-          {late ? `${p.overdueCount} qist late · ${money(p.overdueAmount)}` : p.nextDueDate ? `Agli qist ${dayOnly(p.nextDueDate)}${next !== null && next <= 7 ? ` (${next <= 0 ? 'aaj' : `${next} din`})` : ''} · ${money(p.nextDueAmount)}` : p.customerPhone ?? ''}
+          {late ? tr('{{overdueCount}} qist late · {{overdueAmount}}', { overdueCount: p.overdueCount, overdueAmount: money(p.overdueAmount) }) : p.nextDueDate ? tr('Agli qist {{nextDueDate}}{{value}} · {{nextDueAmount}}', { nextDueDate: dayOnly(p.nextDueDate), value: next !== null && next <= 7 ? ` (${next <= 0 ? 'aaj' : `${next} din`})` : '', nextDueAmount: money(p.nextDueAmount) }) : p.customerPhone ?? ''}
         </p>
       </Link>
-      <div className="shrink-0 text-right">
+      <div className="shrink-0 text-end">
         <p className="font-semibold tabular-nums text-slate-900">{money(p.remainingAmount)}</p>
-        <p className="text-[0.75rem] text-slate-500">baqi</p>
+        <p className="text-[0.75rem] text-slate-500">{tr('baqi')}</p>
         <div className="mt-1 flex justify-end gap-1">
-          {wa && p.status === 'ACTIVE' && <a href={wa} target="_blank" rel="noreferrer" aria-label="WhatsApp" title="Yaad dilayein" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
-          {canManage && p.status === 'ACTIVE' && <Button size="xs" onClick={onCollect}>Qist lein</Button>}
+          {wa && p.status === 'ACTIVE' && <a href={wa} target="_blank" rel="noreferrer" aria-label={tr('WhatsApp')} title={tr('Yaad dilayein')} className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
+          {canManage && p.status === 'ACTIVE' && <Button size="xs" onClick={onCollect}>{tr('Qist lein')}</Button>}
         </div>
       </div>
     </li>
@@ -279,23 +280,23 @@ function EmiAnalyticsView() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h3 className="font-semibold text-slate-900">Plans halat ke hisaab se</h3>
+        <h3 className="font-semibold text-slate-900">{tr('Plans halat ke hisaab se')}</h3>
         <ul className="mt-4 space-y-3">
           {d.byStatus.map((b) => (
             <li key={b.status}>
-              <div className="flex justify-between text-[0.8125rem]"><span className="font-medium" style={{ color: planStatusOf(b.status).color }}>{planStatusOf(b.status).label} · {b.count}</span><span className="tabular-nums text-slate-600">{sales(b.financed)} · baqi {sales(b.remaining)}</span></div>
+              <div className="flex justify-between text-[0.8125rem]"><span className="font-medium" style={{ color: planStatusOf(b.status).color }}>{planStatusOf(b.status).label} · {b.count}</span><span className="tabular-nums text-slate-600">{tr('{{financed}} · baqi {{remaining}}', { financed: sales(b.financed), remaining: sales(b.remaining) })}</span></div>
               <div className="mt-1 h-2.5 rounded-full bg-slate-100"><div className="h-2.5 rounded-full" style={{ width: `${(b.financed / max) * 100}%`, backgroundColor: planStatusOf(b.status).color }} /></div>
             </li>
           ))}
         </ul>
       </section>
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h3 className="font-semibold text-slate-900">Chalte plans</h3>
+        <h3 className="font-semibold text-slate-900">{tr('Chalte plans')}</h3>
         <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.8125rem]">
-          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">Qiston me diya</dt><dd className="text-base font-bold tabular-nums">{sales(d.activeFinanced)}</dd></div>
-          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">Baqi</dt><dd className="text-base font-bold tabular-nums text-amber-700">{sales(d.activeRemaining)}</dd></div>
-          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">Late</dt><dd className="text-base font-bold tabular-nums text-rose-600">{sales(d.overdueAmount)}</dd></div>
-          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">Is mahine mila</dt><dd className="text-base font-bold tabular-nums text-emerald-700">{sales(d.collectedThisMonth)}</dd></div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{tr('Qiston me diya')}</dt><dd className="text-base font-bold tabular-nums">{sales(d.activeFinanced)}</dd></div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{tr('Baqi')}</dt><dd className="text-base font-bold tabular-nums text-amber-700">{sales(d.activeRemaining)}</dd></div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{tr('Late')}</dt><dd className="text-base font-bold tabular-nums text-rose-600">{sales(d.overdueAmount)}</dd></div>
+          <div className="rounded-xl bg-slate-50 px-3 py-2"><dt className="text-slate-500">{tr('Is mahine mila')}</dt><dd className="text-base font-bold tabular-nums text-emerald-700">{sales(d.collectedThisMonth)}</dd></div>
         </dl>
       </section>
     </div>

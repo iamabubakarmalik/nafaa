@@ -1,0 +1,11 @@
+{
+  " (test)": " (test)",
+  "{{value}}: har bill authority ko{{value2}}": "{{value}}: every bill goes to the authority{{value2}}",
+  "FBR #: {{fbrInvoiceNumber}}": "FBR #: {{fbrInvoiceNumber}}",
+  "FBR QR": "FBR QR",
+  "FBR Verified": "FBR Verified",
+  "FBR Verified Invoice": "FBR Verified Invoice",
+  "Federal Board of Revenue · Government of Pakistan · Scan QR to verify": "Federal Board of Revenue · Government of Pakistan · Scan QR to verify",
+  "Scan to verify": "Scan to verify",
+  "Tax: Rs {{taxAmount}}": "Tax: Rs {{taxAmount}}"
+}

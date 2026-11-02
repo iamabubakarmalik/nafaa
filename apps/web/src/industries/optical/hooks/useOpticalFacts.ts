@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { opticalProductsApi, type OpticalCategoryType, type OpticalFacts } from '../api/products.api';
+import { t as tr } from '@core/i18n';
 
 export const FACTS_KEY = 'optical-facts';
 
@@ -17,23 +18,23 @@ export function useOpticalFacts() {
 export type OpticalKind = 'frame' | 'sun' | 'lens' | 'contact' | 'care' | 'other';
 
 export const KINDS: Array<{ value: OpticalKind; label: string; types: OpticalCategoryType[] }> = [
-  { value: 'frame', label: 'Frame', types: ['FRAME_FULL_RIM', 'FRAME_HALF_RIM', 'FRAME_RIMLESS', 'FRAME_SPORTS', 'FRAME_KIDS', 'FRAME_READING'] },
-  { value: 'sun', label: 'Sunglasses', types: ['SUNGLASSES', 'SUNGLASSES_POLARIZED', 'SUNGLASSES_KIDS'] },
-  { value: 'lens', label: 'Lens (stock)', types: ['LENS_SINGLE_VISION', 'LENS_BIFOCAL', 'LENS_PROGRESSIVE', 'LENS_PHOTOCHROMIC', 'LENS_BLUE_CUT', 'LENS_ANTI_GLARE', 'LENS_CYLINDRICAL', 'LENS_SPHERICAL'] },
-  { value: 'contact', label: 'Contact lens', types: ['CONTACT_LENS_MONTHLY', 'CONTACT_LENS_DAILY', 'CONTACT_LENS_YEARLY', 'CONTACT_LENS_COLORED', 'CONTACT_LENS_TORIC', 'CONTACT_LENS_MULTIFOCAL'] },
-  { value: 'care', label: 'Solution / case', types: ['CLEANING_SOLUTION', 'LENS_CASE', 'ACCESSORY'] },
-  { value: 'other', label: 'Doosra', types: ['OTHER'] },
+  { value: 'frame', label: tr('Frame'), types: ['FRAME_FULL_RIM', 'FRAME_HALF_RIM', 'FRAME_RIMLESS', 'FRAME_SPORTS', 'FRAME_KIDS', 'FRAME_READING'] },
+  { value: 'sun', label: tr('Sunglasses'), types: ['SUNGLASSES', 'SUNGLASSES_POLARIZED', 'SUNGLASSES_KIDS'] },
+  { value: 'lens', label: tr('Lens (stock)'), types: ['LENS_SINGLE_VISION', 'LENS_BIFOCAL', 'LENS_PROGRESSIVE', 'LENS_PHOTOCHROMIC', 'LENS_BLUE_CUT', 'LENS_ANTI_GLARE', 'LENS_CYLINDRICAL', 'LENS_SPHERICAL'] },
+  { value: 'contact', label: tr('Contact lens'), types: ['CONTACT_LENS_MONTHLY', 'CONTACT_LENS_DAILY', 'CONTACT_LENS_YEARLY', 'CONTACT_LENS_COLORED', 'CONTACT_LENS_TORIC', 'CONTACT_LENS_MULTIFOCAL'] },
+  { value: 'care', label: tr('Solution / case'), types: ['CLEANING_SOLUTION', 'LENS_CASE', 'ACCESSORY'] },
+  { value: 'other', label: tr('Doosra'), types: ['OTHER'] },
 ];
 
 export const kindOf = (t?: OpticalCategoryType | null): OpticalKind | null => (t ? KINDS.find((k) => k.types.includes(t))?.value ?? 'other' : null);
 
 const TYPE_LABEL: Partial<Record<OpticalCategoryType, string>> = {
-  FRAME_FULL_RIM: 'Full rim', FRAME_HALF_RIM: 'Half rim', FRAME_RIMLESS: 'Rimless', FRAME_SPORTS: 'Sports', FRAME_KIDS: 'Bachon ka', FRAME_READING: 'Reading',
-  SUNGLASSES: 'Sunglasses', SUNGLASSES_POLARIZED: 'Polarized', SUNGLASSES_KIDS: 'Bachon ki',
-  LENS_SINGLE_VISION: 'Single vision', LENS_BIFOCAL: 'Bifocal', LENS_PROGRESSIVE: 'Progressive', LENS_PHOTOCHROMIC: 'Photochromic', LENS_BLUE_CUT: 'Blue cut',
-  LENS_ANTI_GLARE: 'Anti-glare', LENS_CYLINDRICAL: 'Cylinder', LENS_SPHERICAL: 'Spherical',
-  CONTACT_LENS_MONTHLY: 'Monthly', CONTACT_LENS_DAILY: 'Daily', CONTACT_LENS_YEARLY: 'Yearly', CONTACT_LENS_COLORED: 'Rangeen', CONTACT_LENS_TORIC: 'Toric', CONTACT_LENS_MULTIFOCAL: 'Multifocal',
-  CLEANING_SOLUTION: 'Solution', LENS_CASE: 'Lens case', ACCESSORY: 'Accessory', OTHER: 'Doosra',
+  FRAME_FULL_RIM: tr('Full rim'), FRAME_HALF_RIM: tr('Half rim'), FRAME_RIMLESS: tr('Rimless'), FRAME_SPORTS: tr('Sports'), FRAME_KIDS: tr('Bachon ka'), FRAME_READING: tr('Reading'),
+  SUNGLASSES: tr('Sunglasses'), SUNGLASSES_POLARIZED: tr('Polarized'), SUNGLASSES_KIDS: tr('Bachon ki'),
+  LENS_SINGLE_VISION: tr('Single vision'), LENS_BIFOCAL: tr('Bifocal'), LENS_PROGRESSIVE: tr('Progressive'), LENS_PHOTOCHROMIC: tr('Photochromic'), LENS_BLUE_CUT: tr('Blue cut'),
+  LENS_ANTI_GLARE: tr('Anti-glare'), LENS_CYLINDRICAL: tr('Cylinder'), LENS_SPHERICAL: tr('Spherical'),
+  CONTACT_LENS_MONTHLY: tr('Monthly'), CONTACT_LENS_DAILY: tr('Daily'), CONTACT_LENS_YEARLY: tr('Yearly'), CONTACT_LENS_COLORED: tr('Rangeen'), CONTACT_LENS_TORIC: tr('Toric'), CONTACT_LENS_MULTIFOCAL: tr('Multifocal'),
+  CLEANING_SOLUTION: tr('Solution'), LENS_CASE: tr('Lens case'), ACCESSORY: tr('Accessory'), OTHER: tr('Doosra'),
 };
 export const typeLabel = (t?: OpticalCategoryType | null) => (t ? TYPE_LABEL[t] ?? t : '');
 

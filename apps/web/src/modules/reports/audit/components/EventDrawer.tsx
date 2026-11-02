@@ -9,6 +9,7 @@ import type { AuditEvent } from '../api';
 import { SEVERITY_META, TYPE_META, eventLink, whenFull } from '../meta';
 import { eventValue } from '../print';
 import { SeverityPill, TypeIcon } from './parts';
+import { t as tr } from '@core/i18n';
 
 export const flagTone = (f: string): 'rose' | 'amber' | 'slate' =>
   /Bari|Chori|Bina customer|Khud report|Apne hi|kam nikle|Had \(/.test(f) ? 'rose' : /waqt ke baad|Wajah nahi|purana|baad cancel|Naya device|Nakam|Gum/.test(f) ? 'amber' : 'slate';
@@ -54,7 +55,7 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
               <h2 className="text-[1rem] font-semibold text-slate-900">{e.title}</h2>
             </div>
           </div>
-          <IconButton label="Band karein" onClick={onClose}><X className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Band karein')} onClick={onClose}><X className="h-4 w-4" /></IconButton>
         </header>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
@@ -64,8 +65,8 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
               <p className="mt-1 text-[0.75rem] text-slate-500">{SEVERITY_META[e.severity].hint}</p>
             </div>
             {value !== '—' && (
-              <div className="text-right">
-                <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{t.money === 'cost' ? 'Nuqsan (cost)' : e.type === 'drawer' ? 'Farq' : 'Amount'}</p>
+              <div className="text-end">
+                <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{t.money === 'cost' ? tr('Nuqsan (cost)') : e.type === 'drawer' ? tr('Farq') : tr('Amount')}</p>
                 <p className="text-xl font-bold tabular-nums text-slate-900">{value}</p>
               </div>
             )}
@@ -73,7 +74,7 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
 
           {e.flags.length > 0 && (
             <section>
-              <h3 className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900"><AlertTriangle className="h-4 w-4 text-amber-500" />Kyun nazar me aaya</h3>
+              <h3 className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900"><AlertTriangle className="h-4 w-4 text-amber-500" />{tr('Kyun nazar me aaya')}</h3>
               <ul className="space-y-1.5">
                 {e.flags.map((f) => {
                   const tone = flagTone(f);
@@ -89,23 +90,23 @@ export function EventDrawer({ e, fmt, onStaff, onClose }: {
 
           {e.detail && (
             <section className="rounded-xl bg-white p-3 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">
-              <p className="mb-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">Details / wajah</p>
+              <p className="mb-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{tr('Details / wajah')}</p>
               {e.detail}
             </section>
           )}
 
           <section className="divide-y divide-slate-100">
-            <Row icon={Clock} label="Kab" value={<>{whenFull(e.at)}{e.afterHours && <span className="ml-1.5 text-[0.75rem] font-medium text-amber-700">· dukaan ke waqt ke baad</span>}</>} />
-            <Row icon={UserRound} label="Kis ne" value={e.userName ?? 'Pata nahi'} />
-            {e.shopName && <Row icon={Store} label="Branch" value={e.shopName} />}
+            <Row icon={Clock} label={tr('Kab')} value={<>{whenFull(e.at)}{e.afterHours && <span className="ms-1.5 text-[0.75rem] font-medium text-amber-700">{tr('· dukaan ke waqt ke baad')}</span>}</>} />
+            <Row icon={UserRound} label={tr('Kis ne')} value={e.userName ?? 'Pata nahi'} />
+            {e.shopName && <Row icon={Store} label={tr('Branch')} value={e.shopName} />}
           </section>
 
           <p className="rounded-xl bg-sky-50 p-3 text-[0.8125rem] leading-relaxed text-sky-900 ring-1 ring-sky-100">{t.hint}</p>
         </div>
 
         <footer className="flex flex-wrap gap-2 border-t border-slate-200 px-5 py-3">
-          {e.userId && <Button variant="secondary" onClick={() => { onStaff(e.userId!); onClose(); }}><UserRound className="h-4 w-4" />Is bande ke sab kaam</Button>}
-          {link && <Link to={link.to} className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg hover:bg-brand-700">{link.label}<ArrowUpRight className="h-4 w-4" /></Link>}
+          {e.userId && <Button variant="secondary" onClick={() => { onStaff(e.userId!); onClose(); }}><UserRound className="h-4 w-4" />{tr('Is bande ke sab kaam')}</Button>}
+          {link && <Link to={link.to} className="ms-auto inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg hover:bg-brand-700">{link.label}<ArrowUpRight className="h-4 w-4" /></Link>}
         </footer>
       </aside>
     </div>,

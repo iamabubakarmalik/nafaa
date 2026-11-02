@@ -13,11 +13,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { create } from 'zustand';
+import { t } from '@core/i18n';
 
 export type VoiceLang = 'ur-PK' | 'en-PK';
 
 const LANG_KEY = 'nafaa-ai-voice-lang';
 const readLang = (): VoiceLang => {
+  // i18n-ignore: speech language codes
   try { return localStorage.getItem(LANG_KEY) === 'en-PK' ? 'en-PK' : 'ur-PK'; } catch { return 'ur-PK'; }
 };
 
@@ -108,8 +110,8 @@ export function useSpeechInput({ lang, onInterim, onFinal, onError }: {
     r.onerror = (e) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       cb.current.onError?.(e.error === 'not-allowed' || e.error === 'service-not-allowed'
-        ? 'Mic ki ijazat nahi — browser me mic allow karein'
-        : 'Awaaz samajh nahi aayi — dobara koshish karein');
+        ? t('Mic ki ijazat nahi — browser me mic allow karein')
+        : t('Awaaz samajh nahi aayi — dobara koshish karein'));
     };
     r.onend = () => {
       clearTimer();
@@ -124,7 +126,7 @@ export function useSpeechInput({ lang, onInterim, onFinal, onError }: {
       armTimer(FIRST_WORDS_MS);
     } catch {
       rec.current = null;
-      cb.current.onError?.('Mic shuru nahi ho saka');
+      cb.current.onError?.(t('Mic shuru nahi ho saka'));
     }
   }, [lang]);
 

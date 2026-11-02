@@ -4,6 +4,7 @@
  * har misaal server-side hai.
  */
 
+import { t } from '@core/i18n';
 export const SAMPLE_ORDER = {
   orderId: '1042',
   orderNumber: '1042',
@@ -23,7 +24,7 @@ export const SAMPLE_ORDER = {
   total: 4000,
   paymentMethod: 'cod',
   paymentStatus: 'pending',
-  notes: 'Shaam 5 baje ke baad',
+  notes: t('Shaam 5 baje ke baad'),
 };
 
 export function snippets(ordersUrl: string, apiKey: string, secret: string) {

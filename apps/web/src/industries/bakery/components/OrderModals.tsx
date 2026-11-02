@@ -14,6 +14,7 @@ import { Button, Input, Modal, Textarea } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { OrderPayMethod } from '../api/cake-orders.api';
 import { PAY_METHODS, apiError } from './meta';
+import { t } from '@core/i18n';
 
 export function PayModal({ name, due, advanceLeft = 0, onPay, onClose, onDone }: {
   name: string;
@@ -29,30 +30,30 @@ export function PayModal({ name, due, advanceLeft = 0, onPay, onClose, onDone }:
   const n = Number(amount) || 0;
   const pay = useMutation({
     mutationFn: () => onPay(n, method),
-    onSuccess: () => { toast.success(`${formatPKR(n)} darj ho gaya`); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Darj nahi hua')),
+    onSuccess: () => { toast.success(t('{{formatPKR}} darj ho gaya', { formatPKR: formatPKR(n) })); onDone(); },
+    onError: (e) => toast.error(apiError(e, t('Darj nahi hua'))),
   });
   const bad = n <= 0 || n > due + 0.005;
   const chips = [
-    { l: 'Poora', v: due },
-    { l: 'Advance', v: Math.min(advanceLeft, due) },
-    { l: 'Aadha', v: Math.round(due / 2) },
+    { l: t('Poora'), v: due },
+    { l: t('Advance'), v: Math.min(advanceLeft, due) },
+    { l: t('Aadha'), v: Math.round(due / 2) },
   ].filter((c, i, a) => c.v > 0 && a.findIndex((x) => x.v === c.v) === i);
 
   return (
-    <Modal open onClose={onClose} size="sm" title="Paisa mila" description={`${name} · ${formatPKR(due)} baqi`}
+    <Modal open onClose={onClose} size="sm" title={t('Paisa mila')} description={t('{{name}} · {{due}} baqi', { name, due: formatPKR(due) })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="success" disabled={bad} loading={pay.isPending} onClick={() => pay.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Darj karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="success" disabled={bad} loading={pay.isPending} onClick={() => pay.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>{t('Darj karein')}</Button>
       </>}>
       <div className="space-y-3">
         <Input data-autofocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
           onKeyDown={(e) => { if (e.key === 'Enter' && !bad && !pay.isPending) pay.mutate(); }}
-          size="lg" className="text-center text-2xl font-bold tabular-nums" error={n > due + 0.005 ? `Baqi sirf ${formatPKR(due)} hai` : undefined} />
+          size="lg" className="text-center text-2xl font-bold tabular-nums" error={n > due + 0.005 ? t('Baqi sirf {{due}} hai', { due: formatPKR(due) }) : undefined} />
         <div className="flex flex-wrap gap-1.5">
           {chips.map((c) => <Button key={c.l} size="sm" variant="secondary" onClick={() => setAmount(String(c.v))}>{c.l} <span className="tabular-nums text-slate-500">{formatPKR(c.v)}</span></Button>)}
         </div>
-        <div role="radiogroup" aria-label="Payment kaise mili" className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+        <div role="radiogroup" aria-label={t('Payment kaise mili')} className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
           {PAY_METHODS.map((m) => (
             <button key={m.id} type="button" role="radio" aria-checked={method === m.id} onClick={() => setMethod(m.id)}
               className={cn('inline-flex h-9 items-center justify-center rounded-lg text-[0.75rem] font-semibold ring-1 transition-colors',
@@ -61,7 +62,7 @@ export function PayModal({ name, due, advanceLeft = 0, onPay, onClose, onDone }:
             </button>
           ))}
         </div>
-        <p className="text-[0.75rem] text-slate-500">Yeh paisa aaj ke drawer aur customer ke khate me advance ban kar jata hai. Dete waqt bill me khate se kat jata hai.</p>
+        <p className="text-[0.75rem] text-slate-500">{t('Yeh paisa aaj ke drawer aur customer ke khate me advance ban kar jata hai. Dete waqt bill me khate se kat jata hai.')}</p>
       </div>
     </Modal>
   );
@@ -78,23 +79,23 @@ export function CancelModal({ title, paid, askReason = true, onConfirm, onClose 
   const [reason, setReason] = useState('');
   const cancel = useMutation({
     mutationFn: () => onConfirm(reason.trim()),
-    onSuccess: () => { toast.success('Order cancel ho gaya'); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Cancel nahi hua')),
+    onSuccess: () => { toast.success(t('Order cancel ho gaya')); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Cancel nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Order cancel karein?" description={title}
+    <Modal open onClose={onClose} size="sm" title={t('Order cancel karein?')} description={title}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate()} leftIcon={<Ban className="h-4 w-4" />}>Haan, cancel</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate()} leftIcon={<Ban className="h-4 w-4" />}>{t('Haan, cancel')}</Button>
       </>}>
       <div className="space-y-3">
         {paid > 0 && (
           <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            Customer {formatPKR(paid)} de chuka hai. Yeh advance customer ke khate me jama rehta hai — agle bill me kat jayega, ya cancel ke baad "Advance wapas" se cash me wapas karein. Cancel se paisa khud wapas nahi hota.
+            {t('Customer {{paid}} de chuka hai. Yeh advance customer ke khate me jama rehta hai — agle bill me kat jayega, ya cancel ke baad "Advance wapas" se cash me wapas karein. Cancel se paisa khud wapas nahi hota.', { paid: formatPKR(paid) })}
           </p>
         )}
-        {askReason && <Textarea data-autofocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder="Customer ne mana kar diya, date badal gayi…" hint="Marzi hai — baad me yaad rehta hai" />}
+        {askReason && <Textarea data-autofocus label={t('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder={t('Customer ne mana kar diya, date badal gayi…')} hint={t('Marzi hai — baad me yaad rehta hai')} />}
       </div>
     </Modal>
   );
@@ -115,24 +116,24 @@ export function RefundModal({ title, loadMoney, onRefund, onClose, onDone }: {
   const held = Number(money.data?.khataPaid) || 0;
   const older = Number(money.data?.legacyPaid) || 0;
   const refund = useMutation({
-    mutationFn: () => withManagerPin('Advance wapsi', (pin) => onRefund(pin), 'refund'),
-    onSuccess: () => { toast.success(`${formatPKR(held)} advance wapas — drawer se cash nikla`); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Advance wapas nahi hua')),
+    mutationFn: () => withManagerPin(t('Advance wapsi'), (pin) => onRefund(pin), 'refund'),
+    onSuccess: () => { toast.success(t('{{held}} advance wapas — drawer se cash nikla', { held: formatPKR(held) })); onDone(); },
+    onError: (e) => toast.error(apiError(e, t('Advance wapas nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Advance wapas karein?" description={title}
+    <Modal open onClose={onClose} size="sm" title={t('Advance wapas karein?')} description={title}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button variant="danger" disabled={!(held > 0)} loading={refund.isPending || money.isLoading} onClick={() => refund.mutate()} leftIcon={<Undo2 className="h-4 w-4" />}>
-          {held > 0 ? `${formatPKR(held)} cash wapas` : 'Wapas karne ko kuch nahi'}
+          {held > 0 ? t('{{held}} cash wapas', { held: formatPKR(held) }) : t('Wapas karne ko kuch nahi')}
         </Button>
       </>}>
       <div className="space-y-3 text-[0.8125rem]">
-        <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-slate-700">Customer ke khate se advance hat jayega aur utna cash is branch ke khule drawer se nikalega. Day book me "Advance wapas" likha jayega.</p>
+        <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-slate-700">{t('Customer ke khate se advance hat jayega aur utna cash is branch ke khule drawer se nikalega. Day book me "Advance wapas" likha jayega.')}</p>
         {older > 0.5 && (
           <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-amber-900 ring-1 ring-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            {formatPKR(older)} purane tareeqe se liya gaya tha aur khate me nahi — woh yahan se wapas nahi hota.
+            {t('{{older}} purane tareeqe se liya gaya tha aur khate me nahi — woh yahan se wapas nahi hota.', { older: formatPKR(older) })}
           </p>
         )}
       </div>

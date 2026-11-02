@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { apiMessage, notificationText } from '../../common/i18n/api-message';
 
 @Injectable()
 export class AdminTenantsService {
@@ -153,8 +154,10 @@ export class AdminTenantsService {
       data: {
         tenantId: id,
         type: status === 'SUSPENDED' ? 'WARNING' : 'INFO',
-        title: `Account ${status}`,
-        message: reason || `Aap ka account status ${status} kar diya gaya hai.`,
+        ...notificationText(
+          apiMessage('Account {{status}}', { status }),
+          reason || apiMessage('Aap ka account status {{status}} kar diya gaya hai.', { status }),
+        ),
       },
     });
 

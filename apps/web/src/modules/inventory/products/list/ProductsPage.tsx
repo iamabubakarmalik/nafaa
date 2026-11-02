@@ -38,28 +38,29 @@ import { CatalogAnalytics } from './components/CatalogAnalytics';
 import { ProductCard, ProductRow, qty } from './components/ProductCard';
 import { StockModal } from './components/StockModal';
 import type { GuideStep, ProductsPageConfig } from './types';
+import { t as tr } from '@core/i18n';
 
 const SORTS: Array<FilterOption<CatalogSort>> = [
-  { value: 'name', label: 'Naam (A–Z)' },
-  { value: 'new', label: 'Naye pehle' },
-  { value: 'old', label: 'Purane pehle' },
-  { value: 'bestSelling', label: 'Zyada bikne wale', hint: 'Pichhle 30 din' },
-  { value: 'slow', label: 'Kam bikne wale', hint: 'Pada hua maal pehle' },
-  { value: 'stockLow', label: 'Kam stock pehle' },
-  { value: 'stockHigh', label: 'Zyada stock pehle' },
-  { value: 'priceHigh', label: 'Mehngay pehle' },
-  { value: 'priceLow', label: 'Sastay pehle' },
+  { value: 'name', label: tr('Naam (A–Z)') },
+  { value: 'new', label: tr('Naye pehle') },
+  { value: 'old', label: tr('Purane pehle') },
+  { value: 'bestSelling', label: tr('Zyada bikne wale'), hint: tr('Pichhle 30 din') },
+  { value: 'slow', label: tr('Kam bikne wale'), hint: tr('Pada hua maal pehle') },
+  { value: 'stockLow', label: tr('Kam stock pehle') },
+  { value: 'stockHigh', label: tr('Zyada stock pehle') },
+  { value: 'priceHigh', label: tr('Mehngay pehle') },
+  { value: 'priceLow', label: tr('Sastay pehle') },
 ];
 const COST_SORTS: Array<FilterOption<CatalogSort>> = [
-  { value: 'value', label: 'Stock ki qeemat', hint: 'Sab se zyada paisa laga' },
-  { value: 'margin', label: 'Zyada profit wale' },
+  { value: 'value', label: tr('Stock ki qeemat'), hint: tr('Sab se zyada paisa laga') },
+  { value: 'margin', label: tr('Zyada profit wale') },
 ];
 const STATUS: Array<FilterOption<CatalogFilters['active']>> = [
-  { value: 'active', label: 'Chalu', hint: 'POS par bikti hain' },
-  { value: 'inactive', label: 'Band', hint: 'Chhupi hui' },
-  { value: 'all', label: 'Sab' },
+  { value: 'active', label: tr('Chalu'), hint: tr('POS par bikti hain') },
+  { value: 'inactive', label: tr('Band'), hint: tr('Chhupi hui') },
+  { value: 'all', label: tr('Sab') },
 ];
-const KIND_DEFAULT: Record<string, string> = { made: 'Khud banaya', bought: 'Khareed kar' };
+const KIND_DEFAULT: Record<string, string> = { made: tr('Khud banaya'), bought: tr('Khareed kar') };
 
 
 export function ProductsPage({ config }: { config: ProductsPageConfig }) {
@@ -103,15 +104,15 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     try {
       const { items, stats } = await fetchAllProducts(c.filters);
       const rows = onlyIds ? items.filter((i) => onlyIds.includes(i.id)) : items;
-      if (!rows.length) { toast.error('Koi cheez nahi'); return; }
-      productsCsv(rows, [`Maal ki list — ${tenantName ?? ''}${shopName ? ` · ${shopName}` : ''}`,
-        `Cheezein: ${rows.length} · Kam: ${stats?.low ?? 0} · Khatam: ${stats?.out ?? 0}`], !costHidden);
-      toast.success(`${rows.length} cheezein CSV mein`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      if (!rows.length) { toast.error(tr('Koi cheez nahi')); return; }
+      productsCsv(rows, [tr('Maal ki list — {{value}}{{value2}}', { value: tenantName ?? '', value2: shopName ? ` · ${shopName}` : '' }),
+        tr('Cheezein: {{count}} · Kam: {{value}} · Khatam: {{value2}}', { count: rows.length, value: stats?.low ?? 0, value2: stats?.out ?? 0 })], !costHidden);
+      toast.success(tr('{{count}} cheezein CSV mein', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async () => {
     const { items, stats } = await fetchAllProducts(c.filters, 3000);
-    return productsDoc(items, stats, `${config.label} — maal ki list`, money, !costHidden);
+    return productsDoc(items, stats, tr('{{label}} — maal ki list', { label: config.label }), money, !costHidden);
   };
 
   const onScan = useCallback(async (code: string) => {
@@ -123,12 +124,12 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       const hit = res.items.find((i) => [i.barcode, i.sku].some((v) => v?.toLowerCase() === term.toLowerCase())) ?? (res.items.length === 1 ? res.items[0] : null);
       if (hit) {
         c.clear(); c.setSearch(term);
-        toast.success(hit.name, can.stock ? { action: { label: '+ Stock', onClick: () => setStockItem(hit) } } : undefined);
+        toast.success(hit.name, can.stock ? { action: { label: tr('+ Stock'), onClick: () => setStockItem(hit) } } : undefined);
         return;
       }
       if (await config.onScanMiss?.(term, navigate)) return;
-      toast.error(`"${term}" kisi cheez par nahi mila`, can.create ? { action: { label: 'Nayi banayein', onClick: () => navigate(`${config.paths.create}?barcode=${encodeURIComponent(term)}`) } } : undefined);
-    } catch { toast.error('Dhoonda nahi ja saka'); }
+      toast.error(tr('"{{term}}" kisi cheez par nahi mila', { term }), can.create ? { action: { label: tr('Nayi banayein'), onClick: () => navigate(`${config.paths.create}?barcode=${encodeURIComponent(term)}`) } } : undefined);
+    } catch { toast.error(tr('Dhoonda nahi ja saka')); }
   }, [c, config, can.create, can.stock, navigate]);
 
   useEffect(() => {
@@ -149,12 +150,12 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   }, [c, can.create, config.paths.create, navigate]);
 
   const tabs: Array<{ id: CatalogStock; label: string; icon: LucideIcon; tone?: string }> = [
-    { id: 'all', label: 'Sab', icon: Boxes },
-    { id: 'in', label: 'Stock mein', icon: Package },
-    { id: 'low', label: 'Kam', icon: AlertTriangle, tone: 'text-amber-600' },
-    { id: 'out', label: 'Khatam', icon: X, tone: 'text-rose-600' },
-    { id: 'dead', label: 'Nahi bik raha', icon: Snowflake, tone: 'text-slate-500' },
-    ...((d?.tabs.expiring ?? 0) > 0 ? [{ id: 'expiring' as const, label: 'Expiry qareeb', icon: CalendarClock, tone: 'text-amber-600' }] : []),
+    { id: 'all', label: tr('Sab'), icon: Boxes },
+    { id: 'in', label: tr('Stock mein'), icon: Package },
+    { id: 'low', label: tr('Kam'), icon: AlertTriangle, tone: 'text-amber-600' },
+    { id: 'out', label: tr('Khatam'), icon: X, tone: 'text-rose-600' },
+    { id: 'dead', label: tr('Nahi bik raha'), icon: Snowflake, tone: 'text-slate-500' },
+    ...((d?.tabs.expiring ?? 0) > 0 ? [{ id: 'expiring' as const, label: tr('Expiry qareeb'), icon: CalendarClock, tone: 'text-amber-600' }] : []),
   ];
   const labelOf = (kind: 'condition' | 'etype' | 'kind', v: string) => config.facetLabels?.[kind]?.[v] ?? (kind === 'kind' ? KIND_DEFAULT[v] : undefined) ?? v;
   const extrasFor = (i: CatalogItem) => config.extras?.(i, { costHidden, money }) ?? {};
@@ -174,8 +175,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   // Tier price columns exist only once the owner turns price tiers on; until then they stay hidden.
   const tierCols = usePriceTierSettings().on;
   const shownCols = { wholesale: tierCols && c.cols.includes('wholesale'), credit: tierCols && c.cols.includes('credit') };
-  const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([['wholesale', 'Wholesale price'], ['credit', 'Credit price']] as const)
-    .map(([value, label]) => ({ value, label, icon: c.cols.includes(value) ? SquareCheck : Square, hint: c.cols.includes(value) ? 'Dikh raha hai' : 'Chhupa hai' }));
+  const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([['wholesale', tr('Wholesale price')], ['credit', tr('Credit price')]] as const)
+    .map(([value, label]) => ({ value, label, icon: c.cols.includes(value) ? SquareCheck : Square, hint: c.cols.includes(value) ? tr('Dikh raha hai') : tr('Chhupa hai') }));
   const cardProps = (i: CatalogItem) => ({
     item: i, config, extras: extrasFor(i), tagNames: d?.tagNames ?? {}, money, cost, costHidden, days: st?.windowDays ?? 30,
     selected: c.selected.has(i.id), selecting: c.selected.size > 0, onToggle: () => c.toggle(i.id),
@@ -184,49 +185,49 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   });
 
   // Less used filters, each with its own clear label so no two read the same.
-  const FACET_LABEL = { condition: 'Condition', etype: 'Product type', kind: 'Banaya ya khareeda' } as const;
+  const FACET_LABEL = { condition: tr('Condition'), etype: tr('Product type'), kind: tr('Banaya ya khareeda') } as const;
   const moreGroups: FilterGroup[] = [
-    { id: 'active', label: 'Halat', icon: ToggleRight, value: c.f.active, empty: 'active', options: STATUS, onChange: (v) => c.set('active', v as CatalogFilters['active']) },
+    { id: 'active', label: tr('Halat'), icon: ToggleRight, value: c.f.active, empty: 'active', options: STATUS, onChange: (v) => c.set('active', v as CatalogFilters['active']) },
     ...(config.filters ?? []).flatMap((key): FilterGroup[] => {
       if (key === 'tags') {
-        return d?.tags.length ? [{ id: key, label: 'Tag', icon: Tag, value: c.f.tagId ?? 'all', empty: 'all',
-          options: [{ value: 'all', label: 'Sab' }, ...d.tags.map((t) => ({ value: t.id, label: `#${t.name}`, hint: `${t.count}`, color: t.color })), { value: 'none', label: 'Baghair tag' }],
+        return d?.tags.length ? [{ id: key, label: tr('Tag'), icon: Tag, value: c.f.tagId ?? 'all', empty: 'all',
+          options: [{ value: 'all', label: tr('Sab') }, ...d.tags.map((t) => ({ value: t.id, label: `#${t.name}`, hint: `${t.count}`, color: t.color })), { value: 'none', label: tr('Baghair tag') }],
           onChange: (v) => c.set('tagId', v === 'all' ? undefined : v) }] : [];
       }
       if (key === 'serial') {
-        return (d?.facets.serial.tracked ?? 0) > 0 ? [{ id: key, label: 'Serial', icon: ListChecks, value: c.f.serial ?? 'all', empty: 'all',
-          options: [{ value: 'all', label: 'Sab' }, { value: 'tracked', label: `Serial wale (${d!.facets.serial.tracked})` }, { value: 'mismatch', label: `Ginti ghalat (${d!.facets.serial.mismatch})`, hint: 'Stock aur serial barabar nahi' }],
+        return (d?.facets.serial.tracked ?? 0) > 0 ? [{ id: key, label: tr('Serial'), icon: ListChecks, value: c.f.serial ?? 'all', empty: 'all',
+          options: [{ value: 'all', label: tr('Sab') }, { value: 'tracked', label: tr('Serial wale ({{tracked}})', { tracked: d!.facets.serial.tracked }) }, { value: 'mismatch', label: tr('Ginti ghalat ({{mismatch}})', { mismatch: d!.facets.serial.mismatch }), hint: tr('Stock aur serial barabar nahi') }],
           onChange: (v) => c.set('serial', v === 'all' ? undefined : (v as 'tracked' | 'mismatch')) }] : [];
       }
       const facet = key === 'kind' ? d?.facets.kinds : key === 'condition' ? d?.facets.conditions : key === 'etype' ? d?.facets.etypes : null;
       if (!facet?.length) return [];
       return [{ id: key, label: FACET_LABEL[key as keyof typeof FACET_LABEL], icon: Filter, value: c.f[key as keyof typeof FACET_LABEL] ?? 'all', empty: 'all',
-        options: [{ value: 'all', label: 'Sab' }, ...facet.map((x) => ({ value: x.id, label: `${labelOf(key as keyof typeof FACET_LABEL, x.id)} (${x.count})` }))],
+        options: [{ value: 'all', label: tr('Sab') }, ...facet.map((x) => ({ value: x.id, label: `${labelOf(key as keyof typeof FACET_LABEL, x.id)} (${x.count})` }))],
         onChange: (v) => c.set(key as keyof typeof FACET_LABEL, v === 'all' ? undefined : v) }];
     }),
-    { id: 'kindOf', label: 'Raw material', icon: Wheat, value: c.f.kindOf ?? 'all', empty: 'all',
-      options: [{ value: 'all', label: 'Sab' }, { value: 'sale', label: 'Sirf bechne wale' }, { value: 'raw', label: 'Sirf raw material' }],
+    { id: 'kindOf', label: tr('Raw material'), icon: Wheat, value: c.f.kindOf ?? 'all', empty: 'all',
+      options: [{ value: 'all', label: tr('Sab') }, { value: 'sale', label: tr('Sirf bechne wale') }, { value: 'raw', label: tr('Sirf raw material') }],
       onChange: (v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale')) },
-    { id: 'featured', label: 'Khaas', icon: Star, value: c.f.featured ? 'yes' : 'all', empty: 'all',
-      options: [{ value: 'all', label: 'Sab' }, { value: 'yes', label: 'Sirf khaas' }],
+    { id: 'featured', label: tr('Khaas'), icon: Star, value: c.f.featured ? 'yes' : 'all', empty: 'all',
+      options: [{ value: 'all', label: tr('Sab') }, { value: 'yes', label: tr('Sirf khaas') }],
       onChange: (v) => c.set('featured', v === 'yes' ? true : undefined) },
-    ...(costHidden ? [] : [{ id: 'noCost', label: 'Cost', icon: Wallet, value: c.f.noCost ? 'none' : 'all', empty: 'all',
-      options: [{ value: 'all', label: 'Sab' }, { value: 'none', label: 'Cost nahi likhi', hint: 'In ki poori sale Profit ginti hai' }],
+    ...(costHidden ? [] : [{ id: 'noCost', label: tr('Cost'), icon: Wallet, value: c.f.noCost ? 'none' : 'all', empty: 'all',
+      options: [{ value: 'all', label: tr('Sab') }, { value: 'none', label: tr('Cost nahi likhi'), hint: tr('In ki poori sale Profit ginti hai') }],
       onChange: (v: string) => c.set('noCost', v === 'none' ? true : undefined) }]),
   ];
 
   const filterChips: Array<[string, () => void]> = [];
-  if (c.f.categoryId) filterChips.push([d?.categories.find((x) => x.id === c.f.categoryId)?.name ?? 'Category', () => c.set('categoryId', undefined)]);
-  if (c.f.brandId) filterChips.push([d?.brands.find((x) => x.id === c.f.brandId)?.name ?? 'Brand', () => c.set('brandId', undefined)]);
-  if (c.f.tagId) filterChips.push([`#${d?.tagNames[c.f.tagId]?.name ?? 'Tag'}`, () => c.set('tagId', undefined)]);
+  if (c.f.categoryId) filterChips.push([d?.categories.find((x) => x.id === c.f.categoryId)?.name ?? tr('Category'), () => c.set('categoryId', undefined)]);
+  if (c.f.brandId) filterChips.push([d?.brands.find((x) => x.id === c.f.brandId)?.name ?? tr('Brand'), () => c.set('brandId', undefined)]);
+  if (c.f.tagId) filterChips.push([`#${d?.tagNames[c.f.tagId]?.name ?? tr('Tag')}`, () => c.set('tagId', undefined)]);
   if (c.f.kind) filterChips.push([labelOf('kind', c.f.kind), () => c.set('kind', undefined)]);
   if (c.f.condition) filterChips.push([labelOf('condition', c.f.condition), () => c.set('condition', undefined)]);
   if (c.f.etype) filterChips.push([labelOf('etype', c.f.etype), () => c.set('etype', undefined)]);
-  if (c.f.serial) filterChips.push([c.f.serial === 'mismatch' ? 'Serial ginti ghalat' : 'Serial wale', () => c.set('serial', undefined)]);
-  if (c.f.featured) filterChips.push(['Sirf khaas', () => c.set('featured', undefined)]);
-  if (c.f.noCost) filterChips.push(['Cost nahi likhi', () => c.set('noCost', undefined)]);
-  if (c.f.kindOf) filterChips.push([c.f.kindOf === 'raw' ? 'Raw material' : 'Bechne wale', () => c.set('kindOf', undefined)]);
-  if (c.f.active !== 'active') filterChips.push([c.f.active === 'inactive' ? 'Band wale' : 'Chalu + band', () => c.set('active', 'active')]);
+  if (c.f.serial) filterChips.push([c.f.serial === 'mismatch' ? tr('Serial ginti ghalat') : tr('Serial wale'), () => c.set('serial', undefined)]);
+  if (c.f.featured) filterChips.push([tr('Sirf khaas'), () => c.set('featured', undefined)]);
+  if (c.f.noCost) filterChips.push([tr('Cost nahi likhi'), () => c.set('noCost', undefined)]);
+  if (c.f.kindOf) filterChips.push([c.f.kindOf === 'raw' ? tr('Raw material') : tr('Bechne wale'), () => c.set('kindOf', undefined)]);
+  if (c.f.active !== 'active') filterChips.push([c.f.active === 'inactive' ? tr('Band wale') : tr('Chalu + band'), () => c.set('active', 'active')]);
   if (c.search.trim()) filterChips.push([`"${c.search.trim()}"`, () => c.setSearch('')]);
 
   const ExtraTab = config.extraTab?.Component;
@@ -242,35 +243,35 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       {guide && <ProductsGuide extra={config.guide} onClose={() => setGuide(false)} />}
 
       <PageHero
-        title="Maal"
+        title={tr('Maal')}
         chip={<><Package />{st ? `${st.products} ${noun}` : '…'}</>}
         busy={c.fetching && !c.loading}
         meta={`${config.label} · ${shopName ?? tenantName ?? ''}`}
         loading={c.loading || !st}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={() => setScanner(true)} title="Barcode scan (B)" className={heroButton}><ScanLine className="h-4 w-4" /><span className="hidden sm:inline">Scan</span></button>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={() => setScanner(true)} title={tr('Barcode scan (B)')} className={heroButton}><ScanLine className="h-4 w-4" /><span className="hidden sm:inline">{tr('Scan')}</span></button>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
           {HeroExtra && <HeroExtra />}
-          {can.create && config.paths.bulkImport && <Link to={config.paths.bulkImport} title="Excel ya CSV file se products daalein" className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">Excel import</span></Link>}
-          {can.create && <Link to="/products/bulk-create" title="Bohat se products ek sheet me likh kar banayein" className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">Bulk banayein</span></Link>}
-          {can.edit && <Link to="/products/bulk-edit" title="Bulk edit — bohat se products ek saath (spreadsheet)" className={heroIconButton}><ListChecks className="h-4 w-4" /></Link>}
-          <button type="button" onClick={() => void c.refresh()} title="Taaza karein (R)" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', c.fetching && 'animate-spin')} /></button>
-          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {can.create && <Link to={config.paths.create} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya</Link>}
+          {can.create && config.paths.bulkImport && <Link to={config.paths.bulkImport} title={tr('Excel ya CSV file se products daalein')} className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">{tr('Excel import')}</span></Link>}
+          {can.create && <Link to="/products/bulk-create" title={tr('Bohat se products ek sheet me likh kar banayein')} className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">{tr('Bulk banayein')}</span></Link>}
+          {can.edit && <Link to="/products/bulk-edit" title={tr('Bulk edit — bohat se products ek saath (spreadsheet)')} className={heroIconButton}><ListChecks className="h-4 w-4" /></Link>}
+          <button type="button" onClick={() => void c.refresh()} title={tr('Taaza karein (R)')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', c.fetching && 'animate-spin')} /></button>
+          <button type="button" onClick={() => setGuide(true)} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.create && <Link to={config.paths.create} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya')}</Link>}
         </>}
         stats={[
-          { label: 'Stock ki cost', value: st ? cost(st.costValue) : '', hint: st ? `${qty(st.units)} units` : '' },
-          { label: 'Bechne par milega', value: st ? money(st.saleValue) : '', hint: costHidden || !st ? undefined : `profit ${cost(st.saleValue - st.costValue)}` },
-          { label: `${st?.windowDays ?? 30} din ki sale`, value: st ? money(st.revenue30) : '', hint: st ? `${qty(st.sold30)} units biki` : '' },
-          { label: 'Pada hua maal', value: st ? cost(st.deadValue) : '', hint: st ? `${st.dead} nahi bik rahi` : '' },
+          { label: tr('Stock ki cost'), value: st ? cost(st.costValue) : '', hint: st ? tr('{{units}} units', { units: qty(st.units) }) : '' },
+          { label: tr('Bechne par milega'), value: st ? money(st.saleValue) : '', hint: costHidden || !st ? undefined : tr('profit {{cost}}', { cost: cost(st.saleValue - st.costValue) }) },
+          { label: tr('{{value}} din ki sale', { value: st?.windowDays ?? 30 }), value: st ? money(st.revenue30) : '', hint: st ? tr('{{sold30}} units biki', { sold30: qty(st.sold30) }) : '' },
+          { label: tr('Pada hua maal'), value: st ? cost(st.deadValue) : '', hint: st ? tr('{{dead}} nahi bik rahi', { dead: st.dead }) : '' },
         ]}
       />
 
       {c.offline && (
         <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
-          <CloudOff className="h-4 w-4" /> Internet nahi — computer par save maal dikh raha hai. Sale aur expiry ka hisaab internet aane par.
+          <CloudOff className="h-4 w-4" /> {' '}{tr('Internet nahi — computer par save maal dikh raha hai. Sale aur expiry ka hisaab internet aane par.')}
         </p>
       )}
 
@@ -294,7 +295,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       {/* Alerts */}
       {d && d.alerts.low.length > 0 && c.f.stock === 'all' && !c.hasFilters && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200/70">
-          <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4 text-amber-600" />{st?.low} cheezein kam hain:</span>
+          <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4 text-amber-600" />{tr('{{low}} cheezein kam hain:', { low: st?.low })}</span>
           {d.alerts.low.slice(0, 6).map((a) => (
             <button key={a.id} type="button" disabled={!can.stock}
               onClick={() => { const it = c.items.find((i) => i.id === a.id); if (it) setStockItem(it); else c.setSearch(a.name); }}
@@ -302,7 +303,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
               {a.name} · <span className="font-bold tabular-nums">{qty(a.stock)}</span>
             </button>
           ))}
-          <button type="button" onClick={() => c.setStock('low')} className="ml-auto text-[0.75rem] font-semibold text-amber-800 hover:underline">Sab dekhein →</button>
+          <button type="button" onClick={() => c.setStock('low')} className="ms-auto text-[0.75rem] font-semibold text-amber-800 hover:underline">{tr('Sab dekhein →')}</button>
         </div>
       )}
       {d && Banners && <Banners data={d} setFilter={(k, v) => c.set(k as never, v as never)} />}
@@ -310,11 +311,11 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <p className="min-w-[12rem] flex-1">
-            <b>{c.count.toLocaleString('en-PK')} cheezon ki Cost nahi likhi.</b> Jab tak Cost nahi, in ki poori sale Profit mein gini jati hai.
+            <b>{tr('{{count}} cheezon ki Cost nahi likhi.', { count: c.count.toLocaleString('en-PK') })}</b> {' '}{tr('Jab tak Cost nahi, in ki poori sale Profit mein gini jati hai.')}
           </p>
           {can.edit && (
             <Link to="/products/bulk-edit?nocost=1" className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-amber-600 px-3 font-semibold text-white hover:bg-amber-700 max-sm:w-full">
-              <ListChecks className="h-4 w-4" /> Ek saath Cost bharein
+              <ListChecks className="h-4 w-4" /> {' '}{tr('Ek saath Cost bharein')}
             </Link>
           )}
         </div>
@@ -322,31 +323,31 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
 
       {/* Toolbar: search and the most used filters in one row, the rest under "Aur filters". */}
       <FilterBar
-        search={<SearchField ref={searchRef} value={c.search} onChange={c.setSearch} placeholder="Naam, SKU ya barcode…" label="Maal search" />}
+        search={<SearchField ref={searchRef} value={c.search} onChange={c.setSearch} placeholder={tr('Naam, SKU ya barcode…')} label={tr('Maal search')} />}
         chips={filterChips.length > 0 ? <>{filterChips.map(([label, remove]) => <FilterChip key={label} onRemove={remove}>{label}</FilterChip>)}</> : undefined}
         onClear={c.clear}>
         {(d?.categories.length ?? 0) > 0 && (
-          <FilterMenu icon={Layers} label="Category" value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
-            options={[{ value: 'all', label: 'Sab' }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}`, color: x.color }))]}
+          <FilterMenu icon={Layers} label={tr('Category')} value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
+            options={[{ value: 'all', label: tr('Sab') }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}`, color: x.color }))]}
             onChange={(v) => c.set('categoryId', v === 'all' ? undefined : v)} />
         )}
         {(d?.brands.length ?? 0) > 0 && (
-          <FilterMenu icon={Sparkles} label="Brand" value={c.f.brandId ?? 'all'} active={!!c.f.brandId} width="w-72"
-            options={[{ value: 'all', label: 'Sab' }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}` }))]}
+          <FilterMenu icon={Sparkles} label={tr('Brand')} value={c.f.brandId ?? 'all'} active={!!c.f.brandId} width="w-72"
+            options={[{ value: 'all', label: tr('Sab') }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}` }))]}
             onChange={(v) => c.set('brandId', v === 'all' ? undefined : v)} />
         )}
         <MoreFilters groups={moreGroups} />
-        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={c.sort} align="right" width="w-64"
+        <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={c.sort} align="right" width="w-64"
           options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />
         {c.view === 'table' && tierCols && (
-          <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label="Columns" value="none" align="right" active={c.cols.length > 0}
-            valueLabel={c.cols.length ? `+${c.cols.length} price` : 'Basic'}
+          <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label={tr('Columns')} value="none" align="right" active={c.cols.length > 0}
+            valueLabel={c.cols.length ? tr('+{{count}} price', { count: c.cols.length }) : tr('Basic')}
             options={colOptions} onChange={(v) => { if (v !== 'none') c.toggleCol(v); }} />
         )}
-        <Segmented<'grid' | 'table'> label="Dikhane ka tareeqa" value={c.view} onChange={c.setView} className="h-11 items-center rounded-2xl p-1 max-sm:hidden [&>button]:h-9 [&>button]:rounded-xl [&>button]:px-2.5"
+        <Segmented<'grid' | 'table'> label={tr('Dikhane ka tareeqa')} value={c.view} onChange={c.setView} className="h-11 items-center rounded-2xl p-1 max-sm:hidden [&>button]:h-9 [&>button]:rounded-xl [&>button]:px-2.5"
           items={[
-            { value: 'grid', label: <><LayoutGrid className="h-4 w-4" /><span className="sr-only">Cards (V)</span></> },
-            { value: 'table', label: <><Table2 className="h-4 w-4" /><span className="sr-only">Table (V)</span></> },
+            { value: 'grid', label: <><LayoutGrid className="h-4 w-4" /><span className="sr-only">{tr('Cards (V)')}</span></> },
+            { value: 'table', label: <><Table2 className="h-4 w-4" /><span className="sr-only">{tr('Table (V)')}</span></> },
           ]} />
       </FilterBar>
       </>}
@@ -355,8 +356,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div role="tablist" className="inline-flex gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
           {[
-            { id: 'products', icon: Boxes, label: 'Maal', n: c.count as number | null },
-            { id: 'analytics', icon: BarChart3, label: 'Analytics', n: null },
+            { id: 'products', icon: Boxes, label: tr('Maal'), n: c.count as number | null },
+            { id: 'analytics', icon: BarChart3, label: tr('Analytics'), n: null },
             ...(config.extraTab ? [{ id: config.extraTab.id, icon: config.extraTab.icon, label: config.extraTab.label, n: null }] : []),
           ].map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
@@ -369,7 +370,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         {tab === 'products' && c.items.length > 0 && (
           <button type="button" onClick={selectVisible} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-600 hover:text-slate-900">
             <span className={cn('flex h-5 w-5 items-center justify-center rounded border-2', allVisibleSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300')}><Check className="h-3 w-3" strokeWidth={3} /></span>
-            {allVisibleSelected ? 'Chunna khatam' : `Nazar aane wale ${c.items.length} chunein`}
+            {allVisibleSelected ? tr('Chunna khatam') : tr('Nazar aane wale {{count}} chunein', { count: c.items.length })}
           </button>
         )}
       </div>
@@ -387,21 +388,21 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">{Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="h-[22rem] rounded-2xl" />)}</div>
       ) : c.error && !d ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Maal nahi aa saka</p>
+          <p className="font-semibold text-slate-900">{tr('Maal nahi aa saka')}</p>
           <p className="mt-1 text-[0.875rem] text-slate-500">{(c.error as Error).message}</p>
-          <div className="mt-4"><Button onClick={() => void c.refresh()}>Dobara koshish</Button></div>
+          <div className="mt-4"><Button onClick={() => void c.refresh()}>{tr('Dobara koshish')}</Button></div>
         </div>
       ) : c.items.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Package className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{c.hasFilters ? 'Is filter mein kuch nahi' : 'Abhi koi maal nahi'}</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{c.hasFilters ? 'Filter badal kar dekhein ya hata dein.' : 'Pehli cheez daalein — ek ek kar ke, ya Excel se sab ek saath.'}</p>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{c.hasFilters ? tr('Is filter mein kuch nahi') : tr('Abhi koi maal nahi')}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{c.hasFilters ? tr('Filter badal kar dekhein ya hata dein.') : tr('Pehli cheez daalein — ek ek kar ke, ya Excel se sab ek saath.')}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {c.hasFilters ? <Button variant="secondary" onClick={c.clear}>Filter hatayein</Button> : (
+            {c.hasFilters ? <Button variant="secondary" onClick={c.clear}>{tr('Filter hatayein')}</Button> : (
               <>
-                {can.create && <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(config.paths.create)}>Nayi cheez</Button>}
-                {can.create && config.paths.bulkImport && <Button variant="secondary" leftIcon={<FileUp className="h-4 w-4" />} onClick={() => navigate(config.paths.bulkImport!)}>Excel se daalein</Button>}
-                <Button variant="ghost" onClick={() => setGuide(true)}>Guide</Button>
+                {can.create && <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(config.paths.create)}>{tr('Nayi cheez')}</Button>}
+                {can.create && config.paths.bulkImport && <Button variant="secondary" leftIcon={<FileUp className="h-4 w-4" />} onClick={() => navigate(config.paths.bulkImport!)}>{tr('Excel se daalein')}</Button>}
+                <Button variant="ghost" onClick={() => setGuide(true)}>{tr('Guide')}</Button>
               </>
             )}
           </div>
@@ -414,22 +415,22 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <table className={cn('w-full', shownCols.wholesale && shownCols.credit ? 'min-w-[72rem]' : shownCols.wholesale || shownCols.credit ? 'min-w-[66rem]' : 'min-w-[60rem]')}>
             <thead>
-              <tr className="whitespace-nowrap border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="w-10 py-2.5 pl-4">
-                  <button type="button" onClick={selectVisible} aria-label="Sab chunein" className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisibleSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
+              <tr className="whitespace-nowrap border-b border-slate-100 bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <th className="w-10 py-2.5 ps-4">
+                  <button type="button" onClick={selectVisible} aria-label={tr('Sab chunein')} className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisibleSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
                 </th>
-                <th className="min-w-[14rem] py-2.5 pr-3">Cheez</th>
-                <th className="px-3 py-2.5">Category</th>
-                {!costHidden && <th className="px-3 py-2.5 text-right">Cost</th>}
-                <th className="px-3 py-2.5 text-right">Rate</th>
-                {shownCols.wholesale && <th className="px-3 py-2.5 text-right">Wholesale</th>}
-                {shownCols.credit && <th className="px-3 py-2.5 text-right">Credit</th>}
-                <th className="px-3 py-2.5 text-right">Stock</th>
-                <th className="px-3 py-2.5">{st?.windowDays ?? 30} din</th>
-                {!costHidden && <th className="px-3 py-2.5 text-right">Qeemat</th>}
-                {config.columns?.map((col) => <th key={col.id} className={cn('px-3 py-2.5', col.align === 'right' && 'text-right')}>{col.label}</th>)}
-                <th className="px-3 py-2.5">Halat</th>
-                <th className="py-2.5 pr-3" />
+                <th className="min-w-[14rem] py-2.5 pe-3">{tr('Cheez')}</th>
+                <th className="px-3 py-2.5">{tr('Category')}</th>
+                {!costHidden && <th className="px-3 py-2.5 text-end">{tr('Cost')}</th>}
+                <th className="px-3 py-2.5 text-end">{tr('Rate')}</th>
+                {shownCols.wholesale && <th className="px-3 py-2.5 text-end">{tr('Wholesale')}</th>}
+                {shownCols.credit && <th className="px-3 py-2.5 text-end">{tr('Credit')}</th>}
+                <th className="px-3 py-2.5 text-end">{tr('Stock')}</th>
+                <th className="px-3 py-2.5">{tr('{{value}} din', { value: st?.windowDays ?? 30 })}</th>
+                {!costHidden && <th className="px-3 py-2.5 text-end">{tr('Qeemat')}</th>}
+                {config.columns?.map((col) => <th key={col.id} className={cn('px-3 py-2.5', col.align === 'right' && 'text-end')}>{col.label}</th>)}
+                <th className="px-3 py-2.5">{tr('Halat')}</th>
+                <th className="py-2.5 pe-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">{c.items.map((i) => <ProductRow key={i.id} {...cardProps(i)} />)}</tbody>
@@ -441,7 +442,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <div ref={sentinel}>
           <button type="button" onClick={() => void c.loadMore()} disabled={c.loadingMore}
             className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
-            {c.loadingMore ? 'Aa rahi hain…' : `Aur dikhayein (${c.items.length} / ${c.count})`}
+            {c.loadingMore ? tr('Aa rahi hain…') : tr('Aur dikhayein ({{count}} / {{count2}})', { count: c.items.length, count2: c.count })}
           </button>
         </div>
       )}
@@ -451,22 +452,22 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
 
 function ProductsGuide({ extra, onClose }: { extra?: GuideStep[]; onClose: () => void }) {
   const steps: GuideStep[] = [
-    { icon: Plus, color: '#2563eb', title: 'Maal daalein', text: '"Naya" se ek cheez, ya Excel se sab ek saath. Barcode scan karein — nahi mila to wahin se nayi ban jati hai.' },
-    { icon: Search, color: '#7c3aed', title: 'Search', text: 'Naam, SKU, barcode ya model likhein. Category, brand aur halat ke filter upar hain — ginti saath likhi hai.' },
-    { icon: AlertTriangle, color: '#d97706', title: 'Kam aur khatam', text: 'Upar ki pattiyan dabayein: Kam, Khatam, Nahi bik raha. Peela dabba batata hai kya mangwana hai.' },
-    { icon: Package, color: '#16a34a', title: 'Stock badlein', text: 'Card par stock ka number ya "+ Stock" dabayein. Daalein, nikaalein ya ginti — wajah ke saath record banta hai.' },
-    { icon: MousePointerClick, color: '#db2777', title: 'Ek saath kaam', text: 'Cards chunein, phir neeche kaali patti se chalu/band, khaas, labels, CSV ya mitana.' },
-    { icon: Wallet, color: '#0891b2', title: 'Analytics', text: 'Kitna paisa stock mein laga, kya zyada bikta, kya pada hai, kya jaldi khatam hoga.' },
+    { icon: Plus, color: '#2563eb', title: tr('Maal daalein'), text: tr('"Naya" se ek cheez, ya Excel se sab ek saath. Barcode scan karein — nahi mila to wahin se nayi ban jati hai.') },
+    { icon: Search, color: '#7c3aed', title: tr('Search'), text: tr('Naam, SKU, barcode ya model likhein. Category, brand aur halat ke filter upar hain — ginti saath likhi hai.') },
+    { icon: AlertTriangle, color: '#d97706', title: tr('Kam aur khatam'), text: tr('Upar ki pattiyan dabayein: Kam, Khatam, Nahi bik raha. Peela dabba batata hai kya mangwana hai.') },
+    { icon: Package, color: '#16a34a', title: tr('Stock badlein'), text: tr('Card par stock ka number ya "+ Stock" dabayein. Daalein, nikaalein ya ginti — wajah ke saath record banta hai.') },
+    { icon: MousePointerClick, color: '#db2777', title: tr('Ek saath kaam'), text: tr('Cards chunein, phir neeche kaali patti se chalu/band, khaas, labels, CSV ya mitana.') },
+    { icon: Wallet, color: '#0891b2', title: tr('Analytics'), text: tr('Kitna paisa stock mein laga, kya zyada bikta, kya pada hai, kya jaldi khatam hoga.') },
     ...(extra ?? []),
   ];
   return (
-    <Modal open onClose={onClose} size="lg" title="Maal — aasaan tareeqa" description={`${steps.length} cheezein, bas itna yaad rakhein`}>
+    <Modal open onClose={onClose} size="lg" title={tr('Maal — aasaan tareeqa')} description={tr('{{count}} cheezein, bas itna yaad rakhein', { count: steps.length })}>
       <ol className="grid gap-3 sm:grid-cols-2">
         {steps.map((s, i) => (
           <li key={s.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
             <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${s.color}17`, color: s.color }}>
               <s.icon className="h-5 w-5" />
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
+              <span className="absolute -end-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
             </span>
             <div className="min-w-0">
               <p className="text-[0.875rem] font-semibold text-slate-900">{s.title}</p>
@@ -476,8 +477,8 @@ function ProductsGuide({ extra, onClose }: { extra?: GuideStep[]; onClose: () =>
         ))}
       </ol>
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
-        <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
-        {[['/', 'dhoondein'], ['B', 'scan'], ['V', 'cards/table'], ['A', 'analytics'], ['N', 'naya'], ['R', 'taaza'], ['G', 'guide']].map(([k, t]) => (
+        <span className="font-semibold text-slate-900">{tr('Jaldi ke liye:')}</span>
+        {[['/', tr('dhoondein')], ['B', tr('scan')], ['V', tr('cards/table')], ['A', tr('analytics')], ['N', tr('naya')], ['R', tr('taaza')], ['G', tr('guide')]].map(([k, t]) => (
           <span key={k} className="inline-flex items-center gap-1"><Kbd>{k}</Kbd> {t}</span>
         ))}
       </div>

@@ -14,6 +14,7 @@ import ServiceRemindersPage from './pages/ServiceRemindersPage';
 import CoreReturnsPage from './pages/CoreReturnsPage';
 import AutoPartWizardPage from './pages/AutoPartWizardPage';
 import AutoPartDetailPage from './pages/AutoPartDetailPage';
+import { t } from '@core/i18n';
 
 /**
  * Auto parts shop and workshop: parts with part numbers, quality and the
@@ -24,11 +25,11 @@ import AutoPartDetailPage from './pages/AutoPartDetailPage';
 export const AutoPartsPack: IndustryPack = {
   id: 'autoparts',
   name: 'Auto Parts / Workshop',
-  shortName: 'Auto Parts',
+  shortName: t('Auto Parts'),
   emoji: '🔧',
   priority: 58,
   description:
-    'Vehicle makes/models, customer vehicles, part fitment, workshop jobs, mechanics, service reminders (oil/token/insurance).',
+    t('Vehicle makes/models, customer vehicles, part fitment, workshop jobs, mechanics, service reminders (oil/token/insurance).'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -40,20 +41,20 @@ export const AutoPartsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Auto parts / workshop',
+      label: t('Auto parts / workshop'),
       icon: Car,
       emoji: '🔧',
       color: '#475569',
       order: 20,
       items: [
-        { to: '/autoparts/jobs/new', label: 'New job', icon: Plus, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
-        { to: '/autoparts/jobs', label: 'Workshop jobs', icon: Wrench, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
-        { to: '/autoparts/parts', label: 'Parts', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/autoparts/vehicles', label: 'Vehicles', icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/autoparts/reminders', label: 'Service reminders', icon: Bell, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/autoparts/core-returns', label: 'Old parts', icon: Recycle, permission: PERMISSIONS.RETURNS_VIEW },
-        { to: '/autoparts/mechanics', label: 'Mechanics', icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
-        { to: '/autoparts/makes', label: 'Make / model', icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/autoparts/jobs/new', label: t('New job'), icon: Plus, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
+        { to: '/autoparts/jobs', label: t('Workshop jobs'), icon: Wrench, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+        { to: '/autoparts/parts', label: t('Parts'), icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/autoparts/vehicles', label: t('Vehicles'), icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/reminders', label: t('Service reminders'), icon: Bell, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/core-returns', label: t('Old parts'), icon: Recycle, permission: PERMISSIONS.RETURNS_VIEW },
+        { to: '/autoparts/mechanics', label: t('Mechanics'), icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+        { to: '/autoparts/makes', label: t('Make / model'), icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
     },
   ],
@@ -83,22 +84,22 @@ export const AutoPartsPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '📦', group: 'Count' },
-      { value: 'pair', label: 'Pair', hint: '🔗', group: 'Count' },
-      { value: 'liter', label: 'Liter (oils/fluids)', hint: '🛢️', group: 'Volume' },
-      { value: 'ml', label: 'Milliliter', hint: '🛢️', group: 'Volume' },
-      { value: 'meter', label: 'Meter (wires/hoses)', hint: '📏', group: 'Length' },
-      { value: 'feet', label: 'Feet', hint: '📏', group: 'Length' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '📦', group: t('Count') },
+      { value: 'pair', label: t('Pair'), hint: '🔗', group: t('Count') },
+      { value: 'liter', label: t('Liter (oils/fluids)'), hint: '🛢️', group: t('Volume') },
+      { value: 'ml', label: t('Milliliter'), hint: '🛢️', group: t('Volume') },
+      { value: 'meter', label: t('Meter (wires/hoses)'), hint: '📏', group: t('Length') },
+      { value: 'feet', label: t('Feet'), hint: '📏', group: t('Length') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Weight') },
     ],
   },
 
   featureFlags: [
-    { key: 'autoVehicleRegistry', label: 'Customer Vehicles', defaultEnabled: true },
-    { key: 'autoPartFitment', label: 'Part Compatibility', defaultEnabled: true },
-    { key: 'autoWorkshopJobs', label: 'Workshop Jobs', defaultEnabled: true },
-    { key: 'autoMechanics', label: 'Mechanic Profiles', defaultEnabled: true },
-    { key: 'autoReminders', label: 'Service Reminders', defaultEnabled: true },
+    { key: 'autoVehicleRegistry', label: t('Customer Vehicles'), defaultEnabled: true },
+    { key: 'autoPartFitment', label: t('Part Compatibility'), defaultEnabled: true },
+    { key: 'autoWorkshopJobs', label: t('Workshop Jobs'), defaultEnabled: true },
+    { key: 'autoMechanics', label: t('Mechanic Profiles'), defaultEnabled: true },
+    { key: 'autoReminders', label: t('Service Reminders'), defaultEnabled: true },
   ],
 };

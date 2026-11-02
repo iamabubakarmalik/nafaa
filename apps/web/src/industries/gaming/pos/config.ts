@@ -25,6 +25,7 @@ import { gamingTopupsApi, type CounterCardKind } from '../api/topups.api';
 import { CONDITIONS, GAMING_KEYS, MONEY_KEYS, PLATFORMS, TIME_SKU, TOPUP_SKU, categoryGroup, errorText, liveOf, minutesText, providerOf } from '../lib/meta';
 import { CardCodes } from './CardCodes';
 import { counterStore } from './counterStore';
+import { t } from '@core/i18n';
 
 type Kind = 'session' | 'card' | 'time' | 'item';
 const kindOf = (i: PosItem) => i.meta?.kind as Kind | undefined;
@@ -55,16 +56,16 @@ function sessionItems(list: GamingCafeSession[], time: PosItem | null): PosItem[
       unit: 'service',
       rank: 0,
       searchText: [s.sessionNumber, s.station?.stationNumber, station, s.customerName, s.customerPhone, s.gameSelected, 'station session time'].filter(Boolean).join(' '),
-      badges: [{ label: s.status === 'PAUSED' ? 'Ruka hua' : 'Chal raha', tone: s.status === 'PAUSED' ? 'warning' as const : 'success' as const, icon: Timer }],
-      subline: `${minutesText(live.minutes)} · ${Number(s.ratePerHour)}/ghanta`,
+      badges: [{ label: s.status === 'PAUSED' ? t('Ruka hua') : t('Chal raha'), tone: s.status === 'PAUSED' ? 'warning' as const : 'success' as const, icon: Timer }],
+      subline: t('{{minutes}} · {{ratePerHour}}/ghanta', { minutes: minutesText(live.minutes), ratePerHour: Number(s.ratePerHour) }),
       meta: { kind: 'session' satisfies Kind, session: s, service: true },
     };
   });
 }
 
 function cardBadges(k: CounterCardKind | undefined) {
-  if (!k) return [{ label: 'Stock khatam', tone: 'danger' as const, icon: CreditCard }];
-  return [{ label: `${k.count} card`, tone: k.count <= 3 ? 'warning' as const : 'info' as const, icon: CreditCard }];
+  if (!k) return [{ label: t('Stock khatam'), tone: 'danger' as const, icon: CreditCard }];
+  return [{ label: t('{{count}} card', { count: k.count }), tone: k.count <= 3 ? 'warning' as const : 'info' as const, icon: CreditCard }];
 }
 
 function useGamingCatalog() {
@@ -81,7 +82,7 @@ function useGamingCatalog() {
       const k = cards.get(it.id);
       return {
         ...it, stock: k?.count ?? 0, dim: !k, rank: 1, badges: cardBadges(k),
-        subline: k ? providerOf(k.provider) : 'Top-ups page par card daalein',
+        subline: k ? providerOf(k.provider) : t('Top-ups page par card daalein'),
         searchText: [it.searchText, k?.provider, k && providerOf(k.provider), 'card topup top-up'].filter(Boolean).join(' '),
         meta: { kind: 'card' satisfies Kind, service: true },
       };
@@ -94,7 +95,7 @@ function useGamingCatalog() {
       rank: 2,
       badges: [
         ...(cond ? [{ label: cond.label, tone: 'warning' as const, icon: Recycle }] : []),
-        ...(p.isPreOrder ? [{ label: 'Pre-order', tone: 'brand' as const }] : []),
+        ...(p.isPreOrder ? [{ label: t('Pre-order'), tone: 'brand' as const }] : []),
       ],
       subline: [PLATFORMS[p.platform] ?? p.platform, p.region].filter(Boolean).join(' · ') || undefined,
       searchText: [it.searchText, PLATFORMS[p.platform], p.publisher, ...(p.genre ?? [])].filter(Boolean).join(' '),
@@ -124,13 +125,13 @@ function trimSessions(timeUnits: number) {
 }
 
 const filters: PosFilter[] = [
-  { id: 'stations', label: 'Stations', icon: Timer, match: (i) => kindOf(i) === 'session' },
-  { id: 'cards', label: 'Top-up cards', icon: CreditCard, match: (i) => kindOf(i) === 'card' },
-  { id: 'games', label: 'Games', icon: Disc3, match: (i) => i.meta?.group === 'game' },
-  { id: 'consoles', label: 'Consoles', icon: Gamepad2, match: (i) => i.meta?.group === 'console' },
-  { id: 'gear', label: 'Accessories', icon: Headphones, match: (i) => i.meta?.group === 'gear' },
-  { id: 'pc', label: 'PC parts', icon: Monitor, match: (i) => i.meta?.group === 'pc' },
-  { id: 'used', label: 'Used', icon: BadgeCheck, match: (i) => !!i.meta?.used },
+  { id: 'stations', label: t('Stations'), icon: Timer, match: (i) => kindOf(i) === 'session' },
+  { id: 'cards', label: t('Top-up cards'), icon: CreditCard, match: (i) => kindOf(i) === 'card' },
+  { id: 'games', label: t('Games'), icon: Disc3, match: (i) => i.meta?.group === 'game' },
+  { id: 'consoles', label: t('Consoles'), icon: Gamepad2, match: (i) => i.meta?.group === 'console' },
+  { id: 'gear', label: t('Accessories'), icon: Headphones, match: (i) => i.meta?.group === 'gear' },
+  { id: 'pc', label: t('PC parts'), icon: Monitor, match: (i) => i.meta?.group === 'pc' },
+  { id: 'used', label: t('Used'), icon: BadgeCheck, match: (i) => !!i.meta?.used },
 ];
 
 const refresh = () => [GAMING_KEYS.counter, GAMING_KEYS.active, GAMING_KEYS.sessions, GAMING_KEYS.topups, GAMING_KEYS.stations, ...MONEY_KEYS]
@@ -138,12 +139,12 @@ const refresh = () => [GAMING_KEYS.counter, GAMING_KEYS.active, GAMING_KEYS.sess
 
 export const gamingPos: PosIndustryConfig = {
   id: 'gaming',
-  label: 'Gaming',
+  label: t('Gaming'),
   useCatalog: useGamingCatalog,
   quickKeys: true,
   filters,
   CartExtra: () => createElement(CardCodes),
-  searchHint: 'Station (PS-1), game, card (PUBG 660) ya barcode',
+  searchHint: t('Station (PS-1), game, card (PUBG 660) ya barcode'),
   receiptFooter: 'Digital card ka code ek dafa istemal hota hai — bill sambhaal kar rakhein. Khula hua game wapas nahi hota.',
   beforeAdd: (item, opts, api) => {
     const kind = kindOf(item);
@@ -151,9 +152,9 @@ export const gamingPos: PosIndustryConfig = {
     // A new bill starts with nothing picked.
     if (!api.cart.length) counterStore.set({ sessions: [] });
     const s = item.meta?.session as GamingCafeSession;
-    if (counterStore.get().sessions.some((p) => p.id === s.id)) { toast.info('Ye session pehle se bill me hai'); return 'handled'; }
+    if (counterStore.get().sessions.some((p) => p.id === s.id)) { toast.info(t('Ye session pehle se bill me hai')); return 'handled'; }
     const live = liveOf(s);
-    if (!(live.amount > 0)) { toast.error(`${item.name} — abhi bill 0 hai`); return 'handled'; }
+    if (!(live.amount > 0)) { toast.error(t('{{name}} — abhi bill 0 hai', { name: item.name })); return 'handled'; }
     const timeId = item.product.id;
     const base = api.itemById(timeId) ?? timeItem(timeId);
     counterStore.set({ sessions: [...counterStore.get().sessions, { id: s.id, sessionNumber: s.sessionNumber, amount: live.amount, minutes: live.minutes }] });
@@ -165,7 +166,7 @@ export const gamingPos: PosIndustryConfig = {
     const cards = cart.some((l) => !!l.productId && ids.cards.has(l.productId));
     counterStore.set({ hasCards: cards });
     if ((cards || counterStore.get().sessions.length) && typeof navigator !== 'undefined' && !navigator.onLine) {
-      return 'Internet nahi — station ka bill aur digital card sirf online bante hain';
+      return t('Internet nahi — station ka bill aur digital card sirf online bante hain');
     }
     return null;
   },
@@ -174,8 +175,8 @@ export const gamingPos: PosIndustryConfig = {
     counterStore.set({ sessions: [], hasCards: false });
     if (sessions.length) {
       void gamingSessionsApi.closeSale(sale.id, sessions.map((s) => ({ id: s.id, amount: s.amount, minutes: s.minutes })))
-        .then((r) => toast.success(`${r.sessions.length} station band — bill ${r.saleNumber}`))
-        .catch((e) => toast.error(errorText(e, `Session band nahi hua — Cafe Live par ${sessions.map((s) => s.sessionNumber).join(', ')} cancel karein (bill ${sale.saleNumber} ban chuka)`)))
+        .then((r) => toast.success(t('{{count}} station band — bill {{saleNumber}}', { count: r.sessions.length, saleNumber: r.saleNumber })))
+        .catch((e) => toast.error(errorText(e, t('Session band nahi hua — Cafe Live par {{value}} cancel karein (bill {{saleNumber}} ban chuka)', { value: sessions.map((s) => s.sessionNumber).join(', '), saleNumber: sale.saleNumber }))))
         .finally(refresh);
     }
     if (hasCards) {

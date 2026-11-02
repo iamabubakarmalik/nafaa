@@ -15,6 +15,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { useReportMasked } from '@modules/reports/prefs';
 import { ageText } from '../meta';
+import { t } from '@core/i18n';
 
 export interface DeviceUnit {
   id: string;
@@ -56,15 +57,15 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
   }, [data, bucket, search]);
 
   if (loading) return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
-  if (error || !data) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">Units ki report nahi aa saki</p>;
+  if (error || !data) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">{t('Units ki report nahi aa saki')}</p>;
 
   return (
     <div className="space-y-4">
       <KpiRow cols={4}>
-        <KpiCard icon={Smartphone} color="#2563eb" label={`${data.unitLabel} stock me`} value={String(data.totals.units)} hint={`bechne par ${money(data.totals.retail)}`} />
-        <KpiCard icon={Clock} color="#0f766e" label="Cost" value={cost(data.totals.cost)} hint={costHidden ? 'Cost lock' : `profit ${cost(data.totals.retail - data.totals.cost)}`} />
-        <KpiCard icon={Hourglass} color="#7c3aed" label="Purane units" value={String(data.dead.count)} hint={`${cost(data.dead.cost)} phansa`} />
-        <KpiCard icon={ShieldAlert} color="#be185d" label="Warranty khatam hone wali" value={String(data.warranty.length)} hint="jald bechein" />
+        <KpiCard icon={Smartphone} color="#2563eb" label={t('{{unitLabel}} stock me', { unitLabel: data.unitLabel })} value={String(data.totals.units)} hint={t('bechne par {{retail}}', { retail: money(data.totals.retail) })} />
+        <KpiCard icon={Clock} color="#0f766e" label={t('Cost')} value={cost(data.totals.cost)} hint={costHidden ? t('Cost lock') : t('profit {{cost}}', { cost: cost(data.totals.retail - data.totals.cost) })} />
+        <KpiCard icon={Hourglass} color="#7c3aed" label={t('Purane units')} value={String(data.dead.count)} hint={t('{{cost}} phansa', { cost: cost(data.dead.cost) })} />
+        <KpiCard icon={ShieldAlert} color="#be185d" label={t('Warranty khatam hone wali')} value={String(data.warranty.length)} hint={t('jald bechein')} />
       </KpiRow>
 
       {!!data.chips?.length && (
@@ -76,14 +77,14 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title="Maal ki umar" description="Kitne din se dukaan me hai — bar dabayein to neeche wahi units">
+        <Card className="rounded-2xl lg:col-span-2" title={t('Maal ki umar')} description={t('Kitne din se dukaan me hai — bar dabayein to neeche wahi units')}>
           <div className="h-[230px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.buckets} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={costHidden ? undefined : axisMoney} width={44} />
-                <Tooltip formatter={(v, _n, p) => [`${costHidden ? '••••' : formatPKR(Number(v))} · ${(p as { payload?: { units?: number } }).payload?.units ?? 0} units`, 'Cost']} {...theme.tooltip} />
+                <Tooltip formatter={(v, _n, p) => [`${costHidden ? '••••' : formatPKR(Number(v))} · ${(p as { payload?: { units?: number } }).payload?.units ?? 0} units`, t('Cost')]} {...theme.tooltip} />
                 <Bar dataKey={costHidden ? 'units' : 'cost'} radius={[6, 6, 0, 0]} barSize={30} onClick={(b) => setBucket((x) => (x === (b as { key?: string }).key ? null : (b as { key?: string }).key ?? null))} className="cursor-pointer">
                   {data.buckets.map((b, i) => <Cell key={b.key} fill={bucket && bucket !== b.key ? theme.grid : ['#16a34a', '#65a30d', '#d97706', '#ea580c', '#e11d48', '#7c3aed'][i % 6]} />)}
                 </Bar>
@@ -91,14 +92,14 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="rounded-2xl" title="Warranty khatam ho rahi" description="Supplier warranty khatam hone se pehle bechein">
-          {!data.warranty.length ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Koi nahi</p> : (
+        <Card className="rounded-2xl" title={t('Warranty khatam ho rahi')} description={t('Supplier warranty khatam hone se pehle bechein')}>
+          {!data.warranty.length ? <p className="py-10 text-center text-[0.875rem] text-slate-500">{t('Koi nahi')}</p> : (
             <ul className="max-h-[230px] divide-y divide-slate-100 overflow-y-auto">
               {data.warranty.slice(0, 30).map((u) => (
                 <li key={u.id} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem]">
                   <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{u.name}</span><span className="font-mono text-[0.6875rem] text-slate-500">{u.ref}</span></span>
                   <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', (u.warrantyDaysLeft ?? 0) < 0 ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-800')}>
-                    {(u.warrantyDaysLeft ?? 0) < 0 ? 'khatam' : `${u.warrantyDaysLeft} din`}
+                    {(u.warrantyDaysLeft ?? 0) < 0 ? 'khatam' : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}
                   </span>
                 </li>
               ))}
@@ -109,18 +110,18 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-          <h3 className="text-[0.875rem] font-semibold text-slate-900">Har unit · {units.length}{bucket ? ` · ${data.buckets.find((b) => b.key === bucket)?.label}` : ''}</h3>
+          <h3 className="text-[0.875rem] font-semibold text-slate-900">{t('Har unit · {{count}}{{value}}', { count: units.length, value: bucket ? ` · ${data.buckets.find((b) => b.key === bucket)?.label}` : '' })}</h3>
           <label className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${data.unitLabel}, naam ya brand…`} aria-label="Unit search"
-              className="h-9 w-full rounded-xl bg-slate-100/80 pl-9 pr-3 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('{{unitLabel}}, naam ya brand…', { unitLabel: data.unitLabel })} aria-label={t('Unit search')}
+              className="h-9 w-full rounded-xl bg-slate-100/80 ps-9 pe-3 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
           </label>
         </header>
-        {!units.length ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Is filter me koi unit nahi</p> : (
+        {!units.length ? <p className="py-12 text-center text-[0.875rem] text-slate-500">{t('Is filter me koi unit nahi')}</p> : (
           <div className="overflow-x-auto">
             <Table minWidth="40rem" className="[&>table]:text-[0.8125rem]">
-              <THead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                <Tr><Th className="px-4 py-2">{data.unitLabel}</Th><Th className="px-2 py-2">Cheez</Th><Th className="px-2 py-2">Halat</Th><Th className="px-2 py-2 text-right">Umar</Th><Th className="px-2 py-2 text-right">Warranty</Th><Th className="px-2 py-2 text-right">Cost</Th><Th className="px-4 py-2 text-right">Rate</Th></Tr>
+              <THead className="bg-slate-50/70 text-start text-[0.6875rem] uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">{data.unitLabel}</Th><Th className="px-2 py-2">{t('Cheez')}</Th><Th className="px-2 py-2">{t('Halat')}</Th><Th className="px-2 py-2 text-end">{t('Umar')}</Th><Th className="px-2 py-2 text-end">{t('Warranty')}</Th><Th className="px-2 py-2 text-end">{t('Cost')}</Th><Th className="px-4 py-2 text-end">{t('Rate')}</Th></Tr>
               </THead>
               <TBody className="divide-y divide-slate-100">
                 {units.slice(0, more ? units.length : SHOW).map((u) => (
@@ -128,10 +129,10 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
                     <Td className="px-4 py-2 font-mono text-[0.75rem] text-slate-700">{u.ref}</Td>
                     <Td className="text-inherit px-2 py-2"><span className="font-medium text-slate-900">{u.name}</span>{u.brand && <span className="text-slate-500"> · {u.brand}</span>}</Td>
                     <Td className="px-2 py-2 text-slate-600">{u.tag ?? '—'}</Td>
-                    <Td className={cn('px-2 py-2 text-right tabular-nums', u.ageDays > 90 ? 'font-semibold text-rose-700' : 'text-slate-700')}>{ageText(u.ageDays)}</Td>
-                    <Td className="px-2 py-2 text-right tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? 'khatam' : `${u.warrantyDaysLeft} din`}</Td>
-                    <Td className="text-inherit px-2 py-2 text-right tabular-nums">{cost(u.cost)}</Td>
-                    <Td className="text-inherit px-4 py-2 text-right tabular-nums">{money(u.price)}</Td>
+                    <Td className={cn('px-2 py-2 text-end tabular-nums', u.ageDays > 90 ? 'font-semibold text-rose-700' : 'text-slate-700')}>{ageText(u.ageDays)}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? 'khatam' : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}</Td>
+                    <Td className="text-inherit px-2 py-2 text-end tabular-nums">{cost(u.cost)}</Td>
+                    <Td className="text-inherit px-4 py-2 text-end tabular-nums">{money(u.price)}</Td>
                   </Tr>
                 ))}
               </TBody>
@@ -139,7 +140,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
           </div>
         )}
         {units.length > SHOW && !more && (
-          <button type="button" onClick={() => setMore(true)} className="w-full border-t border-slate-100 py-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Sab {units.length} dikhayein</button>
+          <button type="button" onClick={() => setMore(true)} className="w-full border-t border-slate-100 py-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">{t('Sab {{count}} dikhayein', { count: units.length })}</button>
         )}
       </section>
     </div>

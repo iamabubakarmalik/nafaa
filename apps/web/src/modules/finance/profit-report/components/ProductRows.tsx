@@ -11,6 +11,7 @@ import { cn } from '@core/lib/cn';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
 import type { ProfitItem, ProfitOverview, ProfitVariant } from '../api';
 import { change, changeText, chargeSplit, pct, qty } from './meta';
+import { t as tr } from '@core/i18n';
 
 const GRID = 'lg:grid-cols-[minmax(0,2.6fr)_minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)]';
 
@@ -19,7 +20,7 @@ interface Fmt { money: (n: number) => string; cost: (n: number) => string; costH
 export function ProductHeader({ itemWord }: { itemWord: string }) {
   return (
     <div className={cn('hidden gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', GRID)}>
-      <span>{itemWord}</span><span className="text-right">Biki</span><span className="text-right">Sale</span><span className="text-right">Cost</span><span className="text-right">Profit</span><span className="text-right">Margin</span>
+      <span>{itemWord}</span><span className="text-end">{tr('Biki')}</span><span className="text-end">{tr('Sale')}</span><span className="text-end">{tr('Cost')}</span><span className="text-end">{tr('Profit')}</span><span className="text-end">{tr('Margin')}</span>
     </div>
   );
 }
@@ -35,9 +36,9 @@ export function ProductRow({ r, fmt }: { r: ProfitItem; fmt: Fmt }) {
       <div className={cn('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-3 py-3 sm:px-4', GRID, loss && !fmt.costHidden && 'bg-rose-50/40')}>
         <div className="flex min-w-0 items-center gap-3">
           {hasVariants ? (
-            <button type="button" onClick={() => setOpen((v) => !v)} aria-label={open ? 'Band karein' : 'Variants dekhein'} aria-expanded={open}
+            <button type="button" onClick={() => setOpen((v) => !v)} aria-label={open ? tr('Band karein') : tr('Variants dekhein')} aria-expanded={open}
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
-              {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4 rtl-flip" />}
             </button>
           ) : <span className="hidden w-7 shrink-0 sm:block" />}
           <ProductThumb name={r.name} category={r.category?.name} url={r.image} size="sm" />
@@ -47,36 +48,36 @@ export function ProductRow({ r, fmt }: { r: ProfitItem; fmt: Fmt }) {
               : <span className="block truncate font-semibold text-slate-900">{r.name}</span>}
             <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.75rem] text-slate-500">
               <span className="truncate">{[r.category?.name, r.brand?.name, r.sku].filter(Boolean).join(' · ') || '—'}</span>
-              {hasVariants && <Tag tone="violet">{r.variants.length} variants</Tag>}
-              {r.discount > 0 && <Tag tone="pink">Discount {fmt.money(r.discount)}</Tag>}
-              {r.returnedQty > 0 && <Tag tone="orange">{qty(r.returnedQty)} wapas</Tag>}
-              {!fmt.costHidden && loss && <Tag tone="rose">Nuqsan</Tag>}
-              {!fmt.costHidden && r.fallbackLines > 0 && <Tag tone="amber" title="Bill par cost save nahi thi — aaj ki cost lagayi">Aaj ki cost</Tag>}
-              {!fmt.costHidden && (r.noCostLines ?? 0) > 0 && <Tag tone="slate" title="Cost bhari nahi — profit zyada dikh raha hai">Bina cost</Tag>}
+              {hasVariants && <Tag tone="violet">{tr('{{count}} variants', { count: r.variants.length })}</Tag>}
+              {r.discount > 0 && <Tag tone="pink">{tr('Discount {{discount}}', { discount: fmt.money(r.discount) })}</Tag>}
+              {r.returnedQty > 0 && <Tag tone="orange">{tr('{{returnedQty}} wapas', { returnedQty: qty(r.returnedQty) })}</Tag>}
+              {!fmt.costHidden && loss && <Tag tone="rose">{tr('Nuqsan')}</Tag>}
+              {!fmt.costHidden && r.fallbackLines > 0 && <Tag tone="amber" title={tr('Bill par cost save nahi thi — aaj ki cost lagayi')}>{tr('Aaj ki cost')}</Tag>}
+              {!fmt.costHidden && (r.noCostLines ?? 0) > 0 && <Tag tone="slate" title={tr('Cost bhari nahi — profit zyada dikh raha hai')}>{tr('Bina cost')}</Tag>}
             </div>
           </div>
         </div>
 
         {/* Phone: profit on the right; the rest below */}
-        <div className="text-right lg:hidden">
+        <div className="text-end lg:hidden">
           <p className={cn('font-bold tabular-nums', loss && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(r.profit ?? 0)}</p>
           <p className="text-[0.75rem] tabular-nums text-slate-500">{fmt.money(r.revenue)} · {qty(r.qty)} {r.unit}</p>
         </div>
 
-        <span className="hidden text-right tabular-nums text-slate-700 lg:block">{qty(r.qty)} <span className="text-[0.75rem] text-slate-400">{r.unit}</span></span>
-        <span className="hidden text-right lg:block">
+        <span className="hidden text-end tabular-nums text-slate-700 lg:block">{qty(r.qty)} <span className="text-[0.75rem] text-slate-400">{r.unit}</span></span>
+        <span className="hidden text-end lg:block">
           <span className="block font-medium tabular-nums text-slate-900">{fmt.money(r.revenue)}</span>
-          <span className="block text-[0.6875rem] tabular-nums text-slate-400">{r.bills} bill · ausat {fmt.money(r.avgPrice)}</span>
+          <span className="block text-[0.6875rem] tabular-nums text-slate-400">{tr('{{bills}} bill · ausat {{avgPrice}}', { bills: r.bills, avgPrice: fmt.money(r.avgPrice) })}</span>
         </span>
-        <span className="hidden text-right lg:block">
+        <span className="hidden text-end lg:block">
           <span className="block tabular-nums text-slate-700">{fmt.cost(r.cost ?? 0)}</span>
-          {!fmt.costHidden && <span className="block text-[0.6875rem] tabular-nums text-slate-400">fi {r.unit} {fmt.cost(r.avgCost ?? 0)}</span>}
+          {!fmt.costHidden && <span className="block text-[0.6875rem] tabular-nums text-slate-400">{tr('fi {{unit}} {{value}}', { unit: r.unit, value: fmt.cost(r.avgCost ?? 0) })}</span>}
         </span>
-        <span className="hidden text-right lg:block">
+        <span className="hidden text-end lg:block">
           <span className={cn('block font-bold tabular-nums', loss && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(r.profit ?? 0)}</span>
           {!fmt.costHidden && <Change c={c} />}
         </span>
-        <span className="hidden text-right lg:block"><MarginBar margin={r.margin} hidden={fmt.costHidden} /></span>
+        <span className="hidden text-end lg:block"><MarginBar margin={r.margin} hidden={fmt.costHidden} /></span>
       </div>
 
       {open && (
@@ -97,28 +98,28 @@ export function ProductTotals({ totals: t, fmt }: { totals: ProfitOverview['tota
   const margin = (profit: number, revenue: number) => (revenue > 0 ? (profit / revenue) * 100 : 0);
   const rows = [
     ...(c.shown ? [
-      { label: 'Cheezon ka kul', sub: `${t.products} cheezein`, revenue: c.lineRevenue, cost: c.lineCost, profit: c.lineProfit, strong: false },
-      { label: '+ Service charges', sub: `${c.bills ? `${c.bills} bill par · ` : ''}delivery, fitting waghera${c.cost ? ' aur bill par alag cost' : ''}`, revenue: c.revenue, cost: c.cost, profit: c.profit, strong: false },
+      { label: tr('Cheezon ka kul'), sub: tr('{{products}} cheezein', { products: t.products }), revenue: c.lineRevenue, cost: c.lineCost, profit: c.lineProfit, strong: false },
+      { label: tr('+ Service charges'), sub: tr('{{value}}delivery, fitting waghera{{value2}}', { value: c.bills ? tr('{{bills}} bill par · ', { bills: c.bills }) : '', value2: c.cost ? tr(' aur bill par alag cost') : '' }), revenue: c.revenue, cost: c.cost, profit: c.profit, strong: false },
     ] : []),
-    { label: 'Kul (sab safhe)', sub: `${t.bills} bill`, revenue: t.revenue, cost: t.cost ?? 0, profit: t.profit ?? 0, strong: true },
+    { label: tr('Kul (sab safhe)'), sub: tr('{{bills}} bill', { bills: t.bills }), revenue: t.revenue, cost: t.cost ?? 0, profit: t.profit ?? 0, strong: true },
   ];
   return (
     <ul className="divide-y divide-slate-100 border-t border-slate-200 bg-slate-50/70">
       {rows.map((r) => (
         <li key={r.label} className={cn('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-2.5 text-[0.8125rem] sm:px-4', GRID)}>
-          <span className="min-w-0 sm:pl-[4.75rem]">
+          <span className="min-w-0 sm:ps-[4.75rem]">
             <span className={cn('block truncate', r.strong ? 'font-bold text-slate-900' : 'font-medium text-slate-700')}>{r.label}</span>
             <span className="block truncate text-[0.6875rem] text-slate-500">{r.sub}</span>
           </span>
-          <span className="text-right lg:hidden">
+          <span className="text-end lg:hidden">
             <span className={cn('block tabular-nums', r.strong ? 'font-bold text-slate-900' : 'text-slate-800')}>{fmt.cost(r.profit)}</span>
-            <span className="block text-[0.6875rem] tabular-nums text-slate-500">{fmt.money(r.revenue)} sale</span>
+            <span className="block text-[0.6875rem] tabular-nums text-slate-500">{tr('{{revenue}} sale', { revenue: fmt.money(r.revenue) })}</span>
           </span>
           <span className="hidden lg:block" />
-          <span className={cn('hidden text-right tabular-nums lg:block', r.strong ? 'font-bold text-slate-900' : 'text-slate-800')}>{fmt.money(r.revenue)}</span>
-          <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.cost(r.cost)}</span>
-          <span className={cn('hidden text-right tabular-nums lg:block', r.strong ? 'font-bold' : 'font-semibold', r.profit < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(r.profit)}</span>
-          <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.costHidden ? '••' : pct(margin(r.profit, r.revenue))}</span>
+          <span className={cn('hidden text-end tabular-nums lg:block', r.strong ? 'font-bold text-slate-900' : 'text-slate-800')}>{fmt.money(r.revenue)}</span>
+          <span className="hidden text-end tabular-nums text-slate-600 lg:block">{fmt.cost(r.cost)}</span>
+          <span className={cn('hidden text-end tabular-nums lg:block', r.strong ? 'font-bold' : 'font-semibold', r.profit < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(r.profit)}</span>
+          <span className="hidden text-end tabular-nums text-slate-600 lg:block">{fmt.costHidden ? '••' : pct(margin(r.profit, r.revenue))}</span>
         </li>
       ))}
     </ul>
@@ -129,19 +130,19 @@ function VariantLine({ v, unit, fmt }: { v: ProfitVariant; unit: string; fmt: Fm
   const loss = (v.profit ?? 0) < 0;
   return (
     <li className={cn('grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-2 text-[0.8125rem] sm:px-4', GRID)}>
-      <span className="truncate pl-10 text-slate-700 sm:pl-[4.75rem]">↳ {v.name}</span>
-      <span className="text-right tabular-nums lg:hidden">{fmt.cost(v.profit ?? 0)}</span>
-      <span className="hidden text-right tabular-nums text-slate-600 lg:block">{qty(v.qty)} {unit}</span>
-      <span className="hidden text-right tabular-nums text-slate-800 lg:block">{fmt.money(v.revenue)}</span>
-      <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.cost(v.cost ?? 0)}</span>
-      <span className={cn('hidden text-right font-semibold tabular-nums lg:block', loss && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(v.profit ?? 0)}</span>
-      <span className="hidden text-right tabular-nums text-slate-600 lg:block">{fmt.costHidden ? '••' : pct(v.margin)}</span>
+      <span className="truncate ps-10 text-slate-700 sm:ps-[4.75rem]">↳ {v.name}</span>
+      <span className="text-end tabular-nums lg:hidden">{fmt.cost(v.profit ?? 0)}</span>
+      <span className="hidden text-end tabular-nums text-slate-600 lg:block">{qty(v.qty)} {unit}</span>
+      <span className="hidden text-end tabular-nums text-slate-800 lg:block">{fmt.money(v.revenue)}</span>
+      <span className="hidden text-end tabular-nums text-slate-600 lg:block">{fmt.cost(v.cost ?? 0)}</span>
+      <span className={cn('hidden text-end font-semibold tabular-nums lg:block', loss && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(v.profit ?? 0)}</span>
+      <span className="hidden text-end tabular-nums text-slate-600 lg:block">{fmt.costHidden ? '••' : pct(v.margin)}</span>
     </li>
   );
 }
 
 export function Change({ c, invert }: { c: number | null; invert?: boolean }) {
-  if (c === 0) return <span className="block text-[0.6875rem] text-slate-400">pehle jaisa</span>;
+  if (c === 0) return <span className="block text-[0.6875rem] text-slate-400">{tr('pehle jaisa')}</span>;
   const up = c === null || c > 0;
   const good = invert ? !up : up;
   return (

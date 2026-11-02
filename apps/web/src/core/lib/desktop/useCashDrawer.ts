@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 import { getElectron, isElectron } from './electron';
 import { usePrinterStore } from './printerStore';
+import { t } from '@core/i18n';
 
 /**
  * Cash drawer opener — call after cash/card sale.
@@ -9,7 +10,7 @@ import { usePrinterStore } from './printerStore';
 export function useCashDrawer() {
   const openDrawer = async (): Promise<boolean> => {
     if (!isElectron()) {
-      toast.info('Cash drawer sirf desktop app me kaam karta hai');
+      toast.info(t('Cash drawer sirf desktop app me kaam karta hai'));
       return false;
     }
 
@@ -18,12 +19,12 @@ export function useCashDrawer() {
 
     const { config, enabled } = usePrinterStore.getState();
     if (!enabled) {
-      toast.warning('Pehle printer setup karein — cash drawer usi se juda hota hai');
+      toast.warning(t('Pehle printer setup karein — cash drawer usi se juda hota hai'));
       return false;
     }
 
     if (config.connectionType === 'system') {
-      toast.info('Cash drawer sirf network/USB thermal printer se open hota hai');
+      toast.info(t('Cash drawer sirf network/USB thermal printer se open hota hai'));
       return false;
     }
 
@@ -36,14 +37,14 @@ export function useCashDrawer() {
       });
 
       if (result.success) {
-        toast.success('💰 Cash drawer khul gaya');
+        toast.success(t('💰 Cash drawer khul gaya'));
         return true;
       } else {
-        toast.error(`Drawer nahi khula: ${result.message}`);
+        toast.error(t('Drawer nahi khula: {{message}}', { message: result.message }));
         return false;
       }
     } catch (e: any) {
-      toast.error(`Drawer error: ${e.message}`);
+      toast.error(t('Drawer error: {{message}}', { message: e.message }));
       return false;
     }
   };

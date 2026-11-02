@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertAuthorDto } from './dto/upsert-author.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class AuthorsService {
@@ -9,7 +10,7 @@ export class AuthorsService {
 
   async create(user: AuthenticatedUser, dto: UpsertAuthorDto) {
     const dup = await this.prisma.author.findFirst({ where: { tenantId: user.tenantId, name: dto.name } });
-    if (dup) throw new BadRequestException(`Author "${dto.name}" exists`);
+    if (dup) throw new BadRequestException(apiMessage('Author "{{dtoName}}" exists', { dtoName: dto.name }));
     return this.prisma.author.create({ data: { tenantId: user.tenantId, ...dto } });
   }
 

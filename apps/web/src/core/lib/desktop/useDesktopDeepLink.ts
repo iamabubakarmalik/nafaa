@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getElectron, isElectron } from './electron';
+import { t } from '@core/i18n';
 
 /**
  * Listen for deep-link navigation from OS.
@@ -16,7 +17,7 @@ export function useDesktopDeepLink() {
     if (!electron?.onDeepLinkNavigate) return;
 
     return electron.onDeepLinkNavigate((path: string) => {
-      toast.info(`Opening: ${path}`, { duration: 2000 });
+      toast.info(t('Opening: {{path}}', { path }), { duration: 2000 });
       navigate(path);
     });
   }, [navigate]);

@@ -13,8 +13,9 @@ import { cn } from '@core/lib/cn';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productionApi, type PlanItemInput, type ProductionPlan } from '../../api/production.api';
 import { PRODUCTION_KEY, apiError, byWeight, dayOnly, qtyInput, qtyValue } from '../meta';
+import { msg, t as tr } from '@core/i18n';
 
-const SHIFTS = ['Subah', 'Dopahar', 'Shaam', 'Raat'];
+const SHIFTS = [msg('Subah'), msg('Dopahar'), msg('Shaam'), msg('Raat')];
 
 export interface BuilderLine { key: string; productId?: string; productName: string; plannedQty: string; unit?: string | null; cakeOrderId?: string; note?: string }
 
@@ -28,7 +29,7 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
   onDone: () => void;
 }) {
   const qc = useQueryClient();
-  const [shift, setShift] = useState(() => (new Date().getHours() < 12 ? 'Subah' : new Date().getHours() < 16 ? 'Dopahar' : 'Shaam'));
+  const [shift, setShift] = useState(() => (new Date().getHours() < 12 ? SHIFTS[0] : new Date().getHours() < 16 ? SHIFTS[1] : SHIFTS[2]));
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<BuilderLine[]>(initial ?? []);
   const [term, setTerm] = useState('');
@@ -44,25 +45,25 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
   const bad = !items.length || items.some((i) => !i.productName || i.plannedQty <= 0);
   const save = useMutation({
     mutationFn: () => (plan ? productionApi.addItems(plan.id, items) : productionApi.createPlan({ planDate: date, shift, notes: notes.trim() || undefined, items })),
-    onSuccess: (p) => { toast.success(plan ? 'Plan me daal diya' : `Plan ${p.planNumber} ban gaya`); qc.invalidateQueries({ queryKey: [PRODUCTION_KEY] }); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Plan nahi bana')),
+    onSuccess: (p) => { toast.success(plan ? tr('Plan me daal diya') : tr('Plan {{planNumber}} ban gaya', { planNumber: p.planNumber })); qc.invalidateQueries({ queryKey: [PRODUCTION_KEY] }); onDone(); },
+    onError: (e) => toast.error(apiError(e, tr('Plan nahi bana'))),
   });
   const update = (key: string, patch: Partial<BuilderLine>) => setLines((xs) => xs.map((x) => (x.key === key ? { ...x, ...patch } : x)));
 
   return (
-    <Modal open onClose={onClose} size="lg" title={plan ? `${plan.planNumber} me cheezein` : 'Naya baking plan'} description={plan ? 'Jo aur banana hai woh daalein' : `${dayOnly(`${date}T12:00:00`)} ke liye — kya aur kitna banana hai`}
+    <Modal open onClose={onClose} size="lg" title={plan ? tr('{{planNumber}} me cheezein', { planNumber: plan.planNumber }) : tr('Naya baking plan')} description={plan ? tr('Jo aur banana hai woh daalein') : tr('{{dayOnly}} ke liye — kya aur kitna banana hai', { dayOnly: dayOnly(`${date}T12:00:00`) })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>{plan ? 'Plan me daalein' : 'Plan banayein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>{plan ? tr('Plan me daalein') : tr('Plan banayein')}</Button>
       </>}>
       <div className="space-y-4">
         {!plan && (
           <div className="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
             <div>
-              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Shift</span>
-              <div className="flex flex-wrap gap-1.5">{SHIFTS.map((s) => <Button key={s} size="sm" variant={shift === s ? 'primary' : 'secondary'} onClick={() => setShift(s)}>{s}</Button>)}</div>
+              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Shift')}</span>
+              <div className="flex flex-wrap gap-1.5">{SHIFTS.map((s) => <Button key={s} size="sm" variant={shift === s ? 'primary' : 'secondary'} onClick={() => setShift(s)}>{tr(s)}</Button>)}</div>
             </div>
-            <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Maslan: shadi wala order pehle" />
+            <Input label={tr('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('Maslan: shadi wala order pehle')} />
           </div>
         )}
 
@@ -72,19 +73,19 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
               <li key={l.key} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 ring-1 ring-slate-200">
                 <div className="min-w-0 flex-1">
                   {l.productId ? <p className="truncate text-[0.875rem] font-medium text-slate-900">{l.productName}</p>
-                    : <Input size="sm" value={l.productName} onChange={(e) => update(l.key, { productName: e.target.value })} placeholder="Cheez ka naam" />}
+                    : <Input size="sm" value={l.productName} onChange={(e) => update(l.key, { productName: e.target.value })} placeholder={tr('Cheez ka naam')} />}
                   {l.note && <p className="truncate text-[0.6875rem] text-slate-500">{l.note}</p>}
                 </div>
-                <input inputMode={byWeight(l.unit) ? 'decimal' : 'numeric'} value={l.plannedQty} onChange={(e) => update(l.key, { plannedQty: qtyInput(e.target.value, byWeight(l.unit)) })} aria-label={byWeight(l.unit) ? `Kitna (${l.unit})` : 'Kitne'}
+                <input inputMode={byWeight(l.unit) ? 'decimal' : 'numeric'} value={l.plannedQty} onChange={(e) => update(l.key, { plannedQty: qtyInput(e.target.value, byWeight(l.unit)) })} aria-label={byWeight(l.unit) ? tr('Kitna ({{unit}})', { unit: l.unit }) : tr('Kitne')}
                   className={cn('h-9 w-20 rounded-lg border bg-white px-2 text-center text-[0.875rem] font-semibold tabular-nums', Number(l.plannedQty) > 0 ? 'border-slate-300' : 'border-rose-400')} />
-                <button type="button" aria-label="Hatayein" onClick={() => setLines((xs) => xs.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                <button type="button" aria-label={tr('Hatayein')} onClick={() => setLines((xs) => xs.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
         )}
 
         <div>
-          <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Kya banana hai — cheez search…" leftIcon={<Search className="h-4 w-4" />} data-autofocus />
+          <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder={tr('Kya banana hai — cheez search…')} leftIcon={<Search className="h-4 w-4" />} data-autofocus />
           <div className="mt-2 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
             {options.map((p) => (
               <button key={p.id} type="button" onClick={() => { setLines((xs) => [...xs, { key: p.id, productId: p.id, productName: p.name, plannedQty: '', unit: p.unit }]); setTerm(''); }}
@@ -95,7 +96,7 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
             {t && (
               <button type="button" onClick={() => { setLines((xs) => [...xs, { key: `free-${Date.now()}`, productName: term.trim(), plannedQty: '' }]); setTerm(''); }}
                 className="inline-flex h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium text-slate-500 border border-dashed border-slate-300">
-                <Plus className="h-3.5 w-3.5" />"{term.trim()}" — bina maal ke
+                <Plus className="h-3.5 w-3.5" />{tr('"{{value}}" — bina maal ke', { value: term.trim() })}
               </button>
             )}
           </div>

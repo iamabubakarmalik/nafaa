@@ -25,25 +25,25 @@ export function printTokenSlip(apt: Appointment, patient: PatientLite | null | u
   printReceipt({
     saleNumber: sale?.saleNumber ?? apt.appointmentNumber,
     date: new Date(),
-    stamp: `Token ${apt.tokenNumber ?? '-'}`,
+    stamp: `Token ${apt.tokenNumber ?? '-'}`, // i18n-ignore
     customerName: patient?.fullName,
     customerPhone: patient?.phonePrimary ?? undefined,
     infoRows: [
-      { label: 'Token', value: String(apt.tokenNumber ?? '-'), bold: true },
-      { label: 'Doctor', value: drName(doctor) || '—' },
-      { label: 'MR No.', value: patient?.mrn ?? '—' },
-      { label: 'Visit', value: visitLabel(apt.visitType) },
-      { label: 'Waqt', value: dateTime(apt.scheduledStart) },
+      { label: 'Token', value: String(apt.tokenNumber ?? '-'), bold: true }, // i18n-ignore
+      { label: 'Doctor', value: drName(doctor) || '—' }, // i18n-ignore
+      { label: 'MR No.', value: patient?.mrn ?? '—' }, // i18n-ignore
+      { label: 'Visit', value: visitLabel(apt.visitType) }, // i18n-ignore
+      { label: 'Waqt', value: dateTime(apt.scheduledStart) }, // i18n-ignore
     ],
     lines: [{ name: `Consultation fee${apt.isEmergency ? ' (emergency)' : ''}`, qty: 1, unit: 'visit', price: apt.consultationFee, total: apt.consultationFee }]
       .concat(apt.otherCharges ? [{ name: 'Doosre charges', qty: 1, unit: 'visit', price: apt.otherCharges, total: apt.otherCharges }] : []),
     subtotal: apt.consultationFee + apt.otherCharges,
     discount: apt.discount,
-    extraRows: apt.taxAmount ? [{ label: 'Tax', value: String(apt.taxAmount) }] : undefined,
+    extraRows: apt.taxAmount ? [{ label: 'Tax', value: String(apt.taxAmount) }] : undefined, // i18n-ignore
     total: apt.total,
     paid,
-    paymentLabel: sale ? (sale.creditAmount > 0 ? `Khata Rs ${sale.creditAmount}` : 'Paid') : apt.paymentStatus === 'PAID' ? 'Paid' : 'Fees baqi',
-    footerNote: 'Apna number aane par andar tashreef laayein. Agli visit par ye parchi saath laayein.',
+    paymentLabel: sale ? (sale.creditAmount > 0 ? `Khata Rs ${sale.creditAmount}` : 'Paid') : apt.paymentStatus === 'PAID' ? 'Paid' : 'Fees baqi', // i18n-ignore
+    footerNote: 'Apna number aane par andar tashreef laayein. Agli visit par ye parchi saath laayein.', // i18n-ignore
   });
 }
 

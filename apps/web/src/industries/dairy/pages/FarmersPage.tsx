@@ -26,13 +26,14 @@ import { FarmerPayModal } from '../components/FarmerPayModal';
 import { Empty, ListCard, ListLoading, Pill } from '../components/ui';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { CYCLE, DAIRY_KEYS, MONEY_KEYS, errorText, liters, shortDate } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'active' | 'owed' | 'off' | 'all';
 const TABS: Array<{ id: Tab; label: string; icon: typeof Milk }> = [
-  { id: 'active', label: 'Chalu', icon: Milk },
-  { id: 'owed', label: 'Dena hai', icon: Wallet },
-  { id: 'off', label: 'Band', icon: PowerOff },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'active', label: tr('Chalu'), icon: Milk },
+  { id: 'owed', label: tr('Dena hai'), icon: Wallet },
+  { id: 'off', label: tr('Band'), icon: PowerOff },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const inTab = (f: DairyFarmer, t: Tab) => (t === 'all' ? true : t === 'active' ? f.isActive : t === 'off' ? !f.isActive : f.currentBalance > 0.009);
 
@@ -59,14 +60,14 @@ export default function FarmersPage() {
 
   const pay = useMutation({
     mutationFn: ({ f, v }: { f: DairyFarmer; v: FarmerPayInput }) => farmersApi.payment(f.id, v),
-    onSuccess: () => { MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); qc.invalidateQueries({ queryKey: ['cash-register'] }); setPaying(null); toast.success('Payment likh di'); },
-    onError: (e) => toast.error(errorText(e, 'Payment save nahi hui')),
+    onSuccess: () => { MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); qc.invalidateQueries({ queryKey: ['cash-register'] }); setPaying(null); toast.success(tr('Payment likh di')); },
+    onError: (e) => toast.error(errorText(e, tr('Payment save nahi hui'))),
   });
 
   const exportCsv = () => {
-    if (!rows.length) { toast.error('Is filter me koi gawala nahi'); return; }
+    if (!rows.length) { toast.error(tr('Is filter me koi gawala nahi')); return; }
     downloadCsv('gawale.csv', [
-      ['Number', 'Naam', 'Phone', 'Gaon', 'Rate', 'Fat bonus', 'Payment', 'Kul doodh (L)', 'Dena hai', 'Aakhri doodh'],
+      [tr('Number'), tr('Naam'), tr('Phone'), tr('Gaon'), tr('Rate'), tr('Fat bonus'), tr('Payment'), tr('Kul doodh (L)'), tr('Dena hai'), tr('Aakhri doodh')],
       ...rows.map((f) => [f.farmerNumber, f.name, f.phone, f.village, f.ratePerLiter, f.fatBonusRate, CYCLE[f.paymentCycle], f.totalSupplied, f.currentBalance, f.lastSupplyDate?.slice(0, 10)]),
     ]);
   };
@@ -83,65 +84,65 @@ export default function FarmersPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Gawale — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Gawale — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Naya gawala', text: 'Naam, phone, gaon aur ek liter ka rate. Fat zyada ho to har point par bonus — collection me khud lagta hai.' },
-            { icon: Warehouse, color: '#2563eb', title: 'Doodh aaya', text: '"Doodh ki entry" page par subah aur shaam ka doodh likhein — stock me jata hai aur gawale ka hisaab barhta hai.' },
-            { icon: Wallet, color: '#d97706', title: 'Payment', text: 'Hafte ya mahine baad "Payment" dabayein — galle se cash ya bank / JazzCash account se. Purani parchiyan pehle ada hoti hain.' },
+            { icon: Plus, color: '#16a34a', title: tr('Naya gawala'), text: tr('Naam, phone, gaon aur ek liter ka rate. Fat zyada ho to har point par bonus — collection me khud lagta hai.') },
+            { icon: Warehouse, color: '#2563eb', title: tr('Doodh aaya'), text: tr('"Doodh ki entry" page par subah aur shaam ka doodh likhein — stock me jata hai aur gawale ka hisaab barhta hai.') },
+            { icon: Wallet, color: '#d97706', title: tr('Payment'), text: tr('Hafte ya mahine baad "Payment" dabayein — galle se cash ya bank / JazzCash account se. Purani parchiyan pehle ada hoti hain.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya gawala'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya gawala')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Gawale" busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading || !t}
-        meta="Doodh dene wale — rate, fat bonus aur kitna dena hai"
+      <PageHero title={tr('Gawale')} busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading || !t}
+        meta={tr('Doodh dene wale — rate, fat bonus aur kitna dena hai')}
         actions={<>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/dairy/supplies" className={heroButton}><Warehouse className="h-4 w-4" />Doodh ki entry</Link>
-          {canEdit && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya gawala</button>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />{tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/dairy/supplies" className={heroButton}><Warehouse className="h-4 w-4" />{tr('Doodh ki entry')}</Link>
+          {canEdit && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya gawala')}</button>}
         </>}
         stats={[
-          { label: 'Dena hai', value: money(t?.totalPayable ?? 0) },
-          { label: 'Chalu gawale', value: String(t?.activeFarmers ?? 0) },
-          { label: 'Kul doodh aaya', value: liters(t?.lifetimeSupplied ?? 0) },
+          { label: tr('Dena hai'), value: money(t?.totalPayable ?? 0) },
+          { label: tr('Chalu gawale'), value: String(t?.activeFarmers ?? 0) },
+          { label: tr('Kul doodh aaya'), value: liters(t?.lifetimeSupplied ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!t ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Milk} color="#0ea5e9" label="Chalu" value={counts.active} onClick={() => setTab('active')} active={tab === 'active'} />
-            <KpiCard icon={Wallet} color="#e11d48" label="Dena hai" value={counts.owed} hint={money(t.totalPayable)} onClick={() => setTab('owed')} active={tab === 'owed'} />
-            <KpiCard icon={Wallet} color="#16a34a" label="Ab tak diya" value={money(t.lifetimePaid)} />
-            <KpiCard icon={PowerOff} color="#64748b" label="Band" value={counts.off} onClick={() => setTab('off')} active={tab === 'off'} />
+            <KpiCard icon={Milk} color="#0ea5e9" label={tr('Chalu')} value={counts.active} onClick={() => setTab('active')} active={tab === 'active'} />
+            <KpiCard icon={Wallet} color="#e11d48" label={tr('Dena hai')} value={counts.owed} hint={money(t.totalPayable)} onClick={() => setTab('owed')} active={tab === 'owed'} />
+            <KpiCard icon={Wallet} color="#16a34a" label={tr('Ab tak diya')} value={money(t.lifetimePaid)} />
+            <KpiCard icon={PowerOff} color="#64748b" label={tr('Band')} value={counts.off} onClick={() => setTab('off')} active={tab === 'off'} />
           </>
         )}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, number, phone, CNIC ya gaon…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, number, phone, CNIC ya gaon…')} />}
         chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
 
-      <ViewTabs value={tab} onChange={setTab} hint="Gawale par click kar ke parchiyan aur payment dekhein" tabs={TABS.map((x) => ({ id: x.id, label: x.label, icon: x.icon, count: listQ.data ? counts[x.id] : null }))} />
+      <ViewTabs value={tab} onChange={setTab} hint={tr('Gawale par click kar ke parchiyan aur payment dekhein')} tabs={TABS.map((x) => ({ id: x.id, label: x.label, icon: x.icon, count: listQ.data ? counts[x.id] : null }))} />
 
       <ListCard>
         {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
-          <Empty icon={Milk} title={search || tab !== 'all' ? 'Is filter me koi gawala nahi' : 'Abhi koi gawala nahi'} text="Jo log dukaan ko doodh dete hain unhe yahan jorein."
-            action={canEdit ? <button type="button" onClick={() => setForm('new')} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya gawala</button> : undefined} />
+          <Empty icon={Milk} title={search || tab !== 'all' ? tr('Is filter me koi gawala nahi') : tr('Abhi koi gawala nahi')} text={tr('Jo log dukaan ko doodh dete hain unhe yahan jorein.')}
+            action={canEdit ? <button type="button" onClick={() => setForm('new')} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya gawala')}</button> : undefined} />
         ) : (
           <ul className="divide-y divide-slate-100">
             {rows.map((f) => (
               <li key={f.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_10rem_9rem_9rem_auto] lg:items-center">
-                <button type="button" onClick={() => navigate(`/dairy/farmers/${f.id}`)} className="min-w-0 text-left">
+                <button type="button" onClick={() => navigate(`/dairy/farmers/${f.id}`)} className="min-w-0 text-start">
                   <p className="truncate font-semibold text-slate-900 hover:underline">{f.name} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{f.farmerNumber}</span></p>
                   <p className="truncate text-[0.75rem] text-slate-500">{[f.phone, f.village].filter(Boolean).join(' · ') || '—'}</p>
                 </button>
-                <p className="text-[0.8125rem] text-slate-700">{money(f.ratePerLiter)}/L{f.fatBonusRate ? <span className="block text-[0.75rem] text-slate-500">Fat bonus {money(f.fatBonusRate)}/point</span> : null}</p>
-                <p className="text-[0.8125rem] text-slate-600">{CYCLE[f.paymentCycle] ?? f.paymentCycle} payment<span className="block text-[0.75rem] text-slate-500">Aakhri doodh {shortDate(f.lastSupplyDate)}</span></p>
-                <p className={cn('text-[0.875rem] font-semibold tabular-nums', f.currentBalance > 0.009 ? 'text-rose-700' : 'text-slate-500')}>{f.currentBalance > 0.009 ? `${money(f.currentBalance)} dena` : f.currentBalance < -0.009 ? `${money(-f.currentBalance)} advance diya` : 'Saaf'}</p>
+                <p className="text-[0.8125rem] text-slate-700">{money(f.ratePerLiter)}/L{f.fatBonusRate ? <span className="block text-[0.75rem] text-slate-500">{tr('Fat bonus {{fatBonusRate}}/point', { fatBonusRate: money(f.fatBonusRate) })}</span> : null}</p>
+                <p className="text-[0.8125rem] text-slate-600">{tr('{{value}} payment', { value: CYCLE[f.paymentCycle] ?? f.paymentCycle })}<span className="block text-[0.75rem] text-slate-500">{tr('Aakhri doodh {{lastSupplyDate}}', { lastSupplyDate: shortDate(f.lastSupplyDate) })}</span></p>
+                <p className={cn('text-[0.875rem] font-semibold tabular-nums', f.currentBalance > 0.009 ? 'text-rose-700' : 'text-slate-500')}>{f.currentBalance > 0.009 ? tr('{{currentBalance}} dena', { currentBalance: money(f.currentBalance) }) : f.currentBalance < -0.009 ? tr('{{value}} advance diya', { value: money(-f.currentBalance) }) : tr('Saaf')}</p>
                 <div className="flex flex-wrap justify-end gap-1.5">
-                  {!f.isActive && <Pill tone="bg-slate-100 text-slate-600 ring-slate-200">Band</Pill>}
-                  {canEdit && f.currentBalance > 0.009 && <button type="button" onClick={() => setPaying(f)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg"><Wallet className="h-4 w-4" />Payment</button>}
-                  {canEdit && <button type="button" onClick={() => setForm(f)} className="inline-flex h-9 items-center rounded-lg px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">Badlein</button>}
+                  {!f.isActive && <Pill tone="bg-slate-100 text-slate-600 ring-slate-200">{tr('Band')}</Pill>}
+                  {canEdit && f.currentBalance > 0.009 && <button type="button" onClick={() => setPaying(f)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg"><Wallet className="h-4 w-4" />{tr('Payment')}</button>}
+                  {canEdit && <button type="button" onClick={() => setForm(f)} className="inline-flex h-9 items-center rounded-lg px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">{tr('Badlein')}</button>}
                 </div>
               </li>
             ))}

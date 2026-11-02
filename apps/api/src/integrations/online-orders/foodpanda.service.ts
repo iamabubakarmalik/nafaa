@@ -9,6 +9,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { readWebsiteConfig } from './website-config';
 import { ChannelStatus, channelStatusEvents } from './order-events';
 import { FoodpandaMeta, acceptanceTime, normalizeFoodpanda, rejectReason, verifyMiddlewareJwt } from './foodpanda';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /* ═════════════════════════════════════════════════════════════
    FOODPANDA — Delivery Hero POS Middleware ("direct" integration).
@@ -86,7 +87,7 @@ export class FoodpandaService implements OnModuleInit, OnModuleDestroy {
     const i = await this.prisma.integration.findFirst({
       where: { type: 'FOODPANDA', isActive: true, config: { path: ['foodpanda', 'remoteIds'], array_contains: [remoteId] } },
     });
-    if (!i) throw new NotFoundException({ reason: 'UNKNOWN_REMOTE_ID', message: `remoteId ${remoteId} not found` });
+    if (!i) throw new NotFoundException({ reason: 'UNKNOWN_REMOTE_ID', ...apiMessage('remoteId {{remoteId}} not found', { remoteId }) });
     return i;
   }
 

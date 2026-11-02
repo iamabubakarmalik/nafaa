@@ -2,6 +2,7 @@
 
 import type { FilterOption } from '@/design-system/components';
 import type { BillCharges, Figures, ProfitSort, ProfitView } from '../api';
+import { t as tr } from '@core/i18n';
 
 export const qty = (n: number) => Number((n || 0).toFixed(2)).toLocaleString('en-PK');
 export const pct = (n: number | undefined) => `${(n ?? 0).toFixed(1)}%`;
@@ -41,31 +42,31 @@ export const dayLabel = (key: string) => {
   return new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short' }).format(new Date(`${key}T12:00:00`));
 };
 
-export const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+export const WEEKDAYS = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 
 export const SORTS: Array<FilterOption<ProfitSort>> = [
-  { value: 'profit', label: 'Zyada profit pehle' },
-  { value: 'revenue', label: 'Zyada sale pehle' },
-  { value: 'margin', label: 'Zyada margin pehle' },
-  { value: 'qty', label: 'Zyada biki (quantity)' },
-  { value: 'loss', label: 'Sab se kam profit pehle' },
-  { value: 'discount', label: 'Zyada discount pehle' },
-  { value: 'returns', label: 'Zyada return pehle' },
-  { value: 'name', label: 'Naam (A–Z)' },
+  { value: 'profit', label: tr('Zyada profit pehle') },
+  { value: 'revenue', label: tr('Zyada sale pehle') },
+  { value: 'margin', label: tr('Zyada margin pehle') },
+  { value: 'qty', label: tr('Zyada biki (quantity)') },
+  { value: 'loss', label: tr('Sab se kam profit pehle') },
+  { value: 'discount', label: tr('Zyada discount pehle') },
+  { value: 'returns', label: tr('Zyada return pehle') },
+  { value: 'name', label: tr('Naam (A–Z)') },
 ];
 
 /** Sorts that need cost; hidden while cost is locked. */
 export const COST_SORTS: ProfitSort[] = ['profit', 'margin', 'loss'];
 
 export const VIEWS: Array<FilterOption<ProfitView> & { cost?: boolean }> = [
-  { value: 'all', label: 'Sab cheezein' },
-  { value: 'loss', label: 'Nuqsan wali', hint: 'Cost se sasti biki', color: '#e11d48', cost: true },
-  { value: 'discount', label: 'Discount wali', hint: 'Jin par discount di', color: '#db2777' },
-  { value: 'returns', label: 'Return wali', hint: 'Jo wapas aayin', color: '#ea580c' },
-  { value: 'fallback', label: 'Aaj ki cost se', hint: 'Bill par cost save nahi thi', color: '#d97706', cost: true },
-  { value: 'nocost', label: 'Bina cost', hint: 'Cost bhari hi nahi — profit poora dikh raha hai', color: '#64748b', cost: true },
+  { value: 'all', label: tr('Sab cheezein') },
+  { value: 'loss', label: tr('Nuqsan wali'), hint: tr('Cost se sasti biki'), color: '#e11d48', cost: true },
+  { value: 'discount', label: tr('Discount wali'), hint: tr('Jin par discount di'), color: '#db2777' },
+  { value: 'returns', label: tr('Return wali'), hint: tr('Jo wapas aayin'), color: '#ea580c' },
+  { value: 'fallback', label: tr('Aaj ki cost se'), hint: tr('Bill par cost save nahi thi'), color: '#d97706', cost: true },
+  { value: 'nocost', label: tr('Bina cost'), hint: tr('Cost bhari hi nahi — profit poora dikh raha hai'), color: '#64748b', cost: true },
 ];
 
 export const UNIT_KIND_LABEL: Record<string, string> = {
-  IMEI: 'Naya phone', USED: 'Used phone', SERIAL: 'Serial wala', REPAIR: 'Repair', OTHER: 'Baqi maal',
+  IMEI: tr('Naya phone'), USED: tr('Used phone'), SERIAL: tr('Serial wala'), REPAIR: tr('Repair'), OTHER: tr('Baqi maal'),
 };

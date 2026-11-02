@@ -20,6 +20,7 @@ import { SalesService } from '../../../modules/sales/sales/sales.service';
 import {
   ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const r3 = (v: number) => Math.round((Number(v) || 0) * 1000) / 1000;
@@ -64,7 +65,7 @@ export class RepairsService implements OnModuleInit {
   private money(v: unknown, what: string) {
     if (v === undefined || v === null || v === '') return 0;
     const n = Number(v);
-    if (!(n >= 0)) throw new BadRequestException(`${what} sahi likhein`);
+    if (!(n >= 0)) throw new BadRequestException(apiMessage('{{what}} sahi likhein', { what }));
     return r2(n);
   }
 
@@ -213,7 +214,7 @@ export class RepairsService implements OnModuleInit {
     const r = await this.getOne(user, id);
     this.open(r);
     const charge = dto.charge !== undefined ? this.money(dto.charge, 'Repair charges') : undefined;
-    if (charge !== undefined && charge > 0 && r.advance > charge) throw new BadRequestException(`Advance ${r.advance} hai — charges is se kam nahi ho sakte`);
+    if (charge !== undefined && charge > 0 && r.advance > charge) throw new BadRequestException(apiMessage('Advance {{advance}} hai — charges is se kam nahi ho sakte', { advance: r.advance }));
     const karigarId = dto.karigarId !== undefined ? await this.karigar(user.tenantId, dto.karigarId) : undefined;
     const row = await this.prisma.jewelryRepair.update({
       where: { id },
@@ -253,7 +254,7 @@ export class RepairsService implements OnModuleInit {
     this.open(r);
     const amt = this.money(amount, 'Amount');
     if (!(amt > 0)) throw new BadRequestException('Amount sahi likhein');
-    if (r.charge > 0 && r.advance + amt > r.charge + 0.005) throw new BadRequestException(`Baqi sirf Rs ${r2(r.charge - r.advance)} hai`);
+    if (r.charge > 0 && r.advance + amt > r.charge + 0.005) throw new BadRequestException(apiMessage('Baqi sirf Rs {{charge}} hai', { charge: r2(r.charge - r.advance) }));
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, r.shopId);
       const customerId = await ensureCustomer(tx, user, { customerId: r.customerId, name: r.customerName, phone: r.customerPhone, shopId });

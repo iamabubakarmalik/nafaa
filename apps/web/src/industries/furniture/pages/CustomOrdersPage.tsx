@@ -29,6 +29,7 @@ import { customOrdersApi, type FurnitureCustomOrder } from '../api/custom-orders
 import { BarList, DueChip, Empty, ListCard, ListLoading, Pager, Pill } from '../components/ui';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { BILLED_ORDER, FURNITURE_KEYS, OPEN_ORDER, ORDER_STATUS, daysTo, orderTotal, shortDate } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'open' | 'quotes' | 'making' | 'ready' | 'done' | 'cancelled' | 'all' | 'analytics';
 const LIMIT = 25;
@@ -59,9 +60,9 @@ export default function CustomOrdersPage() {
 
   const rows = listQ.data?.items ?? [];
   const exportCsv = () => {
-    if (!rows.length) { toast.error('Is filter me koi order nahi'); return; }
+    if (!rows.length) { toast.error(tr('Is filter me koi order nahi')); return; }
     downloadCsv('furniture-orders.csv', [
-      ['Order', 'Customer', 'Phone', 'Cheez', 'Lakri', 'Polish', 'Karigar', 'Order date', 'Dena hai', 'Qeemat', 'Mila', 'Baqi', 'Halat'],
+      [tr('Order'), tr('Customer'), tr('Phone'), tr('Cheez'), tr('Lakri'), tr('Polish'), tr('Karigar'), tr('Order date'), tr('Dena hai'), tr('Qeemat'), tr('Mila'), tr('Baqi'), tr('Halat')],
       ...rows.map((o) => [o.orderNumber, o.customerName, o.customerPhone, o.productType, o.woodType ?? '', o.polishRequested ?? '', o.carpenterName ?? '',
         o.quotationDate.slice(0, 10), o.expectedDeliveryDate?.slice(0, 10) ?? '', orderTotal(o), o.totalPaid, o.balanceAmount, ORDER_STATUS[o.status]?.label ?? o.status]),
     ]);
@@ -88,74 +89,74 @@ export default function CustomOrdersPage() {
       }
       return [...m.entries()].map(([k, v]) => ({ key: k, ...v })).sort((a, b) => b.value - a.value).slice(0, 10);
     };
-    return { byItem: group((o) => o.productType), byCarpenter: group((o) => o.carpenterName || 'Karigar nahi'), byWood: group((o) => o.woodType || 'Likha nahi') };
+    return { byItem: group((o) => o.productType), byCarpenter: group((o) => o.carpenterName || tr('Karigar nahi')), byWood: group((o) => o.woodType || tr('Likha nahi')) };
   }, [allQ.data]);
 
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Custom orders — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Custom orders — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: FileText, color: '#0891b2', title: 'Quotation', text: 'Customer kya banwana chahta hai — design, lakri, polish, size, qeemat aur kitne din. Sketch ya photo bhi lagayein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance usi din drawer me aata hai aur customer ke khate me jama hota hai. Baad ki qist bhi isi tarah — jitni baar chahein.' },
-            { icon: Hammer, color: '#a16207', title: 'Karigar', text: 'Order karigar ko dein, kaam kitna hua (%) likhte rahein. 100% par order "Tayyar" ho jata hai.' },
-            { icon: Truck, color: '#7c3aed', title: 'Delivery = bill', text: 'Furniture dukaan se nikle to bill banta hai: advance pehle katta hai, baqi udhaar khate me. Delivery page par gaari aur fitting.' },
-            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Order mitta nahi, cancel hota hai. Advance customer ke khate me rehta hai — wapas dena ho to khate se dein.' },
+            { icon: FileText, color: '#0891b2', title: tr('Quotation'), text: tr('Customer kya banwana chahta hai — design, lakri, polish, size, qeemat aur kitne din. Sketch ya photo bhi lagayein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance'), text: tr('Advance usi din drawer me aata hai aur customer ke khate me jama hota hai. Baad ki qist bhi isi tarah — jitni baar chahein.') },
+            { icon: Hammer, color: '#a16207', title: tr('Karigar'), text: tr('Order karigar ko dein, kaam kitna hua (%) likhte rahein. 100% par order "Tayyar" ho jata hai.') },
+            { icon: Truck, color: '#7c3aed', title: tr('Delivery = bill'), text: tr('Furniture dukaan se nikle to bill banta hai: advance pehle katta hai, baqi udhaar khate me. Delivery page par gaari aur fitting.') },
+            { icon: XCircle, color: '#e11d48', title: tr('Cancel'), text: tr('Order mitta nahi, cancel hota hai. Advance customer ke khate me rehta hai — wapas dena ho to khate se dein.') },
           ]}
-          shortcuts={[['N', 'naya order'], ['A', 'analytics'], ['/', 'search'], ['G', 'guide']]} />
+          shortcuts={[['N', tr('naya order')], ['A', 'analytics'], ['/', 'search'], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Custom orders" chip={<><ClipboardList /> Order par</>} loading={sumQ.isLoading} busy={listQ.isFetching && !listQ.isLoading}
-        meta="Quotation se delivery tak — advance, karigar aur baqi paisa"
+      <PageHero title={tr('Custom orders')} chip={<><ClipboardList /> {' '}{tr('Order par')}</>} loading={sumQ.isLoading} busy={listQ.isFetching && !listQ.isLoading}
+        meta={tr('Quotation se delivery tak — advance, karigar aur baqi paisa')}
         actions={<>
-          <Link to="/furniture/deliveries" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Deliveries</span></Link>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canCreate && <button type="button" onClick={goNew} title="Naya order (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" />Order</button>}
+          <Link to="/furniture/deliveries" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">{tr('Deliveries')}</span></Link>
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />{tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <button type="button" onClick={goNew} title={tr('Naya order (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Order')}</button>}
         </>}
         stats={[
-          { label: 'Ban rahe', value: String((s?.deposit ?? 0) + (s?.production ?? 0)) },
-          { label: 'Late', value: String(s?.late ?? 0) },
-          { label: 'Customers se baqi', value: money(s?.totalReceivable ?? 0) },
+          { label: tr('Ban rahe'), value: String((s?.deposit ?? 0) + (s?.production ?? 0)) },
+          { label: tr('Late'), value: String(s?.late ?? 0) },
+          { label: tr('Customers se baqi'), value: money(s?.totalReceivable ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
-        <KpiCard icon={FileText} color="#0891b2" label="Quotation" value={s?.quotation ?? 0} hint="Advance ka intezar" active={tab === 'quotes'} onClick={() => changeTab('quotes')} />
-        <KpiCard icon={Hammer} color="#a16207" label="Ban rahe" value={(s?.deposit ?? 0) + (s?.production ?? 0)} hint={s?.late ? `${s.late} late` : 'Sab waqt par'} active={tab === 'making'} onClick={() => changeTab('making')} />
-        <KpiCard icon={PackageCheck} color="#16a34a" label="Tayyar" value={s?.ready ?? 0} hint="Delivery bhejein" active={tab === 'ready'} onClick={() => changeTab('ready')} />
-        <KpiCard icon={Wallet} color="#7c3aed" label="Advance / wusooli" value={money(s?.totalCollected ?? 0)} hint={`${money(s?.totalReceivable ?? 0)} baqi`} />
+        <KpiCard icon={FileText} color="#0891b2" label={tr('Quotation')} value={s?.quotation ?? 0} hint={tr('Advance ka intezar')} active={tab === 'quotes'} onClick={() => changeTab('quotes')} />
+        <KpiCard icon={Hammer} color="#a16207" label={tr('Ban rahe')} value={(s?.deposit ?? 0) + (s?.production ?? 0)} hint={s?.late ? tr('{{late}} late', { late: s.late }) : tr('Sab waqt par')} active={tab === 'making'} onClick={() => changeTab('making')} />
+        <KpiCard icon={PackageCheck} color="#16a34a" label={tr('Tayyar')} value={s?.ready ?? 0} hint={tr('Delivery bhejein')} active={tab === 'ready'} onClick={() => changeTab('ready')} />
+        <KpiCard icon={Wallet} color="#7c3aed" label={tr('Advance / wusooli')} value={money(s?.totalCollected ?? 0)} hint={tr('{{value}} baqi', { value: money(s?.totalReceivable ?? 0) })} />
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Order, customer, phone, cheez ya karigar…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Order, customer, phone, cheez ya karigar…')} />}
         chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
         onClear={() => { setSearch(''); setPage(1); }} />
 
-      <ViewTabs value={tab} onChange={changeTab} hint="Order kholein — advance, karigar, kaam aur delivery"
+      <ViewTabs value={tab} onChange={changeTab} hint={tr('Order kholein — advance, karigar, kaam aur delivery')}
         tabs={[
-          { id: 'open', label: 'Chal rahe', icon: ClipboardList },
-          { id: 'quotes', label: 'Quotation', icon: FileText, count: s?.quotation ?? null },
-          { id: 'making', label: 'Ban rahe', icon: Hammer },
-          { id: 'ready', label: 'Tayyar', icon: PackageCheck, count: s?.ready ?? null },
-          { id: 'done', label: 'De diye', icon: CheckCircle2 },
-          { id: 'cancelled', label: 'Cancel', icon: XCircle },
-          { id: 'all', label: 'Sab', icon: ListChecks },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'open', label: tr('Chal rahe'), icon: ClipboardList },
+          { id: 'quotes', label: tr('Quotation'), icon: FileText, count: s?.quotation ?? null },
+          { id: 'making', label: tr('Ban rahe'), icon: Hammer },
+          { id: 'ready', label: tr('Tayyar'), icon: PackageCheck, count: s?.ready ?? null },
+          { id: 'done', label: tr('De diye'), icon: CheckCircle2 },
+          { id: 'cancelled', label: tr('Cancel'), icon: XCircle },
+          { id: 'all', label: tr('Sab'), icon: ListChecks },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? (
         allQ.isLoading ? <ListLoading /> : (
           <div className="grid gap-4 lg:grid-cols-3">
-            <BarList title="Kya zyada banwaya" money={money} rows={analytics.byItem} />
-            <BarList title="Karigar (kaam ki qeemat)" money={money} rows={analytics.byCarpenter} />
-            <BarList title="Lakri" money={money} rows={analytics.byWood} />
+            <BarList title={tr('Kya zyada banwaya')} money={money} rows={analytics.byItem} />
+            <BarList title={tr('Karigar (kaam ki qeemat)')} money={money} rows={analytics.byCarpenter} />
+            <BarList title={tr('Lakri')} money={money} rows={analytics.byWood} />
           </div>
         )
       ) : (
         <ListCard footer={listQ.data && <Pager page={page} total={listQ.data.total} limit={LIMIT} onPage={setPage} />}>
           {listQ.isLoading ? <ListLoading /> : rows.length === 0 ? (
-            <Empty icon={ClipboardList} title="Is filter me koi order nahi" text="Bed, sofa ya almari order par banani ho to naya order banayein."
-              action={canCreate ? <Button onClick={goNew}><Plus className="h-4 w-4" />Naya order</Button> : undefined} />
+            <Empty icon={ClipboardList} title={tr('Is filter me koi order nahi')} text={tr('Bed, sofa ya almari order par banani ho to naya order banayein.')}
+              action={canCreate ? <Button onClick={goNew}><Plus className="h-4 w-4" />{tr('Naya order')}</Button> : undefined} />
           ) : (
             <ul className="divide-y divide-slate-100">
               {rows.map((o) => {
@@ -165,14 +166,14 @@ export default function CustomOrdersPage() {
                     <Link to={`/furniture/custom-orders/${o.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_9rem_10rem_auto] lg:items-center">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-slate-900">{o.productType} <span className="font-mono text-[0.75rem] font-normal text-slate-400">{o.orderNumber}</span></p>
-                        <p className="truncate text-[0.75rem] text-slate-500">{[o.customerName, o.customerPhone, o.woodType, o.carpenterName ? `Karigar ${o.carpenterName}` : null].filter(Boolean).join(' · ')}</p>
+                        <p className="truncate text-[0.75rem] text-slate-500">{[o.customerName, o.customerPhone, o.woodType, o.carpenterName ? tr('Karigar {{carpenterName}}', { carpenterName: o.carpenterName }) : null].filter(Boolean).join(' · ')}</p>
                         {(o.status === 'IN_PRODUCTION' || o.status === 'DEPOSIT_PAID') && (
                           <div className="mt-1.5 h-1.5 max-w-xs rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${Math.max(o.progressPct, 3)}%` }} /></div>
                         )}
                       </div>
                       <p className="text-[0.8125rem] text-slate-700">{shortDate(o.expectedDeliveryDate)}<DueChip o={o} /></p>
                       <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(orderTotal(o))}
-                        <span className={`block text-[0.75rem] font-medium ${o.balanceAmount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{o.balanceAmount > 0 ? `${money(o.balanceAmount)} baqi` : 'Poora mila'}</span>
+                        <span className={`block text-[0.75rem] font-medium ${o.balanceAmount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>{o.balanceAmount > 0 ? tr('{{balanceAmount}} baqi', { balanceAmount: money(o.balanceAmount) }) : tr('Poora mila')}</span>
                       </p>
                       <div className="flex items-center justify-end gap-1.5">
                         {OPEN_ORDER.includes(o.status) && (daysTo(o.expectedDeliveryDate) ?? 0) < 0 && <AlertTriangle className="h-4 w-4 text-rose-600" />}

@@ -17,8 +17,9 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { expensesApi } from '@modules/finance/expenses/api/expenses.api';
 import { purchasesApi, type LandedCostResult, type LandedMethod, type Purchase, type PurchaseItem } from '../api/purchases.api';
 import { LandedCostEditor, kindLabel, landedTotal, METHODS, newLanded, toPayload, type LandedDraft } from './LandedCostEditor';
+import { t, Trans } from '@core/i18n';
 
-const nameOf = (i: PurchaseItem) => i.itemName || i.product?.name || i.ingredient?.name || 'Cheez';
+const nameOf = (i: PurchaseItem) => i.itemName || i.product?.name || i.ingredient?.name || t('Cheez');
 const unitOf = (i: PurchaseItem) => i.product?.unit ?? i.ingredient?.unit ?? 'pcs';
 const apiError = (e: unknown, fallback: string) => {
   const m = (e as any)?.response?.data?.message;
@@ -35,19 +36,19 @@ export function LandedCostPanel({ p, onChanged }: { p: Purchase; onChanged: () =
 
   const remove = useMutation({
     mutationFn: (costId: string) => purchasesApi.removeLandedCost(p.id, costId),
-    onSuccess: () => { toast.success('Cost hat gayi'); qc.invalidateQueries({ queryKey: ['purchase', p.id] }); onChanged(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hati')),
+    onSuccess: () => { toast.success(t('Cost hat gayi')); qc.invalidateQueries({ queryKey: ['purchase', p.id] }); onChanged(); },
+    onError: (e) => toast.error(apiError(e, t('Nahi hati'))),
   });
 
   if (!costs.length && (!canEdit || p.status === 'CANCELLED')) return null;
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800"><Ship className="h-4 w-4 text-brand-600" /> Landed cost</p>
+        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800"><Ship className="h-4 w-4 text-brand-600" /> {' '}{t('Landed cost')}</p>
         {(p.landedCost ?? 0) > 0 && <span className="text-[0.8125rem] font-bold tabular-nums text-slate-900">{formatPKR(p.landedCost!)}</span>}
       </div>
       {costs.length === 0 ? (
-        <p className="text-[0.75rem] text-slate-500">Freight, customs, clearing agent — jo dusron ko diya, maal ki Cost me jor dein.</p>
+        <p className="text-[0.75rem] text-slate-500">{t('Freight, customs, clearing agent — jo dusron ko diya, maal ki Cost me jor dein.')}</p>
       ) : (
         <ul className="divide-y divide-slate-100 text-[0.8125rem]">
           {costs.map((c) => (
@@ -55,22 +56,22 @@ export function LandedCostPanel({ p, onChanged }: { p: Purchase; onChanged: () =
               <div className="min-w-0 flex-1">
                 <p className="text-slate-800">{kindLabel(c.kind)}</p>
                 <p className="text-[0.6875rem] text-slate-500">
-                  {[c.currency ? `${c.currency} ${c.foreignAmount} × ${c.exchangeRate}` : null, c.label, METHODS.find((m) => m.value === c.method)?.label, c.afterReceipt ? 'maal aane ke baad' : null].filter(Boolean).join(' · ')}
+                  {[c.currency ? `${c.currency} ${c.foreignAmount} × ${c.exchangeRate}` : null, c.label, METHODS.find((m) => m.value === c.method)?.label, c.afterReceipt ? t('maal aane ke baad') : null].filter(Boolean).join(' · ')}
                 </p>
               </div>
               <span className="tabular-nums text-slate-900">{formatPKR(c.amount)}</span>
               {canEdit && nothingIn && (
-                <button type="button" aria-label="Cost hatayein" disabled={remove.isPending}
-                  onClick={async () => { if (await confirmDialog({ title: `${kindLabel(c.kind)} (${formatPKR(c.amount)}) hatayein?`, danger: true })) remove.mutate(c.id); }}
+                <button type="button" aria-label={t('Cost hatayein')} disabled={remove.isPending}
+                  onClick={async () => { if (await confirmDialog({ title: t('{{kind}} ({{amount}}) hatayein?', { kind: kindLabel(c.kind), amount: formatPKR(c.amount) }), danger: true })) remove.mutate(c.id); }}
                   className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
               )}
             </li>
           ))}
         </ul>
       )}
-      {sold > 0 && <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-900">{formatPKR(sold)} us maal ka hissa tha jo cost jurne se pehle bik chuka tha.</p>}
+      {sold > 0 && <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-900">{t('{{sold}} us maal ka hissa tha jo cost jurne se pehle bik chuka tha.', { sold: formatPKR(sold) })}</p>}
       {canEdit && p.status !== 'CANCELLED' && (
-        <Button size="sm" variant="secondary" fullWidth className="mt-3" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>Landed cost jorein</Button>
+        <Button size="sm" variant="secondary" fullWidth className="mt-3" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAdding(true)}>{t('Landed cost jorein')}</Button>
       )}
       {adding && <AddLandedModal p={p} onClose={() => setAdding(false)} onDone={() => { qc.invalidateQueries({ queryKey: ['purchase', p.id] }); onChanged(); }} />}
     </div>
@@ -89,8 +90,8 @@ function AddLandedModal({ p, onClose, onDone }: { p: Purchase; onClose: () => vo
 
   const save = useMutation({
     mutationFn: () => {
-      if (!(total > 0)) throw new Error('Amount likhein');
-      if (bad) throw new Error('Currency ka rate (Rs me) likhein');
+      if (!(total > 0)) throw new Error(t('Amount likhein'));
+      if (bad) throw new Error(t('Currency ka rate (Rs me) likhein'));
       return purchasesApi.addLandedCosts(p.id, {
         costs: toPayload(costs), method,
         weights: method === 'WEIGHT' ? Object.entries(weights).filter(([, v]) => v != null).map(([itemId, weightKg]) => ({ itemId, weightKg: weightKg! })) : undefined,
@@ -99,38 +100,37 @@ function AddLandedModal({ p, onClose, onDone }: { p: Purchase; onClose: () => vo
     onSuccess: (r) => {
       onDone();
       if (r.soldShare > 0) setResult(r);
-      else { toast.success(`${formatPKR(r.total)} landed cost jur gayi${r.afterReceipt ? ' — bache hue maal ki Cost barh gayi' : ''}`); onClose(); }
+      else { toast.success(t('{{total}} landed cost jur gayi{{value}}', { total: formatPKR(r.total), value: r.afterReceipt ? t(' — bache hue maal ki Cost barh gayi') : '' })); onClose(); }
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
   });
   const post = useMutation({
     mutationFn: () => expensesApi.create({
-      title: `Landed cost (bika hua maal) · ${p.purchaseNumber}`,
-      description: `${p.purchaseNumber} ki landed cost ka hissa jo cost jurne se pehle bik chuke maal par tha`,
+      title: t('Landed cost (bika hua maal) · {{purchaseNumber}}', { purchaseNumber: p.purchaseNumber }),
+      description: t('{{purchaseNumber}} ki landed cost ka hissa jo cost jurne se pehle bik chuke maal par tha', { purchaseNumber: p.purchaseNumber }),
       amount: result!.soldShare, paymentMethod: 'BANK_TRANSFER', ...(p.shop?.id && { shopId: p.shop.id }),
     }),
-    onSuccess: () => { toast.success('Expenses me likh diya'); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Expense nahi likha')),
+    onSuccess: () => { toast.success(t('Expenses me likh diya')); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Expense nahi likha'))),
   });
 
   if (result) {
     return (
-      <Modal open onClose={onClose} size="md" title="Landed cost jur gayi"
+      <Modal open onClose={onClose} size="md" title={t('Landed cost jur gayi')}
         footer={<>
-          <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-          {canExpense && <Button onClick={() => post.mutate()} loading={post.isPending}>{formatPKR(result.soldShare)} Expenses me likhein</Button>}
+          <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+          {canExpense && <Button onClick={() => post.mutate()} loading={post.isPending}>{t('{{soldShare}} Expenses me likhein', { soldShare: formatPKR(result.soldShare) })}</Button>}
         </>}>
         <div className="space-y-3 text-[0.8125rem] text-slate-700">
-          <p>{formatPKR(result.total)} me se <b>{formatPKR(result.total - result.soldShare)}</b> bache hue maal ki Cost me jur gaye.</p>
+          <p><Trans text="{{total}} me se {{kept}} bache hue maal ki Cost me jur gaye." values={{ total: formatPKR(result.total), kept: <b>{formatPKR(result.total - result.soldShare)}</b> }} /></p>
           <Alert tone="warning">
-            {formatPKR(result.soldShare)} us maal ka hissa hai jo pehle hi bik chuka (ya wapas gaya). Purani sales ki Cost nahi badalti, is liye ye kisi Cost me nahi gaya.
-            Profit sahi rakhne ke liye ise Expenses me likh dein.
+            {t('{{soldShare}} us maal ka hissa hai jo pehle hi bik chuka (ya wapas gaya). Purani sales ki Cost nahi badalti, is liye ye kisi Cost me nahi gaya. Profit sahi rakhne ke liye ise Expenses me likh dein.', { soldShare: formatPKR(result.soldShare) })}
           </Alert>
           <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
             {result.lines.filter((l) => l.share > 0).map((l) => (
               <li key={l.itemId} className="flex flex-wrap justify-between gap-2 px-3 py-1.5">
                 <span className="text-slate-800">{l.itemName}</span>
-                <span className="text-[0.75rem] text-slate-500">{l.newCost != null ? `nayi Cost ${formatPKR(l.newCost)} · ` : ''}bika hissa {formatPKR(l.soldShare)}</span>
+                <span className="text-[0.75rem] text-slate-500">{t('{{value}}bika hissa {{soldShare}}', { value: l.newCost != null ? t('nayi Cost {{newCost}} · ', { newCost: formatPKR(l.newCost) }) : '', soldShare: formatPKR(l.soldShare) })}</span>
               </li>
             ))}
           </ul>
@@ -140,16 +140,16 @@ function AddLandedModal({ p, onClose, onDone }: { p: Purchase; onClose: () => vo
   }
 
   return (
-    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={`Landed cost jorein · ${p.purchaseNumber}`}
-      description="Freight, customs/duty, clearing agent, local transport — Rs me ya dollar/yuan me rate ke saath"
+    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={t('Landed cost jorein · {{purchaseNumber}}', { purchaseNumber: p.purchaseNumber })}
+      description={t('Freight, customs/duty, clearing agent, local transport — Rs me ya dollar/yuan me rate ke saath')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!(total > 0)}>{total > 0 ? `${formatPKR(total)} jorein` : 'Jorein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!(total > 0)}>{total > 0 ? t('{{total}} jorein', { total: formatPKR(total) }) : t('Jorein')}</Button>
       </>}>
       <div className="space-y-3">
         {received && (
           <Alert tone="info">
-            Maal aa chuka hai: ye cost sirf <b>abhi stock me bache</b> maal ki Cost barhayegi. Jo maal pehle bik chuka, us ki purani sale ki Cost nahi badlegi — us ka hissa alag bataya jayega.
+            <Trans text="Maal aa chuka hai: ye cost sirf {{left}} maal ki Cost barhayegi. Jo maal pehle bik chuka, us ki purani sale ki Cost nahi badlegi — us ka hissa alag bataya jayega." values={{ left: <b>{t('abhi stock me bache')}</b> }} />
           </Alert>
         )}
         <LandedCostEditor costs={costs} onCosts={setCosts} method={method} onMethod={setMethod}

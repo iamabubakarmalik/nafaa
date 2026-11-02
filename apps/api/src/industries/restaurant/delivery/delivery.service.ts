@@ -8,6 +8,7 @@ import { ExpensesService } from '../../../modules/finance/expenses/expenses.serv
 import { OrdersService } from '../orders/orders.service';
 import { round2 } from '../recipes/recipe-units';
 import { AssignRiderDto, DeliveryStatusDto, SettleRiderCashDto } from './dto/delivery.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Trips still under way. */
 const ON_TRIP: RiderDeliveryStatus[] = ['ASSIGNED', 'PICKED_UP', 'ON_THE_WAY', 'ARRIVED'];
@@ -57,7 +58,7 @@ export class DeliveryService {
 
     const rider = await this.prisma.rider.findFirst({ where: { id: dto.riderId, tenantId: user.tenantId, isActive: true } });
     if (!rider) throw new NotFoundException('Rider nahi mila');
-    if (rider.status === 'OFFLINE' || rider.status === 'INACTIVE') throw new BadRequestException(`${rider.name} abhi duty par nahi`);
+    if (rider.status === 'OFFLINE' || rider.status === 'INACTIVE') throw new BadRequestException(apiMessage('{{riderName}} abhi duty par nahi', { riderName: rider.name }));
 
     const existing = await this.prisma.deliveryTracking.findUnique({ where: { orderId } });
     if (existing && (existing.status === 'DELIVERED')) throw new BadRequestException('Ye order deliver ho chuka hai');
@@ -216,7 +217,7 @@ export class DeliveryService {
     });
     if (orders.length !== dto.orderIds.length) throw new NotFoundException('Ek ya zyada order nahi mile');
     const wrong = orders.find((o) => o.mode !== 'DELIVERY' || o.riderId !== dto.riderId || o.saleId || !['OUT_FOR_DELIVERY', 'DELIVERED'].includes(o.status));
-    if (wrong) throw new BadRequestException(`${wrong.orderNumber} is rider ka baqi cash wala order nahi`);
+    if (wrong) throw new BadRequestException(apiMessage('{{orderNumber}} is rider ka baqi cash wala order nahi', { orderNumber: wrong.orderNumber }));
 
     const done: Array<{ orderId: string; orderNumber: string; amount: number; saleId: string | null }> = [];
     const failed: Array<{ orderNumber: string; error: string }> = [];

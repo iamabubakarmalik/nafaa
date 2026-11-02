@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 export type ExportKind = 'sales' | 'products' | 'customers' | 'suppliers' | 'expenses' | 'purchases' | 'ledger' | 'stock-movements';
 export type ExportFormat = 'excel' | 'pdf';
@@ -24,7 +25,7 @@ async function blobError(e: unknown): Promise<never> {
       message = Array.isArray(body?.message) ? body.message.join(', ') : body?.message ?? null;
     } catch { /* not JSON */ }
   }
-  throw new Error(message || 'File nahi bani — internet check karein');
+  throw new Error(message || t('File nahi bani — internet check karein'));
 }
 
 function save(blob: Blob, filename: string) {

@@ -7,6 +7,7 @@
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { ProductsPage } from '../list/ProductsPage';
 import type { ProductsPageConfig } from '../list/types';
+import { t } from '@core/i18n';
 
 /** Industries whose products open in their own editor and detail page. */
 const PREFIX: Record<string, string> = {
@@ -23,7 +24,7 @@ export default function ProductsListPage() {
   const industry = useCurrentIndustry();
   const id = industry?.id ?? '';
   const config: ProductsPageConfig = {
-    label: industry?.name ?? 'Dukaan',
+    label: industry?.name ?? t('Dukaan'),
     paths: pathsFor(PREFIX[id]),
     filters: ['tags'],
   };

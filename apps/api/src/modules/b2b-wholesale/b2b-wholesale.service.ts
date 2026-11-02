@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { B2BAccountTier, B2BOrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateB2BOrderDto } from './dto/create-b2b-order.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class B2BWholesaleService {
@@ -77,7 +78,7 @@ export class B2BWholesaleService {
     if (dto.paymentTerms === 'CREDIT') {
       const availableCredit = Number(account.creditLimit) - Number(account.creditUsed);
       if (total > availableCredit) {
-        throw new BadRequestException(`Credit limit exceeded. Available: PKR ${availableCredit.toFixed(0)}`);
+        throw new BadRequestException(apiMessage('Credit limit exceeded. Available: PKR {{availableCredit}}', { availableCredit: availableCredit.toFixed(0) }));
       }
     }
 

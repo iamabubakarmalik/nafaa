@@ -9,74 +9,75 @@ import type { AttentionItem } from '@modules/dashboard/widgets';
 import { cn } from '@core/lib/cn';
 import type { RoomStatus } from '../api/rooms.api';
 import { useHotelOps } from './useHotelOps';
+import { t } from '@core/i18n';
 
 const ROOM: Record<RoomStatus, { label: string; dot: string; tile: string }> = {
-  AVAILABLE: { label: 'Khaali', dot: 'bg-success-500', tile: 'border-success-200 bg-success-50/50' },
-  OCCUPIED: { label: 'Guest hai', dot: 'bg-brand-600', tile: 'border-brand-200 bg-brand-50/60' },
-  RESERVED: { label: 'Reserved', dot: 'bg-amber-500', tile: 'border-amber-200 bg-amber-50/60' },
-  CLEANING: { label: 'Safai', dot: 'bg-sky-500', tile: 'border-sky-200 bg-sky-50/60' },
-  MAINTENANCE: { label: 'Marammat', dot: 'bg-orange-500', tile: 'border-orange-200 bg-orange-50/60' },
-  OUT_OF_ORDER: { label: 'Kharab', dot: 'bg-rose-500', tile: 'border-rose-200 bg-rose-50/60' },
-  BLOCKED: { label: 'Band', dot: 'bg-slate-400', tile: 'border-slate-200 bg-slate-50' },
+  AVAILABLE: { label: t('Khaali'), dot: 'bg-success-500', tile: 'border-success-200 bg-success-50/50' },
+  OCCUPIED: { label: t('Guest hai'), dot: 'bg-brand-600', tile: 'border-brand-200 bg-brand-50/60' },
+  RESERVED: { label: t('Reserved'), dot: 'bg-amber-500', tile: 'border-amber-200 bg-amber-50/60' },
+  CLEANING: { label: t('Safai'), dot: 'bg-sky-500', tile: 'border-sky-200 bg-sky-50/60' },
+  MAINTENANCE: { label: t('Marammat'), dot: 'bg-orange-500', tile: 'border-orange-200 bg-orange-50/60' },
+  OUT_OF_ORDER: { label: t('Kharab'), dot: 'bg-rose-500', tile: 'border-rose-200 bg-rose-50/60' },
+  BLOCKED: { label: t('Band'), dot: 'bg-slate-400', tile: 'border-slate-200 bg-slate-50' },
 };
 
 const SOURCE_LABEL: Record<string, string> = {
-  DIRECT: 'Direct', WALK_IN: 'Walk-in', PHONE: 'Phone', WEBSITE: 'Website', BOOKING_COM: 'Booking.com', AGODA: 'Agoda',
-  EXPEDIA: 'Expedia', AIRBNB: 'Airbnb', TRAVEL_AGENT: 'Travel agent', CORPORATE: 'Corporate', GOVT: 'Sarkari', REFERRAL: 'Referral', OTHER: 'Other',
+  DIRECT: t('Direct'), WALK_IN: t('Walk-in'), PHONE: t('Phone'), WEBSITE: t('Website'), BOOKING_COM: t('Booking.com'), AGODA: t('Agoda'),
+  EXPEDIA: t('Expedia'), AIRBNB: t('Airbnb'), TRAVEL_AGENT: t('Travel agent'), CORPORATE: t('Corporate'), GOVT: t('Sarkari'), REFERRAL: t('Referral'), OTHER: t('Other'),
 };
 
 /** Hotel headline numbers, offered next to the common ones. */
 export const hotelKpis: KpiDef[] = [
   {
-    id: 'hotel-occupancy', label: 'Occupancy', icon: Bed, tone: 'brand',
+    id: 'hotel-occupancy', label: t('Occupancy'), icon: Bed, tone: 'brand',
     useValue: () => {
       const { rooms, trend, loading } = useHotelOps();
       return {
         loading, to: '/hotel/rooms', value: rooms.total ? `${rooms.occupancy.toFixed(0)}%` : '—',
-        hint: `${rooms.occupied}/${rooms.total} kamre`, trend: trend.length > 1 ? trend.map((d) => d.pct) : undefined,
+        hint: t('{{occupied}}/{{total}} kamre', { occupied: rooms.occupied, total: rooms.total }), trend: trend.length > 1 ? trend.map((d) => d.pct) : undefined,
       };
     },
   },
   {
-    id: 'hotel-arrivals', label: 'Aaj aane wale', icon: LogIn, tone: 'success',
+    id: 'hotel-arrivals', label: t('Aaj aane wale'), icon: LogIn, tone: 'success',
     useValue: () => {
       const { guests, loading } = useHotelOps();
       return {
         loading, to: '/hotel/bookings', value: guests.arrivals.length, alert: guests.lateArrivals.length > 0,
-        hint: guests.lateArrivals.length ? `${guests.lateArrivals.length} pichle din se baqi` : `${guests.upcoming} aage booked`,
+        hint: guests.lateArrivals.length ? t('{{count}} pichle din se baqi', { count: guests.lateArrivals.length }) : t('{{upcoming}} aage booked', { upcoming: guests.upcoming }),
       };
     },
   },
   {
-    id: 'hotel-departures', label: 'Aaj jaane wale', icon: LogOut, tone: 'warning',
+    id: 'hotel-departures', label: t('Aaj jaane wale'), icon: LogOut, tone: 'warning',
     useValue: () => {
       const { guests, loading } = useHotelOps();
       return {
         loading, to: '/hotel/bookings', value: guests.departures.length, alert: guests.lateDepartures.length > 0,
-        hint: guests.unpaidDepartures.length ? `${guests.unpaidDepartures.length} ka bill baqi` : 'Check-out',
+        hint: guests.unpaidDepartures.length ? t('{{count}} ka bill baqi', { count: guests.unpaidDepartures.length }) : t('Check-out'),
       };
     },
   },
   {
-    id: 'hotel-in-house', label: 'Mehmaan andar', icon: Users, tone: 'neutral',
+    id: 'hotel-in-house', label: t('Mehmaan andar'), icon: Users, tone: 'neutral',
     useValue: () => {
       const { guests, loading } = useHotelOps();
-      return { loading, to: '/hotel/guests', value: guests.inHouse, hint: 'Checked-in' };
+      return { loading, to: '/hotel/guests', value: guests.inHouse, hint: t('Checked-in') };
     },
   },
   {
-    id: 'hotel-housekeeping', label: 'Safai baqi', icon: Sparkle, tone: 'info',
+    id: 'hotel-housekeeping', label: t('Safai baqi'), icon: Sparkle, tone: 'info',
     useValue: () => {
       const { rooms, pendingHK, loading } = useHotelOps();
-      return { loading, to: '/hotel/housekeeping', value: rooms.dirty, hint: `${pendingHK} kaam khule`, alert: rooms.dirty > 0 && rooms.available === 0 };
+      return { loading, to: '/hotel/housekeeping', value: rooms.dirty, hint: t('{{pendingHK}} kaam khule', { pendingHK }), alert: rooms.dirty > 0 && rooms.available === 0 };
     },
   },
   {
-    id: 'hotel-balance', label: 'Mehmaanon se lena', icon: Wallet, tone: 'danger', sensitive: true,
+    id: 'hotel-balance', label: t('Mehmaanon se lena'), icon: Wallet, tone: 'danger', sensitive: true,
     useValue: () => {
       const { outstanding, loading } = useHotelOps();
       const { cost } = useMasked();
-      return { loading, to: '/hotel/bookings', value: cost(outstanding), hint: 'Chaalu bookings ka baqi' };
+      return { loading, to: '/hotel/bookings', value: cost(outstanding), hint: t('Chaalu bookings ka baqi') };
     },
   },
 ];
@@ -85,14 +86,14 @@ export function useHotelAttention(): AttentionItem[] {
   const { guests, rooms, pendingHK } = useHotelOps();
   const items: AttentionItem[] = [];
 
-  if (guests.lateDepartures.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${guests.lateDepartures.length} mehmaan ka check-out ka din guzar gaya — extend karein ya check-out`, to: '/hotel/bookings', cta: 'Bookings dekhein' });
-  if (guests.unpaidDepartures.length) items.push({ icon: Wallet, level: 'warning', text: `${guests.unpaidDepartures.length} mehmaan aaj ja rahe hain aur bill baqi hai — jaane se pehle wasool karein`, to: '/hotel/bookings', cta: 'Bill dekhein' });
-  if (guests.lateArrivals.length) items.push({ icon: LogIn, level: 'warning', text: `${guests.lateArrivals.length} booking ka check-in ka din guzar gaya — no-show ya cancel karein`, to: '/hotel/bookings', cta: 'Bookings dekhein' });
-  if (guests.arrivals.length && rooms.dirty) items.push({ icon: Sparkle, level: 'warning', text: `${guests.arrivals.length} mehmaan aaj aa rahe hain aur ${rooms.dirty} kamre gande hain — safai pehle`, to: '/hotel/housekeeping', cta: 'Housekeeping' });
-  if (guests.departures.length) items.push({ icon: LogOut, level: 'info', text: `${guests.departures.length} check-out aaj hain`, to: '/hotel/bookings', cta: 'Dekhein' });
-  if (guests.arrivals.length) items.push({ icon: LogIn, level: 'info', text: `${guests.arrivals.length} mehmaan aaj aayenge`, to: '/hotel/bookings', cta: 'Dekhein' });
-  if (rooms.maintenance + rooms.outOfOrder > 0) items.push({ icon: Wrench, level: 'neutral', text: `${rooms.maintenance + rooms.outOfOrder} kamre marammat ya band hain — bikne wale kamre kam hain`, to: '/hotel/rooms', cta: 'Kamre dekhein' });
-  if (!guests.arrivals.length && pendingHK) items.push({ icon: Sparkle, level: 'neutral', text: `${pendingHK} safai ke kaam khule hain`, to: '/hotel/housekeeping', cta: 'Housekeeping' });
+  if (guests.lateDepartures.length) items.push({ icon: AlertTriangle, level: 'danger', text: t('{{count}} mehmaan ka check-out ka din guzar gaya — extend karein ya check-out', { count: guests.lateDepartures.length }), to: '/hotel/bookings', cta: t('Bookings dekhein') });
+  if (guests.unpaidDepartures.length) items.push({ icon: Wallet, level: 'warning', text: t('{{count}} mehmaan aaj ja rahe hain aur bill baqi hai — jaane se pehle wasool karein', { count: guests.unpaidDepartures.length }), to: '/hotel/bookings', cta: t('Bill dekhein') });
+  if (guests.lateArrivals.length) items.push({ icon: LogIn, level: 'warning', text: t('{{count}} booking ka check-in ka din guzar gaya — no-show ya cancel karein', { count: guests.lateArrivals.length }), to: '/hotel/bookings', cta: t('Bookings dekhein') });
+  if (guests.arrivals.length && rooms.dirty) items.push({ icon: Sparkle, level: 'warning', text: t('{{count}} mehmaan aaj aa rahe hain aur {{dirty}} kamre gande hain — safai pehle', { count: guests.arrivals.length, dirty: rooms.dirty }), to: '/hotel/housekeeping', cta: t('Housekeeping') });
+  if (guests.departures.length) items.push({ icon: LogOut, level: 'info', text: t('{{count}} check-out aaj hain', { count: guests.departures.length }), to: '/hotel/bookings', cta: t('Dekhein') });
+  if (guests.arrivals.length) items.push({ icon: LogIn, level: 'info', text: t('{{count}} mehmaan aaj aayenge', { count: guests.arrivals.length }), to: '/hotel/bookings', cta: t('Dekhein') });
+  if (rooms.maintenance + rooms.outOfOrder > 0) items.push({ icon: Wrench, level: 'neutral', text: t('{{value}} kamre marammat ya band hain — bikne wale kamre kam hain', { value: rooms.maintenance + rooms.outOfOrder }), to: '/hotel/rooms', cta: t('Kamre dekhein') });
+  if (!guests.arrivals.length && pendingHK) items.push({ icon: Sparkle, level: 'neutral', text: t('{{pendingHK}} safai ke kaam khule hain', { pendingHK }), to: '/hotel/housekeeping', cta: t('Housekeeping') });
   return items;
 }
 
@@ -103,14 +104,14 @@ export function HotelRooms() {
   ];
   return (
     <WidgetCard
-      title="Kamron ka haal"
+      title={t('Kamron ka haal')}
       icon={Bed}
-      description={rooms.total ? `${rooms.occupancy.toFixed(0)}% bhare · ${rooms.dirty} gande` : 'Abhi koi kamra nahi'}
+      description={rooms.total ? t('{{value}}% bhare · {{dirty}} gande', { value: rooms.occupancy.toFixed(0), dirty: rooms.dirty }) : t('Abhi koi kamra nahi')}
       to="/hotel/rooms"
-      linkLabel="Kamre"
+      linkLabel={t('Kamre')}
     >
       {rooms.total === 0 ? (
-        <EmptyHint icon={Bed} text="Kamre bana lein — kaunsa khaali, kaunsa bhara, sab yahan nazar aayega." />
+        <EmptyHint icon={Bed} text={t('Kamre bana lein — kaunsa khaali, kaunsa bhara, sab yahan nazar aayega.')} />
       ) : (
         <>
           <dl className="grid grid-cols-4 gap-2 text-center">
@@ -129,10 +130,10 @@ export function HotelRooms() {
                   <Link
                     key={r.id}
                     to="/hotel/rooms"
-                    title={`Kamra ${r.roomNumber} · ${s.label}${r.housekeepingStatus === 'DIRTY' ? ' · ganda' : ''}`}
+                    title={t('Kamra {{roomNumber}} · {{label}}{{value}}', { roomNumber: r.roomNumber, label: s.label, value: r.housekeepingStatus === 'DIRTY' ? t(' · ganda') : '' })}
                     className={cn('relative rounded-md border px-1 py-1.5 text-center text-[0.8125rem] font-bold tabular-nums text-slate-900 transition hover:border-slate-400', s.tile)}
                   >
-                    {r.housekeepingStatus === 'DIRTY' && <span className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" />}
+                    {r.housekeepingStatus === 'DIRTY' && <span className="absolute end-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-amber-500" />}
                     {r.roomNumber}
                   </Link>
                 );
@@ -150,13 +151,13 @@ export function HotelMovements() {
   const { cost } = useMasked();
   return (
     <WidgetCard
-      title="Aaj aana jaana"
+      title={t('Aaj aana jaana')}
       icon={LogIn}
-      description={`${guests.arrivals.length} check-in · ${guests.departures.length} check-out`}
+      description={t('{{count}} check-in · {{count2}} check-out', { count: guests.arrivals.length, count2: guests.departures.length })}
       to="/hotel/bookings"
       flush
     >
-      <RowList empty="Aaj koi check-in ya check-out nahi" emptyIcon={LogIn}>
+      <RowList empty={t('Aaj koi check-in ya check-out nahi')} emptyIcon={LogIn}>
         {guests.movements.map(({ kind, booking: b, overdue }) => {
           const owes = Number(b.balanceAmount || 0);
           const roomNos = b.bookedRooms?.map((r) => r.roomNumber).filter(Boolean).join(', ');
@@ -165,9 +166,9 @@ export function HotelMovements() {
               key={`${kind}-${b.id}`}
               to={`/hotel/bookings/${b.id}`}
               leading={<IconBubble icon={kind === 'in' ? LogIn : LogOut} tone={overdue ? 'danger' : kind === 'in' ? 'success' : 'warning'} />}
-              title={b.guestName || 'Mehmaan'}
-              meta={<span>{roomNos ? `Kamra ${roomNos}` : `${b.bookedRooms?.length ?? 0} kamre`} · {b.nights} raat{kind === 'out' && owes > 0 ? ` · baqi ${cost(owes)}` : ''}</span>}
-              value={<Badge variant={overdue ? 'danger' : kind === 'in' ? 'success' : 'warning'} size="xs">{overdue ? 'Late' : kind === 'in' ? 'Check-in' : 'Check-out'}</Badge>}
+              title={b.guestName || t('Mehmaan')}
+              meta={<span>{t('{{value}} · {{nights}} raat{{value2}}', { value: roomNos ? t('Kamra {{roomNos}}', { roomNos }) : t('{{value}} kamre', { value: b.bookedRooms?.length ?? 0 }), nights: b.nights, value2: kind === 'out' && owes > 0 ? t(' · baqi {{owes}}', { owes: cost(owes) }) : '' })}</span>}
+              value={<Badge variant={overdue ? 'danger' : kind === 'in' ? 'success' : 'warning'} size="xs">{overdue ? t('Late') : kind === 'in' ? t('Check-in') : t('Check-out')}</Badge>}
             />
           );
         })}
@@ -180,9 +181,9 @@ export function HotelOccupancyTrend() {
   const { trend } = useHotelOps();
   const avg = trend.length ? trend.reduce((x, d) => x + d.pct, 0) / trend.length : 0;
   return (
-    <WidgetCard title="Occupancy — 7 din" icon={BarChart3} description={trend.length ? `Ausat ${avg.toFixed(0)}% kamre bhare` : 'Abhi data nahi'}>
+    <WidgetCard title={t('Occupancy — 7 din')} icon={BarChart3} description={trend.length ? t('Ausat {{value}}% kamre bhare', { value: avg.toFixed(0) }) : t('Abhi data nahi')}>
       {trend.length === 0 ? (
-        <EmptyHint icon={BarChart3} text="Check-in shuru hon to rozana ki occupancy yahan aayegi" />
+        <EmptyHint icon={BarChart3} text={t('Check-in shuru hon to rozana ki occupancy yahan aayegi')} />
       ) : (
         <div className="flex h-36 items-end gap-2">
           {trend.map((d) => (
@@ -205,9 +206,9 @@ export function HotelSources() {
   const { sales } = useMasked();
   const total = sources.reduce((x, s) => x + s.count, 0);
   return (
-    <WidgetCard title="Booking kahan se aayi" icon={Globe} description={total ? `30 din me ${total} bookings` : '30 din me koi booking nahi'}>
+    <WidgetCard title={t('Booking kahan se aayi')} icon={Globe} description={total ? t('30 din me {{total}} bookings', { total }) : t('30 din me koi booking nahi')}>
       {sources.length === 0 ? (
-        <EmptyHint icon={Globe} text="Booking ka zariya (walk-in, phone, website) yahan nazar aayega" />
+        <EmptyHint icon={Globe} text={t('Booking ka zariya (walk-in, phone, website) yahan nazar aayega')} />
       ) : (
         <ul className="space-y-3">
           {sources.slice(0, 6).map((s) => (

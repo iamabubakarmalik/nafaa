@@ -10,6 +10,7 @@ import { Search, X } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { catalogApi } from '@modules/inventory/products/list/api';
 import { cookUnit, unitChoices } from '../lib/recipeUnits';
+import { t } from '@core/i18n';
 
 export interface AddOnStock {
   ingredient: { id: string; name: string; unit: string } | null;
@@ -35,15 +36,15 @@ export function AddOnIngredient({ value, onChange, invalid }: { value: AddOnStoc
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 text-[0.8125rem] font-semibold text-amber-900 ring-1 ring-amber-200">
           {value.ingredient.name}
-          <button type="button" onClick={() => onChange({ ingredient: null, qty: null, unit: null })} aria-label="Saamaan hatayein" className="text-amber-700 hover:text-amber-900"><X className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => onChange({ ingredient: null, qty: null, unit: null })} aria-label={t('Saamaan hatayein')} className="text-amber-700 hover:text-amber-900"><X className="h-3.5 w-3.5" /></button>
         </span>
-        <input inputMode="decimal" value={value.qty || ''} placeholder="Kitna" aria-label="Ek portion me kitna"
+        <input inputMode="decimal" value={value.qty || ''} placeholder={t('Kitna')} aria-label={t('Ek portion me kitna')}
           onChange={(e) => onChange({ ...value, qty: Number(e.target.value.replace(/[^\d.]/g, '')) || null })}
-          className={cn(fieldCls, 'w-20 text-right tabular-nums', invalid && 'border-rose-400')} />
-        <select value={value.unit ?? value.ingredient.unit} onChange={(e) => onChange({ ...value, unit: e.target.value })} aria-label="Unit" className={cn(fieldCls, 'w-24')}>
+          className={cn(fieldCls, 'w-20 text-end tabular-nums', invalid && 'border-rose-400')} />
+        <select value={value.unit ?? value.ingredient.unit} onChange={(e) => onChange({ ...value, unit: e.target.value })} aria-label={t('Unit')} className={cn(fieldCls, 'w-24')}>
           {units.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
-        <span className="text-[0.6875rem] text-slate-500">ek portion me — bikne par stock se nikalta hai</span>
+        <span className="text-[0.6875rem] text-slate-500">{t('ek portion me — bikne par stock se nikalta hai')}</span>
       </div>
     );
   }
@@ -52,13 +53,13 @@ export function AddOnIngredient({ value, onChange, invalid }: { value: AddOnStoc
   return (
     <div className="space-y-1.5">
       <label className="relative block">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Raw material dhoondein: cheese, anda…" aria-label="Add-on ka saamaan"
-          className={cn(fieldCls, 'w-full pl-8')} />
+        <Search className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Raw material dhoondein: cheese, anda…')} aria-label={t('Add-on ka saamaan')}
+          className={cn(fieldCls, 'w-full ps-8')} />
       </label>
       <div className="flex flex-wrap gap-1.5">
-        {search.isLoading && <span className="text-[0.75rem] text-slate-400">Dhoond rahe hain…</span>}
-        {!search.isLoading && !options.length && <span className="text-[0.75rem] text-slate-500">{term ? `"${term}" nahi mila` : 'Koi raw material nahi'}</span>}
+        {search.isLoading && <span className="text-[0.75rem] text-slate-400">{t('Dhoond rahe hain…')}</span>}
+        {!search.isLoading && !options.length && <span className="text-[0.75rem] text-slate-500">{term ? t('"{{term}}" nahi mila', { term }) : t('Koi raw material nahi')}</span>}
         {options.map((i) => (
           <button key={i.id} type="button" onClick={() => onChange({ ingredient: { id: i.id, name: i.name, unit: i.unit }, qty: null, unit: cookUnit(i.unit) })}
             className="h-7 rounded-full bg-slate-100 px-2.5 text-[0.75rem] font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-800">

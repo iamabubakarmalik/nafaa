@@ -11,6 +11,7 @@ import { billServiceFee, toPaymentMethod } from '../billing/service-line';
 import { checkEyePower, nextNumber, pageArgs, r2, type PageArgs } from '../common/optical-common';
 
 import { CreateEyeTestDto, RecordTestPaymentDto, RecordTestResultsDto, UpdateTestStatusDto } from './dto/create-eye-test.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const OPEN = ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] as const;
 export type EyeTestView = 'today' | 'upcoming' | 'waiting' | 'done' | 'unpaid' | 'followup' | 'closed' | 'all';
@@ -58,7 +59,7 @@ export class EyeTestsService {
           status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
         },
       });
-      if (clash) throw new BadRequestException(`${dto.scheduledSlot} ka waqt is optometrist ke paas pehle se booked hai`);
+      if (clash) throw new BadRequestException(apiMessage('{{scheduledSlot}} ka waqt is optometrist ke paas pehle se booked hai', { scheduledSlot: dto.scheduledSlot }));
     }
 
     return this.prisma.opticalEyeTest.create({
@@ -282,7 +283,7 @@ export class EyeTestsService {
     const amount = dto.onKhata ? remaining : r2(Number(dto.amount));
     if (!(amount > 0)) throw new BadRequestException(t.isWaivedOff || remaining <= 0 ? 'Is test ki fees baqi nahi' : 'Amount 0 se zyada honi chahiye');
     if (t.isWaivedOff || amount > remaining + 0.009) {
-      throw new BadRequestException(remaining > 0 && !t.isWaivedOff ? `Sirf Rs ${remaining} baqi hain` : 'Is test ki fees baqi nahi');
+      throw new BadRequestException(remaining > 0 && !t.isWaivedOff ? apiMessage('Sirf Rs {{remaining}} baqi hain', { remaining }) : 'Is test ki fees baqi nahi');
     }
 
     const sale = await billServiceFee(this.prisma, this.sales, user, scope, {

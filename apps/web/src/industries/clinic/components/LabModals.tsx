@@ -19,6 +19,7 @@ import { clinicServicesApi } from '../api/services.api';
 import { apiError, drName, r2 } from '../lib/meta';
 import { printLabReport } from '../lib/print';
 import { PatientPicker } from './PatientPicker';
+import { t as tr } from '@core/i18n';
 
 interface TestDraft { testName: string; price: string }
 
@@ -51,16 +52,16 @@ export function NewLabOrderModal({ patient: fixedPatient, doctorId: fixedDoctor,
   const total = r2(tests.reduce((s, t) => s + (Number(t.price) || 0), 0));
 
   const errors = {
-    patient: !patient ? 'Mareez chunein' : undefined,
-    doctor: !doctorId ? 'Doctor chunein' : undefined,
-    tests: !tests.length ? 'Kam se kam ek test chunein' : tests.some((t) => Number(t.price) < 0) ? 'Rate manfi nahi' : undefined,
+    patient: !patient ? tr('Mareez chunein') : undefined,
+    doctor: !doctorId ? tr('Doctor chunein') : undefined,
+    tests: !tests.length ? tr('Kam se kam ek test chunein') : tests.some((t) => Number(t.price) < 0) ? tr('Rate manfi nahi') : undefined,
   };
   const save = useMutation({
     mutationFn: () => labOrdersApi.create({
       patientId: patient!.id, doctorId, encounterId, labName: labName.trim() || undefined, urgency, notes: notes.trim() || undefined,
       tests: tests.map((t) => ({ testName: t.testName.trim(), price: r2(Number(t.price) || 0) })),
     }),
-    onSuccess: (o) => { toast.success(`${o.orderNumber} ban gaya`); onSaved(o); },
+    onSuccess: (o) => { toast.success(tr('{{orderNumber}} ban gaya', { orderNumber: o.orderNumber })); onSaved(o); },
     onError: (e) => toast.error(apiError(e)),
   });
   const submit = (e: FormEvent) => {
@@ -71,18 +72,18 @@ export function NewLabOrderModal({ patient: fixedPatient, doctorId: fixedDoctor,
   };
 
   return (
-    <Modal open onClose={onClose} size="lg" title="Naya lab order" description="Test chunein; rate clinic ki price list se aata hai, badal bhi sakte hain"
-      footer={<div className="flex items-center justify-between gap-2"><span className="text-[0.875rem]">Kul: <b className="tabular-nums">{formatPKR(total)}</b></span>
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="lab-form" loading={save.isPending}>Save (Ctrl+S)</Button></div></div>}>
+    <Modal open onClose={onClose} size="lg" title={tr('Naya lab order')} description={tr('Test chunein; rate clinic ki price list se aata hai, badal bhi sakte hain')}
+      footer={<div className="flex items-center justify-between gap-2"><span className="text-[0.875rem]">{tr('Kul:')}{' '} <b className="tabular-nums">{formatPKR(total)}</b></span>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button type="submit" form="lab-form" loading={save.isPending}>{tr('Save (Ctrl+S)')}</Button></div></div>}>
       <form id="lab-form" onSubmit={submit} className="space-y-4"
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
         {!fixedPatient && <PatientPicker value={patient} onChange={setPatient} error={tried ? errors.patient : undefined} />}
         {!fixedDoctor && (
-          <Select label="Doctor" value={doctorId} onChange={(e) => setDoctorId(e.target.value)} placeholder="Kis doctor ne likha" error={tried ? errors.doctor : undefined}
+          <Select label={tr('Doctor')} value={doctorId} onChange={(e) => setDoctorId(e.target.value)} placeholder={tr('Kis doctor ne likha')} error={tried ? errors.doctor : undefined}
             options={doctors.map((d) => ({ value: d.id, label: drName(d) }))} />
         )}
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Test</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Test')}</span>
           <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
             {choices.map((n) => (
               <button key={n} type="button" onClick={() => toggle(n)} aria-pressed={has(n)}
@@ -90,9 +91,9 @@ export function NewLabOrderModal({ patient: fixedPatient, doctorId: fixedDoctor,
             ))}
           </div>
           <div className="mt-2 flex gap-2">
-            <Input aria-label="Apna test" value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Koi aur test likhein" wrapperClassName="flex-1"
+            <Input aria-label={tr('Apna test')} value={custom} onChange={(e) => setCustom(e.target.value)} placeholder={tr('Koi aur test likhein')} wrapperClassName="flex-1"
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (custom.trim() && !has(custom.trim())) { toggle(custom.trim()); setCustom(''); } } }} />
-            <Button variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => { if (custom.trim() && !has(custom.trim())) { toggle(custom.trim()); setCustom(''); } }}>Jorein</Button>
+            <Button variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => { if (custom.trim() && !has(custom.trim())) { toggle(custom.trim()); setCustom(''); } }}>{tr('Jorein')}</Button>
           </div>
         </div>
         {tests.length > 0 && (
@@ -101,22 +102,22 @@ export function NewLabOrderModal({ patient: fixedPatient, doctorId: fixedDoctor,
               <li key={t.testName} className="flex items-center gap-2 px-3 py-2">
                 <FlaskConical className="h-4 w-4 text-slate-400" />
                 <span className="min-w-0 flex-1 truncate text-[0.875rem] font-medium">{t.testName}</span>
-                <Input aria-label="Rate" inputMode="decimal" size="sm" value={t.price} placeholder="Rate" wrapperClassName="w-28"
+                <Input aria-label={tr('Rate')} inputMode="decimal" size="sm" value={t.price} placeholder={tr('Rate')} wrapperClassName="w-28"
                   onChange={(e) => setTests((x) => x.map((y, j) => (j === i ? { ...y, price: e.target.value } : y)))} />
-                <button type="button" aria-label="Hatayein" onClick={() => setTests((x) => x.filter((_, j) => j !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                <button type="button" aria-label={tr('Hatayein')} onClick={() => setTests((x) => x.filter((_, j) => j !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
         )}
         {tried && errors.tests && <p className="text-xs font-medium text-rose-600">{errors.tests}</p>}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Lab ka naam" value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Apni lab ya Chughtai, Excel…" hint="Bahar bheja ho to us lab ka naam" />
+          <Input label={tr('Lab ka naam')} value={labName} onChange={(e) => setLabName(e.target.value)} placeholder={tr('Apni lab ya Chughtai, Excel…')} hint={tr('Bahar bheja ho to us lab ka naam')} />
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitni jaldi</span>
-            <Segmented<string> value={urgency} onChange={setUrgency} label="Kitni jaldi" items={URGENCY_LEVELS.map((u) => ({ value: u.value, label: u.label }))} />
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitni jaldi')}</span>
+            <Segmented<string> value={urgency} onChange={setUrgency} label={tr('Kitni jaldi')} items={URGENCY_LEVELS.map((u) => ({ value: u.value, label: u.label }))} />
           </div>
         </div>
-        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Khaali pait, subah 8 baje…" />
+        <Input label={tr('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('Khaali pait, subah 8 baje…')} />
       </form>
     </Modal>
   );
@@ -139,7 +140,7 @@ export function LabResultsModal({ order, patient, doctor, onClose, onSaved }: {
 
   const status = useMutation({
     mutationFn: (s: LabOrder['status']) => labOrdersApi.updateStatus(order.id, s),
-    onSuccess: () => { toast.success('Status badal gaya'); onSaved(); },
+    onSuccess: () => { toast.success(tr('Status badal gaya')); onSaved(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const save = useMutation({
@@ -151,19 +152,19 @@ export function LabResultsModal({ order, patient, doctor, onClose, onSaved }: {
       }
       return changed.length;
     },
-    onSuccess: (n) => { toast.success(n ? `${n} result save` : 'Kuch nahi badla'); onSaved(); },
+    onSuccess: (n) => { toast.success(n ? tr('{{n}} result save', { n }) : tr('Kuch nahi badla')); onSaved(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const filled = { ...order, tests: order.tests.map((t) => ({ ...t, ...rows[t.id!], performedBy: by || t.performedBy })) };
 
   return (
-    <Modal open onClose={onClose} size="xl" title={`${order.orderNumber} — results`} description="Har test ka result, unit aur normal range; ghair-mamooli ko nishan lagayein"
+    <Modal open onClose={onClose} size="xl" title={tr('{{orderNumber}} — results', { orderNumber: order.orderNumber })} description={tr('Har test ka result, unit aur normal range; ghair-mamooli ko nishan lagayein')}
       footer={<div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          {order.status === 'ORDERED' && <Button variant="secondary" loading={status.isPending} onClick={() => status.mutate('SAMPLE_COLLECTED')}>Sample le liya</Button>}
-          <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void printLabReport(filled, patient, doctor)}>Report print</Button>
+          {order.status === 'ORDERED' && <Button variant="secondary" loading={status.isPending} onClick={() => status.mutate('SAMPLE_COLLECTED')}>{tr('Sample le liya')}</Button>}
+          <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void printLabReport(filled, patient, doctor)}>{tr('Report print')}</Button>
         </div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="lab-results" loading={save.isPending}>Save (Ctrl+S)</Button></div>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button type="submit" form="lab-results" loading={save.isPending}>{tr('Save (Ctrl+S)')}</Button></div>
       </div>}>
       <form id="lab-results" onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3"
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
@@ -173,18 +174,18 @@ export function LabResultsModal({ order, patient, doctor, onClose, onSaved }: {
             <div key={t.id} className={cn('rounded-xl p-3 ring-1', r.isCritical ? 'bg-rose-50 ring-rose-200' : r.isAbnormal ? 'bg-amber-50 ring-amber-200' : 'ring-slate-200')}>
               <p className="mb-2 text-[0.9375rem] font-semibold text-slate-900">{t.testName}</p>
               <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1.4fr]">
-                <Input aria-label="Result" value={r.result} onChange={(e) => set(t.id!, { result: e.target.value })} placeholder="Result" />
-                <Input aria-label="Unit" value={r.unit} onChange={(e) => set(t.id!, { unit: e.target.value })} placeholder="Unit (mg/dL)" />
-                <Input aria-label="Normal range" value={r.referenceRange} onChange={(e) => set(t.id!, { referenceRange: e.target.value })} placeholder="Normal (70–110)" />
+                <Input aria-label={tr('Result')} value={r.result} onChange={(e) => set(t.id!, { result: e.target.value })} placeholder={tr('Result')} />
+                <Input aria-label={tr('Unit')} value={r.unit} onChange={(e) => set(t.id!, { unit: e.target.value })} placeholder={tr('Unit (mg/dL)')} />
+                <Input aria-label={tr('Normal range')} value={r.referenceRange} onChange={(e) => set(t.id!, { referenceRange: e.target.value })} placeholder={tr('Normal (70–110)')} />
               </div>
               <div className="mt-2 flex flex-wrap gap-4">
-                <Switch size="sm" checked={r.isAbnormal} onChange={(e) => set(t.id!, { isAbnormal: e.target.checked })} label="Ghair-mamooli (H/L)" />
-                <Switch size="sm" checked={r.isCritical} onChange={(e) => set(t.id!, { isCritical: e.target.checked })} label="Critical (doctor ko foran batayein)" />
+                <Switch size="sm" checked={r.isAbnormal} onChange={(e) => set(t.id!, { isAbnormal: e.target.checked })} label={tr('Ghair-mamooli (H/L)')} />
+                <Switch size="sm" checked={r.isCritical} onChange={(e) => set(t.id!, { isCritical: e.target.checked })} label={tr('Critical (doctor ko foran batayein)')} />
               </div>
             </div>
           );
         })}
-        <Input label="Test kis ne kiya" value={by} onChange={(e) => setBy(e.target.value)} placeholder="Lab technician ka naam" />
+        <Input label={tr('Test kis ne kiya')} value={by} onChange={(e) => setBy(e.target.value)} placeholder={tr('Lab technician ka naam')} />
       </form>
     </Modal>
   );

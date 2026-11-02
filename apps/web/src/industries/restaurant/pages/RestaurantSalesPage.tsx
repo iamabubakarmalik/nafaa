@@ -11,6 +11,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { ordersApi } from '../api/orders.api';
 import { MODE_META } from '../lib/orderMeta';
+import { t } from '@core/i18n';
 
 function useOrderExtras(sales: HistorySale[]) {
   const ids = useMemo(() => sales.filter((s) => !s.pending).map((s) => s.id).sort(), [sales]);
@@ -26,7 +27,7 @@ function useOrderExtras(sales: HistorySale[]) {
     const o = bySale.get(sale.id);
     if (!o) return null;
     const meta = MODE_META[o.mode];
-    const where = o.table ? `Table ${o.table.tableNumber}` : o.token ? `Token #${o.token}` : o.customerName;
+    const where = o.table ? t('Table {{tableNumber}}', { tableNumber: o.table.tableNumber }) : o.token ? t('Token #{{token}}', { token: o.token }) : o.customerName;
     return createElement(Link, {
       to: `/restaurant/orders/${o.id}`,
       onClick: (e: { stopPropagation: () => void }) => e.stopPropagation(),
@@ -35,7 +36,7 @@ function useOrderExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Restaurant', useBillExtras: useOrderExtras };
+const config: SalesHistoryConfig = { label: t('Restaurant'), useBillExtras: useOrderExtras };
 
 export default function RestaurantSalesPage() {
   return <SalesHistoryPage config={config} />;

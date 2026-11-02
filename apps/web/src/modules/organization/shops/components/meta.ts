@@ -5,14 +5,15 @@
 
 import { Building2, Package, Warehouse, type LucideIcon } from 'lucide-react';
 import type { ShopType } from '../api/shops.api';
+import { t } from '@core/i18n';
 
 /** Query keys these pages read; a change to a branch refreshes all of them. */
 export const SHOP_KEYS = ['shops', 'shops-analytics', 'shops-overview', 'shops-compare', 'dashboard-overview'];
 
 export const SHOP_TYPES: Record<ShopType, { label: string; hint: string; icon: LucideIcon; color: string }> = {
-  SHOP: { label: 'Dukaan', hint: 'POS, sale, customer aur galla', icon: Building2, color: '#2563eb' },
-  WAREHOUSE: { label: 'Warehouse', hint: 'Bara store — sirf maal rakhna aur bhejna', icon: Warehouse, color: '#d97706' },
-  GODOWN: { label: 'Godown', hint: 'Chhota store — extra maal ke liye', icon: Package, color: '#7c3aed' },
+  SHOP: { label: t('Dukaan'), hint: t('POS, sale, customer aur galla'), icon: Building2, color: '#2563eb' },
+  WAREHOUSE: { label: t('Warehouse'), hint: t('Bara store — sirf maal rakhna aur bhejna'), icon: Warehouse, color: '#d97706' },
+  GODOWN: { label: t('Godown'), hint: t('Chhota store — extra maal ke liye'), icon: Package, color: '#7c3aed' },
 };
 
 /**
@@ -41,8 +42,8 @@ export const dayShort = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateStr
 export function since(iso: string | null | undefined) {
   if (!iso) return '';
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (m < 1) return 'abhi khula';
-  if (m < 60) return `${m} min se khula`;
+  if (m < 1) return t('abhi khula');
+  if (m < 60) return t('{{m}} min se khula', { m });
   const h = Math.floor(m / 60);
-  return `${h} ghante se khula`;
+  return t('{{h}} ghante se khula', { h });
 }

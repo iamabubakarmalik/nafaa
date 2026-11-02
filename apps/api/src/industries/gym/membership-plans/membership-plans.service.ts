@@ -4,6 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { opt } from '../common/gym-common';
 import { CreatePlanDto, UpdatePlanDto } from './dto/plan.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class MembershipPlansService {
@@ -24,7 +25,7 @@ export class MembershipPlansService {
   async create(user: AuthenticatedUser, dto: CreatePlanDto) {
     const data = this.clean(dto);
     const dup = await this.prisma.gymMembershipPlan.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`Plan "${data.name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Plan "{{dataName}}" pehle se hai', { dataName: data.name }));
     return this.prisma.gymMembershipPlan.create({ data: { ...(data as Prisma.GymMembershipPlanUncheckedCreateInput), tenantId: user.tenantId } });
   }
 
@@ -53,7 +54,7 @@ export class MembershipPlansService {
     const data = this.clean({ ...dto, ...(dto.allowFreeze === undefined && dto.maxFreezeDays !== undefined && { allowFreeze: p.allowFreeze }) });
     if (data.name && data.name.toLowerCase() !== p.name.toLowerCase()) {
       const dup = await this.prisma.gymMembershipPlan.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' }, NOT: { id } } });
-      if (dup) throw new BadRequestException(`Plan "${data.name}" pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('Plan "{{dataName}}" pehle se hai', { dataName: data.name }));
     }
     return this.prisma.gymMembershipPlan.update({ where: { id }, data: data as Prisma.GymMembershipPlanUpdateInput });
   }

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { getIndustryPresets, type IndustryPresets } from './industry-presets';
 import { industryIdentity } from '@/design-system';
+import { t } from '@core/i18n';
 
 /**
  * Returns industry-specific Category / Brand / Tag presets based on the
@@ -18,7 +19,7 @@ export function useIndustryPresets() {
     return {
       ...presets,
       industryId: industry?.id ?? null,
-      industryName: industry?.name ?? 'General',
+      industryName: industry?.name ?? t('General'),
       industryEmoji: industry?.emoji ?? '🏪',
       industryColor: industryIdentity(industry?.id).color,
     };

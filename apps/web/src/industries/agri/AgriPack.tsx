@@ -13,6 +13,7 @@ import AgriProductWizardPage from './pages/AgriProductWizardPage';
 import AgriProductDetailPage from './pages/AgriProductDetailPage';
 import FarmerDetailPage from './pages/FarmerDetailPage';
 import FarmerFormPage from './pages/FarmerFormPage';
+import { t } from '@core/i18n';
 
 /**
  * Agri / Feed / Seeds / Fertilizer industry pack.
@@ -22,11 +23,11 @@ import FarmerFormPage from './pages/FarmerFormPage';
 export const AgriPack: IndustryPack = {
   id: 'agri',
   name: 'Agri / Feed Store',
-  shortName: 'Agri',
+  shortName: t('Agri'),
   emoji: '🌾',
   priority: 42,
   description:
-    'Seeds, fertilizer, pesticides, animal feed. Farmer credit, bulk orders, crop advisory, seasonal plans, subsidy claims.',
+    t('Seeds, fertilizer, pesticides, animal feed. Farmer credit, bulk orders, crop advisory, seasonal plans, subsidy claims.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -44,17 +45,17 @@ export const AgriPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Agri / feed extras',
+      label: t('Agri / feed extras'),
       icon: Wheat,
       emoji: '🌾',
       color: '#65a30d',
       order: 20,
       items: [
-        { to: '/agri/farmers', label: 'Farmers', icon: Users },
-        { to: '/agri/bulk-orders', label: 'Bulk orders', icon: Package },
-        { to: '/agri/advisory', label: 'Crop advisory', icon: Leaf },
-        { to: '/agri/seasonal-plans', label: 'Seasonal plans', icon: Calendar },
-        { to: '/agri/subsidy', label: 'Govt subsidies', icon: Landmark },
+        { to: '/agri/farmers', label: t('Farmers'), icon: Users },
+        { to: '/agri/bulk-orders', label: t('Bulk orders'), icon: Package },
+        { to: '/agri/advisory', label: t('Crop advisory'), icon: Leaf },
+        { to: '/agri/seasonal-plans', label: t('Seasonal plans'), icon: Calendar },
+        { to: '/agri/subsidy', label: t('Govt subsidies'), icon: Landmark },
       ],
     },
   ],
@@ -86,27 +87,27 @@ export const AgriPack: IndustryPack = {
   productForm: {
     defaultUnit: 'bag',
     unitOptions: [
-      { value: 'bag', label: 'Bag (50 kg)', hint: '🛍️', group: 'Bulk' },
-      { value: 'sack', label: 'Sack', hint: '🛍️', group: 'Bulk' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Gram', hint: '⚖️', group: 'Weight' },
-      { value: 'ton', label: 'Ton', hint: '⚖️', group: 'Bulk' },
-      { value: 'maan', label: 'Maan (40 kg)', hint: '⚖️', group: 'Weight' },
-      { value: 'seer', label: 'Seer', hint: '⚖️', group: 'Weight' },
-      { value: 'liter', label: 'Liter (liquid)', hint: '🥛', group: 'Volume' },
-      { value: 'ml', label: 'Milliliter', hint: '🥛', group: 'Volume' },
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'packet', label: 'Packet', hint: '📦', group: 'Pack' },
-      { value: 'acre', label: 'Per Acre (dose)', hint: '🌾', group: 'Application' },
+      { value: 'bag', label: t('Bag (50 kg)'), hint: '🛍️', group: t('Bulk') },
+      { value: 'sack', label: t('Sack'), hint: '🛍️', group: t('Bulk') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Gram'), hint: '⚖️', group: t('Weight') },
+      { value: 'ton', label: t('Ton'), hint: '⚖️', group: t('Bulk') },
+      { value: 'maan', label: t('Maan (40 kg)'), hint: '⚖️', group: t('Weight') },
+      { value: 'seer', label: t('Seer'), hint: '⚖️', group: t('Weight') },
+      { value: 'liter', label: t('Liter (liquid)'), hint: '🥛', group: t('Volume') },
+      { value: 'ml', label: t('Milliliter'), hint: '🥛', group: t('Volume') },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'packet', label: t('Packet'), hint: '📦', group: t('Pack') },
+      { value: 'acre', label: t('Per Acre (dose)'), hint: '🌾', group: t('Application') },
     ],
   },
 
   featureFlags: [
-    { key: 'agriFarmers', label: 'Farmer Accounts', defaultEnabled: true },
-    { key: 'agriBulkOrders', label: 'Bulk Orders', defaultEnabled: true },
-    { key: 'agriCredit', label: 'Farmer Credit (Udhar)', defaultEnabled: true },
-    { key: 'agriAdvisory', label: 'Crop Advisory', defaultEnabled: false },
-    { key: 'agriSeasonal', label: 'Seasonal Plans', defaultEnabled: false },
-    { key: 'agriSubsidy', label: 'Govt Subsidy Claims', defaultEnabled: false },
+    { key: 'agriFarmers', label: t('Farmer Accounts'), defaultEnabled: true },
+    { key: 'agriBulkOrders', label: t('Bulk Orders'), defaultEnabled: true },
+    { key: 'agriCredit', label: t('Farmer Credit (Udhar)'), defaultEnabled: true },
+    { key: 'agriAdvisory', label: t('Crop Advisory'), defaultEnabled: false },
+    { key: 'agriSeasonal', label: t('Seasonal Plans'), defaultEnabled: false },
+    { key: 'agriSubsidy', label: t('Govt Subsidy Claims'), defaultEnabled: false },
   ],
 };

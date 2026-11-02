@@ -11,7 +11,8 @@ import { readWebsiteConfig, ShopifyPlanState } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
-import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError } from './shopify-shop';
+import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError, shopAddressMessage } from './shopify-shop';
+import { apiMessage, apiText, messageText, MessageText } from '../../common/i18n/api-message';
 
 /**
  * Shopify — ek click me jorna (OAuth, "legacy install flow"):
@@ -66,7 +67,7 @@ export class ShopifyService {
 
   normalizeShop(raw: string): string {
     const parsed = parseShopAddress(raw);
-    if (!parsed.ok) throw new BadRequestException(shopAddressError(parsed));
+    if (!parsed.ok) throw new BadRequestException(shopAddressMessage(parsed));
     return parsed.shop;
   }
 
@@ -165,7 +166,7 @@ export class ShopifyService {
       const integration = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
       const expected = readWebsiteConfig(integration.config).siteUrl;
       if (expected && expected !== `https://${shop}`) {
-        throw new BadRequestException(`Ye install ${shop} ka hai, jabke Nafaa ${expected.replace('https://', '')} ka intezar kar raha tha`);
+        throw new BadRequestException(apiMessage('Ye install {{shop}} ka hai, jabke Nafaa {{replace}} ka intezar kar raha tha', { shop, replace: expected.replace('https://', '') }));
       }
 
       await this.saveToken(integration, shop, await this.exchangeCode(shop, query.code));
@@ -935,7 +936,9 @@ export class ShopifyService {
     const missing = missingScopes(check.scopes);
     const core = missing.filter((x) => CORE_SCOPES.includes(x));
     if (core.length) {
-      throw new BadRequestException(`Token chal raha hai magar ye permissions nahi di gayin: ${core.join(', ')}. App → Configuration → Admin API scopes me tick karke Save karein, phir app dobara install karein${mode === 'token' ? ' aur naya token lagayein' : ''}.`);
+      throw new BadRequestException(mode === 'token'
+        ? apiMessage('Token chal raha hai magar ye permissions nahi di gayin: {{scopes}}. App → Configuration → Admin API scopes me tick karke Save karein, phir app dobara install karein aur naya token lagayein.', { scopes: core.join(', ') })
+        : apiMessage('Token chal raha hai magar ye permissions nahi di gayin: {{scopes}}. App → Configuration → Admin API scopes me tick karke Save karein, phir app dobara install karein.', { scopes: core.join(', ') }));
     }
 
     // Verified: now attach to this channel, an existing channel for the same store, or a new one.
@@ -990,7 +993,7 @@ export class ShopifyService {
     if (!res.ok) {
       throw new BadRequestException(/access denied|scope/i.test(res.error ?? '')
         ? 'Shopify ne webhooks lagane ki ijazat nahi di — app ke scopes me read_orders tick hai? Warna neeche wale steps se khud lagayein.'
-        : `Webhooks nahi lage: ${res.error ?? 'pata nahi kyun'}. Neeche wale steps se khud bhi laga sakte hain.`);
+        : apiMessage('Webhooks nahi lage: {{resError}}. Neeche wale steps se khud bhi laga sakte hain.', { resError: res.error ?? 'pata nahi kyun' }));
     }
     return res;
   }
@@ -1053,7 +1056,7 @@ export class ShopifyService {
     const client = await this.client(integration).catch(() => null);
     const scopes = client ? await client.accessScopes() : { status: 401, scopes: [] as string[], error: 'token nahi mila' };
     if (scopes.status !== 200) {
-      add({ key: 'token', ok: false, title: mode === 'app' ? 'Nafaa app' : 'Admin API token', detail: this.tokenProblem(scopes.status, scopes.error, mode === 'client' ? 'client' : 'token'),
+      add({ key: 'token', ok: false, title: mode === 'app' ? 'Nafaa app' : 'Admin API token', detail: messageText(this.tokenProblem(scopes.status, scopes.error, mode === 'client' ? 'client' : 'token')),
         fix: mode === 'app' ? 'Connection card par "Dobara install" dabayein.' : 'Shopify me app kholein, naya token / secret lein aur Setup me dobara lagayein.' });
       add(this.ordersCheck(lastOrder?.receivedAt ?? null, integration.webhookVerified, lastFail?.errorMessage ?? null));
       return { ok: false, mode, checks: out };
@@ -1116,17 +1119,21 @@ export class ShopifyService {
   }
 
   /** Shopify's answer to a token check, in plain words. */
-  private tokenProblem(status: number, error: string | undefined, mode: 'token' | 'client') {
+  private tokenProblem(status: number, error: string | undefined, mode: 'token' | 'client'): MessageText {
     if (status === 401) {
       return mode === 'client'
-        ? 'Shopify ne token qabool nahi kiya — app is store par install nahi, ya hata di gayi.'
-        : 'Shopify ne token qabool nahi kiya — ghalat copy hua, ya app uninstall / token band ho gaya. App kholein aur naya token lein.';
+        ? apiText('Shopify ne token qabool nahi kiya — app is store par install nahi, ya hata di gayi.')
+        : apiText('Shopify ne token qabool nahi kiya — ghalat copy hua, ya app uninstall / token band ho gaya. App kholein aur naya token lein.');
     }
-    if (status === 403) return 'Token sahi hai magar is kaam ki ijazat nahi — app ke Admin API scopes check karein.';
-    if (status === 404) return 'Is address par Shopify store nahi mila — ".myshopify.com" wala address check karein.';
-    if (status === 402 || status === 423) return 'Shopify store band hai (plan khatam ya lock). Store chalu karein, phir jorein.';
-    if (status === 0) return `Shopify tak nahi pahunch sake${error ? ` (${error})` : ''}. Thori der baad dobara koshish karein.`;
-    return `Shopify ne ${status} diya${error ? `: ${error}` : ''}`;
+    if (status === 403) return apiText('Token sahi hai magar is kaam ki ijazat nahi — app ke Admin API scopes check karein.');
+    if (status === 404) return apiText('Is address par Shopify store nahi mila — ".myshopify.com" wala address check karein.');
+    if (status === 402 || status === 423) return apiText('Shopify store band hai (plan khatam ya lock). Store chalu karein, phir jorein.');
+    if (status === 0) {
+      return error
+        ? apiMessage('Shopify tak nahi pahunch sake ({{error}}). Thori der baad dobara koshish karein.', { error })
+        : apiText('Shopify tak nahi pahunch sake. Thori der baad dobara koshish karein.');
+    }
+    return error ? apiMessage('Shopify ne {{status}} diya: {{error}}', { status, error }) : apiMessage('Shopify ne {{status}} diya', { status });
   }
 
   /** Client credentials grant (Dev Dashboard apps). Token lasts about 24 hours. */
@@ -1140,16 +1147,18 @@ export class ShopifyService {
         signal: AbortSignal.timeout(20_000),
       });
     } catch (e: any) {
-      throw new BadRequestException(`Shopify tak nahi pahunch sake (${e?.message ?? 'network'}). Thori der baad dobara koshish karein.`);
+      throw new BadRequestException(apiMessage('Shopify tak nahi pahunch sake ({{eMessage}}). Thori der baad dobara koshish karein.', { eMessage: e?.message ?? 'network' }));
     }
     const tok: any = await res.json().catch(() => null);
     if (res.ok && tok?.access_token) return tok as { access_token: string; expires_in?: number; scope?: string };
     const why = String(tok?.error_description ?? tok?.error ?? tok?.errors ?? '').slice(0, 160);
     if (res.status === 404) throw new BadRequestException('Is address par Shopify store nahi mila — ".myshopify.com" wala address check karein.');
     if (/invalid_client|client/i.test(why) || res.status === 401) {
-      throw new BadRequestException(`Client ID ya Client secret ghalat hai${why ? ` (${why})` : ''}. Dev Dashboard → app → Settings se dobara copy karein.`);
+      throw new BadRequestException(why
+        ? apiMessage('Client ID ya Client secret ghalat hai ({{reason}}). Dev Dashboard → app → Settings se dobara copy karein.', { reason: why })
+        : apiMessage('Client ID ya Client secret ghalat hai. Dev Dashboard → app → Settings se dobara copy karein.'));
     }
-    throw new BadRequestException(`Shopify ne token nahi diya${why ? `: ${why}` : ''}. App is store par install hai? Store aur app ek hi organization me hone chahiye.`);
+    throw new BadRequestException(apiMessage('Shopify ne token nahi diya{{value}}. App is store par install hai? Store aur app ek hi organization me hone chahiye.', { value: why ? `: ${why}` : '' }));
   }
 
   /** Fresh client credentials token for a Dev Dashboard channel. */

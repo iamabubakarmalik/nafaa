@@ -15,6 +15,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { recordKhataPayment } from '../../_shared/industry-sale.helper';
 import { cropSeasonOf, resolveShopId } from '../agri-common';
 import { loadFarmerKhata, seasonStatement, type FarmerKhata } from './farmer-khata';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 type FarmerRow = Prisma.AgriFarmerGetPayload<object>;
@@ -168,14 +169,14 @@ export class FarmersService {
     const data = farmerFields(dto ?? {}, false);
     if (data.cnic) {
       const dup = await this.prisma.agriFarmer.findFirst({ where: { tenantId: user.tenantId, cnic: data.cnic as string, isActive: true }, select: { fullName: true } });
-      if (dup) throw new BadRequestException(`Is CNIC ka farmer pehle se hai: ${dup.fullName}`);
+      if (dup) throw new BadRequestException(apiMessage('Is CNIC ka farmer pehle se hai: {{fullName}}', { fullName: dup.fullName }));
     }
     const givenCustomerId = str(dto?.customerId, 60);
     if (givenCustomerId) {
       const own = await this.prisma.customer.findFirst({ where: { id: givenCustomerId, tenantId: user.tenantId }, select: { id: true } });
       if (!own) throw new BadRequestException('Customer nahi mila');
       const taken = await this.prisma.agriFarmer.findFirst({ where: { customerId: givenCustomerId, isActive: true }, select: { fullName: true } });
-      if (taken) throw new BadRequestException(`Ye customer pehle se farmer hai: ${taken.fullName}`);
+      if (taken) throw new BadRequestException(apiMessage('Ye customer pehle se farmer hai: {{fullName}}', { fullName: taken.fullName }));
     }
     const farmerNumber = str(dto?.farmerNumber, 30) ?? await this.nextNumber(user.tenantId);
     const shopId = str(dto?.shopId, 60) ?? user.shopId ?? null;
@@ -188,7 +189,7 @@ export class FarmersService {
         await this.syncLimit(tx, user.tenantId, customerId, Number(data.creditLimit) || 0);
         return tx.agriFarmer.update({ where: { id: taken.id }, data: { ...data, isActive: true, status: 'ACTIVE', suspendedAt: null, suspensionReason: null } });
       }
-      if (taken) throw new BadRequestException(`Is phone ka customer pehle se farmer hai: ${taken.fullName}`);
+      if (taken) throw new BadRequestException(apiMessage('Is phone ka customer pehle se farmer hai: {{fullName}}', { fullName: taken.fullName }));
       await this.syncLimit(tx, user.tenantId, customerId, Number(data.creditLimit) || 0);
       return tx.agriFarmer.create({
         data: { ...(data as Prisma.AgriFarmerUncheckedCreateInput), tenantId: user.tenantId, farmerNumber, customerId },
@@ -209,7 +210,7 @@ export class FarmersService {
       }
       const linkId = customerId ?? await this.linkOrCreateCustomer(tx, user.tenantId, farmer);
       const taken = await tx.agriFarmer.findFirst({ where: { customerId: linkId }, select: { fullName: true } });
-      if (taken) throw new BadRequestException(`Ye customer pehle se farmer hai: ${taken.fullName}`);
+      if (taken) throw new BadRequestException(apiMessage('Ye customer pehle se farmer hai: {{fullName}}', { fullName: taken.fullName }));
       return tx.agriFarmer.update({ where: { id: farmer.id }, data: { customerId: linkId } });
     });
   }
@@ -324,7 +325,7 @@ export class FarmersService {
     const data = farmerFields(dto ?? {}, true);
     if (data.cnic && data.cnic !== f.cnic) {
       const dup = await this.prisma.agriFarmer.findFirst({ where: { tenantId: user.tenantId, cnic: data.cnic as string, isActive: true, id: { not: id } }, select: { fullName: true } });
-      if (dup) throw new BadRequestException(`Is CNIC ka farmer pehle se hai: ${dup.fullName}`);
+      if (dup) throw new BadRequestException(apiMessage('Is CNIC ka farmer pehle se hai: {{fullName}}', { fullName: dup.fullName }));
     }
     const saved = await this.prisma.$transaction(async (tx) => {
       // A stopped farmer keeps the counter limit at what is owed until reactivated.

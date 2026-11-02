@@ -9,6 +9,7 @@ import { Segmented, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { LabelConfig, LabelSheet } from '../api/barcode-labels.api';
 import { A4_SHEETS, THERMAL_SIZES, type SheetLayout } from './renderLabels';
+import { t as tr, Trans } from '@core/i18n';
 
 type Kind = 'thermal' | 'a4' | 'custom';
 const kindOf = (s: LabelSheet): Kind => (s === 'thermal' ? 'thermal' : s === 'custom' ? 'custom' : 'a4');
@@ -47,8 +48,8 @@ function NumBox({ label, value, min, max, step = 0.1, unit = 'mm', hint, onChang
       <span className="relative block">
         <input type="number" inputMode="decimal" min={min} max={max} step={step} value={text}
           onChange={(e) => setText(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }}
-          className="h-9 w-full rounded-lg border border-slate-300 bg-white pl-2.5 pr-9 text-sm tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.6875rem] text-slate-400">{unit}</span>
+          className="h-9 w-full rounded-lg border border-slate-300 bg-white ps-2.5 pe-9 text-sm tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+        <span className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-[0.6875rem] text-slate-400">{unit}</span>
       </span>
       {hint && <Hint>{hint}</Hint>}
     </label>
@@ -94,16 +95,16 @@ function TextBox({ label, value, placeholder, hint, onChange }: { label: string;
 }
 
 const SHOW: Array<{ k: keyof LabelConfig; label: string; hint: string }> = [
-  { k: 'showShop', label: 'Dukaan ka naam', hint: 'Sab se upar chhoti line' },
-  { k: 'showName', label: 'Cheez ka naam', hint: 'Lamba naam 2 line tak' },
-  { k: 'showVariant', label: 'Variant (size / rang)', hint: 'Jaise "Large · Laal"' },
-  { k: 'showUnit', label: 'Unit (piece / carton)', hint: 'Pack ke label par zaroori' },
-  { k: 'showSku', label: 'SKU', hint: 'Dukaan ka apna code' },
-  { k: 'showCode', label: 'Barcode ke number', hint: 'Scanner na chale to haath se likh sakein' },
-  { k: 'showPrice', label: 'Qeemat', hint: 'Rs ke saath, bari likhai me' },
-  { k: 'showOldPrice', label: 'Purani qeemat (kati hui)', hint: 'Sirf jab unit ki MRP qeemat se zyada ho' },
-  { k: 'showExpiry', label: 'Expiry', hint: 'Sab se qareeb batch ki expiry' },
-  { k: 'border', label: 'Label ke gird lakeer', hint: 'Saada kaghaz par kaatne ke liye' },
+  { k: 'showShop', label: tr('Dukaan ka naam'), hint: tr('Sab se upar chhoti line') },
+  { k: 'showName', label: tr('Cheez ka naam'), hint: tr('Lamba naam 2 line tak') },
+  { k: 'showVariant', label: tr('Variant (size / rang)'), hint: tr('Jaise "Large · Laal"') },
+  { k: 'showUnit', label: tr('Unit (piece / carton)'), hint: tr('Pack ke label par zaroori') },
+  { k: 'showSku', label: tr('SKU'), hint: tr('Dukaan ka apna code') },
+  { k: 'showCode', label: tr('Barcode ke number'), hint: tr('Scanner na chale to haath se likh sakein') },
+  { k: 'showPrice', label: tr('Qeemat'), hint: tr('Rs ke saath, bari likhai me') },
+  { k: 'showOldPrice', label: tr('Purani qeemat (kati hui)'), hint: tr('Sirf jab unit ki MRP qeemat se zyada ho') },
+  { k: 'showExpiry', label: tr('Expiry'), hint: tr('Sab se qareeb batch ki expiry') },
+  { k: 'border', label: tr('Label ke gird lakeer'), hint: tr('Saada kaghaz par kaatne ke liye') },
 ];
 
 export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: {
@@ -130,18 +131,18 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
     <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-[0.9375rem] font-semibold text-slate-900">Label ka design</h2>
-          <p className="text-[0.75rem] text-slate-500">Har counter par yehi design chhapega</p>
+          <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Label ka design')}</h2>
+          <p className="text-[0.75rem] text-slate-500">{tr('Har counter par yehi design chhapega')}</p>
         </div>
         <span className={cn('inline-flex items-center gap-1 text-[0.75rem]', saving ? 'text-slate-500' : 'text-emerald-600')}>
-          {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Save ho raha hai</> : <><CheckCircle2 className="h-3.5 w-3.5" /> Save hai</>}
+          {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {' '}{tr('Save ho raha hai')}</> : <><CheckCircle2 className="h-3.5 w-3.5" /> {' '}{tr('Save hai')}</>}
         </span>
       </div>
 
       <div className="space-y-4">
-        <Section title="Kaghaz" aside={<span className="inline-flex items-center gap-1 text-[0.75rem] text-slate-500"><Ruler className="h-3.5 w-3.5" />{layout.w}×{layout.h} mm</span>}>
-          <Segmented label="Kaghaz" value={kind} onChange={chooseKind} className="w-full [&>button]:flex-1 [&>button]:justify-center"
-            items={[{ value: 'thermal', label: 'Thermal roll' }, { value: 'a4', label: 'A4 sheet' }, { value: 'custom', label: 'Apna naap' }]} />
+        <Section title={tr('Kaghaz')} aside={<span className="inline-flex items-center gap-1 text-[0.75rem] text-slate-500"><Ruler className="h-3.5 w-3.5" />{tr('{{w}}×{{h}} mm', { w: layout.w, h: layout.h })}</span>}>
+          <Segmented label={tr('Kaghaz')} value={kind} onChange={chooseKind} className="w-full [&>button]:flex-1 [&>button]:justify-center"
+            items={[{ value: 'thermal', label: tr('Thermal roll') }, { value: 'a4', label: tr('A4 sheet') }, { value: 'custom', label: tr('Apna naap') }]} />
 
           {kind === 'thermal' && (
             <div className="mt-3 space-y-3">
@@ -157,13 +158,13 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
                     );
                   })}
                 </div>
-                <Hint>Roll ke dabbe par likha naap chunein — ya neeche apna likhein</Hint>
+                <Hint>{tr('Roll ke dabbe par likha naap chunein — ya neeche apna likhein')}</Hint>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <NumBox label="Chaurai" value={c.widthMm} min={15} max={150} onChange={(v) => set({ widthMm: v })} />
-                <NumBox label="Unchai" value={c.heightMm} min={10} max={150} onChange={(v) => set({ heightMm: v })} />
-                <NumBox label="Ek line me label" value={c.cols} min={1} max={4} step={1} unit="" hint="Roll par saath saath kitne label" onChange={(v) => set({ cols: v })} />
-                {c.cols > 1 && <NumBox label="Beech ka faasla" value={c.gapMm} min={0} max={20} hint="Do label ke darmiyan" onChange={(v) => set({ gapMm: v })} />}
+                <NumBox label={tr('Chaurai')} value={c.widthMm} min={15} max={150} onChange={(v) => set({ widthMm: v })} />
+                <NumBox label={tr('Unchai')} value={c.heightMm} min={10} max={150} onChange={(v) => set({ heightMm: v })} />
+                <NumBox label={tr('Ek line me label')} value={c.cols} min={1} max={4} step={1} unit="" hint={tr('Roll par saath saath kitne label')} onChange={(v) => set({ cols: v })} />
+                {c.cols > 1 && <NumBox label={tr('Beech ka faasla')} value={c.gapMm} min={0} max={20} hint={tr('Do label ke darmiyan')} onChange={(v) => set({ gapMm: v })} />}
               </div>
             </div>
           )}
@@ -175,12 +176,12 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
                 const on = c.sheet === k;
                 return (
                   <button key={k} type="button" onClick={() => pickA4(k)} aria-pressed={on}
-                    className={cn('rounded-xl p-2.5 text-left ring-1 transition', on ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
+                    className={cn('rounded-xl p-2.5 text-start ring-1 transition', on ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
                     <span className="flex items-center gap-2">
                       <SheetIcon cols={s.cols} rows={s.rows} on={on} />
                       <span className="min-w-0">
                         <span className="block text-[0.8125rem] font-semibold text-slate-900">{s.label}</span>
-                        <span className="block text-[0.6875rem] tabular-nums text-slate-500">{s.w}×{s.h} mm · {s.cols} column</span>
+                        <span className="block text-[0.6875rem] tabular-nums text-slate-500">{tr('{{w}}×{{h}} mm · {{cols}} column', { w: s.w, h: s.h, cols: s.cols })}</span>
                       </span>
                     </span>
                     <span className="mt-1 block text-[0.6875rem] leading-snug text-slate-500">{s.hint}</span>
@@ -192,29 +193,29 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
 
           {kind === 'custom' && (
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <NumBox label="Chaurai" value={c.widthMm} min={15} max={150} onChange={(v) => set({ widthMm: v })} />
-              <NumBox label="Unchai" value={c.heightMm} min={10} max={150} onChange={(v) => set({ heightMm: v })} />
-              <NumBox label="Columns" value={c.cols} min={1} max={8} step={1} unit="" hint="Ek line me kitne" onChange={(v) => set({ cols: v })} />
-              <NumBox label="Faasla" value={c.gapMm} min={0} max={20} hint="Label ke beech" onChange={(v) => set({ gapMm: v })} />
-              <NumBox label="Kinara" value={c.marginMm} min={0} max={30} hint="Sheet ke kinare se" onChange={(v) => set({ marginMm: v })} />
+              <NumBox label={tr('Chaurai')} value={c.widthMm} min={15} max={150} onChange={(v) => set({ widthMm: v })} />
+              <NumBox label={tr('Unchai')} value={c.heightMm} min={10} max={150} onChange={(v) => set({ heightMm: v })} />
+              <NumBox label={tr('Columns')} value={c.cols} min={1} max={8} step={1} unit="" hint={tr('Ek line me kitne')} onChange={(v) => set({ cols: v })} />
+              <NumBox label={tr('Faasla')} value={c.gapMm} min={0} max={20} hint={tr('Label ke beech')} onChange={(v) => set({ gapMm: v })} />
+              <NumBox label={tr('Kinara')} value={c.marginMm} min={0} max={30} hint={tr('Sheet ke kinare se')} onChange={(v) => set({ marginMm: v })} />
             </div>
           )}
 
           {!layout.roll && (
             <div className="mt-3 flex flex-wrap items-end gap-3 rounded-xl bg-slate-50 p-3">
               <p className="flex-1 text-[0.8125rem] text-slate-700">
-                Ek sheet par <b className="tabular-nums">{layout.perPage}</b> label ({layout.cols} × {layout.rows})
-                {kind === 'custom' && layout.cols < c.cols && <span className="block text-[0.6875rem] text-amber-700">{c.cols} column A4 par nahi aate — {layout.cols} lagaye</span>}
+                <Trans text="Ek sheet par {{count}} label ({{cols}} × {{rows}})" values={{ count: <b className="tabular-nums">{layout.perPage}</b>, cols: layout.cols, rows: layout.rows }} />
+                {kind === 'custom' && layout.cols < c.cols && <span className="block text-[0.6875rem] text-amber-700">{tr('{{cols}} column A4 par nahi aate — {{cols2}} lagaye', { cols: c.cols, cols2: layout.cols })}</span>}
               </p>
               <div className="w-36">
-                <NumBox label="Shuru kahan se" value={skip + 1} min={1} max={layout.perPage} step={1} unit="#" onChange={(v) => onSkip(v - 1)} />
+                <NumBox label={tr('Shuru kahan se')} value={skip + 1} min={1} max={layout.perPage} step={1} unit="#" onChange={(v) => onSkip(v - 1)} />
               </div>
-              <Hint>Aadhi istemaal hui sheet? Jis label se shuru karna hai us ka number likhein (upar baein se ginti).</Hint>
+              <Hint>{tr('Aadhi istemaal hui sheet? Jis label se shuru karna hai us ka number likhein (upar baein se ginti).')}</Hint>
             </div>
           )}
         </Section>
 
-        <Section title="Label par kya ho">
+        <Section title={tr('Label par kya ho')}>
           <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
             {SHOW.map((s) => (
               <Switch key={s.k} size="sm" label={s.label} description={s.hint} checked={!!c[s.k]} onChange={(e) => set({ [s.k]: e.target.checked })} />
@@ -222,50 +223,50 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
           </div>
         </Section>
 
-        <Section title="Barcode">
-          <Segmented label="Barcode ki type" value={c.format} onChange={(v) => set({ format: v })}
-            items={[{ value: 'CODE128', label: 'Code 128' }, { value: 'EAN13', label: 'EAN-13' }, { value: 'QR', label: 'QR' }]} />
+        <Section title={tr('Barcode')}>
+          <Segmented label={tr('Barcode ki type')} value={c.format} onChange={(v) => set({ format: v })}
+            items={[{ value: 'CODE128', label: tr('Code 128') }, { value: 'EAN13', label: tr('EAN-13') }, { value: 'QR', label: tr('QR') }]} />
           <Hint>
-            {c.format === 'CODE128' ? 'Har scanner parhta hai, har code chalta hai — yehi rakhein.'
-              : c.format === 'EAN13' ? 'Sirf sahi 13 hindson wale code EAN-13 banenge; baqi khud Code 128 me chhapenge.'
-                : 'Mobile camera se bhi parha jata hai. Purane laser scanner QR nahi parhte.'}
+            {c.format === 'CODE128' ? tr('Har scanner parhta hai, har code chalta hai — yehi rakhein.')
+              : c.format === 'EAN13' ? tr('Sirf sahi 13 hindson wale code EAN-13 banenge; baqi khud Code 128 me chhapenge.')
+                : tr('Mobile camera se bhi parha jata hai. Purane laser scanner QR nahi parhte.')}
           </Hint>
           <div className="mt-3">
-            <Range label="Barcode ki unchai" value={c.barHeight} min={0.4} max={1} step={0.05} show={`${Math.round(c.barHeight * 100)}%`}
-              hint="Bachi hui jagah ka kitna hissa barcode le. Chhota karein to likhai ko jagah milti hai." onChange={(v) => set({ barHeight: v })} />
+            <Range label={tr('Barcode ki unchai')} value={c.barHeight} min={0.4} max={1} step={0.05} show={`${Math.round(c.barHeight * 100)}%`}
+              hint={tr('Bachi hui jagah ka kitna hissa barcode le. Chhota karein to likhai ko jagah milti hai.')} onChange={(v) => set({ barHeight: v })} />
           </div>
         </Section>
 
-        <Section title="Qeemat aur likhai">
+        <Section title={tr('Qeemat aur likhai')}>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Segmented label="Kaun si qeemat" value={c.priceSource === 'wholesale' || c.priceSource === 'credit' ? c.priceSource : 'retail'} onChange={(v) => set({ priceSource: v })}
-                items={[{ value: 'retail', label: 'Retail' }, { value: 'wholesale', label: 'Wholesale' }, { value: 'credit', label: 'Credit' }]} />
-              <Hint>Wholesale ya Credit price na likhi ho to Retail price chhapti hai</Hint>
+              <Segmented label={tr('Kaun si qeemat')} value={c.priceSource === 'wholesale' || c.priceSource === 'credit' ? c.priceSource : 'retail'} onChange={(v) => set({ priceSource: v })}
+                items={[{ value: 'retail', label: tr('Retail') }, { value: 'wholesale', label: tr('Wholesale') }, { value: 'credit', label: tr('Credit') }]} />
+              <Hint>{tr('Wholesale ya Credit price na likhi ho to Retail price chhapti hai')}</Hint>
             </div>
             <div>
-              <Segmented label="Likhai kis taraf" value={c.align} onChange={(v) => set({ align: v })}
-                items={[{ value: 'center', label: 'Beech me' }, { value: 'left', label: 'Baein' }]} />
-              <Hint>Label par likhai ki jagah</Hint>
+              <Segmented label={tr('Likhai kis taraf')} value={c.align} onChange={(v) => set({ align: v })}
+                items={[{ value: 'center', label: tr('Beech me') }, { value: 'left', label: tr('Baein') }]} />
+              <Hint>{tr('Label par likhai ki jagah')}</Hint>
             </div>
           </div>
           <div className="mt-3">
-            <Range label="Likhai ka size" value={c.fontScale} min={0.6} max={1.6} step={0.05} show={`${Math.round(c.fontScale * 100)}%`}
-              hint="Naap ke hisaab se khud set hota hai; yahan se chhota bara karein" onChange={(v) => set({ fontScale: v })} />
+            <Range label={tr('Likhai ka size')} value={c.fontScale} min={0.6} max={1.6} step={0.05} show={`${Math.round(c.fontScale * 100)}%`}
+              hint={tr('Naap ke hisaab se khud set hota hai; yahan se chhota bara karein')} onChange={(v) => set({ fontScale: v })} />
           </div>
         </Section>
 
-        <Section title="Apni lines">
+        <Section title={tr('Apni lines')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextBox label="Dukaan ki line" value={c.shopText} placeholder="Khaali = dukaan ka naam" hint="Shop ke naam ki jagah kuch aur, jaise brand" onChange={(v) => set({ shopText: v })} />
-            <TextBox label="Neeche ki line" value={c.footerText} placeholder="Jaise: Exchange 7 din" hint="Har label ke neeche, 40 harf tak" onChange={(v) => set({ footerText: v })} />
+            <TextBox label={tr('Dukaan ki line')} value={c.shopText} placeholder={tr('Khaali = dukaan ka naam')} hint={tr('Shop ke naam ki jagah kuch aur, jaise brand')} onChange={(v) => set({ shopText: v })} />
+            <TextBox label={tr('Neeche ki line')} value={c.footerText} placeholder={tr('Jaise: Exchange 7 din')} hint={tr('Har label ke neeche, 40 harf tak')} onChange={(v) => set({ footerText: v })} />
           </div>
         </Section>
 
-        <Section title="Naye item ke kitne label">
-          <Segmented label="Naye item ke label" value={c.copies} onChange={(v) => set({ copies: v })}
-            items={[{ value: 'one', label: 'Ek label' }, { value: 'stock', label: 'Stock jitne' }]} />
-          <Hint>Queue me nayi cheez dalte waqt ginti. "Stock jitne" naye maal par har piece ka label deta hai.</Hint>
+        <Section title={tr('Naye item ke kitne label')}>
+          <Segmented label={tr('Naye item ke label')} value={c.copies} onChange={(v) => set({ copies: v })}
+            items={[{ value: 'one', label: tr('Ek label') }, { value: 'stock', label: tr('Stock jitne') }]} />
+          <Hint>{tr('Queue me nayi cheez dalte waqt ginti. "Stock jitne" naye maal par har piece ka label deta hai.')}</Hint>
         </Section>
       </div>
     </div>

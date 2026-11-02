@@ -2,6 +2,7 @@
 
 import type { PrintDoc } from '@core/print';
 import { directoryApi, type DirectoryCustomer, type DirectoryFilters, type DirectoryPage } from './api';
+import { t } from '@core/i18n';
 
 export async function fetchAllCustomers(filters: DirectoryFilters, max = 20_000): Promise<{ items: DirectoryCustomer[]; stats?: DirectoryPage['stats'] }> {
   const items: DirectoryCustomer[] = [];
@@ -20,10 +21,10 @@ export async function fetchAllCustomers(filters: DirectoryFilters, max = 20_000)
 const date = (v: string | null) => (v ? new Date(v).toLocaleDateString('en-PK') : '');
 
 export function customersCsv(items: DirectoryCustomer[], header: string[], name = 'customers') {
-  const head = ['Naam', 'Phone', 'Email', 'CNIC', 'Sheher', 'Ilaqa', 'VIP', 'Chalu', 'Kitni dafa aaye', 'Kul khareedari', 'Ausat bill',
-    'Pehli dafa', 'Aakhri dafa', 'Baqi (+) / Advance (-)', 'Kitne din purana', 'Had', 'Points', 'Kab jore'];
+  const head = [t('Naam'), t('Phone'), t('Email'), 'CNIC', t('Sheher'), t('Ilaqa'), 'VIP', t('Chalu'), t('Kitni dafa aaye'), t('Kul khareedari'), t('Ausat bill'),
+    t('Pehli dafa'), t('Aakhri dafa'), t('Baqi (+) / Advance (-)'), t('Kitne din purana'), t('Had'), t('Points'), t('Kab jore')];
   const rows = items.map((c) => [
-    c.name, c.phone ?? '', c.email ?? '', c.cnic ?? '', c.city ?? '', c.area ?? '', c.isVip ? 'Haan' : '', c.isActive ? 'Haan' : 'Nahi',
+    c.name, c.phone ?? '', c.email ?? '', c.cnic ?? '', c.city ?? '', c.area ?? '', c.isVip ? t('Haan') : '', c.isActive ? t('Haan') : t('Nahi'),
     c.visits, c.spent.toFixed(2), c.average.toFixed(2), date(c.firstSaleAt), date(c.lastSaleAt), c.balance.toFixed(2), c.dueDays ?? '',
     c.creditLimit || '', c.loyaltyPoints || '', date(c.createdAt),
   ]);
@@ -41,14 +42,14 @@ export function customersDoc(items: DirectoryCustomer[], title: string, money: (
   return {
     title,
     subtitle: new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date()),
-    meta: [['Customers', String(items.length)], ['Kul baqi', money(owed)]],
+    meta: [[t('Customers'), String(items.length)], [t('Kul baqi'), money(owed)]],
     sections: [{
-      kind: 'table', title: khata ? 'Udhaar ki list' : 'Customers',
+      kind: 'table', title: khata ? t('Udhaar ki list') : t('Customers'),
       columns: khata
-        ? [{ label: 'Naam' }, { label: 'Phone' }, { label: 'Kitne din', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' }]
-        : [{ label: 'Naam' }, { label: 'Phone' }, { label: 'Khareedari', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' }],
+        ? [{ label: t('Naam') }, { label: t('Phone') }, { label: t('Kitne din'), align: 'right', wideOnly: true }, { label: t('Baqi'), align: 'right' }]
+        : [{ label: t('Naam') }, { label: t('Phone') }, { label: t('Khareedari'), align: 'right', wideOnly: true }, { label: t('Baqi'), align: 'right' }],
       rows: items.map((c) => [c.name, c.phone ?? '', khata ? String(c.dueDays ?? '') : money(c.spent), c.balance ? money(c.balance) : '—']),
-      footer: ['Kul', '', '', money(owed)],
+      footer: [t('Kul'), '', '', money(owed)],
     }],
   };
 }

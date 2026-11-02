@@ -14,9 +14,10 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Overview, TopCustomer } from '../api';
 import { BarList, CustomerCell, DataTable, Delta, Empty, Panel, daysAgo, keyLabel, type Formatter } from './parts';
+import { t as tr } from '@core/i18n';
 
 type TopKey = 'spend' | 'profit' | 'visits' | 'credit';
-const GENDER = { MALE: { label: 'Mard', color: '#2563eb' }, FEMALE: { label: 'Khawateen', color: '#db2777' }, OTHER: { label: 'Nahi likha', color: '#94a3b8' } };
+const GENDER = { MALE: { label: tr('Mard'), color: '#2563eb' }, FEMALE: { label: tr('Khawateen'), color: '#db2777' }, OTHER: { label: tr('Nahi likha'), color: '#94a3b8' } };
 
 export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f: Formatter; compare: boolean; noun: string }) {
   const theme = useChartTheme();
@@ -37,11 +38,11 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={Users} className="lg:col-span-2" title={metric === 'people' ? 'Naye aur purane customers' : 'Naam wali aur walk-in sale'}
+        <Panel icon={Users} className="lg:col-span-2" title={metric === 'people' ? tr('Naye aur purane customers') : tr('Naam wali aur walk-in sale')}
           hint={metric === 'people'
-            ? `${d.grouping === 'month' ? 'Har mahine' : 'Har din'} kitne naye log pehli dafa aaye, aur kitne purane wapas aaye`
-            : 'Jin bills par customer ka naam tha, aur jo bina naam ke bane'}
-          actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'people', label: 'Log' }, { value: 'money', label: 'Sale' }]} />}>
+            ? tr('{{value}} kitne naye log pehli dafa aaye, aur kitne purane wapas aaye', { value: d.grouping === 'month' ? tr('Har mahine') : tr('Har din') })
+            : tr('Jin bills par customer ka naam tha, aur jo bina naam ke bane')}
+          actions={<Segmented label={tr('Kya dikhayein')} value={metric} onChange={setMetric} items={[{ value: 'people', label: tr('Log') }, { value: 'money', label: tr('Sale') }]} />}>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               {metric === 'people' ? (
@@ -73,8 +74,8 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
           </div>
         </Panel>
 
-        <Panel icon={Store} title="Naam wale vs walk-in" hint="Kitni sale pehchane hue customers se aayi">
-          {t.named + t.walkIn <= 0 ? <Empty text="Is period me koi sale nahi" /> : (
+        <Panel icon={Store} title={tr('Naam wale vs walk-in')} hint={tr('Kitni sale pehchane hue customers se aayi')}>
+          {t.named + t.walkIn <= 0 ? <Empty text={tr('Is period me koi sale nahi')} /> : (
             <>
               <div className="relative mx-auto h-40 w-40">
                 <ResponsiveContainer width="100%" height="100%">
@@ -87,119 +88,119 @@ export function OverviewView({ data: d, f, compare, noun }: { data: Overview; f:
                 </ResponsiveContainer>
                 <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xl font-bold tabular-nums text-slate-900">{t.namedShare.toFixed(0)}%</span>
-                  <span className="text-[0.6875rem] text-slate-500">naam wale</span>
+                  <span className="text-[0.6875rem] text-slate-500">{tr('naam wale')}</span>
                 </span>
               </div>
               <dl className="mt-3 space-y-1.5 text-[0.8125rem]">
-                <Row label={`Naam wale · ${t.namedBills} bill`} value={f.money(t.named)} />
-                <Row label={`Walk-in · ${t.walkInBills} bill`} value={f.money(t.walkIn)} />
-                <Row label="Ausat bill — naam wale" value={f.money(t.avgBasket)} />
-                <Row label="Ausat bill — walk-in" value={f.money(t.walkInBasket)} />
+                <Row label={tr('Naam wale · {{namedBills}} bill', { namedBills: t.namedBills })} value={f.money(t.named)} />
+                <Row label={tr('Walk-in · {{walkInBills}} bill', { walkInBills: t.walkInBills })} value={f.money(t.walkIn)} />
+                <Row label={tr('Ausat bill — naam wale')} value={f.money(t.avgBasket)} />
+                <Row label={tr('Ausat bill — walk-in')} value={f.money(t.walkInBasket)} />
               </dl>
               {prev && <p className="mt-2 text-[0.75rem]"><Delta now={t.namedShare} before={prev.namedShare} points /></p>}
-              <p className="mt-2 text-[0.6875rem] leading-relaxed text-slate-500">Zyada bills par naam likhein — tabhi pata chalta hai kaun wapas aata hai aur kaun kho gaya.</p>
+              <p className="mt-2 text-[0.6875rem] leading-relaxed text-slate-500">{tr('Zyada bills par naam likhein — tabhi pata chalta hai kaun wapas aata hai aur kaun kho gaya.')}</p>
             </>
           )}
         </Panel>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Panel icon={UserPlus} title="Naye vs purane" hint="Naya = is period me pehli dafa khareeda (is branch par)">
+        <Panel icon={UserPlus} title={tr('Naye vs purane')} hint={tr('Naya = is period me pehli dafa khareeda (is branch par)')}>
           <div className="grid grid-cols-2 gap-3">
-            <Split color="#16a34a" label="Naye" people={t.newBuyers} money={f.money(t.newNet)} share={t.named ? (t.newNet / t.named) * 100 : 0}
+            <Split color="#16a34a" label={tr('Naye')} people={t.newBuyers} money={f.money(t.newNet)} share={t.named ? (t.newNet / t.named) * 100 : 0}
               delta={prev ? <Delta now={t.newBuyers} before={prev.newBuyers} /> : null} />
-            <Split color={theme.primary} label="Purane" people={t.returning} money={f.money(t.returningNet)} share={t.named ? (t.returningNet / t.named) * 100 : 0}
+            <Split color={theme.primary} label={tr('Purane')} people={t.returning} money={f.money(t.returningNet)} share={t.named ? (t.returningNet / t.named) * 100 : 0}
               delta={prev ? <Delta now={t.returning} before={prev.returning} /> : null} />
           </div>
-          <p className="mt-3 text-[0.75rem] text-slate-500">{t.signups} naye {noun.toLowerCase()} register hue{prev ? <> · <Delta now={t.signups} before={prev.signups} /></> : null}</p>
+          <p className="mt-3 text-[0.75rem] text-slate-500">{tr('{{signups}} naye {{value}} register hue', { signups: t.signups, value: noun.toLowerCase() })}{prev ? <> · <Delta now={t.signups} before={prev.signups} /></> : null}</p>
         </Panel>
 
-        <Panel icon={Repeat} title="Kitne din aaye" hint="Is period me har customer kitne alag dinon par aaya">
+        <Panel icon={Repeat} title={tr('Kitne din aaye')} hint={tr('Is period me har customer kitne alag dinon par aaya')}>
           <div className="h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.visits} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={40} />
-                <Tooltip {...theme.tooltip} formatter={(v) => [`${v} customers`, 'Customers']} />
+                <Tooltip {...theme.tooltip} formatter={(v) => [`${v} customers`, tr('Customers')]} />
                 <Bar dataKey="customers" fill={theme.primary} radius={[6, 6, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-1 text-[0.75rem] text-slate-500">{t.repeat} customers ({t.repeatRate.toFixed(0)}%) ek se zyada din aaye · ausat {t.avgVisits.toFixed(1)} din</p>
+          <p className="mt-1 text-[0.75rem] text-slate-500">{tr('{{repeat}} customers ({{value}}%) ek se zyada din aaye · ausat {{value2}} din', { repeat: t.repeat, value: t.repeatRate.toFixed(0), value2: t.avgVisits.toFixed(1) })}</p>
         </Panel>
 
-        <Panel icon={CalendarClock} title="Aane ka faasla" hint="Do dafa aane ke beech kitne din guzarte hain">
-          {d.frequency.customers === 0 ? <Empty text="Is period me koi do dafa nahi aaya" /> : (
+        <Panel icon={CalendarClock} title={tr('Aane ka faasla')} hint={tr('Do dafa aane ke beech kitne din guzarte hain')}>
+          {d.frequency.customers === 0 ? <Empty text={tr('Is period me koi do dafa nahi aaya')} /> : (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Big label="Ausat" value={`${d.frequency.avgDays?.toFixed(1)} din`} />
-                <Big label="Aam taur par (median)" value={`${d.frequency.medianDays?.toFixed(1)} din`} />
+                <Big label={tr('Ausat')} value={`${d.frequency.avgDays?.toFixed(1)} din`} />
+                <Big label={tr('Aam taur par (median)')} value={`${d.frequency.medianDays?.toFixed(1)} din`} />
               </div>
               <p className="text-[0.75rem] leading-relaxed text-slate-500">
-                {d.frequency.customers} customers jo is period me 2 ya zyada din aaye un ka hisaab. Median aam customer batata hai — chand roz aane wale is ko kharab nahi karte.
+                {tr('{{customers}} customers jo is period me 2 ya zyada din aaye un ka hisaab. Median aam customer batata hai — chand roz aane wale is ko kharab nahi karte.', { customers: d.frequency.customers })}
               </p>
               <dl className="space-y-1.5 border-t border-slate-100 pt-3 text-[0.8125rem]">
-                <Row label="Ausat kharch (har customer)" value={f.money(t.avgSpend)} />
-                {showCost && <Row label="Profit (naam wale)" value={`${f.cost(t.profit)} · ${f.pct(t.margin)}`} />}
-                <Row label="Udhaar par diya" value={f.money(t.credit)} />
+                <Row label={tr('Ausat kharch (har customer)')} value={f.money(t.avgSpend)} />
+                {showCost && <Row label={tr('Profit (naam wale)')} value={`${f.cost(t.profit)} · ${f.pct(t.margin)}`} />}
+                <Row label={tr('Udhaar par diya')} value={f.money(t.credit)} />
               </dl>
             </div>
           )}
         </Panel>
       </div>
 
-      <Panel icon={Trophy} flush title="Sab se ache customers" hint="Is period me — naam par click karein to poori profile khulegi"
-        actions={<Segmented label="Kis hisaab se" value={top} onChange={setTop} items={[
-          { value: 'spend', label: 'Kharch' },
-          ...(showCost && d.top.profit ? [{ value: 'profit' as const, label: 'Profit' }] : []),
-          { value: 'visits', label: 'Dafa' },
-          { value: 'credit', label: 'Udhaar' },
+      <Panel icon={Trophy} flush title={tr('Sab se ache customers')} hint={tr('Is period me — naam par click karein to poori profile khulegi')}
+        actions={<Segmented label={tr('Kis hisaab se')} value={top} onChange={setTop} items={[
+          { value: 'spend', label: tr('Kharch') },
+          ...(showCost && d.top.profit ? [{ value: 'profit' as const, label: tr('Profit') }] : []),
+          { value: 'visits', label: tr('Dafa') },
+          { value: 'credit', label: tr('Udhaar') },
         ]} />}>
         <div className="px-4 pb-3 sm:px-5">
-          <DataTable rows={topRows} rowKey={(r) => r.id} empty="Is period me koi naam wala bill nahi"
+          <DataTable rows={topRows} rowKey={(r) => r.id} empty={tr('Is period me koi naam wala bill nahi')}
             columns={[
               { label: '#', render: (_, i) => <span className="text-slate-400">{i + 1}</span> },
-              { label: 'Customer', render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.isNew ? <span className="font-semibold text-emerald-600">Naya</span> : r.city} /> },
-              { label: 'Din', align: 'right', render: (r) => r.visits },
-              { label: 'Bill', align: 'right', render: (r) => r.bills },
-              { label: 'Sale', align: 'right', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
-              { label: 'Ausat bill', align: 'right', render: (r) => f.money(r.average) },
-              { label: 'Profit', align: 'right', hide: !showCost, render: (r) => f.cost(r.profit) },
-              { label: 'Udhaar', align: 'right', render: (r) => (r.credit > 0 ? <span className="text-amber-700">{f.money(r.credit)}</span> : '—') },
-              { label: 'Aakhri dafa', align: 'right', render: (r) => daysAgo(r.daysSince) },
+              { label: tr('Customer'), render: (r) => <CustomerCell id={r.id} name={r.name} phone={r.phone} isVip={r.isVip} sub={r.isNew ? <span className="font-semibold text-emerald-600">{tr('Naya')}</span> : r.city} /> },
+              { label: tr('Din'), align: 'right', render: (r) => r.visits },
+              { label: tr('Bill'), align: 'right', render: (r) => r.bills },
+              { label: tr('Sale'), align: 'right', render: (r) => <span className="font-semibold text-slate-900">{f.money(r.net)}</span> },
+              { label: tr('Ausat bill'), align: 'right', render: (r) => f.money(r.average) },
+              { label: tr('Profit'), align: 'right', hide: !showCost, render: (r) => f.cost(r.profit) },
+              { label: tr('Udhaar'), align: 'right', render: (r) => (r.credit > 0 ? <span className="text-amber-700">{f.money(r.credit)}</span> : '—') },
+              { label: tr('Aakhri dafa'), align: 'right', render: (r) => daysAgo(r.daysSince) },
             ]} />
         </div>
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={MapPin} className="lg:col-span-2" title="Customer kahan se" hint="Customer ke profile me likha shehar ya ilaqa — sale ke hisaab se"
-          actions={<Segmented label="Shehar ya ilaqa" value={place} onChange={setPlace} items={[{ value: 'cities', label: 'Shehar' }, { value: 'areas', label: 'Ilaqa' }]} />}>
-          <BarList format={f.money} empty={place === 'cities' ? 'Kisi customer ka shehar nahi likha' : 'Kisi customer ka ilaqa nahi likha'}
-            rows={places.rows.map((c) => ({ key: c.name, name: c.name, value: c.net, hint: `${c.buyers} customers` }))} />
+        <Panel icon={MapPin} className="lg:col-span-2" title={tr('Customer kahan se')} hint={tr('Customer ke profile me likha shehar ya ilaqa — sale ke hisaab se')}
+          actions={<Segmented label={tr('Shehar ya ilaqa')} value={place} onChange={setPlace} items={[{ value: 'cities', label: tr('Shehar') }, { value: 'areas', label: tr('Ilaqa') }]} />}>
+          <BarList format={f.money} empty={place === 'cities' ? tr('Kisi customer ka shehar nahi likha') : tr('Kisi customer ka ilaqa nahi likha')}
+            rows={places.rows.map((c) => ({ key: c.name, name: c.name, value: c.net, hint: tr('{{buyers}} customers', { buyers: c.buyers }) }))} />
           {(places.others || places.missing.buyers > 0) && (
             <p className="mt-3 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-500">
-              {places.others && <>Baqi {places.others.groups} jagah: {places.others.buyers} customers · {f.money(places.others.net)}. </>}
-              {places.missing.buyers > 0 && <>{places.missing.buyers} customers ki jagah nahi likhi ({f.money(places.missing.net)}).</>}
+              {places.others && <>{tr('Baqi {{groups}} jagah: {{buyers}} customers · {{net}}.', { groups: places.others.groups, buyers: places.others.buyers, net: f.money(places.others.net) })}{' '} </>}
+              {places.missing.buyers > 0 && <>{tr('{{buyers}} customers ki jagah nahi likhi ({{net}}).', { buyers: places.missing.buyers, net: f.money(places.missing.net) })}</>}
             </p>
           )}
         </Panel>
 
-        <Panel icon={Footprints} title="Mard / khawateen" hint="Profile me likhe hisaab se">
-          <BarList format={f.money} empty="Koi data nahi"
-            rows={d.genders.filter((g) => g.buyers).map((g) => ({ key: g.key, name: GENDER[g.key].label, value: g.net, color: GENDER[g.key].color, hint: `${g.buyers} customers` }))} />
+        <Panel icon={Footprints} title={tr('Mard / khawateen')} hint={tr('Profile me likhe hisaab se')}>
+          <BarList format={f.money} empty={tr('Koi data nahi')}
+            rows={d.genders.filter((g) => g.buyers).map((g) => ({ key: g.key, name: GENDER[g.key].label, value: g.net, color: GENDER[g.key].color, hint: tr('{{buyers}} customers', { buyers: g.buyers }) }))} />
         </Panel>
       </div>
 
       {d.branches.length > 1 && (
-        <Panel icon={Building2} flush title="Branch war customers" hint="Har branch par kitne naam wale customers aaye">
+        <Panel icon={Building2} flush title={tr('Branch war customers')} hint={tr('Har branch par kitne naam wale customers aaye')}>
           <div className="px-4 pb-3 sm:px-5">
             <DataTable rows={d.branches} rowKey={(r) => r.id ?? 'none'} columns={[
-              { label: 'Branch', render: (r) => <span className="font-medium text-slate-900">{r.name}</span> },
-              { label: 'Customers', align: 'right', render: (r) => r.buyers },
-              { label: 'Naam wali', align: 'right', render: (r) => f.money(r.named) },
-              { label: 'Walk-in', align: 'right', render: (r) => f.money(r.walkIn) },
-              { label: 'Naam ka hissa', align: 'right', render: (r) => f.pct(r.named + r.walkIn > 0 ? (r.named / (r.named + r.walkIn)) * 100 : 0) },
+              { label: tr('Branch'), render: (r) => <span className="font-medium text-slate-900">{r.name}</span> },
+              { label: tr('Customers'), align: 'right', render: (r) => r.buyers },
+              { label: tr('Naam wali'), align: 'right', render: (r) => f.money(r.named) },
+              { label: tr('Walk-in'), align: 'right', render: (r) => f.money(r.walkIn) },
+              { label: tr('Naam ka hissa'), align: 'right', render: (r) => f.pct(r.named + r.walkIn > 0 ? (r.named / (r.named + r.walkIn)) * 100 : 0) },
             ]} />
           </div>
         </Panel>

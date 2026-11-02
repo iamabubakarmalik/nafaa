@@ -7,6 +7,7 @@
  * - International: 92 3XX XXXXXXX
  */
 
+import { t } from '@core/i18n';
 const PK_MOBILE_REGEX = /^(?:\+?92|0)?3\d{9}$/;
 
 export function isValidPakistanPhone(phone: string): boolean {
@@ -50,7 +51,7 @@ export function formatPakistanPhone(phone: string): string {
 export function pakistanPhoneError(phone: string): string | null {
   if (!phone) return null;
   if (!isValidPakistanPhone(phone)) {
-    return 'Pakistan ka sahi mobile number likhein (e.g. 03001234567)';
+    return t('Pakistan ka sahi mobile number likhein (e.g. 03001234567)');
   }
   return null;
 }

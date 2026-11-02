@@ -7,10 +7,11 @@
 
 import { RequireShop } from '@modules/pos/components';
 import { OrderComposer } from '../components/OrderComposer';
+import { t } from '@core/i18n';
 
 export default function RestaurantPosPage() {
   return (
-    <RequireShop action="Counter par order lene">
+    <RequireShop action={t('Counter par order lene')}>
       <OrderComposer counter />
     </RequireShop>
   );

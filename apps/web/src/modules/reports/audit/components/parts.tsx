@@ -6,6 +6,7 @@ import { Card } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { AuditType, Severity } from '../api';
 import { SEVERITY_META, TYPE_META, scoreColor } from '../meta';
+import { t } from '@core/i18n';
 
 export function Panel({ icon: Icon, title, hint, actions, className, flush, children }: {
   icon: LucideIcon; title: ReactNode; hint?: ReactNode; actions?: ReactNode; className?: string; flush?: boolean; children: ReactNode;
@@ -31,16 +32,16 @@ export function Empty({ text, icon: Icon }: { text: string; icon?: LucideIcon })
 export function Delta({ now, before, up = 'bad' }: { now: number; before: number | null | undefined; up?: 'good' | 'bad' }) {
   if (before == null) return null;
   if (Math.abs(before) < 0.005) {
-    return now > 0 ? <span className={up === 'bad' ? 'text-rose-600' : 'text-emerald-600'}>naya · pehle 0</span> : <span className="text-slate-400">pehle bhi 0</span>;
+    return now > 0 ? <span className={up === 'bad' ? 'text-rose-600' : 'text-emerald-600'}>{t('naya · pehle 0')}</span> : <span className="text-slate-400">{t('pehle bhi 0')}</span>;
   }
   const ch = ((now - before) / Math.abs(before)) * 100;
-  if (Math.abs(ch) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />pehle jitna</span>;
+  if (Math.abs(ch) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />{t('pehle jitna')}</span>;
   const rise = ch > 0;
   const bad = (rise && up === 'bad') || (!rise && up === 'good');
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-medium', bad ? 'text-rose-600' : 'text-emerald-600')}>
       {rise ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-      {Math.abs(ch).toFixed(0)}% pichli period se
+      {t('{{value}}% pichli period se', { value: Math.abs(ch).toFixed(0) })}
     </span>
   );
 }
@@ -69,7 +70,7 @@ export function ScoreRing({ score, size = 44 }: { score: number; size?: number }
   const len = 2 * Math.PI * r;
   const color = scoreColor(score);
   return (
-    <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }} title={`Risk score ${score} / 100`}>
+    <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }} title={t('Risk score {{score}} / 100', { score })}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={4} className="stroke-slate-100" />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={4} stroke={color} strokeLinecap="round" strokeDasharray={`${(score / 100) * len} ${len}`} />

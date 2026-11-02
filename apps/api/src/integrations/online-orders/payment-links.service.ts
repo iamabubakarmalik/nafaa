@@ -10,6 +10,7 @@ import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { PAY_GATEWAYS, payGateway } from './pay-api/registry';
 import { Checkout, PayApiError, PayCreds, PayEnv } from './pay-api/types';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const LINK_TTL_MS = 3 * 86_400_000;
@@ -89,7 +90,7 @@ export class PaymentLinksService {
     const creds: PayCreds = {};
     for (const f of g.credentials) {
       const v = String(body?.credentials?.[f.key] ?? '').trim();
-      if (!v && !f.optional) throw new BadRequestException(`${f.label} daalein`);
+      if (!v && !f.optional) throw new BadRequestException(apiMessage('{{fLabel}} daalein', { fLabel: f.label }));
       if (v) creds[f.key] = v.slice(0, 500);
     }
     await this.wrap(() => g.adapter.test(creds, env));
@@ -128,12 +129,12 @@ export class PaymentLinksService {
     const code = String(body?.provider ?? '').toUpperCase();
     const g = this.gatewayOrThrow(code);
     const a = await this.readAccount(user.tenantId, code);
-    if (!a?.active) throw new BadRequestException(`${g.name} jura nahi — Payments safhe se jorein`);
+    if (!a?.active) throw new BadRequestException(apiMessage('{{gName}} jura nahi — Payments safhe se jorein', { gName: g.name }));
 
     const due = Math.max(0, Math.round(shopDue(order) - advancePaid(order.metadata)));
     const amount = Math.round(Number(body?.amount ?? due));
     if (!(amount >= 1)) throw new BadRequestException('Amount kam az kam Rs 1');
-    if (amount > due) throw new BadRequestException(`Baqi sirf Rs ${due.toLocaleString('en-PK')} hai`);
+    if (amount > due) throw new BadRequestException(apiMessage('Baqi sirf Rs {{due}} hai', { due: due.toLocaleString('en-PK') }));
 
     const ref = `NP${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
     const meta = (order.metadata ?? {}) as any;

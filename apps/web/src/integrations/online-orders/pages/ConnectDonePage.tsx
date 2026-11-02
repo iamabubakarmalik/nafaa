@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { CONNECT_MESSAGE, type ConnectMessage } from '../lib/connectPopup';
+import { t as tr } from '@core/i18n';
 
 /**
  * Platform (WooCommerce) "Approve" ke baad yahan wapas aata hai.
@@ -34,7 +35,7 @@ export default function ConnectDonePage() {
     return () => clearTimeout(t);
   }, [channelId, success, navigate]);
 
-  const name = platform === 'woocommerce' ? 'WooCommerce' : platform === 'shopify' ? 'Shopify' : platform === 'daraz' ? 'Daraz' : 'Website';
+  const name = platform === 'woocommerce' ? tr('WooCommerce') : platform === 'shopify' ? tr('Shopify') : platform === 'daraz' ? tr('Daraz') : tr('Website');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 p-6 text-white">
@@ -44,14 +45,14 @@ export default function ConnectDonePage() {
         ) : (
           <XCircle className="mx-auto h-16 w-16 text-rose-300" />
         )}
-        <h1 className="mt-4 text-2xl font-black">{success ? `${name} jur gaya!` : platform === 'shopify' ? 'Install nahi hua' : 'Approve nahi hua'}</h1>
+        <h1 className="mt-4 text-2xl font-black">{success ? tr('{{name}} jur gaya!', { name }) : platform === 'shopify' ? tr('Install nahi hua') : tr('Approve nahi hua')}</h1>
         <p className="mt-2 text-sm font-bold text-white/80">
           {success
-            ? platform === 'daraz' ? 'Nafaa ab Daraz ke products jor raha hai aur pichhle 3 din ke orders la raha hai.' : 'Nafaa ab khud webhooks laga raha hai — orders, stock aur status sab sync honge.'
-            : error || 'Aap ne access nahi diya. Nafaa me wapas ja kar dobara koshish karein.'}
+            ? platform === 'daraz' ? tr('Nafaa ab Daraz ke products jor raha hai aur pichhle 3 din ke orders la raha hai.') : tr('Nafaa ab khud webhooks laga raha hai — orders, stock aur status sab sync honge.')
+            : error || tr('Aap ne access nahi diya. Nafaa me wapas ja kar dobara koshish karein.')}
         </p>
         <div className="mt-5 flex items-center justify-center gap-2 text-xs font-bold text-white/70">
-          <Loader2 className="h-4 w-4 animate-spin" /> {closing ? 'Ye window band ho rahi hai…' : 'Nafaa par wapas le ja rahe hain…'}
+          <Loader2 className="h-4 w-4 animate-spin" /> {closing ? tr('Ye window band ho rahi hai…') : tr('Nafaa par wapas le ja rahe hain…')}
         </div>
       </div>
     </div>

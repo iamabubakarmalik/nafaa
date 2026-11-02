@@ -7,14 +7,15 @@ import {
 } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 const STATUS_FLOW = [
-  { key: 'PENDING',          label: 'Pending',      icon: Clock },
-  { key: 'CONFIRMED',        label: 'Confirmed',    icon: CheckCircle2 },
-  { key: 'PREPARING',        label: 'Preparing',    icon: ChefHat },
-  { key: 'READY',            label: 'Ready',        icon: Package },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Del.', icon: Bike },
-  { key: 'DELIVERED',        label: 'Delivered',    icon: PackageCheck },
+  { key: 'PENDING',          label: t('Pending'),      icon: Clock },
+  { key: 'CONFIRMED',        label: t('Confirmed'),    icon: CheckCircle2 },
+  { key: 'PREPARING',        label: t('Preparing'),    icon: ChefHat },
+  { key: 'READY',            label: t('Ready'),        icon: Package },
+  { key: 'OUT_FOR_DELIVERY', label: t('Out for Del.'), icon: Bike },
+  { key: 'DELIVERED',        label: t('Delivered'),    icon: PackageCheck },
 ];
 
 /** Step colours: finished steps are a brand tint, the current step is solid, a delivered order is success. */
@@ -38,17 +39,17 @@ export function OrderStatusTimeline({
   const updateMutation = useMutation({
     mutationFn: (status: string) => integrationsApi.updateOrderStatus(orderId, status),
     onSuccess: (_, status) => {
-      toast.success(`Status → ${status}`);
+      toast.success(t('Status → {{status}}', { status }));
       qc.invalidateQueries({ queryKey: ['channel-orders'] });
       qc.invalidateQueries({ queryKey: ['integrations-dashboard'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Update failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? t('Update failed')),
   });
 
   const cancelMutation = useMutation({
     mutationFn: () => integrationsApi.updateOrderStatus(orderId, 'CANCELLED'),
     onSuccess: () => {
-      toast.success('Cancelled');
+      toast.success(t('Cancelled'));
       qc.invalidateQueries({ queryKey: ['channel-orders'] });
     },
   });
@@ -105,17 +106,17 @@ export function OrderStatusTimeline({
       </div>
 
       {isTerminated ? (
-        <Alert tone="danger" icon={<XCircle className="h-4 w-4 text-rose-600" />} title={`Order ${currentStatus.toLowerCase()}`} />
+        <Alert tone="danger" icon={<XCircle className="h-4 w-4 text-rose-600" />} title={t('Order {{value}}', { value: currentStatus.toLowerCase() })} />
       ) : (
         <div className="flex items-center gap-2">
           {nextStatus && (
-            <Button className="flex-1" loading={updateMutation.isPending} onClick={() => updateMutation.mutate(nextStatus.key)} rightIcon={<ChevronRight className="h-4 w-4" />}>
-              Aage: {nextStatus.label}
+            <Button className="flex-1" loading={updateMutation.isPending} onClick={() => updateMutation.mutate(nextStatus.key)} rightIcon={<ChevronRight className="h-4 w-4 rtl-flip" />}>
+              {t('Aage: {{label}}', { label: nextStatus.label })}
             </Button>
           )}
           <Button variant="critical" loading={cancelMutation.isPending}
-            onClick={async () => { if (await confirmDialog({ title: 'Ye order cancel karein?', danger: true })) cancelMutation.mutate(); }}>
-            Cancel
+            onClick={async () => { if (await confirmDialog({ title: t('Ye order cancel karein?'), danger: true })) cancelMutation.mutate(); }}>
+            {t('Cancel')}
           </Button>
         </div>
       )}

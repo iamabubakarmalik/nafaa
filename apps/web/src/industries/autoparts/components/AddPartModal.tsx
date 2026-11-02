@@ -15,6 +15,7 @@ import type { PartCondition } from '../api/part-profiles.api';
 import type { PartInput } from '../api/workshop-jobs.api';
 import { partSearchText, usePartFacts } from '../hooks/usePartFacts';
 import { CONDITIONS, conditionOf, money } from './meta';
+import { t } from '@core/i18n';
 
 type Source = 'shelf' | 'outside' | 'customer';
 
@@ -91,16 +92,16 @@ export function AddPartModal({ vehicle, pending, onAdd, onClose }: {
 
   const car = [vehicle.makeName, vehicle.modelName, vehicle.year].filter(Boolean).join(' ');
   return (
-    <Modal open onClose={onClose} size="lg" title="Part jorein" description={car ? `Gaari: ${car}` : undefined}
+    <Modal open onClose={onClose} size="lg" title={t('Part jorein')} description={car ? t('Gaari: {{car}}', { car }) : undefined}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button onClick={submit} disabled={!valid} loading={pending} leftIcon={<Package className="h-4 w-4" />}>
-          {source === 'shelf' ? 'Stock se lagayein' : 'Jorein'}{quantity > 0 && unit > 0 && source !== 'customer' ? ` — ${formatPKR(quantity * unit)}` : ''}
+          {source === 'shelf' ? t('Stock se lagayein') : t('Jorein')}{quantity > 0 && unit > 0 && source !== 'customer' ? ` — ${formatPKR(quantity * unit)}` : ''}
         </Button>
       </>}>
       <div className="space-y-4">
         <div role="radiogroup" className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
-          {([['shelf', 'Dukaan ka stock'], ['outside', 'Bahar se liya'], ['customer', 'Customer ka apna']] as Array<[Source, string]>).map(([id, label]) => (
+          {([['shelf', t('Dukaan ka stock')], ['outside', t('Bahar se liya')], ['customer', t('Customer ka apna')]] as Array<[Source, string]>).map(([id, label]) => (
             <button key={id} type="button" role="radio" aria-checked={source === id} onClick={() => setSource(id)}
               className={cn('h-9 rounded-lg text-[0.8125rem] font-semibold', source === id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600')}>{label}</button>
           ))}
@@ -108,25 +109,25 @@ export function AddPartModal({ vehicle, pending, onAdd, onClose }: {
 
         {source === 'shelf' ? (
           <div>
-            <Input value={q} onChange={(e) => setQ(e.target.value)} autoFocus leftIcon={<Search className="h-4 w-4" />} placeholder="Naam, part number ya gaari — jaise “brake pad”"
-              hint={!q && car ? 'Is gaari me lagne wale parts pehle' : undefined} />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} autoFocus leftIcon={<Search className="h-4 w-4" />} placeholder={t('Naam, part number ya gaari — jaise “brake pad”')}
+              hint={!q && car ? t('Is gaari me lagne wale parts pehle') : undefined} />
             <ul className="mt-2 max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200">
-              {catalog.loading && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">Parts load ho rahe…</li>}
-              {!catalog.loading && results.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">{q ? 'Koi part nahi mila — “Bahar se liya” chunein' : 'Naam ya number likhein'}</li>}
+              {catalog.loading && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">{t('Parts load ho rahe…')}</li>}
+              {!catalog.loading && results.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-slate-500">{q ? t('Koi part nahi mila — “Bahar se liya” chunein') : t('Naam ya number likhein')}</li>}
               {results.map((it) => {
                 const f = facts.get(it.id);
                 return (
                   <li key={it.id}>
                     <button type="button" onClick={() => choose(it.id)}
-                      className={cn('flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-brand-50', productId === it.id && 'bg-brand-50 ring-1 ring-inset ring-brand-300')}>
+                      className={cn('flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-brand-50', productId === it.id && 'bg-brand-50 ring-1 ring-inset ring-brand-300')}>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5 truncate text-[0.875rem] font-medium text-slate-900">
-                          {it.name}{fitsHere(it.id) && <Car className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-label="Is gaari me lagta hai" />}
+                          {it.name}{fitsHere(it.id) && <Car className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-label={t('Is gaari me lagta hai')} />}
                         </span>
                         <span className="block truncate text-[0.75rem] text-slate-500">{[f?.partNumber, f?.brand, f && f.condition !== 'NEW' ? conditionOf(f.condition).label : null].filter(Boolean).join(' · ') || '—'}</span>
                       </span>
-                      <span className={cn('text-[0.75rem] font-medium tabular-nums', it.stock > 0 ? 'text-emerald-700' : 'text-rose-600')}>{it.stock > 0 ? `${Number(it.stock.toFixed(2))} stock` : 'khatam'}</span>
-                      <span className="w-20 text-right text-[0.875rem] font-semibold tabular-nums">{formatPKR(it.price)}</span>
+                      <span className={cn('text-[0.75rem] font-medium tabular-nums', it.stock > 0 ? 'text-emerald-700' : 'text-rose-600')}>{it.stock > 0 ? t('{{value}} stock', { value: Number(it.stock.toFixed(2)) }) : 'khatam'}</span>
+                      <span className="w-20 text-end text-[0.875rem] font-semibold tabular-nums">{formatPKR(it.price)}</span>
                     </button>
                   </li>
                 );
@@ -135,19 +136,19 @@ export function AddPartModal({ vehicle, pending, onAdd, onClose }: {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input label="Part ka naam" required value={name} onChange={(e) => setName(e.target.value)} autoFocus placeholder="Clutch plate" />
-            <Input label="Part number" value={partNumber} onChange={(e) => setPartNumber(e.target.value)} placeholder="Marzi hai" />
+            <Input label={t('Part ka naam')} required value={name} onChange={(e) => setName(e.target.value)} autoFocus placeholder={t('Clutch plate')} />
+            <Input label={t('Part number')} value={partNumber} onChange={(e) => setPartNumber(e.target.value)} placeholder={t('Marzi hai')} />
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Kitne" inputMode="decimal" value={qty} onChange={(e) => setQty(money(e.target.value))} error={quantity <= 0 ? 'Kam se kam 1' : undefined} />
+          <Input label={t('Kitne')} inputMode="decimal" value={qty} onChange={(e) => setQty(money(e.target.value))} error={quantity <= 0 ? t('Kam se kam 1') : undefined} />
           {source !== 'customer' && (
-            <Input label="Qeemat (ek ki)" inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} placeholder="0"
-              hint={source === 'outside' ? 'Customer se kitna lena hai' : undefined} />
+            <Input label={t('Qeemat (ek ki)')} inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} placeholder="0"
+              hint={source === 'outside' ? t('Customer se kitna lena hai') : undefined} />
           )}
-          <Select label="Warranty" value={String(warranty)} onChange={(e) => setWarranty(Number(e.target.value))}
-            options={[0, 1, 3, 6, 12].map((m) => ({ value: String(m), label: m ? `${m} mahine` : 'Koi nahi' }))} />
+          <Select label={t('Warranty')} value={String(warranty)} onChange={(e) => setWarranty(Number(e.target.value))}
+            options={[0, 1, 3, 6, 12].map((m) => ({ value: String(m), label: m ? t('{{m}} mahine', { m }) : t('Koi nahi') }))} />
         </div>
         {source !== 'shelf' && (
           <div className="flex flex-wrap gap-1.5">
@@ -159,10 +160,10 @@ export function AddPartModal({ vehicle, pending, onAdd, onClose }: {
         )}
         {short && (
           <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Stock me sirf {Number(chosen!.stock.toFixed(2))} hai — pehle purchase karein ya “Bahar se liya” chunein.
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Stock me sirf {{value}} hai — pehle purchase karein ya “Bahar se liya” chunein.', { value: Number(chosen!.stock.toFixed(2)) })}
           </p>
         )}
-        {source === 'outside' && <p className="text-[0.75rem] text-slate-500">Bahar se liye part ki apni cost bill me nahi judti — purchase ya expense me likhein.</p>}
+        {source === 'outside' && <p className="text-[0.75rem] text-slate-500">{t('Bahar se liye part ki apni cost bill me nahi judti — purchase ya expense me likhein.')}</p>}
       </div>
     </Modal>
   );

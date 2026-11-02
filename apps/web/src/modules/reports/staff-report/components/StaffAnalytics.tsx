@@ -19,16 +19,17 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { StaffOverview } from '../api';
 import { OTHERS_COLOR, PALETTE, WEEKDAYS, hourLabel, keyLabel, pct, qtyText } from './meta';
 import { Empty, HeatGrid, Panel } from './parts';
+import { t as tr } from '@core/i18n';
 
 type Measure = 'average' | 'itemsPerBill' | 'perHour' | 'discountPct' | 'returnPct' | 'voidPct' | 'creditPct';
 const MEASURES: Array<{ value: Measure; label: string; kind: 'money' | 'qty' | 'pct'; team: keyof StaffOverview['team']; hint: string }> = [
-  { value: 'average', label: 'Ausat bill', kind: 'money', team: 'average', hint: 'Ek bill ki ausat amount — bara ho to banda saath me aur cheezein bechta hai' },
-  { value: 'itemsPerBill', label: 'Cheez/bill', kind: 'qty', team: 'itemsPerBill', hint: 'Har bill me kitni cheezein' },
-  { value: 'perHour', label: 'Fi ghanta', kind: 'money', team: 'perHour', hint: 'Kaam ke har ghante ki sale (haziri, galla shift ya sale wale ghante)' },
-  { value: 'discountPct', label: 'Discount %', kind: 'pct', team: 'discountPct', hint: 'Haath se di gayi discount, subtotal ka % — code aur points ki discount alag' },
-  { value: 'returnPct', label: 'Return %', kind: 'pct', team: 'returnPct', hint: 'Is ke bills ki sale ka kitna % wapas aaya' },
-  { value: 'voidPct', label: 'Cancel %', kind: 'pct', team: 'voidPct', hint: 'Is ke kitne bill cancel hue' },
-  { value: 'creditPct', label: 'Udhaar %', kind: 'pct', team: 'creditPct', hint: 'Sale ka kitna hissa udhaar par gaya' },
+  { value: 'average', label: tr('Ausat bill'), kind: 'money', team: 'average', hint: tr('Ek bill ki ausat amount — bara ho to banda saath me aur cheezein bechta hai') },
+  { value: 'itemsPerBill', label: tr('Cheez/bill'), kind: 'qty', team: 'itemsPerBill', hint: tr('Har bill me kitni cheezein') },
+  { value: 'perHour', label: tr('Fi ghanta'), kind: 'money', team: 'perHour', hint: tr('Kaam ke har ghante ki sale (haziri, galla shift ya sale wale ghante)') },
+  { value: 'discountPct', label: tr('Discount %'), kind: 'pct', team: 'discountPct', hint: tr('Haath se di gayi discount, subtotal ka % — code aur points ki discount alag') },
+  { value: 'returnPct', label: tr('Return %'), kind: 'pct', team: 'returnPct', hint: tr('Is ke bills ki sale ka kitna % wapas aaya') },
+  { value: 'voidPct', label: tr('Cancel %'), kind: 'pct', team: 'voidPct', hint: tr('Is ke kitne bill cancel hue') },
+  { value: 'creditPct', label: tr('Udhaar %'), kind: 'pct', team: 'creditPct', hint: tr('Sale ka kitna hissa udhaar par gaya') },
 ];
 
 export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; money: (n: number) => string; onOpen: (id: string) => void }) {
@@ -57,13 +58,13 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
 
   const scatter = sellers.map((r) => ({ id: r.id!, name: r.name, bills: r.bills, average: r.average, net: r.net }));
 
-  if (!sellers.length) return <Panel icon={BarChart3} title="Analytics"><Empty text="Is period me kisi ne sale nahi ki — period badal kar dekhein" /></Panel>;
+  if (!sellers.length) return <Panel icon={BarChart3} title={tr('Analytics')}><Empty text={tr('Is period me kisi ne sale nahi ki — period badal kar dekhein')} /></Panel>;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={TrendingUp} title="Kis ne kab becha" className="lg:col-span-2"
-          hint={`${data.grouping === 'month' ? 'Mahine' : 'Din'} war sale (return ke baad) — top 5 alag, baqi ek rang me`}>
+        <Panel icon={TrendingUp} title={tr('Kis ne kab becha')} className="lg:col-span-2"
+          hint={tr('{{value}} war sale (return ke baad) — top 5 alag, baqi ek rang me', { value: data.grouping === 'month' ? tr('Mahine') : tr('Din') })}>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendRows} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -81,7 +82,7 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
           </div>
         </Panel>
 
-        <Panel icon={PieIcon} title="Sale me hissa" hint="Total sale me har bande ka %">
+        <Panel icon={PieIcon} title={tr('Sale me hissa')} hint={tr('Total sale me har bande ka %')}>
           <div className="h-[170px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -105,9 +106,9 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
         </Panel>
       </div>
 
-      <Panel icon={BarChart3} title="Banda war muqabla" hint={m.hint}
-        actions={<Segmented label="Kya dikhayein" value={measure} onChange={setMeasure} className="flex-wrap" items={MEASURES.map((x) => ({ value: x.value, label: x.label }))} />}>
-        {!compare.length ? <Empty text="Kisi ke kaam ke ghante darj nahi" /> : (
+      <Panel icon={BarChart3} title={tr('Banda war muqabla')} hint={m.hint}
+        actions={<Segmented label={tr('Kya dikhayein')} value={measure} onChange={setMeasure} className="flex-wrap" items={MEASURES.map((x) => ({ value: x.value, label: x.label }))} />}>
+        {!compare.length ? <Empty text={tr('Kisi ke kaam ke ghante darj nahi')} /> : (
           <div style={{ height: Math.max(180, compare.length * 30 + 30) }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={compare} layout="vertical" margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
@@ -127,17 +128,17 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={Clock} title="Kaun kis ghante bechta hai" hint="Har bande ke bill ghante war — gehra rang yani zyada bill. Naam dabayein to details">
-          <HeatGrid onRow={onOpen} rows={data.staffHours.map((s) => ({ key: s.id, label: nameOf.get(s.id) ?? 'Banda', values: s.hours }))} />
+        <Panel icon={Clock} title={tr('Kaun kis ghante bechta hai')} hint={tr('Har bande ke bill ghante war — gehra rang yani zyada bill. Naam dabayein to details')}>
+          <HeatGrid onRow={onOpen} rows={data.staffHours.map((s) => ({ key: s.id, label: nameOf.get(s.id) ?? tr('Banda'), values: s.hours }))} />
         </Panel>
-        <Panel icon={CalendarClock} title="Rush ke din aur ghante" hint="Poori team ke bill — staff kab zyada chahiye">
+        <Panel icon={CalendarClock} title={tr('Rush ke din aur ghante')} hint={tr('Poori team ke bill — staff kab zyada chahiye')}>
           <HeatGrid rows={data.heatmap.map((v, d) => ({ key: String(d), label: WEEKDAYS[d], values: v }))} />
         </Panel>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel icon={ScatterIcon} title="Bill zyada ya bill bara?" className="lg:col-span-2"
-          hint="Daayein = zyada bill, upar = bara ausat bill, bara gola = zyada sale. Gole par click se details">
+        <Panel icon={ScatterIcon} title={tr('Bill zyada ya bill bara?')} className="lg:col-span-2"
+          hint={tr('Daayein = zyada bill, upar = bara ausat bill, bara gola = zyada sale. Gole par click se details')}>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 8, right: 16, left: -4, bottom: 4 }}>
@@ -152,8 +153,8 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
                   return (
                     <div style={tip.contentStyle} className="px-3 py-2">
                       <p className="font-semibold">{p.name}</p>
-                      <p>{p.bills} bill · ausat {formatPKR(p.average)}</p>
-                      <p>Sale {formatPKR(p.net)}</p>
+                      <p>{tr('{{bills}} bill · ausat {{average}}', { bills: p.bills, average: formatPKR(p.average) })}</p>
+                      <p>{tr('Sale {{net}}', { net: formatPKR(p.net) })}</p>
                     </div>
                   );
                 }} />
@@ -165,14 +166,14 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
           </div>
         </Panel>
 
-        <Panel icon={Clock} title="Ghante war bill" hint="Din ke kis waqt kitne bill bane">
+        <Panel icon={Clock} title={tr('Ghante war bill')} hint={tr('Din ke kis waqt kitne bill bane')}>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.hourly.filter((h) => h.bills > 0)} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="hour" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={hourLabel} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={36} />
-                <Tooltip {...tip} labelFormatter={(h) => hourLabel(Number(h))} formatter={(v, n) => [n === 'net' ? formatPKR(Number(v)) : String(v), n === 'net' ? 'Sale' : 'Bill']} />
+                <Tooltip {...tip} labelFormatter={(h) => hourLabel(Number(h))} formatter={(v, n) => [n === 'net' ? formatPKR(Number(v)) : String(v), n === 'net' ? tr('Sale') : tr('Bill')]} />
                 <Bar dataKey="bills" fill={theme.primary} radius={[4, 4, 0, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
@@ -181,16 +182,16 @@ export function StaffAnalytics({ data, money, onOpen }: { data: StaffOverview; m
       </div>
 
       {data.commission && data.commission.rows.some((r) => r.enrolled) && (
-        <Panel icon={Coins} title={`Commission — ${new Date(`${data.commission.period}-15T12:00:00`).toLocaleDateString('en-PK', { month: 'long', year: 'numeric' })}`}
-          hint="Period jis mahine me khatam hoti hai, us ka hisab — sab branches ki sale par"
-          actions={<Link to="/staff/commission" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Commission safha →</Link>}>
+        <Panel icon={Coins} title={tr('Commission — {{value}}', { value: new Date(`${data.commission.period}-15T12:00:00`).toLocaleDateString('en-PK', { month: 'long', year: 'numeric' }) })}
+          hint={tr('Period jis mahine me khatam hoti hai, us ka hisab — sab branches ki sale par')}
+          actions={<Link to="/staff/commission" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Commission safha →')}</Link>}>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {data.commission.rows.filter((r) => r.enrolled).map((r) => (
               <li key={r.userId}>
-                <button type="button" onClick={() => onOpen(r.userId)} className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-left ring-1 ring-slate-100 hover:bg-brand-50">
+                <button type="button" onClick={() => onOpen(r.userId)} className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-start ring-1 ring-slate-100 hover:bg-brand-50">
                   <span className="min-w-0">
-                    <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{nameOf.get(r.userId) ?? 'Banda'}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{r.paid ? 'Ada ho gayi' : 'Baqi hai'}{r.targetPct != null && ` · target ${r.targetPct.toFixed(0)}%`}</span>
+                    <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{nameOf.get(r.userId) ?? tr('Banda')}</span>
+                    <span className="block text-[0.6875rem] text-slate-500">{r.paid ? tr('Ada ho gayi') : tr('Baqi hai')}{r.targetPct != null && tr(' · target {{value}}%', { value: r.targetPct.toFixed(0) })}</span>
                   </span>
                   <span className="shrink-0 font-bold tabular-nums text-slate-900">{money(r.earned)}</span>
                 </button>

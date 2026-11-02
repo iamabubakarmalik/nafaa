@@ -118,6 +118,9 @@ export interface AiActionProposal {
 export interface AiActionResult {
   ok: boolean;
   message: string;
+  /** Set when `message` has values in it; the web app translates from these. */
+  messageKey?: string;
+  params?: import('../../common/i18n/api-message').ApiMessage['params'];
   links: AiLink[];
 }
 

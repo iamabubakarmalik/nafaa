@@ -10,6 +10,7 @@ import { TenantTimezoneService } from '../../../../common/helpers/tenant-timezon
 import {
   forgetReportsConfig, hiddenFiguresFor, isOwnerRole, normalizeReportsConfig, readReportsConfig,
 } from '../../../../common/helpers/reports-config.helper';
+import { apiMessage } from '../../../../common/i18n/api-message';
 
 const RECEIPT_DEFAULTS = {
   paper: '80', style: 'modern', font: 'normal', accent: '#0f766e', watermark: 'both',
@@ -176,7 +177,7 @@ export class SettingsCoreService {
   /** Reset a whole section to defaults */
   async resetSection(user: AuthenticatedUser, section: string) {
     const reset = DEFAULT_SETTINGS[section];
-    if (!reset) throw new BadRequestException(`Unknown section: ${section}`);
+    if (!reset) throw new BadRequestException(apiMessage('Unknown section: {{section}}', { section }));
 
     await this.prisma.tenantSettings.update({
       where: { tenantId: user.tenantId },

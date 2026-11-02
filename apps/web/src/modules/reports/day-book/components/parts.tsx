@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { Table } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export function Panel({ icon: Icon, title, hint, actions, children, className, flush }: {
   icon: LucideIcon; title: ReactNode; hint?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; flush?: boolean;
@@ -32,9 +33,9 @@ export function Line({ label, value, sign, strong, muted, hint }: {
   return (
     <div className={cn('flex items-baseline justify-between gap-3 py-1.5 text-[0.8125rem]', strong && 'mt-1 border-t border-slate-200 pt-2.5')}>
       <span className={cn('min-w-0', strong ? 'font-semibold text-slate-900' : muted ? 'text-slate-400' : 'text-slate-600')}>
-        {sign && <span className={cn('mr-1 inline-block w-3 font-semibold', sign === '+' ? 'text-success-600' : sign === '−' ? 'text-rose-600' : 'text-slate-400')}>{sign}</span>}
+        {sign && <span className={cn('me-1 inline-block w-3 font-semibold', sign === '+' ? 'text-success-600' : sign === '−' ? 'text-rose-600' : 'text-slate-400')}>{sign}</span>}
         {label}
-        {hint && <span className="ml-1 text-[0.6875rem] text-slate-400">{hint}</span>}
+        {hint && <span className="ms-1 text-[0.6875rem] text-slate-400">{hint}</span>}
       </span>
       <span className={cn('shrink-0 tabular-nums', strong ? 'text-base font-bold text-slate-900' : 'font-medium text-slate-900')}>{value}</span>
     </div>
@@ -44,7 +45,7 @@ export function Line({ label, value, sign, strong, muted, hint }: {
 /** Percent change against an earlier figure; `invert` when lower is better. */
 export function Delta({ now, before, invert, className }: { now: number; before: number; invert?: boolean; className?: string }) {
   if (!before && !now) return <span className={cn('text-slate-400', className)}>—</span>;
-  if (!before) return <span className={cn('font-semibold text-success-700', className)}>naya</span>;
+  if (!before) return <span className={cn('font-semibold text-success-700', className)}>{t('naya')}</span>;
   const pct = ((now - before) / Math.abs(before)) * 100;
   const flat = Math.abs(pct) < 0.5;
   const good = invert ? pct < 0 : pct > 0;
@@ -92,7 +93,7 @@ export function TableWrap({ children, minWidth = '36rem' }: { children: ReactNod
   );
 }
 
-export const th = 'py-2 pr-3 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 last:pr-0';
-export const thR = `${th} text-right`;
-export const td = 'py-2 pr-3 align-top last:pr-0';
-export const tdR = `${td} text-right tabular-nums`;
+export const th = 'py-2 pe-3 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 last:pe-0';
+export const thR = `${th} text-end`;
+export const td = 'py-2 pe-3 align-top last:pe-0';
+export const tdR = `${td} text-end tabular-nums`;

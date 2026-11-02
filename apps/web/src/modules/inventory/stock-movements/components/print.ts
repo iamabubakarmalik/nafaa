@@ -7,6 +7,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { MovementList, StockMovement } from '../api/stock-movements.api';
 import { fmtQty, movementMeta } from './movementMeta';
+import { t } from '@core/i18n';
 
 const when = (v: string) => new Date(v).toLocaleString('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 const productName = (m: StockMovement) => `${m.product.name}${m.variant ? ` (${m.variant.name})` : ''}`;
@@ -15,28 +16,28 @@ const signed = (n: number) => `${n > 0 ? '+' : ''}${fmtQty(n)}`;
 export function movementsDoc(list: MovementList, period: string, filters: string[]): PrintDoc {
   const value = list.items.reduce((s, m) => s + m.value, 0);
   return {
-    title: 'Stock ka hisaab',
+    title: t('Stock ka hisaab'),
     subtitle: period,
     meta: [
-      ['Entries', String(list.total)],
-      ['Aaya', fmtQty(list.totals.qtyIn)],
-      ['Gaya', fmtQty(list.totals.qtyOut)],
-      ...(filters.length ? [['Filter', filters.join(' · ')] as [string, string]] : []),
+      [t('Entries'), String(list.total)],
+      [t('Aaya'), fmtQty(list.totals.qtyIn)],
+      [t('Gaya'), fmtQty(list.totals.qtyOut)],
+      ...(filters.length ? [[t('Filter'), filters.join(' · ')] as [string, string]] : []),
     ],
     sections: [
       {
         kind: 'table',
         columns: [
-          { label: 'Date' }, { label: 'Cheez' }, { label: 'Type', wideOnly: true }, { label: 'Quantity', align: 'right' },
-          { label: 'Baqi', align: 'right', wideOnly: true }, { label: 'Value', align: 'right', wideOnly: true },
+          { label: t('Date') }, { label: t('Cheez') }, { label: t('Type'), wideOnly: true }, { label: t('Quantity'), align: 'right' },
+          { label: t('Baqi'), align: 'right', wideOnly: true }, { label: t('Value'), align: 'right', wideOnly: true },
         ],
         rows: list.items.map((m) => [
           when(m.createdAt), productName(m), movementMeta(m.type).label, `${signed(m.quantity)} ${m.product.unit}`,
           fmtQty(m.balanceAfter), formatPKR(m.value),
         ]),
-        footer: ['', 'Kul', '', '', '', formatPKR(value)],
+        footer: ['', t('Kul'), '', '', '', formatPKR(value)],
       },
-      ...(list.total > list.items.length ? [{ kind: 'text' as const, text: `Pehli ${list.items.length} entries — baqi ke liye filter chhota karein.` }] : []),
+      ...(list.total > list.items.length ? [{ kind: 'text' as const, text: t('Pehli {{count}} entries — baqi ke liye filter chhota karein.', { count: list.items.length }) }] : []),
     ],
   };
 }
@@ -47,7 +48,7 @@ const cell = (v: string | number) => {
 };
 
 export function downloadMovementsCsv(items: StockMovement[], filename: string) {
-  const head = ['Date', 'Cheez', 'Variant', 'SKU', 'Branch', 'Type', 'Quantity', 'Unit', 'Baqi', 'Value', 'Reference', 'Note', 'Kis ne'];
+  const head = [t('Date'), t('Cheez'), t('Variant'), 'SKU', t('Branch'), t('Type'), t('Quantity'), t('Unit'), t('Baqi'), t('Value'), t('Reference'), t('Note'), t('Kis ne')];
   const rows = items.map((m) => [
     when(m.createdAt), m.product.name, m.variant?.name ?? '', m.product.sku ?? '', m.shop?.name ?? '', movementMeta(m.type).label,
     m.quantity, m.product.unit, m.balanceAfter, m.value, m.reference ?? '', m.note ?? '', m.createdBy?.fullName ?? '',

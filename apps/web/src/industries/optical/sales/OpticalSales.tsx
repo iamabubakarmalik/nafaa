@@ -13,6 +13,7 @@ import type { HistorySale } from '@modules/sales/history/api';
 import { eyeTestsApi } from '../api/eye-tests.api';
 import { lensOrdersApi } from '../api/lens-orders.api';
 import { OPTICAL_KEYS } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -28,14 +29,14 @@ function useOpticalBillExtras(sales: HistorySale[]) {
     const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
     return createElement('div', { className: 'mt-1.5 flex flex-wrap items-center gap-1' },
       o ? createElement(Link, { to: `/optical/lens-orders/${o.id}`, onClick: stop, className: `${chip} bg-cyan-50 text-cyan-800 ring-1 ring-cyan-200 hover:bg-cyan-100` },
-        createElement(o.repair ? Wrench : Glasses, { className: 'h-3 w-3' }), `${o.repair ? 'Repair' : 'Chashma'} ${o.number}`) : null,
+        createElement(o.repair ? Wrench : Glasses, { className: 'h-3 w-3' }), `${o.repair ? tr('Repair') : tr('Chashma')} ${o.number}`) : null,
       t ? createElement(Link, { to: `/optical/eye-tests/${t.id}`, onClick: stop, className: `${chip} bg-violet-50 text-violet-700 ring-1 ring-violet-200 hover:bg-violet-100` },
         createElement(Eye, { className: 'h-3 w-3' }), `Eye test ${t.testNumber}`) : null,
     );
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Optical', useBillExtras: useOpticalBillExtras };
+const config: SalesHistoryConfig = { label: tr('Optical'), useBillExtras: useOpticalBillExtras };
 
 export default function OpticalSales() {
   return <SalesHistoryPage config={config} />;

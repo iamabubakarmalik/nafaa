@@ -8,6 +8,7 @@ import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { DAY_MS, assertCan, gymClock, opt, paging, r2 } from '../common/gym-common';
 import { MembershipsService } from '../memberships/memberships.service';
 import { CheckInDto } from './dto/check-in.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 
@@ -73,14 +74,14 @@ export class AttendanceService {
         where: { tenantId, memberId: member.id, isGuest: false, checkOutAt: null, checkInAt: { gte: new Date(now.getTime() - INSIDE_WINDOW_MS) } },
         select: { id: true, checkInAt: true },
       });
-      if (inside) throw new BadRequestException(`${customer?.name ?? 'Member'} pehle se andar hai — pehle check-out karein`);
+      if (inside) throw new BadRequestException(apiMessage('{{customerName}} pehle se andar hai — pehle check-out karein', { customerName: customer?.name ?? 'Member' }));
     }
 
     const { running, block, message, due } = await this.assess(tenantId, member, !!dto.isGuest, now);
     if (dto.isGuest && running) {
       const used = await this.prisma.gymAttendance.count({ where: { tenantId, membershipId: running.id, isGuest: true } });
       if (running.plan.includesGuestPasses > 0 && used >= running.plan.includesGuestPasses && !dto.allowExpired) {
-        throw new BadRequestException(`Is plan ke ${running.plan.includesGuestPasses} mehmaan pass istemal ho chuke`);
+        throw new BadRequestException(apiMessage('Is plan ke {{includesGuestPasses}} mehmaan pass istemal ho chuke', { includesGuestPasses: running.plan.includesGuestPasses }));
       }
     }
     // A member who left or is banned is never let in from the desk; the profile is made active first.

@@ -9,6 +9,7 @@
 import { Package, Sparkles } from 'lucide-react';
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { GymCartMember } from './GymCartMember';
+import { t } from '@core/i18n';
 
 /** Units the gym product form offers for services (GymPack.productForm). */
 const SERVICE_UNITS = new Set(['month', 'quarter', 'half-year', 'year', 'session', 'class', 'visit', 'day-pass', 'hour']);
@@ -22,7 +23,7 @@ function useGymCatalog() {
     return {
       ...it,
       stock: service ? SERVICE_STOCK : it.stock,
-      badges: service ? [{ label: 'Service', tone: 'info' as const, icon: Sparkles }] : it.badges,
+      badges: service ? [{ label: t('Service'), tone: 'info' as const, icon: Sparkles }] : it.badges,
       rank: service ? 1 : 0,
       meta: { ...it.meta, service },
     };
@@ -30,18 +31,18 @@ function useGymCatalog() {
 }
 
 const filters: PosFilter[] = [
-  { id: 'goods', label: 'Supplements / shakes', icon: Package, match: (i) => !i.meta?.service },
-  { id: 'services', label: 'Day pass / locker', icon: Sparkles, match: (i) => !!i.meta?.service },
+  { id: 'goods', label: t('Supplements / shakes'), icon: Package, match: (i) => !i.meta?.service },
+  { id: 'services', label: t('Day pass / locker'), icon: Sparkles, match: (i) => !!i.meta?.service },
 ];
 
 export const gymPos: PosIndustryConfig = {
   id: 'gym',
-  label: 'Gym',
+  label: t('Gym'),
   useCatalog: useGymCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Supplement, shake, day pass ya locker — naam / barcode',
+  searchHint: t('Supplement, shake, day pass ya locker — naam / barcode'),
   receiptFooter: 'Shukriya! Training jaari rakhein.',
   voiceAliases: { protein: 'whey', shake: 'shake', locker: 'locker', pass: 'day pass' },
   CartExtra: GymCartMember,

@@ -27,6 +27,7 @@ import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { CreateSaleDto } from '../../../modules/sales/sales/dto/create-sale.dto';
 import { DAY_MS, garmentClock, opt, r2 } from '../common/garments-common';
 import { ExchangeDto } from './dto/exchange.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const ACTION = 'GARMENT_EXCHANGE';
 const EPS = 0.001;
@@ -147,8 +148,8 @@ export class ExchangeService {
       const p = productOf.get(i.productId);
       if (!p) throw new BadRequestException('Naya maal nahi mila ya band hai');
       const v = i.variantId ? variantOf.get(i.variantId) : null;
-      if (i.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(`${p.name}: ye size/rang is product ka nahi`);
-      if (p.hasVariants && !v) throw new BadRequestException(`${p.name} — size/rang chunein`);
+      if (i.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(apiMessage('{{pName}}: ye size/rang is product ka nahi', { pName: p.name }));
+      if (p.hasVariants && !v) throw new BadRequestException(apiMessage('{{pName}} — size/rang chunein', { pName: p.name }));
       const price = Number(v?.price ?? p.price) || 0;
       return {
         productId: p.id, variantId: v?.id ?? null, quantity: Number(i.quantity), price,
@@ -185,7 +186,9 @@ export class ExchangeService {
       const reserved = Number(row?.reserved ?? 0);
       const free = r2(Number(row?.stock ?? 0) - reserved + (back.get(k) ?? 0));
       if (free < n.qty - EPS) {
-        throw new BadRequestException(`${n.name}: is branch me ${Math.max(free, 0)} hi bechne ke liye hain${reserved ? ` (${reserved} hold par)` : ''}`);
+        throw new BadRequestException(reserved
+          ? apiMessage('{{name}}: is branch me {{free}} hi bechne ke liye hain ({{reserved}} hold par)', { name: n.name, free: Math.max(free, 0), reserved })
+          : apiMessage('{{name}}: is branch me {{free}} hi bechne ke liye hain', { name: n.name, free: Math.max(free, 0) }));
       }
     }
     return lines;
@@ -208,7 +211,7 @@ export class ExchangeService {
     const sale = await this.bill(user, scope, dto.saleId, true);
     if (!sale.shopId) throw new BadRequestException('Is bill par branch darj nahi — exchange nahi ho sakta');
     if (scope.shopId && scope.shopId !== sale.shopId) {
-      throw new BadRequestException(`Ye bill ${sale.shop?.name ?? 'doosri'} branch ka hai — exchange usi branch se karein`);
+      throw new BadRequestException(apiMessage('Ye bill {{shopName}} branch ka hai — exchange usi branch se karein', { shopName: sale.shop?.name ?? 'doosri' }));
     }
     const shopId = sale.shopId;
     const { settings, exchangeDays, days, late } = await this.window(user.tenantId, sale.soldAt);
@@ -240,7 +243,7 @@ export class ExchangeService {
       if (seen.has(r.saleItemId)) throw new BadRequestException('Ek hi cheez do dafa chuni gayi hai');
       seen.add(r.saleItemId);
       const left = r2(si.quantity - si.returnedQty);
-      if (!recent && r.quantity > left + EPS) throw new BadRequestException(`${si.product?.name ?? 'Item'}: sirf ${left} wapas ho sakta hai`);
+      if (!recent && r.quantity > left + EPS) throw new BadRequestException(apiMessage('{{productName}}: sirf {{left}} wapas ho sakta hai', { productName: si.product?.name ?? 'Item', left }));
     }
     const lines = await this.newLines(user, shopId, dto, sale, !!settings?.allowNegativeStock);
     const newTotal = r2(lines.reduce((s, l) => s + r2(l.price * l.quantity), 0));
@@ -251,7 +254,7 @@ export class ExchangeService {
     }
 
     if (late) {
-      await requireManagerPin(this.prisma, user, dto.managerPin, `Exchange — bill ${days} din purana (had ${exchangeDays} din)`, false, PIN_NEEDS.refund);
+      await requireManagerPin(this.prisma, user, dto.managerPin, apiMessage('Exchange — bill {{days}} din purana (had {{limit}} din)', { days, limit: exchangeDays }), false, PIN_NEEDS.refund);
     }
 
     const ret = await this.returns.create(user, scope, {
@@ -264,7 +267,7 @@ export class ExchangeService {
     } as CreateReturnDto);
     if (ret.repeated) {
       // A plain return of the same lines a moment ago already paid the money out.
-      if (ret.notes !== NOTE) throw new BadRequestException(`Ye maal abhi ${ret.returnNumber} me wapas ho chuka — naya maal POS se bechein`);
+      if (ret.notes !== NOTE) throw new BadRequestException(apiMessage('Ye maal abhi {{returnNumber}} me wapas ho chuka — naya maal POS se bechein', { returnNumber: ret.returnNumber }));
       const earlier = await this.done(user.tenantId, ret.id);
       if (earlier) return earlier;
     }
@@ -298,7 +301,7 @@ export class ExchangeService {
       if (e instanceof ForbiddenException && /PIN chahiye/.test(e.message)) throw e;
       const why = e instanceof HttpException ? e.message : 'server ka masla';
       throw new BadRequestException(
-        `Wapsi ${ret.returnNumber} ho gayi (customer ke Rs ${credit}), lekin naya bill nahi bana: ${why}. POS se bill banayein aur Rs ${credit} payment me ginein.`,
+        apiMessage('Wapsi {{returnNumber}} ho gayi (customer ke Rs {{credit}}), lekin naya bill nahi bana: {{why}}. POS se bill banayein aur Rs {{credit}} payment me ginein.', { returnNumber: ret.returnNumber, credit, why }),
       );
     }
 

@@ -15,13 +15,14 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { cn } from '@core/lib/cn';
 import { importApi, type ImportJob } from './api';
 import { downloadJobChanges, downloadJobErrors } from './columns';
+import { t } from '@core/i18n';
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  COMPLETED: { label: 'Mukammal', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  PARTIAL: { label: 'Kuch lines reh gayin', cls: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  FAILED: { label: 'Fail', cls: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  PROCESSING: { label: 'Chal raha hai', cls: 'bg-sky-50 text-sky-700 ring-sky-200' },
-  PENDING: { label: 'Intezar', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  COMPLETED: { label: t('Mukammal'), cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  PARTIAL: { label: t('Kuch lines reh gayin'), cls: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  FAILED: { label: t('Fail'), cls: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  PROCESSING: { label: t('Chal raha hai'), cls: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  PENDING: { label: t('Intezar'), cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
 /** A run left open for half an hour was closed in the middle (tab closed, internet gone). */
@@ -41,9 +42,9 @@ export function ImportHistory({ withCost }: { withCost: boolean }) {
       const d = await importApi.job(j.id);
       if (j.jobType === 'PRICE_UPDATE' && d.changes.length) await downloadJobChanges(j.fileName, d.changes, withCost);
       if (d.errors.length) await downloadJobErrors(j.fileName, d.errors);
-      if (!d.errors.length && !(j.jobType === 'PRICE_UPDATE' && d.changes.length)) toast.info('Is import me download ke liye kuch nahi');
+      if (!d.errors.length && !(j.jobType === 'PRICE_UPDATE' && d.changes.length)) toast.info(t('Is import me download ke liye kuch nahi'));
     } catch {
-      toast.error('Download nahi hua');
+      toast.error(t('Download nahi hua'));
     } finally {
       setBusy(null);
     }
@@ -53,46 +54,46 @@ export function ImportHistory({ withCost }: { withCost: boolean }) {
   return (
     <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><History className="h-4 w-4 text-brand-600" />Import history <span className="text-[0.75rem] font-normal text-slate-500">({jobs.length})</span></h2>
-        <p className="text-[0.75rem] text-slate-500">"Edit" se us import ke products grid me khulte hain · "Theek karein" se ghalti wali lines dobara</p>
+        <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><History className="h-4 w-4 text-brand-600" />{t('Import history')}{' '} <span className="text-[0.75rem] font-normal text-slate-500">({jobs.length})</span></h2>
+        <p className="text-[0.75rem] text-slate-500">{t('"Edit" se us import ke products grid me khulte hain · "Theek karein" se ghalti wali lines dobara')}</p>
       </div>
       <ul className="divide-y divide-slate-100">
         {(all ? jobs : jobs.slice(0, 8)).map((j) => {
-          const st = stale(j) ? { label: 'Beech me ruk gaya', cls: 'bg-rose-50 text-rose-700 ring-rose-200' } : STATUS[j.status] ?? STATUS.PENDING;
+          const st = stale(j) ? { label: t('Beech me ruk gaya'), cls: 'bg-rose-50 text-rose-700 ring-rose-200' } : STATUS[j.status] ?? STATUS.PENDING;
           const hasFile = j.errorCount + j.skipCount > 0 || j.jobType === 'PRICE_UPDATE';
           return (
             <li key={j.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-[0.8125rem]">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-slate-900">
-                  {j.jobType === 'PRICE_UPDATE' ? 'Price update' : 'Products + stock'} · <span className="font-normal text-slate-600">{j.fileName}</span>
+                  {j.jobType === 'PRICE_UPDATE' ? t('Price update') : t('Products + stock')} · <span className="font-normal text-slate-600">{j.fileName}</span>
                 </p>
-                <p className="text-[0.75rem] text-slate-500">{when(j.createdAt)} · {j.totalRows} lines{j.userName ? ` · ${j.userName}` : ''}</p>
+                <p className="text-[0.75rem] text-slate-500">{t('{{createdAt}} · {{totalRows}} lines{{value}}', { createdAt: when(j.createdAt), totalRows: j.totalRows, value: j.userName ? ` · ${j.userName}` : '' })}</p>
               </div>
               <p className="text-[0.75rem] tabular-nums text-slate-600">
                 {j.jobType === 'PRODUCTS' && j.created !== undefined
-                  ? <><b className="text-emerald-700">{j.created}</b> bane{j.updated ? <> · <b className="text-sky-700">{j.updated}</b> update</> : null}{j.stockUnits ? <> · stock +{j.stockUnits.toLocaleString()}</> : null}</>
+                  ? <><b className="text-emerald-700">{j.created}</b> {' '}{t('bane')}{j.updated ? <> · <b className="text-sky-700">{j.updated}</b> {' '}{t('update')}</> : null}{j.stockUnits ? <> {' '}{t('· stock +{{stockUnits}}', { stockUnits: j.stockUnits.toLocaleString() })}</> : null}</>
                   : <><b className="text-emerald-700">{j.successCount}</b> {j.jobType === 'PRICE_UPDATE' ? 'badli' : 'bane'}</>}
-                {j.skipCount > 0 && <> · {j.skipCount} {j.jobType === 'PRICE_UPDATE' ? 'wesi hi' : 'chhor diye'}</>}
-                {j.errorCount > 0 && <> · <b className="text-rose-700">{j.errorCount}</b> ghalti</>}
-                {j.processedRows < j.totalRows && <> · {j.processedRows}/{j.totalRows} lines</>}
+                {j.skipCount > 0 && <> · {j.skipCount} {j.jobType === 'PRICE_UPDATE' ? t('wesi hi') : t('chhor diye')}</>}
+                {j.errorCount > 0 && <> · <b className="text-rose-700">{j.errorCount}</b> {' '}{t('ghalti')}</>}
+                {j.processedRows < j.totalRows && <> {' '}{t('· {{processedRows}}/{{totalRows}} lines', { processedRows: j.processedRows, totalRows: j.totalRows })}</>}
               </p>
               <span className={cn('inline-flex h-6 items-center rounded-full px-2 text-[0.6875rem] font-semibold ring-1', st.cls)}>{st.label}</span>
               {canEdit && j.jobType === 'PRODUCTS' && (j.productCount ?? 0) > 0 && (
                 <Link to={`/products/bulk-edit?job=${j.id}`}
                   className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50">
-                  <PencilLine className="h-3.5 w-3.5" />Edit
+                  <PencilLine className="h-3.5 w-3.5" />{t('Edit')}
                 </Link>
               )}
               {(j.failedSaved ?? 0) > 0 && (j.jobType === 'PRICE_UPDATE' ? canEdit : true) && (
                 <Link to={`/products/bulk-import?fix=${j.id}`}
                   className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50">
-                  <Wrench className="h-3.5 w-3.5" />Theek karein ({j.failedSaved})
+                  <Wrench className="h-3.5 w-3.5" />{t('Theek karein ({{failedSaved}})', { failedSaved: j.failedSaved })}
                 </Link>
               )}
               {hasFile && (
                 <button type="button" onClick={() => void download(j)} disabled={busy === j.id}
                   className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60">
-                  {busy === j.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}Download
+                  {busy === j.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}{t('Download')}
                 </button>
               )}
             </li>
@@ -101,7 +102,7 @@ export function ImportHistory({ withCost }: { withCost: boolean }) {
       </ul>
       {jobs.length > 8 && (
         <button type="button" onClick={() => setAll((x) => !x)} className="mt-2 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-          {all ? 'Kam dikhayein' : `Sab ${jobs.length} dikhayein`}
+          {all ? t('Kam dikhayein') : t('Sab {{count}} dikhayein', { count: jobs.length })}
         </button>
       )}
     </div>

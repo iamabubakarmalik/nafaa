@@ -24,15 +24,16 @@ import { equipmentApi, type Equipment, type EquipmentCategory, type EquipmentSta
 import { EmptyList, ListSkeleton, LoadFailed, Panel } from '../components/ui';
 import { GYM_KEYS, apiError, dateOf, daysLeft, num, opt } from '../lib/meta';
 import { useGymCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 const CATS: Array<{ value: EquipmentCategory; label: string }> = [
-  { value: 'CARDIO', label: 'Cardio (treadmill, cycle)' }, { value: 'STRENGTH', label: 'Strength' }, { value: 'MACHINES', label: 'Machines' },
-  { value: 'FREE_WEIGHTS', label: 'Dumbbell / plates' }, { value: 'FUNCTIONAL', label: 'Functional' }, { value: 'CROSSFIT', label: 'CrossFit' },
-  { value: 'BOXING', label: 'Boxing' }, { value: 'YOGA_MAT', label: 'Yoga mat' }, { value: 'ACCESSORIES', label: 'Accessories' }, { value: 'OTHER', label: 'Doosra' },
+  { value: 'CARDIO', label: tr('Cardio (treadmill, cycle)') }, { value: 'STRENGTH', label: tr('Strength') }, { value: 'MACHINES', label: tr('Machines') },
+  { value: 'FREE_WEIGHTS', label: tr('Dumbbell / plates') }, { value: 'FUNCTIONAL', label: tr('Functional') }, { value: 'CROSSFIT', label: tr('CrossFit') },
+  { value: 'BOXING', label: tr('Boxing') }, { value: 'YOGA_MAT', label: tr('Yoga mat') }, { value: 'ACCESSORIES', label: tr('Accessories') }, { value: 'OTHER', label: tr('Doosra') },
 ];
 const STATUS: Record<EquipmentStatus, { label: string; variant: BadgeVariant }> = {
-  AVAILABLE: { label: 'Theek', variant: 'success' }, IN_USE: { label: 'Istemal me', variant: 'info' }, MAINTENANCE: { label: 'Service me', variant: 'warning' },
-  OUT_OF_ORDER: { label: 'Kharab', variant: 'danger' }, RESERVED: { label: 'Rakha hua', variant: 'default' }, RETIRED: { label: 'Hata diya', variant: 'default' },
+  AVAILABLE: { label: tr('Theek'), variant: 'success' }, IN_USE: { label: tr('Istemal me'), variant: 'info' }, MAINTENANCE: { label: tr('Service me'), variant: 'warning' },
+  OUT_OF_ORDER: { label: tr('Kharab'), variant: 'danger' }, RESERVED: { label: tr('Rakha hua'), variant: 'default' }, RETIRED: { label: tr('Hata diya'), variant: 'default' },
 };
 const catLabel = (c: string) => CATS.find((x) => x.value === c)?.label ?? c;
 
@@ -67,46 +68,46 @@ export default function EquipmentPage() {
   return (
     <PageShell>
       <PageHero
-        title="Machines"
-        chip={<><Activity /> Gym</>}
-        meta="Kaunsi machine theek hai, kis ki service aa gayi"
+        title={tr('Machines')}
+        chip={<><Activity /> {' '}{tr('Gym')}</>}
+        meta={tr('Kaunsi machine theek hai, kis ki service aa gayi')}
         busy={q.isFetching && !q.isLoading}
         loading={sQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {can.machines && <button type="button" onClick={() => setEdit('new')} title="Nayi machine (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi machine</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.machines && <button type="button" onClick={() => setEdit('new')} title={tr('Nayi machine (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi machine')}</button>}
         </>}
-        stats={[{ label: 'Machines', value: total }, { label: 'Service aa gayi', value: s?.needsMaintenance ?? 0 }, { label: 'Kharab', value: st('OUT_OF_ORDER') }]}
+        stats={[{ label: tr('Machines'), value: total }, { label: tr('Service aa gayi'), value: s?.needsMaintenance ?? 0 }, { label: tr('Kharab'), value: st('OUT_OF_ORDER') }]}
       />
 
       <KpiRow cols={3}>
         {sQ.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Activity} color="#16a34a" label="Theek" value={st('AVAILABLE') + st('IN_USE')} onClick={() => setStatus(status === 'AVAILABLE' ? '' : 'AVAILABLE')} active={status === 'AVAILABLE'} />
-          <KpiCard icon={Wrench} color={(s?.needsMaintenance ?? 0) ? '#d97706' : '#64748b'} label="Service aa gayi" value={s?.needsMaintenance ?? 0} hint="Date guzar gayi" />
-          <KpiCard icon={AlertTriangle} color="#e11d48" label="Kharab / service me" value={st('OUT_OF_ORDER') + st('MAINTENANCE')} onClick={() => setStatus(status === 'OUT_OF_ORDER' ? '' : 'OUT_OF_ORDER')} active={status === 'OUT_OF_ORDER'} />
+          <KpiCard icon={Activity} color="#16a34a" label={tr('Theek')} value={st('AVAILABLE') + st('IN_USE')} onClick={() => setStatus(status === 'AVAILABLE' ? '' : 'AVAILABLE')} active={status === 'AVAILABLE'} />
+          <KpiCard icon={Wrench} color={(s?.needsMaintenance ?? 0) ? '#d97706' : '#64748b'} label={tr('Service aa gayi')} value={s?.needsMaintenance ?? 0} hint={tr('Date guzar gayi')} />
+          <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Kharab / service me')} value={st('OUT_OF_ORDER') + st('MAINTENANCE')} onClick={() => setStatus(status === 'OUT_OF_ORDER' ? '' : 'OUT_OF_ORDER')} active={status === 'OUT_OF_ORDER'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, brand, EQ number ya serial…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, brand, EQ number ya serial…')} />}
         chips={category || status ? <>
           {category && <FilterChip onRemove={() => setCategory('')}>{catLabel(category)}</FilterChip>}
           {status && <FilterChip onRemove={() => setStatus('')}>{STATUS[status as EquipmentStatus]?.label}</FilterChip>}
         </> : undefined}
         onClear={() => { setCategory(''); setStatus(''); setSearch(''); }}>
-        <FilterMenu icon={Filter} label={category ? catLabel(category) : 'Category'} value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: 'Sab' }, ...CATS]} />
-        <FilterMenu icon={Wrench} label={status ? STATUS[status as EquipmentStatus].label : 'Haal'} value={status} active={!!status} onChange={setStatus}
-          options={[{ value: '', label: 'Sab' }, ...(Object.keys(STATUS) as EquipmentStatus[]).filter((k) => k !== 'RETIRED').map((k) => ({ value: k, label: STATUS[k].label }))]} />
+        <FilterMenu icon={Filter} label={category ? catLabel(category) : tr('Category')} value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: tr('Sab') }, ...CATS]} />
+        <FilterMenu icon={Wrench} label={status ? STATUS[status as EquipmentStatus].label : tr('Haal')} value={status} active={!!status} onChange={setStatus}
+          options={[{ value: '', label: tr('Sab') }, ...(Object.keys(STATUS) as EquipmentStatus[]).filter((k) => k !== 'RETIRED').map((k) => ({ value: k, label: STATUS[k].label }))]} />
       </FilterBar>
 
-      {q.isLoading ? <ListSkeleton /> : q.isError ? <LoadFailed what="Machines" retry={() => q.refetch()} /> : !rows.length ? (
-        <EmptyList icon={Activity} title="Koi machine nahi" text="Machines likhein taake service ki date yaad rahe aur repair ka kharcha hisaab me aaye.">
-          {can.machines && <Button onClick={() => setEdit('new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi machine</Button>}
+      {q.isLoading ? <ListSkeleton /> : q.isError ? <LoadFailed what={tr('Machines')} retry={() => q.refetch()} /> : !rows.length ? (
+        <EmptyList icon={Activity} title={tr('Koi machine nahi')} text={tr('Machines likhein taake service ki date yaad rahe aur repair ka kharcha hisaab me aaye.')}>
+          {can.machines && <Button onClick={() => setEdit('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Nayi machine')}</Button>}
         </EmptyList>
       ) : (
         <Panel>
           <Table minWidth="48rem">
-            <THead><Tr><Th>Machine</Th><Th>Category</Th><Th>Haal</Th><Th>Agli service</Th><Th align="right">Repair kharcha</Th><Th /></Tr></THead>
+            <THead><Tr><Th>{tr('Machine')}</Th><Th>{tr('Category')}</Th><Th>{tr('Haal')}</Th><Th>{tr('Agli service')}</Th><Th align="right">{tr('Repair kharcha')}</Th><Th /></Tr></THead>
             <TBody>{rows.map((e) => {
               const due = e.nextMaintenanceDate ? daysLeft(e.nextMaintenanceDate) : null;
               return (
@@ -114,12 +115,12 @@ export default function EquipmentPage() {
                   <Td><p className="font-medium text-slate-900">{e.name}</p><p className="text-[0.75rem] text-slate-500">{e.equipmentNumber}{e.brand ? ` · ${e.brand}` : ''}{e.roomName ? ` · ${e.roomName}` : ''}</p></Td>
                   <Td>{catLabel(e.category)}</Td>
                   <Td><Badge size="xs" variant={STATUS[e.status].variant}>{STATUS[e.status].label}</Badge></Td>
-                  <Td>{e.nextMaintenanceDate ? <>{dateOf(e.nextMaintenanceDate)}{due != null && due <= 0 && <div><Badge size="xs" variant="warning">Service aa gayi</Badge></div>}</> : '—'}</Td>
+                  <Td>{e.nextMaintenanceDate ? <>{dateOf(e.nextMaintenanceDate)}{due != null && due <= 0 && <div><Badge size="xs" variant="warning">{tr('Service aa gayi')}</Badge></div>}</> : '—'}</Td>
                   <Td align="right" className="tabular-nums">{formatPKR(e.totalMaintenanceCost)}</Td>
                   <Td align="right">{can.machines && (
                     <div className="flex justify-end gap-1.5">
-                      <Button size="sm" variant="secondary" leftIcon={<Wrench className="h-3.5 w-3.5" />} onClick={() => setService(e)}>Service</Button>
-                      <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEdit(e)}>Badlein</Button>
+                      <Button size="sm" variant="secondary" leftIcon={<Wrench className="h-3.5 w-3.5" />} onClick={() => setService(e)}>{tr('Service')}</Button>
+                      <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEdit(e)}>{tr('Badlein')}</Button>
                     </div>
                   )}</Td>
                 </Tr>
@@ -133,13 +134,13 @@ export default function EquipmentPage() {
       {service && <ServiceModal machine={service} onClose={() => setService(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Machines — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Machines — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Machine', text: 'Naam, category aur kitne din baad service. Number khud banta hai (EQ-0001).' },
-            { icon: Wrench, color: '#d97706', title: 'Service', text: 'Service ya repair ho to "Service" dabayein. Paisa abhi diya to kharcha ban jata hai — cash drawer se nikalta hai.' },
-            { icon: AlertTriangle, color: '#e11d48', title: 'Kharab', text: 'Machine kharab ho to Haal "Kharab" karein taake members ko bata sakein.' },
+            { icon: Plus, color: '#2563eb', title: tr('Machine'), text: tr('Naam, category aur kitne din baad service. Number khud banta hai (EQ-0001).') },
+            { icon: Wrench, color: '#d97706', title: tr('Service'), text: tr('Service ya repair ho to "Service" dabayein. Paisa abhi diya to kharcha ban jata hai — cash drawer se nikalta hai.') },
+            { icon: AlertTriangle, color: '#e11d48', title: tr('Kharab'), text: tr('Machine kharab ho to Haal "Kharab" karein taake members ko bata sakein.') },
           ]}
-          shortcuts={[['N', 'nayi machine'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', tr('nayi machine')], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -158,7 +159,7 @@ function MachineModal({ machine, onClose }: { machine: Equipment | null; onClose
   });
   const [retire, setRetire] = useState(false);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
-  const error = f.name.trim().length < 2 ? 'Machine ka naam likhein' : undefined;
+  const error = f.name.trim().length < 2 ? tr('Machine ka naam likhein') : undefined;
   const save = useMutation({
     mutationFn: () => {
       const body = {
@@ -168,37 +169,37 @@ function MachineModal({ machine, onClose }: { machine: Equipment | null; onClose
       };
       return machine ? equipmentApi.update(machine.id, body) : equipmentApi.create(body);
     },
-    onSuccess: () => { toast.success('Machine save ho gayi'); qc.invalidateQueries({ queryKey: [GYM_KEYS.equipment] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(tr('Machine save ho gayi')); qc.invalidateQueries({ queryKey: [GYM_KEYS.equipment] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   const remove = useMutation({
     mutationFn: () => equipmentApi.remove(machine!.id),
-    onSuccess: () => { toast.success('Machine hata di — record rehta hai'); qc.invalidateQueries({ queryKey: [GYM_KEYS.equipment] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(tr('Machine hata di — record rehta hai')); qc.invalidateQueries({ queryKey: [GYM_KEYS.equipment] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="lg" title={machine ? `${machine.name} — badlein` : 'Nayi machine'}
+    <Modal open onClose={onClose} size="lg" title={machine ? tr('{{name}} — badlein', { name: machine.name }) : tr('Nayi machine')}
       footer={<>
         {machine && (retire
-          ? <Button variant="danger" className="mr-auto" loading={remove.isPending} onClick={() => remove.mutate()}>Haan, hata dein</Button>
-          : <Button variant="ghost" className="mr-auto" onClick={() => setRetire(true)}>Bech di / hata di</Button>)}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Save</Button>
+          ? <Button variant="danger" className="me-auto" loading={remove.isPending} onClick={() => remove.mutate()}>{tr('Haan, hata dein')}</Button>
+          : <Button variant="ghost" className="me-auto" onClick={() => setRetire(true)}>{tr('Bech di / hata di')}</Button>)}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>{tr('Save')}</Button>
       </>}>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Input wrapperClassName="sm:col-span-2" label="Naam" value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Treadmill 1" maxLength={120} />
-        <Select label="Category" value={f.category} onChange={(e) => set('category', e.target.value as EquipmentCategory)} options={CATS} />
-        <Select label="Haal" value={f.status} onChange={(e) => set('status', e.target.value as EquipmentStatus)} options={(Object.keys(STATUS) as EquipmentStatus[]).filter((k) => k !== 'RETIRED').map((k) => ({ value: k, label: STATUS[k].label }))} />
-        <Input label="Brand" value={f.brand} onChange={(e) => set('brand', e.target.value)} hint="Marzi hai" />
-        <Input label="Model" value={f.model} onChange={(e) => set('model', e.target.value)} hint="Marzi hai" />
-        <Input label="Serial number" value={f.serialNumber} onChange={(e) => set('serialNumber', e.target.value)} hint="Warranty claim ke liye" />
-        <Input label="Kamra / jagah" value={f.roomName} onChange={(e) => set('roomName', e.target.value)} placeholder="Cardio hall" />
-        <Input label="Kis se li" value={f.vendorName} onChange={(e) => set('vendorName', e.target.value)} hint="Marzi hai" />
-        <Input label="Kab li" type="date" value={f.purchaseDate} onChange={(e) => set('purchaseDate', e.target.value)} />
-        <Input label="Qeemat (Rs)" inputMode="decimal" value={f.purchasePrice} onChange={(e) => set('purchasePrice', num(e.target.value))} hint="Sirf record — kharcha nahi banta" />
-        <Input label="Warranty kab tak" type="date" value={f.warrantyExpiry} onChange={(e) => set('warrantyExpiry', e.target.value)} />
-        <Input label="Har kitne din service" inputMode="numeric" value={f.maintenanceIntervalDays} onChange={(e) => set('maintenanceIntervalDays', e.target.value.replace(/\D/g, ''))} />
-        <Input label="Agli service" type="date" value={f.nextMaintenanceDate} onChange={(e) => set('nextMaintenanceDate', e.target.value)} />
-        <Textarea wrapperClassName="sm:col-span-3" label="Note" value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={2} maxLength={2000} hint="Marzi hai" />
+        <Input wrapperClassName="sm:col-span-2" label={tr('Naam')} value={f.name} onChange={(e) => set('name', e.target.value)} placeholder={tr('Treadmill 1')} maxLength={120} />
+        <Select label={tr('Category')} value={f.category} onChange={(e) => set('category', e.target.value as EquipmentCategory)} options={CATS} />
+        <Select label={tr('Haal')} value={f.status} onChange={(e) => set('status', e.target.value as EquipmentStatus)} options={(Object.keys(STATUS) as EquipmentStatus[]).filter((k) => k !== 'RETIRED').map((k) => ({ value: k, label: STATUS[k].label }))} />
+        <Input label={tr('Brand')} value={f.brand} onChange={(e) => set('brand', e.target.value)} hint={tr('Marzi hai')} />
+        <Input label={tr('Model')} value={f.model} onChange={(e) => set('model', e.target.value)} hint={tr('Marzi hai')} />
+        <Input label={tr('Serial number')} value={f.serialNumber} onChange={(e) => set('serialNumber', e.target.value)} hint={tr('Warranty claim ke liye')} />
+        <Input label={tr('Kamra / jagah')} value={f.roomName} onChange={(e) => set('roomName', e.target.value)} placeholder={tr('Cardio hall')} />
+        <Input label={tr('Kis se li')} value={f.vendorName} onChange={(e) => set('vendorName', e.target.value)} hint={tr('Marzi hai')} />
+        <Input label={tr('Kab li')} type="date" value={f.purchaseDate} onChange={(e) => set('purchaseDate', e.target.value)} />
+        <Input label={tr('Qeemat (Rs)')} inputMode="decimal" value={f.purchasePrice} onChange={(e) => set('purchasePrice', num(e.target.value))} hint={tr('Sirf record — kharcha nahi banta')} />
+        <Input label={tr('Warranty kab tak')} type="date" value={f.warrantyExpiry} onChange={(e) => set('warrantyExpiry', e.target.value)} />
+        <Input label={tr('Har kitne din service')} inputMode="numeric" value={f.maintenanceIntervalDays} onChange={(e) => set('maintenanceIntervalDays', e.target.value.replace(/\D/g, ''))} />
+        <Input label={tr('Agli service')} type="date" value={f.nextMaintenanceDate} onChange={(e) => set('nextMaintenanceDate', e.target.value)} />
+        <Textarea wrapperClassName="sm:col-span-3" label={tr('Note')} value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={2} maxLength={2000} hint={tr('Marzi hai')} />
       </div>
     </Modal>
   );
@@ -215,18 +216,18 @@ function ServiceModal({ machine, onClose }: { machine: Equipment; onClose: () =>
   const amount = Number(cost) || 0;
   const save = useMutation({
     mutationFn: () => equipmentApi.maintenance(machine.id, { cost: amount, notes: opt(notes), nextDate: opt(next), paid: paid && amount > 0, paymentMethod: method }),
-    onSuccess: () => { toast.success(paid && amount > 0 ? 'Service likhi gayi · kharcha bana' : 'Service likhi gayi'); [GYM_KEYS.equipment, 'expenses', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(paid && amount > 0 ? tr('Service likhi gayi · kharcha bana') : tr('Service likhi gayi')); [GYM_KEYS.equipment, 'expenses', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title={`Service · ${machine.name}`} description="Service ke baad machine 'Theek' ho jati hai"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={paid && amount > 0 && !can.expense} onClick={() => save.mutate()} leftIcon={<Wrench className="h-4 w-4" />}>Save</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Service · {{name}}', { name: machine.name })} description={tr('Service ke baad machine \'Theek\' ho jati hai')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={paid && amount > 0 && !can.expense} onClick={() => save.mutate()} leftIcon={<Wrench className="h-4 w-4" />}>{tr('Save')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Kharcha (Rs)" inputMode="decimal" value={cost} onChange={(e) => setCost(num(e.target.value))} placeholder="0" className="text-right font-semibold tabular-nums" />
-        {amount > 0 && <Switch checked={paid} onChange={(e) => setPaid(e.target.checked)} label="Paisa abhi diya" description={can.expense ? 'Kharcha banega — cash drawer se' : 'Kharcha likhne ki permission nahi'} />}
-        {amount > 0 && paid && <PaymentMethodPicker value={method} onChange={setMethod} label="Kahan se diya" />}
-        <Input label="Agli service" type="date" value={next} onChange={(e) => setNext(e.target.value)} hint={machine.maintenanceIntervalDays ? `Khali chhorein to ${machine.maintenanceIntervalDays} din baad` : 'Marzi hai'} />
-        <Textarea label="Kya kiya" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Belt badli, oil diya" />
+        <Input label={tr('Kharcha (Rs)')} inputMode="decimal" value={cost} onChange={(e) => setCost(num(e.target.value))} placeholder="0" className="text-end font-semibold tabular-nums" />
+        {amount > 0 && <Switch checked={paid} onChange={(e) => setPaid(e.target.checked)} label={tr('Paisa abhi diya')} description={can.expense ? tr('Kharcha banega — cash drawer se') : tr('Kharcha likhne ki permission nahi')} />}
+        {amount > 0 && paid && <PaymentMethodPicker value={method} onChange={setMethod} label={tr('Kahan se diya')} />}
+        <Input label={tr('Agli service')} type="date" value={next} onChange={(e) => setNext(e.target.value)} hint={machine.maintenanceIntervalDays ? tr('Khali chhorein to {{maintenanceIntervalDays}} din baad', { maintenanceIntervalDays: machine.maintenanceIntervalDays }) : tr('Marzi hai')} />
+        <Textarea label={tr('Kya kiya')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder={tr('Belt badli, oil diya')} />
       </div>
     </Modal>
   );

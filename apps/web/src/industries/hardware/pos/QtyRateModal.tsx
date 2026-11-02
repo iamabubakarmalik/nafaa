@@ -13,6 +13,7 @@ import type { PosItem } from '@modules/pos/engine';
 import type { Tier } from '../api/bulk-pricing.api';
 import { tierFor } from '../hooks/useHardwareFacts';
 import { qty as fmt } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface QtyRateResult { qty: number; price: number; tier: Tier | null; shade: string }
 
@@ -37,21 +38,21 @@ export function QtyRateModal({ item, tiers, baseRate, rateLabel, paint, startQty
   const submit = () => { if (valid) onConfirm({ qty: q, price: rate, tier: tier && tier.price < baseRate ? tier : null, shade: shade.trim() }); };
 
   return (
-    <Modal open onClose={onClose} size="sm" title={item.name} description={`${rateLabel}: ${formatPKR(baseRate)} / ${item.unit} · stock ${fmt(item.stock)}`}
+    <Modal open onClose={onClose} size="sm" title={item.name} description={tr('{{rateLabel}}: {{baseRate}} / {{unit}} · stock {{stock}}', { rateLabel, baseRate: formatPKR(baseRate), unit: item.unit, stock: fmt(item.stock) })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Wapas</Button>
-        <Button onClick={submit} disabled={!valid}>Bill me dalein · {formatPKR(valid ? q * rate : 0)}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
+        <Button onClick={submit} disabled={!valid}>{tr('Bill me dalein · {{formatPKR}}', { formatPKR: formatPKR(valid ? q * rate : 0) })}</Button>
       </>}>
       <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitna ({item.unit})</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitna ({{unit}})', { unit: item.unit })}</span>
           <input data-autofocus inputMode="decimal" value={text} onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))}
             className="h-12 w-full rounded-xl border-0 bg-slate-100 px-4 text-xl font-bold tabular-nums outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
-          {over && <span className="mt-1 block text-[0.75rem] font-medium text-amber-700">Stock {fmt(item.stock)} hai — zyada bechne ki ijazat Settings se hai</span>}
+          {over && <span className="mt-1 block text-[0.75rem] font-medium text-amber-700">{tr('Stock {{stock}} hai — zyada bechne ki ijazat Settings se hai', { stock: fmt(item.stock) })}</span>}
         </label>
         {tiers.length > 0 && (
           <div>
-            <span className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><Tags className="h-4 w-4 text-emerald-600" />Quantity rate</span>
+            <span className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><Tags className="h-4 w-4 text-emerald-600" />{tr('Quantity rate')}</span>
             <div className="flex flex-wrap gap-1.5">
               {tiers.map((t) => (
                 <button key={t.id} type="button" onClick={() => setText(String(t.minQuantity))}
@@ -64,14 +65,14 @@ export function QtyRateModal({ item, tiers, baseRate, rateLabel, paint, startQty
         )}
         {paint && (
           <label className="block">
-            <span className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><Paintbrush className="h-4 w-4 text-violet-600" />Shade (tinting) — marzi</span>
-            <input value={shade} onChange={(e) => setShade(e.target.value)} placeholder="Code ya naam: 1234 Sky blue"
+            <span className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><Paintbrush className="h-4 w-4 text-violet-600" />{tr('Shade (tinting) — marzi')}</span>
+            <input value={shade} onChange={(e) => setShade(e.target.value)} placeholder={tr('Code ya naam: 1234 Sky blue')}
               className="h-11 w-full rounded-xl border-0 bg-slate-100 px-4 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
           </label>
         )}
         <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">
-          Rate: <strong className="tabular-nums">{formatPKR(rate)}</strong> / {item.unit}
-          {tier && tier.price < baseRate && <span className="ml-1 text-emerald-700">({fmt(tier.minQuantity)}+ wala rate{tier.label ? ` · ${tier.label}` : ''})</span>}
+          {tr('Rate:')}{' '} <strong className="tabular-nums">{formatPKR(rate)}</strong> / {item.unit}
+          {tier && tier.price < baseRate && <span className="ms-1 text-emerald-700">{tr('({{minQuantity}}+ wala rate{{value}})', { minQuantity: fmt(tier.minQuantity), value: tier.label ? ` · ${tier.label}` : '' })}</span>}
         </p>
       </form>
     </Modal>

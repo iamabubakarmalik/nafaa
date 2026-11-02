@@ -13,6 +13,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { MovementAnalytics as Data } from '../api/stock-movements.api';
 import { fmtQty, movementMeta } from './movementMeta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (key: string) => new Date(`${key}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -33,8 +34,8 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
         <TrendingUp className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">Is filter me stock ka koi aana jana nahi</p>
-        <p className="mt-1 text-sm text-slate-500">Period lambi karein ya filter hatayein</p>
+        <p className="mt-3 font-semibold text-slate-900">{tr('Is filter me stock ka koi aana jana nahi')}</p>
+        <p className="mt-1 text-sm text-slate-500">{tr('Period lambi karein ya filter hatayein')}</p>
       </div>
     );
   }
@@ -47,21 +48,21 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Boxes} label="Entries" value={t.count.toLocaleString('en-PK')} sub={`${data.byType.length} type ki`} />
-        <Kpi icon={ArrowDownRight} label="Maal aaya (cost)" value={money(t.valueIn)} tone="emerald" sub="Purchase, return, transfer aaya…" />
-        <Kpi icon={ArrowUpRight} label="Maal gaya (cost)" value={money(t.valueOut)} tone="rose" sub="Sale, kharab, transfer gaya…" />
-        <Kpi icon={Scale} label="Farq" value={money(t.net)} tone={t.net >= 0 ? 'emerald' : 'rose'} sub={t.net >= 0 ? 'Stock ki value barhi' : 'Stock ki value ghati'} />
+        <Kpi icon={Boxes} label={tr('Entries')} value={t.count.toLocaleString('en-PK')} sub={tr('{{count}} type ki', { count: data.byType.length })} />
+        <Kpi icon={ArrowDownRight} label={tr('Maal aaya (cost)')} value={money(t.valueIn)} tone="emerald" sub={tr('Purchase, return, transfer aaya…')} />
+        <Kpi icon={ArrowUpRight} label={tr('Maal gaya (cost)')} value={money(t.valueOut)} tone="rose" sub={tr('Sale, kharab, transfer gaya…')} />
+        <Kpi icon={Scale} label={tr('Farq')} value={money(t.net)} tone={t.net >= 0 ? 'emerald' : 'rose'} sub={t.net >= 0 ? tr('Stock ki value barhi') : tr('Stock ki value ghati')} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka aana jana</span>} description="Cost value me — hara aaya, laal gaya">
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ka aana jana')}</span>} description={tr('Cost value me — hara aaya, laal gaya')}>
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }} barGap={2}>
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'in' ? 'Aaya' : 'Gaya']} {...tip} />
-              <Legend formatter={(v) => (v === 'in' ? 'Aaya' : 'Gaya')} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'in' ? tr('Aaya') : tr('Gaya')]} {...tip} />
+              <Legend formatter={(v) => (v === 'in' ? tr('Aaya') : tr('Gaya'))} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="in" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={18} />
               <Bar dataKey="out" fill={theme.isDark ? '#fb7185' : '#e11d48'} radius={[4, 4, 0, 0]} maxBarSize={18} />
             </BarChart>
@@ -70,7 +71,7 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Type war</span>} description="Kis wajah se kitna maal hila">
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />{tr('Type war')}</span>} description={tr('Kis wajah se kitna maal hila')}>
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -94,21 +95,21 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
           </ul>
         </Card>
 
-        <Card className="rounded-2xl lg:col-span-3" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada hilne wala maal</span>} description="Quantity aaya / gaya, aur kul cost value">
-          {!data.topMovers.length ? <Empty text="Koi cheez nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-3" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />{tr('Sab se zyada hilne wala maal')}</span>} description={tr('Quantity aaya / gaya, aur kul cost value')}>
+          {!data.topMovers.length ? <Empty text={tr('Koi cheez nahi')} /> : (
             <ul className="space-y-3">
               {data.topMovers.map((m, i) => (
                 <li key={`${m.name}${i}`}>
                   <div className="flex justify-between gap-2 text-[0.8125rem]">
-                    <span className="truncate font-medium text-slate-800"><span className="mr-1.5 text-slate-400">{i + 1}</span>{m.name}</span>
+                    <span className="truncate font-medium text-slate-800"><span className="me-1.5 text-slate-400">{i + 1}</span>{m.name}</span>
                     <span className="shrink-0 tabular-nums text-slate-900">{money(m.value)}</span>
                   </div>
                   <div className="mt-1 flex h-2 gap-0.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-l-full bg-emerald-500" style={{ width: `${(m.in / moverMax) * 100}%` }} />
-                    <div className="h-full rounded-r-full bg-rose-500" style={{ width: `${(m.out / moverMax) * 100}%` }} />
+                    <div className="h-full rounded-s-full bg-emerald-500" style={{ width: `${(m.in / moverMax) * 100}%` }} />
+                    <div className="h-full rounded-e-full bg-rose-500" style={{ width: `${(m.out / moverMax) * 100}%` }} />
                   </div>
                   <p className="mt-0.5 text-[0.6875rem] text-slate-500">
-                    <span className="text-emerald-700">+{fmtQty(m.in)}</span> aaya · <span className="text-rose-700">−{fmtQty(m.out)}</span> gaya {m.unit}
+                    <span className="text-emerald-700">+{fmtQty(m.in)}</span> {' '}{tr('aaya ·')}{' '} <span className="text-rose-700">−{fmtQty(m.out)}</span> {' '}{tr('gaya {{unit}}', { unit: m.unit })}
                   </p>
                 </li>
               ))}
@@ -117,8 +118,8 @@ export function MovementAnalytics({ data, loading, money }: { data?: Data; loadi
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-brand-600" />Kis ne stock hilaya</span>} description="Entries aur un ki cost value">
-        {!data.byPerson.length ? <Empty text="Kisi ka naam darj nahi — purani entries me ye maloomat nahi hoti" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-brand-600" />{tr('Kis ne stock hilaya')}</span>} description={tr('Entries aur un ki cost value')}>
+        {!data.byPerson.length ? <Empty text={tr('Kisi ka naam darj nahi — purani entries me ye maloomat nahi hoti')} /> : (
           <ul className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
             {data.byPerson.map((p) => (
               <li key={p.name}>

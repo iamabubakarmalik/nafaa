@@ -17,6 +17,7 @@ import { AGRI_FACTS_KEY, factLine, useAgriFacts } from '../hooks/useAgriFacts';
 import { deriveAgriKind, isFeedKind, isFertKind, isSeedKind, isSprayKind, isToolKind, needsGovtReg, prettyAgriKind, type AgriKind } from '../lib/agriCategory';
 import { certStatus } from '../lib/agriUnits';
 import { FarmerStrip } from './FarmerStrip';
+import { t } from '@core/i18n';
 
 const KIND_ICON = (k: AgriKind) => (isSeedKind(k) ? Sprout : isFertKind(k) ? FlaskConical : isSprayKind(k) ? Bug : isFeedKind(k) ? PawPrint : isToolKind(k) ? Wrench : Leaf);
 
@@ -32,10 +33,10 @@ function useAgriCatalog() {
       ...it,
       dim: blocked || it.dim,
       badges: [
-        ...(blocked ? [{ label: 'Reg khatam', tone: 'danger' as const, icon: ShieldAlert }]
+        ...(blocked ? [{ label: t('Reg khatam'), tone: 'danger' as const, icon: ShieldAlert }]
           : kind !== 'OTHER' ? [{ label: prettyAgriKind(kind), tone: 'neutral' as const, icon: KIND_ICON(kind) }] : []),
-        ...(bulk ? [{ label: `${f!.bulkDiscountThreshold}+ par ${f!.bulkDiscountPct}%`, tone: 'success' as const, icon: Tags }] : []),
-        ...(f?.isRestricted || f?.requiresLicense ? [{ label: 'Pabandi', tone: 'warning' as const, icon: ShieldAlert }] : []),
+        ...(bulk ? [{ label: t('{{bulkDiscountThreshold}}+ par {{bulkDiscountPct}}%', { bulkDiscountThreshold: f!.bulkDiscountThreshold, bulkDiscountPct: f!.bulkDiscountPct }), tone: 'success' as const, icon: Tags }] : []),
+        ...(f?.isRestricted || f?.requiresLicense ? [{ label: t('Pabandi'), tone: 'warning' as const, icon: ShieldAlert }] : []),
       ],
       subline: factLine(f),
       searchText: [it.searchText, f?.activeIngredient, f?.npkRatio, f?.brand, f?.manufacturer, ...(f?.targetCrops ?? []), ...(f?.targetPests ?? []), prettyAgriKind(kind)].filter(Boolean).join(' '),
@@ -52,12 +53,12 @@ function useAgriCatalog() {
 const ofKind = (test: (k: AgriKind) => boolean) => (i: PosItem) => test(i.meta?.kind as AgriKind);
 
 const filters: PosFilter[] = [
-  { id: 'seed', label: 'Beej', icon: Sprout, match: ofKind(isSeedKind) },
-  { id: 'fert', label: 'Khaad', icon: FlaskConical, match: ofKind(isFertKind) },
-  { id: 'spray', label: 'Spray / dawa', icon: Bug, match: ofKind(isSprayKind) },
-  { id: 'feed', label: 'Feed', icon: PawPrint, match: ofKind(isFeedKind) },
-  { id: 'tool', label: 'Auzaar', icon: Wrench, match: ofKind(isToolKind) },
-  { id: 'bulk', label: 'Bulk rate', icon: Tags, match: (i) => Number(i.meta?.bulkMin) > 0 },
+  { id: 'seed', label: t('Beej'), icon: Sprout, match: ofKind(isSeedKind) },
+  { id: 'fert', label: t('Khaad'), icon: FlaskConical, match: ofKind(isFertKind) },
+  { id: 'spray', label: t('Spray / dawa'), icon: Bug, match: ofKind(isSprayKind) },
+  { id: 'feed', label: t('Feed'), icon: PawPrint, match: ofKind(isFeedKind) },
+  { id: 'tool', label: t('Auzaar'), icon: Wrench, match: ofKind(isToolKind) },
+  { id: 'bulk', label: t('Bulk rate'), icon: Tags, match: (i) => Number(i.meta?.bulkMin) > 0 },
 ];
 
 /** Restricted items already noted on this bill session. */
@@ -65,23 +66,23 @@ const warned = new Set<string>();
 
 export const agriPos: PosIndustryConfig = {
   id: 'agri',
-  label: 'Agri',
+  label: t('Agri'),
   useCatalog: useAgriCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   voice: true,
   filters,
-  searchHint: 'Naam, fasal (gandum), keera (sundi), formula ya barcode…',
+  searchHint: t('Naam, fasal (gandum), keera (sundi), formula ya barcode…'),
   receiptFooter: 'Spray karte waqt mask aur dastane pehnein. Khula beej aur khuli dawa wapas nahi hoti.',
   CartExtra: FarmerStrip,
   beforeAdd: (item) => {
     if (item.meta?.blocked) {
-      toast.error(`${item.name}: ${String(item.meta.regText)}. Registration renew karwa kar product me nayi date likhein.`, { duration: 6000 });
+      toast.error(t('{{name}}: {{regText}}. Registration renew karwa kar product me nayi date likhein.', { name: item.name, regText: String(item.meta.regText) }), { duration: 6000 });
       return 'handled';
     }
     if (item.meta?.restricted && !warned.has(item.id)) {
       warned.add(item.id);
-      toast.info(`${item.name} pabandi wali dawa hai — license / ijazat dekh kar bechein`, { duration: 3000 });
+      toast.info(t('{{name}} pabandi wali dawa hai — license / ijazat dekh kar bechein', { name: item.name }), { duration: 3000 });
     }
     return 'continue';
   },

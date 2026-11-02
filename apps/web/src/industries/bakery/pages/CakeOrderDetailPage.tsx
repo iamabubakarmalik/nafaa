@@ -31,11 +31,12 @@ import {
   CAKE_FLOW, CAKE_KEY, CAKE_PREV, apiError, cakeNext, creamLabel, dateTime, dayOnly, deliveryOf, dueOf, flavorLabel, flowIndex, hoursTo, isClosed,
   isDelivery, leftText, occasionOf, shapeLabel, sizeLabel, statusOf, waLink,
 } from '../components/meta';
+import { t } from '@core/i18n';
 
 export default function CakeOrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const shopName = useAuthStore((s) => s.tenant?.name) || 'Bakery';
+  const shopName = useAuthStore((s) => s.tenant?.name) || t('Bakery');
   const canManage = usePermission(PERMISSIONS.BAKERY_ORDERS_MANAGE);
   const canRefund = usePermission(PERMISSIONS.RETURNS_CREATE);
   const [rating, setRating] = useState(false);
@@ -59,7 +60,7 @@ export default function CakeOrderDetailPage() {
   }, [o, shopName, canManage, navigate]);
 
   if (q.isLoading) return <PageShell><Skeleton className="h-32 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
-  if (!o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Yeh order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/bakery/cake-orders')}>Orders par wapas</Button></div></PageShell>;
+  if (!o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Yeh order nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/bakery/cake-orders')}>{t('Orders par wapas')}</Button></div></PageShell>;
 
   const st = statusOf(o.status);
   const closed = isClosed(o.status);
@@ -77,7 +78,7 @@ export default function CakeOrderDetailPage() {
     <PageShell>
       <PageHero
         back="/bakery/cake-orders"
-        backLabel="Wapas (Esc)"
+        backLabel={t('Wapas (Esc)')}
         title={o.customerName}
         chip={st.label}
         meta={<span className="font-mono">{o.orderNumber}</span>}
@@ -87,14 +88,14 @@ export default function CakeOrderDetailPage() {
           </span>
         }
         actions={<>
-          <button type="button" onClick={() => printCakeSlip(o, shopName)} title="Customer parchi (P)" className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
-          <button type="button" onClick={() => printCakeSlip(o, shopName, true)} title="Kitchen parchi (K)" className={heroButton}><ChefHat className="h-4 w-4" />Kitchen</button>
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-          {canManage && !closed && <Link to={`/bakery/cake-orders/${o.id}/edit`} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+          <button type="button" onClick={() => printCakeSlip(o, shopName)} title={t('Customer parchi (P)')} className={heroButton}><Printer className="h-4 w-4" />{t('Parchi')}</button>
+          <button type="button" onClick={() => printCakeSlip(o, shopName, true)} title={t('Kitchen parchi (K)')} className={heroButton}><ChefHat className="h-4 w-4" />{t('Kitchen')}</button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+          {canManage && !closed && <Link to={`/bakery/cake-orders/${o.id}/edit`} title={t('Badlein (E)')} className={heroPrimaryButton}><Pencil className="h-4 w-4" />{t('Badlein')}</Link>}
         </>}
       />
       {o.status !== 'CANCELLED' && o.status !== 'REFUNDED' && (
-        <ol className="grid grid-cols-5 gap-1.5 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80" aria-label="Order kahan tak pohncha">
+        <ol className="grid grid-cols-5 gap-1.5 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80" aria-label={t('Order kahan tak pohncha')}>
           {CAKE_FLOW.map((s, i) => (
             <li key={s} className="min-w-0">
               <div className={cn('h-1.5 rounded-full', i <= idx ? 'bg-brand-600' : 'bg-slate-200')} />
@@ -107,138 +108,138 @@ export default function CakeOrderDetailPage() {
       {canManage && !closed && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
           {next && <Button variant={next.to === 'DELIVER' ? 'success' : 'primary'} loading={busy} onClick={() => act.next(o)} leftIcon={next.to === 'DELIVER' ? <Receipt className="h-4 w-4" /> : <ChefHat className="h-4 w-4" />}>{next.label}</Button>}
-          {due > 0.5 && <Button variant="secondary" onClick={() => act.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>Paisa mila</Button>}
-          {CAKE_PREV[o.status] && <Button variant="ghost" disabled={busy} onClick={() => act.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
-          <Button variant="ghost" className="ml-auto text-rose-700" onClick={() => act.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+          {due > 0.5 && <Button variant="secondary" onClick={() => act.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>{t('Paisa mila')}</Button>}
+          {CAKE_PREV[o.status] && <Button variant="ghost" disabled={busy} onClick={() => act.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>{t('Ek qadam peeche')}</Button>}
+          <Button variant="ghost" className="ms-auto text-rose-700" onClick={() => act.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>{t('Cancel')}</Button>
         </div>
       )}
       {canManage && o.status === 'CANCELLED' && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
-          <Ban className="h-4 w-4" /> Cancel hua {dateTime(o.cancelledAt)}{o.cancellationReason ? ` — ${o.cancellationReason}` : ''}
-          <span className="ml-auto flex flex-wrap gap-2">
-            {canRefund && Number(o.khataPaid) > 0 && <Button size="sm" variant="danger" onClick={() => act.refund(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Advance wapas</Button>}
-            <Button size="sm" variant="secondary" loading={busy} onClick={() => act.confirm(o)}>Dobara pakka karein</Button>
+          <Ban className="h-4 w-4" /> {' '}{t('Cancel hua {{cancelledAt}}{{value}}', { cancelledAt: dateTime(o.cancelledAt), value: o.cancellationReason ? ` — ${o.cancellationReason}` : '' })}
+          <span className="ms-auto flex flex-wrap gap-2">
+            {canRefund && Number(o.khataPaid) > 0 && <Button size="sm" variant="danger" onClick={() => act.refund(o)} leftIcon={<Undo2 className="h-4 w-4" />}>{t('Advance wapas')}</Button>}
+            <Button size="sm" variant="secondary" loading={busy} onClick={() => act.confirm(o)}>{t('Dobara pakka karein')}</Button>
           </span>
         </div>
       )}
-      {advanceShort > 0.5 && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Advance me {formatPKR(advanceShort)} kam hai — bara cake bina advance ke na banayein.</p>}
+      {advanceShort > 0.5 && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{t('Advance me {{advanceShort}} kam hai — bara cake bina advance ke na banayein.', { advanceShort: formatPKR(advanceShort) })}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Cake}>Cake</T>}>
+          <Card className="rounded-2xl" title={<T icon={Cake}>{t('Cake')}</T>}>
             <dl className="grid gap-x-6 gap-y-2 text-[0.8125rem] sm:grid-cols-2">
-              <Fact k="Size" v={o.size === 'CUSTOM' && o.customWeightKg ? `${o.customWeightKg} kg` : sizeLabel(o.size)} />
-              <Fact k="Shakal" v={o.shape === 'CUSTOM_SHAPE' ? o.customShapeDesc || 'Apni' : shapeLabel(o.shape)} />
-              <Fact k="Flavour" v={o.flavor === 'CUSTOM_FLAVOR' ? o.customFlavorDesc || 'Apna' : flavorLabel(o.flavor)} />
-              <Fact k="Cream" v={o.creamType ? creamLabel(o.creamType) : '—'} />
-              {o.numberOfTiers > 1 && <Fact k="Manzil" v={String(o.numberOfTiers)} />}
-              {o.numberOrLetter && <Fact k="Number / harf" v={o.numberOrLetter} />}
-              {o.productName && <Fact k="Maal se jura" v={o.productName} />}
+              <Fact k={t('Size')} v={o.size === 'CUSTOM' && o.customWeightKg ? `${o.customWeightKg} kg` : sizeLabel(o.size)} />
+              <Fact k={t('Shape')} v={o.shape === 'CUSTOM_SHAPE' ? o.customShapeDesc || t('Apni') : shapeLabel(o.shape)} />
+              <Fact k={t('Flavour')} v={o.flavor === 'CUSTOM_FLAVOR' ? o.customFlavorDesc || t('Apna') : flavorLabel(o.flavor)} />
+              <Fact k={t('Cream')} v={o.creamType ? creamLabel(o.creamType) : '—'} />
+              {o.numberOfTiers > 1 && <Fact k={t('Manzil')} v={String(o.numberOfTiers)} />}
+              {o.numberOrLetter && <Fact k={t('Number / harf')} v={o.numberOrLetter} />}
+              {o.productName && <Fact k={t('Maal se jura')} v={o.productName} />}
             </dl>
             {o.messageOnCake && (
               <div className="mt-3 rounded-xl bg-fuchsia-50 px-3 py-2.5 ring-1 ring-fuchsia-100">
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-fuchsia-700">Cake par likhna hai{o.messageColor ? ` · ${o.messageColor}` : ''}</p>
+                <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-fuchsia-700">{t('Cake par likhna hai{{value}}', { value: o.messageColor ? ` · ${o.messageColor}` : '' })}</p>
                 <p className="text-lg font-bold text-slate-900">"{o.messageOnCake}"</p>
               </div>
             )}
             {(o.isEggless || o.isSugarFree || o.isVegan || o.allergies?.length > 0 || o.dietaryNotes) && (
               <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[0.75rem]">
                 <Heart className="h-4 w-4 text-rose-500" />
-                {o.isEggless && <Pill>Anday ke bagair</Pill>}
-                {o.isSugarFree && <Pill>Cheeni ke bagair</Pill>}
-                {o.isVegan && <Pill>Vegan</Pill>}
-                {(o.allergies ?? []).map((a) => <Pill key={a} danger>Allergy: {a}</Pill>)}
+                {o.isEggless && <Pill>{t('Anday ke bagair')}</Pill>}
+                {o.isSugarFree && <Pill>{t('Cheeni ke bagair')}</Pill>}
+                {o.isVegan && <Pill>{t('Vegan')}</Pill>}
+                {(o.allergies ?? []).map((a) => <Pill key={a} danger>{t('Allergy: {{a}}', { a: t(a) })}</Pill>)}
                 {o.dietaryNotes && <span className="text-slate-600">{o.dietaryNotes}</span>}
               </div>
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={ImageIcon}>Design</T>}>
+          <Card className="rounded-2xl" title={<T icon={ImageIcon}>{t('Design')}</T>}>
             <div className="space-y-3 text-[0.8125rem]">
-              {o.designInstructions ? <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2.5 text-slate-800">{o.designInstructions}</p> : <p className="text-slate-500">Design ki details nahi likhi</p>}
+              {o.designInstructions ? <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2.5 text-slate-800">{o.designInstructions}</p> : <p className="text-slate-500">{t('Design ki details nahi likhi')}</p>}
               {(o.colorTheme || o.primaryColor) && <p className="text-slate-700">{[o.colorTheme && `Theme: ${o.colorTheme}`, o.primaryColor && `Rang: ${o.primaryColor}${o.secondaryColor ? ` + ${o.secondaryColor}` : ''}`].filter(Boolean).join(' · ')}</p>}
-              {o.decorativeItems?.length > 0 && <div className="flex flex-wrap gap-1.5">{o.decorativeItems.map((d) => <Pill key={d}>{d}</Pill>)}</div>}
+              {o.decorativeItems?.length > 0 && <div className="flex flex-wrap gap-1.5">{o.decorativeItems.map((d) => <Pill key={d}>{t(d)}</Pill>)}</div>}
               {(o.candlesRequired || o.cakeStand || o.cakeKnife) && <p className="text-slate-700">{[o.candlesRequired ? `${o.candlesRequired} mombatti${o.candleType ? ` (${o.candleType})` : ''}` : '', o.cakeStand && 'Cake stand', o.cakeKnife && 'Chhuri'].filter(Boolean).join(' · ')}</p>}
               {(o.hasPhotoOnCake || o.designReferenceUrls?.length > 0) && (
                 <div className="flex flex-wrap gap-2">
-                  {o.hasPhotoOnCake && o.photoUrl && <Photo url={o.photoUrl} label={`Cake ki photo${o.hasEdibleImage ? ' · edible' : ''}`} />}
-                  {(o.designReferenceUrls ?? []).map((u, i) => <Photo key={u} url={u} label={`Misaal ${i + 1}`} />)}
+                  {o.hasPhotoOnCake && o.photoUrl && <Photo url={o.photoUrl} label={t('Cake ki photo{{value}}', { value: o.hasEdibleImage ? t(' · edible') : '' })} />}
+                  {(o.designReferenceUrls ?? []).map((u, i) => <Photo key={u} url={u} label={t('Misaal {{value}}', { value: i + 1 })} />)}
                 </div>
               )}
-              {o.hasPhotoOnCake && !o.photoUrl && <p className="text-amber-800">Photo cake hai magar photo nahi lagi — customer se mangwa lein.</p>}
+              {o.hasPhotoOnCake && !o.photoUrl && <p className="text-amber-800">{t('Photo cake hai magar photo nahi lagi — customer se mangwa lein.')}</p>}
             </div>
           </Card>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="rounded-2xl" title={<T icon={PartyPopper}>Mauqa</T>}>
+            <Card className="rounded-2xl" title={<T icon={PartyPopper}>{t('Mauqa')}</T>}>
               <dl className="space-y-1.5 text-[0.8125rem]">
-                <Fact k="Mauqa" v={`${occasionOf(o.occasion).emoji} ${occasionOf(o.occasion).label}`} />
-                {o.celebrantName && <Fact k="Kis ke liye" v={`${o.celebrantName}${o.celebrantAge ? ` (${o.celebrantAge})` : ''}`} />}
-                {o.eventDate && <Fact k="Function" v={`${dayOnly(o.eventDate)}${o.eventTime ? ` · ${o.eventTime}` : ''}`} />}
-                {o.eventVenue && <Fact k="Jagah" v={o.eventVenue} />}
+                <Fact k={t('Mauqa')} v={`${occasionOf(o.occasion).emoji} ${occasionOf(o.occasion).label}`} />
+                {o.celebrantName && <Fact k={t('Kis ke liye')} v={`${o.celebrantName}${o.celebrantAge ? ` (${o.celebrantAge})` : ''}`} />}
+                {o.eventDate && <Fact k={t('Function')} v={`${dayOnly(o.eventDate)}${o.eventTime ? ` · ${o.eventTime}` : ''}`} />}
+                {o.eventVenue && <Fact k={t('Jagah')} v={o.eventVenue} />}
               </dl>
             </Card>
-            <Card className="rounded-2xl" title={<T icon={MapPin}>{isDelivery(o.deliveryType) ? 'Pahunchana' : 'Dukaan se lena'}</T>}>
+            <Card className="rounded-2xl" title={<T icon={MapPin}>{isDelivery(o.deliveryType) ? t('Pahunchana') : t('Dukaan se lena')}</T>}>
               <dl className="space-y-1.5 text-[0.8125rem]">
-                <Fact k="Kab" v={dateTime(o.neededBy)} />
-                <Fact k="Kaise" v={deliveryOf(o.deliveryType).label} />
+                <Fact k={t('Kab')} v={dateTime(o.neededBy)} />
+                <Fact k={t('Kaise')} v={deliveryOf(o.deliveryType).label} />
                 {o.deliveryAddress && <p className="text-slate-800">{o.deliveryAddress}{o.deliveryLandmark ? ` — ${o.deliveryLandmark}` : ''}</p>}
-                {o.deliveryCharges > 0 && <Fact k="Delivery charges" v={formatPKR(o.deliveryCharges)} />}
+                {o.deliveryCharges > 0 && <Fact k={t('Delivery charges')} v={formatPKR(o.deliveryCharges)} />}
               </dl>
             </Card>
           </div>
 
           {(o.specialInstructions || o.internalNotes) && (
-            <Card className="rounded-2xl" title={<T icon={StickyNote}>Note</T>}>
+            <Card className="rounded-2xl" title={<T icon={StickyNote}>{t('Note')}</T>}>
               <div className="space-y-2 text-[0.8125rem]">
-                {o.specialInstructions && <p><span className="text-slate-500">Customer ke liye: </span>{o.specialInstructions}</p>}
-                {o.internalNotes && <p><span className="text-slate-500">Andar ke liye: </span>{o.internalNotes}</p>}
+                {o.specialInstructions && <p><span className="text-slate-500">{t('Customer ke liye:')}{' '} </span>{o.specialInstructions}</p>}
+                {o.internalNotes && <p><span className="text-slate-500">{t('Andar ke liye:')}{' '} </span>{o.internalNotes}</p>}
               </div>
             </Card>
           )}
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Paisa</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Paisa')}</T>}>
             <dl className="space-y-1.5 text-[0.8125rem]">
-              <Row k="Cake" v={formatPKR(o.basePrice)} />
-              {o.customizationCharges > 0 && <Row k="Design" v={`+${formatPKR(o.customizationCharges)}`} />}
-              {o.photoCakeCharges > 0 && <Row k="Photo cake" v={`+${formatPKR(o.photoCakeCharges)}`} />}
-              {o.deliveryCharges > 0 && <Row k="Delivery" v={`+${formatPKR(o.deliveryCharges)}`} />}
-              {o.taxAmount > 0 && <Row k="Tax" v={`+${formatPKR(o.taxAmount)}`} />}
-              {o.discount > 0 && <Row k="Discount" v={`−${formatPKR(o.discount)}`} />}
-              <Row k="Kul" v={formatPKR(o.total)} strong />
-              <Row k="Advance chahiye tha" v={formatPKR(o.advanceRequired)} />
-              <Row k="Mila" v={formatPKR(o.paidAmount)} />
-              {!closed && Number(o.khataPaid) > 0 && <Row k="Is me se khate me advance" v={formatPKR(Number(o.khataPaid))} />}
+              <Row k={t('Cake')} v={formatPKR(o.basePrice)} />
+              {o.customizationCharges > 0 && <Row k={t('Design')} v={`+${formatPKR(o.customizationCharges)}`} />}
+              {o.photoCakeCharges > 0 && <Row k={t('Photo cake')} v={`+${formatPKR(o.photoCakeCharges)}`} />}
+              {o.deliveryCharges > 0 && <Row k={t('Delivery')} v={`+${formatPKR(o.deliveryCharges)}`} />}
+              {o.taxAmount > 0 && <Row k={t('Tax')} v={`+${formatPKR(o.taxAmount)}`} />}
+              {o.discount > 0 && <Row k={t('Discount')} v={`−${formatPKR(o.discount)}`} />}
+              <Row k={t('Kul')} v={formatPKR(o.total)} strong />
+              <Row k={t('Advance chahiye tha')} v={formatPKR(o.advanceRequired)} />
+              <Row k={t('Mila')} v={formatPKR(o.paidAmount)} />
+              {!closed && Number(o.khataPaid) > 0 && <Row k={t('Is me se khate me advance')} v={formatPKR(Number(o.khataPaid))} />}
             </dl>
             <div className={cn('mt-3 flex items-center justify-between rounded-xl px-3 py-2.5 ring-1', due > 0.5 ? 'bg-amber-50 ring-amber-200' : 'bg-success-50 ring-success-200')}>
-              <span className="text-[0.8125rem] font-medium text-slate-700">{o.status === 'DELIVERED' ? (due > 0.5 ? 'Khate me gaya' : 'Poora mil gaya') : due > 0.5 ? 'Lete waqt baqi' : 'Poora mil gaya'}</span>
+              <span className="text-[0.8125rem] font-medium text-slate-700">{o.status === 'DELIVERED' ? (due > 0.5 ? t('Khate me gaya') : t('Poora mil gaya')) : due > 0.5 ? t('Lete waqt baqi') : t('Poora mil gaya')}</span>
               <span className="text-lg font-bold tabular-nums text-slate-900">{formatPKR(due)}</span>
             </div>
             {o.status === 'DELIVERED' && billQ.data && (
               <Link to={`/sales/${billQ.data.id}/receipt`} className="mt-3 flex items-center justify-between rounded-xl bg-white px-3 py-2.5 text-[0.8125rem] ring-1 ring-slate-200 hover:bg-slate-50">
-                <span className="inline-flex items-center gap-2 font-medium text-slate-800"><Receipt className="h-4 w-4 text-brand-600" />Bill {billQ.data.saleNumber}</span>
-                <span className="text-brand-700">Dekhein →</span>
+                <span className="inline-flex items-center gap-2 font-medium text-slate-800"><Receipt className="h-4 w-4 text-brand-600" />{t('Bill {{saleNumber}}', { saleNumber: billQ.data.saleNumber })}</span>
+                <span className="text-brand-700">{t('Dekhein →')}</span>
               </Link>
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={User}>Customer</T>}>
+          <Card className="rounded-2xl" title={<T icon={User}>{t('Customer')}</T>}>
             <p className="text-[0.9375rem] font-semibold text-slate-900">{o.customerName}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <a href={`tel:${o.customerPhone}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Phone className="h-4 w-4" />{o.customerPhone}</a>
-              {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-              {o.customerId && <Link to={`/customers/${o.customerId}`} className="inline-flex h-8 items-center rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Customer ka khata →</Link>}
+              {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+              {o.customerId && <Link to={`/customers/${o.customerId}`} className="inline-flex h-8 items-center rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">{t('Customer ka khata →')}</Link>}
             </div>
             {o.customerEmail && <p className="mt-2 text-[0.75rem] text-slate-500">{o.customerEmail}</p>}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={History}>Kab kya hua</T>}>
+          <Card className="rounded-2xl" title={<T icon={History}>{t('Kab kya hua')}</T>}>
             <ol className="space-y-2 text-[0.8125rem]">
               {[
-                ['Order likha', o.createdAt], ['Pakka hua', o.confirmedAt], ['Banana shuru', o.startedAt], ['Tayyar hua', o.completedAt],
-                ['De diya', o.deliveredAt], ['Cancel hua', o.cancelledAt],
+                [t('Order likha'), o.createdAt], [t('Pakka hua'), o.confirmedAt], [t('Banana shuru'), o.startedAt], [t('Tayyar hua'), o.completedAt],
+                [t('De diya'), o.deliveredAt], [t('Cancel hua'), o.cancelledAt],
               ].filter(([, at]) => at).map(([label, at]) => (
                 <li key={label} className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /><span className="flex-1 text-slate-700">{label}</span><span className="text-slate-500">{dateTime(at)}</span></li>
               ))}
@@ -246,21 +247,21 @@ export default function CakeOrderDetailPage() {
           </Card>
 
           {o.status === 'DELIVERED' && (
-            <Card className="rounded-2xl" title={<T icon={Star}>Customer ki raye</T>}
-              actions={canManage && !o.customerRating ? <Button size="sm" variant="secondary" onClick={() => setRating(true)}>Raye likhein</Button> : undefined}>
+            <Card className="rounded-2xl" title={<T icon={Star}>{t('Customer ki raye')}</T>}
+              actions={canManage && !o.customerRating ? <Button size="sm" variant="secondary" onClick={() => setRating(true)}>{t('Raye likhein')}</Button> : undefined}>
               {o.customerRating ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-1">{[1, 2, 3, 4, 5].map((n) => <Star key={n} className={cn('h-5 w-5', n <= (o.customerRating ?? 0) ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} />)}</div>
                   {o.customerFeedback && <p className="text-[0.8125rem] italic text-slate-700">"{o.customerFeedback}"</p>}
-                  {o.finalPhotoUrls?.length > 0 && <div className="flex flex-wrap gap-2">{o.finalPhotoUrls.map((u, i) => <Photo key={u} url={u} label={`Bana hua ${i + 1}`} />)}</div>}
+                  {o.finalPhotoUrls?.length > 0 && <div className="flex flex-wrap gap-2">{o.finalPhotoUrls.map((u, i) => <Photo key={u} url={u} label={t('Bana hua {{value}}', { value: i + 1 })} />)}</div>}
                 </div>
-              ) : <p className="text-[0.8125rem] text-slate-500">Abhi raye nahi likhi. Customer se pooch kar likhein — aur bane hue cake ki photo bhi lagayein.</p>}
+              ) : <p className="text-[0.8125rem] text-slate-500">{t('Abhi raye nahi likhi. Customer se pooch kar likhein — aur bane hue cake ki photo bhi lagayein.')}</p>}
             </Card>
           )}
         </div>
       </div>
 
-      <p className="hidden items-center gap-2 text-[0.75rem] text-slate-500 sm:flex"><Kbd>P</Kbd> parchi · <Kbd>K</Kbd> kitchen parchi{canManage && !closed && <> · <Kbd>E</Kbd> badlein</>} · <Kbd>Esc</Kbd> wapas</p>
+      <p className="hidden items-center gap-2 text-[0.75rem] text-slate-500 sm:flex"><Kbd>P</Kbd> {' '}{t('parchi ·')}{' '} <Kbd>K</Kbd> {' '}{t('kitchen parchi')}{canManage && !closed && <> · <Kbd>E</Kbd> {' '}{t('badlein')}</>} · <Kbd>Esc</Kbd> {' '}{t('wapas')}</p>
 
       {act.modals}
       {rating && <RatingModal o={o} onClose={() => setRating(false)} />}
@@ -275,21 +276,21 @@ function RatingModal({ o, onClose }: { o: CakeOrder; onClose: () => void }) {
   const [photos, setPhotos] = useState<string[]>([]);
   const save = useMutation({
     mutationFn: () => cakeOrdersApi.rate(o.id, stars, feedback.trim() || undefined, photos),
-    onSuccess: () => { toast.success('Raye save ho gayi'); qc.invalidateQueries({ queryKey: [CAKE_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hui')),
+    onSuccess: () => { toast.success(t('Raye save ho gayi')); qc.invalidateQueries({ queryKey: [CAKE_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Save nahi hui'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Customer ki raye" description={`${o.customerName} · ${o.orderNumber}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Star className="h-4 w-4" />}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Customer ki raye')} description={`${o.customerName} · ${o.orderNumber}`}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Star className="h-4 w-4" />}>{t('Save karein')}</Button></>}>
       <div className="space-y-3">
         <div className="flex justify-center gap-1.5">
           {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} type="button" onClick={() => setStars(n)} aria-label={`${n} sitare`}><Star className={cn('h-9 w-9', n <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} /></button>
+            <button key={n} type="button" onClick={() => setStars(n)} aria-label={t('{{n}} sitare', { n })}><Star className={cn('h-9 w-9', n <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} /></button>
           ))}
         </div>
-        <Textarea label="Customer ne kya kaha" value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={2} maxLength={500} />
+        <Textarea label={t('Customer ne kya kaha')} value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={2} maxLength={500} />
         {photos.length > 0 && <div className="flex flex-wrap gap-2">{photos.map((u) => <img key={u} src={u} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200" />)}</div>}
-        <UploadDropzone maxFiles={4} purpose="product-image" hint="Bane hue cake ki photo — agle customer ko dikhane ke kaam aati hai" onUploaded={(r) => setPhotos((p) => [...p, ...r.map((x) => x.url).filter(Boolean)].slice(0, 4))} />
+        <UploadDropzone maxFiles={4} purpose="product-image" hint={t('Bane hue cake ki photo — agle customer ko dikhane ke kaam aati hai')} onUploaded={(r) => setPhotos((p) => [...p, ...r.map((x) => x.url).filter(Boolean)].slice(0, 4))} />
       </div>
     </Modal>
   );
@@ -309,7 +310,7 @@ function Pill({ children, danger }: { children: ReactNode; danger?: boolean }) {
 }
 
 function Fact({ k, v }: { k: string; v: string }) {
-  return <div className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-right font-medium text-slate-900">{v}</dd></div>;
+  return <div className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-end font-medium text-slate-900">{v}</dd></div>;
 }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {

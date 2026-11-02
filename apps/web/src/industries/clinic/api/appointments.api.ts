@@ -1,5 +1,6 @@
 import { apiClient } from '@core/api/client';
 import { withManagerPin } from '@core/security/ManagerPin';
+import { t } from '@core/i18n';
 
 export type AppointmentStatus = 'SCHEDULED' | 'CONFIRMED' | 'ARRIVED' | 'IN_CONSULTATION'
   | 'COMPLETED' | 'NO_SHOW' | 'CANCELLED' | 'RESCHEDULED';
@@ -116,7 +117,7 @@ export const appointmentsApi = {
     apiClient.patch('/clinic/appointments/' + id + '/status', { status, cancellationReason }).then(unwrap<Appointment>),
   reschedule: (id: string, data: { scheduledStart: string; reason?: string }) => apiClient.post('/clinic/appointments/' + id + '/reschedule', data).then(unwrap<Appointment>),
   /** Each payment is billed as a sale, so it shows in the drawer and reports. */
-  addPayment: (id: string, body: FeePayment) => withManagerPin('Credit limit se zyada udhaar', (managerPin) =>
+  addPayment: (id: string, body: FeePayment) => withManagerPin(t('Credit limit se zyada udhaar'), (managerPin) =>
     apiClient.post('/clinic/appointments/' + id + '/payment', { ...body, ...(managerPin && { managerPin }) }).then(unwrap<Appointment & { sale: FeeSale }>), 'credit'),
   /** Before any bill: put a panel on the visit, or null to bill the patient. */
   setPanel: (id: string, panelId: string | null) => apiClient.patch('/clinic/appointments/' + id + '/panel', { panelId }).then(unwrap<Appointment>),

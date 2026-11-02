@@ -10,6 +10,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { jewelrySalesApi } from '../api/sales.api';
 import { KEYS, grams, purityLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -34,7 +35,7 @@ function useWeightExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Jewelry', useBillExtras: useWeightExtras };
+const config: SalesHistoryConfig = { label: t('Jewelry'), useBillExtras: useWeightExtras };
 
 export default function JewelrySalesPage() {
   return <SalesHistoryPage config={config} />;

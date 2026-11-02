@@ -21,6 +21,7 @@ import { techniciansApi } from '../api/technicians.api';
 import { TechnicianForm } from '../components/TechnicianForm';
 import { Bars, Box, Panel, Pill } from '../components/ui';
 import { CATEGORY_META, TECH_KEY, dayOnly, installStatusOf, serviceStatusOf, todayKey, addDays } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Jumma', 'Hafta'];
 
@@ -52,7 +53,7 @@ export default function TechnicianDetailPage() {
   }, [canManage, navigate]);
 
   if (q.isLoading) return <PageShell><Skeleton className="h-36 rounded-3xl" /><Skeleton className="h-80 rounded-3xl" /></PageShell>;
-  if (!t) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Technician nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/appliances/technicians')}>Wapas</Button></div></PageShell>;
+  if (!t) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Technician nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/appliances/technicians')}>{tr('Wapas')}</Button></div></PageShell>;
   const m = t.month;
   const w = load.data;
 
@@ -60,45 +61,45 @@ export default function TechnicianDetailPage() {
     <PageShell>
       <PageHero
         title={t.name}
-        chip={<><HardHat /> {t.employeeCode}{t.isActive ? '' : ' · band'}</>}
+        chip={<><HardHat /> {t.employeeCode}{t.isActive ? '' : tr(' · band')}</>}
         meta={[t.phone, t.currentZone, `${t.workStartTime}–${t.workEndTime}`, (t.workingDays ?? []).map((d) => DAYS[d]?.slice(0, 3)).join(' ')].filter(Boolean).join(' · ')}
         actions={<>
-          <Link to="/appliances/technicians" className={heroButton}><ArrowLeft className="h-4 w-4" /><span className="hidden sm:inline">Sab technicians</span></Link>
-          <a href={`tel:${t.phone}`} className={heroButton}><Phone className="h-4 w-4" /><span className="hidden sm:inline">Call</span></a>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setEditing(true)} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /> Badlein</button>}
+          <Link to="/appliances/technicians" className={heroButton}><ArrowLeft className="h-4 w-4 rtl-flip" /><span className="hidden sm:inline">{tr('Sab technicians')}</span></Link>
+          <a href={`tel:${t.phone}`} className={heroButton}><Phone className="h-4 w-4" /><span className="hidden sm:inline">{tr('Call')}</span></a>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setEditing(true)} title={tr('Badlein (E)')} className={heroButton}><Pencil className="h-4 w-4" /> {' '}{tr('Badlein')}</button>}
         </>}
         stats={[
-          { label: 'Khule kaam', value: t.openJobs },
-          { label: 'Mukammal (kul)', value: t.completedJobs, hint: `${t.completionRate}%` },
-          { label: 'Rating', value: t.avgRating ? Number(t.avgRating).toFixed(1) : '—', hint: `${t.totalReviews} reviews` },
+          { label: tr('Khule kaam'), value: t.openJobs },
+          { label: tr('Mukammal (kul)'), value: t.completedJobs, hint: `${t.completionRate}%` },
+          { label: tr('Rating'), value: t.avgRating ? Number(t.avgRating).toFixed(1) : '—', hint: tr('{{totalReviews}} reviews', { totalReviews: t.totalReviews }) },
         ]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Wrench} color="#2563eb" label="Is mahine kaam" value={m.jobs} hint={`${Math.round(m.avgResolutionHours)} ghante ausat`} />
-        <KpiCard icon={Wallet} color="#16a34a" label="Is mahine kamai" value={sales(m.revenue)} hint={`Profit ${sales(m.profit)}`} />
-        <KpiCard icon={Wallet} color="#7c3aed" label="Commission banta" value={sales(m.commission)} hint={`${Number(t.commissionPct) || 0}% par`} />
-        <KpiCard icon={Star} color="#d97706" label="Mahine ki rating" value={m.avgRating ? m.avgRating.toFixed(1) : '—'} />
+        <KpiCard icon={Wrench} color="#2563eb" label={tr('Is mahine kaam')} value={m.jobs} hint={tr('{{avgResolutionHours}} ghante ausat', { avgResolutionHours: Math.round(m.avgResolutionHours) })} />
+        <KpiCard icon={Wallet} color="#16a34a" label={tr('Is mahine kamai')} value={sales(m.revenue)} hint={tr('Profit {{profit}}', { profit: sales(m.profit) })} />
+        <KpiCard icon={Wallet} color="#7c3aed" label={tr('Commission banta')} value={sales(m.commission)} hint={tr('{{value}}% par', { value: Number(t.commissionPct) || 0 })} />
+        <KpiCard icon={Star} color="#d97706" label={tr('Mahine ki rating')} value={m.avgRating ? m.avgRating.toFixed(1) : '—'} />
       </KpiRow>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="Kya kaam karta hai" className="lg:col-span-1">
+        <Panel title={tr('Kya kaam karta hai')} className="lg:col-span-1">
           <div className="flex flex-wrap gap-1.5">
-            {t.categoriesExpertise.length ? t.categoriesExpertise.map((c) => <span key={c} className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.75rem] text-slate-700">{CATEGORY_META[c]?.label ?? c}</span>) : <span className="text-[0.8125rem] text-slate-500">Likha nahi</span>}
+            {t.categoriesExpertise.length ? t.categoriesExpertise.map((c) => <span key={c} className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.75rem] text-slate-700">{CATEGORY_META[c]?.label ?? c}</span>) : <span className="text-[0.8125rem] text-slate-500">{tr('Likha nahi')}</span>}
           </div>
-          {t.brandsExpertise.length > 0 && <p className="mt-2 text-[0.8125rem] text-slate-600">Brands: {t.brandsExpertise.join(', ')}</p>}
+          {t.brandsExpertise.length > 0 && <p className="mt-2 text-[0.8125rem] text-slate-600">{tr('Brands: {{value}}', { value: t.brandsExpertise.join(', ') })}</p>}
           <dl className="mt-3 grid grid-cols-2 gap-2">
-            <Box label="Visit rate" value={sales(Number(t.visitChargeRate) || 0)} />
-            <Box label="Kul kamai" value={sales(Number(t.totalRevenue) || 0)} />
-            <Box label="Kul commission" value={sales(Number(t.totalCommission) || 0)} />
-            <Box label="Tajurba" value={t.experienceYears ? `${t.experienceYears} saal` : '—'} />
+            <Box label={tr('Visit rate')} value={sales(Number(t.visitChargeRate) || 0)} />
+            <Box label={tr('Kul kamai')} value={sales(Number(t.totalRevenue) || 0)} />
+            <Box label={tr('Kul commission')} value={sales(Number(t.totalCommission) || 0)} />
+            <Box label={tr('Tajurba')} value={t.experienceYears ? `${t.experienceYears} saal` : '—'} />
           </dl>
           {t.notes && <p className="mt-3 text-[0.8125rem] text-slate-600">{t.notes}</p>}
         </Panel>
 
-        <Panel title="Abhi khula kaam" className="lg:col-span-2" hint="Repair jo is ke paas hain">
-          {t.activeServiceRequests.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Koi khula repair nahi</p> : (
+        <Panel title={tr('Abhi khula kaam')} className="lg:col-span-2" hint={tr('Repair jo is ke paas hain')}>
+          {t.activeServiceRequests.length === 0 ? <p className="text-[0.8125rem] text-slate-500">{tr('Koi khula repair nahi')}</p> : (
             <ul className="divide-y divide-slate-100 text-[0.8125rem]">
               {t.activeServiceRequests.map((r) => (
                 <li key={r.id} className="flex items-center justify-between gap-2 py-2">
@@ -111,21 +112,21 @@ export default function TechnicianDetailPage() {
         </Panel>
       </div>
 
-      <Panel title="Kaam din ba din" hint="Fitting aur repair jo is muddat me is ke naam lage"
-        actions={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Muddat" />}>
+      <Panel title={tr('Kaam din ba din')} hint={tr('Fitting aur repair jo is muddat me is ke naam lage')}
+        actions={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Muddat')} />}>
         {!w ? <Skeleton className="h-40 rounded-2xl" /> : (<>
           <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-            <Box label="Fitting" value={w.totals.installations} /><Box label="Repair" value={w.totals.serviceRequests} />
-            <Box label="Mukammal" value={w.totals.completed} /><Box label="Kamai" value={sales(w.totals.revenue)} /><Box label="Commission" value={sales(w.totals.commission)} />
+            <Box label={tr('Fitting')} value={w.totals.installations} /><Box label={tr('Repair')} value={w.totals.serviceRequests} />
+            <Box label={tr('Mukammal')} value={w.totals.completed} /><Box label={tr('Kamai')} value={sales(w.totals.revenue)} /><Box label={tr('Commission')} value={sales(w.totals.commission)} />
           </dl>
-          <Bars rows={w.byDay.filter((d) => d.installations + d.services > 0).map((d) => ({ key: d.date, label: dayOnly(d.date), value: d.installations + d.services, color: '#2563eb', hint: `${d.installations} fitting · ${d.services} repair · ${sales(d.revenue)}` }))} empty="Is muddat me koi kaam nahi" />
+          <Bars rows={w.byDay.filter((d) => d.installations + d.services > 0).map((d) => ({ key: d.date, label: dayOnly(d.date), value: d.installations + d.services, color: '#2563eb', hint: tr('{{installations}} fitting · {{services}} repair · {{revenue}}', { installations: d.installations, services: d.services, revenue: sales(d.revenue) }) }))} empty={tr('Is muddat me koi kaam nahi')} />
         </>)}
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Pichli installations">
+        <Panel title={tr('Pichli installations')}>
           <ul className="divide-y divide-slate-100 text-[0.8125rem]">
-            {t.recentJobs.length === 0 && <li className="py-2 text-slate-500">Abhi koi nahi</li>}
+            {t.recentJobs.length === 0 && <li className="py-2 text-slate-500">{tr('Abhi koi nahi')}</li>}
             {t.recentJobs.map((j) => (
               <li key={j.id} className="flex items-center justify-between gap-2 py-2">
                 <Link to={`/appliances/installations?id=${j.id}`} className="min-w-0 truncate hover:underline">{j.installationNumber} · {j.productName}</Link>
@@ -134,9 +135,9 @@ export default function TechnicianDetailPage() {
             ))}
           </ul>
         </Panel>
-        <Panel title="Pichle repair">
+        <Panel title={tr('Pichle repair')}>
           <ul className="divide-y divide-slate-100 text-[0.8125rem]">
-            {t.recentServices.length === 0 && <li className="py-2 text-slate-500">Abhi koi nahi</li>}
+            {t.recentServices.length === 0 && <li className="py-2 text-slate-500">{tr('Abhi koi nahi')}</li>}
             {t.recentServices.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-2 py-2">
                 <Link to={`/appliances/service-requests?id=${r.id}`} className="min-w-0 truncate hover:underline">{r.requestNumber} · {r.productName}</Link>
@@ -149,11 +150,11 @@ export default function TechnicianDetailPage() {
 
       {editing && <TechnicianForm tech={t} onClose={() => setEditing(false)} />}
       {guide.isOpen && (
-        <PageGuide title="Technician ka hisaab" onClose={guide.close}
+        <PageGuide title={tr('Technician ka hisaab')} onClose={guide.close}
           steps={[
-            { icon: Wrench, color: '#2563eb', title: 'Khula kaam', text: 'Jo repair abhi is ke paas hain — click kar ke kholein aur halat badlein.' },
-            { icon: CalendarRange, color: '#7c3aed', title: 'Din ba din', text: 'Muddat chunein — kitne kaam, kitni kamai aur commission banta hai. Tankhwah ke din isi se hisaab karein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Commission dena', text: 'Commission diya ho to Expenses me likhein — galla aur Profit sahi rehte hain.' },
+            { icon: Wrench, color: '#2563eb', title: tr('Khula kaam'), text: tr('Jo repair abhi is ke paas hain — click kar ke kholein aur halat badlein.') },
+            { icon: CalendarRange, color: '#7c3aed', title: tr('Din ba din'), text: tr('Muddat chunein — kitne kaam, kitni kamai aur commission banta hai. Tankhwah ke din isi se hisaab karein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Commission dena'), text: tr('Commission diya ho to Expenses me likhein — galla aur Profit sahi rehte hain.') },
           ]}
           shortcuts={[['E', 'badlein'], ['Esc', 'wapas'], ['G', 'guide']]}
         />

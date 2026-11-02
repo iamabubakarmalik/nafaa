@@ -13,6 +13,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { CLOSED_ORDER, DAY_MS, ORDER_PAY_METHODS, checkRefundPin, orderMoney, positive, postOrderAdvance, r2, r3, refundOrderAdvance, shopClock, withNextNumber } from '../bakery-common';
 import { ShopScope } from '../../../common/shop-scope';
 import { findOrderBill } from '../cake-orders/cake-orders.service';
+import { apiMessage, MessageText } from '../../../common/i18n/api-message';
 
 type Body = Record<string, unknown>;
 type BulkView = 'active' | 'week' | 'late' | 'unpaid' | 'noAdvance' | 'done' | 'all';
@@ -280,7 +281,7 @@ export class BulkOrdersService {
     if (dto?.quotedPrice !== undefined) data.quotedPrice = r2(Math.max(Number(dto.quotedPrice) || 0, 0));
     if (dto?.finalPrice !== undefined) data.finalPrice = Number(dto.finalPrice) > 0 ? r2(Number(dto.finalPrice)) : null;
     const newPrice = (data.finalPrice !== undefined ? (data.finalPrice as number | null) : o.finalPrice) ?? ((data.quotedPrice as number | undefined) ?? o.quotedPrice);
-    if (newPrice + 0.005 < o.paidAmount) throw new BadRequestException(`${o.paidAmount} pehle hi mil chuka hai — kul rakam is se kam nahi ho sakti`);
+    if (newPrice + 0.005 < o.paidAmount) throw new BadRequestException(apiMessage('{{paidAmount}} pehle hi mil chuka hai — kul rakam is se kam nahi ho sakti', { paidAmount: o.paidAmount }));
     data.paymentStatus = paymentStatusOf(o.paidAmount, newPrice);
     const done = await this.prisma.bakeryBulkOrder.updateMany({ where: { id, tenantId: user.tenantId, updatedAt: o.updatedAt }, data });
     if (!done.count) throw new ConflictException('Order abhi kisi aur ne badla — safha taaza kar ke dobara save karein');
@@ -313,7 +314,7 @@ export class BulkOrdersService {
     if (expectedPaid !== undefined && Math.abs(Number(expectedPaid) - o.paidAmount) > 0.005) throw new ConflictException('Yeh paisa pehle hi darj ho chuka hai — safha taaza karein');
     const total = price(o);
     const paid = r2(o.paidAmount + value);
-    if (paid > total + 0.005) throw new BadRequestException(`Baqi sirf ${due(o)} hai`);
+    if (paid > total + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{o}} hai', { o: due(o) }));
     const status: BakeryOrderStatus = o.status === 'DRAFT' || o.status === 'QUOTED' ? 'CONFIRMED' : o.status;
     await this.prisma.$transaction(async (tx) => {
       const done = await tx.bakeryBulkOrder.updateMany({
@@ -333,7 +334,7 @@ export class BulkOrdersService {
 
   /* ───────────────────────── helpers ───────────────────────── */
 
-  private date(v: unknown, message: string) {
+  private date(v: unknown, message: MessageText) {
     const d = typeof v === 'string' || v instanceof Date ? new Date(v) : null;
     if (!d || Number.isNaN(d.getTime())) throw new BadRequestException(message);
     return d;
@@ -367,8 +368,8 @@ export class BulkOrdersService {
       if (!name) throw new BadRequestException('Har line ka naam likhein');
       const qty = Number(l.qty ?? l.quantity);
       const rate = Number(l.rate ?? l.price);
-      if (!(qty > 0)) throw new BadRequestException(`"${name}" ki quantity likhein`);
-      if (!(rate >= 0)) throw new BadRequestException(`"${name}" ka rate likhein`);
+      if (!(qty > 0)) throw new BadRequestException(apiMessage('"{{name}}" ki quantity likhein', { name }));
+      if (!(rate >= 0)) throw new BadRequestException(apiMessage('"{{name}}" ka rate likhein', { name }));
       const productId = typeof l.productId === 'string' && known.has(l.productId) ? l.productId : null;
       return { productId, name, qty: r3(qty), rate: r2(rate), unit: str(l.unit), total: r2(qty * rate) };
     });

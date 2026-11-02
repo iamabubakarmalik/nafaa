@@ -6,6 +6,7 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { ReferralsService } from '../../modules/customers/referrals/referrals.service';
 import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
+import { apiMessage } from '../../common/i18n/api-message';
 
 type StripeClient = InstanceType<typeof StripeLib>;
 type StripeEvent = ReturnType<StripeClient['webhooks']['constructEvent']>;
@@ -101,7 +102,7 @@ export class StripeService {
     try {
       event = stripe.webhooks.constructEvent(rawBody, signature, secret);
     } catch (e: any) {
-      throw new BadRequestException(`Webhook signature failed: ${e.message}`);
+      throw new BadRequestException(apiMessage('Webhook signature failed: {{eMessage}}', { eMessage: e.message }));
     }
 
     if (event.type === 'checkout.session.completed') {
@@ -193,7 +194,7 @@ export class StripeService {
           tenantId: args.tenantId,
           type: 'PAYMENT_APPROVED',
           title: 'Payment Successful! ✅',
-          message: `Rs ${args.amount} payment receive ho gayi.`,
+          message: apiMessage('Rs {{amount}} payment receive ho gayi.', { amount: args.amount }),
           link: '/billing',
         });
       }

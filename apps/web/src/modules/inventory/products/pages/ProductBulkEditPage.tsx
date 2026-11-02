@@ -38,6 +38,7 @@ import { bulkEditApi, importApi, type BulkEditChange, type BulkEditRow } from '.
 import { SheetGrid, type GridColumn, type RowMark } from '../import/grid/SheetGrid';
 import { SheetTools } from '../import/grid/SheetTools';
 import { useSheetRows } from '../import/grid/useSheetRows';
+import { t, Trans } from '@core/i18n';
 
 type Key = 'name' | 'variant' | 'category' | 'brand' | 'price' | 'wholesalePrice' | 'creditPrice' | 'costPrice' | 'unit' | 'barcode' | 'lowStockAlert' | 'isActive' | 'stock';
 
@@ -46,11 +47,11 @@ const NUMERIC: Key[] = ['price', 'costPrice', 'lowStockAlert', 'stock'];
 const OPTIONAL_NUMERIC: Key[] = ['wholesalePrice', 'creditPrice'];
 const PRODUCT_ONLY: Key[] = ['name', 'category', 'brand', 'unit', 'isActive'];
 const LABEL: Record<Key, string> = {
-  name: 'Name', variant: 'Variant', category: 'Category', brand: 'Brand', price: 'Retail Price', wholesalePrice: 'Wholesale Price', creditPrice: 'Credit Price', costPrice: 'Cost Price', unit: 'Unit',
-  barcode: 'Barcode', lowStockAlert: 'Low Stock Alert', isActive: 'Status', stock: 'Stock',
+  name: t('Name'), variant: t('Variant'), category: t('Category'), brand: t('Brand'), price: t('Retail Price'), wholesalePrice: t('Wholesale Price'), creditPrice: t('Credit Price'), costPrice: t('Cost Price'), unit: t('Unit'),
+  barcode: t('Barcode'), lowStockAlert: t('Low Stock Alert'), isActive: t('Status'), stock: t('Stock'),
 };
-const ACTIVE = 'Active';
-const OFF = 'Band';
+const ACTIVE = t('Active');
+const OFF = t('Band');
 const UNITS = ['pcs', 'kg', 'gram', 'liter', 'ml', 'dozen', 'meter', 'packet', 'box', 'carton', 'bottle', 'strip', 'pair', 'bag'];
 const SAVE_CHUNK = 100;
 const STOCK_CHUNK = 200;
@@ -76,21 +77,21 @@ function cellsOf(r: BulkEditRow): Record<string, string> {
 /** What is wrong with a changed cell, or null. */
 function cellError(key: Key, value: string): string | null {
   const v = value.trim();
-  if (key === 'name' && !v) return 'Naam khaali nahi ho sakta';
+  if (key === 'name' && !v) return t('Naam khaali nahi ho sakta');
   if (NUMERIC.includes(key)) {
-    if (!v) return key === 'stock' ? 'Stock likhein (0 bhi chalega)' : 'Number likhein';
+    if (!v) return key === 'stock' ? t('Stock likhein (0 bhi chalega)') : t('Number likhein');
     const n = num(v);
-    if (n === null) return `"${v}" number nahi`;
-    if (n < 0) return 'Minus nahi ho sakta';
-    if (key === 'price' && n === 0) return 'Price 0 nahi ho sakti';
+    if (n === null) return t('"{{v}}" number nahi', { v });
+    if (n < 0) return t('Minus nahi ho sakta');
+    if (key === 'price' && n === 0) return t('Price 0 nahi ho sakti');
   }
   if (OPTIONAL_NUMERIC.includes(key) && v) {
     const n = num(v);
-    if (n === null) return `"${v}" number nahi`;
-    if (n < 0) return 'Minus nahi ho sakta';
+    if (n === null) return t('"{{v}}" number nahi', { v });
+    if (n < 0) return t('Minus nahi ho sakta');
   }
-  if (key === 'isActive' && ![ACTIVE, OFF].map((x) => x.toLowerCase()).includes(v.toLowerCase())) return `"${ACTIVE}" ya "${OFF}" likhein`;
-  if (key === 'barcode' && /\s/.test(v)) return 'Barcode me khali jagah nahi';
+  if (key === 'isActive' && ![ACTIVE, OFF].map((x) => x.toLowerCase()).includes(v.toLowerCase())) return t('"{{ACTIVE}}" ya "{{OFF}}" likhein', { ACTIVE, OFF });
+  if (key === 'barcode' && /\s/.test(v)) return t('Barcode me khali jagah nahi');
   return null;
 }
 
@@ -185,8 +186,8 @@ export default function ProductBulkEditPage() {
       const errs = Object.values(cellErrors).filter(Boolean) as string[];
       const failed = failures.get(r.id);
       out.set(r.id, errs.length || failed
-        ? { tone: 'red', label: 'Ghalti', messages: failed ? [failed, ...errs] : errs, cellErrors }
-        : { tone: 'amber', label: 'Badla', messages: ['Save karna baqi hai'] });
+        ? { tone: 'red', label: t('Ghalti'), messages: failed ? [failed, ...errs] : errs, cellErrors }
+        : { tone: 'amber', label: t('Badla'), messages: [t('Save karna baqi hai')] });
     }
     return out;
   }, [changedRows, original, failures]);
@@ -196,13 +197,13 @@ export default function ProductBulkEditPage() {
   const lockOf = useCallback((key: Key) => (id: number): string | null => {
     const r = source.get(id);
     if (!r) return null;
-    if (key === 'variant') return 'Variant ka naam product page se badlein';
-    if (r.variantId && PRODUCT_ONLY.includes(key)) return 'Ye product ki line par badlein (variant ki nahi)';
+    if (key === 'variant') return t('Variant ka naam product page se badlein');
+    if (r.variantId && PRODUCT_ONLY.includes(key)) return t('Ye product ki line par badlein (variant ki nahi)');
     if (key === 'stock') {
-      if (!canStock) return 'Stock adjustment ki ijazat nahi';
-      if (r.stockLock === 'variants') return 'Is product ka stock har variant ki line par hai';
-      if (r.stockLock === 'imei') return 'Phone ka stock IMEI se chalta hai — IMEI stock page se badlein';
-      if (r.stockLock === 'service') return 'Service ka stock nahi hota';
+      if (!canStock) return t('Stock adjustment ki ijazat nahi');
+      if (r.stockLock === 'variants') return t('Is product ka stock har variant ki line par hai');
+      if (r.stockLock === 'imei') return t('Phone ka stock IMEI se chalta hai — IMEI stock page se badlein');
+      if (r.stockLock === 'service') return t('Service ka stock nahi hota');
     }
     return null;
   }, [source, canStock]);
@@ -213,12 +214,12 @@ export default function ProductBulkEditPage() {
     const width: Partial<Record<Key, number>> = { name: 240, variant: 120, category: 140, brand: 120, wholesalePrice: 125, creditPrice: 110, barcode: 140, unit: 80, isActive: 90, lowStockAlert: 110 };
     return keys.map((k) => ({
       key: k,
-      label: k === 'stock' ? `Stock${sheetQ.data?.shop ? ` (${sheetQ.data.shop.name})` : ''}` : LABEL[k],
+      label: k === 'stock' ? t('Stock{{value}}', { value: sheetQ.data?.shop ? ` (${sheetQ.data.shop.name})` : '' }) : LABEL[k],
       width: k === 'stock' ? 150 : width[k] ?? 100,
       numeric: NUMERIC.includes(k) || OPTIONAL_NUMERIC.includes(k),
       lock: lockOf(k),
       options: k === 'category' ? categories : k === 'brand' ? sheetQ.data?.brands : k === 'unit' ? [...new Set([...(quickUnits ?? []), ...UNITS])] : k === 'isActive' ? [ACTIVE, OFF] : undefined,
-      hint: k === 'stock' ? 'Badalne par farq ka Stock adjustment ("Bulk edit") banta hai' : OPTIONAL_NUMERIC.includes(k) ? 'Khaali ho to Retail price lagegi' : undefined,
+      hint: k === 'stock' ? t('Badalne par farq ka Stock adjustment ("Bulk edit") banta hai') : OPTIONAL_NUMERIC.includes(k) ? t('Khaali ho to Retail price lagegi') : undefined,
     }));
   }, [costHidden, lockOf, categories, sheetQ.data, quickUnits]);
 
@@ -255,7 +256,7 @@ export default function ProductBulkEditPage() {
   }, [changedRows, source, original, lockOf]);
 
   const confirmDiscard = async () => !changedRows.length
-    || confirmDialog({ title: 'Tabdeeliyan save nahi huin', text: `${changedRows.length} lines ki tabdeeliyan mit jayengi.`, yes: 'Mita dein', danger: true });
+    || confirmDialog({ title: t('Tabdeeliyan save nahi huin'), text: t('{{count}} lines ki tabdeeliyan mit jayengi.', { count: changedRows.length }), yes: t('Mita dein'), danger: true });
 
   const setFilter = async (key: string, value: string) => {
     if (!(await confirmDiscard())) return;
@@ -292,7 +293,7 @@ export default function ProductBulkEditPage() {
           if (r.ok) continue;
           failed++;
           const id = idOf(r.productId, r.variantId);
-          if (id) fail.set(id, r.error ?? 'Save nahi hua');
+          if (id) fail.set(id, r.error ?? t('Save nahi hua'));
         }
         done += Math.min(SAVE_CHUNK, plan.changes.length - i);
         setSaving({ done, total });
@@ -304,7 +305,7 @@ export default function ProductBulkEditPage() {
             await bulkEditApi.setStock(sheetQ.data.shop.id, part.map(({ productId, variantId, counted }) => ({ productId, variantId, counted })));
           } catch (e) {
             failed += part.length;
-            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message?.toString() ?? 'Stock nahi badla';
+            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message?.toString() ?? t('Stock nahi badla');
             for (const s of part) { const id = idOf(s.productId, s.variantId); if (id) fail.set(id, msg); }
           }
           done += part.length;
@@ -312,18 +313,18 @@ export default function ProductBulkEditPage() {
         }
       }
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message?.toString() ?? 'Internet ya server ka masla';
-      toast.error(`${msg} — jo save ho gaya wo save hai, baqi dobara karein`);
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message?.toString() ?? t('Internet ya server ka masla');
+      toast.error(t('{{msg}} — jo save ho gaya wo save hai, baqi dobara karein', { msg }));
     } finally {
       setSaving(null);
     }
     void qc.invalidateQueries({ predicate: (q) => /product|catalog|stock|pos|low/i.test(String(q.queryKey[0])) });
     if (failed) {
-      toast.error(`${total - failed} save hue, ${failed} nahi — laal lines dekhein`);
+      toast.error(t('{{value}} save hue, {{failed}} nahi — laal lines dekhein', { value: total - failed, failed }));
       setFailures(fail);
       setOnlyChanged(true);
     } else {
-      toast.success(`${plan.products} products save ho gaye${plan.stock.length ? ` · ${plan.stock.length} stock adjustments` : ''}`);
+      toast.success(t('{{products}} products save ho gaye{{value}}', { products: plan.products, value: plan.stock.length ? t(' · {{count}} stock adjustments', { count: plan.stock.length }) : '' }));
       await sheetQ.refetch();
     }
   };
@@ -339,7 +340,7 @@ export default function ProductBulkEditPage() {
     if (!pctOk || !costTargets.length) return;
     grid.edit(costTargets.map((r) => ({ id: r.id, key: 'costPrice', value: String(Math.round((num(r.cells.price ?? '')! * pct) / 100 * 100) / 100) })));
     setCostTool(false);
-    toast.success(`${costTargets.length} lines mein Cost bhar di — "Dekh kar save karein" se save karein`);
+    toast.success(t('{{count}} lines mein Cost bhar di — "Dekh kar save karein" se save karein', { count: costTargets.length }));
   };
 
   const shop = sheetQ.data?.shop;
@@ -350,88 +351,88 @@ export default function ProductBulkEditPage() {
     <PageShell>
       {guide.isOpen && <BulkEditGuide onClose={guide.close} />}
       <PageHero
-        title="Bulk edit"
-        chip={<><Table2 />Spreadsheet</>}
-        meta={sheetQ.data?.job ? `Import: ${sheetQ.data.job.fileName}` : shop?.name ?? ''}
+        title={t('Bulk edit')}
+        chip={<><Table2 />{t('Spreadsheet')}</>}
+        meta={sheetQ.data?.job ? t('Import: {{fileName}}', { fileName: sheetQ.data.job.fileName }) : shop?.name ?? ''}
         actions={<>
-          <button type="button" onClick={guide.open} title="Tareeqa (G)" className={heroButton}><GraduationCap className="h-4 w-4" /><span className="hidden sm:inline">Tareeqa</span></button>
-          <Link to="/products/bulk-import" className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">Excel import</span></Link>
-          <Link to="/products" className={heroButton}><Package className="h-4 w-4" /><span className="hidden sm:inline">Products</span></Link>
+          <button type="button" onClick={guide.open} title={t('Tareeqa (G)')} className={heroButton}><GraduationCap className="h-4 w-4" /><span className="hidden sm:inline">{t('Tareeqa')}</span></button>
+          <Link to="/products/bulk-import" className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">{t('Excel import')}</span></Link>
+          <Link to="/products" className={heroButton}><Package className="h-4 w-4" /><span className="hidden sm:inline">{t('Products')}</span></Link>
         </>}
       />
 
       <div className="grid gap-3 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:grid-cols-2 sm:p-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.4fr)]">
-        <Select label="Stock kis branch ka" value={shopId} disabled={!!lockedShop || shops.length < 2} onChange={(e) => void changeShop(e.target.value)}
+        <Select label={t('Stock kis branch ka')} value={shopId} disabled={!!lockedShop || shops.length < 2} onChange={(e) => void changeShop(e.target.value)}
           options={shops.map((s) => ({ value: s.id, label: s.name }))} />
-        <Select label="Category" value={categoryId} onChange={(e) => void setFilter('category', e.target.value)}
-          options={[{ value: '', label: 'Sab categories' }, { value: 'none', label: 'Bina category' }, ...(sheetQ.data?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]} />
-        <Select label="Import" value={jobId} onChange={(e) => void setFilter('job', e.target.value)}
-          options={[{ value: '', label: 'Sab products' }, ...jobs.map((j) => ({ value: j.id, label: `${j.fileName} · ${new Date(j.createdAt).toLocaleDateString('en-PK')} (${j.productCount})` }))]} />
+        <Select label={t('Category')} value={categoryId} onChange={(e) => void setFilter('category', e.target.value)}
+          options={[{ value: '', label: t('Sab categories') }, { value: 'none', label: t('Bina category') }, ...(sheetQ.data?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]} />
+        <Select label={t('Import')} value={jobId} onChange={(e) => void setFilter('job', e.target.value)}
+          options={[{ value: '', label: t('Sab products') }, ...jobs.map((j) => ({ value: j.id, label: `${j.fileName} · ${new Date(j.createdAt).toLocaleDateString('en-PK')} (${j.productCount})` }))]} />
         <div className="flex items-end pb-2">
           <div className="flex flex-col gap-1.5">
-            <Checkbox label="Sirf low stock" checked={lowStock} onChange={(e) => void setFilter('low', e.target.checked ? '1' : '')} />
-            {!costHidden && <Checkbox label="Sirf jin ki Cost nahi" checked={noCost} onChange={(e) => void setFilter('nocost', e.target.checked ? '1' : '')} />}
+            <Checkbox label={t('Sirf low stock')} checked={lowStock} onChange={(e) => void setFilter('low', e.target.checked ? '1' : '')} />
+            {!costHidden && <Checkbox label={t('Sirf jin ki Cost nahi')} checked={noCost} onChange={(e) => void setFilter('nocost', e.target.checked ? '1' : '')} />}
           </div>
         </div>
         <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); void doSearch(); }}>
-          <Input label="Dhoondein" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, SKU ya barcode" leftIcon={<Search className="h-4 w-4" />} wrapperClassName="flex-1" />
-          <Button type="submit" variant="secondary">Dhoondein</Button>
+          <Input label={t('Dhoondein')} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Naam, SKU ya barcode')} leftIcon={<Search className="h-4 w-4" />} wrapperClassName="flex-1" />
+          <Button type="submit" variant="secondary">{t('Dhoondein')}</Button>
         </form>
       </div>
 
       <KpiRow cols={4}>
-        <KpiCard icon={Package} color="#475569" label="Lines" value={sheetQ.isLoading ? '…' : grid.rows.length} hint={sheetQ.data?.truncated ? 'Pehli 10,000 — filter lagayein' : `${new Set((sheetQ.data?.rows ?? []).map((r) => r.productId)).size} products`} />
-        <KpiCard icon={PencilLine} color="#d97706" label="Badle hue" value={changedRows.length} active={onlyChanged} onClick={() => setOnlyChanged((x) => !x)} hint={changedRows.length ? 'Click: sirf badli hui lines' : 'Cell par likh kar badlein'} />
-        <KpiCard icon={Boxes} color="#7c3aed" label="Stock adjustments" value={plan.stock.length} hint={plan.stock.length ? `+${fmt(stockUp)} / −${fmt(stockDown)}` : shop?.name} />
-        <KpiCard icon={AlertTriangle} color="#e11d48" label="Ghalti" value={plan.errors} hint={plan.errors ? 'Laal cells theek karein' : 'Sab theek'} />
+        <KpiCard icon={Package} color="#475569" label={t('Lines')} value={sheetQ.isLoading ? '…' : grid.rows.length} hint={sheetQ.data?.truncated ? t('Pehli 10,000 — filter lagayein') : t('{{size}} products', { size: new Set((sheetQ.data?.rows ?? []).map((r) => r.productId)).size })} />
+        <KpiCard icon={PencilLine} color="#d97706" label={t('Badle hue')} value={changedRows.length} active={onlyChanged} onClick={() => setOnlyChanged((x) => !x)} hint={changedRows.length ? t('Click: sirf badli hui lines') : t('Cell par likh kar badlein')} />
+        <KpiCard icon={Boxes} color="#7c3aed" label={t('Stock adjustments')} value={plan.stock.length} hint={plan.stock.length ? `+${fmt(stockUp)} / −${fmt(stockDown)}` : shop?.name} />
+        <KpiCard icon={AlertTriangle} color="#e11d48" label={t('Ghalti')} value={plan.errors} hint={plan.errors ? t('Laal cells theek karein') : t('Sab theek')} />
       </KpiRow>
 
       {!costHidden && (noCost || costTargets.length > 0) && (
         <Alert tone="warning" icon={<Percent className="h-4 w-4" />}
-          title={noCost ? 'In cheezon ki Cost nahi likhi — in ki poori sale Profit gini ja rahi hai' : 'Cost jaldi bharein'}
-          action={<Button size="sm" variant="secondary" leftIcon={<Percent className="h-4 w-4" />} disabled={!costTargets.length} onClick={() => setCostTool(true)}>Cost = Sale price ka %</Button>}>
-          Cost cell me seedha likhein, ya Sale price ka % laga dein ({selected.size ? `${costTargets.length} chuni hui lines` : `${costTargets.length} lines jin ki Cost khaali hai`}).
+          title={noCost ? t('In cheezon ki Cost nahi likhi — in ki poori sale Profit gini ja rahi hai') : t('Cost jaldi bharein')}
+          action={<Button size="sm" variant="secondary" leftIcon={<Percent className="h-4 w-4" />} disabled={!costTargets.length} onClick={() => setCostTool(true)}>{t('Cost = Sale price ka %')}</Button>}>
+          {t('Cost cell me seedha likhein, ya Sale price ka % laga dein ({{value}}).', { value: selected.size ? t('{{count}} chuni hui lines', { count: costTargets.length }) : t('{{count}} lines jin ki Cost khaali hai', { count: costTargets.length }) })}
         </Alert>
       )}
 
-      {!canStock && <Alert tone="info">Stock column band hai — Stock adjustment ki ijazat wale user hi stock badal sakte hain.</Alert>}
+      {!canStock && <Alert tone="info">{t('Stock column band hai — Stock adjustment ki ijazat wale user hi stock badal sakte hain.')}</Alert>}
 
       <SheetTools columns={columns} rows={viewRows} selected={selected} onEdit={(p) => grid.edit(p)}
         canUndo={grid.canUndo} canRedo={grid.canRedo} onUndo={grid.undo} onRedo={grid.redo} />
 
       {sheetQ.isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded-2xl bg-white text-slate-500 ring-1 ring-slate-200/80"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Products aa rahe hain…</div>
+        <div className="flex h-64 items-center justify-center rounded-2xl bg-white text-slate-500 ring-1 ring-slate-200/80"><Loader2 className="me-2 h-5 w-5 animate-spin" />{t('Products aa rahe hain…')}</div>
       ) : sheetQ.isError ? (
-        <Alert tone="danger" title="Products nahi aaye" action={<Button size="sm" variant="secondary" onClick={() => void sheetQ.refetch()}>Dobara</Button>}>Internet dekh kar dobara koshish karein.</Alert>
+        <Alert tone="danger" title={t('Products nahi aaye')} action={<Button size="sm" variant="secondary" onClick={() => void sheetQ.refetch()}>{t('Dobara')}</Button>}>{t('Internet dekh kar dobara koshish karein.')}</Alert>
       ) : (
         <SheetGrid rows={viewRows} columns={columns} marks={marks} selected={selected} onSelectedChange={setSelected}
           onEdit={(p) => grid.edit(p)} onUndo={grid.undo} onRedo={grid.redo} isChanged={isChanged} canAddRows={false}
           height={Math.max(360, Math.min(640, 36 + viewRows.length * 34 + 2))}
-          emptyText={onlyChanged ? 'Abhi kuch nahi badla' : 'Is filter me koi product nahi'} />
+          emptyText={onlyChanged ? t('Abhi kuch nahi badla') : t('Is filter me koi product nahi')} />
       )}
 
       <div className="sticky bottom-3 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg ring-1 ring-slate-200">
         <p className="text-[0.8125rem] text-slate-600">
-          {saving ? <span className="inline-flex items-center gap-1.5"><Loader2 className="h-4 w-4 animate-spin" />Save ho raha hai… {saving.done} / {saving.total}</span>
-            : plan.products ? <><b className="text-slate-900">{plan.products} products badlenge</b> — save se pehle dekh lein</>
-              : 'Cell par click kar ke likhein, ya Excel se paste karein'}
+          {saving ? <span className="inline-flex items-center gap-1.5"><Loader2 className="h-4 w-4 animate-spin" />{t('Save ho raha hai… {{done}} / {{total}}', { done: saving.done, total: saving.total })}</span>
+            : plan.products ? <><b className="text-slate-900">{t('{{products}} products badlenge', { products: plan.products })}</b> {' '}{t('— save se pehle dekh lein')}</>
+              : t('Cell par click kar ke likhein, ya Excel se paste karein')}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" leftIcon={<Undo2 className="h-4 w-4" />} disabled={!changedRows.length || !!saving}
-            onClick={async () => { if (await confirmDiscard()) grid.reset([...original].map(([id, cells]) => ({ id, cells: { ...cells } }))); }}>Sab wapas</Button>
-          <Button leftIcon={<Save className="h-4 w-4" />} disabled={!plan.products || !!saving} onClick={() => setReview(true)}>Dekh kar save karein</Button>
+            onClick={async () => { if (await confirmDiscard()) grid.reset([...original].map(([id, cells]) => ({ id, cells: { ...cells } }))); }}>{t('Sab wapas')}</Button>
+          <Button leftIcon={<Save className="h-4 w-4" />} disabled={!plan.products || !!saving} onClick={() => setReview(true)}>{t('Dekh kar save karein')}</Button>
         </div>
       </div>
 
-      <Modal open={costTool} onClose={() => setCostTool(false)} size="sm" title="Cost = Sale price ka %"
-        description={`${costTargets.length} lines: ${selected.size ? 'jo aap ne chuni hain' : 'jin ki Cost khaali hai'}. Save se pehle sab dikhega.`}
+      <Modal open={costTool} onClose={() => setCostTool(false)} size="sm" title={t('Cost = Sale price ka %')}
+        description={t('{{count}} lines: {{value}}. Save se pehle sab dikhega.', { count: costTargets.length, value: selected.size ? t('jo aap ne chuni hain') : t('jin ki Cost khaali hai') })}
         footer={<>
-          <Button variant="secondary" onClick={() => setCostTool(false)}>Rehne dein</Button>
-          <Button disabled={!pctOk || !costTargets.length} onClick={applyCostPct}>Cost bharein</Button>
+          <Button variant="secondary" onClick={() => setCostTool(false)}>{t('Rehne dein')}</Button>
+          <Button disabled={!pctOk || !costTargets.length} onClick={applyCostPct}>{t('Cost bharein')}</Button>
         </>}>
         <div className="space-y-3">
-          <Input label="Sale price ka kitna % Cost hai" inputMode="decimal" value={costPct} autoFocus
-            onChange={(e) => setCostPct(e.target.value.replace(/[^\d.]/g, ''))} placeholder="Maslan 85" rightIcon={<Percent className="h-4 w-4" />} />
+          <Input label={t('Sale price ka kitna % Cost hai')} inputMode="decimal" value={costPct} autoFocus
+            onChange={(e) => setCostPct(e.target.value.replace(/[^\d.]/g, ''))} placeholder={t('Maslan 85')} rightIcon={<Percent className="h-4 w-4" />} />
           <div className="flex flex-wrap gap-1.5">
             {[70, 75, 80, 85, 90].map((v) => (
               <button key={v} type="button" onClick={() => setCostPct(String(v))} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">{v}%</button>
@@ -439,38 +440,37 @@ export default function ProductBulkEditPage() {
           </div>
           {pctOk && costTargets[0] && (
             <p className="rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">
-              Maslan <b className="text-slate-800">{costTargets[0].cells.name || 'pehli line'}</b>: Sale price {formatPKR(num(costTargets[0].cells.price ?? '') ?? 0)} → Cost {formatPKR(Math.round((num(costTargets[0].cells.price ?? '')! * pct)) / 100)}
+              <Trans text="Maslan {{name}}: Sale price {{price}} → Cost {{cost}}" values={{ name: <b className="text-slate-800">{costTargets[0].cells.name || t('pehli line')}</b>, price: formatPKR(num(costTargets[0].cells.price ?? '') ?? 0), cost: formatPKR(Math.round((num(costTargets[0].cells.price ?? '')! * pct)) / 100) }} />
             </p>
           )}
-          <p className="text-[0.75rem] text-slate-500">Andaza hai — asal Cost maloom ho to cell me likh dein. Pehle se likhi Cost tab hi badlegi jab line chuni hui ho.</p>
+          <p className="text-[0.75rem] text-slate-500">{t('Andaza hai — asal Cost maloom ho to cell me likh dein. Pehle se likhi Cost tab hi badlegi jab line chuni hui ho.')}</p>
         </div>
       </Modal>
 
-      <Modal open={review} onClose={() => setReview(false)} size="lg" title={`${plan.products} products badlenge — dekh lein`}
-        description={plan.errors ? `${plan.errors} ghalat cells save nahi honge.` : 'Sirf badli hui cheezein save hongi.'}
+      <Modal open={review} onClose={() => setReview(false)} size="lg" title={t('{{products}} products badlenge — dekh lein', { products: plan.products })}
+        description={plan.errors ? t('{{errors}} ghalat cells save nahi honge.', { errors: plan.errors }) : t('Sirf badli hui cheezein save hongi.')}
         footer={<>
-          <Button variant="secondary" onClick={() => setReview(false)}>Wapas</Button>
-          <Button leftIcon={<Save className="h-4 w-4" />} onClick={() => void save()}>Save karein</Button>
+          <Button variant="secondary" onClick={() => setReview(false)}>{t('Wapas')}</Button>
+          <Button leftIcon={<Save className="h-4 w-4" />} onClick={() => void save()}>{t('Save karein')}</Button>
         </>}>
         <div className="space-y-3">
           {plan.stock.length > 0 && (
-            <Alert tone="warning" icon={<Boxes className="h-4 w-4" />} title={`${plan.stock.length} stock adjustments — ${shop?.name ?? ''}`}>
-              Stock seedha nahi likha jata: har badli hui line ka farq Stock adjustment ("Bulk edit") ban kar jata hai aur stock report me dikhta hai.
-              Kul +{fmt(stockUp)} / −{fmt(stockDown)}.
+            <Alert tone="warning" icon={<Boxes className="h-4 w-4" />} title={t('{{count}} stock adjustments — {{value}}', { count: plan.stock.length, value: shop?.name ?? '' })}>
+              {t('Stock seedha nahi likha jata: har badli hui line ka farq Stock adjustment ("Bulk edit") ban kar jata hai aur stock report me dikhta hai. Kul +{{stockUp}} / −{{stockDown}}.', { stockUp: fmt(stockUp), stockDown: fmt(stockDown) })}
             </Alert>
           )}
           <ul className="max-h-[50vh] divide-y divide-slate-100 overflow-auto rounded-xl ring-1 ring-slate-200 text-[0.8125rem]">
             {plan.lines.slice(0, 500).map((l, i) => (
               <li key={`${l.id}-${l.key}-${i}`} className="grid grid-cols-[minmax(0,1.4fr)_7rem_minmax(0,1.6fr)] gap-2 px-3 py-1.5">
                 <span className="truncate font-semibold text-slate-800" title={l.label}>{l.label}</span>
-                <span className="text-slate-500">{l.key === 'stock' ? <span className="inline-flex items-center gap-1"><Boxes className="h-3.5 w-3.5" />Stock</span> : l.key === 'price' ? <span className="inline-flex items-center gap-1"><Tag className="h-3.5 w-3.5" />Price</span> : LABEL[l.key]}</span>
+                <span className="text-slate-500">{l.key === 'stock' ? <span className="inline-flex items-center gap-1"><Boxes className="h-3.5 w-3.5" />{t('Stock')}</span> : l.key === 'price' ? <span className="inline-flex items-center gap-1"><Tag className="h-3.5 w-3.5" />{t('Price')}</span> : LABEL[l.key]}</span>
                 <span className="truncate tabular-nums">
                   <span className="text-slate-400 line-through">{show(l.key, l.from, cost)}</span>{' → '}<b className="text-slate-900">{show(l.key, l.to, cost)}</b>
-                  {l.key === 'stock' && <span className={Number(num(l.to)) >= Number(num(l.from)) ? 'ml-1 text-emerald-700' : 'ml-1 text-rose-700'}>({fmtDiff((num(l.to) ?? 0) - (num(l.from) ?? 0))})</span>}
+                  {l.key === 'stock' && <span className={Number(num(l.to)) >= Number(num(l.from)) ? 'ms-1 text-emerald-700' : 'ms-1 text-rose-700'}>({fmtDiff((num(l.to) ?? 0) - (num(l.from) ?? 0))})</span>}
                 </span>
               </li>
             ))}
-            {plan.lines.length > 500 && <li className="px-3 py-2 text-center text-slate-500">aur {plan.lines.length - 500}…</li>}
+            {plan.lines.length > 500 && <li className="px-3 py-2 text-center text-slate-500">{t('aur {{value}}…', { value: plan.lines.length - 500 })}</li>}
           </ul>
         </div>
       </Modal>
@@ -491,21 +491,21 @@ function show(key: Key, v: string, cost: (n: number) => string) {
 function BulkEditGuide({ onClose }: { onClose: () => void }) {
   return (
     <PageGuide
-      title="Bulk edit — bohat se products ek saath"
+      title={t('Bulk edit — bohat se products ek saath')}
       onClose={onClose}
       steps={[
-        { icon: Search, color: '#2563eb', title: 'Products chunein', text: 'Category, low stock ya kisi import ke products. Branch chunein jiska stock badalna hai.' },
-        { icon: PencilLine, color: '#7c3aed', title: 'Cells badlein', text: 'Excel ki tarah: click, likhein, Enter. Kai lines chun kar "Column ek saath" se ek value lagayein. Excel se paste bhi.' },
-        { icon: Boxes, color: '#ea580c', title: 'Stock', text: 'Stock likhne par farq ka Stock adjustment ("Bulk edit") banta hai — seedha nahi likha jata. Phone (IMEI) ka stock yahan band hai.' },
-        { icon: Save, color: '#16a34a', title: 'Dekh kar save', text: 'Save se pehle sirf badli hui cheezein dikhti hain: purani → nayi. Phir hisson me save hota hai.' },
+        { icon: Search, color: '#2563eb', title: t('Products chunein'), text: t('Category, low stock ya kisi import ke products. Branch chunein jiska stock badalna hai.') },
+        { icon: PencilLine, color: '#7c3aed', title: t('Cells badlein'), text: t('Excel ki tarah: click, likhein, Enter. Kai lines chun kar "Column ek saath" se ek value lagayein. Excel se paste bhi.') },
+        { icon: Boxes, color: '#ea580c', title: t('Stock'), text: t('Stock likhne par farq ka Stock adjustment ("Bulk edit") banta hai — seedha nahi likha jata. Phone (IMEI) ka stock yahan band hai.') },
+        { icon: Save, color: '#16a34a', title: t('Dekh kar save'), text: t('Save se pehle sirf badli hui cheezein dikhti hain: purani → nayi. Phir hisson me save hota hai.') },
       ]}
       tips={[
-        'Peeli cell = badli hui, abhi save nahi. Laal cell = ghalti, neeche wajah likhi hoti hai.',
-        'Variant ki line par sirf Price, Cost, Barcode, Low Stock aur Stock badalte hain; naam, category waghera product ki line par.',
-        'Status me "Active" ya "Band" likhein.',
-        'Ctrl+Z se wapas, "Sab wapas" se saari tabdeeliyan mit jati hain.',
+        t('Peeli cell = badli hui, abhi save nahi. Laal cell = ghalti, neeche wajah likhi hoti hai.'),
+        t('Variant ki line par sirf Price, Cost, Barcode, Low Stock aur Stock badalte hain; naam, category waghera product ki line par.'),
+        t('Status me "Active" ya "Band" likhein.'),
+        t('Ctrl+Z se wapas, "Sab wapas" se saari tabdeeliyan mit jati hain.'),
       ]}
-      shortcuts={[['G', 'Ye guide'], ['Ctrl+Z', 'Wapas'], ['F2', 'Cell edit']]}
+      shortcuts={[['G', t('Ye guide')], ['Ctrl+Z', t('Wapas')], ['F2', t('Cell edit')]]}
     />
   );
 }

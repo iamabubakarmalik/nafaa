@@ -18,12 +18,13 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { damageApi, type DamageStatus } from '@modules/inventory/damage/api/damage.api';
 import { COSMETICS_KEYS, TESTER_REASON, apiError, dayOnly } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const STATUS: Record<DamageStatus, { label: string; tone: string }> = {
-  REPORTED: { label: 'Manzoori baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  APPROVED: { label: 'Stock se nikla', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  WRITTEN_OFF: { label: 'Stock se nikla', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  REJECTED: { label: 'Rad', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  REPORTED: { label: tr('Manzoori baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  APPROVED: { label: tr('Stock se nikla'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  WRITTEN_OFF: { label: tr('Stock se nikla'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  REJECTED: { label: tr('Rad'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export default function CosmeticsTestersPage() {
@@ -41,42 +42,42 @@ export default function CosmeticsTestersPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Tester — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Tester — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: TestTube2, color: '#7c3aed', title: 'Tester kholein', text: 'Jo piece customers ke try karne ke liye khola, yahan likhein — shade bhi chunein.' },
-            { icon: Clock, color: '#d97706', title: 'Manzoori', text: 'Malik ya manager Damage page se manzoor karta hai, tab stock se nikalta hai.' },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Hisaab', text: 'Tester ki cost nuksan (write-off) report me aati hai — profit sahi rehta hai.' },
+            { icon: TestTube2, color: '#7c3aed', title: tr('Tester kholein'), text: tr('Jo piece customers ke try karne ke liye khola, yahan likhein — shade bhi chunein.') },
+            { icon: Clock, color: '#d97706', title: tr('Manzoori'), text: tr('Malik ya manager Damage page se manzoor karta hai, tab stock se nikalta hai.') },
+            { icon: CheckCircle2, color: '#16a34a', title: tr('Report me'), text: tr('Tester ki cost nuksan (write-off) report me aati hai — profit sahi rehta hai.') },
           ]}
           shortcuts={[['/', 'search'], ['G', 'guide']]} />
       )}
       {adding && <OpenTesterModal onClose={() => setAdding(false)} />}
-      <PageHero title="Testers" chip={<><TestTube2 />{rows.length}</>} loading={list.isLoading} meta="Try karne ke liye khole gaye piece"
+      <PageHero title={tr('Testers')} chip={<><TestTube2 />{rows.length}</>} loading={list.isLoading} meta={tr('Try karne ke liye khole gaye piece')}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Tester kholein</button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Tester kholein')}</button>
         </>}
         stats={[
-          { label: 'Is mahine testers ki cost', value: money(thisMonth.reduce((a, d) => a + d.costImpact, 0)) },
-          { label: 'Is mahine', value: thisMonth.length },
-          { label: 'Manzoori baqi', value: rows.filter((d) => d.status === 'REPORTED').length },
+          { label: tr('Is mahine testers ki cost'), value: money(thisMonth.reduce((a, d) => a + d.costImpact, 0)) },
+          { label: tr('Is mahine'), value: thisMonth.length },
+          { label: tr('Manzoori baqi'), value: rows.filter((d) => d.status === 'REPORTED').length },
         ]} />
       <KpiRow cols={3}>
         {list.isLoading ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={TestTube2} color="#7c3aed" label="Kul testers" value={rows.length} />
-            <KpiCard icon={Clock} color="#d97706" label="Manzoori baqi" value={rows.filter((d) => d.status === 'REPORTED').length} hint="Damage page se manzoor" />
-            <KpiCard icon={CheckCircle2} color="#16a34a" label="Kul cost" value={money(rows.filter((d) => d.status !== 'REJECTED').reduce((a, d) => a + d.costImpact, 0))} />
+            <KpiCard icon={TestTube2} color="#7c3aed" label={tr('Kul testers')} value={rows.length} />
+            <KpiCard icon={Clock} color="#d97706" label={tr('Manzoori baqi')} value={rows.filter((d) => d.status === 'REPORTED').length} hint={tr('Damage page se manzoor')} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Kul cost')} value={money(rows.filter((d) => d.status !== 'REJECTED').reduce((a, d) => a + d.costImpact, 0))} />
           </>
         )}
       </KpiRow>
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Product ya shade…" />} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Product ya shade…')} />} />
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {list.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-          : list.isError ? <EmptyState title="List nahi khuli" action={<Button variant="secondary" onClick={() => void list.refetch()}>Dobara</Button>} />
-          : !rows.length ? <EmptyState icon={<TestTube2 className="h-6 w-6" />} title="Abhi koi tester nahi" description="Tester khola ho to yahan likhein — stock aur nuksan sahi rehte hain." action={<Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Tester kholein</Button>} />
+          : list.isError ? <EmptyState title={tr('List nahi khuli')} action={<Button variant="secondary" onClick={() => void list.refetch()}>{tr('Dobara')}</Button>} />
+          : !rows.length ? <EmptyState icon={<TestTube2 className="h-6 w-6" />} title={tr('Abhi koi tester nahi')} description={tr('Tester khola ho to yahan likhein — stock aur nuksan sahi rehte hain.')} action={<Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Tester kholein')}</Button>} />
           : (
             <Table minWidth="40rem">
-              <THead><Tr><Th>Date</Th><Th>Product</Th><Th align="right">Qty</Th><Th align="right">Cost</Th><Th>Halat</Th></Tr></THead>
+              <THead><Tr><Th>{tr('Date')}</Th><Th>{tr('Product')}</Th><Th align="right">{tr('Qty')}</Th><Th align="right">{tr('Cost')}</Th><Th>{tr('Halat')}</Th></Tr></THead>
               <TBody>
                 {rows.map((d) => (
                   <Tr key={d.id}>
@@ -109,33 +110,33 @@ function OpenTesterModal({ onClose }: { onClose: () => void }) {
   const n = Number(qty) || 0;
   const needsVariant = variants.length > 0 && !variantId;
   const save = useMutation({
-    mutationFn: () => damageApi.create({ productId: product!.id, variantId: variantId || undefined, quantity: n, reason: TESTER_REASON, reasonCode: 'OTHER', notes: 'Tester' }),
-    onSuccess: (d) => { toast.success(`${d.damageNumber} — tester likh diya`); qc.invalidateQueries({ queryKey: [COSMETICS_KEYS.testers] }); qc.invalidateQueries({ queryKey: ['damage'] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    mutationFn: () => damageApi.create({ productId: product!.id, variantId: variantId || undefined, quantity: n, reason: TESTER_REASON, reasonCode: 'OTHER', notes: tr('Tester') }),
+    onSuccess: (d) => { toast.success(tr('{{damageNumber}} — tester likh diya', { damageNumber: d.damageNumber })); qc.invalidateQueries({ queryKey: [COSMETICS_KEYS.testers] }); qc.invalidateQueries({ queryKey: ['damage'] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Tester kholein" description="Ye piece bechne wale stock se nikal kar tester ban jayega"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!product || n <= 0 || needsVariant} loading={save.isPending} onClick={() => save.mutate()}>Tester likhein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Tester kholein')} description={tr('Ye piece bechne wale stock se nikal kar tester ban jayega')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!product || n <= 0 || needsVariant} loading={save.isPending} onClick={() => save.mutate()}>{tr('Tester likhein')}</Button></>}>
       <div className="space-y-3">
         {product ? (
           <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-200">
             <span className="font-semibold text-slate-900">{product.name}</span>
-            <Button size="sm" variant="secondary" onClick={() => { setProduct(null); setVariantId(''); }}>Badlein</Button>
+            <Button size="sm" variant="secondary" onClick={() => { setProduct(null); setVariantId(''); }}>{tr('Badlein')}</Button>
           </div>
         ) : (
           <>
-            <Input label="Product" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Naam, brand ya barcode" leftIcon={<Search className="h-4 w-4" />} />
+            <Input label={tr('Product')} autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Naam, brand ya barcode')} leftIcon={<Search className="h-4 w-4" />} />
             {(found.data?.items ?? []).length > 0 && (
               <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl ring-1 ring-slate-200">
                 {found.data!.items.map((p) => (
-                  <li key={p.id}><button type="button" onClick={() => setProduct({ id: p.id, name: p.name })} className="flex w-full justify-between px-3 py-2 text-left hover:bg-slate-50"><span className="font-medium">{p.name}</span><span className="text-[0.8125rem] text-slate-500">stock {p.stock}</span></button></li>
+                  <li key={p.id}><button type="button" onClick={() => setProduct({ id: p.id, name: p.name })} className="flex w-full justify-between px-3 py-2 text-start hover:bg-slate-50"><span className="font-medium">{p.name}</span><span className="text-[0.8125rem] text-slate-500">{tr('stock {{stock}}', { stock: p.stock })}</span></button></li>
                 ))}
               </ul>
             )}
           </>
         )}
-        {variants.length > 0 && <Select label="Shade" value={variantId} onChange={(e) => setVariantId(e.target.value)} options={[{ value: '', label: 'Shade chunein' }, ...variants.map((v) => ({ value: v.id, label: `${v.name} (stock ${v.branchStock ?? v.stock})` }))]} />}
-        <Input label="Kitne piece" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, '').slice(0, 3))} hint="Aam taur par 1" />
+        {variants.length > 0 && <Select label={tr('Shade')} value={variantId} onChange={(e) => setVariantId(e.target.value)} options={[{ value: '', label: tr('Shade chunein') }, ...variants.map((v) => ({ value: v.id, label: tr('{{name}} (stock {{value}})', { name: v.name, value: v.branchStock ?? v.stock }) }))]} />}
+        <Input label={tr('Kitne piece')} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, '').slice(0, 3))} hint={tr('Aam taur par 1')} />
       </div>
     </Modal>
   );

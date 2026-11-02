@@ -6,6 +6,7 @@ import { Alert, Badge, Button, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { Payment } from '../api/billing.api';
 import { PAYMENT_STATUS, PROVIDER, formatDateTime } from './helpers';
+import { t } from '@core/i18n';
 
 export function PaymentList({ payments, onOpen }: { payments: Payment[]; onOpen: (p: Payment) => void }) {
   return (
@@ -15,7 +16,7 @@ export function PaymentList({ payments, onOpen }: { payments: Payment[]; onOpen:
         const pv = PROVIDER[p.provider];
         return (
           <li key={p.id}>
-            <button type="button" onClick={() => onOpen(p)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50 sm:px-5">
+            <button type="button" onClick={() => onOpen(p)} className="flex w-full items-center gap-3 px-4 py-3 text-start transition hover:bg-slate-50 sm:px-5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${pv?.color ?? '#64748b'}17`, color: pv?.color ?? '#64748b' }}>
                 {pv ? <pv.icon className="h-4 w-4" /> : null}
               </span>
@@ -25,11 +26,11 @@ export function PaymentList({ payments, onOpen }: { payments: Payment[]; onOpen:
                   <Badge variant={st.badge} size="xs">{st.label}</Badge>
                 </span>
                 <span className="block truncate text-[0.75rem] text-slate-500">
-                  {formatDateTime(p.createdAt)}{p.invoice?.invoiceNumber ? ` · ${p.invoice.invoiceNumber}` : ''}{p.transactionId ? ` · Ref ${p.transactionId}` : ''}
+                  {formatDateTime(p.createdAt)}{p.invoice?.invoiceNumber ? ` · ${p.invoice.invoiceNumber}` : ''}{p.transactionId ? t(' · Ref {{transactionId}}', { transactionId: p.transactionId }) : ''}
                 </span>
               </span>
               <span className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{formatPKR(p.amount)}</span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 rtl-flip" />
             </button>
           </li>
         );
@@ -41,20 +42,20 @@ export function PaymentList({ payments, onOpen }: { payments: Payment[]; onOpen:
 export function PaymentModal({ payment: p, onClose }: { payment: Payment; onClose: () => void }) {
   const st = PAYMENT_STATUS[p.status];
   const rows: Array<[string, string]> = [
-    ['Tareeqa', PROVIDER[p.provider]?.label ?? p.provider],
-    ['Bheji', formatDateTime(p.createdAt)],
-    ...(p.invoice?.invoiceNumber ? [['Bill', p.invoice.invoiceNumber] as [string, string]] : []),
-    ...(p.transactionId ? [['Ref / TID', p.transactionId] as [string, string]] : []),
-    ...(p.payerName ? [['Bhejne wala', p.payerName] as [string, string]] : []),
-    ...(p.bankName ? [['Bank', p.bankName] as [string, string]] : []),
-    ...(p.approvedAt ? [['Approve hui', formatDateTime(p.approvedAt)] as [string, string]] : []),
+    [t('Tareeqa'), PROVIDER[p.provider]?.label ?? p.provider],
+    [t('Bheji'), formatDateTime(p.createdAt)],
+    ...(p.invoice?.invoiceNumber ? [[t('Bill'), p.invoice.invoiceNumber] as [string, string]] : []),
+    ...(p.transactionId ? [[t('Ref / TID'), p.transactionId] as [string, string]] : []),
+    ...(p.payerName ? [[t('Bhejne wala'), p.payerName] as [string, string]] : []),
+    ...(p.bankName ? [[t('Bank'), p.bankName] as [string, string]] : []),
+    ...(p.approvedAt ? [[t('Approve hui'), formatDateTime(p.approvedAt)] as [string, string]] : []),
   ];
   return (
-    <Modal open onClose={onClose} size="md" title="Payment ki details" description={st.hint}
+    <Modal open onClose={onClose} size="md" title={t('Payment ki details')} description={st.hint}
       footer={<>
-        {p.transactionId && <Button variant="ghost" onClick={() => { void navigator.clipboard?.writeText(p.transactionId!); toast.success('Ref copy ho gaya'); }}><Copy className="h-4 w-4" /> Ref copy</Button>}
-        {p.upload?.url && <a href={p.upload.url} target="_blank" rel="noreferrer"><Button variant="secondary"><ExternalLink className="h-4 w-4" /> Receipt dekhein</Button></a>}
-        <Button onClick={onClose}>Theek hai</Button>
+        {p.transactionId && <Button variant="ghost" onClick={() => { void navigator.clipboard?.writeText(p.transactionId!); toast.success(t('Ref copy ho gaya')); }}><Copy className="h-4 w-4" /> {' '}{t('Ref copy')}</Button>}
+        {p.upload?.url && <a href={p.upload.url} target="_blank" rel="noreferrer"><Button variant="secondary"><ExternalLink className="h-4 w-4" /> {' '}{t('Receipt dekhein')}</Button></a>}
+        <Button onClick={onClose}>{t('Theek hai')}</Button>
       </>}>
       <div className="rounded-2xl p-4 text-center" style={{ backgroundColor: `${st.color}12` }}>
         <p className="text-[0.75rem] font-medium" style={{ color: st.color }}>{st.label}</p>
@@ -63,11 +64,11 @@ export function PaymentModal({ payment: p, onClose }: { payment: Payment; onClos
       <dl className="mt-3 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
         {rows.map(([k, v]) => (
           <div key={k} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-[0.8125rem]">
-            <dt className="text-slate-500">{k}</dt><dd className="break-all text-right font-semibold text-slate-900">{v}</dd>
+            <dt className="text-slate-500">{k}</dt><dd className="break-all text-end font-semibold text-slate-900">{v}</dd>
           </div>
         ))}
       </dl>
-      {p.rejectionReason && <Alert tone="danger" title="Wapas kyun ki gayi" className="mt-3">{p.rejectionReason}</Alert>}
+      {p.rejectionReason && <Alert tone="danger" title={t('Wapas kyun ki gayi')} className="mt-3">{p.rejectionReason}</Alert>}
       {p.notes && <p className="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-100">{p.notes}</p>}
     </Modal>
   );

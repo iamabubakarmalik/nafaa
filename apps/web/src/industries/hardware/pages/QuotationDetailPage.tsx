@@ -29,6 +29,7 @@ import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { quotationsApi, type Quotation, type QuotationStatus } from '../api/quotations.api';
 import { QUOTE_STATUS, UNIT_LABEL, errorText, qty, shortDate } from '../lib/meta';
 import type { Unit } from '../api/products.api';
+import { t } from '@core/i18n';
 
 const OPEN: QuotationStatus[] = ['DRAFT', 'SENT', 'VIEWED', 'REVISED'];
 
@@ -84,26 +85,26 @@ export default function QuotationDetailPage() {
   const status = useMutation({
     mutationFn: (s: QuotationStatus) => quotationsApi.updateStatus(id, s),
     onSuccess: (r) => { refresh(); toast.success(QUOTE_STATUS[r.status].label); },
-    onError: (e) => toast.error(errorText(e, 'Status nahi badla')),
+    onError: (e) => toast.error(errorText(e, t('Status nahi badla'))),
   });
   const close = useMutation({
     mutationFn: () => quotationsApi.close(id),
-    onSuccess: () => { refresh(); setClosing(false); toast.success('Quotation band ho gayi — record mehfooz hai'); },
-    onError: (e) => toast.error(errorText(e, 'Band nahi hui')),
+    onSuccess: () => { refresh(); setClosing(false); toast.success(t('Quotation band ho gayi — record mehfooz hai')); },
+    onError: (e) => toast.error(errorText(e, t('Band nahi hui'))),
   });
 
   // The bill: quoted lines at their net rate; delivery, labour and other charges ride as bill charges.
   const billTotal = q ? q.subtotal - q.discount + q.deliveryCharges + q.laborCharges + q.otherCharges : 0;
   const bill = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
-      if (!q) throw new Error('Quotation nahi mili');
-      if (!shopId) throw new Error('Pehle upar se shop chunein');
+      if (!q) throw new Error(t('Quotation nahi mili'));
+      if (!shopId) throw new Error(t('Pehle upar se shop chunein'));
       const serviceCharges = [
         q.deliveryCharges > 0 && { type: 'DELIVERY', label: 'Delivery', amount: q.deliveryCharges },
         q.laborCharges > 0 && { type: 'INSTALLATION', label: 'Mazdoori', amount: q.laborCharges },
         q.otherCharges > 0 && { type: 'OTHER', label: 'Aur kharcha', amount: q.otherCharges },
       ].filter(Boolean) as Array<{ type: string; label: string; amount: number }>;
-      const sale = await withManagerPin('Quotation ka bill', (managerPin) => salesApi.create({
+      const sale = await withManagerPin(t('Quotation ka bill'), (managerPin) => salesApi.create({
         ...(managerPin && { managerPin }),
         shopId,
         customerId: q.customerId || undefined,
@@ -114,16 +115,16 @@ export default function QuotationDetailPage() {
         items: q.items.map((i) => ({ productId: i.productId!, quantity: i.quantity, priceOverride: Math.round((i.total / i.quantity) * 10000) / 10000 })),
       }));
       await keepAdvance(d, billTotal, q.customerId || undefined, sale.saleNumber);
-      await quotationsApi.updateStatus(q.id, 'CONVERTED', `Bill ${sale.saleNumber}`, sale.id).catch(() => toast.error('Bill ban gaya, magar quotation par nishan nahi laga — dobara khol kar dekhein'));
+      await quotationsApi.updateStatus(q.id, 'CONVERTED', `Bill ${sale.saleNumber}`, sale.id).catch(() => toast.error(t('Bill ban gaya, magar quotation par nishan nahi laga — dobara khol kar dekhein')));
       return sale;
     },
     onSuccess: (sale) => {
       setBilling(false);
       refresh();
       ['products-for-pos', 'sales-history', 'customers', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(`Bill ${sale.saleNumber} ban gaya`, { action: { label: 'Challan banayein', onClick: () => navigate(`/hardware/deliveries/new?sale=${sale.id}`) }, duration: 8000 });
+      toast.success(t('Bill {{saleNumber}} ban gaya', { saleNumber: sale.saleNumber }), { action: { label: t('Challan banayein'), onClick: () => navigate(`/hardware/deliveries/new?sale=${sale.id}`) }, duration: 8000 });
     },
-    onError: (e) => { if ((e as Error)?.message !== 'Cancelled') toast.error(errorText(e, (e as Error)?.message || 'Bill nahi bana')); },
+    onError: (e) => { if ((e as Error)?.message !== 'Cancelled') toast.error(errorText(e, (e as Error)?.message || t('Bill nahi bana'))); },
   });
 
   if (isLoading || !q) {
@@ -140,50 +141,50 @@ export default function QuotationDetailPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Quotation — aage kya karein" onClose={guide.close}
+        <PageGuide title={t('Quotation — aage kya karein')} onClose={guide.close}
           steps={[
-            { icon: Send, color: '#0891b2', title: 'Bhejein', text: 'Print ya WhatsApp se customer ko bhejein, phir "Bhej di" dabayein.' },
-            { icon: Edit3, color: '#7c3aed', title: 'Revision', text: 'Customer rate ya quantity badalwaye to "Revision" — purana number hi rehta hai, R1, R2 lagta hai.' },
-            { icon: Receipt, color: '#16a34a', title: 'Bill', text: '"Bill banayein" se isi rate par sale banti hai — cash, card, split ya udhaar (customer ka khata).' },
-            { icon: Truck, color: '#a16207', title: 'Challan', text: 'Bill ke baad site par maal bhejne ke liye challan banayein; maal kai challan me bhi ja sakta hai.' },
+            { icon: Send, color: '#0891b2', title: t('Bhejein'), text: t('Print ya WhatsApp se customer ko bhejein, phir "Bhej di" dabayein.') },
+            { icon: Edit3, color: '#7c3aed', title: t('Revision'), text: t('Customer rate ya quantity badalwaye to "Revision" — purana number hi rehta hai, R1, R2 lagta hai.') },
+            { icon: Receipt, color: '#16a34a', title: t('Bill'), text: t('"Bill banayein" se isi rate par sale banti hai — cash, card, split ya udhaar (customer ka khata).') },
+            { icon: Truck, color: '#a16207', title: t('Challan'), text: t('Bill ke baad site par maal bhejne ke liye challan banayein; maal kai challan me bhi ja sakta hai.') },
           ]}
           shortcuts={[['G', 'guide']]} />
       )}
 
       <PageHero
-        title={<HeroBack to="/hardware/quotations" label="Quotations">{q.quotationNumber}{q.revisionNumber ? ` · R${q.revisionNumber}` : ''}</HeroBack>}
+        title={<HeroBack to="/hardware/quotations" label={t('Quotations')}>{q.quotationNumber}{q.revisionNumber ? t(' · R{{revisionNumber}}', { revisionNumber: q.revisionNumber }) : ''}</HeroBack>}
         chip={st.label}
         meta={`${q.customerName}${q.project ? ` · ${q.project.name}` : ''} · ${shortDate(q.createdAt)}`}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => quoteDoc(q)} label="Print" /></span>
-          {q.customerPhone && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-          {canSell && q.status !== 'CONVERTED' && <Link to={`/hardware/quotations/${q.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />Revision</Link>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canBill && <button type="button" onClick={() => setBilling(true)} className={heroPrimaryButton}><Receipt className="h-4 w-4" />Bill banayein</button>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => quoteDoc(q)} label={t('Print')} /></span>
+          {q.customerPhone && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+          {canSell && q.status !== 'CONVERTED' && <Link to={`/hardware/quotations/${q.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />{t('Revision')}</Link>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canBill && <button type="button" onClick={() => setBilling(true)} className={heroPrimaryButton}><Receipt className="h-4 w-4" />{t('Bill banayein')}</button>}
         </>}
         stats={[
-          { label: 'Kul amount', value: formatPKR(q.total) },
-          { label: 'Items', value: String(q.items.length) },
-          { label: 'Chalegi', value: shortDate(q.validUntil) },
+          { label: t('Kul amount'), value: formatPKR(q.total) },
+          { label: t('Items'), value: String(q.items.length) },
+          { label: t('Chalegi'), value: shortDate(q.validUntil) },
         ]} />
 
       {q.sale && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-900 ring-1 ring-emerald-200">
-          <CheckCircle2 className="h-4 w-4" /><span className="text-[0.875rem] font-medium">Bill {q.sale.saleNumber} ban chuka hai{q.sale.status === 'VOIDED' ? ' (void ho gaya)' : ''}</span>
-          <Link to={`/sales?q=${encodeURIComponent(q.sale.saleNumber)}`} className="ml-auto text-[0.8125rem] font-semibold hover:underline">Bill dekhein →</Link>
-          {q.sale.status !== 'VOIDED' && <Link to={`/hardware/deliveries/new?sale=${q.sale.id}`} className="text-[0.8125rem] font-semibold hover:underline">Challan banayein →</Link>}
+          <CheckCircle2 className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{t('Bill {{saleNumber}} ban chuka hai{{value}}', { saleNumber: q.sale.saleNumber, value: q.sale.status === 'VOIDED' ? t(' (void ho gaya)') : '' })}</span>
+          <Link to={`/sales?q=${encodeURIComponent(q.sale.saleNumber)}`} className="ms-auto text-[0.8125rem] font-semibold hover:underline">{t('Bill dekhein →')}</Link>
+          {q.sale.status !== 'VOIDED' && <Link to={`/hardware/deliveries/new?sale=${q.sale.id}`} className="text-[0.8125rem] font-semibold hover:underline">{t('Challan banayein →')}</Link>}
         </div>
       )}
       {missing.length > 0 && q.status !== 'CONVERTED' && (
         <div className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">
-          {missing.map((i) => i.itemName).join(', ')} catalog me nahi — bill ke liye pehle product banayein, phir revision me catalog wala item chunein.
+          {t('{{value}} catalog me nahi — bill ke liye pehle product banayein, phir revision me catalog wala item chunein.', { value: missing.map((i) => i.itemName).join(', ') })}
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card flush title="Items" description={`${q.items.length} line`}>
+        <Card flush title={t('Items')} description={t('{{count}} line', { count: q.items.length })}>
           <Table minWidth="36rem">
-            <THead><Tr><Th>#</Th><Th>Item</Th><Th align="right">Quantity</Th><Th align="right">Rate</Th><Th align="right">Amount</Th></Tr></THead>
+            <THead><Tr><Th>#</Th><Th>{t('Item')}</Th><Th align="right">{t('Quantity')}</Th><Th align="right">{t('Rate')}</Th><Th align="right">{t('Amount')}</Th></Tr></THead>
             <TBody>
               {q.items.map((i, n) => (
                 <Tr key={i.id ?? n}>
@@ -199,34 +200,34 @@ export default function QuotationDetailPage() {
         </Card>
 
         <aside className="space-y-4">
-          <Card title="Hisaab">
+          <Card title={t('Hisaab')}>
             <dl className="space-y-1.5 text-[0.875rem]">
-              <div className="flex justify-between"><dt className="text-slate-500">Items</dt><dd className="tabular-nums">{formatPKR(q.subtotal)}</dd></div>
-              {q.discount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Discount</dt><dd className="tabular-nums">−{formatPKR(q.discount)}</dd></div>}
-              {q.taxAmount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Tax</dt><dd className="tabular-nums">{formatPKR(q.taxAmount)}</dd></div>}
-              {charges > 0 && <div className="flex justify-between"><dt className="text-slate-500">Kiraya / mazdoori</dt><dd className="tabular-nums">{formatPKR(charges)}</dd></div>}
-              <div className="flex justify-between border-t border-slate-100 pt-2 text-[1.0625rem] font-bold"><dt>Kul</dt><dd className="tabular-nums">{formatPKR(q.total)}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-500">{t('Items')}</dt><dd className="tabular-nums">{formatPKR(q.subtotal)}</dd></div>
+              {q.discount > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Discount')}</dt><dd className="tabular-nums">−{formatPKR(q.discount)}</dd></div>}
+              {q.taxAmount > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Tax')}</dt><dd className="tabular-nums">{formatPKR(q.taxAmount)}</dd></div>}
+              {charges > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Kiraya / mazdoori')}</dt><dd className="tabular-nums">{formatPKR(charges)}</dd></div>}
+              <div className="flex justify-between border-t border-slate-100 pt-2 text-[1.0625rem] font-bold"><dt>{t('Kul')}</dt><dd className="tabular-nums">{formatPKR(q.total)}</dd></div>
             </dl>
           </Card>
           {open && (
-            <Card title="Customer ka jawab">
+            <Card title={t('Customer ka jawab')}>
               <div className="grid gap-2">
-                {q.status !== 'SENT' && q.status !== 'VIEWED' && <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} loading={status.isPending && status.variables === 'SENT'} onClick={() => status.mutate('SENT')}>Bhej di</Button>}
-                <Button variant="success" leftIcon={<CheckCircle2 className="h-4 w-4" />} loading={status.isPending && status.variables === 'ACCEPTED'} onClick={() => status.mutate('ACCEPTED')}>Customer ne maan li</Button>
-                <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>Na mani / band karein</Button>
+                {q.status !== 'SENT' && q.status !== 'VIEWED' && <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} loading={status.isPending && status.variables === 'SENT'} onClick={() => status.mutate('SENT')}>{t('Bhej di')}</Button>}
+                <Button variant="success" leftIcon={<CheckCircle2 className="h-4 w-4" />} loading={status.isPending && status.variables === 'ACCEPTED'} onClick={() => status.mutate('ACCEPTED')}>{t('Customer ne maan li')}</Button>
+                <Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>{t('Na mani / band karein')}</Button>
               </div>
             </Card>
           )}
           {canSell && q.status === 'ACCEPTED' && (
-            <Card><Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>Band karein</Button></Card>
+            <Card><Button variant="ghost" leftIcon={<Ban className="h-4 w-4" />} onClick={() => setClosing(true)}>{t('Band karein')}</Button></Card>
           )}
           {(q.paymentTerms || q.deliveryTerms || q.customerNotes || q.internalNotes) && (
-            <Card title="Shartein aur note">
+            <Card title={t('Shartein aur note')}>
               <dl className="space-y-2 text-[0.875rem]">
-                {q.paymentTerms && <div><dt className="text-slate-500">Payment</dt><dd>{q.paymentTerms}</dd></div>}
-                {q.deliveryTerms && <div><dt className="text-slate-500">Delivery</dt><dd>{q.deliveryTerms}</dd></div>}
-                {q.customerNotes && <div><dt className="text-slate-500">Customer note</dt><dd>{q.customerNotes}</dd></div>}
-                {q.internalNotes && <div><dt className="text-slate-500">Andar ka note</dt><dd className="whitespace-pre-line">{q.internalNotes}</dd></div>}
+                {q.paymentTerms && <div><dt className="text-slate-500">{t('Payment')}</dt><dd>{q.paymentTerms}</dd></div>}
+                {q.deliveryTerms && <div><dt className="text-slate-500">{t('Delivery')}</dt><dd>{q.deliveryTerms}</dd></div>}
+                {q.customerNotes && <div><dt className="text-slate-500">{t('Customer note')}</dt><dd>{q.customerNotes}</dd></div>}
+                {q.internalNotes && <div><dt className="text-slate-500">{t('Andar ka note')}</dt><dd className="whitespace-pre-line">{q.internalNotes}</dd></div>}
               </dl>
             </Card>
           )}
@@ -240,13 +241,13 @@ export default function QuotationDetailPage() {
       )}
       {billing && q.taxAmount > 0 && (
         <p className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-md rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 shadow ring-1 ring-amber-200">
-          Quotation ka tax ({formatPKR(q.taxAmount)}) bill me nahi jata — bill {formatPKR(billTotal)} ka banega.
+          {t('Quotation ka tax ({{taxAmount}}) bill me nahi jata — bill {{billTotal}} ka banega.', { taxAmount: formatPKR(q.taxAmount), billTotal: formatPKR(billTotal) })}
         </p>
       )}
 
-      <Modal open={closing} onClose={() => setClosing(false)} size="sm" title="Quotation band karein?"
-        description="Customer ne nahi mani ya ab zaroorat nahi. Record mehfooz rehta hai, dobara bheji ja sakti hai."
-        footer={<><Button variant="secondary" onClick={() => setClosing(false)}>Wapas</Button><Button variant="danger" loading={close.isPending} onClick={() => close.mutate()}>Band karein</Button></>}>
+      <Modal open={closing} onClose={() => setClosing(false)} size="sm" title={t('Quotation band karein?')}
+        description={t('Customer ne nahi mani ya ab zaroorat nahi. Record mehfooz rehta hai, dobara bheji ja sakti hai.')}
+        footer={<><Button variant="secondary" onClick={() => setClosing(false)}>{t('Wapas')}</Button><Button variant="danger" loading={close.isPending} onClick={() => close.mutate()}>{t('Band karein')}</Button></>}>
         <p className={cn('flex items-center gap-2 text-[0.875rem] text-slate-600')}><FileText className="h-4 w-4" />{q.quotationNumber} · {formatPKR(q.total)}</p>
       </Modal>
     </PageShell>

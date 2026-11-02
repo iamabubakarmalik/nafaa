@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { stockAdjustmentsApi, type AdjustmentQuery, type AdjustmentType } from '../api/stock-adjustments.api';
 import { ADJ_KEY, TYPES, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -36,16 +37,16 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={ClipboardList} label="Adjustments" value={String(t.count)} sub={`${d.days} din me`} />
-        <Kpi icon={ArrowUpCircle} label="Stock faida" value={money(t.gained)} sub="Profit mein plus · cost par" tone="emerald" />
-        <Kpi icon={ArrowDownCircle} label="Stock nuksan" value={money(t.lost)} sub="Profit se minus · damage, expiry, chori" tone="rose" />
-        <Kpi icon={Scale} label="Profit par asar" value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`}
-          sub={t.corrected ? `Data correction ${money(t.corrected)} — profit me nahi` : 'Stock faida − Stock nuksan'} tone={net < 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={ClipboardList} label={tr('Adjustments')} value={String(t.count)} sub={tr('{{days}} din me', { days: d.days })} />
+        <Kpi icon={ArrowUpCircle} label={tr('Stock faida')} value={money(t.gained)} sub={tr('Profit mein plus · cost par')} tone="emerald" />
+        <Kpi icon={ArrowDownCircle} label={tr('Stock nuksan')} value={money(t.lost)} sub={tr('Profit se minus · damage, expiry, chori')} tone="rose" />
+        <Kpi icon={Scale} label={tr('Profit par asar')} value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`}
+          sub={t.corrected ? tr('Data correction {{corrected}} — profit me nahi', { corrected: money(t.corrected) }) : tr('Stock faida − Stock nuksan')} tone={net < 0 ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka hisaab</span>} description="Har din kitna stock barha aur kitna ghata (amount)">
-          {!trend.length ? <Empty text="Is period me koi adjustment nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ka hisaab')}</span>} description={tr('Har din kitna stock barha aur kitna ghata (amount)')}>
+          {!trend.length ? <Empty text={tr('Is period me koi adjustment nahi')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -62,8 +63,8 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Kis type ka</span>} description="Amount ke hisaab se">
-          {!types.length ? <Empty text="Koi adjustment nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />{tr('Kis type ka')}</span>} description={tr('Amount ke hisaab se')}>
+          {!types.length ? <Empty text={tr('Koi adjustment nahi')} /> : (
             <>
               <div className="h-[170px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -89,8 +90,8 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-rose-600" />Sab se zyada nuqsan</span>} description="Jo maal sab se zyada kam, kharab ya gum hua">
-          {!d.topLosses.length ? <Empty text="Koi nuqsan nahi — bohat khoob" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-rose-600" />{tr('Sab se zyada nuqsan')}</span>} description={tr('Jo maal sab se zyada kam, kharab ya gum hua')}>
+          {!d.topLosses.length ? <Empty text={tr('Koi nuqsan nahi — bohat khoob')} /> : (
             <ul className="space-y-2.5">
               {d.topLosses.map((x, i) => (
                 <li key={`${x.name}${i}`}>
@@ -101,15 +102,15 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full bg-rose-500" style={{ width: `${(x.value / lossMax) * 100}%` }} />
                   </div>
-                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{qtyText(x.qty)} {x.unit} · {x.count} baar</p>
+                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{qty}} {{unit}} · {{count}} baar', { qty: qtyText(x.qty), unit: x.unit, count: x.count })}</p>
                 </li>
               ))}
             </ul>
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><MessageSquareText className="h-4 w-4 text-brand-600" />Wajah</span>} description="Kis wajah se kitna stock badla">
-          {!d.byReason.length ? <Empty text="Koi adjustment nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><MessageSquareText className="h-4 w-4 text-brand-600" />{tr('Wajah')}</span>} description={tr('Kis wajah se kitna stock badla')}>
+          {!d.byReason.length ? <Empty text={tr('Koi adjustment nahi')} /> : (
             <ul className="space-y-2.5">
               {d.byReason.map((r) => (
                 <li key={r.key}>
@@ -120,7 +121,7 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                     <div className={cn('h-full rounded-full', r.value < 0 ? 'bg-rose-400' : 'bg-emerald-500')} style={{ width: `${(Math.abs(r.value) / reasonMax) * 100}%` }} />
                   </div>
-                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{r.count} line</p>
+                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{count}} line', { count: r.count })}</p>
                 </li>
               ))}
             </ul>
@@ -128,8 +129,8 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-brand-600" />Kis ne kiye</span>} description="Har bande ke adjustments aur un ka kul asar">
-        {!d.byPerson.length ? <Empty text="Koi adjustment nahi" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-brand-600" />{tr('Kis ne kiye')}</span>} description={tr('Har bande ke adjustments aur un ka kul asar')}>
+        {!d.byPerson.length ? <Empty text={tr('Koi adjustment nahi')} /> : (
           <ul className="divide-y divide-slate-100">
             {d.byPerson.map((p) => (
               <li key={p.key} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
@@ -138,8 +139,8 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
                   <span className="truncate font-medium text-slate-800">{p.key}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-4">
-                  <span className="text-slate-500">{p.count} line</span>
-                  <span className={cn('w-24 text-right font-semibold tabular-nums', p.value < 0 ? 'text-rose-700' : 'text-emerald-700')}>{p.value < 0 ? '−' : '+'}{money(Math.abs(p.value))}</span>
+                  <span className="text-slate-500">{tr('{{count}} line', { count: p.count })}</span>
+                  <span className={cn('w-24 text-end font-semibold tabular-nums', p.value < 0 ? 'text-rose-700' : 'text-emerald-700')}>{p.value < 0 ? '−' : '+'}{money(Math.abs(p.value))}</span>
                 </span>
               </li>
             ))}

@@ -22,6 +22,7 @@ import {
   type ExpenseOverview, type UpdateExpensePayload,
 } from '../api/expenses.api';
 import { CATEGORIES_KEY, EXPENSES_KEY, METHODS, STARTER_CATEGORIES, apiError } from './meta';
+import { t as tr } from '@core/i18n';
 
 /** What the form opens with: an expense to edit, or values to start a new one. */
 export type ExpenseDraft =
@@ -70,10 +71,10 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
   const value = Number(amount);
   const cancelled = editing?.status === 'CANCELLED';
   const problems: string[] = [];
-  if (!title.trim()) problems.push('Expense kis cheez ka hai, likhein');
-  if (!(value > 0)) problems.push('Amount likhein');
-  if (date > today) problems.push('Aane wale din ka expense nahi likh sakte');
-  if (allShops && !editing && !shopId) problems.push('Branch chunein');
+  if (!title.trim()) problems.push(tr('Expense kis cheez ka hai, likhein'));
+  if (!(value > 0)) problems.push(tr('Amount likhein'));
+  if (date > today) problems.push(tr('Aane wale din ka expense nahi likh sakte'));
+  if (allShops && !editing && !shopId) problems.push(tr('Branch chunein'));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -98,11 +99,11 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
       return expensesApi.create(payload);
     },
     onSuccess: (e) => {
-      toast.success(editing ? 'Expense badal gaya' : e.expenseNumber.startsWith('LOCAL-') ? 'Internet nahi — expense phone me save, baad me khud chala jayega' : `${formatPKR(e.amount)} ka expense likh liya`);
+      toast.success(editing ? tr('Expense badal gaya') : e.expenseNumber.startsWith('LOCAL-') ? tr('Internet nahi — expense phone me save, baad me khud chala jayega') : tr('{{amount}} ka expense likh liya', { amount: formatPKR(e.amount) }));
       AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (err) => toast.error(apiError(err, 'Save nahi hua')),
+    onError: (err) => toast.error(apiError(err, tr('Save nahi hua'))),
   });
 
   // Ctrl/Cmd + Enter saves.
@@ -117,11 +118,11 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
   const cash = method === 'CASH' && !pending && !cancelled;
   const cashNote = useMemo(() => {
     if (!cash) return null;
-    if (date !== today) return { tone: 'slate', text: 'Pichli date ka cash expense aaj ki shift (galla) me nahi ginta — sirf us din ke hisaab me aata hai.' };
-    if (!register) return { tone: 'slate', text: 'Cash expense us branch ki khuli shift ke galle se ghat jata hai.' };
-    if (!register.open) return { tone: 'amber', text: 'Is branch me abhi koi shift khuli nahi. Yeh cash kisi galle ke hisaab me nahi aayega.' };
+    if (date !== today) return { tone: 'slate', text: tr('Pichli date ka cash expense aaj ki shift (galla) me nahi ginta — sirf us din ke hisaab me aata hai.') };
+    if (!register) return { tone: 'slate', text: tr('Cash expense us branch ki khuli shift ke galle se ghat jata hai.') };
+    if (!register.open) return { tone: 'amber', text: tr('Is branch me abhi koi shift khuli nahi. Yeh cash kisi galle ke hisaab me nahi aayega.') };
     const at = new Date(register.openedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
-    return { tone: 'emerald', text: `Shift ${register.registerNumber} (${at} se khuli) ke galle se ghatega. Is shift me ab tak ${formatPKR(register.cashExpenses)} cash expense.` };
+    return { tone: 'emerald', text: tr('Shift {{registerNumber}} ({{at}} se khuli) ke galle se ghatega. Is shift me ab tak {{cashExpenses}} cash expense.', { registerNumber: register.registerNumber, at, cashExpenses: formatPKR(register.cashExpenses) }) };
   }, [cash, date, today, register]);
 
   // Cash this save takes from today's drawer; an edit only adds the difference.
@@ -137,42 +138,42 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
       }
       return made;
     },
-    onSuccess: (n) => { toast.success(n ? `${n} categories ban gayi` : 'Sab pehle se hain'); qc.invalidateQueries({ queryKey: [CATEGORIES_KEY] }); },
+    onSuccess: (n) => { toast.success(n ? tr('{{n}} categories ban gayi', { n }) : tr('Sab pehle se hain')); qc.invalidateQueries({ queryKey: [CATEGORIES_KEY] }); },
   });
 
   const samples = STARTER_CATEGORIES.map((s) => ({ ...s, cat: categories.find((c) => c.name.toLowerCase() === s.name.toLowerCase()) })).filter((s) => s.cat);
 
   return (
     <Modal open onClose={onClose} size="lg" closeOnBackdrop={false}
-      title={editing ? `Expense badlein · ${editing.expenseNumber}` : 'Naya expense'}
-      description={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Bijli, kiraya, salary, chai-pani — har expense likhein taake profit sahi nikle'}
+      title={editing ? tr('Expense badlein · {{expenseNumber}}', { expenseNumber: editing.expenseNumber }) : tr('Naya expense')}
+      description={editing ? tr('Jo badalna hai badlein — baqi waisa hi rahega') : tr('Bijli, kiraya, salary, chai-pani — har expense likhein taake profit sahi nikle')}
       footer={<>
-        <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <span className="me-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
         <Button onClick={() => save.mutate()} loading={save.isPending} disabled={uploader.uploading}>
-          {editing ? 'Save karein' : pending ? 'Baqi bill likhein' : 'Expense likhein'}
+          {editing ? tr('Save karein') : pending ? tr('Baqi bill likhein') : tr('Expense likhein')}
         </Button>
       </>}>
       <div className="space-y-4">
         {allShops && !editing && (
           <div>
-            <p className={labelCls}><Store className="mr-1 inline h-3.5 w-3.5" />Branch <span className="text-rose-600">*</span></p>
+            <p className={labelCls}><Store className="me-1 inline h-3.5 w-3.5" />{tr('Branch')}{' '} <span className="text-rose-600">*</span></p>
             <div className="flex flex-wrap gap-1.5">
               {shopsQ.isLoading && <span className="h-9 w-32 animate-pulse rounded-xl bg-slate-100" />}
               {shops.map((s) => (
                 <button key={s.id} type="button" onClick={() => setShopId(s.id)} aria-pressed={shopId === s.id}
                   className={cn('h-9 rounded-xl px-3 text-[0.8125rem] font-semibold ring-1 transition', shopId === s.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                  {s.name}{s.isMain && <span className="ml-1 text-[0.6875rem] font-medium opacity-70">Main</span>}
+                  {s.name}{s.isMain && <span className="ms-1 text-[0.6875rem] font-medium opacity-70">{tr('Main')}</span>}
                 </button>
               ))}
             </div>
-            <p className={hintCls}>Abhi "Sab branches" khula hai. Expense jis branch ka hai woh chunein — usi ke hisaab aur galle me jayega.</p>
+            <p className={hintCls}>{tr('Abhi "Sab branches" khula hai. Expense jis branch ka hai woh chunein — usi ke hisaab aur galle me jayega.')}</p>
           </div>
         )}
 
         {!editing && samples.length > 0 && !title && (
           <div>
-            <p className={labelCls}>Jaldi chunein</p>
+            <p className={labelCls}>{tr('Jaldi chunein')}</p>
             <div className="flex flex-wrap gap-1.5">
               {samples.map((s) => (
                 <button key={s.name} type="button" onClick={() => { setTitle(s.sample); setCategoryId(s.cat!.id); window.setTimeout(() => document.querySelector<HTMLInputElement>('#exp-amount')?.focus(), 0); }}
@@ -181,39 +182,39 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
                 </button>
               ))}
             </div>
-            <p className={hintCls}>Ek dabayein — naam aur category bhar jayegi, sirf amount likhein.</p>
+            <p className={hintCls}>{tr('Ek dabayein — naam aur category bhar jayegi, sirf amount likhein.')}</p>
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
           <div>
-            <label htmlFor="exp-title" className={labelCls}>Kis cheez ka expense? <span className="text-rose-600">*</span></label>
-            <input id="exp-title" ref={titleRef} value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={120} placeholder="Maslan: Bijli ka bill October" className={inputCls} />
-            <p className={hintCls}>Har mahine ek hi naam likhein (maslan "Dukaan ka kiraya") — Nafaa khud yaad dilayega ke is mahine ka baqi hai.</p>
+            <label htmlFor="exp-title" className={labelCls}>{tr('Kis cheez ka expense?')}{' '} <span className="text-rose-600">*</span></label>
+            <input id="exp-title" ref={titleRef} value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={120} placeholder={tr('Maslan: Bijli ka bill October')} className={inputCls} />
+            <p className={hintCls}>{tr('Har mahine ek hi naam likhein (maslan "Dukaan ka kiraya") — Nafaa khud yaad dilayega ke is mahine ka baqi hai.')}</p>
           </div>
           <div>
-            <label htmlFor="exp-amount" className={labelCls}>Amount (Rs) <span className="text-rose-600">*</span></label>
+            <label htmlFor="exp-amount" className={labelCls}>{tr('Amount (Rs)')}{' '} <span className="text-rose-600">*</span></label>
             <input id="exp-amount" inputMode="decimal" value={amount} onChange={(ev) => setAmount(ev.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
-              className={cn(inputCls, 'h-11 text-right text-lg font-bold tabular-nums')} />
-            <p className={hintCls}>{value > 0 ? formatPKR(value) : 'Poori amount, paisa samet'}</p>
+              className={cn(inputCls, 'h-11 text-end text-lg font-bold tabular-nums')} />
+            <p className={hintCls}>{value > 0 ? formatPKR(value) : tr('Poori amount, paisa samet')}</p>
           </div>
         </div>
 
         <div>
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <span className="text-[0.8125rem] font-medium text-slate-700">Category</span>
-            <button type="button" onClick={onManageCategories} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><Settings2 className="h-3.5 w-3.5" />Categories sambhalein</button>
+            <span className="text-[0.8125rem] font-medium text-slate-700">{tr('Category')}</span>
+            <button type="button" onClick={onManageCategories} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><Settings2 className="h-3.5 w-3.5" />{tr('Categories sambhalein')}</button>
           </div>
           {categories.length === 0 ? (
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => seed.mutate()} loading={seed.isPending} leftIcon={<Sparkles className="h-4 w-4" />}>{STARTER_CATEGORIES.length} aam categories bana dein</Button>
-              <Button size="sm" variant="secondary" onClick={onManageCategories} leftIcon={<Plus className="h-4 w-4" />}>Khud banayein</Button>
+              <Button size="sm" onClick={() => seed.mutate()} loading={seed.isPending} leftIcon={<Sparkles className="h-4 w-4" />}>{tr('{{count}} aam categories bana dein', { count: STARTER_CATEGORIES.length })}</Button>
+              <Button size="sm" variant="secondary" onClick={onManageCategories} leftIcon={<Plus className="h-4 w-4" />}>{tr('Khud banayein')}</Button>
             </div>
           ) : (
-            <div role="radiogroup" aria-label="Category" className="flex flex-wrap gap-1.5">
+            <div role="radiogroup" aria-label={tr('Category')} className="flex flex-wrap gap-1.5">
               <button type="button" role="radio" aria-checked={!categoryId} onClick={() => setCategoryId('')}
                 className={cn('h-8 rounded-lg px-2.5 text-[0.75rem] font-semibold ring-1 transition', !categoryId ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-                Bina category
+                {tr('Bina category')}
               </button>
               {categories.map((c) => {
                 const on = categoryId === c.id;
@@ -227,12 +228,12 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
               })}
             </div>
           )}
-          <p className={hintCls}>Sahi category se Analytics batata hai paisa kahan ja raha hai — kiraya, bijli ya chai-pani.</p>
+          <p className={hintCls}>{tr('Sahi category se Analytics batata hai paisa kahan ja raha hai — kiraya, bijli ya chai-pani.')}</p>
         </div>
 
         <div>
-          <p className={labelCls}>Kahan se diye?</p>
-          <div role="radiogroup" aria-label="Payment" className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+          <p className={labelCls}>{tr('Kahan se diye?')}</p>
+          <div role="radiogroup" aria-label={tr('Payment')} className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
             {METHODS.map((m) => {
               const on = method === m.id;
               return (
@@ -249,56 +250,56 @@ export function ExpenseForm({ draft, categories, register, onClose, onManageCate
               cashNote.tone === 'emerald' ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : cashNote.tone === 'amber' ? 'bg-amber-50 text-amber-900 ring-amber-200' : 'bg-slate-50 text-slate-600 ring-slate-200')}>
               <Wallet className="mt-0.5 h-3.5 w-3.5 shrink-0" />{cashNote.text}
             </p>
-          ) : <p className={hintCls}>Cash galle se jata hai; JazzCash, Easypaisa, bank aur card galle ko nahi chhoote.</p>}
+          ) : <p className={hintCls}>{tr('Cash galle se jata hai; JazzCash, Easypaisa, bank aur card galle ko nahi chhoote.')}</p>}
           <PayoutWarning amount={drawerOut} className="mt-1.5" />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label htmlFor="exp-date" className={labelCls}>Kis din?</label>
+            <label htmlFor="exp-date" className={labelCls}>{tr('Kis din?')}</label>
             <input id="exp-date" type="date" value={date} max={today} onChange={(ev) => setDate(ev.target.value || today)} className={cn(inputCls, '[color-scheme:light] dark:[color-scheme:dark]')} />
-            <p className={hintCls}>{date === today ? 'Aaj — abhi ke waqt ke saath likha jayega.' : 'Purana bill likh rahe hain — usi din ke hisaab me jayega.'}</p>
+            <p className={hintCls}>{date === today ? tr('Aaj — abhi ke waqt ke saath likha jayega.') : tr('Purana bill likh rahe hain — usi din ke hisaab me jayega.')}</p>
           </div>
           {!cancelled && (
             <div>
-              <p className={labelCls}>Paise diye?</p>
+              <p className={labelCls}>{tr('Paise diye?')}</p>
               <div className="grid grid-cols-2 gap-1.5">
                 <button type="button" onClick={() => setPending(false)} aria-pressed={!pending}
-                  className={cn('h-10 rounded-xl text-[0.8125rem] font-semibold ring-1 transition', !pending ? 'bg-emerald-600 text-white ring-emerald-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>Haan, de diye</button>
+                  className={cn('h-10 rounded-xl text-[0.8125rem] font-semibold ring-1 transition', !pending ? 'bg-emerald-600 text-white ring-emerald-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{tr('Haan, de diye')}</button>
                 <button type="button" onClick={() => setPending(true)} aria-pressed={pending}
-                  className={cn('inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[0.8125rem] font-semibold ring-1 transition', pending ? 'bg-amber-500 text-white ring-amber-500' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}><Clock className="h-4 w-4" />Baad me dene</button>
+                  className={cn('inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[0.8125rem] font-semibold ring-1 transition', pending ? 'bg-amber-500 text-white ring-amber-500' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}><Clock className="h-4 w-4" />{tr('Baad me dene')}</button>
               </div>
-              <p className={hintCls}>{pending ? 'Baqi bill ban jayega. "Ada karein" dabane par us waqt ki date lagti hai aur cash galle se ghatta hai.' : 'Paise ja chuke hain — hisaab me abhi ginega.'}</p>
+              <p className={hintCls}>{pending ? tr('Baqi bill ban jayega. "Ada karein" dabane par us waqt ki date lagti hai aur cash galle se ghatta hai.') : tr('Paise ja chuke hain — hisaab me abhi ginega.')}</p>
             </div>
           )}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div>
-            <label htmlFor="exp-note" className={labelCls}>Details</label>
+            <label htmlFor="exp-note" className={labelCls}>{tr('Details')}</label>
             <textarea id="exp-note" value={note} onChange={(ev) => setNote(ev.target.value)} maxLength={500} rows={2}
-              placeholder="Marzi hai — maslan: meter no. 1234, mistri ka naam"
+              placeholder={tr('Marzi hai — maslan: meter no. 1234, mistri ka naam')}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-            <p className={hintCls}>Voucher par bhi chhapti hai. {note.length > 400 ? `${500 - note.length} harf baqi` : ''}</p>
+            <p className={hintCls}>{tr('Voucher par bhi chhapti hai. {{value}}', { value: note.length > 400 ? tr('{{value}} harf baqi', { value: 500 - note.length }) : '' })}</p>
           </div>
           <div>
-            <p className={labelCls}>Bill ki photo</p>
+            <p className={labelCls}>{tr('Bill ki photo')}</p>
             <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
               onChange={(ev) => { const f = ev.target.files?.[0]; if (f) void uploader.upload([f]); ev.target.value = ''; }} />
             {photo ? (
               <span className="relative block h-16 w-16 overflow-hidden rounded-xl ring-1 ring-slate-200">
-                <a href={photo} target="_blank" rel="noreferrer"><img src={photo} alt="Bill" className="h-full w-full object-cover" /></a>
-                <button type="button" onClick={() => setPhoto('')} aria-label="Photo hatayein"
-                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white"><X className="h-3 w-3" /></button>
+                <a href={photo} target="_blank" rel="noreferrer"><img src={photo} alt={tr('Bill')} className="h-full w-full object-cover" /></a>
+                <button type="button" onClick={() => setPhoto('')} aria-label={tr('Photo hatayein')}
+                  className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white"><X className="h-3 w-3" /></button>
               </span>
             ) : (
               <button type="button" onClick={() => fileRef.current?.click()} disabled={uploader.uploading}
                 className="flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-slate-300 text-[0.6875rem] font-medium text-slate-500 hover:border-brand-400 hover:text-brand-700">
                 {uploader.uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
-                {uploader.uploading ? 'Upload…' : 'Photo'}
+                {uploader.uploading ? tr('Upload…') : tr('Photo')}
               </button>
             )}
-            <p className={cn(hintCls, 'max-w-[8rem]')}>Phone par camera khulta hai</p>
+            <p className={cn(hintCls, 'max-w-[8rem]')}>{tr('Phone par camera khulta hai')}</p>
           </div>
         </div>
 

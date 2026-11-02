@@ -35,16 +35,17 @@ import { InstallationCard, NewInstallationModal, installDue, installMessage } fr
 import { Box, Bars, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
 import { INSTALL_KEY, INSTALL_TYPES, TECH_KEY, dayOnly, installStatusOf, serviceTypeOf, slotLabel, todayKey, waLink } from '../components/meta';
 import { printInstallationJob } from '../receipt/appliancePrints';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'analytics';
 type View = 'open' | 'today' | 'unpaid' | 'done' | 'cancelled' | 'all';
 const VIEWS: Array<{ id: View; label: string; icon: typeof Wrench }> = [
-  { id: 'open', label: 'Khula kaam', icon: HardHat },
-  { id: 'today', label: 'Aaj ke visit', icon: CalendarClock },
-  { id: 'unpaid', label: 'Paisa baqi', icon: Wallet },
-  { id: 'done', label: 'Lag gaya', icon: CheckCircle2 },
-  { id: 'cancelled', label: 'Cancel', icon: Receipt },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'open', label: tr('Khula kaam'), icon: HardHat },
+  { id: 'today', label: tr('Aaj ke visit'), icon: CalendarClock },
+  { id: 'unpaid', label: tr('Paisa baqi'), icon: Wallet },
+  { id: 'done', label: tr('Lag gaya'), icon: CheckCircle2 },
+  { id: 'cancelled', label: tr('Cancel'), icon: Receipt },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const viewLabel = (v: View) => VIEWS.find((x) => x.id === v)?.label ?? v;
 const ALL_TIME: DateRangeValue = { preset: 'all', custom: { from: '', to: '' } };
@@ -104,7 +105,7 @@ export default function InstallationsPage() {
   const data = listQ.data;
   const rows = data?.items ?? [];
   const s = statsQ.data;
-  const techName = (id: string) => techQ.data?.find((t) => t.id === id)?.name ?? 'Technician';
+  const techName = (id: string) => techQ.data?.find((t) => t.id === id)?.name ?? tr('Technician');
   const filtered = !!tech || !!type || !!query || range.preset !== 'all';
   const clear = () => { setTech(''); setType(''); setSearch(''); setRange(ALL_TIME); };
   const pick = (v: View) => { setTab('list'); setView(v); };
@@ -150,65 +151,65 @@ export default function InstallationsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Installations"
-        chip={<><HardHat /> Fitting visits</>}
-        meta="Booking, technician, date, kaam mukammal aur bill — sab ek jagah"
+        title={tr('Installations')}
+        chip={<><HardHat /> {' '}{tr('Fitting visits')}</>}
+        meta={tr('Booking, technician, date, kaam mukammal aur bill — sab ek jagah')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'list' || !rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setCreating(true)} title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi installation</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setCreating(true)} title={tr('Nayi booking (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi installation')}</button>}
         </>}
         stats={s ? [
-          { label: 'Khula kaam', value: s.open, hint: s.overdue ? `${s.overdue} late` : undefined },
-          { label: 'Aaj ke visit', value: s.todayJobs },
-          { label: 'Is mahine kamai', value: sales(s.month.revenue), hint: `${s.month.jobs} kaam` },
-        ] : [{ label: 'Khula kaam', value: '—' }]}
+          { label: tr('Khula kaam'), value: s.open, hint: s.overdue ? tr('{{overdue}} late', { overdue: s.overdue }) : undefined },
+          { label: tr('Aaj ke visit'), value: s.todayJobs },
+          { label: tr('Is mahine kamai'), value: sales(s.month.revenue), hint: tr('{{jobs}} kaam', { jobs: s.month.jobs }) },
+        ] : [{ label: tr('Khula kaam'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={HardHat} color="#2563eb" label="Khula kaam" value={s.open} hint={`${s.pending} ki date baqi`} onClick={() => pick('open')} active={tab === 'list' && view === 'open'} />
-          <KpiCard icon={CalendarClock} color="#7c3aed" label="Aaj ke visit" value={s.todayJobs} hint="Technician ko parchi dein" onClick={() => pick('today')} active={tab === 'list' && view === 'today'} />
-          <KpiCard icon={UserX} color={s.unassigned ? '#ea580c' : '#64748b'} label="Technician nahi laga" value={s.unassigned} hint={s.unassigned ? 'Banda lagayein' : 'Sab ko banda mil gaya'} onClick={() => pick('open')} />
-          <KpiCard icon={AlertTriangle} color={s.overdue ? '#e11d48' : '#64748b'} label="Late" value={s.overdue} hint={s.overdue ? 'Date guzar gayi' : 'Koi late nahi'} onClick={() => pick('open')} />
-          <KpiCard icon={Wallet} color={s.month.outstanding ? '#d97706' : '#64748b'} label="Paisa baqi" value={sales(s.month.outstanding)} hint="Is mahine ke kaam" onClick={() => pick('unpaid')} active={tab === 'list' && view === 'unpaid'} />
+          <KpiCard icon={HardHat} color="#2563eb" label={tr('Khula kaam')} value={s.open} hint={tr('{{pending}} ki date baqi', { pending: s.pending })} onClick={() => pick('open')} active={tab === 'list' && view === 'open'} />
+          <KpiCard icon={CalendarClock} color="#7c3aed" label={tr('Aaj ke visit')} value={s.todayJobs} hint={tr('Technician ko parchi dein')} onClick={() => pick('today')} active={tab === 'list' && view === 'today'} />
+          <KpiCard icon={UserX} color={s.unassigned ? '#ea580c' : '#64748b'} label={tr('Technician nahi laga')} value={s.unassigned} hint={s.unassigned ? tr('Banda lagayein') : tr('Sab ko banda mil gaya')} onClick={() => pick('open')} />
+          <KpiCard icon={AlertTriangle} color={s.overdue ? '#e11d48' : '#64748b'} label={tr('Late')} value={s.overdue} hint={s.overdue ? tr('Date guzar gayi') : tr('Koi late nahi')} onClick={() => pick('open')} />
+          <KpiCard icon={Wallet} color={s.month.outstanding ? '#d97706' : '#64748b'} label={tr('Paisa baqi')} value={sales(s.month.outstanding)} hint={tr('Is mahine ke kaam')} onClick={() => pick('unpaid')} active={tab === 'list' && view === 'unpaid'} />
         </>}
       </KpiRow>
 
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is mahine mukammal installations — kamai, wusooli aur rating</p>} />
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Is mahine mukammal installations — kamai, wusooli aur rating')}</p>} />
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Number, customer, phone, serial, product, pata…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Number, customer, phone, serial, product, pata…')} label={tr('Search')} />}
           chips={filtered ? <>
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
             {tech && <FilterChip onRemove={() => setTech('')}>{techName(tech)}</FilterChip>}
             {type && <FilterChip onRemove={() => setType('')}>{serviceTypeOf(type)}</FilterChip>}
-            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange(ALL_TIME)}>Date: {rangeLabel(period.from, period.to)}</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange(ALL_TIME)}>{tr('Date: {{from}}', { from: rangeLabel(period.from, period.to) })}</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'open'} onChange={setView} width="w-60" options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
-          <FilterMenu icon={UserCog} label={tech ? techName(tech) : 'Technician'} value={tech} active={!!tech} onChange={setTech}
-            options={[{ value: '', label: 'Sab' }, ...(techQ.data ?? []).map((t) => ({ value: t.id, label: t.name, hint: t.openJobs ? `${t.openJobs} kaam` : undefined }))]} />
-          <FilterMenu icon={Wrench} label={type ? serviceTypeOf(type) : 'Kaam'} value={type} active={!!type} onChange={setType}
-            options={[{ value: '', label: 'Sab' }, ...INSTALL_TYPES.map((t) => ({ value: t, label: serviceTypeOf(t) }))]} />
-          {view !== 'today' && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Visit ki date" />}
+          <FilterMenu icon={UserCog} label={tech ? techName(tech) : tr('Technician')} value={tech} active={!!tech} onChange={setTech}
+            options={[{ value: '', label: tr('Sab') }, ...(techQ.data ?? []).map((t) => ({ value: t.id, label: t.name, hint: t.openJobs ? tr('{{openJobs}} kaam', { openJobs: t.openJobs }) : undefined }))]} />
+          <FilterMenu icon={Wrench} label={type ? serviceTypeOf(type) : tr('Kaam')} value={type} active={!!type} onChange={setType}
+            options={[{ value: '', label: tr('Sab') }, ...INSTALL_TYPES.map((t) => ({ value: t, label: serviceTypeOf(t) }))]} />
+          {view !== 'today' && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Visit ki date')} />}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> nayi · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
-        tabs={[{ id: 'list', label: 'Kaam', icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('nayi ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
+        tabs={[{ id: 'list', label: tr('Kaam'), icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <Analytics s={s} money={sales} /> : (<>
-        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.meta.total} kaam</span></Strip>}
+        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{tr('{{total}} kaam', { total: data.meta.total })}</span></Strip>}
         <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={HardHat}
-          title={filtered ? 'Is filter me koi kaam nahi' : view === 'today' ? 'Aaj koi visit nahi' : view === 'unpaid' ? 'Sab ka paisa mil gaya' : 'Koi installation nahi'}
-          hint="POS par AC ya geyser bechte waqt installation book karein, ya yahan se nayi booking karein."
-          actions={<>{canManage && <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>Nayi installation</Button>}{filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}</>}>
+          title={filtered ? tr('Is filter me koi kaam nahi') : view === 'today' ? tr('Aaj koi visit nahi') : view === 'unpaid' ? tr('Sab ka paisa mil gaya') : tr('Koi installation nahi')}
+          hint={tr('POS par AC ya geyser bechte waqt installation book karein, ya yahan se nayi booking karein.')}
+          actions={<>{canManage && <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Nayi installation')}</Button>}{filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}</>}>
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {rows.map((i) => <InstallRow key={i.id} i={i} shopName={shopName} money={sales} onOpen={() => setOpenId(i.id)} />)}
           </ul>
@@ -220,16 +221,16 @@ export default function InstallationsPage() {
       {openId && <InstallationCard id={openId} shopName={shopName} canManage={canManage} onClose={() => setOpenId(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Installations — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Installations — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Booking', text: 'POS par AC, geyser ya washing machine bechte waqt "Installation book" karein — ya yahan "Nayi installation". Serial likhein to product aur customer khud aa jata hai.' },
-            { icon: UserCog, color: '#7c3aed', title: 'Technician aur date', text: 'Kaam kholein → "Technician lagayein": banda, din aur waqt. Parchi print karein ya WhatsApp par customer ko waqt bhejein.' },
-            { icon: Wallet, color: '#d97706', title: 'Advance', text: 'Customer pehle paisa de to "Advance lein" — khata me jama hota hai aur bill banne par khud lag jata hai.' },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Mukammal = bill', text: '"Mukammal" par asal mazdoori, saman aur visit likhein, paisa lein. Bill Sales, galla, Profit aur khata me aata hai; jo na mile wo udhaar.' },
-            { icon: Receipt, color: '#64748b', title: 'Galti', text: 'Bill galat ban gaya ho to Sales se void karein — kaam dobara khul jata hai aur technician ka hisaab bhi wapas hota hai.' },
+            { icon: Plus, color: '#2563eb', title: tr('Booking'), text: tr('POS par AC, geyser ya washing machine bechte waqt "Installation book" karein — ya yahan "Nayi installation". Serial likhein to product aur customer khud aa jata hai.') },
+            { icon: UserCog, color: '#7c3aed', title: tr('Technician aur date'), text: tr('Kaam kholein → "Technician lagayein": banda, din aur waqt. Parchi print karein ya WhatsApp par customer ko waqt bhejein.') },
+            { icon: Wallet, color: '#d97706', title: tr('Advance'), text: tr('Customer pehle paisa de to "Advance lein" — khata me jama hota hai aur bill banne par khud lag jata hai.') },
+            { icon: CheckCircle2, color: '#16a34a', title: tr('Mukammal = bill'), text: tr('"Mukammal" par asal mazdoori, saman aur visit likhein, paisa lein. Bill Sales, galla, Profit aur khata me aata hai; jo na mile wo udhaar.') },
+            { icon: Receipt, color: '#64748b', title: tr('Galti'), text: tr('Bill galat ban gaya ho to Sales se void karein — kaam dobara khul jata hai aur technician ka hisaab bhi wapas hota hai.') },
           ]}
-          tips={['Subah "Aaj ke visit" dekhein aur har technician ko parchi dein.', 'Free installation (company ya dukaan ki taraf se) par saman ki cost Profit me kharch ki tarah aati hai.', 'Kaam sambhalne ke liye "Service jobs manage" permission chahiye.']}
-          shortcuts={[['N', 'nayi booking'], ['/', 'dhoondein'], ['1', 'kaam'], ['2', 'analytics'], ['G', 'guide']]}
+          tips={[tr('Subah "Aaj ke visit" dekhein aur har technician ko parchi dein.'), tr('Free installation (company ya dukaan ki taraf se) par saman ki cost Profit me kharch ki tarah aati hai.'), tr('Kaam sambhalne ke liye "Service jobs manage" permission chahiye.')]}
+          shortcuts={[['N', tr('nayi booking')], ['/', 'dhoondein'], ['1', 'kaam'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -245,7 +246,7 @@ function InstallRow({ i, shopName, money, onOpen }: { i: Installation; shopName:
       <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', i.isOverdue ? 'bg-rose-50 text-rose-600' : i.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600')}>
         <HardHat className="h-5 w-5" />
       </span>
-      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-start">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="truncate font-semibold text-slate-900">{i.productName}</span>
           <Pill meta={st} />
@@ -255,18 +256,18 @@ function InstallRow({ i, shopName, money, onOpen }: { i: Installation; shopName:
         <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{i.customerName} · {i.customerPhone} — {[i.customerAddress, i.area].filter(Boolean).join(', ')}</p>
         <p className={cn('mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem]', i.isOverdue ? 'font-semibold text-rose-700' : 'text-slate-500')}>
           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />
-            {i.status === 'COMPLETED' ? `Lag gaya ${dayOnly(i.completedAt)}` : i.scheduledDate ? `${i.isOverdue ? 'Late — ' : ''}${dayOnly(i.scheduledDate)} ${slotLabel(i.scheduledTimeSlot)}` : 'Date baqi'}
+            {i.status === 'COMPLETED' ? tr('Lag gaya {{completedAt}}', { completedAt: dayOnly(i.completedAt) }) : i.scheduledDate ? `${i.isOverdue ? 'Late — ' : ''}${dayOnly(i.scheduledDate)} ${slotLabel(i.scheduledTimeSlot)}` : tr('Date baqi')}
           </span>
-          <span className="font-normal text-slate-500">· {i.technicianName ?? 'Technician nahi laga'}</span>
+          <span className="font-normal text-slate-500">· {i.technicianName ?? tr('Technician nahi laga')}</span>
         </p>
       </button>
-      <div className="shrink-0 text-right">
+      <div className="shrink-0 text-end">
         <p className="font-semibold tabular-nums text-slate-900">{money(Number(i.totalCharge) || 0)}</p>
-        {due > 0 && i.status !== 'CANCELLED' && <p className="text-[0.75rem] font-medium tabular-nums text-amber-700">baqi {money(due)}</p>}
+        {due > 0 && i.status !== 'CANCELLED' && <p className="text-[0.75rem] font-medium tabular-nums text-amber-700">{tr('baqi {{due}}', { due: money(due) })}</p>}
         <div className="mt-1 flex justify-end gap-1">
-          <button type="button" onClick={() => printInstallationJob(i, shopName)} aria-label="Parchi" title="Parchi" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-3.5 w-3.5" /></button>
-          {wa && <a href={wa} target="_blank" rel="noreferrer" aria-label="WhatsApp" title="WhatsApp" className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
-          <button type="button" onClick={onOpen} aria-label="Kholein" title="Kholein" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ArrowRight className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => printInstallationJob(i, shopName)} aria-label={tr('Parchi')} title={tr('Parchi')} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-3.5 w-3.5" /></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" aria-label={tr('WhatsApp')} title={tr('WhatsApp')} className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"><MessageCircle className="h-3.5 w-3.5" /></a>}
+          <button type="button" onClick={onOpen} aria-label={tr('Kholein')} title={tr('Kholein')} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ArrowRight className="h-3.5 w-3.5 rtl-flip" /></button>
         </div>
       </div>
     </li>
@@ -277,21 +278,21 @@ function Analytics({ s, money }: { s?: InstallationSummary; money: (n: number) =
   if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
   const m = s.month;
   const rows = [
-    { key: 'p', label: 'Date baqi', value: s.pending, color: '#0ea5e9' }, { key: 's', label: 'Date lag gayi', value: s.scheduled, color: '#3b82f6' },
-    { key: 'i', label: 'Kaam chal raha', value: s.inProgress, color: '#f59e0b' }, { key: 'c', label: 'Lag gaya', value: s.completed, color: '#16a34a' },
-    { key: 'x', label: 'Cancel', value: s.cancelled, color: '#94a3b8' },
+    { key: 'p', label: tr('Date baqi'), value: s.pending, color: '#0ea5e9' }, { key: 's', label: tr('Date lag gayi'), value: s.scheduled, color: '#3b82f6' },
+    { key: 'i', label: tr('Kaam chal raha'), value: s.inProgress, color: '#f59e0b' }, { key: 'c', label: tr('Lag gaya'), value: s.completed, color: '#16a34a' },
+    { key: 'x', label: tr('Cancel'), value: s.cancelled, color: '#94a3b8' },
   ].filter((r) => r.value > 0);
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Is mahine" hint="Mukammal kaam ka hisaab — har kaam ka bill Sales aur Profit me hai">
+      <Panel title={tr('Is mahine')} hint={tr('Mukammal kaam ka hisaab — har kaam ka bill Sales aur Profit me hai')}>
         <dl className="grid grid-cols-2 gap-3">
-          <Box label="Kaam" value={m.jobs} /><Box label="Kamai" value={money(m.revenue)} />
-          <Box label="Wusool" value={money(m.collected)} /><Box label="Baqi" value={money(m.outstanding)} tone={m.outstanding > 0 ? 'text-amber-700' : 'text-slate-900'} />
-          <Box label="Saman ki cost" value={money(m.materialCost)} /><Box label="Profit" value={money(m.profit)} tone="text-emerald-700" />
-          <Box label="Demo diye" value={m.demosGiven} /><Box label="Rating" value={m.avgRating ? `${m.avgRating.toFixed(1)} / 5` : '—'} />
+          <Box label={tr('Kaam')} value={m.jobs} /><Box label={tr('Kamai')} value={money(m.revenue)} />
+          <Box label={tr('Wusool')} value={money(m.collected)} /><Box label={tr('Baqi')} value={money(m.outstanding)} tone={m.outstanding > 0 ? 'text-amber-700' : 'text-slate-900'} />
+          <Box label={tr('Saman ki cost')} value={money(m.materialCost)} /><Box label={tr('Profit')} value={money(m.profit)} tone="text-emerald-700" />
+          <Box label={tr('Demo diye')} value={m.demosGiven} /><Box label={tr('Rating')} value={m.avgRating ? `${m.avgRating.toFixed(1)} / 5` : '—'} />
         </dl>
       </Panel>
-      <Panel title="Kaam kis halat me"><Bars rows={rows} /></Panel>
+      <Panel title={tr('Kaam kis halat me')}><Bars rows={rows} /></Panel>
     </div>
   );
 }

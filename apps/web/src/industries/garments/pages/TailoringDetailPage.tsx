@@ -28,8 +28,9 @@ import {
 import { useGarmentsCan } from '../components/permissions';
 import { measureLines, printTailoringSlip, tailoringMessage } from '../components/slips';
 import { useTailoringActions } from '../components/tailoring/useTailoringActions';
+import { Trans, t } from '@core/i18n';
 
-const METHOD: Record<string, string> = { CASH: 'Cash', CARD: 'Card', BANK: 'Bank', BANK_TRANSFER: 'Bank', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa' };
+const METHOD: Record<string, string> = { CASH: t('Cash'), CARD: t('Card'), BANK: t('Bank'), BANK_TRANSFER: t('Bank'), JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa' };
 
 export default function TailoringDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
@@ -56,7 +57,7 @@ export default function TailoringDetailPage() {
 
   if (q.isLoading) return <PageShell><Skeleton className="h-36 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-3"><Skeleton className="h-96 rounded-2xl lg:col-span-2" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
   if (!o) {
-    return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/garments/tailoring')}>Orders par wapas</Button></div></PageShell>;
+    return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Order nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/garments/tailoring')}>{t('Orders par wapas')}</Button></div></PageShell>;
   }
 
   const st = tailoringStatus(o.orderStatus);
@@ -72,23 +73,23 @@ export default function TailoringDetailPage() {
     <PageShell>
       <PageHero
         back="/garments/tailoring"
-        backLabel="Wapas (Esc)"
-        title={o.customerName || 'Customer'}
-        chip={<>{st.label}{(o.priority === 'HIGH' || o.priority === 'URGENT') && !closed && <span className="ml-1 rounded-full bg-rose-500/90 px-2 text-white">{priorityOf(o.priority).label}</span>}</>}
-        subtitle={<>{o.orderNumber} · book {dayFull(o.orderDate)}{o.tailorName ? ` · karigar ${o.tailorName}` : ''}</>}
+        backLabel={t('Wapas (Esc)')}
+        title={o.customerName || t('Customer')}
+        chip={<>{st.label}{(o.priority === 'HIGH' || o.priority === 'URGENT') && !closed && <span className="ms-1 rounded-full bg-rose-500/90 px-2 text-white">{priorityOf(o.priority).label}</span>}</>}
+        subtitle={<>{t('{{orderNumber}} · book {{orderDate}}{{value}}', { orderNumber: o.orderNumber, orderDate: dayFull(o.orderDate), value: o.tailorName ? t(' · karigar {{tailorName}}', { tailorName: o.tailorName }) : '' })}</>}
         actions={<>
-          <button type="button" onClick={() => printTailoringSlip(o, shopName)} className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
-          <button type="button" onClick={() => printTailoringSlip(o, shopName, true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">Karigar parchi</span></button>
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
-          {manage && !closed && <Link to={`/garments/tailoring/new?edit=${o.id}`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></Link>}
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => printTailoringSlip(o, shopName)} className={heroButton}><Printer className="h-4 w-4" />{t('Parchi')}</button>
+          <button type="button" onClick={() => printTailoringSlip(o, shopName, true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">{t('Karigar parchi')}</span></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">{t('WhatsApp')}</span></a>}
+          {manage && !closed && <Link to={`/garments/tailoring/new?edit=${o.id}`} title={t('Badlein (E)')} className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">{t('Badlein')}</span></Link>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Kul', value: formatPKR(o.total) },
-          { label: 'Mila', value: formatPKR(o.paidAmount) },
-          { label: o.orderStatus === 'DELIVERED' ? 'Khate me' : 'Baqi', value: formatPKR(due) },
+          { label: t('Kul'), value: formatPKR(o.total) },
+          { label: t('Mila'), value: formatPKR(o.paidAmount) },
+          { label: o.orderStatus === 'DELIVERED' ? t('Khate me') : t('Baqi'), value: formatPKR(due) },
           {
-            label: closed ? (o.orderStatus === 'DELIVERED' ? 'Diya' : 'Cancel') : 'Dena hai',
+            label: closed ? (o.orderStatus === 'DELIVERED' ? t('Diya') : t('Cancel')) : t('Dena hai'),
             value: closed ? dayFull(o.deliveredAt ?? o.cancelledAt) : o.promisedDate ? `${whenText(o.promisedDate)} · ${dayFull(o.promisedDate)}` : '—',
           },
         ]}
@@ -111,43 +112,43 @@ export default function TailoringDetailPage() {
           {manage && !closed && (
             <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
               {next && <Button variant={next.to === 'DELIVER' ? 'success' : 'primary'} loading={busy} onClick={() => act.next(o)} leftIcon={next.to === 'DELIVER' ? <Receipt className="h-4 w-4" /> : <Scissors className="h-4 w-4" />}>{next.label}</Button>}
-              {due > 0.5 && <Button variant="secondary" onClick={() => act.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>Paisa mila <Kbd className="ml-1">P</Kbd></Button>}
-              {['CONFIRMED', 'CUTTING'].includes(o.orderStatus) && <Button variant="ghost" disabled={busy} onClick={() => act.setStatus(o, 'FABRIC_PENDING')} leftIcon={<Pause className="h-4 w-4" />}>Kapre ka intezar</Button>}
-              {o.orderStatus === 'STITCHING' && <Button variant="ghost" disabled={busy} onClick={() => act.setStatus(o, 'EMBROIDERY')} leftIcon={<Shirt className="h-4 w-4" />}>Kadhai par bheja</Button>}
-              {TAILORING_PREV[o.orderStatus] && <Button variant="ghost" disabled={busy} onClick={() => act.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
-              <Button variant="ghost" className="ml-auto text-rose-700" onClick={() => act.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+              {due > 0.5 && <Button variant="secondary" onClick={() => act.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>{t('Paisa mila')}{' '} <Kbd className="ms-1">P</Kbd></Button>}
+              {['CONFIRMED', 'CUTTING'].includes(o.orderStatus) && <Button variant="ghost" disabled={busy} onClick={() => act.setStatus(o, 'FABRIC_PENDING')} leftIcon={<Pause className="h-4 w-4" />}>{t('Kapre ka intezar')}</Button>}
+              {o.orderStatus === 'STITCHING' && <Button variant="ghost" disabled={busy} onClick={() => act.setStatus(o, 'EMBROIDERY')} leftIcon={<Shirt className="h-4 w-4" />}>{t('Kadhai par bheja')}</Button>}
+              {TAILORING_PREV[o.orderStatus] && <Button variant="ghost" disabled={busy} onClick={() => act.back(o)} leftIcon={<Undo2 className="h-4 w-4" />}>{t('Ek qadam peeche')}</Button>}
+              <Button variant="ghost" className="ms-auto text-rose-700" onClick={() => act.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>{t('Cancel')}</Button>
             </div>
           )}
           {o.orderStatus === 'DELIVERED' && o.bill && (
             <p className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-[0.875rem] text-slate-700">
-              <Receipt className="h-4 w-4 text-success-600" />Bill <strong>{o.bill.saleNumber}</strong> bana — {formatPKR(o.bill.total)}
-              {o.bill.creditAmount > 0.5 && <span className="text-amber-700">· {formatPKR(o.bill.creditAmount)} khate par</span>}
-              <Link to={`/sales/${o.bill.id}/receipt`} className="ml-auto font-semibold text-brand-700 hover:underline">Bill dekhein →</Link>
+              <Receipt className="h-4 w-4 text-success-600" /><Trans text="Bill {{bill}} bana — {{total}}" values={{ bill: <strong>{o.bill.saleNumber}</strong>, total: formatPKR(o.bill.total) }} />
+              {o.bill.creditAmount > 0.5 && <span className="text-amber-700">{t('· {{creditAmount}} khate par', { creditAmount: formatPKR(o.bill.creditAmount) })}</span>}
+              <Link to={`/sales/${o.bill.id}/receipt`} className="ms-auto font-semibold text-brand-700 hover:underline">{t('Bill dekhein →')}</Link>
             </p>
           )}
         </Card>
       )}
       {o.orderStatus === 'CANCELLED' && (
         <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-900 ring-1 ring-rose-200">
-          Cancel {dayFull(o.cancelledAt)}{o.cancellationReason ? ` — ${o.cancellationReason}` : ''}.{o.paidAmount > 0 ? ` ${formatPKR(o.paidAmount)} customer ke khate me advance ban kar jama hain.` : ''}
+          {t('Cancel {{cancelledAt}}{{value}}.{{value2}}', { cancelledAt: dayFull(o.cancelledAt), value: o.cancellationReason ? ` — ${o.cancellationReason}` : '', value2: o.paidAmount > 0 ? t(' {{paidAmount}} customer ke khate me advance ban kar jama hain.', { paidAmount: formatPKR(o.paidAmount) }) : '' })}
         </p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" flush title={<T icon={Shirt}>Kapre</T>} description={`${o.items.reduce((s, i) => s + i.quantity, 0)} piece`}>
+          <Card className="rounded-2xl" flush title={<T icon={Shirt}>{t('Kapre')}</T>} description={t('{{value}} piece', { value: o.items.reduce((s, i) => s + i.quantity, 0) })}>
             <ul className="divide-y divide-slate-100">
               {o.items.map((i) => (
                 <li key={i.id} className="flex gap-3 px-4 py-3 sm:px-5">
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-slate-900">{i.quantity > 1 ? `${i.quantity}x ` : ''}{i.garmentName}<span className="ml-2 text-[0.75rem] font-normal text-slate-500">{garmentLabel(i.categoryType)}</span></p>
+                    <p className="font-semibold text-slate-900">{i.quantity > 1 ? t('{{quantity}}x ', { quantity: i.quantity }) : ''}{i.garmentName}<span className="ms-2 text-[0.75rem] font-normal text-slate-500">{garmentLabel(i.categoryType)}</span></p>
                     <p className="text-[0.8125rem] text-slate-600">
-                      {i.fabricProductId ? `Kapra dukaan ka: ${i.fabricName ?? '—'}${i.fabricMeters ? ` (${i.fabricMeters} m)` : ''}` : i.fabricCost > 0 ? 'Kapra dukaan ka (bahar se)' : 'Kapra customer ka'}
-                      {i.size ? ` · Size ${i.size}` : ''}{i.colorName ? ` · ${i.colorName}` : ''}
+                      {i.fabricProductId ? t('Kapra dukaan ka: {{value}}{{value2}}', { value: i.fabricName ?? '—', value2: i.fabricMeters ? t(' ({{fabricMeters}} m)', { fabricMeters: i.fabricMeters }) : '' }) : i.fabricCost > 0 ? t('Kapra dukaan ka (bahar se)') : t('Kapra customer ka')}
+                      {i.size ? t(' · Size {{size}}', { size: i.size }) : ''}{i.colorName ? ` · ${i.colorName}` : ''}
                     </p>
                     {i.designNotes && <p className="text-[0.8125rem] text-fuchsia-700">{i.designNotes}</p>}
                     <p className="mt-1 text-[0.75rem] text-slate-500">
-                      Silai {formatPKR(i.stitchingCost)}{i.embroideryCost > 0 ? ` · Kadhai ${formatPKR(i.embroideryCost)}` : ''}{i.accessoryCost > 0 ? ` · Button/lace ${formatPKR(i.accessoryCost)}` : ''}{i.fabricCost > 0 ? ` · Kapra ${formatPKR(i.fabricCost)}` : ''}
+                      {t('Silai {{stitchingCost}}{{value}}{{value2}}{{value3}}', { stitchingCost: formatPKR(i.stitchingCost), value: i.embroideryCost > 0 ? t(' · Kadhai {{embroideryCost}}', { embroideryCost: formatPKR(i.embroideryCost) }) : '', value2: i.accessoryCost > 0 ? t(' · Button/lace {{accessoryCost}}', { accessoryCost: formatPKR(i.accessoryCost) }) : '', value3: i.fabricCost > 0 ? t(' · Kapra {{fabricCost}}', { fabricCost: formatPKR(i.fabricCost) }) : '' })}
                     </p>
                   </div>
                   <p className="shrink-0 font-bold tabular-nums">{formatPKR(i.total)}</p>
@@ -155,15 +156,15 @@ export default function TailoringDetailPage() {
               ))}
             </ul>
             <dl className="space-y-1 border-t border-slate-100 px-4 py-3 text-[0.875rem] sm:px-5">
-              <div className="flex justify-between"><dt className="text-slate-500">Kul</dt><dd className="tabular-nums">{formatPKR(o.subtotal)}</dd></div>
-              {o.discount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Discount</dt><dd className="tabular-nums text-rose-700">−{formatPKR(o.discount)}</dd></div>}
-              {o.taxAmount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Tax</dt><dd className="tabular-nums">{formatPKR(o.taxAmount)}</dd></div>}
-              <div className="flex justify-between text-base font-bold"><dt>Customer dega</dt><dd className="tabular-nums">{formatPKR(o.total)}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-500">{t('Kul')}</dt><dd className="tabular-nums">{formatPKR(o.subtotal)}</dd></div>
+              {o.discount > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Discount')}</dt><dd className="tabular-nums text-rose-700">−{formatPKR(o.discount)}</dd></div>}
+              {o.taxAmount > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Tax')}</dt><dd className="tabular-nums">{formatPKR(o.taxAmount)}</dd></div>}
+              <div className="flex justify-between text-base font-bold"><dt>{t('Customer dega')}</dt><dd className="tabular-nums">{formatPKR(o.total)}</dd></div>
             </dl>
           </Card>
 
           {(o.designInstructions || o.designReferenceUrls?.length > 0) && (
-            <Card className="rounded-2xl" title={<T icon={Scissors}>Design</T>}>
+            <Card className="rounded-2xl" title={<T icon={Scissors}>{t('Design')}</T>}>
               {o.designInstructions && <p className="whitespace-pre-line text-[0.875rem] text-slate-700">{o.designInstructions}</p>}
               {o.designReferenceUrls?.length > 0 && (
                 <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -172,28 +173,28 @@ export default function TailoringDetailPage() {
               )}
             </Card>
           )}
-          {o.internalNotes && <Card className="rounded-2xl" title="Andar ka note"><p className="whitespace-pre-line text-[0.875rem] text-slate-700">{o.internalNotes}</p></Card>}
+          {o.internalNotes && <Card className="rounded-2xl" title={t('Andar ka note')}><p className="whitespace-pre-line text-[0.875rem] text-slate-700">{o.internalNotes}</p></Card>}
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Customer')}</T>}>
             <p className="font-semibold text-slate-900">{o.customerName || '—'}</p>
             {o.customerPhone && <a href={`tel:${o.customerPhone}`} className="mt-1 inline-flex items-center gap-1.5 text-[0.875rem] text-brand-700 hover:underline"><Phone className="h-4 w-4" />{o.customerPhone}</a>}
             {o.customer && (
               <p className="mt-2 text-[0.8125rem] text-slate-600">
-                Khata: {o.customer.balance > 0.5 ? <span className="font-semibold text-rose-700">{formatPKR(o.customer.balance)} udhaar</span> : o.customer.balance < -0.5 ? <span className="font-semibold text-success-700">{formatPKR(-o.customer.balance)} advance jama</span> : 'saaf'}
-                <Link to={`/customers/${o.customer.id}`} className="ml-2 font-semibold text-brand-700 hover:underline">Khata →</Link>
+                {t('Khata:')}{' '} {o.customer.balance > 0.5 ? <span className="font-semibold text-rose-700">{t('{{balance}} udhaar', { balance: formatPKR(o.customer.balance) })}</span> : o.customer.balance < -0.5 ? <span className="font-semibold text-success-700">{t('{{formatPKR}} advance jama', { formatPKR: formatPKR(-o.customer.balance) })}</span> : 'saaf'}
+                <Link to={`/customers/${o.customer.id}`} className="ms-2 font-semibold text-brand-700 hover:underline">{t('Khata →')}</Link>
               </p>
             )}
             {o.customerNotes && <p className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">{o.customerNotes}</p>}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Ruler}>{`Naap${o.measurementProfile ? ` — ${o.measurementProfile.profileName}` : ''}`}</T>}>
+          <Card className="rounded-2xl" title={<T icon={Ruler}>{o.measurementProfile ? t('Naap — {{name}}', { name: t(o.measurementProfile.profileName) }) : t('Naap')}</T>}>
             {naap.length ? <div className="space-y-0.5 text-[0.8125rem] text-slate-700">{naap.map((l) => <p key={l}>{l}</p>)}</div>
-              : <p className="text-[0.8125rem] text-slate-500">Is order ke saath naap nahi liya gaya</p>}
+              : <p className="text-[0.8125rem] text-slate-500">{t('Is order ke saath naap nahi liya gaya')}</p>}
           </Card>
 
-          <Card className="rounded-2xl" flush title={<T icon={Wallet}>Payments</T>} description={o.payments?.length ? `${o.payments.length} dafa` : 'Abhi koi payment nahi'}>
+          <Card className="rounded-2xl" flush title={<T icon={Wallet}>{t('Payments')}</T>} description={o.payments?.length ? t('{{count}} dafa', { count: o.payments.length }) : t('Abhi koi payment nahi')}>
             {!!o.payments?.length && (
               <ul className="divide-y divide-slate-100">
                 {o.payments.map((p) => (
@@ -206,7 +207,7 @@ export default function TailoringDetailPage() {
               </ul>
             )}
             <p className={cn('px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5', o.payments?.length && 'border-t border-slate-100')}>
-              Suit dene se pehle ka paisa customer ke khate me advance ban kar jama hota hai; dene par bill banta hai aur advance us me kat jata hai.
+              {t('Suit dene se pehle ka paisa customer ke khate me advance ban kar jama hota hai; dene par bill banta hai aur advance us me kat jata hai.')}
             </p>
           </Card>
         </div>
@@ -215,14 +216,14 @@ export default function TailoringDetailPage() {
       {act.modals}
 
       {guide.isOpen && (
-        <PageGuide title="Silai order" onClose={guide.close}
+        <PageGuide title={t('Silai order')} onClose={guide.close}
           steps={[
-            { icon: Scissors, color: '#7c3aed', title: 'Agla qadam', text: 'Upar wala button order ko agle qadam par le jata hai. Kapra nahi aaya to "Kapre ka intezar", kadhai par bheja to "Kadhai par bheja".' },
-            { icon: Wallet, color: '#0891b2', title: 'Paisa mila (P)', text: 'Trial ya kisi bhi waqt jo paisa mile, yahan likhein — cash, card, bank ya JazzCash.' },
-            { icon: Receipt, color: '#16a34a', title: 'De diya', text: 'Suit dete hi bill banta hai. Jo baqi reh jaye woh customer ke khate me udhaar ban jata hai.' },
-            { icon: Printer, color: '#ea580c', title: 'Parchi', text: 'Customer parchi me paisa; karigar parchi me sirf naap aur design.' },
+            { icon: Scissors, color: '#7c3aed', title: t('Agla qadam'), text: t('Upar wala button order ko agle qadam par le jata hai. Kapra nahi aaya to "Kapre ka intezar", kadhai par bheja to "Kadhai par bheja".') },
+            { icon: Wallet, color: '#0891b2', title: t('Paisa mila (P)'), text: t('Trial ya kisi bhi waqt jo paisa mile, yahan likhein — cash, card, bank ya JazzCash.') },
+            { icon: Receipt, color: '#16a34a', title: t('De diya'), text: t('Suit dete hi bill banta hai. Jo baqi reh jaye woh customer ke khate me udhaar ban jata hai.') },
+            { icon: Printer, color: '#ea580c', title: t('Parchi'), text: t('Customer parchi me paisa; karigar parchi me sirf naap aur design.') },
           ]}
-          shortcuts={[['E', 'badlein'], ['P', 'paisa mila'], ['Esc', 'wapas'], ['G', 'guide']]}
+          shortcuts={[['E', t('badlein')], ['P', t('paisa mila')], ['Esc', t('wapas')], ['G', t('guide')]]}
         />
       )}
     </PageShell>

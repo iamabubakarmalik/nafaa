@@ -15,6 +15,7 @@ import { PaymentMethod, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { assertShopAccess } from '../../../common/shop-scope';
 import { drawerCash, r2 } from '../dairy-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -59,7 +60,7 @@ export async function payFarmer(tx: Db, user: AuthenticatedUser, input: {
   if (input.accountId) {
     const a = await tx.moneyAccount.findFirst({ where: { id: input.accountId, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Account nahi mila');
-    if (!a.isActive) throw new BadRequestException(`${a.name} band hai — pehle chalu karein`);
+    if (!a.isActive) throw new BadRequestException(apiMessage('{{aName}} band hai — pehle chalu karein', { aName: a.name }));
     if (a.shopId) assertShopAccess(user, a.shopId, 'Account se payment');
     else if (!isOwner(user) && user.shopId) throw new ForbiddenException('Poore karobar ka account sirf malik chala sakta hai');
     account = a;

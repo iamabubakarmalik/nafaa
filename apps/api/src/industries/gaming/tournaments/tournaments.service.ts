@@ -14,6 +14,7 @@ import { ExpensesService } from '../../../modules/finance/expenses/expenses.serv
 import { ensureCustomer, postIndustrySale, resolveIndustryShopId, toPaymentMethod } from '../../_shared/industry-sale.helper';
 import { BILL_PREFIX, r2 } from '../common/gaming-catalog';
 import { CompleteTournamentDto, PayPrizeDto, RegisterPlayerDto, UpsertTournamentDto } from './dto/tournament.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const PRIZE_CATEGORY = { name: 'Tournament prize', icon: '🏆', color: '#7c3aed' };
 const PLACES: Record<number, string> = { 1: 'Pehla inaam', 2: 'Doosra inaam', 3: 'Teesra inaam', 0: 'Inaam' };
@@ -108,7 +109,7 @@ export class TournamentsService {
     const t = await this.getOne(user, id);
     if (t.status === 'COMPLETED' || t.status === 'CANCELLED') throw new BadRequestException('Ye tournament band ho chuka');
     const data = this.fields(dto);
-    if (data.maxParticipants < t.currentParticipants) throw new BadRequestException(`${t.currentParticipants} player pehle se hain — had is se kam nahi ho sakti`);
+    if (data.maxParticipants < t.currentParticipants) throw new BadRequestException(apiMessage('{{currentParticipants}} player pehle se hain — had is se kam nahi ho sakti', { currentParticipants: t.currentParticipants }));
     return this.prisma.gamingTournament.update({ where: { id }, data });
   }
 

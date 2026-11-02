@@ -13,6 +13,7 @@ import { catLabel } from '@industries/appliances/components/meta';
 import { CATEGORY_META as ELECTRONICS_TYPES } from '@industries/electronics/constants';
 import { prettyAgriKind, type AgriKind } from '@industries/agri/lib/agriCategory';
 import type { LowList, LowSettings, LowStatusFilter } from './api';
+import { t } from '@core/i18n';
 
 export interface LowStockBannerProps {
   data: LowList;
@@ -45,56 +46,56 @@ const AgriBanner = lazy(() => import('./components/panels/AgriBanner').then((m) 
 
 const CONFIGS: Record<string, LowStockConfig> = {
   retail: {
-    label: 'Retail',
-    tips: ['Expiry wala maal pehle bechein — "Expiry" filter se dekhein kya jaldi kharab hoga.'],
+    label: t('Retail'),
+    tips: [t('Expiry wala maal pehle bechein — "Expiry" filter se dekhein kya jaldi kharab hoga.')],
   },
   mobile: {
-    label: 'Mobile',
+    label: t('Mobile'),
     deviceLink: (id) => `/products/${id}/imei`,
-    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Phone ki ginti IMEI se', text: 'Phone ka stock utne IMEI hain jitne dukaan me para hain. Model ke neeche har rang/memory ki ginti likhi hai. "IMEI" se naye phone daalein.' }],
+    guide: [{ icon: Smartphone, color: '#2563eb', title: t('Phone ki ginti IMEI se'), text: t('Phone ka stock utne IMEI hain jitne dukaan me para hain. Model ke neeche har rang/memory ki ginti likhi hai. "IMEI" se naye phone daalein.') }],
   },
   electronics: {
-    label: 'Electronics',
+    label: t('Electronics'),
     deviceLink: (id) => `/electronics-products/${id}`,
-    groups: { title: 'Type', label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
-    guide: [{ icon: Barcode, color: '#2563eb', title: 'Serial wale model', text: 'Laptop, camera jaise serial wale maal ki ginti serial se hoti hai. Cable, charger ka stock aam tareeqe se.' }],
+    groups: { title: t('Type'), label: (id) => ELECTRONICS_TYPES[id as keyof typeof ELECTRONICS_TYPES]?.label ?? id },
+    guide: [{ icon: Barcode, color: '#2563eb', title: t('Serial wale model'), text: t('Laptop, camera jaise serial wale maal ki ginti serial se hoti hai. Cable, charger ka stock aam tareeqe se.') }],
   },
   appliances: {
-    label: 'Appliances',
+    label: t('Appliances'),
     deviceLink: (id) => `/appliance-products/${id}`,
-    groups: { title: 'Type', label: (id) => catLabel(id) },
+    groups: { title: t('Type'), label: (id) => catLabel(id) },
     defaults: { targetDays: 15 },
-    guide: [{ icon: Snowflake, color: '#0891b2', title: 'Mausam ka khayal', text: 'Garmi se pehle AC aur cooler, sardi se pehle geyser aur heater. Mehenga maal hai — order kam din ka banta hai (15 din), Settings se badlein.' }],
+    guide: [{ icon: Snowflake, color: '#0891b2', title: t('Mausam ka khayal'), text: t('Garmi se pehle AC aur cooler, sardi se pehle geyser aur heater. Mehenga maal hai — order kam din ka banta hai (15 din), Settings se badlein.') }],
   },
   bakery: {
-    label: 'Bakery',
+    label: t('Bakery'),
     Banner: BakeryBanner,
-    extraTab: { id: 'ingredients', label: 'Saamaan', icon: Wheat, Component: BakeryIngredients },
+    extraTab: { id: 'ingredients', label: t('Saamaan'), icon: Wheat, Component: BakeryIngredients },
     guide: [
-      { icon: Croissant, color: '#d97706', title: 'Aaj kya banana hai', text: 'Jo cheezein dukaan me banti hain un par "Banana hai" likha hai — itna banayein ke hadd tak pohanch jaye. Ye supplier order me nahi jatin.' },
-      { icon: Wheat, color: '#7c3aed', title: 'Saamaan', text: '"Saamaan" tab me maida, cheeni, makkhan jo kam hain. Supplier ko WhatsApp list bhejein ya order banayein.' },
+      { icon: Croissant, color: '#d97706', title: t('Aaj kya banana hai'), text: t('Jo cheezein dukaan me banti hain un par "Banana hai" likha hai — itna banayein ke hadd tak pohanch jaye. Ye supplier order me nahi jatin.') },
+      { icon: Wheat, color: '#7c3aed', title: t('Saamaan'), text: t('"Saamaan" tab me maida, cheeni, makkhan jo kam hain. Supplier ko WhatsApp list bhejein ya order banayein.') },
     ],
-    tips: ['Peeli patti batati hai kya aaj hi bechna hai, warna phenkna parega.'],
+    tips: [t('Peeli patti batati hai kya aaj hi bechna hai, warna phenkna parega.')],
   },
   agri: {
-    label: 'Agri',
+    label: t('Agri'),
     statuses: ['registration', 'season'],
-    groups: { title: 'Type', label: (id) => prettyAgriKind(id as AgriKind) },
+    groups: { title: t('Type'), label: (id) => prettyAgriKind(id as AgriKind) },
     Banner: AgriBanner,
     guide: [
-      { icon: ShieldAlert, color: '#be123c', title: 'Registration', text: 'Beej, khaad aur spray ki sarkari registration khatam ho to stock hone par bhi bechna mana hai. "Registration" filter se dekhein aur renew karwayein.' },
-      { icon: Leaf, color: '#16a34a', title: 'Mausam', text: 'Abhi ke aur agle mausam (Rabi / Kharif) ka jo maal kam hai woh "Mausam" filter me hai. Mausam se pehle mangwayein.' },
+      { icon: ShieldAlert, color: '#be123c', title: t('Registration'), text: t('Beej, khaad aur spray ki sarkari registration khatam ho to stock hone par bhi bechna mana hai. "Registration" filter se dekhein aur renew karwayein.') },
+      { icon: Leaf, color: '#16a34a', title: t('Mausam'), text: t('Abhi ke aur agle mausam (Rabi / Kharif) ka jo maal kam hai woh "Mausam" filter me hai. Mausam se pehle mangwayein.') },
     ],
   },
   restaurant: {
-    label: 'Restaurant',
+    label: t('Restaurant'),
     Banner: RestaurantBanner,
-    extraTab: { id: 'dishes', label: 'Dishes', icon: ChefHat, Component: RestaurantDishes },
-    guide: [{ icon: ChefHat, color: '#ea580c', title: 'Kaunsi dish nahi ban sakti', text: 'Dish stock me nahi hoti, saamaan hota hai. "Dishes" tab batata hai kaunsi dish kitni aur ban sakti hai aur kaunsa saamaan rok raha hai. Saamaan ki roz ki khapat recipe se ginti hoti hai.' }],
+    extraTab: { id: 'dishes', label: t('Dishes'), icon: ChefHat, Component: RestaurantDishes },
+    guide: [{ icon: ChefHat, color: '#ea580c', title: t('Kaunsi dish nahi ban sakti'), text: t('Dish stock me nahi hoti, saamaan hota hai. "Dishes" tab batata hai kaunsi dish kitni aur ban sakti hai aur kaunsa saamaan rok raha hai. Saamaan ki roz ki khapat recipe se ginti hoti hai.') }],
   },
 };
 
 export function useLowStockConfig(): LowStockConfig {
   const industry = useCurrentIndustry();
-  return (industry?.id && CONFIGS[industry.id]) || { label: industry?.name ?? 'Dukaan' };
+  return (industry?.id && CONFIGS[industry.id]) || { label: industry?.name ?? t('Dukaan') };
 }

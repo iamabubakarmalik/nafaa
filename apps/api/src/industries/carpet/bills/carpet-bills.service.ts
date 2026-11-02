@@ -29,6 +29,7 @@ import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { ReturnsService } from '../../../modules/sales/returns/returns.service';
 import { calcSqft, parseCarpetNote, r2, realFt, splitFt, syncCarpetStock } from '../common/carpet-stock';
 import { cutRoll, nextPieceCode } from '../common/roll-cut';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -100,9 +101,9 @@ export class CarpetBillsService implements OnModuleInit {
       const done = await tx.carpetRollMovement.findFirst({ where: { saleItemId: item.id, type: 'CUT_FOR_SALE' }, select: { id: true } });
       if (done) return null;
       const roll = await tx.carpetRoll.findFirst({ where: { tenantId: sale.tenantId, rollNumber: parsed.rollNumber } });
-      if (!roll) throw new BadRequestException(`Roll ${parsed.rollNumber} nahi mila`);
-      if (roll.productId !== item.productId) throw new BadRequestException(`Roll ${roll.rollNumber} is bill line ke product ka nahi`);
-      if (sale.shopId && roll.shopId && roll.shopId !== sale.shopId) throw new BadRequestException(`Roll ${roll.rollNumber} doosri branch me hai`);
+      if (!roll) throw new BadRequestException(apiMessage('Roll {{rollNumber}} nahi mila', { rollNumber: parsed.rollNumber }));
+      if (roll.productId !== item.productId) throw new BadRequestException(apiMessage('Roll {{rollNumber}} is bill line ke product ka nahi', { rollNumber: roll.rollNumber }));
+      if (sale.shopId && roll.shopId && roll.shopId !== sale.shopId) throw new BadRequestException(apiMessage('Roll {{rollNumber}} doosri branch me hai', { rollNumber: roll.rollNumber }));
 
       const res = await cutRoll(tx, userId, roll, {
         lengthFt: parsed.lengthFt,
@@ -127,13 +128,15 @@ export class CarpetBillsService implements OnModuleInit {
     }
 
     const piece = await tx.carpetCutPiece.findFirst({ where: { tenantId: sale.tenantId, pieceCode: parsed.pieceCode } });
-    if (!piece) throw new BadRequestException(`Piece ${parsed.pieceCode} nahi mila`);
+    if (!piece) throw new BadRequestException(apiMessage('Piece {{pieceCode}} nahi mila', { pieceCode: parsed.pieceCode }));
     if (piece.saleItemId === item.id) return null;
-    if (piece.productId !== item.productId) throw new BadRequestException(`Piece ${piece.pieceCode} is bill line ke product ka nahi`);
+    if (piece.productId !== item.productId) throw new BadRequestException(apiMessage('Piece {{pieceCode}} is bill line ke product ka nahi', { pieceCode: piece.pieceCode }));
     if (piece.status !== CarpetCutPieceStatus.AVAILABLE && piece.status !== CarpetCutPieceStatus.RESERVED) {
-      throw new BadRequestException(`Piece ${piece.pieceCode} ${piece.status === 'SOLD' ? 'pehle hi bik chuka' : 'damage'} hai`);
+      throw new BadRequestException(piece.status === 'SOLD'
+        ? apiMessage('Piece {{pieceCode}} pehle hi bik chuka hai', { pieceCode: piece.pieceCode })
+        : apiMessage('Piece {{pieceCode}} damage hai', { pieceCode: piece.pieceCode }));
     }
-    if (sale.shopId && piece.shopId && piece.shopId !== sale.shopId) throw new BadRequestException(`Piece ${piece.pieceCode} doosri branch me hai`);
+    if (sale.shopId && piece.shopId && piece.shopId !== sale.shopId) throw new BadRequestException(apiMessage('Piece {{pieceCode}} doosri branch me hai', { pieceCode: piece.pieceCode }));
     await tx.carpetCutPiece.update({
       where: { id: piece.id },
       data: { status: CarpetCutPieceStatus.SOLD, saleItemId: item.id, soldAt: new Date() },

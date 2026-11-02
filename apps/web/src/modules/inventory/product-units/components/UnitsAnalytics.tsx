@@ -15,6 +15,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { unitsPageApi } from '../api/units-page.api';
 import { TYPE_LABEL, UNITS_KEY, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const PALETTE = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#0891b2', '#e11d48', '#64748b'];
 
@@ -41,23 +42,23 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Layers} label="Pack wale products" value={`${t.withPacks}`} sub={`${Math.round(t.coverage)}% of ${t.products} products`} />
-        <Kpi icon={Boxes} label="Kul packs" value={String(t.packs)} sub={t.inactive ? `${t.inactive} band` : 'Sab chalu'} tone="emerald" />
-        <Kpi icon={Barcode} label="Barcode nahi" value={String(t.noBarcode)} sub="Pack scan nahi ho sakte" tone={t.noBarcode ? 'amber' : 'emerald'} />
-        <Kpi icon={AlertTriangle} label="Qeemat ke masle" value={String(t.priceIssues)} sub="Khule se mehnga ya cost se kam" tone={t.priceIssues ? 'rose' : 'emerald'} />
+        <Kpi icon={Layers} label={tr('Pack wale products')} value={`${t.withPacks}`} sub={tr('{{coverage}}% of {{products}} products', { coverage: Math.round(t.coverage), products: t.products })} />
+        <Kpi icon={Boxes} label={tr('Kul packs')} value={String(t.packs)} sub={t.inactive ? tr('{{inactive}} band', { inactive: t.inactive }) : tr('Sab chalu')} tone="emerald" />
+        <Kpi icon={Barcode} label={tr('Barcode nahi')} value={String(t.noBarcode)} sub={tr('Pack scan nahi ho sakte')} tone={t.noBarcode ? 'amber' : 'emerald'} />
+        <Kpi icon={AlertTriangle} label={tr('Qeemat ke masle')} value={String(t.priceIssues)} sub={tr('Khule se mehnga ya cost se kam')} tone={t.priceIssues ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Purchase kis unit me</span>}
-          description={t.purchaseLines ? `Is period ki ${t.purchaseLines} purchase lines me se ${packShare}% pack me aayin` : 'Is period me koi purchase nahi'}>
-          {!bought.length ? <Empty text="Is period me koi purchase nahi" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />{tr('Purchase kis unit me')}</span>}
+          description={t.purchaseLines ? tr('Is period ki {{purchaseLines}} purchase lines me se {{packShare}}% pack me aayin', { purchaseLines: t.purchaseLines, packShare }) : tr('Is period me koi purchase nahi')}>
+          {!bought.length ? <Empty text={tr('Is period me koi purchase nahi')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={bought} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={costHidden ? undefined : axisMoney} width={44} allowDecimals={false} />
-                  <Tooltip formatter={(v, _n, item) => [costHidden ? `${v} lines` : cost(Number(v)), `${item.payload.lines} lines · ${qtyText(item.payload.qty)} ${item.payload.name}`]} {...theme.tooltip} />
+                  <Tooltip formatter={(v, _n, item) => [costHidden ? `${v} lines` : cost(Number(v)), tr('{{lines}} lines · {{qty}} {{name}}', { lines: item.payload.lines, qty: qtyText(item.payload.qty), name: item.payload.name })]} {...theme.tooltip} />
                   {/* Purchase value is cost, so users without cost access see line counts. */}
                   <Bar dataKey={costHidden ? 'lines' : 'value'} fill={theme.primary} radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -66,8 +67,8 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Pack ki type</span>} description="Kitne pack kis type ke">
-          {!types.length ? <Empty text="Abhi koi pack nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />{tr('Pack ki type')}</span>} description={tr('Kitne pack kis type ke')}>
+          {!types.length ? <Empty text={tr('Abhi koi pack nahi')} /> : (
             <>
               <div className="h-[160px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -93,15 +94,15 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Qeemat check karein</span>} description="Pack khule se mehnga, ya cost se sasta">
-          {!d.issues.length ? <Empty text="Sab packs ki qeemat theek hai" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />{tr('Qeemat check karein')}</span>} description={tr('Pack khule se mehnga, ya cost se sasta')}>
+          {!d.issues.length ? <Empty text={tr('Sab packs ki qeemat theek hai')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.issues.map((x, i) => (
                 <li key={`${x.productId}${x.unit}${i}`} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
                   <span className="min-w-0">
                     <span className="block truncate font-medium text-slate-800">{x.product} · {x.unit}</span>
                     <span className={cn('block text-[0.6875rem]', x.kind === 'loss' ? 'text-rose-700' : 'text-amber-700')}>
-                      {x.kind === 'loss' ? `Cost ${costHidden ? '••••' : formatPKR(x.cost)} se kam` : `Khula ${formatPKR(x.loose)} — pack mehnga`}
+                      {x.kind === 'loss' ? tr('Cost {{value}} se kam', { value: costHidden ? '••••' : formatPKR(x.cost) }) : tr('Khula {{loose}} — pack mehnga', { loose: formatPKR(x.loose) })}
                     </span>
                   </span>
                   <span className="shrink-0 font-semibold tabular-nums text-slate-900">{formatPKR(x.price)}</span>
@@ -111,17 +112,17 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" />Zyada bikte hain, pack nahi</span>} description="Is period ke top products jin ka koi pack nahi — dozen ya carton jor dein">
-          {!d.topWithoutPacks.length ? <Empty text="Top bikne wale sab products ke pack hain" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" />{tr('Zyada bikte hain, pack nahi')}</span>} description={tr('Is period ke top products jin ka koi pack nahi — dozen ya carton jor dein')}>
+          {!d.topWithoutPacks.length ? <Empty text={tr('Top bikne wale sab products ke pack hain')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.topWithoutPacks.map((x) => (
                 <li key={x.id} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
                   <span className="min-w-0">
                     <span className="block truncate font-medium text-slate-800">{x.name}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{qtyText(x.qty)} {x.unit} bika · {money(x.revenue)}</span>
+                    <span className="block text-[0.6875rem] text-slate-500">{tr('{{qty}} {{unit}} bika · {{revenue}}', { qty: qtyText(x.qty), unit: x.unit, revenue: money(x.revenue) })}</span>
                   </span>
                   <button type="button" onClick={() => onAddPack(x.name)} className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50">
-                    <PackagePlus className="h-3.5 w-3.5" />Pack jorein
+                    <PackagePlus className="h-3.5 w-3.5" />{tr('Pack jorein')}
                   </button>
                 </li>
               ))}
@@ -130,19 +131,19 @@ export function UnitsAnalytics({ range, money, cost, costHidden, onAddPack }: {
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Sab se zyada istemal hone wale pack</span>} description="Pack ka naam, kitne products me, aur aam quantity">
-        {!d.byName.length ? <Empty text="Abhi koi pack nahi" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />{tr('Sab se zyada istemal hone wale pack')}</span>} description={tr('Pack ka naam, kitne products me, aur aam quantity')}>
+        {!d.byName.length ? <Empty text={tr('Abhi koi pack nahi')} /> : (
           <div className="flex flex-wrap gap-2">
             {d.byName.map((x) => (
               <span key={x.name} className="inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200">
                 <span className="font-semibold text-slate-800">{x.name}</span>
-                <span className="text-slate-500">{x.count} products · aam {qtyText(x.commonRate)}</span>
+                <span className="text-slate-500">{tr('{{count}} products · aam {{commonRate}}', { count: x.count, commonRate: qtyText(x.commonRate) })}</span>
               </span>
             ))}
           </div>
         )}
       </Card>
-      <p className="text-[0.75rem] text-slate-500">Sale har bill me asal unit me likhi jati hai, is liye "kis pack me bika" ka hisaab nahi banta. Purchase ka hisaab pack ke sath hota hai.</p>
+      <p className="text-[0.75rem] text-slate-500">{tr('Sale har bill me asal unit me likhi jati hai, is liye "kis pack me bika" ka hisaab nahi banta. Purchase ka hisaab pack ke sath hota hai.')}</p>
     </div>
   );
 }

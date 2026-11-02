@@ -6,6 +6,7 @@ import { drawerKickBytes } from './escpos';
 import { printerReady, sendToPrinter } from './devices';
 import { receiptBytes } from './receiptBytes';
 import { useHardwareSettings } from './settings';
+import { t } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    PRINT ROUTER — bill kahan jaye:
@@ -37,8 +38,8 @@ export function tryDirectPrint(p: ReceiptPayload, width: PrinterWidth, fallback:
   const desk = desktopPrinter();
   if (desk?.el.printerRaw) {
     void desk.el.printerRaw(desk.config, receiptBytes(p, width, { barcode: s.printBarcode, drawer })).then((r) => {
-      if (!r.success) { toast.error(`Printer: ${r.message ?? 'print nahi hua'} — browser se print kar rahe hain`); fallback(); }
-    }).catch((e: Error) => { toast.error(`Printer: ${e.message}`); fallback(); });
+      if (!r.success) { toast.error(t('Printer: {{value}} — browser se print kar rahe hain', { value: r.message ?? 'print nahi hua' })); fallback(); }
+    }).catch((e: Error) => { toast.error(t('Printer: {{message}}', { message: e.message })); fallback(); });
     return true;
   }
   if (desk) {
@@ -50,16 +51,16 @@ export function tryDirectPrint(p: ReceiptPayload, width: PrinterWidth, fallback:
       subtotal: p.subtotal, discount: p.discount, total: p.total, paid: p.paid,
       change: p.paid > p.total ? p.paid - p.total : undefined, paymentMethod: p.paymentLabel, footerText: p.footerNote,
     }).then((r) => {
-      if (!r.success) { toast.error(`Printer: ${r.message ?? 'print nahi hua'} — browser se print kar rahe hain`); fallback(); }
+      if (!r.success) { toast.error(t('Printer: {{value}} — browser se print kar rahe hain', { value: r.message ?? 'print nahi hua' })); fallback(); }
       else if (drawer) void openCashDrawer({ silent: true });
-    }).catch((e: Error) => { toast.error(`Printer: ${e.message}`); fallback(); });
+    }).catch((e: Error) => { toast.error(t('Printer: {{message}}', { message: e.message })); fallback(); });
     return true;
   }
 
   if (s.printMode !== 'direct' || !printerReady()) return false;
   sendToPrinter(receiptBytes(p, width, { barcode: s.printBarcode, drawer })).catch((e: Error) => {
-    toast.error(`Direct print nahi hua (${e.message}) — browser print khul raha hai`);
-    if (!fallback()) toast.error('Popup block hai — Settings → Hardware se printer dobara jorein');
+    toast.error(t('Direct print nahi hua ({{message}}) — browser print khul raha hai', { message: e.message }));
+    if (!fallback()) toast.error(t('Popup block hai — Settings → Hardware se printer dobara jorein'));
   });
   return true;
 }
@@ -70,19 +71,19 @@ export async function openCashDrawer(o: { silent?: boolean } = {}): Promise<bool
   try {
     if (desk) {
       const fn = (desk.el as unknown as { cashDrawerOpen?: (c: unknown) => Promise<{ success: boolean; message?: string }> }).cashDrawerOpen;
-      if (!fn) throw new Error('Desktop app purani hai — update karein');
+      if (!fn) throw new Error(t('Desktop app purani hai — update karein'));
       const r = await fn(desk.config);
-      if (!r.success) throw new Error(r.message ?? 'drawer nahi khula');
+      if (!r.success) throw new Error(r.message ?? t('drawer nahi khula'));
     } else if (useHardwareSettings.getState().printMode === 'direct' && printerReady()) {
       await sendToPrinter(drawerKickBytes());
     } else {
-      if (!o.silent) toast.info('Drawer ke liye pehle Settings → Hardware me printer "Direct" jorein');
+      if (!o.silent) toast.info(t('Drawer ke liye pehle Settings → Hardware me printer "Direct" jorein'));
       return false;
     }
-    if (!o.silent) toast.success('Drawer khul gaya');
+    if (!o.silent) toast.success(t('Drawer khul gaya'));
     return true;
   } catch (e) {
-    if (!o.silent) toast.error(`Drawer: ${(e as Error).message}`);
+    if (!o.silent) toast.error(t('Drawer: {{message}}', { message: (e as Error).message }));
     return false;
   }
 }

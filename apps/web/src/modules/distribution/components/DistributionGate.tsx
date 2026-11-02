@@ -12,6 +12,7 @@ import { Button, PageHero, PageShell, Skeleton } from '@/design-system/component
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { useDistributionState } from '../hooks/useDistribution';
+import { t as tr } from '@core/i18n';
 
 /** Pages that belong to full distribution (vans, routes); hidden in Wholesale mode. */
 export const FULL_ONLY_PATHS = ['/distribution/load-sheets', '/distribution/routes'];
@@ -26,17 +27,17 @@ export function DistributionGate({ children }: { children: ReactNode }) {
   if (state === 'on' && fullOnly) {
     return (
       <PageShell>
-        <PageHero title="Distribution" chip={<><Truck /> Wholesale</>} meta="Aap ne sirf wholesale chuna hai" />
+        <PageHero title={tr('Distribution')} chip={<><Truck /> {' '}{tr('Wholesale')}</>} meta={tr('Aap ne sirf wholesale chuna hai')} />
         <section className="mx-auto w-full max-w-xl rounded-3xl bg-white px-6 py-10 text-center shadow-sm ring-1 ring-slate-200/80">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700"><Truck className="h-6 w-6" /></span>
-          <h2 className="mt-4 text-[1.0625rem] font-semibold text-slate-900">Ye hissa poori distribution ka hai</h2>
+          <h2 className="mt-4 text-[1.0625rem] font-semibold text-slate-900">{tr('Ye hissa poori distribution ka hai')}</h2>
           <p className="mx-auto mt-2 max-w-md text-[0.875rem] text-slate-500">
-            Routes, booker, load sheet aur gaari se delivery chahiye to Settings me "Poori distribution" chunein. Price list, order aur recovery abhi bhi chalte hain.
+            {tr('Routes, booker, load sheet aur gaari se delivery chahiye to Settings me "Poori distribution" chunein. Price list, order aur recovery abhi bhi chalte hain.')}
           </p>
           <div className="mt-5 flex justify-center gap-2">
             {canSettings
-              ? <Link to="/settings/distribution"><Button leftIcon={<Settings className="h-4 w-4" />}>Open settings</Button></Link>
-              : <p className="text-[0.8125rem] text-slate-500">Dukaan ke malik se kahein.</p>}
+              ? <Link to="/settings/distribution"><Button leftIcon={<Settings className="h-4 w-4" />}>{tr('Open settings')}</Button></Link>
+              : <p className="text-[0.8125rem] text-slate-500">{tr('Dukaan ke malik se kahein.')}</p>}
           </div>
         </section>
       </PageShell>
@@ -55,30 +56,30 @@ export function DistributionGate({ children }: { children: ReactNode }) {
   const plan = state === 'plan';
   return (
     <PageShell>
-      <PageHero title="Distribution" chip={<><Truck /> Wholesale</>} meta="Booker se order, Invoice, load sheet, delivery aur recovery — sab ek jagah" />
+      <PageHero title={tr('Distribution')} chip={<><Truck /> {' '}{tr('Wholesale')}</>} meta={tr('Booker se order, Invoice, load sheet, delivery aur recovery — sab ek jagah')} />
       <section className="mx-auto w-full max-w-xl rounded-3xl bg-white px-6 py-10 text-center shadow-sm ring-1 ring-slate-200/80">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
           {plan ? <Lock className="h-6 w-6" /> : <Truck className="h-6 w-6" />}
         </span>
         <h2 className="mt-4 text-[1.0625rem] font-semibold text-slate-900">
-          {plan ? `Aap ke plan${data?.access.planName ? ` (${data.access.planName})` : ''} me Distribution shamil nahi` : 'Distribution abhi band hai'}
+          {plan ? tr('Aap ke plan{{value}} me Distribution shamil nahi', { value: data?.access.planName ? ` (${data.access.planName})` : '' }) : tr('Distribution abhi band hai')}
         </h2>
         <p className="mx-auto mt-2 max-w-md text-[0.875rem] text-slate-500">
           {plan
-            ? 'Aap ka setup tayyar hai — plan upgrade karte hi ye sab yahin chalu ho jayega:'
-            : 'Settings me Distribution on karein — phir orders, load sheets aur recoveries yahan dikhenge.'}
+            ? tr('Aap ka setup tayyar hai — plan upgrade karte hi ye sab yahin chalu ho jayega:')
+            : tr('Settings me Distribution on karein — phir orders, load sheets aur recoveries yahan dikhenge.')}
         </p>
         {plan && (
-          <ul className="mx-auto mt-4 grid max-w-sm gap-1.5 text-left text-[0.8125rem] text-slate-700">
-            {['Price list har customer group ke liye', 'Order, Invoice aur udhaar ki limit', 'Recovery aur purane udhaar ki list', 'Booker app, routes aur load sheet'].map((t) => (
+          <ul className="mx-auto mt-4 grid max-w-sm gap-1.5 text-start text-[0.8125rem] text-slate-700">
+            {[tr('Price list har customer group ke liye'), tr('Order, Invoice aur udhaar ki limit'), tr('Recovery aur purane udhaar ki list'), tr('Booker app, routes aur load sheet')].map((t) => (
               <li key={t} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />{t}</li>
             ))}
           </ul>
         )}
         <div className="mt-5 flex justify-center gap-2">
-          {plan && canBilling && <Link to="/plans"><Button>See plans</Button></Link>}
-          {!plan && canSettings && <Link to="/settings/distribution"><Button leftIcon={<Settings className="h-4 w-4" />}>Settings kholein</Button></Link>}
-          {!(plan ? canBilling : canSettings) && <p className="text-[0.8125rem] text-slate-500">Dukaan ke malik se kahein.</p>}
+          {plan && canBilling && <Link to="/plans"><Button>{tr('See plans')}</Button></Link>}
+          {!plan && canSettings && <Link to="/settings/distribution"><Button leftIcon={<Settings className="h-4 w-4" />}>{tr('Settings kholein')}</Button></Link>}
+          {!(plan ? canBilling : canSettings) && <p className="text-[0.8125rem] text-slate-500">{tr('Dukaan ke malik se kahein.')}</p>}
         </div>
       </section>
     </PageShell>

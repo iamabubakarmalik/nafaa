@@ -3,6 +3,7 @@ import { Cloud, CloudOff, RefreshCw, AlertCircle, Check } from 'lucide-react';
 import { useOfflineStatus } from '@core/hooks/useOfflineStatus';
 import { fullSync } from '@core/lib/offline/syncEngine';
 import { PendingSalesDrawer } from './PendingSalesDrawer';
+import { t } from '@core/i18n';
 
 export function SyncStatusBadge() {
   const status = useOfflineStatus();
@@ -12,12 +13,12 @@ export function SyncStatusBadge() {
 
   let icon = <Cloud className="w-4 h-4" />;
   let color = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  let label = 'Synced';
+  let label = t('Synced');
 
   if (!status.isOnline) {
     icon = <CloudOff className="w-4 h-4" />;
     color = 'bg-slate-100 text-slate-700 border-slate-300';
-    label = 'Offline';
+    label = t('Offline');
   } else if (status.isSyncing) {
     icon = <RefreshCw className="w-4 h-4 animate-spin" />;
     color = 'bg-blue-50 text-blue-700 border-blue-200';
@@ -29,7 +30,7 @@ export function SyncStatusBadge() {
   } else if (status.lastError) {
     icon = <AlertCircle className="w-4 h-4" />;
     color = 'bg-rose-50 text-rose-700 border-rose-200';
-    label = 'Sync error';
+    label = t('Sync error');
   } else {
     icon = <Check className="w-4 h-4" />;
   }
@@ -44,8 +45,8 @@ export function SyncStatusBadge() {
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all hover:shadow-sm ${color}`}
         title={
           status.lastSync
-            ? `Last sync: ${new Date(status.lastSync).toLocaleTimeString()}`
-            : 'Not synced yet'
+            ? t('Last sync: {{value}}', { value: new Date(status.lastSync).toLocaleTimeString() })
+            : t('Not synced yet')
         }
       >
         {icon}

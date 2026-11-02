@@ -14,6 +14,7 @@ import { useShopParam } from '@core/stores/auth.store';
 import { carpetRollsApi, type CarpetRoll } from '../api/carpet-rolls.api';
 import { isCarpetUnit, r2, realFt } from '../lib/meta';
 import { useSaveKey } from '../hooks/usePageKeys';
+import { t } from '@core/i18n';
 
 const n = (v: string) => (v.trim() === '' ? 0 : Number(v));
 const digits = (v: string) => v.replace(/[^\d.]/g, '');
@@ -44,12 +45,12 @@ export function RollFormModal({ roll, productId, onClose, onSaved }: { roll?: Ca
 
   const sqft = r2(realFt(n(f.widthFt), n(f.widthInch)) * realFt(n(f.lengthFt), n(f.lengthInch)));
   const errors: Record<string, string> = {};
-  if (!f.productId) errors.product = 'Carpet chunein';
-  if (!(realFt(n(f.widthFt), n(f.widthInch)) > 0)) errors.width = 'Chaurai likhein';
-  if (!(realFt(n(f.lengthFt), n(f.lengthInch)) > 0)) errors.length = 'Lambai likhein';
-  if (n(f.widthInch) >= 12 || n(f.lengthInch) >= 12) errors.length = 'Inch 12 se kam likhein';
-  if (!(n(f.rate) > 0)) errors.rate = 'Bechne ka rate likhein';
-  if (n(f.cost) > n(f.rate) && n(f.rate) > 0) errors.cost = 'Cost rate se zyada hai — check karein';
+  if (!f.productId) errors.product = t('Carpet chunein');
+  if (!(realFt(n(f.widthFt), n(f.widthInch)) > 0)) errors.width = t('Chaurai likhein');
+  if (!(realFt(n(f.lengthFt), n(f.lengthInch)) > 0)) errors.length = t('Lambai likhein');
+  if (n(f.widthInch) >= 12 || n(f.lengthInch) >= 12) errors.length = t('Inch 12 se kam likhein');
+  if (!(n(f.rate) > 0)) errors.rate = t('Bechne ka rate likhein');
+  if (n(f.cost) > n(f.rate) && n(f.rate) > 0) errors.cost = t('Cost rate se zyada hai — check karein');
 
   const save = async () => {
     setTried(true);
@@ -65,41 +66,41 @@ export function RollFormModal({ roll, productId, onClose, onSaved }: { roll?: Ca
       const saved = edit
         ? await carpetRollsApi.update(roll!.id, body)
         : await carpetRollsApi.create({ ...body, productId: f.productId, shopId, widthFt: n(f.widthFt), originalLengthFt: n(f.lengthFt), sourceType: 'OPENING_STOCK' });
-      toast.success(edit ? 'Roll save ho gaya' : `Roll ${saved.rollNumber} ban gaya`);
+      toast.success(edit ? t('Roll save ho gaya') : t('Roll {{rollNumber}} ban gaya', { rollNumber: saved.rollNumber }));
       onSaved(saved);
-    } catch (e) { toast.error(errText(e, 'Roll save nahi hua')); } finally { setSaving(false); }
+    } catch (e) { toast.error(errText(e, t('Roll save nahi hua'))); } finally { setSaving(false); }
   };
   useSaveKey(() => void save());
   const err = (k: string) => (tried ? errors[k] : undefined);
 
   return (
-    <Modal open onClose={onClose} size="lg" title={edit ? `Roll ${roll!.rollNumber}` : 'Naya roll (opening stock)'}
-      description={edit ? 'Rate, rack aur details. Lambai badalni ho to Adjust karein.' : 'Dukaan me para roll. Supplier se aaya roll Purchase se daalein, taake payment bhi likhi jaye.'}
-      footer={<><Button variant="ghost" onClick={onClose}>Band karein</Button><Button onClick={() => void save()} loading={saving}>Save (Ctrl+S)</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={edit ? t('Roll {{rollNumber}}', { rollNumber: roll!.rollNumber }) : t('Naya roll (opening stock)')}
+      description={edit ? t('Rate, rack aur details. Lambai badalni ho to Adjust karein.') : t('Dukaan me para roll. Supplier se aaya roll Purchase se daalein, taake payment bhi likhi jaye.')}
+      footer={<><Button variant="ghost" onClick={onClose}>{t('Band karein')}</Button><Button onClick={() => void save()} loading={saving}>{t('Save (Ctrl+S)')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
         {!edit && (
-          <Select label="Carpet" value={f.productId} onChange={(e) => set({ productId: e.target.value, variantId: '' })} error={err('product')} placeholder="Carpet chunein"
-            options={carpetProducts.map((p) => ({ value: p.id, label: p.name }))} hint={carpetProducts.length ? undefined : 'Pehle sqft / running ft wala product banayein'} />
+          <Select label={t('Carpet')} value={f.productId} onChange={(e) => set({ productId: e.target.value, variantId: '' })} error={err('product')} placeholder={t('Carpet chunein')}
+            options={carpetProducts.map((p) => ({ value: p.id, label: p.name }))} hint={carpetProducts.length ? undefined : t('Pehle sqft / running ft wala product banayein')} />
         )}
-        {variants.length > 0 && <Select label="Design / rang" value={f.variantId} onChange={(e) => set({ variantId: e.target.value })} placeholder="Koi nahi" options={variants.filter((v) => v.isActive).map((v) => ({ value: v.id, label: v.name }))} />}
-        <Input label="Roll number" value={f.rollNumber} onChange={(e) => set({ rollNumber: e.target.value })} hint="Khaali chhorein to khud banega (CR-2026-0001)" />
-        <Input label="Supplier ka design code" value={f.designCode} onChange={(e) => set({ designCode: e.target.value })} />
+        {variants.length > 0 && <Select label={t('Design / rang')} value={f.variantId} onChange={(e) => set({ variantId: e.target.value })} placeholder={t('Koi nahi')} options={variants.filter((v) => v.isActive).map((v) => ({ value: v.id, label: v.name }))} />}
+        <Input label={t('Roll number')} value={f.rollNumber} onChange={(e) => set({ rollNumber: e.target.value })} hint={t('Khaali chhorein to khud banega (CR-2026-0001)')} />
+        <Input label={t('Supplier ka design code')} value={f.designCode} onChange={(e) => set({ designCode: e.target.value })} />
         <div className="grid grid-cols-2 gap-2">
-          <Input label="Chaurai ft" inputMode="decimal" value={f.widthFt} disabled={cut} onChange={(e) => set({ widthFt: digits(e.target.value) })} error={err('width')} />
+          <Input label={t('Chaurai ft')} inputMode="decimal" value={f.widthFt} disabled={cut} onChange={(e) => set({ widthFt: digits(e.target.value) })} error={err('width')} />
           <Input label="inch" inputMode="decimal" value={f.widthInch} disabled={cut} onChange={(e) => set({ widthInch: digits(e.target.value) })} />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Input label="Lambai ft" inputMode="decimal" value={f.lengthFt} disabled={cut} onChange={(e) => set({ lengthFt: digits(e.target.value) })} error={err('length')} />
+          <Input label={t('Lambai ft')} inputMode="decimal" value={f.lengthFt} disabled={cut} onChange={(e) => set({ lengthFt: digits(e.target.value) })} error={err('length')} />
           <Input label="inch" inputMode="decimal" value={f.lengthInch} disabled={cut} onChange={(e) => set({ lengthInch: digits(e.target.value) })} />
         </div>
-        <Input label="Cost / sqft" inputMode="decimal" value={f.cost} onChange={(e) => set({ cost: digits(e.target.value) })} error={err('cost')} hint="Aap ne kitne me liya" />
-        <Input label="Rate / sqft" inputMode="decimal" value={f.rate} onChange={(e) => set({ rate: digits(e.target.value) })} error={err('rate')} hint="Counter par yehi rate lagta hai" />
-        <Input label="Wholesale rate / sqft" inputMode="decimal" value={f.wholesale} onChange={(e) => set({ wholesale: digits(e.target.value) })} />
-        <Input label="Rack / jagah" value={f.rack} onChange={(e) => set({ rack: e.target.value })} placeholder="Godown-A, Rack 3" />
-        <Input label="Quality" value={f.quality} onChange={(e) => set({ quality: e.target.value })} placeholder="Premium, Standard" />
-        <Input label="Note" value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
+        <Input label={t('Cost / sqft')} inputMode="decimal" value={f.cost} onChange={(e) => set({ cost: digits(e.target.value) })} error={err('cost')} hint={t('Aap ne kitne me liya')} />
+        <Input label={t('Rate / sqft')} inputMode="decimal" value={f.rate} onChange={(e) => set({ rate: digits(e.target.value) })} error={err('rate')} hint={t('Counter par yehi rate lagta hai')} />
+        <Input label={t('Wholesale rate / sqft')} inputMode="decimal" value={f.wholesale} onChange={(e) => set({ wholesale: digits(e.target.value) })} />
+        <Input label={t('Rack / jagah')} value={f.rack} onChange={(e) => set({ rack: e.target.value })} placeholder={t('Godown-A, Rack 3')} />
+        <Input label={t('Quality')} value={f.quality} onChange={(e) => set({ quality: e.target.value })} placeholder={t('Premium, Standard')} />
+        <Input label={t('Note')} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
       </div>
-      <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] text-slate-700">Roll ka area: <b className="tabular-nums">{sqft} sqft</b>{n(f.rate) > 0 && <> · bechne par <b className="tabular-nums">Rs {Math.round(sqft * n(f.rate)).toLocaleString('en-PK')}</b></>}{cut && ' · size ab nahi badal sakta (roll kat chuka)'}</p>
+      <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] text-slate-700">{t('Roll ka area:')}{' '} <b className="tabular-nums">{t('{{sqft}} sqft', { sqft })}</b>{n(f.rate) > 0 && <> {' '}{t('· bechne par')}{' '} <b className="tabular-nums">Rs {Math.round(sqft * n(f.rate)).toLocaleString('en-PK')}</b></>}{cut && t(' · size ab nahi badal sakta (roll kat chuka)')}</p>
     </Modal>
   );
 }

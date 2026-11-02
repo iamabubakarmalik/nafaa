@@ -12,6 +12,7 @@ import { cn } from '@core/lib/cn';
 import { distError, distSetupApi, distributionApi, type Route } from '../../api/distribution.api';
 import { partyName } from '../../lib/meta';
 import { ROUTES_KEY, useCustomerRoster } from '../shared';
+import { t } from '@core/i18n';
 
 export function AddToRouteModal({ route, onClose, onDone }: { route: Route; onClose: () => void; onDone: () => void }) {
   const rosterQ = useCustomerRoster();
@@ -32,24 +33,24 @@ export function AddToRouteModal({ route, onClose, onDone }: { route: Route; onCl
 
   const save = useMutation({
     mutationFn: () => distSetupApi.setRouteCustomers(route.id, picked),
-    onSuccess: () => { toast.success(`${picked.length} dukaanein ${route.name} par lag gayin`); onDone(); },
-    onError: (e) => toast.error(distError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(t('{{count}} dukaanein {{name}} par lag gayin', { count: picked.length, name: route.name })); onDone(); },
+    onError: (e) => toast.error(distError(e, t('Save nahi hua'))),
   });
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`${route.name} par dukaanein`} description="Jis tarteeb se nishan lagayenge usi tarteeb se aakhir me judengi."
+    <Modal open onClose={onClose} size="lg" title={t('{{name}} par dukaanein', { name: route.name })} description={t('Jis tarteeb se nishan lagayenge usi tarteeb se aakhir me judengi.')}
       footer={<>
-        <span className="mr-auto text-[0.8125rem] text-slate-600">{picked.length} chuni</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button data-save-action disabled={!picked.length} loading={save.isPending} onClick={() => save.mutate()}>Jorein</Button>
+        <span className="me-auto text-[0.8125rem] text-slate-600">{t('{{count}} chuni', { count: picked.length })}</span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button data-save-action disabled={!picked.length} loading={save.isPending} onClick={() => save.mutate()}>{t('Jorein')}</Button>
       </>}>
-      {rosterQ.isError ? <Alert tone="danger">{distError(rosterQ.error, 'Customers nahi aaye')}</Alert> : (
+      {rosterQ.isError ? <Alert tone="danger">{distError(rosterQ.error, t('Customers nahi aaye'))}</Alert> : (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, dukaan, phone ya ilaqa" aria-label="Dukaan dhoondein"
+            <Input size="sm" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Naam, dukaan, phone ya ilaqa')} aria-label={t('Dukaan dhoondein')}
               leftIcon={<Search className="h-4 w-4" />} wrapperClassName="min-w-[12rem] flex-1" />
-            <Segmented label="Dikhayein" value={view} onChange={setView} items={[{ value: 'free', label: 'Bina route' }, { value: 'all', label: 'Sab' }]} />
+            <Segmented label={t('Dikhayein')} value={view} onChange={setView} items={[{ value: 'free', label: t('Bina route') }, { value: 'all', label: t('Sab') }]} />
           </div>
           {rosterQ.isLoading ? <Skeleton className="h-72" /> : (
             <ul className="max-h-[22rem] divide-y divide-slate-100 overflow-auto rounded-xl ring-1 ring-slate-200">
@@ -63,13 +64,13 @@ export function AddToRouteModal({ route, onClose, onDone }: { route: Route; onCl
                         <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{partyName(c)}</span>
                         <span className="block truncate text-[0.6875rem] text-slate-500">{[c.businessName ? c.name : null, c.area, c.phone].filter(Boolean).join(' · ') || '—'}</span>
                       </span>
-                      {c.routeId && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{routeName.get(c.routeId) ?? 'Doosra route'}</span>}
+                      {c.routeId && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{routeName.get(c.routeId) ?? t('Doosra route')}</span>}
                       {n >= 0 && <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[0.6875rem] font-bold text-brand-fg">{n + 1}</span>}
                     </label>
                   </li>
                 );
               })}
-              {!shown.length && <li className="px-3 py-8 text-center text-sm text-slate-500">{view === 'free' ? 'Sab dukaanein kisi route par hain — "Sab" dekhein' : 'Koi dukaan nahi mili'}</li>}
+              {!shown.length && <li className="px-3 py-8 text-center text-sm text-slate-500">{view === 'free' ? t('Sab dukaanein kisi route par hain — "Sab" dekhein') : t('Koi dukaan nahi mili')}</li>}
             </ul>
           )}
         </div>

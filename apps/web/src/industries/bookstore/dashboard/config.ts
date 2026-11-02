@@ -13,6 +13,7 @@ import { useOverview } from '@modules/dashboard/data/queries';
 import { useMasked } from '@modules/dashboard/engine';
 import { useBookstoreOps } from './useBookstoreOps';
 import { BookstoreCatalog, BookstoreRentals, BookstoreSchool, bookstoreKpis, useBookstoreAttention } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/bookstore-products/${id}`;
 
@@ -22,39 +23,39 @@ function useBookstoreActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
-    { to: '/bookstore-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Kitaab ya stationery' },
-    { to: '/bookstore/books', icon: BookOpen, label: 'Kitaben', hint: `${totals.books} kitaben` },
-    { to: '/bookstore/stationery', icon: PenTool, label: 'Stationery', hint: `${totals.stationery} cheezein` },
-    { to: '/bookstore/art-supplies', icon: Palette, label: 'Art supplies', hint: `${totals.artSupplies} cheezein` },
-    { to: '/bookstore/school-lists', icon: ClipboardList, label: 'School lists', hint: school.lists ? `${school.lists} chaalu` : 'List banayein' },
-    { to: '/bookstore/schools', icon: School, label: 'Schools', hint: `${school.schools} schools` },
-    { to: '/bookstore/rentals', icon: BookMarked, label: 'Kiraya', hint: rentals.overdue ? `${rentals.overdue} late` : `${rentals.active} bahar` },
-    { to: '/bookstore/authors', icon: Users, label: 'Authors', hint: `${totals.authors} authors` },
-    { to: '/bookstore/publishers', icon: Building2, label: 'Publishers', hint: `${totals.publishers} publishers` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('Counter'), hint: t('Sale karein') },
+    { to: '/bookstore-products/new', icon: Plus, label: t('Nayi cheez'), hint: t('Kitaab ya stationery') },
+    { to: '/bookstore/books', icon: BookOpen, label: t('Kitaben'), hint: t('{{books}} kitaben', { books: totals.books }) },
+    { to: '/bookstore/stationery', icon: PenTool, label: t('Stationery'), hint: t('{{stationery}} cheezein', { stationery: totals.stationery }) },
+    { to: '/bookstore/art-supplies', icon: Palette, label: t('Art supplies'), hint: t('{{artSupplies}} cheezein', { artSupplies: totals.artSupplies }) },
+    { to: '/bookstore/school-lists', icon: ClipboardList, label: t('School lists'), hint: school.lists ? t('{{lists}} chaalu', { lists: school.lists }) : t('List banayein') },
+    { to: '/bookstore/schools', icon: School, label: t('Schools'), hint: t('{{schools}} schools', { schools: school.schools }) },
+    { to: '/bookstore/rentals', icon: BookMarked, label: t('Kiraya'), hint: rentals.overdue ? t('{{overdue}} late', { overdue: rentals.overdue }) : t('{{active}} bahar', { active: rentals.active }) },
+    { to: '/bookstore/authors', icon: Users, label: t('Authors'), hint: t('{{authors}} authors', { authors: totals.authors }) },
+    { to: '/bookstore/publishers', icon: Building2, label: t('Publishers'), hint: t('{{publishers}} publishers', { publishers: totals.publishers }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const bookstoreDashboard = createDashboard({
-  label: 'Bookstore',
+  label: t('Bookstore'),
   productPath,
-  primaryAction: { to: '/pos', label: 'Counter', icon: ShoppingCart },
+  primaryAction: { to: '/pos', label: t('Counter'), icon: ShoppingCart },
   kpis: bookstoreKpis,
   defaultKpis: ['bookstore-rentals', 'bookstore-school-lists', 'profit', 'month', 'cash', 'low-stock'],
   useAttention: useBookstoreAttention,
   widgets: [
-    { id: 'bookstore-rentals', title: 'Late kitaben', description: 'Kiraye ki kitaben jo waqt par wapas nahi aayin', size: 'third', sizes: ANY_SIZE, Component: BookstoreRentals },
-    { id: 'bookstore-school', title: 'School aur textbooks', description: 'Chaalu school lists aur class ke hisaab se textbooks', size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreSchool },
-    { id: 'bookstore-catalog', title: 'Maal ki details', description: 'Kitaben, stationery, art supplies aur top publishers', size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreCatalog },
+    { id: 'bookstore-rentals', title: t('Late kitaben'), description: t('Kiraye ki kitaben jo waqt par wapas nahi aayin'), size: 'third', sizes: ANY_SIZE, Component: BookstoreRentals },
+    { id: 'bookstore-school', title: t('School aur textbooks'), description: t('Chaalu school lists aur class ke hisaab se textbooks'), size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreSchool },
+    { id: 'bookstore-catalog', title: t('Maal ki details'), description: t('Kitaben, stationery, art supplies aur top publishers'), size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreCatalog },
   ],
   useQuickActions: useBookstoreActions,
   moneyMap: { productsPath: '/products' },
   guide: [
-    { icon: GraduationCap, title: 'School season', text: 'School list bana kar rakhein — parents poora set ek saath lete hain. Class ke hisaab se textbooks dekh kar season se pehle stock poora kar lein.' },
-    { icon: BookMarked, title: 'Kiraye ki kitaben', text: 'Jo kitaab waqt par wapas nahi aayi wo upar dikhti hai, kitne din late aur kitna jurmana — seedha customer ko call karein.' },
+    { icon: GraduationCap, title: t('School season'), text: t('School list bana kar rakhein — parents poora set ek saath lete hain. Class ke hisaab se textbooks dekh kar season se pehle stock poora kar lein.') },
+    { icon: BookMarked, title: t('Kiraye ki kitaben'), text: t('Jo kitaab waqt par wapas nahi aayi wo upar dikhti hai, kitne din late aur kitna jurmana — seedha customer ko call karein.') },
   ],
 });

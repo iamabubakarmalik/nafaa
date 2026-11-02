@@ -7,8 +7,9 @@
 import { cn } from '@core/lib/cn';
 import type { AttStaff, DayCell, Sheet } from '../api/attendance.api';
 import { CODE, absentDays, clockOf, hours, mins } from './meta';
+import { t as tr } from '@core/i18n';
 
-const WEEK = ['Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta', 'Itwar'];
+const WEEK = [tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta'), tr('Itwar')];
 
 /** Monday-first weekday index of a YYYY-MM-DD key. */
 const mondayIndex = (key: string) => (new Date(`${key}T12:00:00Z`).getUTCDay() + 6) % 7;
@@ -28,7 +29,7 @@ export function StaffCalendar({ sheet, row, canCorrect, onCell }: {
       <div className="mb-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <span className="font-semibold text-slate-900">{row.staff.fullName}</span>
         <span className="text-[0.75rem] text-slate-500">
-          {t.daysWorked - t.halfDay / 2}/{t.workingDays} din kaam · {t.late} late ({mins(t.lateMinutes)}) · {absentDays(t)} ghair hazir · {t.leave + t.unpaidLeave} chhutti · {hours(t.overtimeHours)} OT
+          {tr('{{value}}/{{workingDays}} din kaam · {{late}} late ({{lateMinutes}}) · {{absentDays}} ghair hazir · {{value2}} chhutti · {{overtimeHours}} OT', { value: t.daysWorked - t.halfDay / 2, workingDays: t.workingDays, late: t.late, lateMinutes: mins(t.lateMinutes), absentDays: absentDays(t), value2: t.leave + t.unpaidLeave, overtimeHours: hours(t.overtimeHours) })}
         </span>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-[0.6875rem] font-medium text-slate-500">
@@ -43,7 +44,7 @@ export function StaffCalendar({ sheet, row, canCorrect, onCell }: {
           return (
             <button key={key} type="button" disabled={!clickable} onClick={() => onCell(row.staff, key, c)}
               aria-label={`${key}: ${meta.label}`}
-              className={cn('flex min-h-[4.25rem] flex-col items-start rounded-xl p-1.5 text-left ring-1 ring-slate-100 transition sm:min-h-[5rem] sm:p-2',
+              className={cn('flex min-h-[4.25rem] flex-col items-start rounded-xl p-1.5 text-start ring-1 ring-slate-100 transition sm:min-h-[5rem] sm:p-2',
                 clickable && 'hover:ring-2 hover:ring-brand-400', key === sheet.today && 'ring-2 ring-brand-500')}>
               <span className="flex w-full items-center justify-between gap-1">
                 <span className="text-[0.75rem] font-semibold tabular-nums text-slate-700">{Number(key.slice(8))}</span>
@@ -54,8 +55,8 @@ export function StaffCalendar({ sheet, row, canCorrect, onCell }: {
                   {clockOf(c.in, tz)}<span className="hidden sm:inline"> – {c.out ? clockOf(c.out, tz) : '…'}</span>
                 </span>
               )}
-              {c.late > 0 && <span className="block text-[0.625rem] font-medium text-amber-700">{mins(c.late)} late</span>}
-              {c.ot > 0 && <span className="hidden text-[0.625rem] font-medium text-sky-700 sm:block">+{hours(c.ot)} OT</span>}
+              {c.late > 0 && <span className="block text-[0.625rem] font-medium text-amber-700">{tr('{{late}} late', { late: mins(c.late) })}</span>}
+              {c.ot > 0 && <span className="hidden text-[0.625rem] font-medium text-sky-700 sm:block">{tr('+{{hours}} OT', { hours: hours(c.ot) })}</span>}
               {!c.in && c.code !== 'FUT' && c.code !== 'NA' && <span className="mt-1 hidden truncate text-[0.625rem] text-slate-400 sm:block">{meta.label}</span>}
             </button>
           );

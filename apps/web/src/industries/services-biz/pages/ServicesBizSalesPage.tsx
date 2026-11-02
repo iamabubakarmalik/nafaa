@@ -10,6 +10,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { jobsApi } from '../api/jobs.api';
 import { JOB_KEY } from '../components/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium';
 
@@ -32,7 +33,7 @@ function useServiceExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Services', useBillExtras: useServiceExtras };
+const config: SalesHistoryConfig = { label: t('Services'), useBillExtras: useServiceExtras };
 
 export default function ServicesBizSalesPage() {
   return <SalesHistoryPage config={config} />;

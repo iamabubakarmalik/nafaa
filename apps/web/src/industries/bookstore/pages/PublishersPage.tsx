@@ -25,6 +25,7 @@ import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { publishersApi, type Publisher } from '../api/publishers.api';
 import { KEYS, apiError, decimal, digits } from '../lib/meta';
 import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys, useSaveKey } from '../components/ui';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'active' | 'off';
 
@@ -63,18 +64,18 @@ export default function PublishersPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: [KEYS.publishers] });
   const save = useMutation({
     mutationFn: ({ id, body }: { id?: string; body: Partial<Publisher> }) => (id ? publishersApi.update(id, body) : publishersApi.create(body)),
-    onSuccess: () => { toast.success('Publisher save ho gaya'); setForm(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(tr('Publisher save ho gaya')); setForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   const toggle = useMutation({
     mutationFn: (p: Publisher) => (p.isActive ? publishersApi.remove(p.id) : publishersApi.update(p.id, { name: p.name, isActive: true })),
-    onSuccess: (_r, p) => { toast.success(p.isActive ? `${p.name} band — kitaben waisi hi` : `${p.name} wapas chalu`); setOff(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (_r, p) => { toast.success(p.isActive ? tr('{{name}} band — kitaben waisi hi', { name: p.name }) : tr('{{name}} wapas chalu', { name: p.name })); setOff(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const seed = useMutation({
     mutationFn: () => publishersApi.seedPakistani(),
-    onSuccess: (r) => { toast.success(r.created ? `${r.created} publisher jur gaye` : 'Sab pehle se maujood hain'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (r) => { toast.success(r.created ? tr('{{created}} publisher jur gaye', { created: r.created }) : tr('Sab pehle se maujood hain')); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   /** Opens (or finds) the publisher's supplier, then goes where the user asked. */
   const supplier = useMutation({
@@ -83,7 +84,7 @@ export default function PublishersPage() {
       refresh();
       navigate(to === 'buy' ? `/purchases/new?supplier=${s.id}` : `/suppliers/${s.id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Supplier nahi khula')),
+    onError: (e) => toast.error(apiError(e, tr('Supplier nahi khula'))),
   });
 
   usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
@@ -91,37 +92,37 @@ export default function PublishersPage() {
   return (
     <PageShell>
       <PageHero
-        title="Publishers"
-        chip={<><Building2 /> Kitaben kahan se aati hain</>}
-        meta="Har publisher ka discount, udhaar ke din aur kitna dena hai"
+        title={tr('Publishers')}
+        chip={<><Building2 /> {' '}{tr('Kitaben kahan se aati hain')}</>}
+        meta={tr('Har publisher ka discount, udhaar ke din aur kitna dena hai')}
         loading={listQ.isLoading}
         actions={<>
-          {canEdit && <button type="button" onClick={() => seed.mutate()} disabled={seed.isPending} className={heroButton} title="Pakistan ke mash-hoor publisher jorein"><Download className="h-4 w-4" /><span className="hidden sm:inline">Mash-hoor publisher</span></button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya publisher (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Publisher</button>}
+          {canEdit && <button type="button" onClick={() => seed.mutate()} disabled={seed.isPending} className={heroButton} title={tr('Pakistan ke mash-hoor publisher jorein')}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('Mash-hoor publisher')}</span></button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title={tr('Naya publisher (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Publisher')}</button>}
         </>}
         stats={[
-          { label: 'Publisher', value: totals.active },
-          { label: 'Kitaben', value: totals.books },
-          { label: 'Dena hai', value: cost(totals.owed) },
+          { label: tr('Publisher'), value: totals.active },
+          { label: tr('Kitaben'), value: totals.books },
+          { label: tr('Dena hai'), value: cost(totals.owed) },
         ]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Building2} color="#2563eb" label="Chalu publisher" value={totals.active} hint={`${all.length - totals.active} band`} />
-        <KpiCard icon={BookOpen} color="#0891b2" label="Kitaben jori hui" value={totals.books} />
-        <KpiCard icon={ShoppingCart} color="#16a34a" label="Ab tak kharida" value={cost(totals.bought)} hint="Supplier bano to ginti hai" />
-        <KpiCard icon={Wallet} color="#d97706" label="Publishers ko dena" value={cost(totals.owed)} hint="Supplier khata se" />
+        <KpiCard icon={Building2} color="#2563eb" label={tr('Chalu publisher')} value={totals.active} hint={tr('{{value}} band', { value: all.length - totals.active })} />
+        <KpiCard icon={BookOpen} color="#0891b2" label={tr('Kitaben jori hui')} value={totals.books} />
+        <KpiCard icon={ShoppingCart} color="#16a34a" label={tr('Ab tak kharida')} value={cost(totals.bought)} hint={tr('Supplier bano to ginti hai')} />
+        <KpiCard icon={Wallet} color="#d97706" label={tr('Publishers ko dena')} value={cost(totals.owed)} hint={tr('Supplier khata se')} />
       </KpiRow>
 
-      <ViewTabs<Tab> tabs={[{ id: 'active', label: 'Chalu', count: totals.active }, { id: 'off', label: 'Band', count: all.length - totals.active }]} value={tab} onChange={setTab} />
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, shehar, banda ya phone" label="Search" />} />
+      <ViewTabs<Tab> tabs={[{ id: 'active', label: tr('Chalu'), count: totals.active }, { id: 'off', label: tr('Band'), count: all.length - totals.active }]} value={tab} onChange={setTab} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, shehar, banda ya phone')} label={tr('Search')} />} />
 
       {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-44 rounded-3xl" />)}</div>
         : rows.length === 0 ? (
-          <EmptyBox icon={Building2} title={search ? 'Koi publisher nahi mila' : tab === 'off' ? 'Koi band publisher nahi' : 'Abhi koi publisher nahi'}
-            text="Publisher banayein ya mash-hoor Pakistani publisher ek click me jorein. Kitab banate waqt publisher chuna jata hai."
-            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Publisher banayein</Button> : undefined} />
+          <EmptyBox icon={Building2} title={search ? tr('Koi publisher nahi mila') : tab === 'off' ? tr('Koi band publisher nahi') : tr('Abhi koi publisher nahi')}
+            text={tr('Publisher banayein ya mash-hoor Pakistani publisher ek click me jorein. Kitab banate waqt publisher chuna jata hai.')}
+            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Publisher banayein')}</Button> : undefined} />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {rows.map((p) => (
@@ -135,22 +136,22 @@ export default function PublishersPage() {
                   {p.defaultDiscountPct > 0 && <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-emerald-700 ring-1 ring-emerald-200"><Percent className="h-3 w-3" />{p.defaultDiscountPct}</span>}
                 </div>
                 <dl className="mt-3 grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-2.5 text-center text-[0.75rem]">
-                  <div><dt className="text-slate-500">Kitaben</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p._count?.books ?? 0}</dd></div>
-                  <div><dt className="text-slate-500">Udhaar</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p.creditDays ? `${p.creditDays} din` : 'Naqd'}</dd></div>
-                  <div><dt className="text-slate-500">Dena hai</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{p.supplier ? cost(p.supplier.outstandingDue) : '—'}</dd></div>
+                  <div><dt className="text-slate-500">{tr('Kitaben')}</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p._count?.books ?? 0}</dd></div>
+                  <div><dt className="text-slate-500">{tr('Udhaar')}</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{p.creditDays ? tr('{{creditDays}} din', { creditDays: p.creditDays }) : tr('Naqd')}</dd></div>
+                  <div><dt className="text-slate-500">{tr('Dena hai')}</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{p.supplier ? cost(p.supplier.outstandingDue) : '—'}</dd></div>
                 </dl>
                 <p className="mt-2 truncate text-[0.75rem] text-slate-500">
-                  {p.supplier ? <>Supplier: <span className="font-medium text-slate-700">{p.supplier.name}</span></> : 'Supplier pehli purchase par banega'}
-                  {p.defaultDiscountPct > 0 && ` · purchase par MRP se ${p.defaultDiscountPct}% kam`}{p.paymentTerms ? ` · ${p.paymentTerms}` : ''}
+                  {p.supplier ? <>{tr('Supplier:')}{' '} <span className="font-medium text-slate-700">{p.supplier.name}</span></> : tr('Supplier pehli purchase par banega')}
+                  {p.defaultDiscountPct > 0 && tr(' · purchase par MRP se {{defaultDiscountPct}}% kam', { defaultDiscountPct: p.defaultDiscountPct })}{p.paymentTerms ? ` · ${p.paymentTerms}` : ''}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {canBuy && p.isActive && <button type="button" onClick={() => supplier.mutate({ p, to: 'buy' })} disabled={supplier.isPending} className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />Purchase</button>}
-                  {canSuppliers && p.supplier && <button type="button" onClick={() => navigate(`/suppliers/${p.supplier!.id}`)} className={cardAction} title="Khata, purchase bill aur wapsi"><Wallet className="h-3.5 w-3.5" />Khata / wapsi</button>}
+                  {canBuy && p.isActive && <button type="button" onClick={() => supplier.mutate({ p, to: 'buy' })} disabled={supplier.isPending} className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />{tr('Purchase')}</button>}
+                  {canSuppliers && p.supplier && <button type="button" onClick={() => navigate(`/suppliers/${p.supplier!.id}`)} className={cardAction} title={tr('Khata, purchase bill aur wapsi')}><Wallet className="h-3.5 w-3.5" />{tr('Khata / wapsi')}</button>}
                   {canEdit && <>
-                    <button type="button" onClick={() => setForm(p)} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</button>
+                    <button type="button" onClick={() => setForm(p)} className={cardAction}><Pencil className="h-3.5 w-3.5" />{tr('Badlein')}</button>
                     {p.isActive
-                      ? <button type="button" onClick={() => setOff(p)} className={`ml-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />Band</button>
-                      : <button type="button" onClick={() => toggle.mutate(p)} className={`ml-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />Chalu</button>}
+                      ? <button type="button" onClick={() => setOff(p)} className={`ms-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />{tr('Band')}</button>
+                      : <button type="button" onClick={() => toggle.mutate(p)} className={`ms-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />{tr('Chalu')}</button>}
                   </>}
                 </div>
               </li>
@@ -158,18 +159,18 @@ export default function PublishersPage() {
           </ul>
         )}
 
-      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</p>
 
       {form && <PublisherModal publisher={form === 'new' ? null : form} pending={save.isPending} canPickSupplier={canEditSuppliers} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
-      {off && <ConfirmModal title={`${off.name} band karein?`} text="Kitab banate waqt ye publisher nahi dikhega. Is ki kitaben, purchase aur khata waise hi rahenge." confirm="Band karein" danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
+      {off && <ConfirmModal title={tr('{{name}} band karein?', { name: off.name })} text={tr('Kitab banate waqt ye publisher nahi dikhega. Is ki kitaben, purchase aur khata waise hi rahenge.')} confirm={tr('Band karein')} danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Publishers — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Publishers — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Building2, color: '#2563eb', title: 'Publisher', text: 'Oxford, Paramount, Punjab Textbook Board — kitab banate waqt publisher chunein, products page aur POS par us ke naam se dhoondein.' },
-            { icon: ShoppingCart, color: '#16a34a', title: 'Purchase', text: '"Purchase" dabane se publisher ka supplier jur jata hai aur naya purchase bill khulta hai. Is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai.' },
-            { icon: Undo2, color: '#ea580c', title: 'Kitaben wapas', text: 'Season ke baad bachi kitaben publisher ko wapas: "Khata / wapsi" → Purchase tab → bill kholein aur Return karein. Stock aur dena dono kam ho jate hain.' },
-            { icon: Wallet, color: '#d97706', title: 'Khata', text: 'Kitna dena hai aur kab diya — supplier khata me. Udhaar ke din yahan likhein taake yaad rahe.' },
+            { icon: Building2, color: '#2563eb', title: tr('Publisher'), text: tr('Oxford, Paramount, Punjab Textbook Board — kitab banate waqt publisher chunein, products page aur POS par us ke naam se dhoondein.') },
+            { icon: ShoppingCart, color: '#16a34a', title: tr('Purchase'), text: tr('"Purchase" dabane se publisher ka supplier jur jata hai aur naya purchase bill khulta hai. Is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai.') },
+            { icon: Undo2, color: '#ea580c', title: tr('Kitaben wapas'), text: tr('Season ke baad bachi kitaben publisher ko wapas: "Khata / wapsi" → Purchase tab → bill kholein aur Return karein. Stock aur dena dono kam ho jate hain.') },
+            { icon: Wallet, color: '#d97706', title: tr('Khata'), text: tr('Kitna dena hai aur kab diya — supplier khata me. Udhaar ke din yahan likhein taake yaad rahe.') },
           ]}
           shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
@@ -194,8 +195,8 @@ function PublisherModal({ publisher, pending, canPickSupplier, onSave, onClose }
   const set = (patch: Partial<typeof v>) => setV((x) => ({ ...x, ...patch }));
   const [tried, setTried] = useState(false);
   const errors = {
-    name: !v.name.trim() ? 'Naam likhein' : undefined,
-    discount: Number(v.discount) > 100 ? '100% se zyada nahi' : undefined,
+    name: !v.name.trim() ? tr('Naam likhein') : undefined,
+    discount: Number(v.discount) > 100 ? tr('100% se zyada nahi') : undefined,
   };
   const bad = Object.values(errors).some(Boolean);
   const submit = () => {
@@ -210,28 +211,28 @@ function PublisherModal({ publisher, pending, canPickSupplier, onSave, onClose }
   };
   useSaveKey(submit);
   return (
-    <Modal open onClose={onClose} size="lg" title={publisher ? `${publisher.name} — badlein` : 'Naya publisher'} description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={pending}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={publisher ? tr('{{name}} — badlein', { name: publisher.name }) : tr('Naya publisher')} description={tr('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} loading={pending}>{tr('Save')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Input label="Naam" required autoFocus value={v.name} onChange={(e) => set({ name: e.target.value })} error={tried ? errors.name : undefined} placeholder="Jaise: Oxford University Press" hint="Purchase aur supplier khata isi naam se banta hai" />
+        <Input label={tr('Naam')} required autoFocus value={v.name} onChange={(e) => set({ name: e.target.value })} error={tried ? errors.name : undefined} placeholder={tr('Jaise: Oxford University Press')} hint={tr('Purchase aur supplier khata isi naam se banta hai')} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Shehar" value={v.city} onChange={(e) => set({ city: e.target.value })} placeholder="Lahore" />
-          <Input label="Banda (rabta)" value={v.contactPerson} onChange={(e) => set({ contactPerson: e.target.value })} placeholder="Sales officer ka naam" />
-          <Input label="Phone" inputMode="tel" value={v.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03xx xxxxxxx" />
-          <Input label="Email" type="email" value={v.email} onChange={(e) => set({ email: e.target.value })} placeholder="Marzi hai" />
+          <Input label={tr('Shehar')} value={v.city} onChange={(e) => set({ city: e.target.value })} placeholder={tr('Lahore')} />
+          <Input label={tr('Banda (rabta)')} value={v.contactPerson} onChange={(e) => set({ contactPerson: e.target.value })} placeholder={tr('Sales officer ka naam')} />
+          <Input label={tr('Phone')} inputMode="tel" value={v.phone} onChange={(e) => set({ phone: e.target.value })} placeholder={tr('03xx xxxxxxx')} />
+          <Input label={tr('Email')} type="email" value={v.email} onChange={(e) => set({ email: e.target.value })} placeholder={tr('Marzi hai')} />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Discount %" inputMode="decimal" value={v.discount} onChange={(e) => set({ discount: decimal(e.target.value) })} error={errors.discount} placeholder="25" hint="Publisher dukaan ko kitna kam deta hai" />
-          <Input label="Udhaar ke din" inputMode="numeric" value={v.days} onChange={(e) => set({ days: digits(e.target.value) })} placeholder="30" hint="0 = naqd" />
-          <Input label="Shart" value={v.terms} onChange={(e) => set({ terms: e.target.value })} placeholder="Season ke baad wapsi" />
+          <Input label={tr('Discount %')} inputMode="decimal" value={v.discount} onChange={(e) => set({ discount: decimal(e.target.value) })} error={errors.discount} placeholder="25" hint={tr('Publisher dukaan ko kitna kam deta hai')} />
+          <Input label={tr('Udhaar ke din')} inputMode="numeric" value={v.days} onChange={(e) => set({ days: digits(e.target.value) })} placeholder="30" hint={tr('0 = naqd')} />
+          <Input label={tr('Shart')} value={v.terms} onChange={(e) => set({ terms: e.target.value })} placeholder={tr('Season ke baad wapsi')} />
         </div>
         {canPickSupplier && (
-          <Select label="Supplier" value={v.supplierId} onChange={(e) => set({ supplierId: e.target.value })}
-            hint="Is supplier se purchase par is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai. Khali chhorein to pehli purchase par isi naam ka supplier banega."
+          <Select label={tr('Supplier')} value={v.supplierId} onChange={(e) => set({ supplierId: e.target.value })}
+            hint={tr('Is supplier se purchase par is publisher ki kitabon ki cost MRP se discount % kam khud bharti hai. Khali chhorein to pehli purchase par isi naam ka supplier banega.')}
             options={[
-              { value: '', label: 'Khud banayein (publisher ke naam se)' },
+              { value: '', label: tr('Khud banayein (publisher ke naam se)') },
               ...(suppliersQ.data?.items ?? []).map((s) => ({ value: s.id, label: s.name })),
-              ...(v.supplierId && !suppliersQ.data?.items.some((s) => s.id === v.supplierId) ? [{ value: v.supplierId, label: publisher?.supplier?.name ?? 'Jura hua supplier' }] : []),
+              ...(v.supplierId && !suppliersQ.data?.items.some((s) => s.id === v.supplierId) ? [{ value: v.supplierId, label: publisher?.supplier?.name ?? tr('Jura hua supplier') }] : []),
             ]} />
         )}
       </form>

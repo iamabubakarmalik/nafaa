@@ -32,6 +32,7 @@ import { ShopifyPlanAlert } from '../components/channel/ShopifyPlanAlert';
 import { ChannelSettings, useChannelLifecycle } from '../components/channel/ChannelSettings';
 import { ChannelSetup } from '../components/channel/ChannelSetup';
 import { bareUrl, channelFacts, type ChannelTab } from '../components/channel/meta';
+import { t as tr } from '@core/i18n';
 
 const TABS: ChannelTab[] = ['overview', 'products', 'settings', 'setup', 'activity'];
 
@@ -63,7 +64,7 @@ export default function ChannelPage() {
 
   useEffect(() => {
     if (params.get('connected') === '1') {
-      toast.success('Jur gaya! Ab products jorein');
+      toast.success(tr('Jur gaya! Ab products jorein'));
       const n = new URLSearchParams(params); n.delete('connected'); n.set('tab', 'products'); setParams(n, { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -80,14 +81,14 @@ export default function ChannelPage() {
   if (error || !data?.integration) {
     return (
       <PageShell>
-        <PageHero back="/online-store/channels" backLabel="Sales channels" title="Channel nahi mila" />
+        <PageHero back="/online-store/channels" backLabel={tr('Sales channels')} title={tr('Channel nahi mila')} />
         <div className={cn(panel, 'px-6 py-14 text-center')}>
           <TriangleAlert className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">Ye channel nahi khula</p>
-          <p className="mt-1 text-sm text-slate-500">{apiErrorMessage(error, 'Shayad hata diya gaya')}</p>
+          <p className="mt-3 font-semibold text-slate-900">{tr('Ye channel nahi khula')}</p>
+          <p className="mt-1 text-sm text-slate-500">{apiErrorMessage(error, tr('Shayad hata diya gaya'))}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button variant="secondary" onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" />}>Dobara</Button>
-            <Link to="/online-store/channels"><Button>Sales channels</Button></Link>
+            <Button variant="secondary" onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" />}>{tr('Dobara')}</Button>
+            <Link to="/online-store/channels"><Button>{tr('Sales channels')}</Button></Link>
           </div>
         </div>
       </PageShell>
@@ -121,33 +122,33 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
 
   const shopId = useAuthStore((s) => s.currentShopId);
   const { data: shops } = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000 });
-  const branchName = ((Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string }>).find((s) => s.id === shopId)?.name ?? 'is branch';
+  const branchName = ((Array.isArray(shops) ? shops : (shops as any)?.items ?? []) as Array<{ id: string; name: string }>).find((s) => s.id === shopId)?.name ?? tr('is branch');
 
-  const status = paused ? { variant: 'default' as const, text: 'Band' }
-    : needsReinstall ? { variant: 'danger' as const, text: 'Dobara install chahiye' }
-      : planNeeded ? { variant: 'warning' as const, text: 'Shopify plan chahiye' }
-      : facts.kind === 'daraz' && i.daraz?.error ? { variant: 'danger' as const, text: 'Rabta toota' }
-        : facts.kind === 'indolj' && facts.automatic && !stats.lastOrderAt ? { variant: 'info' as const, text: 'Pehle order ka intezar' }
-          : receiving ? { variant: 'success' as const, text: 'Live' }
-            : { variant: 'warning' as const, text: 'Jorna baqi' };
+  const status = paused ? { variant: 'default' as const, text: tr('Band') }
+    : needsReinstall ? { variant: 'danger' as const, text: tr('Dobara install chahiye') }
+      : planNeeded ? { variant: 'warning' as const, text: tr('Shopify plan chahiye') }
+      : facts.kind === 'daraz' && i.daraz?.error ? { variant: 'danger' as const, text: tr('Rabta toota') }
+        : facts.kind === 'indolj' && facts.automatic && !stats.lastOrderAt ? { variant: 'info' as const, text: tr('Pehle order ka intezar') }
+          : receiving ? { variant: 'success' as const, text: tr('Live') }
+            : { variant: 'warning' as const, text: tr('Jorna baqi') };
 
   const test = useMutation({
     mutationFn: () => onlineOrdersApi.testOrder(id),
-    onSuccess: (r) => toast.success('Test order aa gaya', {
-      description: 'Accept karein → bill + stock kam. Cancel karein → stock wapas.',
-      action: { label: 'Dekhein', onClick: () => navigate(`/online-orders?order=${r.channelOrderId}`) },
+    onSuccess: (r) => toast.success(tr('Test order aa gaya'), {
+      description: tr('Accept karein → bill + stock kam. Cancel karein → stock wapas.'),
+      action: { label: tr('Dekhein'), onClick: () => navigate(`/online-orders?order=${r.channelOrderId}`) },
     }),
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
   const ordersLink = `/online-orders?channel=${id}`;
-  const meta = [facts.name, facts.ownApp ? 'apni app' : facts.automatic ? 'automatic' : facts.kind === 'custom' ? 'apni website' : 'manual'].join(' · ');
+  const meta = [facts.name, facts.ownApp ? tr('apni app') : facts.automatic ? 'automatic' : facts.kind === 'custom' ? tr('apni website') : 'manual'].join(' · ');
 
   return (
     <PageShell>
       <PageHero
         back="/online-store/channels"
-        backLabel="Sales channels"
+        backLabel={tr('Sales channels')}
         title={<span className="inline-flex min-w-0 items-center gap-2.5"><BrandLogo name={facts.brand} size={30} title={facts.name} /><span className="truncate">{i.displayName}</span></span>}
         chip={<><span className={cn('h-2 w-2 rounded-full', status.variant === 'success' ? 'bg-success-400' : status.variant === 'danger' ? 'bg-rose-400' : status.variant === 'warning' ? 'bg-amber-400' : 'bg-slate-300')} />{status.text}</>}
         busy={busy}
@@ -155,31 +156,31 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
           {siteUrl && <a href={siteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline-offset-2 hover:underline">{bareUrl(siteUrl)} <ExternalLink className="h-3 w-3" /></a>}
         </span>}
         actions={<>
-          <button type="button" className={heroButton} disabled={test.isPending} onClick={() => test.mutate()} title="Ek nakli order bhej kar poora flow check karein">
-            <Send className="h-4 w-4" /><span className="hidden sm:inline">{test.isPending ? 'Bhej rahe…' : 'Test order'}</span>
+          <button type="button" className={heroButton} disabled={test.isPending} onClick={() => test.mutate()} title={tr('Ek nakli order bhej kar poora flow check karein')}>
+            <Send className="h-4 w-4" /><span className="hidden sm:inline">{test.isPending ? tr('Bhej rahe…') : tr('Test order')}</span>
           </button>
-          <Link to={ordersLink} className={heroPrimaryButton} aria-label="Orders"><ShoppingBag className="h-4 w-4" /><span className="hidden sm:inline">Orders</span>{stats.pendingOrders ? <span className="tabular-nums">({stats.pendingOrders})</span> : null}</Link>
+          <Link to={ordersLink} className={heroPrimaryButton} aria-label={tr('Orders')}><ShoppingBag className="h-4 w-4" /><span className="hidden sm:inline">{tr('Orders')}</span>{stats.pendingOrders ? <span className="tabular-nums">({stats.pendingOrders})</span> : null}</Link>
           <MoreMenu id={id} data={data} siteUrl={siteUrl} onChange={onChange} setTab={setTab} />
         </>}
         stats={[
-          { label: 'Aaj ke orders', value: stats.todayOrders ?? 0 },
-          { label: 'Naye (accept karne)', value: stats.pendingOrders ?? 0 },
-          { label: 'Kul orders', value: stats.totalOrders ?? 0, hint: stats.lastOrderAt ? `aakhri ${timeAgo(stats.lastOrderAt)}` : undefined },
-          { label: 'Jure items', value: stats.productLinks, hint: stats.lastSyncAt ? `sync ${timeAgo(stats.lastSyncAt)}` : undefined },
+          { label: tr('Aaj ke orders'), value: stats.todayOrders ?? 0 },
+          { label: tr('Naye (accept karne)'), value: stats.pendingOrders ?? 0 },
+          { label: tr('Kul orders'), value: stats.totalOrders ?? 0, hint: stats.lastOrderAt ? tr('aakhri {{lastOrderAt}}', { lastOrderAt: timeAgo(stats.lastOrderAt) }) : undefined },
+          { label: tr('Jure items'), value: stats.productLinks, hint: stats.lastSyncAt ? tr('sync {{lastSyncAt}}', { lastSyncAt: timeAgo(stats.lastSyncAt) }) : undefined },
         ]}
       />
 
       {paused && (
-        <Alert tone="warning" icon={<Pause className="h-4 w-4 text-amber-600" />} title="Channel band hai"
+        <Alert tone="warning" icon={<Pause className="h-4 w-4 text-amber-600" />} title={tr('Channel band hai')}
           action={<ResumeButton id={id} onChange={onChange} />}>
-          {facts.name} par order ho to bhi Nafaa me nahi aayega.
+          {tr('{{name}} par order ho to bhi Nafaa me nahi aayega.', { name: facts.name })}
         </Alert>
       )}
       {planNeeded && !paused && !needsReinstall && <ShopifyPlanAlert id={id} onChange={onChange} />}
       {needsReinstall && !paused && tab !== 'setup' && (
-        <Alert tone="danger" title="Shopify ko ek dafa dobara install karein"
-          action={<Button size="xs" onClick={() => setTab('setup')}>Setup kholein</Button>}>
-          Shopify ne nayi ijazat maangi hai. Tab tak orders aur stock ruke reh sakte hain — koi data nahi mitega.
+        <Alert tone="danger" title={tr('Shopify ko ek dafa dobara install karein')}
+          action={<Button size="xs" onClick={() => setTab('setup')}>{tr('Setup kholein')}</Button>}>
+          {tr('Shopify ne nayi ijazat maangi hai. Tab tak orders aur stock ruke reh sakte hain — koi data nahi mitega.')}
         </Alert>
       )}
       {data.publicApi && !data.publicApi.reachable && (facts.kind === 'shopify' || facts.kind === 'woocommerce') && !facts.automatic && (
@@ -188,11 +189,11 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
 
       <ViewTabs value={tab} onChange={setTab}
         tabs={[
-          { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-          { id: 'products', label: 'Products', icon: Package },
-          { id: 'settings', label: 'Settings', icon: Settings2 },
-          { id: 'setup', label: 'Setup', icon: Wrench },
-          { id: 'activity', label: 'Activity', icon: Activity, count: errors || null },
+          { id: 'overview', label: tr('Overview'), icon: LayoutDashboard },
+          { id: 'products', label: tr('Products'), icon: Package },
+          { id: 'settings', label: tr('Settings'), icon: Settings2 },
+          { id: 'setup', label: tr('Setup'), icon: Wrench },
+          { id: 'activity', label: tr('Activity'), icon: Activity, count: errors || null },
         ]} />
 
       {tab === 'overview' && <ChannelOverview id={id} data={data} facts={facts} setTab={setTab} branchName={branchName} />}
@@ -207,16 +208,16 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
 /* ─── Activity ─── */
 
 const LOG_LABEL: Record<string, string> = {
-  STOCK_SYNC: 'Stock bheja', PRICE_PUSH: 'Price bheji', PRODUCTS_IMPORT: 'Products laaye', PRODUCTS_EXPORT: 'Products bheje',
-  SYNC_PRODUCTS: 'Products sync', PRODUCT_LINK: 'Product jora', ORDER_SYNC: 'Orders check kiye', TEST_ORDER: 'Test order',
-  SHOPIFY_TOKEN_REFRESH: 'Shopify ki ijazat taaza', SHOPIFY_WEBHOOKS: 'Shopify webhooks', WOO_CONNECT: 'WooCommerce jora',
-  ORDERS_CREATE: 'Naya order aaya', ORDERS_UPDATED: 'Order badla', ORDERS_CANCELLED: 'Order cancel hua',
-  'order.created': 'Naya order aaya', 'order.updated': 'Order badla', 'order.cancelled': 'Order cancel hua', 'order.confirmed': 'Order accept hua',
-  SHOPIFY_CONNECT: 'Shopify jora', SHOPIFY_UNINSTALLED: 'Shopify se app hataya gaya', SHOPIFY_TOKEN_CHECK: 'Shopify ijazat check',
-  SHOPIFY_SHOP_INFO: 'Shopify store info',
+  STOCK_SYNC: tr('Stock bheja'), PRICE_PUSH: tr('Price bheji'), PRODUCTS_IMPORT: tr('Products laaye'), PRODUCTS_EXPORT: tr('Products bheje'),
+  SYNC_PRODUCTS: tr('Products sync'), PRODUCT_LINK: tr('Product jora'), ORDER_SYNC: tr('Orders check kiye'), TEST_ORDER: tr('Test order'),
+  SHOPIFY_TOKEN_REFRESH: tr('Shopify ki ijazat taaza'), SHOPIFY_WEBHOOKS: tr('Shopify webhooks'), WOO_CONNECT: tr('WooCommerce jora'),
+  ORDERS_CREATE: tr('Naya order aaya'), ORDERS_UPDATED: tr('Order badla'), ORDERS_CANCELLED: tr('Order cancel hua'),
+  'order.created': tr('Naya order aaya'), 'order.updated': tr('Order badla'), 'order.cancelled': tr('Order cancel hua'), 'order.confirmed': tr('Order accept hua'),
+  SHOPIFY_CONNECT: tr('Shopify jora'), SHOPIFY_UNINSTALLED: tr('Shopify se app hataya gaya'), SHOPIFY_TOKEN_CHECK: tr('Shopify ijazat check'),
+  SHOPIFY_SHOP_INFO: tr('Shopify store info'),
 };
 /** Activity code → words; unknown codes become "Order export" style text. */
-const logLabel = (code: string) => (code.startsWith('STATUS_PUSH') ? `Status bheja${code.includes(':') ? ` (${code.split(':')[1].toLowerCase().replace(/_/g, ' ')})` : ''}` : null)
+const logLabel = (code: string) => (code.startsWith('STATUS_PUSH') ? tr('Status bheja{{value}}', { value: code.includes(':') ? ` (${code.split(':')[1].toLowerCase().replace(/_/g, ' ')})` : '' }) : null)
   ?? LOG_LABEL[code] ?? LOG_LABEL[code.toUpperCase()]
   ?? code.replace(/[._/-]+/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 
@@ -228,30 +229,30 @@ function ActivityTab({ logs, name }: { logs: WebsiteOverview['logs']; name: stri
     <section className={panel}>
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-5">
         <div className="min-w-0">
-          <h2 className="text-[0.9375rem] font-semibold text-slate-900">Activity</h2>
-          <p className="text-[0.75rem] text-slate-500">{name} se aane aur jaane wali har request — ghalti ho to wajah yahin likhi hoti hai</p>
+          <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Activity')}</h2>
+          <p className="text-[0.75rem] text-slate-500">{tr('{{name}} se aane aur jaane wali har request — ghalti ho to wajah yahin likhi hoti hai', { name })}</p>
         </div>
-        <Segmented value={f} onChange={setF} label="Activity filter" items={[{ value: 'all', label: 'Sab', count: logs.length }, { value: 'err', label: 'Ghaltiyan', count: errors }]} />
+        <Segmented value={f} onChange={setF} label={tr('Activity filter')} items={[{ value: 'all', label: tr('Sab'), count: logs.length }, { value: 'err', label: tr('Ghaltiyan'), count: errors }]} />
       </div>
       {rows.length === 0 ? (
         <div className="px-6 py-12 text-center">
           <Activity className="mx-auto h-9 w-9 text-slate-300" />
-          <p className="mt-2 text-sm font-semibold text-slate-900">{f === 'err' ? 'Koi ghalti nahi' : 'Abhi kuch nahi'}</p>
-          <p className="mt-1 text-[0.8125rem] text-slate-500">{f === 'err' ? 'Sab requests theek chal rahi hain.' : 'Test order bhejein — pehli line yahan aayegi.'}</p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">{f === 'err' ? tr('Koi ghalti nahi') : tr('Abhi kuch nahi')}</p>
+          <p className="mt-1 text-[0.8125rem] text-slate-500">{f === 'err' ? tr('Sab requests theek chal rahi hain.') : tr('Test order bhejein — pehli line yahan aayegi.')}</p>
         </div>
       ) : (
         <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
           {rows.map((l) => (
             <li key={l.id} className="flex items-start gap-3 px-4 py-2.5 sm:px-5">
               <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', l.kind === 'IN' ? 'bg-sky-50 text-sky-600' : 'bg-violet-50 text-violet-600')}
-                title={l.kind === 'IN' ? `${name} se aaya` : `${name} ko gaya`}>
+                title={l.kind === 'IN' ? tr('{{name}} se aaya', { name }) : tr('{{name}} ko gaya', { name })}>
                 {l.kind === 'IN' ? <ArrowDownLeft className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[0.84375rem] font-semibold text-slate-900">{logLabel(l.label)}</span>
                   <span className="hidden font-mono text-[0.6875rem] text-slate-400 sm:inline">{l.label}</span>
-                  <Badge size="xs" variant={l.ok ? 'success' : 'danger'}>{l.ok ? 'Theek' : 'Ghalti'}</Badge>
+                  <Badge size="xs" variant={l.ok ? 'success' : 'danger'}>{l.ok ? tr('Theek') : tr('Ghalti')}</Badge>
                 </div>
                 {l.error && <p className="mt-0.5 break-words text-[0.78125rem] text-rose-600">{l.error}</p>}
               </div>
@@ -269,14 +270,14 @@ function ActivityTab({ logs, name }: { logs: WebsiteOverview['logs']; name: stri
 function ResumeButton({ id, onChange }: { id: string; onChange: (d: WebsiteOverview) => void }) {
   const m = useMutation({
     mutationFn: () => onlineOrdersApi.resume(id),
-    onSuccess: (d) => { onChange(d); toast.success('Channel chalu'); },
+    onSuccess: (d) => { onChange(d); toast.success(tr('Channel chalu')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
-  return <Button size="xs" loading={m.isPending} onClick={() => m.mutate()} leftIcon={<Play className="h-3.5 w-3.5" />}>Chalu karein</Button>;
+  return <Button size="xs" loading={m.isPending} onClick={() => m.mutate()} leftIcon={<Play className="h-3.5 w-3.5" />}>{tr('Chalu karein')}</Button>;
 }
 
 // Menu items set their own text colour: inside the page header the inherited colour is the header's (often white).
-const item = 'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-50';
+const item = 'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-50';
 
 function MoreMenu({ id, data, siteUrl, onChange, setTab }: {
   id: string; data: WebsiteOverview; siteUrl: string | null; onChange: (d: WebsiteOverview) => void; setTab: (t: ChannelTab) => void;
@@ -297,20 +298,20 @@ function MoreMenu({ id, data, siteUrl, onChange, setTab }: {
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" className={heroIconButton} onClick={() => setOpen((v) => !v)} aria-label="Aur" aria-haspopup="menu" aria-expanded={open}>
+      <button type="button" className={heroIconButton} onClick={() => setOpen((v) => !v)} aria-label={tr('Aur')} aria-haspopup="menu" aria-expanded={open}>
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 z-40 mt-1.5 w-60 rounded-2xl bg-white p-1.5 text-slate-700 shadow-xl ring-1 ring-slate-200">
-          <button type="button" role="menuitem" className={item} onClick={go(() => setTab('setup'))}><BookOpen className="h-4 w-4 text-slate-400" /> Setup guide</button>
-          <button type="button" role="menuitem" className={item} onClick={go(() => setTab('settings'))}><Settings2 className="h-4 w-4 text-slate-400" /> Settings</button>
-          {siteUrl && <a role="menuitem" className={item} href={siteUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><ExternalLink className="h-4 w-4 text-slate-400" /> Store kholein</a>}
+        <div role="menu" className="absolute end-0 z-40 mt-1.5 w-60 rounded-2xl bg-white p-1.5 text-slate-700 shadow-xl ring-1 ring-slate-200">
+          <button type="button" role="menuitem" className={item} onClick={go(() => setTab('setup'))}><BookOpen className="h-4 w-4 text-slate-400" /> {' '}{tr('Setup guide')}</button>
+          <button type="button" role="menuitem" className={item} onClick={go(() => setTab('settings'))}><Settings2 className="h-4 w-4 text-slate-400" /> {' '}{tr('Settings')}</button>
+          {siteUrl && <a role="menuitem" className={item} href={siteUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><ExternalLink className="h-4 w-4 text-slate-400" /> {' '}{tr('Store kholein')}</a>}
           <div className="my-1 border-t border-slate-100" />
           <button type="button" role="menuitem" className={item} disabled={life.toggle.isPending} onClick={go(() => life.toggle.mutate(!i.isActive))}>
-            {i.isActive ? <Pause className="h-4 w-4 text-slate-400" /> : <Play className="h-4 w-4 text-slate-400" />} {i.isActive ? 'Channel band karein' : 'Channel chalu karein'}
+            {i.isActive ? <Pause className="h-4 w-4 text-slate-400" /> : <Play className="h-4 w-4 text-slate-400" />} {i.isActive ? tr('Channel band karein') : tr('Channel chalu karein')}
           </button>
           <button type="button" role="menuitem" className={cn(item, 'text-rose-700 hover:bg-rose-50')} onClick={go(() => life.askRemove(i.displayName))}>
-            <Trash2 className="h-4 w-4" /> Channel hatayein
+            <Trash2 className="h-4 w-4" /> {' '}{tr('Channel hatayein')}
           </button>
         </div>
       )}

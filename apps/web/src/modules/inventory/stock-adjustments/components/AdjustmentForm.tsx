@@ -36,8 +36,9 @@ import {
 import { BranchPicker } from './BranchPicker';
 import { ProductSearch } from './ProductSearch';
 import {
-  ADJ_KEY, CORRECTION_WARNING, EFFECTS, GAIN_REASONS, LOSS_REASONS, REASONS, STOCK_KEYS, TYPES, qtyText,
+  ADJ_KEY, CORRECTION_WARNING, EFFECTS, GAIN_REASONS, LOSS_REASONS, REASONS, STOCK_KEYS, TYPES, TYPE_TEXT, qtyText,
 } from './meta';
+import { msg, t as tr } from '@core/i18n';
 
 type Mode = 'loading' | 'plain' | 'variant' | 'roll' | 'imei';
 
@@ -65,14 +66,15 @@ interface Line {
   mfg: string;
 }
 
+/** `label` is raw: it is saved as the reason and shown with tr(). */
 const ROLL_ACTIONS: Array<{ value: RollAction; label: string; type?: AdjustmentType }> = [
-  { value: 'ADJUST_LENGTH', label: 'Lambai badlein' },
-  { value: 'MARK_DAMAGED', label: 'Poora roll kharab', type: 'DAMAGE' },
-  { value: 'MARK_LOST', label: 'Roll gum', type: 'LOSS' },
-  { value: 'RESTORE', label: 'Wapas chalu', type: 'ADJUSTMENT_IN' },
+  { value: 'ADJUST_LENGTH', label: msg('Lambai badlein') },
+  { value: 'MARK_DAMAGED', label: msg('Poora roll kharab'), type: 'DAMAGE' },
+  { value: 'MARK_LOST', label: msg('Roll gum'), type: 'LOSS' },
+  { value: 'RESTORE', label: msg('Wapas chalu'), type: 'ADJUSTMENT_IN' },
 ];
 
-const IMEI_STATUS: Record<string, string> = { IN_STOCK: 'Stock me', DAMAGED: 'Kharab', LOST: 'Gum', RETURNED: 'Wapas aaya', RESERVED: 'Rakha hua' };
+const IMEI_STATUS: Record<string, string> = { IN_STOCK: tr('Stock me'), DAMAGED: tr('Kharab'), LOST: tr('Gum'), RETURNED: tr('Wapas aaya'), RESERVED: tr('Rakha hua') };
 
 const optionsKey = (shop: string | undefined, productId: string) => [ADJ_KEY, 'options', shop ?? 'default', productId];
 
@@ -111,7 +113,7 @@ const lineEffect = (l: Line, type: AdjustmentType): ProfitEffect =>
     : REASONS[l.code].effect;
 
 /** Saved reason text: the reason's name (the note carries any detail). */
-const reasonText = (l: Line) => (l.code === null ? 'Opening stock' : l.code ? REASONS[l.code].label : TYPES[l.type].label);
+const reasonText = (l: Line) => (l.code === null ? TYPE_TEXT.OPENING_BALANCE : l.code ? REASONS[l.code].label : TYPE_TEXT[l.type]);
 
 /** Type actually saved: a whole-roll action fixes it. */
 const lineType = (l: Line, mode: Mode): AdjustmentType =>
@@ -175,15 +177,15 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
       if (industry?.id === 'mobile') {
         const hit = (await imeiApi.listAll({ search: code, limit: 1 })).items[0];
         const s = hit && sources.find((x) => x.id === hit.productId);
-        if (s) { add(s, s.units[0], { imeiId: hit.id, type: 'DAMAGE', code: 'DAMAGE' }); toast.success(`${s.name} · IMEI ${hit.imei1}`); return; }
+        if (s) { add(s, s.units[0], { imeiId: hit.id, type: 'DAMAGE', code: 'DAMAGE' }); toast.success(tr('{{name}} · IMEI {{imei1}}', { name: s.name, imei1: hit.imei1 })); return; }
       }
       if (industry?.id === 'electronics') {
         const hit = await serialTrackingApi.lookup(code);
         const s = hit && sources.find((x) => x.id === hit.productId);
-        if (hit && s) { add(s, s.units[0], { serialId: hit.id, type: 'DAMAGE', code: 'DAMAGE', qty: '1' }); toast.success(`${s.name} · serial ${hit.serialNumber}`); return; }
+        if (hit && s) { add(s, s.units[0], { serialId: hit.id, type: 'DAMAGE', code: 'DAMAGE', qty: '1' }); toast.success(tr('{{name}} · serial {{serialNumber}}', { name: s.name, serialNumber: hit.serialNumber })); return; }
       }
     } catch { /* fall through to the message below */ }
-    toast.error(`"${code}" kisi product ya device se nahi mila`);
+    toast.error(tr('"{{code}}" kisi product ya device se nahi mila', { code }));
   };
 
   // Industry wording for the note (e.g. "Doodh phat gaya"), as quick picks.
@@ -196,24 +198,24 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
   }, [presets]);
 
   const problems: string[] = [];
-  if (!lines.length) problems.push('Kam se kam ek product jorein');
+  if (!lines.length) problems.push(tr('Kam se kam ek product jorein'));
   lines.forEach((l, i) => {
     const o = optionsOf(i);
     const mode = modeOf(o);
     const n = l.source.name;
-    if (mode === 'loading') problems.push(`${n}: load ho raha hai`);
+    if (mode === 'loading') problems.push(tr('{{n}}: load ho raha hai', { n }));
     const wholeRoll = mode === 'roll' && l.rollAction !== 'ADJUST_LENGTH';
-    if (l.code === undefined && !wholeRoll) problems.push(`${n}: reason chunein (Damage, Expiry, Audit…)`);
-    if (l.code === 'CORRECTION' && !canCorrect) problems.push(`${n}: "Galti theek karna" ki permission nahi`);
-    if (mode === 'variant' && !l.variantId) problems.push(`${n}: type (variant) chunein`);
-    if (mode === 'roll' && !l.rollId) problems.push(`${n}: roll chunein`);
-    if (mode === 'roll' && l.rollAction === 'ADJUST_LENGTH' && !(Number(l.ft) > 0 || Number(l.inch) > 0)) problems.push(`${n}: lambai likhein`);
-    if (mode === 'imei' && !l.imeiId) problems.push(`${n}: device (IMEI) chunein`);
-    if ((mode === 'plain' || mode === 'variant') && !(Number(l.qty) > 0)) problems.push(`${n}: quantity likhein`);
+    if (l.code === undefined && !wholeRoll) problems.push(tr('{{n}}: reason chunein (Damage, Expiry, Audit…)', { n }));
+    if (l.code === 'CORRECTION' && !canCorrect) problems.push(tr('{{n}}: "Galti theek karna" ki permission nahi', { n }));
+    if (mode === 'variant' && !l.variantId) problems.push(tr('{{n}}: type (variant) chunein', { n }));
+    if (mode === 'roll' && !l.rollId) problems.push(tr('{{n}}: roll chunein', { n }));
+    if (mode === 'roll' && l.rollAction === 'ADJUST_LENGTH' && !(Number(l.ft) > 0 || Number(l.inch) > 0)) problems.push(tr('{{n}}: lambai likhein', { n }));
+    if (mode === 'imei' && !l.imeiId) problems.push(tr('{{n}}: device (IMEI) chunein', { n }));
+    if ((mode === 'plain' || mode === 'variant') && !(Number(l.qty) > 0)) problems.push(tr('{{n}}: quantity likhein', { n }));
     const p = (mode === 'plain' || mode === 'variant') ? preview(l, o) : null;
-    if (p && p.after < 0 && !allowNegative) problems.push(`${n}: itna stock nahi (abhi ${qtyText(p.before)} ${l.source.baseUnit})`);
-    if (TYPES[l.type].sign > 0 && (l.expiry || l.mfg) && !l.batchNo.trim()) problems.push(`${n}: expiry ke saath batch number bhi likhein`);
-    if (l.expiry && l.mfg && l.mfg > l.expiry) problems.push(`${n}: banne ki date expiry ke baad nahi ho sakti`);
+    if (p && p.after < 0 && !allowNegative) problems.push(tr('{{n}}: itna stock nahi (abhi {{before}} {{baseUnit}})', { n, before: qtyText(p.before), baseUnit: l.source.baseUnit }));
+    if (TYPES[l.type].sign > 0 && (l.expiry || l.mfg) && !l.batchNo.trim()) problems.push(tr('{{n}}: expiry ke saath batch number bhi likhein', { n }));
+    if (l.expiry && l.mfg && l.mfg > l.expiry) problems.push(tr('{{n}}: banne ki date expiry ke baad nahi ho sakti', { n }));
   });
   // Effect on profit: Stock nuksan minus, Stock faida plus, corrections and opening stock nothing.
   const totalValue = lines.reduce((s, l, i) => {
@@ -286,13 +288,13 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
       return lines.length;
     },
     onSuccess: (count) => {
-      toast.success(count > 1 ? `${count} lines save — stock theek ho gaya` : 'Adjustment save — stock theek ho gaya');
+      toast.success(count > 1 ? tr('{{count}} lines save — stock theek ho gaya', { count }) : tr('Adjustment save — stock theek ho gaya'));
       STOCK_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
     onError: (e: { response?: { data?: { message?: string | string[] } }; message?: string }) => {
       const m = e?.response?.data?.message;
-      toast.error((Array.isArray(m) ? m[0] : m) || e?.message || 'Save nahi hua');
+      toast.error((Array.isArray(m) ? m[0] : m) || e?.message || tr('Save nahi hua'));
       qc.invalidateQueries({ queryKey: [ADJ_KEY] });
     },
   });
@@ -307,29 +309,29 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Naya adjustment" closeOnBackdrop={false}
-      description="Stock haath se theek karein — reason chunein: nuksan, faida ya data ki galti"
-      footer={allShops ? <Button variant="secondary" onClick={onClose}>Band karein</Button> : <>
-        <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+    <Modal open onClose={onClose} size="xl" title={tr('Naya adjustment')} closeOnBackdrop={false}
+      description={tr('Stock haath se theek karein — reason chunein: nuksan, faida ya data ki galti')}
+      footer={allShops ? <Button variant="secondary" onClick={onClose}>{tr('Band karein')}</Button> : <>
+        <span className="me-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
         <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!lines.length}>
-          Save karein{lines.length > 1 ? ` (${lines.length})` : ''}
+          {tr('Save karein{{value}}', { value: lines.length > 1 ? ` (${lines.length})` : '' })}
         </Button>
       </>}>
-      {allShops ? <BranchPicker what="Adjustment" /> : (
+      {allShops ? <BranchPicker what={tr('Adjustment')} /> : (
         <div data-enter-next className="space-y-4">
           <div>
             <ProductSearch sources={sources} byCode={byCode} loading={loading} onPick={(s, u) => add(s, u)}
               onMiss={industry?.id === 'mobile' || industry?.id === 'electronics' ? onMiss : undefined}
-              placeholder={industry?.id === 'mobile' ? 'Product, barcode ya IMEI…' : 'Product ka naam, SKU ya barcode…'} />
-            <p className="mt-1 text-[0.75rem] text-slate-500">Naam likh kar Enter dabayein ya barcode scan karein. Kai products ek sath jor sakte hain.</p>
+              placeholder={industry?.id === 'mobile' ? tr('Product, barcode ya IMEI…') : tr('Product ka naam, SKU ya barcode…')} />
+            <p className="mt-1 text-[0.75rem] text-slate-500">{tr('Naam likh kar Enter dabayein ya barcode scan karein. Kai products ek sath jor sakte hain.')}</p>
           </div>
 
           {!lines.length ? (
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <PackageSearch className="mx-auto h-9 w-9 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-800">Upar se product search</p>
-              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ke liye reason chunein — Profit par asar wahin dikhega</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800">{tr('Upar se product search')}</p>
+              <p className="mt-0.5 text-[0.8125rem] text-slate-500">{tr('Har product ke liye reason chunein — Profit par asar wahin dikhega')}</p>
             </div>
           ) : (
             <ul className="space-y-2.5">
@@ -341,8 +343,8 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
           )}
 
           <div>
-            <label htmlFor="adj-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Note</label>
-            <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder="Marzi hai — kya hua, kis ne dekha, kahan rakha tha…"
+            <label htmlFor="adj-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Note')}</label>
+            <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={tr('Marzi hai — kya hua, kis ne dekha, kahan rakha tha…')}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
             {chips.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -354,12 +356,12 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
                 ))}
               </div>
             )}
-            <p className="mt-1 text-[0.75rem] text-slate-500">Har line ke sath save hota hai.</p>
+            <p className="mt-1 text-[0.75rem] text-slate-500">{tr('Har line ke sath save hota hai.')}</p>
           </div>
 
           {lines.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="text-[0.8125rem] text-slate-600">{lines.length} line · Profit par asar (cost par)</span>
+              <span className="text-[0.8125rem] text-slate-600">{tr('{{count}} line · Profit par asar (cost par)', { count: lines.length })}</span>
               <span className={cn('text-lg font-bold tabular-nums', totalValue > 0 ? 'text-emerald-700' : totalValue < 0 ? 'text-rose-700' : 'text-slate-600')}>
                 {totalValue > 0 ? '+' : totalValue < 0 ? '−' : ''}{money(Math.abs(totalValue))}
               </span>
@@ -367,7 +369,7 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
           )}
           {lines.length > 0 && problems.length > 0 && (
             <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {problems[0]}{problems.length > 1 ? ` (+${problems.length - 1} aur)` : ''}
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {problems[0]}{problems.length > 1 ? tr(' (+{{value}} aur)', { value: problems.length - 1 }) : ''}
             </p>
           )}
         </div>
@@ -434,20 +436,20 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
           <p className="truncate text-sm font-semibold text-slate-900">{l.source.name}</p>
           <p className="text-[0.75rem] text-slate-500">
             {l.source.sku ? `${l.source.sku} · ` : ''}
-            {mode === 'loading' ? (failed ? 'Details load nahi hui' : 'Load ho raha hai…') : mode === 'roll' ? `${o!.carpetRolls.length} roll` : mode === 'imei' ? `${o!.imeis.length} device` : mode === 'variant' ? `${o!.variants.length} variants` : `Branch stock ${qtyText(o!.product.branchStock ?? o!.product.stock)} ${l.source.baseUnit}`}
+            {mode === 'loading' ? (failed ? tr('Details load nahi hui') : tr('Load ho raha hai…')) : mode === 'roll' ? tr('{{count}} roll', { count: o!.carpetRolls.length }) : mode === 'imei' ? tr('{{count}} device', { count: o!.imeis.length }) : mode === 'variant' ? tr('{{count}} variants', { count: o!.variants.length }) : tr('Branch stock {{qtyText}} {{baseUnit}}', { qtyText: qtyText(o!.product.branchStock ?? o!.product.stock), baseUnit: l.source.baseUnit })}
           </p>
         </div>
-        <button type="button" onClick={onRemove} aria-label="Hatayein" className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+        <button type="button" onClick={onRemove} aria-label={tr('Hatayein')} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
       </div>
 
       {mode === 'roll' && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Roll ke sath kya karna hai</p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">{tr('Roll ke sath kya karna hai')}</p>
           <div className="flex flex-wrap gap-1.5">
             {ROLL_ACTIONS.map((a) => (
               <button key={a.value} type="button" onClick={() => onChange({ rollAction: a.value })}
                 className={cn('rounded-lg px-2.5 py-1.5 text-[0.75rem] font-semibold ring-1 transition', l.rollAction === a.value ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                {a.label}
+                {tr(a.label)}
               </button>
             ))}
           </div>
@@ -463,14 +465,14 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
               onChange(type === l.type ? { code } : { code, type, imeiId: '', serialId: '', batchId: '' });
             }} />
           {mode === 'imei' && l.type === 'ADJUSTMENT_IN' && (
-            <p className="mt-1 text-[0.6875rem] text-slate-500">Kharab ya gum device theek ho kar wapas aaya — dobara bikne ke liye stock me.</p>
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Kharab ya gum device theek ho kar wapas aaya — dobara bikne ke liye stock me.')}</p>
           )}
         </div>
       )}
 
       {mode === 'variant' && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Type (variant) <span className="text-rose-600">*</span></p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">{tr('Type (variant)')}{' '} <span className="text-rose-600">*</span></p>
           <div className="flex flex-wrap gap-1.5">
             {o!.variants.map((v) => (
               <button key={v.id} type="button" onClick={() => onChange({ variantId: v.id, batchId: '' })}
@@ -480,7 +482,7 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
               </button>
             ))}
           </div>
-          <p className="mt-1 text-[0.6875rem] text-slate-500">Is product ke variants hain — jis ka stock badalna hai woh chunein.</p>
+          <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Is product ke variants hain — jis ka stock badalna hai woh chunein.')}</p>
         </div>
       )}
 
@@ -488,35 +490,35 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
         <div className="mt-3 grid gap-3 sm:grid-cols-[12rem_minmax(0,1fr)]">
           <div>
             <div className="flex">
-              <input inputMode="decimal" value={l.qty} disabled={!!l.serialId} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label="Quantity"
-                className={cn('h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-right text-base font-semibold tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:bg-slate-50', l.source.units.length > 1 ? 'rounded-l-xl' : 'rounded-xl')} />
+              <input inputMode="decimal" value={l.qty} disabled={!!l.serialId} onChange={(e) => onChange({ qty: e.target.value.replace(/[^\d.]/g, '') })} aria-label={tr('Quantity')}
+                className={cn('h-10 w-full min-w-0 border border-slate-200 bg-white px-3 text-end text-base font-semibold tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:bg-slate-50', l.source.units.length > 1 ? 'rounded-s-xl' : 'rounded-xl')} />
               {l.source.units.length > 1 && (
-                <select value={l.unit.name} onChange={(e) => onChange({ unit: l.source.units.find((u) => u.name === e.target.value) ?? l.unit })} aria-label="Unit"
-                  className="h-10 rounded-r-xl border border-l-0 border-slate-200 bg-slate-50 px-2 text-[0.8125rem] font-medium text-slate-700 outline-none">
+                <select value={l.unit.name} onChange={(e) => onChange({ unit: l.source.units.find((u) => u.name === e.target.value) ?? l.unit })} aria-label={tr('Unit')}
+                  className="h-10 rounded-e-xl border border-s-0 border-slate-200 bg-slate-50 px-2 text-[0.8125rem] font-medium text-slate-700 outline-none">
                   {l.source.units.map((u) => <option key={u.name} value={u.name}>{u.name}{u.rate !== 1 ? ` (${qtyText(u.rate)})` : ''}</option>)}
                 </select>
               )}
             </div>
             <p className="mt-1 text-[0.6875rem] text-slate-500">
-              {l.unit.rate !== 1 ? `1 ${l.unit.name} = ${qtyText(l.unit.rate)} ${l.source.baseUnit}` : `Kitne ${l.source.baseUnit}`}
+              {l.unit.rate !== 1 ? `1 ${l.unit.name} = ${qtyText(l.unit.rate)} ${l.source.baseUnit}` : tr('Kitne {{baseUnit}}', { baseUnit: l.source.baseUnit })}
             </p>
           </div>
           {p && (
             <div className={cn('flex flex-wrap items-center justify-between gap-2 rounded-xl px-3 py-2 ring-1', p.after < 0 ? 'bg-rose-50 ring-rose-200' : 'bg-slate-50 ring-slate-200')}>
               <span className="text-[0.8125rem] text-slate-600">
-                {p.branch ? 'Abhi branch me' : 'Abhi'} <b className="tabular-nums text-slate-900">{qtyText(p.before)}</b>
-                <ArrowRight className="mx-1 inline h-3.5 w-3.5 text-slate-400" />
-                baad me <b className={cn('tabular-nums', p.after < 0 ? 'text-rose-700' : 'text-slate-900')}>{qtyText(p.after)}</b> {l.source.baseUnit}
+                {p.branch ? tr('Abhi branch me') : tr('Abhi')} <b className="tabular-nums text-slate-900">{qtyText(p.before)}</b>
+                <ArrowRight className="mx-1 inline h-3.5 w-3.5 text-slate-400 rtl-flip" />
+                {tr('baad me')}{' '} <b className={cn('tabular-nums', p.after < 0 ? 'text-rose-700' : 'text-slate-900')}>{qtyText(p.after)}</b> {l.source.baseUnit}
               </span>
               {l.code !== undefined && (
                 <span className={cn('text-sm font-bold tabular-nums', EFFECTS[lineEffect(l, l.type)].text)} title={EFFECTS[lineEffect(l, l.type)].label}>
                   {{ LOSS: '−', GAIN: '+', NONE: '' }[lineEffect(l, l.type)]}{money(p.value)}
-                  <span className="ml-1 text-[0.6875rem] font-medium">{lineEffect(l, l.type) === 'NONE' ? '· profit par asar nahi' : `· ${EFFECTS[lineEffect(l, l.type)].label}`}</span>
+                  <span className="ms-1 text-[0.6875rem] font-medium">{lineEffect(l, l.type) === 'NONE' ? tr('· profit par asar nahi') : `· ${EFFECTS[lineEffect(l, l.type)].label}`}</span>
                 </span>
               )}
               {p.after < 0 && (
                 <span className="w-full text-[0.6875rem] text-rose-700">
-                  {allowNegative ? 'Stock minus me chala jayega — settings me permission hai, is liye save ho jayega.' : 'Itna stock nahi hai. Minus stock ki permission settings me band hai.'}
+                  {allowNegative ? tr('Stock minus me chala jayega — settings me permission hai, is liye save ho jayega.') : tr('Itna stock nahi hai. Minus stock ki permission settings me band hai.')}
                 </span>
               )}
             </div>
@@ -526,11 +528,11 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
 
       {showOut && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Kis batch se?</p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">{tr('Kis batch se?')}</p>
           <div className="flex flex-wrap gap-1.5">
             <button type="button" onClick={() => onChange({ batchId: '' })} aria-pressed={!l.batchId}
               className={cn('rounded-lg px-2.5 py-1.5 text-[0.75rem] font-medium ring-1 transition', !l.batchId ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-              Koi khaas nahi
+              {tr('Koi khaas nahi')}
             </button>
             {outBatches.map((b) => (
               <button key={b.id} type="button" onClick={() => onChange({ batchId: b.id })} aria-pressed={l.batchId === b.id}
@@ -543,8 +545,8 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
           </div>
           <p className="mt-1 text-[0.6875rem] text-slate-500">
             {pickedBatch && p && p.base > Number(pickedBatch.quantity)
-              ? `Batch ${pickedBatch.batchNumber} me sirf ${qtyText(Number(pickedBatch.quantity))} ${l.source.baseUnit} hai — baqi pehle expire hone wale batch se kam hoga.`
-              : 'Expire ya kharab maal ka batch chunein taake usi batch ki ginti kam ho. "Koi khaas nahi" par pehle expire hone wala batch pehle kam hota hai. Laal date = expire ho chuka.'}
+              ? tr('Batch {{batchNumber}} me sirf {{qtyText}} {{baseUnit}} hai — baqi pehle expire hone wale batch se kam hoga.', { batchNumber: pickedBatch.batchNumber, qtyText: qtyText(Number(pickedBatch.quantity)), baseUnit: l.source.baseUnit })
+              : tr('Expire ya kharab maal ka batch chunein taake usi batch ki ginti kam ho. "Koi khaas nahi" par pehle expire hone wala batch pehle kam hota hai. Laal date = expire ho chuka.')}
           </p>
         </div>
       )}
@@ -553,12 +555,12 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
         <div className="mt-3">
           <button type="button" onClick={() => setBatchOpen((v) => !v)} aria-expanded={batchOpen}
             className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline">
-            <CalendarClock className="h-3.5 w-3.5" /> Batch aur expiry{l.batchNo ? ` · ${l.batchNo}` : ''} <ChevronDown className={cn('h-3.5 w-3.5 transition', batchOpen && 'rotate-180')} />
+            <CalendarClock className="h-3.5 w-3.5" /> {' '}{tr('Batch aur expiry{{value}}', { value: l.batchNo ? ` · ${l.batchNo}` : '' })}{' '} <ChevronDown className={cn('h-3.5 w-3.5 transition', batchOpen && 'rotate-180')} />
           </button>
           {batchOpen && (
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
-              <label className="text-[0.75rem] text-slate-600">Batch number
-                <input value={l.batchNo} list={`batches-${l.key}`} maxLength={80} placeholder="Packet par likha"
+              <label className="text-[0.75rem] text-slate-600">{tr('Batch number')}
+                <input value={l.batchNo} list={`batches-${l.key}`} maxLength={80} placeholder={tr('Packet par likha')}
                   onChange={(e) => {
                     const v = e.target.value;
                     const hit = ownBatches.find((b) => b.batchNumber === v.trim());
@@ -566,51 +568,51 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
                   }}
                   className="mt-0.5 h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-brand-500" />
                 <datalist id={`batches-${l.key}`}>
-                  {ownBatches.map((b) => <option key={b.id} value={b.batchNumber}>{b.expiryDate ? `Expiry ${dayText(b.expiryDate)}` : ''}</option>)}
+                  {ownBatches.map((b) => <option key={b.id} value={b.batchNumber}>{b.expiryDate ? tr('Expiry {{expiryDate}}', { expiryDate: dayText(b.expiryDate) }) : ''}</option>)}
                 </datalist>
-                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">Purana batch ho to wohi number — usi me jud jayega</span>
+                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">{tr('Purana batch ho to wohi number — usi me jud jayega')}</span>
               </label>
-              <label className="text-[0.75rem] text-slate-600">Expiry
+              <label className="text-[0.75rem] text-slate-600">{tr('Expiry')}
                 <input type="date" value={l.expiry} onChange={(e) => onChange({ expiry: e.target.value })}
                   className="mt-0.5 h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-brand-500" />
-                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">Expiry report aur POS isi se yaad dilate hain</span>
+                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">{tr('Expiry report aur POS isi se yaad dilate hain')}</span>
               </label>
-              <label className="text-[0.75rem] text-slate-600">Banne ki date
+              <label className="text-[0.75rem] text-slate-600">{tr('Banne ki date')}
                 <input type="date" value={l.mfg} onChange={(e) => onChange({ mfg: e.target.value })}
                   className="mt-0.5 h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-brand-500" />
-                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">Marzi hai — naye batch ke liye</span>
+                <span className="mt-0.5 block text-[0.6875rem] text-slate-500">{tr('Marzi hai — naye batch ke liye')}</span>
               </label>
             </div>
           )}
-          {!batchOpen && <p className="mt-0.5 text-[0.6875rem] text-slate-500">Marzi hai. Expiry wala maal ho to batch aur expiry likhein — warna stock bina batch ke barhega.</p>}
+          {!batchOpen && <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('Marzi hai. Expiry wala maal ho to batch aur expiry likhein — warna stock bina batch ke barhega.')}</p>}
         </div>
       )}
 
       {withSerial && !!serialsQ.data?.length && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600 inline-flex items-center gap-1"><Cpu className="h-3.5 w-3.5" /> Kaun sa piece? (serial)</p>
-          <select value={l.serialId} onChange={(e) => onChange({ serialId: e.target.value, ...(e.target.value && { qty: '1' }) })} aria-label="Serial"
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600 inline-flex items-center gap-1"><Cpu className="h-3.5 w-3.5" /> {' '}{tr('Kaun sa piece? (serial)')}</p>
+          <select value={l.serialId} onChange={(e) => onChange({ serialId: e.target.value, ...(e.target.value && { qty: '1' }) })} aria-label={tr('Serial')}
             className="h-10 w-full rounded-xl border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-brand-500">
-            <option value="">Koi khaas piece nahi</option>
+            <option value="">{tr('Koi khaas piece nahi')}</option>
             {serialsQ.data.map((s) => <option key={s.id} value={s.id}>{s.serialNumber}{s.imei ? ` · ${s.imei}` : ''}</option>)}
           </select>
-          <p className="mt-1 text-[0.6875rem] text-slate-500">Chunein to woh piece {l.type === 'DAMAGE' ? '"kharab"' : '"wapas"'} likha jayega aur bikne ki list se hat jayega.</p>
+          <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Chunein to woh piece {{value}} likha jayega aur bikne ki list se hat jayega.', { value: l.type === 'DAMAGE' ? tr('"kharab"') : tr('"wapas"') })}</p>
         </div>
       )}
 
       {mode === 'roll' && (
         <div className="mt-3 space-y-2">
-          <p className="text-[0.75rem] font-medium text-slate-600">Roll <span className="text-rose-600">*</span></p>
+          <p className="text-[0.75rem] font-medium text-slate-600">{tr('Roll')}{' '} <span className="text-rose-600">*</span></p>
           <div className="grid gap-1.5 sm:grid-cols-2">
             {o!.carpetRolls.map((r) => (
               <button key={r.id} type="button" onClick={() => onChange({ rollId: r.id })}
-                className={cn('rounded-xl px-3 py-2 text-left ring-1 transition', l.rollId === r.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
+                className={cn('rounded-xl px-3 py-2 text-start ring-1 transition', l.rollId === r.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                 <span className="flex items-center justify-between gap-2 text-[0.8125rem] font-semibold text-slate-900">
-                  <span>Roll {r.rollNumber}{r.designCode ? ` · ${r.designCode}` : ''}</span>
-                  <span className={cn('rounded-full px-1.5 text-[0.625rem] font-semibold', r.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700')}>{r.status === 'ACTIVE' ? 'Chalu' : r.status === 'DAMAGED' ? 'Kharab' : 'Rakha hua'}</span>
+                  <span>{tr('Roll {{rollNumber}}{{value}}', { rollNumber: r.rollNumber, value: r.designCode ? ` · ${r.designCode}` : '' })}</span>
+                  <span className={cn('rounded-full px-1.5 text-[0.625rem] font-semibold', r.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700')}>{r.status === 'ACTIVE' ? tr('Chalu') : r.status === 'DAMAGED' ? tr('Kharab') : tr('Rakha hua')}</span>
                 </span>
                 <span className="block text-[0.6875rem] text-slate-500">
-                  {r.widthFt}′{r.widthInch ? `${r.widthInch}″` : ''} chaura · {r.remainingLengthFt}′{r.remainingLengthInch ? `${r.remainingLengthInch}″` : ''} baqi · {qtyText(r.remainingSqft)} sqft{r.rackNumber ? ` · Rack ${r.rackNumber}` : ''}
+                  {tr('{{widthFt}}′{{value}} chaura · {{remainingLengthFt}}′{{value2}} baqi · {{remainingSqft}} sqft{{value3}}', { widthFt: r.widthFt, value: r.widthInch ? `${r.widthInch}″` : '', remainingLengthFt: r.remainingLengthFt, value2: r.remainingLengthInch ? `${r.remainingLengthInch}″` : '', remainingSqft: qtyText(r.remainingSqft), value3: r.rackNumber ? tr(' · Rack {{rackNumber}}', { rackNumber: r.rackNumber }) : '' })}
                 </span>
               </button>
             ))}
@@ -618,38 +620,38 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, c
           {l.rollAction === 'ADJUST_LENGTH' && (
             <div>
               <div className="grid max-w-xs grid-cols-2 gap-2">
-                <input inputMode="decimal" value={l.ft} onChange={(e) => onChange({ ft: e.target.value.replace(/[^\d.]/g, '') })} placeholder="Feet" aria-label="Feet"
-                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-right text-sm tabular-nums outline-none focus:border-brand-500" />
-                <input inputMode="decimal" value={l.inch} onChange={(e) => onChange({ inch: e.target.value.replace(/[^\d.]/g, '') })} placeholder="Inch" aria-label="Inch"
-                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-right text-sm tabular-nums outline-none focus:border-brand-500" />
+                <input inputMode="decimal" value={l.ft} onChange={(e) => onChange({ ft: e.target.value.replace(/[^\d.]/g, '') })} placeholder={tr('Feet')} aria-label={tr('Feet')}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-end text-sm tabular-nums outline-none focus:border-brand-500" />
+                <input inputMode="decimal" value={l.inch} onChange={(e) => onChange({ inch: e.target.value.replace(/[^\d.]/g, '') })} placeholder={tr('Inch')} aria-label={tr('Inch')}
+                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-end text-sm tabular-nums outline-none focus:border-brand-500" />
               </div>
-              <p className="mt-1 text-[0.6875rem] text-slate-500">Kitni lambai {TYPES[l.type].sign > 0 ? 'barhani' : 'nikalni'} hai — feet aur inch (0–11). Sqft khud nikal aata hai.</p>
+              <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Kitni lambai {{value}} hai — feet aur inch (0–11). Sqft khud nikal aata hai.', { value: TYPES[l.type].sign > 0 ? tr('barhani') : tr('nikalni') })}</p>
             </div>
           )}
           {roll && l.rollAction !== 'ADJUST_LENGTH' && (
-            <p className="text-[0.75rem] text-slate-600">Roll {roll.rollNumber} ka {qtyText(roll.remainingSqft)} sqft {type === 'ADJUSTMENT_IN' ? 'wapas stock me aayega' : 'stock se nikal jayega'}.</p>
+            <p className="text-[0.75rem] text-slate-600">{tr('Roll {{rollNumber}} ka {{remainingSqft}} sqft {{value}}.', { rollNumber: roll.rollNumber, remainingSqft: qtyText(roll.remainingSqft), value: type === 'ADJUSTMENT_IN' ? tr('wapas stock me aayega') : tr('stock se nikal jayega') })}</p>
           )}
         </div>
       )}
 
       {mode === 'imei' && (
         <div className="mt-3">
-          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">Device (IMEI) <span className="text-rose-600">*</span></p>
+          <p className="mb-1 text-[0.75rem] font-medium text-slate-600">{tr('Device (IMEI)')}{' '} <span className="text-rose-600">*</span></p>
           {o!.imeis.length > 6 && (
-            <input value={deviceQuery} onChange={(e) => setDeviceQuery(e.target.value)} placeholder="IMEI ke aakhri number, rang…" aria-label="Device search"
+            <input value={deviceQuery} onChange={(e) => setDeviceQuery(e.target.value)} placeholder={tr('IMEI ke aakhri number, rang…')} aria-label={tr('Device search')}
               className="mb-1.5 h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-brand-500" />
           )}
           <div className="grid max-h-48 gap-1.5 overflow-y-auto sm:grid-cols-2">
             {devices.slice(0, 60).map((d) => (
               <button key={d.id} type="button" onClick={() => onChange({ imeiId: d.id })}
-                className={cn('rounded-xl px-3 py-2 text-left ring-1 transition', l.imeiId === d.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
+                className={cn('rounded-xl px-3 py-2 text-start ring-1 transition', l.imeiId === d.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                 <span className="block font-mono text-[0.8125rem] font-semibold text-slate-900">{d.imei1}</span>
                 <span className="block text-[0.6875rem] text-slate-500">{[d.variant?.name, d.color, IMEI_STATUS[d.status] ?? d.status].filter(Boolean).join(' · ')} · {money(d.costPrice)}</span>
               </button>
             ))}
-            {!devices.length && <p className="text-[0.75rem] text-slate-500">{l.type === 'ADJUSTMENT_IN' ? 'Koi kharab ya gum device nahi' : 'Stock me koi device nahi'}</p>}
+            {!devices.length && <p className="text-[0.75rem] text-slate-500">{l.type === 'ADJUSTMENT_IN' ? tr('Koi kharab ya gum device nahi') : tr('Stock me koi device nahi')}</p>}
           </div>
-          {device && <p className="mt-1 text-[0.6875rem] text-slate-500">{device.imei1}: {IMEI_STATUS[device.status] ?? device.status} → {l.type === 'ADJUSTMENT_IN' ? 'Stock me' : l.type === 'DAMAGE' ? 'Kharab' : 'Gum'}. Product ka stock khud theek hoga.</p>}
+          {device && <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('{{imei1}}: {{value}} → {{value2}}. Product ka stock khud theek hoga.', { imei1: device.imei1, value: IMEI_STATUS[device.status] ?? device.status, value2: l.type === 'ADJUSTMENT_IN' ? tr('Stock me') : l.type === 'DAMAGE' ? tr('Kharab') : tr('Gum') })}</p>}
         </div>
       )}
     </li>
@@ -679,7 +681,7 @@ function ReasonPicker({ code, type, canCorrect, opening, onChange }: {
         {codes.map((c) => (
           <button key={c} type="button" role="radio" aria-checked={code === c} title={REASONS[c].hint} onClick={() => onChange(c)}
             className={btn(code === c, EFFECTS[effect].tone)}>
-            {REASONS[c].label}
+            {tr(REASONS[c].label)}
           </button>
         ))}
       </div>
@@ -694,19 +696,19 @@ function ReasonPicker({ code, type, canCorrect, opening, onChange }: {
         <div>
           <p className="mb-1 flex flex-wrap items-center gap-1.5 text-[0.75rem] font-medium text-slate-600">
             <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', EFFECTS.NONE.tone)}>{EFFECTS.NONE.label}</span>
-            Sirf stock badlega
+            {tr('Sirf stock badlega')}
           </p>
           <div className="grid grid-cols-1 gap-1.5 sm:flex sm:flex-wrap">
             {opening && (
-              <button type="button" role="radio" aria-checked={code === null} onClick={() => onChange(null)} title="Pehla stock ya dukaan me banaya maal"
+              <button type="button" role="radio" aria-checked={code === null} onClick={() => onChange(null)} title={tr('Pehla stock ya dukaan me banaya maal')}
                 className={btn(code === null, EFFECTS.NONE.tone)}>
-                Opening stock (pehla maal)
+                {tr('Opening stock (pehla maal)')}
               </button>
             )}
             {canCorrect && (
               <button type="button" role="radio" aria-checked={correcting} onClick={() => onChange('CORRECTION')} title={REASONS.CORRECTION.hint}
                 className={btn(correcting, 'bg-amber-50 text-amber-800 ring-amber-300')}>
-                {REASONS.CORRECTION.label}
+                {tr(REASONS.CORRECTION.label)}
               </button>
             )}
           </div>
@@ -714,13 +716,13 @@ function ReasonPicker({ code, type, canCorrect, opening, onChange }: {
       )}
       {correcting && (
         <div className="rounded-xl bg-amber-50 px-3 py-2 ring-1 ring-amber-200">
-          <div role="radiogroup" aria-label="Stock barhana ya kam karna" className="mb-1.5 grid grid-cols-2 gap-1.5 sm:max-w-xs">
+          <div role="radiogroup" aria-label={tr('Stock barhana ya kam karna')} className="mb-1.5 grid grid-cols-2 gap-1.5 sm:max-w-xs">
             {(['in', 'out'] as const).map((d) => {
               const on = d === 'in' ? type === 'ADJUSTMENT_IN' : type !== 'ADJUSTMENT_IN';
               return (
                 <button key={d} type="button" role="radio" aria-checked={on} onClick={() => onChange('CORRECTION', d)}
                   className={btn(on, 'bg-slate-900 text-white ring-slate-900')}>
-                  {d === 'in' ? 'Stock barhayein' : 'Stock kam karein'}
+                  {d === 'in' ? tr('Stock barhayein') : tr('Stock kam karein')}
                 </button>
               );
             })}
@@ -729,9 +731,9 @@ function ReasonPicker({ code, type, canCorrect, opening, onChange }: {
         </div>
       )}
       {code === null && (
-        <p className="text-[0.6875rem] text-slate-500">Dukaan ka pehla stock ya dukaan me banaya maal — stock barhega, Profit me nahi gina jayega. Supplier se khareeda maal Purchase me darj karein.</p>
+        <p className="text-[0.6875rem] text-slate-500">{tr('Dukaan ka pehla stock ya dukaan me banaya maal — stock barhega, Profit me nahi gina jayega. Supplier se khareeda maal Purchase me darj karein.')}</p>
       )}
-      {code && !correcting && <p className="text-[0.6875rem] text-slate-500">{REASONS[code].hint} — stock {REASONS[code].effect === 'GAIN' ? 'barhega' : 'kam hoga'}, {EFFECTS[REASONS[code].effect].note.toLowerCase()} (cost par).</p>}
+      {code && !correcting && <p className="text-[0.6875rem] text-slate-500">{tr('{{hint}} — stock {{value}}, {{value2}} (cost par).', { hint: REASONS[code].hint, value: REASONS[code].effect === 'GAIN' ? tr('barhega') : tr('kam hoga'), value2: EFFECTS[REASONS[code].effect].note.toLowerCase() })}</p>}
     </div>
   );
 }

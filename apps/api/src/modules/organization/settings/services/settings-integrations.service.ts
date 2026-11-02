@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { UpsertIntegrationDto } from '../dto/integration.dto';
+import { apiMessage } from '../../../../common/i18n/api-message';
 
 /**
  * Integrations are stored in TenantSettings.integrations JSON field.
@@ -150,7 +151,7 @@ export class SettingsIntegrationsService {
           result = await this.testWhatsApp(one);
           break;
         default:
-          result = { success: false, message: `Test for "${type}" not implemented yet` };
+          result = { success: false, ...apiMessage('Test for "{{type}}" not implemented yet', { type }) };
       }
     } catch (e: any) {
       result = { success: false, message: e?.message || 'Connection failed' };

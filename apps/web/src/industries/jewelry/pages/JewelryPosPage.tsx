@@ -42,6 +42,7 @@ import {
   COMMON_PURITIES, GOLD_KARATS, KEYS, MAIN_CATEGORIES, CATEGORY_LABEL, apiError, categoryLabel, grams, metalOf, oldGoldValue, piecePrice,
   purityLabel, r2, r3, rateFor, stonesOf,
 } from '../lib/meta';
+import { t } from '@core/i18n';
 
 /** One piece on the bill. Rate and banwai can be changed while bargaining. */
 interface Line {
@@ -85,8 +86,8 @@ function NumBox({ label, value, onChange, suffix, className }: { label: string; 
       <span className="relative block">
         <input inputMode="decimal" value={text ?? (value ? String(value) : '')} placeholder="0"
           onChange={(e) => { setText(e.target.value); onChange(num(e.target.value)); }} onBlur={() => setText(null)}
-          className={cn(controlClass(), 'h-8 px-2 pr-7 text-[0.8125rem] tabular-nums')} />
-        {suffix && <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6875rem] text-slate-400">{suffix}</span>}
+          className={cn(controlClass(), 'h-8 px-2 pe-7 text-[0.8125rem] tabular-nums')} />
+        {suffix && <span className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 text-[0.6875rem] text-slate-400">{suffix}</span>}
       </span>
     </label>
   );
@@ -141,7 +142,7 @@ function JewelryCounter() {
     if (!row) return;
     const { it, f } = row;
     const have = inBill(it.id);
-    if (have + 1 > it.stock && !rules?.allowNegativeStock) { toast.error(`${it.name} stock me nahi`); return; }
+    if (have + 1 > it.stock && !rules?.allowNegativeStock) { toast.error(t('{{name}} stock me nahi', { name: it.name })); return; }
     const existing = lines.find((l) => l.productId === it.id);
     if (existing) { setLines(lines.map((l) => (l === existing ? { ...l, qty: l.qty + 1 } : l))); return; }
     if (!f) {
@@ -149,7 +150,7 @@ function JewelryCounter() {
       return;
     }
     const rate = rateFor(rates, f.metalType, f.purity);
-    if (!rate) toast.warning(`${purityLabel(f.purity)} ka aaj ka rate set nahi — rate khud likhein`);
+    if (!rate) toast.warning(t('{{purity}} ka aaj ka rate set nahi — rate khud likhein', { purity: purityLabel(f.purity) }));
     const r = rate?.ratePerGram ?? 0;
     const metal = r2(f.netWeight * r);
     setLines([...lines, {
@@ -199,9 +200,9 @@ function JewelryCounter() {
       setOld({ open: true, grams: 0, purity: old.purity, kaat: old.kaat, value: null });
       qc.invalidateQueries({ queryKey: [KEYS.exchanges] });
       qc.invalidateQueries({ queryKey: [KEYS.metal] });
-      toast.success(`${e.exchangeNumber} — purana sona bill par`);
+      toast.success(t('{{exchangeNumber}} — purana sona bill par', { exchangeNumber: e.exchangeNumber }));
     },
-    onError: (e) => toast.error(apiError(e, 'Purana sona save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Purana sona save nahi hua'))),
   });
 
   const sell = useMutation({
@@ -225,7 +226,7 @@ function JewelryCounter() {
         ...(gold.length ? { payments: [...money, ...gold] } : pay.payments && { payments: money }),
         customerNotes: notes || undefined,
       };
-      const res = await withManagerPin('Is bill ke liye malik ka PIN', (managerPin) => jewelrySalesApi.create({ ...body, ...(managerPin && { managerPin }) }),
+      const res = await withManagerPin(t('Is bill ke liye malik ka PIN'), (managerPin) => jewelrySalesApi.create({ ...body, ...(managerPin && { managerPin }) }),
         d.isCredit ? 'credit' : 'discount');
       await keepAdvance(d, total, customerId || undefined, (res as { saleNumber?: string }).saleNumber);
       return res;
@@ -233,24 +234,24 @@ function JewelryCounter() {
     onSuccess: (res) => {
       [KEYS.sales, KEYS.metal, KEYS.exchanges, 'products-for-pos', 'customers-for-pos', 'sales-history', 'dashboard-overview', 'cash-register']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(`Bill ban gaya — ${(res as { saleNumber?: string }).saleNumber ?? res.invoiceNumber}`);
+      toast.success(t('Bill ban gaya — {{value}}', { value: (res as { saleNumber?: string }).saleNumber ?? res.invoiceNumber }));
       setCheckout(false);
       reset();
       if (res.saleId) window.open(`/sales/${res.saleId}/receipt?auto=1`, '_blank');
     },
-    onError: (e) => toast.error(apiError(e, 'Bill save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Bill save nahi hua'))),
   });
 
   const createCustomer = useMutation({
     mutationFn: (v: { name: string; phone?: string }) => customersApi.create(v as any),
-    onSuccess: (c: any) => { qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); setCustomerId(c.id); setAddCustomer(null); toast.success('Customer ban gaya'); },
-    onError: (e) => toast.error(apiError(e, 'Customer save nahi hua')),
+    onSuccess: (c: any) => { qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); setCustomerId(c.id); setAddCustomer(null); toast.success(t('Customer ban gaya')); },
+    onError: (e) => toast.error(apiError(e, t('Customer save nahi hua'))),
   });
 
   const openCheckout = () => {
-    if (!catalogLines.length) { toast.error('Kam az kam ek zewar catalog se chunein — stock usi se kam hota hai'); return; }
-    if (lines.some((l) => !l.plain && !(l.rate > 0))) { toast.error('Har zewar ka rate likhein'); return; }
-    if (old.open && old.grams > 0) { toast.error('Tola hua purana sona pehle "Bill par lein" se shamil karein'); return; }
+    if (!catalogLines.length) { toast.error(t('Kam az kam ek zewar catalog se chunein — stock usi se kam hota hai')); return; }
+    if (lines.some((l) => !l.plain && !(l.rate > 0))) { toast.error(t('Har zewar ka rate likhein')); return; }
+    if (old.open && old.grams > 0) { toast.error(t('Tola hua purana sona pehle "Bill par lein" se shamil karein')); return; }
     setCheckout(true);
   };
 
@@ -273,40 +274,40 @@ function JewelryCounter() {
       <section className="min-w-0 space-y-3">
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-950 shadow-sm ring-1 ring-amber-200">
           <TrendingUp className="h-4 w-4 text-amber-700" />
-          <span className="text-[0.8125rem] font-semibold">Aaj ka rate</span>
+          <span className="text-[0.8125rem] font-semibold">{t('Aaj ka rate')}</span>
           {goldRates.length === 0 && !silver
-            ? <span className="text-[0.8125rem] text-amber-800">Set nahi —</span>
+            ? <span className="text-[0.8125rem] text-amber-800">{t('Set nahi —')}</span>
             : [...goldRates, ...(silver ? [silver] : [])].map((r) => (
               <span key={r.id} className="rounded-lg bg-white px-2 py-0.5 text-[0.75rem] font-semibold tabular-nums ring-1 ring-amber-200">
                 {purityLabel(r.purity)} {formatPKR(r.ratePerGram)}/g
               </span>
             ))}
-          <Link to="/jewelry/metal-rates" className="ml-auto text-[0.75rem] font-semibold text-amber-900 underline-offset-2 hover:underline">Rate badlein</Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white ring-1 ring-amber-200 hover:bg-amber-100"><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/jewelry/metal-rates" className="ms-auto text-[0.75rem] font-semibold text-amber-900 underline-offset-2 hover:underline">{t('Rate badlein')}</Link>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white ring-1 ring-amber-200 hover:bg-amber-100"><GraduationCap className="h-4 w-4" /></button>
         </div>
 
         <div className="space-y-2 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
           <label className="group relative block">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, design number, hallmark, barcode…" aria-label="Zewar dhoondein"
+            <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Naam, design number, hallmark, barcode…')} aria-label={t('Zewar dhoondein')}
               onKeyDown={(e) => { if (e.key === 'Enter' && shown[0]) { add(shown[0].it.id); setSearch(''); } }}
-              className={cn(controlClass(), 'h-11 pl-12 pr-10 text-[0.9375rem]')} />
-            {search ? <button type="button" aria-label="Saaf" onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
+              className={cn(controlClass(), 'h-11 ps-12 pe-10 text-[0.9375rem]')} />
+            {search ? <button type="button" aria-label={t('Saaf')} onClick={() => setSearch('')} className="absolute end-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+              : <Kbd className="absolute end-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
           <div className="flex flex-wrap gap-1.5">
-            {[{ v: '', l: 'Sab karat' }, ...COMMON_PURITIES.map((p) => ({ v: p, l: purityLabel(p) }))].map((o) => (
+            {[{ v: '', l: t('Sab karat') }, ...COMMON_PURITIES.map((p) => ({ v: p, l: purityLabel(p) }))].map((o) => (
               <button key={o.v || 'all'} type="button" onClick={() => setKarat(o.v)}
                 className={cn('h-8 rounded-full px-3 text-[0.75rem] font-semibold ring-1', karat === o.v ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>{o.l}</button>
             ))}
-            <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Zewar ki type"
+            <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label={t('Zewar ki type')}
               className={cn(controlClass(), 'h-8 w-auto rounded-full px-3 text-[0.75rem] font-semibold')}>
-              <option value="">Har type</option>
-              <option value="bridal">Bridal collection</option>
+              <option value="">{t('Har type')}</option>
+              <option value="bridal">{t('Bridal collection')}</option>
               {MAIN_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
             </select>
-            <button type="button" onClick={() => setHandPiece(true)} className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-3 text-[0.75rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
-              <Plus className="h-3.5 w-3.5" />Hath se piece
+            <button type="button" onClick={() => setHandPiece(true)} className="ms-auto inline-flex h-8 items-center gap-1 rounded-full px-3 text-[0.75rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
+              <Plus className="h-3.5 w-3.5" />{t('Hath se piece')}
             </button>
           </div>
         </div>
@@ -314,8 +315,8 @@ function JewelryCounter() {
         {loading ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-56 animate-pulse rounded-2xl bg-slate-100" />)}</div>
         ) : shown.length === 0 ? (
-          <PosEmptyState icon={Gem} title={search || karat || category ? 'Is filter me koi zewar nahi' : 'Abhi koi zewar nahi'}
-            hint={search || karat || category ? undefined : 'Products me "Add jewelry item" se zewar daalein'}
+          <PosEmptyState icon={Gem} title={search || karat || category ? t('Is filter me koi zewar nahi') : t('Abhi koi zewar nahi')}
+            hint={search || karat || category ? undefined : t('Products me "Add jewelry item" se zewar daalein')}
             onClear={search || karat || category ? () => { setSearch(''); setKarat(''); setCategory(''); } : undefined} />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
@@ -324,7 +325,7 @@ function JewelryCounter() {
                 inCart={inBill(it.id)} onClick={() => add(it.id)}
                 onDecrement={() => setLines((ls) => ls.flatMap((l) => (l.productId === it.id ? (l.qty > 1 ? [{ ...l, qty: l.qty - 1 }] : []) : [l])))}
                 subline={f ? `${purityLabel(f.purity)} · ${grams(f.netWeight)}${f.price ? '' : ' · rate nahi'}` : undefined}
-                badges={f?.isBridalCollection ? [{ label: 'Bridal', tone: 'info', icon: Sparkles }] : undefined}
+                badges={f?.isBridalCollection ? [{ label: t('Bridal'), tone: 'info', icon: Sparkles }] : undefined}
                 tint="from-amber-100 to-yellow-50" fallback={<Gem className="h-8 w-8 text-amber-400" />} />
             ))}
           </div>
@@ -336,34 +337,34 @@ function JewelryCounter() {
         <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
           <div className="mb-3 flex items-center gap-2">
             <Receipt className="h-4 w-4 text-slate-500" />
-            <h2 className="text-[0.9375rem] font-bold text-slate-900">Bill</h2>
+            <h2 className="text-[0.9375rem] font-bold text-slate-900">{t('Bill')}</h2>
             {weight > 0 && <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{grams(weight)}</span>}
-            {lines.length > 0 && <button type="button" onClick={reset} className="ml-auto text-[0.75rem] font-semibold text-rose-600 hover:underline">Saaf karein</button>}
+            {lines.length > 0 && <button type="button" onClick={reset} className="ms-auto text-[0.75rem] font-semibold text-rose-600 hover:underline">{t('Saaf karein')}</button>}
           </div>
           <PosCustomerPicker customers={customers} customerId={customerId} setCustomerId={setCustomerId} selectedCustomer={customer}
             onAddCustomer={() => setAddCustomer({ name: '', phone: '' })} />
 
           {lines.length === 0 ? (
-            <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.8125rem] text-slate-500">Zewar par click karein — bill yahan banega</p>
+            <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.8125rem] text-slate-500">{t('Zewar par click karein — bill yahan banega')}</p>
           ) : (
-            <ul className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
+            <ul className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pe-1">
               {lines.map((l) => (
                 <li key={l.key} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/70">
                   <div className="flex items-start gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[0.875rem] font-semibold text-slate-900">{l.qty > 1 ? `${l.qty} × ` : ''}{l.name}</p>
-                      {!l.plain && <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.75rem] text-slate-500"><KaratPill purity={l.purity} />{grams(l.netWeight)}{l.hallmark ? ' · hallmark' : ''}{!l.productId ? ' · hath se' : ''}</p>}
+                      {!l.plain && <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.75rem] text-slate-500"><KaratPill purity={l.purity} />{grams(l.netWeight)}{l.hallmark ? t(' · hallmark') : ''}{!l.productId ? t(' · hath se') : ''}</p>}
                     </div>
                     <span className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{formatPKR(lineTotal(l))}</span>
-                    <button type="button" aria-label="Hatayein" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                    <button type="button" aria-label={t('Hatayein')} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                   </div>
                   {l.plain ? (
-                    <div className="mt-2 grid grid-cols-2 gap-2"><NumBox label="Qeemat" value={l.making} onChange={(v) => patch(l.key, { making: v })} suffix="Rs" /></div>
+                    <div className="mt-2 grid grid-cols-2 gap-2"><NumBox label={t('Qeemat')} value={l.making} onChange={(v) => patch(l.key, { making: v })} suffix="Rs" /></div>
                   ) : (
                     <div className="mt-2 grid grid-cols-3 gap-2">
-                      <NumBox label="Rate / g" value={l.rate} onChange={(v) => patch(l.key, { rate: v })} suffix="Rs" />
-                      <NumBox label="Banwai" value={l.making} onChange={(v) => patch(l.key, { making: v })} suffix="Rs" />
-                      <NumBox label="Kaat" value={l.wastagePct} onChange={(v) => patch(l.key, { wastagePct: Math.min(v, 30) })} suffix="%" />
+                      <NumBox label={t('Rate / g')} value={l.rate} onChange={(v) => patch(l.key, { rate: v })} suffix="Rs" />
+                      <NumBox label={t('Banwai')} value={l.making} onChange={(v) => patch(l.key, { making: v })} suffix="Rs" />
+                      <NumBox label={t('Kaat')} value={l.wastagePct} onChange={(v) => patch(l.key, { wastagePct: Math.min(v, 30) })} suffix="%" />
                     </div>
                   )}
                 </li>
@@ -374,10 +375,10 @@ function JewelryCounter() {
 
         <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
           <button type="button" onClick={() => setOld((o) => ({ ...o, open: !o.open }))} aria-expanded={old.open}
-            className="flex w-full items-center gap-2 text-left">
+            className="flex w-full items-center gap-2 text-start">
             <Repeat className="h-4 w-4 text-yellow-700" />
-            <span className="text-[0.875rem] font-semibold text-slate-900">Purana sona (trade-in)</span>
-            <span className="ml-auto text-[0.8125rem] font-semibold tabular-nums text-yellow-800">{oldValue > 0 ? `− ${formatPKR(oldValue)}` : old.open ? '' : 'Shamil karein'}</span>
+            <span className="text-[0.875rem] font-semibold text-slate-900">{t('Purana sona (trade-in)')}</span>
+            <span className="ms-auto text-[0.8125rem] font-semibold tabular-nums text-yellow-800">{oldValue > 0 ? `− ${formatPKR(oldValue)}` : old.open ? '' : t('Shamil karein')}</span>
           </button>
           {tradeIns.length > 0 && (
             <ul className="mt-3 space-y-1.5">
@@ -386,7 +387,7 @@ function JewelryCounter() {
                   <KaratPill purity={g.purity} />
                   <span className="min-w-0 flex-1 truncate text-slate-700">{grams(g.grams)} · {g.code}</span>
                   <span className="font-semibold tabular-nums text-yellow-900">{formatPKR(g.amount)}{g.amount < g.value ? ` / ${formatPKR(g.value)}` : ''}</span>
-                  <button type="button" aria-label="Bill se hatayein" onClick={() => setGolds((gs) => gs.filter((x) => x.code !== g.code))} className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-white hover:text-rose-600"><X className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label={t('Bill se hatayein')} onClick={() => setGolds((gs) => gs.filter((x) => x.code !== g.code))} className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-white hover:text-rose-600"><X className="h-3.5 w-3.5" /></button>
                 </li>
               ))}
             </ul>
@@ -396,19 +397,18 @@ function JewelryCounter() {
               <ChipPicker value={old.purity} onChange={(p) => setOld({ ...old, purity: p, value: null })}
                 options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
               <div className="grid grid-cols-3 gap-2">
-                <NumBox label="Wazan" value={old.grams} onChange={(v) => setOld({ ...old, grams: v, value: null })} suffix="g" />
-                <NumBox label="Kaat" value={old.kaat} onChange={(v) => setOld({ ...old, kaat: Math.min(v, 50), value: null })} suffix="%" />
-                <NumBox label="Qeemat" value={old.value ?? oldCalc.value} onChange={(v) => setOld({ ...old, value: v })} suffix="Rs" />
+                <NumBox label={t('Wazan')} value={old.grams} onChange={(v) => setOld({ ...old, grams: v, value: null })} suffix="g" />
+                <NumBox label={t('Kaat')} value={old.kaat} onChange={(v) => setOld({ ...old, kaat: Math.min(v, 50), value: null })} suffix="%" />
+                <NumBox label={t('Qeemat')} value={old.value ?? oldCalc.value} onChange={(v) => setOld({ ...old, value: v })} suffix="Rs" />
               </div>
               <p className="text-[0.75rem] text-slate-500">
-                {oldCalc.perGram ? `${purityLabel(old.purity)} khareed rate ${formatPKR(oldCalc.perGram)}/g · poora ${formatPKR(oldCalc.full)}` : `${purityLabel(old.purity)} ka rate set nahi — qeemat khud likhein`}
-                {' '}· Sona metal stock me jata hai, bill par trade-in.
+                {t('{{value}} · Sona metal stock me jata hai, bill par trade-in.', { value: oldCalc.perGram ? t('{{purity}} khareed rate {{perGram}}/g · poora {{full}}', { purity: purityLabel(old.purity), perGram: formatPKR(oldCalc.perGram), full: formatPKR(oldCalc.full) }) : t('{{purity}} ka rate set nahi — qeemat khud likhein', { purity: purityLabel(old.purity) }) })}
               </p>
               <Button size="sm" variant="secondary" fullWidth loading={weighIn.isPending} disabled={!(old.grams > 0) || !(r2(old.value ?? oldCalc.value) > 0)}
-                onClick={() => weighIn.mutate()} leftIcon={<Scale className="h-4 w-4" />}>Bill par lein · {formatPKR(r2(old.value ?? oldCalc.value))}</Button>
+                onClick={() => weighIn.mutate()} leftIcon={<Scale className="h-4 w-4" />}>{t('Bill par lein · {{formatPKR}}', { formatPKR: formatPKR(r2(old.value ?? oldCalc.value)) })}</Button>
               {waiting.length > 0 && (
                 <div className="pt-1">
-                  <span className="block text-[0.6875rem] font-medium text-slate-500">Pehle se tola hua (bill ka intezar)</span>
+                  <span className="block text-[0.6875rem] font-medium text-slate-500">{t('Pehle se tola hua (bill ka intezar)')}</span>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {waiting.map((e) => (
                       <button key={e.id} type="button" onClick={() => setGolds((gs) => [...gs, goldOf(e)])}
@@ -424,20 +424,20 @@ function JewelryCounter() {
         </div>
 
         <div className="space-y-2 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-          <div className="flex justify-between text-[0.875rem]"><span className="text-slate-500">Zewar</span><span className="font-semibold tabular-nums">{formatPKR(subtotal)}</span></div>
+          <div className="flex justify-between text-[0.875rem]"><span className="text-slate-500">{t('Zewar')}</span><span className="font-semibold tabular-nums">{formatPKR(subtotal)}</span></div>
           <div className="flex items-center justify-between gap-3 text-[0.875rem]">
-            <span className="inline-flex items-center gap-1 text-slate-500"><BadgePercent className="h-4 w-4" />Discount</span>
+            <span className="inline-flex items-center gap-1 text-slate-500"><BadgePercent className="h-4 w-4" />{t('Discount')}</span>
             <NumBox label="" value={discount} onChange={(v) => setDiscount(v)} suffix="Rs" className="w-32" />
           </div>
-          {oldValue > 0 && <div className="flex justify-between text-[0.875rem]"><span className="text-yellow-800">Purana sona {grams(oldGrams)}</span><span className="font-semibold tabular-nums text-yellow-800">− {formatPKR(oldValue)}</span></div>}
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Bill par note (ikhtiyari)" maxLength={200}
+          {oldValue > 0 && <div className="flex justify-between text-[0.875rem]"><span className="text-yellow-800">{t('Purana sona {{oldGrams}}', { oldGrams: grams(oldGrams) })}</span><span className="font-semibold tabular-nums text-yellow-800">− {formatPKR(oldValue)}</span></div>}
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('Bill par note (ikhtiyari)')} maxLength={200}
             className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
           <div className="flex items-end justify-between border-t border-slate-100 pt-2">
-            <span className="text-[0.875rem] font-semibold text-slate-700">Customer dega</span>
+            <span className="text-[0.875rem] font-semibold text-slate-700">{t('Customer dega')}</span>
             <span className="text-[1.5rem] font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>
           </div>
           <Button fullWidth size="lg" onClick={openCheckout} disabled={!lines.length} leftIcon={<Wallet className="h-5 w-5" />}>
-            Payment lein <Kbd className="ml-1 bg-white/20 text-white">F9</Kbd>
+            {t('Payment lein')}{' '} <Kbd className="ms-1 bg-white/20 text-white">F9</Kbd>
           </Button>
         </div>
       </aside>
@@ -455,16 +455,16 @@ function JewelryCounter() {
           onConfirm={(d) => sell.mutate(d)} onClose={() => { if (!sell.isPending) setCheckout(false); }} />
       )}
       {guide.isOpen && (
-        <PageGuide title="Jewelry counter — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Jewelry counter — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: TrendingUp, color: '#d97706', title: 'Subah rate', text: 'Din shuru hote hi "Rate badlein" se aaj ka 24K rate likhein. Har zewar ki qeemat usi se banti hai.' },
-            { icon: Gem, color: '#7c3aed', title: 'Zewar chunein', text: 'Click karein ya barcode/design number likh kar Enter. Rate, banwai aur kaat bill par hi badal sakte hain — mol-tol yahin.' },
-            { icon: Repeat, color: '#a16207', title: 'Purana sona', text: 'Customer ka purana sona tol kar karat aur kaat likhein, phir "Bill par lein". Qeemat bill se trade-in ke taur par kat jati hai, sona metal stock me jata hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Payment', text: 'Cash, card, bank, JazzCash ya kai tareeqon se (split). Baqi ho to customer chun kar udhaar — khate me jata hai.' },
-            { icon: Scale, color: '#0891b2', title: 'Hath se piece', text: 'Jo zewar catalog me nahi, "Hath se piece" se wazan aur karat likh kar daalein. Bill me kam az kam ek catalog zewar zaroori hai.' },
+            { icon: TrendingUp, color: '#d97706', title: t('Subah rate'), text: t('Din shuru hote hi "Rate badlein" se aaj ka 24K rate likhein. Har zewar ki qeemat usi se banti hai.') },
+            { icon: Gem, color: '#7c3aed', title: t('Zewar chunein'), text: t('Click karein ya barcode/design number likh kar Enter. Rate, banwai aur kaat bill par hi badal sakte hain — mol-tol yahin.') },
+            { icon: Repeat, color: '#a16207', title: t('Purana sona'), text: t('Customer ka purana sona tol kar karat aur kaat likhein, phir "Bill par lein". Qeemat bill se trade-in ke taur par kat jati hai, sona metal stock me jata hai.') },
+            { icon: Wallet, color: '#16a34a', title: t('Payment'), text: t('Cash, card, bank, JazzCash ya kai tareeqon se (split). Baqi ho to customer chun kar udhaar — khate me jata hai.') },
+            { icon: Scale, color: '#0891b2', title: t('Hath se piece'), text: t('Jo zewar catalog me nahi, "Hath se piece" se wazan aur karat likh kar daalein. Bill me kam az kam ek catalog zewar zaroori hai.') },
           ]}
-          tips={['Bill na bane to tola hua sona "Purana sona" page se customer ko wapas karein.', 'Receipt par har zewar ka karat, wazan, rate aur banwai alag chhapti hai.', 'Bill cancel ya wapas karna ho to Sales history se — stock, khata aur purana sona khud theek hote hain.']}
-          shortcuts={[['/', 'dhoondein'], ['Enter', 'pehla zewar'], ['F9', 'payment'], ['G', 'guide']]}
+          tips={[t('Bill na bane to tola hua sona "Purana sona" page se customer ko wapas karein.'), t('Receipt par har zewar ka karat, wazan, rate aur banwai alag chhapti hai.'), t('Bill cancel ya wapas karna ho to Sales history se — stock, khata aur purana sona khud theek hote hain.')]}
+          shortcuts={[['/', t('dhoondein')], ['Enter', t('pehla zewar')], ['F9', t('payment')], ['G', t('guide')]]}
         />
       )}
     </div>
@@ -483,27 +483,27 @@ function HandPieceModal({ rates, onAdd, onClose }: { rates: ReturnType<typeof us
   const r = ownRate ?? rate;
   const ok = name.trim() && weight > 0 && r > 0;
   return (
-    <Modal open onClose={onClose} title="Hath se piece" description="Jo zewar catalog me nahi — stock se kuch nahi kat-ta" size="md"
-      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} onClick={() => onAdd({
+    <Modal open onClose={onClose} title={t('Hath se piece')} description={t('Jo zewar catalog me nahi — stock se kuch nahi kat-ta')} size="md"
+      footer={<><Button variant="ghost" onClick={onClose}>{t('Rehne dein')}</Button><Button disabled={!ok} onClick={() => onAdd({
         key: crypto.randomUUID(), name: name.trim(), category, purity, grossWeight: weight, netWeight: weight, rate: r, making,
         wastagePct: 0, wastageGrams: 0, stones: 0, other: 0, qty: 1,
-      })}>Bill me daalein · {formatPKR(r2(weight * r + making))}</Button></>}>
+      })}>{t('Bill me daalein · {{formatPKR}}', { formatPKR: formatPKR(r2(weight * r + making)) })}</Button></>}>
       <div className="space-y-3">
-        <Input label="Naam" required autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Jaise: purani choori 22K" />
-        <Select label="Type" value={category} onChange={(e) => setCategory(e.target.value as JewelryCategory)}
+        <Input label={t('Naam')} required autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Jaise: purani choori 22K')} />
+        <Select label={t('Type')} value={category} onChange={(e) => setCategory(e.target.value as JewelryCategory)}
           options={MAIN_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABEL[c] }))} />
-        <ChipPicker label="Karat" value={purity} onChange={(p) => { setPurity(p); setOwnRate(null); }} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
+        <ChipPicker label={t('Karat')} value={purity} onChange={(p) => { setPurity(p); setOwnRate(null); }} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
         <div className="grid grid-cols-3 gap-2">
-          <NumBox label="Wazan" value={weight} onChange={setWeight} suffix="g" />
-          <NumBox label="Rate / g" value={r} onChange={(v) => setOwnRate(v)} suffix="Rs" />
-          <NumBox label="Banwai" value={making} onChange={setMaking} suffix="Rs" />
+          <NumBox label={t('Wazan')} value={weight} onChange={setWeight} suffix="g" />
+          <NumBox label={t('Rate / g')} value={r} onChange={(v) => setOwnRate(v)} suffix="Rs" />
+          <NumBox label={t('Banwai')} value={making} onChange={setMaking} suffix="Rs" />
         </div>
-        {!rate && <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-700"><Coins className="h-3.5 w-3.5" />{purityLabel(purity)} ka aaj ka rate set nahi — rate khud likhein</p>}
+        {!rate && <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-700"><Coins className="h-3.5 w-3.5" />{t('{{purity}} ka aaj ka rate set nahi — rate khud likhein', { purity: purityLabel(purity) })}</p>}
       </div>
     </Modal>
   );
 }
 
 export default function JewelryPosPage() {
-  return <RequireShop action="Jewelry bill banane"><JewelryCounter /></RequireShop>;
+  return <RequireShop action={t('Jewelry bill banane')}><JewelryCounter /></RequireShop>;
 }

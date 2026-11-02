@@ -20,6 +20,7 @@ import { getCachedCutPieces, getCachedRollsForProduct } from '@core/lib/offline/
 import { carpetRollsApi, type CarpetRoll } from '../api/carpet-rolls.api';
 import { carpetCutPiecesApi, type CarpetCutPiece } from '../api/carpet-cut-pieces.api';
 import { PIECES_KEY, ROLLS_KEY, ftIn, pieceNote, qtyInUnit, r2, rateInUnit, realFt, rollCutNote, unitLabel } from '../lib/meta';
+import { t, Trans } from '@core/i18n';
 
 export interface RollCut {
   roll: CarpetRoll;
@@ -97,46 +98,46 @@ export function CutModal({ product, variantId, mode = 'both', preSelectedRollId,
 
   return (
     <Modal open onClose={onClose} size="xl" title={product.name}
-      description={`Roll se kaatein ya tukra chunein · bill ${unitLabel(product.unit)} me banega`}>
+      description={t('Roll se kaatein ya tukra chunein · bill {{unit}} me banega', { unit: unitLabel(product.unit) })}>
       {!online && (
         <p className="mb-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <WifiOff className="h-4 w-4" />Internet nahi — purani list dikh rahi hai. Bill sync hone par roll se kaata jayega.
+          <WifiOff className="h-4 w-4" />{t('Internet nahi — purani list dikh rahi hai. Bill sync hone par roll se kaata jayega.')}
         </p>
       )}
       {mode === 'both' && (
         <Segmented className="mb-4" value={tab} onChange={setTab}
-          items={[{ value: 'roll', label: <span className="inline-flex items-center gap-1.5"><Layers className="h-4 w-4" />Roll se kaatein</span>, count: rollList.length },
-            { value: 'piece', label: <span className="inline-flex items-center gap-1.5"><Scissors className="h-4 w-4" />Tukre</span>, count: pieceList.length }]} />
+          items={[{ value: 'roll', label: <span className="inline-flex items-center gap-1.5"><Layers className="h-4 w-4" />{t('Roll se kaatein')}</span>, count: rollList.length },
+            { value: 'piece', label: <span className="inline-flex items-center gap-1.5"><Scissors className="h-4 w-4" />{t('Tukre')}</span>, count: pieceList.length }]} />
       )}
       {tab === 'roll' ? (
         rolls.isLoading ? <Skeleton className="h-48 rounded-2xl" />
-          : rollList.length === 0 ? <Empty text="Is product ka koi chalu roll nahi." hint="Carpet Rolls se roll daalein ya purchase karein." />
+          : rollList.length === 0 ? <Empty text={t('Is product ka koi chalu roll nahi.')} hint={t('Carpet Rolls se roll daalein ya purchase karein.')} />
             : (
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-                <ul className="grid max-h-[52dvh] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                <ul className="grid max-h-[52dvh] gap-2 overflow-y-auto pe-1 sm:grid-cols-2">
                   {rollList.map((r) => (
                     <li key={r.id}>
                       <button type="button" onClick={() => setRollId(r.id)}
-                        className={cn('w-full rounded-2xl p-3 text-left ring-1 transition', roll?.id === r.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
+                        className={cn('w-full rounded-2xl p-3 text-start ring-1 transition', roll?.id === r.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.rollNumber}</span>
                           {roll?.id === r.id && <Check className="h-4 w-4 text-brand-600" />}
                         </div>
                         {r.variant?.name && <p className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-slate-600">{r.variant.colorHex && <span className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10" style={{ background: r.variant.colorHex }} />}{r.variant.name}</p>}
-                        <p className="mt-1 text-[0.8125rem] text-slate-700">{ftIn(r.widthFt, r.widthInch)} chaurai · {ftIn(r.remainingLengthFt, r.remainingLengthInch)} bacha</p>
-                        <p className="text-[0.75rem] text-slate-500 tabular-nums">{r2(r.remainingSqft)} sqft · {formatPKR(r.salePricePerSqft)}/sqft{r.rackNumber ? ` · ${r.rackNumber}` : ''}</p>
-                        {r.status === 'RESERVED' && <span className="mt-1 inline-block rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-violet-700">Reserved</span>}
+                        <p className="mt-1 text-[0.8125rem] text-slate-700">{t('{{widthFt}} chaurai · {{remainingLengthFt}} bacha', { widthFt: ftIn(r.widthFt, r.widthInch), remainingLengthFt: ftIn(r.remainingLengthFt, r.remainingLengthInch) })}</p>
+                        <p className="text-[0.75rem] text-slate-500 tabular-nums">{t('{{remainingSqft}} sqft · {{salePricePerSqft}}/sqft{{value}}', { remainingSqft: r2(r.remainingSqft), salePricePerSqft: formatPKR(r.salePricePerSqft), value: r.rackNumber ? ` · ${r.rackNumber}` : '' })}</p>
+                        {r.status === 'RESERVED' && <span className="mt-1 inline-block rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-violet-700">{t('Reserved')}</span>}
                       </button>
                     </li>
                   ))}
                 </ul>
                 {roll ? <RollCutForm key={roll.id} roll={roll} product={product} onDone={(c) => onRoll?.(c)} />
-                  : <Empty text="Roll chunein" hint="Baayein taraf se roll par click karein." />}
+                  : <Empty text={t('Roll chunein')} hint={t('Baayein taraf se roll par click karein.')} />}
               </div>
             )
       ) : (
         pieces.isLoading ? <Skeleton className="h-48 rounded-2xl" />
-          : pieceList.length === 0 ? <Empty text="Is product ka koi tukra nahi." hint="Roll kaatne par bacha tukra yahan khud aata hai." />
+          : pieceList.length === 0 ? <Empty text={t('Is product ka koi tukra nahi.')} hint={t('Roll kaatne par bacha tukra yahan khud aata hai.')} />
             : (
               <ul className="grid max-h-[56dvh] gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
                 {pieceList.map((p) => {
@@ -148,12 +149,12 @@ export function CutModal({ product, variantId, mode = 'both', preSelectedRollId,
                     <li key={p.id}>
                       <button type="button" disabled={!(price > 0) || !(qty > 0)}
                         onClick={() => onPiece?.({ piece: p, qty, rate: r2(price / qty), note: pieceNote(p.pieceCode, p.widthFt, p.widthInch ?? 0, p.lengthFt, p.lengthInch ?? 0) })}
-                        className="w-full rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200 transition hover:bg-violet-50 hover:ring-violet-300 disabled:opacity-50">
+                        className="w-full rounded-2xl bg-white p-3 text-start ring-1 ring-slate-200 transition hover:bg-violet-50 hover:ring-violet-300 disabled:opacity-50">
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-[0.8125rem] font-semibold text-slate-900">{p.pieceCode}</span>
-                          <span className="font-semibold tabular-nums text-violet-700">{price > 0 ? formatPKR(price) : 'Rate nahi'}</span>
+                          <span className="font-semibold tabular-nums text-violet-700">{price > 0 ? formatPKR(price) : t('Rate nahi')}</span>
                         </div>
-                        <p className="mt-1 text-[0.8125rem] text-slate-700">{ftIn(p.widthFt, p.widthInch ?? 0)} × {ftIn(p.lengthFt, p.lengthInch ?? 0)} · {r2(p.totalSqft)} sqft</p>
+                        <p className="mt-1 text-[0.8125rem] text-slate-700">{t('{{widthFt}} × {{lengthFt}} · {{totalSqft}} sqft', { widthFt: ftIn(p.widthFt, p.widthInch ?? 0), lengthFt: ftIn(p.lengthFt, p.lengthInch ?? 0), totalSqft: r2(p.totalSqft) })}</p>
                         <p className="text-[0.75rem] text-slate-500">{[p.condition, p.rackNumber && `Rack ${p.rackNumber}`, p.sourceRoll?.rollNumber && `Roll ${p.sourceRoll.rollNumber}`].filter(Boolean).join(' · ')}</p>
                       </button>
                     </li>
@@ -198,12 +199,12 @@ function RollCutForm({ roll, product, onDone }: { roll: CarpetRoll; product: Pro
   const strip = r2(fullW - width);
 
   const error =
-    num(wIn) >= 12 || num(lIn) >= 12 ? 'Inch 12 se kam likhein'
-      : width <= 0 ? 'Chaurai likhein'
-        : width > fullW + 0.001 ? `Chaurai roll se zyada hai (roll ${ftIn(roll.widthFt, roll.widthInch)})`
-          : length <= 0 ? 'Lambai likhein'
-            : length > leftLen + 0.001 ? `Roll me sirf ${ftIn(roll.remainingLengthFt, roll.remainingLengthInch)} bacha hai`
-              : !(rate > 0) ? 'Rate likhein'
+    num(wIn) >= 12 || num(lIn) >= 12 ? t('Inch 12 se kam likhein')
+      : width <= 0 ? t('Chaurai likhein')
+        : width > fullW + 0.001 ? t('Chaurai roll se zyada hai (roll {{widthFt}})', { widthFt: ftIn(roll.widthFt, roll.widthInch) })
+          : length <= 0 ? t('Lambai likhein')
+            : length > leftLen + 0.001 ? t('Roll me sirf {{remainingLengthFt}} bacha hai', { remainingLengthFt: ftIn(roll.remainingLengthFt, roll.remainingLengthInch) })
+              : !(rate > 0) ? t('Rate likhein')
                 : null;
 
   const submit = () => {
@@ -222,40 +223,40 @@ function RollCutForm({ roll, product, onDone }: { roll: CarpetRoll; product: Pro
     <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
       <p className="text-[0.8125rem] font-semibold text-slate-800">{roll.rollNumber} · {ftIn(roll.widthFt, roll.widthInch)} × {ftIn(roll.remainingLengthFt, roll.remainingLengthInch)}</p>
       <div>
-        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Chaurai (customer kitni chaurai le raha hai)</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Chaurai (customer kitni chaurai le raha hai)')}</span>
         <div className="grid grid-cols-2 gap-2">
-          <input aria-label="Chaurai feet" inputMode="decimal" value={wFt} onChange={(e) => setWFt(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="ft" />
-          <input aria-label="Chaurai inch" inputMode="decimal" value={wIn} onChange={(e) => setWIn(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="inch" />
+          <input aria-label={t('Chaurai feet')} inputMode="decimal" value={wFt} onChange={(e) => setWFt(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="ft" />
+          <input aria-label={t('Chaurai inch')} inputMode="decimal" value={wIn} onChange={(e) => setWIn(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="inch" />
         </div>
         <button type="button" onClick={() => { setWFt(String(Math.floor(fullW))); setWIn(String(r2((fullW - Math.floor(fullW)) * 12) || '')); }}
-          className="mt-1 text-[0.75rem] font-semibold text-brand-700 hover:underline">Poori chaurai ({ftIn(roll.widthFt, roll.widthInch)})</button>
+          className="mt-1 text-[0.75rem] font-semibold text-brand-700 hover:underline">{t('Poori chaurai ({{widthFt}})', { widthFt: ftIn(roll.widthFt, roll.widthInch) })}</button>
       </div>
       <div>
-        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Lambai</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Lambai')}</span>
         <div className="grid grid-cols-2 gap-2">
-          <input ref={lenRef} aria-label="Lambai feet" inputMode="decimal" value={lFt} onChange={(e) => setLFt(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="ft" />
-          <input aria-label="Lambai inch" inputMode="decimal" value={lIn} onChange={(e) => setLIn(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="inch" />
+          <input ref={lenRef} aria-label={t('Lambai feet')} inputMode="decimal" value={lFt} onChange={(e) => setLFt(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="ft" />
+          <input aria-label={t('Lambai inch')} inputMode="decimal" value={lIn} onChange={(e) => setLIn(e.target.value.replace(/[^\d.]/g, ''))} className={field} placeholder="inch" />
         </div>
       </div>
       <div>
-        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Rate / {unitLabel(product.unit)}</span>
-        <input aria-label="Rate" inputMode="decimal" value={rateText} placeholder={String(defaultRate)} onChange={(e) => setRateText(e.target.value.replace(/[^\d.]/g, ''))} className={field} />
-        <p className="mt-1 text-[0.75rem] text-slate-500">Khaali chhorein to roll ka rate ({formatPKR(Number(roll.salePricePerSqft))}/sqft) lagega.</p>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{t('Rate / {{unit}}', { unit: unitLabel(product.unit) })}</span>
+        <input aria-label={t('Rate')} inputMode="decimal" value={rateText} placeholder={String(defaultRate)} onChange={(e) => setRateText(e.target.value.replace(/[^\d.]/g, ''))} className={field} />
+        <p className="mt-1 text-[0.75rem] text-slate-500">{t('Khaali chhorein to roll ka rate ({{formatPKR}}/sqft) lagega.', { formatPKR: formatPKR(Number(roll.salePricePerSqft)) })}</p>
       </div>
       {strip > 0.1 && length > 0 && (
         <label className="flex items-start gap-2 rounded-xl bg-white p-2.5 text-[0.8125rem] ring-1 ring-slate-200">
           <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-600" />
-          <span>Bacha tukra {ftIn(Math.floor(strip), r2((strip - Math.floor(strip)) * 12))} × {ftIn(Math.floor(length), r2((length - Math.floor(length)) * 12))} ({r2(strip * length)} sqft) <b>piece</b> ban kar stock me rahega. Waste hai to tick hata dein.</span>
+          <span><Trans text="Bacha tukra {{width}} × {{length}} ({{sqft}} sqft) {{piece}} ban kar stock me rahega. Waste hai to tick hata dein." values={{ width: ftIn(Math.floor(strip), r2((strip - Math.floor(strip)) * 12)), length: ftIn(Math.floor(length), r2((length - Math.floor(length)) * 12)), sqft: String(r2(strip * length)), piece: <b>{t('piece')}</b> }} /></span>
         </label>
       )}
       <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
-        <div className="flex justify-between text-[0.8125rem] text-slate-600"><span>Customer ka area</span><span className="tabular-nums">{area} sqft</span></div>
-        {product.unit !== 'sqft' && <div className="flex justify-between text-[0.8125rem] text-slate-600"><span>Bill me</span><span className="tabular-nums">{qty} {unitLabel(product.unit)}</span></div>}
-        <div className="mt-1 flex justify-between text-[1.0625rem] font-bold text-slate-900"><span>Total</span><span className="tabular-nums">{formatPKR(total)}</span></div>
+        <div className="flex justify-between text-[0.8125rem] text-slate-600"><span>{t('Customer ka area')}</span><span className="tabular-nums">{t('{{area}} sqft', { area })}</span></div>
+        {product.unit !== 'sqft' && <div className="flex justify-between text-[0.8125rem] text-slate-600"><span>{t('Bill me')}</span><span className="tabular-nums">{qty} {unitLabel(product.unit)}</span></div>}
+        <div className="mt-1 flex justify-between text-[1.0625rem] font-bold text-slate-900"><span>{t('Total')}</span><span className="tabular-nums">{formatPKR(total)}</span></div>
       </div>
       {error && length > 0 && <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-rose-600"><AlertTriangle className="h-4 w-4" />{error}</p>}
-      {roll.rackNumber && <p className="flex items-center gap-1 text-[0.75rem] text-slate-500"><MapPin className="h-3.5 w-3.5" />Rack {roll.rackNumber}</p>}
-      <Button type="submit" className="w-full" disabled={!!error}>Bill me dalein (Enter)</Button>
+      {roll.rackNumber && <p className="flex items-center gap-1 text-[0.75rem] text-slate-500"><MapPin className="h-3.5 w-3.5" />{t('Rack {{rackNumber}}', { rackNumber: roll.rackNumber })}</p>}
+      <Button type="submit" className="w-full" disabled={!!error}>{t('Bill me dalein (Enter)')}</Button>
     </form>
   );
 }

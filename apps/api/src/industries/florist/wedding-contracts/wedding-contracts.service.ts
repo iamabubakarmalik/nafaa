@@ -8,6 +8,7 @@ import {
 } from '../../_shared/industry-sale.helper';
 import { Prisma } from '@prisma/client';
 import { addDaysTz, cleanInput, dayKey, dayRange, dayStart, parseDay } from '../florist-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const STATUSES: readonly string[] = CONTRACT_STATUSES;
@@ -222,7 +223,7 @@ export class WeddingContractsService {
     if (dto.setupStartTime !== undefined) patch.setupStartTime = dto.setupStartTime ? parseDay(dto.setupStartTime) : null;
     if (dto.quotedAmount !== undefined) {
       if (dto.quotedAmount < Number(c.advanceAmount || 0) - 0.01) {
-        throw new BadRequestException(`Rs ${c.advanceAmount} pehle mil chuke hain — quote us se kam nahi ho sakta`);
+        throw new BadRequestException(apiMessage('Rs {{advanceAmount}} pehle mil chuke hain — quote us se kam nahi ho sakta', { advanceAmount: c.advanceAmount }));
       }
       patch.balanceAmount = r2(dto.quotedAmount - Number(c.advanceAmount || 0));
     }
@@ -237,7 +238,7 @@ export class WeddingContractsService {
     const amount = r2(dto.amount);
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
     const owed = r2(Number(c.quotedAmount || 0) - Number(c.advanceAmount || 0));
-    if (amount > owed + 0.01) throw new BadRequestException(`Sirf Rs ${owed} baqi hain`);
+    if (amount > owed + 0.01) throw new BadRequestException(apiMessage('Sirf Rs {{owed}} baqi hain', { owed }));
 
     const newAdvance = r2(Number(c.advanceAmount || 0) + amount);
     const newBalance = Math.max(r2(Number(c.quotedAmount || 0) - newAdvance), 0);

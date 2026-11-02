@@ -20,6 +20,7 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 import { teamApi } from '@modules/organization/team/api/team.api';
 import { ASSIGNABLE, ROLES, permText, type AssignableRole } from './meta';
 import { BookerGapWarning, DistributionPresetButtons } from '@modules/distribution/team/DistributionPresets';
+import { t } from '@core/i18n';
 
 /** Role presets: the server's list for the owner, else the synced copy in core. */
 export function useRoleDefaults(): Record<string, string[]> {
@@ -63,47 +64,47 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
     <div className="space-y-3">
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Ek click me:</span>
+          <span className="me-1 text-[0.75rem] font-medium text-slate-500">{t('Ek click me:')}</span>
           {ASSIGNABLE.map((r) => (
             <button key={r} type="button" onClick={() => onChange?.([...(defaults[r] ?? [])])}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
-              <span className="h-2 w-2 rounded-full" style={{ background: ROLES[r].color }} />{ROLES[r].label} wali ({(defaults[r] ?? []).length})
+              <span className="h-2 w-2 rounded-full" style={{ background: ROLES[r].color }} />{t('{{label}} wali ({{count}})', { label: ROLES[r].label, count: (defaults[r] ?? []).length })}
             </button>
           ))}
           <DistributionPresetButtons active={value} onPick={(p) => onChange?.([...p.permissions])} />
-          <button type="button" onClick={() => onChange?.([])} className="h-8 rounded-lg px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50">Sab hatayein</button>
+          <button type="button" onClick={() => onChange?.([])} className="h-8 rounded-lg px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50">{t('Sab hatayein')}</button>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] ring-1 ring-slate-200">
-        <span className="font-semibold text-slate-900">{value.length} permissions</span>
+        <span className="font-semibold text-slate-900">{t('{{count}} permissions', { count: value.length })}</span>
         {extra.length === 0 && missing.length === 0
-          ? <span className="text-emerald-700">Bilkul {ROLES[role].label} jaisi</span>
+          ? <span className="text-emerald-700">{t('Bilkul {{label}} jaisi', { label: ROLES[role].label })}</span>
           : <>
-            {extra.length > 0 && <span className="inline-flex items-center gap-1 text-violet-700"><Plus className="h-3 w-3" />{ROLES[role].label} se zyada: {extra.length}</span>}
-            {missing.length > 0 && <span className="inline-flex items-center gap-1 text-amber-800"><Minus className="h-3 w-3" />{ROLES[role].label} se kam: {missing.length}</span>}
+            {extra.length > 0 && <span className="inline-flex items-center gap-1 text-violet-700"><Plus className="h-3 w-3" />{t('{{label}} se zyada: {{count}}', { label: ROLES[role].label, count: extra.length })}</span>}
+            {missing.length > 0 && <span className="inline-flex items-center gap-1 text-amber-800"><Minus className="h-3 w-3" />{t('{{label}} se kam: {{count}}', { label: ROLES[role].label, count: missing.length })}</span>}
           </>}
-        <span className="text-slate-500">Jo nishan laga hai sirf wohi milta hai — koi chhupi permission nahi.</span>
+        <span className="text-slate-500">{t('Jo nishan laga hai sirf wohi milta hai — koi chhupi permission nahi.')}</span>
       </div>
 
       {posGap.length > 0 && (
         <div className="flex flex-wrap items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">POS counter theek se nahi chalega</p>
-            <p className="text-[0.75rem]">Counter ki permission hai magar yeh nahi: {posGap.map((p) => permText(p)[0]).join(', ')}. In ke baghair counter par maal nazar nahi aayega aur offline sync ruk jayegi.</p>
+            <p className="font-semibold">{t('POS counter theek se nahi chalega')}</p>
+            <p className="text-[0.75rem]">{t('Counter ki permission hai magar yeh nahi: {{value}}. In ke baghair counter par maal nazar nahi aayega aur offline sync ruk jayegi.', { value: posGap.map((p) => permText(p)[0]).join(', ') })}</p>
           </div>
           {!readOnly && (
             <button type="button" onClick={() => onChange?.([...new Set([...value, ...posGap])])}
-              className="h-8 rounded-lg bg-amber-600 px-3 text-[0.75rem] font-semibold text-white hover:bg-amber-700">Yeh bhi de dein</button>
+              className="h-8 rounded-lg bg-amber-600 px-3 text-[0.75rem] font-semibold text-white hover:bg-amber-700">{t('Yeh bhi de dein')}</button>
           )}
         </div>
       )}
 
       <BookerGapWarning value={value} readOnly={readOnly} label={(p) => permText(p)[0]} onFix={(gap) => onChange?.([...new Set([...value, ...gap])])} />
 
-      <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Permission search — maslan: khata, void, expense"
-        aria-label="Permission search" leftIcon={<Search className="h-4 w-4" />} />
+      <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Permission search — maslan: khata, void, expense')}
+        aria-label={t('Permission search')} leftIcon={<Search className="h-4 w-4" />} />
 
       <div className="space-y-2">
         {groups.map((g) => {
@@ -115,15 +116,15 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
           return (
             <section key={g.title} className="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
               <div className="flex items-center gap-2 px-3 py-2">
-                <button type="button" onClick={() => setOpen((o) => ({ ...o, [g.title]: !isOpen }))} aria-expanded={isOpen} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                <button type="button" onClick={() => setOpen((o) => ({ ...o, [g.title]: !isOpen }))} aria-expanded={isOpen} className="flex min-w-0 flex-1 items-center gap-2 text-start">
                   <span aria-hidden>{g.emoji}</span>
                   <span className="truncate text-[0.8125rem] font-semibold text-slate-900">{g.title}</span>
                   <span className={cn('rounded-full px-1.5 text-[0.6875rem] font-semibold tabular-nums', on ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-500')}>{on}/{g.permissions.length}</span>
-                  <ChevronDown className={cn('ml-auto h-4 w-4 text-slate-400 transition', isOpen && 'rotate-180')} />
+                  <ChevronDown className={cn('ms-auto h-4 w-4 text-slate-400 transition', isOpen && 'rotate-180')} />
                 </button>
                 {!readOnly && (
                   <button type="button" onClick={() => toggleGroup(g)} className="shrink-0 rounded-lg px-2 py-1 text-[0.6875rem] font-semibold text-brand-700 hover:bg-brand-50">
-                    {all ? 'Sab hatayein' : 'Sab dein'}
+                    {all ? t('Sab hatayein') : t('Sab dein')}
                   </button>
                 )}
               </div>
@@ -140,8 +141,8 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
                             <span className="flex flex-wrap items-center gap-1.5 text-[0.8125rem] font-medium text-slate-800">
                               {label}
                               {preset.has(p) && <span className="rounded bg-slate-100 px-1 text-[0.625rem] font-semibold text-slate-500">{ROLES[role].label}</span>}
-                              {checked && !preset.has(p) && <span className="rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">Zyada</span>}
-                              {!checked && preset.has(p) && <span className="rounded bg-amber-50 px-1 text-[0.625rem] font-semibold text-amber-800">Hataya</span>}
+                              {checked && !preset.has(p) && <span className="rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">{t('Zyada')}</span>}
+                              {!checked && preset.has(p) && <span className="rounded bg-amber-50 px-1 text-[0.625rem] font-semibold text-amber-800">{t('Hataya')}</span>}
                             </span>
                             {hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}
                           </span>

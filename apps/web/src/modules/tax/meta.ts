@@ -2,23 +2,24 @@
 
 import { CheckCircle2, Clock, MinusCircle, XCircle, type LucideIcon } from 'lucide-react';
 import type { Authority, TaxStatus } from './api';
+import { t } from '@core/i18n';
 
 export const AUTHORITY_ORDER: Authority[] = ['PRA', 'SRB', 'KPRA', 'FBR'];
 
 export const AUTH: Record<Authority, { short: string; label: string; province: string; color: string; who: string }> = {
-  PRA: { short: 'PRA', label: 'PRA (Punjab)', province: 'Punjab', color: '#16a34a', who: 'Punjab me restaurant, cafe, salon, gym aur doosri services' },
-  SRB: { short: 'SRB', label: 'SRB (Sindh)', province: 'Sindh', color: '#2563eb', who: 'Sindh (Karachi, Hyderabad…) me restaurant aur services' },
-  KPRA: { short: 'KPRA', label: 'KPRA (KP)', province: 'Khyber Pakhtunkhwa', color: '#d97706', who: 'KP (Peshawar…) me restaurant aur services' },
-  FBR: { short: 'FBR', label: 'FBR POS', province: 'Poora Pakistan', color: '#7c3aed', who: 'Bara retail store ya chain (Tier-1) jo maal bechta hai' },
+  PRA: { short: t('PRA'), label: t('PRA (Punjab)'), province: t('Punjab'), color: '#16a34a', who: t('Punjab me restaurant, cafe, salon, gym aur doosri services') },
+  SRB: { short: t('SRB'), label: t('SRB (Sindh)'), province: t('Sindh'), color: '#2563eb', who: t('Sindh (Karachi, Hyderabad…) me restaurant aur services') },
+  KPRA: { short: t('KPRA'), label: t('KPRA (KP)'), province: t('Khyber Pakhtunkhwa'), color: '#d97706', who: t('KP (Peshawar…) me restaurant aur services') },
+  FBR: { short: t('FBR'), label: t('FBR POS'), province: t('Poora Pakistan'), color: '#7c3aed', who: t('Bara retail store ya chain (Tier-1) jo maal bechta hai') },
 };
 
 export const authLabel = (a: string | null | undefined) => (a && a in AUTH ? AUTH[a as Authority].label : a ?? '—');
 
 export const STATUS: Record<TaxStatus, { label: string; icon: LucideIcon; tone: string; color: string }> = {
-  SUCCESS: { label: 'Authority ne le liya', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
-  FAILED: { label: 'Fail', icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
-  PENDING: { label: 'Qatar me', icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
-  SKIPPED: { label: 'Nahi bheja', icon: MinusCircle, tone: 'bg-slate-100 text-slate-600 ring-slate-200', color: '#64748b' },
+  SUCCESS: { label: t('Authority ne le liya'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  FAILED: { label: t('Fail'), icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
+  PENDING: { label: t('Qatar me'), icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
+  SKIPPED: { label: t('Nahi bheja'), icon: MinusCircle, tone: 'bg-slate-100 text-slate-600 ring-slate-200', color: '#64748b' },
 };
 
 export const dayTime = (iso: string) => new Date(iso).toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -32,7 +33,7 @@ export function change(now: number, before: number) {
   return Math.round(((now - before) / Math.abs(before)) * 100);
 }
 
-export function apiError(e: unknown, fallback = 'Kuch ghalat ho gaya') {
+export function apiError(e: unknown, fallback = t('Kuch ghalat ho gaya')) {
   const err = e as { response?: { data?: { message?: string | string[] } }; message?: string };
   const m = err?.response?.data?.message;
   return (Array.isArray(m) ? m[0] : m) || err?.message || fallback;

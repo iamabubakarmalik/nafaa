@@ -26,14 +26,15 @@ import { seasonalPlansApi, type PlanInput, type SeasonalPlan } from '../api/seas
 import { ProductPick } from '../components/ProductPick';
 import { usePageKeys, useSaveKey } from '../hooks/usePageKeys';
 import { CROPS, SEASON_LABEL, dayPhrase, errorText, qty, seasonLabel, shortDate, isoDay } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type View = 'now' | 'all' | 'calendar' | 'off';
 const KEY = 'seasonal-plans-all';
 const DAY = 86_400_000;
 const SOON_DAYS = 45;
 const SEASONS = ['RABI', 'KHARIF', 'ZAID'];
-const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: 'Har season' }, ...SEASONS.map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: tr('Har season') }, ...SEASONS.map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
+const MONTHS = [tr('Jan'), tr('Feb'), tr('Mar'), tr('Apr'), tr('May'), tr('Jun'), tr('Jul'), tr('Aug'), tr('Sep'), tr('Oct'), tr('Nov'), tr('Dec')];
 
 interface PlanProduct { productId?: string; name: string; perAcre: number; unit: string }
 interface PlanStep { day: number; what: string }
@@ -125,8 +126,8 @@ export default function SeasonalPlansPage() {
 
   const toggle = useMutation({
     mutationFn: (p: SeasonalPlan) => (p.isActive ? seasonalPlansApi.remove(p.id) : seasonalPlansApi.update(p.id, { isActive: true })),
-    onSuccess: (_r, p) => { toast.success(p.isActive ? 'Plan band — record mehfooz hai' : 'Plan dobara chalu'); setOpen(null); qc.invalidateQueries({ queryKey: [KEY] }); },
-    onError: (e) => toast.error(errorText(e, 'Nahi badla')),
+    onSuccess: (_r, p) => { toast.success(p.isActive ? tr('Plan band — record mehfooz hai') : tr('Plan dobara chalu')); setOpen(null); qc.invalidateQueries({ queryKey: [KEY] }); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi badla'))),
   });
 
   const listDoc = (): PrintDoc => ({
@@ -146,75 +147,75 @@ export default function SeasonalPlansPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Fasal calendar — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Fasal calendar — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Plan banayein', text: 'Fasal, season, bijai aur katai ki dates likhein — jaise Gandum: 1 Nov se 15 Dec bijai.' },
-            { icon: Package, color: '#16a34a', title: 'Fi acre maal', text: 'Har fasal ko kya chahiye — DAP 1 bori, Urea 2 bori fi acre. Stock se pata chalta hai kitne acre ka maal hai.' },
-            { icon: Sprout, color: '#d97706', title: 'Bijai qareeb', text: `${SOON_DAYS} din pehle fasal "Bijai qareeb" me aati hai. Maal kam ho to company ko order dein.` },
-            { icon: Power, color: '#64748b', title: 'Band karein', text: 'Purana plan band karein — record mehfooz rehta hai, zaroorat ho to dobara chalu karein.' },
+            { icon: CalendarRange, color: '#2563eb', title: tr('Plan banayein'), text: tr('Fasal, season, bijai aur katai ki dates likhein — jaise Gandum: 1 Nov se 15 Dec bijai.') },
+            { icon: Package, color: '#16a34a', title: tr('Fi acre maal'), text: tr('Har fasal ko kya chahiye — DAP 1 bori, Urea 2 bori fi acre. Stock se pata chalta hai kitne acre ka maal hai.') },
+            { icon: Sprout, color: '#d97706', title: tr('Bijai qareeb'), text: tr('{{SOON_DAYS}} din pehle fasal "Bijai qareeb" me aati hai. Maal kam ho to company ko order dein.', { SOON_DAYS }) },
+            { icon: Power, color: '#64748b', title: tr('Band karein'), text: tr('Purana plan band karein — record mehfooz rehta hai, zaroorat ho to dobara chalu karein.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya plan'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya plan')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Fasal calendar" chip={`${active.length} fasal`} busy={isFetching && !isLoading} loading={isLoading}
-        meta="Bijai se pehle maal tayyar — fi acre hisaab"
+      <PageHero title={tr('Fasal calendar')} chip={`${active.length} fasal`} busy={isFetching && !isLoading} loading={isLoading}
+        meta={tr('Bijai se pehle maal tayyar — fi acre hisaab')}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya plan</button>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setForm('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya plan')}</button>}
         </>}
         stats={[
-          { label: 'Bijai abhi', value: sowingNow.length },
-          { label: `Bijai ${SOON_DAYS} din me`, value: sowingSoon.length },
-          { label: 'Maal kam', value: risky.length },
+          { label: tr('Bijai abhi'), value: sowingNow.length },
+          { label: tr('Bijai {{SOON_DAYS}} din me', { SOON_DAYS }), value: sowingSoon.length },
+          { label: tr('Maal kam'), value: risky.length },
         ]} />
 
       <KpiRow cols={4}>
         {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Sprout} color="#16a34a" label="Bijai abhi" value={sowingNow.length} onClick={() => setView('now')} active={view === 'now'} />
-            <KpiCard icon={CalendarDays} color="#2563eb" label="Bijai qareeb" value={sowingSoon.length} onClick={() => setView('now')} />
-            <KpiCard icon={Wheat} color="#d97706" label="Katai chal rahi" value={harvestNow.length} />
-            <KpiCard icon={AlertTriangle} color="#e11d48" label="Maal kam" value={risky.length} onClick={() => setView('now')} />
+            <KpiCard icon={Sprout} color="#16a34a" label={tr('Bijai abhi')} value={sowingNow.length} onClick={() => setView('now')} active={view === 'now'} />
+            <KpiCard icon={CalendarDays} color="#2563eb" label={tr('Bijai qareeb')} value={sowingSoon.length} onClick={() => setView('now')} />
+            <KpiCard icon={Wheat} color="#d97706" label={tr('Katai chal rahi')} value={harvestNow.length} />
+            <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Maal kam')} value={risky.length} onClick={() => setView('now')} />
           </>
         )}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Fasal ka naam…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Fasal ka naam…')} />}
         chips={chips} onClear={() => { setSearch(''); setSeason(''); }}>
-        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : 'Season'} value={season} options={SEASON_OPTIONS} onChange={setSeason} active={!!season} align="right" />
+        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : tr('Season')} value={season} options={SEASON_OPTIONS} onChange={setSeason} active={!!season} align="right" />
       </FilterBar>
 
       <ViewTabs value={view} onChange={setView} tabs={[
-        { id: 'now', label: 'Abhi aur qareeb', icon: Sprout, count: sowingNow.length + sowingSoon.length },
-        { id: 'all', label: 'Sab plans', icon: Layers, count: active.length },
-        { id: 'calendar', label: 'Saal ka calendar', icon: CalendarRange },
-        { id: 'off', label: 'Band', icon: Power, count: off.length },
+        { id: 'now', label: tr('Abhi aur qareeb'), icon: Sprout, count: sowingNow.length + sowingSoon.length },
+        { id: 'all', label: tr('Sab plans'), icon: Layers, count: active.length },
+        { id: 'calendar', label: tr('Saal ka calendar'), icon: CalendarRange },
+        { id: 'off', label: tr('Band'), icon: Power, count: off.length },
       ]} />
 
       {isLoading ? <div className="grid gap-3 md:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-40 rounded-3xl" />)}</div>
         : view === 'now' ? (
           sowingNow.length + sowingSoon.length === 0
-            ? <Empty canManage={canManage} onNew={() => setForm('new')} text={active.length ? `Agle ${SOON_DAYS} din me kisi fasal ki bijai nahi` : 'Abhi koi plan nahi'} />
+            ? <Empty canManage={canManage} onNew={() => setForm('new')} text={active.length ? tr('Agle {{SOON_DAYS}} din me kisi fasal ki bijai nahi', { SOON_DAYS }) : tr('Abhi koi plan nahi')} />
             : (
               <div className="space-y-5">
-                {sowingNow.length > 0 && <Group title="Bijai abhi chal rahi" items={sowingNow.map(card)} />}
-                {sowingSoon.length > 0 && <Group title={`Bijai ${SOON_DAYS} din me`} items={sowingSoon.map(card)} />}
+                {sowingNow.length > 0 && <Group title={tr('Bijai abhi chal rahi')} items={sowingNow.map(card)} />}
+                {sowingSoon.length > 0 && <Group title={tr('Bijai {{SOON_DAYS}} din me', { SOON_DAYS })} items={sowingSoon.map(card)} />}
               </div>
             )
         ) : view === 'calendar' ? <YearCalendar rows={active} onOpen={setOpen} />
           : (
             <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-              {(view === 'off' ? off : active).length === 0 ? <Empty canManage={canManage && view === 'all'} onNew={() => setForm('new')} text={view === 'off' ? 'Koi band plan nahi' : 'Abhi koi plan nahi'} /> : (
+              {(view === 'off' ? off : active).length === 0 ? <Empty canManage={canManage && view === 'all'} onNew={() => setForm('new')} text={view === 'off' ? tr('Koi band plan nahi') : tr('Abhi koi plan nahi')} /> : (
                 <Table minWidth="48rem">
-                  <THead><Tr><Th>Fasal</Th><Th>Bijai</Th><Th>Katai</Th><Th>Maal</Th><Th>Agli bijai</Th></Tr></THead>
+                  <THead><Tr><Th>{tr('Fasal')}</Th><Th>{tr('Bijai')}</Th><Th>{tr('Katai')}</Th><Th>{tr('Maal')}</Th><Th>{tr('Agli bijai')}</Th></Tr></THead>
                   <TBody>{(view === 'off' ? off : active).map(({ p, w, r }) => (
                     <Tr key={p.id} interactive onClick={() => setOpen(p)}>
                       <Td><p className="font-semibold text-slate-900">{p.cropName}</p><p className="text-[0.75rem] text-slate-500">{seasonLabel(p.season)} {p.year}</p></Td>
                       <Td className="text-[0.8125rem] text-slate-600">{shortDate(p.sowingStart)} – {shortDate(p.sowingEnd)}</Td>
                       <Td className="text-[0.8125rem] text-slate-600">{shortDate(p.harvestStart)} – {shortDate(p.harvestEnd)}</Td>
-                      <Td className="text-[0.8125rem]">{r.lines.length ? <span className={r.short ? 'font-semibold text-rose-700' : 'text-slate-600'}>{r.lines.length} cheez{r.short ? ` · ${r.short} khatam` : ''}</span> : <span className="text-slate-400">—</span>}</Td>
-                      <Td className="text-[0.8125rem] text-slate-600">{w.now ? <span className="font-semibold text-emerald-700">Abhi</span> : dayPhrase(w.toSow)}</Td>
+                      <Td className="text-[0.8125rem]">{r.lines.length ? <span className={r.short ? 'font-semibold text-rose-700' : 'text-slate-600'}>{tr('{{count}} cheez{{value}}', { count: r.lines.length, value: r.short ? tr(' · {{short}} khatam', { short: r.short }) : '' })}</span> : <span className="text-slate-400">—</span>}</Td>
+                      <Td className="text-[0.8125rem] text-slate-600">{w.now ? <span className="font-semibold text-emerald-700">{tr('Abhi')}</span> : dayPhrase(w.toSow)}</Td>
                     </Tr>
                   ))}</TBody>
                 </Table>
@@ -226,11 +227,11 @@ export default function SeasonalPlansPage() {
         const x = rows.find((y) => y.p.id === open.id) ?? { p: open, w: cycle(open), r: readiness(open, stockBy) };
         return (
           <Modal open onClose={() => setOpen(null)} size="lg" title={`${x.p.cropName} — ${seasonLabel(x.p.season)} ${x.p.year}`}
-            description={x.p.isActive ? (x.w.now ? 'Bijai abhi chal rahi hai' : `Agli bijai ${dayPhrase(x.w.toSow)}`) : 'Band plan'}
+            description={x.p.isActive ? (x.w.now ? tr('Bijai abhi chal rahi hai') : tr('Agli bijai {{toSow}}', { toSow: dayPhrase(x.w.toSow) })) : tr('Band plan')}
             footer={<>
-              <span className="mr-auto"><PrintButton doc={() => planDoc(x.p, x.r)} label="Print" /></span>
-              {canManage && <Button variant="ghost" loading={toggle.isPending} onClick={() => toggle.mutate(x.p)} leftIcon={<Power className="h-4 w-4" />}>{x.p.isActive ? 'Band karein' : 'Dobara chalu'}</Button>}
-              {canManage && <Button variant="secondary" onClick={() => setForm(x.p)} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>}
+              <span className="me-auto"><PrintButton doc={() => planDoc(x.p, x.r)} label={tr('Print')} /></span>
+              {canManage && <Button variant="ghost" loading={toggle.isPending} onClick={() => toggle.mutate(x.p)} leftIcon={<Power className="h-4 w-4" />}>{x.p.isActive ? tr('Band karein') : tr('Dobara chalu')}</Button>}
+              {canManage && <Button variant="secondary" onClick={() => setForm(x.p)} leftIcon={<Pencil className="h-4 w-4" />}>{tr('Badlein')}</Button>}
             </>}>
             <PlanDetail plan={x.p} r={x.r} />
           </Modal>
@@ -255,31 +256,31 @@ function Empty({ text, canManage, onNew }: { text: string; canManage: boolean; o
     <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center shadow-sm ring-1 ring-slate-200/80">
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-700"><CalendarRange className="h-7 w-7" /></span>
       <h3 className="mt-4 text-lg font-semibold text-slate-900">{text}</h3>
-      <p className="mt-1 text-[0.875rem] text-slate-500">Har fasal ki bijai aur katai ki dates likhein — bijai se pehle yaad dihani milegi.</p>
-      {canManage && <Button className="mt-4" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>Naya plan</Button>}
+      <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Har fasal ki bijai aur katai ki dates likhein — bijai se pehle yaad dihani milegi.')}</p>
+      {canManage && <Button className="mt-4" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya plan')}</Button>}
     </div>
   );
 }
 
 function PlanCard({ plan: p, w, r, onOpen }: { plan: SeasonalPlan; w: ReturnType<typeof cycle>; r: Readiness; onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="rounded-3xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200/80 transition hover:ring-brand-300">
+    <button type="button" onClick={onOpen} className="rounded-3xl bg-white p-4 text-start shadow-sm ring-1 ring-slate-200/80 transition hover:ring-brand-300">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-50 text-lime-700"><Tractor className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-slate-900">{p.cropName} <span className="font-normal text-slate-500">· {seasonLabel(p.season)}</span></p>
-          <p className="text-[0.75rem] text-slate-500">Bijai {w.start.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} – {w.end.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</p>
+          <p className="text-[0.75rem] text-slate-500">{tr('Bijai {{value}} – {{value2}}', { value: w.start.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }), value2: w.end.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }) })}</p>
         </div>
-        <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', w.now ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-sky-50 text-sky-800 ring-sky-200')}>{w.now ? 'Abhi' : dayPhrase(w.toSow)}</span>
+        <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', w.now ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-sky-50 text-sky-800 ring-sky-200')}>{w.now ? tr('Abhi') : dayPhrase(w.toSow)}</span>
       </div>
       {r.lines.length === 0 ? (
-        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-800">Fi acre maal nahi likha — plan kholein aur jorein</p>
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-800">{tr('Fi acre maal nahi likha — plan kholein aur jorein')}</p>
       ) : (
         <ul className="mt-3 space-y-1 text-[0.8125rem]">{r.lines.slice(0, 4).map((l) => (
           <li key={l.name} className="flex items-center justify-between gap-2">
             <span className="truncate text-slate-700">{l.name}</span>
             <span className={cn('shrink-0 tabular-nums', l.stock !== null && l.stock <= 0 ? 'font-semibold text-rose-700' : 'text-slate-500')}>
-              {l.stock === null ? 'catalog me nahi' : l.stock <= 0 ? 'khatam' : l.acres !== null ? `${l.acres} acre ka` : `${qty(l.stock)} ${l.unit}`}
+              {l.stock === null ? tr('catalog me nahi') : l.stock <= 0 ? 'khatam' : l.acres !== null ? tr('{{acres}} acre ka', { acres: l.acres }) : `${qty(l.stock)} ${l.unit}`}
             </span>
           </li>
         ))}</ul>
@@ -293,14 +294,14 @@ function PlanDetail({ plan: p, r }: { plan: SeasonalPlan; r: Readiness }) {
   return (
     <div className="space-y-4">
       <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
-        <div><dt className="text-[0.75rem] text-slate-500">Bijai</dt><dd className="text-[0.875rem] font-medium">{shortDate(p.sowingStart)} – {shortDate(p.sowingEnd)}</dd></div>
-        <div><dt className="text-[0.75rem] text-slate-500">Katai</dt><dd className="text-[0.875rem] font-medium">{shortDate(p.harvestStart)} – {shortDate(p.harvestEnd)}</dd></div>
+        <div><dt className="text-[0.75rem] text-slate-500">{tr('Bijai')}</dt><dd className="text-[0.875rem] font-medium">{shortDate(p.sowingStart)} – {shortDate(p.sowingEnd)}</dd></div>
+        <div><dt className="text-[0.75rem] text-slate-500">{tr('Katai')}</dt><dd className="text-[0.875rem] font-medium">{shortDate(p.harvestStart)} – {shortDate(p.harvestEnd)}</dd></div>
       </dl>
       <div>
-        <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Fi acre maal aur stock</h4>
-        {r.lines.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Abhi kuch nahi likha</p> : (
+        <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">{tr('Fi acre maal aur stock')}</h4>
+        {r.lines.length === 0 ? <p className="text-[0.8125rem] text-slate-500">{tr('Abhi kuch nahi likha')}</p> : (
           <Table>
-            <THead><Tr><Th>Cheez</Th><Th align="right">Fi acre</Th><Th align="right">Stock</Th><Th align="right">Kitne acre ka</Th></Tr></THead>
+            <THead><Tr><Th>{tr('Cheez')}</Th><Th align="right">{tr('Fi acre')}</Th><Th align="right">{tr('Stock')}</Th><Th align="right">{tr('Kitne acre ka')}</Th></Tr></THead>
             <TBody>{r.lines.map((l) => (
               <Tr key={l.name}>
                 <Td>{l.name}</Td>
@@ -314,9 +315,9 @@ function PlanDetail({ plan: p, r }: { plan: SeasonalPlan; r: Readiness }) {
       </div>
       {steps.length > 0 && (
         <div>
-          <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">Bijai ke baad</h4>
+          <h4 className="mb-1.5 text-[0.8125rem] font-semibold text-slate-700">{tr('Bijai ke baad')}</h4>
           <ol className="space-y-1 text-[0.875rem]">{steps.map((s, i) => (
-            <li key={i} className="flex gap-2"><span className="w-16 shrink-0 font-semibold tabular-nums text-lime-700">Din {s.day}</span><span className="text-slate-700">{s.what}</span></li>
+            <li key={i} className="flex gap-2"><span className="w-16 shrink-0 font-semibold tabular-nums text-lime-700">{tr('Din {{day}}', { day: s.day })}</span><span className="text-slate-700">{s.what}</span></li>
           ))}</ol>
         </div>
       )}
@@ -326,7 +327,7 @@ function PlanDetail({ plan: p, r }: { plan: SeasonalPlan; r: Readiness }) {
 
 /** Twelve months with each crop's sowing (green) and harvest (amber) bands. */
 function YearCalendar({ rows, onOpen }: { rows: Array<{ p: SeasonalPlan }>; onOpen: (p: SeasonalPlan) => void }) {
-  if (!rows.length) return <Empty text="Abhi koi plan nahi" canManage={false} onNew={() => undefined} />;
+  if (!rows.length) return <Empty text={tr('Abhi koi plan nahi')} canManage={false} onNew={() => undefined} />;
   const pos = (iso: string) => { const d = new Date(iso); return (d.getMonth() + (d.getDate() - 1) / 31) / 12; };
   const pieces = (from: string, to: string) => {
     const a = pos(from); const b = pos(to);
@@ -337,10 +338,10 @@ function YearCalendar({ rows, onOpen }: { rows: Array<{ p: SeasonalPlan }>; onOp
   return (
     <section className="overflow-x-auto rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
       <div className="min-w-[40rem]">
-        <div className="ml-28 grid grid-cols-12 text-center text-[0.6875rem] font-semibold text-slate-500">{MONTHS.map((m) => <span key={m}>{m}</span>)}</div>
+        <div className="ms-28 grid grid-cols-12 text-center text-[0.6875rem] font-semibold text-slate-500">{MONTHS.map((m) => <span key={m}>{m}</span>)}</div>
         <ul className="mt-2 space-y-1.5">{rows.map(({ p }) => (
           <li key={p.id} className="flex items-center gap-2">
-            <button type="button" onClick={() => onOpen(p)} className="shrink-0 truncate text-left text-[0.8125rem] font-medium text-slate-800 hover:underline" style={{ width: '6.5rem' }}>{p.cropName}</button>
+            <button type="button" onClick={() => onOpen(p)} className="shrink-0 truncate text-start text-[0.8125rem] font-medium text-slate-800 hover:underline" style={{ width: '6.5rem' }}>{p.cropName}</button>
             <div className="relative h-6 flex-1 rounded-md bg-slate-50">
               {pieces(p.sowingStart, p.sowingEnd).map(([a, b], i) => <span key={`s${i}`} className="absolute top-0.5 h-2.5 rounded bg-lime-500" style={{ left: `${a * 100}%`, width: `${(b - a) * 100}%` }} />)}
               {pieces(p.harvestStart, p.harvestEnd).map(([a, b], i) => <span key={`h${i}`} className="absolute bottom-0.5 h-2.5 rounded bg-amber-400" style={{ left: `${a * 100}%`, width: `${(b - a) * 100}%` }} />)}
@@ -348,7 +349,7 @@ function YearCalendar({ rows, onOpen }: { rows: Array<{ p: SeasonalPlan }>; onOp
             </div>
           </li>
         ))}</ul>
-        <p className="mt-3 flex gap-4 text-[0.75rem] text-slate-500"><span className="inline-flex items-center gap-1"><span className="h-2 w-4 rounded bg-lime-500" />Bijai</span><span className="inline-flex items-center gap-1"><span className="h-2 w-4 rounded bg-amber-400" />Katai</span><span className="inline-flex items-center gap-1"><span className="h-3 w-px bg-rose-500" />Aaj</span></p>
+        <p className="mt-3 flex gap-4 text-[0.75rem] text-slate-500"><span className="inline-flex items-center gap-1"><span className="h-2 w-4 rounded bg-lime-500" />{tr('Bijai')}</span><span className="inline-flex items-center gap-1"><span className="h-2 w-4 rounded bg-amber-400" />{tr('Katai')}</span><span className="inline-flex items-center gap-1"><span className="h-3 w-px bg-rose-500" />{tr('Aaj')}</span></p>
       </div>
     </section>
   );
@@ -371,15 +372,15 @@ function PlanForm({ editing, onClose, onSaved }: { editing: SeasonalPlan | null;
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (!d.cropName.trim()) e.cropName = 'Fasal ka naam likhein';
+    if (!d.cropName.trim()) e.cropName = tr('Fasal ka naam likhein');
     const y = Number(d.year);
-    if (!Number.isInteger(y) || y < 2000 || y > 2100) e.year = 'Saal sahi likhein';
-    for (const k of ['sowingStart', 'sowingEnd', 'harvestStart', 'harvestEnd'] as const) if (!d[k]) e[k] = 'Date chunein';
-    if (d.sowingStart && d.sowingEnd && d.sowingEnd < d.sowingStart) e.sowingEnd = 'Shuru se pehle nahi ho sakta';
-    if (d.harvestStart && d.harvestEnd && d.harvestEnd < d.harvestStart) e.harvestEnd = 'Shuru se pehle nahi ho sakta';
-    if (d.sowingStart && d.harvestStart && d.harvestStart < d.sowingStart) e.harvestStart = 'Katai bijai se pehle nahi ho sakti';
-    if (d.products.some((p) => p.perAcre && !(Number(p.perAcre) > 0))) e.products = 'Fi acre miqdaar 0 se zyada likhein';
-    if (d.steps.some((s) => s.what.trim() && !(Number(s.day) >= 0))) e.steps = 'Din sahi likhein';
+    if (!Number.isInteger(y) || y < 2000 || y > 2100) e.year = tr('Saal sahi likhein');
+    for (const k of ['sowingStart', 'sowingEnd', 'harvestStart', 'harvestEnd'] as const) if (!d[k]) e[k] = tr('Date chunein');
+    if (d.sowingStart && d.sowingEnd && d.sowingEnd < d.sowingStart) e.sowingEnd = tr('Shuru se pehle nahi ho sakta');
+    if (d.harvestStart && d.harvestEnd && d.harvestEnd < d.harvestStart) e.harvestEnd = tr('Shuru se pehle nahi ho sakta');
+    if (d.sowingStart && d.harvestStart && d.harvestStart < d.sowingStart) e.harvestStart = tr('Katai bijai se pehle nahi ho sakti');
+    if (d.products.some((p) => p.perAcre && !(Number(p.perAcre) > 0))) e.products = tr('Fi acre miqdaar 0 se zyada likhein');
+    if (d.steps.some((s) => s.what.trim() && !(Number(s.day) >= 0))) e.steps = tr('Din sahi likhein');
     return e;
   }, [d]);
   const show = (k: string) => (tried ? errors[k] : undefined);
@@ -394,8 +395,8 @@ function PlanForm({ editing, onClose, onSaved }: { editing: SeasonalPlan | null;
       };
       return editing ? seasonalPlansApi.update(editing.id, body) : seasonalPlansApi.create(body);
     },
-    onSuccess: () => { toast.success(editing ? 'Plan badal gaya' : 'Plan ban gaya'); onSaved(); },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(editing ? tr('Plan badal gaya') : tr('Plan ban gaya')); onSaved(); },
+    onError: (e) => toast.error(errorText(e, tr('Save nahi hua'))),
   });
   const submit = () => {
     setTried(true);
@@ -406,56 +407,56 @@ function PlanForm({ editing, onClose, onSaved }: { editing: SeasonalPlan | null;
   useSaveKey(submit);
 
   return (
-    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={editing ? `${editing.cropName} — badlein` : 'Naya fasal plan'} description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" closeOnBackdrop={false} title={editing ? tr('{{cropName}} — badlein', { cropName: editing.cropName }) : tr('Naya fasal plan')} description={tr('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button loading={save.isPending} onClick={submit}>{tr('Save')}</Button></>}>
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Fasal" required list="agri-plan-crops" value={d.cropName} onChange={(e) => set('cropName', e.target.value)} placeholder="Gandum" error={show('cropName')} hint="Ek season aur saal me ek plan" data-autofocus />
+          <Input label={tr('Fasal')} required list="agri-plan-crops" value={d.cropName} onChange={(e) => set('cropName', e.target.value)} placeholder={tr('Gandum')} error={show('cropName')} hint={tr('Ek season aur saal me ek plan')} data-autofocus />
           <datalist id="agri-plan-crops">{CROPS.map((x) => <option key={x} value={x} />)}</datalist>
-          <Select label="Season" value={d.season} onChange={(e) => set('season', e.target.value)} options={SEASONS.map((v) => ({ value: v, label: SEASON_LABEL[v] }))} hint="Rabi: Oct–Mar · Kharif: Apr–Sep" />
-          <Input label="Saal" inputMode="numeric" value={d.year} onChange={(e) => set('year', e.target.value.replace(/\D/g, '').slice(0, 4))} error={show('year')} />
-          <Input label="Bijai shuru" type="date" value={d.sowingStart} onChange={(e) => set('sowingStart', e.target.value)} error={show('sowingStart')} />
-          <Input label="Bijai khatam" type="date" value={d.sowingEnd} onChange={(e) => set('sowingEnd', e.target.value)} error={show('sowingEnd')} />
+          <Select label={tr('Season')} value={d.season} onChange={(e) => set('season', e.target.value)} options={SEASONS.map((v) => ({ value: v, label: SEASON_LABEL[v] }))} hint={tr('Rabi: Oct–Mar · Kharif: Apr–Sep')} />
+          <Input label={tr('Saal')} inputMode="numeric" value={d.year} onChange={(e) => set('year', e.target.value.replace(/\D/g, '').slice(0, 4))} error={show('year')} />
+          <Input label={tr('Bijai shuru')} type="date" value={d.sowingStart} onChange={(e) => set('sowingStart', e.target.value)} error={show('sowingStart')} />
+          <Input label={tr('Bijai khatam')} type="date" value={d.sowingEnd} onChange={(e) => set('sowingEnd', e.target.value)} error={show('sowingEnd')} />
           <span className="hidden sm:block" />
-          <Input label="Katai shuru" type="date" value={d.harvestStart} onChange={(e) => set('harvestStart', e.target.value)} error={show('harvestStart')} hint="Udhaar ki wapsi isi ke baad" />
-          <Input label="Katai khatam" type="date" value={d.harvestEnd} onChange={(e) => set('harvestEnd', e.target.value)} error={show('harvestEnd')} />
+          <Input label={tr('Katai shuru')} type="date" value={d.harvestStart} onChange={(e) => set('harvestStart', e.target.value)} error={show('harvestStart')} hint={tr('Udhaar ki wapsi isi ke baad')} />
+          <Input label={tr('Katai khatam')} type="date" value={d.harvestEnd} onChange={(e) => set('harvestEnd', e.target.value)} error={show('harvestEnd')} />
         </div>
 
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Fi acre maal</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Fi acre maal')}</span>
           <ProductPick onPick={(i) => { if (!d.products.some((p) => p.productId === i.id)) set('products', [...d.products, { productId: i.id, name: i.name, perAcre: '', unit: i.unit }]); }} />
           {d.products.length > 0 && (
             <ul className="mt-2 space-y-1.5">{d.products.map((p, n) => (
               <li key={p.productId ?? p.name} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-1.5">
                 <span className="min-w-0 flex-1 truncate text-[0.875rem] font-medium text-slate-800">{p.name}</span>
-                <input inputMode="decimal" value={p.perAcre} placeholder="Fi acre" aria-label={`${p.name} fi acre`}
+                <input inputMode="decimal" value={p.perAcre} placeholder={tr('Fi acre')} aria-label={tr('{{name}} fi acre', { name: p.name })}
                   onChange={(e) => set('products', d.products.map((x, i) => (i === n ? { ...x, perAcre: e.target.value.replace(/[^\d.]/g, '') } : x)))}
-                  className="h-9 w-24 rounded-lg border border-slate-300 px-2 text-right text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+                  className="h-9 w-24 rounded-lg border border-slate-300 px-2 text-end text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                 <span className="w-12 text-[0.75rem] text-slate-500">{p.unit}</span>
-                <button type="button" aria-label={`${p.name} hatayein`} onClick={() => set('products', d.products.filter((_, i) => i !== n))} className="rounded-lg p-1.5 text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
+                <button type="button" aria-label={tr('{{name}} hatayein', { name: p.name })} onClick={() => set('products', d.products.filter((_, i) => i !== n))} className="rounded-lg p-1.5 text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
               </li>
             ))}</ul>
           )}
-          {show('products') ? <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{show('products')}</p> : <p className="mt-1 text-[0.75rem] text-slate-500">Miqdaar product ki unit me — stock se kitne acre ka maal hai, isi se nikalta hai</p>}
+          {show('products') ? <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{show('products')}</p> : <p className="mt-1 text-[0.75rem] text-slate-500">{tr('Miqdaar product ki unit me — stock se kitne acre ka maal hai, isi se nikalta hai')}</p>}
         </div>
 
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bijai ke baad kya karna hai</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Bijai ke baad kya karna hai')}</span>
           <ul className="space-y-1.5">{d.steps.map((s, n) => (
             <li key={n} className="flex items-center gap-2">
-              <input inputMode="numeric" value={s.day} placeholder="Din" aria-label="Bijai ke kitne din baad"
+              <input inputMode="numeric" value={s.day} placeholder={tr('Din')} aria-label={tr('Bijai ke kitne din baad')}
                 onChange={(e) => set('steps', d.steps.map((x, i) => (i === n ? { ...x, day: e.target.value.replace(/\D/g, '') } : x)))}
-                className="h-9 w-20 rounded-lg border border-slate-300 px-2 text-right text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
-              <input value={s.what} placeholder="Pehla paani + Urea 1 bori" aria-label="Kya karna hai"
+                className="h-9 w-20 rounded-lg border border-slate-300 px-2 text-end text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+              <input value={s.what} placeholder={tr('Pehla paani + Urea 1 bori')} aria-label={tr('Kya karna hai')}
                 onChange={(e) => set('steps', d.steps.map((x, i) => (i === n ? { ...x, what: e.target.value } : x)))}
                 className="h-9 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
-              <button type="button" aria-label="Line hatayein" onClick={() => set('steps', d.steps.filter((_, i) => i !== n))} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+              <button type="button" aria-label={tr('Line hatayein')} onClick={() => set('steps', d.steps.filter((_, i) => i !== n))} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button>
             </li>
           ))}</ul>
-          <Button variant="ghost" size="sm" className="mt-1.5" onClick={() => set('steps', [...d.steps, { day: '', what: '' }])} leftIcon={<Plus className="h-4 w-4" />}>Line jorein</Button>
+          <Button variant="ghost" size="sm" className="mt-1.5" onClick={() => set('steps', [...d.steps, { day: '', what: '' }])} leftIcon={<Plus className="h-4 w-4" />}>{tr('Line jorein')}</Button>
           {show('steps') && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{show('steps')}</p>}
         </div>
-        {editing && !editing.isActive && <p className="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600"><CheckCircle2 className="h-4 w-4" />Ye plan band hai — save ke baad bhi band rahega</p>}
+        {editing && !editing.isActive && <p className="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600"><CheckCircle2 className="h-4 w-4" />{tr('Ye plan band hai — save ke baad bhi band rahega')}</p>}
       </div>
     </Modal>
   );

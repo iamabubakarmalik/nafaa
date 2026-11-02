@@ -54,6 +54,7 @@ import { MappingPanel } from '../import/MappingPanel';
 import { SheetGrid, type GridColumn, type RowMark, type SheetGridHandle } from '../import/grid/SheetGrid';
 import { SheetTools } from '../import/grid/SheetTools';
 import { useSheetRows, type GridRow } from '../import/grid/useSheetRows';
+import { t as tr, Trans } from '@core/i18n';
 
 type Step = 'file' | 'map' | 'edit' | 'run';
 type View = 'all' | 'error' | 'new' | 'update' | 'skip' | 'warn';
@@ -62,7 +63,7 @@ const MAX_ROWS = 10_000;
 const CHUNK = { create: 50, prices: 250 } as const;
 
 const STEPS: Array<{ id: Step; label: string }> = [
-  { id: 'file', label: 'File' }, { id: 'map', label: 'Columns' }, { id: 'edit', label: 'Sheet (check)' }, { id: 'run', label: 'Import' },
+  { id: 'file', label: tr('File') }, { id: 'map', label: tr('Columns') }, { id: 'edit', label: tr('Sheet (check)') }, { id: 'run', label: tr('Import') },
 ];
 
 const WIDTH: Partial<Record<ImportField, number>> = {
@@ -149,11 +150,11 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
   }, [running]);
 
   const mapped = useMemo(() => new Set(mapping.filter(Boolean) as ImportField[]), [mapping]);
-  const mappingProblem = !sheet ? 'File chunein'
+  const mappingProblem = !sheet ? tr('File chunein')
     : mode === 'create'
-      ? (!mapped.has('name') ? 'Name ka column chunein — ye zaroori hai' : null)
-      : (!mapped.has('sku') && !mapped.has('barcode') && !mapped.has('name') ? 'SKU, Barcode ya Name me se ek column chunein — isi se product milta hai'
-        : !mapped.has('price') && !mapped.has('costPrice') ? 'Price ya Cost Price ka column chunein' : null);
+      ? (!mapped.has('name') ? tr('Name ka column chunein — ye zaroori hai') : null)
+      : (!mapped.has('sku') && !mapped.has('barcode') && !mapped.has('name') ? tr('SKU, Barcode ya Name me se ek column chunein — isi se product milta hai')
+        : !mapped.has('price') && !mapped.has('costPrice') ? tr('Price ya Cost Price ka column chunein') : null);
 
   /** Grid columns: what the file has, plus the industry's template columns and any added by hand. */
   const fields = useMemo<ImportField[]>(() => {
@@ -177,9 +178,9 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     numeric: NUMERIC.has(f),
     options: f === 'category' ? categories : f === 'brand' ? brands : f === 'unit' ? [...new Set([...(quickUnits ?? []), ...UNITS])]
       : f === 'packName' ? ['Carton', 'Box', 'Dozen', 'Pack', 'Strip', 'Bag'] : f === 'size' ? SIZES : f === 'color' ? COLORS : undefined,
-    placeholder: f === 'name' ? 'naam likhein' : undefined,
+    placeholder: f === 'name' ? tr('naam likhein') : undefined,
     // A phone's stock is its IMEI count.
-    lock: f === 'stock' && fields.includes('imei') ? (id: number) => (rowById.get(id)?.cells.imei?.trim() ? 'Is phone ka stock IMEI ginti se banega' : null) : undefined,
+    lock: f === 'stock' && fields.includes('imei') ? (id: number) => (rowById.get(id)?.cells.imei?.trim() ? tr('Is phone ka stock IMEI ginti se banega') : null) : undefined,
   })), [fields, categories, brands, quickUnits, rowById]);
 
   // ─── Live check: the server judges the lines (nothing is saved) ───
@@ -204,7 +205,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
         if (seq === checkSeq.current) setCheckError(null);
       } catch (e) {
         if (controller.signal.aborted || (e as { code?: string })?.code === 'ERR_CANCELED') return;
-        if (seq === checkSeq.current) setCheckError(apiMessage(e, 'Check nahi hua — internet dekh lein'));
+        if (seq === checkSeq.current) setCheckError(apiMessage(e, tr('Check nahi hua — internet dekh lein')));
       } finally {
         if (seq === checkSeq.current) setChecking(false);
       }
@@ -265,11 +266,11 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
 
   const loadSheet = (s: Sheet) => {
     if (!s.headers.length || !s.rows.length) {
-      toast.error('File me column ke naam wali line aur neeche maal ki lines honi chahiye');
+      toast.error(tr('File me column ke naam wali line aur neeche maal ki lines honi chahiye'));
       return;
     }
     if (s.rows.length > MAX_ROWS) {
-      toast.error(`Ek dafa me ${MAX_ROWS.toLocaleString()} lines tak — file ke do hisse kar ke import karein`);
+      toast.error(tr('Ek dafa me {{MAX_ROWS}} lines tak — file ke do hisse kar ke import karein', { MAX_ROWS: MAX_ROWS.toLocaleString() }));
       return;
     }
     const m = detectMapping(s.headers, mode);
@@ -277,20 +278,20 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     setMapping(m);
     setCheck(null);
     setStep('map');
-    toast.success(`${s.rows.length} lines mili · ${m.filter(Boolean).length} columns khud mil gaye — check kar lein`);
+    toast.success(tr('{{count}} lines mili · {{count2}} columns khud mil gaye — check kar lein', { count: s.rows.length, count2: m.filter(Boolean).length }));
   };
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     if (!/\.(xlsx|xls|csv|txt)$/i.test(file.name)) {
-      toast.error('Excel (.xlsx) ya CSV file chunein');
+      toast.error(tr('Excel (.xlsx) ya CSV file chunein'));
       return;
     }
     setReading(true);
     try {
       loadSheet(await readFile(file));
     } catch {
-      toast.error('File parhi nahi ja saki — Excel me khol kar .xlsx ya .csv me dobara save karein');
+      toast.error(tr('File parhi nahi ja saki — Excel me khol kar .xlsx ya .csv me dobara save karein'));
     } finally {
       setReading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -310,7 +311,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
   const openBlank = () => {
     setMode('create');
     setRun(null);
-    setSheet({ fileName: `Bulk products ${new Date().toLocaleDateString('en-PK')}`, headers: [], rows: [] });
+    setSheet({ fileName: tr('Bulk products {{value}}', { value: new Date().toLocaleDateString('en-PK') }), headers: [], rows: [] });
     setMapping([]);
     // Wholesale and credit prices are optional; the columns are there so they can be filled while typing.
     setExtraFields(['wholesalePrice', 'creditPrice']);
@@ -337,7 +338,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     void (async () => {
       try {
         const job = await importApi.job(fixJob);
-        if (!job.failedRows.length) { toast.info('Is import ki ghalti wali lines mehfooz nahi — "Download" se file lein'); return; }
+        if (!job.failedRows.length) { toast.info(tr('Is import ki ghalti wali lines mehfooz nahi — "Download" se file lein')); return; }
         const nextMode: ImportMode = job.jobType === 'PRICE_UPDATE' ? 'prices' : 'create';
         const keys = new Set<ImportField>();
         const rows = job.failedRows.map(({ row, error: _error, ...cells }) => {
@@ -353,16 +354,16 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
         setCheck(null);
         setView('all');
         setStep('edit');
-        toast.info(`${rows.length} ghalti wali lines grid me — theek kar ke dobara import karein`);
+        toast.info(tr('{{count}} ghalti wali lines grid me — theek kar ke dobara import karein', { count: rows.length }));
       } catch (e) {
-        toast.error(apiMessage(e, 'Import nahi mila'));
+        toast.error(apiMessage(e, tr('Import nahi mila')));
       }
     })();
   }, [fixJob]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const backToColumns = async () => {
     if (!sheet?.headers.length) { reset(); return; }
-    if (grid.canUndo && !(await confirmDialog({ title: 'Columns dobara milayein?', text: 'Sheet me ki gayi tabdeeliyan mit jayengi aur file dobara parhi jayegi.', yes: 'Haan, columns' }))) return;
+    if (grid.canUndo && !(await confirmDialog({ title: tr('Columns dobara milayein?'), text: tr('Sheet me ki gayi tabdeeliyan mit jayengi aur file dobara parhi jayegi.'), yes: tr('Haan, columns') }))) return;
     setStep('map');
   };
 
@@ -372,20 +373,20 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
       if (mode === 'create' || kind === 'sample') {
         if (kind === 'sample') {
           await downloadSample({ features, businessType, unit: defaultUnit || 'pcs' });
-          toast.success('Sample file download hui — isi ko upload kar ke dekh lein');
+          toast.success(tr('Sample file download hui — isi ko upload kar ke dekh lein'));
         } else {
           const ref = await importApi.categories().catch(() => ({ categories: [] as Array<{ name: string }> }));
           await downloadTemplate({ features, businessType, unit: defaultUnit || 'pcs', categories: ref.categories.map((c) => c.name) });
-          toast.success('Template download ho gaya — sample lines mita kar apna maal likhein');
+          toast.success(tr('Template download ho gaya — sample lines mita kar apna maal likhein'));
         }
       } else {
         const { rows: list } = await importApi.priceSheet();
-        if (!list.length) { toast.error('Abhi koi product nahi'); return; }
+        if (!list.length) { toast.error(tr('Abhi koi product nahi')); return; }
         await downloadPriceSheet(list, !costHidden);
-        toast.success(`${list.length} lines ki price list download hui — sirf Price / Cost badal kar wapas upload karein`);
+        toast.success(tr('{{count}} lines ki price list download hui — sirf Price / Cost badal kar wapas upload karein', { count: list.length }));
       }
     } catch (e) {
-      toast.error(apiMessage(e, 'Download nahi hua'));
+      toast.error(apiMessage(e, tr('Download nahi hua')));
     } finally {
       setBusy(null);
     }
@@ -412,7 +413,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
         current = { ...current, jobId: res.jobId, job: res.job, next: i + 1, results: [...current.results, ...res.results] };
         setRun(current);
       } catch (e) {
-        current = { ...current, running: false, error: apiMessage(e, 'Internet ya server ka masla') };
+        current = { ...current, running: false, error: apiMessage(e, tr('Internet ya server ka masla')) };
         setRun(current);
         return;
       }
@@ -421,7 +422,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     setRun(current);
     void qc.invalidateQueries({ predicate: (q) => /product|catalog|categor|brand|stock|pos|import|imei/i.test(String(q.queryKey[0])) });
     const failed = current.results.filter((r) => r.status === 'error').length;
-    toast.success(failed ? `Import mukammal — ${failed} lines reh gayin` : 'Import mukammal');
+    toast.success(failed ? tr('Import mukammal — {{failed}} lines reh gayin', { failed }) : tr('Import mukammal'));
   };
 
   const startRun = () => {
@@ -442,12 +443,12 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     setCheck(null);
     setRun(null);
     setStep('edit');
-    toast.info(`${rows.length} lines grid me — theek kar ke dobara import karein`);
+    toast.info(tr('{{count}} lines grid me — theek kar ke dobara import karein', { count: rows.length }));
   };
 
   const problemFile = async (list: Array<{ row: number; status: string; errors: string[] }>) => {
     const bad = new Map(list.filter((r) => r.status === 'error').map((r) => [r.row, r.errors.join(' · ')]));
-    if (!bad.size) { toast.info('Koi ghalti wali line nahi'); return; }
+    if (!bad.size) { toast.info(tr('Koi ghalti wali line nahi')); return; }
     await downloadProblemRows(fields, grid.rows, bad);
   };
 
@@ -459,7 +460,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
 
   const deleteSelected = () => {
     grid.removeRows(selected);
-    toast.success(`${selected.size} lines hata di — Ctrl+Z se wapas`);
+    toast.success(tr('{{size}} lines hata di — Ctrl+Z se wapas', { size: selected.size }));
     setSelected(new Set());
   };
 
@@ -481,27 +482,27 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
   return (
     <PageShell>
       {guide.isOpen && <ImportGuide mode={mode} imei={!!features.imei} onClose={guide.close} />}
-      <Modal open={pasting} onClose={() => setPasting(false)} title="Cells paste karein" description="Excel ya Google Sheets me pehli line (column ke naam) samet cells copy kar ke yahan paste karein."
+      <Modal open={pasting} onClose={() => setPasting(false)} title={tr('Cells paste karein')} description={tr('Excel ya Google Sheets me pehli line (column ke naam) samet cells copy kar ke yahan paste karein.')}
         footer={<>
-          <Button variant="secondary" onClick={() => setPasting(false)}>Wapas</Button>
-          <Button disabled={!pasteText.trim()} onClick={() => { setPasting(false); loadSheet(readPasted(pasteText)); setPasteText(''); }}>Aage</Button>
+          <Button variant="secondary" onClick={() => setPasting(false)}>{tr('Wapas')}</Button>
+          <Button disabled={!pasteText.trim()} onClick={() => { setPasting(false); loadSheet(readPasted(pasteText)); setPasteText(''); }}>{tr('Aage')}</Button>
         </>}>
-        <Textarea rows={10} value={pasteText} onChange={(e) => setPasteText(e.target.value)} placeholder={'Name\tPrice\tStock\nSurf Excel 1kg\t650\t20'}
-          hint="Tab se alag cells (Excel copy) ya comma se alag lines dono chalti hain" />
+        <Textarea rows={10} value={pasteText} onChange={(e) => setPasteText(e.target.value)} placeholder={tr('Name	Price	Stock\nSurf Excel 1kg	650	20')}
+          hint={tr('Tab se alag cells (Excel copy) ya comma se alag lines dono chalti hain')} />
       </Modal>
 
       <PageHero
-        title={blank ? 'Bulk banayein' : 'Excel se import'}
-        chip={<>{mode === 'create' ? <PackagePlus /> : <Tag />}{mode === 'create' ? 'Products + stock' : 'Price update'}</>}
+        title={blank ? tr('Bulk banayein') : tr('Excel se import')}
+        chip={<>{mode === 'create' ? <PackagePlus /> : <Tag />}{mode === 'create' ? tr('Products + stock') : tr('Price update')}</>}
         meta={`${template?.label ?? ''}${user?.assignedShop?.name ? ` · ${user.assignedShop.name}` : ''}`}
         actions={<>
-          <button type="button" onClick={guide.open} title="Tareeqa (G)" className={heroButton}><GraduationCap className="h-4 w-4" /><span className="hidden sm:inline">Tareeqa</span></button>
+          <button type="button" onClick={guide.open} title={tr('Tareeqa (G)')} className={heroButton}><GraduationCap className="h-4 w-4" /><span className="hidden sm:inline">{tr('Tareeqa')}</span></button>
           <button type="button" onClick={() => void download('template')} disabled={!!busy || running} className={heroButton}>
             {busy === 'template' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            <span className="hidden sm:inline">{mode === 'create' ? 'Template' : 'Price list'}</span>
+            <span className="hidden sm:inline">{mode === 'create' ? tr('Template') : tr('Price list')}</span>
           </button>
-          {canEdit && <Link to="/products/bulk-edit" className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">Bulk edit</span></Link>}
-          <Link to="/products" className={heroButton}><Package className="h-4 w-4" /><span className="hidden sm:inline">Products</span></Link>
+          {canEdit && <Link to="/products/bulk-edit" className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">{tr('Bulk edit')}</span></Link>}
+          <Link to="/products" className={heroButton}><Package className="h-4 w-4" /><span className="hidden sm:inline">{tr('Products')}</span></Link>
         </>}
       />
 
@@ -512,7 +513,7 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
               i < stepIndex ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : i === stepIndex ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-500 ring-slate-200')}>
               {i < stepIndex ? <CheckCircle2 className="h-4 w-4" /> : <span className="tabular-nums">{i + 1}</span>}{s.label}
             </span>
-            {i < STEPS.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-slate-300" />}
+            {i < STEPS.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-slate-300 rtl-flip" />}
           </li>
         ))}
       </ol>
@@ -521,9 +522,9 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
         <>
           {canCreate && canEdit && (
             <ViewTabs<ImportMode>
-              tabs={[{ id: 'create', label: 'Products + stock', icon: PackagePlus }, { id: 'prices', label: 'Price update', icon: Tag }]}
+              tabs={[{ id: 'create', label: tr('Products + stock'), icon: PackagePlus }, { id: 'prices', label: tr('Price update'), icon: Tag }]}
               value={mode} onChange={(m) => reset(m)}
-              hint={mode === 'create' ? 'Naye products banayein, pehle se bane products ka stock / price update karein' : 'Pehle se bane products ki sirf Price / Cost badlein'} />
+              hint={mode === 'create' ? tr('Naye products banayein, pehle se bane products ka stock / price update karein') : tr('Pehle se bane products ki sirf Price / Cost badlein')} />
           )}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -534,30 +535,30 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
               {reading ? <Loader2 className="h-7 w-7 animate-spin" /> : <FileSpreadsheet className="h-7 w-7" />}
             </span>
-            <p className="mt-3 text-[1rem] font-semibold text-slate-900">Excel ya CSV file yahan chhorein</p>
+            <p className="mt-3 text-[1rem] font-semibold text-slate-900">{tr('Excel ya CSV file yahan chhorein')}</p>
             <p className="mx-auto mt-1 max-w-2xl text-[0.8125rem] text-slate-500">
               {mode === 'create'
-                ? 'Apni purani list bhi chalegi — "Item Name", "Qty", "Maujooda", "Sale Rate" jaise column khud pehchane jate hain. Upar shop ka naam ya khaali lines hon to bhi koi baat nahi.'
-                : 'Upar se "Price list" download karein, Price / Cost badlein aur yahan wapas daalein. SKU ya barcode se product milta hai.'}
+                ? tr('Apni purani list bhi chalegi — "Item Name", "Qty", "Maujooda", "Sale Rate" jaise column khud pehchane jate hain. Upar shop ka naam ya khaali lines hon to bhi koi baat nahi.')
+                : tr('Upar se "Price list" download karein, Price / Cost badlein aur yahan wapas daalein. SKU ya barcode se product milta hai.')}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.txt" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
-              <Button leftIcon={<Upload className="h-4 w-4" />} onClick={() => fileRef.current?.click()} loading={reading}>File chunein</Button>
-              <Button variant="secondary" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPasting(true)}>Cells paste karein</Button>
-              {mode === 'create' && <Button variant="secondary" leftIcon={<Table2 className="h-4 w-4" />} onClick={openBlank}>Khaali sheet me likhein</Button>}
+              <Button leftIcon={<Upload className="h-4 w-4" />} onClick={() => fileRef.current?.click()} loading={reading}>{tr('File chunein')}</Button>
+              <Button variant="secondary" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPasting(true)}>{tr('Cells paste karein')}</Button>
+              {mode === 'create' && <Button variant="secondary" leftIcon={<Table2 className="h-4 w-4" />} onClick={openBlank}>{tr('Khaali sheet me likhein')}</Button>}
             </div>
             <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[0.8125rem]">
               <button type="button" onClick={() => void download('template')} disabled={!!busy} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
                 {busy === 'template' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                {mode === 'create' ? `${template?.label ?? 'Apna'} template` : 'Price list download'}
+                {mode === 'create' ? tr('{{value}} template', { value: template?.label ?? 'Apna' }) : tr('Price list download')}
               </button>
               {mode === 'create' && (
                 <button type="button" onClick={() => void download('sample')} disabled={!!busy} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
-                  {busy === 'sample' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}Sample file (bhari hui)
+                  {busy === 'sample' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}{tr('Sample file (bhari hui)')}
                 </button>
               )}
             </div>
-            <p className="mt-3 text-[0.75rem] text-slate-400">.xlsx, .xls, .csv · {MAX_ROWS.toLocaleString()} lines tak</p>
+            <p className="mt-3 text-[0.75rem] text-slate-400">{tr('.xlsx, .xls, .csv · {{MAX_ROWS}} lines tak', { MAX_ROWS: MAX_ROWS.toLocaleString() })}</p>
           </div>
           <ImportHistory withCost={!costHidden} />
         </>
@@ -568,15 +569,14 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
           <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white px-4 py-3 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
             <FileSpreadsheet className="h-4 w-4 text-brand-600" />
             <span className="font-semibold text-slate-900">{sheet.fileName}</span>
-            <span className="text-slate-500">· {sheet.rows.length} lines · {sheet.headers.length} columns</span>
-            <button type="button" onClick={() => reset()} className="ml-auto inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
-              <RefreshCw className="h-3.5 w-3.5" />Doosri file
+            <span className="text-slate-500">{tr('· {{count}} lines · {{count2}} columns', { count: sheet.rows.length, count2: sheet.headers.length })}</span>
+            <button type="button" onClick={() => reset()} className="ms-auto inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
+              <RefreshCw className="h-3.5 w-3.5" />{tr('Doosri file')}
             </button>
           </div>
           {stockMissing && (
-            <Alert tone="warning" title="Stock ka column nahi mila">
-              Is tarah stock nahi aayega. Neeche jis column me maal ki ginti hai (Qty, Maujooda, Stock…) uske saamne <b>Stock</b> chunein.
-              Sirf products banane hain to aise hi aage chalein.
+            <Alert tone="warning" title={tr('Stock ka column nahi mila')}>
+              <Trans text="Is tarah stock nahi aayega. Neeche jis column me maal ki ginti hai (Qty, Maujooda, Stock…) uske saamne {{stock}} chunein. Sirf products banane hain to aise hi aage chalein." values={{ stock: <b>{tr('Stock')}</b> }} />
             </Alert>
           )}
           <MappingPanel sheet={sheet} mode={mode} mapping={mapping} onChange={setMapping} />
@@ -585,13 +585,13 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
               canStock={canStock} canPrices={canEdit} />
           )}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Button variant="secondary" leftIcon={<ArrowLeft className="h-4 w-4" />} onClick={() => reset()}>Wapas</Button>
+            <Button variant="secondary" leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />} onClick={() => reset()}>{tr('Wapas')}</Button>
             <div className="flex flex-wrap items-center gap-3">
               {mappingProblem
                 ? <p className="text-[0.8125rem] font-medium text-rose-600">{mappingProblem}</p>
-                : <p className="text-[0.8125rem] text-slate-500">Agle qadam me har line grid me dikhegi — wahin theek kar sakte hain</p>}
-              <Button rightIcon={<ArrowRight className="h-4 w-4" />} disabled={!!mappingProblem} onClick={openSheet}>
-                Sheet me dekhein ({sheet.rows.length})
+                : <p className="text-[0.8125rem] text-slate-500">{tr('Agle qadam me har line grid me dikhegi — wahin theek kar sakte hain')}</p>}
+              <Button rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />} disabled={!!mappingProblem} onClick={openSheet}>
+                {tr('Sheet me dekhein ({{count}})', { count: sheet.rows.length })}
               </Button>
             </div>
           </div>
@@ -602,19 +602,19 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
         <>
           {mode === 'create' ? (
             <KpiRow cols={5}>
-              <KpiCard icon={FileSpreadsheet} color="#475569" label="Kul lines" value={counts.all} active={view === 'all'} onClick={() => setView('all')} hint={sheet?.fileName} />
-              <KpiCard icon={PackagePlus} color="#16a34a" label="Naye banenge" value={counts.new} active={view === 'new'} onClick={() => setView('new')} hint={summary ? `${summary.products} products${summary.variants ? ` · ${summary.variants} variants` : ''}` : undefined} />
-              <KpiCard icon={RefreshCw} color="#0284c7" label="Update honge" value={counts.update} active={view === 'update'} onClick={() => setView('update')} hint={counts.skip ? `${counts.skip} chhor diye jayenge` : 'Pehle se bane products'} />
-              <KpiCard icon={XCircle} color="#e11d48" label="Ghalti" value={counts.error} active={view === 'error'} onClick={() => setView('error')} hint={counts.error ? 'Laal cells theek karein' : 'Sab theek'} />
-              <KpiCard icon={Boxes} color="#7c3aed" label="Stock aayega" value={summary ? `+${qty(summary.stockUp)}` : '…'}
-                hint={summary ? `${shopName ?? check?.create?.shop?.name ?? ''}${summary.stockDown ? ` · −${qty(summary.stockDown)} kam` : ''}` : 'Check ho raha hai'} />
+              <KpiCard icon={FileSpreadsheet} color="#475569" label={tr('Kul lines')} value={counts.all} active={view === 'all'} onClick={() => setView('all')} hint={sheet?.fileName} />
+              <KpiCard icon={PackagePlus} color="#16a34a" label={tr('Naye banenge')} value={counts.new} active={view === 'new'} onClick={() => setView('new')} hint={summary ? tr('{{products}} products{{value}}', { products: summary.products, value: summary.variants ? tr(' · {{variants}} variants', { variants: summary.variants }) : '' }) : undefined} />
+              <KpiCard icon={RefreshCw} color="#0284c7" label={tr('Update honge')} value={counts.update} active={view === 'update'} onClick={() => setView('update')} hint={counts.skip ? tr('{{skip}} chhor diye jayenge', { skip: counts.skip }) : tr('Pehle se bane products')} />
+              <KpiCard icon={XCircle} color="#e11d48" label={tr('Ghalti')} value={counts.error} active={view === 'error'} onClick={() => setView('error')} hint={counts.error ? tr('Laal cells theek karein') : tr('Sab theek')} />
+              <KpiCard icon={Boxes} color="#7c3aed" label={tr('Stock aayega')} value={summary ? `+${qty(summary.stockUp)}` : '…'}
+                hint={summary ? `${shopName ?? check?.create?.shop?.name ?? ''}${summary.stockDown ? ` · −${qty(summary.stockDown)} kam` : ''}` : tr('Check ho raha hai')} />
             </KpiRow>
           ) : (
             <KpiRow cols={4}>
-              <KpiCard icon={FileSpreadsheet} color="#475569" label="Kul lines" value={counts.all} active={view === 'all'} onClick={() => setView('all')} />
-              <KpiCard icon={Tag} color="#0284c7" label="Price badlegi" value={counts.update} active={view === 'update'} onClick={() => setView('update')} />
-              <KpiCard icon={CheckCircle2} color="#64748b" label="Wesi hi" value={counts.skip} active={view === 'skip'} onClick={() => setView('skip')} />
-              <KpiCard icon={XCircle} color="#e11d48" label="Ghalti" value={counts.error} active={view === 'error'} onClick={() => setView('error')} />
+              <KpiCard icon={FileSpreadsheet} color="#475569" label={tr('Kul lines')} value={counts.all} active={view === 'all'} onClick={() => setView('all')} />
+              <KpiCard icon={Tag} color="#0284c7" label={tr('Price badlegi')} value={counts.update} active={view === 'update'} onClick={() => setView('update')} />
+              <KpiCard icon={CheckCircle2} color="#64748b" label={tr('Wesi hi')} value={counts.skip} active={view === 'skip'} onClick={() => setView('skip')} />
+              <KpiCard icon={XCircle} color="#e11d48" label={tr('Ghalti')} value={counts.error} active={view === 'error'} onClick={() => setView('error')} />
             </KpiRow>
           )}
 
@@ -623,9 +623,8 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
               canStock={canStock} canPrices={canEdit} />
           )}
           {mode === 'create' && hasImei && (
-            <Alert tone="info" icon={<Smartphone className="h-4 w-4" />} title="Mobile phone ka stock IMEI se">
-              IMEI column me har phone ka 15 number wala IMEI likhein (kai phone ho to comma se alag). Stock usi ginti se banta hai — us line ka Stock cell band rehta hai.
-              Charger, cover jaise accessories ka stock seedha Stock me likhein.
+            <Alert tone="info" icon={<Smartphone className="h-4 w-4" />} title={tr('Mobile phone ka stock IMEI se')}>
+              {tr('IMEI column me har phone ka 15 number wala IMEI likhein (kai phone ho to comma se alag). Stock usi ginti se banta hai — us line ka Stock cell band rehta hai. Charger, cover jaise accessories ka stock seedha Stock me likhein.')}
             </Alert>
           )}
 
@@ -634,55 +633,55 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
               canUndo={grid.canUndo} canRedo={grid.canRedo} onUndo={grid.undo} onRedo={grid.redo}
               onAddRow={addRow} onDelete={deleteSelected}
               extra={
-                <Select aria-label="Column jodein" value="" className="h-8 w-40 text-[0.8125rem]"
+                <Select aria-label={tr('Column jodein')} value="" className="h-8 w-40 text-[0.8125rem]"
                   onChange={(e) => { if (e.target.value) setExtraFields((x) => [...x, e.target.value as ImportField]); }}
-                  options={[{ value: '', label: '+ Column jodein' }, ...(mode === 'create' ? CREATE_FIELDS : PRICE_FIELDS).filter((f) => !fields.includes(f)).map((f) => ({ value: f, label: FIELDS[f].label }))]} />
+                  options={[{ value: '', label: tr('+ Column jodein') }, ...(mode === 'create' ? CREATE_FIELDS : PRICE_FIELDS).filter((f) => !fields.includes(f)).map((f) => ({ value: f, label: FIELDS[f].label }))]} />
               } />
             <div className="flex items-center gap-2 text-[0.75rem]">
               {checkError && !checking
                 ? <span className="inline-flex items-center gap-1 text-rose-700"><AlertTriangle className="h-3.5 w-3.5" />{checkError}</span>
                 : checking || stale
-                  ? <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />Check ho raha hai…</span>
-                  : <span className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />Check ho gaya — abhi kuch save nahi hua</span>}
+                  ? <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />{tr('Check ho raha hai…')}</span>
+                  : <span className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />{tr('Check ho gaya — abhi kuch save nahi hua')}</span>}
             </div>
           </div>
 
           <ViewTabs<View>
             tabs={[
-              { id: 'all', label: 'Sab', count: counts.all },
-              ...(counts.error ? [{ id: 'error' as const, label: 'Ghalti', count: counts.error }] : []),
-              ...(counts.new ? [{ id: 'new' as const, label: 'Naye', count: counts.new }] : []),
-              ...(counts.update ? [{ id: 'update' as const, label: mode === 'create' ? 'Update' : 'Badlegi', count: counts.update }] : []),
-              ...(counts.skip ? [{ id: 'skip' as const, label: mode === 'create' ? 'Chhor diye' : 'Wesi hi', count: counts.skip }] : []),
-              ...(counts.warn ? [{ id: 'warn' as const, label: 'Dhyan dein', count: counts.warn }] : []),
+              { id: 'all', label: tr('Sab'), count: counts.all },
+              ...(counts.error ? [{ id: 'error' as const, label: tr('Ghalti'), count: counts.error }] : []),
+              ...(counts.new ? [{ id: 'new' as const, label: tr('Naye'), count: counts.new }] : []),
+              ...(counts.update ? [{ id: 'update' as const, label: mode === 'create' ? tr('Update') : tr('Badlegi'), count: counts.update }] : []),
+              ...(counts.skip ? [{ id: 'skip' as const, label: mode === 'create' ? tr('Chhor diye') : tr('Wesi hi'), count: counts.skip }] : []),
+              ...(counts.warn ? [{ id: 'warn' as const, label: tr('Dhyan dein'), count: counts.warn }] : []),
             ]}
             value={view} onChange={setView} />
 
           {mode === 'create' && summary && (summary.newCategories.length > 0 || summary.newBrands.length > 0) && (
             <p className="text-[0.8125rem] text-slate-600">
-              {summary.newCategories.length > 0 && <>Nayi categories banengi: <b>{summary.newCategories.slice(0, 8).join(', ')}{summary.newCategories.length > 8 ? '…' : ''}</b>. </>}
-              {summary.newBrands.length > 0 && <>Naye brands: <b>{summary.newBrands.slice(0, 8).join(', ')}{summary.newBrands.length > 8 ? '…' : ''}</b>.</>}
+              {summary.newCategories.length > 0 && <>{tr('Nayi categories banengi:')}{' '} <b>{summary.newCategories.slice(0, 8).join(', ')}{summary.newCategories.length > 8 ? '…' : ''}</b>. </>}
+              {summary.newBrands.length > 0 && <>{tr('Naye brands:')}{' '} <b>{summary.newBrands.slice(0, 8).join(', ')}{summary.newBrands.length > 8 ? '…' : ''}</b>.</>}
             </p>
           )}
 
           <SheetGrid ref={gridRef} rows={gridRows} columns={columns} marks={marks} selected={selected} onSelectedChange={setSelected}
             onEdit={onGridEdit} onUndo={grid.undo} onRedo={grid.redo}
             height={Math.max(360, Math.min(640, 36 + gridRows.length * 34 + 2))}
-            emptyText={view === 'all' ? 'Koi line nahi — "Line jodein" ya Excel se paste karein' : 'Is filter me koi line nahi'} />
+            emptyText={view === 'all' ? tr('Koi line nahi — "Line jodein" ya Excel se paste karein') : tr('Is filter me koi line nahi')} />
 
           <div className="sticky bottom-3 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-lg ring-1 ring-slate-200">
             {blank
-              ? <Button variant="secondary" leftIcon={<Upload className="h-4 w-4" />} onClick={() => navigate('/products/bulk-import')}>Excel file se</Button>
-              : <Button variant="secondary" leftIcon={<Columns3 className="h-4 w-4" />} onClick={() => void backToColumns()}>Columns</Button>}
+              ? <Button variant="secondary" leftIcon={<Upload className="h-4 w-4" />} onClick={() => navigate('/products/bulk-import')}>{tr('Excel file se')}</Button>
+              : <Button variant="secondary" leftIcon={<Columns3 className="h-4 w-4" />} onClick={() => void backToColumns()}>{tr('Columns')}</Button>}
             <div className="flex flex-wrap items-center gap-3">
               {counts.error > 0 && (
                 <>
-                  <span className="text-[0.8125rem] text-rose-700">{counts.error} ghalti wali lines import nahi hongi</span>
-                  <Button variant="secondary" size="sm" leftIcon={<Download className="h-4 w-4" />} onClick={() => void problemFile(checkRows)}>Download</Button>
+                  <span className="text-[0.8125rem] text-rose-700">{tr('{{error}} ghalti wali lines import nahi hongi', { error: counts.error })}</span>
+                  <Button variant="secondary" size="sm" leftIcon={<Download className="h-4 w-4" />} onClick={() => void problemFile(checkRows)}>{tr('Download')}</Button>
                 </>
               )}
               <Button rightIcon={<Play className="h-4 w-4" />} disabled={!ready || checking || stale || !!checkError} onClick={startRun}>
-                {mode === 'create' ? (blank ? `Sab save karein (${ready})` : `Import karein (${ready} lines)`) : `${ready} prices badlein`}
+                {mode === 'create' ? (blank ? tr('Sab save karein ({{ready}})', { ready }) : tr('Import karein ({{ready}} lines)', { ready })) : tr('{{ready}} prices badlein', { ready })}
               </Button>
             </div>
           </div>
@@ -706,23 +705,23 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
 function markOf(r: RowCheck<string> & Partial<Omit<PriceRowCheck, 'status'>>, mode: ImportMode, cost: (n: number) => string): RowMark {
   const messages = [...r.errors, ...r.warnings];
   const cellErrors = r.fieldErrors as Partial<Record<string, string>> | undefined;
-  if (r.status === 'error') return { tone: 'red', label: 'Ghalti', messages, cellErrors };
+  if (r.status === 'error') return { tone: 'red', label: tr('Ghalti'), messages, cellErrors };
   if (mode === 'prices') {
     const parts: string[] = [];
     if (r.target && r.target.label !== r.name) parts.push(r.target.label);
-    if (r.price) parts.push(`Price ${formatPKR(r.price.from)} → ${formatPKR(r.price.to)}`);
-    if (r.costPrice) parts.push(`Cost ${cost(r.costPrice.from)} → ${cost(r.costPrice.to)}`);
+    if (r.price) parts.push(tr('Price {{from}} → {{formatPKR}}', { from: formatPKR(r.price.from), formatPKR: formatPKR(r.price.to) }));
+    if (r.costPrice) parts.push(tr('Cost {{from}} → {{cost}}', { from: cost(r.costPrice.from), cost: cost(r.costPrice.to) }));
     return r.status === 'change'
-      ? { tone: 'blue', label: 'Badlegi', messages: [parts.join(' · '), ...messages].filter(Boolean) }
-      : { tone: 'slate', label: 'Wesi hi', messages };
+      ? { tone: 'blue', label: tr('Badlegi'), messages: [parts.join(' · '), ...messages].filter(Boolean) }
+      : { tone: 'slate', label: tr('Wesi hi'), messages };
   }
   const q = r.stockQty ?? 0;
   const stock = q ? ` ${q > 0 ? '+' : '−'}${qty(Math.abs(q))}` : '';
-  if (r.status === 'new') return { tone: r.warnings.length ? 'amber' : 'green', label: `Naya${stock}`, messages: messages.length ? messages : [`Naya product banega${q ? `, stock ${qty(q)}` : ''}`] };
+  if (r.status === 'new') return { tone: r.warnings.length ? 'amber' : 'green', label: tr('Naya{{stock}}', { stock }), messages: messages.length ? messages : [q ? tr('Naya product banega, stock {{qty}}', { qty: qty(q) }) : tr('Naya product banega')] };
   if (r.status === 'update') {
-    return { tone: 'blue', label: `Update${stock}`, messages: [`"${r.match ?? r.name}" update hoga${q ? ` · stock ${q > 0 ? '+' : '−'}${qty(Math.abs(q))}` : ''}`, ...messages] };
+    return { tone: 'blue', label: tr('Update{{stock}}', { stock }), messages: [q ? tr('"{{name}}" update hoga · stock {{qty}}', { name: r.match ?? r.name, qty: `${q > 0 ? '+' : '−'}${qty(Math.abs(q))}` }) : tr('"{{name}}" update hoga', { name: r.match ?? r.name }), ...messages] };
   }
-  return { tone: 'slate', label: 'Chhor dein', messages };
+  return { tone: 'slate', label: tr('Chhor dein'), messages };
 }
 
 function RunPanel({ run, mode, shopName, onPause, onResume, onFixGrid, onFixFile, onBulkEdit, onNew }: {
@@ -747,20 +746,19 @@ function RunPanel({ run, mode, shopName, onPause, onResume, onFixGrid, onFixFile
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[0.9375rem] font-semibold text-slate-900">
-              {run.finished ? 'Import mukammal' : run.running ? 'Import chal raha hai…' : run.error ? 'Import ruk gaya' : 'Import roka hua hai'}
+              {run.finished ? tr('Import mukammal') : run.running ? tr('Import chal raha hai…') : run.error ? tr('Import ruk gaya') : tr('Import roka hua hai')}
             </p>
             <p className="text-[0.8125rem] text-slate-500">
-              {done} / {total} lines · hissa {Math.min(run.next + (run.running ? 1 : 0), run.chunks.length)} / {run.chunks.length}
-              {shopName ? ` · stock: ${shopName}` : ''}
+              {tr('{{done}} / {{total}} lines · hissa {{value}} / {{count}}{{value2}}', { done, total, value: Math.min(run.next + (run.running ? 1 : 0), run.chunks.length), count: run.chunks.length, value2: shopName ? tr(' · stock: {{shopName}}', { shopName }) : '' })}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {run.running && <Button variant="secondary" leftIcon={<Pause className="h-4 w-4" />} onClick={onPause}>Rokein</Button>}
-            {!run.running && !run.finished && <Button leftIcon={<Play className="h-4 w-4" />} onClick={onResume}>Baqi chalayein</Button>}
+            {run.running && <Button variant="secondary" leftIcon={<Pause className="h-4 w-4" />} onClick={onPause}>{tr('Rokein')}</Button>}
+            {!run.running && !run.finished && <Button leftIcon={<Play className="h-4 w-4" />} onClick={onResume}>{tr('Baqi chalayein')}</Button>}
             {run.finished && <>
-              {onBulkEdit && (created + updated) > 0 && <Button variant="secondary" leftIcon={<PencilLine className="h-4 w-4" />} onClick={onBulkEdit}>Imported products ko edit karein</Button>}
-              <Button variant="secondary" leftIcon={<Package className="h-4 w-4" />} onClick={() => navigate('/products')}>Products dekhein</Button>
-              <Button leftIcon={<Upload className="h-4 w-4" />} onClick={onNew}>Naya import</Button>
+              {onBulkEdit && (created + updated) > 0 && <Button variant="secondary" leftIcon={<PencilLine className="h-4 w-4" />} onClick={onBulkEdit}>{tr('Imported products ko edit karein')}</Button>}
+              <Button variant="secondary" leftIcon={<Package className="h-4 w-4" />} onClick={() => navigate('/products')}>{tr('Products dekhein')}</Button>
+              <Button leftIcon={<Upload className="h-4 w-4" />} onClick={onNew}>{tr('Naya import')}</Button>
             </>}
           </div>
         </div>
@@ -769,35 +767,35 @@ function RunPanel({ run, mode, shopName, onPause, onResume, onFixGrid, onFixFile
         </div>
         {run.error && (
           <p className="mt-2 text-[0.8125rem] text-rose-700">
-            {run.error}. Jo lines ho chuki hain wo save hain — "Baqi chalayein" dabayein, pehle se bani lines dobara nahi banengi.
+            {tr('{{error}}. Jo lines ho chuki hain wo save hain — "Baqi chalayein" dabayein, pehle se bani lines dobara nahi banengi.', { error: run.error })}
           </p>
         )}
-        {run.running && <p className="mt-2 text-[0.75rem] text-slate-500">Ye page band na karein jab tak import mukammal na ho.</p>}
+        {run.running && <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Ye page band na karein jab tak import mukammal na ho.')}</p>}
       </div>
 
       {mode === 'create' ? (
         <KpiRow cols={5}>
-          <KpiCard icon={PackagePlus} color="#16a34a" label="Ban gaye" value={created} />
-          <KpiCard icon={RefreshCw} color="#0284c7" label="Update hue" value={updated} />
-          <KpiCard icon={Boxes} color="#7c3aed" label="Stock aaya" value={`+${qty(stockUp)}`} hint={stockDown ? `−${qty(stockDown)} kam hua` : shopName} />
-          <KpiCard icon={CheckCircle2} color="#64748b" label="Chhor diye" value={skip} />
-          <KpiCard icon={XCircle} color="#e11d48" label="Nahi hue" value={bad} />
+          <KpiCard icon={PackagePlus} color="#16a34a" label={tr('Ban gaye')} value={created} />
+          <KpiCard icon={RefreshCw} color="#0284c7" label={tr('Update hue')} value={updated} />
+          <KpiCard icon={Boxes} color="#7c3aed" label={tr('Stock aaya')} value={`+${qty(stockUp)}`} hint={stockDown ? tr('−{{stockDown}} kam hua', { stockDown: qty(stockDown) }) : shopName} />
+          <KpiCard icon={CheckCircle2} color="#64748b" label={tr('Chhor diye')} value={skip} />
+          <KpiCard icon={XCircle} color="#e11d48" label={tr('Nahi hue')} value={bad} />
         </KpiRow>
       ) : (
         <KpiRow cols={3}>
-          <KpiCard icon={Tag} color="#0284c7" label="Price badli" value={updated} />
-          <KpiCard icon={CheckCircle2} color="#64748b" label="Wesi hi" value={skip} />
-          <KpiCard icon={XCircle} color="#e11d48" label="Nahi badli" value={bad} />
+          <KpiCard icon={Tag} color="#0284c7" label={tr('Price badli')} value={updated} />
+          <KpiCard icon={CheckCircle2} color="#64748b" label={tr('Wesi hi')} value={skip} />
+          <KpiCard icon={XCircle} color="#e11d48" label={tr('Nahi badli')} value={bad} />
         </KpiRow>
       )}
 
       {run.finished && failed.length > 0 && (
         <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-rose-200 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-rose-800"><AlertTriangle className="h-4 w-4" />{failed.length} lines nahi huin</p>
+            <p className="flex items-center gap-2 text-[0.9375rem] font-semibold text-rose-800"><AlertTriangle className="h-4 w-4" />{tr('{{count}} lines nahi huin', { count: failed.length })}</p>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" leftIcon={<Table2 className="h-4 w-4" />} onClick={onFixGrid}>Grid me theek karein</Button>
-              <Button size="sm" variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={onFixFile}>Excel download</Button>
+              <Button size="sm" leftIcon={<Table2 className="h-4 w-4" />} onClick={onFixGrid}>{tr('Grid me theek karein')}</Button>
+              <Button size="sm" variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={onFixFile}>{tr('Excel download')}</Button>
             </div>
           </div>
           <ul className="mt-2 max-h-64 divide-y divide-slate-100 overflow-auto text-[0.8125rem]">
@@ -818,32 +816,32 @@ function RunPanel({ run, mode, shopName, onPause, onResume, onFixGrid, onFixFile
 function ImportGuide({ mode, imei, onClose }: { mode: ImportMode; imei: boolean; onClose: () => void }) {
   return (
     <PageGuide
-      title={mode === 'create' ? 'Excel se products aur stock' : 'Excel se price update'}
+      title={mode === 'create' ? tr('Excel se products aur stock') : tr('Excel se price update')}
       onClose={onClose}
       steps={mode === 'create' ? [
-        { icon: Download, color: '#2563eb', title: 'File lein', text: 'Apni purani list chalti hai. Na ho to "Template" ya bhari hui "Sample file" lein.' },
-        { icon: Columns3, color: '#7c3aed', title: 'Columns aur branch', text: 'Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.' },
-        { icon: Table2, color: '#16a34a', title: 'Sheet me theek karein', text: 'Har line grid me. Laal cell me ghalti hai — click kar ke neeche wajah dekhein, likh kar theek karein. Excel se copy-paste bhi chalta hai.' },
-        { icon: Play, color: '#ea580c', title: 'Import', text: 'Naye products bante hain, pehle se bane products ka stock aap ke chunay tareeqe se badalta hai. Har stock ka Stock movement banta hai.' },
+        { icon: Download, color: '#2563eb', title: tr('File lein'), text: tr('Apni purani list chalti hai. Na ho to "Template" ya bhari hui "Sample file" lein.') },
+        { icon: Columns3, color: '#7c3aed', title: tr('Columns aur branch'), text: tr('Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.') },
+        { icon: Table2, color: '#16a34a', title: tr('Sheet me theek karein'), text: tr('Har line grid me. Laal cell me ghalti hai — click kar ke neeche wajah dekhein, likh kar theek karein. Excel se copy-paste bhi chalta hai.') },
+        { icon: Play, color: '#ea580c', title: tr('Import'), text: tr('Naye products bante hain, pehle se bane products ka stock aap ke chunay tareeqe se badalta hai. Har stock ka Stock movement banta hai.') },
       ] : [
-        { icon: Download, color: '#2563eb', title: 'Price list lein', text: 'Upar "Price list" se sab products ki file lein — SKU, barcode aur abhi ki price ke saath.' },
-        { icon: Tag, color: '#7c3aed', title: 'Price badlein', text: 'Sirf Price ya Cost Price column badlein. Naam, SKU aur barcode ko na chherein.' },
-        { icon: Table2, color: '#16a34a', title: 'Sheet me dekhein', text: 'Har line ki purani aur nayi price dikhti hai. 50% se zyada badlaav par khabardar karta hai.' },
-        { icon: Play, color: '#ea580c', title: 'Update', text: 'Sirf price aur cost badalti hai — stock ya naam nahi. Har badlaav import history me rehta hai.' },
+        { icon: Download, color: '#2563eb', title: tr('Price list lein'), text: tr('Upar "Price list" se sab products ki file lein — SKU, barcode aur abhi ki price ke saath.') },
+        { icon: Tag, color: '#7c3aed', title: tr('Price badlein'), text: tr('Sirf Price ya Cost Price column badlein. Naam, SKU aur barcode ko na chherein.') },
+        { icon: Table2, color: '#16a34a', title: tr('Sheet me dekhein'), text: tr('Har line ki purani aur nayi price dikhti hai. 50% se zyada badlaav par khabardar karta hai.') },
+        { icon: Play, color: '#ea580c', title: tr('Update'), text: tr('Sirf price aur cost badalti hai — stock ya naam nahi. Har badlaav import history me rehta hai.') },
       ]}
       tips={mode === 'create' ? [
-        'Pehle se bane products: "Stock file wala kar dein" (farq ka adjustment) — dobara import se stock dugna nahi hota. "Jama karein" naye maal ke liye.',
-        'Stock me "1,200", "Rs 1,250" ya "12.5 kg" — comma, Rs aur unit khud hat jate hain.',
-        'Ek hi naam ki kai lines me Size / Color / Variant ho to ek product ke variants bante hain; har line ka stock us variant ka.',
-        'Pack Name + Pack Qty (jaise Carton, 24) se pack lag jata hai. Stock khule (Unit) me likhein.',
-        ...(imei ? ['Mobile phone: IMEI column me IMEI likhein — stock IMEI ginti se banta hai. Accessories ka stock seedha.'] : []),
-        'Grid: Enter/F2 edit, Tab aage, Ctrl+Z wapas, Shift+arrows se block chun kar Delete ya ek value paste.',
+        tr('Pehle se bane products: "Stock file wala kar dein" (farq ka adjustment) — dobara import se stock dugna nahi hota. "Jama karein" naye maal ke liye.'),
+        tr('Stock me "1,200", "Rs 1,250" ya "12.5 kg" — comma, Rs aur unit khud hat jate hain.'),
+        tr('Ek hi naam ki kai lines me Size / Color / Variant ho to ek product ke variants bante hain; har line ka stock us variant ka.'),
+        tr('Pack Name + Pack Qty (jaise Carton, 24) se pack lag jata hai. Stock khule (Unit) me likhein.'),
+        ...(imei ? [tr('Mobile phone: IMEI column me IMEI likhein — stock IMEI ginti se banta hai. Accessories ka stock seedha.')] : []),
+        tr('Grid: Enter/F2 edit, Tab aage, Ctrl+Z wapas, Shift+arrows se block chun kar Delete ya ek value paste.'),
       ] : [
-        'SKU ya barcode na ho to poora naam milaya jata hai — sirf jab us naam ki ek hi cheez ho.',
-        'Variant ya pack ki price uski apni line (Variant / Pack Name column) se badalti hai.',
-        'Price 0 nahi ho sakti; khali cell ka matlab "na badlein".',
+        tr('SKU ya barcode na ho to poora naam milaya jata hai — sirf jab us naam ki ek hi cheez ho.'),
+        tr('Variant ya pack ki price uski apni line (Variant / Pack Name column) se badalti hai.'),
+        tr('Price 0 nahi ho sakti; khali cell ka matlab "na badlein".'),
       ]}
-      shortcuts={[['G', 'Ye guide'], ['Ctrl+Z', 'Wapas'], ['F2', 'Cell edit']]}
+      shortcuts={[['G', tr('Ye guide')], ['Ctrl+Z', tr('Wapas')], ['F2', tr('Cell edit')]]}
     />
   );
 }

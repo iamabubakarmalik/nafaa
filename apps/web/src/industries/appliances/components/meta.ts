@@ -5,6 +5,7 @@
  */
 
 import type { ApplianceCategoryType, ApplianceEnergyRating } from '../api/products.api';
+import { msg, t as tr } from '@core/i18n';
 
 /** Query roots; every appliance screen refreshes these after a change. */
 export const INSTALL_KEY = 'appliance-installations';
@@ -40,47 +41,47 @@ const pick = (map: Record<string, Meta>, k?: string | null): Meta => map[k ?? ''
 /* ── Product type ── */
 interface CategoryMeta { label: string; group: string; needsInstall: boolean; heavy: boolean }
 export const CATEGORY_META: Record<ApplianceCategoryType, CategoryMeta> = {
-  REFRIGERATOR: { label: 'Fridge', group: 'Fridge / freezer', needsInstall: false, heavy: true },
-  DEEP_FREEZER: { label: 'Deep freezer', group: 'Fridge / freezer', needsInstall: false, heavy: true },
-  AIR_CONDITIONER_SPLIT: { label: 'Split AC', group: 'AC', needsInstall: true, heavy: true },
-  AIR_CONDITIONER_WINDOW: { label: 'Window AC', group: 'AC', needsInstall: true, heavy: true },
-  AIR_CONDITIONER_PORTABLE: { label: 'Portable AC', group: 'AC', needsInstall: false, heavy: true },
-  AIR_CONDITIONER_INVERTER: { label: 'Inverter AC', group: 'AC', needsInstall: true, heavy: true },
-  WASHING_MACHINE_TOP_LOAD: { label: 'Washing machine (top)', group: 'Washing machine', needsInstall: true, heavy: true },
-  WASHING_MACHINE_FRONT_LOAD: { label: 'Washing machine (front)', group: 'Washing machine', needsInstall: true, heavy: true },
-  WASHING_MACHINE_TWIN_TUB: { label: 'Twin tub', group: 'Washing machine', needsInstall: false, heavy: true },
-  DRYER: { label: 'Dryer', group: 'Washing machine', needsInstall: true, heavy: true },
-  DISHWASHER: { label: 'Dishwasher', group: 'Kitchen', needsInstall: true, heavy: true },
-  LED_TV: { label: 'LED TV', group: 'TV / LED', needsInstall: true, heavy: false },
-  SMART_TV: { label: 'Smart TV', group: 'TV / LED', needsInstall: true, heavy: false },
-  QLED_TV: { label: 'QLED TV', group: 'TV / LED', needsInstall: true, heavy: false },
-  OLED_TV: { label: 'OLED TV', group: 'TV / LED', needsInstall: true, heavy: false },
-  MICROWAVE_OVEN: { label: 'Microwave', group: 'Kitchen', needsInstall: false, heavy: false },
-  OTG_OVEN: { label: 'Oven', group: 'Kitchen', needsInstall: false, heavy: false },
-  ELECTRIC_STOVE: { label: 'Electric chulha', group: 'Kitchen', needsInstall: true, heavy: false },
-  GAS_STOVE: { label: 'Gas chulha', group: 'Kitchen', needsInstall: true, heavy: false },
-  RANGE_HOOD: { label: 'Range hood', group: 'Kitchen', needsInstall: true, heavy: false },
-  CHIMNEY: { label: 'Chimney', group: 'Kitchen', needsInstall: true, heavy: true },
-  WATER_DISPENSER: { label: 'Water dispenser', group: 'Paani / geyser', needsInstall: false, heavy: true },
-  WATER_PURIFIER: { label: 'Water filter', group: 'Paani / geyser', needsInstall: true, heavy: false },
-  GEYSER_ELECTRIC: { label: 'Electric geyser', group: 'Paani / geyser', needsInstall: true, heavy: true },
-  GEYSER_GAS: { label: 'Gas geyser', group: 'Paani / geyser', needsInstall: true, heavy: true },
-  AIR_COOLER: { label: 'Air cooler', group: 'Cooler / pankha', needsInstall: false, heavy: true },
-  AIR_PURIFIER: { label: 'Air purifier', group: 'Cooler / pankha', needsInstall: false, heavy: false },
-  ROOM_HEATER: { label: 'Heater', group: 'Cooler / pankha', needsInstall: false, heavy: false },
-  FAN_CEILING: { label: 'Ceiling fan', group: 'Cooler / pankha', needsInstall: true, heavy: false },
-  FAN_PEDESTAL: { label: 'Pedestal fan', group: 'Cooler / pankha', needsInstall: false, heavy: false },
-  VACUUM_CLEANER: { label: 'Vacuum cleaner', group: 'Chhota saman', needsInstall: false, heavy: false },
-  BLENDER: { label: 'Blender / grinder', group: 'Chhota saman', needsInstall: false, heavy: false },
-  JUICER: { label: 'Juicer', group: 'Chhota saman', needsInstall: false, heavy: false },
-  IRON_STEAM: { label: 'Steam iron', group: 'Chhota saman', needsInstall: false, heavy: false },
-  IRON_DRY: { label: 'Iron', group: 'Chhota saman', needsInstall: false, heavy: false },
-  UPS: { label: 'UPS', group: 'Bijli / solar', needsInstall: true, heavy: true },
-  SOLAR_PANEL: { label: 'Solar panel', group: 'Bijli / solar', needsInstall: true, heavy: true },
-  SOLAR_INVERTER: { label: 'Solar inverter', group: 'Bijli / solar', needsInstall: true, heavy: true },
-  BATTERY: { label: 'Battery', group: 'Bijli / solar', needsInstall: false, heavy: true },
-  GENERATOR: { label: 'Generator', group: 'Bijli / solar', needsInstall: true, heavy: true },
-  OTHER: { label: 'Kuch aur', group: 'Kuch aur', needsInstall: false, heavy: false },
+  REFRIGERATOR: { label: tr('Fridge'), group: msg('Fridge / freezer'), needsInstall: false, heavy: true },
+  DEEP_FREEZER: { label: tr('Deep freezer'), group: msg('Fridge / freezer'), needsInstall: false, heavy: true },
+  AIR_CONDITIONER_SPLIT: { label: tr('Split AC'), group: msg('AC'), needsInstall: true, heavy: true },
+  AIR_CONDITIONER_WINDOW: { label: tr('Window AC'), group: msg('AC'), needsInstall: true, heavy: true },
+  AIR_CONDITIONER_PORTABLE: { label: tr('Portable AC'), group: msg('AC'), needsInstall: false, heavy: true },
+  AIR_CONDITIONER_INVERTER: { label: tr('Inverter AC'), group: msg('AC'), needsInstall: true, heavy: true },
+  WASHING_MACHINE_TOP_LOAD: { label: tr('Washing machine (top)'), group: msg('Washing machine'), needsInstall: true, heavy: true },
+  WASHING_MACHINE_FRONT_LOAD: { label: tr('Washing machine (front)'), group: msg('Washing machine'), needsInstall: true, heavy: true },
+  WASHING_MACHINE_TWIN_TUB: { label: tr('Twin tub'), group: msg('Washing machine'), needsInstall: false, heavy: true },
+  DRYER: { label: tr('Dryer'), group: msg('Washing machine'), needsInstall: true, heavy: true },
+  DISHWASHER: { label: tr('Dishwasher'), group: msg('Kitchen'), needsInstall: true, heavy: true },
+  LED_TV: { label: tr('LED TV'), group: msg('TV / LED'), needsInstall: true, heavy: false },
+  SMART_TV: { label: tr('Smart TV'), group: msg('TV / LED'), needsInstall: true, heavy: false },
+  QLED_TV: { label: tr('QLED TV'), group: msg('TV / LED'), needsInstall: true, heavy: false },
+  OLED_TV: { label: tr('OLED TV'), group: msg('TV / LED'), needsInstall: true, heavy: false },
+  MICROWAVE_OVEN: { label: tr('Microwave'), group: msg('Kitchen'), needsInstall: false, heavy: false },
+  OTG_OVEN: { label: tr('Oven'), group: msg('Kitchen'), needsInstall: false, heavy: false },
+  ELECTRIC_STOVE: { label: tr('Electric chulha'), group: msg('Kitchen'), needsInstall: true, heavy: false },
+  GAS_STOVE: { label: tr('Gas chulha'), group: msg('Kitchen'), needsInstall: true, heavy: false },
+  RANGE_HOOD: { label: tr('Range hood'), group: msg('Kitchen'), needsInstall: true, heavy: false },
+  CHIMNEY: { label: tr('Chimney'), group: msg('Kitchen'), needsInstall: true, heavy: true },
+  WATER_DISPENSER: { label: tr('Water dispenser'), group: msg('Paani / geyser'), needsInstall: false, heavy: true },
+  WATER_PURIFIER: { label: tr('Water filter'), group: msg('Paani / geyser'), needsInstall: true, heavy: false },
+  GEYSER_ELECTRIC: { label: tr('Electric geyser'), group: msg('Paani / geyser'), needsInstall: true, heavy: true },
+  GEYSER_GAS: { label: tr('Gas geyser'), group: msg('Paani / geyser'), needsInstall: true, heavy: true },
+  AIR_COOLER: { label: tr('Air cooler'), group: msg('Cooler / pankha'), needsInstall: false, heavy: true },
+  AIR_PURIFIER: { label: tr('Air purifier'), group: msg('Cooler / pankha'), needsInstall: false, heavy: false },
+  ROOM_HEATER: { label: tr('Heater'), group: msg('Cooler / pankha'), needsInstall: false, heavy: false },
+  FAN_CEILING: { label: tr('Ceiling fan'), group: msg('Cooler / pankha'), needsInstall: true, heavy: false },
+  FAN_PEDESTAL: { label: tr('Pedestal fan'), group: msg('Cooler / pankha'), needsInstall: false, heavy: false },
+  VACUUM_CLEANER: { label: tr('Vacuum cleaner'), group: msg('Chhota saman'), needsInstall: false, heavy: false },
+  BLENDER: { label: tr('Blender / grinder'), group: msg('Chhota saman'), needsInstall: false, heavy: false },
+  JUICER: { label: tr('Juicer'), group: msg('Chhota saman'), needsInstall: false, heavy: false },
+  IRON_STEAM: { label: tr('Steam iron'), group: msg('Chhota saman'), needsInstall: false, heavy: false },
+  IRON_DRY: { label: tr('Iron'), group: msg('Chhota saman'), needsInstall: false, heavy: false },
+  UPS: { label: tr('UPS'), group: msg('Bijli / solar'), needsInstall: true, heavy: true },
+  SOLAR_PANEL: { label: tr('Solar panel'), group: msg('Bijli / solar'), needsInstall: true, heavy: true },
+  SOLAR_INVERTER: { label: tr('Solar inverter'), group: msg('Bijli / solar'), needsInstall: true, heavy: true },
+  BATTERY: { label: tr('Battery'), group: msg('Bijli / solar'), needsInstall: false, heavy: true },
+  GENERATOR: { label: tr('Generator'), group: msg('Bijli / solar'), needsInstall: true, heavy: true },
+  OTHER: { label: tr('Kuch aur'), group: msg('Kuch aur'), needsInstall: false, heavy: false },
 };
 export const CATEGORY_TYPES = Object.keys(CATEGORY_META) as ApplianceCategoryType[];
 export const CATEGORY_GROUPS = [...new Set(CATEGORY_TYPES.map((c) => CATEGORY_META[c].group))];
@@ -111,16 +112,16 @@ export function categoryFromName(name: string): ApplianceCategoryType | null {
 }
 
 export const ENERGY: Array<{ value: ApplianceEnergyRating; label: string }> = [
-  { value: 'INVERTER', label: 'Inverter' }, { value: 'FIVE_STAR', label: '5 star' }, { value: 'FOUR_STAR', label: '4 star' },
-  { value: 'THREE_STAR', label: '3 star' }, { value: 'TWO_STAR', label: '2 star' }, { value: 'ONE_STAR', label: '1 star' }, { value: 'NOT_RATED', label: 'Rating nahi' },
+  { value: 'INVERTER', label: tr('Inverter') }, { value: 'FIVE_STAR', label: tr('5 star') }, { value: 'FOUR_STAR', label: tr('4 star') },
+  { value: 'THREE_STAR', label: tr('3 star') }, { value: 'TWO_STAR', label: tr('2 star') }, { value: 'ONE_STAR', label: tr('1 star') }, { value: 'NOT_RATED', label: tr('Rating nahi') },
 ];
 export const energyLabel = (e?: string | null) => ENERGY.find((x) => x.value === e)?.label ?? '';
 
 /* ── Service type (installations and repairs share it) ── */
 const SERVICE_TYPE: Record<string, string> = {
-  INSTALLATION: 'Installation', DEMO: 'Demo', INSPECTION: 'Checking', REPAIR: 'Repair', MAINTENANCE: 'Service / maintenance',
-  DEEP_CLEANING: 'Deep cleaning', GAS_REFILL: 'Gas refill', WARRANTY_CLAIM: 'Warranty claim', AMC_VISIT: 'AMC visit',
-  RELOCATION: 'Shifting', UNINSTALLATION: 'Utaarna', OTHER: 'Kuch aur',
+  INSTALLATION: tr('Installation'), DEMO: tr('Demo'), INSPECTION: tr('Checking'), REPAIR: tr('Repair'), MAINTENANCE: tr('Service / maintenance'),
+  DEEP_CLEANING: tr('Deep cleaning'), GAS_REFILL: tr('Gas refill'), WARRANTY_CLAIM: tr('Warranty claim'), AMC_VISIT: tr('AMC visit'),
+  RELOCATION: tr('Shifting'), UNINSTALLATION: tr('Utaarna'), OTHER: tr('Kuch aur'),
 };
 export const serviceTypeOf = (t?: string | null) => SERVICE_TYPE[t ?? ''] ?? nice(t);
 export const INSTALL_TYPES = ['INSTALLATION', 'DEMO', 'RELOCATION', 'UNINSTALLATION', 'INSPECTION'];
@@ -128,30 +129,30 @@ export const REPAIR_TYPES = ['REPAIR', 'MAINTENANCE', 'GAS_REFILL', 'DEEP_CLEANI
 
 /* ── Installation status ── */
 const INSTALL_STATUS: Record<string, Meta> = {
-  PENDING: { label: 'Date baqi', tone: tone.sky, color: '#0ea5e9' },
-  SCHEDULED: { label: 'Date lag gayi', tone: tone.blue, color: '#3b82f6' },
-  ASSIGNED: { label: 'Technician laga', tone: tone.violet, color: '#8b5cf6' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: tone.amber, color: '#f59e0b' },
-  RESCHEDULED: { label: 'Nayi date', tone: tone.orange, color: '#f97316' },
-  COMPLETED: { label: 'Lag gaya', tone: tone.green, color: '#16a34a' },
-  FAILED: { label: 'Nahi lag saka', tone: tone.rose, color: '#e11d48' },
-  CANCELLED: { label: 'Cancel', tone: tone.slate, color: '#94a3b8' },
+  PENDING: { label: tr('Date baqi'), tone: tone.sky, color: '#0ea5e9' },
+  SCHEDULED: { label: tr('Date lag gayi'), tone: tone.blue, color: '#3b82f6' },
+  ASSIGNED: { label: tr('Technician laga'), tone: tone.violet, color: '#8b5cf6' },
+  IN_PROGRESS: { label: tr('Kaam chal raha'), tone: tone.amber, color: '#f59e0b' },
+  RESCHEDULED: { label: tr('Nayi date'), tone: tone.orange, color: '#f97316' },
+  COMPLETED: { label: tr('Lag gaya'), tone: tone.green, color: '#16a34a' },
+  FAILED: { label: tr('Nahi lag saka'), tone: tone.rose, color: '#e11d48' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.slate, color: '#94a3b8' },
 };
 export const installStatusOf = (s?: string | null) => pick(INSTALL_STATUS, s);
 export const INSTALL_OPEN = ['PENDING', 'SCHEDULED', 'ASSIGNED', 'IN_PROGRESS', 'RESCHEDULED'];
 
 /* ── Repair status ── */
 const SERVICE_STATUS: Record<string, Meta> = {
-  REQUESTED: { label: 'Nayi shikayat', tone: tone.sky, color: '#0ea5e9' },
-  SCHEDULED: { label: 'Date lag gayi', tone: tone.blue, color: '#3b82f6' },
-  TECHNICIAN_ASSIGNED: { label: 'Technician laga', tone: tone.violet, color: '#8b5cf6' },
-  EN_ROUTE: { label: 'Raaste me', tone: tone.teal, color: '#14b8a6' },
-  ON_SITE: { label: 'Ghar pohancha', tone: tone.teal, color: '#0d9488' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: tone.amber, color: '#f59e0b' },
-  PENDING_PARTS: { label: 'Parts ka intezar', tone: tone.orange, color: '#f97316' },
-  COMPLETED: { label: 'Theek ho gaya', tone: tone.green, color: '#16a34a' },
-  UNRESOLVED: { label: 'Theek nahi hua', tone: tone.rose, color: '#e11d48' },
-  CANCELLED: { label: 'Cancel', tone: tone.slate, color: '#94a3b8' },
+  REQUESTED: { label: tr('Nayi shikayat'), tone: tone.sky, color: '#0ea5e9' },
+  SCHEDULED: { label: tr('Date lag gayi'), tone: tone.blue, color: '#3b82f6' },
+  TECHNICIAN_ASSIGNED: { label: tr('Technician laga'), tone: tone.violet, color: '#8b5cf6' },
+  EN_ROUTE: { label: tr('Raaste me'), tone: tone.teal, color: '#14b8a6' },
+  ON_SITE: { label: tr('Ghar pohancha'), tone: tone.teal, color: '#0d9488' },
+  IN_PROGRESS: { label: tr('Kaam chal raha'), tone: tone.amber, color: '#f59e0b' },
+  PENDING_PARTS: { label: tr('Parts ka intezar'), tone: tone.orange, color: '#f97316' },
+  COMPLETED: { label: tr('Theek ho gaya'), tone: tone.green, color: '#16a34a' },
+  UNRESOLVED: { label: tr('Theek nahi hua'), tone: tone.rose, color: '#e11d48' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.slate, color: '#94a3b8' },
 };
 export const serviceStatusOf = (s?: string | null) => pick(SERVICE_STATUS, s);
 export const SERVICE_OPEN = ['REQUESTED', 'SCHEDULED', 'TECHNICIAN_ASSIGNED', 'EN_ROUTE', 'ON_SITE', 'IN_PROGRESS', 'PENDING_PARTS'];
@@ -162,84 +163,84 @@ export const SERVICE_NEXT: Record<string, string[]> = {
 };
 
 const PRIORITY: Record<string, Meta> = {
-  LOW: { label: 'Aram se', tone: tone.slate, color: '#94a3b8' },
-  NORMAL: { label: 'Normal', tone: tone.slate, color: '#64748b' },
-  HIGH: { label: 'Jaldi', tone: tone.amber, color: '#f59e0b' },
-  URGENT: { label: 'Foran', tone: tone.rose, color: '#e11d48' },
+  LOW: { label: tr('Aram se'), tone: tone.slate, color: '#94a3b8' },
+  NORMAL: { label: tr('Normal'), tone: tone.slate, color: '#64748b' },
+  HIGH: { label: tr('Jaldi'), tone: tone.amber, color: '#f59e0b' },
+  URGENT: { label: tr('Foran'), tone: tone.rose, color: '#e11d48' },
 };
 export const priorityOf = (p?: string | null) => pick(PRIORITY, p);
 export const PRIORITIES = ['NORMAL', 'HIGH', 'URGENT', 'LOW'];
 
 /* ── Delivery status ── */
 const DELIVERY_STATUS: Record<string, Meta> = {
-  PENDING: { label: 'Gaari baqi', tone: tone.sky, color: '#0ea5e9' },
-  SCHEDULED: { label: 'Gaari lag gayi', tone: tone.blue, color: '#3b82f6' },
-  DISPATCHED: { label: 'Nikal gaya', tone: tone.violet, color: '#8b5cf6' },
-  ARRIVED: { label: 'Pohanch gaya', tone: tone.teal, color: '#14b8a6' },
-  DELIVERED: { label: 'De diya', tone: tone.green, color: '#16a34a' },
-  FAILED: { label: 'Nahi de sake', tone: tone.rose, color: '#e11d48' },
-  CANCELLED: { label: 'Cancel', tone: tone.slate, color: '#94a3b8' },
+  PENDING: { label: tr('Gaari baqi'), tone: tone.sky, color: '#0ea5e9' },
+  SCHEDULED: { label: tr('Gaari lag gayi'), tone: tone.blue, color: '#3b82f6' },
+  DISPATCHED: { label: tr('Nikal gaya'), tone: tone.violet, color: '#8b5cf6' },
+  ARRIVED: { label: tr('Pohanch gaya'), tone: tone.teal, color: '#14b8a6' },
+  DELIVERED: { label: tr('De diya'), tone: tone.green, color: '#16a34a' },
+  FAILED: { label: tr('Nahi de sake'), tone: tone.rose, color: '#e11d48' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.slate, color: '#94a3b8' },
 };
 export const deliveryStatusOf = (s?: string | null) => pick(DELIVERY_STATUS, s);
 export const DELIVERY_OPEN = ['PENDING', 'SCHEDULED', 'DISPATCHED', 'ARRIVED'];
 
 /* ── Serial unit ── */
 const SERIAL_STATUS: Record<string, Meta> = {
-  IN_STOCK: { label: 'Stock me', tone: tone.blue, color: '#3b82f6' },
-  RESERVED: { label: 'Rakha hua', tone: tone.violet, color: '#8b5cf6' },
-  SOLD: { label: 'Bik gaya', tone: tone.green, color: '#16a34a' },
-  IN_TRANSIT: { label: 'Raaste me', tone: tone.teal, color: '#14b8a6' },
-  IN_REPAIR: { label: 'Repair me', tone: tone.amber, color: '#f59e0b' },
-  RETURNED: { label: 'Wapas aaya', tone: tone.orange, color: '#f97316' },
-  DEFECTIVE: { label: 'Kharab', tone: tone.rose, color: '#e11d48' },
-  LOST: { label: 'Gum', tone: tone.slate, color: '#94a3b8' },
-  REMOVED: { label: 'Register se hataya', tone: tone.slate, color: '#94a3b8' },
+  IN_STOCK: { label: tr('Stock me'), tone: tone.blue, color: '#3b82f6' },
+  RESERVED: { label: tr('Rakha hua'), tone: tone.violet, color: '#8b5cf6' },
+  SOLD: { label: tr('Bik gaya'), tone: tone.green, color: '#16a34a' },
+  IN_TRANSIT: { label: tr('Raaste me'), tone: tone.teal, color: '#14b8a6' },
+  IN_REPAIR: { label: tr('Repair me'), tone: tone.amber, color: '#f59e0b' },
+  RETURNED: { label: tr('Wapas aaya'), tone: tone.orange, color: '#f97316' },
+  DEFECTIVE: { label: tr('Kharab'), tone: tone.rose, color: '#e11d48' },
+  LOST: { label: tr('Gum'), tone: tone.slate, color: '#94a3b8' },
+  REMOVED: { label: tr('Register se hataya'), tone: tone.slate, color: '#94a3b8' },
 };
 export const serialStatusOf = (s?: string | null) => pick(SERIAL_STATUS, s);
 export const SERIAL_STATUSES = ['IN_STOCK', 'SOLD', 'RESERVED', 'IN_REPAIR', 'RETURNED', 'DEFECTIVE', 'LOST'];
 
 /* ── Old appliance taken in trade ── */
 const TRADE_IN_STATUS: Record<string, Meta> = {
-  HELD: { label: 'Dukaan me', tone: tone.amber, color: '#d97706' },
-  SOLD: { label: 'Bech diya', tone: tone.green, color: '#16a34a' },
-  SCRAPPED: { label: 'Kabar', tone: tone.slate, color: '#64748b' },
-  RETURNED: { label: 'Customer ko wapas', tone: tone.sky, color: '#0284c7' },
+  HELD: { label: tr('Dukaan me'), tone: tone.amber, color: '#d97706' },
+  SOLD: { label: tr('Bech diya'), tone: tone.green, color: '#16a34a' },
+  SCRAPPED: { label: tr('Kabar'), tone: tone.slate, color: '#64748b' },
+  RETURNED: { label: tr('Customer ko wapas'), tone: tone.sky, color: '#0284c7' },
 };
 export const tradeInStatusOf = (s?: string | null) => pick(TRADE_IN_STATUS, s);
 export const TRADE_IN_CONDITIONS: Array<{ value: 'WORKING' | 'NEEDS_REPAIR' | 'SCRAP'; label: string }> = [
-  { value: 'WORKING', label: 'Chalta hai' }, { value: 'NEEDS_REPAIR', label: 'Repair chahiye' }, { value: 'SCRAP', label: 'Sirf kabar' },
+  { value: 'WORKING', label: tr('Chalta hai') }, { value: 'NEEDS_REPAIR', label: tr('Repair chahiye') }, { value: 'SCRAP', label: tr('Sirf kabar') },
 ];
 export const conditionLabel = (c?: string | null) => TRADE_IN_CONDITIONS.find((x) => x.value === c)?.label ?? '';
 
 /* ── AMC ── */
 export const AMC_PLANS: Record<string, { label: string; hint: string; color: string }> = {
-  BASIC: { label: 'Basic', hint: 'Sirf checking visits', color: '#64748b' },
-  STANDARD: { label: 'Standard', hint: 'Visits aur mazdoori free', color: '#2563eb' },
-  PREMIUM: { label: 'Premium', hint: 'Mazdoori aur gas refill free', color: '#d97706' },
-  COMPREHENSIVE: { label: 'Comprehensive', hint: 'Parts bhi free', color: '#7c3aed' },
+  BASIC: { label: tr('Basic'), hint: tr('Sirf checking visits'), color: '#64748b' },
+  STANDARD: { label: tr('Standard'), hint: tr('Visits aur mazdoori free'), color: '#2563eb' },
+  PREMIUM: { label: tr('Premium'), hint: tr('Mazdoori aur gas refill free'), color: '#d97706' },
+  COMPREHENSIVE: { label: tr('Comprehensive'), hint: tr('Parts bhi free'), color: '#7c3aed' },
 };
 export const amcPlanOf = (t?: string | null) => AMC_PLANS[t ?? 'STANDARD'] ?? AMC_PLANS.STANDARD;
 const AMC_STATUS: Record<string, Meta> = {
-  ACTIVE: { label: 'Chal raha', tone: tone.green, color: '#16a34a' },
-  RENEWED: { label: 'Renew ho gaya', tone: tone.blue, color: '#3b82f6' },
-  SUSPENDED: { label: 'Roka hua', tone: tone.amber, color: '#f59e0b' },
-  EXPIRED: { label: 'Khatam', tone: tone.rose, color: '#e11d48' },
-  CANCELLED: { label: 'Cancel', tone: tone.slate, color: '#94a3b8' },
+  ACTIVE: { label: tr('Chal raha'), tone: tone.green, color: '#16a34a' },
+  RENEWED: { label: tr('Renew ho gaya'), tone: tone.blue, color: '#3b82f6' },
+  SUSPENDED: { label: tr('Roka hua'), tone: tone.amber, color: '#f59e0b' },
+  EXPIRED: { label: tr('Khatam'), tone: tone.rose, color: '#e11d48' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.slate, color: '#94a3b8' },
 };
 export const amcStatusOf = (s?: string | null) => pick(AMC_STATUS, s);
 
 /* ── Warranty claim (shop → brand) ── */
 const CLAIM_STATUS: Record<string, Meta> = {
-  DRAFT: { label: 'Bheja nahi', tone: tone.slate, color: '#64748b' },
-  SUBMITTED: { label: 'Company ko bheja', tone: tone.blue, color: '#3b82f6' },
-  BRAND_REVIEWING: { label: 'Company dekh rahi', tone: tone.teal, color: '#14b8a6' },
-  APPROVED: { label: 'Approve', tone: tone.green, color: '#16a34a' },
-  PARTIALLY_APPROVED: { label: 'Thora approve', tone: tone.amber, color: '#f59e0b' },
-  REJECTED: { label: 'Mana', tone: tone.rose, color: '#e11d48' },
-  SETTLED: { label: 'Paisa mil gaya', tone: tone.violet, color: '#8b5cf6' },
+  DRAFT: { label: tr('Bheja nahi'), tone: tone.slate, color: '#64748b' },
+  SUBMITTED: { label: tr('Company ko bheja'), tone: tone.blue, color: '#3b82f6' },
+  BRAND_REVIEWING: { label: tr('Company dekh rahi'), tone: tone.teal, color: '#14b8a6' },
+  APPROVED: { label: tr('Approve'), tone: tone.green, color: '#16a34a' },
+  PARTIALLY_APPROVED: { label: tr('Thora approve'), tone: tone.amber, color: '#f59e0b' },
+  REJECTED: { label: tr('Mana'), tone: tone.rose, color: '#e11d48' },
+  SETTLED: { label: tr('Paisa mil gaya'), tone: tone.violet, color: '#8b5cf6' },
 };
 export const claimStatusOf = (s?: string | null) => pick(CLAIM_STATUS, s);
-export const WARRANTY_KIND: Record<string, string> = { MAIN: 'Company warranty', COMPRESSOR: 'Compressor', MOTOR: 'Motor', SHOP: 'Dukaan warranty' };
+export const WARRANTY_KIND: Record<string, string> = { MAIN: tr('Company warranty'), COMPRESSOR: tr('Compressor'), MOTOR: tr('Motor'), SHOP: tr('Dukaan warranty') };
 
 /* ── Common faults by type, one tap on a new complaint ── */
 const ISSUES: Record<string, string[]> = {
@@ -255,10 +256,10 @@ const ISSUES: Record<string, string[]> = {
 export const issuesFor = (c?: string | null) => ISSUES[catMeta(c).group] ?? ['Chal nahi raha', 'Awaz aa rahi', 'Garam ho raha', 'Spark aa raha'];
 
 export const TIME_SLOTS = [
-  { value: '09:00-12:00', label: 'Subah 9–12' },
-  { value: '12:00-15:00', label: 'Dopahar 12–3' },
-  { value: '15:00-18:00', label: 'Sham 3–6' },
-  { value: '18:00-21:00', label: 'Raat 6–9' },
+  { value: '09:00-12:00', label: tr('Subah 9–12') },
+  { value: '12:00-15:00', label: tr('Dopahar 12–3') },
+  { value: '15:00-18:00', label: tr('Sham 3–6') },
+  { value: '18:00-21:00', label: tr('Raat 6–9') },
 ];
 export const slotLabel = (s?: string | null) => TIME_SLOTS.find((x) => x.value === s)?.label ?? s ?? '';
 
@@ -269,9 +270,9 @@ export const daysTo = (iso?: string | null) => (iso ? Math.ceil((new Date(iso).g
 /** "3 din baqi" / "2 din late". */
 export const daysPhrase = (days: number | null | undefined) => {
   if (days === null || days === undefined) return '—';
-  if (days === 0) return 'Aaj';
-  if (days === 1) return 'Kal';
-  return days > 0 ? `${days} din baqi` : `${Math.abs(days)} din guzre`;
+  if (days === 0) return tr('Aaj');
+  if (days === 1) return tr('Kal');
+  return days > 0 ? tr('{{days}} din baqi', { days }) : tr('{{days}} din guzre', { days: Math.abs(days) });
 };
 export const money = (v: string) => v.replace(/[^\d.]/g, '');
 export const digits = (v: string) => v.replace(/\D/g, '');

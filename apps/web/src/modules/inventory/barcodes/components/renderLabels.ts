@@ -9,6 +9,7 @@ import { esc } from '@core/receipt/html';
 import { qrSvg } from '@core/payments/qrSvg';
 import { formatPKR } from '@core/lib/format';
 import type { LabelConfig, LabelSheet } from '../api/barcode-labels.api';
+import { t } from '@core/i18n';
 
 export interface LabelData {
   name: string;
@@ -35,11 +36,11 @@ interface SheetPreset {
 
 /** Common A4 sticker sheets; the grid is centred on the page as the makers print it. */
 export const A4_SHEETS: Record<Exclude<LabelSheet, 'thermal' | 'custom'>, SheetPreset> = {
-  'a4-65': { label: '65 label', hint: 'Choti cheezein, cosmetics, pharmacy', w: 38.1, h: 21.2, cols: 5, rows: 13, gapX: 2.5, gapY: 0 },
-  'a4-40': { label: '40 label', hint: 'Grocery aur general store', w: 48.5, h: 25.4, cols: 4, rows: 10, gapX: 0, gapY: 0 },
-  'a4-24': { label: '24 label', hint: 'Kapre, joote, bari qeemat', w: 64, h: 33.9, cols: 3, rows: 8, gapX: 2, gapY: 0 },
-  'a4-21': { label: '21 label', hint: 'Shelf aur dabbe', w: 63.5, h: 38.1, cols: 3, rows: 7, gapX: 2.5, gapY: 0 },
-  'a4-14': { label: '14 label', hint: 'Bara label, carton aur box', w: 99.1, h: 38.1, cols: 2, rows: 7, gapX: 2.5, gapY: 0 },
+  'a4-65': { label: t('65 label'), hint: t('Choti cheezein, cosmetics, pharmacy'), w: 38.1, h: 21.2, cols: 5, rows: 13, gapX: 2.5, gapY: 0 },
+  'a4-40': { label: t('40 label'), hint: t('Grocery aur general store'), w: 48.5, h: 25.4, cols: 4, rows: 10, gapX: 0, gapY: 0 },
+  'a4-24': { label: t('24 label'), hint: t('Kapre, joote, bari qeemat'), w: 64, h: 33.9, cols: 3, rows: 8, gapX: 2, gapY: 0 },
+  'a4-21': { label: t('21 label'), hint: t('Shelf aur dabbe'), w: 63.5, h: 38.1, cols: 3, rows: 7, gapX: 2.5, gapY: 0 },
+  'a4-14': { label: t('14 label'), hint: t('Bara label, carton aur box'), w: 99.1, h: 38.1, cols: 2, rows: 7, gapX: 2.5, gapY: 0 },
 };
 
 /** Quick sizes for thermal label rolls (width × height in mm). */
@@ -244,5 +245,5 @@ ${o.preview ? `@media screen {
   .l.e { outline: 0.2mm dashed #e2e8f0; outline-offset: -0.2mm; }
 }` : ''}`;
 
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Barcode labels</title><style>${css}</style></head><body>${pages.join('')}</body></html>`;
+  return t('<!doctype html><html><head><meta charset="utf-8"><title>Barcode labels</title><style>{{css}}</style></head><body>{{value}}</body></html>', { css, value: pages.join('') });
 }

@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { AI_UNAVAILABLE, AiHttpError, aiApi, streamChat, type AiActionProposal, type AiChart, type AiChatRequest, type AiErrorCode, type AiLink, type AiMode, type AiReorder } from './api';
+import { t } from '@core/i18n';
 
 export interface ChatMessage {
   /** Server id once saved; a local id while streaming. */
@@ -204,7 +205,7 @@ export const useAiStore = create<AiState>((set, get) => {
       }, ctrl.signal);
     } catch (err) {
       if (ctrl.signal.aborted) {
-        patchLast((m) => ({ ...m, pending: false, status: undefined, content: m.content || '_Ruk gaya._' }));
+        patchLast((m) => ({ ...m, pending: false, status: undefined, content: m.content || t('_Ruk gaya._') }));
       } else if (err instanceof AiHttpError) {
         patchLast((m) => ({ ...m, pending: false, status: undefined, error: { code: err.code, message: err.message } }));
       } else {
@@ -317,7 +318,7 @@ export const useAiStore = create<AiState>((set, get) => {
         });
       } catch {
         set({ conversationId: null, messages: [], title: '' });
-        throw new Error('Chat nahi khul saki');
+        throw new Error(t('Chat nahi khul saki'));
       } finally {
         set({ loadingConversation: false });
       }
@@ -330,7 +331,7 @@ export const useAiStore = create<AiState>((set, get) => {
         await aiApi.feedback(messageId, value);
       } catch {
         set((s) => ({ messages: s.messages.map((m) => (m.id === messageId ? { ...m, feedback: before } : m)) }));
-        throw new Error('Feedback save nahi hua');
+        throw new Error(t('Feedback save nahi hua'));
       }
     },
 

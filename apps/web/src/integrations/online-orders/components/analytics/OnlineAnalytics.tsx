@@ -23,29 +23,30 @@ import type { OnlineReport } from '../../api/online-orders.api';
 import { BrandLogo, brandColor, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
 import { courierBrand } from '../../lib/labels';
 import type { OrderTab } from '../../lib/orders';
+import { t as tr, Trans } from '@core/i18n';
 
 export type AnalyticsSection = 'pipeline' | 'trend' | 'payment' | 'time' | 'channels' | 'cities' | 'couriers' | 'products' | 'customers' | 'codAging';
 
 export const ALL_SECTIONS: AnalyticsSection[] = ['pipeline', 'trend', 'payment', 'channels', 'cities', 'couriers', 'time', 'products', 'customers', 'codAging'];
 
 const PALETTE = ['#0f766e', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#64748b', '#9333ea'];
-const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const WEEKDAYS = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 const COD_COLOR = '#ea580c';
 const PAID_COLOR = '#16a34a';
 const RTO_COLOR = '#e11d48';
 
 const PIPELINE: Array<{ key: string; label: string; icon: LucideIcon; tab: OrderTab }> = [
-  { key: 'PENDING', label: 'Naye', icon: Zap, tab: 'PENDING' },
-  { key: 'CONFIRMED', label: 'Accept', icon: CheckCircle2, tab: 'ACTIVE' },
-  { key: 'PREPARING', label: 'Packing', icon: Package, tab: 'ACTIVE' },
-  { key: 'READY', label: 'Ready', icon: ShoppingBag, tab: 'ACTIVE' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Raste me', icon: Truck, tab: 'ACTIVE' },
-  { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle2, tab: 'DELIVERED' },
+  { key: 'PENDING', label: tr('Naye'), icon: Zap, tab: 'PENDING' },
+  { key: 'CONFIRMED', label: tr('Accept'), icon: CheckCircle2, tab: 'ACTIVE' },
+  { key: 'PREPARING', label: tr('Packing'), icon: Package, tab: 'ACTIVE' },
+  { key: 'READY', label: tr('Ready'), icon: ShoppingBag, tab: 'ACTIVE' },
+  { key: 'OUT_FOR_DELIVERY', label: tr('Raste me'), icon: Truck, tab: 'ACTIVE' },
+  { key: 'DELIVERED', label: tr('Delivered'), icon: CheckCircle2, tab: 'DELIVERED' },
 ];
 
 const dayLabel = (key: string, long: boolean) =>
   new Intl.DateTimeFormat('en-PK', long ? { day: 'numeric', month: 'short' } : { weekday: 'short', day: 'numeric' }).format(new Date(`${key}T12:00:00`));
-const hourLabel = (h: number) => (h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`);
+const hourLabel = (h: number) => (h === 0 ? tr('12am') : h < 12 ? tr('{{h}}am', { h }) : h === 12 ? tr('12pm') : tr('{{value}}pm', { value: h - 12 }));
 const rateTone = (v: number) => (v >= 25 ? 'bg-rose-50 text-rose-700' : v >= 12 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700');
 
 export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }: {
@@ -74,14 +75,14 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
   return (
     <div className="space-y-4">
       {has('pipeline') && (
-        <Card className="rounded-2xl" title={<Title icon={Truck}>Order ka safar</Title>} description="Is period ke orders abhi kis marhale par hain (test order shamil nahi)">
+        <Card className="rounded-2xl" title={<Title icon={Truck}>{tr('Order ka safar')}</Title>} description={tr('Is period ke orders abhi kis marhale par hain (test order shamil nahi)')}>
           <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
             {PIPELINE.map((p, i) => {
               const n = data.byStatus[p.key] ?? 0;
               const Tag: ElementType = onTab ? 'button' : 'div';
               return (
                 <Tag key={p.key} type={onTab ? 'button' : undefined} onClick={onTab ? () => onTab(p.tab) : undefined}
-                  className={cn('rounded-2xl bg-slate-50 p-3 text-left ring-1 ring-slate-100', onTab && 'transition hover:ring-brand-300')}>
+                  className={cn('rounded-2xl bg-slate-50 p-3 text-start ring-1 ring-slate-100', onTab && 'transition hover:ring-brand-300')}>
                   <div className="flex items-center gap-1.5 text-[0.6875rem] font-semibold text-slate-500">
                     <span className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-900 text-[0.625rem] text-white">{i + 1}</span>
                     <p.icon className="h-3.5 w-3.5" />{p.label}
@@ -95,16 +96,16 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
             })}
           </div>
           <div className="mt-3 grid gap-2 text-[0.8125rem] sm:grid-cols-3">
-            <Fact tone="success">Kamyab delivery: <b>{t.deliveryRate}%</b> bheje hue parcels me se</Fact>
-            <Fact tone="rose">Cancel / reject: <b>{closed}</b> order ({t.cancelRate}%)</Fact>
-            <Fact tone="fuchsia">Wapas (RTO): <b>{t.returned}</b> parcel ({t.rtoRate}%)</Fact>
+            <Fact tone="success"><Trans text="Kamyab delivery: {{rate}} bheje hue parcels me se" values={{ rate: <b>{t.deliveryRate}%</b> }} /></Fact>
+            <Fact tone="rose"><Trans text="Cancel / reject: {{count}} order ({{cancelRate}}%)" values={{ count: <b>{closed}</b>, cancelRate: t.cancelRate }} /></Fact>
+            <Fact tone="fuchsia"><Trans text="Wapas (RTO): {{count}} parcel ({{rtoRate}}%)" values={{ count: <b>{t.returned}</b>, rtoRate: t.rtoRate }} /></Fact>
           </div>
         </Card>
       )}
 
       {has('trend') && (
-        <Card className="rounded-2xl" title={<Title icon={TrendingUp}>Roz ke orders aur sale</Title>} description="Sale me cancel aur wapas orders shamil nahi; khali din bhi dikhte hain">
-          {!t.orders ? <Empty text="Is period me koi online order nahi" /> : (
+        <Card className="rounded-2xl" title={<Title icon={TrendingUp}>{tr('Roz ke orders aur sale')}</Title>} description={tr('Sale me cancel aur wapas orders shamil nahi; khali din bhi dikhte hain')}>
+          {!t.orders ? <Empty text={tr('Is period me koi online order nahi')} /> : (
             <div className="h-[17.5rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={days} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
@@ -117,8 +118,8 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis yAxisId="v" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
                   <YAxis yAxisId="o" orientation="right" tick={theme.axis} axisLine={false} tickLine={false} width={28} allowDecimals={false} />
-                  <Tooltip formatter={(v, n) => (n === 'value' ? [formatPKR(Number(v)), 'Sale'] : [String(v), n === 'orders' ? 'Orders' : 'Wapas'])} {...tip} />
-                  <Legend formatter={(v) => (v === 'orders' ? 'Orders' : v === 'value' ? 'Sale' : 'Wapas')} wrapperStyle={{ fontSize: 12 }} />
+                  <Tooltip formatter={(v, n) => (n === 'value' ? [formatPKR(Number(v)), tr('Sale')] : [String(v), n === 'orders' ? tr('Orders') : tr('Wapas')])} {...tip} />
+                  <Legend formatter={(v) => (v === 'orders' ? tr('Orders') : v === 'value' ? tr('Sale') : tr('Wapas'))} wrapperStyle={{ fontSize: 12 }} />
                   <Bar yAxisId="o" dataKey="orders" fill={theme.primarySoft} radius={[4, 4, 0, 0]} maxBarSize={14} />
                   <Bar yAxisId="o" dataKey="returned" fill={RTO_COLOR} radius={[4, 4, 0, 0]} maxBarSize={8} />
                   <Area yAxisId="v" type="monotone" dataKey="value" stroke={theme.primary} strokeWidth={2.25} fill="url(#online-trend)" />
@@ -132,8 +133,8 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
       {(has('payment') || has('channels')) && (
         <div className="grid gap-4 lg:grid-cols-2">
           {has('channels') && (
-            <Card className="rounded-2xl" title={<Title icon={Globe}>Channel</Title>} description="Website, Shopify, Daraz, Foodpanda… kahan se kitna">
-              {!data.byChannel.length ? <Empty text="Koi order nahi" /> : (
+            <Card className="rounded-2xl" title={<Title icon={Globe}>{tr('Channel')}</Title>} description={tr('Website, Shopify, Daraz, Foodpanda… kahan se kitna')}>
+              {!data.byChannel.length ? <Empty text={tr('Koi order nahi')} /> : (
                 <>
                   <div className="h-[12.5rem]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -141,22 +142,22 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                         <CartesianGrid stroke={theme.grid} horizontal={false} />
                         <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
                         <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={110} />
-                        <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Sale']} {...tip} />
+                        <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Sale')]} {...tip} />
                         <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={16}>
                           {data.byChannel.map((c, i) => <Cell key={c.name} fill={brandForChannel(c.type) === 'other' ? PALETTE[i % PALETTE.length] : brandColor(brandForChannel(c.type))} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <RateTable head={['Channel', 'Orders', 'Sale', 'Deliver', 'RTO']}
+                  <RateTable head={[tr('Channel'), tr('Orders'), tr('Sale'), tr('Deliver hue'), 'RTO']}
                     rows={data.byChannel.map((c) => ({ key: c.name, brand: brandForChannel(c.type), cells: [c.name, String(c.orders), money(c.value), `${c.deliveryRate}%`], rto: c.rtoRate, n: c.dispatched }))} />
                 </>
               )}
             </Card>
           )}
           {has('payment') && (
-            <Card className="rounded-2xl" title={<Title icon={Banknote}>COD ya pehle se paid</Title>} description="COD ka paisa courier ke paas phansta hai">
-              {!pieData.length ? <Empty text="Koi order nahi" /> : (
+            <Card className="rounded-2xl" title={<Title icon={Banknote}>{tr('COD ya pehle se paid')}</Title>} description={tr('COD ka paisa courier ke paas phansta hai')}>
+              {!pieData.length ? <Empty text={tr('Koi order nahi')} /> : (
                 <>
                   <div className="h-[11.25rem]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -171,15 +172,15 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                   <ul className="mt-2 space-y-1 text-[0.8125rem]">
                     {pieData.map((p) => (
                       <li key={p.name} className="flex items-center justify-between">
-                        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />{p.name} · {p.orders} order</span>
+                        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />{tr('{{name}} · {{orders}} order', { name: p.name, orders: p.orders })}</span>
                         <span className="tabular-nums text-slate-900">{money(p.value)}</span>
                       </li>
                     ))}
                   </ul>
                   <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Fact tone="success">COD wasool <b className="block text-[0.9375rem] tabular-nums">{money(data.payment.cod.collected)}</b></Fact>
+                    <Fact tone="success">{tr('COD wasool')}{' '} <b className="block text-[0.9375rem] tabular-nums">{money(data.payment.cod.collected)}</b></Fact>
                     <Link to="/online-orders/cod" className="block rounded-xl bg-orange-50 px-3 py-2 text-[0.8125rem] text-orange-800 ring-1 ring-orange-100 hover:ring-orange-300">
-                      COD abhi baqi → <b className="block text-[0.9375rem] tabular-nums">{money(data.payment.cod.pending)}</b>
+                      {tr('COD abhi baqi →')}{' '} <b className="block text-[0.9375rem] tabular-nums">{money(data.payment.cod.pending)}</b>
                     </Link>
                   </div>
                 </>
@@ -192,14 +193,14 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
       {(has('cities') || has('couriers')) && (
         <div className="grid gap-4 lg:grid-cols-2">
           {has('cities') && (
-            <Card className="rounded-2xl" title={<Title icon={MapPin}>Shehar</Title>} description="Kahan se order aate hain aur kahan RTO zyada hai">
+            <Card className="rounded-2xl" title={<Title icon={MapPin}>{tr('Shehar')}</Title>} description={tr('Kahan se order aate hain aur kahan RTO zyada hai')}>
               {data.riskyCities.length > 0 && (
                 <p className="mb-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>RTO zyada: {data.riskyCities.map((c) => `${c.city} ${c.rtoRate}%`).join(' · ')}. Yahan ke COD order call karke confirm karein ya advance lein.</span>
+                  <span>{tr('RTO zyada: {{value}}. Yahan ke COD order call karke confirm karein ya advance lein.', { value: data.riskyCities.map((c) => `${c.city} ${c.rtoRate}%`).join(' · ') })}</span>
                 </p>
               )}
-              {!data.byCity.length ? <Empty text="Koi order nahi" /> : (
+              {!data.byCity.length ? <Empty text={tr('Koi order nahi')} /> : (
                 <>
                   <div className="h-[15rem]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -207,21 +208,21 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                         <CartesianGrid stroke={theme.grid} horizontal={false} />
                         <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} />
                         <YAxis type="category" dataKey="city" tick={theme.axis} axisLine={false} tickLine={false} width={100} />
-                        <Tooltip formatter={(v, n) => [String(v), n === 'orders' ? 'Orders' : 'Wapas']} {...tip} />
+                        <Tooltip formatter={(v, n) => [String(v), n === 'orders' ? tr('Orders') : tr('Wapas')]} {...tip} />
                         <Bar dataKey="orders" stackId="c" fill={theme.primary} barSize={14} />
                         <Bar dataKey="returned" stackId="c" fill={RTO_COLOR} radius={[0, 6, 6, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <RateTable head={['Shehar', 'Orders', 'Sale', 'Deliver', 'RTO']}
+                  <RateTable head={[tr('Shehar'), tr('Orders'), tr('Sale'), tr('Deliver hue'), 'RTO']}
                     rows={data.byCity.map((c) => ({ key: c.city, cells: [c.city, String(c.orders), money(c.value), `${c.deliveryRate}%`], rto: c.rtoRate, n: c.dispatched }))} />
                 </>
               )}
             </Card>
           )}
           {has('couriers') && (
-            <Card className="rounded-2xl" title={<Title icon={Truck}>Courier aur RTO</Title>} description="Kaun sa courier zyada deliver karta hai, kis ke parcel wapas aate hain">
-              {!data.byCourier.length ? <Empty text="Is period me koi parcel nahi bheja" /> : (
+            <Card className="rounded-2xl" title={<Title icon={Truck}>{tr('Courier aur RTO')}</Title>} description={tr('Kaun sa courier zyada deliver karta hai, kis ke parcel wapas aate hain')}>
+              {!data.byCourier.length ? <Empty text={tr('Is period me koi parcel nahi bheja')} /> : (
                 <>
                   <div className="h-[13.75rem]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -229,14 +230,14 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                         <CartesianGrid stroke={theme.grid} vertical={false} />
                         <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                         <YAxis tick={theme.axis} axisLine={false} tickLine={false} unit="%" domain={[0, 100]} width={44} />
-                        <Tooltip formatter={(v, n) => [`${v}%`, n === 'deliveryRate' ? 'Deliver' : 'RTO']} {...tip} />
-                        <Legend formatter={(v) => (v === 'deliveryRate' ? 'Deliver %' : 'RTO %')} wrapperStyle={{ fontSize: 12 }} />
+                        <Tooltip formatter={(v, n) => [`${v}%`, n === 'deliveryRate' ? tr('Deliver hue') : tr('RTO')]} {...tip} />
+                        <Legend formatter={(v) => (v === 'deliveryRate' ? tr('Deliver %') : tr('RTO %'))} wrapperStyle={{ fontSize: 12 }} />
                         <Bar dataKey="deliveryRate" fill={PAID_COLOR} radius={[6, 6, 0, 0]} maxBarSize={26} />
                         <Bar dataKey="rtoRate" fill={RTO_COLOR} radius={[6, 6, 0, 0]} maxBarSize={26} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <RateTable head={['Courier', 'Bheje', 'Deliver', 'Wapas', 'RTO']}
+                  <RateTable head={[tr('Courier'), tr('Bheje'), tr('Deliver hue'), tr('Wapas'), 'RTO']}
                     rows={data.byCourier.map((c) => ({ key: c.code, brand: courierBrand(c.code || c.name), cells: [c.name, String(c.dispatched), String(c.delivered), String(c.returned)], rto: c.rtoRate, n: c.dispatched }))} />
                 </>
               )}
@@ -247,15 +248,15 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
 
       {has('time') && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="rounded-2xl" title={<Title icon={Clock}>Kis waqt order aate hain</Title>}
-            description={peak?.orders ? `Sab se zyada ${hourLabel(peak.hour)} (${peak.orders} order) — us waqt koi phone ke paas rahe` : 'Staff isi hisaab se rakhein'}>
+          <Card className="rounded-2xl" title={<Title icon={Clock}>{tr('Kis waqt order aate hain')}</Title>}
+            description={peak?.orders ? tr('Sab se zyada {{hour}} ({{orders}} order) — us waqt koi phone ke paas rahe', { hour: hourLabel(peak.hour), orders: peak.orders }) : tr('Staff isi hisaab se rakhein')}>
             <div className="h-[13.75rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.byHour.map((h) => ({ ...h, label: hourLabel(h.hour) }))} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} interval={2} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={36} />
-                  <Tooltip formatter={(v) => [String(v), 'Orders']} {...tip} />
+                  <Tooltip formatter={(v) => [String(v), tr('Orders')]} {...tip} />
                   <Bar dataKey="orders" radius={[4, 4, 0, 0]}>
                     {data.byHour.map((h) => <Cell key={h.hour} fill={h.hour === peak?.hour ? theme.highlight : theme.primary} />)}
                   </Bar>
@@ -263,15 +264,15 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
               </ResponsiveContainer>
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<Title icon={CalendarDays}>Hafte ka kaun sa din</Title>}
-            description={bestDay?.value ? `${WEEKDAYS[bestDay.day]} sab se acha — ads aur offers usi din` : 'Ads aur offers kis din chalayein'}>
+          <Card className="rounded-2xl" title={<Title icon={CalendarDays}>{tr('Hafte ka kaun sa din')}</Title>}
+            description={bestDay?.value ? tr('{{value}} sab se acha — ads aur offers usi din', { value: WEEKDAYS[bestDay.day] }) : tr('Ads aur offers kis din chalayein')}>
             <div className="h-[13.75rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.byWeekday.map((w) => ({ ...w, name: WEEKDAYS[w.day] }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => v.slice(0, 3)} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Sale']} {...tip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Sale')]} {...tip} />
                   <Bar dataKey="value" fill={theme.primary} radius={[6, 6, 0, 0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
@@ -283,26 +284,26 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
       {(has('products') || has('customers')) && (
         <div className="grid gap-4 lg:grid-cols-2">
           {has('products') && (
-            <Card className="rounded-2xl" title={<Title icon={Package}>Sab se zyada kya bika</Title>} description="Cancel aur wapas orders ke bagair">
-              {!data.topProducts.length ? <Empty text="Koi cheez nahi biki" /> : (
-                <RankList rows={data.topProducts.map((p) => ({ key: p.name, title: p.name, meta: `${Number(p.qty.toFixed(2))} bike`, right: money(p.value), bar: p.value || p.qty }))} />
+            <Card className="rounded-2xl" title={<Title icon={Package}>{tr('Sab se zyada kya bika')}</Title>} description={tr('Cancel aur wapas orders ke bagair')}>
+              {!data.topProducts.length ? <Empty text={tr('Koi cheez nahi biki')} /> : (
+                <RankList rows={data.topProducts.map((p) => ({ key: p.name, title: p.name, meta: tr('{{value}} bike', { value: Number(p.qty.toFixed(2)) }), right: money(p.value), bar: p.value || p.qty }))} />
               )}
             </Card>
           )}
           {has('customers') && (
-            <Card className="rounded-2xl" title={<Title icon={Users}>Sab se qeemti customer</Title>}
-              description={t.customers ? `${t.customers} customer · ${t.repeatCustomers} ne dobara order kiya (${repeatPct}%)` : 'Online khareedne wale'}>
-              {!data.topCustomers.length ? <Empty text="Koi customer nahi" /> : (
+            <Card className="rounded-2xl" title={<Title icon={Users}>{tr('Sab se qeemti customer')}</Title>}
+              description={t.customers ? tr('{{customers}} customer · {{repeatCustomers}} ne dobara order kiya ({{repeatPct}}%)', { customers: t.customers, repeatCustomers: t.repeatCustomers, repeatPct }) : tr('Online khareedne wale')}>
+              {!data.topCustomers.length ? <Empty text={tr('Koi customer nahi')} /> : (
                 <>
                   <p className="mb-3 flex items-start gap-2 rounded-xl bg-teal-50 px-3 py-2 text-[0.8125rem] text-teal-900 ring-1 ring-teal-100">
                     <Repeat className="mt-0.5 h-4 w-4 shrink-0" />
-                    {repeatPct < 20 ? 'Dobara aane wale kam hain — parcel me shukriya card ya agle order par discount rakhein.' : 'Achha hai — inhein WhatsApp par naye maal ki khabar dein.'}
+                    {repeatPct < 20 ? tr('Dobara aane wale kam hain — parcel me shukriya card ya agle order par discount rakhein.') : tr('Achha hai — inhein WhatsApp par naye maal ki khabar dein.')}
                   </p>
                   <RankList rows={data.topCustomers.map((c) => ({
                     key: c.phone, title: c.name, meta: [`${c.orders} order`, c.city].filter(Boolean).join(' · '), right: money(c.value), bar: c.value,
                     to: `/online-orders?search=${encodeURIComponent(c.phone)}`,
                   }))} />
-                  <Link to="/online-orders/customers" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab customers aur WhatsApp →</Link>
+                  <Link to="/online-orders/customers" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Sab customers aur WhatsApp →')}</Link>
                 </>
               )}
             </Card>
@@ -311,15 +312,15 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
       )}
 
       {has('codAging') && (
-        <Card className="rounded-2xl" title={<Title icon={Wallet}>COD kitne din se courier ke paas</Title>}
-          description="Deliver ho chuka, paisa abhi jama nahi hua (poore account ka, date ka nahi)"
-          actions={<Link to="/online-orders/cod" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">COD safha →</Link>}>
+        <Card className="rounded-2xl" title={<Title icon={Wallet}>{tr('COD kitne din se courier ke paas')}</Title>}
+          description={tr('Deliver ho chuka, paisa abhi jama nahi hua (poore account ka, date ka nahi)')}
+          actions={<Link to="/online-orders/cod" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('COD safha →')}</Link>}>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {data.codAging.map((a, i) => (
               <div key={a.label} className={cn('rounded-xl p-3 ring-1', i === 3 && a.count ? 'bg-rose-50 ring-rose-100' : 'bg-slate-50 ring-slate-100')}>
                 <div className="text-[0.75rem] text-slate-500">{a.label}</div>
                 <div className="text-lg font-bold tabular-nums text-slate-900">{money(a.value)}</div>
-                <div className="text-[0.75rem] text-slate-500">{a.count} parcel</div>
+                <div className="text-[0.75rem] text-slate-500">{tr('{{count}} parcel', { count: a.count })}</div>
               </div>
             ))}
           </div>
@@ -356,10 +357,10 @@ function RankList({ rows }: { rows: Array<{ key: string; title: string; meta: st
               </span>
               <span className="shrink-0 tabular-nums text-slate-900">{r.right}</span>
             </div>
-            <div className="ml-8 mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="ms-8 mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
               <div className="h-full rounded-full" style={{ width: `${(r.bar / max) * 100}%`, background: PALETTE[i % PALETTE.length] }} />
             </div>
-            <p className="ml-8 mt-0.5 text-[0.6875rem] text-slate-500">{r.meta}</p>
+            <p className="ms-8 mt-0.5 text-[0.6875rem] text-slate-500">{r.meta}</p>
           </>
         );
         return <li key={r.key}>{r.to ? <Link to={r.to} className="block hover:opacity-80">{body}</Link> : body}</li>;
@@ -372,18 +373,18 @@ function RateTable({ head, rows }: { head: string[]; rows: Array<{ key: string; 
   return (
     <div className="mt-3 overflow-x-auto">
       <Table minWidth="26rem" className="[&_table]:text-[0.8125rem]">
-        <THead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-          <Tr>{head.map((h, i) => <Th key={h} className={cn('py-1.5', i > 0 && 'text-right')}>{h}</Th>)}</Tr>
+        <THead className="text-start text-[0.6875rem] uppercase tracking-wide text-slate-500">
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('py-1.5', i > 0 && 'text-end')}>{h}</Th>)}</Tr>
         </THead>
         <TBody className="divide-y divide-slate-100">
           {rows.map((r) => (
             <Tr key={r.key}>
               {r.cells.map((c, i) => (
-                <Td key={i} className={cn('py-1.5', i === 0 ? 'max-w-[12rem] truncate font-medium text-slate-900' : 'text-right tabular-nums text-slate-700')}>
+                <Td key={i} className={cn('py-1.5', i === 0 ? 'max-w-[12rem] truncate font-medium text-slate-900' : 'text-end tabular-nums text-slate-700')}>
                   {i === 0 && r.brand ? <span className="inline-flex min-w-0 max-w-full items-center gap-2"><BrandLogo name={r.brand} size={20} /><span className="truncate">{c}</span></span> : c}
                 </Td>
               ))}
-              <Td className="py-1.5 text-right">{r.n ? <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', rateTone(r.rto))}>{r.rto}%</span> : <span className="text-slate-400">—</span>}</Td>
+              <Td className="py-1.5 text-end">{r.n ? <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', rateTone(r.rto))}>{r.rto}%</span> : <span className="text-slate-400">—</span>}</Td>
             </Tr>
           ))}
         </TBody>

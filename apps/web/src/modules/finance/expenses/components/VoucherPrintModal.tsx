@@ -13,6 +13,7 @@ import { getReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import type { Expense } from '../api/expenses.api';
 import { STATUS, catOf, methodOf } from './meta';
+import { t } from '@core/i18n';
 
 interface Opts { paper: ReceiptPaper; notes: boolean; signature: boolean; logo: boolean; copies: number }
 
@@ -33,7 +34,7 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
     shop: base.shop,
     design: {
       ...base.design,
-      a4Title: 'EXPENSE VOUCHER', showStatus: false, showLogo: o.logo, showSignature: o.signature,
+      a4Title: t('EXPENSE VOUCHER'), showStatus: false, showLogo: o.logo, showSignature: o.signature,
       payWhen: 'never' as const, showPayQr: false, showKhata: false, showSavings: false, showReviewQr: false, showBarcode: false,
       terms: '', footer: '', backPrint: 'none' as const, showCustomer: true, showItemDetails: true, showAmountInWords: true,
     },
@@ -46,14 +47,14 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
     return {
       saleNumber: e.expenseNumber,
       date: new Date(e.expenseDate),
-      partyLabel: 'Expense',
-      signLabels: ['Lene wale ke dastkhat', 'Dene wale ke dastkhat'],
+      partyLabel: t('Expense'),
+      signLabels: [t('Lene wale ke dastkhat'), t('Dene wale ke dastkhat')],
       customerName: e.title,
       cashierName: e.createdBy?.fullName,
       branchName: e.shop?.name,
       infoRows: [
-        { label: 'Category', value: cat.name },
-        { label: 'Haal', value: STATUS[e.status].label, bold: !paid },
+        { label: t('Category'), value: cat.name },
+        { label: t('Haal'), value: STATUS[e.status].label, bold: !paid },
       ],
       lines: [{
         name: e.title, qty: 1, unit: '', price: e.amount, total: e.amount,
@@ -63,8 +64,8 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
       discount: 0,
       total: e.amount,
       paid: paid ? e.amount : 0,
-      paymentLabel: paid ? `Diye (${method})` : 'Abhi diye nahi',
-      stamp: e.status === 'CANCELLED' ? 'CANCEL' : e.status === 'PENDING' ? 'BAQI' : undefined,
+      paymentLabel: paid ? t('Diye ({{method}})', { method }) : t('Abhi diye nahi'),
+      stamp: e.status === 'CANCELLED' ? t('CANCEL') : e.status === 'PENDING' ? t('BAQI') : undefined,
     };
   }, [e, o.notes]);
 
@@ -78,28 +79,28 @@ export function VoucherPrintModal({ expense: e, onClose }: { expense: Expense; o
   );
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Voucher print" description="Expenses ki parchi — dastkhat ke saath file me rakhein"
+    <Modal open onClose={onClose} size="xl" title={t('Voucher print')} description={t('Expenses ki parchi — dastkhat ke saath file me rakhein')}
       footer={<>
-        <span className="mr-auto hidden text-[0.75rem] text-slate-500 sm:inline">PDF chahiye to print me "Save as PDF" chunein</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>Print{o.copies > 1 ? ` (${o.copies})` : ''}</Button>
+        <span className="me-auto hidden text-[0.75rem] text-slate-500 sm:inline">{t('PDF chahiye to print me "Save as PDF" chunein')}</span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>{t('Print{{value}}', { value: o.copies > 1 ? ` (${o.copies})` : '' })}</Button>
       </>}>
       <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <div className="space-y-4">
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kaghaz</p>
-            <Segmented label="Kaghaz" value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: 'A4' }, { value: '80', label: '80mm' }, { value: '58', label: '58mm' }]} />
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Kaghaz')}</p>
+            <Segmented label={t('Kaghaz')} value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: t('A4') }, { value: '80', label: t('80mm') }, { value: '58', label: t('58mm') }]} />
           </div>
           <div>
-            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Voucher par</p>
-            <Toggle k="notes" label="Details / note" hint="Expenses ke saath likhi baat" />
-            <Toggle k="signature" label="Dastkhat ki jagah" hint="Lene aur dene wale dono ke liye (A4)" />
-            <Toggle k="logo" label="Logo" />
+            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Voucher par')}</p>
+            <Toggle k="notes" label={t('Details / note')} hint={t('Expenses ke saath likhi baat')} />
+            <Toggle k="signature" label={t('Dastkhat ki jagah')} hint={t('Lene aur dene wale dono ke liye (A4)')} />
+            <Toggle k="logo" label={t('Logo')} />
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Copies</p>
-            <Segmented label="Copies" value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }]} />
-            <p className="mt-1 text-[0.6875rem] text-slate-500">2 copies: ek lene wale ko, ek apni file me</p>
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Copies')}</p>
+            <Segmented label={t('Copies')} value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }]} />
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{t('2 copies: ek lene wale ko, ek apni file me')}</p>
           </div>
         </div>
         <div className="max-h-[70vh] overflow-auto rounded-2xl bg-slate-100 p-3">

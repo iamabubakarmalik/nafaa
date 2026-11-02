@@ -19,6 +19,7 @@ import { moneyApi } from '@modules/finance/money/api/money.api';
 import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { incomeApi, type Income, type IncomeCategoryCode, type IncomeCustomCategory, type IncomePayload, type IncomeReceivedVia } from '../api/income.api';
 import { FIXED_CATEGORIES, INCOME_AFFECTED_KEYS, VIA, apiError } from './meta';
+import { t as tr } from '@core/i18n';
 
 /** What the form opens with: a record to edit, or values to start a new one. */
 export type IncomeDraft =
@@ -67,13 +68,13 @@ export function IncomeForm({ draft, categories, onClose, onManageCategories }: {
 
   const value = Number(amount);
   const problems: string[] = [];
-  if (!title.trim()) problems.push('Aamdani kis cheez ki hai, likhein');
-  if (!(value > 0)) problems.push('Amount likhein');
-  if (date > today) problems.push('Aane wale din ki aamdani nahi likh sakte');
-  if (category === 'CUSTOM' && !categoryId) problems.push('Apni category chunein');
-  if (via === 'ACCOUNT' && !accountId) problems.push('Paisa kis account mein aaya — account chunein');
-  if (via === 'SUPPLIER_KHATA' && !supplierId) problems.push('Kis company/supplier ke khate mein adjust karna hai — chunein');
-  if (allShops && !editing && !shopId) problems.push('Branch chunein');
+  if (!title.trim()) problems.push(tr('Aamdani kis cheez ki hai, likhein'));
+  if (!(value > 0)) problems.push(tr('Amount likhein'));
+  if (date > today) problems.push(tr('Aane wale din ki aamdani nahi likh sakte'));
+  if (category === 'CUSTOM' && !categoryId) problems.push(tr('Apni category chunein'));
+  if (via === 'ACCOUNT' && !accountId) problems.push(tr('Paisa kis account mein aaya — account chunein'));
+  if (via === 'SUPPLIER_KHATA' && !supplierId) problems.push(tr('Kis company/supplier ke khate mein adjust karna hai — chunein'));
+  if (allShops && !editing && !shopId) problems.push(tr('Branch chunein'));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -89,11 +90,11 @@ export function IncomeForm({ draft, categories, onClose, onManageCategories }: {
       return incomeApi.create({ ...body, incomeDate: date, ...(allShops && shopId && { shopId }) });
     },
     onSuccess: (i) => {
-      toast.success(editing ? 'Aamdani ka record badal gaya' : `${formatPKR(i.amount)} ki aamdani likh li — profit mein jud gayi`);
+      toast.success(editing ? tr('Aamdani ka record badal gaya') : tr('{{amount}} ki aamdani likh li — profit mein jud gayi', { amount: formatPKR(i.amount) }));
       INCOME_AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (err) => toast.error(apiError(err, 'Save nahi hua')),
+    onError: (err) => toast.error(apiError(err, tr('Save nahi hua'))),
   });
 
   // Ctrl/Cmd + Enter saves.
@@ -110,48 +111,48 @@ export function IncomeForm({ draft, categories, onClose, onManageCategories }: {
 
   return (
     <Modal open onClose={onClose} size="lg" closeOnBackdrop={false}
-      title={editing ? `Aamdani badlein · ${editing.incomeNumber}` : 'Nayi aamdani'}
-      description="Company incentive, scheme claim, commission, kiraya — sale ke ilawa jo paisa aaye, likhein taake net profit sahi nikle"
+      title={editing ? tr('Aamdani badlein · {{incomeNumber}}', { incomeNumber: editing.incomeNumber }) : tr('Nayi aamdani')}
+      description={tr('Company incentive, scheme claim, commission, kiraya — sale ke ilawa jo paisa aaye, likhein taake net profit sahi nikle')}
       footer={<>
-        <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={() => save.mutate()} loading={save.isPending}>{editing ? 'Save karein' : 'Aamdani likhein'}</Button>
+        <span className="me-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={() => save.mutate()} loading={save.isPending}>{editing ? tr('Save karein') : tr('Aamdani likhein')}</Button>
       </>}>
       <div className="space-y-4">
         {allShops && !editing && (
           <div>
-            <p className={labelCls}><Store className="mr-1 inline h-3.5 w-3.5" />Branch <span className="text-rose-600">*</span></p>
+            <p className={labelCls}><Store className="me-1 inline h-3.5 w-3.5" />{tr('Branch')}{' '} <span className="text-rose-600">*</span></p>
             <div className="flex flex-wrap gap-1.5">
               {shops.map((s) => (
                 <button key={s.id} type="button" onClick={() => setShopId(s.id)} aria-pressed={shopId === s.id}
                   className={cn('h-9 rounded-xl px-3 text-[0.8125rem] font-semibold ring-1 transition', shopId === s.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                  {s.name}{s.isMain && <span className="ml-1 text-[0.6875rem] font-medium opacity-70">Main</span>}
+                  {s.name}{s.isMain && <span className="ms-1 text-[0.6875rem] font-medium opacity-70">{tr('Main')}</span>}
                 </button>
               ))}
             </div>
-            <p className={hintCls}>Aamdani jis branch ki hai woh chunein — usi ke profit aur galle mein jayegi.</p>
+            <p className={hintCls}>{tr('Aamdani jis branch ki hai woh chunein — usi ke profit aur galle mein jayegi.')}</p>
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
           <div>
-            <label htmlFor="inc-title" className={labelCls}>Kis cheez ki aamdani? <span className="text-rose-600">*</span></label>
-            <input id="inc-title" ref={titleRef} value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={120} placeholder="Maslan: Pepsi incentive October" className={inputCls} />
+            <label htmlFor="inc-title" className={labelCls}>{tr('Kis cheez ki aamdani?')}{' '} <span className="text-rose-600">*</span></label>
+            <input id="inc-title" ref={titleRef} value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={120} placeholder={tr('Maslan: Pepsi incentive October')} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="inc-amount" className={labelCls}>Amount (Rs) <span className="text-rose-600">*</span></label>
+            <label htmlFor="inc-amount" className={labelCls}>{tr('Amount (Rs)')}{' '} <span className="text-rose-600">*</span></label>
             <input id="inc-amount" inputMode="decimal" value={amount} onChange={(ev) => setAmount(ev.target.value.replace(/[^\d.]/g, ''))} placeholder="0"
-              className={cn(inputCls, 'h-11 text-right text-lg font-bold tabular-nums')} />
-            <p className={hintCls}>{value > 0 ? formatPKR(value) : 'Poori amount'}</p>
+              className={cn(inputCls, 'h-11 text-end text-lg font-bold tabular-nums')} />
+            <p className={hintCls}>{value > 0 ? formatPKR(value) : tr('Poori amount')}</p>
           </div>
         </div>
 
         <div>
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <span className="text-[0.8125rem] font-medium text-slate-700">Category</span>
-            <button type="button" onClick={onManageCategories} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><Settings2 className="h-3.5 w-3.5" />Apni categories</button>
+            <span className="text-[0.8125rem] font-medium text-slate-700">{tr('Category')}</span>
+            <button type="button" onClick={onManageCategories} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><Settings2 className="h-3.5 w-3.5" />{tr('Apni categories')}</button>
           </div>
-          <div role="radiogroup" aria-label="Category" className="flex flex-wrap gap-1.5">
+          <div role="radiogroup" aria-label={tr('Category')} className="flex flex-wrap gap-1.5">
             {FIXED_CATEGORIES.map((c) => {
               const on = category === c.id;
               return (
@@ -174,8 +175,8 @@ export function IncomeForm({ draft, categories, onClose, onManageCategories }: {
         </div>
 
         <div>
-          <p className={labelCls}>Paisa kahan aaya?</p>
-          <div role="radiogroup" aria-label="Kahan aaya" className="grid gap-1.5 sm:grid-cols-3">
+          <p className={labelCls}>{tr('Paisa kahan aaya?')}</p>
+          <div role="radiogroup" aria-label={tr('Kahan aaya')} className="grid gap-1.5 sm:grid-cols-3">
             {(Object.keys(VIA) as IncomeReceivedVia[]).map((k) => {
               const v = VIA[k];
               const on = via === k;
@@ -188,36 +189,36 @@ export function IncomeForm({ draft, categories, onClose, onManageCategories }: {
               );
             })}
           </div>
-          <p className={hintCls}>{VIA[via].hint}{via === 'CASH_DRAWER' && date !== today ? ' Pichli date ka cash aaj ki shift mein nahi ginta.' : ''}</p>
+          <p className={hintCls}>{VIA[via].hint}{via === 'CASH_DRAWER' && date !== today ? tr(' Pichli date ka cash aaj ki shift mein nahi ginta.') : ''}</p>
           {via === 'ACCOUNT' && (
-            <Select wrapperClassName="mt-2" aria-label="Account" value={accountId} onChange={(ev) => setAccountId(ev.target.value)}
-              placeholder={accountsQ.isLoading ? 'Accounts aa rahe hain…' : 'Account chunein'}
+            <Select wrapperClassName="mt-2" aria-label={tr('Account')} value={accountId} onChange={(ev) => setAccountId(ev.target.value)}
+              placeholder={accountsQ.isLoading ? tr('Accounts aa rahe hain…') : tr('Account chunein')}
               options={accounts.map((a) => ({ value: a.id, label: `${a.name}${a.shop ? ` · ${a.shop.name}` : ''}` }))} />
           )}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <Select label={via === 'SUPPLIER_KHATA' ? 'Company / supplier *' : 'Company / supplier (marzi)'} value={supplierId} onChange={(ev) => setSupplierId(ev.target.value)}
-              placeholder={suppliersQ.isLoading ? 'Suppliers aa rahe hain…' : 'Koi nahi'}
-              options={[{ value: '', label: 'Koi nahi' }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]} />
-            <p className={hintCls}>{via === 'SUPPLIER_KHATA' ? 'Is supplier ko jo dena hai, us mein se itna kam ho jayega.' : 'Kis company ne diya — report mein dikhega.'}</p>
+            <Select label={via === 'SUPPLIER_KHATA' ? tr('Company / supplier *') : tr('Company / supplier (marzi)')} value={supplierId} onChange={(ev) => setSupplierId(ev.target.value)}
+              placeholder={suppliersQ.isLoading ? tr('Suppliers aa rahe hain…') : tr('Koi nahi')}
+              options={[{ value: '', label: tr('Koi nahi') }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]} />
+            <p className={hintCls}>{via === 'SUPPLIER_KHATA' ? tr('Is supplier ko jo dena hai, us mein se itna kam ho jayega.') : tr('Kis company ne diya — report mein dikhega.')}</p>
           </div>
           <div>
-            <label htmlFor="inc-date" className={labelCls}>Kis din?</label>
+            <label htmlFor="inc-date" className={labelCls}>{tr('Kis din?')}</label>
             <input id="inc-date" type="date" value={date} max={today} onChange={(ev) => setDate(ev.target.value || today)} className={cn(inputCls, '[color-scheme:light] dark:[color-scheme:dark]')} />
-            <p className={hintCls}>Usi din ke profit mein judegi.</p>
+            <p className={hintCls}>{tr('Usi din ke profit mein judegi.')}</p>
           </div>
         </div>
 
         <div>
-          <label htmlFor="inc-note" className={labelCls}>Details</label>
-          <textarea id="inc-note" value={note} onChange={(ev) => setNote(ev.target.value)} maxLength={500} rows={2} placeholder="Marzi hai — maslan: claim number, mahina"
+          <label htmlFor="inc-note" className={labelCls}>{tr('Details')}</label>
+          <textarea id="inc-note" value={note} onChange={(ev) => setNote(ev.target.value)} maxLength={500} rows={2} placeholder={tr('Marzi hai — maslan: claim number, mahina')}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
         </div>
 
-        <Switch checked={repeat} onChange={(ev) => setRepeat(ev.target.checked)} label="Har mahine aati hai"
-          description="Agle mahine Nafaa yaad dilayega ke is mahine ki abhi nahi likhi." />
+        <Switch checked={repeat} onChange={(ev) => setRepeat(ev.target.checked)} label={tr('Har mahine aati hai')}
+          description={tr('Agle mahine Nafaa yaad dilayega ke is mahine ki abhi nahi likhi.')} />
 
         {(title || amount) && problems.length > 0 && (
           <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">

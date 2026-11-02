@@ -13,6 +13,7 @@ import { SEVERITY_META, TYPE_META, TYPE_ORDER, timeOnly } from '../meta';
 import { eventValue } from '../print';
 import { flagTone } from './EventDrawer';
 import { Chip, SeverityPill, TypeIcon } from './parts';
+import { t as tr } from '@core/i18n';
 
 interface Fmt { money: (n: number) => string; cost: (n: number) => string; costHidden: boolean }
 
@@ -45,9 +46,9 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
   }, [items, startHour]);
   const today = businessDayKey(new Date(), startHour);
   const dayTitle = (k: string) => {
-    if (k === today) return 'Aaj';
+    if (k === today) return tr('Aaj');
     const y = new Date(); y.setDate(y.getDate() - 1);
-    if (k === businessDayKey(y, startHour)) return 'Kal';
+    if (k === businessDayKey(y, startHour)) return tr('Kal');
     return new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${k}T12:00:00`));
   };
   const counts = first?.counts ?? {};
@@ -57,19 +58,19 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
     <div className="space-y-3">
       {/* Type chips */}
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-        <TypeChip active={!type} onClick={() => onType('')} label="Sab" count={allCount} color="#0f172a" />
+        <TypeChip active={!type} onClick={() => onType('')} label={tr('Sab')} count={allCount} color="#0f172a" />
         {TYPE_ORDER.filter((t) => counts[t]).map((t) => (
           <TypeChip key={t} active={type === t} onClick={() => onType(type === t ? '' : t)} label={TYPE_META[t].label} count={counts[t] ?? 0} color={TYPE_META[t].color} />
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Darja:</span>
+        <span className="me-1 text-[0.75rem] font-medium text-slate-500">{tr('Darja:')}</span>
         {(['', 'high', 'medium', 'low'] as const).map((s) => (
           <button key={s || 'all'} type="button" onClick={() => onSeverity(s)}
             className={cn('inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[0.75rem] font-semibold ring-1 transition',
               severity === s ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
             {s && <span className="h-1.5 w-1.5 rounded-full" style={{ background: SEVERITY_META[s].color }} />}
-            {s ? SEVERITY_META[s].label : 'Sab'}
+            {s ? SEVERITY_META[s].label : tr('Sab')}
             {first && <span className="tabular-nums opacity-70">{s ? first.severities[s] : first.severities.high + first.severities.medium + first.severities.low}</span>}
           </button>
         ))}
@@ -80,16 +81,16 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
       ) : !items.length ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg"><ShieldCheck className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi mila' : 'Sab theek — koi shak wali baat nahi'}</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein' : 'Is period me koi void, return, bari discount ya drawer farq nahi aaya.'}</p>
-          {filtered && <div className="mt-4"><Button variant="secondary" onClick={onClear}>Filter hatayein</Button></div>}
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? tr('Is filter me kuch nahi mila') : tr('Sab theek — koi shak wali baat nahi')}</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{filtered ? tr('Filter badal kar dekhein') : tr('Is period me koi void, return, bari discount ya drawer farq nahi aaya.')}</p>
+          {filtered && <div className="mt-4"><Button variant="secondary" onClick={onClear}>{tr('Filter hatayein')}</Button></div>}
         </div>
       ) : (
         days.map(([k, list]) => (
           <section key={k} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             <header className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 sm:px-5">
-              <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(k)} <span className="font-normal text-slate-500">· {list.length} waqiye</span></h2>
-              {list.some((e) => e.severity === 'high') && <span className="text-[0.75rem] font-semibold text-rose-600">{list.filter((e) => e.severity === 'high').length} zaroori</span>}
+              <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(k)} <span className="font-normal text-slate-500">{tr('· {{count}} waqiye', { count: list.length })}</span></h2>
+              {list.some((e) => e.severity === 'high') && <span className="text-[0.75rem] font-semibold text-rose-600">{tr('{{count}} zaroori', { count: list.filter((e) => e.severity === 'high').length })}</span>}
             </header>
             <ul className="divide-y divide-slate-100">
               {list.map((e) => <EventRow key={e.id} e={e} fmt={fmt} onOpen={() => onOpen(e)} onStaff={onStaff} />)}
@@ -101,10 +102,10 @@ export function EventsView({ pages, loading, loadingMore, hasMore, onMore, type,
       {hasMore && (
         <button type="button" onClick={onMore} disabled={loadingMore}
           className="w-full rounded-2xl bg-white py-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50 disabled:opacity-60">
-          {loadingMore ? 'Aa rahe hain…' : `Aur dikhayein (${items.length} / ${first?.total ?? 0})`}
+          {loadingMore ? tr('Aa rahe hain…') : tr('Aur dikhayein ({{count}} / {{value}})', { count: items.length, value: first?.total ?? 0 })}
         </button>
       )}
-      {first?.capped && <p className="text-center text-[0.75rem] text-slate-500"><ListChecks className="mr-1 inline h-3.5 w-3.5" />Bohat zyada record — har type ke sab se naye 4,000 dikhaye ja rahe hain. Period chhoti karein.</p>}
+      {first?.capped && <p className="text-center text-[0.75rem] text-slate-500"><ListChecks className="me-1 inline h-3.5 w-3.5" />{tr('Bohat zyada record — har type ke sab se naye 4,000 dikhaye ja rahe hain. Period chhoti karein.')}</p>}
     </div>
   );
 }

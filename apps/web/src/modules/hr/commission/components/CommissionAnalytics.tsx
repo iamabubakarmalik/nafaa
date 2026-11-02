@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { commissionApi } from '../api/commission.api';
 import { COMMISSION_KEY, periodLabel, signed } from './meta';
+import { t } from '@core/i18n';
 
 const PALETTE = ['#7c3aed', '#0891b2', '#16a34a', '#ea580c', '#db2777', '#2563eb', '#ca8a04', '#64748b'];
 
@@ -22,7 +23,7 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
   const q = useQuery({ queryKey: [COMMISSION_KEY, 'analytics', period], queryFn: () => commissionApi.analytics(period, 12), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Analytics load nahi hui — internet check karein aur dobara kholein.</p>;
+  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{t('Analytics load nahi hui — internet check karein aur dobara kholein.')}</p>;
   if (!d) return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
 
   const months = d.series.map((s) => ({ ...s, label: periodLabel(s.period, true) }));
@@ -34,23 +35,23 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={HandCoins} label="12 mahine ki commission" value={signed(d.totals.earned)} sub={d.totals.best ? `Sab se zyada ${periodLabel(d.totals.best.period, true)}: ${formatPKR(d.totals.best.earned)}` : '—'} />
-        <Kpi icon={Wallet} label="Ada hui" value={formatPKR(d.totals.paid)} sub={`Baqi ${formatPKR(Math.max(0, d.totals.earned - d.totals.paid))}`} tone="emerald" />
-        <Kpi icon={BarChart3} label="Chaalu bandon ki sale" value={formatPKR(d.totals.sale)} sub="Return nikaal kar" />
-        <Kpi icon={Percent} label="Sale ka kitna hissa" value={`${d.totals.rate}%`} sub="Commission ÷ sale" tone="amber" />
+        <Kpi icon={HandCoins} label={t('12 mahine ki commission')} value={signed(d.totals.earned)} sub={d.totals.best ? t('Sab se zyada {{period}}: {{earned}}', { period: periodLabel(d.totals.best.period, true), earned: formatPKR(d.totals.best.earned) }) : '—'} />
+        <Kpi icon={Wallet} label={t('Ada hui')} value={formatPKR(d.totals.paid)} sub={t('Baqi {{formatPKR}}', { formatPKR: formatPKR(Math.max(0, d.totals.earned - d.totals.paid)) })} tone="emerald" />
+        <Kpi icon={BarChart3} label={t('Chaalu bandon ki sale')} value={formatPKR(d.totals.sale)} sub={t('Return nikaal kar')} />
+        <Kpi icon={Percent} label={t('Sale ka kitna hissa')} value={`${d.totals.rate}%`} sub={t('Commission ÷ sale')} tone="amber" />
       </div>
 
       {empty ? (
-        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">In 12 mahine me chaalu bandon ki koi sale nahi.</p>
+        <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{t('In 12 mahine me chaalu bandon ki koi sale nahi.')}</p>
       ) : (<>
-        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Commission aur payment</Title>} description="Har mahine kitni bani aur kitni ada hui">
+        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>{t('Commission aur payment')}</Title>} description={t('Har mahine kitni bani aur kitni ada hui')}>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'earned' ? 'Commission' : 'Ada']} {...theme.tooltip} />
+                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'earned' ? t('Commission') : t('Ada')]} {...theme.tooltip} />
                 <Bar dataKey="earned" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
                 <Bar dataKey="paid" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
@@ -59,7 +60,7 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
         </Card>
 
         {d.scope === 'all' && top.length > 1 && (
-          <Card className="rounded-2xl" title={<Title icon={Users}>Har banda, har mahina</Title>} description={`Sab se zyada kamane wale ${top.length} bande`}>
+          <Card className="rounded-2xl" title={<Title icon={Users}>{t('Har banda, har mahina')}</Title>} description={t('Sab se zyada kamane wale {{count}} bande', { count: top.length })}>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stacked} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -76,8 +77,8 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="rounded-2xl" title={<Title icon={Gauge}>Kis rule se kitni</Title>} description="12 mahine me har rule ka hissa">
-            {!d.byRule.length ? <p className="py-10 text-center text-sm text-slate-500">Koi commission nahi bani</p> : (
+          <Card className="rounded-2xl" title={<Title icon={Gauge}>{t('Kis rule se kitni')}</Title>} description={t('12 mahine me har rule ka hissa')}>
+            {!d.byRule.length ? <p className="py-10 text-center text-sm text-slate-500">{t('Koi commission nahi bani')}</p> : (
               <ul className="space-y-2.5">
                 {d.byRule.map((r) => (
                   <li key={r.label}>
@@ -89,20 +90,20 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<Title icon={Users}>Bande</Title>} description="Click karein to us ka is mahine ka statement khulega" flush>
+          <Card className="rounded-2xl" title={<Title icon={Users}>{t('Bande')}</Title>} description={t('Click karein to us ka is mahine ka statement khulega')} flush>
             <Table minWidth="28rem" className="mt-3 [&_table]:text-[0.8125rem]">
               <THead><Tr>
-                <Th className="px-4 py-2">Banda</Th><Th className="px-2 py-2 text-right">Sale</Th>
-                <Th className="px-2 py-2 text-right">Commission</Th><Th className="px-2 py-2 text-right">%</Th><Th className="px-4 py-2 text-right">Ada</Th>
+                <Th className="px-4 py-2">{t('Banda')}</Th><Th className="px-2 py-2 text-end">{t('Sale')}</Th>
+                <Th className="px-2 py-2 text-end">{t('Commission')}</Th><Th className="px-2 py-2 text-end">%</Th><Th className="px-4 py-2 text-end">{t('Ada')}</Th>
               </Tr></THead>
               <TBody>
                 {d.people.map((p) => (
                   <Tr key={p.userId} interactive onClick={() => onPerson(p.userId, p.name)}>
                     <Td className="max-w-[10rem] truncate px-4 py-2 font-medium text-slate-900">{p.name}</Td>
-                    <Td className="px-2 py-2 text-right tabular-nums">{axisMoney(p.sale)}</Td>
-                    <Td className="px-2 py-2 text-right font-semibold tabular-nums">{signed(p.earned)}</Td>
-                    <Td className="px-2 py-2 text-right tabular-nums text-slate-500">{p.rate}%</Td>
-                    <Td className="px-4 py-2 text-right tabular-nums">{formatPKR(p.paid)}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums">{axisMoney(p.sale)}</Td>
+                    <Td className="px-2 py-2 text-end font-semibold tabular-nums">{signed(p.earned)}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums text-slate-500">{p.rate}%</Td>
+                    <Td className="px-4 py-2 text-end tabular-nums">{formatPKR(p.paid)}</Td>
                   </Tr>
                 ))}
               </TBody>

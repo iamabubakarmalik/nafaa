@@ -29,14 +29,15 @@ import { qurbaniApi, type QurbaniBooking } from '../api/qurbani.api';
 import { CancelModal, MethodPicker, PayModal, RefundModal } from '../components/money';
 import { FormRow, ListFrame, Pill, inputBox, usePageKeys, useSaveKey, type Tone } from '../components/ui';
 import { KEYS, MONEY_KEYS, animalOf, apiError, dateOnly, decimal, type PayMethod } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type View = 'list' | 'analytics';
 const SHARED = ['BEEF', 'CAMEL', 'BUFFALO'];
-const KINDS = [{ value: 'BEEF', label: 'Gaye (hissa)' }, { value: 'CAMEL', label: 'Oont (hissa)' }, { value: 'MUTTON', label: 'Bakra' }, { value: 'LAMB', label: 'Dumba' }, { value: 'GOAT', label: 'Bakri' }];
-const OCCASIONS = [{ value: 'QURBANI', label: 'Qurbani' }, { value: 'AQEEQA', label: 'Aqeeqa' }, { value: 'SADQA', label: 'Sadqa' }, { value: 'NAZAR', label: 'Nazar / niaz' }];
+const KINDS = [{ value: 'BEEF', label: tr('Gaye (hissa)') }, { value: 'CAMEL', label: tr('Oont (hissa)') }, { value: 'MUTTON', label: tr('Bakra') }, { value: 'LAMB', label: tr('Dumba') }, { value: 'GOAT', label: tr('Bakri') }];
+const OCCASIONS = [{ value: 'QURBANI', label: tr('Qurbani') }, { value: 'AQEEQA', label: tr('Aqeeqa') }, { value: 'SADQA', label: tr('Sadqa') }, { value: 'NAZAR', label: tr('Nazar / niaz') }];
 const STATUS: Record<string, { label: string; tone: Tone }> = {
-  BOOKED: { label: 'Booked', tone: 'sky' }, CONFIRMED: { label: 'Pakki', tone: 'violet' }, SLAUGHTERED: { label: 'Zibah ho gaya', tone: 'amber' },
-  COMPLETED: { label: 'De diya', tone: 'emerald' }, CANCELLED: { label: 'Cancel', tone: 'rose' },
+  BOOKED: { label: tr('Booked'), tone: 'sky' }, CONFIRMED: { label: tr('Pakki'), tone: 'violet' }, SLAUGHTERED: { label: tr('Zibah ho gaya'), tone: 'amber' },
+  COMPLETED: { label: tr('De diya'), tone: 'emerald' }, CANCELLED: { label: tr('Cancel'), tone: 'rose' },
 };
 const occasionLabel = (v: string) => OCCASIONS.find((o) => o.value === v)?.label ?? v;
 const isOpen = (b: QurbaniBooking) => b.status !== 'COMPLETED' && b.status !== 'CANCELLED';
@@ -60,13 +61,13 @@ function BookingForm({ b, onClose, onDone }: { b: QurbaniBooking | null; onClose
   const [tried, setTried] = useState(false);
   const shared = SHARED.includes(type);
   const errors: Record<string, string> = {};
-  if (name.trim().length < 2) errors.name = 'Naam likhein';
-  if (!/^[0-9+\-\s]{10,15}$/.test(phone.trim())) errors.phone = 'Phone theek likhein (03xx-xxxxxxx)';
-  if (shared && !(Number(shares) >= 1 && Number(shares) <= 7)) errors.shares = 'Hisse 1 se 7 tak';
-  if (price !== '' && !(Number(price) > 0)) errors.price = 'Qeemat theek likhein';
-  if (b && price !== '' && Number(price) + 0.005 < b.paidAmount) errors.price = `${formatPKR(b.paidAmount)} mil chuka — qeemat is se kam nahi`;
-  if (!b && Number(advance) > 0 && price !== '' && Number(advance) > Number(price)) errors.advance = 'Advance qeemat se zyada nahi';
-  if (delivery && !address.trim()) errors.address = 'Pata likhein';
+  if (name.trim().length < 2) errors.name = tr('Naam likhein');
+  if (!/^[0-9+\-\s]{10,15}$/.test(phone.trim())) errors.phone = tr('Phone theek likhein (03xx-xxxxxxx)');
+  if (shared && !(Number(shares) >= 1 && Number(shares) <= 7)) errors.shares = tr('Hisse 1 se 7 tak');
+  if (price !== '' && !(Number(price) > 0)) errors.price = tr('Qeemat theek likhein');
+  if (b && price !== '' && Number(price) + 0.005 < b.paidAmount) errors.price = tr('{{formatPKR}} mil chuka — qeemat is se kam nahi', { formatPKR: formatPKR(b.paidAmount) });
+  if (!b && Number(advance) > 0 && price !== '' && Number(advance) > Number(price)) errors.advance = tr('Advance qeemat se zyada nahi');
+  if (delivery && !address.trim()) errors.address = tr('Pata likhein');
   const err = (k: string) => (tried ? errors[k] : undefined);
   const save = useMutation({
     mutationFn: () => {
@@ -78,41 +79,41 @@ function BookingForm({ b, onClose, onDone }: { b: QurbaniBooking | null; onClose
       };
       return b ? qurbaniApi.update(b.id, body) : qurbaniApi.create({ ...body, advanceAmount: Number(advance) || 0, paymentMethod: method });
     },
-    onSuccess: (r) => { toast.success(b ? 'Booking badal di' : `Booking ${r.bookingNumber} ban gayi`); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Booking save nahi hui')),
+    onSuccess: (r) => { toast.success(b ? tr('Booking badal di') : tr('Booking {{bookingNumber}} ban gayi', { bookingNumber: r.bookingNumber })); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Booking save nahi hui'))),
   });
   const submit = () => { setTried(true); const f = Object.values(errors)[0]; if (f) { toast.error(f); return; } if (!save.isPending) save.mutate(); };
   useSaveKey(submit);
   const fit = (animals.data ?? []).filter((a) => a.animalType === type);
   return (
-    <Modal open onClose={onClose} size="lg" title={b ? `${b.bookingNumber} badlein` : 'Nayi booking'} description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} onClick={submit}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={b ? tr('{{bookingNumber}} badlein', { bookingNumber: b.bookingNumber }) : tr('Nayi booking')} description={tr('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} onClick={submit}>{tr('Save')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <FormRow label="Naam" error={err('name')}><input data-autofocus value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputBox} aria-invalid={!!err('name')} /></FormRow>
-          <FormRow label="Phone" error={err('phone')}><input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputBox} placeholder="03xx-xxxxxxx" aria-invalid={!!err('phone')} /></FormRow>
+          <FormRow label={tr('Naam')} error={err('name')}><input data-autofocus value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputBox} aria-invalid={!!err('name')} /></FormRow>
+          <FormRow label={tr('Phone')} error={err('phone')}><input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputBox} placeholder="03xx-xxxxxxx" aria-invalid={!!err('phone')} /></FormRow>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <FormRow label="Kis liye"><select value={occasion} onChange={(e) => setOccasion(e.target.value)} className={inputBox}>{OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></FormRow>
-          <FormRow label="Janwar"><select value={type} onChange={(e) => setType(e.target.value)} className={inputBox}>{KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select></FormRow>
-          <FormRow label="Hisse" error={err('shares')} hint={shared ? '1 se 7' : 'Poora janwar ek hissa'}><input inputMode="numeric" disabled={!shared} value={shared ? shares : '1'} onChange={(e) => setShares(e.target.value.replace(/\D/g, ''))} className={inputBox} /></FormRow>
+          <FormRow label={tr('Kis liye')}><select value={occasion} onChange={(e) => setOccasion(e.target.value)} className={inputBox}>{OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></FormRow>
+          <FormRow label={tr('Janwar')}><select value={type} onChange={(e) => setType(e.target.value)} className={inputBox}>{KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}</select></FormRow>
+          <FormRow label={tr('Hisse')} error={err('shares')} hint={shared ? tr('1 se 7') : tr('Poora janwar ek hissa')}><input inputMode="numeric" disabled={!shared} value={shared ? shares : '1'} onChange={(e) => setShares(e.target.value.replace(/\D/g, ''))} className={inputBox} /></FormRow>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <FormRow label="Kul qeemat" error={err('price')} hint="Abhi pata na ho to khali — dete waqt zaroori"><input inputMode="decimal" value={price} onChange={(e) => setPrice(decimal(e.target.value))} className={cn(inputBox, 'text-right')} aria-invalid={!!err('price')} /></FormRow>
-          <FormRow label="Janwar (baara se)" hint="Is ki purchase qeemat bill ki cost banti hai">
-            <select value={animalId} onChange={(e) => setAnimalId(e.target.value)} className={inputBox}><option value="">Abhi nahi</option>{fit.map((a) => <option key={a.id} value={a.id}>{a.tagNumber} · {a.weightKg} kg</option>)}</select>
+          <FormRow label={tr('Kul qeemat')} error={err('price')} hint={tr('Abhi pata na ho to khali — dete waqt zaroori')}><input inputMode="decimal" value={price} onChange={(e) => setPrice(decimal(e.target.value))} className={cn(inputBox, 'text-end')} aria-invalid={!!err('price')} /></FormRow>
+          <FormRow label={tr('Janwar (baara se)')} hint={tr('Is ki purchase qeemat bill ki cost banti hai')}>
+            <select value={animalId} onChange={(e) => setAnimalId(e.target.value)} className={inputBox}><option value="">{tr('Abhi nahi')}</option>{fit.map((a) => <option key={a.id} value={a.id}>{tr('{{tagNumber}} · {{weightKg}} kg', { tagNumber: a.tagNumber, weightKg: a.weightKg })}</option>)}</select>
           </FormRow>
-          <FormRow label="Kaunsa din"><select value={day} onChange={(e) => setDay(e.target.value)} className={inputBox}>{[1, 2, 3].map((d) => <option key={d} value={d}>Eid ka {d === 1 ? 'pehla' : d === 2 ? 'doosra' : 'teesra'} din</option>)}</select></FormRow>
+          <FormRow label={tr('Kaunsa din')}><select value={day} onChange={(e) => setDay(e.target.value)} className={inputBox}>{[1, 2, 3].map((d) => <option key={d} value={d}>{tr('Eid ka {{value}} din', { value: d === 1 ? tr('pehla') : d === 2 ? tr('doosra') : tr('teesra') })}</option>)}</select></FormRow>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Switch checked={delivery} onChange={(e) => setDelivery(e.target.checked)} label="Gosht ghar bhejna hai" />
-          <Switch checked={skin} onChange={(e) => setSkin(e.target.checked)} label="Khaal customer ko chahiye" />
+          <Switch checked={delivery} onChange={(e) => setDelivery(e.target.checked)} label={tr('Gosht ghar bhejna hai')} />
+          <Switch checked={skin} onChange={(e) => setSkin(e.target.checked)} label={tr('Khaal customer ko chahiye')} />
         </div>
-        {delivery && <FormRow label="Pata" error={err('address')}><input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={1000} className={inputBox} aria-invalid={!!err('address')} /></FormRow>}
-        <Input label="Hidayat (marzi)" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Teen hisse: ghar, rishtedar, gareeb…" />
+        {delivery && <FormRow label={tr('Pata')} error={err('address')}><input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={1000} className={inputBox} aria-invalid={!!err('address')} /></FormRow>}
+        <Input label={tr('Hidayat (marzi)')} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder={tr('Teen hisse: ghar, rishtedar, gareeb…')} />
         {!b && (
           <div className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-            <FormRow label="Advance (abhi mila)" error={err('advance')} hint="Aaj ke galle aur customer ke khate me jata hai"><input inputMode="decimal" value={advance} onChange={(e) => setAdvance(decimal(e.target.value))} className={cn(inputBox, 'bg-white text-right font-semibold')} placeholder="0" /></FormRow>
+            <FormRow label={tr('Advance (abhi mila)')} error={err('advance')} hint={tr('Aaj ke galle aur customer ke khate me jata hai')}><input inputMode="decimal" value={advance} onChange={(e) => setAdvance(decimal(e.target.value))} className={cn(inputBox, 'bg-white text-end font-semibold')} placeholder="0" /></FormRow>
             {Number(advance) > 0 && <MethodPicker value={method} onChange={setMethod} />}
           </div>
         )}
@@ -131,18 +132,18 @@ function CompleteModal({ b, onClose, onDone }: { b: QurbaniBooking; onClose: () 
   const n = Number(amount) || 0;
   const save = useMutation({
     mutationFn: () => qurbaniApi.complete(b.id, n, method),
-    onSuccess: (r) => { toast.success(`${b.bookingNumber} de diya — bill ${r.sale.saleNumber}`); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+    onSuccess: (r) => { toast.success(tr('{{bookingNumber}} de diya — bill {{saleNumber}}', { bookingNumber: b.bookingNumber, saleNumber: r.sale.saleNumber })); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Bill nahi bana'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Gosht de dein aur bill banayein" description={`${b.bookingNumber} · ${b.customerName} · ${formatPKR(b.finalPrice ?? 0)}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="success" disabled={!one.data || n > due + 0.005} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Receipt className="h-4 w-4" />}>Bill banayein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Gosht de dein aur bill banayein')} description={`${b.bookingNumber} · ${b.customerName} · ${formatPKR(b.finalPrice ?? 0)}`}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant="success" disabled={!one.data || n > due + 0.005} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Receipt className="h-4 w-4" />}>{tr('Bill banayein')}</Button></>}>
       {!one.data ? <Skeleton className="h-24 rounded-xl" /> : (
         <div className="space-y-3">
-          <p className="text-[0.875rem] text-slate-700">Advance mila {formatPKR(held)} · ab lena <strong>{formatPKR(due)}</strong></p>
-          <Input data-autofocus inputMode="decimal" value={amount} onChange={(e) => setAmount(decimal(e.target.value))} size="lg" className="text-center text-2xl font-bold tabular-nums" error={n > due + 0.005 ? `Baqi sirf ${formatPKR(due)}` : undefined} />
+          <p className="text-[0.875rem] text-slate-700">{tr('Advance mila {{held}} · ab lena', { held: formatPKR(held) })}{' '} <strong>{formatPKR(due)}</strong></p>
+          <Input data-autofocus inputMode="decimal" value={amount} onChange={(e) => setAmount(decimal(e.target.value))} size="lg" className="text-center text-2xl font-bold tabular-nums" error={n > due + 0.005 ? tr('Baqi sirf {{due}}', { due: formatPKR(due) }) : undefined} />
           <MethodPicker value={method} onChange={setMethod} />
-          {due - n > 0.005 && <p className="text-[0.8125rem] text-amber-800">{formatPKR(due - n)} customer ke khate me udhaar jayega.</p>}
+          {due - n > 0.005 && <p className="text-[0.8125rem] text-amber-800">{tr('{{formatPKR}} customer ke khate me udhaar jayega.', { formatPKR: formatPKR(due - n) })}</p>}
         </div>
       )}
     </Modal>
@@ -185,8 +186,8 @@ export default function QurbaniPage() {
   const refresh = () => [KEYS.qurbani, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const step = useMutation({
     mutationFn: ({ b, status: s }: { b: QurbaniBooking; status: string }) => qurbaniApi.updateStatus(b.id, s),
-    onSuccess: () => { toast.success('Halat badal di'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onSuccess: () => { toast.success(tr('Halat badal di')); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Halat nahi badli'))),
   });
   usePageKeys({ n: canPos ? () => setDialog({ kind: 'new' }) : undefined, '1': () => setView('list'), '2': () => setView('analytics'), g: guide.open }, searchRef);
 
@@ -199,61 +200,61 @@ export default function QurbaniPage() {
   return (
     <PageShell>
       <PageHero
-        title="Qurbani aur aqeeqa"
-        chip={<><Beef /> Hisse aur bookings</>}
-        meta="Hissa book karein, advance lein, zibah ke baad gosht de kar bill banayein"
+        title={tr('Qurbani aur aqeeqa')}
+        chip={<><Beef /> {' '}{tr('Hisse aur bookings')}</>}
+        meta={tr('Hissa book karein, advance lein, zibah ke baad gosht de kar bill banayein')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
-          <button type="button" title="CSV" className={heroIconButton} disabled={!rows.length}
-            onClick={() => downloadCsv('qurbani.csv', [['#', 'Naam', 'Phone', 'Kis liye', 'Janwar', 'Hisse', 'Din', 'Qeemat', 'Mila', 'Halat'], ...rows.map((b) => [b.bookingNumber, b.customerName, b.customerPhone, occasionLabel(b.occasion), animalOf(b.animalType).label, b.shareCount, b.slaughterDay, b.finalPrice, b.paidAmount, STATUS[b.status]?.label])])}>
+          <button type="button" title={tr('CSV')} className={heroIconButton} disabled={!rows.length}
+            onClick={() => downloadCsv('qurbani.csv', [['#', tr('Naam'), tr('Phone'), tr('Kis liye'), tr('Janwar'), tr('Hisse'), tr('Din'), tr('Qeemat'), tr('Mila'), tr('Halat')], ...rows.map((b) => [b.bookingNumber, b.customerName, b.customerPhone, occasionLabel(b.occasion), animalOf(b.animalType).label, b.shareCount, b.slaughterDay, b.finalPrice, b.paidAmount, STATUS[b.status]?.label])])}>
             <FileSpreadsheet className="h-4 w-4" />
           </button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canPos && <button type="button" onClick={() => setDialog({ kind: 'new' })} title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi booking</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canPos && <button type="button" onClick={() => setDialog({ kind: 'new' })} title={tr('Nayi booking (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi booking')}</button>}
         </>}
-        stats={[{ label: 'Chal rahi', value: open.length }, { label: 'Hisse', value: stats.shares }, { label: 'Advance mila', value: sales(stats.paid) }]}
+        stats={[{ label: tr('Chal rahi'), value: open.length }, { label: tr('Hisse'), value: stats.shares }, { label: tr('Advance mila'), value: sales(stats.paid) }]}
       />
 
       <KpiRow cols={4}>
         {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Users} color="#7c3aed" label="Chal rahi" value={open.length} hint={`${stats.shares} hisse`} onClick={() => setStatus('open')} active={status === 'open'} />
-          <KpiCard icon={Beef} color="#d97706" label="Zibah ho gaya" value={all.filter((b) => b.status === 'SLAUGHTERED').length} hint="Gosht dena baqi" onClick={() => setStatus('SLAUGHTERED')} active={status === 'SLAUGHTERED'} />
-          <KpiCard icon={Wallet} color="#0891b2" label="Lena baqi" value={sales(Math.max(stats.value - stats.paid, 0))} hint={stats.noPrice ? `${stats.noPrice} ki qeemat nahi likhi` : 'Chalti bookings par'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="De diya" value={all.filter((b) => b.status === 'COMPLETED').length} onClick={() => setStatus('COMPLETED')} active={status === 'COMPLETED'} />
+          <KpiCard icon={Users} color="#7c3aed" label={tr('Chal rahi')} value={open.length} hint={tr('{{shares}} hisse', { shares: stats.shares })} onClick={() => setStatus('open')} active={status === 'open'} />
+          <KpiCard icon={Beef} color="#d97706" label={tr('Zibah ho gaya')} value={all.filter((b) => b.status === 'SLAUGHTERED').length} hint={tr('Gosht dena baqi')} onClick={() => setStatus('SLAUGHTERED')} active={status === 'SLAUGHTERED'} />
+          <KpiCard icon={Wallet} color="#0891b2" label={tr('Lena baqi')} value={sales(Math.max(stats.value - stats.paid, 0))} hint={stats.noPrice ? tr('{{noPrice}} ki qeemat nahi likhi', { noPrice: stats.noPrice }) : tr('Chalti bookings par')} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('De diya')} value={all.filter((b) => b.status === 'COMPLETED').length} onClick={() => setStatus('COMPLETED')} active={status === 'COMPLETED'} />
         </>}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking #, naam, phone…" label="Search" />}>
-        <FilterMenu icon={Users} label={status === 'open' ? 'Chal rahi' : STATUS[status]?.label ?? 'Sab'} value={status} active={status !== 'open'} onChange={setStatus}
-          options={[{ value: 'open', label: 'Chal rahi' }, ...Object.entries(STATUS).map(([value, s]) => ({ value, label: s.label })), { value: '', label: 'Sab' }]} />
-        <FilterMenu icon={Beef} label={occasion ? occasionLabel(occasion) : 'Sab mauqe'} value={occasion} active={!!occasion} onChange={setOccasion}
-          options={[{ value: '', label: 'Sab mauqe' }, ...OCCASIONS]} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Booking #, naam, phone…')} label={tr('Search')} />}>
+        <FilterMenu icon={Users} label={status === 'open' ? tr('Chal rahi') : STATUS[status]?.label ?? tr('Sab')} value={status} active={status !== 'open'} onChange={setStatus}
+          options={[{ value: 'open', label: tr('Chal rahi') }, ...Object.entries(STATUS).map(([value, s]) => ({ value, label: s.label })), { value: '', label: tr('Sab') }]} />
+        <FilterMenu icon={Beef} label={occasion ? occasionLabel(occasion) : tr('Sab mauqe')} value={occasion} active={!!occasion} onChange={setOccasion}
+          options={[{ value: '', label: tr('Sab mauqe') }, ...OCCASIONS]} />
       </FilterBar>
 
-      <ViewTabs value={view} onChange={setView} hint={<>{canPos ? 'N nayi · ' : ''}/ search · 1-2 tabs</>}
-        tabs={[{ id: 'list', label: 'Bookings', icon: Users, count: rows.length }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+      <ViewTabs value={view} onChange={setView} hint={<>{tr('{{value}}/ search · 1-2 tabs', { value: canPos ? tr('N nayi · ') : '' })}</>}
+        tabs={[{ id: 'list', label: tr('Bookings'), icon: Users, count: rows.length }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {view === 'analytics' ? (
         <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
-          <h3 className="font-semibold text-slate-900">Eid ke din aur janwar ke hisaab se (chalti bookings)</h3>
+          <h3 className="font-semibold text-slate-900">{tr('Eid ke din aur janwar ke hisaab se (chalti bookings)')}</h3>
           <ul className="mt-3 divide-y divide-slate-100">
             {Object.entries(open.reduce<Record<string, { n: number; shares: number }>>((acc, b) => {
-              const k = `Din ${b.slaughterDay ?? '—'} · ${animalOf(b.animalType).label}`;
+              const k = tr('Din {{value}} · {{label}}', { value: b.slaughterDay ?? '—', label: animalOf(b.animalType).label });
               const r = acc[k] ?? { n: 0, shares: 0 }; r.n += 1; r.shares += b.shareCount; acc[k] = r; return acc;
             }, {})).sort().map(([k, r]) => (
-              <li key={k} className="flex justify-between py-2 text-[0.875rem]"><span>{k}</span><span className="font-semibold tabular-nums">{r.n} booking · {r.shares} hisse{SHARED.some((s) => k.includes(animalOf(s).label)) ? ` · ${Math.ceil(r.shares / 7)} janwar` : ''}</span></li>
+              <li key={k} className="flex justify-between py-2 text-[0.875rem]"><span>{k}</span><span className="font-semibold tabular-nums">{tr('{{n}} booking · {{shares}} hisse{{value}}', { n: r.n, shares: r.shares, value: SHARED.some((s) => k.includes(animalOf(s).label)) ? tr(' · {{value}} janwar', { value: Math.ceil(r.shares / 7) }) : '' })}</span></li>
             ))}
-            {!open.length && <li className="py-6 text-center text-sm text-slate-500">Koi chalti booking nahi</li>}
+            {!open.length && <li className="py-6 text-center text-sm text-slate-500">{tr('Koi chalti booking nahi')}</li>}
           </ul>
         </div>
       ) : (
         <ListFrame loading={listQ.isLoading} error={listQ.isError && !listQ.data} onRetry={() => listQ.refetch()}
-          empty={!rows.length ? { icon: Beef, title: 'Koi booking nahi', text: 'Eid se pehle hisse book karein — naam, phone, kitne hisse aur advance.', actions: canPos ? <Button onClick={() => setDialog({ kind: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>Nayi booking</Button> : undefined } : null}>
+          empty={!rows.length ? { icon: Beef, title: tr('Koi booking nahi'), text: tr('Eid se pehle hisse book karein — naam, phone, kitne hisse aur advance.'), actions: canPos ? <Button onClick={() => setDialog({ kind: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>{tr('Nayi booking')}</Button> : undefined } : null}>
           {rows.map((b) => {
             const due = Math.max((b.finalPrice ?? 0) - b.paidAmount, 0);
-            const next = b.status === 'BOOKED' ? { s: 'CONFIRMED', l: 'Pakki karein' } : b.status === 'CONFIRMED' ? { s: 'SLAUGHTERED', l: 'Zibah ho gaya' } : null;
+            const next = b.status === 'BOOKED' ? { s: 'CONFIRMED', l: tr('Pakki karein') } : b.status === 'CONFIRMED' ? { s: 'SLAUGHTERED', l: tr('Zibah ho gaya') } : null;
             return (
               <li key={b.id} className="px-4 py-3 sm:px-5">
                 <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
@@ -264,25 +265,25 @@ export default function QurbaniPage() {
                       <Pill tone={STATUS[b.status]?.tone}>{STATUS[b.status]?.label ?? b.status}</Pill>
                       <Pill>{occasionLabel(b.occasion)}</Pill>
                     </div>
-                    <p className="mt-0.5 text-[0.8125rem] text-slate-600">{animalOf(b.animalType).emoji} {animalOf(b.animalType).label} · {b.shareCount} hissa{b.slaughterDay ? ` · Eid din ${b.slaughterDay}` : ''}{b.deliveryPreference === 'HOME_DELIVERY' ? ' · ghar bhejna' : ''}</p>
-                    <p className="text-[0.75rem] text-slate-500">{b.customerPhone} · {dateOnly(b.bookedAt)}{b.cancellationReason ? ` · Wajah: ${b.cancellationReason}` : ''}</p>
+                    <p className="mt-0.5 text-[0.8125rem] text-slate-600">{tr('{{emoji}} {{label}} · {{shareCount}} hissa{{value}}{{value2}}', { emoji: animalOf(b.animalType).emoji, label: animalOf(b.animalType).label, shareCount: b.shareCount, value: b.slaughterDay ? tr(' · Eid din {{slaughterDay}}', { slaughterDay: b.slaughterDay }) : '', value2: b.deliveryPreference === 'HOME_DELIVERY' ? tr(' · ghar bhejna') : '' })}</p>
+                    <p className="text-[0.75rem] text-slate-500">{b.customerPhone} · {dateOnly(b.bookedAt)}{b.cancellationReason ? tr(' · Wajah: {{cancellationReason}}', { cancellationReason: b.cancellationReason }) : ''}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold tabular-nums">{b.finalPrice ? sales(b.finalPrice) : <span className="text-amber-700">Qeemat nahi</span>}</p>
-                    <p className="text-[0.75rem] text-slate-500">Mila {sales(b.paidAmount)}</p>
-                    {isOpen(b) && due > 0 && <p className="text-[0.75rem] font-semibold text-amber-700">Baqi {sales(due)}</p>}
+                  <div className="text-end">
+                    <p className="font-bold tabular-nums">{b.finalPrice ? sales(b.finalPrice) : <span className="text-amber-700">{tr('Qeemat nahi')}</span>}</p>
+                    <p className="text-[0.75rem] text-slate-500">{tr('Mila {{paidAmount}}', { paidAmount: sales(b.paidAmount) })}</p>
+                    {isOpen(b) && due > 0 && <p className="text-[0.75rem] font-semibold text-amber-700">{tr('Baqi {{due}}', { due: sales(due) })}</p>}
                   </div>
                 </div>
                 {canPos && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {isOpen(b) && <>
-                      {next && <Button size="sm" variant="secondary" rightIcon={<ArrowRight className="h-3.5 w-3.5" />} loading={step.isPending && step.variables?.b.id === b.id} onClick={() => step.mutate({ b, status: next.s })}>{next.l}</Button>}
-                      {(!b.finalPrice || due > 0) && <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'pay', b })}>Paisa mila</Button>}
-                      <Button size="sm" variant="success" leftIcon={<Receipt className="h-3.5 w-3.5" />} disabled={!b.finalPrice} title={!b.finalPrice ? 'Pehle qeemat likhein' : undefined} onClick={() => setDialog({ kind: 'done', b })}>Gosht de kar bill</Button>
-                      <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'edit', b })}>Badlein</Button>
-                      <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', b })}>Cancel</Button>
+                      {next && <Button size="sm" variant="secondary" rightIcon={<ArrowRight className="h-3.5 w-3.5 rtl-flip" />} loading={step.isPending && step.variables?.b.id === b.id} onClick={() => step.mutate({ b, status: next.s })}>{next.l}</Button>}
+                      {(!b.finalPrice || due > 0) && <Button size="sm" variant="secondary" leftIcon={<Wallet className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'pay', b })}>{tr('Paisa mila')}</Button>}
+                      <Button size="sm" variant="success" leftIcon={<Receipt className="h-3.5 w-3.5" />} disabled={!b.finalPrice} title={!b.finalPrice ? tr('Pehle qeemat likhein') : undefined} onClick={() => setDialog({ kind: 'done', b })}>{tr('Gosht de kar bill')}</Button>
+                      <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'edit', b })}>{tr('Badlein')}</Button>
+                      <Button size="sm" variant="ghost" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'cancel', b })}>{tr('Cancel')}</Button>
                     </>}
-                    {b.status === 'CANCELLED' && b.paidAmount > 0 && canRefund && <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'refund', b })}>Advance wapas</Button>}
+                    {b.status === 'CANCELLED' && b.paidAmount > 0 && canRefund && <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-3.5 w-3.5" />} onClick={() => setDialog({ kind: 'refund', b })}>{tr('Advance wapas')}</Button>}
                   </div>
                 )}
               </li>
@@ -298,15 +299,15 @@ export default function QurbaniPage() {
       {dialog?.kind === 'refund' && <RefundDialog b={dialog.b} onClose={() => { setDialog(null); refresh(); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Qurbani aur aqeeqa" onClose={guide.close}
+        <PageGuide title={tr('Qurbani aur aqeeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#7c3aed', title: 'Booking', text: 'Naam, phone, janwar aur hisse (gaye / oont me 7 tak). Advance usi waqt lein — aaj ke galle me aata hai.' },
-            { icon: Beef, color: '#d97706', title: 'Janwar jorein', text: 'Baara ka janwar booking se jorein — us ki qeemat bill ki cost banti hai aur profit sahi aata hai.' },
-            { icon: Receipt, color: '#16a34a', title: 'Gosht de kar bill', text: 'Zibah ke baad "Gosht de kar bill" — ek bill banta hai, advance khate se kat jata hai, baqi ab lein ya udhaar.' },
-            { icon: Undo2, color: '#e11d48', title: 'Cancel', text: 'Cancel ke baad advance khate me rehta hai; "Advance wapas" se cash lautayein.' },
+            { icon: Plus, color: '#7c3aed', title: tr('Booking'), text: tr('Naam, phone, janwar aur hisse (gaye / oont me 7 tak). Advance usi waqt lein — aaj ke galle me aata hai.') },
+            { icon: Beef, color: '#d97706', title: tr('Janwar jorein'), text: tr('Baara ka janwar booking se jorein — us ki qeemat bill ki cost banti hai aur profit sahi aata hai.') },
+            { icon: Receipt, color: '#16a34a', title: tr('Gosht de kar bill'), text: tr('Zibah ke baad "Gosht de kar bill" — ek bill banta hai, advance khate se kat jata hai, baqi ab lein ya udhaar.') },
+            { icon: Undo2, color: '#e11d48', title: tr('Cancel'), text: tr('Cancel ke baad advance khate me rehta hai; "Advance wapas" se cash lautayein.') },
           ]}
-          tips={['Qeemat likhe baghair bill nahi banta.', 'Bill void karne se booking wapas "Zibah ho gaya" par aa jati hai.']}
-          shortcuts={[['N', 'nayi booking'], ['/', 'dhoondein'], ['1', 'bookings'], ['2', 'analytics'], ['G', 'guide']]}
+          tips={[tr('Qeemat likhe baghair bill nahi banta.'), tr('Bill void karne se booking wapas "Zibah ho gaya" par aa jati hai.')]}
+          shortcuts={[['N', tr('nayi booking')], ['/', 'dhoondein'], ['1', 'bookings'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>

@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { damageApi, type DamageBucket, type DamageQuery, type DamageReasonCode } from '../api/damage.api';
 import { DAMAGE_KEY, qtyText, reasonOf } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -36,14 +37,14 @@ export function DamageAnalytics({ filters, money }: { filters: Omit<DamageQuery,
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={PackageX} label="Asal nuqsan" value={money(t.lost)} sub={`${t.approved} approve report`} tone="rose" />
-        <Kpi icon={Clock} label="Approval baqi" value={money(t.pendingValue)} sub={`${t.pending} report intezar me`} tone="amber" />
-        <Kpi icon={Recycle} label="Wapas mila" value={money(t.salvage)} sub="Sasta bech kar ya kabari se" tone="emerald" />
-        <Kpi icon={ShieldAlert} label="Rad hui" value={String(t.rejected)} sub="In se stock nahi badla" />
+        <Kpi icon={PackageX} label={tr('Asal nuqsan')} value={money(t.lost)} sub={tr('{{approved}} approve report', { approved: t.approved })} tone="rose" />
+        <Kpi icon={Clock} label={tr('Approval baqi')} value={money(t.pendingValue)} sub={tr('{{pending}} report intezar me', { pending: t.pending })} tone="amber" />
+        <Kpi icon={Recycle} label={tr('Wapas mila')} value={money(t.salvage)} sub={tr('Sasta bech kar ya kabari se')} tone="emerald" />
+        <Kpi icon={ShieldAlert} label={tr('Rad hui')} value={String(t.rejected)} sub={tr('In se stock nahi badla')} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ka nuqsan</span>} description="Har karobari din kitna maal kharab hua — approve aur baqi alag">
-        {!trend.length ? <Empty text="Is period me koi report nahi — bohat khoob" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ka nuqsan')}</span>} description={tr('Har karobari din kitna maal kharab hua — approve aur baqi alag')}>
+        {!trend.length ? <Empty text={tr('Is period me koi report nahi — bohat khoob')} /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -61,12 +62,12 @@ export function DamageAnalytics({ filters, money }: { filters: Omit<DamageQuery,
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={MessageSquareText} title="Wajah" description="Kis wajah se kitna nuqsan hua" rows={reasons} money={money}
+        <Ranked icon={MessageSquareText} title={tr('Wajah')} description={tr('Kis wajah se kitna nuqsan hua')} rows={reasons} money={money}
           dot={(r) => (r as typeof reasons[number]).color} sub={(r) => `${r.count} report`} />
-        <Ranked icon={PackageX} title="Sab se zyada kharab maal" description="In products par nazar rakhein" rows={d.byProduct} money={money}
+        <Ranked icon={PackageX} title={tr('Sab se zyada kharab maal')} description={tr('In products par nazar rakhein')} rows={d.byProduct} money={money}
           sub={(r) => `${qtyText(r.qty)} ${(r as typeof d.byProduct[number]).unit} · ${r.count} report`} />
-        <Ranked icon={FolderTree} title="Category" description="Kis type ke maal me zyada nuqsan" rows={d.byCategory} money={money} sub={(r) => `${r.count} report`} />
-        <Ranked icon={Users} title="Kis ne report kiya" description="Har bande ki reports aur un ka nuqsan" rows={d.byPerson} money={money} sub={(r) => `${r.count} report`} />
+        <Ranked icon={FolderTree} title={tr('Category')} description={tr('Kis type ke maal me zyada nuqsan')} rows={d.byCategory} money={money} sub={(r) => `${r.count} report`} />
+        <Ranked icon={Users} title={tr('Kis ne report kiya')} description={tr('Har bande ki reports aur un ka nuqsan')} rows={d.byPerson} money={money} sub={(r) => `${r.count} report`} />
       </div>
     </div>
   );
@@ -79,7 +80,7 @@ function Ranked({ icon: I, title, description, rows, money, sub, dot }: {
   const max = Math.max(1, ...rows.map((r) => r.value + r.pending));
   return (
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{title}</span>} description={description}>
-      {!rows.length ? <Empty text="Koi report nahi" /> : (
+      {!rows.length ? <Empty text={tr('Koi report nahi')} /> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.key}>
@@ -88,7 +89,7 @@ function Ranked({ icon: I, title, description, rows, money, sub, dot }: {
                   {dot && <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: dot(r) }} />}
                   <span className="truncate font-medium text-slate-800">{r.label}</span>
                 </span>
-                <span className="shrink-0 tabular-nums text-slate-900">{money(r.value)}{r.pending > 0 && <span className="ml-1 text-[0.75rem] text-amber-700">+{money(r.pending)} baqi</span>}</span>
+                <span className="shrink-0 tabular-nums text-slate-900">{money(r.value)}{r.pending > 0 && <span className="ms-1 text-[0.75rem] text-amber-700">{tr('+{{pending}} baqi', { pending: money(r.pending) })}</span>}</span>
               </div>
               <div className="mt-1 flex h-2 gap-0.5 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-rose-500" style={{ width: `${(r.value / max) * 100}%` }} />

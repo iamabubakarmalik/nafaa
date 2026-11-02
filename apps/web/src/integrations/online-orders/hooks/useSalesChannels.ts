@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@core/stores/auth.store';
 import { onlineOrdersApi } from '../api/online-orders.api';
+import { t } from '@core/i18n';
 
 export const CHANNELS_KEY = ['sales-channels'] as const;
 
@@ -29,7 +30,7 @@ export function channelPath(c: { id: string; isWebsite: boolean }) {
 export const CHANNEL_ICON: Record<string, { emoji: string; color: string; label: string }> = {
   WOOCOMMERCE: { emoji: '🟣', color: '#7f54b3', label: 'WooCommerce' },
   SHOPIFY: { emoji: '🟢', color: '#95bf47', label: 'Shopify' },
-  CUSTOM_WEBSITE: { emoji: '🌐', color: '#10b981', label: 'Website' },
+  CUSTOM_WEBSITE: { emoji: '🌐', color: '#10b981', label: t('Website') },
   DARAZ: { emoji: '🛒', color: '#f57224', label: 'Daraz' },
   FOODPANDA: { emoji: '🍔', color: '#e21b70', label: 'Foodpanda' },
 };

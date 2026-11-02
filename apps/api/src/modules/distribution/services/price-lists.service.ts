@@ -14,6 +14,7 @@ import { listPrice, type PricingList } from '../helpers/pricing';
 import { loadCatalog, loadList, pricingFor } from '../helpers/pricing-loader';
 import { applySchemes, schemeCovers, schemeIsLive } from '../helpers/scheme-resolver';
 import { r2 } from '../distribution.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const keyOf = (productId: string, variantId?: string | null, unitId?: string | null) => `${productId}|${variantId ?? ''}|${unitId ?? ''}`;
 
@@ -178,9 +179,9 @@ export class PriceListsService {
     const catalog = await loadCatalog(this.prisma, tenantId, items.map((i) => i.productId));
     for (const it of items) {
       const p = catalog.products.get(it.productId);
-      if (!p) throw new BadRequestException(`Item nahi mila: ${it.productId}`);
-      if (it.variantId && catalog.variants.get(it.variantId)?.productId !== p.id) throw new BadRequestException(`${p.name}: variant is item ka nahi`);
-      if (it.unitId && catalog.units.get(it.unitId)?.productId !== p.id) throw new BadRequestException(`${p.name}: pack is item ka nahi`);
+      if (!p) throw new BadRequestException(apiMessage('Item nahi mila: {{productId}}', { productId: it.productId }));
+      if (it.variantId && catalog.variants.get(it.variantId)?.productId !== p.id) throw new BadRequestException(apiMessage('{{pName}}: variant is item ka nahi', { pName: p.name }));
+      if (it.unitId && catalog.units.get(it.unitId)?.productId !== p.id) throw new BadRequestException(apiMessage('{{pName}}: pack is item ka nahi', { pName: p.name }));
     }
     // Last row wins when the same product, variant, pack and minQty come twice.
     const byKey = new Map(items.map((i) => [`${keyOf(i.productId, i.variantId, i.unitId)}|${Number(i.minQty) || 0}`, i]));

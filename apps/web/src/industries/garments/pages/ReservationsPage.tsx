@@ -30,18 +30,19 @@ import { CancelModal, CustomerField, Pill, emptyCustomer, type CustomerValue } f
 import { HOLD_KEY, MONEY_KEYS, TONE, apiError, dayOnly, opt, r2, whenText } from '../components/meta';
 import { useGarmentsCan } from '../components/permissions';
 import { ProductPick, type PickedProduct } from '../components/ProductPick';
+import { t as tr } from '@core/i18n';
 
 const VIEWS: Array<{ id: ReservationView; label: string; icon: typeof Bookmark }> = [
-  { id: 'active', label: 'Hold par', icon: ListChecks },
-  { id: 'today', label: 'Aaj khatam', icon: Clock },
-  { id: 'expired', label: 'Waqt guzar gaya', icon: Hourglass },
-  { id: 'sold', label: 'Bik gaye', icon: Receipt },
-  { id: 'cancelled', label: 'Cancel', icon: Ban },
-  { id: 'all', label: 'Sab', icon: Bookmark },
+  { id: 'active', label: tr('Hold par'), icon: ListChecks },
+  { id: 'today', label: tr('Aaj khatam'), icon: Clock },
+  { id: 'expired', label: tr('Waqt guzar gaya'), icon: Hourglass },
+  { id: 'sold', label: tr('Bik gaye'), icon: Receipt },
+  { id: 'cancelled', label: tr('Cancel'), icon: Ban },
+  { id: 'all', label: tr('Sab'), icon: Bookmark },
 ];
 const STATUS: Record<Reservation['status'], { label: string; tone: string }> = {
-  ACTIVE: { label: 'Hold par', tone: TONE.blue }, CONVERTED_TO_SALE: { label: 'Bik gaya', tone: TONE.green },
-  EXPIRED: { label: 'Waqt guzra', tone: TONE.amber }, CANCELLED: { label: 'Cancel', tone: TONE.rose },
+  ACTIVE: { label: tr('Hold par'), tone: TONE.blue }, CONVERTED_TO_SALE: { label: tr('Bik gaya'), tone: TONE.green },
+  EXPIRED: { label: tr('Waqt guzra'), tone: TONE.amber }, CANCELLED: { label: tr('Cancel'), tone: TONE.rose },
 };
 const viewLabel = (v: ReservationView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 
@@ -67,13 +68,13 @@ export default function ReservationsPage() {
 
   const sell = useMutation({
     mutationFn: ({ r, paidNow, method }: { r: Reservation; paidNow: number; method: PaymentMethod }) => reservationsApi.sell(r.id, { paidNow, paymentMethod: method }),
-    onSuccess: (r) => { toast.success(`${r.reservationNumber} bik gaya — bill ${r.bill?.saleNumber ?? ''}`); setSellOn(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+    onSuccess: (r) => { toast.success(tr('{{reservationNumber}} bik gaya — bill {{value}}', { reservationNumber: r.reservationNumber, value: r.bill?.saleNumber ?? '' })); setSellOn(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Bill nahi bana'))),
   });
   const extend = useMutation({
     mutationFn: ({ r, days }: { r: Reservation; days: number }) => reservationsApi.extend(r.id, days),
-    onSuccess: (r) => { toast.success(`${r.reservationNumber}: ${dayOnly(r.expiresAt)} tak hold`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Hold nahi badha')),
+    onSuccess: (r) => { toast.success(tr('{{reservationNumber}}: {{expiresAt}} tak hold', { reservationNumber: r.reservationNumber, expiresAt: dayOnly(r.expiresAt) })); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Hold nahi badha'))),
   });
 
   useEffect(() => {
@@ -92,39 +93,39 @@ export default function ReservationsPage() {
   const t = data?.totals;
   return (
     <PageShell>
-      <PageHero title="Hold" chip={<><Bookmark /> Reservation</>} meta="Customer ke liye kapra rakhein — deposit ke saath"
+      <PageHero title={tr('Hold')} chip={<><Bookmark /> {' '}{tr('Reservation')}</>} meta={tr('Customer ke liye kapra rakhein — deposit ke saath')}
         busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {manage && <button type="button" onClick={() => setAdding(true)} title="Naya hold (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya hold</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setAdding(true)} title={tr('Naya hold (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya hold')}</button>}
         </>}
         stats={[
-          { label: 'Hold par', value: counts?.active ?? '—', hint: t ? `${t.pieces} piece` : undefined },
-          { label: 'Hold ka maal', value: t ? sales(t.value) : '—' },
-          { label: 'Deposit jama', value: t ? sales(t.deposits) : '—' },
+          { label: tr('Hold par'), value: counts?.active ?? '—', hint: t ? tr('{{pieces}} piece', { pieces: t.pieces }) : undefined },
+          { label: tr('Hold ka maal'), value: t ? sales(t.value) : '—' },
+          { label: tr('Deposit jama'), value: t ? sales(t.deposits) : '—' },
         ]}
       />
       <KpiRow cols={4}>
         {!counts ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ListChecks} color="#2563eb" label="Hold par" value={counts.active} hint="Kisi aur ko na bechein" onClick={() => setView('active')} active={view === 'active'} />
-          <KpiCard icon={Clock} color="#d97706" label="Aaj khatam" value={counts.today} hint="Customer ko yaad dilayein" onClick={() => setView('today')} active={view === 'today'} />
-          <KpiCard icon={Hourglass} color={counts.expired ? '#e11d48' : '#64748b'} label="Waqt guzar gaya" value={counts.expired} hint="Din barhayein ya cancel" onClick={() => setView('expired')} active={view === 'expired'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Bik gaye" value={counts.sold} hint="Hold se bill bana" onClick={() => setView('sold')} active={view === 'sold'} />
+          <KpiCard icon={ListChecks} color="#2563eb" label={tr('Hold par')} value={counts.active} hint={tr('Kisi aur ko na bechein')} onClick={() => setView('active')} active={view === 'active'} />
+          <KpiCard icon={Clock} color="#d97706" label={tr('Aaj khatam')} value={counts.today} hint={tr('Customer ko yaad dilayein')} onClick={() => setView('today')} active={view === 'today'} />
+          <KpiCard icon={Hourglass} color={counts.expired ? '#e11d48' : '#64748b'} label={tr('Waqt guzar gaya')} value={counts.expired} hint={tr('Din barhayein ya cancel')} onClick={() => setView('expired')} active={view === 'expired'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Bik gaye')} value={counts.sold} hint={tr('Hold se bill bana')} onClick={() => setView('sold')} active={view === 'sold'} />
         </>}
       </KpiRow>
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, hold #…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer, phone, hold #…')} />}
         chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined} onClear={() => setSearch('')}>
         <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-64"
           options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? String(counts[v.id]) : undefined }))} />
       </FilterBar>
-      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>}
+      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search')}</>}
         tabs={VIEWS.slice(0, 4).map((v) => ({ id: v.id, label: v.label, icon: v.icon, count: counts?.[v.id] ?? null }))} />
 
       {listQ.isLoading ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
-        : listQ.isError && !data ? <LoadFailed what="Hold" retry={() => listQ.refetch()} />
+        : listQ.isError && !data ? <LoadFailed what={tr('Hold')} retry={() => listQ.refetch()} />
           : !rows.length ? (
-            <EmptyList icon={Bookmark} title={query ? 'Kuch nahi mila' : 'Koi hold nahi'} text="Customer kehta hai 'yeh suit rakh lein, kal aa kar le jaunga' — deposit lein aur hold banayein. Hold wala piece doosre customer ko nahi bikta.">
-              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya hold</Button>}
+            <EmptyList icon={Bookmark} title={query ? tr('Kuch nahi mila') : tr('Koi hold nahi')} text={tr('Customer kehta hai \'yeh suit rakh lein, kal aa kar le jaunga\' — deposit lein aur hold banayein. Hold wala piece doosre customer ko nahi bikta.')}>
+              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya hold')}</Button>}
             </EmptyList>
           ) : (
             <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -136,28 +137,28 @@ export default function ReservationsPage() {
                     <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', r.status === 'EXPIRED' ? 'bg-amber-50 text-amber-600' : r.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400')}><Bookmark className="h-5 w-5" /></span>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate font-semibold text-slate-900">{r.customerName || 'Customer'}</span>
+                        <span className="truncate font-semibold text-slate-900">{r.customerName || tr('Customer')}</span>
                         <Pill tone={st.tone}>{st.label}</Pill>
                         <span className="font-mono text-[0.6875rem] text-slate-400">{r.reservationNumber}</span>
                       </div>
-                      <p className="truncate text-[0.8125rem] text-slate-600">{r.quantity > 1 ? `${r.quantity}x ` : ''}{r.productName ?? 'Product'} · {formatPKR(r.unitPrice)}</p>
+                      <p className="truncate text-[0.8125rem] text-slate-600">{r.quantity > 1 ? tr('{{quantity}}x ', { quantity: r.quantity }) : ''}{r.productName ?? tr('Product')} · {formatPKR(r.unitPrice)}</p>
                       <p className={cn('text-[0.75rem]', r.status === 'EXPIRED' ? 'font-semibold text-amber-700' : 'text-slate-500')}>
-                        {r.status === 'ACTIVE' ? `${whenText(r.expiresAt)} tak · ${dayOnly(r.expiresAt)}` : r.status === 'EXPIRED' ? `Waqt guzra ${dayOnly(r.expiresAt)}` : dayOnly(r.reservedAt)}
+                        {r.status === 'ACTIVE' ? tr('{{expiresAt}} tak · {{expiresAt2}}', { expiresAt: whenText(r.expiresAt), expiresAt2: dayOnly(r.expiresAt) }) : r.status === 'EXPIRED' ? tr('Waqt guzra {{expiresAt}}', { expiresAt: dayOnly(r.expiresAt) }) : dayOnly(r.reservedAt)}
                         {r.customerPhone ? ` · ${r.customerPhone}` : ''}
                       </p>
                     </div>
-                    <div className="shrink-0 text-right">
+                    <div className="shrink-0 text-end">
                       <p className="font-bold tabular-nums">{formatPKR(r.total)}</p>
-                      <p className="text-[0.6875rem] text-slate-500">Deposit {formatPKR(r.depositAmount)}</p>
+                      <p className="text-[0.6875rem] text-slate-500">{tr('Deposit {{depositAmount}}', { depositAmount: formatPKR(r.depositAmount) })}</p>
                     </div>
                     {manage && live && (
-                      <div className="flex w-full flex-wrap gap-1.5 sm:pl-[3.25rem]">
-                        <Button size="sm" variant="success" onClick={() => setSellOn(r)} leftIcon={<ShoppingBag className="h-4 w-4" />}>Bech dein — {formatPKR(r.balance)}</Button>
-                        {[3, 7].map((d) => <Button key={d} size="sm" variant="secondary" loading={extend.isPending && extend.variables?.r.id === r.id && extend.variables?.days === d} onClick={() => extend.mutate({ r, days: d })} leftIcon={<CalendarPlus className="h-4 w-4" />}>+{d} din</Button>)}
-                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(r)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+                      <div className="flex w-full flex-wrap gap-1.5 sm:ps-[3.25rem]">
+                        <Button size="sm" variant="success" onClick={() => setSellOn(r)} leftIcon={<ShoppingBag className="h-4 w-4" />}>{tr('Bech dein — {{balance}}', { balance: formatPKR(r.balance) })}</Button>
+                        {[3, 7].map((d) => <Button key={d} size="sm" variant="secondary" loading={extend.isPending && extend.variables?.r.id === r.id && extend.variables?.days === d} onClick={() => extend.mutate({ r, days: d })} leftIcon={<CalendarPlus className="h-4 w-4" />}>{tr('+{{d}} din', { d })}</Button>)}
+                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(r)} leftIcon={<Ban className="h-4 w-4" />}>{tr('Cancel')}</Button>
                       </div>
                     )}
-                    {r.bill && <Link to={`/sales/${r.bill.id}/receipt`} className="w-full text-[0.75rem] font-semibold text-brand-700 hover:underline sm:pl-[3.25rem]">Bill {r.bill.saleNumber} →</Link>}
+                    {r.bill && <Link to={`/sales/${r.bill.id}/receipt`} className="w-full text-[0.75rem] font-semibold text-brand-700 hover:underline sm:ps-[3.25rem]">{tr('Bill {{saleNumber}} →', { saleNumber: r.bill.saleNumber })}</Link>}
                   </li>
                 );
               })}
@@ -167,22 +168,22 @@ export default function ReservationsPage() {
 
       {adding && <HoldForm onClose={() => setAdding(false)} onDone={refresh} />}
       {sellOn && (
-        <TakePaymentModal title="Bech dein — bill" confirmLabel="Bill banayein"
-          description={`${sellOn.customerName ?? ''} · ${sellOn.productName ?? ''} · kul ${formatPKR(sellOn.total)}, deposit ${formatPKR(sellOn.depositAmount)}`}
+        <TakePaymentModal title={tr('Bech dein — bill')} confirmLabel={tr('Bill banayein')}
+          description={tr('{{value}} · {{value2}} · kul {{total}}, deposit {{depositAmount}}', { value: sellOn.customerName ?? '', value2: sellOn.productName ?? '', total: formatPKR(sellOn.total), depositAmount: formatPKR(sellOn.depositAmount) })}
           amount={sellOn.balance} max={sellOn.balance} allowZero loading={sell.isPending}
           onConfirm={(amount, method) => sell.mutate({ r: sellOn, paidNow: amount, method })} onClose={() => setSellOn(null)} />
       )}
       {cancelOn && <CancelModal title={`${cancelOn.customerName ?? ''} · ${cancelOn.reservationNumber}`} paid={cancelOn.depositAmount} onConfirm={(reason) => reservationsApi.cancel(cancelOn.id, reason || undefined).then(refresh)} onClose={() => setCancelOn(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Hold — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Hold — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Hold banayein', text: 'Product scan karein ya naam likhein, size/rang chunein, deposit lein. Hold wala piece doosre customer ke liye "khaali" nahi ginta.' },
-            { icon: Wallet, color: '#16a34a', title: 'Deposit', text: 'Deposit customer ke khate me advance ban kar jama hota hai, aur bechte waqt bill me kat jata hai.' },
-            { icon: ShoppingBag, color: '#7c3aed', title: 'Bech dein', text: 'Customer aaye to "Bech dein" — bill banta hai, piece stock se nikalta hai.' },
-            { icon: Hourglass, color: '#d97706', title: 'Waqt guzar gaya', text: 'Din barhayein ya cancel karein. Cancel se deposit khud wapas nahi hota — khate me jama rehta hai.' },
+            { icon: Plus, color: '#2563eb', title: tr('Hold banayein'), text: tr('Product scan karein ya naam likhein, size/rang chunein, deposit lein. Hold wala piece doosre customer ke liye "khaali" nahi ginta.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Deposit'), text: tr('Deposit customer ke khate me advance ban kar jama hota hai, aur bechte waqt bill me kat jata hai.') },
+            { icon: ShoppingBag, color: '#7c3aed', title: tr('Bech dein'), text: tr('Customer aaye to "Bech dein" — bill banta hai, piece stock se nikalta hai.') },
+            { icon: Hourglass, color: '#d97706', title: tr('Waqt guzar gaya'), text: tr('Din barhayein ya cancel karein. Cancel se deposit khud wapas nahi hota — khate me jama rehta hai.') },
           ]}
-          shortcuts={[['N', 'naya hold'], ['/', 'dhoondein'], ['G', 'guide']]} />
+          shortcuts={[['N', tr('naya hold')], ['/', tr('dhoondein')], ['G', tr('guide')]]} />
       )}
     </PageShell>
   );
@@ -201,39 +202,39 @@ function HoldForm({ onClose, onDone }: { onClose: () => void; onDone: () => void
   const rate = price === '' ? product?.price ?? 0 : Number(price) || 0;
   const total = r2(rate * quantity);
   const dep = r2(Number(deposit) || 0);
-  const problem = !customer.customerId && !customer.name.trim() ? 'Customer ka naam likhein' : !product ? 'Product chunein' : dep > total + 0.01 ? 'Deposit kul se zyada' : null;
+  const problem = !customer.customerId && !customer.name.trim() ? tr('Customer ka naam likhein') : !product ? tr('Product chunein') : dep > total + 0.01 ? tr('Deposit kul se zyada') : null;
   const save = useMutation({
     mutationFn: () => reservationsApi.create({
       customerId: customer.customerId || undefined, customerName: opt(customer.name), customerPhone: opt(customer.phone),
       productId: product!.productId, variantId: product!.variantId, quantity, unitPrice: rate,
       depositAmount: dep || undefined, paymentMethod: dep > 0 ? method : undefined, holdDays: days, notes: opt(notes),
     }),
-    onSuccess: (r) => { toast.success(`Hold ${r.reservationNumber} — ${dayOnly(r.expiresAt)} tak`); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Hold nahi bana')),
+    onSuccess: (r) => { toast.success(tr('Hold {{reservationNumber}} — {{expiresAt}} tak', { reservationNumber: r.reservationNumber, expiresAt: dayOnly(r.expiresAt) })); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Hold nahi bana'))),
   });
   return (
-    <Modal open onClose={onClose} size="lg" title="Naya hold" description="Piece customer ke liye alag rakhein"
+    <Modal open onClose={onClose} size="lg" title={tr('Naya hold')} description={tr('Piece customer ke liye alag rakhein')}
       footer={<>
-        {problem ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="mr-auto text-[0.8125rem] text-slate-500">Kul {formatPKR(total)}{dep > 0 ? ` · baqi ${formatPKR(total - dep)}` : ''}</p>}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Bookmark className="h-4 w-4" />}>Hold karein</Button>
+        {problem ? <p className="me-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="me-auto text-[0.8125rem] text-slate-500">{tr('Kul {{total}}{{value}}', { total: formatPKR(total), value: dep > 0 ? tr(' · baqi {{formatPKR}}', { formatPKR: formatPKR(total - dep) }) : '' })}</p>}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Bookmark className="h-4 w-4" />}>{tr('Hold karein')}</Button>
       </>}>
       <div className="space-y-4">
         <CustomerField value={customer} onChange={setCustomer} />
-        <ProductPick value={product} onChange={(p) => { setProduct(p); setPrice(''); }} label="Kaunsa piece" />
+        <ProductPick value={product} onChange={(p) => { setProduct(p); setPrice(''); }} label={tr('Kaunsa piece')} />
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Piece" inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="text-right" />
-          <Input label="Rate (1 pc)" inputMode="decimal" value={price === '' && product ? String(product.price) : price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Jo rate tay hua" />
+          <Input label={tr('Piece')} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="text-end" />
+          <Input label={tr('Rate (1 pc)')} inputMode="decimal" value={price === '' && product ? String(product.price) : price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} className="text-end tabular-nums" hint={tr('Jo rate tay hua')} />
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitne din</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitne din')}</span>
             <div className="grid grid-cols-4 gap-1">{[1, 3, 7, 15].map((d) => <button key={d} type="button" onClick={() => setDays(d)} className={cn('h-10 rounded-lg text-[0.8125rem] font-semibold ring-1', days === d ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{d}</button>)}</div>
           </div>
         </div>
         <div className="grid gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:grid-cols-2">
-          <Input label="Deposit (Rs)" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Khate me jama hota hai, bill me kat jata hai" />
+          <Input label={tr('Deposit (Rs)')} inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-end tabular-nums" hint={tr('Khate me jama hota hai, bill me kat jata hai')} />
           {dep > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
         </div>
-        <Input label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Shaam ko aayenge…" hint="Marzi hai" />
+        <Input label={tr('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder={tr('Shaam ko aayenge…')} hint={tr('Marzi hai')} />
       </div>
     </Modal>
   );

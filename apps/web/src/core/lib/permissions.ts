@@ -2,6 +2,7 @@
 // PERMISSIONS — Frontend mirror of backend permission constants
 // ═══════════════════════════════════════════════════════════════
 
+import { t } from '@core/i18n';
 export const PERMISSIONS = {
   POS_USE: 'pos.use',
   POS_DISCOUNT_OVERRIDE: 'pos.discount_override',
@@ -387,69 +388,69 @@ export function isOwnerOnlyPath(path: string): boolean {
 // ═══ LABELS ═══
 
 export const PERMISSION_LABELS: Record<string, string> = {
-  'pos.use': 'POS Counter Use', 'pos.discount_override': 'Discount above limit (no PIN)', 'pos.price_tier': 'Change price tier (Wholesale / Credit)', 'sales.view': 'View Sales', 'sales.void': 'Void Sales',
-  'returns.view': 'View Returns', 'returns.create': 'Create Returns',
-  'customers.view': 'View Customers', 'customers.edit': 'Edit Customers',
-  'khata.view': 'View Udhaar/Khata', 'khata.manage': 'Manage Udhaar/Khata',
-  'loyalty.view': 'View Loyalty', 'discounts.view': 'View Discounts', 'discounts.manage': 'Manage Discounts',
-  'cash_register.view': 'View Cash Register', 'cash_register.open': 'Open Cash Register', 'cash_register.close': 'Close Cash Register',
-  'products.view': 'View Products', 'products.create': 'Create Products', 'products.edit': 'Edit Products', 'products.delete': 'Delete Products',
-  'brands.view': 'View Brands', 'tags.view': 'View Tags', 'categories.view': 'View Categories',
-  'low_stock.view': 'View Low Stock', 'barcode_labels.view': 'Barcode Labels',
-  'stock_movements.view': 'View Stock Movements', 'stock_adjustments.manage': 'Manage Adjustments', 'stock_adjustments.correct': 'Galti theek karna (stock, bina profit asar)', 'stock_transfers.manage': 'Manage Transfers',
-  'manufacturing.view': 'Production dekhein', 'manufacturing.manage': 'Recipe banayein / badlein', 'manufacturing.produce': 'Maal banayein (Production)',
-  'suppliers.view': 'View Suppliers', 'suppliers.edit': 'Edit Suppliers',
-  'purchases.view': 'View Purchases', 'purchases.create': 'Create Purchases',
-  'dashboard.view': 'View Dashboard', 'cost.view': 'Cost aur profit dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report', 'ai.use': 'Nafaa AI use',
-  'staff.view': 'View Staff', 'staff.manage': 'Manage Staff',
-  'commission.own': 'Apni commission dekhein',
-  'commission.view': 'Sab ki commission dekhein',
-  'commission.manage': 'Commission rules aur payment',
-  'expenses.view': 'View Expenses', 'expenses.create': 'Create Expenses',
-  'income.view': 'Doosri aamdani dekhein', 'income.manage': 'Doosri aamdani likhein / badlein',
-  'exports.view': 'Data Exports', 'backup.manage': 'Manage Backups',
-  'team.view': 'View Team', 'team.manage': 'Manage Team',
-  'shops.view': 'View Shops', 'shops.manage': 'Manage Shops',
-  'activity.view': 'View Activity Log',
-  'settings.view': 'View Settings', 'settings.edit': 'Edit Settings', 'settings.manage': 'Manage Settings',
-  'billing.view': 'View Billing', 'billing.manage': 'Manage Billing',
-  'plans.view': 'View Plans', 'plan_usage.view': 'View Plan Usage', 'referrals.view': 'View Referrals',
+  'pos.use': t('POS Counter Use'), 'pos.discount_override': t('Discount above limit (no PIN)'), 'pos.price_tier': t('Change price tier (Wholesale / Credit)'), 'sales.view': t('View Sales'), 'sales.void': t('Void Sales'),
+  'returns.view': t('View Returns'), 'returns.create': t('Create Returns'),
+  'customers.view': t('View Customers'), 'customers.edit': t('Edit Customers'),
+  'khata.view': t('View Udhaar/Khata'), 'khata.manage': t('Manage Udhaar/Khata'),
+  'loyalty.view': t('View Loyalty'), 'discounts.view': t('View Discounts'), 'discounts.manage': t('Manage Discounts'),
+  'cash_register.view': t('View Cash Register'), 'cash_register.open': t('Open Cash Register'), 'cash_register.close': t('Close Cash Register'),
+  'products.view': t('View Products'), 'products.create': t('Create Products'), 'products.edit': t('Edit Products'), 'products.delete': t('Delete Products'),
+  'brands.view': t('View Brands'), 'tags.view': t('View Tags'), 'categories.view': t('View Categories'),
+  'low_stock.view': t('View Low Stock'), 'barcode_labels.view': t('Barcode Labels'),
+  'stock_movements.view': t('View Stock Movements'), 'stock_adjustments.manage': t('Manage Adjustments'), 'stock_adjustments.correct': t('Galti theek karna (stock, bina profit asar)'), 'stock_transfers.manage': t('Manage Transfers'),
+  'manufacturing.view': t('Production dekhein'), 'manufacturing.manage': t('Recipe banayein / badlein'), 'manufacturing.produce': t('Maal banayein (Production)'),
+  'suppliers.view': t('View Suppliers'), 'suppliers.edit': t('Edit Suppliers'),
+  'purchases.view': t('View Purchases'), 'purchases.create': t('Create Purchases'),
+  'dashboard.view': t('View Dashboard'), 'cost.view': t('Cost aur profit dekhein'), 'reports.view': t('View Reports'), 'profit_report.view': t('Profit Report'), 'ai.use': t('Nafaa AI use'),
+  'staff.view': t('View Staff'), 'staff.manage': t('Manage Staff'),
+  'commission.own': t('Apni commission dekhein'),
+  'commission.view': t('Sab ki commission dekhein'),
+  'commission.manage': t('Commission rules aur payment'),
+  'expenses.view': t('View Expenses'), 'expenses.create': t('Create Expenses'),
+  'income.view': t('Doosri aamdani dekhein'), 'income.manage': t('Doosri aamdani likhein / badlein'),
+  'exports.view': t('Data Exports'), 'backup.manage': t('Manage Backups'),
+  'team.view': t('View Team'), 'team.manage': t('Manage Team'),
+  'shops.view': t('View Shops'), 'shops.manage': t('Manage Shops'),
+  'activity.view': t('View Activity Log'),
+  'settings.view': t('View Settings'), 'settings.edit': t('Edit Settings'), 'settings.manage': t('Manage Settings'),
+  'billing.view': t('View Billing'), 'billing.manage': t('Manage Billing'),
+  'plans.view': t('View Plans'), 'plan_usage.view': t('View Plan Usage'), 'referrals.view': t('View Referrals'),
 
   // ── Industry ke apne kaam ──
-  'bakery.orders.view': 'Cake / bulk orders dekhein', 'bakery.orders.manage': 'Cake / bulk orders banayein',
-  'bakery.production.view': 'Baking plan dekhein', 'bakery.production.manage': 'Baking plan chalayein',
-  'bakery.ingredients.view': 'Banane ka saamaan dekhein', 'bakery.ingredients.manage': 'Saamaan ka hisab badlein',
-  'agri.farmers.view': 'Farmer dekhein', 'agri.farmers.manage': 'Farmer banayein / badlein',
-  'agri.orders.view': 'Bare order dekhein', 'agri.orders.manage': 'Bare order banayein',
-  'agri.advisory.view': 'Mashwara dekhein', 'agri.advisory.manage': 'Mashwara likhein',
-  'electronics.serials.view': 'Serial / IMEI dekhein', 'electronics.serials.manage': 'Serial / IMEI darj karein',
-  'electronics.warranty.view': 'Warranty claim dekhein', 'electronics.warranty.manage': 'Warranty claim chalayein',
-  'mobile.repairs.view': 'Marammat dekhein', 'mobile.repairs.manage': 'Marammat chalayein',
-  'mobile.imei.view': 'IMEI / purane phone dekhein', 'mobile.imei.manage': 'IMEI / purane phone darj karein',
-  'restaurant.orders.view': 'Order aur table dekhein', 'restaurant.orders.manage': 'Order lein aur chalayein',
-  'restaurant.kitchen.view': 'Kitchen (KOT) dekhein', 'restaurant.kitchen.manage': 'Kitchen chalayein',
-  'restaurant.menu.view': 'Menu dekhein', 'restaurant.menu.manage': 'Menu badlein',
-  'service.jobs.view': 'Kaam / job dekhein', 'service.jobs.manage': 'Kaam / job chalayein',
-  'service.bookings.view': 'Booking dekhein', 'service.bookings.manage': 'Booking lein',
-  'clinic.records.view': 'Mareez ka record dekhein', 'clinic.records.manage': 'Checkup, nuskha aur lab result likhein',
-  'online_orders.view': 'Online order dekhein', 'online_orders.manage': 'Online order chalayein',
-  'online_products.view': 'Online products dekhein (link, price, stock)', 'online_products.manage': 'Online products jorein, Price aur Stock bhejein',
-  'catalog.view': 'Online catalog dekhein', 'catalog.manage': 'Online catalog badlein',
-  'ads.view': 'Ads ka kharcha aur ROAS dekhein', 'ads.manage': 'Ads ka kharcha likhein / import karein',
-  'distribution.orders.view': 'Orders, load sheet aur visit dekhein', 'distribution.orders.book': 'Order book karein (booker app)',
-  'distribution.orders.manage': 'Orders approve karein, Invoice banayein, cancel karein', 'distribution.price_override': 'Price list se hat kar price lagayein',
-  'distribution.loadsheets.manage': 'Load sheet banayein / dispatch karein', 'distribution.settle': 'Load sheet settle karein (delivery, return, cash)',
-  'distribution.routes.manage': 'Routes banayein, customers lagayein', 'distribution.pricelists.view': 'Price lists dekhein',
-  'distribution.pricelists.manage': 'Price lists banayein / badlein', 'distribution.schemes.manage': 'Schemes banayein / badlein',
-  'distribution.collections.collect': 'Recovery / cash collect karein', 'distribution.collections.verify': 'Recovery verify karein (khata me jaye)',
-  'distribution.delivery.report': 'Delivery app: maal deliver karke har Invoice ki report bhejein',
-  'distribution.vans.manage': 'Vans: godown se load, din band (ginti, short / zyada, maal wapas)', 'distribution.vans.sell': 'Van se maal bechein (spot Invoice)',
-  'distribution.returns.collect': 'Market return likhein (approval ke liye)', 'distribution.returns.approve': 'Market return approve karein (khata credit, stock wapas)',
-  'distribution.claims.manage': 'Company (principal) claims banayein, jama karayein, paisa likhein', 'distribution.targets.manage': 'Monthly targets set karein',
-  'distribution.cheques.manage': 'Cheque register: deposit, clear, bounce',
-  'trade.buy': 'Suppliers se Nafaa par Order bhejein aur dekhein', 'trade.receive': 'Network ka maal receive karein (Purchase stock me)',
-  'trade.sell': 'Network customers aur un ka hisaab dekhein', 'trade.links.manage': 'Supplier/customer jorein, approve karein, terms badlein',
-  'trade.payments.manage': 'Network payment likhein aur confirm karein',
+  'bakery.orders.view': t('Cake / bulk orders dekhein'), 'bakery.orders.manage': t('Cake / bulk orders banayein'),
+  'bakery.production.view': t('Baking plan dekhein'), 'bakery.production.manage': t('Baking plan chalayein'),
+  'bakery.ingredients.view': t('Banane ka saamaan dekhein'), 'bakery.ingredients.manage': t('Saamaan ka hisab badlein'),
+  'agri.farmers.view': t('Farmer dekhein'), 'agri.farmers.manage': t('Farmer banayein / badlein'),
+  'agri.orders.view': t('Bare order dekhein'), 'agri.orders.manage': t('Bare order banayein'),
+  'agri.advisory.view': t('Mashwara dekhein'), 'agri.advisory.manage': t('Mashwara likhein'),
+  'electronics.serials.view': t('Serial / IMEI dekhein'), 'electronics.serials.manage': t('Serial / IMEI darj karein'),
+  'electronics.warranty.view': t('Warranty claim dekhein'), 'electronics.warranty.manage': t('Warranty claim chalayein'),
+  'mobile.repairs.view': t('Marammat dekhein'), 'mobile.repairs.manage': t('Marammat chalayein'),
+  'mobile.imei.view': t('IMEI / purane phone dekhein'), 'mobile.imei.manage': t('IMEI / purane phone darj karein'),
+  'restaurant.orders.view': t('Order aur table dekhein'), 'restaurant.orders.manage': t('Order lein aur chalayein'),
+  'restaurant.kitchen.view': t('Kitchen (KOT) dekhein'), 'restaurant.kitchen.manage': t('Kitchen chalayein'),
+  'restaurant.menu.view': t('Menu dekhein'), 'restaurant.menu.manage': t('Menu badlein'),
+  'service.jobs.view': t('Kaam / job dekhein'), 'service.jobs.manage': t('Kaam / job chalayein'),
+  'service.bookings.view': t('Booking dekhein'), 'service.bookings.manage': t('Booking lein'),
+  'clinic.records.view': t('Mareez ka record dekhein'), 'clinic.records.manage': t('Checkup, nuskha aur lab result likhein'),
+  'online_orders.view': t('Online order dekhein'), 'online_orders.manage': t('Online order chalayein'),
+  'online_products.view': t('Online products dekhein (link, price, stock)'), 'online_products.manage': t('Online products jorein, Price aur Stock bhejein'),
+  'catalog.view': t('Online catalog dekhein'), 'catalog.manage': t('Online catalog badlein'),
+  'ads.view': t('Ads ka kharcha aur ROAS dekhein'), 'ads.manage': t('Ads ka kharcha likhein / import karein'),
+  'distribution.orders.view': t('Orders, load sheet aur visit dekhein'), 'distribution.orders.book': t('Order book karein (booker app)'),
+  'distribution.orders.manage': t('Orders approve karein, Invoice banayein, cancel karein'), 'distribution.price_override': t('Price list se hat kar price lagayein'),
+  'distribution.loadsheets.manage': t('Load sheet banayein / dispatch karein'), 'distribution.settle': t('Load sheet settle karein (delivery, return, cash)'),
+  'distribution.routes.manage': t('Routes banayein, customers lagayein'), 'distribution.pricelists.view': t('Price lists dekhein'),
+  'distribution.pricelists.manage': t('Price lists banayein / badlein'), 'distribution.schemes.manage': t('Schemes banayein / badlein'),
+  'distribution.collections.collect': t('Recovery / cash collect karein'), 'distribution.collections.verify': t('Recovery verify karein (khata me jaye)'),
+  'distribution.delivery.report': t('Delivery app: maal deliver karke har Invoice ki report bhejein'),
+  'distribution.vans.manage': t('Vans: godown se load, din band (ginti, short / zyada, maal wapas)'), 'distribution.vans.sell': t('Van se maal bechein (spot Invoice)'),
+  'distribution.returns.collect': t('Market return likhein (approval ke liye)'), 'distribution.returns.approve': t('Market return approve karein (khata credit, stock wapas)'),
+  'distribution.claims.manage': t('Company (principal) claims banayein, jama karayein, paisa likhein'), 'distribution.targets.manage': t('Monthly targets set karein'),
+  'distribution.cheques.manage': t('Cheque register: deposit, clear, bounce'),
+  'trade.buy': t('Suppliers se Nafaa par Order bhejein aur dekhein'), 'trade.receive': t('Network ka maal receive karein (Purchase stock me)'),
+  'trade.sell': t('Network customers aur un ka hisaab dekhein'), 'trade.links.manage': t('Supplier/customer jorein, approve karein, terms badlein'),
+  'trade.payments.manage': t('Network payment likhein aur confirm karein'),
 };
 
 export function getPermissionLabel(key: string): string {
@@ -498,7 +499,7 @@ export function permissionGroupsFor(industryId?: string | null): PermissionGroup
   const leftover = ALL_PERMISSIONS.filter((p) => !covered.has(p));
   if (leftover.length > 0) {
     groups.push({
-      title: 'Baqi permissions', label: 'Baqi permissions', emoji: '🗝️', color: '#64748b',
+      title: t('Baqi permissions'), label: t('Baqi permissions'), emoji: '🗝️', color: '#64748b',
       permissions: leftover,
     });
   }
@@ -517,14 +518,14 @@ export function permissionLabel(key: string): string {
 
 export const PERMISSION_GROUPS: PermissionGroup[] = [
   {
-    title: 'POS & Sales', label: 'POS & Sales', emoji: '🛒', color: '#10b981',
+    title: t('POS & Sales'), label: t('POS & Sales'), emoji: '🛒', color: '#10b981',
     permissions: [
       PERMISSIONS.POS_USE, PERMISSIONS.POS_DISCOUNT_OVERRIDE, PERMISSIONS.POS_PRICE_TIER, PERMISSIONS.SALES_VIEW, PERMISSIONS.SALES_VOID,
       PERMISSIONS.RETURNS_VIEW, PERMISSIONS.RETURNS_CREATE,
     ],
   },
   {
-    title: 'Customers & Khata', label: 'Customers & Khata', emoji: '👥', color: '#8b5cf6',
+    title: t('Customers & Khata'), label: t('Customers & Khata'), emoji: '👥', color: '#8b5cf6',
     permissions: [
       PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CUSTOMERS_EDIT,
       PERMISSIONS.KHATA_VIEW, PERMISSIONS.KHATA_MANAGE,
@@ -532,13 +533,13 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Cash Register', label: 'Cash Register', emoji: '💰', color: '#f59e0b',
+    title: t('Cash Register'), label: t('Cash Register'), emoji: '💰', color: '#f59e0b',
     permissions: [
       PERMISSIONS.CASH_REGISTER_VIEW, PERMISSIONS.CASH_REGISTER_OPEN, PERMISSIONS.CASH_REGISTER_CLOSE,
     ],
   },
   {
-    title: 'Products & Inventory', label: 'Products & Inventory', emoji: '📦', color: '#0891b2',
+    title: t('Products & Inventory'), label: t('Products & Inventory'), emoji: '📦', color: '#0891b2',
     permissions: [
       PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.PRODUCTS_CREATE, PERMISSIONS.PRODUCTS_EDIT, PERMISSIONS.PRODUCTS_DELETE,
       PERMISSIONS.BRANDS_VIEW, PERMISSIONS.TAGS_VIEW, PERMISSIONS.CATEGORIES_VIEW,
@@ -548,21 +549,21 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Suppliers & Purchases', label: 'Suppliers & Purchases', emoji: '🚚', color: '#f97316',
+    title: t('Suppliers & Purchases'), label: t('Suppliers & Purchases'), emoji: '🚚', color: '#f97316',
     permissions: [
       PERMISSIONS.SUPPLIERS_VIEW, PERMISSIONS.SUPPLIERS_EDIT,
       PERMISSIONS.PURCHASES_VIEW, PERMISSIONS.PURCHASES_CREATE,
     ],
   },
   {
-    title: 'Reports & Analytics', label: 'Reports & Analytics', emoji: '📊', color: '#3b82f6',
+    title: t('Reports & Analytics'), label: t('Reports & Analytics'), emoji: '📊', color: '#3b82f6',
     permissions: [
       PERMISSIONS.DASHBOARD_VIEW, PERMISSIONS.REPORTS_VIEW, PERMISSIONS.PROFIT_REPORT_VIEW,
       PERMISSIONS.COST_VIEW, PERMISSIONS.AI_USE,
     ],
   },
   {
-    title: 'Staff & Finance', label: 'Staff & Finance', emoji: '👨‍💼', color: '#ec4899',
+    title: t('Staff & Finance'), label: t('Staff & Finance'), emoji: '👨‍💼', color: '#ec4899',
     permissions: [
       PERMISSIONS.STAFF_VIEW, PERMISSIONS.STAFF_MANAGE,
       PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
@@ -572,7 +573,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'System & Admin', label: 'System & Admin', emoji: '⚙️', color: '#64748b',
+    title: t('System & Admin'), label: t('System & Admin'), emoji: '⚙️', color: '#64748b',
     permissions: [
       PERMISSIONS.TEAM_VIEW, PERMISSIONS.TEAM_MANAGE,
       PERMISSIONS.SHOPS_VIEW, PERMISSIONS.SHOPS_MANAGE,
@@ -586,7 +587,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
      wale ko "Farmers" aur "Kitchen" ka shor milta, jo us ke kaam ka
      hai hi nahi. `industry` khana isi ke liye hai. */
   {
-    title: 'Bakery ke kaam', label: 'Bakery ke kaam', emoji: '🧁', color: '#ec4899',
+    title: t('Bakery ke kaam'), label: t('Bakery ke kaam'), emoji: '🧁', color: '#ec4899',
     industry: 'bakery',
     permissions: [
       PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
@@ -595,7 +596,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Agri ke kaam', label: 'Agri ke kaam', emoji: '🌾', color: '#65a30d',
+    title: t('Agri ke kaam'), label: t('Agri ke kaam'), emoji: '🌾', color: '#65a30d',
     industry: 'agri',
     permissions: [
       PERMISSIONS.AGRI_FARMERS_VIEW, PERMISSIONS.AGRI_FARMERS_MANAGE,
@@ -604,7 +605,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Electronics ke kaam', label: 'Electronics ke kaam', emoji: '🔌', color: '#3b82f6',
+    title: t('Electronics ke kaam'), label: t('Electronics ke kaam'), emoji: '🔌', color: '#3b82f6',
     industry: 'electronics',
     permissions: [
       PERMISSIONS.ELECTRONICS_SERIALS_VIEW, PERMISSIONS.ELECTRONICS_SERIALS_MANAGE,
@@ -612,7 +613,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Mobile ke kaam', label: 'Mobile ke kaam', emoji: '📱', color: '#8b5cf6',
+    title: t('Mobile ke kaam'), label: t('Mobile ke kaam'), emoji: '📱', color: '#8b5cf6',
     industry: 'mobile',
     permissions: [
       PERMISSIONS.MOBILE_REPAIRS_VIEW, PERMISSIONS.MOBILE_REPAIRS_MANAGE,
@@ -620,7 +621,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Restaurant ke kaam', label: 'Restaurant ke kaam', emoji: '🍽️', color: '#f97316',
+    title: t('Restaurant ke kaam'), label: t('Restaurant ke kaam'), emoji: '🍽️', color: '#f97316',
     industry: 'restaurant',
     permissions: [
       PERMISSIONS.RESTAURANT_ORDERS_VIEW, PERMISSIONS.RESTAURANT_ORDERS_MANAGE,
@@ -629,7 +630,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Service ke kaam', label: 'Service ke kaam', emoji: '🔧', color: '#14b8a6',
+    title: t('Service ke kaam'), label: t('Service ke kaam'), emoji: '🔧', color: '#14b8a6',
     industry: 'services',
     permissions: [
       PERMISSIONS.SERVICE_JOBS_VIEW, PERMISSIONS.SERVICE_JOBS_MANAGE,
@@ -637,12 +638,12 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Clinic ka record', label: 'Clinic ka record', emoji: '🩺', color: '#0d9488',
+    title: t('Clinic ka record'), label: t('Clinic ka record'), emoji: '🩺', color: '#0d9488',
     industry: 'clinic',
     permissions: [PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE],
   },
   {
-    title: 'Online dukaan', label: 'Online dukaan', emoji: '🌐', color: '#0ea5e9',
+    title: t('Online dukaan'), label: t('Online dukaan'), emoji: '🌐', color: '#0ea5e9',
     permissions: [
       PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
       PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
@@ -651,7 +652,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Distribution', label: 'Distribution', emoji: '🚚', color: '#115e59',
+    title: t('Distribution'), label: t('Distribution'), emoji: '🚚', color: '#115e59',
     permissions: [
       PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
       PERMISSIONS.DISTRIBUTION_PRICE_OVERRIDE, PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE,
@@ -663,13 +664,13 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    title: 'Nafaa network', label: 'Nafaa network', emoji: '🔗', color: '#0f766e',
+    title: t('Nafaa network'), label: t('Nafaa network'), emoji: '🔗', color: '#0f766e',
     permissions: [
       PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_LINKS_MANAGE, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
     ],
   },
   {
-    title: 'Billing & Plans', label: 'Billing & Plans', emoji: '💳', color: '#a855f7',
+    title: t('Billing & Plans'), label: t('Billing & Plans'), emoji: '💳', color: '#a855f7',
     permissions: [
       PERMISSIONS.BILLING_VIEW, PERMISSIONS.BILLING_MANAGE,
       PERMISSIONS.PLANS_VIEW, PERMISSIONS.PLAN_USAGE_VIEW, PERMISSIONS.REFERRALS_VIEW,

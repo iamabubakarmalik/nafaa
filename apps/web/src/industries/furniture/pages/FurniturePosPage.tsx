@@ -12,6 +12,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { PosScreen, type PosSavedSale } from '@modules/pos/engine';
 import { furniturePos, furnitureSaleListener } from '../pos/config';
+import { t } from '@core/i18n';
 
 export default function FurniturePosPage() {
   const navigate = useNavigate();
@@ -28,12 +29,12 @@ export default function FurniturePosPage() {
     <>
       <PosScreen config={furniturePos} />
       {sale && (
-        <Modal open size="sm" onClose={() => setSale(null)} title="Delivery chahiye?" description={`Bill ${sale.saleNumber}${sale.customer ? ` · ${sale.customer.name}` : ''}`}
+        <Modal open size="sm" onClose={() => setSale(null)} title={t('Delivery chahiye?')} description={t('Bill {{saleNumber}}{{value}}', { saleNumber: sale.saleNumber, value: sale.customer ? ` · ${sale.customer.name}` : '' })}
           footer={<>
-            <Button variant="secondary" onClick={() => setSale(null)}>Nahi, customer le gaya</Button>
-            <Button onClick={() => { const id = sale.id; setSale(null); navigate(`/furniture/deliveries?saleId=${id}`); }}><Truck className="h-4 w-4" />Delivery banayein</Button>
+            <Button variant="secondary" onClick={() => setSale(null)}>{t('Nahi, customer le gaya')}</Button>
+            <Button onClick={() => { const id = sale.id; setSale(null); navigate(`/furniture/deliveries?saleId=${id}`); }}><Truck className="h-4 w-4" />{t('Delivery banayein')}</Button>
           </>}>
-          <p className="text-[0.875rem] text-slate-700">Pata, date, gaari aur fitting ke charges likhein. Charges ka bill delivery par alag banta hai.</p>
+          <p className="text-[0.875rem] text-slate-700">{t('Pata, date, gaari aur fitting ke charges likhein. Charges ka bill delivery par alag banta hai.')}</p>
         </Modal>
       )}
     </>

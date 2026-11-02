@@ -2,6 +2,7 @@ import { apiClient } from '@core/api/client';
 import { db, type OfflineCustomer, localId, isTempId } from './db';
 import { customersApi, type Customer, type CustomerDetail } from '@modules/customers/customers/api/customers.api';
 import { queueGenericMutation } from './syncEngine';
+import { t } from '@core/i18n';
 
 let lastBgRefreshAt = 0;
 const BG_REFRESH_GAP_MS = 30 * 1000;
@@ -88,7 +89,7 @@ export const offlineCustomersApi = {
     }
 
     const cached = await db.customers.get(id);
-    if (!cached || cached._localDeleted) throw new Error('Customer not found');
+    if (!cached || cached._localDeleted) throw new Error(t('Customer not found'));
 
     return {
       ...toCustomer(cached),
@@ -165,7 +166,7 @@ export const offlineCustomersApi = {
 
   update: async (id: string, payload: any): Promise<Customer> => {
     const existing = await db.customers.get(id);
-    if (!existing) throw new Error('Customer nahi mila');
+    if (!existing) throw new Error(t('Customer nahi mila'));
 
     const updated: OfflineCustomer = {
       ...existing,

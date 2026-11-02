@@ -30,6 +30,7 @@ import { PRICE_TIERS, PRICE_TIER_LABEL, isPriceTier, type PriceTier } from '@cor
 import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
 import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
 import { CustomerDistributionCard, EMPTY_DIST, distFormFrom, distPayload, distProblem, type DistForm } from '@modules/distribution/customers/CustomerDistribution';
+import { t as tr, Trans } from '@core/i18n';
 
 interface Form {
   name: string; phone: string; email: string; cnic: string; ntn: string; address: string; city: string; area: string;
@@ -47,14 +48,14 @@ const EMPTY: Form = {
   creditLimit: '', isVip: false, isActive: true, priceTier: '', dist: EMPTY_DIST,
 };
 
-const NOTE_CHIPS = ['Regular customer', 'Udhaar time par deta hai', 'Udhaar der se deta hai', 'Bulk buyer', 'Ghar par delivery', 'Sirf cash'];
+const NOTE_CHIPS = [tr('Regular customer'), tr('Udhaar time par deta hai'), tr('Udhaar der se deta hai'), tr('Bulk buyer'), tr('Ghar par delivery'), tr('Sirf cash')];
 const CREDIT_CHIPS = [5000, 10000, 25000, 50000, 100000];
 const PK_CITIES = [
   'Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Gujranwala', 'Sialkot', 'Hyderabad',
   'Bahawalpur', 'Sargodha', 'Sukkur', 'Sahiwal', 'Sheikhupura', 'Jhang', 'Gujrat', 'Mardan', 'Abbottabad', 'Mirpur', 'Okara',
   'Rahim Yar Khan', 'Dera Ghazi Khan', 'Kasur', 'Chiniot', 'Nawabshah',
 ];
-const GENDERS: Array<{ id: CustomerGender; label: string }> = [{ id: 'MALE', label: 'Mard' }, { id: 'FEMALE', label: 'Aurat' }, { id: 'OTHER', label: 'Doosra' }];
+const GENDERS: Array<{ id: CustomerGender; label: string }> = [{ id: 'MALE', label: tr('Mard') }, { id: 'FEMALE', label: tr('Aurat') }, { id: 'OTHER', label: tr('Doosra') }];
 
 /** 12345-6789012-3 while typing. */
 const formatCnic = (v: string) => {
@@ -206,12 +207,12 @@ export default function CustomerFormPage() {
     const old = JSON.parse(baseline) as Form;
     const typed = (k: 'phone' | 'email' | 'cnic') => !!f[k].trim() && f[k] !== old[k];
     const e: Partial<Record<keyof Form, string>> = {};
-    if (!f.name.trim()) e.name = 'Naam likhein';
-    if (typed('phone') && !/^03\d{9}$/.test(normalizePhone(f.phone))) e.phone = 'Mobile number 03 se shuru, 11 hindsay (0300-1234567)';
-    if (typed('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = 'Email theek nahi — misaal: ali@gmail.com';
-    if (typed('cnic') && f.cnic.replace(/\D/g, '').length !== 13) e.cnic = 'CNIC 13 hindsay ka hota hai';
-    if (f.creditLimit.trim() && !(Number(f.creditLimit) >= 0)) e.creditLimit = 'Limit sirf number me likhein';
-    if (f.dateOfBirth && f.dateOfBirth > new Date().toISOString().slice(0, 10)) e.dateOfBirth = 'Aane wali date nahi ho sakti';
+    if (!f.name.trim()) e.name = tr('Naam likhein');
+    if (typed('phone') && !/^03\d{9}$/.test(normalizePhone(f.phone))) e.phone = tr('Mobile number 03 se shuru, 11 hindsay (0300-1234567)');
+    if (typed('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = tr('Email theek nahi — misaal: ali@gmail.com');
+    if (typed('cnic') && f.cnic.replace(/\D/g, '').length !== 13) e.cnic = tr('CNIC 13 hindsay ka hota hai');
+    if (f.creditLimit.trim() && !(Number(f.creditLimit) >= 0)) e.creditLimit = tr('Limit sirf number me likhein');
+    if (f.dateOfBirth && f.dateOfBirth > new Date().toISOString().slice(0, 10)) e.dateOfBirth = tr('Aane wali date nahi ho sakti');
     const distErr = distOn ? distProblem(f.dist) : null;
     if (distErr) e.dist = distErr;
     return e;
@@ -219,7 +220,7 @@ export default function CustomerFormPage() {
   const err = (k: keyof Form) => ((tried || blurred[k]) ? errors[k] : undefined);
   const problems = [
     ...Object.values(errors),
-    ...(phoneClash && !phoneAck ? [`Yeh number pehle se ${phoneClash.name} ka hai — upar tasdeeq karein`] : []),
+    ...(phoneClash && !phoneAck ? [tr('Yeh number pehle se {{name}} ka hai — upar tasdeeq karein', { name: phoneClash.name })] : []),
   ];
 
   const birthday = useMemo(() => {
@@ -243,7 +244,7 @@ export default function CustomerFormPage() {
       ['customers', 'customers-stats', 'customers-analytics', 'customers-for-pos', 'customer-directory', 'customer-cities'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       qc.invalidateQueries({ queryKey: ['customer', saved.id] });
       if (andNew && !editing) {
-        toast.success(`${saved.name} jur gaya — agla likhein`);
+        toast.success(tr('{{name}} jur gaya — agla likhein', { name: saved.name }));
         const fresh = { ...EMPTY, city: f.city, area: f.area };
         setF(fresh);
         setBaseline(JSON.stringify(fresh));
@@ -253,12 +254,12 @@ export default function CustomerFormPage() {
         return;
       }
       setBaseline(JSON.stringify(f));
-      toast.success(editing ? 'Save ho gaya' : `${saved.name} jur gaya`);
+      toast.success(editing ? tr('Save ho gaya') : tr('{{name}} jur gaya', { name: saved.name }));
       navigate(`/customers/${saved.id}`, { replace: true });
     },
     onError: (e: any) => {
       const m = e?.response?.data?.message;
-      toast.error(Array.isArray(m) ? m[0] : m || 'Save nahi hua — dobara koshish karein');
+      toast.error(Array.isArray(m) ? m[0] : m || tr('Save nahi hua — dobara koshish karein'));
     },
     onSettled: () => { lock.current = false; },
   });
@@ -272,7 +273,7 @@ export default function CustomerFormPage() {
   }, [problems, save]);
 
   const goBack = useCallback(async () => {
-    if (dirty && !(await confirmDialog({ title: 'Tabdeeli save nahi hui — phir bhi wapas jayein?' }))) return;
+    if (dirty && !(await confirmDialog({ title: tr('Tabdeeli save nahi hui — phir bhi wapas jayein?') }))) return;
     navigate(editing ? `/customers/${id}` : '/customers');
   }, [dirty, navigate, editing, id]);
 
@@ -302,8 +303,8 @@ export default function CustomerFormPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Yeh customer nahi mila</p>
-          <Button className="mt-3" variant="secondary" onClick={() => navigate('/customers')}>Customers par wapas</Button>
+          <p className="font-semibold text-slate-900">{tr('Yeh customer nahi mila')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/customers')}>{tr('Customers par wapas')}</Button>
         </div>
       </PageShell>
     );
@@ -316,68 +317,68 @@ export default function CustomerFormPage() {
     <PageShell>
       <PageHero
         back={goBack}
-        backLabel="Wapas (Esc)"
-        title={editing ? `${customer?.name} — badlein` : 'Naya customer'}
-        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par bill aur yaad-dihani ja sakegi.'}
-        chip={dirty ? 'Save nahi hua' : undefined}
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={tr('Wapas (Esc)')}
+        title={editing ? tr('{{name}} — badlein', { name: customer?.name }) : tr('Naya customer')}
+        subtitle={editing ? tr('Jo badalna hai badlein — baqi waisa hi rahega') : tr('Sirf naam zaroori hai. Phone daal dein to WhatsApp par bill aur yaad-dihani ja sakegi.')}
+        chip={dirty ? tr('Save nahi hua') : undefined}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save')}</span>}
+        actions={<button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       {guide.isOpen && (
-        <PageGuide title={editing ? 'Customer kaise badlein' : 'Customer kaise jorein'} onClose={guide.close}
+        <PageGuide title={editing ? tr('Customer kaise badlein') : tr('Customer kaise jorein')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#16a34a', title: 'Naam aur phone', text: 'Sirf naam zaroori hai. Phone daalein to WhatsApp par bill aur udhaar ki yaad-dihani bhej sakenge. +92 khud 0 ban jata hai.' },
-            { icon: CopyX, color: '#e11d48', title: 'Dobara na banayein', text: 'Number ya naam pehle se ho to form bata deta hai. Wahi banda ho to purana customer kholein — khata ek hi jagah rahega.' },
-            { icon: Wallet, color: '#d97706', title: 'Udhaar ki limit', text: 'Is se zyada udhaar POS par nahi jayega. Naye customer par khali chhorein to dukaan ki default limit lagti hai; 0 = koi had nahi.' },
-            { icon: Building2, color: '#7c3aed', title: 'Band karna', text: 'Jo customer ab nahi aata use mitane ki bajaye "Chalu customer" band kar dein — purane bill aur khata mehfooz rehte hain.' },
+            { icon: UserRound, color: '#16a34a', title: tr('Naam aur phone'), text: tr('Sirf naam zaroori hai. Phone daalein to WhatsApp par bill aur udhaar ki yaad-dihani bhej sakenge. +92 khud 0 ban jata hai.') },
+            { icon: CopyX, color: '#e11d48', title: tr('Dobara na banayein'), text: tr('Number ya naam pehle se ho to form bata deta hai. Wahi banda ho to purana customer kholein — khata ek hi jagah rahega.') },
+            { icon: Wallet, color: '#d97706', title: tr('Udhaar ki limit'), text: tr('Is se zyada udhaar POS par nahi jayega. Naye customer par khali chhorein to dukaan ki default limit lagti hai; 0 = koi had nahi.') },
+            { icon: Building2, color: '#7c3aed', title: tr('Band karna'), text: tr('Jo customer ab nahi aata use mitane ki bajaye "Chalu customer" band kar dein — purane bill aur khata mehfooz rehte hain.') },
           ]}
-          tips={['Register se data daal rahe hain? "Save + naya" dabayein — form khali ho jata hai aur shehar/ilaqa wahi rehta hai.', 'Salgirah likhein to customers ki list me is mahine wale nazar aate hain.']}
-          shortcuts={[['Ctrl+S', 'save'], ...(editing ? [] : [['Ctrl+Shift+S', 'save + naya'] as [string, string]]), ['Esc', 'wapas'], ['G', 'guide']]}
+          tips={[tr('Register se data daal rahe hain? "Save + naya" dabayein — form khali ho jata hai aur shehar/ilaqa wahi rehta hai.'), tr('Salgirah likhein to customers ki list me is mahine wale nazar aate hain.')]}
+          shortcuts={[['Ctrl+S', tr('save')], ...(editing ? [] : [['Ctrl+Shift+S', tr('save + naya')] as [string, string]]), ['Esc', tr('wapas')], ['G', tr('guide')]]}
         />
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{tr('Customer')}</T>}>
             <div className="space-y-3">
-              <Input ref={nameRef} autoFocus={!editing} label="Poora naam" required value={f.name} onChange={(e) => set('name', e.target.value)} onBlur={blur('name')}
-                maxLength={100} placeholder="Ali Raza" size="lg" error={err('name')} hint="Bill, khata aur WhatsApp par yahi naam aata hai" />
+              <Input ref={nameRef} autoFocus={!editing} label={tr('Poora naam')} required value={f.name} onChange={(e) => set('name', e.target.value)} onBlur={blur('name')}
+                maxLength={100} placeholder={tr('Ali Raza')} size="lg" error={err('name')} hint={tr('Bill, khata aur WhatsApp par yahi naam aata hai')} />
               {nameClash.length > 0 && (
                 <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
-                    Isi naam ka customer pehle se hai:{' '}
+                    {tr('Isi naam ka customer pehle se hai:')}{' '}
                     {nameClash.map((c, i) => (
                       <span key={c.id}>{i > 0 && ', '}<Link to={`/customers/${c.id}`} className="font-semibold underline">{c.name}{c.phone ? ` (${c.phone})` : ''}</Link></span>
                     ))}
-                    . Wahi banda hai to naya na banayein.
+                    {tr('. Wahi banda hai to naya na banayein.')}
                   </span>
                 </p>
               )}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set('phone', formatPhone(e.target.value))} onBlur={blur('phone')}
+                  <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set('phone', formatPhone(e.target.value))} onBlur={blur('phone')}
                     placeholder="0300-1234567" leftIcon={<Phone className="h-4 w-4" />} error={err('phone')} className="font-mono"
-                    hint="WhatsApp wala number — bill aur udhaar ki yaad-dihani isi par" />
+                    hint={tr('WhatsApp wala number — bill aur udhaar ki yaad-dihani isi par')} />
                   {phoneClash && (
                     <div className="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
                       <p className="flex items-start gap-2">
                         <CopyX className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>Yeh number pehle se <Link to={`/customers/${phoneClash.id}`} className="font-semibold underline">{phoneClash.name}</Link> ka hai. Wahi banda hai to us ka khata kholein.</span>
+                        <span><Trans text="Yeh number pehle se {{name}} ka hai. Wahi banda hai to us ka khata kholein." values={{ name: <Link to={`/customers/${phoneClash.id}`} className="font-semibold underline">{phoneClash.name}</Link> }} /></span>
                       </p>
                       <label className="mt-1.5 flex items-center gap-2 text-[0.75rem]">
                         <input type="checkbox" checked={phoneAck} onChange={(e) => setPhoneAck(e.target.checked)} className="h-4 w-4 accent-rose-600" />
-                        Haan, yeh alag banda hai (ghar ka number saanjha hai)
+                        {tr('Haan, yeh alag banda hai (ghar ka number saanjha hai)')}
                       </label>
                     </div>
                   )}
                 </div>
-                <Input label="Email" type="email" value={f.email} onChange={(e) => set('email', e.target.value)} onBlur={blur('email')} placeholder="ali@gmail.com"
-                  leftIcon={<Mail className="h-4 w-4" />} error={err('email')} hint="Marzi hai — A4 bill email karne ke liye" />
+                <Input label={tr('Email')} type="email" value={f.email} onChange={(e) => set('email', e.target.value)} onBlur={blur('email')} placeholder="ali@gmail.com"
+                  leftIcon={<Mail className="h-4 w-4" />} error={err('email')} hint={tr('Marzi hai — A4 bill email karne ke liye')} />
               </div>
               <div>
-                <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Jins</p>
+                <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{tr('Jins')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {GENDERS.map((g) => (
                     <button key={g.id} type="button" onClick={() => set('gender', f.gender === g.id ? '' : g.id)} aria-pressed={f.gender === g.id}
@@ -387,38 +388,38 @@ export default function CustomerFormPage() {
                   ))}
                   {genderGuess && (
                     <button type="button" onClick={() => set('gender', genderGuess)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-50 px-3 text-[0.75rem] font-medium text-violet-800 ring-1 ring-violet-200 hover:bg-violet-100">
-                      <Sparkles className="h-3.5 w-3.5" /> Naam se {genderGuess === 'FEMALE' ? 'aurat' : 'mard'} lagta hai — chunein?
+                      <Sparkles className="h-3.5 w-3.5" /> {' '}{tr('Naam se {{value}} lagta hai — chunein?', { value: genderGuess === 'FEMALE' ? tr('aurat') : tr('mard') })}
                     </button>
                   )}
                 </div>
-                <p className="mt-1.5 text-xs text-slate-500">Marzi hai — WhatsApp message me "bhai / baji" sahi lagta hai</p>
+                <p className="mt-1.5 text-xs text-slate-500">{tr('Marzi hai — WhatsApp message me "bhai / baji" sahi lagta hai')}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={MapPin}>Pata</T>}>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>{tr('Pata')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Shehar" list="customer-city-options" value={f.city} onChange={(e) => set('city', e.target.value)} placeholder="Lahore"
-                leftIcon={<Building2 className="h-4 w-4" />} hint="Likhte hi purane shehar nazar aate hain — spelling ek jaisi rehti hai" />
-              <Input label="Ilaqa / mohalla" list="customer-area-options" value={f.area} onChange={(e) => set('area', e.target.value)} placeholder="Gulberg"
-                hint="Delivery aur ilaqe ke hisaab se list chhantne ke liye" />
-              <Textarea label="Poora pata" rows={2} value={f.address} onChange={(e) => set('address', e.target.value)} placeholder="Ghar #, gali, nishani" maxLength={255}
-                wrapperClassName="sm:col-span-2" hint="A4 bill aur delivery parchi par chhapta hai" />
+              <Input label={tr('Shehar')} list="customer-city-options" value={f.city} onChange={(e) => set('city', e.target.value)} placeholder={tr('Lahore')}
+                leftIcon={<Building2 className="h-4 w-4" />} hint={tr('Likhte hi purane shehar nazar aate hain — spelling ek jaisi rehti hai')} />
+              <Input label={tr('Ilaqa / mohalla')} list="customer-area-options" value={f.area} onChange={(e) => set('area', e.target.value)} placeholder={tr('Gulberg')}
+                hint={tr('Delivery aur ilaqe ke hisaab se list chhantne ke liye')} />
+              <Textarea label={tr('Poora pata')} rows={2} value={f.address} onChange={(e) => set('address', e.target.value)} placeholder={tr('Ghar #, gali, nishani')} maxLength={255}
+                wrapperClassName="sm:col-span-2" hint={tr('A4 bill aur delivery parchi par chhapta hai')} />
             </div>
             <datalist id="customer-city-options">{cities.map((c) => <option key={c} value={c} />)}</datalist>
             <datalist id="customer-area-options">{areas.map((a) => <option key={a} value={a} />)}</datalist>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Udhaar</T>} description="Khata aur payment Khata wale safhe par hoti hai">
-            <Input label="Udhaar ki limit (Rs)" inputMode="numeric" value={f.creditLimit} onBlur={blur('creditLimit')}
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{tr('Udhaar')}</T>} description={tr('Khata aur payment Khata wale safhe par hoti hai')}>
+            <Input label={tr('Udhaar ki limit (Rs)')} inputMode="numeric" value={f.creditLimit} onBlur={blur('creditLimit')}
               onChange={(e) => set('creditLimit', e.target.value.replace(/[^\d.]/g, ''))} leftIcon={<Wallet className="h-4 w-4" />}
-              placeholder={editing ? '0' : shopLimit != null ? String(shopLimit) : 'Dukaan ki default'} error={err('creditLimit')}
-              className="text-right font-semibold tabular-nums"
+              placeholder={editing ? '0' : shopLimit != null ? String(shopLimit) : tr('Dukaan ki default')} error={err('creditLimit')}
+              className="text-end font-semibold tabular-nums"
               hint={limit > 0
-                ? `Is se zyada udhaar POS par nahi jayega (${formatPKR(limit)})`
+                ? tr('Is se zyada udhaar POS par nahi jayega ({{limit}})', { limit: formatPKR(limit) })
                 : !editing && !f.creditLimit.trim()
-                  ? `Khali chhorein to dukaan ki default limit lagegi${shopLimit != null ? ` (${shopLimit > 0 ? formatPKR(shopLimit) : 'koi had nahi'})` : ''}`
-                  : '0 = koi had nahi — naye customer par limit lagana behtar hai'} />
+                  ? tr('Khali chhorein to dukaan ki default limit lagegi{{value}}', { value: shopLimit != null ? ` (${shopLimit > 0 ? formatPKR(shopLimit) : 'koi had nahi'})` : '' })
+                  : tr('0 = koi had nahi — naye customer par limit lagana behtar hai')} />
             <div className="mt-2 flex flex-wrap gap-1">
               {CREDIT_CHIPS.map((v) => (
                 <button key={v} type="button" onClick={() => set('creditLimit', String(v))}
@@ -428,50 +429,50 @@ export default function CustomerFormPage() {
               ))}
               <button type="button" onClick={() => set('creditLimit', '0')}
                 className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', f.creditLimit === '0' ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-                Koi had nahi
+                {tr('Koi had nahi')}
               </button>
             </div>
           </Card>
 
-          {distOn && <CustomerDistributionCard title={<T icon={Truck}>Distribution</T>} value={f.dist} onChange={(p) => set('dist', { ...f.dist, ...p })} />}
+          {distOn && <CustomerDistributionCard title={<T icon={Truck}>{tr('Distribution')}</T>} value={f.dist} onChange={(p) => set('dist', { ...f.dist, ...p })} />}
 
           {tierSettings.on && (
-            <Card className="rounded-2xl" title={<T icon={Tag}>Default price</T>}>
-              <Select label="Is customer ko kis rate par bechna hai" value={f.priceTier}
+            <Card className="rounded-2xl" title={<T icon={Tag}>{tr('Default price')}</T>}>
+              <Select label={tr('Is customer ko kis rate par bechna hai')} value={f.priceTier}
                 onChange={(e) => set('priceTier', (isPriceTier(e.target.value) ? e.target.value : '') as Form['priceTier'])}
                 options={[
-                  { value: '', label: `Shop default (${PRICE_TIER_LABEL[tierSettings.defaultTier]})` },
+                  { value: '', label: tr('Shop default ({{value}})', { value: PRICE_TIER_LABEL[tierSettings.defaultTier] }) },
                   ...PRICE_TIERS.map((t) => ({ value: t, label: PRICE_TIER_LABEL[t] })),
                 ]}
-                hint="POS par yeh customer chunte hi yahi price lagti hai" />
+                hint={tr('POS par yeh customer chunte hi yahi price lagti hai')} />
             </Card>
           )}
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Crown}>Photo aur haisiyat</T>}>
+          <Card className="rounded-2xl" title={<T icon={Crown}>{tr('Photo aur haisiyat')}</T>}>
             <div className="flex items-start gap-4">
               <AvatarUpload value={f.avatarUrl || null} onChange={(u) => set('avatarUrl', u ?? '')} purpose="avatar" size="lg" fallbackText={f.name || 'C'} />
               <div className="min-w-0 flex-1 space-y-3">
-                <Switch checked={f.isVip} onChange={(e) => set('isVip', e.target.checked)} label="VIP customer" description="List aur POS par taj ke saath nazar aata hai" />
-                <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu customer" description="Band ho to POS me nahi aata; purana khata mehfooz rehta hai" />
+                <Switch checked={f.isVip} onChange={(e) => set('isVip', e.target.checked)} label={tr('VIP customer')} description={tr('List aur POS par taj ke saath nazar aata hai')} />
+                <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label={tr('Chalu customer')} description={tr('Band ho to POS me nahi aata; purana khata mehfooz rehta hai')} />
               </div>
             </div>
-            <p className="mt-3 text-xs text-slate-500">Photo marzi hai — POS par pehchan aasan hoti hai</p>
+            <p className="mt-3 text-xs text-slate-500">{tr('Photo marzi hai — POS par pehchan aasan hoti hai')}</p>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={IdCard}>Pehchan</T>}>
+          <Card className="rounded-2xl" title={<T icon={IdCard}>{tr('Pehchan')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="CNIC" inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} onBlur={blur('cnic')}
-                placeholder="35202-1234567-1" className="font-mono" error={err('cnic')} hint="Marzi hai — bara udhaar dene se pehle" />
-              <Input label="NTN" value={f.ntn} onChange={(e) => set('ntn', e.target.value)} maxLength={20} className="font-mono" hint="Tax wala khareedar ho to — bill par chhapta hai" />
+              <Input label={tr('CNIC')} inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} onBlur={blur('cnic')}
+                placeholder="35202-1234567-1" className="font-mono" error={err('cnic')} hint={tr('Marzi hai — bara udhaar dene se pehle')} />
+              <Input label={tr('NTN')} value={f.ntn} onChange={(e) => set('ntn', e.target.value)} maxLength={20} className="font-mono" hint={tr('Tax wala khareedar ho to — bill par chhapta hai')} />
               <div className="sm:col-span-2">
-                <Input label="Paidaish ki date" type="date" value={f.dateOfBirth} max={new Date().toISOString().slice(0, 10)} onChange={(e) => set('dateOfBirth', e.target.value)}
-                  leftIcon={<CalendarDays className="h-4 w-4" />} error={err('dateOfBirth')} hint="Marzi hai — salgirah par mubarak ka message bhej sakein" />
+                <Input label={tr('Paidaish ki date')} type="date" value={f.dateOfBirth} max={new Date().toISOString().slice(0, 10)} onChange={(e) => set('dateOfBirth', e.target.value)}
+                  leftIcon={<CalendarDays className="h-4 w-4" />} error={err('dateOfBirth')} hint={tr('Marzi hai — salgirah par mubarak ka message bhej sakein')} />
                 {birthday && (
                   <p className={cn('mt-1.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[0.75rem] font-medium', birthday.thisMonth ? 'bg-pink-50 text-pink-700' : 'bg-slate-100 text-slate-600')}>
                     <Cake className="h-3.5 w-3.5" />
-                    {birthday.today ? `Aaj salgirah hai — ${birthday.age} saal` : birthday.thisMonth ? `Is mahine ${birthday.day} ko — ${birthday.age} saal` : `Umar ${birthday.age} saal`}
+                    {birthday.today ? tr('Aaj salgirah hai — {{age}} saal', { age: birthday.age }) : birthday.thisMonth ? tr('Is mahine {{day}} ko — {{age}} saal', { day: birthday.day, age: birthday.age }) : tr('Umar {{age}} saal', { age: birthday.age })}
                   </p>
                 )}
               </div>
@@ -479,22 +480,22 @@ export default function CustomerFormPage() {
           </Card>
 
           {editing && customer && (
-            <Card className="rounded-2xl" title={<T icon={BookOpen}>Is ka hisaab</T>}>
+            <Card className="rounded-2xl" title={<T icon={BookOpen}>{tr('Is ka hisaab')}</T>}>
               <dl className="grid grid-cols-2 gap-2 text-sm">
-                <Stat k="Kul kharch" v={formatPKR(customer.totalSpent)} />
-                <Stat k="Khata baqi" v={customer.balance > 0 ? formatPKR(customer.balance) : 'Saaf'} tone={customer.balance > 0 ? 'text-rose-700' : undefined} />
-                <Stat k="Bill" v={String(customer._count?.sales ?? 0)} />
-                <Stat k="Points" v={Number(customer.loyaltyPoints ?? 0).toLocaleString()} />
+                <Stat k={tr('Kul kharch')} v={formatPKR(customer.totalSpent)} />
+                <Stat k={tr('Khata baqi')} v={customer.balance > 0 ? formatPKR(customer.balance) : tr('Saaf')} tone={customer.balance > 0 ? 'text-rose-700' : undefined} />
+                <Stat k={tr('Bill')} v={String(customer._count?.sales ?? 0)} />
+                <Stat k={tr('Points')} v={Number(customer.loyaltyPoints ?? 0).toLocaleString()} />
               </dl>
               <div className="mt-3 flex gap-2">
-                <Link to={`/customers/${id}`} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200"><Eye className="h-4 w-4" />Profile</Link>
-                <Link to="/khata" className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200"><BookOpen className="h-4 w-4" />Khata</Link>
+                <Link to={`/customers/${id}`} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200"><Eye className="h-4 w-4" />{tr('Profile')}</Link>
+                <Link to="/khata" className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-200"><BookOpen className="h-4 w-4" />{tr('Khata')}</Link>
               </div>
             </Card>
           )}
 
-          <Card className="rounded-2xl" title="Note">
-            <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={500} placeholder="Pasand, size, khaas baatein…" hint="Sirf andar ke liye — customer ko nahi dikhta" />
+          <Card className="rounded-2xl" title={tr('Note')}>
+            <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={500} placeholder={tr('Pasand, size, khaas baatein…')} hint={tr('Sirf andar ke liye — customer ko nahi dikhta')} />
             <div className="mt-2 flex flex-wrap gap-1">
               {NOTE_CHIPS.map((c) => {
                 const used = f.notes.includes(c);
@@ -512,11 +513,11 @@ export default function CustomerFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (tried || f.name || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{dirty ? 'Tabdeeli save nahi hui — Ctrl+S dabayein' : editing ? 'Sab save hai' : 'Sirf naam zaroori hai — baqi baad me bhi bhar sakte hain'}</p>}
-        <Button variant="secondary" onClick={goBack}>Rehne dein</Button>
-        {!editing && <Button variant="secondary" onClick={() => submit(true)} disabled={saving} leftIcon={<Plus className="h-4 w-4" />} title="Ctrl+Shift+S">Save + naya</Button>}
-        <Button onClick={() => submit()} loading={saving} leftIcon={<Save className="h-4 w-4" />}>{editing ? 'Save karein' : 'Customer jorein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{dirty ? tr('Tabdeeli save nahi hui — Ctrl+S dabayein') : editing ? tr('Sab save hai') : tr('Sirf naam zaroori hai — baqi baad me bhi bhar sakte hain')}</p>}
+        <Button variant="secondary" onClick={goBack}>{tr('Rehne dein')}</Button>
+        {!editing && <Button variant="secondary" onClick={() => submit(true)} disabled={saving} leftIcon={<Plus className="h-4 w-4" />} title={tr('Ctrl+Shift+S')}>{tr('Save + naya')}</Button>}
+        <Button onClick={() => submit()} loading={saving} leftIcon={<Save className="h-4 w-4" />}>{editing ? tr('Save karein') : tr('Customer jorein')}</Button>
       </div>
     </PageShell>
   );

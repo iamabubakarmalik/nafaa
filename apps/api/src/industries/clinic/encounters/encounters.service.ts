@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const TEXT = [
   'subjective', 'objective', 'assessment', 'plan', 'historyOfIllness', 'reviewOfSystems', 'physicalExamination',
@@ -18,7 +19,7 @@ function readNote(dto: any): Prisma.ClinicEncounterUncheckedUpdateInput {
   }
   for (const k of ['icd10Codes', 'attachmentUrls'] as const) {
     if (dto[k] === undefined) continue;
-    if (!Array.isArray(dto[k])) throw new BadRequestException(`${k} list honi chahiye`);
+    if (!Array.isArray(dto[k])) throw new BadRequestException(apiMessage('{{k}} list honi chahiye', { k }));
     out[k] = dto[k].map((x: unknown) => String(x).trim()).filter(Boolean).slice(0, 30);
   }
   if (dto.followUpDate !== undefined) {

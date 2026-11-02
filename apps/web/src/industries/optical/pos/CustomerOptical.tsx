@@ -9,6 +9,7 @@ import { CheckCircle2, Eye, Glasses } from 'lucide-react';
 import { lensOrdersApi } from '../api/lens-orders.api';
 import { prescriptionsApi } from '../api/prescriptions.api';
 import { OPTICAL_KEYS, powerSummary } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export function CustomerOptical({ customerId }: { customerId?: string | null }) {
   const rx = useQuery({ queryKey: [OPTICAL_KEYS.rx, 'customer', customerId], queryFn: () => prescriptionsApi.byCustomer(customerId!), enabled: !!customerId, staleTime: 60_000 });
@@ -21,13 +22,13 @@ export function CustomerOptical({ customerId }: { customerId?: string | null }) 
     <div className="space-y-1.5 text-[0.75rem]">
       {orders.map((o) => (
         <Link key={o.id} to={`/optical/lens-orders/${o.id}`} className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 font-semibold text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-100">
-          <CheckCircle2 className="h-3.5 w-3.5" />Chashma tayyar: {o.orderNumber}{o.remainingAmount > 0 ? ` · Rs ${o.remainingAmount} baqi` : ''}
+          <CheckCircle2 className="h-3.5 w-3.5" />{t('Chashma tayyar: {{orderNumber}}{{value}}', { orderNumber: o.orderNumber, value: o.remainingAmount > 0 ? t(' · Rs {{remainingAmount}} baqi', { remainingAmount: o.remainingAmount }) : '' })}
         </Link>
       ))}
       {latest && (
         <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 ring-1 ring-slate-200">
           <span className="inline-flex min-w-0 items-center gap-1.5 text-slate-700"><Eye className="h-3.5 w-3.5 shrink-0" /><span className="truncate font-mono">{powerSummary(latest) || latest.prescriptionNumber}</span></span>
-          <Link to={`/optical/lens-orders/new?rx=${latest.id}`} className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-700 hover:underline"><Glasses className="h-3.5 w-3.5" />Order</Link>
+          <Link to={`/optical/lens-orders/new?rx=${latest.id}`} className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-700 hover:underline"><Glasses className="h-3.5 w-3.5" />{t('Order')}</Link>
         </div>
       )}
     </div>

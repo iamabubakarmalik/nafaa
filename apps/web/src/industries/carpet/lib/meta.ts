@@ -6,6 +6,7 @@
 
 import type { CarpetRollStatus } from '../api/carpet-rolls.api';
 import type { CarpetCutPieceSource, CarpetCutPieceStatus } from '../api/carpet-cut-pieces.api';
+import { t } from '@core/i18n';
 
 export const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -22,7 +23,7 @@ export function ftIn(ft: number, inch = 0): string {
   let f = Math.floor(realFt(ft, inch) + 1e-9);
   let i = Math.round((realFt(ft, inch) - f) * 12 * 100) / 100;
   if (i >= 12) { f += 1; i = 0; }
-  return i ? `${f}ft ${Number(i.toFixed(2))}in` : `${f}ft`;
+  return i ? t('{{f}}ft {{value}}in', { f, value: Number(i.toFixed(2)) }) : t('{{f}}ft', { f });
 }
 
 export const sqft = (n: number) => `${Number(r2(n)).toLocaleString('en-PK')} sqft`;
@@ -79,31 +80,31 @@ export function readCarpetNote(note?: string | null): CarpetLineInfo | null {
 }
 
 export const ROLL_STATUS: Record<CarpetRollStatus, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Chalu', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  RESERVED: { label: 'Reserved', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  FINISHED: { label: 'Khatam', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
-  DAMAGED: { label: 'Damage', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  TRANSFERRED: { label: 'Transfer', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  ACTIVE: { label: t('Chalu'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  RESERVED: { label: t('Reserved'), tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  FINISHED: { label: t('Khatam'), tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  DAMAGED: { label: t('Damage'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  TRANSFERRED: { label: t('Transfer'), tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
 };
 
 export const PIECE_STATUS: Record<CarpetCutPieceStatus, { label: string; tone: string }> = {
-  AVAILABLE: { label: 'Bikne ko tayyar', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  RESERVED: { label: 'Reserved', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  SOLD: { label: 'Bik gaya', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
-  DAMAGED: { label: 'Damage / hataya', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  AVAILABLE: { label: t('Bikne ko tayyar'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  RESERVED: { label: t('Reserved'), tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  SOLD: { label: t('Bik gaya'), tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  DAMAGED: { label: t('Damage / hataya'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const PIECE_SOURCE: Record<CarpetCutPieceSource, string> = {
-  LEFTOVER: 'Roll ka bacha tukra',
-  CUSTOMER_RETURN: 'Customer wapsi',
-  DAMAGED_ROLL: 'Damage roll se',
-  OPENING_STOCK: 'Opening stock',
-  MANUAL: 'Haath se dala',
+  LEFTOVER: t('Roll ka bacha tukra'),
+  CUSTOMER_RETURN: t('Customer wapsi'),
+  DAMAGED_ROLL: t('Damage roll se'),
+  OPENING_STOCK: t('Opening stock'),
+  MANUAL: t('Haath se dala'),
 };
 
 export const MOVE_LABEL: Record<string, string> = {
-  OPENING: 'Opening', CUT_FOR_SALE: 'Bill par kata', ADJUSTMENT: 'Adjust', TRANSFER: 'Transfer', RETURN: 'Wapsi',
-  DAMAGE: 'Damage', WASTE: 'Waste', REMOVED: 'Stock se hataya', VOID_RETURN: 'Bill void — wapas',
+  OPENING: t('Opening'), CUT_FOR_SALE: t('Bill par kata'), ADJUSTMENT: t('Adjust'), TRANSFER: t('Transfer'), RETURN: t('Wapsi'),
+  DAMAGE: t('Damage'), WASTE: t('Waste'), REMOVED: t('Stock se hataya'), VOID_RETURN: t('Bill void — wapas'),
 };
 
 export const ROLLS_KEY = 'carpet-rolls';

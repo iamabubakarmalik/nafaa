@@ -24,6 +24,7 @@ import { StatusBadge, dueOf, isOpen, lateBy, useAppointmentActions } from '../co
 import { CardTitle } from '../components/ui';
 import { SALON_KEYS, apiError, dateOf, minutes, shortDate, timeOf } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
+import { t } from '@core/i18n';
 
 export default function AppointmentDetailPage() {
   const { id } = useParams();
@@ -45,8 +46,8 @@ export default function AppointmentDetailPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Ye appointment nahi mili</p>
-          <Button className="mt-3" variant="secondary" onClick={() => navigate('/salon/appointments')}>Appointments par wapas</Button>
+          <p className="font-semibold text-slate-900">{t('Ye appointment nahi mili')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/salon/appointments')}>{t('Appointments par wapas')}</Button>
         </div>
       </PageShell>
     );
@@ -62,32 +63,32 @@ export default function AppointmentDetailPage() {
   return (
     <PageShell>
       <PageHero
-        title={<HeroBack to="/salon/appointments" label="Appointments">{a.customerName || 'Walk-in'}</HeroBack>}
+        title={<HeroBack to="/salon/appointments" label={t('Appointments')}>{a.customerName || t('Walk-in')}</HeroBack>}
         chip={<>{a.appointmentNumber}</>}
         meta={`${shortDate(a.scheduledStart)} · ${timeOf(a.scheduledStart)} – ${timeOf(a.scheduledEnd)} · ${minutes(length)}`}
         actions={<>
-          {a.customerPhone && <button type="button" onClick={() => act.remind(a)} className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></button>}
-          {a.sale && <Link to={`/sales/${a.sale.id}/receipt`} className={heroButton}><Receipt className="h-4 w-4" /> Bill {a.sale.saleNumber}</Link>}
-          {open && can.bill && <button type="button" onClick={() => act.bill(a)} className={heroPrimaryButton}><Receipt className="h-4 w-4" /> Bill banayein</button>}
+          {a.customerPhone && <button type="button" onClick={() => act.remind(a)} className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">{t('WhatsApp')}</span></button>}
+          {a.sale && <Link to={`/sales/${a.sale.id}/receipt`} className={heroButton}><Receipt className="h-4 w-4" /> {' '}{t('Bill {{saleNumber}}', { saleNumber: a.sale.saleNumber })}</Link>}
+          {open && can.bill && <button type="button" onClick={() => act.bill(a)} className={heroPrimaryButton}><Receipt className="h-4 w-4" /> {' '}{t('Bill banayein')}</button>}
         </>}
         stats={[
-          { label: 'Kul', value: formatPKR(a.total) },
-          { label: a.saleId ? 'Paid' : 'Advance', value: formatPKR(a.paidAmount) },
-          { label: a.saleId ? 'Udhaar' : 'Baqi', value: formatPKR(due) },
+          { label: t('Kul'), value: formatPKR(a.total) },
+          { label: a.saleId ? t('Paid') : t('Advance'), value: formatPKR(a.paidAmount) },
+          { label: a.saleId ? t('Udhaar') : t('Baqi'), value: formatPKR(due) },
         ]}
       />
 
       {voidedBill && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <AlertTriangle className="h-4 w-4 shrink-0" /> Is appointment ka bill void hua tha — kaam ho chuka hai, dobara bill banayein.
+          <AlertTriangle className="h-4 w-4 shrink-0" /> {' '}{t('Is appointment ka bill void hua tha — kaam ho chuka hai, dobara bill banayein.')}
         </p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" flush title={<CardTitle icon={Scissors}>Services</CardTitle>} actions={<StatusBadge a={a} />}>
+          <Card className="rounded-2xl" flush title={<CardTitle icon={Scissors}>{t('Services')}</CardTitle>} actions={<StatusBadge a={a} />}>
             <Table minWidth="36rem">
-              <THead><Tr><Th>Service</Th><Th>Stylist</Th><Th align="right">Rate</Th><Th align="right">Commission</Th></Tr></THead>
+              <THead><Tr><Th>{t('Service')}</Th><Th>{t('Stylist')}</Th><Th align="right">{t('Rate')}</Th><Th align="right">{t('Commission')}</Th></Tr></THead>
               <TBody>
                 {a.services.map((s, i) => (
                   <Tr key={s.id ?? i}>
@@ -112,54 +113,54 @@ export default function AppointmentDetailPage() {
           </Card>
 
           {(a.customerNotes || a.internalNotes) && (
-            <Card className="rounded-2xl" title={<CardTitle icon={History}>Notes</CardTitle>}>
+            <Card className="rounded-2xl" title={<CardTitle icon={History}>{t('Notes')}</CardTitle>}>
               {a.customerNotes && <p className="whitespace-pre-line text-[0.875rem] text-slate-800">{a.customerNotes}</p>}
               {a.internalNotes && <p className="mt-2 whitespace-pre-line text-[0.8125rem] text-slate-500">{a.internalNotes}</p>}
             </Card>
           )}
 
-          <Card className="rounded-2xl" title={<CardTitle icon={Clock}>Kab kya hua</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Clock}>{t('Kab kya hua')}</CardTitle>}>
             <ol className="space-y-2 text-[0.8125rem]">
-              <Step on label="Booking" at={a.createdAt} />
-              <Step on={!!a.arrivedAt} label="Aa gaye" at={a.arrivedAt} />
-              <Step on={!!a.actualStart} label="Chair par" at={a.actualStart} />
-              {a.status === 'CANCELLED' ? <Step on label={`Cancel${a.cancellationReason ? ` — ${a.cancellationReason}` : ''}`} at={a.cancelledAt} tone="text-rose-700" />
-                : a.status === 'NO_SHOW' ? <Step on label="Nahi aaye" tone="text-rose-700" />
-                : <Step on={!!a.saleId} label={a.sale ? `Bill ${a.sale.saleNumber}${a.sale.status === 'VOIDED' ? ' (void)' : ''}` : 'Bill'} at={a.actualEnd} />}
+              <Step on label={t('Booking')} at={a.createdAt} />
+              <Step on={!!a.arrivedAt} label={t('Aa gaye')} at={a.arrivedAt} />
+              <Step on={!!a.actualStart} label={t('Chair par')} at={a.actualStart} />
+              {a.status === 'CANCELLED' ? <Step on label={t('Cancel{{value}}', { value: a.cancellationReason ? ` — ${a.cancellationReason}` : '' })} at={a.cancelledAt} tone="text-rose-700" />
+                : a.status === 'NO_SHOW' ? <Step on label={t('Nahi aaye')} tone="text-rose-700" />
+                : <Step on={!!a.saleId} label={a.sale ? t('Bill {{saleNumber}}{{value}}', { saleNumber: a.sale.saleNumber, value: a.sale.status === 'VOIDED' ? t(' (void)') : '' }) : t('Bill')} at={a.actualEnd} />}
             </ol>
           </Card>
         </div>
 
         <div className="space-y-4">
           {open && (
-            <Card className="rounded-2xl" title="Agla qadam">
+            <Card className="rounded-2xl" title={t('Agla qadam')}>
               <div className="grid gap-2">
-                {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>Customer aa gaye</Button>}
-                {can.book && (a.status === 'ARRIVED' || a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>Chair par — kaam shuru</Button>}
-                {can.bill && <Button leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>Kaam ho gaya — bill banayein</Button>}
-                {can.bill && due > 0 && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => act.pay(a)}>Advance lein</Button>}
-                {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="ghost" leftIcon={<CalendarClock className="h-4 w-4" />} onClick={() => act.move(a)}>Waqt badlein</Button>}
-                {can.book && lateBy(a) > 0 && <Button variant="ghost" leftIcon={<UserX className="h-4 w-4" />} onClick={() => act.noShow(a)}>Nahi aaye (no-show)</Button>}
-                {can.book && <Button variant="critical" leftIcon={<X className="h-4 w-4" />} onClick={() => act.cancel(a)}>Cancel</Button>}
+                {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>{t('Customer aa gaye')}</Button>}
+                {can.book && (a.status === 'ARRIVED' || a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>{t('Chair par — kaam shuru')}</Button>}
+                {can.bill && <Button leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>{t('Kaam ho gaya — bill banayein')}</Button>}
+                {can.bill && due > 0 && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => act.pay(a)}>{t('Advance lein')}</Button>}
+                {can.book && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button variant="ghost" leftIcon={<CalendarClock className="h-4 w-4" />} onClick={() => act.move(a)}>{t('Waqt badlein')}</Button>}
+                {can.book && lateBy(a) > 0 && <Button variant="ghost" leftIcon={<UserX className="h-4 w-4" />} onClick={() => act.noShow(a)}>{t('Nahi aaye (no-show)')}</Button>}
+                {can.book && <Button variant="critical" leftIcon={<X className="h-4 w-4" />} onClick={() => act.cancel(a)}>{t('Cancel')}</Button>}
               </div>
             </Card>
           )}
 
-          <Card className="rounded-2xl" title={<CardTitle icon={UserRound}>Customer</CardTitle>}
-            actions={a.customerId ? <Link to={`/salon/customers?customer=${a.customerId}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Poori history</Link> : undefined}>
-            <p className="text-[0.9375rem] font-semibold text-slate-900">{a.customerName || 'Walk-in'}</p>
-            <p className="text-[0.8125rem] text-slate-500">{a.customerPhone || 'Phone nahi'}</p>
-            {a.customer && Number(a.customer.balance) > 0.5 && <p className="mt-1 text-[0.8125rem] font-semibold text-rose-700">Khate me udhaar {formatPKR(Number(a.customer.balance))}</p>}
-            {a.customer && Number(a.customer.balance) < -0.5 && <p className="mt-1 text-[0.8125rem] font-semibold text-success-700">Khate me advance {formatPKR(-Number(a.customer.balance))}</p>}
+          <Card className="rounded-2xl" title={<CardTitle icon={UserRound}>{t('Customer')}</CardTitle>}
+            actions={a.customerId ? <Link to={`/salon/customers?customer=${a.customerId}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Poori history')}</Link> : undefined}>
+            <p className="text-[0.9375rem] font-semibold text-slate-900">{a.customerName || t('Walk-in')}</p>
+            <p className="text-[0.8125rem] text-slate-500">{a.customerPhone || t('Phone nahi')}</p>
+            {a.customer && Number(a.customer.balance) > 0.5 && <p className="mt-1 text-[0.8125rem] font-semibold text-rose-700">{t('Khate me udhaar {{formatPKR}}', { formatPKR: formatPKR(Number(a.customer.balance)) })}</p>}
+            {a.customer && Number(a.customer.balance) < -0.5 && <p className="mt-1 text-[0.8125rem] font-semibold text-success-700">{t('Khate me advance {{formatPKR}}', { formatPKR: formatPKR(-Number(a.customer.balance)) })}</p>}
             {!!profile?.allergies?.length && (
-              <p className="mt-2 flex gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-100"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Allergy: {profile.allergies.join(', ')}</p>
+              <p className="mt-2 flex gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-100"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Allergy: {{value}}', { value: profile.allergies.join(', ') })}</p>
             )}
             {profile && (profile.hairType || profile.skinType || profile.notes) && (
               <p className="mt-2 text-[0.8125rem] text-slate-600">{[profile.hairType && `Baal: ${profile.hairType}`, profile.skinType && `Skin: ${profile.skinType}`, profile.notes].filter(Boolean).join(' · ')}</p>
             )}
             {lastVisits.length > 0 && (
               <div className="mt-3 border-t border-slate-100 pt-2">
-                <p className="text-[0.75rem] font-semibold text-slate-500">Pichle visit</p>
+                <p className="text-[0.75rem] font-semibold text-slate-500">{t('Pichle visit')}</p>
                 <ul className="mt-1 space-y-1.5">
                   {lastVisits.map((v) => (
                     <li key={v.id} className="text-[0.8125rem]">
@@ -186,7 +187,7 @@ function Step({ on, label, at, tone }: { on: boolean; label: string; at?: string
     <li className="flex items-center gap-2">
       {on ? <CheckCircle2 className={cn('h-4 w-4 shrink-0', tone ? tone : 'text-success-600')} /> : <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-200" />}
       <span className={cn(on ? tone ?? 'text-slate-800' : 'text-slate-400')}>{label}</span>
-      {at && <span className="ml-auto text-[0.75rem] text-slate-500">{shortDate(at)} {timeOf(at)}</span>}
+      {at && <span className="ms-auto text-[0.75rem] text-slate-500">{shortDate(at)} {timeOf(at)}</span>}
     </li>
   );
 }
@@ -197,22 +198,22 @@ function Rating({ id, rating, feedback }: { id: string; rating?: number; feedbac
   const [text, setText] = useState(feedback ?? '');
   const save = useMutation({
     mutationFn: () => appointmentsApi.rate(id, stars, text.trim() || undefined),
-    onSuccess: () => { toast.success('Rating save ho gayi'); qc.invalidateQueries({ queryKey: [SALON_KEYS.appointments] }); },
-    onError: (e) => toast.error(apiError(e, 'Rating save nahi hui')),
+    onSuccess: () => { toast.success(t('Rating save ho gayi')); qc.invalidateQueries({ queryKey: [SALON_KEYS.appointments] }); },
+    onError: (e) => toast.error(apiError(e, t('Rating save nahi hui'))),
   });
   return (
-    <Card className="rounded-2xl" title={<CardTitle icon={Star}>Customer ki rai</CardTitle>}>
+    <Card className="rounded-2xl" title={<CardTitle icon={Star}>{t('Customer ki rai')}</CardTitle>}>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" aria-label={`${n} star`} onClick={() => setStars(n)}>
+          <button key={n} type="button" aria-label={t('{{n}} star', { n })} onClick={() => setStars(n)}>
             <Star className={cn('h-6 w-6', n <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} />
           </button>
         ))}
-        {rating ? <Badge size="xs" variant="success" className="ml-2 self-center">Save hai</Badge> : null}
+        {rating ? <Badge size="xs" variant="success" className="ms-2 self-center">{t('Save hai')}</Badge> : null}
       </div>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={1000} placeholder="Customer ne kya kaha (marzi)"
+      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={1000} placeholder={t('Customer ne kya kaha (marzi)')}
         className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-[0.8125rem]" />
-      <Button className="mt-2" size="sm" variant="secondary" disabled={!stars} loading={save.isPending} onClick={() => save.mutate()}>Save</Button>
+      <Button className="mt-2" size="sm" variant="secondary" disabled={!stars} loading={save.isPending} onClick={() => save.mutate()}>{t('Save')}</Button>
     </Card>
   );
 }

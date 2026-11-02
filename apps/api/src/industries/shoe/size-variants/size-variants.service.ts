@@ -5,6 +5,7 @@ import { applyStockDelta } from '../../../common/shop-scope';
 import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { ensureSizeVariant, linkedVariants, sizeLabel, withLiveStock } from '../common/size-stock.helper';
 import { AdjustStockDto, BulkUpsertSizeVariantsDto, UpsertSizeVariantDto } from './dto/upsert-size-variant.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ShoeSizeVariantsService {
@@ -65,7 +66,7 @@ export class ShoeSizeVariantsService {
           if (delta !== 0 && history > 0) {
             // A size with stock history changes through purchase or a stock
             // adjustment, so the change is on record with its reason.
-            throw new BadRequestException(`Size ${sizeLabel(saved)} ka stock ${current} hai — badalne ke liye Stock Adjustment karein`);
+            throw new BadRequestException(apiMessage('Size {{saved}} ka stock {{current}} hai — badalne ke liye Stock Adjustment karein', { saved: sizeLabel(saved), current }));
           }
           if (delta > 0) {
             await applyStockDelta({
@@ -169,7 +170,7 @@ export class ShoeSizeVariantsService {
       const shopId = await resolveIndustryShopId(tx, user, activeShopId);
       const variantId = await ensureSizeVariant(tx, { tenantId: user.tenantId, userId: user.id, shopId, size: v });
       if (variantId) {
-        throw new BadRequestException(`Size ${sizeLabel(v)} ka stock Stock Adjustment se badlein (variant "${sizeLabel(v)}")`);
+        throw new BadRequestException(apiMessage('Size {{v}} ka stock Stock Adjustment se badlein (variant "{{v}}")', { v: sizeLabel(v) }));
       }
       return tx.shoeSizeVariant.update({ where: { id }, data: { stock: Math.max(v.stock + delta, 0) } });
     });
@@ -178,7 +179,7 @@ export class ShoeSizeVariantsService {
   async reserve(user: AuthenticatedUser, id: string, quantity: number) {
     const v = await this.getOne(user, id);
     const available = v.stock - v.reservedStock;
-    if (available < quantity) throw new BadRequestException(`Only ${available} available for reservation`);
+    if (available < quantity) throw new BadRequestException(apiMessage('Only {{available}} available for reservation', { available }));
     return this.prisma.shoeSizeVariant.update({
       where: { id },
       data: { reservedStock: v.reservedStock + quantity },
@@ -197,7 +198,7 @@ export class ShoeSizeVariantsService {
   async remove(user: AuthenticatedUser, id: string) {
     const v = await this.getOne(user, id);
     if (v.stock > 0) {
-      throw new BadRequestException(`Size ${sizeLabel(v)} me abhi ${v.stock} joray hain — pehle stock 0 karein`);
+      throw new BadRequestException(apiMessage('Size {{v}} me abhi {{stock}} joray hain — pehle stock 0 karein', { v: sizeLabel(v), stock: v.stock }));
     }
     return this.prisma.$transaction(async (tx) => {
       // Both rows are kept for sale history; they are only switched off.

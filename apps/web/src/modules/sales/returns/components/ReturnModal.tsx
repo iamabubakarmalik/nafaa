@@ -28,13 +28,14 @@ import {
 import { returnsApi, type CreatedReturn } from '@modules/sales/returns/api/returns.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { CARPET_UNITS, REASONS, qtyText, refreshAfterReturn } from './meta';
+import { t } from '@core/i18n';
 
 const REFUND_METHODS: Array<{ v: PaymentMethod; label: string; icon: ComponentType<{ className?: string }>; hint: string }> = [
-  { v: 'CASH', label: 'Cash', icon: Banknote, hint: 'Golak se' },
-  { v: 'JAZZCASH', label: 'JazzCash', icon: Smartphone, hint: 'Wapas bhejein' },
-  { v: 'EASYPAISA', label: 'EasyPaisa', icon: Zap, hint: 'Wapas bhejein' },
-  { v: 'BANK_TRANSFER', label: 'Bank', icon: Building2, hint: 'Account me' },
-  { v: 'CARD', label: 'Card', icon: CreditCard, hint: 'Card par' },
+  { v: 'CASH', label: t('Cash'), icon: Banknote, hint: t('Golak se') },
+  { v: 'JAZZCASH', label: t('JazzCash'), icon: Smartphone, hint: t('Wapas bhejein') },
+  { v: 'EASYPAISA', label: t('EasyPaisa'), icon: Zap, hint: t('Wapas bhejein') },
+  { v: 'BANK_TRANSFER', label: t('Bank'), icon: Building2, hint: t('Account me') },
+  { v: 'CARD', label: t('Card'), icon: CreditCard, hint: t('Card par') },
 ];
 
 interface Line {
@@ -131,17 +132,17 @@ export function ReturnModal({ sale, onClose, onDone }: {
       }),
     }),
     onSuccess: (res) => {
-      if (res.repeated) toast.info('Yeh return pehle hi ho chuki thi — dobara nahi ki');
+      if (res.repeated) toast.info(t('Yeh return pehle hi ho chuki thi — dobara nahi ki'));
       else {
-        const parts = [res.khataAmount > 0 && `${formatPKR(res.khataAmount)} khate se kam`, res.payout > 0 && `${formatPKR(res.payout)} wapas diye`].filter(Boolean);
-        toast.success(`Return ho gayi — ${res.returnNumber}`, {
+        const parts = [res.khataAmount > 0 && t('{{khataAmount}} khate se kam', { khataAmount: formatPKR(res.khataAmount) }), res.payout > 0 && t('{{payout}} wapas diye', { payout: formatPKR(res.payout) })].filter(Boolean);
+        toast.success(t('Return ho gayi — {{returnNumber}}', { returnNumber: res.returnNumber }), {
           description: [parts.join(' · ') || formatPKR(res.refundAmount), res.createdCutPieces?.length ? `${res.createdCutPieces.length} cut piece bana` : ''].filter(Boolean).join(' · '),
         });
       }
       refreshAfterReturn(qc);
       onDone(res);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Return nahi ho saki'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || t('Return nahi ho saki')),
   });
 
   const submit = () => { if (selected.length && !mut.isPending) mut.mutate(); };
@@ -149,36 +150,36 @@ export function ReturnModal({ sale, onClose, onDone }: {
   return (
     <>
       <Modal open onClose={onClose} size="lg"
-        title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" /> Return — {sale.saleNumber}</span>}
-        description={`${sale.customer?.name || 'Walk-in'} · ${formatPKR(sale.total)} ka bill`}
+        title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" /> {' '}{t('Return — {{saleNumber}}', { saleNumber: sale.saleNumber })}</span>}
+        description={t('{{value}} · {{total}} ka bill', { value: sale.customer?.name || 'Walk-in', total: formatPKR(sale.total) })}
         footer={returnable.length > 0 ? (
           <div className="flex w-full flex-wrap items-center gap-3">
-            <div className="mr-auto min-w-0">
+            <div className="me-auto min-w-0">
               <p className="text-[0.75rem] text-slate-500">
-                {selected.length ? `${selected.length} cheez${selected.length > 1 ? 'ein' : ''} wapas${writtenOff ? ` · ${writtenOff} kharab` : ''}` : 'Abhi kuch nahi chuna'}
+                {selected.length ? `${t('{{count}} cheez wapas', { count: selected.length })}${writtenOff ? t(' · {{writtenOff}} kharab', { writtenOff }) : ''}` : t('Abhi kuch nahi chuna')}
               </p>
               <p className="text-xl font-bold tabular-nums text-slate-900">{formatPKR(refund)}</p>
-              {khata > 0 && <p className="text-[0.6875rem] text-slate-500">{formatPKR(khata)} khate se · {formatPKR(handBack)} haath me</p>}
+              {khata > 0 && <p className="text-[0.6875rem] text-slate-500">{t('{{khata}} khate se · {{handBack}} haath me', { khata: formatPKR(khata), handBack: formatPKR(handBack) })}</p>}
             </div>
-            <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+            <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
             <Button onClick={submit} loading={mut.isPending} disabled={!selected.length} leftIcon={<RotateCcw className="h-4 w-4" />}
               className="bg-amber-600 hover:bg-amber-700">
-              Return karein
+              {t('Return karein')}
             </Button>
           </div>
-        ) : <Button variant="secondary" onClick={onClose}>Band karein</Button>}>
+        ) : <Button variant="secondary" onClick={onClose}>{t('Band karein')}</Button>}>
         {returnable.length === 0 ? (
           <div className="py-10 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
-            <p className="mt-2 font-semibold text-slate-800">Is bill ka saara maal pehle hi wapas ho chuka</p>
+            <p className="mt-2 font-semibold text-slate-800">{t('Is bill ka saara maal pehle hi wapas ho chuka')}</p>
           </div>
         ) : (
           <div className="space-y-5">
             <section>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <h3 className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kya wapas aaya</h3>
+                <h3 className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Kya wapas aaya')}</h3>
                 <button type="button" onClick={toggleAll} className="text-[0.8125rem] font-medium text-amber-700 hover:underline">
-                  {allPicked ? 'Sab hatayein' : 'Poora bill wapas'}
+                  {allPicked ? t('Sab hatayein') : t('Poora bill wapas')}
                 </button>
               </div>
               <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
@@ -193,39 +194,39 @@ export function ReturnModal({ sale, onClose, onDone }: {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-slate-900">{l.name}{l.variant && <span className="text-slate-500"> · {l.variant}</span>}</p>
                           <p className="text-[0.75rem] text-slate-500">
-                            {qtyText(l.sold)} {l.unit} becha · {formatPKR(l.unitRefund)} fi {l.unit} wapas
-                            {l.already > 0 && <span className="text-amber-700"> · {qtyText(l.already)} pehle wapas</span>}
+                            {t('{{sold}} {{unit}} becha · {{unitRefund}} fi {{unit}} wapas', { sold: qtyText(l.sold), unit: l.unit, unitRefund: formatPKR(l.unitRefund) })}
+                            {l.already > 0 && <span className="text-amber-700"> {' '}{t('· {{already}} pehle wapas', { already: qtyText(l.already) })}</span>}
                           </p>
                           {l.units.length > 0 && <p className="truncate font-mono text-[0.6875rem] text-slate-500">{l.units.join(', ')}</p>}
                         </div>
                         {done ? (
-                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.75rem] text-slate-500">Poora wapas</span>
+                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.75rem] text-slate-500">{t('Poora wapas')}</span>
                         ) : (
                           <div className="flex shrink-0 items-center gap-1">
-                            <button type="button" onClick={() => setLine(l, v - 1)} aria-label={`${l.name} kam`} disabled={v <= 0}
+                            <button type="button" onClick={() => setLine(l, v - 1)} aria-label={t('{{name}} kam', { name: l.name })} disabled={v <= 0}
                               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40">
                               <Minus className="h-3.5 w-3.5" />
                             </button>
-                            <input type="number" min={0} max={l.remaining} step={tracked(l) ? 1 : 'any'} value={v || ''} placeholder="0" aria-label={`${l.name} kitna wapas`}
+                            <input type="number" min={0} max={l.remaining} step={tracked(l) ? 1 : 'any'} value={v || ''} placeholder="0" aria-label={t('{{name}} kitna wapas', { name: l.name })}
                               onChange={(e) => setLine(l, Number(e.target.value) || 0)}
                               className="h-8 w-14 rounded-lg border border-slate-200 bg-white text-center text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-amber-500" />
-                            <button type="button" onClick={() => setLine(l, v + 1)} aria-label={`${l.name} zyada`} disabled={v >= l.remaining}
+                            <button type="button" onClick={() => setLine(l, v + 1)} aria-label={t('{{name}} zyada', { name: l.name })} disabled={v >= l.remaining}
                               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40">
                               <Plus className="h-3.5 w-3.5" />
                             </button>
-                            <span className="w-10 text-right text-[0.75rem] tabular-nums text-slate-400">/ {qtyText(l.remaining)}</span>
+                            <span className="w-10 text-end text-[0.75rem] tabular-nums text-slate-400">/ {qtyText(l.remaining)}</span>
                           </div>
                         )}
                       </div>
                       {v > 0 && (
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-12">
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 ps-12">
                           {l.service ? (
-                            <span className="text-[0.75rem] text-slate-500">Sirf paise wapas — stock me kuch nahi jata</span>
+                            <span className="text-[0.75rem] text-slate-500">{t('Sirf paise wapas — stock me kuch nahi jata')}</span>
                           ) : rollCut ? (
                             <button type="button" onClick={() => setCarpetFor(l)}
                               className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white px-2.5 text-[0.75rem] font-medium text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-50">
                               <Scissors className="h-3.5 w-3.5" />
-                              {carpet[l.id] ? (carpet[l.id].isDamaged ? 'Kharab cut piece' : carpet[l.id].createCutPiece ? `Cut piece ${carpet[l.id].cutPieceWidthFt}×${carpet[l.id].cutPieceLengthFt} ft` : 'Cut piece nahi banega') : 'Cut piece ka naap'}
+                              {carpet[l.id] ? (carpet[l.id].isDamaged ? t('Kharab cut piece') : carpet[l.id].createCutPiece ? t('Cut piece {{cutPieceWidthFt}}×{{cutPieceLengthFt}} ft', { cutPieceWidthFt: carpet[l.id].cutPieceWidthFt, cutPieceLengthFt: carpet[l.id].cutPieceLengthFt }) : t('Cut piece nahi banega')) : t('Cut piece ka naap')}
                             </button>
                           ) : (
                             <>
@@ -233,7 +234,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
                               <ShelfButton on={!onShelf(l)} onClick={() => setShelf((s) => ({ ...s, [l.id]: false }))} />
                             </>
                           )}
-                          <span className="ml-auto text-[0.75rem] font-semibold tabular-nums text-slate-700">{formatPKR(v * l.unitRefund)}</span>
+                          <span className="ms-auto text-[0.75rem] font-semibold tabular-nums text-slate-700">{formatPKR(v * l.unitRefund)}</span>
                         </div>
                       )}
                     </li>
@@ -241,19 +242,18 @@ export function ReturnModal({ sale, onClose, onDone }: {
                 })}
               </ul>
               <p className="mt-1.5 text-[0.6875rem] text-slate-500">
-                "Stock me wapas" se maal dobara bikne ke liye shelf par aata hai. "Kharab" wala stock me nahi aata aur nuqsan me likha jata hai.
-                {discounted && ' Rate discount ke baad wala hai — jitna customer ne diya utna hi wapas.'}
+                {t('"Stock me wapas" se maal dobara bikne ke liye shelf par aata hai. "Kharab" wala stock me nahi aata aur nuqsan me likha jata hai.{{value}}', { value: discounted ? t(' Rate discount ke baad wala hai — jitna customer ne diya utna hi wapas.') : '' })}
               </p>
             </section>
 
             <section>
-              <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Paisa kaise wapas</h3>
-              <div role="radiogroup" aria-label="Paisa kaise wapas" className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+              <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Paisa kaise wapas')}</h3>
+              <div role="radiogroup" aria-label={t('Paisa kaise wapas')} className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {REFUND_METHODS.map((m) => {
                   const on = refundMethod === m.v;
                   return (
                     <button key={m.v} type="button" role="radio" aria-checked={on} onClick={() => setRefundMethod(m.v)}
-                      className={cn('rounded-xl border p-2.5 text-left transition', on ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-slate-200 hover:border-slate-300')}>
+                      className={cn('rounded-xl border p-2.5 text-start transition', on ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-slate-200 hover:border-slate-300')}>
                       <m.icon className={cn('h-4 w-4', on ? 'text-amber-700' : 'text-slate-400')} />
                       <p className="mt-1 text-[0.8125rem] font-semibold text-slate-900">{m.label}</p>
                       <p className="truncate text-[0.6875rem] text-slate-500">{m.hint}</p>
@@ -264,37 +264,37 @@ export function ReturnModal({ sale, onClose, onDone }: {
               {owed > 0 && sale.customer && (
                 <p className="mt-2 flex items-start gap-2 rounded-xl bg-blue-50 p-2.5 text-[0.75rem] text-blue-900">
                   <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Is bill par {formatPKR(owed)} udhaar baqi hai. Return pehle yeh udhaar khate se kam karti hai, baqi amount haath me wapas di jati hai.
+                  {t('Is bill par {{owed}} udhaar baqi hai. Return pehle yeh udhaar khate se kam karti hai, baqi amount haath me wapas di jati hai.', { owed: formatPKR(owed) })}
                 </p>
               )}
             </section>
 
             <section>
-              <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Wapas kyun aaya</h3>
+              <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Wapas kyun aaya')}</h3>
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {REASONS.map((r) => (
                   <button key={r} type="button" onClick={() => setReason(reason === r ? '' : r)} aria-pressed={reason === r}
                     className={cn('rounded-full px-3 py-1 text-[0.75rem] font-medium ring-1 transition',
                       reason === r ? 'bg-amber-600 text-white ring-amber-600' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
-                    {r}
+                    {t(r)}
                   </button>
                 ))}
               </div>
-              <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Ya apne in words likhein…" aria-label="Wajah"
+              <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder={t('Ya apne in words likhein…')} aria-label={t('Wajah')}
                 className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15" />
-              <p className="mt-1 text-[0.6875rem] text-slate-500">Wajah se Analytics me pata chalta hai ke maal kyun wapas aa raha hai.</p>
+              <p className="mt-1 text-[0.6875rem] text-slate-500">{t('Wajah se Analytics me pata chalta hai ke maal kyun wapas aa raha hai.')}</p>
               {showNotes ? (
                 <>
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={2} placeholder="Koi aur baat — jaise dabba khula tha" aria-label="Note"
+                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={2} placeholder={t('Koi aur baat — jaise dabba khula tha')} aria-label={t('Note')}
                     className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15" />
-                  <p className="text-[0.6875rem] text-slate-500">Note return ki parchi par bhi chhapta hai.</p>
+                  <p className="text-[0.6875rem] text-slate-500">{t('Note return ki parchi par bhi chhapta hai.')}</p>
                 </>
               ) : (
                 <button type="button" onClick={() => setShowNotes(true)} className="mt-2 inline-flex items-center gap-1 text-[0.75rem] font-medium text-slate-600 hover:text-slate-900">
-                  <StickyNote className="h-3.5 w-3.5" /> Note likhein
+                  <StickyNote className="h-3.5 w-3.5" /> {' '}{t('Note likhein')}
                 </button>
               )}
-              {refund > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">Yeh amount aaj ki sale se kam hogi.</p>}
+              {refund > 0 && <p className="mt-2 text-[0.75rem] text-slate-500">{t('Yeh amount aaj ki sale se kam hogi.')}</p>}
             </section>
           </div>
         )}
@@ -326,7 +326,7 @@ function ShelfButton({ on, good, onClick }: { on: boolean; good?: boolean; onCli
     <button type="button" onClick={onClick} aria-pressed={on}
       className={cn('inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-medium ring-1 transition',
         on ? (good ? 'bg-emerald-600 text-white ring-emerald-600' : 'bg-rose-600 text-white ring-rose-600') : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
-      <Icon className="h-3.5 w-3.5" />{good ? 'Stock me wapas' : 'Kharab — stock me nahi'}
+      <Icon className="h-3.5 w-3.5" />{good ? t('Stock me wapas') : t('Kharab — stock me nahi')}
     </button>
   );
 }

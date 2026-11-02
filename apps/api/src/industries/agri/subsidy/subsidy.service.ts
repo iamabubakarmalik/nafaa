@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { shopYear } from '../agri-common';
+import { MessageText } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const str = (v: unknown, max = 200) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
@@ -134,7 +135,7 @@ export class SubsidyService {
     return c;
   }
 
-  private async move(user: AuthenticatedUser, id: string, from: string[], data: Record<string, unknown>, wrong: string) {
+  private async move(user: AuthenticatedUser, id: string, from: string[], data: Record<string, unknown>, wrong: MessageText) {
     const c = await this.getOne(user, id);
     if (!from.includes(c.status)) throw new BadRequestException(wrong);
     const done = await this.prisma.agriSubsidyClaim.updateMany({ where: { id, tenantId: user.tenantId, status: c.status }, data });

@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
 
@@ -134,5 +135,5 @@ export const manufacturingApi = {
 export const qty = (n: number | null | undefined) => String(Number(Number(n ?? 0).toFixed(3)));
 
 /** Error text from an API failure. */
-export const errText = (e: unknown, fallback = 'Nahi hua') =>
+export const errText = (e: unknown, fallback = t('Nahi hua')) =>
   (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message?.toString() || (e as Error)?.message || fallback;

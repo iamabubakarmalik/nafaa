@@ -5,6 +5,7 @@
 
 import type { BrandName } from '@/assets/brands/BrandLogo';
 import type { WebsiteOverview } from '../../api/online-orders.api';
+import { t } from '@core/i18n';
 
 export type ChannelKind = 'shopify' | 'woocommerce' | 'daraz' | 'indolj' | 'custom';
 export type ChannelTab = 'overview' | 'products' | 'settings' | 'setup' | 'activity';
@@ -38,7 +39,7 @@ export function channelFacts(i: Integration, via?: 'indolj' | 'custom' | null): 
   if (i.type === 'DARAZ') return { kind: 'daraz', name: 'Daraz', brand: 'daraz', automatic: !!i.daraz?.connected, productChannel: true, platform };
   if (i.indolj?.connected || via === 'indolj') return { kind: 'indolj', name: 'Indolj', brand: 'indolj', automatic: !!i.indolj?.connected, productChannel: false, platform };
   const brand: BrandName = cfg.platform === 'shopify' ? 'shopify' : cfg.platform === 'woocommerce' ? 'woocommerce' : cfg.platform === 'wordpress' ? 'wordpress' : 'website';
-  const name = cfg.platform === 'shopify' ? 'Shopify' : cfg.platform === 'woocommerce' ? 'WooCommerce' : cfg.platform === 'wordpress' ? 'WordPress' : 'Website';
+  const name = cfg.platform === 'shopify' ? 'Shopify' : cfg.platform === 'woocommerce' ? 'WooCommerce' : cfg.platform === 'wordpress' ? 'WordPress' : t('Website');
   return { kind: 'custom', name, brand, automatic: false, productChannel: false, platform };
 }
 

@@ -1,14 +1,15 @@
 /** Shared labels, reasons and helpers for the returns page and the return form. */
 
 import type { QueryClient } from '@tanstack/react-query';
+import { msg } from '@core/i18n';
 import { PAYMENT_COLORS, PAYMENT_LABELS } from '@modules/dashboard/engine/useChartTheme';
 
 export const RETURNS_KEY = 'returns';
 
-/** Quick reasons on the return form; the filter offers the same list. */
+/** Quick reasons on the return form; the filter offers the same list. Stored as written, translated where shown. */
 export const REASONS = [
-  'Cheez kharab nikli', 'Ghalat cheez de di', 'Pasand nahi aayi',
-  'Naap/size theek nahi', 'Date guzar chuki thi', 'Zyada de di thi',
+  msg('Cheez kharab nikli'), msg('Ghalat cheez de di'), msg('Pasand nahi aayi'),
+  msg('Naap/size theek nahi'), msg('Date guzar chuki thi'), msg('Zyada de di thi'),
 ];
 
 export const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);

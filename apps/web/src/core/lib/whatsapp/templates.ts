@@ -13,6 +13,7 @@
    jaise khane bhar diye jate hain.
    ═════════════════════════════════════════════════════════════ */
 
+import { t } from '@core/i18n';
 export type TemplateKey = 'receipt' | 'udhaar' | 'shukriya' | 'yaad_dihani';
 
 export interface TemplateMeta {
@@ -27,29 +28,29 @@ export interface TemplateMeta {
 export const TEMPLATE_META: TemplateMeta[] = [
   {
     key: 'receipt',
-    label: 'Bill bhejna',
-    hint: 'Sale ke baad customer ko bill ki details',
+    label: t('Bill bhejna'),
+    hint: t('Sale ke baad customer ko bill ki details'),
     emoji: '🧾',
     fields: ['customer', 'shop', 'bill', 'total', 'paid', 'baqi', 'tareekh', 'cheezein'],
   },
   {
     key: 'udhaar',
-    label: 'Udhaar ki yaad dihani',
-    hint: 'Jis ka paisa baqi hai — narmi se yaad karana',
+    label: t('Udhaar ki yaad dihani'),
+    hint: t('Jis ka paisa baqi hai — narmi se yaad karana'),
     emoji: '📖',
     fields: ['customer', 'shop', 'baqi', 'tareekh', 'phone'],
   },
   {
     key: 'shukriya',
-    label: 'Shukriya',
-    hint: 'Purchase ke baad chhota sa shukriya',
+    label: t('Shukriya'),
+    hint: t('Purchase ke baad chhota sa shukriya'),
     emoji: '🙏',
     fields: ['customer', 'shop', 'total'],
   },
   {
     key: 'yaad_dihani',
-    label: 'Apna message',
-    hint: 'Jo bhi aap kehna chahein — naya maal, discount, chhutti',
+    label: t('Apna message'),
+    hint: t('Jo bhi aap kehna chahein — naya maal, discount, chhutti'),
     emoji: '📣',
     fields: ['customer', 'shop', 'phone'],
   },
@@ -57,15 +58,15 @@ export const TEMPLATE_META: TemplateMeta[] = [
 
 /** Har khane ka matlab — Settings me dikhane ke liye */
 export const FIELD_HELP: Record<string, string> = {
-  customer: 'Customer ka naam',
-  shop: 'Aap ki dukaan ka naam',
-  bill: 'Bill number',
-  total: 'Bill ka kul',
-  paid: 'Jitna diya',
-  baqi: 'Jitna baqi hai',
-  tareekh: 'Sale ki date',
-  cheezein: 'Kya kya liya (chhoti list)',
-  phone: 'Dukaan ka phone',
+  customer: t('Customer ka naam'),
+  shop: t('Aap ki dukaan ka naam'),
+  bill: t('Bill number'),
+  total: t('Bill ka kul'),
+  paid: t('Jitna diya'),
+  baqi: t('Jitna baqi hai'),
+  tareekh: t('Sale ki date'),
+  cheezein: t('Kya kya liya (chhoti list)'),
+  phone: t('Dukaan ka phone'),
 };
 
 export const DEFAULT_TEMPLATES: Record<TemplateKey, string> = {

@@ -36,21 +36,22 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { salutationFor, waLink } from '@modules/customers/directory/messages';
 import { TIERS, loyaltyApi, tierOf, type LoyaltyMember, type LoyaltyOverview } from '../api/loyalty.api';
+import { t as tr, Trans } from '@core/i18n';
 
 const TX_LABEL: Record<string, { label: string; tone: string }> = {
-  EARNED: { label: 'Mile', tone: 'text-success-700' }, REDEEMED: { label: 'Istemal', tone: 'text-rose-700' },
-  EXPIRED: { label: 'Khatam', tone: 'text-slate-500' }, ADJUSTMENT: { label: 'Haath se', tone: 'text-violet-700' },
+  EARNED: { label: tr('Mile'), tone: 'text-success-700' }, REDEEMED: { label: tr('Istemal'), tone: 'text-rose-700' },
+  EXPIRED: { label: tr('Khatam'), tone: 'text-slate-500' }, ADJUSTMENT: { label: tr('Haath se'), tone: 'text-violet-700' },
 };
 const when = (v: string | null) => (v ? new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(v)) : '—');
 
 type Tab = 'members' | 'analytics' | 'rules';
 type Sort = 'points' | 'spent' | 'recent' | 'name';
 const SORTS: Array<FilterOption<Sort>> = [
-  { value: 'points', label: 'Zyada points' }, { value: 'spent', label: 'Zyada khareedari' }, { value: 'recent', label: 'Haal hi mein' }, { value: 'name', label: 'Naam (A–Z)' },
+  { value: 'points', label: tr('Zyada points') }, { value: 'spent', label: tr('Zyada khareedari') }, { value: 'recent', label: tr('Haal hi mein') }, { value: 'name', label: tr('Naam (A–Z)') },
 ];
 const LEVELS: Array<FilterOption<string>> = [
-  { value: '', label: 'Sab darje', icon: Crown, color: '#475569' },
-  ...TIERS.slice(1).map((t) => ({ value: String(t.min), label: `${t.label} aur upar`, hint: `${t.min}+ points`, icon: Crown, color: t.color })),
+  { value: '', label: tr('Sab darje'), icon: Crown, color: '#475569' },
+  ...TIERS.slice(1).map((t) => ({ value: String(t.min), label: tr('{{label}} aur upar', { label: t.label }), hint: tr('{{min}}+ points', { min: t.min }), icon: Crown, color: t.color })),
 ];
 
 /** Every member in the current search, sort and level (all pages). */
@@ -69,7 +70,7 @@ export default function LoyaltyPage() {
   const qc = useQueryClient();
   const theme = useChartTheme();
   const startHour = useBusinessDayStart();
-  const shop = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const shop = useAuthStore((s) => s.tenant?.name) ?? tr('Hamari dukaan');
   const canAdjust = usePermission(PERMISSIONS.KHATA_MANAGE);
   const canSettings = usePermission(PERMISSIONS.SETTINGS_EDIT);
   const [tab, setTab] = useState<Tab>('members');
@@ -97,8 +98,8 @@ export default function LoyaltyPage() {
   });
   const expiry = useQuery({ queryKey: ['loyalty-expiry'], queryFn: loyaltyApi.expiryPreview, enabled: (overview.data?.settings.expiryDays ?? 0) > 0 });
   const refresh = () => ['loyalty-overview', 'loyalty-members', 'loyalty-expiry', 'customer'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-  const expireNow = useMutation({ mutationFn: loyaltyApi.expireNow, onSuccess: (r) => { toast.success(`${r.points} points khatam hue (${r.customers} customers)`); refresh(); } });
-  const enable = useMutation({ mutationFn: () => settingsApi.update({ enableLoyalty: true }), onSuccess: () => { toast.success('Loyalty chalu ho gayi'); qc.invalidateQueries({ queryKey: ['settings'] }); refresh(); } });
+  const expireNow = useMutation({ mutationFn: loyaltyApi.expireNow, onSuccess: (r) => { toast.success(tr('{{points}} points khatam hue ({{customers}} customers)', { points: r.points, customers: r.customers })); refresh(); } });
+  const enable = useMutation({ mutationFn: () => settingsApi.update({ enableLoyalty: true }), onSuccess: () => { toast.success(tr('Loyalty chalu ho gayi')); qc.invalidateQueries({ queryKey: ['settings'] }); refresh(); } });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -128,10 +129,10 @@ export default function LoyaltyPage() {
 
   const exportCsv = async () => {
     const items = await fetchAllMembers(filter).catch(() => null);
-    if (!items) return toast.error('List nahi aayi');
-    if (!items.length) return toast.error('Koi member nahi');
+    if (!items) return toast.error(tr('List nahi aayi'));
+    if (!items.length) return toast.error(tr('Koi member nahi'));
     downloadCsv(`loyalty-${new Date().toISOString().slice(0, 10)}.csv`, [
-      ['Naam', 'Phone', 'Darja', 'Points', 'Points ki qeemat', 'Kul khareedari', 'Aakhri harkat'],
+      [tr('Naam'), tr('Phone'), tr('Darja'), tr('Points'), tr('Points ki qeemat'), tr('Kul khareedari'), tr('Aakhri harkat')],
       ...items.map((m) => [m.name, m.phone ?? '', tierOf(m.loyaltyPoints).label, m.loyaltyPoints, (m.loyaltyPoints * rate).toFixed(2), m.totalSpent.toFixed(2), when(m.lastActivityAt)]),
     ]);
   };
@@ -139,33 +140,33 @@ export default function LoyaltyPage() {
     const items = await fetchAllMembers(filter);
     const pts = items.reduce((a, m) => a + m.loyaltyPoints, 0);
     return {
-      title: 'Loyalty members',
+      title: tr('Loyalty members'),
       subtitle: new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date()),
-      meta: [['Members', String(items.length)], ['Kul points', pts.toLocaleString('en-PK')], ['Qeemat', formatPKR(pts * rate)]],
+      meta: [[tr('Members'), String(items.length)], [tr('Kul points'), pts.toLocaleString('en-PK')], [tr('Qeemat'), formatPKR(pts * rate)]],
       sections: [{
-        kind: 'table', title: level?.value ? level.label : 'Members',
-        columns: [{ label: 'Naam' }, { label: 'Phone' }, { label: 'Darja', wideOnly: true }, { label: 'Points', align: 'right' }, { label: 'Qeemat', align: 'right' }],
+        kind: 'table', title: level?.value ? level.label : tr('Members'),
+        columns: [{ label: tr('Naam') }, { label: tr('Phone') }, { label: tr('Darja'), wideOnly: true }, { label: tr('Points'), align: 'right' }, { label: tr('Qeemat'), align: 'right' }],
         rows: items.map((m) => [m.name, m.phone ?? '', tierOf(m.loyaltyPoints).label, m.loyaltyPoints.toLocaleString('en-PK'), formatPKR(m.loyaltyPoints * rate)]),
-        footer: ['Kul', '', '', pts.toLocaleString('en-PK'), formatPKR(pts * rate)],
+        footer: [tr('Kul'), '', '', pts.toLocaleString('en-PK'), formatPKR(pts * rate)],
       }],
     };
   };
 
   const rulesCard = (
-    <Card className="rounded-2xl" title="Usool" actions={canSettings ? <Button size="xs" variant="ghost" leftIcon={<Settings2 className="h-3.5 w-3.5" />} onClick={() => setRules(true)}>Badlein</Button> : undefined}>
+    <Card className="rounded-2xl" title={tr('Usool')} actions={canSettings ? <Button size="xs" variant="ghost" leftIcon={<Settings2 className="h-3.5 w-3.5" />} onClick={() => setRules(true)}>{tr('Badlein')}</Button> : undefined}>
       {!s ? <Skeleton className="h-40 rounded-xl" /> : (
         <ul className="space-y-2.5 text-[0.8125rem]">
-          <li className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">Har {formatPKR(pointsFor)} ki khareedari par</span><strong>1 point</strong></li>
-          <li className="flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">1 point ki qeemat</span><strong>{formatPKR(s.redemptionRate)}</strong></li>
-          <li className="flex items-center gap-2"><Gift className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">Kam se kam istemal</span><strong>{s.minRedeem ? `${s.minRedeem} points` : 'Koi had nahi'}</strong></li>
-          <li className="flex items-center gap-2"><Crown className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">Bill ka zyada se zyada</span><strong>{s.maxRedeemPercent}%</strong></li>
-          <li className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">Points khatam hote hain</span><strong>{s.expiryDays ? `${s.expiryDays} din baad` : 'Kabhi nahi'}</strong></li>
+          <li className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">{tr('Har {{pointsFor}} ki khareedari par', { pointsFor: formatPKR(pointsFor) })}</span><strong>{tr('1 point')}</strong></li>
+          <li className="flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">{tr('1 point ki qeemat')}</span><strong>{formatPKR(s.redemptionRate)}</strong></li>
+          <li className="flex items-center gap-2"><Gift className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">{tr('Kam se kam istemal')}</span><strong>{s.minRedeem ? tr('{{minRedeem}} points', { minRedeem: s.minRedeem }) : tr('Koi had nahi')}</strong></li>
+          <li className="flex items-center gap-2"><Crown className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">{tr('Bill ka zyada se zyada')}</span><strong>{s.maxRedeemPercent}%</strong></li>
+          <li className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" /><span className="flex-1 text-slate-600">{tr('Points khatam hote hain')}</span><strong>{s.expiryDays ? tr('{{expiryDays}} din baad', { expiryDays: s.expiryDays }) : tr('Kabhi nahi')}</strong></li>
         </ul>
       )}
       {s && s.expiryDays > 0 && expiry.data && expiry.data.points > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 p-3 text-[0.8125rem] text-amber-900">
-          <span className="flex-1">{expiry.data.points} points ({expiry.data.customers} customers) khatam hone wale hain — har raat khud hota hai.</span>
-          {canAdjust && <Button size="xs" variant="secondary" loading={expireNow.isPending} onClick={() => expireNow.mutate()}>Abhi karein</Button>}
+          <span className="flex-1">{tr('{{points}} points ({{customers}} customers) khatam hone wale hain — har raat khud hota hai.', { points: expiry.data.points, customers: expiry.data.customers })}</span>
+          {canAdjust && <Button size="xs" variant="secondary" loading={expireNow.isPending} onClick={() => expireNow.mutate()}>{tr('Abhi karein')}</Button>}
         </div>
       )}
     </Card>
@@ -179,66 +180,66 @@ export default function LoyaltyPage() {
       {guide && <LoyaltyGuide onClose={() => setGuide(false)} />}
 
       <PageHero
-        title="Loyalty points"
-        chip={<><Award />{o ? `${o.members.withPoints} members` : '…'}</>}
-        meta={period ? rangeLabel(period.from, period.to) : 'Shuru se ab tak'}
+        title={tr('Loyalty points')}
+        chip={<><Award />{o ? tr('{{withPoints}} members', { withPoints: o.members.withPoints }) : '…'}</>}
+        meta={period ? rangeLabel(period.from, period.to) : tr('Shuru se ab tak')}
         busy={overview.isFetching && !overview.isLoading}
         loading={overview.isLoading}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title="CSV"><Download className="h-4 w-4" /></button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          {canSettings && <button type="button" onClick={() => setRules(true)} className={heroButton}><Settings2 className="h-4 w-4" /><span className="hidden sm:inline">Usool</span></button>}
-          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title={tr('CSV')}><Download className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          {canSettings && <button type="button" onClick={() => setRules(true)} className={heroButton}><Settings2 className="h-4 w-4" /><span className="hidden sm:inline">{tr('Usool')}</span></button>}
+          <button type="button" onClick={() => setGuide(true)} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Points baqi (customers ke paas)', value: o ? o.outstanding.points.toLocaleString('en-PK') : '', hint: o ? `qeemat ${formatPKR(o.outstanding.value)}` : '' },
-          { label: 'Is period mein diye', value: o ? o.period.issued.toLocaleString('en-PK') : '', hint: o ? `${o.period.bills} bill` : '' },
-          { label: 'Istemal hue', value: o ? o.period.redeemed.toLocaleString('en-PK') : '', hint: o ? `${formatPKR(o.period.redeemedValue)} ki discount` : '' },
-          { label: 'Khatam hue', value: o ? o.period.expired.toLocaleString('en-PK') : '', hint: s?.expiryDays ? `${s.expiryDays} din baad` : 'expiry band' },
+          { label: tr('Points baqi (customers ke paas)'), value: o ? o.outstanding.points.toLocaleString('en-PK') : '', hint: o ? tr('qeemat {{formatPKR}}', { formatPKR: formatPKR(o.outstanding.value) }) : '' },
+          { label: tr('Is period mein diye'), value: o ? o.period.issued.toLocaleString('en-PK') : '', hint: o ? tr('{{bills}} bill', { bills: o.period.bills }) : '' },
+          { label: tr('Istemal hue'), value: o ? o.period.redeemed.toLocaleString('en-PK') : '', hint: o ? tr('{{redeemedValue}} ki discount', { redeemedValue: formatPKR(o.period.redeemedValue) }) : '' },
+          { label: tr('Khatam hue'), value: o ? o.period.expired.toLocaleString('en-PK') : '', hint: s?.expiryDays ? tr('{{expiryDays}} din baad', { expiryDays: s.expiryDays }) : tr('expiry band') },
         ]}
       />
 
       {o && !o.enabled && (
-        <Alert tone="warning" icon={<Sparkles className="h-5 w-5" />} title="Loyalty abhi band hai"
-          action={canSettings ? <Button size="sm" loading={enable.isPending} onClick={() => enable.mutate()}>Chalu karein</Button> : undefined}>
-          Sale par points nahi mil rahe. Chalu karein to har naam wale customer ko khareedari par points milenge.
+        <Alert tone="warning" icon={<Sparkles className="h-5 w-5" />} title={tr('Loyalty abhi band hai')}
+          action={canSettings ? <Button size="sm" loading={enable.isPending} onClick={() => enable.mutate()}>{tr('Chalu karein')}</Button> : undefined}>
+          {tr('Sale par points nahi mil rahe. Chalu karein to har naam wale customer ko khareedari par points milenge.')}
         </Alert>
       )}
 
       <KpiRow cols={4}>
-        <KpiCard icon={Users} color="#2563eb" label="Points wale customers" value={o ? o.members.withPoints.toLocaleString('en-PK') : '…'}
-          hint={o ? `${o.members.customers.toLocaleString('en-PK')} customers mein se` : undefined} />
-        <KpiCard icon={Wallet} color="#16a34a" label="Points ki kul qeemat" value={o ? formatPKR(o.outstanding.value) : '…'} hint="Itni Discount aage ja sakti hai" />
-        <KpiCard icon={Percent} color="#7c3aed" label="Diye mein se istemal" value={usedPct === null ? '—' : `${usedPct}%`} hint="Is period mein" />
-        <KpiCard icon={CalendarClock} color="#d97706" label="Jald khatam honge" value={s?.expiryDays ? (expiry.data?.points ?? 0).toLocaleString('en-PK') : 'Band'}
-          hint={s?.expiryDays ? `${expiry.data?.customers ?? 0} customers` : 'Expiry lagi nahi'} onClick={() => setTab('rules')} />
+        <KpiCard icon={Users} color="#2563eb" label={tr('Points wale customers')} value={o ? o.members.withPoints.toLocaleString('en-PK') : '…'}
+          hint={o ? tr('{{customers}} customers mein se', { customers: o.members.customers.toLocaleString('en-PK') }) : undefined} />
+        <KpiCard icon={Wallet} color="#16a34a" label={tr('Points ki kul qeemat')} value={o ? formatPKR(o.outstanding.value) : '…'} hint={tr('Itni Discount aage ja sakti hai')} />
+        <KpiCard icon={Percent} color="#7c3aed" label={tr('Diye mein se istemal')} value={usedPct === null ? '—' : `${usedPct}%`} hint={tr('Is period mein')} />
+        <KpiCard icon={CalendarClock} color="#d97706" label={tr('Jald khatam honge')} value={s?.expiryDays ? (expiry.data?.points ?? 0).toLocaleString('en-PK') : tr('Band')}
+          hint={s?.expiryDays ? tr('{{value}} customers', { value: expiry.data?.customers ?? 0 }) : tr('Expiry lagi nahi')} onClick={() => setTab('rules')} />
       </KpiRow>
 
       <ViewTabs<Tab>
-        tabs={[{ id: 'members', label: 'Members', icon: Users, count }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }, { id: 'rules', label: 'Usool aur darje', icon: Crown }]}
+        tabs={[{ id: 'members', label: tr('Members'), icon: Users, count }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }, { id: 'rules', label: tr('Usool aur darje'), icon: Crown }]}
         value={tab} onChange={setTab}
-        right={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Period" defaultPreset="thisMonth" />}
+        right={<DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Period')} defaultPreset="thisMonth" />}
       />
 
       {tab === 'members' && (
         <>
           <FilterBar
-            search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya phone…" label="Member dhoondein" />}
+            search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam ya phone…')} label={tr('Member dhoondein')} />}
             chips={hasFilters ? <>
               {query && <FilterChip onRemove={() => setSearch('')}>“{query}”</FilterChip>}
               {level?.value && <FilterChip onRemove={() => setMin('')}>{level.label}</FilterChip>}
             </> : undefined}
             onClear={clear}
           >
-            <FilterMenu icon={Crown} label={level?.value ? level.label : 'Darja'} value={min} options={LEVELS} onChange={setMin} active={!!min} width="w-60" />
-            <FilterMenu icon={Award} label="Sort" value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
+            <FilterMenu icon={Crown} label={level?.value ? level.label : tr('Darja')} value={min} options={LEVELS} onChange={setMin} active={!!min} width="w-60" />
+            <FilterMenu icon={Award} label={tr('Sort')} value={sort} options={SORTS} onChange={setSort} align="right" width="w-56" />
           </FilterBar>
 
           <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {members.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div> : list.length === 0 ? (
-              <EmptyState icon={<Award className="h-6 w-6" />} title={hasFilters ? 'Is filter mein koi nahi' : 'Abhi kisi ke paas points nahi'}
-                description={hasFilters ? 'Filter hata kar dekhein.' : 'Naam wale customer ke bill par points khud milte hain.'}
-                action={hasFilters ? <Button variant="secondary" onClick={clear}>Filter hatayein</Button> : undefined} />
+              <EmptyState icon={<Award className="h-6 w-6" />} title={hasFilters ? tr('Is filter mein koi nahi') : tr('Abhi kisi ke paas points nahi')}
+                description={hasFilters ? tr('Filter hata kar dekhein.') : tr('Naam wale customer ke bill par points khud milte hain.')}
+                action={hasFilters ? <Button variant="secondary" onClick={clear}>{tr('Filter hatayein')}</Button> : undefined} />
             ) : (
               <>
                 <ul className="divide-y divide-slate-100">
@@ -252,17 +253,17 @@ export default function LoyaltyPage() {
                           <Avatar name={m.name} url={m.avatarUrl ?? undefined} size={38} />
                           <span className="min-w-0">
                             <span className="flex items-center gap-1.5"><span className="truncate text-[0.875rem] font-semibold text-slate-900">{m.name}</span><span className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.625rem] font-bold" style={{ backgroundColor: `${t.color}17`, color: t.color }}>{t.label}</span></span>
-                            <span className="block truncate text-[0.75rem] text-slate-500">{m.phone ?? '—'} · khareedari {formatPKR(m.totalSpent)} · aakhri {when(m.lastActivityAt)}</span>
+                            <span className="block truncate text-[0.75rem] text-slate-500">{tr('{{value}} · khareedari {{totalSpent}} · aakhri {{lastActivityAt}}', { value: m.phone ?? '—', totalSpent: formatPKR(m.totalSpent), lastActivityAt: when(m.lastActivityAt) })}</span>
                           </span>
                         </Link>
-                        <span className="w-28 shrink-0 text-right">
+                        <span className="w-28 shrink-0 text-end">
                           <span className="block text-[1rem] font-bold tabular-nums text-slate-900">{m.loyaltyPoints.toLocaleString('en-PK')}</span>
                           <span className="block text-[0.6875rem] text-slate-500">{formatPKR(m.loyaltyPoints * rate)}</span>
                         </span>
                         <div className="flex shrink-0 items-center gap-1">
-                          <IconButton label="History" onClick={() => setHistoryOf(m)}><History className="h-4 w-4" /></IconButton>
-                          {wa && <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp" aria-label="WhatsApp" className="flex h-10 w-10 items-center justify-center rounded-lg text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>}
-                          {canAdjust && <Button size="sm" variant="secondary" onClick={() => setAdjusting(m)}>Points</Button>}
+                          <IconButton label={tr('History')} onClick={() => setHistoryOf(m)}><History className="h-4 w-4" /></IconButton>
+                          {wa && <a href={wa} target="_blank" rel="noreferrer" title={tr('WhatsApp')} aria-label={tr('WhatsApp')} className="flex h-10 w-10 items-center justify-center rounded-lg text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>}
+                          {canAdjust && <Button size="sm" variant="secondary" onClick={() => setAdjusting(m)}>{tr('Points')}</Button>}
                         </div>
                       </li>
                     );
@@ -271,7 +272,7 @@ export default function LoyaltyPage() {
                 {members.hasNextPage && (
                   <div className="border-t border-slate-100 p-2">
                     <Button variant="ghost" fullWidth loading={members.isFetchingNextPage} onClick={() => void members.fetchNextPage()}>
-                      Aur dikhayein ({list.length} / {count})
+                      {tr('Aur dikhayein ({{count}} / {{count2}})', { count: list.length, count2: count })}
                     </Button>
                   </div>
                 )}
@@ -283,8 +284,8 @@ export default function LoyaltyPage() {
 
       {tab === 'analytics' && (
         <div className="grid gap-4 lg:grid-cols-3">
-          <Card className="rounded-2xl lg:col-span-2" title="Points ka aana jana" description={period ? rangeLabel(period.from, period.to) : 'Shuru se ab tak'}>
-            {!o ? <Skeleton className="h-60 rounded-xl" /> : trend.length === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Is period mein koi points nahi</p> : (
+          <Card className="rounded-2xl lg:col-span-2" title={tr('Points ka aana jana')} description={period ? rangeLabel(period.from, period.to) : tr('Shuru se ab tak')}>
+            {!o ? <Skeleton className="h-60 rounded-xl" /> : trend.length === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">{tr('Is period mein koi points nahi')}</p> : (
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -300,8 +301,8 @@ export default function LoyaltyPage() {
               </div>
             )}
           </Card>
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Store className="h-4 w-4 text-brand-600" />Branch war</span>}>
-            {!o ? <Skeleton className="h-40 rounded-xl" /> : o.branches.length === 0 ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">Is period mein kuch nahi</p> : (
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Store className="h-4 w-4 text-brand-600" />{tr('Branch war')}</span>}>
+            {!o ? <Skeleton className="h-40 rounded-xl" /> : o.branches.length === 0 ? <p className="py-8 text-center text-[0.8125rem] text-slate-500">{tr('Is period mein kuch nahi')}</p> : (
               <ul className="space-y-2 text-[0.8125rem]">
                 {o.branches.map((b) => (
                   <li key={b.shopId ?? 'none'} className="flex justify-between gap-2"><span className="truncate text-slate-700">{b.name}</span><span className="tabular-nums"><span className="text-success-700">+{b.issued}</span> · <span className="text-rose-700">−{b.redeemed}</span></span></li>
@@ -310,19 +311,19 @@ export default function LoyaltyPage() {
             )}
           </Card>
           {o && (
-            <Card className="rounded-2xl lg:col-span-3" title="Is period ka hisaab">
+            <Card className="rounded-2xl lg:col-span-3" title={tr('Is period ka hisaab')}>
               <dl className="grid grid-cols-2 gap-3 text-[0.8125rem] sm:grid-cols-4">
                 {([
-                  ['Points wale bill', o.period.bills.toLocaleString('en-PK')],
-                  ['Un bills ki Sale', formatPKR(o.period.salesTotal)],
-                  ['Points se Discount', formatPKR(o.period.redeemedValue)],
-                  ['Haath se jore / kaate', o.period.adjusted.toLocaleString('en-PK')],
+                  [tr('Points wale bill'), o.period.bills.toLocaleString('en-PK')],
+                  [tr('Un bills ki Sale'), formatPKR(o.period.salesTotal)],
+                  [tr('Points se Discount'), formatPKR(o.period.redeemedValue)],
+                  [tr('Haath se jore / kaate'), o.period.adjusted.toLocaleString('en-PK')],
                 ] as const).map(([l, v]) => (
                   <div key={l} className="rounded-xl bg-slate-50 p-3"><dt className="text-slate-500">{l}</dt><dd className="mt-0.5 text-[1rem] font-bold tabular-nums text-slate-900">{v}</dd></div>
                 ))}
               </dl>
               {o.period.salesTotal > 0 && (
-                <p className="mt-3 text-[0.8125rem] text-slate-600">Points ki Discount in bills ki Sale ka <strong>{((o.period.redeemedValue / o.period.salesTotal) * 100).toFixed(1)}%</strong> rahi.</p>
+                <p className="mt-3 text-[0.8125rem] text-slate-600"><Trans text="Points ki Discount in bills ki Sale ka {{pct}} rahi." values={{ pct: <strong>{((o.period.redeemedValue / o.period.salesTotal) * 100).toFixed(1)}%</strong> }} /></p>
               )}
             </Card>
           )}
@@ -332,7 +333,7 @@ export default function LoyaltyPage() {
       {tab === 'rules' && (
         <div className="grid gap-4 lg:grid-cols-3">
           {rulesCard}
-          <Card className="rounded-2xl lg:col-span-2" title="Members ke darje" description="Jitne zyada points, utna ooncha darja — darje par click karein to woh members dikhenge">
+          <Card className="rounded-2xl lg:col-span-2" title={tr('Members ke darje')} description={tr('Jitne zyada points, utna ooncha darja — darje par click karein to woh members dikhenge')}>
             {!o ? <Skeleton className="h-32 rounded-xl" /> : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                 {TIERS.map((t) => {
@@ -343,7 +344,7 @@ export default function LoyaltyPage() {
                       <Crown className="mx-auto h-5 w-5" style={{ color: t.color }} />
                       <p className="mt-1 text-[0.8125rem] font-semibold" style={{ color: t.color }}>{t.label}</p>
                       <p className="text-[1.25rem] font-bold tabular-nums text-slate-900">{n}</p>
-                      <p className="text-[0.625rem] text-slate-500">{t.min}+ points</p>
+                      <p className="text-[0.625rem] text-slate-500">{tr('{{min}}+ points', { min: t.min })}</p>
                     </button>
                   );
                 })}
@@ -354,7 +355,7 @@ export default function LoyaltyPage() {
       )}
 
       <p className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:flex">
-        <Kbd>/</Kbd> dhoondein · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide
+        <Kbd>/</Kbd> {' '}{tr('dhoondein ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}
       </p>
     </PageShell>
   );
@@ -367,22 +368,22 @@ function AdjustModal({ member, onClose, onDone }: { member: LoyaltyMember; onClo
   const n = Math.trunc(Number(points) || 0);
   const delta = sign === 'add' ? n : -n;
   const after = member.loyaltyPoints + delta;
-  const error = points && !n ? 'Points 1 ya zyada likhein' : after < 0 ? `Itne points nahi — abhi ${member.loyaltyPoints} hain` : undefined;
+  const error = points && !n ? tr('Points 1 ya zyada likhein') : after < 0 ? tr('Itne points nahi — abhi {{loyaltyPoints}} hain', { loyaltyPoints: member.loyaltyPoints }) : undefined;
   const save = useMutation({
     mutationFn: () => loyaltyApi.adjust(member.id, delta, note.trim() || undefined),
-    onSuccess: (r) => { toast.success(`${member.name}: ab ${r.loyaltyPoints} points`); onDone(); },
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Nahi hua'),
+    onSuccess: (r) => { toast.success(tr('{{name}}: ab {{loyaltyPoints}} points', { name: member.name, loyaltyPoints: r.loyaltyPoints })); onDone(); },
+    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || tr('Nahi hua')),
   });
   const submit = () => { if (n && !error && !save.isPending) save.mutate(); };
   return (
-    <Modal open onClose={onClose} size="sm" title={`Points · ${member.name}`} description={`Abhi ${member.loyaltyPoints} points`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!n || !!error} loading={save.isPending} onClick={submit}>Save</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Points · {{name}}', { name: member.name })} description={tr('Abhi {{loyaltyPoints}} points', { loyaltyPoints: member.loyaltyPoints })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!n || !!error} loading={save.isPending} onClick={submit}>{tr('Save')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Segmented<'add' | 'cut'> label="Jorein ya kaatein" value={sign} onChange={setSign} className="grid w-full grid-cols-2"
-          items={[{ value: 'add', label: <span className="inline-flex items-center gap-1.5"><Plus className="h-4 w-4" />Tohfa / jorein</span> }, { value: 'cut', label: <span className="inline-flex items-center gap-1.5"><Minus className="h-4 w-4" />Kaatein</span> }]} />
-        <Input autoFocus label="Kitne points" inputMode="numeric" size="lg" value={points} onChange={(e) => setPoints(e.target.value.replace(/\D/g, ''))}
-          error={error} hint={!error ? `Is ke baad: ${after} points` : undefined} />
-        <Input label="Wajah" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Jaise: salgirah ka tohfa" hint="Customer ki history mein dikhegi" maxLength={200} />
+        <Segmented<'add' | 'cut'> label={tr('Jorein ya kaatein')} value={sign} onChange={setSign} className="grid w-full grid-cols-2"
+          items={[{ value: 'add', label: <span className="inline-flex items-center gap-1.5"><Plus className="h-4 w-4" />{tr('Tohfa / jorein')}</span> }, { value: 'cut', label: <span className="inline-flex items-center gap-1.5"><Minus className="h-4 w-4" />{tr('Kaatein')}</span> }]} />
+        <Input autoFocus label={tr('Kitne points')} inputMode="numeric" size="lg" value={points} onChange={(e) => setPoints(e.target.value.replace(/\D/g, ''))}
+          error={error} hint={!error ? tr('Is ke baad: {{after}} points', { after }) : undefined} />
+        <Input label={tr('Wajah')} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr('Jaise: salgirah ka tohfa')} hint={tr('Customer ki history mein dikhegi')} maxLength={200} />
       </form>
     </Modal>
   );
@@ -391,8 +392,8 @@ function AdjustModal({ member, onClose, onDone }: { member: LoyaltyMember; onClo
 function HistoryModal({ member, onClose }: { member: LoyaltyMember; onClose: () => void }) {
   const { data, isLoading } = useQuery({ queryKey: ['loyalty-history', member.id], queryFn: () => loyaltyApi.history(member.id) });
   return (
-    <Modal open onClose={onClose} size="lg" title={`${member.name} ke points`} description={`Abhi ${data?.customer.loyaltyPoints ?? member.loyaltyPoints} points`}>
-      {isLoading ? <Skeleton className="h-48 rounded-xl" /> : !data?.transactions.length ? <p className="py-10 text-center text-[0.875rem] text-slate-500">Abhi koi entry nahi</p> : (
+    <Modal open onClose={onClose} size="lg" title={tr('{{name}} ke points', { name: member.name })} description={tr('Abhi {{value}} points', { value: data?.customer.loyaltyPoints ?? member.loyaltyPoints })}>
+      {isLoading ? <Skeleton className="h-48 rounded-xl" /> : !data?.transactions.length ? <p className="py-10 text-center text-[0.875rem] text-slate-500">{tr('Abhi koi entry nahi')}</p> : (
         <ul className="max-h-[60vh] divide-y divide-slate-100 overflow-y-auto">
           {data.transactions.map((t) => (
             <li key={t.id} className="flex items-center gap-3 py-2.5 text-[0.8125rem]">
@@ -400,7 +401,7 @@ function HistoryModal({ member, onClose }: { member: LoyaltyMember; onClose: () 
               <span className={cn('w-20 shrink-0 font-medium', TX_LABEL[t.type]?.tone)}>{TX_LABEL[t.type]?.label ?? t.type}</span>
               <span className="min-w-0 flex-1 truncate text-slate-600">{[t.reference, t.note].filter(Boolean).join(' · ')}</span>
               <span className={cn('font-semibold tabular-nums', t.points > 0 ? 'text-success-700' : 'text-rose-700')}>{t.points > 0 ? '+' : ''}{t.points}</span>
-              <span className="w-14 text-right tabular-nums text-slate-500">= {t.balanceAfter}</span>
+              <span className="w-14 text-end tabular-nums text-slate-500">= {t.balanceAfter}</span>
             </li>
           ))}
         </ul>
@@ -419,9 +420,9 @@ function RulesModal({ overview, onClose, onSaved }: { overview: LoyaltyOverview;
   const rate = Number(f.rate);
   const max = Number(f.max);
   const errors = {
-    perRupees: !(per >= 1) ? 'Kam se kam Rs 1 likhein' : undefined,
-    rate: !(rate > 0) ? 'Point ki qeemat 0 se zyada honi chahiye' : undefined,
-    max: !(max >= 1 && max <= 100) ? '1 se 100 ke beech likhein' : undefined,
+    perRupees: !(per >= 1) ? tr('Kam se kam Rs 1 likhein') : undefined,
+    rate: !(rate > 0) ? tr('Point ki qeemat 0 se zyada honi chahiye') : undefined,
+    max: !(max >= 1 && max <= 100) ? tr('1 se 100 ke beech likhein') : undefined,
   };
   const invalid = Object.values(errors).some(Boolean);
   const save = useMutation({
@@ -429,8 +430,8 @@ function RulesModal({ overview, onClose, onSaved }: { overview: LoyaltyOverview;
       enableLoyalty: f.enableLoyalty, loyaltyPointsPerRupee: 1 / per, loyaltyRedemptionRate: rate,
       loyaltyMinRedeem: Math.max(0, Math.trunc(Number(f.min) || 0)), loyaltyMaxRedeemPercent: max, loyaltyExpiryDays: Math.max(0, Math.trunc(Number(f.expiry) || 0)),
     }),
-    onSuccess: () => { toast.success('Usool save ho gaye'); onSaved(); },
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Save nahi hua'),
+    onSuccess: () => { toast.success(tr('Usool save ho gaye')); onSaved(); },
+    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || tr('Save nahi hua')),
   });
   const submit = () => { if (!invalid && !save.isPending) save.mutate(); };
   useEffect(() => {
@@ -441,19 +442,19 @@ function RulesModal({ overview, onClose, onSaved }: { overview: LoyaltyOverview;
   const earnOn1000 = Math.floor(1000 / Math.max(1, per || 100));
   const digits = (v: string) => v.replace(/\D/g, '');
   return (
-    <Modal open onClose={onClose} size="md" title="Loyalty ke usool" description="Sab branches par yahi usool chalte hain · Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={invalid} loading={save.isPending} onClick={submit}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Loyalty ke usool')} description={tr('Sab branches par yahi usool chalte hain · Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={invalid} loading={save.isPending} onClick={submit}>{tr('Save karein')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Switch label="Loyalty chalu" description="Band ho to naye bill par points nahi milte; jo jama hain woh rehte hain" checked={f.enableLoyalty}
+        <Switch label={tr('Loyalty chalu')} description={tr('Band ho to naye bill par points nahi milte; jo jama hain woh rehte hain')} checked={f.enableLoyalty}
           onChange={(e) => setF({ ...f, enableLoyalty: e.target.checked })} className="rounded-xl bg-slate-50 p-3" />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Kitne rupay par 1 point" inputMode="numeric" value={f.perRupees} onChange={(e) => setF({ ...f, perRupees: digits(e.target.value) })} error={errors.perRupees} hint="Jaise 100: har Rs 100 par 1 point" />
-          <Input label="1 point kitne rupay ka" inputMode="decimal" value={f.rate} onChange={(e) => setF({ ...f, rate: e.target.value.replace(/[^\d.]/g, '') })} error={errors.rate} hint="Istemal par itni Discount" />
-          <Input label="Kam se kam kitne points istemal" inputMode="numeric" value={f.min} onChange={(e) => setF({ ...f, min: digits(e.target.value) })} placeholder="Koi had nahi" hint="Khali = koi had nahi" />
-          <Input label="Bill ka zyada se zyada % points se" inputMode="numeric" value={f.max} onChange={(e) => setF({ ...f, max: digits(e.target.value) })} error={errors.max} hint="100 = poora bill points se" />
-          <Input label="Points kitne din baad khatam hon" inputMode="numeric" value={f.expiry} onChange={(e) => setF({ ...f, expiry: digits(e.target.value) })} placeholder="Kabhi nahi" hint="Khali = kabhi khatam nahi" wrapperClassName="sm:col-span-2" />
+          <Input label={tr('Kitne rupay par 1 point')} inputMode="numeric" value={f.perRupees} onChange={(e) => setF({ ...f, perRupees: digits(e.target.value) })} error={errors.perRupees} hint={tr('Jaise 100: har Rs 100 par 1 point')} />
+          <Input label={tr('1 point kitne rupay ka')} inputMode="decimal" value={f.rate} onChange={(e) => setF({ ...f, rate: e.target.value.replace(/[^\d.]/g, '') })} error={errors.rate} hint={tr('Istemal par itni Discount')} />
+          <Input label={tr('Kam se kam kitne points istemal')} inputMode="numeric" value={f.min} onChange={(e) => setF({ ...f, min: digits(e.target.value) })} placeholder={tr('Koi had nahi')} hint={tr('Khali = koi had nahi')} />
+          <Input label={tr('Bill ka zyada se zyada % points se')} inputMode="numeric" value={f.max} onChange={(e) => setF({ ...f, max: digits(e.target.value) })} error={errors.max} hint={tr('100 = poora bill points se')} />
+          <Input label={tr('Points kitne din baad khatam hon')} inputMode="numeric" value={f.expiry} onChange={(e) => setF({ ...f, expiry: digits(e.target.value) })} placeholder={tr('Kabhi nahi')} hint={tr('Khali = kabhi khatam nahi')} wrapperClassName="sm:col-span-2" />
         </div>
-        <p className="rounded-xl bg-brand-50 p-3 text-[0.8125rem] text-brand-900">Misal: Rs 1,000 ki khareedari par <strong>{earnOn1000} points</strong> milenge, jo agli dafa <strong>{formatPKR(earnOn1000 * (rate || 1))}</strong> ke barabar honge.</p>
+        <p className="rounded-xl bg-brand-50 p-3 text-[0.8125rem] text-brand-900"><Trans text="Misal: Rs 1,000 ki khareedari par {{points}} milenge, jo agli dafa {{value}} ke barabar honge." values={{ points: <strong>{tr('{{earnOn1000}} points', { earnOn1000 })}</strong>, value: <strong>{formatPKR(earnOn1000 * (rate || 1))}</strong> }} /></p>
       </form>
     </Modal>
   );
@@ -461,13 +462,13 @@ function RulesModal({ overview, onClose, onSaved }: { overview: LoyaltyOverview;
 
 function LoyaltyGuide({ onClose }: { onClose: () => void }) {
   const steps: GuideStep[] = [
-    { icon: ShoppingCart, color: '#2563eb', title: 'Points kaise milte hain', text: 'Naam wale customer ke har bill par — usool mein likhi amount par 1 point. Bill void ho to points wapas.' },
-    { icon: Wallet, color: '#16a34a', title: 'Istemal', text: 'POS par customer chunein, Discount mein "Points" — bill se utne rupay kam ho jate hain.' },
-    { icon: Settings2, color: '#7c3aed', title: 'Usool', text: 'Kitne rupay par point, point ki qeemat, kam se kam istemal, bill ka kitna %, aur expiry — "Usool" se badlein.' },
-    { icon: Crown, color: '#ca8a04', title: 'Darje', text: 'Bronze 100+, Silver 500+, Gold 1000+ — darje se members chhaantein aur achhe customers ko pehchanein.' },
-    { icon: Gift, color: '#db2777', title: 'Tohfa', text: 'Kisi member ke saamne "Points" — salgirah ya shikayat par points dein ya ghalti theek karein.' },
-    { icon: MessageCircle, color: '#0891b2', title: 'Yaad dilayein', text: 'WhatsApp button — "aap ke itne points jama hain" — customer wapas aata hai.' },
-    { icon: Download, color: '#475569', title: 'List', text: 'Upar CSV ya Print — jo filter laga hai usi ke members.' },
+    { icon: ShoppingCart, color: '#2563eb', title: tr('Points kaise milte hain'), text: tr('Naam wale customer ke har bill par — usool mein likhi amount par 1 point. Bill void ho to points wapas.') },
+    { icon: Wallet, color: '#16a34a', title: tr('Istemal'), text: tr('POS par customer chunein, Discount mein "Points" — bill se utne rupay kam ho jate hain.') },
+    { icon: Settings2, color: '#7c3aed', title: tr('Usool'), text: tr('Kitne rupay par point, point ki qeemat, kam se kam istemal, bill ka kitna %, aur expiry — "Usool" se badlein.') },
+    { icon: Crown, color: '#ca8a04', title: tr('Darje'), text: tr('Bronze 100+, Silver 500+, Gold 1000+ — darje se members chhaantein aur achhe customers ko pehchanein.') },
+    { icon: Gift, color: '#db2777', title: tr('Tohfa'), text: tr('Kisi member ke saamne "Points" — salgirah ya shikayat par points dein ya ghalti theek karein.') },
+    { icon: MessageCircle, color: '#0891b2', title: tr('Yaad dilayein'), text: tr('WhatsApp button — "aap ke itne points jama hain" — customer wapas aata hai.') },
+    { icon: Download, color: '#475569', title: tr('List'), text: tr('Upar CSV ya Print — jo filter laga hai usi ke members.') },
   ];
-  return <PageGuide title="Loyalty — aasaan tareeqa" steps={steps} onClose={onClose} shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]} />;
+  return <PageGuide title={tr('Loyalty — aasaan tareeqa')} steps={steps} onClose={onClose} shortcuts={[['/', tr('dhoondein')], ['A', tr('analytics')], ['G', tr('guide')]]} />;
 }

@@ -10,12 +10,13 @@ import { RotateCcw } from 'lucide-react';
 import { Badge, Button } from '@/design-system/components';
 import { SectionCard } from '@modules/organization/settings/components/SettingsBlocks';
 import type { ValueSource } from '../hooks/useAppearanceEditor';
+import { t } from '@core/i18n';
 
 const SOURCE_LABEL: Record<ValueSource, string> = {
-  personal: 'Aap ki pasand',
-  business: 'Business default',
-  platform: 'Nafaa default',
-  default: 'Nafaa default',
+  personal: t('Aap ki pasand'),
+  business: t('Business default'),
+  platform: t('Nafaa default'),
+  default: t('Nafaa default'),
 };
 
 type SectionProps = ComponentProps<typeof SectionCard>;
@@ -39,7 +40,7 @@ export function SettingCard({ id, title, description, icon, color, source, onRes
         <div className="flex items-center gap-1.5">
           {source && <Badge size="xs" className="hidden sm:inline-flex">{SOURCE_LABEL[source]}</Badge>}
           {onReset && (
-            <Button size="xs" variant="ghost" onClick={onReset} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>Reset</Button>
+            <Button size="xs" variant="ghost" onClick={onReset} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>{t('Reset')}</Button>
           )}
         </div>
       )}>

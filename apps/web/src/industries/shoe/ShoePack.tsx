@@ -10,6 +10,7 @@ import ShoeBrandsPage from './pages/ShoeBrandsPage';
 import ShoeSizeChartsPage from './pages/ShoeSizeChartsPage';
 import ShoeTryOnPage from './pages/ShoeTryOnPage';
 import ShoeExchangesPage from './pages/ShoeExchangesPage';
+import { t } from '@core/i18n';
 
 /**
  * Shoe store: articles by brand and season with size x colour pairs (each
@@ -20,11 +21,11 @@ import ShoeExchangesPage from './pages/ShoeExchangesPage';
 export const ShoePack: IndustryPack = {
   id: 'shoe',
   name: 'Shoe Store & Footwear',
-  shortName: 'Shoe Store',
+  shortName: t('Shoe Store'),
   emoji: '👟',
   priority: 76,
   description:
-    'Size aur rang ke pair (har pair ka barcode), brand / season, size-wise reorder, exchange, size farmaish, size chart.',
+    t('Size aur rang ke pair (har pair ka barcode), brand / season, size-wise reorder, exchange, size farmaish, size chart.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -34,17 +35,17 @@ export const ShoePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Shoe store',
+      label: t('Shoe store'),
       icon: Footprints,
       emoji: '👟',
       color: '#f97316',
       order: 20,
       items: [
-        { to: '/shoe/dashboard', label: 'Shoe dashboard', icon: LayoutDashboard },
-        { to: '/shoe/exchanges', label: 'Exchange', icon: ArrowLeftRight, permission: PERMISSIONS.RETURNS_CREATE },
-        { to: '/shoe/try-on', label: 'Size requests', icon: HandMetal, permission: PERMISSIONS.POS_USE },
-        { to: '/shoe/size-charts', label: 'Size charts', icon: Ruler, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/shoe/brands', label: 'Brands', icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
+        { to: '/shoe/dashboard', label: t('Shoe dashboard'), icon: LayoutDashboard },
+        { to: '/shoe/exchanges', label: t('Exchange'), icon: ArrowLeftRight, permission: PERMISSIONS.RETURNS_CREATE },
+        { to: '/shoe/try-on', label: t('Size requests'), icon: HandMetal, permission: PERMISSIONS.POS_USE },
+        { to: '/shoe/size-charts', label: t('Size charts'), icon: Ruler, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/shoe/brands', label: t('Brands'), icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
       ],
     },
   ],
@@ -69,17 +70,17 @@ export const ShoePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pair',
     unitOptions: [
-      { value: 'pair', label: 'Pair', hint: '👟', group: 'Footwear' },
-      { value: 'pcs', label: 'Pieces', hint: '🎁', group: 'Accessories' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Bulk' },
+      { value: 'pair', label: t('Pair'), hint: '👟', group: t('Footwear') },
+      { value: 'pcs', label: t('Pieces'), hint: '🎁', group: t('Accessories') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Bulk') },
     ],
   },
 
   featureFlags: [
-    { key: 'shoeSizeVariants', label: 'Size Variants with Box Location', defaultEnabled: true },
-    { key: 'shoeTryOn', label: 'Try-On Requests', defaultEnabled: true },
-    { key: 'shoeExchanges', label: 'Size/Color Exchanges', defaultEnabled: true },
-    { key: 'shoeSizeCharts', label: 'Size Conversion Charts', defaultEnabled: true },
-    { key: 'shoeBridalCollection', label: 'Bridal & Eid Collections', defaultEnabled: true },
+    { key: 'shoeSizeVariants', label: t('Size Variants with Box Location'), defaultEnabled: true },
+    { key: 'shoeTryOn', label: t('Try-On Requests'), defaultEnabled: true },
+    { key: 'shoeExchanges', label: t('Size/Color Exchanges'), defaultEnabled: true },
+    { key: 'shoeSizeCharts', label: t('Size Conversion Charts'), defaultEnabled: true },
+    { key: 'shoeBridalCollection', label: t('Bridal & Eid Collections'), defaultEnabled: true },
   ],
 };

@@ -6,47 +6,48 @@ import { IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from
 import { MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { useAgriOps } from './useAgriOps';
+import { t } from '@core/i18n';
 
 /** Agri headline numbers, offered next to the common ones. */
 export const agriKpis: KpiDef[] = [
   {
-    id: 'agri-farmer-udhaar', label: 'Farmer ka udhaar', icon: Tractor, tone: 'danger', sensitive: true,
+    id: 'agri-farmer-udhaar', label: t('Farmer ka udhaar'), icon: Tractor, tone: 'danger', sensitive: true,
     useValue: () => {
       const { farmers, loading } = useAgriOps();
       const { cost } = useMasked();
       return {
         loading, to: '/agri/farmers', value: cost(farmers.owed), alert: farmers.overdue > 0,
-        hint: farmers.overdue ? `${farmers.overdue} ka waqt guzra` : `${farmers.owing} farmer`,
+        hint: farmers.overdue ? t('{{overdue}} ka waqt guzra', { overdue: farmers.overdue }) : t('{{owing}} farmer', { owing: farmers.owing }),
       };
     },
   },
   {
-    id: 'agri-season', label: 'Bijai qareeb', icon: Sprout, tone: 'success',
+    id: 'agri-season', label: t('Bijai qareeb'), icon: Sprout, tone: 'success',
     useValue: () => {
       const { season, loading } = useAgriOps();
       return {
         loading, to: '/agri/seasonal-plans', value: season.list.length, alert: season.risky > 0,
-        hint: season.risky ? `${season.risky} fasal ka maal kam` : 'maal tayyar',
+        hint: season.risky ? t('{{risky}} fasal ka maal kam', { risky: season.risky }) : t('maal tayyar'),
       };
     },
   },
   {
-    id: 'agri-registration', label: 'Registration khatam', icon: ShieldAlert, tone: 'danger',
+    id: 'agri-registration', label: t('Registration khatam'), icon: ShieldAlert, tone: 'danger',
     useValue: () => {
       const { registration, loading } = useAgriOps();
       const { cost } = useMasked();
       return {
         loading, to: '/agri/products', value: registration.blocked, alert: registration.blocked > 0,
-        hint: registration.blocked ? `${cost(registration.blockedValue)} ka maal ruka` : `${registration.soon} jald khatam`,
+        hint: registration.blocked ? t('{{blockedValue}} ka maal ruka', { blockedValue: cost(registration.blockedValue) }) : t('{{soon}} jald khatam', { soon: registration.soon }),
       };
     },
   },
   {
-    id: 'agri-subsidy', label: 'Subsidy atki', icon: Landmark, tone: 'warning', sensitive: true,
+    id: 'agri-subsidy', label: t('Subsidy atki'), icon: Landmark, tone: 'warning', sensitive: true,
     useValue: () => {
       const { subsidy, loading } = useAgriOps();
       const { cost } = useMasked();
-      return { loading, to: '/agri/subsidy', value: cost(subsidy.amount), hint: `${subsidy.count} claim` };
+      return { loading, to: '/agri/subsidy', value: cost(subsidy.amount), hint: t('{{count}} claim', { count: subsidy.count }) };
     },
   },
 ];
@@ -55,11 +56,11 @@ export function useAgriAttention(): AttentionItem[] {
   const { registration, farmers, season, subsidy } = useAgriOps();
   const { cost } = useMasked();
   const items: AttentionItem[] = [];
-  if (registration.blocked) items.push({ icon: ShieldAlert, level: 'danger', text: `${registration.blocked} cheezon ki registration khatam — ${cost(registration.blockedValue)} ka maal qanoonan bech nahi sakte`, to: '/agri/products', cta: 'Maal dekhein' });
-  if (farmers.overdue) items.push({ icon: Clock, level: 'warning', text: `${farmers.overdue} farmer ka udhaar ka waqt guzar gaya — ${cost(farmers.overdueAmount)}`, to: '/agri/farmers', cta: 'Receiving' });
-  if (season.risky) items.push({ icon: Sprout, level: 'warning', text: `${season.risky} fasal ki bijai aa rahi hai magar maal poora nahi`, to: '/agri/seasonal-plans', cta: 'Calendar' });
-  if (registration.soon) items.push({ icon: CalendarClock, level: 'info', text: `${registration.soon} cheezon ki registration 60 din me khatam — renew karwa lein`, to: '/agri/products', cta: 'Maal' });
-  if (subsidy.count) items.push({ icon: Landmark, level: 'neutral', text: `${cost(subsidy.amount)} subsidy sarkar ke paas atki hai — ${subsidy.count} claim`, to: '/agri/subsidy', cta: 'Claims' });
+  if (registration.blocked) items.push({ icon: ShieldAlert, level: 'danger', text: t('{{blocked}} cheezon ki registration khatam — {{blockedValue}} ka maal qanoonan bech nahi sakte', { blocked: registration.blocked, blockedValue: cost(registration.blockedValue) }), to: '/agri/products', cta: t('Maal dekhein') });
+  if (farmers.overdue) items.push({ icon: Clock, level: 'warning', text: t('{{overdue}} farmer ka udhaar ka waqt guzar gaya — {{overdueAmount}}', { overdue: farmers.overdue, overdueAmount: cost(farmers.overdueAmount) }), to: '/agri/farmers', cta: t('Receiving') });
+  if (season.risky) items.push({ icon: Sprout, level: 'warning', text: t('{{risky}} fasal ki bijai aa rahi hai magar maal poora nahi', { risky: season.risky }), to: '/agri/seasonal-plans', cta: t('Calendar') });
+  if (registration.soon) items.push({ icon: CalendarClock, level: 'info', text: t('{{soon}} cheezon ki registration 60 din me khatam — renew karwa lein', { soon: registration.soon }), to: '/agri/products', cta: t('Maal') });
+  if (subsidy.count) items.push({ icon: Landmark, level: 'neutral', text: t('{{amount}} subsidy sarkar ke paas atki hai — {{count}} claim', { amount: cost(subsidy.amount), count: subsidy.count }), to: '/agri/subsidy', cta: t('Claims') });
   return items;
 }
 
@@ -67,22 +68,22 @@ export function AgriSeason() {
   const { season } = useAgriOps();
   return (
     <WidgetCard
-      title="Bijai qareeb hai"
+      title={t('Bijai qareeb hai')}
       icon={Sprout}
-      description={season.risky ? `${season.risky} fasal ka maal poora nahi` : 'Agle 45 din ki fasalein'}
+      description={season.risky ? t('{{risky}} fasal ka maal poora nahi', { risky: season.risky }) : t('Agle 45 din ki fasalein')}
       to="/agri/seasonal-plans"
-      linkLabel="Calendar"
+      linkLabel={t('Calendar')}
       flush
     >
-      <RowList empty="Agle 45 din me kisi fasal ki bijai nahi — ya calendar khali hai" emptyIcon={Sprout}>
+      <RowList empty={t('Agle 45 din me kisi fasal ki bijai nahi — ya calendar khali hai')} emptyIcon={Sprout}>
         {season.list.map((s) => (
           <ListRow
             key={s.id}
             to="/agri/seasonal-plans"
             leading={<IconBubble icon={Sprout} tone={s.risky ? 'danger' : 'success'} />}
             title={s.crop}
-            meta={s.items === 0 ? 'Koi maal is fasal se juda nahi' : s.out > 0 ? `${s.out} cheezein khatam · ${s.items} kul` : `${s.items} cheezein maujood`}
-            value={<Badge variant={s.now ? 'success' : 'default'} size="xs">{s.now ? 'Chal rahi' : `${s.toSow} din`}</Badge>}
+            meta={s.items === 0 ? t('Koi maal is fasal se juda nahi') : s.out > 0 ? t('{{out}} cheezein khatam · {{items}} kul', { out: s.out, items: s.items }) : t('{{items}} cheezein maujood', { items: s.items })}
+            value={<Badge variant={s.now ? 'success' : 'default'} size="xs">{s.now ? t('Chal rahi') : t('{{toSow}} din', { toSow: s.toSow })}</Badge>}
           />
         ))}
       </RowList>
@@ -95,13 +96,13 @@ export function AgriRecovery() {
   const { cost } = useMasked();
   return (
     <WidgetCard
-      title="Farmer receiving"
+      title={t('Farmer receiving')}
       icon={Tractor}
-      description={farmers.overdue ? `${cost(farmers.overdueAmount)} ka waqt guzar chuka` : `${cost(farmers.owed)} kul udhaar`}
+      description={farmers.overdue ? t('{{overdueAmount}} ka waqt guzar chuka', { overdueAmount: cost(farmers.overdueAmount) }) : t('{{owed}} kul udhaar', { owed: cost(farmers.owed) })}
       to="/agri/farmers"
       flush
     >
-      <RowList empty="Kisi farmer ka udhaar late nahi" emptyIcon={Tractor}>
+      <RowList empty={t('Kisi farmer ka udhaar late nahi')} emptyIcon={Tractor}>
         {farmers.list.map((f) => (
           <ListRow
             key={f.id}
@@ -110,7 +111,7 @@ export function AgriRecovery() {
             title={f.fullName}
             meta={[f.village, f.district].filter(Boolean).join(', ') || f.phone}
             value={cost(f.owed)}
-            valueHint={<span className="text-rose-700">{f.lateBy} din late</span>}
+            valueHint={<span className="text-rose-700">{t('{{lateBy}} din late', { lateBy: f.lateBy })}</span>}
           />
         ))}
       </RowList>
@@ -123,13 +124,13 @@ export function AgriRegistration() {
   const { cost } = useMasked();
   return (
     <WidgetCard
-      title="Registration"
+      title={t('Registration')}
       icon={ShieldAlert}
-      description={registration.blocked ? `${registration.blocked} khatam · ${cost(registration.blockedValue)} ka maal` : `${registration.soon} jald khatam`}
+      description={registration.blocked ? t('{{blocked}} khatam · {{blockedValue}} ka maal', { blocked: registration.blocked, blockedValue: cost(registration.blockedValue) }) : t('{{soon}} jald khatam', { soon: registration.soon })}
       to="/agri/products"
       flush
     >
-      <RowList empty="Beej, khaad aur dawa ki sab registration theek hai" emptyIcon={ShieldAlert}>
+      <RowList empty={t('Beej, khaad aur dawa ki sab registration theek hai')} emptyIcon={ShieldAlert}>
         {registration.list.map((r) => (
           <ListRow
             key={r.id}
@@ -137,7 +138,7 @@ export function AgriRegistration() {
             leading={<IconBubble icon={ShieldAlert} tone={r.blocked ? 'danger' : 'warning'} />}
             title={r.name}
             meta={`${r.stock} ${r.unit} · ${cost(r.value)}`}
-            value={<Badge variant={r.blocked ? 'danger' : 'warning'} size="xs">{r.blocked ? 'Khatam' : `${r.certDays} din`}</Badge>}
+            value={<Badge variant={r.blocked ? 'danger' : 'warning'} size="xs">{r.blocked ? t('Khatam') : t('{{certDays}} din', { certDays: r.certDays })}</Badge>}
           />
         ))}
       </RowList>
@@ -149,8 +150,8 @@ export function AgriSubsidy() {
   const { subsidy } = useAgriOps();
   const { cost } = useMasked();
   return (
-    <WidgetCard title="Subsidy claims" icon={Landmark} description={`${cost(subsidy.amount)} ka jawab baqi`} to="/agri/subsidy" flush>
-      <RowList empty="Koi claim baqi nahi" emptyIcon={Landmark}>
+    <WidgetCard title={t('Subsidy claims')} icon={Landmark} description={t('{{amount}} ka jawab baqi', { amount: cost(subsidy.amount) })} to="/agri/subsidy" flush>
+      <RowList empty={t('Koi claim baqi nahi')} emptyIcon={Landmark}>
         {subsidy.list.map((c) => (
           <ListRow
             key={c.id}
@@ -159,7 +160,7 @@ export function AgriSubsidy() {
             title={c.schemeName}
             meta={<span><span className="font-mono">{c.claimNumber}</span> · {c.productType}</span>}
             value={cost(c.subsidyAmount)}
-            valueHint={<Badge variant={c.status === 'APPROVED' ? 'info' : 'warning'} size="xs">{c.status === 'APPROVED' ? 'Approve' : 'Baqi'}</Badge>}
+            valueHint={<Badge variant={c.status === 'APPROVED' ? 'info' : 'warning'} size="xs">{c.status === 'APPROVED' ? t('Approve') : t('Baqi')}</Badge>}
           />
         ))}
       </RowList>
@@ -171,7 +172,7 @@ export function AgriSubsidy() {
 export function useAgriMoneyTiles(): MoneyTileProps[] {
   const { subsidy } = useAgriOps();
   if (!subsidy.count) return [];
-  return [{ key: 'subsidy', icon: Landmark, tone: 'warning', to: '/agri/subsidy', label: 'Sarkar se subsidy', value: formatPKR(subsidy.amount), hint: `${subsidy.count} claim baqi` }];
+  return [{ key: 'subsidy', icon: Landmark, tone: 'warning', to: '/agri/subsidy', label: t('Sarkar se subsidy'), value: formatPKR(subsidy.amount), hint: t('{{count}} claim baqi', { count: subsidy.count }) }];
 }
 
 /** Stock that cannot legally be sold, called out under the money map. */
@@ -182,10 +183,10 @@ export function useAgriMoneyNotes() {
     <MoneyNote
       tone="danger"
       icon={ShieldAlert}
-      title={`${formatPKR(registration.blockedValue)} ka maal registration ke bagair para hai`}
-      text="Beej, khaad aur dawa registration khatam hone par qanoonan bech nahi sakte — renew karwayein"
+      title={t('{{blockedValue}} ka maal registration ke bagair para hai', { blockedValue: formatPKR(registration.blockedValue) })}
+      text={t('Beej, khaad aur dawa registration khatam hone par qanoonan bech nahi sakte — renew karwayein')}
       to="/agri/products"
-      cta="Maal dekhein"
+      cta={t('Maal dekhein')}
     />
   );
 }

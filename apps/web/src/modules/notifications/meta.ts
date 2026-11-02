@@ -5,6 +5,7 @@ import {
   ShoppingCart, UserPlus, Wallet, type LucideIcon,
 } from 'lucide-react';
 import type { Notification, NotificationGroup, NotificationType } from './api/notifications.api';
+import { t } from '@core/i18n';
 
 const TYPE_META: Record<NotificationType, { icon: LucideIcon; color: string }> = {
   INFO: { icon: Info, color: '#2563eb' },
@@ -46,10 +47,10 @@ export function waUrlOf(n: Notification): string | null {
 }
 
 export const GROUPS: Array<{ id: 'all' | NotificationGroup; label: string; hint: string }> = [
-  { id: 'all', label: 'Sab', hint: 'Har notification' },
-  { id: 'summary', label: 'Din ka hisaab', hint: 'Roz ki summary — WhatsApp par bhi bhej sakte hain' },
-  { id: 'sales', label: 'Sale', hint: 'Bill, payment, return, drawer' },
-  { id: 'online', label: 'Online', hint: 'Online store ke orders' },
-  { id: 'stock', label: 'Stock', hint: 'Kam stock aur transfers' },
-  { id: 'alerts', label: 'Alerts', hint: 'Warning, udhaar, plan aur ghalti' },
+  { id: 'all', label: t('Sab'), hint: t('Har notification') },
+  { id: 'summary', label: t('Din ka hisaab'), hint: t('Roz ki summary — WhatsApp par bhi bhej sakte hain') },
+  { id: 'sales', label: t('Sale'), hint: t('Bill, payment, return, drawer') },
+  { id: 'online', label: t('Online'), hint: t('Online store ke orders') },
+  { id: 'stock', label: t('Stock'), hint: t('Kam stock aur transfers') },
+  { id: 'alerts', label: t('Alerts'), hint: t('Warning, udhaar, plan aur ghalti') },
 ];

@@ -12,6 +12,7 @@ import { jobsApi, type BillInput, type ServiceJob } from '../api/jobs.api';
 import { BillJobModal } from '../components/BillJobModal';
 import { printJobCard } from '../components/slips';
 import { JOB_KEY, MONEY_KEYS, apiError } from '../components/meta';
+import { t } from '@core/i18n';
 
 export function JobHandover({ job, onClose }: { job: ServiceJob; onClose: () => void }) {
   const qc = useQueryClient();
@@ -20,13 +21,13 @@ export function JobHandover({ job, onClose }: { job: ServiceJob; onClose: () => 
   const bill = useMutation({
     mutationFn: (v: BillInput) => jobsApi.bill(job.id, v),
     onSuccess: (r) => {
-      toast.success(r.sale ? `${job.jobNumber} — bill ${r.sale.saleNumber}${r.change > 0 ? ` · ${formatPKR(r.change)} wapas dein` : ''}` : `${job.jobNumber} mukammal`, {
-        action: { label: 'Print', onClick: () => printJobCard(r, shopName) },
+      toast.success(r.sale ? t('{{jobNumber}} — bill {{saleNumber}}{{value}}', { jobNumber: job.jobNumber, saleNumber: r.sale.saleNumber, value: r.change > 0 ? t(' · {{change}} wapas dein', { change: formatPKR(r.change) }) : '' }) : `${job.jobNumber} mukammal`, {
+        action: { label: t('Print'), onClick: () => printJobCard(r, shopName) },
       });
       [JOB_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+    onError: (e) => toast.error(apiError(e, t('Bill nahi bana'))),
   });
   if (detail.isLoading) return null;
   return <BillJobModal job={detail.data ?? job} pending={bill.isPending} onClose={onClose} onConfirm={(v) => { if (!bill.isPending) bill.mutate(v); }} />;

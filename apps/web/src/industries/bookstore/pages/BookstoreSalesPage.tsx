@@ -10,13 +10,14 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import type { BookFact } from '../api/book-profiles.api';
 import { useBookFacts } from '../hooks/useBookFacts';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium';
 
 /** Bills made by the rentals screen: fee (BKR-) and fine or lost copy (BKF-). */
 function rentalOf(sale: HistorySale): { label: string; ref: string } | null {
-  if (sale.saleNumber.startsWith('BKR-')) return { label: 'Kiraya', ref: sale.sourceRef ?? sale.saleNumber.slice(4) };
-  if (sale.saleNumber.startsWith('BKF-')) return { label: 'Jurmana / gum kitab', ref: sale.sourceRef ?? sale.saleNumber.slice(4) };
+  if (sale.saleNumber.startsWith('BKR-')) return { label: t('Kiraya'), ref: sale.sourceRef ?? sale.saleNumber.slice(4) };
+  if (sale.saleNumber.startsWith('BKF-')) return { label: t('Jurmana / gum kitab'), ref: sale.sourceRef ?? sale.saleNumber.slice(4) };
   return null;
 }
 
@@ -35,9 +36,9 @@ function Extras({ sale, facts }: { sale: HistorySale; facts: Map<string, BookFac
           <Timer className="h-3 w-3" /> {rental.label} · {rental.ref}
         </Link>
       )}
-      {count.BOOK > 0 && <span className={`${chip} bg-sky-50 text-sky-700`}><BookOpen className="h-3 w-3" /> {count.BOOK} kitab</span>}
-      {count.STATIONERY > 0 && <span className={`${chip} bg-violet-50 text-violet-700`}><Pencil className="h-3 w-3" /> {count.STATIONERY} stationery</span>}
-      {count.ART > 0 && <span className={`${chip} bg-pink-50 text-pink-700`}><Palette className="h-3 w-3" /> {count.ART} art</span>}
+      {count.BOOK > 0 && <span className={`${chip} bg-sky-50 text-sky-700`}><BookOpen className="h-3 w-3" /> {' '}{t('{{count}} kitab', { count: count.BOOK })}</span>}
+      {count.STATIONERY > 0 && <span className={`${chip} bg-violet-50 text-violet-700`}><Pencil className="h-3 w-3" /> {' '}{t('{{STATIONERY}} stationery', { STATIONERY: count.STATIONERY })}</span>}
+      {count.ART > 0 && <span className={`${chip} bg-pink-50 text-pink-700`}><Palette className="h-3 w-3" /> {' '}{t('{{ART}} art', { ART: count.ART })}</span>}
     </div>
   );
 }
@@ -47,7 +48,7 @@ function useBookExtras() {
   return (sale: HistorySale) => <Extras sale={sale} facts={facts} />;
 }
 
-const config: SalesHistoryConfig = { label: 'Bookstore', useBillExtras: useBookExtras };
+const config: SalesHistoryConfig = { label: t('Bookstore'), useBillExtras: useBookExtras };
 
 export default function BookstoreSalesPage() {
   return <SalesHistoryPage config={config} />;

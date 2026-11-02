@@ -13,6 +13,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { hasAnyPermission, PERMISSIONS } from '@core/lib/permissions';
 import { DIST_KEY, distributionApi, type SettingsResponse } from '../api/distribution.api';
 import { rs } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export type DistributionState = 'loading' | 'on' | 'off' | 'plan';
 
@@ -58,9 +59,9 @@ export function useDeliveryStaff(keep?: { id: string | null | undefined; name: s
   const q = useQuery({ queryKey: [DIST_KEY, 'delivery-staff'], queryFn: distributionApi.deliveryStaff, staleTime: 5 * 60_000 });
   const list = (q.data ?? []).map((u) => ({ id: u.id, label: u.role === 'STAFF' ? u.fullName : `${u.fullName} (${ROLE_LABEL[u.role] ?? u.role})` }));
   for (const k of keep ?? []) {
-    if (k.id && !list.some((u) => u.id === k.id)) list.push({ id: k.id, label: k.name ?? 'Delivery' });
+    if (k.id && !list.some((u) => u.id === k.id)) list.push({ id: k.id, label: k.name ?? t('Delivery') });
   }
   return { list, isLoading: q.isLoading };
 }
 
-const ROLE_LABEL: Record<string, string> = { OWNER: 'Owner', MANAGER: 'Manager', CASHIER: 'Cashier' };
+const ROLE_LABEL: Record<string, string> = { OWNER: t('Owner'), MANAGER: t('Manager'), CASHIER: t('Cashier') };

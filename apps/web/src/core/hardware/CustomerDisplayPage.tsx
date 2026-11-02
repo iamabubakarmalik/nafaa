@@ -14,6 +14,7 @@ import { cn } from '@core/lib/cn';
 import { getReceiptSetup } from '@core/receipt/setup';
 import { DISPLAY_CHANNEL, type DisplayLine, type DisplayMsg } from './customerDisplay';
 import { DISPLAY_SETTINGS_KEY, useDisplaySettings, type DisplayTheme } from './displaySettings';
+import { t as tr } from '@core/i18n';
 
 interface Skin {
   page: string;
@@ -62,7 +63,7 @@ export default function CustomerDisplayPage() {
   const [hint, setHint] = useState(true);
 
   useEffect(() => {
-    document.title = 'Customer display — Nafaa';
+    document.title = tr('Customer display') + ' — Nafaa';
     const t = window.setTimeout(() => setHint(false), 8000);
     if (typeof BroadcastChannel === 'undefined') return () => window.clearTimeout(t);
     const c = new BroadcastChannel(DISPLAY_CHANNEL);
@@ -101,18 +102,18 @@ export default function CustomerDisplayPage() {
   return (
     <div className={cn('relative flex h-screen select-none flex-col overflow-hidden antialiased', skin.page, !pointer && 'cursor-none')} onDoubleClick={fullScreen}>
       <span className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <span className={cn('absolute -left-40 -top-40 h-[32rem] w-[32rem] rounded-full blur-3xl', skin.glow)} />
-        <span className={cn('absolute -bottom-48 right-1/4 h-[28rem] w-[28rem] rounded-full blur-3xl', skin.glow)} />
+        <span className={cn('absolute -start-40 -top-40 h-[32rem] w-[32rem] rounded-full blur-3xl', skin.glow)} />
+        <span className={cn('absolute -bottom-48 end-1/4 h-[28rem] w-[28rem] rounded-full blur-3xl', skin.glow)} />
       </span>
       <header className={cn('relative flex shrink-0 items-center justify-between gap-6 border-b px-6 py-4 sm:px-10', skin.line)}>
         <div className="flex min-w-0 items-center gap-4">
           {s.showLogo && brand.logoUrl && (
             <img src={brand.logoUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl bg-ink-white object-contain p-1 sm:h-14 sm:w-14" />
           )}
-          <div className="truncate text-[clamp(1.375rem,2.6vw,2.25rem)] font-extrabold tracking-tight">{brand.name || 'Nafaa POS'}</div>
+          <div className="truncate text-[clamp(1.375rem,2.6vw,2.25rem)] font-extrabold tracking-tight">{brand.name || tr('Nafaa POS')}</div>
         </div>
         <div className="flex shrink-0 items-center gap-5">
-          {hint && <span className={cn('hidden rounded-full px-3 py-1 text-sm font-semibold md:inline', skin.chip)}>Double-click = full screen</span>}
+          {hint && <span className={cn('hidden rounded-full px-3 py-1 text-sm font-semibold md:inline', skin.chip)}>{tr('Double-click = full screen')}</span>}
           {now && <span className={cn('text-[clamp(1.25rem,2.2vw,2rem)] font-bold tabular-nums', skin.muted)}>{now}</span>}
         </div>
       </header>
@@ -126,7 +127,7 @@ export default function CustomerDisplayPage() {
 
       <footer className={cn('relative flex shrink-0 items-center gap-6 border-t px-6 py-3 sm:px-10', skin.line)}>
         <div className="min-w-0 flex-1">{m?.kind === 'cart' && s.promos.length > 0 && <PromoLine promos={s.promos} skin={skin} />}</div>
-        <span className={cn('shrink-0 text-sm font-semibold', skin.faint)}>Nafaa POS</span>
+        <span className={cn('shrink-0 text-sm font-semibold', skin.faint)}>{tr('Nafaa POS')}</span>
       </footer>
     </div>
   );
@@ -141,12 +142,12 @@ function CartView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'cart' }>; skin:
     <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34%)]">
       <section className="flex min-h-0 flex-col px-6 py-4 sm:px-10">
         <div className={cn('flex shrink-0 items-center justify-between pb-2 text-sm font-bold uppercase tracking-widest', skin.faint)}>
-          <span>Cheez</span><span>Amount</span>
+          <span>{tr('Cheez')}</span><span>{tr('Amount')}</span>
         </div>
         {lines.length === 0 ? (
           <div className={cn('flex flex-1 flex-col items-center justify-center gap-3 text-center', skin.muted)}>
             <ShoppingBag className={cn('h-16 w-16', skin.accentText)} />
-            <p className="text-[clamp(1.25rem,2.3vw,2rem)] font-bold">Bill shuru ho raha hai…</p>
+            <p className="text-[clamp(1.25rem,2.3vw,2rem)] font-bold">{tr('Bill shuru ho raha hai…')}</p>
           </div>
         ) : (
           <ul className="min-h-0 flex-1 space-y-2 overflow-hidden">
@@ -165,15 +166,15 @@ function CartView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'cart' }>; skin:
         )}
       </section>
       <aside className={cn('relative flex flex-col justify-end gap-3 overflow-hidden p-6 sm:p-10', skin.aside)}>
-        <span className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-ink-white/10 blur-3xl" aria-hidden />
-        <Row label="Cheezein" value={String(pieces)} />
+        <span className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-ink-white/10 blur-3xl" aria-hidden />
+        <Row label={tr('Cheezein')} value={String(pieces)} />
         {m.discount > 0 && <>
-          <Row label="Kul" value={formatPKR(m.subtotal)} />
+          <Row label={tr('Kul')} value={formatPKR(m.subtotal)} />
           <div className="flex items-center justify-between rounded-2xl bg-ink-white/15 px-4 py-2.5 text-[clamp(1.125rem,1.8vw,1.625rem)] font-extrabold">
-            <span>Aap ki bachat</span><span className="tabular-nums">{formatPKR(m.discount)}</span>
+            <span>{tr('Aap ki bachat')}</span><span className="tabular-nums">{formatPKR(m.discount)}</span>
           </div>
         </>}
-        <div className="mt-3 border-t border-ink-white/20 pt-5 text-[clamp(1rem,1.4vw,1.25rem)] font-bold uppercase tracking-[0.2em] opacity-80">Dene hain</div>
+        <div className="mt-3 border-t border-ink-white/20 pt-5 text-[clamp(1rem,1.4vw,1.25rem)] font-bold uppercase tracking-[0.2em] opacity-80">{tr('Dene hain')}</div>
         <div className="text-[clamp(3rem,6.5vw,6.5rem)] font-black leading-none tabular-nums">{formatPKR(m.total)}</div>
       </aside>
     </div>
@@ -185,16 +186,16 @@ function QrView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'qr' }>; skin: Ski
     <div className="flex flex-1 flex-col items-center justify-center gap-8 p-6 lg:flex-row lg:gap-16">
       <div className="rounded-[2rem] bg-ink-white p-5 shadow-2xl [&_svg]:h-full [&_svg]:w-full" style={{ width: 'clamp(15rem, 42vh, 30rem)', height: 'clamp(15rem, 42vh, 30rem)' }}
         dangerouslySetInnerHTML={{ __html: m.svg }} />
-      <div className="max-w-xl text-center lg:text-left">
+      <div className="max-w-xl text-center lg:text-start">
         <div className={cn('inline-flex items-center gap-2 text-[clamp(1.125rem,1.8vw,1.625rem)] font-bold', skin.accentText)}>
-          <QrCode className="h-7 w-7" /> {m.label} se pay karein
+          <QrCode className="h-7 w-7" /> {' '}{tr('{{label}} se pay karein', { label: m.label })}
         </div>
         <div className="mt-2 text-[clamp(3rem,7vw,6.5rem)] font-black leading-none tabular-nums">{formatPKR(m.amount)}</div>
         {m.merchantName && <div className={cn('mt-3 text-[clamp(1.125rem,1.8vw,1.625rem)] font-semibold', skin.muted)}>{m.merchantName}</div>}
         <ol className={cn('mt-6 space-y-2 text-[clamp(1rem,1.5vw,1.375rem)] font-semibold', skin.muted)}>
-          <li>1. Bank, JazzCash ya Easypaisa app kholein</li>
-          <li>2. QR scan karein — amount khud aa jayegi</li>
-          <li>3. Pay karke screen cashier ko dikhayein</li>
+          <li>{tr('1. Bank, JazzCash ya Easypaisa app kholein')}</li>
+          <li>{tr('2. QR scan karein — amount khud aa jayegi')}</li>
+          <li>{tr('3. Pay karke screen cashier ko dikhayein')}</li>
         </ol>
       </div>
     </div>
@@ -208,17 +209,17 @@ function ThanksView({ m, skin }: { m: Extract<DisplayMsg, { kind: 'thanks' }>; s
         <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/25 [animation-iteration-count:2]" aria-hidden />
         <span className="relative flex h-28 w-28 items-center justify-center rounded-full bg-brand-600 text-ink-white shadow-2xl"><CheckCircle2 className="h-16 w-16" /></span>
       </span>
-      <div className="text-[clamp(3rem,7vw,6rem)] font-black leading-none">Shukriya!</div>
+      <div className="text-[clamp(3rem,7vw,6rem)] font-black leading-none">{tr('Shukriya!')}</div>
       <div className={cn('text-[clamp(1.25rem,2.4vw,2.25rem)] font-bold tabular-nums', skin.muted)}>
-        Bill {formatPKR(m.total)} · Diye {formatPKR(m.paid)}
+        {tr('Bill {{total}} · Diye {{paid}}', { total: formatPKR(m.total), paid: formatPKR(m.paid) })}
       </div>
       {m.change > 0 && (
         <div className="rounded-[2rem] bg-gradient-to-br from-brand-500 to-brand-700 px-12 py-6 text-ink-white shadow-2xl">
-          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">Aap ke paise wapas</div>
+          <div className="text-[clamp(1rem,1.5vw,1.375rem)] font-bold uppercase tracking-[0.2em] opacity-80">{tr('Aap ke paise wapas')}</div>
           <div className="text-[clamp(3rem,7vw,6.5rem)] font-black leading-none tabular-nums">{formatPKR(m.change)}</div>
         </div>
       )}
-      <div className={cn('text-[clamp(1.125rem,1.8vw,1.625rem)] font-semibold', skin.faint)}>Phir tashreef laiye</div>
+      <div className={cn('text-[clamp(1.125rem,1.8vw,1.625rem)] font-semibold', skin.faint)}>{tr('Phir tashreef laiye')}</div>
     </div>
   );
 }
@@ -231,7 +232,7 @@ function IdleView({ skin, welcome, promos, name, logoUrl }: { skin: Skin; welcom
         ? <img src={logoUrl} alt="" className="h-32 w-32 rounded-[2rem] bg-ink-white object-contain p-3 shadow-xl" />
         : <span className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-gradient-to-br from-brand-500 to-brand-700 text-ink-white shadow-2xl"><ShoppingBag className="h-14 w-14" /></span>}
       <div>
-        <div className="text-[clamp(2.5rem,6vw,5.5rem)] font-black leading-tight">{welcome || 'Khush-amdeed'}</div>
+        <div className="text-[clamp(2.5rem,6vw,5.5rem)] font-black leading-tight">{welcome || tr('Khush-amdeed')}</div>
         {name && <div className={cn('mt-2 text-[clamp(1.25rem,2.4vw,2.25rem)] font-semibold', skin.muted)}>{name}</div>}
       </div>
       {promos.length > 0 && (

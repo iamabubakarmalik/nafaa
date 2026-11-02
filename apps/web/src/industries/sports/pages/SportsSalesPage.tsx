@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Shirt, Wrench } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1';
 
@@ -21,12 +22,12 @@ function useSourceChips() {
         to: `${team ? '/sports/team-orders' : '/sports/repair-services'}?q=${encodeURIComponent(ref)}`,
         onClick: (e: { stopPropagation: () => void }) => e.stopPropagation(),
         className: `${chip} ${team ? 'bg-violet-50 text-violet-700 ring-violet-200' : 'bg-amber-50 text-amber-800 ring-amber-200'}`,
-      }, createElement(team ? Shirt : Wrench, { className: 'h-3 w-3' }), `${team ? 'Team order' : 'Repair'} ${ref}`),
+      }, createElement(team ? Shirt : Wrench, { className: 'h-3 w-3' }), `${team ? t('Team order') : t('Repair')} ${ref}`),
     );
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Sports', useBillExtras: useSourceChips };
+const config: SalesHistoryConfig = { label: t('Sports'), useBillExtras: useSourceChips };
 
 export default function SportsSalesPage() {
   return <SalesHistoryPage config={config} />;

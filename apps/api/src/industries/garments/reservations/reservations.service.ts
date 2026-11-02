@@ -20,6 +20,7 @@ import { DAY_MS, findBill, garmentClock, opt, ownCustomer, ownProduct, paging, p
 import { billHeldGoods } from '../common/held-goods';
 import { HoldKey, keyOf, requireFree, resyncRecord, sweepHeld, syncReserved } from '../common/held-stock';
 import { CreateReservationDto, SellReservationDto } from './dto/reservation.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 const VIEWS = ['active', 'today', 'expired', 'sold', 'cancelled', 'all'] as const;
@@ -77,7 +78,7 @@ export class ReservationsService {
     const name = opt(dto.customerName) ?? customer?.name;
     if (!name) throw new BadRequestException('Customer ka naam likhein');
     const { product, variant } = await ownProduct(this.db, user, dto.productId, opt(dto.variantId));
-    if (product.hasVariants && !variant) throw new BadRequestException(`${product.name} — size/rang chunein`);
+    if (product.hasVariants && !variant) throw new BadRequestException(apiMessage('{{productName}} — size/rang chunein', { productName: product.name }));
     const quantity = Math.max(Math.floor(dto.quantity ?? 1), 1);
     const unitPrice = r2(dto.unitPrice ?? variant?.price ?? product.price);
     const deposit = r2(dto.depositAmount ?? 0);
@@ -224,7 +225,7 @@ export class ReservationsService {
     const deposit = r2(r.depositAmount);
     const balance = r2(Math.max(total - deposit, 0));
     const paidNow = r2(Math.max(dto.paidNow ?? balance, 0));
-    if (paidNow > balance + 0.01) throw new BadRequestException(`Baqi sirf Rs ${balance} hai`);
+    if (paidNow > balance + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{balance}} hai', { balance }));
     const shopId = await resolveIndustryShopId(this.db, user, r.shopId);
     let customerId = r.customerId;
     if (!customerId && paidNow < balance - 0.01) {

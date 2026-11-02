@@ -10,6 +10,7 @@ import { CreateLeaveDto } from './dto/create-leave.dto';
 import { ProcessSalaryDto } from './dto/process-salary.dto';
 import { startOfDay, endOfDay, differenceInMinutes, differenceInDays } from 'date-fns';
 import { monthDates } from '../../hr/payroll/payroll.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class StaffService {
@@ -279,7 +280,7 @@ export class StaffService {
       },
       select: { paymentNumber: true },
     });
-    if (existing) throw new ConflictException(`Is mahine ki tankhwah pehle se bani hai (${existing.paymentNumber})`);
+    if (existing) throw new ConflictException(apiMessage('Is mahine ki tankhwah pehle se bani hai ({{paymentNumber}})', { paymentNumber: existing.paymentNumber }));
 
     const start = startOfDay(new Date(dto.periodStart));
     const end = endOfDay(new Date(dto.periodEnd));

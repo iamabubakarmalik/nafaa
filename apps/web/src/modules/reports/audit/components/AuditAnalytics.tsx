@@ -11,6 +11,7 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { AuditOverview, AuditType } from '../api';
 import { SEVERITY_META, TYPE_META, hourLabel, keyLabel } from '../meta';
 import { Empty, Panel } from './parts';
+import { t as tr } from '@core/i18n';
 
 interface Fmt { money: (n: number) => string; cost: (n: number) => string; costHidden: boolean }
 
@@ -28,12 +29,12 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
   const [open, close] = data.settings.hours.split('–').map((x) => Number(x.split(':')[0]));
   const types = data.byType.map((x) => ({ ...x, label: TYPE_META[x.type].label, color: TYPE_META[x.type].color })).sort((a, b) => b[typeMetric] - a[typeMetric]);
   const money: Array<{ label: string; value: number; text: string; color: string; type: AuditType }> = [
-    { label: 'Void bill', value: t.voidValue, text: fmt.money(t.voidValue), color: TYPE_META.void.color, type: 'void' as const },
-    { label: 'Return', value: t.refundValue, text: fmt.money(t.refundValue), color: TYPE_META.refund.color, type: 'refund' as const },
-    { label: 'Bari discount', value: t.discountValue, text: fmt.money(t.discountValue), color: TYPE_META.discount.color, type: 'discount' as const },
-    { label: 'Drawer kam', value: t.drawerShort, text: fmt.money(t.drawerShort), color: TYPE_META.drawer.color, type: 'drawer' as const },
-    { label: 'Galle se nikale', value: t.cashOutValue, text: fmt.money(t.cashOutValue), color: TYPE_META.cash_out.color, type: 'cash_out' as const },
-    ...(fmt.costHidden ? [] : [{ label: 'Stock nuqsan (cost)', value: t.cost ?? 0, text: fmt.cost(t.cost ?? 0), color: TYPE_META.stock_loss.color, type: 'stock_loss' as const }]),
+    { label: tr('Void bill'), value: t.voidValue, text: fmt.money(t.voidValue), color: TYPE_META.void.color, type: 'void' as const },
+    { label: tr('Return'), value: t.refundValue, text: fmt.money(t.refundValue), color: TYPE_META.refund.color, type: 'refund' as const },
+    { label: tr('Bari discount'), value: t.discountValue, text: fmt.money(t.discountValue), color: TYPE_META.discount.color, type: 'discount' as const },
+    { label: tr('Drawer kam'), value: t.drawerShort, text: fmt.money(t.drawerShort), color: TYPE_META.drawer.color, type: 'drawer' as const },
+    { label: tr('Galle se nikale'), value: t.cashOutValue, text: fmt.money(t.cashOutValue), color: TYPE_META.cash_out.color, type: 'cash_out' as const },
+    ...(fmt.costHidden ? [] : [{ label: tr('Stock nuqsan (cost)'), value: t.cost ?? 0, text: fmt.cost(t.cost ?? 0), color: TYPE_META.stock_loss.color, type: 'stock_loss' as const }]),
   ].filter((m) => m.value > 0);
   const maxMoney = Math.max(...money.map((m) => m.value), 1);
   const trend = data.trend.map((x) => ({ ...x, label: keyLabel(x.key) }));
@@ -41,8 +42,8 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
 
   return (
     <div className="space-y-4">
-      <Panel icon={BarChart3} title="Waqiye waqt ke saath" hint={`${data.range.grouping === 'month' ? 'Mahine' : 'Din'} war, darje ke hisaab se. Kisi din achanak uchaal ho to us din ka record dekhein.`}>
-        {!anyTrend ? <Empty text="Is period me koi waqiya nahi" /> : (
+      <Panel icon={BarChart3} title={tr('Waqiye waqt ke saath')} hint={tr('{{value}} war, darje ke hisaab se. Kisi din achanak uchaal ho to us din ka record dekhein.', { value: data.range.grouping === 'month' ? tr('Mahine') : tr('Din') })}>
+        {!anyTrend ? <Empty text={tr('Is period me koi waqiya nahi')} /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -59,16 +60,16 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
       </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel icon={Layers} title="Type war" hint="Kis type ke waqiye zyada hain. Bar dabayein to wohi record khulta hai."
-          actions={<Segmented label="Kya dikhayein" value={typeMetric} onChange={setTypeMetric} items={[{ value: 'count', label: 'Sab' }, { value: 'high', label: 'Zaroori' }]} />}>
-          {!types.length ? <Empty text="Koi waqiya nahi" /> : (
+        <Panel icon={Layers} title={tr('Type war')} hint={tr('Kis type ke waqiye zyada hain. Bar dabayein to wohi record khulta hai.')}
+          actions={<Segmented label={tr('Kya dikhayein')} value={typeMetric} onChange={setTypeMetric} items={[{ value: 'count', label: tr('Sab') }, { value: 'high', label: tr('Zaroori') }]} />}>
+          {!types.length ? <Empty text={tr('Koi waqiya nahi')} /> : (
             <div style={{ height: Math.max(160, types.length * 30) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={types} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} />
                   <YAxis type="category" dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} width={112} />
-                  <Tooltip {...tip} formatter={(v) => [String(v), typeMetric === 'high' ? 'Zaroori' : 'Waqiye']} />
+                  <Tooltip {...tip} formatter={(v) => [String(v), typeMetric === 'high' ? tr('Zaroori') : tr('Waqiye')]} />
                   <Bar dataKey={typeMetric} radius={[0, 4, 4, 0]} barSize={16} cursor="pointer" onClick={(bar) => { const row = bar as unknown as { type?: AuditType; payload?: { type?: AuditType } }; const tp = row.payload?.type ?? row.type; if (tp) onType(tp); }}>
                     {types.map((x) => <Cell key={x.type} fill={x.color} />)}
                   </Bar>
@@ -78,12 +79,12 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
           )}
         </Panel>
 
-        <Panel icon={Coins} title="Paisa jo khatre me tha" hint="In waqiyat me kitni amount shamil thi. Ye nuqsan zaroori nahi — har ek ko dekh kar tay karein.">
-          {!money.length ? <Empty text="Koi amount shamil nahi" /> : (
+        <Panel icon={Coins} title={tr('Paisa jo khatre me tha')} hint={tr('In waqiyat me kitni amount shamil thi. Ye nuqsan zaroori nahi — har ek ko dekh kar tay karein.')}>
+          {!money.length ? <Empty text={tr('Koi amount shamil nahi')} /> : (
             <ul className="space-y-3">
               {money.map((m) => (
                 <li key={m.label}>
-                  <button type="button" onClick={() => onType(m.type)} className="block w-full text-left hover:opacity-80">
+                  <button type="button" onClick={() => onType(m.type)} className="block w-full text-start hover:opacity-80">
                     <div className="flex justify-between gap-2 text-[0.8125rem]"><span className="font-medium text-slate-700">{m.label}</span><span className="tabular-nums font-semibold text-slate-900">{m.text}</span></div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${(m.value / maxMoney) * 100}%`, background: m.color }} /></div>
                   </button>
@@ -94,7 +95,7 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
         </Panel>
       </div>
 
-      <Panel icon={Clock} title="Kis waqt" hint={`Ghante war (dukaan ka waqt). Halka hissa dukaan ke waqt (${data.settings.hours}) se bahar hai — wahan ke kaam khaas dekhein.`}>
+      <Panel icon={Clock} title={tr('Kis waqt')} hint={tr('Ghante war (dukaan ka waqt). Halka hissa dukaan ke waqt ({{hours}}) se bahar hai — wahan ke kaam khaas dekhein.', { hours: data.settings.hours })}>
         <div className="h-[240px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.hours} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -112,20 +113,20 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
       </Panel>
 
       {data.shops.length > 1 && (
-        <Panel icon={Store} title="Branch war" hint="Har branch me kitne waqiye. Ek branch baqi se bohat upar ho to wahan ka staff aur drawer dekhein." flush>
+        <Panel icon={Store} title={tr('Branch war')} hint={tr('Har branch me kitne waqiye. Ek branch baqi se bohat upar ho to wahan ka staff aur drawer dekhein.')} flush>
           <Table minWidth="34rem" className="[&_table]:text-[0.8125rem]">
             <THead>
-              <Tr><Th className="px-5 py-2">Branch</Th><Th className="px-2 py-2 text-right">Waqiye</Th><Th className="px-2 py-2 text-right">Zaroori</Th><Th className="px-2 py-2 text-right">Void</Th><Th className="px-2 py-2 text-right">Return</Th><Th className="px-5 py-2 text-right">Drawer kam</Th></Tr>
+              <Tr><Th className="px-5 py-2">{tr('Branch')}</Th><Th className="px-2 py-2 text-end">{tr('Waqiye')}</Th><Th className="px-2 py-2 text-end">{tr('Zaroori')}</Th><Th className="px-2 py-2 text-end">{tr('Void')}</Th><Th className="px-2 py-2 text-end">{tr('Return')}</Th><Th className="px-5 py-2 text-end">{tr('Drawer kam')}</Th></Tr>
             </THead>
             <TBody>
               {data.shops.map((s) => (
                 <Tr key={s.id}>
                   <Td className="px-5 py-2.5 font-medium text-slate-900">{s.name}</Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums">{s.events}</Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums text-rose-600">{s.high}</Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums">{s.voids}</Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.refundValue)}</Td>
-                  <Td className="px-5 py-2.5 text-right tabular-nums">{fmt.money(s.drawerShort)}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums">{s.events}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums text-rose-600">{s.high}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums">{s.voids}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums">{fmt.money(s.refundValue)}</Td>
+                  <Td className="px-5 py-2.5 text-end tabular-nums">{fmt.money(s.drawerShort)}</Td>
                 </Tr>
               ))}
             </TBody>

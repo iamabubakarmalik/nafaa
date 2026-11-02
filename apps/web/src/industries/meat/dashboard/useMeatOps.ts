@@ -12,6 +12,7 @@ import { slaughterApi } from '../api/slaughter.api';
 import { weightOrdersApi, type WeightOrder } from '../api/weight-orders.api';
 import { cuttingJobsApi, type CuttingJob } from '../api/cutting-jobs.api';
 import type { Subscription } from '../api/subscriptions.api';
+import { t as tr } from '@core/i18n';
 
 const MINUTE = 60_000;
 const n = (v: unknown) => Number(v || 0);
@@ -39,8 +40,8 @@ interface HalalStats { total?: number; halal?: number; halalPct?: number; withCe
 const OPEN: WeightOrder['status'][] = ['CONFIRMED', 'PROCESSING', 'CUTTING', 'PACKED', 'READY', 'OUT_FOR_DELIVERY'];
 
 export const ANIMAL_LABEL: Record<string, string> = {
-  BEEF: 'Gaye', MUTTON: 'Bakra', GOAT: 'Bakri', LAMB: 'Dumba', CHICKEN: 'Murgi', DUCK: 'Batakh', TURKEY: 'Turkey',
-  QUAIL: 'Bater', CAMEL: 'Oont', BUFFALO: 'Bhains', FISH: 'Machhli', PRAWN: 'Jhinga', OTHER: 'Deegar',
+  BEEF: tr('Gaye'), MUTTON: tr('Bakra'), GOAT: tr('Bakri'), LAMB: tr('Dumba'), CHICKEN: tr('Murgi'), DUCK: tr('Batakh'), TURKEY: tr('Turkey'),
+  QUAIL: tr('Bater'), CAMEL: tr('Oont'), BUFFALO: tr('Bhains'), FISH: tr('Machhli'), PRAWN: tr('Jhinga'), OTHER: tr('Deegar'),
 };
 
 export function useMeatOps() {

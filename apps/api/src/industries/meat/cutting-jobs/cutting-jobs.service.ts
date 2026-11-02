@@ -6,6 +6,7 @@ import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { dayKey, dayRange, parseDay } from '../meat-common';
 import { mustChange, r2, r3, str, withNextNumber } from '../meat-money';
 import { convertStock } from '../meat-stock';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies here are untyped
 type Body = any;
@@ -87,7 +88,7 @@ export class CuttingJobsService {
     const outKg = r3(cuts.reduce((s, c) => s + c.qty, 0));
     const wasteKg = dto?.wasteWeightKg === undefined || dto?.wasteWeightKg === null || dto?.wasteWeightKg === '' ? r3(j.inputWeightKg - outKg) : r3(Number(dto.wasteWeightKg));
     if (!cuts.length) throw new BadRequestException('Kam se kam ek cut ka wazan likhein');
-    if (!(wasteKg >= 0) || outKg + wasteKg > j.inputWeightKg + 0.0005) throw new BadRequestException(`Cuts (${outKg} kg) aur waste (${wasteKg} kg) mila kar ${j.inputWeightKg} kg se zyada nahi ho sakte`);
+    if (!(wasteKg >= 0) || outKg + wasteKg > j.inputWeightKg + 0.0005) throw new BadRequestException(apiMessage('Cuts ({{outKg}} kg) aur waste ({{wasteKg}} kg) mila kar {{inputWeightKg}} kg se zyada nahi ho sakte', { outKg, wasteKg, inputWeightKg: j.inputWeightKg }));
     const source = json.source?.productId ? json.source : await this.product(user, str(dto?.sourceProductId)).then((p) => (p ? { productId: p.id, name: p.name } : null));
     if (!source) throw new BadRequestException('Kis item se cutting hui (carcass / dressed) — chunein, taake stock aur cost theek rahe');
     const shopId = j.shopId ?? (await resolveWriteShopId(this.prisma, user.tenantId, scope, null));

@@ -16,6 +16,7 @@ import { eyeTestsApi, type OpticalEyeTest } from '../api/eye-tests.api';
 import { optometristsApi } from '../api/optometrists.api';
 import { COMPLAINTS, MONEY_KEYS, OPTICAL_KEYS, TIME_SLOTS, apiError, moneyInput, todayInput } from '../lib/meta';
 import { Chips, CustomerFields, ReasonModal, emptyParty, partyErrors, type PartyDraft } from './ui';
+import { t as tr } from '@core/i18n';
 
 export type TestDialog = { kind: 'fee' | 'move' | 'cancel' | 'noshow'; test: OpticalEyeTest } | { kind: 'book' } | null;
 
@@ -28,16 +29,16 @@ export function useTestActions(onDone?: () => void) {
     if (money) MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   };
   const done = (msg: string, money = false) => { toast.success(msg); refresh(money); onDone?.(); };
-  const start = useMutation({ mutationFn: (t: OpticalEyeTest) => eyeTestsApi.start(t.id), onSuccess: (_r, t) => done(`${t.customerName} — test shuru`), onError: (e) => toast.error(apiError(e, 'Shuru nahi hua')) });
+  const start = useMutation({ mutationFn: (t: OpticalEyeTest) => eyeTestsApi.start(t.id), onSuccess: (_r, t) => done(tr('{{customerName}} — test shuru', { customerName: t.customerName })), onError: (e) => toast.error(apiError(e, tr('Shuru nahi hua'))) });
   const fee = useMutation({
     mutationFn: ({ t, body }: { t: OpticalEyeTest; body: { amount?: number; paymentMethod?: PaymentMethod; onKhata?: boolean; waiveOff?: boolean } }) => eyeTestsApi.recordPayment(t.id, body),
-    onSuccess: (r, v) => done(v.body.waiveOff ? 'Fees maaf kar di' : r.sale ? `Bill ${r.sale.saleNumber} ban gaya` : 'Fees save', !v.body.waiveOff),
-    onError: (e) => toast.error(apiError(e, 'Fees save nahi hui')),
+    onSuccess: (r, v) => done(v.body.waiveOff ? tr('Fees maaf kar di') : r.sale ? tr('Bill {{saleNumber}} ban gaya', { saleNumber: r.sale.saleNumber }) : tr('Fees save'), !v.body.waiveOff),
+    onError: (e) => toast.error(apiError(e, tr('Fees save nahi hui'))),
   });
   const status = useMutation({
     mutationFn: ({ t, body }: { t: OpticalEyeTest; body: Parameters<typeof eyeTestsApi.updateStatus>[1] }) => eyeTestsApi.updateStatus(t.id, body),
-    onSuccess: () => done('Save ho gaya'),
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => done(tr('Save ho gaya')),
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   return { start, fee, status };
 }
@@ -62,42 +63,42 @@ export function BookTestModal({ onClose, onBooked }: { onClose: () => void; onBo
   const { slots, reason, fee: doctorFee, loading } = useSlots(doctorId, date);
   const pe = partyErrors(party);
   const ageN = age ? Number(age) : null;
-  const ageErr = ageN != null && (!Number.isInteger(ageN) || ageN < 0 || ageN > 120) ? 'Umar 0 se 120' : undefined;
+  const ageErr = ageN != null && (!Number.isInteger(ageN) || ageN < 0 || ageN > 120) ? tr('Umar 0 se 120') : undefined;
   const save = useMutation({
     mutationFn: () => eyeTestsApi.create({
       customerId: party.customerId, customerName: party.name.trim(), customerPhone: party.phone.trim(), customerAge: ageN ?? undefined,
       optometristId: doctorId || undefined, appointmentDate: new Date(`${date}T${slot || '12:00'}:00`).toISOString(), scheduledSlot: slot || undefined,
       chiefComplaint: complaint.trim() || undefined, testFee: fee !== '' ? Number(fee) : undefined,
     }),
-    onSuccess: (t) => { toast.success(`${t.testNumber} book ho gaya`); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.tests] }); onBooked(t); },
-    onError: (e) => toast.error(apiError(e, 'Book nahi hua')),
+    onSuccess: (t) => { toast.success(tr('{{testNumber}} book ho gaya', { testNumber: t.testNumber })); qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.tests] }); onBooked(t); },
+    onError: (e) => toast.error(apiError(e, tr('Book nahi hua'))),
   });
   const submit = () => { setTried(true); if (!Object.keys(pe).length && !ageErr && date && !save.isPending) save.mutate(); };
   const shownFee = fee !== '' ? Number(fee) : doctorFee;
   return (
-    <Modal open onClose={onClose} size="lg" title="Eye test book karein" description="Customer, doctor aur waqt — fees test ke baad"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending} leftIcon={<CalendarPlus className="h-4 w-4" />}>Book karein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={tr('Eye test book karein')} description={tr('Customer, doctor aur waqt — fees test ke baad')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} loading={save.isPending} leftIcon={<CalendarPlus className="h-4 w-4" />}>{tr('Book karein')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <CustomerFields value={party} onChange={setParty} errors={tried ? pe : {}} />
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Umar" inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, '').slice(0, 3))} error={ageErr} hint="Marzi hai" />
-          <Select label="Optometrist" value={doctorId} onChange={(e) => { setDoctorId(e.target.value); setSlot(''); }}
-            options={[{ value: '', label: 'Koi bhi' }, ...(doctors.data ?? []).map((d) => ({ value: d.id, label: d.name }))]} />
-          <Input label="Din" type="date" min={todayInput()} value={date} onChange={(e) => { setDate(e.target.value); setSlot(''); }} />
+          <Input label={tr('Umar')} inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, '').slice(0, 3))} error={ageErr} hint={tr('Marzi hai')} />
+          <Select label={tr('Optometrist')} value={doctorId} onChange={(e) => { setDoctorId(e.target.value); setSlot(''); }}
+            options={[{ value: '', label: tr('Koi bhi') }, ...(doctors.data ?? []).map((d) => ({ value: d.id, label: d.name }))]} />
+          <Input label={tr('Din')} type="date" min={todayInput()} value={date} onChange={(e) => { setDate(e.target.value); setSlot(''); }} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Waqt</span>
-          {loading ? <p className="text-[0.8125rem] text-slate-500">Khali waqt dekh rahe hain…</p>
-            : reason ? <p className="text-[0.8125rem] text-amber-700">Is din doctor nahi aate — doosra din chunein</p>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Waqt')}</span>
+          {loading ? <p className="text-[0.8125rem] text-slate-500">{tr('Khali waqt dekh rahe hain…')}</p>
+            : reason ? <p className="text-[0.8125rem] text-amber-700">{tr('Is din doctor nahi aate — doosra din chunein')}</p>
             : slots.length ? <Chips options={slots} value={slot} onChange={setSlot} clearable />
-            : <p className="text-[0.8125rem] text-amber-700">Is din koi waqt khali nahi</p>}
+            : <p className="text-[0.8125rem] text-amber-700">{tr('Is din koi waqt khali nahi')}</p>}
         </div>
         <div>
-          <Input label="Masla" value={complaint} onChange={(e) => setComplaint(e.target.value)} placeholder="Customer kya keh raha hai" maxLength={300} />
+          <Input label={tr('Masla')} value={complaint} onChange={(e) => setComplaint(e.target.value)} placeholder={tr('Customer kya keh raha hai')} maxLength={300} />
           <div className="mt-1.5"><Chips options={COMPLAINTS} value={complaint} onChange={setComplaint} clearable /></div>
         </div>
-        <Input label="Fees" inputMode="decimal" value={fee} onChange={(e) => setFee(moneyInput(e.target.value))} placeholder={doctorFee != null ? String(doctorFee) : '0'}
-          hint={shownFee != null ? `Fees: ${formatPKR(shownFee)} — khali chhoren to doctor ki fees lagti hai` : 'Muft test ho to 0 likhein'} />
+        <Input label={tr('Fees')} inputMode="decimal" value={fee} onChange={(e) => setFee(moneyInput(e.target.value))} placeholder={doctorFee != null ? String(doctorFee) : '0'}
+          hint={shownFee != null ? tr('Fees: {{shownFee}} — khali chhoren to doctor ki fees lagti hai', { shownFee: formatPKR(shownFee) }) : tr('Muft test ho to 0 likhein')} />
       </form>
     </Modal>
   );
@@ -111,31 +112,31 @@ export function FeeModal({ test, pending, onConfirm, onClose }: {
   const [amount, setAmount] = useState(String(due));
   const [method, setMethod] = useState<PaymentMethod>('CASH');
   const n = Number(amount) || 0;
-  const error = mode === 'pay' && (n <= 0 ? 'Amount likhein' : n > due + 0.01 ? `Sirf ${formatPKR(due)} baqi hai` : undefined);
+  const error = mode === 'pay' && (n <= 0 ? tr('Amount likhein') : n > due + 0.01 ? tr('Sirf {{due}} baqi hai', { due: formatPKR(due) }) : undefined);
   const submit = () => {
     if (error || pending) return;
     onConfirm(mode === 'waive' ? { waiveOff: true } : mode === 'khata' ? { onKhata: true } : { amount: n, paymentMethod: method });
   };
   const options = useMemo(() => [
-    { id: 'pay' as const, label: 'Abhi lein' },
-    { id: 'khata' as const, label: 'Khata me' },
-    ...(test.paidAmount <= 0 ? [{ id: 'waive' as const, label: 'Maaf' }] : []),
+    { id: 'pay' as const, label: tr('Abhi lein') },
+    { id: 'khata' as const, label: tr('Khata me') },
+    ...(test.paidAmount <= 0 ? [{ id: 'waive' as const, label: tr('Maaf') }] : []),
   ], [test.paidAmount]);
   return (
-    <Modal open onClose={onClose} size="sm" title={`Test fees — ${test.testNumber}`} description={`${test.customerName} · baqi ${formatPKR(due)}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} disabled={!!error} loading={pending} leftIcon={<Wallet className="h-4 w-4" />}>{mode === 'waive' ? 'Fees maaf karein' : mode === 'khata' ? `${formatPKR(due)} khata me` : `${formatPKR(n)} lein`}</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Test fees — {{testNumber}}', { testNumber: test.testNumber })} description={tr('{{customerName}} · baqi {{due}}', { customerName: test.customerName, due: formatPKR(due) })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} disabled={!!error} loading={pending} leftIcon={<Wallet className="h-4 w-4" />}>{mode === 'waive' ? tr('Fees maaf karein') : mode === 'khata' ? tr('{{due}} khata me', { due: formatPKR(due) }) : tr('{{formatPKR}} lein', { formatPKR: formatPKR(n) })}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
           {options.map((o) => <button key={o.id} type="button" onClick={() => setMode(o.id)} className={`h-9 flex-1 rounded-lg text-[0.8125rem] font-semibold ${mode === o.id ? 'bg-white shadow' : 'text-slate-600'}`}>{o.label}</button>)}
         </div>
         {mode === 'pay' && (
           <>
-            <Input label="Kitna mila" inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(moneyInput(e.target.value))} error={amount ? error || undefined : undefined} />
+            <Input label={tr('Kitna mila')} inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(moneyInput(e.target.value))} error={amount ? error || undefined : undefined} />
             <PaymentMethodPicker value={method} onChange={setMethod} />
           </>
         )}
-        {mode === 'khata' && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">{formatPKR(due)} {test.customerName} ke khata me udhaar likha jayega aur bill banega.</p>}
-        {mode === 'waive' && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">Fees nahi li jayegi — koi bill nahi banta. Jaise: chashma banwane wale ka test muft.</p>}
+        {mode === 'khata' && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">{tr('{{due}} {{customerName}} ke khata me udhaar likha jayega aur bill banega.', { due: formatPKR(due), customerName: test.customerName })}</p>}
+        {mode === 'waive' && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">{tr('Fees nahi li jayegi — koi bill nahi banta. Jaise: chashma banwane wale ka test muft.')}</p>}
       </form>
     </Modal>
   );
@@ -149,13 +150,13 @@ export function MoveTestModal({ test, pending, onConfirm, onClose }: {
   const [why, setWhy] = useState('');
   const { slots, reason, loading } = useSlots(test.optometristId ?? '', date);
   return (
-    <Modal open onClose={onClose} size="sm" title={`Waqt badlein — ${test.customerName}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!date} loading={pending}
-        onClick={() => onConfirm({ rescheduledDate: new Date(`${date}T${slot || '12:00'}:00`).toISOString(), scheduledSlot: slot || '', reason: why.trim() ? `Waqt badla: ${why.trim()}` : undefined })}>Naya waqt save</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Waqt badlein — {{customerName}}', { customerName: test.customerName })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!date} loading={pending}
+        onClick={() => onConfirm({ rescheduledDate: new Date(`${date}T${slot || '12:00'}:00`).toISOString(), scheduledSlot: slot || '', reason: why.trim() ? tr('Waqt badla: {{value}}', { value: why.trim() }) : undefined })}>{tr('Naya waqt save')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Naya din" type="date" min={todayInput()} value={date} onChange={(e) => { setDate(e.target.value); setSlot(''); }} />
-        {loading ? <p className="text-[0.8125rem] text-slate-500">Khali waqt dekh rahe hain…</p> : reason ? <p className="text-[0.8125rem] text-amber-700">Is din doctor nahi aate</p> : <Chips options={slots} value={slot} onChange={setSlot} clearable />}
-        <Textarea label="Wajah" rows={2} value={why} onChange={(e) => setWhy(e.target.value)} hint="Marzi hai" />
+        <Input label={tr('Naya din')} type="date" min={todayInput()} value={date} onChange={(e) => { setDate(e.target.value); setSlot(''); }} />
+        {loading ? <p className="text-[0.8125rem] text-slate-500">{tr('Khali waqt dekh rahe hain…')}</p> : reason ? <p className="text-[0.8125rem] text-amber-700">{tr('Is din doctor nahi aate')}</p> : <Chips options={slots} value={slot} onChange={setSlot} clearable />}
+        <Textarea label={tr('Wajah')} rows={2} value={why} onChange={(e) => setWhy(e.target.value)} hint={tr('Marzi hai')} />
       </div>
     </Modal>
   );
@@ -168,7 +169,7 @@ export function TestDialogs({ dialog, close, actions, onBooked }: { dialog: Test
   if (dialog.kind === 'fee') return <FeeModal test={t} pending={actions.fee.isPending} onClose={close} onConfirm={(body) => actions.fee.mutate({ t, body })} />;
   if (dialog.kind === 'move') return <MoveTestModal test={t} pending={actions.status.isPending} onClose={close} onConfirm={(b) => actions.status.mutate({ t, body: { status: 'RESCHEDULED', ...b } })} />;
   return (
-    <ReasonModal title={dialog.kind === 'noshow' ? `Nahi aaya — ${t.customerName}` : `Test cancel — ${t.customerName}`} confirm={dialog.kind === 'noshow' ? 'Nahi aaya' : 'Cancel karein'}
+    <ReasonModal title={dialog.kind === 'noshow' ? tr('Nahi aaya — {{customerName}}', { customerName: t.customerName }) : tr('Test cancel — {{customerName}}', { customerName: t.customerName })} confirm={dialog.kind === 'noshow' ? tr('Nahi aaya') : tr('Cancel karein')}
       pending={actions.status.isPending} presets={dialog.kind === 'noshow' ? ['Phone nahi uthaya', 'Kal aayega'] : ['Customer ne mana kiya', 'Doctor chhutti par']}
       onClose={close} onConfirm={(reason) => actions.status.mutate({ t, body: { status: dialog.kind === 'noshow' ? 'NO_SHOW' : 'CANCELLED', reason } })} />
   );

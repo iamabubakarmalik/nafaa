@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { onConnectMessage, openConnectPopup } from '../lib/connectPopup';
 import { CHANNELS_KEY } from './useSalesChannels';
+import { t as tr } from '@core/i18n';
 
 export type WooPhase = 'idle' | 'starting' | 'waiting' | 'manual' | 'connected' | 'denied' | 'error';
 
@@ -47,7 +48,7 @@ export function useChannelConnect(kind: ConnectKind, onConnected?: (channelId: s
     popupRef.current?.close();
     qc.invalidateQueries({ queryKey: CHANNELS_KEY });
     qc.invalidateQueries({ queryKey: ['sales-channel', id] });
-    toast.success(`🎉 ${NAME[kind]} jur gaya!`, { description: 'Webhooks khud lag gaye — ab orders seedhe Nafaa me aayenge' });
+    toast.success(tr('🎉 {{value}} jur gaya!', { value: NAME[kind] }), { description: tr('Webhooks khud lag gaye — ab orders seedhe Nafaa me aayenge') });
     doneRef.current?.(id);
   }, [qc, kind]);
 
@@ -72,7 +73,7 @@ export function useChannelConnect(kind: ConnectKind, onConnected?: (channelId: s
 
   const start = useCallback(async (body: { siteUrl: string; displayName?: string; shopId?: string; channelId?: string }) => {
     if (kind === 'shopify' && caps.data && !caps.data.shopifyOAuth) {
-      setError('Shopify app ki keys server par nahi lagi — neeche "Webhook" wala tareeqa istemal karein');
+      setError(tr('Shopify app ki keys server par nahi lagi — neeche "Webhook" wala tareeqa istemal karein'));
       setPhase('error');
       return null;
     }
@@ -100,11 +101,11 @@ export function useChannelConnect(kind: ConnectKind, onConnected?: (channelId: s
         popupRef.current = openConnectPopup(res.authUrl);
       }
       setPhase('waiting');
-      if (!popupRef.current) toast.message('Popup band tha — neeche "Window dobara kholo" dabayein');
+      if (!popupRef.current) toast.message(tr('Popup band tha — neeche "Window dobara kholo" dabayein'));
       return res;
     } catch (e) {
       blank?.close();
-      const msg = apiErrorMessage(e, 'Shuru nahi ho saka');
+      const msg = apiErrorMessage(e, tr('Shuru nahi ho saka'));
       setError(msg);
       setPhase('error');
       return null;

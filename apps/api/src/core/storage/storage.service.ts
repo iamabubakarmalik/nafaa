@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } fro
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as crypto from 'crypto';
 import * as path from 'path';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
@@ -51,7 +52,7 @@ export class StorageService {
   }) {
     // Validate content type
     if (!ALL_ALLOWED.includes(params.contentType)) {
-      throw new BadRequestException(`Content type ${params.contentType} not allowed`);
+      throw new BadRequestException(apiMessage('Content type {{contentType}} not allowed', { contentType: params.contentType }));
     }
 
     // Validate size
@@ -60,9 +61,11 @@ export class StorageService {
     const maxSize = isImage ? MAX_IMAGE_SIZE : isVideo ? MAX_VIDEO_SIZE : MAX_DOC_SIZE;
     if (params.fileSize && params.fileSize > maxSize) {
       throw new BadRequestException(
-        `File too large. Max ${Math.round(maxSize / 1024 / 1024)}MB for ${
-          isImage ? 'images' : isVideo ? 'videos' : 'documents'
-        }`,
+        isImage
+          ? apiMessage('File too large. Max {{maxSize}}MB for images', { maxSize: Math.round(maxSize / 1024 / 1024) })
+          : isVideo
+            ? apiMessage('File too large. Max {{maxSize}}MB for videos', { maxSize: Math.round(maxSize / 1024 / 1024) })
+            : apiMessage('File too large. Max {{maxSize}}MB for documents', { maxSize: Math.round(maxSize / 1024 / 1024) }),
       );
     }
 

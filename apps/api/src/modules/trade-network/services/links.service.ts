@@ -19,6 +19,7 @@ import {
 } from '../dto/trade.dto';
 import { REOPENABLE, cleanInviteCode, newInviteCode, phoneKey, r2, type LinkStatus } from '../helpers/trade-rules';
 import { businessCards, can, linkFor, notify, requirePerm, type BusinessCard } from '../trade-network.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class TradeLinksService {
@@ -237,7 +238,7 @@ export class TradeLinksService {
     const me = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId);
     void notify(this.notifications, {
       tenantId: sellerId, kind: 'LINK_REQUEST', refId: link.id, type: 'INFO',
-      title: 'Network: naya link request', message: `${me?.name ?? 'Ek dukaan'} aap se maal mangwana chahti hai — approve karein`,
+      title: 'Network: naya link request', message: apiMessage('{{party}} aap se maal mangwana chahti hai — approve karein', { party: me?.name ?? 'Ek dukaan' }),
       link: '/network/customers?tab=requests',
     });
     return this.linkView(user.tenantId, link.id);
@@ -377,7 +378,7 @@ export class TradeLinksService {
 
     void notify(this.notifications, {
       tenantId: link.buyerTenantId, kind: 'LINK_APPROVED', refId: link.id, type: 'SUCCESS',
-      title: 'Supplier jur gaya', message: `${seller.name} ne aap ka request approve kar diya — ab Order bhej sakte hain`,
+      title: 'Supplier jur gaya', message: apiMessage('{{party}} ne aap ka request approve kar diya — ab Order bhej sakte hain', { party: seller.name }),
       link: `/network/order/${link.id}`,
     });
     return this.linkView(user.tenantId, id);
@@ -393,7 +394,9 @@ export class TradeLinksService {
     const seller = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId);
     void notify(this.notifications, {
       tenantId: link.buyerTenantId, kind: 'LINK_REJECTED', refId: link.id, type: 'WARNING',
-      title: 'Link request reject', message: `${seller?.name ?? 'Distributor'} ne request reject ki${dto.reason ? `: ${dto.reason}` : ''}`,
+      title: 'Link request reject', message: dto.reason
+        ? apiMessage('{{party}} ne request reject ki: {{reason}}', { party: seller?.name ?? 'Distributor', reason: dto.reason })
+        : apiMessage('{{party}} ne request reject ki', { party: seller?.name ?? 'Distributor' }),
       link: '/network',
     });
     return this.linkView(user.tenantId, id);
@@ -407,7 +410,7 @@ export class TradeLinksService {
     const seller = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId);
     void notify(this.notifications, {
       tenantId: link.buyerTenantId, kind: 'LINK_PAUSED', refId: link.id, type: 'WARNING',
-      title: 'Supplier ne Order rok diye', message: `${seller?.name ?? 'Supplier'} ne naye Order abhi rok diye hain`, link: '/network',
+      title: 'Supplier ne Order rok diye', message: apiMessage('{{party}} ne naye Order abhi rok diye hain', { party: seller?.name ?? 'Supplier' }), link: '/network',
     });
     return this.linkView(user.tenantId, id);
   }
@@ -420,7 +423,7 @@ export class TradeLinksService {
     const seller = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId);
     void notify(this.notifications, {
       tenantId: link.buyerTenantId, kind: 'LINK_RESUMED', refId: link.id, type: 'SUCCESS',
-      title: 'Supplier ne Order khol diye', message: `${seller?.name ?? 'Supplier'} ab dobara Order le raha hai`, link: `/network/order/${link.id}`,
+      title: 'Supplier ne Order khol diye', message: apiMessage('{{party}} ab dobara Order le raha hai', { party: seller?.name ?? 'Supplier' }), link: `/network/order/${link.id}`,
     });
     return this.linkView(user.tenantId, id);
   }
@@ -433,7 +436,7 @@ export class TradeLinksService {
     const me = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId);
     void notify(this.notifications, {
       tenantId: link.side === 'SELLER' ? link.buyerTenantId : link.sellerTenantId, kind: 'LINK_UNLINKED', refId: link.id, type: 'WARNING',
-      title: 'Network link khatam', message: `${me?.name ?? 'Doosri party'} ne link khatam kar diya. Purane Order aur khata wese hi rahenge.`,
+      title: 'Network link khatam', message: apiMessage('{{party}} ne link khatam kar diya. Purane Order aur khata wese hi rahenge.', { party: me?.name ?? 'Doosri party' }),
       link: link.side === 'SELLER' ? '/network' : '/network/customers',
     });
     return this.linkView(user.tenantId, id);

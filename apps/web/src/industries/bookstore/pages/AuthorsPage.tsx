@@ -21,6 +21,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { authorsApi, type Author } from '../api/authors.api';
 import { KEYS, LANGUAGES, apiError } from '../lib/meta';
 import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys, useSaveKey } from '../components/ui';
+import { t } from '@core/i18n';
 
 type Tab = 'active' | 'off';
 
@@ -46,18 +47,18 @@ export default function AuthorsPage() {
   const refresh = () => { void qc.invalidateQueries({ queryKey: [KEYS.authors] }); void qc.invalidateQueries({ queryKey: [KEYS.facts] }); };
   const save = useMutation({
     mutationFn: ({ id, body }: { id?: string; body: Partial<Author> }) => (id ? authorsApi.update(id, body) : authorsApi.create(body)),
-    onSuccess: () => { toast.success('Author save ho gaya'); setForm(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(t('Author save ho gaya')); setForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
   });
   const feature = useMutation({
     mutationFn: (a: Author) => authorsApi.toggleFeatured(a.id),
     onSuccess: () => refresh(),
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Nahi hua'))),
   });
   const toggle = useMutation({
     mutationFn: (a: Author) => (a.isActive ? authorsApi.remove(a.id) : authorsApi.update(a.id, { name: a.name, isActive: true })),
     onSuccess: (_r, a) => { toast.success(a.isActive ? `${a.name} band` : `${a.name} chalu`); setOff(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Nahi hua'))),
   });
 
   usePageKeys(searchRef, canEdit ? { n: () => setForm('new') } : {});
@@ -65,32 +66,32 @@ export default function AuthorsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Authors"
-        chip={<><Users /> Likhne wale</>}
-        meta="Kitab author ke naam se bhi dhoondi jati hai"
+        title={t('Authors')}
+        chip={<><Users /> {' '}{t('Likhne wale')}</>}
+        meta={t('Kitab author ke naam se bhi dhoondi jati hai')}
         loading={listQ.isLoading}
         actions={<>
-          <Link to="/bookstore/books" className={heroButton}><BookOpen className="h-4 w-4" /><span className="hidden sm:inline">Kitaben</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya author (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Author</button>}
+          <Link to="/bookstore/books" className={heroButton}><BookOpen className="h-4 w-4" /><span className="hidden sm:inline">{t('Kitaben')}</span></Link>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title={t('Naya author (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Author')}</button>}
         </>}
-        stats={[{ label: 'Author', value: active.length }, { label: 'Kitaben jori', value: books }]}
+        stats={[{ label: t('Author'), value: active.length }, { label: t('Kitaben jori'), value: books }]}
       />
 
       <KpiRow cols={3}>
-        <KpiCard icon={Users} color="#2563eb" label="Chalu author" value={active.length} hint={`${all.length - active.length} band`} />
-        <KpiCard icon={Star} color="#d97706" label="Khaas (featured)" value={active.filter((a) => a.isFeatured).length} hint="List me upar" />
-        <KpiCard icon={BookOpen} color="#0891b2" label="Kitaben jori hui" value={books} />
+        <KpiCard icon={Users} color="#2563eb" label={t('Chalu author')} value={active.length} hint={t('{{value}} band', { value: all.length - active.length })} />
+        <KpiCard icon={Star} color="#d97706" label={t('Khaas (featured)')} value={active.filter((a) => a.isFeatured).length} hint={t('List me upar')} />
+        <KpiCard icon={BookOpen} color="#0891b2" label={t('Kitaben jori hui')} value={books} />
       </KpiRow>
 
-      <ViewTabs<Tab> tabs={[{ id: 'active', label: 'Chalu', count: active.length }, { id: 'off', label: 'Band', count: all.length - active.length }]} value={tab} onChange={setTab} />
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya qalami naam" label="Search" />} />
+      <ViewTabs<Tab> tabs={[{ id: 'active', label: t('Chalu'), count: active.length }, { id: 'off', label: t('Band'), count: all.length - active.length }]} value={tab} onChange={setTab} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Naam ya qalami naam')} label={t('Search')} />} />
 
       {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-32 rounded-3xl" />)}</div>
         : rows.length === 0 ? (
-          <EmptyBox icon={Users} title={search ? 'Koi author nahi mila' : 'Abhi koi author nahi'}
-            text="Author yahan banayein ya kitab banate waqt naam likh kar 'Naya' dabayein."
-            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Author banayein</Button> : undefined} />
+          <EmptyBox icon={Users} title={search ? t('Koi author nahi mila') : t('Abhi koi author nahi')}
+            text={t('Author yahan banayein ya kitab banate waqt naam likh kar \'Naya\' dabayein.')}
+            action={canEdit && !search && tab === 'active' ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Author banayein')}</Button> : undefined} />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {rows.map((a) => (
@@ -101,16 +102,16 @@ export default function AuthorsPage() {
                     <p className="truncate font-semibold text-slate-900">{a.name}</p>
                     <p className="truncate text-[0.75rem] text-slate-500">{[a.penName && `"${a.penName}"`, a.nationality, a.languages.join(', ')].filter(Boolean).join(' · ') || '—'}</p>
                   </div>
-                  <button type="button" disabled={!canEdit} onClick={() => feature.mutate(a)} aria-label={a.isFeatured ? 'Khaas se hatayein' : 'Khaas banayein'}
+                  <button type="button" disabled={!canEdit} onClick={() => feature.mutate(a)} aria-label={a.isFeatured ? t('Khaas se hatayein') : t('Khaas banayein')}
                     className={cn('rounded-lg p-1.5', a.isFeatured ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400')}><Star className={cn('h-5 w-5', a.isFeatured && 'fill-current')} /></button>
                 </div>
-                <p className="mt-3 text-[0.8125rem] text-slate-600"><BookOpen className="mr-1 inline h-3.5 w-3.5" />{a._count?.bookAuthors ?? 0} kitaben</p>
+                <p className="mt-3 text-[0.8125rem] text-slate-600"><BookOpen className="me-1 inline h-3.5 w-3.5" />{t('{{value}} kitaben', { value: a._count?.bookAuthors ?? 0 })}</p>
                 {canEdit && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <button type="button" onClick={() => setForm(a)} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</button>
+                    <button type="button" onClick={() => setForm(a)} className={cardAction}><Pencil className="h-3.5 w-3.5" />{t('Badlein')}</button>
                     {a.isActive
-                      ? <button type="button" onClick={() => setOff(a)} className={`ml-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />Band</button>
-                      : <button type="button" onClick={() => toggle.mutate(a)} className={`ml-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />Chalu</button>}
+                      ? <button type="button" onClick={() => setOff(a)} className={`ms-auto ${cardDanger}`}><Power className="h-3.5 w-3.5" />{t('Band')}</button>
+                      : <button type="button" onClick={() => toggle.mutate(a)} className={`ms-auto ${cardLink}`}><Power className="h-3.5 w-3.5" />{t('Chalu')}</button>}
                   </div>
                 )}
               </li>
@@ -118,16 +119,16 @@ export default function AuthorsPage() {
           </ul>
         )}
 
-      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> {' '}{t('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{t('search ·')}{' '} <Kbd>G</Kbd> {' '}{t('guide')}</p>
 
       {form && <AuthorModal author={form === 'new' ? null : form} pending={save.isPending} onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
-      {off && <ConfirmModal title={`${off.name} band karein?`} text="Kitab banate waqt ye author nahi dikhega; jin kitabon par laga hai un par rahega." confirm="Band karein" danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
+      {off && <ConfirmModal title={t('{{name}} band karein?', { name: off.name })} text={t('Kitab banate waqt ye author nahi dikhega; jin kitabon par laga hai un par rahega.')} confirm={t('Band karein')} danger pending={toggle.isPending} onConfirm={() => toggle.mutate(off)} onClose={() => setOff(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Authors — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Authors — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Users, color: '#2563eb', title: 'Author', text: 'Naam aur qalami naam likhein. Kitab ke editor me author chunne se POS par us ke naam se kitab milti hai.' },
-            { icon: Star, color: '#d97706', title: 'Khaas', text: 'Sitara dabane se author list me upar aata hai — jin ki kitaben zyada bikti hain.' },
+            { icon: Users, color: '#2563eb', title: t('Author'), text: t('Naam aur qalami naam likhein. Kitab ke editor me author chunne se POS par us ke naam se kitab milti hai.') },
+            { icon: Star, color: '#d97706', title: t('Khaas'), text: t('Sitara dabane se author list me upar aata hai — jin ki kitaben zyada bikti hain.') },
           ]}
           shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
@@ -149,16 +150,16 @@ function AuthorModal({ author, pending, onSave, onClose }: { author: Author | nu
   };
   useSaveKey(submit);
   return (
-    <Modal open onClose={onClose} size="md" title={author ? `${author.name} — badlein` : 'Naya author'} description="Ctrl+S se save"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={pending}>Save</Button></>}>
+    <Modal open onClose={onClose} size="md" title={author ? t('{{name}} — badlein', { name: author.name }) : t('Naya author')} description={t('Ctrl+S se save')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={submit} loading={pending}>{t('Save')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Input label="Naam" required autoFocus value={name} onChange={(e) => setName(e.target.value)} error={tried && !name.trim() ? 'Naam likhein' : undefined} placeholder="Jaise: Ashfaq Ahmed" />
+        <Input label={t('Naam')} required autoFocus value={name} onChange={(e) => setName(e.target.value)} error={tried && !name.trim() ? t('Naam likhein') : undefined} placeholder={t('Jaise: Ashfaq Ahmed')} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Qalami naam" value={penName} onChange={(e) => setPenName(e.target.value)} placeholder="Marzi hai" />
-          <Input label="Mulk" value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="Pakistani" />
+          <Input label={t('Qalami naam')} value={penName} onChange={(e) => setPenName(e.target.value)} placeholder={t('Marzi hai')} />
+          <Input label={t('Mulk')} value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder={t('Pakistani')} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Zubaan</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Zubaan')}</span>
           <div className="flex flex-wrap gap-1.5">
             {LANGUAGES.map((l) => (
               <button key={l} type="button" aria-pressed={languages.includes(l)} onClick={() => setLanguages(languages.includes(l) ? languages.filter((x) => x !== l) : [...languages, l])}

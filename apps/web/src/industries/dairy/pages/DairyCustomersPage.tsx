@@ -24,14 +24,15 @@ import { routesApi } from '../api/routes.api';
 import { Empty, ListCard, ListLoading, Pager, Pill } from '../components/ui';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { CUSTOMER_STATUS, DAIRY_KEYS, FREQUENCY, liters, shortDate } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 30;
 const TABS: Array<{ id: CustomerTab; label: string; icon: typeof Users }> = [
-  { id: 'active', label: 'Chalu', icon: Truck },
-  { id: 'owing', label: 'Paise baqi', icon: Wallet },
-  { id: 'paused', label: 'Ruke hue', icon: PauseCircle },
-  { id: 'closed', label: 'Band', icon: XCircle },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'active', label: tr('Chalu'), icon: Truck },
+  { id: 'owing', label: tr('Paise baqi'), icon: Wallet },
+  { id: 'paused', label: tr('Ruke hue'), icon: PauseCircle },
+  { id: 'closed', label: tr('Band'), icon: XCircle },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 
 async function fetchAll(q: CustomerQuery) {
@@ -63,7 +64,7 @@ export default function DairyCustomersPage() {
     placeholderData: keepPreviousData,
   });
   const routesQ = useQuery({ queryKey: [DAIRY_KEYS.routes, 'active'], queryFn: () => routesApi.all({ active: true }), staleTime: 5 * 60_000 });
-  const routeName = routeId === 'none' ? 'Bina route' : routesQ.data?.find((r) => r.id === routeId)?.name;
+  const routeName = routeId === 'none' ? tr('Bina route') : routesQ.data?.find((r) => r.id === routeId)?.name;
   const c = data?.counts;
   const t = data?.totals;
   const go = (x: CustomerTab) => { setTab(x); setPage(1); };
@@ -71,9 +72,9 @@ export default function DairyCustomersPage() {
 
   const exportCsv = async () => {
     const rows = await fetchAll(query);
-    if (!rows.length) { toast.error('Is filter me koi customer nahi'); return; }
+    if (!rows.length) { toast.error(tr('Is filter me koi customer nahi')); return; }
     downloadCsv('doodh-customers.csv', [
-      ['Number', 'Naam', 'Phone', 'Pata', 'Area', 'Route', 'Kab', 'Subah (L)', 'Shaam (L)', 'Rate', 'Baqi', 'Status'],
+      [tr('Number'), tr('Naam'), tr('Phone'), tr('Pata'), tr('Area'), tr('Route'), tr('Kab'), tr('Subah (L)'), tr('Shaam (L)'), tr('Rate'), tr('Baqi'), tr('Status')],
       ...rows.map((r) => [r.customerNumber, r.name, r.phone, r.address, r.area, r.route?.name, FREQUENCY[r.deliveryFrequency]?.label, r.morningQuantity, r.eveningQuantity, r.customRate ?? '', r.currentBalance, CUSTOMER_STATUS[r.status]?.label]),
     ]);
   };
@@ -94,59 +95,59 @@ export default function DairyCustomersPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Doodh ke customers — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Doodh ke customers — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Naya customer', text: 'Naam, pata, roz subah aur shaam kitna doodh, aur rate. Advance liya ho to wahin likhein — khate me jama hota hai.' },
-            { icon: Truck, color: '#2563eb', title: 'Roz ki list', text: 'Chalu customers Delivery page ki roz ki list me khud aate hain. Bahar gaye hon to "Rokein" se kuch din ke liye band karein.' },
-            { icon: BookOpen, color: '#7c3aed', title: 'Khata', text: 'Har delivery khate me bill ban kar jati hai; baqi paisa yahan aur Khata page par ek jaisa dikhta hai.' },
-            { icon: Link2, color: '#d97706', title: 'Purane customer', text: '"Khata nahi jura" wale purane customer pehli payment ya delivery par khud jur jate hain — purana baqi saath aata hai.' },
+            { icon: Plus, color: '#16a34a', title: tr('Naya customer'), text: tr('Naam, pata, roz subah aur shaam kitna doodh, aur rate. Advance liya ho to wahin likhein — khate me jama hota hai.') },
+            { icon: Truck, color: '#2563eb', title: tr('Roz ki list'), text: tr('Chalu customers Delivery page ki roz ki list me khud aate hain. Bahar gaye hon to "Rokein" se kuch din ke liye band karein.') },
+            { icon: BookOpen, color: '#7c3aed', title: tr('Khata'), text: tr('Har delivery khate me bill ban kar jati hai; baqi paisa yahan aur Khata page par ek jaisa dikhta hai.') },
+            { icon: Link2, color: '#d97706', title: tr('Purane customer'), text: tr('"Khata nahi jura" wale purane customer pehli payment ya delivery par khud jur jate hain — purana baqi saath aata hai.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya customer'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya customer')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Doodh ke customers" busy={isFetching && !isLoading} loading={isLoading || !c}
-        meta="Ghar delivery wale customers — roz ki quantity, route, rate aur khata"
+      <PageHero title={tr('Doodh ke customers')} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta={tr('Ghar delivery wale customers — roz ki quantity, route, rate aur khata')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/dairy/customers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya customer</Link>
+          <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" />{tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/dairy/customers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya customer')}</Link>
         </>}
         stats={[
-          { label: 'Roz ka doodh', value: liters(t?.dailyLiters ?? 0) },
-          { label: 'Lena hai', value: money(t?.owed ?? 0) },
-          { label: 'Advance pada hai', value: money(t?.advance ?? 0) },
+          { label: tr('Roz ka doodh'), value: liters(t?.dailyLiters ?? 0) },
+          { label: tr('Lena hai'), value: money(t?.owed ?? 0) },
+          { label: tr('Advance pada hai'), value: money(t?.advance ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Truck} color="#2563eb" label="Chalu" value={c.active} hint={liters(t?.dailyLiters)} onClick={() => go('active')} active={tab === 'active'} />
-            <KpiCard icon={Wallet} color="#e11d48" label="Paise baqi" value={c.owing} hint={money(t?.owed ?? 0)} onClick={() => go('owing')} active={tab === 'owing'} />
-            <KpiCard icon={PauseCircle} color="#d97706" label="Ruke hue" value={c.paused} onClick={() => go('paused')} active={tab === 'paused'} />
-            <KpiCard icon={Link2} color="#64748b" label="Khata nahi jura" value={t?.unlinked ?? 0} hint="Pehli delivery par jurega" />
+            <KpiCard icon={Truck} color="#2563eb" label={tr('Chalu')} value={c.active} hint={liters(t?.dailyLiters)} onClick={() => go('active')} active={tab === 'active'} />
+            <KpiCard icon={Wallet} color="#e11d48" label={tr('Paise baqi')} value={c.owing} hint={money(t?.owed ?? 0)} onClick={() => go('owing')} active={tab === 'owing'} />
+            <KpiCard icon={PauseCircle} color="#d97706" label={tr('Ruke hue')} value={c.paused} onClick={() => go('paused')} active={tab === 'paused'} />
+            <KpiCard icon={Link2} color="#64748b" label={tr('Khata nahi jura')} value={t?.unlinked ?? 0} hint={tr('Pehli delivery par jurega')} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Naam, number, phone, pata ya area…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Naam, number, phone, pata ya area…')} />}
         chips={search.trim() || routeId ? <>
-          {routeId && <FilterChip onRemove={() => setRouteId('')}>{routeName ?? 'Route'}</FilterChip>}
+          {routeId && <FilterChip onRemove={() => setRouteId('')}>{routeName ?? tr('Route')}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); setRouteId(''); }}>
-        <FilterMenu icon={RouteIcon} label={routeName ?? 'Route'} value={routeId} active={!!routeId} onChange={(v) => { setRouteId(v); setPage(1); }}
-          options={[{ value: '', label: 'Sab route' }, { value: 'none', label: 'Bina route' }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name, hint: r.areaName ?? undefined }))]} />
+        <FilterMenu icon={RouteIcon} label={routeName ?? tr('Route')} value={routeId} active={!!routeId} onChange={(v) => { setRouteId(v); setPage(1); }}
+          options={[{ value: '', label: tr('Sab route') }, { value: 'none', label: tr('Bina route') }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name, hint: r.areaName ?? undefined }))]} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={go} hint="Customer par click kar ke kholein" tabs={TABS.map((x) => ({ id: x.id, label: x.label, icon: x.icon, count: c ? c[x.id] : null }))} />
+      <ViewTabs value={tab} onChange={go} hint={tr('Customer par click kar ke kholein')} tabs={TABS.map((x) => ({ id: x.id, label: x.label, icon: x.icon, count: c ? c[x.id] : null }))} />
 
       <ListCard footer={data && <Pager page={page} total={data.total} limit={LIMIT} onPage={setPage} />}>
         {isLoading ? <ListLoading /> : items.length === 0 ? (
-          <Empty icon={Users} title={search || tab !== 'all' ? 'Is filter me koi customer nahi' : 'Abhi koi delivery customer nahi'}
-            text="Jo ghar roz doodh lete hain unhe yahan jorein — roz ki list unhi se banti hai."
-            action={<Link to="/dairy/customers/new" className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya customer</Link>} />
+          <Empty icon={Users} title={search || tab !== 'all' ? tr('Is filter me koi customer nahi') : tr('Abhi koi delivery customer nahi')}
+            text={tr('Jo ghar roz doodh lete hain unhe yahan jorein — roz ki list unhi se banti hai.')}
+            action={<Link to="/dairy/customers/new" className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya customer')}</Link>} />
         ) : (
           <ul className="divide-y divide-slate-100">
             {items.map((r) => {
@@ -159,13 +160,13 @@ export default function DairyCustomersPage() {
                       <p className="truncate text-[0.75rem] text-slate-500">{[r.phone, r.address, r.area].filter(Boolean).join(' · ') || '—'}</p>
                     </div>
                     <div className="min-w-0 text-[0.8125rem]">
-                      <p className="truncate text-slate-700">{r.route?.name ?? 'Bina route'}</p>
-                      <p className="truncate text-[0.75rem] text-slate-500">{FREQUENCY[r.deliveryFrequency]?.label}{r.status === 'SUSPENDED' && r.pausedTo ? ` · ${shortDate(r.pausedTo)} tak ruka` : ''}</p>
+                      <p className="truncate text-slate-700">{r.route?.name ?? tr('Bina route')}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{FREQUENCY[r.deliveryFrequency]?.label}{r.status === 'SUSPENDED' && r.pausedTo ? tr(' · {{pausedTo}} tak ruka', { pausedTo: shortDate(r.pausedTo) }) : ''}</p>
                     </div>
-                    <p className="text-[0.8125rem] tabular-nums text-slate-700">Subah {r.morningQuantity} · Shaam {r.eveningQuantity}<span className="block text-[0.75rem] text-slate-500">{r.customRate ? `Rate ${money(r.customRate)}` : 'Dukaan ka rate'}</span></p>
+                    <p className="text-[0.8125rem] tabular-nums text-slate-700">{tr('Subah {{morningQuantity}} · Shaam {{eveningQuantity}}', { morningQuantity: r.morningQuantity, eveningQuantity: r.eveningQuantity })}<span className="block text-[0.75rem] text-slate-500">{r.customRate ? tr('Rate {{customRate}}', { customRate: money(r.customRate) }) : tr('Dukaan ka rate')}</span></p>
                     <p className={cn('text-[0.875rem] font-semibold tabular-nums', r.currentBalance > 0.009 ? 'text-rose-700' : r.currentBalance < -0.009 ? 'text-success-700' : 'text-slate-500')}>
-                      {r.currentBalance > 0.009 ? `${money(r.currentBalance)} baqi` : r.currentBalance < -0.009 ? `${money(-r.currentBalance)} advance` : 'Hisaab saaf'}
-                      {!r.khataLinked && <span className="block text-[0.6875rem] font-normal text-slate-400">Khata nahi jura</span>}
+                      {r.currentBalance > 0.009 ? tr('{{currentBalance}} baqi', { currentBalance: money(r.currentBalance) }) : r.currentBalance < -0.009 ? tr('{{value}} advance', { value: money(-r.currentBalance) }) : tr('Hisaab saaf')}
+                      {!r.khataLinked && <span className="block text-[0.6875rem] font-normal text-slate-400">{tr('Khata nahi jura')}</span>}
                     </p>
                     <Pill tone={st?.tone ?? ''} className="lg:justify-self-end">{st?.label ?? r.status}</Pill>
                   </Link>

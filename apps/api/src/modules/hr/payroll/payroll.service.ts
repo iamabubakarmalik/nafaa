@@ -44,6 +44,7 @@ import {
 import {
   AttendanceTally, PayResult, computePay, employedShare, emptyTally, monthDates, monthKeyOf, readNotes, shiftMonth, writeNotes,
 } from './payroll.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -190,7 +191,7 @@ export class PayrollService {
       if (!back && !dto.allowNegative) {
         const live = await computeLiveCash(tx, user.tenantId, reg);
         if (live.expected - total < -0.005) {
-          throw new BadRequestException(`Galle me sirf ${rs(live.expected)} hone chahiye, chahiye ${rs(total)}. Amount kam karein, account se dein ya "kam ho to bhi dein" chunein.`);
+          throw new BadRequestException(apiMessage('Galle me sirf {{expected}} hone chahiye, chahiye {{total}}. Amount kam karein, account se dein ya "kam ho to bhi dein" chunein.', { expected: rs(live.expected), total: rs(total) }));
         }
       }
       return { source: 'DRAWER', register: { id: reg.id, shopId: reg.shopId }, method: 'CASH', label: `Galla ${reg.registerNumber}` };
@@ -202,12 +203,12 @@ export class PayrollService {
     if (!a) throw new NotFoundException('Account nahi mila');
     if (a.shopId) assertShopAccess(user, a.shopId, 'Account se dena');
     else if (!isOwner(user) && user.shopId) throw new ForbiddenException('Poore karobar ka account sirf malik chala sakta hai');
-    if (!a.isActive) throw new BadRequestException(`${a.name} band hai — pehle chalu karein`);
+    if (!a.isActive) throw new BadRequestException(apiMessage('{{aName}} band hai — pehle chalu karein', { aName: a.name }));
     await tx.$queryRaw`SELECT id FROM "MoneyAccount" WHERE id = ${a.id} FOR UPDATE`;
     if (!back && !dto.allowNegative) {
       const balance = await accountBalance(tx, a);
       if (balance - total < -0.005) {
-        throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain, chahiye ${rs(total)}. Amount kam karein ya "kam ho to bhi dein" chunein.`);
+        throw new BadRequestException(apiMessage('{{aName}} me sirf {{balance}} hain, chahiye {{total}}. Amount kam karein ya "kam ho to bhi dein" chunein.', { aName: a.name, balance: rs(balance), total: rs(total) }));
       }
     }
     const method: PaymentMethod = a.method ?? (a.kind === 'BANK' ? 'BANK_TRANSFER' : a.kind === 'WALLET' ? 'JAZZCASH' : 'CASH');
@@ -546,7 +547,7 @@ export class PayrollService {
         if (ctx.salaries.get(s.id)?.length) { skipped.push({ staffId: s.id, name: s.fullName, reason: `${label} ki tankhwah pehle se bani hai` }); continue; }
         const c = s.userId ? com.byUser.get(s.userId) : undefined;
         const pay = this.calc(s, dto.month, ctx, c, canPayCommission, row);
-        if (pay.advanceTooBig) throw new BadRequestException(`${s.fullName}: advance ki qist (${rs(pay.advance)}) baqi tankhwah se zyada hai. Bonus jorein ya advance cancel karke kam qist me dein.`);
+        if (pay.advanceTooBig) throw new BadRequestException(apiMessage('{{fullName}}: advance ki qist ({{advance}}) baqi tankhwah se zyada hai. Bonus jorein ya advance cancel karke kam qist me dein.', { fullName: s.fullName, advance: rs(pay.advance) }));
         const payNow = dto.source === 'NONE' ? 0 : Math.min(r0(row.payAmount ?? pay.net), pay.net);
         plan.push({ s, pay, payNow, row });
       }
@@ -676,7 +677,7 @@ export class PayrollService {
             where: { tenantId, staffId: rec.staffId, paymentNumber: { startsWith: PAY }, status: LIVE_STATUS, periodStart: { gte: first, lt: next } },
             select: { paymentNumber: true },
           });
-          if (cut) throw new BadRequestException(`Is advance ki qist ${cut.paymentNumber} me kat chuki hai. Pehle woh tankhwah cancel karein.`);
+          if (cut) throw new BadRequestException(apiMessage('Is advance ki qist {{paymentNumber}} me kat chuki hai. Pehle woh tankhwah cancel karein.', { paymentNumber: cut.paymentNumber }));
         }
       }
 
@@ -748,7 +749,7 @@ export class PayrollService {
       const staff = await tx.staff.findFirst({ where: { id: dto.staffId, tenantId }, select: STAFF_SELECT });
       if (!staff) throw new NotFoundException('Staff nahi mila');
       this.checkStaffAccess(user, staff);
-      if (staff.status === 'TERMINATED' || staff.status === 'RESIGNED') throw new BadRequestException(`${staff.fullName} kaam chhor chuka hai — advance nahi de sakte`);
+      if (staff.status === 'TERMINATED' || staff.status === 'RESIGNED') throw new BadRequestException(apiMessage('{{fullName}} kaam chhor chuka hai — advance nahi de sakte', { fullName: staff.fullName }));
 
       const months = Array.from({ length: count }, (_, i) => shiftMonth(dto.firstMonth, i));
       const done = await tx.salaryPayment.findFirst({
@@ -758,7 +759,7 @@ export class PayrollService {
         },
         select: { periodStart: true },
       });
-      if (done) throw new BadRequestException(`${monthLabel(monthKeyOf(done.periodStart))} ki tankhwah ban chuki hai — qist agle mahine se shuru karein`);
+      if (done) throw new BadRequestException(apiMessage('{{periodStart}} ki tankhwah ban chuki hai — qist agle mahine se shuru karein', { periodStart: monthLabel(monthKeyOf(done.periodStart)) }));
 
       const branch = staff.shopId ?? this.branch(user, scope, dto.shopId);
       const payer = (await this.payer(tx, user, dto, branch, amount))!;

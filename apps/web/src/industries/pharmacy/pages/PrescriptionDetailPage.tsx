@@ -27,23 +27,24 @@ import { useProductCatalog, type PosItem } from '@modules/pos/engine';
 import { prescriptionsApi, type Prescription, type PrescriptionItem } from '../api/prescriptions.api';
 import { useMedicineFacts } from '../hooks/useMedicineFacts';
 import { RX_STATUS, drName, shortDate } from '../lib/meta';
+import { t } from '@core/i18n';
 
 interface Draft { qty: string; price: string; productId: string; batchId: string }
 const apiError = (e: unknown) => {
   const m = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
-  return (Array.isArray(m) ? m[0] : m) ?? (e as Error).message ?? 'Nahi hua';
+  return (Array.isArray(m) ? m[0] : m) ?? (e as Error).message ?? t('Nahi hua');
 };
 const left = (it: PrescriptionItem) => Math.max(0, Number((it.prescribedQty - (it.dispensedQty ?? 0)).toFixed(3)));
 const when = (v?: string | null) => (v ? new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(v)) : '');
 
 function rxDoc(rx: Prescription): PrintDoc {
   return {
-    title: `Nuskha ${rx.prescriptionNumber}`,
+    title: `Nuskha ${rx.prescriptionNumber}`, // i18n-ignore
     subtitle: shortDate(rx.prescriptionDate ?? rx.createdAt),
     meta: [['Mareez', rx.patientName ?? ''], ['Doctor', drName(rx.doctorName) || '—'], ['Status', RX_STATUS[rx.status].label]],
     sections: [{
-      kind: 'table', title: 'Dawaiyan',
-      columns: [{ label: 'Dawai' }, { label: 'Dose' }, { label: 'Kitni', align: 'right' }, { label: 'Di', align: 'right' }],
+      kind: 'table', title: 'Dawaiyan', // i18n-ignore
+      columns: [{ label: 'Dawai' }, { label: 'Dose' }, { label: 'Kitni', align: 'right' }, { label: 'Di', align: 'right' }], // i18n-ignore
       rows: rx.items.map((i) => [i.medicineName, [i.frequency, i.duration, i.instructions].filter(Boolean).join(' · '), `${i.prescribedQty} ${i.unit ?? ''}`, String(i.dispensedQty ?? 0)]),
     }],
   };
@@ -92,15 +93,15 @@ export default function PrescriptionDetailPage() {
   const refresh = () => ['prescription', 'prescriptions-page', 'pharmacy-dashboard', 'products-for-pos', 'products', 'customers', 'sales-history', 'rx-batches']
     .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const verify = useMutation({ mutationFn: () => prescriptionsApi.verify(id!), onSuccess: () => { toast.success('Nuskha check ho gaya — ab dawai dein'); refresh(); }, onError: (e) => toast.error(apiError(e)) });
+  const verify = useMutation({ mutationFn: () => prescriptionsApi.verify(id!), onSuccess: () => { toast.success(t('Nuskha check ho gaya — ab dawai dein')); refresh(); }, onError: (e) => toast.error(apiError(e)) });
   const reject = useMutation({
     mutationFn: () => prescriptionsApi.reject(id!, reason.trim()),
-    onSuccess: () => { toast.success(rx?.status === 'PARTIALLY_DISPENSED' ? 'Baqi dawai band kar di' : 'Nuskha radd'); setRejecting(false); refresh(); },
+    onSuccess: () => { toast.success(rx?.status === 'PARTIALLY_DISPENSED' ? t('Baqi dawai band kar di') : t('Nuskha radd')); setRejecting(false); refresh(); },
     onError: (e) => toast.error(apiError(e)),
   });
-  const refill = useMutation({ mutationFn: () => prescriptionsApi.refill(id!), onSuccess: (n) => { toast.success(`Refill ${n.prescriptionNumber} ban gaya`); refresh(); navigate(`/pharmacy/prescriptions/${n.id}`); }, onError: (e) => toast.error(apiError(e)) });
+  const refill = useMutation({ mutationFn: () => prescriptionsApi.refill(id!), onSuccess: (n) => { toast.success(t('Refill {{prescriptionNumber}} ban gaya', { prescriptionNumber: n.prescriptionNumber })); refresh(); navigate(`/pharmacy/prescriptions/${n.id}`); }, onError: (e) => toast.error(apiError(e)) });
   const dispense = useMutation({
-    mutationFn: (d: PosCheckoutResult) => withManagerPin('Discount ya udhaar ke liye malik ka PIN', (managerPin) => prescriptionsApi.dispense(id!, {
+    mutationFn: (d: PosCheckoutResult) => withManagerPin(t('Discount ya udhaar ke liye malik ka PIN'), (managerPin) => prescriptionsApi.dispense(id!, {
       items: lines.map(({ it, d: x }) => ({
         itemId: it.id!, dispensedQty: Number(x.qty), unitPrice: Number(x.price) || 0,
         ...(x.productId !== it.productId && { productId: x.productId }), ...(x.batchId && { batchId: x.batchId }),
@@ -110,17 +111,17 @@ export default function PrescriptionDetailPage() {
     }), 'discount'),
     onSuccess: (res) => {
       setPay(false); setDrafts({}); setDiscount('');
-      toast.success(`Dawai de di · bill ${res.sale?.saleNumber ?? ''}`, res.sale ? { action: { label: 'Bill', onClick: () => window.open(`/sales/${res.sale!.id}/receipt?auto=1`, '_blank') } } : undefined);
+      toast.success(t('Dawai de di · bill {{value}}', { value: res.sale?.saleNumber ?? '' }), res.sale ? { action: { label: t('Bill'), onClick: () => window.open(`/sales/${res.sale!.id}/receipt?auto=1`, '_blank') } } : undefined);
       refresh();
     },
     onError: (e) => toast.error(apiError(e)),
   });
 
   const startPay = () => {
-    if (!lines.length) { toast.error('Kam az kam ek dawai ki miqdaar likhein'); return; }
+    if (!lines.length) { toast.error(t('Kam az kam ek dawai ki miqdaar likhein')); return; }
     const over = lines.find(({ it, d }) => Number(d.qty) > left(it) + 1e-9);
-    if (over) { toast.error(`${over.it.medicineName}: sirf ${left(over.it)} baqi hai`); return; }
-    if (!shopId) { toast.error('Upar se shop chunein'); return; }
+    if (over) { toast.error(t('{{medicineName}}: sirf {{left}} baqi hai', { medicineName: over.it.medicineName, left: left(over.it) })); return; }
+    if (!shopId) { toast.error(t('Upar se shop chunein')); return; }
     setPay(true);
   };
 
@@ -139,10 +140,10 @@ export default function PrescriptionDetailPage() {
           onConfirm={(d) => dispense.mutate(d)} onClose={() => setPay(false)} />
       )}
       {rejecting && (
-        <Modal open onClose={() => setRejecting(false)} size="md" title={rx.status === 'PARTIALLY_DISPENSED' ? 'Baqi dawai band karein' : 'Nuskha radd karein'}
-          description={rx.status === 'PARTIALLY_DISPENSED' ? 'Jo dawai de chuke wo bill me rahegi; baqi nahi di jayegi.' : 'Koi dawai nahi di jayegi.'}
-          footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setRejecting(false)}>Wapas</Button><Button variant="danger" loading={reject.isPending} disabled={reason.trim().length < 3} onClick={() => reject.mutate()}>Haan, band karein</Button></div>}>
-          <Textarea label="Wajah" required rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Jaise: mareez ke paas pehle se hai, doctor ki likhai saaf nahi" hint="Kam az kam 3 harf" />
+        <Modal open onClose={() => setRejecting(false)} size="md" title={rx.status === 'PARTIALLY_DISPENSED' ? t('Baqi dawai band karein') : t('Nuskha radd karein')}
+          description={rx.status === 'PARTIALLY_DISPENSED' ? t('Jo dawai de chuke wo bill me rahegi; baqi nahi di jayegi.') : t('Koi dawai nahi di jayegi.')}
+          footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setRejecting(false)}>{t('Wapas')}</Button><Button variant="danger" loading={reject.isPending} disabled={reason.trim().length < 3} onClick={() => reject.mutate()}>{t('Haan, band karein')}</Button></div>}>
+          <Textarea label={t('Wajah')} required rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Jaise: mareez ke paas pehle se hai, doctor ki likhai saaf nahi')} hint={t('Kam az kam 3 harf')} />
         </Modal>
       )}
 
@@ -150,35 +151,35 @@ export default function PrescriptionDetailPage() {
         back="/pharmacy/prescriptions"
         title={<span className="font-mono">{rx.prescriptionNumber}</span>}
         chip={rx.type === 'REFILL' ? `${st.label} · Refill` : st.label}
-        subtitle={<>Aaya {when(rx.createdAt)}{rx.verifiedAt && ` · check ${when(rx.verifiedAt)}`}{rx.dispensedAt && ` · poori di ${when(rx.dispensedAt)}`}</>}
+        subtitle={<>{t('Aaya {{createdAt}}{{value}}{{value2}}', { createdAt: when(rx.createdAt), value: rx.verifiedAt ? t(' · check {{verifiedAt}}', { verifiedAt: when(rx.verifiedAt) }) : '', value2: rx.dispensedAt ? t(' · poori di {{dispensedAt}}', { dispensedAt: when(rx.dispensedAt) }) : '' })}</>}
         actions={<>
-          <PrintButton doc={() => rxDoc(rx)} label="Print" size="sm" />
-          {rx.sale && <Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className={heroButton}><Receipt className="h-4 w-4" />Aakhri bill</Link>}
+          <PrintButton doc={() => rxDoc(rx)} label={t('Print')} size="sm" />
+          {rx.sale && <Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className={heroButton}><Receipt className="h-4 w-4" />{t('Aakhri bill')}</Link>}
           {rx.isRefillable && rx.type !== 'REFILL' && refillLeft > 0 && rx.status !== 'REJECTED' && rx.status !== 'PENDING' && (
             <button type="button" className={heroButton} disabled={refill.isPending} onClick={() => refill.mutate()}>
-              {refill.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Repeat className="h-4 w-4" />}Refill ({refillLeft} baqi)
+              {refill.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Repeat className="h-4 w-4" />}{t('Refill ({{refillLeft}} baqi)', { refillLeft })}
             </button>
           )}
           {(rx.status === 'PENDING' || rx.status === 'VERIFIED' || rx.status === 'PARTIALLY_DISPENSED') && (
-            <button type="button" className={heroButton} onClick={() => { setReason(''); setRejecting(true); }}><Ban className="h-4 w-4" />{rx.status === 'PARTIALLY_DISPENSED' ? 'Baqi band' : 'Radd'}</button>
+            <button type="button" className={heroButton} onClick={() => { setReason(''); setRejecting(true); }}><Ban className="h-4 w-4" />{rx.status === 'PARTIALLY_DISPENSED' ? t('Baqi band') : t('Radd')}</button>
           )}
           {rx.status === 'PENDING' && (
             <button type="button" className={heroPrimaryButton} disabled={verify.isPending} onClick={() => verify.mutate()}>
-              {verify.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}Check ho gaya
+              {verify.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}{t('Check ho gaya')}
             </button>
           )}
         </>}
       />
 
       {rx.status === 'PENDING' && (
-        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">Pharmacist nuskha dekh kar "Check ho gaya" dabaye — phir dawai di ja sakti hai.</p>
+        <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">{t('Pharmacist nuskha dekh kar "Check ho gaya" dabaye — phir dawai di ja sakti hai.')}</p>
       )}
-      {rx.rejectionReason && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-900 ring-1 ring-rose-200">Wajah: {rx.rejectionReason}</p>}
+      {rx.rejectionReason && <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-900 ring-1 ring-rose-200">{t('Wajah: {{rejectionReason}}', { rejectionReason: rx.rejectionReason })}</p>}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />Dawaiyan</span>}
-            description={canDispense ? 'Abhi kitni deni hai likhein, batch aur rate dekh lein, phir paisa lein' : undefined}>
+          <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />{t('Dawaiyan')}</span>}
+            description={canDispense ? t('Abhi kitni deni hai likhein, batch aur rate dekh lein, phir paisa lein') : undefined}>
             <ul className="divide-y divide-slate-100">
               {rx.items.map((it) => {
                 const d = draftOf(it);
@@ -190,43 +191,43 @@ export default function PrescriptionDetailPage() {
                   <li key={it.id} className="px-4 py-3 sm:px-5">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-900">{it.medicineName}{it.isSubstituted && <span className="ml-1.5 text-[0.75rem] font-medium text-violet-700">({it.substituteFor} ki jagah)</span>}</p>
+                        <p className="font-semibold text-slate-900">{it.medicineName}{it.isSubstituted && <span className="ms-1.5 text-[0.75rem] font-medium text-violet-700">{t('({{substituteFor}} ki jagah)', { substituteFor: it.substituteFor })}</span>}</p>
                         <p className="text-[0.75rem] text-slate-500">{[it.strength, it.frequency, it.duration, it.dose, it.instructions].filter(Boolean).join(' · ') || '—'}</p>
                       </div>
-                      <div className="text-right text-[0.8125rem]">
-                        <p className="tabular-nums text-slate-700">{Number((it.dispensedQty ?? 0).toFixed(3))} / {it.prescribedQty} {it.unit} di</p>
-                        {rem > 0 ? <p className="font-semibold text-amber-700">{rem} baqi</p> : <p className="inline-flex items-center gap-1 font-semibold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" />Poori</p>}
+                      <div className="text-end text-[0.8125rem]">
+                        <p className="tabular-nums text-slate-700">{t('{{value}} / {{prescribedQty}} {{unit}} di', { value: Number((it.dispensedQty ?? 0).toFixed(3)), prescribedQty: it.prescribedQty, unit: it.unit })}</p>
+                        {rem > 0 ? <p className="font-semibold text-amber-700">{t('{{rem}} baqi', { rem })}</p> : <p className="inline-flex items-center gap-1 font-semibold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" />{t('Poori')}</p>}
                       </div>
                     </div>
                     {canDispense && rem > 0 && (
                       !it.productId && !d.productId ? (
                         <div className="mt-2 rounded-xl bg-slate-50 p-2.5 text-[0.8125rem] text-slate-600">
-                          Stock se nahi juri.
-                          <select value="" onChange={(e) => { const p = byId.get(e.target.value); if (p) setDraft(it, { productId: p.id, price: String(p.price), batchId: '' }); }} className={cn(controlClass(), 'ml-2 h-8 w-auto px-2 text-[0.8125rem]')}>
-                            <option value="">Stock wali dawai chunein…</option>
+                          {t('Stock se nahi juri.')}
+                          <select value="" onChange={(e) => { const p = byId.get(e.target.value); if (p) setDraft(it, { productId: p.id, price: String(p.price), batchId: '' }); }} className={cn(controlClass(), 'ms-2 h-8 w-auto px-2 text-[0.8125rem]')}>
+                            <option value="">{t('Stock wali dawai chunein…')}</option>
                             {catalog.filter((p) => p.name.toLowerCase().includes(it.medicineName.toLowerCase().split(' ')[0] ?? '')).slice(0, 30).map((p) => <option key={p.id} value={p.id}>{p.name} · {formatPKR(p.price)}</option>)}
                           </select>
                         </div>
                       ) : (
                         <div className="mt-2 grid gap-2 sm:grid-cols-[7rem_7rem_minmax(0,1fr)]">
-                          <Input size="sm" label="Abhi dein" inputMode="decimal" value={d.qty} onChange={(e) => setDraft(it, { qty: e.target.value.replace(/[^\d.]/g, '') })}
-                            error={Number(d.qty) > rem + 1e-9 ? `Sirf ${rem}` : undefined} />
-                          <Input size="sm" label={`Rate / ${product?.unit ?? it.unit}`} inputMode="decimal" value={d.price} onChange={(e) => setDraft(it, { price: e.target.value.replace(/[^\d.]/g, '') })} />
-                          <Select size="sm" label="Batch" wrapperClassName="min-w-0" value={d.batchId} onChange={(e) => setDraft(it, { batchId: e.target.value })}>
-                              <option value="">{myBatches.length ? 'Jaldi expire wala pehle (khud)' : 'Batch nahi'}</option>
+                          <Input size="sm" label={t('Abhi dein')} inputMode="decimal" value={d.qty} onChange={(e) => setDraft(it, { qty: e.target.value.replace(/[^\d.]/g, '') })}
+                            error={Number(d.qty) > rem + 1e-9 ? t('Sirf {{rem}}', { rem }) : undefined} />
+                          <Input size="sm" label={t('Rate / {{value}}', { value: product?.unit ?? it.unit })} inputMode="decimal" value={d.price} onChange={(e) => setDraft(it, { price: e.target.value.replace(/[^\d.]/g, '') })} />
+                          <Select size="sm" label={t('Batch')} wrapperClassName="min-w-0" value={d.batchId} onChange={(e) => setDraft(it, { batchId: e.target.value })}>
+                              <option value="">{myBatches.length ? t('Jaldi expire wala pehle (khud)') : t('Batch nahi')}</option>
                               {myBatches.map((b) => {
                                 const exp = b.expiryDate ? new Date(b.expiryDate) : null;
                                 const gone = !!exp && exp.getTime() < Date.now();
-                                return <option key={b.id} value={b.id}>{b.batchNumber} · {Number(b.quantity.toFixed(2))} · {exp ? (gone ? 'EXPIRED ' : 'exp ') + shortDate(b.expiryDate) : 'expiry nahi'}</option>;
+                                return <option key={b.id} value={b.id}>{b.batchNumber} · {Number(b.quantity.toFixed(2))} · {exp ? (gone ? 'EXPIRED ' : 'exp ') + shortDate(b.expiryDate) : t('expiry nahi')}</option>;
                               })}
                           </Select>
                           {(subs.length > 0 || d.productId !== it.productId) && (
-                            <Select size="sm" label="Dawai jo di ja rahi hai" wrapperClassName="sm:col-span-3" value={d.productId} onChange={(e) => { const p = byId.get(e.target.value); setDraft(it, { productId: e.target.value, price: String(p?.price ?? d.price), batchId: '' }); }}>
-                                {it.productId && <option value={it.productId}>{byId.get(it.productId)?.name ?? it.medicineName} (likhi hui){(byId.get(it.productId)?.stock ?? 0) <= 0 ? ' — stock khatam' : ''}</option>}
-                                {subs.map((p) => <option key={p.id} value={p.id}>{p.name} · {formatPKR(p.price)} · same formula</option>)}
+                            <Select size="sm" label={t('Dawai jo di ja rahi hai')} wrapperClassName="sm:col-span-3" value={d.productId} onChange={(e) => { const p = byId.get(e.target.value); setDraft(it, { productId: e.target.value, price: String(p?.price ?? d.price), batchId: '' }); }}>
+                                {it.productId && <option value={it.productId}>{t('{{value}} (likhi hui){{value2}}', { value: byId.get(it.productId)?.name ?? it.medicineName, value2: (byId.get(it.productId)?.stock ?? 0) <= 0 ? t(' — stock khatam') : '' })}</option>}
+                                {subs.map((p) => <option key={p.id} value={p.id}>{t('{{name}} · {{price}} · same formula', { name: p.name, price: formatPKR(p.price) })}</option>)}
                             </Select>
                           )}
-                          {product && product.stock < Number(d.qty) && <p className="text-[0.75rem] font-medium text-rose-600 sm:col-span-3">Shelf par sirf {Number(product.stock.toFixed(2))} {product.unit}</p>}
+                          {product && product.stock < Number(d.qty) && <p className="text-[0.75rem] font-medium text-rose-600 sm:col-span-3">{t('Shelf par sirf {{value}} {{unit}}', { value: Number(product.stock.toFixed(2)), unit: product.unit })}</p>}
                         </div>
                       )
                     )}
@@ -237,19 +238,19 @@ export default function PrescriptionDetailPage() {
             {canDispense && (
               <div className="flex flex-wrap items-end justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-4 py-3 sm:px-5">
                 <div className="flex items-end gap-3">
-                  <Input size="sm" label="Discount (Rs)" inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value.replace(/[^\d.]/g, ''))} wrapperClassName="w-32" />
-                  <div className="pb-1 text-[0.8125rem] text-slate-600">Kul <strong className="text-[1.0625rem] tabular-nums text-slate-900">{formatPKR(total)}</strong>{disc > 0 && <span className="ml-1 text-slate-500">({formatPKR(subtotal)} − {formatPKR(disc)})</span>}</div>
+                  <Input size="sm" label={t('Discount (Rs)')} inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value.replace(/[^\d.]/g, ''))} wrapperClassName="w-32" />
+                  <div className="pb-1 text-[0.8125rem] text-slate-600">{t('Kul')}{' '} <strong className="text-[1.0625rem] tabular-nums text-slate-900">{formatPKR(total)}</strong>{disc > 0 && <span className="ms-1 text-slate-500">({formatPKR(subtotal)} − {formatPKR(disc)})</span>}</div>
                 </div>
-                <Button onClick={startPay} disabled={!lines.length} leftIcon={<Wallet className="h-4 w-4" />}>Paisa lein · dawai dein</Button>
+                <Button onClick={startPay} disabled={!lines.length} leftIcon={<Wallet className="h-4 w-4" />}>{t('Paisa lein · dawai dein')}</Button>
               </div>
             )}
           </Card>
 
           {(rx.diagnosis || rx.notes || rx.imageUrls.length > 0) && (
-            <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><FileText className="h-4 w-4 text-brand-600" />Nuskhe ki baqi baatein</span>}>
+            <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><FileText className="h-4 w-4 text-brand-600" />{t('Nuskhe ki baqi baatein')}</span>}>
               <div className="space-y-2 text-[0.875rem]">
-                {rx.diagnosis && <p><span className="text-slate-500">Bimari: </span>{rx.diagnosis}</p>}
-                {rx.notes && <p><span className="text-slate-500">Note: </span>{rx.notes}</p>}
+                {rx.diagnosis && <p><span className="text-slate-500">{t('Bimari:')}{' '} </span>{rx.diagnosis}</p>}
+                {rx.notes && <p><span className="text-slate-500">{t('Note:')}{' '} </span>{rx.notes}</p>}
                 {rx.imageUrls.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {rx.imageUrls.map((u) => <a key={u} href={u} target="_blank" rel="noreferrer" className="inline-flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200"><img src={u} alt="" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /><ImageIcon className="h-5 w-5 text-slate-400" /></a>)}
@@ -261,31 +262,31 @@ export default function PrescriptionDetailPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />Mareez</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-brand-600" />{t('Mareez')}</span>}>
             <dl className="space-y-1.5 text-[0.875rem]">
-              <div className="flex justify-between gap-2"><dt className="text-slate-500">Naam</dt><dd className="font-semibold">{rx.patientName || '—'}</dd></div>
-              {rx.patientAge != null && <div className="flex justify-between gap-2"><dt className="text-slate-500">Umar</dt><dd>{rx.patientAge} saal</dd></div>}
-              {rx.patientPhone && <div className="flex justify-between gap-2"><dt className="text-slate-500">Phone</dt><dd><a href={`tel:${rx.patientPhone}`} className="inline-flex items-center gap-1 text-brand-700"><Phone className="h-3.5 w-3.5" />{rx.patientPhone}</a></dd></div>}
-              {rx.patientCnic && <div className="flex justify-between gap-2"><dt className="text-slate-500">CNIC</dt><dd className="font-mono">{rx.patientCnic}</dd></div>}
-              {customer && <div className="flex justify-between gap-2 border-t border-slate-100 pt-1.5"><dt className="text-slate-500">Khata baqi</dt><dd className={cn('font-semibold tabular-nums', Number(customer.balance) > 0 ? 'text-amber-700' : 'text-slate-700')}>{formatPKR(Number(customer.balance ?? 0))}</dd></div>}
+              <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Naam')}</dt><dd className="font-semibold">{rx.patientName || '—'}</dd></div>
+              {rx.patientAge != null && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Umar')}</dt><dd>{t('{{patientAge}} saal', { patientAge: rx.patientAge })}</dd></div>}
+              {rx.patientPhone && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Phone')}</dt><dd><a href={`tel:${rx.patientPhone}`} className="inline-flex items-center gap-1 text-brand-700"><Phone className="h-3.5 w-3.5" />{rx.patientPhone}</a></dd></div>}
+              {rx.patientCnic && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('CNIC')}</dt><dd className="font-mono">{rx.patientCnic}</dd></div>}
+              {customer && <div className="flex justify-between gap-2 border-t border-slate-100 pt-1.5"><dt className="text-slate-500">{t('Khata baqi')}</dt><dd className={cn('font-semibold tabular-nums', Number(customer.balance) > 0 ? 'text-amber-700' : 'text-slate-700')}>{formatPKR(Number(customer.balance ?? 0))}</dd></div>}
             </dl>
-            {rx.customerId && <Link to={`/customers/${rx.customerId}`} className="mt-2 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Customer kholein <ExternalLink className="h-3.5 w-3.5" /></Link>}
-            {!rx.customerId && <p className="mt-2 text-[0.75rem] text-slate-500">Walk-in mareez — udhaar ke liye nuskha customer ke saath banayein.</p>}
+            {rx.customerId && <Link to={`/customers/${rx.customerId}`} className="mt-2 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Customer kholein')}{' '} <ExternalLink className="h-3.5 w-3.5" /></Link>}
+            {!rx.customerId && <p className="mt-2 text-[0.75rem] text-slate-500">{t('Walk-in mareez — udhaar ke liye nuskha customer ke saath banayein.')}</p>}
           </Card>
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Stethoscope className="h-4 w-4 text-brand-600" />Doctor</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Stethoscope className="h-4 w-4 text-brand-600" />{t('Doctor')}</span>}>
             <dl className="space-y-1.5 text-[0.875rem]">
-              <div className="flex justify-between gap-2"><dt className="text-slate-500">Naam</dt><dd className="font-semibold">{drName(rx.doctorName) || '—'}</dd></div>
-              {rx.doctorRegNumber && <div className="flex justify-between gap-2"><dt className="text-slate-500">PMDC</dt><dd className="font-mono">{rx.doctorRegNumber}</dd></div>}
-              {rx.doctorSpeciality && <div className="flex justify-between gap-2"><dt className="text-slate-500">Specialist</dt><dd>{rx.doctorSpeciality}</dd></div>}
-              {rx.hospitalName && <div className="flex justify-between gap-2"><dt className="text-slate-500">Hospital</dt><dd>{rx.hospitalName}</dd></div>}
-              <div className="flex justify-between gap-2"><dt className="text-slate-500">Nuskhe ki tareekh</dt><dd>{shortDate(rx.prescriptionDate ?? rx.createdAt)}</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Naam')}</dt><dd className="font-semibold">{drName(rx.doctorName) || '—'}</dd></div>
+              {rx.doctorRegNumber && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('PMDC')}</dt><dd className="font-mono">{rx.doctorRegNumber}</dd></div>}
+              {rx.doctorSpeciality && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Specialist')}</dt><dd>{rx.doctorSpeciality}</dd></div>}
+              {rx.hospitalName && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Hospital')}</dt><dd>{rx.hospitalName}</dd></div>}
+              <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Nuskhe ki tareekh')}</dt><dd>{shortDate(rx.prescriptionDate ?? rx.createdAt)}</dd></div>
             </dl>
           </Card>
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 text-brand-600" />Hisaab</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 text-brand-600" />{t('Hisaab')}</span>}>
             <dl className="space-y-1.5 text-[0.875rem]">
-              <div className="flex justify-between gap-2"><dt className="text-slate-500">Ab tak ki dawai</dt><dd className="font-semibold tabular-nums">{formatPKR(rx.totalAmount)}</dd></div>
-              {rx.sale && <div className="flex justify-between gap-2"><dt className="text-slate-500">Aakhri bill</dt><dd><Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className="font-mono text-brand-700">{rx.sale.saleNumber}</Link>{rx.sale.creditAmount > 0 && <span className="ml-1 text-amber-700">({formatPKR(rx.sale.creditAmount)} udhaar)</span>}</dd></div>}
-              {rx.isRefillable && <div className="flex justify-between gap-2"><dt className="text-slate-500">Refill</dt><dd>{rx.refillsUsed}/{rx.refillsAllowed}{rx.nextRefillDate && ` · agla ${shortDate(rx.nextRefillDate)}`}</dd></div>}
+              <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Ab tak ki dawai')}</dt><dd className="font-semibold tabular-nums">{formatPKR(rx.totalAmount)}</dd></div>
+              {rx.sale && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Aakhri bill')}</dt><dd><Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className="font-mono text-brand-700">{rx.sale.saleNumber}</Link>{rx.sale.creditAmount > 0 && <span className="ms-1 text-amber-700">{t('({{creditAmount}} udhaar)', { creditAmount: formatPKR(rx.sale.creditAmount) })}</span>}</dd></div>}
+              {rx.isRefillable && <div className="flex justify-between gap-2"><dt className="text-slate-500">{t('Refill')}</dt><dd>{rx.refillsUsed}/{rx.refillsAllowed}{rx.nextRefillDate && t(' · agla {{nextRefillDate}}', { nextRefillDate: shortDate(rx.nextRefillDate) })}</dd></div>}
             </dl>
           </Card>
         </div>

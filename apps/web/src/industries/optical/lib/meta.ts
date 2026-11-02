@@ -1,5 +1,6 @@
 /** Optical labels, statuses, lens choices, eye power formatting and small helpers. */
 
+import { t as tr } from '@core/i18n';
 export const OPTICAL_KEYS = {
   orders: 'optical-lens-orders',
   tests: 'optical-eye-tests',
@@ -31,15 +32,15 @@ const pick = (map: Record<string, Meta>, k?: string | null): Meta => map[k ?? ''
 export const REPAIR = 'REPAIR';
 
 const ORDER_STATUS: Record<string, Meta> = {
-  ORDERED: { label: 'Order liya', tone: tone.slate, color: '#64748b' },
-  SENT_TO_LAB: { label: 'Lab gaya', tone: tone.blue, color: '#2563eb' },
-  AT_LAB: { label: 'Lab me', tone: tone.blue, color: '#2563eb' },
-  RECEIVED: { label: 'Lab se aaya', tone: tone.violet, color: '#7c3aed' },
-  QC_PASSED: { label: 'Check ho gaya', tone: tone.violet, color: '#7c3aed' },
-  FITTED: { label: 'Fit ho gaya', tone: tone.teal, color: '#0d9488' },
-  READY: { label: 'Tayyar', tone: tone.green, color: '#16a34a' },
-  DELIVERED: { label: 'De diya', tone: tone.slate, color: '#475569' },
-  CANCELLED: { label: 'Cancel', tone: tone.rose, color: '#e11d48' },
+  ORDERED: { label: tr('Order liya'), tone: tone.slate, color: '#64748b' },
+  SENT_TO_LAB: { label: tr('Lab gaya'), tone: tone.blue, color: '#2563eb' },
+  AT_LAB: { label: tr('Lab me'), tone: tone.blue, color: '#2563eb' },
+  RECEIVED: { label: tr('Lab se aaya'), tone: tone.violet, color: '#7c3aed' },
+  QC_PASSED: { label: tr('Check ho gaya'), tone: tone.violet, color: '#7c3aed' },
+  FITTED: { label: tr('Fit ho gaya'), tone: tone.teal, color: '#0d9488' },
+  READY: { label: tr('Tayyar'), tone: tone.green, color: '#16a34a' },
+  DELIVERED: { label: tr('De diya'), tone: tone.slate, color: '#475569' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.rose, color: '#e11d48' },
 };
 export const orderStatusOf = (s?: string | null) => pick(ORDER_STATUS, s);
 export const isOrderClosed = (s?: string | null) => s === 'DELIVERED' || s === 'CANCELLED';
@@ -48,9 +49,9 @@ export const isOrderReady = (s?: string | null) => s === 'FITTED' || s === 'READ
 /** Next step of an order on the desk: [status, button text]. */
 export function nextOrderStep(status: string, repair: boolean): [string, string] | null {
   switch (status) {
-    case 'ORDERED': return repair ? ['READY', 'Repair ho gayi'] : ['SENT_TO_LAB', 'Lab bhejein'];
-    case 'SENT_TO_LAB': case 'AT_LAB': return ['RECEIVED', 'Lab se aa gaya'];
-    case 'RECEIVED': case 'QC_PASSED': return ['READY', 'Fit karke tayyar'];
+    case 'ORDERED': return repair ? ['READY', tr('Repair ho gayi')] : ['SENT_TO_LAB', tr('Lab bhejein')];
+    case 'SENT_TO_LAB': case 'AT_LAB': return ['RECEIVED', tr('Lab se aa gaya')];
+    case 'RECEIVED': case 'QC_PASSED': return ['READY', tr('Fit karke tayyar')];
     default: return null;
   }
 }
@@ -63,13 +64,13 @@ export const REPAIR_KINDS = ['Pech / screw', 'Nose pad', 'Dandi (temple)', 'Weld
 
 /* ── Eye tests ── */
 const TEST_STATUS: Record<string, Meta> = {
-  SCHEDULED: { label: 'Booked', tone: tone.slate, color: '#64748b' },
-  CONFIRMED: { label: 'Confirm', tone: tone.sky, color: '#0284c7' },
-  IN_PROGRESS: { label: 'Test jaari', tone: tone.amber, color: '#d97706' },
-  COMPLETED: { label: 'Ho gaya', tone: tone.green, color: '#16a34a' },
-  CANCELLED: { label: 'Cancel', tone: tone.rose, color: '#e11d48' },
-  NO_SHOW: { label: 'Nahi aaya', tone: tone.rose, color: '#e11d48' },
-  RESCHEDULED: { label: 'Waqt badla', tone: tone.violet, color: '#7c3aed' },
+  SCHEDULED: { label: tr('Booked'), tone: tone.slate, color: '#64748b' },
+  CONFIRMED: { label: tr('Confirm'), tone: tone.sky, color: '#0284c7' },
+  IN_PROGRESS: { label: tr('Test jaari'), tone: tone.amber, color: '#d97706' },
+  COMPLETED: { label: tr('Ho gaya'), tone: tone.green, color: '#16a34a' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.rose, color: '#e11d48' },
+  NO_SHOW: { label: tr('Nahi aaya'), tone: tone.rose, color: '#e11d48' },
+  RESCHEDULED: { label: tr('Waqt badla'), tone: tone.violet, color: '#7c3aed' },
 };
 export const testStatusOf = (s?: string | null) => pick(TEST_STATUS, s);
 export const TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
@@ -77,17 +78,17 @@ export const COMPLAINTS = ['Door ka nazar nahi aata', 'Parhne me mushkil', 'Sar 
 
 /* ── Prescriptions ── */
 export const RX_TYPES: Array<{ value: string; label: string }> = [
-  { value: 'DISTANCE', label: 'Door ka' },
-  { value: 'READING', label: 'Parhne ka' },
-  { value: 'BIFOCAL', label: 'Bifocal' },
-  { value: 'PROGRESSIVE', label: 'Progressive' },
-  { value: 'COMPUTER', label: 'Computer' },
-  { value: 'MYOPIA', label: 'Myopia (-)' },
-  { value: 'HYPEROPIA', label: 'Hyperopia (+)' },
-  { value: 'ASTIGMATISM', label: 'Cylinder' },
-  { value: 'PRESBYOPIA', label: 'Umar wala (ADD)' },
-  { value: 'DRIVING', label: 'Driving' },
-  { value: 'OTHER', label: 'Doosra' },
+  { value: 'DISTANCE', label: tr('Door ka') },
+  { value: 'READING', label: tr('Parhne ka') },
+  { value: 'BIFOCAL', label: tr('Bifocal') },
+  { value: 'PROGRESSIVE', label: tr('Progressive') },
+  { value: 'COMPUTER', label: tr('Computer') },
+  { value: 'MYOPIA', label: tr('Myopia (-)') },
+  { value: 'HYPEROPIA', label: tr('Hyperopia (+)') },
+  { value: 'ASTIGMATISM', label: tr('Cylinder') },
+  { value: 'PRESBYOPIA', label: tr('Umar wala (ADD)') },
+  { value: 'DRIVING', label: tr('Driving') },
+  { value: 'OTHER', label: tr('Doosra') },
 ];
 export const rxTypeLabel = (v?: string | null) => RX_TYPES.find((t) => t.value === v)?.label ?? (v ? nice(v) : '—');
 
@@ -98,7 +99,7 @@ export interface Power {
   pupilDistance?: number | null;
 }
 
-export const fmtPower = (v?: number | null) => (v == null ? '—' : v === 0 ? 'Plano' : `${v > 0 ? '+' : ''}${v.toFixed(2)}`);
+export const fmtPower = (v?: number | null) => (v == null ? '—' : v === 0 ? tr('Plano') : `${v > 0 ? '+' : ''}${v.toFixed(2)}`);
 
 /** "-1.25 / -0.50 × 180 · ADD +2.00" */
 export function eyeLine(p: Power, side: 'right' | 'left') {
@@ -128,13 +129,13 @@ export function powerErrors(p: Power): Record<string, string> {
     const cyl = p[`${side}Cyl`];
     const axis = p[`${side}Axis`];
     const add = p[`${side}Add`];
-    if (sph != null && (sph < -30 || sph > 30 || !quarter(sph))) e[`${side}Sph`] = '-30 se +30, 0.25 ke qadam';
-    if (cyl != null && (cyl < -10 || cyl > 10 || !quarter(cyl))) e[`${side}Cyl`] = '-10 se +10, 0.25 ke qadam';
-    if (axis != null && (!Number.isInteger(axis) || axis < 0 || axis > 180)) e[`${side}Axis`] = '0 se 180';
-    if (cyl && axis == null) e[`${side}Axis`] = 'CYL ke saath AXIS likhein';
-    if (add && (add < 0.5 || add > 4 || !quarter(add))) e[`${side}Add`] = '+0.50 se +4.00';
+    if (sph != null && (sph < -30 || sph > 30 || !quarter(sph))) e[`${side}Sph`] = tr('-30 se +30, 0.25 ke qadam');
+    if (cyl != null && (cyl < -10 || cyl > 10 || !quarter(cyl))) e[`${side}Cyl`] = tr('-10 se +10, 0.25 ke qadam');
+    if (axis != null && (!Number.isInteger(axis) || axis < 0 || axis > 180)) e[`${side}Axis`] = tr('0 se 180');
+    if (cyl && axis == null) e[`${side}Axis`] = tr('CYL ke saath AXIS likhein');
+    if (add && (add < 0.5 || add > 4 || !quarter(add))) e[`${side}Add`] = tr('+0.50 se +4.00');
   }
-  if (p.pupilDistance != null && (p.pupilDistance < 40 || p.pupilDistance > 80)) e.pupilDistance = '40 se 80 mm';
+  if (p.pupilDistance != null && (p.pupilDistance < 40 || p.pupilDistance > 80)) e.pupilDistance = tr('40 se 80 mm');
   return e;
 }
 

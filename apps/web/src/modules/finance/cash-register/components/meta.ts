@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { CashBreakdown, CashRegister, CashTxType, Denominations, ShiftStatus } from '../api/cash-register.api';
+import { t } from '@core/i18n';
 
 export const CASH_KEY = 'cash-register';
 
@@ -36,50 +37,50 @@ type DiffKind = 'match' | 'short' | 'over';
 export const diffKind = (diff: number): DiffKind => (diff < -TOLERANCE ? 'short' : diff > TOLERANCE ? 'over' : 'match');
 
 export const DIFF: Record<DiffKind, { label: string; icon: LucideIcon; tone: string; color: string }> = {
-  match: { label: 'Barabar', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
-  short: { label: 'Kam (short)', icon: AlertTriangle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
-  over: { label: 'Zyada (over)', icon: TrendingUp, tone: 'bg-sky-50 text-sky-700 ring-sky-200', color: '#0284c7' },
+  match: { label: t('Barabar'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  short: { label: t('Kam (short)'), icon: AlertTriangle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
+  over: { label: t('Zyada (over)'), icon: TrendingUp, tone: 'bg-sky-50 text-sky-700 ring-sky-200', color: '#0284c7' },
 };
 
 export const STATUS_FILTERS: Array<{ value: ShiftStatus; label: string; hint: string; icon: LucideIcon; color: string }> = [
-  { value: 'OPEN', label: 'Khuli', hint: 'Abhi chal rahi hain', icon: CircleDot, color: '#16a34a' },
-  { value: 'CLOSED', label: 'Band', hint: 'Ginti ho chuki', icon: Lock, color: '#475569' },
-  { value: 'SHORT', label: 'Paise kam nikle', hint: 'Short', icon: AlertTriangle, color: '#e11d48' },
-  { value: 'OVER', label: 'Paise zyada nikle', hint: 'Over', icon: TrendingUp, color: '#0284c7' },
-  { value: 'MATCHED', label: 'Barabar', hint: 'Koi farak nahi', icon: CheckCircle2, color: '#16a34a' },
+  { value: 'OPEN', label: t('Khuli'), hint: t('Abhi chal rahi hain'), icon: CircleDot, color: '#16a34a' },
+  { value: 'CLOSED', label: t('Band'), hint: t('Ginti ho chuki'), icon: Lock, color: '#475569' },
+  { value: 'SHORT', label: t('Paise kam nikle'), hint: t('Short'), icon: AlertTriangle, color: '#e11d48' },
+  { value: 'OVER', label: t('Paise zyada nikle'), hint: t('Over'), icon: TrendingUp, color: '#0284c7' },
+  { value: 'MATCHED', label: t('Barabar'), hint: t('Koi farak nahi'), icon: CheckCircle2, color: '#16a34a' },
 ];
 
 export const TX: Record<CashTxType, { label: string; icon: LucideIcon; sign: 1 | -1 | 0; color: string }> = {
-  OPENING: { label: 'Shift khuli', icon: PlayCircle, sign: 0, color: '#475569' },
-  SALE: { label: 'Sale', icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
-  CASH_IN: { label: 'Cash daala', icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
-  CASH_OUT: { label: 'Cash nikala', icon: ArrowUpFromLine, sign: -1, color: '#e11d48' },
-  EXPENSE: { label: 'Kharch', icon: ArrowUpFromLine, sign: -1, color: '#d97706' },
-  REFUND: { label: 'Return', icon: RotateCcw, sign: -1, color: '#ea580c' },
-  CLOSING: { label: 'Shift band', icon: StopCircle, sign: 0, color: '#475569' },
+  OPENING: { label: t('Shift khuli'), icon: PlayCircle, sign: 0, color: '#475569' },
+  SALE: { label: t('Sale'), icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
+  CASH_IN: { label: t('Cash daala'), icon: ArrowDownToLine, sign: 1, color: '#16a34a' },
+  CASH_OUT: { label: t('Cash nikala'), icon: ArrowUpFromLine, sign: -1, color: '#e11d48' },
+  EXPENSE: { label: t('Kharch'), icon: ArrowUpFromLine, sign: -1, color: '#d97706' },
+  REFUND: { label: t('Return'), icon: RotateCcw, sign: -1, color: '#ea580c' },
+  CLOSING: { label: t('Shift band'), icon: StopCircle, sign: 0, color: '#475569' },
 };
 
 /** Quick reasons in the cash in / out dialog. */
 export const REASONS: Record<'CASH_IN' | 'CASH_OUT', string[]> = {
-  CASH_IN: ['Khula paisa (change) daala', 'Malik ne paise diye', 'Bank se nikal kar laye', 'Doosri branch se aaya'],
-  CASH_OUT: ['Malik ne paise liye', 'Bank me jama karwaye', 'Doosri branch ko diye', 'Khula paisa (change) liya'],
+  CASH_IN: [t('Khula paisa (change) daala'), t('Malik ne paise diye'), t('Bank se nikal kar laye'), t('Doosri branch se aaya')],
+  CASH_OUT: [t('Malik ne paise liye'), t('Bank me jama karwaye'), t('Doosri branch ko diye'), t('Khula paisa (change) liya')],
 };
 
 /** Each step of the drawer count, in order; zero rows are hidden except the first and last. */
 export function ledgerRows(c: CashBreakdown): Array<{ label: string; value: number; sign: '+' | '−' | '='; note?: string; keep?: boolean }> {
   return [
-    { label: 'Shift kholte waqt', value: c.openingBalance, sign: '+', keep: true },
-    { label: 'Cash sale', value: c.cashSales, sign: '+', note: `${c.cashSalesCount} bill`, keep: true },
-    { label: 'Booking ki amount', value: c.bookingReceived, sign: '+', note: `${c.bookingReceivedCount} payment` },
-    { label: 'Khata receiving', value: c.khataReceived, sign: '+', note: `${c.khataCount} receiving` },
-    { label: 'Doosri aamdani', value: c.otherIncome ?? 0, sign: '+', note: `${c.otherIncomeCount ?? 0} dafa` },
-    { label: 'Haath se daala', value: c.cashIn, sign: '+', note: `${c.cashInCount} dafa` },
-    { label: 'Haath se nikala', value: c.cashOut, sign: '−', note: `${c.cashOutCount} dafa` },
-    { label: 'Cash kharch', value: c.expenses, sign: '−', note: `${c.expenseCount} kharch` },
-    { label: 'Return me diya', value: c.returns, sign: '−', note: `${c.returnCount} return` },
-    { label: 'Booking return', value: c.bookingRefunds, sign: '−', note: `${c.bookingRefundCount} booking` },
-    { label: 'Maal khareeda (cash)', value: c.purchases, sign: '−', note: `${c.purchaseCount} purchase` },
-    { label: 'Supplier ko diya', value: c.supplierPaid, sign: '−', note: `${c.supplierPaidCount} payment` },
+    { label: t('Shift kholte waqt'), value: c.openingBalance, sign: '+', keep: true },
+    { label: t('Cash sale'), value: c.cashSales, sign: '+', note: t('{{cashSalesCount}} bill', { cashSalesCount: c.cashSalesCount }), keep: true },
+    { label: t('Booking ki amount'), value: c.bookingReceived, sign: '+', note: t('{{bookingReceivedCount}} payment', { bookingReceivedCount: c.bookingReceivedCount }) },
+    { label: t('Khata receiving'), value: c.khataReceived, sign: '+', note: t('{{khataCount}} receiving', { khataCount: c.khataCount }) },
+    { label: t('Doosri aamdani'), value: c.otherIncome ?? 0, sign: '+', note: t('{{value}} dafa', { value: c.otherIncomeCount ?? 0 }) },
+    { label: t('Haath se daala'), value: c.cashIn, sign: '+', note: t('{{cashInCount}} dafa', { cashInCount: c.cashInCount }) },
+    { label: t('Haath se nikala'), value: c.cashOut, sign: '−', note: t('{{cashOutCount}} dafa', { cashOutCount: c.cashOutCount }) },
+    { label: t('Cash kharch'), value: c.expenses, sign: '−', note: t('{{expenseCount}} kharch', { expenseCount: c.expenseCount }) },
+    { label: t('Return me diya'), value: c.returns, sign: '−', note: t('{{returnCount}} return', { returnCount: c.returnCount }) },
+    { label: t('Booking return'), value: c.bookingRefunds, sign: '−', note: t('{{bookingRefundCount}} booking', { bookingRefundCount: c.bookingRefundCount }) },
+    { label: t('Maal khareeda (cash)'), value: c.purchases, sign: '−', note: t('{{purchaseCount}} purchase', { purchaseCount: c.purchaseCount }) },
+    { label: t('Supplier ko diya'), value: c.supplierPaid, sign: '−', note: t('{{supplierPaidCount}} payment', { supplierPaidCount: c.supplierPaidCount }) },
   ];
 }
 
@@ -94,7 +95,7 @@ export const clock = (v: string | Date) => new Date(v).toLocaleTimeString('en-PK
 export function duration(from: string | Date, to?: string | Date | null) {
   const mins = Math.max(0, Math.round(((to ? new Date(to) : new Date()).getTime() - new Date(from).getTime()) / 60_000));
   const h = Math.floor(mins / 60);
-  return h ? `${h} ghante ${mins % 60} min` : `${mins} min`;
+  return h ? t('{{h}} ghante {{value}} min', { h, value: mins % 60 }) : t('{{mins}} min', { mins });
 }
 
 export const signed = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${formatPKR(Math.abs(v))}`;

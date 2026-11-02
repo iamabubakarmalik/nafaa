@@ -12,15 +12,16 @@ import FloristOrdersPage from './pages/FloristOrdersPage';
 import FloristWeddingsPage from './pages/FloristWeddingsPage';
 import FloristSubscriptionsPage from './pages/FloristSubscriptionsPage';
 import FloristFreshnessPage from './pages/FloristFreshnessPage';
+import { t } from '@core/i18n';
 
 export const FloristPack: IndustryPack = {
   id: 'florist',
   name: 'Florist / Flower Shop',
-  shortName: 'Florist',
+  shortName: t('Florist'),
   emoji: '🌸',
   priority: 75,
   description:
-    'Bouquets, wedding contracts, delivery scheduling, freshness tracking, subscriptions, occasion-based orders.',
+    t('Bouquets, wedding contracts, delivery scheduling, freshness tracking, subscriptions, occasion-based orders.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -33,18 +34,18 @@ export const FloristPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Florist',
+      label: t('Florist'),
       icon: Flower2,
       emoji: '🌸',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/florist/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/florist/orders', label: 'Orders', icon: ShoppingBag },
-        { to: '/florist/deliveries', label: 'Today\'s deliveries', icon: Truck },
-        { to: '/florist/weddings', label: 'Wedding contracts', icon: Heart },
-        { to: '/florist/subscriptions', label: 'Subscriptions', icon: Repeat },
-        { to: '/florist/freshness', label: 'Freshness', icon: Sparkles },
+        { to: '/florist/dashboard', label: t('Dashboard'), icon: LayoutDashboard },
+        { to: '/florist/orders', label: t('Orders'), icon: ShoppingBag },
+        { to: '/florist/deliveries', label: t('Today\'s deliveries'), icon: Truck },
+        { to: '/florist/weddings', label: t('Wedding contracts'), icon: Heart },
+        { to: '/florist/subscriptions', label: t('Subscriptions'), icon: Repeat },
+        { to: '/florist/freshness', label: t('Freshness'), icon: Sparkles },
       ],
     },
   ],
@@ -72,19 +73,19 @@ export const FloristPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🌸', group: 'Count' },
-      { value: 'stem', label: 'Stem', hint: '🌹', group: 'Count' },
-      { value: 'bunch', label: 'Bunch', hint: '💐', group: 'Count' },
-      { value: 'dozen', label: 'Dozen', hint: '📦', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
+      { value: 'pcs', label: t('Pieces'), hint: '🌸', group: t('Count') },
+      { value: 'stem', label: t('Stem'), hint: '🌹', group: t('Count') },
+      { value: 'bunch', label: t('Bunch'), hint: '💐', group: t('Count') },
+      { value: 'dozen', label: t('Dozen'), hint: '📦', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'floristFreshnessTracking', label: 'Freshness Tracking', defaultEnabled: true },
-    { key: 'weddingContracts', label: 'Wedding Contracts', defaultEnabled: true },
-    { key: 'floralSubscriptions', label: 'Recurring Subscriptions', defaultEnabled: true },
-    { key: 'floristDeliveryScheduling', label: 'Delivery Time Slots', defaultEnabled: true },
-    { key: 'floristCustomization', label: 'Custom Bouquets', defaultEnabled: true },
+    { key: 'floristFreshnessTracking', label: t('Freshness Tracking'), defaultEnabled: true },
+    { key: 'weddingContracts', label: t('Wedding Contracts'), defaultEnabled: true },
+    { key: 'floralSubscriptions', label: t('Recurring Subscriptions'), defaultEnabled: true },
+    { key: 'floristDeliveryScheduling', label: t('Delivery Time Slots'), defaultEnabled: true },
+    { key: 'floristCustomization', label: t('Custom Bouquets'), defaultEnabled: true },
   ],
 };

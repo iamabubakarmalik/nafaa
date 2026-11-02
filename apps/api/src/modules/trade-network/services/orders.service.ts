@@ -19,6 +19,7 @@ import { DONE_STATUSES, TRADE_STATUSES, deliveredLines, r2, type TradeStatus } f
 import { actorFor, businessCards, linkFor, notify, requirePerm } from '../trade-network.support';
 import { TradeCatalogService } from './catalog.service';
 import { TradeSyncService } from './sync.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class TradeOrdersService {
@@ -47,7 +48,7 @@ export class TradeOrdersService {
     if (!cart.lines.length) throw new BadRequestException(cart.warnings[0] ?? 'Order me koi item nahi');
     const profile = await this.prisma.tradeProfile.findUnique({ where: { tenantId: link.sellerTenantId }, select: { minOrderValue: true } });
     if (profile?.minOrderValue && cart.total + 0.005 < profile.minOrderValue) {
-      throw new BadRequestException(`Kam se kam Order Rs ${Math.round(profile.minOrderValue).toLocaleString('en-PK')} ka hona chahiye`);
+      throw new BadRequestException(apiMessage('Kam se kam Order Rs {{minOrderValue}} ka hona chahiye', { minOrderValue: Math.round(profile.minOrderValue).toLocaleString('en-PK') }));
     }
 
     const id = randomUUID();
@@ -82,7 +83,7 @@ export class TradeOrdersService {
 
     void notify(this.notifications, {
       tenantId: link.sellerTenantId, kind: 'ORDER_NEW', refId: so.id, type: 'NEW_SALE',
-      title: 'Nafaa par naya Order', message: `${buyer?.name ?? 'Customer'} ne Order ${so.orderNumber} bheja — Rs ${r2(so.total).toLocaleString('en-PK')}`,
+      title: 'Nafaa par naya Order', message: apiMessage('{{party}} ne Order {{order}} bheja — Rs {{amount}}', { party: buyer?.name ?? 'Customer', order: so.orderNumber, amount: r2(so.total).toLocaleString('en-PK') }),
       link: '/distribution/orders?status=BOOKED',
     });
     return { order: await this.detail(user, id), duplicate: booked.duplicate, warnings: booked.warnings };
@@ -172,7 +173,7 @@ export class TradeOrdersService {
     const buyer = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId)?.name ?? 'Customer';
     void notify(this.notifications, {
       tenantId: t.sellerTenantId, kind: 'ORDER_CANCELLED_BY_BUYER', refId: t.salesOrderId, type: 'WARNING',
-      title: 'Order wapas liya gaya', message: `${buyer} ne Order ${t.orderNumber ?? ''} wapas le liya`, link: '/distribution/orders?status=BOOKED',
+      title: 'Order wapas liya gaya', message: apiMessage('{{party}} ne Order {{order}} wapas le liya', { party: buyer, order: t.orderNumber ?? '' }), link: '/distribution/orders?status=BOOKED',
     });
     return this.detail(user, id);
   }

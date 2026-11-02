@@ -14,6 +14,7 @@ import { useMeatOps } from './useMeatOps';
 import {
   MeatHalal, MeatLivestock, MeatOrders, MeatSubscriptions, meatKpis, useMeatAttention, useMeatMoneyTiles,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/meat-products/${id}`;
 
@@ -23,44 +24,44 @@ function useMeatActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
-    { to: '/meat/rates', icon: Gauge, label: 'Aaj ka rate', hint: 'Rate aur bacha maal' },
-    { to: '/meat/weight-orders/new', icon: Weight, label: 'Naya order', hint: 'Wazan se order' },
-    { to: '/meat/weight-orders', icon: Package, label: 'Orders', hint: orders.late.length ? `${orders.late.length} late` : `${orders.open.length} chaalu` },
-    { to: '/meat/live-animals', icon: Heart, label: 'Zinda janwar', hint: `${livestock.alive} janwar` },
-    { to: '/meat/slaughter', icon: ShieldCheck, label: 'Zabiha log', hint: 'Halal record' },
-    { to: '/meat/cutting', icon: Scissors, label: 'Cutting', hint: cutting.open ? `${cutting.open} chal rahi` : 'Naya kaam' },
-    { to: '/meat/subscriptions', icon: CalendarClock, label: 'Subscriptions', hint: `${subs.active} chaalu` },
-    { to: '/meat/qurbani', icon: Beef, label: 'Qurbani', hint: `${totals.qurbani} booking` },
-    { to: '/meat/wholesale', icon: Building2, label: 'Wholesale', hint: `${totals.wholesale} accounts` },
-    { to: '/meat-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
-    { to: '/meat/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('Counter'), hint: t('Sale karein') },
+    { to: '/meat/rates', icon: Gauge, label: t('Aaj ka rate'), hint: t('Rate aur bacha maal') },
+    { to: '/meat/weight-orders/new', icon: Weight, label: t('Naya order'), hint: t('Wazan se order') },
+    { to: '/meat/weight-orders', icon: Package, label: t('Orders'), hint: orders.late.length ? t('{{count}} late', { count: orders.late.length }) : t('{{count}} chaalu', { count: orders.open.length }) },
+    { to: '/meat/live-animals', icon: Heart, label: t('Zinda janwar'), hint: t('{{alive}} janwar', { alive: livestock.alive }) },
+    { to: '/meat/slaughter', icon: ShieldCheck, label: t('Zabiha log'), hint: t('Halal record') },
+    { to: '/meat/cutting', icon: Scissors, label: t('Cutting'), hint: cutting.open ? t('{{open}} chal rahi', { open: cutting.open }) : t('Naya kaam') },
+    { to: '/meat/subscriptions', icon: CalendarClock, label: t('Subscriptions'), hint: t('{{active}} chaalu', { active: subs.active }) },
+    { to: '/meat/qurbani', icon: Beef, label: t('Qurbani'), hint: t('{{qurbani}} booking', { qurbani: totals.qurbani }) },
+    { to: '/meat/wholesale', icon: Building2, label: t('Wholesale'), hint: t('{{wholesale}} accounts', { wholesale: totals.wholesale }) },
+    { to: '/meat-products/new', icon: Plus, label: t('Nayi cheez'), hint: t('Maal me daalein') },
+    { to: '/meat/products', icon: Package, label: t('Maal'), hint: t('{{value}} cheezein', { value: s?.totalProducts ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const meatDashboard = createDashboard({
-  label: 'Meat',
+  label: t('Meat'),
   productPath,
   openFrom: 6,
-  primaryAction: { to: '/pos', label: 'Counter', icon: ShoppingCart },
+  primaryAction: { to: '/pos', label: t('Counter'), icon: ShoppingCart },
   kpis: meatKpis,
   defaultKpis: ['meat-orders', 'meat-animals', 'meat-halal', 'sales', 'profit', 'cash', 'month', 'low-stock'],
   useAttention: useMeatAttention,
   widgets: [
-    { id: 'meat-orders', title: 'Wazan wale order', description: 'Chaalu order, dene ke waqt ke hisaab se', size: 'half', sizes: ANY_SIZE, Component: MeatOrders },
-    { id: 'meat-livestock', title: 'Zinda janwar', description: 'Baara me janwar, type aur un par cost', size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
+    { id: 'meat-orders', title: t('Wazan wale order'), description: t('Chaalu order, dene ke waqt ke hisaab se'), size: 'half', sizes: ANY_SIZE, Component: MeatOrders },
+    { id: 'meat-livestock', title: t('Zinda janwar'), description: t('Baara me janwar, type aur un par cost'), size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
   ],
   lateWidgets: [
-    { id: 'meat-halal', title: 'Halal record', description: '30 din me halal zabiha, certificate aur vet check', size: 'third', sizes: ['third', 'half'], Component: MeatHalal },
-    { id: 'meat-subscriptions', title: 'Subscription delivery', description: 'Agle 3 din ki pakki delivery', size: 'third', sizes: ANY_SIZE, Component: MeatSubscriptions },
+    { id: 'meat-halal', title: t('Halal record'), description: t('30 din me halal zabiha, certificate aur vet check'), size: 'third', sizes: ['third', 'half'], Component: MeatHalal },
+    { id: 'meat-subscriptions', title: t('Subscription delivery'), description: t('Agle 3 din ki pakki delivery'), size: 'third', sizes: ANY_SIZE, Component: MeatSubscriptions },
   ],
   useQuickActions: useMeatActions,
   moneyMap: { useExtraTiles: useMeatMoneyTiles, productsPath: '/meat/products' },
   guide: [
-    { icon: Weight, title: 'Wazan wale order', text: 'Har order kab dena hai, kitne kilo hai aur kitna paisa baqi hai — late order laal me upar aata hai.' },
-    { icon: ShieldCheck, title: 'Janwar aur halal record', text: 'Baara me kitne janwar hain, un par kitna expense hua, aur har zabiha ka halal record — sab ek jagah.' },
+    { icon: Weight, title: t('Wazan wale order'), text: t('Har order kab dena hai, kitne kilo hai aur kitna paisa baqi hai — late order laal me upar aata hai.') },
+    { icon: ShieldCheck, title: t('Janwar aur halal record'), text: t('Baara me kitne janwar hain, un par kitna expense hua, aur har zabiha ka halal record — sab ek jagah.') },
   ],
 });

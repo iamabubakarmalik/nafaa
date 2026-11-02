@@ -19,6 +19,7 @@ import { NafaaAiMark } from './NafaaAiMark';
 import { WhatsAppGlyph } from './WhatsAppGlyph';
 import { speak, speechOutputSupported, useVoiceStore } from '../voice';
 import type { ChatMessage } from '../store';
+import { t as tr } from '@core/i18n';
 
 const action = 'inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40';
 
@@ -44,7 +45,7 @@ function Stamp({ iso, align }: { iso: string; align: 'left' | 'right' }) {
   const t = timeOf(iso);
   return (
     <time dateTime={iso} title={t.full}
-      className={cn('block text-[0.625rem] text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100', align === 'right' && 'text-right')}>
+      className={cn('block text-[0.625rem] text-slate-400 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100', align === 'right' && 'text-end')}>
       {t.short}
     </time>
   );
@@ -70,13 +71,13 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
     return (
       <div className="group flex justify-end gap-1">
         {canEdit && (
-          <button type="button" className={cn(action, 'mt-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100')} onClick={onEdit} aria-label="Sawal badlein (↑)" title="Sawal badlein (↑)">
+          <button type="button" className={cn(action, 'mt-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100')} onClick={onEdit} aria-label={tr('Sawal badlein (↑)')} title={tr('Sawal badlein (↑)')}>
             <Pencil className="h-3.5 w-3.5" />
           </button>
         )}
         <div className="max-w-[85%]">
-          <div className="whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-brand-600 px-3.5 py-2 text-[0.875rem] text-brand-fg">
-            {m.via === 'voice' && <Mic className="mr-1 inline h-3 w-3 opacity-80" aria-label="Awaaz se" />}
+          <div className="whitespace-pre-wrap break-words rounded-2xl rounded-ee-md bg-brand-600 px-3.5 py-2 text-[0.875rem] text-brand-fg">
+            {m.via === 'voice' && <Mic className="me-1 inline h-3 w-3 opacity-80" aria-label={tr('Awaaz se')} />}
             {m.content}
           </div>
           <Stamp iso={m.createdAt} align="right" />
@@ -91,7 +92,7 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error('Copy nahi ho saka');
+      toast.error(tr('Copy nahi ho saka'));
     }
   };
   const share = () => window.open(`https://wa.me/?text=${encodeURIComponent(plainAnswer(m))}`, '_blank', 'noopener');
@@ -114,7 +115,7 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
                 <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-500 [animation-delay:-0.1s]" />
                 <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-500" />
               </span>
-              {m.status ?? 'Soch raha hoon…'}
+              {m.status ?? tr('Soch raha hoon…')}
             </p>
           )}
           {m.content && <AiMarkdown text={m.content} />}
@@ -124,7 +125,7 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
           <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-800" role="alert">
             <p>{m.error.message}</p>
             {retryable && (
-              <Button size="xs" variant="secondary" onClick={onRetry} disabled={streaming} leftIcon={<RefreshCw className="h-3 w-3" />}>Dobara koshish</Button>
+              <Button size="xs" variant="secondary" onClick={onRetry} disabled={streaming} leftIcon={<RefreshCw className="h-3 w-3" />}>{tr('Dobara koshish')}</Button>
             )}
           </div>
         )}
@@ -135,7 +136,7 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
           <div className="flex flex-wrap gap-2">
             {primary.map((l) => (
               <Button key={`${l.to}:${l.label}`} size="sm" onClick={() => openLink(l)} rightIcon={<ArrowUpRight className="h-3.5 w-3.5" />}>
-                {l.label || 'Kholein'}
+                {l.label || tr('Kholein')}
               </Button>
             ))}
           </div>
@@ -152,39 +153,39 @@ export function AiMessageItem({ m, isLast, streaming, canRegenerate, canEdit, on
         )}
         {done && (
           <div className="flex items-center gap-0.5">
-            <button type="button" className={action} onClick={copy} aria-label="Copy" title="Copy">
+            <button type="button" className={action} onClick={copy} aria-label={tr('Copy')} title={tr('Copy')}>
               {copied ? <Check className="h-3.5 w-3.5 text-brand-600" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
             {speechOutputSupported() && (
               <button type="button" className={cn(action, speaking && 'bg-brand-50 text-brand-700')} onClick={() => speak(m.id, m.content)}
-                aria-pressed={speaking} aria-label={speaking ? 'Sunna band karein' : 'Sunein'} title={speaking ? 'Sunna band karein' : 'Sunein'}>
+                aria-pressed={speaking} aria-label={speaking ? tr('Sunna band karein') : tr('Sunein')} title={speaking ? tr('Sunna band karein') : tr('Sunein')}>
                 {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
               </button>
             )}
-            <button type="button" className={action} onClick={share} aria-label="WhatsApp par bhejein" title="WhatsApp par bhejein">
+            <button type="button" className={action} onClick={share} aria-label={tr('WhatsApp par bhejein')} title={tr('WhatsApp par bhejein')}>
               <WhatsAppGlyph className="h-3.5 w-3.5" />
             </button>
             <button type="button" className={cn(action, m.feedback === 1 && 'text-brand-600')} disabled={!m.saved}
-              onClick={() => onFeedback(m.feedback === 1 ? 0 : 1)} aria-pressed={m.feedback === 1} aria-label="Acha jawab" title="Acha jawab">
+              onClick={() => onFeedback(m.feedback === 1 ? 0 : 1)} aria-pressed={m.feedback === 1} aria-label={tr('Acha jawab')} title={tr('Acha jawab')}>
               <ThumbsUp className="h-3.5 w-3.5" />
             </button>
             <button type="button" className={cn(action, m.feedback === -1 && 'text-rose-600')} disabled={!m.saved}
-              onClick={() => onFeedback(m.feedback === -1 ? 0 : -1)} aria-pressed={m.feedback === -1} aria-label="Theek nahi" title="Theek nahi">
+              onClick={() => onFeedback(m.feedback === -1 ? 0 : -1)} aria-pressed={m.feedback === -1} aria-label={tr('Theek nahi')} title={tr('Theek nahi')}>
               <ThumbsDown className="h-3.5 w-3.5" />
             </button>
             {isLast && canRegenerate && (
-              <button type="button" className={action} onClick={onRegenerate} aria-label="Dobara jawab" title="Dobara jawab">
+              <button type="button" className={action} onClick={onRegenerate} aria-label={tr('Dobara jawab')} title={tr('Dobara jawab')}>
                 <RefreshCw className="h-3.5 w-3.5" />
               </button>
             )}
-            <span className="ml-1"><Stamp iso={m.createdAt} align="left" /></span>
+            <span className="ms-1"><Stamp iso={m.createdAt} align="left" /></span>
           </div>
         )}
         {isLast && !m.pending && !streaming && m.suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" aria-label="Aage poochein">
+          <div className="flex flex-wrap gap-1.5" aria-label={tr('Aage poochein')}>
             {m.suggestions.map((q) => (
               <button key={q} type="button" onClick={() => onAsk(q)}
-                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-left text-[0.75rem] text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-start text-[0.75rem] text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                 {q}
               </button>
             ))}

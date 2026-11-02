@@ -19,6 +19,7 @@ import { salonServicesApi, type SalonServiceInput, type ServiceCategory } from '
 import { CardTitle } from '../components/ui';
 import { CATEGORIES, SALON_KEYS, apiError, minutes, opt } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 interface Draft {
   name: string; code: string; category: ServiceCategory; description: string; price: string; discountPrice: string; costPrice: string;
@@ -61,13 +62,13 @@ export default function SalonServiceWizardPage() {
   const costP = num(d.costPrice);
   const pct = num(d.commissionPct);
   const errors = {
-    name: d.name.trim().length < 2 ? 'Service ka naam likhein' : undefined,
-    price: d.price === '' || !(price >= 0) ? 'Rate likhein' : undefined,
-    discountPrice: disc != null && (disc < 0 || disc >= price) ? 'Discount rate asal rate se kam ho' : undefined,
-    costPrice: costP != null && costP < 0 ? 'Cost sahi likhein' : undefined,
-    durationMinutes: !(Number(d.durationMinutes) >= 5) ? 'Kam az kam 5 minute' : undefined,
-    commissionPct: pct != null && (pct < 0 || pct > 100) ? '0 se 100 tak' : undefined,
-    forWho: !d.forMen && !d.forWomen && !d.forKids ? 'Kam az kam ek chunein' : undefined,
+    name: d.name.trim().length < 2 ? tr('Service ka naam likhein') : undefined,
+    price: d.price === '' || !(price >= 0) ? tr('Rate likhein') : undefined,
+    discountPrice: disc != null && (disc < 0 || disc >= price) ? tr('Discount rate asal rate se kam ho') : undefined,
+    costPrice: costP != null && costP < 0 ? tr('Cost sahi likhein') : undefined,
+    durationMinutes: !(Number(d.durationMinutes) >= 5) ? tr('Kam az kam 5 minute') : undefined,
+    commissionPct: pct != null && (pct < 0 || pct > 100) ? tr('0 se 100 tak') : undefined,
+    forWho: !d.forMen && !d.forWomen && !d.forKids ? tr('Kam az kam ek chunein') : undefined,
   };
   const invalid = Object.values(errors).some(Boolean);
 
@@ -84,10 +85,10 @@ export default function SalonServiceWizardPage() {
     onSuccess: (s) => {
       qc.invalidateQueries({ queryKey: [SALON_KEYS.services] });
       qc.invalidateQueries({ queryKey: ['products-for-pos'] });
-      toast.success(editing ? `${s.name} save ho gayi` : `${s.name} ban gayi — ab counter aur booking me hai`);
+      toast.success(editing ? tr('{{name}} save ho gayi', { name: s.name }) : tr('{{name}} ban gayi — ab counter aur booking me hai', { name: s.name }));
       navigate(`/salon-services/${s.id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
     onSettled: () => { lock.current = false; },
   });
   const submit = () => {
@@ -115,39 +116,39 @@ export default function SalonServiceWizardPage() {
     <PageShell>
       <PageHero
         back="/salon/services"
-        backLabel="Services par wapas"
-        title={editing ? `${q.data?.name ?? 'Service'} — badlein` : 'Nayi service'}
-        subtitle="Rate, waqt aur commission — counter aur booking yahin se lete hain"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        backLabel={tr('Services par wapas')}
+        title={editing ? tr('{{value}} — badlein', { value: q.data?.name ?? 'Service' }) : tr('Nayi service')}
+        subtitle={tr('Rate, waqt aur commission — counter aur booking yahin se lete hain')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>}
         stats={[
-          { label: 'Customer dega', value: formatPKR(Number.isFinite(charged) ? charged : 0) },
-          { label: 'Waqt', value: minutes(Number(d.durationMinutes) || 0) },
-          { label: 'Dukaan ko bachega', value: formatPKR(profit), hint: 'Cost aur commission ke baad' },
+          { label: tr('Customer dega'), value: formatPKR(Number.isFinite(charged) ? charged : 0) },
+          { label: tr('Waqt'), value: minutes(Number(d.durationMinutes) || 0) },
+          { label: tr('Dukaan ko bachega'), value: formatPKR(profit), hint: tr('Cost aur commission ke baad') },
         ]}
       />
-      {!can.catalog && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Service badalne ke liye "Products edit" ki permission chahiye. Aap sirf dekh sakte hain.</p>}
+      {!can.catalog && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{tr('Service badalne ke liye "Products edit" ki permission chahiye. Aap sirf dekh sakte hain.')}</p>}
 
       <fieldset disabled={!can.catalog} className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<CardTitle icon={Scissors}>Service</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Scissors}>{tr('Service')}</CardTitle>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Naam" required value={d.name} onChange={(e) => set('name', e.target.value)} placeholder="Hair cut (gents)" maxLength={120} error={err('name')} hint="Bill aur booking par yahi chhapta hai" />
-              <Select label="Category" value={d.category} onChange={(e) => set('category', e.target.value as ServiceCategory)} options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))} hint="Counter par isi se groups bante hain" />
-              <Input label="Code" value={d.code} onChange={(e) => set('code', e.target.value)} placeholder="HC1" maxLength={40} hint="Marzi hai — jaldi dhoondne ke liye" />
-              <Input label="Tarteeb" inputMode="numeric" value={d.displayOrder} onChange={(e) => set('displayOrder', e.target.value.replace(/\D/g, ''))} hint="Chhota number counter par pehle" />
+              <Input label={tr('Naam')} required value={d.name} onChange={(e) => set('name', e.target.value)} placeholder={tr('Hair cut (gents)')} maxLength={120} error={err('name')} hint={tr('Bill aur booking par yahi chhapta hai')} />
+              <Select label={tr('Category')} value={d.category} onChange={(e) => set('category', e.target.value as ServiceCategory)} options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))} hint={tr('Counter par isi se groups bante hain')} />
+              <Input label={tr('Code')} value={d.code} onChange={(e) => set('code', e.target.value)} placeholder={tr('HC1')} maxLength={40} hint={tr('Marzi hai — jaldi dhoondne ke liye')} />
+              <Input label={tr('Tarteeb')} inputMode="numeric" value={d.displayOrder} onChange={(e) => set('displayOrder', e.target.value.replace(/\D/g, ''))} hint={tr('Chhota number counter par pehle')} />
             </div>
-            <Textarea wrapperClassName="mt-3" label="Tafseel" value={d.description} onChange={(e) => set('description', e.target.value)} rows={2} maxLength={2000} placeholder="Wash + cut + blow dry" hint="Marzi hai" />
+            <Textarea wrapperClassName="mt-3" label={tr('Tafseel')} value={d.description} onChange={(e) => set('description', e.target.value)} rows={2} maxLength={2000} placeholder={tr('Wash + cut + blow dry')} hint={tr('Marzi hai')} />
           </Card>
 
-          <Card className="rounded-2xl" title={<CardTitle icon={Wallet}>Rate aur Cost</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Wallet}>{tr('Rate aur Cost')}</CardTitle>}>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Input label="Rate" required inputMode="decimal" value={d.price} onChange={(e) => set('price', e.target.value.replace(/[^\d.]/g, ''))} placeholder="800" error={err('price')} hint="Rate list ka rate" />
-              <Input label="Discount rate" inputMode="decimal" value={d.discountPrice} onChange={(e) => set('discountPrice', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" error={err('discountPrice')} hint="Ho to counter yahi lagata hai" />
-              <Input label="Dukaan ki Cost" inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" error={err('costPrice')} hint="Bijli, towel waghera. Colour jaisi cheezein bill par 'Istemal' me alag" />
+              <Input label={tr('Rate')} required inputMode="decimal" value={d.price} onChange={(e) => set('price', e.target.value.replace(/[^\d.]/g, ''))} placeholder="800" error={err('price')} hint={tr('Rate list ka rate')} />
+              <Input label={tr('Discount rate')} inputMode="decimal" value={d.discountPrice} onChange={(e) => set('discountPrice', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" error={err('discountPrice')} hint={tr('Ho to counter yahi lagata hai')} />
+              <Input label={tr('Dukaan ki Cost')} inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" error={err('costPrice')} hint={tr('Bijli, towel waghera. Colour jaisi cheezein bill par \'Istemal\' me alag')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<CardTitle icon={Clock}>Waqt</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Clock}>{tr('Waqt')}</CardTitle>}>
             <div className="space-y-3">
               <div className="flex flex-wrap gap-1.5">
                 {TIMES.map((t) => (
@@ -156,40 +157,40 @@ export default function SalonServiceWizardPage() {
                 ))}
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Kitne minute" required inputMode="numeric" value={d.durationMinutes} onChange={(e) => set('durationMinutes', e.target.value.replace(/\D/g, ''))} error={err('durationMinutes')} hint="Booking ka khatam hone ka time isi se" />
-                <Input label="Pehle tayyari (min)" inputMode="numeric" value={d.bufferBefore} onChange={(e) => set('bufferBefore', e.target.value.replace(/\D/g, ''))} hint="Chair saaf, saman" />
-                <Input label="Baad me (min)" inputMode="numeric" value={d.bufferAfter} onChange={(e) => set('bufferAfter', e.target.value.replace(/\D/g, ''))} hint="Agli booking se pehle gap" />
+                <Input label={tr('Kitne minute')} required inputMode="numeric" value={d.durationMinutes} onChange={(e) => set('durationMinutes', e.target.value.replace(/\D/g, ''))} error={err('durationMinutes')} hint={tr('Booking ka khatam hone ka time isi se')} />
+                <Input label={tr('Pehle tayyari (min)')} inputMode="numeric" value={d.bufferBefore} onChange={(e) => set('bufferBefore', e.target.value.replace(/\D/g, ''))} hint={tr('Chair saaf, saman')} />
+                <Input label={tr('Baad me (min)')} inputMode="numeric" value={d.bufferAfter} onChange={(e) => set('bufferAfter', e.target.value.replace(/\D/g, ''))} hint={tr('Agli booking se pehle gap')} />
               </div>
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<CardTitle icon={Percent}>Stylist commission</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Percent}>{tr('Stylist commission')}</CardTitle>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Commission %" inputMode="decimal" value={d.commissionPct} onChange={(e) => set('commissionPct', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" error={err('commissionPct')} />
-              <Input label="Ya fixed Rs" inputMode="decimal" value={d.commissionFixed} onChange={(e) => set('commissionFixed', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" />
+              <Input label={tr('Commission %')} inputMode="decimal" value={d.commissionPct} onChange={(e) => set('commissionPct', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" error={err('commissionPct')} />
+              <Input label={tr('Ya fixed Rs')} inputMode="decimal" value={d.commissionFixed} onChange={(e) => set('commissionFixed', e.target.value.replace(/[^\d.]/g, ''))} placeholder="—" />
             </div>
-            <p className="mt-2 text-[0.75rem] text-slate-500">Khali chhorein to har stylist ka apna rate lagta hai (Staff page). Package session par list rate par commission banti hai.</p>
+            <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Khali chhorein to har stylist ka apna rate lagta hai (Staff page). Package session par list rate par commission banti hai.')}</p>
           </Card>
 
-          <Card className="rounded-2xl" title={<CardTitle icon={Sparkles}>Kis ke liye aur counter</CardTitle>}>
+          <Card className="rounded-2xl" title={<CardTitle icon={Sparkles}>{tr('Kis ke liye aur counter')}</CardTitle>}>
             <div className="space-y-2">
               <div className="flex flex-wrap gap-4">
-                <Checkbox label="Mard" checked={d.forMen} onChange={(e) => set('forMen', e.target.checked)} />
-                <Checkbox label="Khawateen" checked={d.forWomen} onChange={(e) => set('forWomen', e.target.checked)} />
-                <Checkbox label="Bachay" checked={d.forKids} onChange={(e) => set('forKids', e.target.checked)} />
+                <Checkbox label={tr('Mard')} checked={d.forMen} onChange={(e) => set('forMen', e.target.checked)} />
+                <Checkbox label={tr('Khawateen')} checked={d.forWomen} onChange={(e) => set('forWomen', e.target.checked)} />
+                <Checkbox label={tr('Bachay')} checked={d.forKids} onChange={(e) => set('forKids', e.target.checked)} />
               </div>
               {tried && errors.forWho && <p className="text-[0.75rem] text-rose-600">{errors.forWho}</p>}
-              <Switch label="Popular" description="Counter par sitara aur upar" checked={d.isPopular} onChange={(e) => set('isPopular', e.target.checked)} />
-              <Switch label="Khaas (featured)" description="Rate list me sab se pehle" checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
-              <Switch label="Chalu" description="Band ho to counter aur booking me nahi aati, history rehti hai" checked={d.isActive} onChange={(e) => set('isActive', e.target.checked)} />
+              <Switch label={tr('Popular')} description={tr('Counter par sitara aur upar')} checked={d.isPopular} onChange={(e) => set('isPopular', e.target.checked)} />
+              <Switch label={tr('Khaas (featured)')} description={tr('Rate list me sab se pehle')} checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
+              <Switch label={tr('Chalu')} description={tr('Band ho to counter aur booking me nahi aati, history rehti hai')} checked={d.isActive} onChange={(e) => set('isActive', e.target.checked)} />
             </div>
           </Card>
 
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => navigate(-1)}>Wapas</Button>
-            <Button fullWidth size="lg" loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : 'Service banayein'}</Button>
+            <Button variant="secondary" onClick={() => navigate(-1)}>{tr('Wapas')}</Button>
+            <Button fullWidth size="lg" loading={save.isPending} onClick={submit}>{editing ? tr('Save karein') : tr('Service banayein')}</Button>
           </div>
         </div>
       </fieldset>

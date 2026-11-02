@@ -19,6 +19,7 @@ import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryCon
 import { garmentProductsApi, type GarmentMeta } from '../api/products.api';
 import { reservationsApi } from '../api/reservations.api';
 import { HOLD_KEY, META_KEY, garmentLabel, genderLabel, r2 } from '../components/meta';
+import { t } from '@core/i18n';
 
 const KIDS = ['BOYS', 'GIRLS', 'KIDS', 'BABY'];
 
@@ -45,10 +46,10 @@ function useGarmentsCatalog() {
       // Sizes are checked one by one when picked; a plain product sells only what is not held.
       stock: it.hasVariants ? it.stock : Math.max(r2(it.stock - onHold), 0),
       badges: [
-        ...(g?.isOnSale ? [{ label: 'Sale', tone: 'danger' as const, icon: BadgePercent }] : []),
-        ...(g?.isNewArrival ? [{ label: 'Naya', tone: 'info' as const, icon: Sparkles }] : []),
+        ...(g?.isOnSale ? [{ label: t('Sale'), tone: 'danger' as const, icon: BadgePercent }] : []),
+        ...(g?.isNewArrival ? [{ label: t('Naya'), tone: 'info' as const, icon: Sparkles }] : []),
         ...(g?.isFabricOnly ? [{ label: it.unit, tone: 'neutral' as const, icon: Ruler }] : []),
-        ...(onHold ? [{ label: `${onHold} hold`, tone: 'warning' as const, icon: Bookmark }] : []),
+        ...(onHold ? [{ label: t('{{onHold}} hold', { onHold }), tone: 'warning' as const, icon: Bookmark }] : []),
       ],
       subline: g ? [genderLabel(g.gender) !== '—' ? genderLabel(g.gender) : null, g.categoryType && g.categoryType !== 'FABRIC' ? garmentLabel(g.categoryType) : null].filter(Boolean).join(' · ') || undefined : undefined,
       searchText: [it.searchText, g?.styleCode, g?.categoryType ? garmentLabel(g.categoryType) : null].filter(Boolean).join(' '),
@@ -61,12 +62,12 @@ function useGarmentsCatalog() {
 
 const meta = (i: PosItem) => i.meta?.garment as GarmentMeta | undefined;
 const filters: PosFilter[] = [
-  { id: 'men', label: 'Gents', match: (i) => meta(i)?.gender === 'MEN' },
-  { id: 'women', label: 'Ladies', match: (i) => meta(i)?.gender === 'WOMEN' },
-  { id: 'kids', label: 'Bachay', match: (i) => KIDS.includes(meta(i)?.gender ?? '') },
-  { id: 'sale', label: 'Sale', icon: BadgePercent, match: (i) => !!meta(i)?.isOnSale },
-  { id: 'new', label: 'Naya maal', icon: Sparkles, match: (i) => !!meta(i)?.isNewArrival },
-  { id: 'fabric', label: 'Unstitched', icon: Ruler, match: (i) => !!meta(i)?.isFabricOnly },
+  { id: 'men', label: t('Gents'), match: (i) => meta(i)?.gender === 'MEN' },
+  { id: 'women', label: t('Ladies'), match: (i) => meta(i)?.gender === 'WOMEN' },
+  { id: 'kids', label: t('Bachay'), match: (i) => KIDS.includes(meta(i)?.gender ?? '') },
+  { id: 'sale', label: t('Sale'), icon: BadgePercent, match: (i) => !!meta(i)?.isOnSale },
+  { id: 'new', label: t('Naya maal'), icon: Sparkles, match: (i) => !!meta(i)?.isNewArrival },
+  { id: 'fabric', label: t('Unstitched'), icon: Ruler, match: (i) => !!meta(i)?.isFabricOnly },
 ];
 
 /** Variant products checked this session for units kept on the product row. */
@@ -74,12 +75,12 @@ const splitChecked = new Set<string>();
 
 export const garmentsPos: PosIndustryConfig = {
   id: 'garments',
-  label: 'Garments',
+  label: t('Garments'),
   useCatalog: useGarmentsCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, article code ya size ka barcode scan karein',
+  searchHint: t('Naam, article code ya size ka barcode scan karein'),
   receiptFooter: 'Badalne (exchange) ke liye yeh bill saath laayein.',
   beforeAdd: (item, opts, api) => {
     const onHold = Number(item.meta?.onHold ?? 0);
@@ -93,13 +94,13 @@ export const garmentsPos: PosIndustryConfig = {
         const free = opts.variant.stock == null ? null
           : alreadyFree ? Math.max(r2(Number(opts.variant.stock)), 0)
             : Math.max(r2(Number(opts.variant.stock) - heldHere), 0);
-        toast.warning(`${item.name} · ${opts.variant.name}: ${heldHere} hold par${free != null ? ` — ${free} bech sakte hain` : ''}`, { duration: 4000 });
+        toast.warning(t('{{name}} · {{name2}}: {{heldHere}} hold par{{value}}', { name: item.name, name2: opts.variant.name, heldHere, value: free != null ? t(' — {{free}} bech sakte hain', { free }) : '' }), { duration: 4000 });
         api.addItem(item, { ...opts, variant: { ...opts.variant, ...(free != null && { stock: free }) }, confirmed: [...(opts.confirmed ?? []), 'hold-size'] });
         return 'handled';
       }
     }
     if (onHold && !opts.variant && !opts.confirmed?.includes('hold')) {
-      toast.warning(`${item.name}: ${onHold} piece customer ke liye hold par hain — wo is stock me nahi gine`, { duration: 4000 });
+      toast.warning(t('{{name}}: {{onHold}} piece customer ke liye hold par hain — wo is stock me nahi gine', { name: item.name, onHold }), { duration: 4000 });
     }
     // Older variant products kept their units on the product row; the server
     // moves them to the sizes once (only when the numbers are exact).
@@ -118,7 +119,7 @@ export const garmentsPos: PosIndustryConfig = {
       const hit = await productsApi.byBarcode(code, shopId) as Product & { matchedVariant?: { id: string; name: string; price: number; stock: number } };
       if (!hit.matchedVariant) return false;
       const item = api.itemById(hit.id);
-      if (!item) { toast.error(`${hit.name} is branch ke catalog me nahi`); return true; }
+      if (!item) { toast.error(t('{{name}} is branch ke catalog me nahi', { name: hit.name })); return true; }
       const v = hit.matchedVariant;
       // Branch stock of the variant when the server sends it.
       api.addItem(item, { variant: { id: v.id, name: v.name, price: v.price, stock: hit.shopStock ?? v.stock } });

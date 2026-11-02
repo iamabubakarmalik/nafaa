@@ -28,6 +28,7 @@ import { useSaveKey } from '../hooks/usePageKeys';
 import {
   CATEGORY_GROUPS, FABRICS, FURNITURE_KEYS, MATERIALS, MONEY_KEYS, PAY_METHODS, POLISHES, WOODS, addDays, dayKey, errorText, moneyText, numIn, phoneOk, shortDate,
 } from '../lib/meta';
+import { t } from '@core/i18n';
 
 interface Draft {
   customerId: string; customerName: string; customerPhone: string; customerCnic: string; customerAddress: string;
@@ -104,14 +105,14 @@ export default function CustomOrderFormPage() {
   const advance = numIn(d.advanceNow) ?? 0;
   const days = Math.round(Number(d.estimatedDays) || 0);
   const errors = useMemo(() => ({
-    customerName: !d.customerName.trim() ? 'Customer ka naam likhein' : undefined,
-    customerPhone: !d.customerPhone.trim() ? 'Phone likhein — khata isi se banta hai' : !phoneOk(d.customerPhone) ? '10 se 15 hindse' : undefined,
-    productType: !d.productType.trim() ? 'Kya banana hai' : undefined,
-    description: !d.description.trim() ? 'Design ya tafseel likhein' : undefined,
-    quotedPrice: !(price > 0) ? 'Qeemat likhein' : undefined,
-    depositAmount: (numIn(d.depositAmount) ?? 0) > total ? 'Advance qeemat se zyada hai' : undefined,
-    estimatedDays: days < 1 || days > 365 ? '1 se 365 din' : undefined,
-    advanceNow: advance > total ? `Kul ${money(total)} hai` : undefined,
+    customerName: !d.customerName.trim() ? t('Customer ka naam likhein') : undefined,
+    customerPhone: !d.customerPhone.trim() ? t('Phone likhein — khata isi se banta hai') : !phoneOk(d.customerPhone) ? t('10 se 15 hindse') : undefined,
+    productType: !d.productType.trim() ? t('Kya banana hai') : undefined,
+    description: !d.description.trim() ? t('Design ya tafseel likhein') : undefined,
+    quotedPrice: !(price > 0) ? t('Qeemat likhein') : undefined,
+    depositAmount: (numIn(d.depositAmount) ?? 0) > total ? t('Advance qeemat se zyada hai') : undefined,
+    estimatedDays: days < 1 || days > 365 ? t('1 se 365 din') : undefined,
+    advanceNow: advance > total ? t('Kul {{total}} hai', { total: money(total) }) : undefined,
   }), [d, price, total, advance, days, money]);
   const bad = Object.values(errors).some(Boolean);
 
@@ -131,12 +132,12 @@ export default function CustomOrderFormPage() {
       const saved = editing ? await customOrdersApi.update(id!, payload) : await customOrdersApi.create(payload);
       if (!editing && advance > 0) {
         try { await customOrdersApi.recordPayment(saved.id, { amount: advance, paymentMethod: d.advanceMethod, isDeposit: true }); }
-        catch (e) { toast.error(errorText(e, 'Order ban gaya, advance save nahi hua — order kholkar dobara lein')); }
+        catch (e) { toast.error(errorText(e, t('Order ban gaya, advance save nahi hua — order kholkar dobara lein'))); }
       }
       return saved;
     },
-    onSuccess: (r) => { toast.success(editing ? 'Order save' : `${r.orderNumber} ban gaya`); refresh(); navigate(`/furniture/custom-orders/${r.id}`, { replace: true }); },
-    onError: (e) => toast.error(errorText(e, 'Order save nahi hua')),
+    onSuccess: (r) => { toast.success(editing ? t('Order save') : t('{{orderNumber}} ban gaya', { orderNumber: r.orderNumber })); refresh(); navigate(`/furniture/custom-orders/${r.id}`, { replace: true }); },
+    onError: (e) => toast.error(errorText(e, t('Order save nahi hua'))),
   });
   const submit = () => {
     setTried(true);
@@ -152,158 +153,158 @@ export default function CustomOrderFormPage() {
   const e = (k: keyof typeof errors) => (tried ? errors[k] : undefined);
 
   if (editing && orderQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
-  if (editing && !o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Order nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/furniture/custom-orders')}>Orders par wapas</Button></div></PageShell>;
+  if (editing && !o) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Order nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/furniture/custom-orders')}>{t('Orders par wapas')}</Button></div></PageShell>;
 
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Order form — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Order form — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#0891b2', title: 'Customer', text: 'Purana customer chunein ya naam aur phone likhein — advance aur baqi paisa isi ke khate me jata hai.' },
-            { icon: Palette, color: '#a16207', title: 'Design', text: 'Lakri, polish, kapra aur size likhein. Sketch ya photo lagayein — karigar ko yahi dikhana hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Qeemat aur advance', text: 'Qeemat me fitting alag likh sakte hain. "Advance abhi mila" likhein to usi waqt drawer aur khate me jata hai.' },
+            { icon: UserRound, color: '#0891b2', title: t('Customer'), text: t('Purana customer chunein ya naam aur phone likhein — advance aur baqi paisa isi ke khate me jata hai.') },
+            { icon: Palette, color: '#a16207', title: t('Design'), text: t('Lakri, polish, kapra aur size likhein. Sketch ya photo lagayein — karigar ko yahi dikhana hai.') },
+            { icon: Wallet, color: '#16a34a', title: t('Qeemat aur advance'), text: t('Qeemat me fitting alag likh sakte hain. "Advance abhi mila" likhein to usi waqt drawer aur khate me jata hai.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
 
       <PageHero
-        title={editing ? `${o?.orderNumber} — badlein` : 'Naya custom order'}
-        subtitle={editing ? (priceOpen ? 'Quotation hai — sab badal sakta hai' : 'Advance mil chuka — qeemat ab nahi badalti, baqi details badal sakti hain') : 'Customer, design, qeemat aur advance'}
+        title={editing ? t('{{orderNumber}} — badlein', { orderNumber: o?.orderNumber }) : t('Naya custom order')}
+        subtitle={editing ? (priceOpen ? t('Quotation hai — sab badal sakta hai') : t('Advance mil chuka — qeemat ab nahi badalti, baqi details badal sakti hain')) : t('Customer, design, qeemat aur advance')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={t('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</span>}
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Customer')}</T>}>
             <div className="space-y-3">
               {d.customerId ? (
                 <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-[0.875rem] text-brand-900 ring-1 ring-brand-100">
                   <UserRound className="h-4 w-4" /><span className="min-w-0 flex-1 truncate font-semibold">{d.customerName} · {d.customerPhone}</span>
-                  {!editing && <button type="button" onClick={() => set({ customerId: '' })} aria-label="Hatayein" className="rounded-lg p-1 hover:bg-brand-100"><X className="h-4 w-4" /></button>}
+                  {!editing && <button type="button" onClick={() => set({ customerId: '' })} aria-label={t('Hatayein')} className="rounded-lg p-1 hover:bg-brand-100"><X className="h-4 w-4" /></button>}
                 </div>
-              ) : !editing && <Button variant="secondary" size="sm" onClick={() => setPicking(true)}>Purana customer chunein</Button>}
+              ) : !editing && <Button variant="secondary" size="sm" onClick={() => setPicking(true)}>{t('Purana customer chunein')}</Button>}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Naam" required value={d.customerName} onChange={(x) => set({ customerName: x.target.value })} placeholder="Imran Sahib" error={e('customerName')} disabled={!!d.customerId} />
-                <Input label="Phone" required inputMode="tel" value={d.customerPhone} onChange={(x) => set({ customerPhone: x.target.value })} placeholder="03001234567" error={e('customerPhone')} disabled={!!d.customerId} hint="Advance aur baqi isi khate me" />
-                <Input label="CNIC" inputMode="numeric" value={d.customerCnic} onChange={(x) => set({ customerCnic: x.target.value })} placeholder="35202-1234567-1" hint="Bara order ho to likhein" />
-                <Input label="Ghar ka pata" value={d.customerAddress} onChange={(x) => set({ customerAddress: x.target.value })} hint="Marzi hai" />
+                <Input label={t('Naam')} required value={d.customerName} onChange={(x) => set({ customerName: x.target.value })} placeholder={t('Imran Sahib')} error={e('customerName')} disabled={!!d.customerId} />
+                <Input label={t('Phone')} required inputMode="tel" value={d.customerPhone} onChange={(x) => set({ customerPhone: x.target.value })} placeholder="03001234567" error={e('customerPhone')} disabled={!!d.customerId} hint={t('Advance aur baqi isi khate me')} />
+                <Input label={t('CNIC')} inputMode="numeric" value={d.customerCnic} onChange={(x) => set({ customerCnic: x.target.value })} placeholder="35202-1234567-1" hint={t('Bara order ho to likhein')} />
+                <Input label={t('Ghar ka pata')} value={d.customerAddress} onChange={(x) => set({ customerAddress: x.target.value })} hint={t('Marzi hai')} />
               </div>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Palette}>Kya banana hai</T>}>
+          <Card className="rounded-2xl" title={<T icon={Palette}>{t('Kya banana hai')}</T>}>
             <div className="space-y-3">
-              <Input label="Cheez" required value={d.productType} onChange={(x) => set({ productType: x.target.value })} placeholder="Double bed with side tables" error={e('productType')} />
+              <Input label={t('Cheez')} required value={d.productType} onChange={(x) => set({ productType: x.target.value })} placeholder={t('Double bed with side tables')} error={e('productType')} />
               <Chips list={ITEMS} value={d.productType} onPick={(v) => set({ productType: v })} />
               <div className="grid gap-3 sm:grid-cols-2">
-                <Select label="Kis cheez ka order" value={d.categoryType} onChange={(x) => set({ categoryType: x.target.value })} placeholder="Chunein"
-                  options={CATEGORY_GROUPS.flatMap((g) => g.items.map(([v, l]) => ({ value: v, label: `${g.label} · ${l}` })))} hint="Reports me group isi se banta hai" />
-                <Select label="Main material" value={d.material} onChange={(x) => set({ material: x.target.value })} placeholder="Chunein" options={Object.entries(MATERIALS).map(([value, label]) => ({ value, label }))} />
+                <Select label={t('Kis cheez ka order')} value={d.categoryType} onChange={(x) => set({ categoryType: x.target.value })} placeholder={t('Chunein')}
+                  options={CATEGORY_GROUPS.flatMap((g) => g.items.map(([v, l]) => ({ value: v, label: `${g.label} · ${l}` })))} hint={t('Reports me group isi se banta hai')} />
+                <Select label={t('Main material')} value={d.material} onChange={(x) => set({ material: x.target.value })} placeholder={t('Chunein')} options={Object.entries(MATERIALS).map(([value, label]) => ({ value, label }))} />
               </div>
-              <Textarea label="Design / tafseel" required rows={3} value={d.description} onChange={(x) => set({ description: x.target.value })} error={e('description')}
-                placeholder="Headboard par cushion, 2 side table, neeche storage box" />
-              <Input label="Lakri" value={d.woodType} onChange={(x) => set({ woodType: x.target.value })} placeholder="Sheesham" />
+              <Textarea label={t('Design / tafseel')} required rows={3} value={d.description} onChange={(x) => set({ description: x.target.value })} error={e('description')}
+                placeholder={t('Headboard par cushion, 2 side table, neeche storage box')} />
+              <Input label={t('Lakri')} value={d.woodType} onChange={(x) => set({ woodType: x.target.value })} placeholder={t('Sheesham')} />
               <Chips list={WOODS} value={d.woodType} onPick={(v) => set({ woodType: v })} />
-              <Input label="Polish" value={d.polishRequested} onChange={(x) => set({ polishRequested: x.target.value })} placeholder="Walnut matte" />
+              <Input label={t('Polish')} value={d.polishRequested} onChange={(x) => set({ polishRequested: x.target.value })} placeholder={t('Walnut matte')} />
               <Chips list={POLISHES} value={d.polishRequested} onPick={(v) => set({ polishRequested: v })} />
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Rang" value={d.colorRequested} onChange={(x) => set({ colorRequested: x.target.value })} placeholder="Dark brown" />
-                <Input label="Kapra (sofa / cushion)" value={d.upholsteryFabric} onChange={(x) => set({ upholsteryFabric: x.target.value })} placeholder="Velvet, grey" />
+                <Input label={t('Rang')} value={d.colorRequested} onChange={(x) => set({ colorRequested: x.target.value })} placeholder={t('Dark brown')} />
+                <Input label={t('Kapra (sofa / cushion)')} value={d.upholsteryFabric} onChange={(x) => set({ upholsteryFabric: x.target.value })} placeholder={t('Velvet, grey')} />
               </div>
               <Chips list={FABRICS} value={d.upholsteryFabric} onPick={(v) => set({ upholsteryFabric: v })} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Ruler}>Size aur sketch</T>}>
+          <Card className="rounded-2xl" title={<T icon={Ruler}>{t('Size aur sketch')}</T>}>
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Lambai (cm)" inputMode="decimal" value={d.lengthCm} onChange={(x) => set({ lengthCm: moneyText(x.target.value) })} />
-                <Input label="Chaurai (cm)" inputMode="decimal" value={d.widthCm} onChange={(x) => set({ widthCm: moneyText(x.target.value) })} />
-                <Input label="Unchai (cm)" inputMode="decimal" value={d.heightCm} onChange={(x) => set({ heightCm: moneyText(x.target.value) })} />
+                <Input label={t('Lambai (cm)')} inputMode="decimal" value={d.lengthCm} onChange={(x) => set({ lengthCm: moneyText(x.target.value) })} />
+                <Input label={t('Chaurai (cm)')} inputMode="decimal" value={d.widthCm} onChange={(x) => set({ widthCm: moneyText(x.target.value) })} />
+                <Input label={t('Unchai (cm)')} inputMode="decimal" value={d.heightCm} onChange={(x) => set({ heightCm: moneyText(x.target.value) })} />
               </div>
-              <Input label="Ya size aise likhein" value={d.customDimensions} onChange={(x) => set({ customDimensions: x.target.value })} placeholder="6.5 × 7 feet (king)" />
-              <Textarea label="Karigar ke liye note" rows={2} value={d.designNotes} onChange={(x) => set({ designNotes: x.target.value })} placeholder="Drawer soft-close, handle golden" />
+              <Input label={t('Ya size aise likhein')} value={d.customDimensions} onChange={(x) => set({ customDimensions: x.target.value })} placeholder={t('6.5 × 7 feet (king)')} />
+              <Textarea label={t('Karigar ke liye note')} rows={2} value={d.designNotes} onChange={(x) => set({ designNotes: x.target.value })} placeholder={t('Drawer soft-close, handle golden')} />
               <div>
-                <p className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><ImageIcon className="h-4 w-4" />Sketch / photo</p>
+                <p className="mb-1.5 flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-700"><ImageIcon className="h-4 w-4" />{t('Sketch / photo')}</p>
                 {d.sketchUrls.length > 0 && (
                   <div className="mb-2 flex flex-wrap gap-2">
                     {d.sketchUrls.map((u) => (
                       <span key={u} className="relative">
-                        <img src={u} alt="Sketch" className="h-20 w-20 rounded-xl object-cover ring-1 ring-slate-200" />
-                        <button type="button" onClick={() => set({ sketchUrls: d.sketchUrls.filter((x) => x !== u) })} aria-label="Hatayein" className="absolute -right-1.5 -top-1.5 rounded-full bg-white p-0.5 shadow ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
+                        <img src={u} alt={t('Sketch')} className="h-20 w-20 rounded-xl object-cover ring-1 ring-slate-200" />
+                        <button type="button" onClick={() => set({ sketchUrls: d.sketchUrls.filter((x) => x !== u) })} aria-label={t('Hatayein')} className="absolute -end-1.5 -top-1.5 rounded-full bg-white p-0.5 shadow ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
                       </span>
                     ))}
                   </div>
                 )}
-                {d.sketchUrls.length < 20 && <UploadDropzone purpose="product-gallery" maxFiles={6} hint="Customer ki di hui photo ya hath ka sketch" onUploaded={(recs) => set({ sketchUrls: [...d.sketchUrls, ...recs.map((r) => r.url)].slice(0, 20) })} />}
+                {d.sketchUrls.length < 20 && <UploadDropzone purpose="product-gallery" maxFiles={6} hint={t('Customer ki di hui photo ya hath ka sketch')} onUploaded={(recs) => set({ sketchUrls: [...d.sketchUrls, ...recs.map((r) => r.url)].slice(0, 20) })} />}
               </div>
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Qeemat aur advance</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Qeemat aur advance')}</T>}>
             <fieldset disabled={!priceOpen} className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Qeemat (Rs)" required inputMode="decimal" value={d.quotedPrice} onChange={(x) => set({ quotedPrice: moneyText(x.target.value) })} error={e('quotedPrice')} hint="Furniture ki tay shuda qeemat" />
-                <Input label="Advance kitna lena hai" inputMode="decimal" value={d.depositAmount} onChange={(x) => set({ depositAmount: moneyText(x.target.value) })} error={e('depositAmount')} hint="Itna milne par order 'Advance mila' ho jata hai" />
+                <Input label={t('Qeemat (Rs)')} required inputMode="decimal" value={d.quotedPrice} onChange={(x) => set({ quotedPrice: moneyText(x.target.value) })} error={e('quotedPrice')} hint={t('Furniture ki tay shuda qeemat')} />
+                <Input label={t('Advance kitna lena hai')} inputMode="decimal" value={d.depositAmount} onChange={(x) => set({ depositAmount: moneyText(x.target.value) })} error={e('depositAmount')} hint={t('Itna milne par order \'Advance mila\' ho jata hai')} />
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {ADVANCE_PCT.map((p) => <button key={p} type="button" onClick={() => set({ depositAmount: String(Math.round((total * p) / 100)) })} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50" disabled={!total}>{p}%</button>)}
               </div>
-              <Switch checked={d.requiresInstallation} onChange={(x) => set({ requiresInstallation: x.target.checked })} label="Ghar par fitting" description="Fitting ka charge bill me alag line" />
-              {d.requiresInstallation && <Input label="Fitting charge (Rs)" inputMode="decimal" value={d.installationCharge} onChange={(x) => set({ installationCharge: moneyText(x.target.value) })} placeholder="0" hint="0 = free fitting" />}
+              <Switch checked={d.requiresInstallation} onChange={(x) => set({ requiresInstallation: x.target.checked })} label={t('Ghar par fitting')} description={t('Fitting ka charge bill me alag line')} />
+              {d.requiresInstallation && <Input label={t('Fitting charge (Rs)')} inputMode="decimal" value={d.installationCharge} onChange={(x) => set({ installationCharge: moneyText(x.target.value) })} placeholder="0" hint={t('0 = free fitting')} />}
               <div className="rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem]">
-                <div className="flex justify-between"><span>Kul bill</span><span className="font-bold tabular-nums">{money(total)}</span></div>
-                {editing && o && <div className="flex justify-between text-slate-600"><span>Mil chuka</span><span className="tabular-nums">{money(o.totalPaid)}</span></div>}
+                <div className="flex justify-between"><span>{t('Kul bill')}</span><span className="font-bold tabular-nums">{money(total)}</span></div>
+                {editing && o && <div className="flex justify-between text-slate-600"><span>{t('Mil chuka')}</span><span className="tabular-nums">{money(o.totalPaid)}</span></div>}
               </div>
             </fieldset>
             {!editing && canTakeMoney && (
               <div className="mt-3 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2">
-                <Input label="Advance abhi mila (Rs)" inputMode="decimal" value={d.advanceNow} onChange={(x) => set({ advanceNow: moneyText(x.target.value) })} error={e('advanceNow')}
-                  hint={advance > 0 ? `Drawer aur ${d.customerName || 'customer'} ke khate me` : 'Nahi mila to khali chhorein'} />
-                <Select label="Kaise mila" value={d.advanceMethod} onChange={(x) => set({ advanceMethod: x.target.value })} options={PAY_METHODS} />
+                <Input label={t('Advance abhi mila (Rs)')} inputMode="decimal" value={d.advanceNow} onChange={(x) => set({ advanceNow: moneyText(x.target.value) })} error={e('advanceNow')}
+                  hint={advance > 0 ? t('Drawer aur {{value}} ke khate me', { value: d.customerName || 'customer' }) : t('Nahi mila to khali chhorein')} />
+                <Select label={t('Kaise mila')} value={d.advanceMethod} onChange={(x) => set({ advanceMethod: x.target.value })} options={PAY_METHODS} />
               </div>
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Hammer}>Kab aur kaun banayega</T>}>
+          <Card className="rounded-2xl" title={<T icon={Hammer}>{t('Kab aur kaun banayega')}</T>}>
             <div className="space-y-3">
-              <Input label="Kitne din lagenge" required inputMode="numeric" value={d.estimatedDays} onChange={(x) => set({ estimatedDays: x.target.value.replace(/\D/g, '') })} error={e('estimatedDays')}
-                hint={days > 0 ? `Dene ki date ${shortDate(addDays(editing && o ? dayKey(new Date(o.quotationDate)) : dayKey(), days))}` : undefined} />
-              <div className="flex flex-wrap gap-1.5">{DAYS.map((n) => <button key={n} type="button" onClick={() => set({ estimatedDays: String(n) })} className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ${days === n ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{n} din</button>)}</div>
+              <Input label={t('Kitne din lagenge')} required inputMode="numeric" value={d.estimatedDays} onChange={(x) => set({ estimatedDays: x.target.value.replace(/\D/g, '') })} error={e('estimatedDays')}
+                hint={days > 0 ? t('Dene ki date {{shortDate}}', { shortDate: shortDate(addDays(editing && o ? dayKey(new Date(o.quotationDate)) : dayKey(), days)) }) : undefined} />
+              <div className="flex flex-wrap gap-1.5">{DAYS.map((n) => <button key={n} type="button" onClick={() => set({ estimatedDays: String(n) })} className={`h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ${days === n ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'ring-slate-200 hover:bg-slate-50'}`}>{t('{{n}} din', { n })}</button>)}</div>
               {!editing && (
-                <Select label="Karigar" value={d.carpenterId} onChange={(x) => set({ carpenterId: x.target.value })} placeholder="Baad me dein"
+                <Select label={t('Karigar')} value={d.carpenterId} onChange={(x) => set({ carpenterId: x.target.value })} placeholder={t('Baad me dein')}
                   options={(carpentersQ.data ?? []).map((c) => ({ value: c.id, label: `${c.name}${c.activeProjects ? ` — ${c.activeProjects} kaam haath me` : ''}` }))}
-                  hint="Order page se bhi de sakte hain" />
+                  hint={t('Order page se bhi de sakte hain')} />
               )}
-              <Input label="Workshop" value={d.workshopLocation} onChange={(x) => set({ workshopLocation: x.target.value })} placeholder="Main workshop" hint="Marzi hai" />
-              <Input label="Warranty (mahine)" inputMode="numeric" value={d.warrantyMonths} onChange={(x) => set({ warrantyMonths: x.target.value.replace(/\D/g, '') })} />
+              <Input label={t('Workshop')} value={d.workshopLocation} onChange={(x) => set({ workshopLocation: x.target.value })} placeholder={t('Main workshop')} hint={t('Marzi hai')} />
+              <Input label={t('Warranty (mahine)')} inputMode="numeric" value={d.warrantyMonths} onChange={(x) => set({ warrantyMonths: x.target.value.replace(/\D/g, '') })} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Truck}>Delivery</T>}>
+          <Card className="rounded-2xl" title={<T icon={Truck}>{t('Delivery')}</T>}>
             <div className="space-y-3">
-              <Input label="Delivery ka pata" value={d.deliveryAddress} onChange={(x) => set({ deliveryAddress: x.target.value })} placeholder="Ghar ka pata se alag ho to" hint="Khali ho to ghar ka pata" />
+              <Input label={t('Delivery ka pata')} value={d.deliveryAddress} onChange={(x) => set({ deliveryAddress: x.target.value })} placeholder={t('Ghar ka pata se alag ho to')} hint={t('Khali ho to ghar ka pata')} />
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Shehar" value={d.deliveryCity} onChange={(x) => set({ deliveryCity: x.target.value })} placeholder="Lahore" />
-                <Input label="Ilaqa" value={d.deliveryArea} onChange={(x) => set({ deliveryArea: x.target.value })} placeholder="DHA Phase 5" />
+                <Input label={t('Shehar')} value={d.deliveryCity} onChange={(x) => set({ deliveryCity: x.target.value })} placeholder={t('Lahore')} />
+                <Input label={t('Ilaqa')} value={d.deliveryArea} onChange={(x) => set({ deliveryArea: x.target.value })} placeholder={t('DHA Phase 5')} />
               </div>
-              <Textarea label="Note" rows={2} value={d.notes} onChange={(x) => set({ notes: x.target.value })} />
+              <Textarea label={t('Note')} rows={2} value={d.notes} onChange={(x) => set({ notes: x.target.value })} />
             </div>
           </Card>
 
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => navigate(-1)}>Wapas</Button>
-            <Button className="flex-1" loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : advance > 0 ? `Order + ${money(advance)} advance` : 'Order banayein'}</Button>
+            <Button variant="secondary" className="flex-1" onClick={() => navigate(-1)}>{t('Wapas')}</Button>
+            <Button className="flex-1" loading={save.isPending} onClick={submit}>{editing ? t('Save karein') : advance > 0 ? t('Order + {{advance}} advance', { advance: money(advance) }) : t('Order banayein')}</Button>
           </div>
         </div>
       </div>
 
-      {picking && <CustomerPicker title="Customer chunein" money={money} onClose={() => setPicking(false)}
+      {picking && <CustomerPicker title={t('Customer chunein')} money={money} onClose={() => setPicking(false)}
         onPick={(c) => { set({ customerId: c.id, customerName: c.name, customerPhone: c.phone ?? '', customerCnic: c.cnic ?? d.customerCnic }); setPicking(false); }} />}
     </PageShell>
   );

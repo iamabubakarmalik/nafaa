@@ -18,6 +18,7 @@ import { toyBirthdaysApi } from '../api/birthday-reminders.api';
 import { CATEGORIES, GENDERS, KEYS, apiError, labelOf } from '../lib/meta';
 import { EmptyBox } from '../components/ui';
 import { BirthdayForm, reminderText } from './BirthdayRemindersPage';
+import { t } from '@core/i18n';
 
 export default function BirthdayDetailPage() {
   const { id = '' } = useParams();
@@ -36,11 +37,11 @@ export default function BirthdayDetailPage() {
 
   if (q.isLoading) return <PageShell><Skeleton className="h-40 rounded-3xl" /><Skeleton className="h-72 rounded-2xl" /></PageShell>;
   const r = q.data;
-  if (!r) return <PageShell><EmptyBox icon={Cake} title="Ye bacha nahi mila" text="Ho sakta hai record kisi aur branch ka ho." action={<Button variant="secondary" onClick={() => navigate('/toystore/birthdays')}>Saalgirah par wapas</Button>} /></PageShell>;
+  if (!r) return <PageShell><EmptyBox icon={Cake} title={t('Ye bacha nahi mila')} text={t('Ho sakta hai record kisi aur branch ka ho.')} action={<Button variant="secondary" onClick={() => navigate('/toystore/birthdays')}>{t('Saalgirah par wapas')}</Button>} /></PageShell>;
   const c = r.computed;
   const remind = () => {
     const link = waLink(r.customerPhone, reminderText(r));
-    if (!link) { toast.error('Phone number sahi nahi'); return; }
+    if (!link) { toast.error(t('Phone number sahi nahi')); return; }
     window.open(link, '_blank', 'noopener');
     if (canEdit) sent.mutate();
   };
@@ -49,28 +50,28 @@ export default function BirthdayDetailPage() {
     <PageShell>
       <PageHero
         title={r.childName}
-        chip={<><Cake /> {c?.daysUntilBirthday === 0 ? 'Aaj saalgirah hai' : `${c?.daysUntilBirthday} din baad saalgirah`}</>}
+        chip={<><Cake /> {c?.daysUntilBirthday === 0 ? t('Aaj saalgirah hai') : t('{{daysUntilBirthday}} din baad saalgirah', { daysUntilBirthday: c?.daysUntilBirthday })}</>}
         meta={`${r.customerName} · ${r.customerPhone}${r.isActive ? '' : ' · yaad dihani band'}`}
         actions={<>
-          <a href={`tel:${r.customerPhone}`} className={heroButton}><Phone className="h-4 w-4" /><span className="hidden sm:inline">Call</span></a>
-          {canEdit && <button type="button" onClick={() => setEditing(true)} className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></button>}
-          <button type="button" onClick={remind} className={heroPrimaryButton}><MessageCircle className="h-4 w-4" /> WhatsApp</button>
+          <a href={`tel:${r.customerPhone}`} className={heroButton}><Phone className="h-4 w-4" /><span className="hidden sm:inline">{t('Call')}</span></a>
+          {canEdit && <button type="button" onClick={() => setEditing(true)} className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">{t('Badlein')}</span></button>}
+          <button type="button" onClick={remind} className={heroPrimaryButton}><MessageCircle className="h-4 w-4" /> {' '}{t('WhatsApp')}</button>
         </>}
-        stats={[{ label: 'Umar', value: `${Math.floor(c?.currentAge ?? 0)} saal` }, { label: 'Ho raha hai', value: `${c?.turningAge} saal` }]}
+        stats={[{ label: t('Umar'), value: `${Math.floor(c?.currentAge ?? 0)} saal` }, { label: t('Ho raha hai'), value: `${c?.turningAge} saal` }]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Cake} color="#db2777" label="Saalgirah" value={new Date(r.childBirthDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })} hint={labelOf(GENDERS, r.childGender) || undefined} />
-        <KpiCard icon={Gift} color="#7c3aed" label="Gift liye" value={r.totalPurchases} hint={r.lastGiftGiven ?? undefined} />
-        <KpiCard icon={ShoppingCart} color="#16a34a" label="Kul kharch" value={sales(r.totalSpent)} hint={c?.avgSpend ? `Ek gift ${sales(c.avgSpend)}` : undefined} />
-        <KpiCard icon={MessageCircle} color="#0891b2" label="Aakhri message" value={r.lastReminderSent ? new Date(r.lastReminderSent).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—'} hint={`${r.reminderDaysBefore} din pehle`} />
+        <KpiCard icon={Cake} color="#db2777" label={t('Saalgirah')} value={new Date(r.childBirthDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })} hint={labelOf(GENDERS, r.childGender) || undefined} />
+        <KpiCard icon={Gift} color="#7c3aed" label={t('Gift liye')} value={r.totalPurchases} hint={r.lastGiftGiven ?? undefined} />
+        <KpiCard icon={ShoppingCart} color="#16a34a" label={t('Kul kharch')} value={sales(r.totalSpent)} hint={c?.avgSpend ? t('Ek gift {{avgSpend}}', { avgSpend: sales(c.avgSpend) }) : undefined} />
+        <KpiCard icon={MessageCircle} color="#0891b2" label={t('Aakhri message')} value={r.lastReminderSent ? new Date(r.lastReminderSent).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—'} hint={t('{{reminderDaysBefore}} din pehle', { reminderDaysBefore: r.reminderDaysBefore })} />
       </KpiRow>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand-600" />{c?.turningAge} saal ke liye khilone</span>}
-          description={ideas.data?.budgetCeiling ? `Budget ${sales(ideas.data.budgetCeiling)} tak · sirf stock wale` : 'Sirf stock wale'}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand-600" />{t('{{turningAge}} saal ke liye khilone', { turningAge: c?.turningAge })}</span>}
+          description={ideas.data?.budgetCeiling ? t('Budget {{budgetCeiling}} tak · sirf stock wale', { budgetCeiling: sales(ideas.data.budgetCeiling) }) : t('Sirf stock wale')}>
           {ideas.isLoading ? <Skeleton className="h-40 rounded-xl" /> : (ideas.data?.products ?? []).length === 0 ? (
-            <p className="rounded-xl bg-slate-50 px-3 py-6 text-center text-[0.8125rem] text-slate-500">Is umar ke khilone stock me nahi — khilonon par umar likhein ya naya maal mangwayein.</p>
+            <p className="rounded-xl bg-slate-50 px-3 py-6 text-center text-[0.8125rem] text-slate-500">{t('Is umar ke khilone stock me nahi — khilonon par umar likhein ya naya maal mangwayein.')}</p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
               {(ideas.data?.products ?? []).map((p: { productId: string; categoryType?: string; brand?: string; product: { name: string; price: number; stock: number } }) => (
@@ -89,7 +90,7 @@ export default function BirthdayDetailPage() {
           )}
           {(ideas.data?.giftPacks ?? []).length > 0 && (
             <div className="mt-4">
-              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-700">Gift packs</p>
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-700">{t('Gift packs')}</p>
               <ul className="space-y-1.5">
                 {(ideas.data?.giftPacks ?? []).map((g: { id: string; name: string; giftPackPrice: number }) => (
                   <li key={g.id} className="flex items-center justify-between gap-2 rounded-xl bg-pink-50/60 px-3 py-2 text-[0.875rem]"><span className="truncate">🎁 {g.name}</span><span className="font-semibold tabular-nums">{sales(g.giftPackPrice)}</span></li>
@@ -97,18 +98,18 @@ export default function BirthdayDetailPage() {
               </ul>
             </div>
           )}
-          {canSell && <div className="mt-4"><Link to="/pos" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />POS par bechein</Link></div>}
+          {canSell && <div className="mt-4"><Link to="/pos" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />{t('POS par bechein')}</Link></div>}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />Pichle gift</span>}>
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />{t('Pichle gift')}</span>}>
           {r.lastGiftGiven ? (
             <div className="text-[0.875rem]">
               <p className="font-medium text-slate-900">{r.lastGiftGiven}</p>
               <p className="text-[0.75rem] text-slate-500">{r.lastPurchaseDate ? new Date(r.lastPurchaseDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</p>
             </div>
-          ) : <p className="text-[0.8125rem] text-slate-500">Abhi koi gift nahi likha.</p>}
-          {canEdit && <Button className="mt-3" variant="secondary" size="sm" onClick={() => setGift(true)} leftIcon={<Gift className="h-4 w-4" />}>Gift likhein</Button>}
-          <p className="mt-3 text-[0.75rem] text-slate-500">Ye sirf yaad ke liye hai — paisa POS ke bill se aata hai.</p>
+          ) : <p className="text-[0.8125rem] text-slate-500">{t('Abhi koi gift nahi likha.')}</p>}
+          {canEdit && <Button className="mt-3" variant="secondary" size="sm" onClick={() => setGift(true)} leftIcon={<Gift className="h-4 w-4" />}>{t('Gift likhein')}</Button>}
+          <p className="mt-3 text-[0.75rem] text-slate-500">{t('Ye sirf yaad ke liye hai — paisa POS ke bill se aata hai.')}</p>
           {r.notes && <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">{r.notes}</p>}
         </Card>
       </div>
@@ -125,19 +126,19 @@ function GiftModal({ id, onClose, onSaved }: { id: string; onClose: () => void; 
   const [amount, setAmount] = useState('');
   const save = useMutation({
     mutationFn: () => {
-      if (!what.trim()) throw new Error('Kya gift liya, likhein');
-      if (!(Number(amount) >= 0)) throw new Error('Amount sahi likhein');
+      if (!what.trim()) throw new Error(t('Kya gift liya, likhein'));
+      if (!(Number(amount) >= 0)) throw new Error(t('Amount sahi likhein'));
       return toyBirthdaysApi.recordPurchase(id, { giftDescription: what.trim(), amount: Number(amount) || 0 });
     },
-    onSuccess: () => { toast.success('Gift likh liya'); onSaved(); },
-    onError: (e) => toast.error(apiError(e, (e as Error).message || 'Save nahi hua')),
+    onSuccess: () => { toast.success(t('Gift likh liya')); onSaved(); },
+    onError: (e) => toast.error(apiError(e, (e as Error).message || t('Save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Gift likhein"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => save.mutate()} loading={save.isPending}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Gift likhein')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={() => save.mutate()} loading={save.isPending}>{t('Save karein')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Kya liya" required value={what} onChange={(e) => setWhat(e.target.value)} placeholder="Remote car" autoFocus />
-        <Input label="Kitne ka (Rs)" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} hint="Bill ka amount — sirf hisaab ke liye" />
+        <Input label={t('Kya liya')} required value={what} onChange={(e) => setWhat(e.target.value)} placeholder={t('Remote car')} autoFocus />
+        <Input label={t('Kitne ka (Rs)')} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} hint={t('Bill ka amount — sirf hisaab ke liye')} />
       </div>
     </Modal>
   );

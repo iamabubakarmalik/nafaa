@@ -12,6 +12,7 @@ import { cn } from '@core/lib/cn';
 import { applianceSerialApi, type SerialWarrantyCheck } from '../api/serial-tracking.api';
 import { SlotChips, TechSelect } from './ui';
 import { dayOnly, todayKey } from './meta';
+import { t } from '@core/i18n';
 
 export function AssignModal({ title, initial, pending, onConfirm, onClose }: {
   title: string;
@@ -27,13 +28,13 @@ export function AssignModal({ title, initial, pending, onConfirm, onClose }: {
   return (
     <Modal open onClose={onClose} size="sm" title={title}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button onClick={() => tech && onConfirm({ technicianId: tech, scheduledDate: date || undefined, scheduledTimeSlot: slot || undefined })}
-          disabled={!tech || past} loading={pending} leftIcon={<CalendarClock className="h-4 w-4" />}>Laga dein</Button>
+          disabled={!tech || past} loading={pending} leftIcon={<CalendarClock className="h-4 w-4" />}>{t('Laga dein')}</Button>
       </>}>
       <div className="space-y-4">
-        <TechSelect value={tech} onChange={setTech} hint="Sirf active technician. Naya banda Technicians page par jorein." />
-        <Input label="Kis din" type="date" value={date} onChange={(e) => setDate(e.target.value)} error={past ? 'Guzri hui date nahi' : undefined} />
+        <TechSelect value={tech} onChange={setTech} hint={t('Sirf active technician. Naya banda Technicians page par jorein.')} />
+        <Input label={t('Kis din')} type="date" value={date} onChange={(e) => setDate(e.target.value)} error={past ? t('Guzri hui date nahi') : undefined} />
         <SlotChips value={slot} onChange={setSlot} />
       </div>
     </Modal>
@@ -58,21 +59,21 @@ export function SerialLookup({ value, onChange, onFound }: {
   return (
     <div>
       <div className="flex items-end gap-2">
-        <Input wrapperClassName="flex-1" label="Serial number" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Unit par likha number"
-          leftIcon={<Barcode className="h-4 w-4" />} hint="Hamari dukaan se bika ho to product, customer aur warranty khud aa jati hai"
+        <Input wrapperClassName="flex-1" label={t('Serial number')} value={value} onChange={(e) => onChange(e.target.value)} placeholder={t('Unit par likha number')}
+          leftIcon={<Barcode className="h-4 w-4" />} hint={t('Hamari dukaan se bika ho to product, customer aur warranty khud aa jati hai')}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setCode(value.trim()); } }} />
-        <Button type="button" variant="secondary" onClick={() => setCode(value.trim())} disabled={value.trim().length < 3} loading={q.isFetching}>Check</Button>
+        <Button type="button" variant="secondary" onClick={() => setCode(value.trim())} disabled={value.trim().length < 3} loading={q.isFetching}>{t('Check')}</Button>
       </div>
       {r && code && (
         r.found && r.warranty ? (
           <p className={cn('mt-2 flex flex-wrap items-center gap-1.5 rounded-xl px-3 py-2 text-[0.8125rem] ring-1', r.warranty.isValid ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
             {r.warranty.isValid ? <ShieldCheck className="h-4 w-4" /> : <ShieldX className="h-4 w-4" />}
-            {r.serial?.product?.name ?? 'Unit'} — {!r.warranty.isValid ? 'warranty khatam' : r.warranty.daysRemaining > 0 && r.warranty.endDate ? `company warranty ${dayOnly(r.warranty.endDate)} tak` : 'company warranty khatam'}
-            {r.warranty.shopValid && r.warranty.shopEndDate ? ` · dukaan warranty ${dayOnly(r.warranty.shopEndDate)} tak (kharcha dukaan ka)` : ''}
-            {r.warranty.compressorValid && r.warranty.compressorEndDate ? ` · compressor ${dayOnly(r.warranty.compressorEndDate)} tak` : ''}
-            {r.amc ? ` · AMC ${r.amc.contractNumber} (${r.amc.visitsLeft} visit baqi)` : ''}
+            {r.serial?.product?.name ?? t('Unit')} — {!r.warranty.isValid ? t('warranty khatam') : r.warranty.daysRemaining > 0 && r.warranty.endDate ? t('company warranty {{endDate}} tak', { endDate: dayOnly(r.warranty.endDate) }) : t('company warranty khatam')}
+            {r.warranty.shopValid && r.warranty.shopEndDate ? t(' · dukaan warranty {{shopEndDate}} tak (kharcha dukaan ka)', { shopEndDate: dayOnly(r.warranty.shopEndDate) }) : ''}
+            {r.warranty.compressorValid && r.warranty.compressorEndDate ? t(' · compressor {{compressorEndDate}} tak', { compressorEndDate: dayOnly(r.warranty.compressorEndDate) }) : ''}
+            {r.amc ? t(' · AMC {{contractNumber}} ({{visitsLeft}} visit baqi)', { contractNumber: r.amc.contractNumber, visitsLeft: r.amc.visitsLeft }) : ''}
           </p>
-        ) : <p className="mt-2 text-[0.8125rem] text-slate-500">Ye serial register me nahi — product ka naam khud likhein.</p>
+        ) : <p className="mt-2 text-[0.8125rem] text-slate-500">{t('Ye serial register me nahi — product ka naam khud likhein.')}</p>
       )}
     </div>
   );

@@ -20,18 +20,19 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { shoeSizeChartsApi, type ChartRow, type ShoeSizeChart } from '../api/size-charts.api';
 import { CHART_KEY, CONVERSION, GENDERS, apiError, genderLabel, opt } from '../components/meta';
 import { EmptyBlock, StatusPill, useListKeys } from '../components/ui';
+import { t } from '@core/i18n';
 
 type Std = keyof typeof CONVERSION;
 const STD: Array<{ value: Std; label: string; gender: string }> = [
-  { value: 'men', label: 'Gents', gender: 'MEN' }, { value: 'women', label: 'Ladies', gender: 'WOMEN' }, { value: 'kids', label: 'Bachay', gender: 'BOYS' },
+  { value: 'men', label: t('Gents'), gender: 'MEN' }, { value: 'women', label: t('Ladies'), gender: 'WOMEN' }, { value: 'kids', label: t('Bachay'), gender: 'BOYS' },
 ];
-const COLS: Array<{ key: string; label: string }> = [{ key: 'pk', label: 'PK / UK' }, { key: 'eu', label: 'EU' }, { key: 'us', label: 'US' }, { key: 'cm', label: 'Pair (cm)' }];
+const COLS: Array<{ key: string; label: string }> = [{ key: 'pk', label: t('PK / UK') }, { key: 'eu', label: t('EU') }, { key: 'us', label: t('US') }, { key: 'cm', label: t('Pair (cm)') }];
 
 function chartDoc(title: string, rows: ChartRow[], note?: string | null): PrintDoc {
   return {
-    title, subtitle: 'Size chart',
+    title, subtitle: t('Size chart'),
     sections: [{ kind: 'table', columns: COLS.map((c) => ({ label: c.label })), rows: rows.map((r) => COLS.map((c) => r[c.key] ?? '')) }],
-    footer: note ?? 'Pair ki lambai: deewar se aedi laga kar angoothe tak, cm me.',
+    footer: note ?? t('Pair ki lambai: deewar se aedi laga kar angoothe tak, cm me.'),
   };
 }
 
@@ -54,8 +55,8 @@ function ChartEditor({ chart, onClose }: { chart: ShoeSizeChart | null; onClose:
   const filled = rows.filter((r) => COLS.some((c) => (r[c.key] ?? '').trim()));
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (name.trim().length < 2) e.name = 'Chart ka naam likhein';
-    if (!filled.length) e.rows = 'Kam az kam ek size likhein';
+    if (name.trim().length < 2) e.name = t('Chart ka naam likhein');
+    if (!filled.length) e.rows = t('Kam az kam ek size likhein');
     return e;
   }, [name, filled.length]);
   const save = useMutation({
@@ -63,7 +64,7 @@ function ChartEditor({ chart, onClose }: { chart: ShoeSizeChart | null; onClose:
       const body = { name: name.trim(), gender, notes: opt(notes), mappings: filled };
       return chart ? shoeSizeChartsApi.update(chart.id, body) : shoeSizeChartsApi.create(body);
     },
-    onSuccess: () => { toast.success('Chart save ho gaya'); qc.invalidateQueries({ queryKey: [CHART_KEY] }); onClose(); },
+    onSuccess: () => { toast.success(t('Chart save ho gaya')); qc.invalidateQueries({ queryKey: [CHART_KEY] }); onClose(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const submit = () => {
@@ -75,15 +76,15 @@ function ChartEditor({ chart, onClose }: { chart: ShoeSizeChart | null; onClose:
   const fill = (k: Std) => setRows(CONVERSION[k].map((r) => ({ ...r })));
 
   return (
-    <Modal open onClose={onClose} size="lg" title={chart ? `${chart.name} badlein` : 'Naya size chart'} description="Har line par ek hi pair ka size har system me"
-      footer={<div className="flex w-full gap-2"><Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button><Button className="flex-1" loading={save.isPending} onClick={submit}>Save</Button></div>}>
+    <Modal open onClose={onClose} size="lg" title={chart ? t('{{name}} badlein', { name: chart.name }) : t('Naya size chart')} description={t('Har line par ek hi pair ka size har system me')}
+      footer={<div className="flex w-full gap-2"><Button variant="secondary" className="flex-1" onClick={onClose}>{t('Cancel')}</Button><Button className="flex-1" loading={save.isPending} onClick={submit}>{t('Save')}</Button></div>}>
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Naam" required value={name} error={tried ? errors.name : undefined} maxLength={60} placeholder="Servis gents" onChange={(e) => setName(e.target.value)} hint="Brand ya joote ke type ke hisaab se" />
-          <Select label="Kis ke liye" value={gender} onChange={(e) => setGender(e.target.value)} options={GENDERS.map((g) => ({ value: g.value, label: g.label }))} />
+          <Input label={t('Naam')} required value={name} error={tried ? errors.name : undefined} maxLength={60} placeholder={t('Servis gents')} onChange={(e) => setName(e.target.value)} hint={t('Brand ya joote ke type ke hisaab se')} />
+          <Select label={t('Kis ke liye')} value={gender} onChange={(e) => setGender(e.target.value)} options={GENDERS.map((g) => ({ value: g.value, label: g.label }))} />
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600">
-          <span>Standard se bharein:</span>
+          <span>{t('Standard se bharein:')}</span>
           {STD.map((s) => <Button key={s.value} size="sm" variant="secondary" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => fill(s.value)}>{s.label}</Button>)}
         </div>
         <div className="space-y-2">
@@ -91,13 +92,13 @@ function ChartEditor({ chart, onClose }: { chart: ShoeSizeChart | null; onClose:
           {rows.map((r, i) => (
             <div key={i} className="grid grid-cols-[repeat(4,minmax(0,1fr))_2rem] items-center gap-2">
               {COLS.map((c) => <Input key={c.key} aria-label={c.label} value={r[c.key] ?? ''} maxLength={12} onChange={(e) => setRows((rs) => rs.map((x, n) => (n === i ? { ...x, [c.key]: e.target.value } : x)))} />)}
-              <button type="button" aria-label="Line hatayein" onClick={() => setRows((rs) => rs.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+              <button type="button" aria-label={t('Line hatayein')} onClick={() => setRows((rs) => rs.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
           {tried && errors.rows && <p className="text-[0.8125rem] font-medium text-rose-600">{errors.rows}</p>}
-          <Button size="sm" variant="ghost" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRows((rs) => [...rs, { pk: '', eu: '', us: '', cm: '' }])}>Line</Button>
+          <Button size="sm" variant="ghost" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRows((rs) => [...rs, { pk: '', eu: '', us: '', cm: '' }])}>{t('Line')}</Button>
         </div>
-        <Textarea label="Note" rows={2} value={notes} maxLength={500} placeholder="Ye brand aadha size chhota chalta hai" onChange={(e) => setNotes(e.target.value)} hint="Print par neeche chhapta hai" />
+        <Textarea label={t('Note')} rows={2} value={notes} maxLength={500} placeholder={t('Ye brand aadha size chhota chalta hai')} onChange={(e) => setNotes(e.target.value)} hint={t('Print par neeche chhapta hai')} />
       </div>
     </Modal>
   );
@@ -113,7 +114,7 @@ export default function ShoeSizeChartsPage() {
   const { data: charts = [], isLoading } = useQuery({ queryKey: [CHART_KEY], queryFn: shoeSizeChartsApi.list });
   const hide = useMutation({
     mutationFn: (c: ShoeSizeChart) => (c.isActive ? shoeSizeChartsApi.deactivate(c.id) : shoeSizeChartsApi.update(c.id, { isActive: true })),
-    onSuccess: (c) => { toast.success(c.isActive ? 'Chart wapas dikh raha' : 'Chart chhupa diya'); qc.invalidateQueries({ queryKey: [CHART_KEY] }); },
+    onSuccess: (c) => { toast.success(c.isActive ? t('Chart wapas dikh raha') : t('Chart chhupa diya')); qc.invalidateQueries({ queryKey: [CHART_KEY] }); },
     onError: (e) => toast.error(apiError(e)),
   });
   const add = useCallback(() => { if (canEdit) setEditing('new'); }, [canEdit]);
@@ -125,35 +126,35 @@ export default function ShoeSizeChartsPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Size chart — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Size chart — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Ruler, color: '#2563eb', title: 'Standard chart', text: 'Gents, ladies aur bachon ka PK/UK, EU, US aur cm. Customer ka EU size bataye to yahan se PK size dekhein.' },
-            { icon: Footprints, color: '#16a34a', title: 'Pair naapein', text: 'Deewar se aedi laga kar angoothe tak cm me naapein — cm wala column dekhein.' },
-            { icon: Pencil, color: '#7c3aed', title: 'Apna chart', text: 'Kisi brand ka size chhota / bara chalta ho to us ka chart banayein aur counter par print kar ke lagayein.' },
+            { icon: Ruler, color: '#2563eb', title: t('Standard chart'), text: t('Gents, ladies aur bachon ka PK/UK, EU, US aur cm. Customer ka EU size bataye to yahan se PK size dekhein.') },
+            { icon: Footprints, color: '#16a34a', title: t('Pair naapein'), text: t('Deewar se aedi laga kar angoothe tak cm me naapein — cm wala column dekhein.') },
+            { icon: Pencil, color: '#7c3aed', title: t('Apna chart'), text: t('Kisi brand ka size chhota / bara chalta ho to us ka chart banayein aur counter par print kar ke lagayein.') },
           ]}
-          shortcuts={[['N', 'naya chart'], ['G', 'guide']]} />
+          shortcuts={[['N', t('naya chart')], ['G', t('guide')]]} />
       )}
 
-      <PageHero title="Size chart" chip={<><Ruler />{charts.filter((c) => c.isActive).length} apne chart</>} loading={isLoading}
-        meta="PK / UK, EU, US aur pair ki lambai — ek nazar me"
+      <PageHero title={t('Size chart')} chip={<><Ruler />{t('{{count}} apne chart', { count: charts.filter((c) => c.isActive).length })}</>} loading={isLoading}
+        meta={t('PK / UK, EU, US aur pair ki lambai — ek nazar me')}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => chartDoc(`${stdLabel} — standard`, [...CONVERSION[std]])} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya chart</button>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => chartDoc(`${stdLabel} — standard`, [...CONVERSION[std]])} label={t('Print')} /></span>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />{t('Naya chart')}</button>}
         </>} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-        <Card className="rounded-2xl" title="Standard chart" description="Pakistan me chalne wale sizes"
-          actions={<Segmented value={std} onChange={setStd} items={STD.map((s) => ({ value: s.value, label: s.label }))} label="Kis ka chart" />}>
+        <Card className="rounded-2xl" title={t('Standard chart')} description={t('Pakistan me chalne wale sizes')}
+          actions={<Segmented value={std} onChange={setStd} items={STD.map((s) => ({ value: s.value, label: s.label }))} label={t('Kis ka chart')} />}>
           <ChartTable rows={[...CONVERSION[std]]} />
         </Card>
 
-        <Card className="rounded-2xl" title="Dukaan ke chart" description="Brand ya type ke apne sizes"
-          actions={<Switch checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} label="Chhupe bhi" />}>
+        <Card className="rounded-2xl" title={t('Dukaan ke chart')} description={t('Brand ya type ke apne sizes')}
+          actions={<Switch checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} label={t('Chhupe bhi')} />}>
           {isLoading ? <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
             : !visible.length ? (
-              <EmptyBlock icon={Ruler} title="Abhi koi apna chart nahi" text="Standard chart kaafi hai. Koi brand chhota / bara chalta ho to us ka chart banayein."
-                action={canEdit ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={add}>Naya chart</Button> : undefined} />
+              <EmptyBlock icon={Ruler} title={t('Abhi koi apna chart nahi')} text={t('Standard chart kaafi hai. Koi brand chhota / bara chalta ho to us ka chart banayein.')}
+                action={canEdit ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={add}>{t('Naya chart')}</Button> : undefined} />
             ) : (
               <div className="space-y-4">
                 {visible.map((c) => (
@@ -161,10 +162,10 @@ export default function ShoeSizeChartsPage() {
                     <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2.5">
                       <p className="min-w-0 flex-1 truncate font-semibold text-slate-900">{c.name}</p>
                       <StatusPill tone="bg-slate-100 text-slate-700">{genderLabel(c.gender)}</StatusPill>
-                      {!c.isActive && <StatusPill tone="bg-amber-50 text-amber-800">Chhupa</StatusPill>}
-                      <PrintButton doc={() => chartDoc(c.name, c.mappings, c.notes)} label="Print" size="sm" />
-                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(c)}>Badlein</Button>}
-                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<EyeOff className="h-3.5 w-3.5" />} loading={hide.isPending && hide.variables?.id === c.id} onClick={() => hide.mutate(c)}>{c.isActive ? 'Chhupayein' : 'Dikhayein'}</Button>}
+                      {!c.isActive && <StatusPill tone="bg-amber-50 text-amber-800">{t('Chhupa')}</StatusPill>}
+                      <PrintButton doc={() => chartDoc(c.name, c.mappings, c.notes)} label={t('Print')} size="sm" />
+                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditing(c)}>{t('Badlein')}</Button>}
+                      {canEdit && <Button size="sm" variant="ghost" leftIcon={<EyeOff className="h-3.5 w-3.5" />} loading={hide.isPending && hide.variables?.id === c.id} onClick={() => hide.mutate(c)}>{c.isActive ? t('Chhupayein') : t('Dikhayein')}</Button>}
                     </div>
                     <div className="p-3"><ChartTable rows={c.mappings} /></div>
                     {c.notes && <p className="px-4 pb-3 text-[0.8125rem] text-slate-500">{c.notes}</p>}

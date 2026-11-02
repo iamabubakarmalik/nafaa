@@ -7,6 +7,7 @@ import { OnlineOrdersService } from '../../online-orders/online-orders.service';
 import { WebsiteCatalogService } from '../../online-orders/website-catalog.service';
 import { normalizeOrder } from '../../online-orders/order-normalizer';
 import { readWebsiteConfig } from '../../online-orders/website-config';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Custom Website Integration — PURANA (v0) raasta.
@@ -193,7 +194,7 @@ export class CustomWebsiteController {
 
     return {
       ...result,
-      message: `${result.imported} naye, ${result.updated} update, ${result.failed} fail`,
+      ...apiMessage('{{imported}} naye, {{updated}} update, {{failed}} fail', { imported: result.imported, updated: result.updated, failed: result.failed }),
     };
   }
 

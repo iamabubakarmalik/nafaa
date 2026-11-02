@@ -23,6 +23,7 @@ import { Empty, Panel, Pill } from '../../components/parts';
 import { useMoney } from '../../hooks/useDistribution';
 import { trim } from '../../lib/meta';
 import { useTeam } from '../../setup/routes/useTeam';
+import { t as tr } from '@core/i18n';
 
 const KEY = [DIST_KEY, 'targets'] as const;
 
@@ -52,12 +53,12 @@ function TargetsBody() {
 
   const del = useMutation({
     mutationFn: (id: string) => phase2Api.deleteTarget(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); toast.success('Target hata diya'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); toast.success(tr('Target hata diya')); },
     onError: (e) => toast.error(distError(e)),
   });
   const copy = useMutation({
     mutationFn: () => phase2Api.copyTargets(shiftMonth(shown!, -1), shown!),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: KEY }); toast.success(r.copied ? `${r.copied} target copy hue` : 'Copy karne ko kuch nahi (pichle mahine koi naya target nahi)'); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: KEY }); toast.success(r.copied ? tr('{{copied}} target copy hue', { copied: r.copied }) : tr('Copy karne ko kuch nahi (pichle mahine koi naya target nahi)')); },
     onError: (e) => toast.error(distError(e)),
   });
 
@@ -68,27 +69,27 @@ function TargetsBody() {
   return (
     <>
       <PageHero
-        title="Targets"
-        chip={<><Target />{shown ? monthLabel(shown) : 'Is mahine'}</>}
-        meta="Booker, route, brand ya company ka mahine ka target — Invoice se wapsi nikal kar hisab"
+        title={tr('Targets')}
+        chip={<><Target />{shown ? monthLabel(shown) : tr('Is mahine')}</>}
+        meta={tr('Booker, route, brand ya company ka mahine ka target — Invoice se wapsi nikal kar hisab')}
         loading={q.isLoading}
         stats={q.data ? [
-          { label: 'Mahina guzra', value: `${Math.round(q.data.pace)}%`, hint: `${q.data.daysLeft} din baqi` },
-          { label: 'Targets', value: String(rows.length) },
-          { label: 'Raftar par', value: `${onTrack}/${rows.length}` },
-        ] : [{ label: 'Targets', value: '—' }]}
+          { label: tr('Mahina guzra'), value: `${Math.round(q.data.pace)}%`, hint: tr('{{daysLeft}} din baqi', { daysLeft: q.data.daysLeft }) },
+          { label: tr('Targets'), value: String(rows.length) },
+          { label: tr('Raftar par'), value: `${onTrack}/${rows.length}` },
+        ] : [{ label: tr('Targets'), value: '—' }]}
         actions={<>
-          <button type="button" className={heroButton} aria-label="Pichla mahina" onClick={() => shown && setPeriod(shiftMonth(shown, -1))}><ChevronLeft className="h-4 w-4" /></button>
-          <button type="button" className={heroButton} aria-label="Agla mahina" onClick={() => shown && setPeriod(shiftMonth(shown, 1))}><ChevronRight className="h-4 w-4" /></button>
-          {canManage && <button type="button" className={heroButton} disabled={!shown || copy.isPending} onClick={() => copy.mutate()}><Copy className="h-4 w-4" /><span className="hidden sm:inline">Copy last month</span></button>}
-          {canManage && <button type="button" className={heroPrimaryButton} onClick={() => setEdit('new')}><Plus className="h-4 w-4" />New target</button>}
+          <button type="button" className={heroButton} aria-label={tr('Pichla mahina')} onClick={() => shown && setPeriod(shiftMonth(shown, -1))}><ChevronLeft className="h-4 w-4 rtl-flip" /></button>
+          <button type="button" className={heroButton} aria-label={tr('Agla mahina')} onClick={() => shown && setPeriod(shiftMonth(shown, 1))}><ChevronRight className="h-4 w-4 rtl-flip" /></button>
+          {canManage && <button type="button" className={heroButton} disabled={!shown || copy.isPending} onClick={() => copy.mutate()}><Copy className="h-4 w-4" /><span className="hidden sm:inline">{tr('Copy last month')}</span></button>}
+          {canManage && <button type="button" className={heroPrimaryButton} onClick={() => setEdit('new')}><Plus className="h-4 w-4" />{tr('New target')}</button>}
         </>}
       />
 
       {q.isLoading ? <Skeleton className="h-72 rounded-3xl" /> : !rows.length ? (
         <Panel>
-          <Empty icon={<Target className="h-5 w-5" />} text={`${shown ? monthLabel(shown) : 'Is mahine'} ka koi target nahi. Misal: Booker Ali — Rs 5,00,000, ya Brand Dalda — 300 Carton.`}
-            action={canManage ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEdit('new')}>New target</Button> : undefined} />
+          <Empty icon={<Target className="h-5 w-5" />} text={tr('{{value}} ka koi target nahi. Misal: Booker Ali — Rs 5,00,000, ya Brand Dalda — 300 Carton.', { value: shown ? monthLabel(shown) : tr('Is mahine') })}
+            action={canManage ? <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEdit('new')}>{tr('New target')}</Button> : undefined} />
         </Panel>
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
@@ -97,29 +98,29 @@ function TargetsBody() {
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-slate-900">{t.label}</p>
-                  <p className="text-[0.75rem] text-slate-500">{t.metric === 'VALUE' ? 'Rupay (sale)' : `Quantity${t.unitName ? ` · ${t.unitName}` : ''}`}{t.note ? ` · ${t.note}` : ''}</p>
+                  <p className="text-[0.75rem] text-slate-500">{t.metric === 'VALUE' ? tr('Rupay (sale)') : tr('Quantity{{value}}', { value: t.unitName ? ` · ${t.unitName}` : '' })}{t.note ? ` · ${t.note}` : ''}</p>
                 </div>
-                <Pill tone={t.pct >= 100 ? 'green' : t.onTrack ? 'teal' : 'amber'}>{t.pct >= 100 ? 'Poora' : t.onTrack ? 'Raftar par' : 'Peeche'}</Pill>
+                <Pill tone={t.pct >= 100 ? 'green' : t.onTrack ? 'teal' : 'amber'}>{t.pct >= 100 ? tr('Poora') : t.onTrack ? tr('Raftar par') : tr('Peeche')}</Pill>
                 {canManage && (
                   <div className="flex shrink-0">
-                    <button type="button" aria-label="Badlein" onClick={() => setEdit(t)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="h-4 w-4" /></button>
-                    <button type="button" aria-label="Hatayein" onClick={async () => { if (await confirmDialog({ title: 'Delete this target?', danger: true, yes: 'Delete' })) del.mutate(t.id); }}
+                    <button type="button" aria-label={tr('Badlein')} onClick={() => setEdit(t)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="h-4 w-4" /></button>
+                    <button type="button" aria-label={tr('Hatayein')} onClick={async () => { if (await confirmDialog({ title: tr('Delete this target?'), danger: true, yes: tr('Delete') })) del.mutate(t.id); }}
                       className="rounded-md p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 )}
               </div>
               <div className="mt-3 flex items-baseline justify-between gap-2">
                 <span className="text-[1.25rem] font-bold tabular-nums text-slate-900">{fmt(t, t.achieved)}</span>
-                <span className="text-[0.8125rem] text-slate-500">target {fmt(t, t.target)} · <b className="text-slate-800">{Math.round(t.pct)}%</b></span>
+                <span className="text-[0.8125rem] text-slate-500">{tr('target {{t}} ·', { t: fmt(t, t.target) })}{' '} <b className="text-slate-800">{Math.round(t.pct)}%</b></span>
               </div>
               <div className="relative mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100">
                 <div className={cn('h-full rounded-full', t.pct >= 100 ? 'bg-success-500' : t.onTrack ? 'bg-teal-500' : 'bg-amber-500')} style={{ width: `${Math.min(100, t.pct)}%` }} />
-                {q.data && q.data.pace > 0 && q.data.pace < 100 && <span className="absolute inset-y-0 w-0.5 bg-slate-500/60" style={{ left: `${q.data.pace}%` }} title="Aaj tak itna hona chahiye" />}
+                {q.data && q.data.pace > 0 && q.data.pace < 100 && <span className="absolute inset-y-0 w-0.5 bg-slate-500/60" style={{ left: `${q.data.pace}%` }} title={tr('Aaj tak itna hona chahiye')} />}
               </div>
               <div className="mt-2 grid grid-cols-3 gap-2 text-[0.75rem] text-slate-500">
-                <span>Ab tak chahiye <b className="block text-slate-800">{fmt(t, t.expectedByNow)}</b></span>
-                <span>Baqi <b className="block text-slate-800">{fmt(t, t.remaining)}</b></span>
-                <span>Roz chahiye <b className="block text-slate-800">{fmt(t, t.perDayNeeded)}</b></span>
+                <span>{tr('Ab tak chahiye')}{' '} <b className="block text-slate-800">{fmt(t, t.expectedByNow)}</b></span>
+                <span>{tr('Baqi')}{' '} <b className="block text-slate-800">{fmt(t, t.remaining)}</b></span>
+                <span>{tr('Roz chahiye')}{' '} <b className="block text-slate-800">{fmt(t, t.perDayNeeded)}</b></span>
               </div>
             </li>
           ))}
@@ -152,43 +153,43 @@ function TargetModal({ target, period, onClose }: { target: TargetRow | null; pe
       };
       return target ? phase2Api.updateTarget(target.id, body) : phase2Api.createTarget(body);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); toast.success('Target save ho gaya'); onClose(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: KEY }); toast.success(tr('Target save ho gaya')); onClose(); },
     onError: (e) => toast.error(distError(e)),
   });
 
   return (
-    <Modal open onClose={onClose} size="lg" title={target ? 'Edit target' : 'New target'}
-      description="Jo cheezein chunein sab milni chahiye — kuch na chunein to poore business ka target"
-      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button loading={save.isPending} disabled={!(Number(form.target) > 0)} onClick={() => save.mutate()}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={target ? tr('Edit target') : tr('New target')}
+      description={tr('Jo cheezein chunein sab milni chahiye — kuch na chunein to poore business ka target')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button><Button loading={save.isPending} disabled={!(Number(form.target) > 0)} onClick={() => save.mutate()}>{tr('Save')}</Button></>}>
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Mahina" type="month" value={form.period} onChange={(e) => e.target.value && set('period', e.target.value)} />
+          <Input label={tr('Mahina')} type="month" value={form.period} onChange={(e) => e.target.value && set('period', e.target.value)} />
           <div>
-            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kis cheez ka</p>
-            <Segmented label="Metric" value={form.metric} onChange={(v) => set('metric', v as TargetMetric)}
-              items={[{ value: 'VALUE', label: 'Rupay' }, { value: 'QTY', label: 'Quantity' }]} />
+            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{tr('Kis cheez ka')}</p>
+            <Segmented label={tr('Metric')} value={form.metric} onChange={(v) => set('metric', v as TargetMetric)}
+              items={[{ value: 'VALUE', label: tr('Rupay') }, { value: 'QTY', label: tr('Quantity') }]} />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Select label="Booker" value={form.userId ?? ''} onChange={(e) => set('userId', e.target.value)}
-            options={[{ value: '', label: 'Koi bhi' }, ...team.map((u) => ({ value: u.id, label: u.fullName }))]} />
-          <Select label="Route" value={form.routeId ?? ''} onChange={(e) => set('routeId', e.target.value)}
-            options={[{ value: '', label: 'Koi bhi' }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
-          <Select label="Brand" value={form.brandId ?? ''} onChange={(e) => set('brandId', e.target.value)}
-            options={[{ value: '', label: 'Koi bhi' }, ...(principalsQ.data?.brands ?? []).map((b) => ({ value: b.id, label: b.name }))]} />
-          <Select label="Principal (company)" value={form.supplierId ?? ''} onChange={(e) => set('supplierId', e.target.value)}
-            options={[{ value: '', label: 'Koi bhi' }, ...principals.map((s) => ({ value: s.id, label: s.name }))]}
-            hint={principalsQ.data && !principals.length ? 'Pehle Claims → Principals me brands company se jodein' : undefined} />
+          <Select label={tr('Booker')} value={form.userId ?? ''} onChange={(e) => set('userId', e.target.value)}
+            options={[{ value: '', label: tr('Koi bhi') }, ...team.map((u) => ({ value: u.id, label: u.fullName }))]} />
+          <Select label={tr('Route')} value={form.routeId ?? ''} onChange={(e) => set('routeId', e.target.value)}
+            options={[{ value: '', label: tr('Koi bhi') }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
+          <Select label={tr('Brand')} value={form.brandId ?? ''} onChange={(e) => set('brandId', e.target.value)}
+            options={[{ value: '', label: tr('Koi bhi') }, ...(principalsQ.data?.brands ?? []).map((b) => ({ value: b.id, label: b.name }))]} />
+          <Select label={tr('Principal (company)')} value={form.supplierId ?? ''} onChange={(e) => set('supplierId', e.target.value)}
+            options={[{ value: '', label: tr('Koi bhi') }, ...principals.map((s) => ({ value: s.id, label: s.name }))]}
+            hint={principalsQ.data && !principals.length ? tr('Pehle Claims → Principals me brands company se jodein') : undefined} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label={form.metric === 'VALUE' ? 'Target (Rs)' : 'Target (quantity)'} type="number" inputMode="decimal" min={1}
+          <Input label={form.metric === 'VALUE' ? tr('Target (Rs)') : tr('Target (quantity)')} type="number" inputMode="decimal" min={1}
             value={form.target ? String(form.target) : ''} onChange={(e) => set('target', Number(e.target.value))} autoFocus />
           {form.metric === 'QTY' && (
-            <Input label="Pack (marzi se)" value={form.unitName ?? ''} onChange={(e) => set('unitName', e.target.value)} placeholder="Carton"
-              hint="Pack ka naam jaisa items par hai; khali = pcs" />
+            <Input label={tr('Pack (marzi se)')} value={form.unitName ?? ''} onChange={(e) => set('unitName', e.target.value)} placeholder={tr('Carton')}
+              hint={tr('Pack ka naam jaisa items par hai; khali = pcs')} />
           )}
         </div>
-        <Input label="Note" value={form.note ?? ''} onChange={(e) => set('note', e.target.value)} maxLength={200} />
+        <Input label={tr('Note')} value={form.note ?? ''} onChange={(e) => set('note', e.target.value)} maxLength={200} />
       </div>
     </Modal>
   );

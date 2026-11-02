@@ -13,6 +13,7 @@ import { productVariantsApi, type UpsertVariantPayload } from '@modules/inventor
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
 import type { BatchDraft, CoreDraft, EditorConfig, EditorDraft, UnitDraft, VariantDraft } from './types';
+import { t } from '@core/i18n';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const blank = (v: string) => (v.trim() ? v.trim() : undefined);
@@ -94,7 +95,7 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
   let payload: Record<string, unknown> = productPayload(core, isEdit);
   if (config.extra.product) payload = config.extra.product(draft, payload);
 
-  step('Product save ho raha hai');
+  step(t('Product save ho raha hai'));
   const product = isEdit
     ? await productsApi.update(opts.existingId!, payload as never)
     : await productsApi.create(payload as never);
@@ -103,7 +104,7 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
 
   try {
     if (isEdit && prev) {
-      step('Tasveerein');
+      step(t('Tasveerein'));
       const prevIds = prev.images.map((i) => i.id).filter(Boolean) as string[];
       const keep = new Set(core.images.map((i) => i.id).filter(Boolean));
       for (const imgId of prevIds) if (!keep.has(imgId)) await productImagesApi.remove(id, imgId);
@@ -119,28 +120,28 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
     }
 
     if (core.variants.length || prev?.variants.length) {
-      step('Variants');
+      step(t('Variants'));
       await sync(core.variants, prev?.variants ?? [], {
         create: (items) => productVariantsApi.bulkCreate(id, items.map(({ item, index }) => variantPayload(item, core, index, true))),
         update: (v, i) => productVariantsApi.update(id, v.id, variantPayload(v, core, i, false)),
       });
     }
     if (core.units.length || prev?.units.length) {
-      step('Packing');
+      step(t('Packing'));
       await sync(core.units, prev?.units ?? [], {
         create: async (items) => { for (const { item, index } of items) await productUnitsApi.create(unitPayload(item, id, index) as never); },
         update: (u, i) => productUnitsApi.update(u.id, unitPayload(u, id, i) as never),
       });
     }
     if (core.batches.length || prev?.batches.length) {
-      step('Batches');
+      step(t('Batches'));
       await sync(core.batches, prev?.batches ?? [], {
         create: async (items) => { for (const { item } of items) await productBatchesApi.create(id, batchPayload(item, true)); },
         update: (b) => productBatchesApi.update(id, b.id, batchPayload(b, false)),
       });
     }
     if (config.extra.save) {
-      step(`${config.label} ki details`);
+      step(t('{{label}} ki details', { label: config.label }));
       await config.extra.save(id, draft, { isEdit, shopId: opts.shopId });
     }
   } catch (e) {

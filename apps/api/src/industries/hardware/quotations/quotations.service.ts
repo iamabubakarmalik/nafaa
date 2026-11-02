@@ -5,6 +5,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateQuotationDto, UpdateQuotationStatusDto } from './dto/create-quotation.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -48,8 +49,8 @@ function priceQuotation(dto: CreateQuotationDto) {
 function assertItems(dto: CreateQuotationDto) {
   if (!dto.items?.length) throw new BadRequestException('Kam se kam ek item dalein');
   for (const it of dto.items) {
-    if (!(it.quantity > 0)) throw new BadRequestException(`"${it.itemName}" ki quantity 0 se zyada honi chahiye`);
-    if (it.unitPrice < 0) throw new BadRequestException(`"${it.itemName}" ka rate manfi nahi ho sakta`);
+    if (!(it.quantity > 0)) throw new BadRequestException(apiMessage('"{{itemName}}" ki quantity 0 se zyada honi chahiye', { itemName: it.itemName }));
+    if (it.unitPrice < 0) throw new BadRequestException(apiMessage('"{{itemName}}" ka rate manfi nahi ho sakta', { itemName: it.itemName }));
   }
 }
 

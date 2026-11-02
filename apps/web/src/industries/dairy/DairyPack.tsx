@@ -17,6 +17,7 @@ import FarmerSuppliesPage from './pages/FarmerSuppliesPage';
 import MonthlyBillsPage from './pages/MonthlyBillsPage';
 import QualityTestsPage from './pages/QualityTestsPage';
 import ProductionPage from './pages/ProductionPage';
+import { t } from '@core/i18n';
 
 /**
  * Dairy / milk shop: loose milk, dahi and makhan on the shared counter,
@@ -27,11 +28,11 @@ import ProductionPage from './pages/ProductionPage';
 export const DairyPack: IndustryPack = {
   id: 'dairy',
   name: 'Dairy / Milk',
-  shortName: 'Dairy',
+  shortName: t('Dairy'),
   emoji: '🥛',
   priority: 65,
   description:
-    'Gawalon se doodh, ghar delivery aur mahine ka bill, dahi / makhan banana, khula doodh counter par.',
+    t('Gawalon se doodh, ghar delivery aur mahine ka bill, dahi / makhan banana, khula doodh counter par.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,22 +46,22 @@ export const DairyPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Dairy shop',
+      label: t('Dairy shop'),
       icon: Milk,
       emoji: '🥛',
       color: '#0ea5e9',
       order: 20,
       items: [
-        { to: '/dairy/dashboard', label: 'Dairy dashboard', icon: LayoutDashboard },
-        { to: '/dairy/deliveries', label: 'Home delivery', icon: Truck, permission: PERMISSIONS.POS_USE },
-        { to: '/dairy/customers', label: 'Delivery customers', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/dairy/bills', label: 'Monthly bills', icon: FileText, permission: PERMISSIONS.KHATA_VIEW },
-        { to: '/dairy/supplies', label: 'Milk intake', icon: Warehouse, permission: PERMISSIONS.PURCHASES_VIEW },
-        { to: '/dairy/farmers', label: 'Milk suppliers', icon: Milk, permission: PERMISSIONS.SUPPLIERS_VIEW },
-        { to: '/dairy/production', label: 'Yogurt / butter, damaged stock', icon: Factory, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-        { to: '/dairy/products', label: 'Products', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/dairy/routes', label: 'Delivery routes', icon: RouteIcon, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/dairy/quality-tests', label: 'Quality tests', icon: Beaker, permission: PERMISSIONS.PURCHASES_VIEW },
+        { to: '/dairy/dashboard', label: t('Dairy dashboard'), icon: LayoutDashboard },
+        { to: '/dairy/deliveries', label: t('Home delivery'), icon: Truck, permission: PERMISSIONS.POS_USE },
+        { to: '/dairy/customers', label: t('Delivery customers'), icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/dairy/bills', label: t('Monthly bills'), icon: FileText, permission: PERMISSIONS.KHATA_VIEW },
+        { to: '/dairy/supplies', label: t('Milk intake'), icon: Warehouse, permission: PERMISSIONS.PURCHASES_VIEW },
+        { to: '/dairy/farmers', label: t('Milk suppliers'), icon: Milk, permission: PERMISSIONS.SUPPLIERS_VIEW },
+        { to: '/dairy/production', label: t('Yogurt / butter, damaged stock'), icon: Factory, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+        { to: '/dairy/products', label: t('Products'), icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/dairy/routes', label: t('Delivery routes'), icon: RouteIcon, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/dairy/quality-tests', label: t('Quality tests'), icon: Beaker, permission: PERMISSIONS.PURCHASES_VIEW },
       ],
     },
   ],
@@ -94,22 +95,22 @@ export const DairyPack: IndustryPack = {
   productForm: {
     defaultUnit: 'liter',
     unitOptions: [
-      { value: 'liter', label: 'Liter', hint: '🥛', group: 'Volume' },
-      { value: 'ml', label: 'Milliliter', hint: '🥛', group: 'Volume' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Gram', hint: '⚖️', group: 'Weight' },
-      { value: 'piece', label: 'Piece', hint: '🔢', group: 'Count' },
-      { value: 'plate', label: 'Plate', hint: '🍽️', group: 'Serving' },
-      { value: 'cup', label: 'Cup', hint: '🥤', group: 'Serving' },
-      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Container' },
-      { value: 'packet', label: 'Packet', hint: '📦', group: 'Container' },
+      { value: 'liter', label: t('Liter'), hint: '🥛', group: t('Volume') },
+      { value: 'ml', label: t('Milliliter'), hint: '🥛', group: t('Volume') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Gram'), hint: '⚖️', group: t('Weight') },
+      { value: 'piece', label: t('Piece'), hint: '🔢', group: t('Count') },
+      { value: 'plate', label: t('Plate'), hint: '🍽️', group: t('Serving') },
+      { value: 'cup', label: t('Cup'), hint: '🥤', group: t('Serving') },
+      { value: 'bottle', label: t('Bottle'), hint: '🍶', group: t('Container') },
+      { value: 'packet', label: t('Packet'), hint: '📦', group: t('Container') },
     ],
   },
 
   featureFlags: [
-    { key: 'dairyRoutes', label: 'Delivery Routes', defaultEnabled: true },
-    { key: 'dairyMonthlyBills', label: 'Monthly Khata Bills', defaultEnabled: true },
-    { key: 'dairyQualityTests', label: 'Quality Testing', defaultEnabled: false },
-    { key: 'dairyFarmers', label: 'Farmer Management', defaultEnabled: true },
+    { key: 'dairyRoutes', label: t('Delivery Routes'), defaultEnabled: true },
+    { key: 'dairyMonthlyBills', label: t('Monthly Khata Bills'), defaultEnabled: true },
+    { key: 'dairyQualityTests', label: t('Quality Testing'), defaultEnabled: false },
+    { key: 'dairyFarmers', label: t('Farmer Management'), defaultEnabled: true },
   ],
 };

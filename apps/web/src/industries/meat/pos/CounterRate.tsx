@@ -15,6 +15,7 @@ import { wholesaleApi } from '../api/wholesale.api';
 import { weightOrdersApi } from '../api/weight-orders.api';
 import { KEYS } from '../lib/meta';
 import { saleListener, setRateMode, useRateMode, type RateMode } from './rateMode';
+import { t } from '@core/i18n';
 
 export function CounterRate({ customerId }: { customerId?: string | null }) {
   const mode = useRateMode();
@@ -49,25 +50,24 @@ export function CounterRate({ customerId }: { customerId?: string | null }) {
 
   return (
     <div className="space-y-1.5">
-      {!tiersOn && <Segmented<RateMode> label="Rate" value={mode} onChange={setRateMode} className="w-full [&>button]:flex-1"
+      {!tiersOn && <Segmented<RateMode> label={t('Rate')} value={mode} onChange={setRateMode} className="w-full [&>button]:flex-1"
         items={[
-          { value: 'retail', label: <span className="inline-flex items-center gap-1.5"><Store className="h-3.5 w-3.5" />Aam rate</span> },
-          { value: 'wholesale', label: <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />Restaurant rate</span> },
+          { value: 'retail', label: <span className="inline-flex items-center gap-1.5"><Store className="h-3.5 w-3.5" />{t('Aam rate')}</span> },
+          { value: 'wholesale', label: <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />{t('Restaurant rate')}</span> },
         ]} />}
       {!tiersOn && mode === 'wholesale' && (
         <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-          Bill ki lines par wholesale rate lag gaya (jis item par likha hai). Bill ke baad wapas aam rate.
+          {t('Bill ki lines par wholesale rate lag gaya (jis item par likha hai). Bill ke baad wapas aam rate.')}
         </p>
       )}
       {acc && (
         <p className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[0.75rem] text-slate-700 ring-1 ring-slate-200">
-          {acc.businessName} · {acc.accountNumber} — udhaar {formatPKR(acc.totalOutstanding)}
-          {acc.creditLimit > 0 ? ` / had ${formatPKR(acc.creditLimit)}` : ''}
+          {t('{{businessName}} · {{accountNumber}} — udhaar {{totalOutstanding}}{{value}}', { businessName: acc.businessName, accountNumber: acc.accountNumber, totalOutstanding: formatPKR(acc.totalOutstanding), value: acc.creditLimit > 0 ? t(' / had {{creditLimit}}', { creditLimit: formatPKR(acc.creditLimit) }) : '' })}
         </p>
       )}
       {!!ready.data && (
         <Link to="/meat/weight-orders?tab=ready" className="flex items-center gap-1.5 rounded-lg bg-violet-50 px-2.5 py-1.5 text-[0.75rem] font-semibold text-violet-800 ring-1 ring-violet-200 hover:bg-violet-100">
-          <Package className="h-3.5 w-3.5" />{ready.data} order tayyar — bill bana kar dein
+          <Package className="h-3.5 w-3.5" />{t('{{data}} order tayyar — bill bana kar dein', { data: ready.data })}
         </Link>
       )}
     </div>

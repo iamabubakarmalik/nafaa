@@ -33,16 +33,17 @@ import { LinkModal, type LinkFocus } from '../components/online-products/LinkMod
 import { ChannelSettingsModal } from '../components/online-products/ChannelSettingsModal';
 import { CellModal } from '../components/online-products/CellModal';
 import { IssuesPanel } from '../components/online-products/IssuesPanel';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 25;
 
 const TABS: Array<{ id: GridFilter; label: string; icon: LucideIcon; tone?: string }> = [
-  { id: 'all', label: 'Sab', icon: Boxes },
-  { id: 'unlinked', label: 'Jorna baqi', icon: Link2Off, tone: 'text-slate-500' },
-  { id: 'errors', label: 'Masle', icon: AlertTriangle, tone: 'text-rose-600' },
-  { id: 'price', label: 'Price farq', icon: BadgeDollarSign, tone: 'text-amber-600' },
-  { id: 'out', label: 'Stock khatam', icon: PackageX, tone: 'text-rose-600' },
-  { id: 'linked', label: 'Jure hue', icon: Link2, tone: 'text-success-600' },
+  { id: 'all', label: tr('Sab'), icon: Boxes },
+  { id: 'unlinked', label: tr('Jorna baqi'), icon: Link2Off, tone: 'text-slate-500' },
+  { id: 'errors', label: tr('Masle'), icon: AlertTriangle, tone: 'text-rose-600' },
+  { id: 'price', label: tr('Price farq'), icon: BadgeDollarSign, tone: 'text-amber-600' },
+  { id: 'out', label: tr('Stock khatam'), icon: PackageX, tone: 'text-rose-600' },
+  { id: 'linked', label: tr('Jure hue'), icon: Link2, tone: 'text-success-600' },
 ];
 
 type Open =
@@ -110,7 +111,7 @@ export default function OnlineProductsPage() {
 
   const syncChannel = useMutation({
     mutationFn: (c: OnlineChannel) => onlineProductsApi.syncChannel(c.id),
-    onSuccess: (r, c) => { refresh(); if (r.error) toast.error(`${channelName(c)}: ${r.error}`); else toast.success(`${channelName(c)} par Stock${r.prices ? ` aur ${r.prices} Price` : ''} bhej diye`); },
+    onSuccess: (r, c) => { refresh(); if (r.error) toast.error(`${channelName(c)}: ${r.error}`); else toast.success(tr('{{channelName}} par Stock{{value}} bhej diye', { channelName: channelName(c), value: r.prices ? tr(' aur {{prices}} Price', { prices: r.prices }) : '' })); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const syncProduct = useMutation({
@@ -118,15 +119,15 @@ export default function OnlineProductsPage() {
     onSuccess: (r) => {
       refresh();
       const bad = r.results.filter((x) => !x.ok);
-      if (!r.results.length) toast.info('Ye product kisi channel se jura nahi');
+      if (!r.results.length) toast.info(tr('Ye product kisi channel se jura nahi'));
       else if (bad.length) toast.error(`${bad[0].name}: ${bad[0].error}`);
-      else toast.success(`${r.results.map((x) => x.name).join(', ')} par bhej diya`);
+      else toast.success(tr('{{value}} par bhej diya', { value: r.results.map((x) => x.name).join(', ') }));
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const unlinkSizeLess = useMutation({
     mutationFn: (mappingId: string) => onlineProductsApi.unlink(mappingId),
-    onSuccess: () => { refresh(); toast.success('Bina size wala link hata diya — ab har size jorein'); },
+    onSuccess: () => { refresh(); toast.success(tr('Bina size wala link hata diya — ab har size jorein')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
@@ -137,7 +138,7 @@ export default function OnlineProductsPage() {
     else if (canManage && c.canFetch) setOpen({ kind: 'link', channel: c, focus });
   };
   const askUnlinkSizeLess = async (mappingId: string, c: OnlineChannel) => {
-    if (await confirmDialog({ title: 'Bina size wala link hatayein?', text: `Is product ke sizes hain, magar ${channelName(c)} par poora product ek saath jura hai — is se bill par "Available: 0" aata hai. Hata kar har size alag jorein.`, danger: true })) unlinkSizeLess.mutate(mappingId);
+    if (await confirmDialog({ title: tr('Bina size wala link hatayein?'), text: tr('Is product ke sizes hain, magar {{channelName}} par poora product ek saath jura hai — is se bill par "Available: 0" aata hai. Hata kar har size alag jorein.', { channelName: channelName(c) }), danger: true })) unlinkSizeLess.mutate(mappingId);
   };
 
   const linkedRows = channels.reduce((n, c) => n + (c.linked ?? 0), 0);
@@ -148,20 +149,20 @@ export default function OnlineProductsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Online products"
-        chip={<><PackageCheck />{channelsQ.data ? `${channels.length} channels` : '…'}</>}
-        meta="Har product aur size — link, Price aur Stock, sab channels ek jagah"
+        title={tr('Online products')}
+        chip={<><PackageCheck />{channelsQ.data ? tr('{{count}} channels', { count: channels.length }) : '…'}</>}
+        meta={tr('Har product aur size — link, Price aur Stock, sab channels ek jagah')}
         busy={(gridQ.isFetching && !gridQ.isLoading) || channelsQ.isFetching}
         loading={channelsQ.isLoading}
         actions={<>
-          <Link to="/online-store/channels" className={heroButton}><Store className="h-4 w-4" /><span className="max-sm:hidden">Channels</span></Link>
-          <button type="button" onClick={refresh} title="Taaza karein (R)" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', gridQ.isFetching && 'animate-spin')} /></button>
+          <Link to="/online-store/channels" className={heroButton}><Store className="h-4 w-4" /><span className="max-sm:hidden">{tr('Channels')}</span></Link>
+          <button type="button" onClick={refresh} title={tr('Taaza karein (R)')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', gridQ.isFetching && 'animate-spin')} /></button>
         </>}
         stats={[
-          { label: 'Jure hue', value: channelsQ.data ? linkedRows.toLocaleString('en-PK') : '', hint: channels.length ? `${sellable.toLocaleString('en-PK')} products/sizes × ${channels.length} channels` : undefined },
-          { label: 'Jorna baqi', value: s ? s.unlinked.toLocaleString('en-PK') : '', hint: 'products' },
-          { label: 'Masle', value: channelsQ.data ? failedRows.toLocaleString('en-PK') : '', hint: s?.errors ? `${s.errors} products` : 'sab theek' },
-          { label: 'Price farq', value: s ? s.price.toLocaleString('en-PK') : '', hint: 'products' },
+          { label: tr('Jure hue'), value: channelsQ.data ? linkedRows.toLocaleString('en-PK') : '', hint: channels.length ? tr('{{sellable}} products/sizes × {{count}} channels', { sellable: sellable.toLocaleString('en-PK'), count: channels.length }) : undefined },
+          { label: tr('Jorna baqi'), value: s ? s.unlinked.toLocaleString('en-PK') : '', hint: 'products' },
+          { label: tr('Masle'), value: channelsQ.data ? failedRows.toLocaleString('en-PK') : '', hint: s?.errors ? tr('{{errors}} products', { errors: s.errors }) : tr('sab theek') },
+          { label: tr('Price farq'), value: s ? s.price.toLocaleString('en-PK') : '', hint: 'products' },
         ]}
       />
 
@@ -170,9 +171,9 @@ export default function OnlineProductsPage() {
       ) : channels.length === 0 ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><PackageCheck className="h-7 w-7" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">Abhi koi online channel nahi jura</h3>
-          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">Daraz, WooCommerce ya Shopify jorein — phir yahan products jorein, har channel ki Price rakhein aur Stock khud barabar rahega.</p>
-          <Link to="/online-store/connect" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" /> Channel jorein</Link>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{tr('Abhi koi online channel nahi jura')}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{tr('Daraz, WooCommerce ya Shopify jorein — phir yahan products jorein, har channel ki Price rakhein aur Stock khud barabar rahega.')}</p>
+          <Link to="/online-store/connect" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" /> {' '}{tr('Channel jorein')}</Link>
         </div>
       ) : (<>
         <IssuesPanel channels={channels} canManage={canManage}
@@ -205,16 +206,16 @@ export default function OnlineProductsPage() {
         </div>
 
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU ya barcode…" label="Products search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, SKU ya barcode…')} label={tr('Products search')} />}
           chips={filtered ? <>
-            {channelId && <FilterChip onRemove={() => setChannelId('')}>{channelLabel ? channelName(channelLabel) : 'Channel'}</FilterChip>}
+            {channelId && <FilterChip onRemove={() => setChannelId('')}>{channelLabel ? channelName(channelLabel) : tr('Channel')}</FilterChip>}
             {filter !== 'all' && <FilterChip onRemove={() => setFilter('all')}>{TABS.find((t) => t.id === filter)?.label}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>
           {channels.length > 1 && (
-            <FilterMenu icon={Store} label="Channel" value={channelId} active={!!channelId} onChange={setChannelId} align="right" width="w-72"
-              options={[{ value: '', label: 'Sab channels' }, ...channels.map((c) => ({ value: c.id, label: channelName(c), hint: kindOf(c).label, color: kindOf(c).color }))]} />
+            <FilterMenu icon={Store} label={tr('Channel')} value={channelId} active={!!channelId} onChange={setChannelId} align="right" width="w-72"
+              options={[{ value: '', label: tr('Sab channels') }, ...channels.map((c) => ({ value: c.id, label: channelName(c), hint: kindOf(c).label, color: kindOf(c).color }))]} />
           )}
         </FilterBar>
 
@@ -222,28 +223,28 @@ export default function OnlineProductsPage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
         ) : gridQ.isError && !g ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Products nahi aaye</p>
+            <p className="font-semibold text-slate-900">{tr('Products nahi aaye')}</p>
             <p className="mt-1 text-sm text-slate-500">{apiErrorMessage(gridQ.error)}</p>
-            <Button className="mt-3" variant="secondary" onClick={() => gridQ.refetch()}>Dobara koshish</Button>
+            <Button className="mt-3" variant="secondary" onClick={() => gridQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !g?.items.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <Package className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi product nahi' : 'Nafaa me abhi koi product nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">{filter === 'errors' ? 'Koi masla nahi — sab channels par Stock aur Price ja rahe hain.' : filter === 'price' ? 'Har channel par Price wohi hai jo Nafaa rakhta hai.' : 'Filter badal kar dekhein.'}</p>
-            {filtered && <Button className="mt-4" variant="ghost" onClick={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>Filter saaf karein</Button>}
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi product nahi') : tr('Nafaa me abhi koi product nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{filter === 'errors' ? tr('Koi masla nahi — sab channels par Stock aur Price ja rahe hain.') : filter === 'price' ? tr('Har channel par Price wohi hai jo Nafaa rakhta hai.') : tr('Filter badal kar dekhein.')}</p>
+            {filtered && <Button className="mt-4" variant="ghost" onClick={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>{tr('Filter saaf karein')}</Button>}
           </div>
         ) : (<>
           {/* Desktop and tablet: one column per channel */}
           <div className="hidden overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80 md:block">
             <table className="w-full border-separate border-spacing-0" style={{ minWidth: `${18 + cols.length * 12}rem` }}>
               <thead>
-                <tr className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                   {/* With one or two channels the product column would take all the spare width; cap it so the channel columns get it. */}
-                  <th className="sticky left-0 z-10 border-b border-slate-100 bg-slate-50 py-2.5 pl-4 pr-3"
-                    style={cols.length <= 2 ? { width: cols.length === 1 ? 'min(26rem, 42%)' : 'min(24rem, 34%)' } : undefined}>Product</th>
+                  <th className="sticky start-0 z-10 border-b border-slate-100 bg-slate-50 py-2.5 ps-4 pe-3"
+                    style={cols.length <= 2 ? { width: cols.length === 1 ? tr('min(26rem, 42%)') : tr('min(24rem, 34%)') } : undefined}>{tr('Product')}</th>
                   {cols.map((c) => (
-                    <th key={c.id} className="min-w-[12rem] border-b border-l border-slate-100 bg-slate-50 px-3 py-2">
+                    <th key={c.id} className="min-w-[12rem] border-b border-s border-slate-100 bg-slate-50 px-3 py-2">
                       <span className="flex items-center gap-2 normal-case tracking-normal">
                         <ChannelMark channel={c} size="sm" />
                         <span className="min-w-0">
@@ -280,9 +281,9 @@ export default function OnlineProductsPage() {
 
           {g.pages > 1 && (
             <div className="flex items-center justify-center gap-2">
-              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-              <span className="text-sm text-slate-600">Safha {page} / {g.pages} · {g.total.toLocaleString('en-PK')} products</span>
-              <Button variant="secondary" size="sm" disabled={page >= g.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+              <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}} · {{total}} products', { page, pages: g.pages, total: g.total.toLocaleString('en-PK') })}</span>
+              <Button variant="secondary" size="sm" disabled={page >= g.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
             </div>
           )}
         </>)}
@@ -311,19 +312,19 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
         <ChannelMark channel={c} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-slate-900">{channelName(c)}</p>
-          <p className="truncate text-[0.75rem] text-slate-500">{k.label}{c.shopName && c.tracksStock ? ` · Stock ${c.shopName} se` : ''}</p>
+          <p className="truncate text-[0.75rem] text-slate-500">{k.label}{c.shopName && c.tracksStock ? tr(' · Stock {{shopName}} se', { shopName: c.shopName }) : ''}</p>
         </div>
         <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold',
           c.live ? 'bg-success-50 text-success-700' : c.paused ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-700')}>
           <span className={cn('h-1.5 w-1.5 rounded-full', c.live ? 'bg-success-500' : c.paused ? 'bg-slate-400' : 'bg-rose-500')} />
-          {c.live ? 'Chal raha' : c.paused ? 'Ruka hua' : 'Jura nahi'}
+          {c.live ? tr('Chal raha') : c.paused ? tr('Ruka hua') : tr('Jura nahi')}
         </span>
       </div>
 
       <div className="mt-3">
         <div className="flex items-baseline justify-between text-[0.75rem]">
-          <span className="font-semibold text-slate-700">{(c.linked ?? 0).toLocaleString('en-PK')} / {sellable.toLocaleString('en-PK')} jure</span>
-          {!c.canPush ? null : (c.failed ?? 0) > 0 ? <span className="font-semibold text-rose-600">{c.failed} masle</span> : <span className="text-slate-500">{c.lastSyncAt ? `Sync ${timeAgo(c.lastSyncAt)}` : ''}</span>}
+          <span className="font-semibold text-slate-700">{tr('{{value}} / {{sellable}} jure', { value: (c.linked ?? 0).toLocaleString('en-PK'), sellable: sellable.toLocaleString('en-PK') })}</span>
+          {!c.canPush ? null : (c.failed ?? 0) > 0 ? <span className="font-semibold text-rose-600">{tr('{{failed}} masle', { failed: c.failed })}</span> : <span className="text-slate-500">{c.lastSyncAt ? tr('Sync {{lastSyncAt}}', { lastSyncAt: timeAgo(c.lastSyncAt) }) : ''}</span>}
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: k.color }} />
@@ -331,23 +332,23 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
       </div>
 
       <dl className="mb-3 mt-3 space-y-1 text-[0.75rem]">
-        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Price</dt><dd className={cn('min-w-0 truncate font-medium', c.canPush && !c.pushPrice ? 'text-amber-700' : 'text-slate-800')}>{priceText(c)}</dd></div>
-        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Stock</dt><dd className={cn('min-w-0 truncate font-medium', c.tracksStock ? 'text-slate-800' : 'text-slate-500')}>{stockText(c)}</dd></div>
+        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">{tr('Price')}</dt><dd className={cn('min-w-0 truncate font-medium', c.canPush && !c.pushPrice ? 'text-amber-700' : 'text-slate-800')}>{priceText(c)}</dd></div>
+        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">{tr('Stock')}</dt><dd className={cn('min-w-0 truncate font-medium', c.tracksStock ? 'text-slate-800' : 'text-slate-500')}>{stockText(c)}</dd></div>
       </dl>
       {!c.canFetch && <p className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200/80">{WEBSITE_LINKS_NOTE}</p>}
 
       {canManage && (
         <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-3">
-          {c.canFetch && <Button size="sm" onClick={onLink} leftIcon={<Link2 className="h-4 w-4" />}>Jorein</Button>}
+          {c.canFetch && <Button size="sm" onClick={onLink} leftIcon={<Link2 className="h-4 w-4" />}>{tr('Jorein')}</Button>}
           {/* Indolj keeps no stock and sets its own prices; a custom website only takes the stock buffer. */}
           {c.mode !== 'indolj' && (
             <Button size="sm" variant="secondary" onClick={onSettings} leftIcon={<Settings2 className="h-4 w-4" />} className="min-w-0">
-              <span className="truncate">{c.canPush ? 'Price aur Stock' : 'Stock buffer'}</span>
+              <span className="truncate">{c.canPush ? tr('Price aur Stock') : tr('Stock buffer')}</span>
             </Button>
           )}
           {c.canPush && (
-            <Button size="sm" variant="ghost" loading={syncing} disabled={!c.live} onClick={onSync} leftIcon={<RefreshCw className="h-4 w-4" />} title="Stock aur Price abhi bhejein" className="ml-auto shrink-0">
-              Sync
+            <Button size="sm" variant="ghost" loading={syncing} disabled={!c.live} onClick={onSync} leftIcon={<RefreshCw className="h-4 w-4" />} title={tr('Stock aur Price abhi bhejein')} className="ms-auto shrink-0">
+              {tr('Sync')}
             </Button>
           )}
         </div>
@@ -382,24 +383,24 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
       <div className="min-w-0 flex-1">
         <p className="truncate text-[0.875rem] font-semibold text-slate-900" title={item.name}>{item.name}</p>
         <p className="truncate text-[0.75rem] text-slate-500">
-          {sized ? `${item.rows.length} sizes` : <>{item.sku ? <span className="font-mono">{item.sku}</span> : 'SKU nahi'} · Nafaa {rs(item.rows[0]?.price ?? item.price)}</>}
+          {sized ? tr('{{count}} sizes', { count: item.rows.length }) : <>{item.sku ? <span className="font-mono">{item.sku}</span> : tr('SKU nahi')} {' '}{tr('· Nafaa {{rs}}', { rs: rs(item.rows[0]?.price ?? item.price) })}</>}
         </p>
       </div>
       {canManage && anyLinked(item, cols) && (
-        <button type="button" onClick={onSync} disabled={syncing} title="Is product ka Stock aur Price abhi bhejein" aria-label="Abhi bhejein"
+        <button type="button" onClick={onSync} disabled={syncing} title={tr('Is product ka Stock aur Price abhi bhejein')} aria-label={tr('Abhi bhejein')}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50">
           <RefreshCw className={cn('h-4 w-4', syncing && 'animate-spin')} />
         </button>
       )}
     </div>
   );
-  const firstCell = 'sticky left-0 z-[1] border-b border-slate-100 bg-white py-2 pl-4 pr-3';
+  const firstCell = 'sticky start-0 z-[1] border-b border-slate-100 bg-white py-2 ps-4 pe-3';
   if (!sized) {
     const row = item.rows[0];
     return (
       <tr className="align-middle">
         <td className={firstCell}>{head}</td>
-        {cols.map((c) => <td key={c.id} className="border-b border-l border-slate-100 p-1.5"><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+        {cols.map((c) => <td key={c.id} className="border-b border-s border-slate-100 p-1.5"><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
       </tr>
     );
   }
@@ -411,14 +412,14 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
           const bad = item.sizeLess[c.id];
           const linked = item.rows.filter((r) => r.cells[c.id]?.linked).length;
           return (
-            <td key={c.id} className="border-l border-slate-100 px-3 pb-1 pt-2.5 align-middle">
+            <td key={c.id} className="border-s border-slate-100 px-3 pb-1 pt-2.5 align-middle">
               {bad ? (
                 <button type="button" disabled={!canManage} onClick={() => onSizeLess(bad, c)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-left text-[0.71875rem] font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Size ke baghair jura — theek karein
+                  className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-start text-[0.71875rem] font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {' '}{tr('Size ke baghair jura — theek karein')}
                 </button>
               ) : (
-                <span className={cn('text-[0.71875rem] font-semibold', linked === item.rows.length ? 'text-success-700' : 'text-slate-500')}>{linked}/{item.rows.length} sizes jure</span>
+                <span className={cn('text-[0.71875rem] font-semibold', linked === item.rows.length ? 'text-success-700' : 'text-slate-500')}>{tr('{{linked}}/{{count}} sizes jure', { linked, count: item.rows.length })}</span>
               )}
             </td>
           );
@@ -427,12 +428,12 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
       {item.rows.map((row, i) => (
         <tr key={row.variantId ?? i} className="align-middle">
           <td className={cn(firstCell, i < item.rows.length - 1 && 'border-b-slate-50')}>
-            <div className="flex items-center gap-2 pl-[3.25rem]">
+            <div className="flex items-center gap-2 ps-[3.25rem]">
               <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.75rem] font-semibold text-slate-800">{row.label}</span>
               <span className="min-w-0 truncate text-[0.75rem] text-slate-500">{row.sku ? <span className="font-mono">{row.sku}</span> : null}{row.sku ? ' · ' : ''}{rs(row.price)}</span>
             </div>
           </td>
-          {cols.map((c) => <td key={c.id} className={cn('border-l border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+          {cols.map((c) => <td key={c.id} className={cn('border-s border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
         </tr>
       ))}
     </>
@@ -441,9 +442,9 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
 
 function StatusIcon({ cell }: { cell: LinkedCell }) {
   if (cell.status === null) return null;
-  if (cell.status === 'FAILED') return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-600" aria-label="Masla" />;
-  if (cell.status === 'SUCCESS') return <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-600" aria-label="Barabar" />;
-  return <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-label="Abhi nahi bheja" />;
+  if (cell.status === 'FAILED') return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-600" aria-label={tr('Masla')} />;
+  if (cell.status === 'SUCCESS') return <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-600" aria-label={tr('Barabar')} />;
+  return <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-label={tr('Abhi nahi bheja')} />;
 }
 
 function Cell({ c, cell, canManage, onOpen }: { c: OnlineChannel; cell?: GridCell; canManage: boolean; onOpen: () => void }) {
@@ -453,30 +454,30 @@ function Cell({ c, cell, canManage, onOpen }: { c: OnlineChannel; cell?: GridCel
     const canLink = canManage && c.canFetch;
     return (
       <button type="button" onClick={onOpen} disabled={!canLink} title={c.canFetch ? undefined : WEBSITE_LINKS_NOTE}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-slate-200 px-2.5 py-2 text-left text-[0.75rem] text-slate-400 transition enabled:hover:border-brand-300 enabled:hover:bg-brand-50 enabled:hover:text-brand-700">
-        <span className="inline-flex items-center gap-1 font-semibold">{canLink ? <><Plus className="h-3.5 w-3.5" /> Jorein</> : 'Jura nahi'}</span>
-        <span className="tabular-nums">{cell.stock !== null ? `Stock ${cell.stock}` : ''}</span>
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-slate-200 px-2.5 py-2 text-start text-[0.75rem] text-slate-400 transition enabled:hover:border-brand-300 enabled:hover:bg-brand-50 enabled:hover:text-brand-700">
+        <span className="inline-flex items-center gap-1 font-semibold">{canLink ? <><Plus className="h-3.5 w-3.5" /> {' '}{tr('Jorein')}</> : tr('Jura nahi')}</span>
+        <span className="tabular-nums">{cell.stock !== null ? tr('Stock {{stock}}', { stock: cell.stock }) : ''}</span>
       </button>
     );
   }
   return (
     <button type="button" onClick={onOpen}
-      className={cn('block w-full rounded-xl px-2.5 py-1.5 text-left ring-1 transition hover:bg-slate-50',
+      className={cn('block w-full rounded-xl px-2.5 py-1.5 text-start ring-1 transition hover:bg-slate-50',
         cell.status === 'FAILED' ? 'bg-rose-50/60 ring-rose-200' : cell.priceDiffers ? 'ring-amber-200' : 'ring-transparent hover:ring-slate-200')}>
       <span className="flex items-center justify-between gap-2">
         <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-900">
-          {rs(cell.price)}{cell.override ? <span className="ml-1 rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">apni</span> : null}
+          {rs(cell.price)}{cell.override ? <span className="ms-1 rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">{tr('apni')}</span> : null}
         </span>
         <StatusIcon cell={cell} />
       </span>
       <span className="block text-[0.71875rem] text-slate-500">
-        {!c.tracksStock ? 'Stock track nahi' : <>Stock <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b></>}
+        {!c.tracksStock ? tr('Stock track nahi') : <>{tr('Stock')}{' '} <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b></>}
         {cell.lastSyncedAt && cell.status === 'SUCCESS' ? ` · ${timeAgo(cell.lastSyncedAt)}` : ''}
       </span>
       {cell.status === 'FAILED' && cell.error ? (
         <span className="mt-0.5 line-clamp-2 block text-[0.6875rem] font-medium text-rose-700">{cell.error}</span>
       ) : cell.priceDiffers && cell.channelPrice !== null ? (
-        <span className="mt-0.5 block text-[0.6875rem] font-semibold text-amber-700">Channel par {rs(cell.channelPrice)}</span>
+        <span className="mt-0.5 block text-[0.6875rem] font-semibold text-amber-700">{tr('Channel par {{channelPrice}}', { channelPrice: rs(cell.channelPrice) })}</span>
       ) : null}
     </button>
   );
@@ -492,18 +493,18 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
         <Thumb src={item.image} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{item.name}</p>
-          <p className="truncate text-[0.75rem] text-slate-500">{sized ? `${item.rows.length} sizes` : <>{item.sku ? `${item.sku} · ` : ''}Nafaa {rs(item.rows[0]?.price ?? item.price)}</>}</p>
+          <p className="truncate text-[0.75rem] text-slate-500">{sized ? tr('{{count}} sizes', { count: item.rows.length }) : <>{tr('{{value}}Nafaa {{rs}}', { value: item.sku ? `${item.sku} · ` : '', rs: rs(item.rows[0]?.price ?? item.price) })}</>}</p>
         </div>
         {canManage && anyLinked(item, cols) && (
-          <button type="button" onClick={onSync} disabled={syncing} aria-label="Abhi bhejein" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
+          <button type="button" onClick={onSync} disabled={syncing} aria-label={tr('Abhi bhejein')} className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
             <RefreshCw className={cn('h-4 w-4', syncing && 'animate-spin')} />
           </button>
         )}
       </div>
       {cols.filter((c) => item.sizeLess[c.id]).map((c) => (
         <button key={c.id} type="button" disabled={!canManage} onClick={() => onSizeLess(item.sizeLess[c.id], c)}
-          className="mx-3 mb-2 flex w-[calc(100%-1.5rem)] items-center gap-1.5 rounded-xl bg-rose-50 px-2.5 py-1.5 text-left text-[0.75rem] font-semibold text-rose-700 ring-1 ring-rose-200">
-          <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {channelName(c)}: size ke baghair jura — theek karein
+          className="mx-3 mb-2 flex w-[calc(100%-1.5rem)] items-center gap-1.5 rounded-xl bg-rose-50 px-2.5 py-1.5 text-start text-[0.75rem] font-semibold text-rose-700 ring-1 ring-rose-200">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {' '}{tr('{{channelName}}: size ke baghair jura — theek karein', { channelName: channelName(c) })}
         </button>
       ))}
       <div className="divide-y divide-slate-100 border-t border-slate-100">
@@ -522,23 +523,23 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
                 return (
                   <li key={c.id}>
                     <button type="button" onClick={() => onCell(c, cell, row)} disabled={!cell.linked && !(canManage && c.canFetch)}
-                      className="flex w-full items-center gap-2 rounded-xl px-1.5 py-1 text-left hover:bg-slate-50">
+                      className="flex w-full items-center gap-2 rounded-xl px-1.5 py-1 text-start hover:bg-slate-50">
                       <ChannelMark channel={c} size="sm" />
                       <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium text-slate-700">{channelName(c)}</span>
                       {cell.linked ? (
                         <>
-                          <span className="text-[0.75rem] tabular-nums text-slate-500">{c.tracksStock ? `Stock ${cell.stock ?? '—'}` : 'Stock track nahi'}</span>
+                          <span className="text-[0.75rem] tabular-nums text-slate-500">{c.tracksStock ? tr('Stock {{value}}', { value: cell.stock ?? '—' }) : tr('Stock track nahi')}</span>
                           <span className={cn('text-[0.8125rem] font-semibold tabular-nums', cell.priceDiffers ? 'text-amber-700' : 'text-slate-900')}>{rs(cell.price)}</span>
                           <StatusIcon cell={cell} />
                         </>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-0.5 text-[0.71875rem] font-semibold text-slate-500">
-                          {canManage && c.canFetch ? <><Plus className="h-3 w-3" /> Jorein</> : 'Jura nahi'}
+                          {canManage && c.canFetch ? <><Plus className="h-3 w-3" /> {' '}{tr('Jorein')}</> : tr('Jura nahi')}
                         </span>
                       )}
                     </button>
                     {cell.linked && cell.status === 'FAILED' && cell.error && (
-                      <p className="line-clamp-2 pb-1 pl-9 pr-1.5 text-[0.6875rem] font-medium text-rose-700">{cell.error}</p>
+                      <p className="line-clamp-2 pb-1 ps-9 pe-1.5 text-[0.6875rem] font-medium text-rose-700">{cell.error}</p>
                     )}
                   </li>
                 );

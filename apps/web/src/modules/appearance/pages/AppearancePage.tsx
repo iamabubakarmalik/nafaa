@@ -36,6 +36,7 @@ import { AccentPicker } from '../components/AccentPicker';
 import { FontPicker } from '../components/FontPicker';
 import { AppearancePreview } from '../components/AppearancePreview';
 import { HeroSettings } from '../components/HeroSettings';
+import { t as tr } from '@core/i18n';
 
 const HERO_KEYS = ['heroStyle', 'heroPattern', 'heroSize', 'heroStats'] as const;
 
@@ -107,7 +108,7 @@ function DensityVisual({ density }: { density: Density }) {
 
 /** Card icon for the Urdu font block. */
 function UrduGlyph({ className }: { className?: string }) {
-  return <span className={cn(className, 'flex items-center justify-center text-[0.9375rem] font-bold leading-none')}>ا</span>;
+  return <span className={cn(className, 'flex items-center justify-center text-[0.9375rem] font-bold leading-none')}>{tr('ا')}</span>;
 }
 
 /* ─── Page ─── */
@@ -122,7 +123,7 @@ export default function AppearancePage() {
 
   const guide = usePageGuide();
   const resetAll = async () => {
-    if ((await confirmDialog({ title: scope === 'personal' ? 'Apni saari pasand hata kar business default par wapas jayein?' : 'Business ka look Nafaa default par wapas karein?', danger: true }))) ed.resetAll();
+    if ((await confirmDialog({ title: scope === 'personal' ? tr('Apni saari pasand hata kar business default par wapas jayein?') : tr('Business ka look Nafaa default par wapas karein?'), danger: true }))) ed.resetAll();
   };
 
   useEffect(() => {
@@ -139,16 +140,16 @@ export default function AppearancePage() {
       <SaveStatusBar saving={ed.saving} dirty={false} />
       <HeaderActions>
         <Button size="sm" variant="secondary" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={resetAll}>
-          <span className="hidden sm:inline">Reset all</span>
+          <span className="hidden sm:inline">{tr('Reset all')}</span>
         </Button>
-        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+        <IconButton label={tr('Guide (G)')} variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
       </HeaderActions>
 
       {ed.canEditBusiness && (
-        <div role="tablist" aria-label="Who this applies to" className="grid gap-2 sm:grid-cols-2">
+        <div role="tablist" aria-label={tr('Who this applies to')} className="grid gap-2 sm:grid-cols-2">
           {([
-            { value: 'personal', icon: User, title: 'Just for me', text: 'Sirf aap ke account par — baqi staff ko farq nahi parta' },
-            { value: 'business', icon: Building2, title: 'Business default', text: 'Sab staff ka default look — har koi phir apna badal sakta hai' },
+            { value: 'personal', icon: User, title: tr('Just for me'), text: tr('Sirf aap ke account par — baqi staff ko farq nahi parta') },
+            { value: 'business', icon: Building2, title: tr('Business default'), text: tr('Sab staff ka default look — har koi phir apna badal sakta hai') },
           ] as const).map(({ value, icon: Icon, title, text }) => (
             <button
               key={value}
@@ -157,7 +158,7 @@ export default function AppearancePage() {
               aria-selected={scope === value}
               onClick={() => setScope(value)}
               className={cn(
-                'flex items-start gap-3 rounded-xl border p-3 text-left transition',
+                'flex items-start gap-3 rounded-xl border p-3 text-start transition',
                 scope === value ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300',
               )}
             >
@@ -175,16 +176,16 @@ export default function AppearancePage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="min-w-0 space-y-4">
-          <SettingCard title="Mode" description="Light, dark, ya computer ke hisaab se khud" icon={Sun} color="amber"
+          <SettingCard title={tr('Mode')} description={tr('Light, dark, ya computer ke hisaab se khud')} icon={Sun} color="amber"
             source={ed.sourceOf('mode')} onReset={resetFor('mode')}>
-            <ChoiceGrid<ThemeMode> label="Mode" value={a.mode} onChange={(v) => ed.set('mode', v)} options={[
-              { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" />, visual: <ModeVisual mode="light" /> },
-              { value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" />, visual: <ModeVisual mode="dark" /> },
-              { value: 'system', label: 'System', description: 'Computer / phone ke saath', icon: <Monitor className="h-4 w-4" />, visual: <ModeVisual mode="system" /> },
+            <ChoiceGrid<ThemeMode> label={tr('Mode')} value={a.mode} onChange={(v) => ed.set('mode', v)} options={[
+              { value: 'light', label: tr('Light'), icon: <Sun className="h-4 w-4" />, visual: <ModeVisual mode="light" /> },
+              { value: 'dark', label: tr('Dark'), icon: <Moon className="h-4 w-4" />, visual: <ModeVisual mode="dark" /> },
+              { value: 'system', label: tr('System'), description: tr('Computer / phone ke saath'), icon: <Monitor className="h-4 w-4" />, visual: <ModeVisual mode="system" /> },
             ]} />
           </SettingCard>
 
-          <SettingCard title="Brand color" description="Buttons, links, active menu aur highlights ka rang" icon={Palette} color="pink"
+          <SettingCard title={tr('Brand color')} description={tr('Buttons, links, active menu aur highlights ka rang')} icon={Palette} color="pink"
             source={ed.sourceOf('brandColor')} onReset={resetFor('brandColor')}>
             <AccentPicker
               value={ed.layer.brandColor ?? null}
@@ -194,9 +195,9 @@ export default function AppearancePage() {
             />
           </SettingCard>
 
-          <SettingCard title="Background" description="Page ka peechhe wala rang (cards ke peechhe)" icon={LayoutGrid} color="slate"
+          <SettingCard title={tr('Background')} description={tr('Page ka peechhe wala rang (cards ke peechhe)')} icon={LayoutGrid} color="slate"
             source={ed.sourceOf('canvasTone')} onReset={resetFor('canvasTone')}>
-            <ChoiceGrid<CanvasTone> label="Background" columns={5} value={a.canvasTone} onChange={(v) => ed.set('canvasTone', v)}
+            <ChoiceGrid<CanvasTone> label={tr('Background')} columns={5} value={a.canvasTone} onChange={(v) => ed.set('canvasTone', v)}
               options={(Object.entries(CANVAS_TONES) as [CanvasTone, (typeof CANVAS_TONES)[CanvasTone]][]).map(([value, t]) => ({
                 value,
                 label: t.label,
@@ -209,113 +210,113 @@ export default function AppearancePage() {
               }))} />
           </SettingCard>
 
-          <SettingCard title="Sidebar" description="Menu ka rang aur chaurai" icon={PanelLeft} color="indigo"
+          <SettingCard title={tr('Sidebar')} description={tr('Menu ka rang aur chaurai')} icon={PanelLeft} color="indigo"
             source={ed.sourceOf('sidebarStyle')} onReset={resetFor('sidebarStyle')}>
             <div className="space-y-4">
-              <ChoiceGrid<SidebarStyle> label="Sidebar style" value={a.sidebarStyle} onChange={(v) => ed.set('sidebarStyle', v)} options={[
-                { value: 'light', label: 'Light', description: 'Page ke saath milta hua', visual: <SidebarVisual style="light" /> },
-                { value: 'dark', label: 'Dark', description: 'Gehra menu, roshan page', visual: <SidebarVisual style="dark" /> },
-                { value: 'brand', label: 'Brand', description: 'Aap ke rang ka menu', visual: <SidebarVisual style="brand" /> },
+              <ChoiceGrid<SidebarStyle> label={tr('Sidebar style')} value={a.sidebarStyle} onChange={(v) => ed.set('sidebarStyle', v)} options={[
+                { value: 'light', label: tr('Light'), description: tr('Page ke saath milta hua'), visual: <SidebarVisual style="light" /> },
+                { value: 'dark', label: tr('Dark'), description: tr('Gehra menu, roshan page'), visual: <SidebarVisual style="dark" /> },
+                { value: 'brand', label: tr('Brand'), description: tr('Aap ke rang ka menu'), visual: <SidebarVisual style="brand" /> },
               ]} />
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[0.8125rem] font-semibold text-slate-700">Width</span>
-                  {ed.isSet('sidebarMode') && <button type="button" onClick={() => ed.reset('sidebarMode')} className="text-[0.75rem] font-semibold text-slate-500 hover:text-slate-900">Reset</button>}
+                  <span className="text-[0.8125rem] font-semibold text-slate-700">{tr('Width')}</span>
+                  {ed.isSet('sidebarMode') && <button type="button" onClick={() => ed.reset('sidebarMode')} className="text-[0.75rem] font-semibold text-slate-500 hover:text-slate-900">{tr('Reset')}</button>}
                 </div>
-                <ChoiceGrid<SidebarMode> label="Sidebar width" value={a.sidebarMode} onChange={(v) => ed.set('sidebarMode', v)} options={[
-                  { value: 'auto', label: 'Automatic', description: 'Bari screen par poora, chhoti par icons', icon: <PanelLeft className="h-4 w-4" /> },
-                  { value: 'expanded', label: 'Always full', description: 'Hamesha naam ke saath', icon: <PanelLeftOpen className="h-4 w-4" /> },
-                  { value: 'collapsed', label: 'Icons only', description: 'Zyada jagah content ko (Ctrl+B)', icon: <PanelLeftClose className="h-4 w-4" /> },
+                <ChoiceGrid<SidebarMode> label={tr('Sidebar width')} value={a.sidebarMode} onChange={(v) => ed.set('sidebarMode', v)} options={[
+                  { value: 'auto', label: tr('Automatic'), description: tr('Bari screen par poora, chhoti par icons'), icon: <PanelLeft className="h-4 w-4 rtl-flip" /> },
+                  { value: 'expanded', label: tr('Always full'), description: tr('Hamesha naam ke saath'), icon: <PanelLeftOpen className="h-4 w-4" /> },
+                  { value: 'collapsed', label: tr('Icons only'), description: tr('Zyada jagah content ko (Ctrl+B)'), icon: <PanelLeftClose className="h-4 w-4" /> },
                 ]} />
               </div>
             </div>
           </SettingCard>
 
-          <SettingCard id="header" title="Header" description="Har page ke upar wala rangeen dabba — style, pattern, size aur numbers" icon={LayoutTemplate} color="emerald"
+          <SettingCard id="header" title={tr('Header')} description={tr('Har page ke upar wala rangeen dabba — style, pattern, size aur numbers')} icon={LayoutTemplate} color="emerald"
             source={ed.sourceOf('heroStyle')}
             onReset={HERO_KEYS.some((k) => ed.isSet(k)) ? () => ed.resetMany(HERO_KEYS) : undefined}>
             <HeroSettings ed={ed} />
           </SettingCard>
 
-          <SettingCard title="Font" description="Poori app ka font — har ek apne asal andaaz me dikh raha hai" icon={Type} color="violet"
+          <SettingCard title={tr('Font')} description={tr('Poori app ka font — har ek apne asal andaaz me dikh raha hai')} icon={Type} color="violet"
             source={ed.sourceOf('latinFont')} onReset={resetFor('latinFont')}>
-            <FontPicker kind="latin" label="Font" fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
+            <FontPicker kind="latin" label={tr('Font')} fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
           </SettingCard>
 
-          <SettingCard title="Urdu font" description="Urdu likhai ke liye (receipts aur Urdu zabaan)" icon={UrduGlyph} color="violet"
+          <SettingCard title={tr('Urdu font')} description={tr('Urdu likhai ke liye (receipts aur Urdu zabaan)')} icon={UrduGlyph} color="violet"
             source={ed.sourceOf('urduFont')} onReset={resetFor('urduFont')}>
-            <FontPicker kind="urdu" label="Urdu font" fonts={URDU_FONTS} value={a.urduFont} sample="نفع — آپ کا کاروبار" onChange={(v) => ed.set('urduFont', v)} />
+            <FontPicker kind="urdu" label={tr('Urdu font')} fonts={URDU_FONTS} value={a.urduFont} sample="نفع — آپ کا کاروبار" onChange={(v) => ed.set('urduFont', v)} />
           </SettingCard>
 
-          <SettingCard title="Text size" description="Poori app me likhai ka size" icon={Type} color="blue"
+          <SettingCard title={tr('Text size')} description={tr('Poori app me likhai ka size')} icon={Type} color="blue"
             source={ed.sourceOf('textScale')} onReset={resetFor('textScale')}>
-            <ChoiceGrid<TextScale> label="Text size" columns={4} value={a.textScale} onChange={(v) => ed.set('textScale', v)}
+            <ChoiceGrid<TextScale> label={tr('Text size')} columns={4} value={a.textScale} onChange={(v) => ed.set('textScale', v)}
               options={(Object.entries(TEXT_SCALES) as [TextScale, (typeof TEXT_SCALES)[TextScale]][]).map(([value, t]) => ({
                 value,
                 label: t.label,
-                visual: <div className="flex h-14 items-center justify-center font-semibold text-slate-800" style={{ fontSize: `${(t.rootPercent / 100) * 1.25}rem` }}>Aa</div>,
+                visual: <div className="flex h-14 items-center justify-center font-semibold text-slate-800" style={{ fontSize: `${(t.rootPercent / 100) * 1.25}rem` }}>{tr('Aa')}</div>,
               }))} />
           </SettingCard>
 
-          <SettingCard title="Page width" description="Bari screen par page kitna phaile — har page par ek jaisa" icon={MoveHorizontal} color="cyan" source={ed.sourceOf('pageWidth')} onReset={resetFor('pageWidth')}>
-            <ChoiceGrid<PageWidth> label="Page width" columns={3} value={a.pageWidth} onChange={(v) => ed.set('pageWidth', v)} options={[
-              { value: 'normal', label: 'Normal', description: 'Parhne me aasaan, beech me', visual: <WidthVisual width="normal" /> },
-              { value: 'wide', label: 'Chauri', description: 'Sab se behtar (default)', visual: <WidthVisual width="wide" /> },
-              { value: 'full', label: 'Poori screen', description: 'Bari screen par zyada data', visual: <WidthVisual width="full" /> },
+          <SettingCard title={tr('Page width')} description={tr('Bari screen par page kitna phaile — har page par ek jaisa')} icon={MoveHorizontal} color="cyan" source={ed.sourceOf('pageWidth')} onReset={resetFor('pageWidth')}>
+            <ChoiceGrid<PageWidth> label={tr('Page width')} columns={3} value={a.pageWidth} onChange={(v) => ed.set('pageWidth', v)} options={[
+              { value: 'normal', label: tr('Normal'), description: tr('Parhne me aasaan, beech me'), visual: <WidthVisual width="normal" /> },
+              { value: 'wide', label: tr('Chauri'), description: tr('Sab se behtar (default)'), visual: <WidthVisual width="wide" /> },
+              { value: 'full', label: tr('Poori screen'), description: tr('Bari screen par zyada data'), visual: <WidthVisual width="full" /> },
             ]} />
           </SettingCard>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <SettingCard title="Density" description="Cheezon ke beech jagah" icon={Rows3} color="sky" source={ed.sourceOf('density')} onReset={resetFor('density')}>
-              <ChoiceGrid<Density> label="Density" columns={2} value={a.density} onChange={(v) => ed.set('density', v)} options={[
-                { value: 'comfortable', label: 'Comfortable', visual: <DensityVisual density="comfortable" /> },
-                { value: 'compact', label: 'Compact', description: 'Ek screen par zyada', visual: <DensityVisual density="compact" /> },
+            <SettingCard title={tr('Density')} description={tr('Cheezon ke beech jagah')} icon={Rows3} color="sky" source={ed.sourceOf('density')} onReset={resetFor('density')}>
+              <ChoiceGrid<Density> label={tr('Density')} columns={2} value={a.density} onChange={(v) => ed.set('density', v)} options={[
+                { value: 'comfortable', label: tr('Comfortable'), visual: <DensityVisual density="comfortable" /> },
+                { value: 'compact', label: tr('Compact'), description: tr('Ek screen par zyada'), visual: <DensityVisual density="compact" /> },
               ]} />
             </SettingCard>
-            <SettingCard title="Corners" description="Buttons aur cards ke kone" icon={SquareRoundCorner} color="orange" source={ed.sourceOf('radius')} onReset={resetFor('radius')}>
-              <ChoiceGrid<Radius> label="Corners" columns={3} value={a.radius} onChange={(v) => ed.set('radius', v)} options={[
-                { value: 'sharp', label: 'Sharp', visual: <CornerVisual radius="sharp" /> },
-                { value: 'default', label: 'Rounded', visual: <CornerVisual radius="default" /> },
-                { value: 'round', label: 'Extra', visual: <CornerVisual radius="round" /> },
+            <SettingCard title={tr('Corners')} description={tr('Buttons aur cards ke kone')} icon={SquareRoundCorner} color="orange" source={ed.sourceOf('radius')} onReset={resetFor('radius')}>
+              <ChoiceGrid<Radius> label={tr('Corners')} columns={3} value={a.radius} onChange={(v) => ed.set('radius', v)} options={[
+                { value: 'sharp', label: tr('Sharp'), visual: <CornerVisual radius="sharp" /> },
+                { value: 'default', label: tr('Rounded'), visual: <CornerVisual radius="default" /> },
+                { value: 'round', label: tr('Extra'), visual: <CornerVisual radius="round" /> },
               ]} />
             </SettingCard>
           </div>
 
-          <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={Accessibility} color="emerald"
+          <SettingCard title={tr('Accessibility')} description={tr('Aankhon aur aaram ke liye')} icon={Accessibility} color="emerald"
             onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => ed.resetMany(['contrast', 'reduceMotion']) : undefined}>
-            <Toggle label="High contrast" desc="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
+            <Toggle label={tr('High contrast')} desc={tr('Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye')}
               checked={a.contrast === 'high'} onChange={(v) => ed.set('contrast', v ? 'high' : 'normal')} />
-            <Toggle label="Reduce motion" desc="Animations aur hilti cheezein band — tez aur aaram se"
+            <Toggle label={tr('Reduce motion')} desc={tr('Animations aur hilti cheezein band — tez aur aaram se')}
               checked={a.reduceMotion} onChange={(v) => ed.set('reduceMotion', v)} />
           </SettingCard>
         </div>
 
         <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-400">Live preview</span>
-            <span className="text-[0.75rem] text-slate-500">{scope === 'business' ? 'Business default' : 'Aap ka look'}</span>
+            <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Live preview')}</span>
+            <span className="text-[0.75rem] text-slate-500">{scope === 'business' ? tr('Business default') : tr('Aap ka look')}</span>
           </div>
           <AppearancePreview appearance={a} industryLabel={identity.label} />
           <p className="mt-2 text-[0.75rem] text-slate-500">
             {scope === 'business'
-              ? 'Staff jinhon ne apna look nahi badla, unhein yahi dikhega.'
-              : 'Ye sirf aap ke liye hai. Business ka default owner Settings se badal sakta hai.'}
+              ? tr('Staff jinhon ne apna look nahi badla, unhein yahi dikhega.')
+              : tr('Ye sirf aap ke liye hai. Business ka default owner Settings se badal sakta hai.')}
           </p>
         </aside>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title="Appearance — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Appearance — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: User, color: '#2563eb', title: 'Sirf aap ke liye', text: 'Jo badlein woh sirf aap ke account par lagta hai — baqi staff ka look waisa hi rehta hai.' },
-            { icon: Building2, color: '#7c3aed', title: 'Business default', text: 'Malik ya settings wala sab staff ka default look set kar sakta hai; har koi phir apna badal sakta hai.' },
-            { icon: Moon, color: '#0f172a', title: 'Dark mode', text: 'Raat ko ya kam roshni me aankhon ko aaram. "System" chunein to computer ke saath badalta hai.' },
-            { icon: Palette, color: '#e11d48', title: 'Rang aur font', text: 'Brand color buttons aur menu par lagta hai; font aur text size poori app me.' },
-            { icon: LayoutTemplate, color: '#059669', title: 'Header', text: 'Har page ke upar wale dabbe ka style chunein — Modern, Simple, Halka, Dark, Aurora ya Outline. Neeche preview foran badalta hai.' },
-            { icon: Accessibility, color: '#16a34a', title: 'Aasani', text: 'High contrast dhoop me parhne ke liye, reduce motion animations band karne ke liye.' },
-            { icon: RotateCcw, color: '#d97706', title: 'Reset', text: 'Har dabbe me Reset us ek cheez ko wapas karta hai; upar "Reset all" sab ko.' },
+            { icon: User, color: '#2563eb', title: tr('Sirf aap ke liye'), text: tr('Jo badlein woh sirf aap ke account par lagta hai — baqi staff ka look waisa hi rehta hai.') },
+            { icon: Building2, color: '#7c3aed', title: tr('Business default'), text: tr('Malik ya settings wala sab staff ka default look set kar sakta hai; har koi phir apna badal sakta hai.') },
+            { icon: Moon, color: '#0f172a', title: tr('Dark mode'), text: tr('Raat ko ya kam roshni me aankhon ko aaram. "System" chunein to computer ke saath badalta hai.') },
+            { icon: Palette, color: '#e11d48', title: tr('Rang aur font'), text: tr('Brand color buttons aur menu par lagta hai; font aur text size poori app me.') },
+            { icon: LayoutTemplate, color: '#059669', title: tr('Header'), text: tr('Har page ke upar wale dabbe ka style chunein — Modern, Simple, Halka, Dark, Aurora ya Outline. Neeche preview foran badalta hai.') },
+            { icon: Accessibility, color: '#16a34a', title: tr('Aasani'), text: tr('High contrast dhoop me parhne ke liye, reduce motion animations band karne ke liye.') },
+            { icon: RotateCcw, color: '#d97706', title: tr('Reset'), text: tr('Har dabbe me Reset us ek cheez ko wapas karta hai; upar "Reset all" sab ko.') },
           ]}
-          shortcuts={[['D', 'dark / light'], ['G', 'guide']]}
+          shortcuts={[['D', tr('dark / light')], ['G', tr('guide')]]}
         />
       )}
     </div>

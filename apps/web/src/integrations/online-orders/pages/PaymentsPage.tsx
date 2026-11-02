@@ -19,13 +19,14 @@ import { apiErrorMessage, paymentsApi, type PayGatewayAccount } from '../api/onl
 import { whenText } from '../lib/labels';
 import { GuideButton } from '../components/guides/Guide';
 import { paymentGuide } from '../components/guides/paymentGuides';
+import { t } from '@core/i18n';
 
 export const PAY_KEY = ['payment-accounts'];
 
 const HOW = [
-  { icon: Link2, title: 'Gateway jorein', text: 'Neeche apna gateway ek dafa jorein — pehle Test, phir Live.' },
-  { icon: MessageCircle, title: 'Order par link', text: 'Order kholein → Online payment → poori amount ya advance ka link → WhatsApp.' },
-  { icon: ShieldCheck, title: 'Paisa pakka', text: 'Customer pay kare → gateway se tasdeeq → order par paisa, courier ka COD utna kam.' },
+  { icon: Link2, title: t('Gateway jorein'), text: t('Neeche apna gateway ek dafa jorein — pehle Test, phir Live.') },
+  { icon: MessageCircle, title: t('Order par link'), text: t('Order kholein → Online payment → poori amount ya advance ka link → WhatsApp.') },
+  { icon: ShieldCheck, title: t('Paisa pakka'), text: t('Customer pay kare → gateway se tasdeeq → order par paisa, courier ka COD utna kam.') },
 ];
 
 export default function PaymentsPage() {
@@ -37,17 +38,17 @@ export default function PaymentsPage() {
   return (
     <PageShell>
       <PageHero
-        back="/online-orders" backLabel="Online orders"
-        title="Online payments"
-        chip={<><CreditCard />{connected.length} jure hue</>}
-        meta="Customer se advance ya poori amount online lein — COD ka RTO khatra kam"
+        back="/online-orders" backLabel={t('Online orders')}
+        title={t('Online payments')}
+        chip={<><CreditCard />{t('{{count}} jure hue', { count: connected.length })}</>}
+        meta={t('Customer se advance ya poori amount online lein — COD ka RTO khatra kam')}
         loading={isLoading}
-        actions={<Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">COD hisaab</span></Link>}
+        actions={<Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">{t('COD hisaab')}</span></Link>}
         stats={data ? [
-          { label: 'Jure gateways', value: String(connected.length), hint: `${list.length} me se` },
-          { label: 'Live (asli paisa)', value: String(live.length) },
-          { label: 'Test mode', value: String(connected.filter((g) => g.env === 'sandbox').length) },
-        ] : [{ label: 'Jure gateways', value: '' }]}
+          { label: t('Jure gateways'), value: String(connected.length), hint: t('{{count}} me se', { count: list.length }) },
+          { label: t('Live (asli paisa)'), value: String(live.length) },
+          { label: t('Test mode'), value: String(connected.filter((g) => g.env === 'sandbox').length) },
+        ] : [{ label: t('Jure gateways'), value: '' }]}
       />
 
       <ol className="grid gap-3 md:grid-cols-3">
@@ -66,9 +67,9 @@ export default function PaymentsPage() {
         <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-56 rounded-3xl" />)}</div>
       ) : error || !data ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Payments nahi khule</p>
+          <p className="font-semibold text-slate-900">{t('Payments nahi khule')}</p>
           <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>
-          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
+          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>{t('Dobara koshish')}</Button>
         </div>
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -88,15 +89,15 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
 
   const connect = useMutation({
     mutationFn: () => paymentsApi.connect(g.code, { credentials: Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, v.trim()])), env }),
-    onSuccess: () => { toast.success(`${g.name} jur gaya (${env === 'live' ? 'Live' : 'Test'})`); setVals({}); setOpen(false); refresh(); },
+    onSuccess: () => { toast.success(t('{{name}} jur gaya ({{value}})', { name: g.name, value: env === 'live' ? t('Live') : t('Test') })); setVals({}); setOpen(false); refresh(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const active = useMutation({ mutationFn: (v: boolean) => paymentsApi.setActive(g.code, v), onSuccess: refresh, onError: (e) => toast.error(apiErrorMessage(e)) });
-  const remove = useMutation({ mutationFn: () => paymentsApi.disconnect(g.code), onSuccess: () => { toast.success(`${g.name} hata diya`); refresh(); }, onError: (e) => toast.error(apiErrorMessage(e)) });
+  const remove = useMutation({ mutationFn: () => paymentsApi.disconnect(g.code), onSuccess: () => { toast.success(t('{{name}} hata diya', { name: g.name })); refresh(); }, onError: (e) => toast.error(apiErrorMessage(e)) });
   const missing = g.credentials.some((f) => !f.optional && !(vals[f.key] ?? '').trim());
-  const status = !g.connected ? <Badge size="xs" variant="info">Jorna hai</Badge>
-    : !g.active ? <Badge size="xs" dot>Band</Badge>
-      : g.env === 'live' ? <Badge size="xs" variant="success" dot>Live</Badge> : <Badge size="xs" variant="warning" dot>Test mode</Badge>;
+  const status = !g.connected ? <Badge size="xs" variant="info">{t('Jorna hai')}</Badge>
+    : !g.active ? <Badge size="xs" dot>{t('Band')}</Badge>
+      : g.env === 'live' ? <Badge size="xs" variant="success" dot>{t('Live')}</Badge> : <Badge size="xs" variant="warning" dot>{t('Test mode')}</Badge>;
 
   return (
     <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
@@ -110,24 +111,24 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
           <p className="mt-0.5 text-[0.75rem] text-slate-500">{g.methods.join(' · ')}</p>
           <p className="text-[0.75rem] text-slate-400">{g.fees}</p>
         </div>
-        {g.connected && <Switch size="sm" checked={g.active} onChange={(e) => active.mutate(e.target.checked)} disabled={active.isPending} aria-label={`${g.name} chalu / band`} />}
+        {g.connected && <Switch size="sm" checked={g.active} onChange={(e) => active.mutate(e.target.checked)} disabled={active.isPending} aria-label={t('{{name}} chalu / band', { name: g.name })} />}
       </header>
 
       {g.connected && (
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2.5 text-[0.8125rem] text-slate-600">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600" />
-          <span className="min-w-0">Key <span className="font-mono">{g.maskedKey}</span>{g.connectedAt ? ` · ${whenText(g.connectedAt)} se` : ''}</span>
+          <span className="min-w-0">{t('Key')}{' '} <span className="font-mono">{g.maskedKey}</span>{g.connectedAt ? t(' · {{connectedAt}} se', { connectedAt: whenText(g.connectedAt) }) : ''}</span>
         </div>
       )}
       {g.connected && g.env === 'sandbox' && (
         <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.78125rem] font-medium text-amber-800">
-          Test mode — asli paisa nahi katta. Test theek ho to &quot;Nayi key&quot; → Live keys lagayein.
+          {t('Test mode — asli paisa nahi katta. Test theek ho to "Nayi key" → Live keys lagayein.')}
         </p>
       )}
 
       {open && (
         <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-          <Segmented label="Kahan jorna hai" value={env} onChange={setEnv} items={[{ value: 'sandbox', label: 'Test (sandbox)' }, { value: 'live', label: 'Live (asli paisa)' }]} />
+          <Segmented label={t('Kahan jorna hai')} value={env} onChange={setEnv} items={[{ value: 'sandbox', label: t('Test (sandbox)') }, { value: 'live', label: t('Live (asli paisa)') }]} />
           <div className={cn('grid gap-3', g.credentials.length > 1 && 'sm:grid-cols-2')}>
             {g.credentials.map((f) => (
               <Input size="sm" key={f.key} label={f.label} hint={f.help} type={f.secret ? 'password' : 'text'} autoComplete="off" spellCheck={false} value={vals[f.key] ?? ''} placeholder={f.placeholder}
@@ -135,23 +136,23 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
             ))}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> Encrypted save · sirf malik / manager</span>
-            <Button size="sm" variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} leftIcon={<Zap className="h-4 w-4" />}>Check karke jorein</Button>
+            <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> {' '}{t('Encrypted save · sirf malik / manager')}</span>
+            <Button size="sm" variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} leftIcon={<Zap className="h-4 w-4" />}>{t('Check karke jorein')}</Button>
           </div>
         </div>
       )}
 
       <footer className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-        <GuideButton guide={paymentGuide(g)} label="Setup guide" size="xs" variant="ghost" />
+        <GuideButton guide={paymentGuide(g)} label={t('Setup guide')} size="xs" variant="ghost" />
         <a href={g.portalUrl} target="_blank" rel="noreferrer" className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-100">
           {g.name} <ExternalLink className="h-3.5 w-3.5" />
         </a>
         <span className="flex-1" />
         {g.connected && (
           <>
-            <Button size="xs" variant="ghost" onClick={() => setOpen((v) => !v)}>{open ? 'Rehne dein' : 'Nayi key'}</Button>
+            <Button size="xs" variant="ghost" onClick={() => setOpen((v) => !v)}>{open ? t('Rehne dein') : t('Nayi key')}</Button>
             <Button size="xs" variant="critical" loading={remove.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
-              onClick={async () => { if ((await confirmDialog({ title: `${g.name} hatayein?`, text: 'Bheje hue links kaam karna band kar denge.', danger: true }))) remove.mutate(); }}>Hatayein</Button>
+              onClick={async () => { if ((await confirmDialog({ title: t('{{name}} hatayein?', { name: g.name }), text: t('Bheje hue links kaam karna band kar denge.'), danger: true }))) remove.mutate(); }}>{t('Hatayein')}</Button>
           </>
         )}
       </footer>

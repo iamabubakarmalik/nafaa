@@ -18,6 +18,7 @@ import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { nextInSequence, r2, yearPrefix } from '../common/appliance-common';
 import { billJob } from '../common/books';
 import { CreateApplianceTradeInDto, ListTradeInsQuery, SellTradeInDto, SetTradeInStatusDto, UpdateApplianceTradeInDto } from './dto/trade-in.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES: ApplianceTradeInStatus[] = ['HELD', 'SOLD', 'SCRAPPED', 'RETURNED'];
 
@@ -146,7 +147,7 @@ export class ApplianceTradeInsService {
     if (!t) throw new NotFoundException('Purana saman nahi mila');
     if (t.status === dto.status) return t;
     if (t.status === 'SOLD') throw new BadRequestException('Bika hua saman wapas laane ke liye us ka bill Sales se void karein');
-    if (dto.status === 'RETURNED' && t.saleId) throw new BadRequestException(`Ye saman bill ${await this.saleNumber(t.saleId)} me trade-in laga hai — pehle wo bill void karein`);
+    if (dto.status === 'RETURNED' && t.saleId) throw new BadRequestException(apiMessage('Ye saman bill {{saleId}} me trade-in laga hai — pehle wo bill void karein', { saleId: await this.saleNumber(t.saleId) }));
     return this.prisma.applianceTradeIn.update({ where: { id: t.id }, data: { status: dto.status } });
   }
 
@@ -178,8 +179,8 @@ export class ApplianceTradeInsService {
     await this.syncUsed(user.tenantId);
     const t = await this.prisma.applianceTradeIn.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Purana saman nahi mila');
-    if (t.status !== 'HELD') throw new BadRequestException(`Sirf dukaan me para saman ${action} ja sakta hai`);
-    if (t.saleId) throw new BadRequestException(`Ye saman bill ${await this.saleNumber(t.saleId)} me lag chuka hai — ab ${action} nahi ja sakta`);
+    if (t.status !== 'HELD') throw new BadRequestException(apiMessage('Sirf dukaan me para saman {{action}} ja sakta hai', { action }));
+    if (t.saleId) throw new BadRequestException(apiMessage('Ye saman bill {{saleId}} me lag chuka hai — ab {{action}} nahi ja sakta', { saleId: await this.saleNumber(t.saleId), action }));
     return t;
   }
 

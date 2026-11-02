@@ -33,6 +33,7 @@ import { techniciansApi, type TechStatus, type Technician, type TechnicianInput 
 import { TechnicianModal } from '../components/TechnicianModal';
 import { printCommissionSlip } from '../components/slips';
 import { COMMISSION_KEY, MONEY_KEYS, TECH_KEY, TECH_STATUSES, apiError, dateTime, dayOnly, levelOf, techStatusOf, tradeOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'team' | 'commission' | 'payouts';
 const THIS_MONTH: DateRangeValue = { preset: 'thisMonth', custom: { from: '', to: '' } };
@@ -76,30 +77,30 @@ export default function TechniciansPage() {
   const refresh = () => [TECH_KEY, COMMISSION_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const save = useMutation({
     mutationFn: (v: TechnicianInput) => techniciansApi.upsert(v),
-    onSuccess: () => { toast.success('Technician save ho gaya'); refresh(); setEditing(null); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(tr('Technician save ho gaya')); refresh(); setEditing(null); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   const status = useMutation({
     mutationFn: (v: { id: string; status: TechStatus }) => techniciansApi.updateStatus(v.id, v.status),
-    onSuccess: () => { toast.success('Halat badal di'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(tr('Halat badal di')); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const remove = useMutation({
     mutationFn: (id: string) => techniciansApi.remove(id),
-    onSuccess: () => { toast.success('Technician band — purani jobs aur commission wese hi'); refresh(); setOff(null); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(tr('Technician band — purani jobs aur commission wese hi')); refresh(); setOff(null); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const pay = useMutation({
     mutationFn: () => techniciansApi.pay({ technicianId: paying!.technicianId, from: period.from, to: period.to, paymentMethod: method, note: note.trim() || undefined }),
     onSuccess: (slip) => {
-      toast.success(`${slip.technicianName} ko ${sales(slip.amount)} commission di — ${slip.ref}`, { action: { label: 'Slip', onClick: () => printCommissionSlip(slip, shopName) } });
+      toast.success(tr('{{technicianName}} ko {{amount}} commission di — {{ref}}', { technicianName: slip.technicianName, amount: sales(slip.amount), ref: slip.ref }), { action: { label: tr('Slip'), onClick: () => printCommissionSlip(slip, shopName) } });
       [COMMISSION_KEY, TECH_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       setPaying(null); setNote('');
     },
-    onError: (e) => toast.error(apiError(e, 'Commission nahi di gayi')),
+    onError: (e) => toast.error(apiError(e, tr('Commission nahi di gayi'))),
   });
   const openSlip = async (ref: string) => {
-    try { printCommissionSlip(await techniciansApi.slip(ref), shopName); } catch (e) { toast.error(apiError(e, 'Slip nahi mili')); }
+    try { printCommissionSlip(await techniciansApi.slip(ref), shopName); } catch (e) { toast.error(apiError(e, tr('Slip nahi mili'))); }
   };
 
   useEffect(() => {
@@ -118,13 +119,13 @@ export default function TechniciansPage() {
   const exportCsv = () => {
     if (tab === 'commission' && st) {
       downloadCsv(`commission-${period.from}-${period.to}.csv`, [
-        ['Technician', 'Job', 'Bill #', 'Date', 'Customer', 'Kaam', 'Bill', 'Kaam ka hissa', 'Return', 'Kaam ka return', 'Commission', 'Di gayi'],
+        [tr('Technician'), tr('Job'), tr('Bill #'), tr('Date'), tr('Customer'), tr('Kaam'), tr('Bill'), tr('Kaam ka hissa'), tr('Return'), tr('Kaam ka return'), tr('Commission'), tr('Di gayi')],
         ...st.lines.map((l) => [l.technicianName, l.jobNumber, l.saleNumber, dayOnly(l.billedAt), l.customerName ?? '', l.serviceName, l.bill, l.work, l.refunded, l.workReturned, l.commission, l.paidRef ?? '']),
       ]);
       return;
     }
     downloadCsv('technicians.csv', [
-      ['Naam', 'Phone', 'Darja', 'Hunar', 'Halat', 'Chaalu jobs', 'Mukammal jobs', 'Rating', 'Commission', '%', 'Fixed', 'Areas'],
+      [tr('Naam'), tr('Phone'), tr('Darja'), tr('Hunar'), tr('Halat'), tr('Chaalu jobs'), tr('Mukammal jobs'), tr('Rating'), tr('Commission'), '%', tr('Fixed'), tr('Areas')],
       ...rows.map((t) => [t.staff?.fullName ?? '', t.staff?.phone ?? '', levelOf(t.level), tradeOf(t.primarySkill), techStatusOf(t.status).label, t.openJobs ?? 0, t.completedJobs, t.avgRating ?? '', t.commissionType, t.commissionPct, t.fixedPerJob, t.serviceAreas.join(' / ')]),
     ]);
   };
@@ -132,52 +133,52 @@ export default function TechniciansPage() {
   return (
     <PageShell>
       <PageHero
-        title="Technicians"
-        chip={<><Users /> Team</>}
-        meta="Kaun free hai, kis ke paas kitna kaam, aur commission ka hisaab"
+        title={tr('Technicians')}
+        chip={<><Users /> {' '}{tr('Team')}</>}
+        meta={tr('Kaun free hai, kis ke paas kitna kaam, aur commission ka hisaab')}
         loading={listQ.isLoading}
         actions={<>
-          <button type="button" onClick={exportCsv} disabled={tab === 'payouts'} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <Link to="/services-biz/dispatch" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">Dispatch</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canStaff && <button type="button" onClick={() => setEditing('new')} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Technician</button>}
+          <button type="button" onClick={exportCsv} disabled={tab === 'payouts'} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <Link to="/services-biz/dispatch" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">{tr('Dispatch')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canStaff && <button type="button" onClick={() => setEditing('new')} title={tr('Naya (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Technician')}</button>}
         </>}
         stats={[
-          { label: 'Technicians', value: all.length },
-          { label: 'Abhi free', value: count('AVAILABLE') },
-          ...(canSeePay && st ? [{ label: `Commission (${rangeLabel(period.from, period.to)})`, value: sales(st.totals.commission), hint: st.totals.unpaid ? `${sales(st.totals.unpaid)} deni hai` : undefined }] : []),
+          { label: tr('Technicians'), value: all.length },
+          { label: tr('Abhi free'), value: count('AVAILABLE') },
+          ...(canSeePay && st ? [{ label: tr('Commission ({{from}})', { from: rangeLabel(period.from, period.to) }), value: sales(st.totals.commission), hint: st.totals.unpaid ? tr('{{unpaid}} deni hai', { unpaid: sales(st.totals.unpaid) }) : undefined }] : []),
         ]}
       />
 
       <KpiRow cols={4}>
         {listQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Users} color="#16a34a" label="Free" value={count('AVAILABLE')} hint="Kaam de sakte hain" />
-          <KpiCard icon={Wrench} color="#7c3aed" label="Kaam par" value={count('ON_JOB')} hint={`${all.reduce((s, t) => s + (t.openJobs ?? 0), 0)} chaalu jobs`} />
-          <KpiCard icon={Power} color="#64748b" label="Chhutti / duty khatam" value={count('ON_LEAVE') + count('OFF_DUTY') + count('ON_BREAK')} />
-          <KpiCard icon={Wallet} color="#d97706" label="Commission deni hai" value={canSeePay && st ? sales(st.totals.unpaid) : '—'} hint={canSeePay ? rangeLabel(period.from, period.to) : 'Permission nahi'} onClick={canSeePay ? () => setTab('commission') : undefined} active={tab === 'commission'} />
+          <KpiCard icon={Users} color="#16a34a" label={tr('Free')} value={count('AVAILABLE')} hint={tr('Kaam de sakte hain')} />
+          <KpiCard icon={Wrench} color="#7c3aed" label={tr('Kaam par')} value={count('ON_JOB')} hint={tr('{{value}} chaalu jobs', { value: all.reduce((s, t) => s + (t.openJobs ?? 0), 0) })} />
+          <KpiCard icon={Power} color="#64748b" label={tr('Chhutti / duty khatam')} value={count('ON_LEAVE') + count('OFF_DUTY') + count('ON_BREAK')} />
+          <KpiCard icon={Wallet} color="#d97706" label={tr('Commission deni hai')} value={canSeePay && st ? sales(st.totals.unpaid) : '—'} hint={canSeePay ? rangeLabel(period.from, period.to) : tr('Permission nahi')} onClick={canSeePay ? () => setTab('commission') : undefined} active={tab === 'commission'} />
         </>}
       </KpiRow>
 
       {tab === 'team' ? (
-        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, area, hunar…" label="Search" />} />
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, phone, area, hunar…')} label={tr('Search')} />} />
       ) : tab === 'commission' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Bill hui jobs par: kaam (visit + labour) ka hissa, discount aur return ke baad</p>}>
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Period" allowAll={false} defaultPreset="thisMonth" />
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Bill hui jobs par: kaam (visit + labour) ka hissa, discount aur return ke baad')}</p>}>
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Period')} allowAll={false} defaultPreset="thisMonth" />
         </FilterBar>
-      ) : <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Di gayi commission — har payout Expense me likha hai</p>} />}
+      ) : <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Di gayi commission — har payout Expense me likha hai')}</p>} />}
 
-      <ViewTabs value={tab} onChange={setTab} hint={<>{canStaff && <><Kbd>N</Kbd> naya · </>}<Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<>{canStaff && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>1</Kbd>-<Kbd>3</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'team', label: 'Team', icon: Users, count: rows.length },
-          ...(canSeePay ? [{ id: 'commission' as Tab, label: 'Commission', icon: Banknote }, { id: 'payouts' as Tab, label: 'Payouts', icon: History }] : []),
+          { id: 'team', label: tr('Team'), icon: Users, count: rows.length },
+          ...(canSeePay ? [{ id: 'commission' as Tab, label: tr('Commission'), icon: Banknote }, { id: 'payouts' as Tab, label: tr('Payouts'), icon: History }] : []),
         ]} />
 
       {tab === 'team' && (listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !rows.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <UserCog className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{search ? 'Koi nahi mila' : 'Abhi koi technician nahi'}</p>
-          <p className="mt-1 text-sm text-slate-500">Pehle HR → Staff me banda jorein, phir yahan technician banayein aur commission likhein.</p>
-          {canStaff && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Technician</Button>}
+          <p className="mt-3 font-semibold text-slate-900">{search ? tr('Koi nahi mila') : tr('Abhi koi technician nahi')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Pehle HR → Staff me banda jorein, phir yahan technician banayein aur commission likhein.')}</p>
+          {canStaff && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Technician')}</Button>}
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -188,28 +189,28 @@ export default function TechniciansPage() {
                 <div className="flex items-start gap-3">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-base font-bold text-sky-700">{(t.staff?.fullName ?? 'T').charAt(0)}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-slate-900">{t.staff?.fullName ?? 'Technician'}</p>
+                    <p className="truncate font-semibold text-slate-900">{t.staff?.fullName ?? tr('Technician')}</p>
                     <p className="truncate text-[0.8125rem] text-slate-500">{[levelOf(t.level), t.primarySkill ? tradeOf(t.primarySkill) : null, t.staff?.phone].filter(Boolean).join(' · ')}</p>
                   </div>
                   <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}>{s.label}</span>
                 </div>
                 <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-[0.75rem]">
-                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Chaalu</dt><dd className="text-base font-bold text-slate-900">{t.openJobs ?? 0}</dd></div>
-                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Mukammal</dt><dd className="text-base font-bold text-slate-900">{t.completedJobs}</dd></div>
-                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">Rating</dt><dd className="inline-flex items-center gap-0.5 text-base font-bold text-slate-900">{t.avgRating ? <><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{t.avgRating.toFixed(1)}</> : '—'}</dd></div>
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">{tr('Chaalu')}</dt><dd className="text-base font-bold text-slate-900">{t.openJobs ?? 0}</dd></div>
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">{tr('Mukammal')}</dt><dd className="text-base font-bold text-slate-900">{t.completedJobs}</dd></div>
+                  <div className="rounded-xl bg-slate-50 py-2"><dt className="text-slate-500">{tr('Rating')}</dt><dd className="inline-flex items-center gap-0.5 text-base font-bold text-slate-900">{t.avgRating ? <><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{t.avgRating.toFixed(1)}</> : '—'}</dd></div>
                 </dl>
                 <p className="mt-2 text-[0.75rem] text-slate-500">
-                  {t.commissionType === 'NONE' ? 'Commission nahi' : [t.commissionPct ? `${t.commissionPct}% kaam ka` : null, t.fixedPerJob ? `${sales(t.fixedPerJob)} har job` : null].filter(Boolean).join(' + ') || 'Commission likhi nahi'}
+                  {t.commissionType === 'NONE' ? tr('Commission nahi') : [t.commissionPct ? tr('{{commissionPct}}% kaam ka', { commissionPct: t.commissionPct }) : null, t.fixedPerJob ? tr('{{fixedPerJob}} har job', { fixedPerJob: sales(t.fixedPerJob) }) : null].filter(Boolean).join(' + ') || tr('Commission likhi nahi')}
                   {t.serviceAreas.length > 0 && ` · ${t.serviceAreas.join(', ')}`}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
                   {canJobs && (
-                    <Select aria-label="Halat" value={t.status} wrapperClassName="w-36" size="sm" onChange={(e) => status.mutate({ id: t.id, status: e.target.value as TechStatus })}
+                    <Select aria-label={tr('Halat')} value={t.status} wrapperClassName="w-36" size="sm" onChange={(e) => status.mutate({ id: t.id, status: e.target.value as TechStatus })}
                       options={TECH_STATUSES.map((x) => ({ value: x, label: techStatusOf(x).label }))} />
                   )}
-                  <Link to={`/services-biz/jobs?technician=${t.staffId}&view=all`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-sky-700 hover:bg-sky-50"><Briefcase className="h-3.5 w-3.5" />Jobs</Link>
-                  {canStaff && <button type="button" onClick={() => setEditing(t)} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5" />Badlein</button>}
-                  {canStaff && <button type="button" onClick={() => setOff(t)} className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Power className="h-3.5 w-3.5" />Band</button>}
+                  <Link to={`/services-biz/jobs?technician=${t.staffId}&view=all`} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-sky-700 hover:bg-sky-50"><Briefcase className="h-3.5 w-3.5" />{tr('Jobs')}</Link>
+                  {canStaff && <button type="button" onClick={() => setEditing(t)} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-slate-700 hover:bg-slate-100"><Pencil className="h-3.5 w-3.5" />{tr('Badlein')}</button>}
+                  {canStaff && <button type="button" onClick={() => setOff(t)} className="ms-auto inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><Power className="h-3.5 w-3.5" />{tr('Band')}</button>}
                 </div>
               </article>
             );
@@ -218,11 +219,11 @@ export default function TechniciansPage() {
       ))}
 
       {tab === 'commission' && (statQ.isLoading ? <Skeleton className="h-64 rounded-3xl" /> : !st?.technicians.length ? (
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Is period me koi bill hui job nahi</p><p className="mt-1 text-sm text-slate-500">Commission job ka bill banne par banti hai.</p></div>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Is period me koi bill hui job nahi')}</p><p className="mt-1 text-sm text-slate-500">{tr('Commission job ka bill banne par banti hai.')}</p></div>
       ) : (<>
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <Table minWidth="40rem">
-            <THead><Tr><Th>Technician</Th><Th align="right">Jobs</Th><Th align="right">Bill</Th><Th align="right">Kaam ka hissa</Th><Th align="right">Commission</Th><Th align="right">Di gayi</Th><Th align="right">Deni hai</Th><Th /></Tr></THead>
+            <THead><Tr><Th>{tr('Technician')}</Th><Th align="right">{tr('Jobs')}</Th><Th align="right">{tr('Bill')}</Th><Th align="right">{tr('Kaam ka hissa')}</Th><Th align="right">{tr('Commission')}</Th><Th align="right">{tr('Di gayi')}</Th><Th align="right">{tr('Deni hai')}</Th><Th /></Tr></THead>
             <TBody>
               {st.technicians.map((t) => (
                 <Tr key={t.technicianId}>
@@ -233,7 +234,7 @@ export default function TechniciansPage() {
                   <Td align="right" className="font-semibold tabular-nums">{sales(t.commission)}</Td>
                   <Td align="right" className="tabular-nums text-emerald-700">{sales(t.paid)}</Td>
                   <Td align="right" className={cn('font-semibold tabular-nums', t.unpaid > 0 ? 'text-amber-700' : 'text-slate-400')}>{sales(t.unpaid)}</Td>
-                  <Td align="right">{canPay && t.unpaid > 0 && <Button size="sm" onClick={() => setPaying({ technicianId: t.technicianId, name: t.name, amount: t.unpaid })}>Dein</Button>}</Td>
+                  <Td align="right">{canPay && t.unpaid > 0 && <Button size="sm" onClick={() => setPaying({ technicianId: t.technicianId, name: t.name, amount: t.unpaid })}>{tr('Dein')}</Button>}</Td>
                 </Tr>
               ))}
             </TBody>
@@ -241,7 +242,7 @@ export default function TechniciansPage() {
         </div>
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <Table minWidth="44rem">
-            <THead><Tr><Th>Job</Th><Th>Technician</Th><Th>Kaam</Th><Th align="right">Kaam ka hissa</Th><Th align="right">Return</Th><Th align="right">Commission</Th><Th>Payout</Th></Tr></THead>
+            <THead><Tr><Th>{tr('Job')}</Th><Th>{tr('Technician')}</Th><Th>{tr('Kaam')}</Th><Th align="right">{tr('Kaam ka hissa')}</Th><Th align="right">{tr('Return')}</Th><Th align="right">{tr('Commission')}</Th><Th>{tr('Payout')}</Th></Tr></THead>
             <TBody>
               {st.lines.map((l) => (
                 <Tr key={l.jobId}>
@@ -249,9 +250,9 @@ export default function TechniciansPage() {
                   <Td>{l.technicianName}</Td>
                   <Td><span className="line-clamp-1">{l.serviceName}</span><span className="block text-[0.75rem] text-slate-500">{l.customerName ?? ''}</span></Td>
                   <Td align="right" className="tabular-nums">{sales(l.work)}</Td>
-                  <Td align="right" className="tabular-nums">{l.refunded ? sales(l.refunded) : '—'}{l.refunded > 0 && <span className="block text-[0.6875rem] text-slate-500">{l.workReturned > 0 ? `Kaam ${sales(l.workReturned)} kata` : 'Sirf parts — commission nahi kati'}</span>}</Td>
+                  <Td align="right" className="tabular-nums">{l.refunded ? sales(l.refunded) : '—'}{l.refunded > 0 && <span className="block text-[0.6875rem] text-slate-500">{l.workReturned > 0 ? tr('Kaam {{workReturned}} kata', { workReturned: sales(l.workReturned) }) : tr('Sirf parts — commission nahi kati')}</span>}</Td>
                   <Td align="right" className="font-semibold tabular-nums">{sales(l.commission)}</Td>
-                  <Td>{l.paidRef && !l.paidRef.startsWith('HOLD-') ? <button type="button" onClick={() => void openSlip(l.paidRef!)} className="font-mono text-[0.75rem] text-emerald-700 hover:underline">{l.paidRef}</button> : <span className="text-[0.75rem] text-amber-700">Baqi</span>}</Td>
+                  <Td>{l.paidRef && !l.paidRef.startsWith('HOLD-') ? <button type="button" onClick={() => void openSlip(l.paidRef!)} className="font-mono text-[0.75rem] text-emerald-700 hover:underline">{l.paidRef}</button> : <span className="text-[0.75rem] text-amber-700">{tr('Baqi')}</span>}</Td>
                 </Tr>
               ))}
             </TBody>
@@ -260,15 +261,15 @@ export default function TechniciansPage() {
       </>))}
 
       {tab === 'payouts' && (payoutsQ.isLoading ? <Skeleton className="h-48 rounded-3xl" /> : !payoutsQ.data?.length ? (
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Abhi koi commission nahi di gayi</p></div>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Abhi koi commission nahi di gayi')}</p></div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           {payoutsQ.data.map((p) => (
             <li key={p.ref} className="flex items-center gap-3 px-4 py-3">
               <Banknote className="h-5 w-5 text-emerald-600" />
-              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-900">{p.technicianName}</span><span className="text-[0.75rem] text-slate-500">{p.ref} · {dateTime(p.paidAt)} · {p.jobs} jobs · {p.expense?.paymentMethod ?? ''}</span></span>
+              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-900">{p.technicianName}</span><span className="text-[0.75rem] text-slate-500">{tr('{{ref}} · {{paidAt}} · {{jobs}} jobs · {{value}}', { ref: p.ref, paidAt: dateTime(p.paidAt), jobs: p.jobs, value: p.expense?.paymentMethod ?? '' })}</span></span>
               <span className="font-semibold tabular-nums">{sales(p.amount)}</span>
-              <button type="button" onClick={() => void openSlip(p.ref)} aria-label="Slip print" title="Slip" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
+              <button type="button" onClick={() => void openSlip(p.ref)} aria-label={tr('Slip print')} title={tr('Slip')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
             </li>
           ))}
         </ul>
@@ -276,30 +277,30 @@ export default function TechniciansPage() {
 
       {editing && <TechnicianModal tech={editing === 'new' ? null : editing} taken={all.map((t) => t.staffId)} pending={save.isPending} onSave={(v) => save.mutate(v)} onClose={() => setEditing(null)} />}
       {off && (
-        <Modal open onClose={() => setOff(null)} size="sm" title={`${off.staff?.fullName ?? 'Technician'} band karein?`} description="Nayi job me nahi aayega. Purani jobs, rating aur commission ka hisaab wese hi rahega."
-          footer={<><Button variant="secondary" onClick={() => setOff(null)}>Rehne dein</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(off.id)}>Band karein</Button></>}>
-          {(off.openJobs ?? 0) > 0 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Is ke paas {off.openJobs} chaalu jobs hain — pehle kisi aur ko dein.</p>}
+        <Modal open onClose={() => setOff(null)} size="sm" title={tr('{{value}} band karein?', { value: off.staff?.fullName ?? 'Technician' })} description={tr('Nayi job me nahi aayega. Purani jobs, rating aur commission ka hisaab wese hi rahega.')}
+          footer={<><Button variant="secondary" onClick={() => setOff(null)}>{tr('Rehne dein')}</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate(off.id)}>{tr('Band karein')}</Button></>}>
+          {(off.openJobs ?? 0) > 0 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{tr('Is ke paas {{openJobs}} chaalu jobs hain — pehle kisi aur ko dein.', { openJobs: off.openJobs })}</p>}
         </Modal>
       )}
       {paying && (
-        <Modal open onClose={() => setPaying(null)} size="sm" title={`Commission dein — ${paying.name}`} description={`${rangeLabel(period.from, period.to)} ki baqi commission: Expense me likhi jayegi`}
-          footer={<><Button variant="secondary" onClick={() => setPaying(null)}>Rehne dein</Button><Button loading={pay.isPending} onClick={() => pay.mutate()} leftIcon={<Banknote className="h-4 w-4" />}>{sales(paying.amount)} dein</Button></>}>
+        <Modal open onClose={() => setPaying(null)} size="sm" title={tr('Commission dein — {{name}}', { name: paying.name })} description={tr('{{from}} ki baqi commission: Expense me likhi jayegi', { from: rangeLabel(period.from, period.to) })}
+          footer={<><Button variant="secondary" onClick={() => setPaying(null)}>{tr('Rehne dein')}</Button><Button loading={pay.isPending} onClick={() => pay.mutate()} leftIcon={<Banknote className="h-4 w-4" />}>{tr('{{amount}} dein', { amount: sales(paying.amount) })}</Button></>}>
           <div className="space-y-3">
-            <PaymentMethodPicker value={method} onChange={setMethod} label="Kaise di" hint={method === 'CASH' ? 'Cash drawer se niklega' : 'Bank / wallet se — drawer me nahi'} />
-            <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} hint="Marzi hai" />
+            <PaymentMethodPicker value={method} onChange={setMethod} label={tr('Kaise di')} hint={method === 'CASH' ? tr('Cash drawer se niklega') : tr('Bank / wallet se — drawer me nahi')} />
+            <Input label={tr('Note')} value={note} onChange={(e) => setNote(e.target.value)} hint={tr('Marzi hai')} />
           </div>
         </Modal>
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Technicians — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Technicians — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Technician banayein', text: 'HR → Staff me banda ho to yahan "Technician" se us ka hunar, din, waqt, areas aur commission likhein.' },
-            { icon: Wrench, color: '#7c3aed', title: 'Halat', text: 'Kaam par jaate hi khud "Kaam par" ho jata hai; chhutti ya break yahan se lagayein — Dispatch par free wale pehle aate hain.' },
-            { icon: Banknote, color: '#16a34a', title: 'Commission', text: 'Har bill hui job par kaam (visit + labour) ka % ya fixed — parts par nahi. Discount aur return ke baad ka hisaab.' },
-            { icon: Wallet, color: '#d97706', title: 'Commission dena', text: '"Dein" se drawer (ya bank) se paisa — Expense me likha jata hai, day book aur profit me aata hai. Slip print karke sign karwayein.' },
+            { icon: Plus, color: '#2563eb', title: tr('Technician banayein'), text: tr('HR → Staff me banda ho to yahan "Technician" se us ka hunar, din, waqt, areas aur commission likhein.') },
+            { icon: Wrench, color: '#7c3aed', title: tr('Halat'), text: tr('Kaam par jaate hi khud "Kaam par" ho jata hai; chhutti ya break yahan se lagayein — Dispatch par free wale pehle aate hain.') },
+            { icon: Banknote, color: '#16a34a', title: tr('Commission'), text: tr('Har bill hui job par kaam (visit + labour) ka % ya fixed — parts par nahi. Discount aur return ke baad ka hisaab.') },
+            { icon: Wallet, color: '#d97706', title: tr('Commission dena'), text: tr('"Dein" se drawer (ya bank) se paisa — Expense me likha jata hai, day book aur profit me aata hai. Slip print karke sign karwayein.') },
           ]}
-          tips={['Commission dekhne ke liye "Commission view", dene ke liye "Commission manage" aur "Expense create" ki permission chahiye.']}
+          tips={[tr('Commission dekhne ke liye "Commission view", dene ke liye "Commission manage" aur "Expense create" ki permission chahiye.')]}
           shortcuts={[['N', 'naya'], ['1-3', 'tabs'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}

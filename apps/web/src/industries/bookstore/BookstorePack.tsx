@@ -13,6 +13,7 @@ import ArtSuppliesPage from './pages/ArtSuppliesPage';
 import RentalsPage from './pages/RentalsPage';
 import BookstoreProductWizardPage from './pages/BookstoreProductWizardPage';
 import BookstoreProductDetailPage from './pages/BookstoreProductDetailPage';
+import { t } from '@core/i18n';
 
 /**
  * Bookstore, stationery and art supplies: books with ISBN, authors and
@@ -23,11 +24,11 @@ import BookstoreProductDetailPage from './pages/BookstoreProductDetailPage';
 export const BookstorePack: IndustryPack = {
   id: 'bookstore',
   name: 'Bookstore / Stationery / Art Supplies',
-  shortName: 'Bookstore',
+  shortName: t('Bookstore'),
   emoji: '📚',
   priority: 65,
   description:
-    'Books with ISBN/authors/publishers, textbooks (grade/board), stationery, art supplies, school lists, book rentals.',
+    t('Books with ISBN/authors/publishers, textbooks (grade/board), stationery, art supplies, school lists, book rentals.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,22 +46,22 @@ export const BookstorePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Bookstore',
+      label: t('Bookstore'),
       icon: BookOpen,
       emoji: '📚',
       color: '#d97706',
       order: 20,
       items: [
-        { to: '/bookstore/dashboard', label: 'Bookstore dashboard', icon: LayoutDashboard },
-        { to: '/bookstore-products/new', label: 'New book / item', icon: Plus, permission: PERMISSIONS.PRODUCTS_CREATE },
-        { to: '/bookstore/books', label: 'Books', icon: BookOpen, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/stationery', label: 'Stationery', icon: Pencil, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/art-supplies', label: 'Art supplies', icon: Palette, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/authors', label: 'Authors', icon: Users, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/publishers', label: 'Publishers', icon: Building2, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/schools', label: 'Schools', icon: School, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/bookstore/school-lists', label: 'School book lists', icon: ClipboardList, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/bookstore/rentals', label: 'Book rentals', icon: Timer, permission: PERMISSIONS.POS_USE },
+        { to: '/bookstore/dashboard', label: t('Bookstore dashboard'), icon: LayoutDashboard },
+        { to: '/bookstore-products/new', label: t('New book / item'), icon: Plus, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/bookstore/books', label: t('Books'), icon: BookOpen, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/stationery', label: t('Stationery'), icon: Pencil, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/art-supplies', label: t('Art supplies'), icon: Palette, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/authors', label: t('Authors'), icon: Users, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/publishers', label: t('Publishers'), icon: Building2, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/schools', label: t('Schools'), icon: School, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/bookstore/school-lists', label: t('School book lists'), icon: ClipboardList, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/bookstore/rentals', label: t('Book rentals'), icon: Timer, permission: PERMISSIONS.POS_USE },
       ],
     },
   ],
@@ -87,24 +88,24 @@ export const BookstorePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Piece', hint: '🔢', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '📦', group: 'Count' },
-      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
-      { value: 'dozen', label: 'Dozen', hint: '📦', group: 'Count' },
-      { value: 'kg', label: 'Kg', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Gram', hint: '⚖️', group: 'Weight' },
-      { value: 'ml', label: 'ML', hint: '🥛', group: 'Volume' },
+      { value: 'pcs', label: t('Piece'), hint: '🔢', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '📦', group: t('Count') },
+      { value: 'pack', label: t('Pack'), hint: '📦', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
+      { value: 'dozen', label: t('Dozen'), hint: '📦', group: t('Count') },
+      { value: 'kg', label: t('Kg'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Gram'), hint: '⚖️', group: t('Weight') },
+      { value: 'ml', label: t('ML'), hint: '🥛', group: t('Volume') },
     ],
   },
 
   featureFlags: [
-    { key: 'bookstoreBooks', label: 'Book Profiles (ISBN, Publishers)', defaultEnabled: true },
-    { key: 'bookstoreAuthors', label: 'Author Management', defaultEnabled: true },
-    { key: 'bookstoreStationery', label: 'Stationery Profiles', defaultEnabled: true },
-    { key: 'bookstoreArtSupplies', label: 'Art Supplies Profiles', defaultEnabled: true },
-    { key: 'bookstoreSchools', label: 'School Integration', defaultEnabled: true },
-    { key: 'bookstoreSchoolLists', label: 'School Book Lists', defaultEnabled: true },
-    { key: 'bookstoreRentals', label: 'Book Rentals', defaultEnabled: false },
+    { key: 'bookstoreBooks', label: t('Book Profiles (ISBN, Publishers)'), defaultEnabled: true },
+    { key: 'bookstoreAuthors', label: t('Author Management'), defaultEnabled: true },
+    { key: 'bookstoreStationery', label: t('Stationery Profiles'), defaultEnabled: true },
+    { key: 'bookstoreArtSupplies', label: t('Art Supplies Profiles'), defaultEnabled: true },
+    { key: 'bookstoreSchools', label: t('School Integration'), defaultEnabled: true },
+    { key: 'bookstoreSchoolLists', label: t('School Book Lists'), defaultEnabled: true },
+    { key: 'bookstoreRentals', label: t('Book Rentals'), defaultEnabled: false },
   ],
 };

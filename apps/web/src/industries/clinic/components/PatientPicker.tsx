@@ -12,6 +12,7 @@ import { patientsApi, type Patient } from '../api/patients.api';
 import { useDebounced } from '../hooks/usePageKeys';
 import { patientLine, shortDate } from '../lib/meta';
 import { PatientFormModal } from './PatientFormModal';
+import { t } from '@core/i18n';
 
 export function PatientPicker({ value, onChange, autoFocus, error }: {
   value: Patient | null;
@@ -35,10 +36,10 @@ export function PatientPicker({ value, onChange, autoFocus, error }: {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-[0.9375rem] font-bold text-white">{value.fullName.slice(0, 1).toUpperCase()}</span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-slate-900">{patientLine(value)}</p>
-          <p className="truncate text-[0.75rem] text-slate-600">{value.mrn}{value.phonePrimary && ` · ${value.phonePrimary}`}{value.lastVisitAt && ` · aakhri visit ${shortDate(value.lastVisitAt)}`}</p>
-          {value.allergies?.length > 0 && <p className="mt-1 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-rose-700"><AlertTriangle className="h-3.5 w-3.5" />Allergy: {value.allergies.join(', ')}</p>}
+          <p className="truncate text-[0.75rem] text-slate-600">{value.mrn}{value.phonePrimary && ` · ${value.phonePrimary}`}{value.lastVisitAt && t(' · aakhri visit {{lastVisitAt}}', { lastVisitAt: shortDate(value.lastVisitAt) })}</p>
+          {value.allergies?.length > 0 && <p className="mt-1 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-rose-700"><AlertTriangle className="h-3.5 w-3.5" />{t('Allergy: {{value}}', { value: value.allergies.join(', ') })}</p>}
         </div>
-        <button type="button" onClick={() => onChange(null)} aria-label="Mareez badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
+        <button type="button" onClick={() => onChange(null)} aria-label={t('Mareez badlein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
       </div>
     );
   }
@@ -47,24 +48,24 @@ export function PatientPicker({ value, onChange, autoFocus, error }: {
     <div className="relative">
       {adding && <PatientFormModal patient={null} initialName={q} onClose={() => setAdding(false)} onSaved={(p) => { setAdding(false); setQ(''); onChange(p); }} />}
       <label className="group relative block">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} autoFocus={autoFocus} aria-label="Mareez dhoondein"
-          placeholder="Naam, phone, MR number ya CNIC…"
+        <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} autoFocus={autoFocus} aria-label={t('Mareez dhoondein')}
+          placeholder={t('Naam, phone, MR number ya CNIC…')}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (data[0]) onChange(data[0]); else if (term.length >= 2) setAdding(true); } }}
-          className={cn('h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-10 pr-28 text-[0.9375rem] outline-none ring-1 transition focus:bg-white focus:ring-2 focus:ring-brand-500', error ? 'ring-rose-300' : 'ring-transparent')} />
-        <button type="button" onClick={() => setAdding(true)} className="absolute right-1.5 top-1/2 inline-flex h-8 -translate-y-1/2 items-center gap-1 rounded-xl bg-white px-2.5 text-[0.75rem] font-semibold text-brand-700 shadow-sm ring-1 ring-slate-200 hover:bg-brand-50">
-          <UserPlus className="h-3.5 w-3.5" />Naya
+          className={cn('h-11 w-full rounded-2xl border-0 bg-slate-100/80 ps-10 pe-28 text-[0.9375rem] outline-none ring-1 transition focus:bg-white focus:ring-2 focus:ring-brand-500', error ? 'ring-rose-300' : 'ring-transparent')} />
+        <button type="button" onClick={() => setAdding(true)} className="absolute end-1.5 top-1/2 inline-flex h-8 -translate-y-1/2 items-center gap-1 rounded-xl bg-white px-2.5 text-[0.75rem] font-semibold text-brand-700 shadow-sm ring-1 ring-slate-200 hover:bg-brand-50">
+          <UserPlus className="h-3.5 w-3.5" />{t('Naya')}
         </button>
       </label>
       {error && <p className="mt-1.5 text-xs font-medium text-rose-600">{error}</p>}
       {term.length >= 2 && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
           {data.length === 0 ? (
-            <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2 px-4 py-3 text-left text-[0.875rem] font-semibold text-brand-700 hover:bg-brand-50">
-              <UserPlus className="h-4 w-4" />{isFetching ? 'Dhoond rahe hain…' : `"${q.trim()}" naya mareez register karein`}
+            <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2 px-4 py-3 text-start text-[0.875rem] font-semibold text-brand-700 hover:bg-brand-50">
+              <UserPlus className="h-4 w-4" />{isFetching ? t('Dhoond rahe hain…') : t('"{{value}}" naya mareez register karein', { value: q.trim() })}
             </button>
           ) : data.slice(0, 12).map((p) => (
-            <button key={p.id} type="button" onClick={() => { onChange(p); setQ(''); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-brand-50">
+            <button key={p.id} type="button" onClick={() => { onChange(p); setQ(''); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-start hover:bg-brand-50">
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.875rem] font-semibold text-slate-900">{patientLine(p)}</span>
                 <span className="block truncate text-[0.75rem] text-slate-500">{p.mrn}{p.fatherOrHusbandName && ` · ${p.fatherOrHusbandName}`}</span>

@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from 'react';
 import { onlineOrdersApi } from '../api/online-orders.api';
+import { t as tr } from '@core/i18n';
 
 export type ShopAddress =
   | { ok: true; shop: string }
@@ -56,14 +57,14 @@ export function useShopifyAddress(raw: string): ResolvedAddress {
   if (parsed.ok) return { state: 'ok', shop: parsed.shop };
   if (parsed.reason === 'empty') return { state: 'empty', shop: null };
   if (domain) {
-    if (lookup?.domain !== domain) return { state: 'looking', shop: null, message: `${domain} aap ka apna domain hai — is ka Shopify address dhoond rahe hain…` };
+    if (lookup?.domain !== domain) return { state: 'looking', shop: null, message: tr('{{domain}} aap ka apna domain hai — is ka Shopify address dhoond rahe hain…', { domain }) };
     if (lookup.shop) return { state: 'ok', shop: lookup.shop, fromDomain: domain };
     return {
       state: 'error', shop: null,
-      message: `${domain} se Shopify address nahi mila. Shopify admin → Settings → Domains me jo address ".myshopify.com" par khatam hota hai, wo daalein.`,
+      message: tr('{{domain}} se Shopify address nahi mila. Shopify admin → Settings → Domains me jo address ".myshopify.com" par khatam hota hai, wo daalein.', { domain }),
     };
   }
-  return { state: 'error', shop: null, message: 'Ye Shopify ka address nahi lagta. Shopify admin → Settings → Domains me ".myshopify.com" wala address copy karein.' };
+  return { state: 'error', shop: null, message: tr('Ye Shopify ka address nahi lagta. Shopify admin → Settings → Domains me ".myshopify.com" wala address copy karein.') };
 }
 
 /** Scopes Nafaa needs from a merchant's own app (same list as the Nafaa app). */
@@ -77,8 +78,8 @@ export const SHOPIFY_SCOPES = [
 
 /** Webhooks to add by hand (Settings → Notifications → Webhooks). */
 export const SHOPIFY_WEBHOOK_EVENTS = [
-  { event: 'Order creation', topic: 'orders/create', why: 'naya order' },
-  { event: 'Order update', topic: 'orders/updated', why: 'badla hua order' },
+  { event: 'Order creation', topic: tr('orders/create'), why: tr('naya order') },
+  { event: 'Order update', topic: tr('orders/updated'), why: tr('badla hua order') },
   { event: 'Order cancellation', topic: 'orders/cancelled', why: 'cancel' },
-  { event: 'Order payment', topic: 'orders/paid', why: 'paisa aa gaya' },
+  { event: 'Order payment', topic: tr('orders/paid'), why: tr('paisa aa gaya') },
 ];

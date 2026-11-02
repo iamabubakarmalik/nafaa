@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { cleanName, mergeInto, nameTaken, periodRange, sameName, taxonomyInsights } from '../taxonomy/taxonomy.helper';
 import { UpdateTagDto, UpsertTagDto } from './dto/upsert-tag.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class TagsService {
@@ -81,7 +82,7 @@ export class TagsService {
     if (id === intoId) throw new BadRequestException('Usi tag me nahi mila sakte');
     const [from, into] = await Promise.all([this.own(user, id), this.own(user, intoId)]);
     const moved = await mergeInto(this.prisma, 'tag', from.id, into.id);
-    return { moved, message: `${moved} products par ab "${into.name}" laga hai` };
+    return { moved, ...apiMessage('{{moved}} products par ab "{{intoName}}" laga hai', { moved, intoName: into.name }) };
   }
 
   async remove(user: AuthenticatedUser, id: string) {

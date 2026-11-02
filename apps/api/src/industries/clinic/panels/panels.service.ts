@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { FEE_LINK } from '../appointments/fee-billing';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -64,7 +65,7 @@ export class PanelsService {
     try {
       return await this.prisma.clinicPanel.create({ data: { tenantId: user.tenantId, name: data.name!, creditLimit: data.creditLimit ?? 0 } });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException(`"${data.name}" naam ka panel pehle se hai`);
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException(apiMessage('"{{dataName}}" naam ka panel pehle se hai', { dataName: data.name }));
       throw e;
     }
   }
@@ -85,7 +86,7 @@ export class PanelsService {
         return row;
       });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException(`"${data.name}" naam ka panel pehle se hai`);
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException(apiMessage('"{{dataName}}" naam ka panel pehle se hai', { dataName: data.name }));
       throw e;
     }
   }
@@ -95,7 +96,7 @@ export class PanelsService {
     if (panelId === null || panelId === '') return null;
     const p = await this.prisma.clinicPanel.findFirst({ where: { id: String(panelId), tenantId }, select: { id: true, isActive: true, name: true } });
     if (!p) throw new NotFoundException('Panel nahi mila');
-    if (!p.isActive) throw new BadRequestException(`Panel "${p.name}" band hai`);
+    if (!p.isActive) throw new BadRequestException(apiMessage('Panel "{{pName}}" band hai', { pName: p.name }));
     return p.id;
   }
 
@@ -108,11 +109,11 @@ export class PanelsService {
       await tx.$queryRaw`SELECT id FROM "ClinicPanel" WHERE id = ${panelId} FOR UPDATE`;
       const panel = await tx.clinicPanel.findFirst({ where: { id: panelId, tenantId: user.tenantId } });
       if (!panel) throw new NotFoundException('Panel nahi mila');
-      if (!panel.isActive) throw new BadRequestException(`Panel "${panel.name}" band hai — visit se panel hatayein ya panel chalu karein`);
+      if (!panel.isActive) throw new BadRequestException(apiMessage('Panel "{{panelName}}" band hai — visit se panel hatayein ya panel chalu karein', { panelName: panel.name }));
       if (panel.customerId) {
         const c = await tx.customer.findFirst({ where: { id: panel.customerId, tenantId: user.tenantId }, select: { id: true, isActive: true } });
         if (c?.isActive) return { customerId: c.id, name: panel.name };
-        if (c) throw new BadRequestException(`Panel "${panel.name}" ka khata customer band hai — Customers me chalu karein`);
+        if (c) throw new BadRequestException(apiMessage('Panel "{{panelName}}" ka khata customer band hai — Customers me chalu karein', { panelName: panel.name }));
       }
       const c = await tx.customer.create({
         data: { tenantId: user.tenantId, shopId: shopId ?? null, name: panel.name, creditLimit: panel.creditLimit, notes: 'Clinic panel (company khata)' },

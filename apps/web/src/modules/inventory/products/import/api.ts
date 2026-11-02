@@ -1,6 +1,7 @@
 /** Product import API: dry-run check, chunked run, price update, job history and the bulk editor. */
 
 import { apiClient } from '@core/api/client';
+import { msg } from '@core/i18n';
 
 /** A sheet row after column mapping; every cell is sent as text. */
 export type ImportRow = { row: number } & Partial<Record<ImportField, string>>;
@@ -195,6 +196,6 @@ export const bulkEditApi = {
     apiClient.post('/products/bulk-edit/save', { changes }).then(unwrap<BulkEditSaveResult>),
   /** Stock set to a counted number: the server posts the difference as an adjustment. */
   setStock: (shopId: string, items: Array<{ productId: string; variantId?: string; counted: number }>) =>
-    apiClient.post('/stock-adjustments/count', { shopId, reason: 'Bulk edit', note: 'Bulk edit (spreadsheet)', items })
+    apiClient.post('/stock-adjustments/count', { shopId, reason: msg('Bulk edit'), note: msg('Bulk edit (spreadsheet)'), items })
       .then(unwrap<{ groupRef: string; checked: number; changed: number; gained: number; lost: number; net: number }>),
 };

@@ -12,15 +12,16 @@ import { cn } from '@core/lib/cn';
 import { techniciansApi, type Technician } from '../api/technicians.api';
 import type { ApplianceCategoryType } from '../api/products.api';
 import { CATEGORY_META, TECH_KEY, apiError, cnicOk, digits, money, phoneOk } from './meta';
+import { t as tr } from '@core/i18n';
 
 const SKILLS: Array<{ label: string; types: ApplianceCategoryType[] }> = [
-  { label: 'AC', types: ['AIR_CONDITIONER_SPLIT', 'AIR_CONDITIONER_INVERTER', 'AIR_CONDITIONER_WINDOW'] },
-  { label: 'Fridge / freezer', types: ['REFRIGERATOR', 'DEEP_FREEZER'] },
-  { label: 'Washing machine', types: ['WASHING_MACHINE_TOP_LOAD', 'WASHING_MACHINE_FRONT_LOAD', 'WASHING_MACHINE_TWIN_TUB'] },
-  { label: 'TV / LED', types: ['LED_TV', 'SMART_TV'] },
-  { label: 'Geyser', types: ['GEYSER_ELECTRIC', 'GEYSER_GAS'] },
-  { label: 'Kitchen', types: ['MICROWAVE_OVEN', 'GAS_STOVE', 'CHIMNEY'] },
-  { label: 'Solar / UPS', types: ['SOLAR_PANEL', 'SOLAR_INVERTER', 'UPS'] },
+  { label: tr('AC'), types: ['AIR_CONDITIONER_SPLIT', 'AIR_CONDITIONER_INVERTER', 'AIR_CONDITIONER_WINDOW'] },
+  { label: tr('Fridge / freezer'), types: ['REFRIGERATOR', 'DEEP_FREEZER'] },
+  { label: tr('Washing machine'), types: ['WASHING_MACHINE_TOP_LOAD', 'WASHING_MACHINE_FRONT_LOAD', 'WASHING_MACHINE_TWIN_TUB'] },
+  { label: tr('TV / LED'), types: ['LED_TV', 'SMART_TV'] },
+  { label: tr('Geyser'), types: ['GEYSER_ELECTRIC', 'GEYSER_GAS'] },
+  { label: tr('Kitchen'), types: ['MICROWAVE_OVEN', 'GAS_STOVE', 'CHIMNEY'] },
+  { label: tr('Solar / UPS'), types: ['SOLAR_PANEL', 'SOLAR_INVERTER', 'UPS'] },
 ];
 const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Jumma', 'Hafta'];
 
@@ -45,11 +46,11 @@ export function TechnicianForm({ tech, onClose }: { tech?: Technician | null; on
   const [tried, setTried] = useState(false);
 
   const errors = {
-    code: code.trim() ? undefined : 'Code likhein',
-    name: name.trim().length < 2 ? 'Naam likhein' : undefined,
-    phone: phoneOk(phone) ? undefined : 'Sahi mobile number (03xx-xxxxxxx)',
-    cnic: cnicOk(cnic) ? undefined : 'CNIC 13 hindse',
-    commission: Number(commission) > 100 ? '100% se zyada nahi' : undefined,
+    code: code.trim() ? undefined : tr('Code likhein'),
+    name: name.trim().length < 2 ? tr('Naam likhein') : undefined,
+    phone: phoneOk(phone) ? undefined : tr('Sahi mobile number (03xx-xxxxxxx)'),
+    cnic: cnicOk(cnic) ? undefined : tr('CNIC 13 hindse'),
+    commission: Number(commission) > 100 ? tr('100% se zyada nahi') : undefined,
   };
   const bad = Object.values(errors).some(Boolean);
   const has = (s: (typeof SKILLS)[number]) => s.types.every((t) => cats.includes(t));
@@ -65,53 +66,53 @@ export function TechnicianForm({ tech, onClose }: { tech?: Technician | null; on
       };
       return tech ? techniciansApi.update(tech.id, body) : techniciansApi.create(body);
     },
-    onSuccess: () => { toast.success(tech ? 'Technician update' : 'Technician jur gaya'); qc.invalidateQueries({ queryKey: [TECH_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(tech ? tr('Technician update') : tr('Technician jur gaya')); qc.invalidateQueries({ queryKey: [TECH_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
   const submit = () => { setTried(true); if (!bad && !save.isPending) save.mutate(); };
 
   return (
-    <Modal open onClose={onClose} size="lg" title={tech ? `${tech.name} — badlein` : 'Naya technician'} description="Fitting aur repair par jane wala banda"
+    <Modal open onClose={onClose} size="lg" title={tech ? tr('{{name}} — badlein', { name: tech.name }) : tr('Naya technician')} description={tr('Fitting aur repair par jane wala banda')}
       footer={<>
-        {tried && bad && <span className="mr-auto text-[0.8125rem] text-rose-700">Laal khane theek karein</span>}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} leftIcon={<UserPlus className="h-4 w-4" />}>Save (Ctrl+S)</Button>
+        {tried && bad && <span className="me-auto text-[0.8125rem] text-rose-700">{tr('Laal khane theek karein')}</span>}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} leftIcon={<UserPlus className="h-4 w-4" />}>{tr('Save (Ctrl+S)')}</Button>
       </>}>
       <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
         <div className="grid gap-3 sm:grid-cols-[8rem_1fr_1fr]">
-          <Input label="Code" value={code} onChange={(e) => setCode(e.target.value)} error={tried ? errors.code : undefined} hint="Apna number" />
-          <Input label="Naam" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Imran" error={tried ? errors.name : undefined} />
-          <Input label="Phone" required inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" error={tried || phone ? errors.phone : undefined} />
+          <Input label={tr('Code')} value={code} onChange={(e) => setCode(e.target.value)} error={tried ? errors.code : undefined} hint={tr('Apna number')} />
+          <Input label={tr('Naam')} required value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Imran')} error={tried ? errors.name : undefined} />
+          <Input label={tr('Phone')} required inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" error={tried || phone ? errors.phone : undefined} />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="CNIC" value={cnic} onChange={(e) => setCnic(e.target.value)} placeholder="35202-1234567-1" error={errors.cnic} hint="Marzi hai" />
-          <Input label="Ilaqa" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Johar Town" hint="Qareeb ke kaam isi ko" />
-          <Input label="Tajurba (saal)" inputMode="numeric" value={years} onChange={(e) => setYears(digits(e.target.value))} />
+          <Input label={tr('CNIC')} value={cnic} onChange={(e) => setCnic(e.target.value)} placeholder="35202-1234567-1" error={errors.cnic} hint={tr('Marzi hai')} />
+          <Input label={tr('Ilaqa')} value={zone} onChange={(e) => setZone(e.target.value)} placeholder={tr('Johar Town')} hint={tr('Qareeb ke kaam isi ko')} />
+          <Input label={tr('Tajurba (saal)')} inputMode="numeric" value={years} onChange={(e) => setYears(digits(e.target.value))} />
         </div>
-        <Input label="Ghar ka pata" value={address} onChange={(e) => setAddress(e.target.value)} />
+        <Input label={tr('Ghar ka pata')} value={address} onChange={(e) => setAddress(e.target.value)} />
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kya kaam karta hai</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kya kaam karta hai')}</span>
           <div className="flex flex-wrap gap-1.5">
             {SKILLS.map((s) => <button key={s.label} type="button" aria-pressed={has(s)} onClick={() => toggle(s)} className={cn('h-9 rounded-lg px-3 text-[0.8125rem] font-medium ring-1', has(s) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{s.label}</button>)}
           </div>
           {cats.length > 0 && <p className="mt-1 text-[0.75rem] text-slate-500">{cats.map((c) => CATEGORY_META[c]?.label ?? c).join(', ')}</p>}
         </div>
-        <Input label="Brands" value={brands} onChange={(e) => setBrands(e.target.value)} placeholder="Haier, Gree, Dawlance" hint="Comma laga kar" />
+        <Input label={tr('Brands')} value={brands} onChange={(e) => setBrands(e.target.value)} placeholder={tr('Haier, Gree, Dawlance')} hint={tr('Comma laga kar')} />
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaam ke din</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kaam ke din')}</span>
           <div className="flex flex-wrap gap-1.5">
             {DAYS.map((d, i) => <button key={d} type="button" aria-pressed={days.includes(i)} onClick={() => setDays(days.includes(i) ? days.filter((x) => x !== i) : [...days, i].sort())} className={cn('h-9 rounded-lg px-3 text-[0.8125rem] ring-1', days.includes(i) ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{d}</button>)}
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <Input label="Shuru" type="time" value={start} onChange={(e) => setStart(e.target.value)} />
-          <Input label="Chhutti" type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
-          <Input label="Visit rate" inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} placeholder="1000" />
-          <Input label="Commission %" inputMode="decimal" value={commission} onChange={(e) => setCommission(money(e.target.value))} placeholder="10" error={errors.commission} hint="Har mukammal kaam ke bill par" />
+          <Input label={tr('Shuru')} type="time" value={start} onChange={(e) => setStart(e.target.value)} />
+          <Input label={tr('Chhutti')} type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
+          <Input label={tr('Visit rate')} inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} placeholder="1000" />
+          <Input label={tr('Commission %')} inputMode="decimal" value={commission} onChange={(e) => setCommission(money(e.target.value))} placeholder="10" error={errors.commission} hint={tr('Har mukammal kaam ke bill par')} />
         </div>
-        <Switch checked={active} onChange={(e) => setActive(e.target.checked)} label="Active" description="Band ho to naye kaam me nahi aata; purana record rehta hai" />
-        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <Switch checked={active} onChange={(e) => setActive(e.target.checked)} label={tr('Active')} description={tr('Band ho to naye kaam me nahi aata; purana record rehta hai')} />
+        <Textarea label={tr('Note')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </form>
     </Modal>
   );

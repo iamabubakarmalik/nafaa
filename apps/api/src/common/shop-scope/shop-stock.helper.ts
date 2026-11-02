@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Prisma, StockMovementType } from '@prisma/client';
 import { emitStockChanged } from './stock-events';
 import { BatchTake, capBatchesToStock, takeFromBatches } from './batch-stock.helper';
+import { apiMessage } from '../i18n/api-message';
 
 /**
  * ════════════════════════════════════════════════════════════════
@@ -142,7 +143,7 @@ export async function applyStockDelta(
   if (!changed.count) {
     const now = await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } });
     throw new BadRequestException(
-      `${label ?? 'Item'} is shop mein kaafi nahi hai. Available: ${Number(now?.stock ?? 0)}, chahiye: ${Math.abs(delta)}`,
+      apiMessage('{{label}} is shop mein kaafi nahi hai. Available: {{stock}}, chahiye: {{delta}}', { label: label ?? 'Item', stock: Number(now?.stock ?? 0), delta: Math.abs(delta) }),
     );
   }
   let after = Number((await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } }))?.stock ?? 0);

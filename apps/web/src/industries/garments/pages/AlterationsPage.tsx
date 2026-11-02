@@ -41,16 +41,17 @@ import {
 } from '../components/meta';
 import { useGarmentsCan } from '../components/permissions';
 import { alterationMessage, printAlterationSlip } from '../components/slips';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'tickets' | 'analytics';
 const VIEWS: Array<{ id: AlterationView; label: string; icon: typeof Ruler }> = [
-  { id: 'active', label: 'Chal rahe', icon: ListChecks },
-  { id: 'today', label: 'Aaj dena hai', icon: Clock },
-  { id: 'late', label: 'Late', icon: AlertTriangle },
-  { id: 'ready', label: 'Tayyar — lene aana hai', icon: CheckCircle2 },
-  { id: 'unpaid', label: 'Paisa baqi', icon: Wallet },
-  { id: 'done', label: 'De diye / cancel', icon: Receipt },
-  { id: 'all', label: 'Sab', icon: Ruler },
+  { id: 'active', label: tr('Chal rahe'), icon: ListChecks },
+  { id: 'today', label: tr('Aaj dena hai'), icon: Clock },
+  { id: 'late', label: tr('Late'), icon: AlertTriangle },
+  { id: 'ready', label: tr('Tayyar — lene aana hai'), icon: CheckCircle2 },
+  { id: 'unpaid', label: tr('Paisa baqi'), icon: Wallet },
+  { id: 'done', label: tr('De diye / cancel'), icon: Receipt },
+  { id: 'all', label: tr('Sab'), icon: Ruler },
 ];
 const viewLabel = (v: AlterationView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 const due = (t: AlterationTicket) => dueOf({ total: t.charges, paidAmount: t.paidAmount });
@@ -92,15 +93,15 @@ export default function AlterationsPage() {
     mutationFn: ({ t, to, paidNow, method }: { t: AlterationTicket; to: AlterationStatus; paidNow?: number; method?: PaymentMethod }) =>
       alterationsApi.updateStatus(t.id, to, paidNow === undefined ? undefined : { paidNow, paymentMethod: method }),
     onSuccess: (t) => {
-      toast.success(t.status === 'DELIVERED' ? `${t.ticketNumber} de diya${t.bill ? ` — bill ${t.bill.saleNumber}` : ''}` : `${t.ticketNumber}: ${alterationStatus(t.status).label}`);
+      toast.success(t.status === 'DELIVERED' ? tr('{{ticketNumber}} de diya{{value}}', { ticketNumber: t.ticketNumber, value: t.bill ? tr(' — bill {{saleNumber}}', { saleNumber: t.bill.saleNumber }) : '' }) : `${t.ticketNumber}: ${alterationStatus(t.status).label}`);
       setDeliverOn(null); refresh();
     },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onError: (e) => toast.error(apiError(e, tr('Halat nahi badli'))),
   });
   const pay = useMutation({
     mutationFn: ({ t, amount, method }: { t: AlterationTicket; amount: number; method: PaymentMethod }) => alterationsApi.payment(t.id, amount, method),
-    onSuccess: (t) => { toast.success(`${t.ticketNumber}: payment darj`); setPayOn(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Payment darj nahi hui')),
+    onSuccess: (t) => { toast.success(tr('{{ticketNumber}}: payment darj', { ticketNumber: t.ticketNumber })); setPayOn(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Payment darj nahi hui'))),
   });
   const next = (t: AlterationTicket) => {
     const n = alterationNext(t.status);
@@ -133,12 +134,12 @@ export default function AlterationsPage() {
   const printDoc = async (): Promise<PrintDoc> => {
     const all = await alterationsApi.page({ ...q, page: 1, limit: 100 });
     return {
-      title: `Alterations — ${viewLabel(view)}`,
-      subtitle: period ? rangeLabel(period.from, period.to) : 'Sab tareekhen',
-      meta: [['Tickets', String(all.total)], ...(all.totals ? [['Lena baqi', formatPKR(all.totals.due)] as [string, string]] : [])],
+      title: tr('Alterations — {{view}}', { view: viewLabel(view) }),
+      subtitle: period ? rangeLabel(period.from, period.to) : tr('Sab tareekhen'),
+      meta: [[tr('Tickets'), String(all.total)], ...(all.totals ? [[tr('Lena baqi'), formatPKR(all.totals.due)] as [string, string]] : [])],
       sections: [{
         kind: 'table',
-        columns: [{ label: 'Kab' }, { label: 'Token', wideOnly: true }, { label: 'Customer' }, { label: 'Kapra' }, { label: 'Kaam', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Charges', align: 'right' }],
+        columns: [{ label: tr('Kab') }, { label: tr('Token'), wideOnly: true }, { label: tr('Customer') }, { label: tr('Kapra') }, { label: tr('Kaam'), wideOnly: true }, { label: tr('Halat'), wideOnly: true }, { label: tr('Charges'), align: 'right' }],
         rows: all.items.map((t) => [dayOnly(t.promisedDate), t.ticketNumber, `${t.customerName ?? ''} ${t.customerPhone ?? ''}`.trim(), t.garmentDescription, t.alterationType, alterationStatus(t.status).label, formatPKR(t.charges)]),
       }],
     };
@@ -148,69 +149,69 @@ export default function AlterationsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Alterations"
-        chip={<><Ruler /> Fitting</>}
-        meta="Kapra lein, token dein, waqt par wapas karein"
+        title={tr('Alterations')}
+        chip={<><Ruler /> {' '}{tr('Fitting')}</>}
+        meta={tr('Kapra lein, token dein, waqt par wapas karein')}
         busy={(listQ.isFetching && !listQ.isLoading) || sumQ.isFetching}
         loading={sumQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'tickets' || !rows.length} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {manage && <button type="button" onClick={() => setForm({ ticket: null })} title="Naya (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Kapra lein</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setForm({ ticket: null })} title={tr('Naya (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Kapra lein')}</button>}
         </>}
         stats={open ? [
-          { label: 'Chal rahe', value: open.count, hint: sales(open.value) },
-          { label: 'Aaj dena hai', value: open.today, hint: open.late ? `${open.late} late` : undefined },
-          { label: 'Lena baqi', value: sales(open.due) },
-        ] : [{ label: 'Chal rahe', value: '—' }]}
+          { label: tr('Chal rahe'), value: open.count, hint: sales(open.value) },
+          { label: tr('Aaj dena hai'), value: open.today, hint: open.late ? tr('{{late}} late', { late: open.late }) : undefined },
+          { label: tr('Lena baqi'), value: sales(open.due) },
+        ] : [{ label: tr('Chal rahe'), value: '—' }]}
       />
 
       <KpiRow cols={4}>
         {!open ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Clock} color="#d97706" label="Aaj dena hai" value={open.today} hint="Waqt par tayyar karein" onClick={() => pick('today')} active={tab === 'tickets' && view === 'today'} />
-          <KpiCard icon={AlertTriangle} color={open.late ? '#e11d48' : '#64748b'} label="Late" value={open.late} hint={open.late ? 'Customer ko batayein' : 'Koi late nahi'} onClick={() => pick('late')} active={tab === 'tickets' && view === 'late'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Tayyar" value={open.ready} hint="Lene aana hai" onClick={() => pick('ready')} active={tab === 'tickets' && view === 'ready'} />
-          <KpiCard icon={Wallet} color="#0891b2" label="Lena baqi" value={sales(open.due)} hint={`${open.count} tickets par`} onClick={() => pick('unpaid')} active={tab === 'tickets' && view === 'unpaid'} />
+          <KpiCard icon={Clock} color="#d97706" label={tr('Aaj dena hai')} value={open.today} hint={tr('Waqt par tayyar karein')} onClick={() => pick('today')} active={tab === 'tickets' && view === 'today'} />
+          <KpiCard icon={AlertTriangle} color={open.late ? '#e11d48' : '#64748b'} label={tr('Late')} value={open.late} hint={open.late ? tr('Customer ko batayein') : tr('Koi late nahi')} onClick={() => pick('late')} active={tab === 'tickets' && view === 'late'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Tayyar')} value={open.ready} hint={tr('Lene aana hai')} onClick={() => pick('ready')} active={tab === 'tickets' && view === 'ready'} />
+          <KpiCard icon={Wallet} color="#0891b2" label={tr('Lena baqi')} value={sales(open.due)} hint={tr('{{count}} tickets par', { count: open.count })} onClick={() => pick('unpaid')} active={tab === 'tickets' && view === 'unpaid'} />
         </>}
       </KpiRow>
 
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jo kapre is period me wapas diye gaye</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Jo kapre is period me wapas diye gaye')}</p>}>
           <DateRangeMenu value={aRange} onChange={setARange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, token #, kapra…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer, phone, token #, kapra…')} label={tr('Search')} />}
           chips={filtered ? <>
-            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Aaya: {rangeLabel(period.from, period.to)}</FilterChip>}
+            {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>{tr('Aaya: {{from}}', { from: rangeLabel(period.from, period.to) })}</FilterChip>}
             {type && <FilterChip onRemove={() => setType('')}>{type}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-72"
-            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? `${counts[v.id]} tickets` : undefined }))} />
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Kapra aaya" />
-          <FilterMenu icon={Scissors} label="Kaam" value={type} active={!!type} onChange={setType} align="right"
-            options={[{ value: '', label: 'Har kaam' }, ...ALTERATION_TYPES.map((t) => ({ value: t, label: t }))]} />
+            options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? tr('{{value}} tickets', { value: counts[v.id] }) : undefined }))} />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label={tr('Kapra aaya')} />
+          <FilterMenu icon={Scissors} label={tr('Kaam')} value={type} active={!!type} onChange={setType} align="right"
+            options={[{ value: '', label: tr('Har kaam') }, ...ALTERATION_TYPES.map((t) => ({ value: t, label: tr(t) }))]} />
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{manage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
-        tabs={[{ id: 'tickets', label: 'Tickets', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+        hint={<>{manage && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
+        tabs={[{ id: 'tickets', label: tr('Tickets'), icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {tab === 'analytics' ? (
-        !sumQ.data ? (sumQ.isError ? <LoadFailed what="Analytics" retry={() => sumQ.refetch()} /> : <AnalyticsSkeleton />) : (
+        !sumQ.data ? (sumQ.isError ? <LoadFailed what={tr('Analytics')} retry={() => sumQ.refetch()} /> : <AnalyticsSkeleton />) : (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StatTile icon={Shirt} label="Kapre aaye" value={sumQ.data.period.received} tone="brand" />
-              <StatTile icon={CheckCircle2} label="Wapas diye" value={sumQ.data.period.delivered} sub={sales(sumQ.data.period.value)} tone="green" />
-              <StatTile icon={Clock} label="Waqt par" value={sumQ.data.period.onTimePct === null ? '—' : `${sumQ.data.period.onTimePct}%`} tone="violet" />
-              <StatTile icon={Receipt} label="Muft alteration" value={sumQ.data.period.free} sub={`${sumQ.data.period.fromOwnSales} yahan ke bill se`} tone="amber" />
+              <StatTile icon={Shirt} label={tr('Kapre aaye')} value={sumQ.data.period.received} tone="brand" />
+              <StatTile icon={CheckCircle2} label={tr('Wapas diye')} value={sumQ.data.period.delivered} sub={sales(sumQ.data.period.value)} tone="green" />
+              <StatTile icon={Clock} label={tr('Waqt par')} value={sumQ.data.period.onTimePct === null ? '—' : `${sumQ.data.period.onTimePct}%`} tone="violet" />
+              <StatTile icon={Receipt} label={tr('Muft alteration')} value={sumQ.data.period.free} sub={tr('{{fromOwnSales}} yahan ke bill se', { fromOwnSales: sumQ.data.period.fromOwnSales })} tone="amber" />
             </div>
-            <Card className="rounded-2xl" title={<CardTitle icon={Scissors}>Kaunsa kaam zyada</CardTitle>} description="Wapas diye kapre, kaam ke hisaab se — click karein to sirf woh">
+            <Card className="rounded-2xl" title={<CardTitle icon={Scissors}>{tr('Kaunsa kaam zyada')}</CardTitle>} description={tr('Wapas diye kapre, kaam ke hisaab se — click karein to sirf woh')}>
               <RankedBars onPick={(k) => { setType(sumQ.data!.period.types.find((t) => t.type.toLowerCase() === k)?.type ?? ''); setView('all'); setTab('tickets'); }}
-                rows={sumQ.data.period.types.map((t) => ({ key: t.type.toLowerCase(), label: t.type, value: t.count, display: `${t.count} · ${sales(t.value)}` }))} />
+                rows={sumQ.data.period.types.map((t) => ({ key: t.type.toLowerCase(), label: tr(t.type), value: t.count, display: `${t.count} · ${sales(t.value)}` }))} />
             </Card>
           </div>
         )
@@ -218,17 +219,17 @@ export default function AlterationsPage() {
         {data && data.total > 0 && data.totals && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
             <span className="text-slate-500">{viewLabel(view)}</span>
-            <span className="font-semibold text-slate-900">{data.total} tickets · {sales(data.totals.value)}</span>
-            {data.totals.due > 0 && <button type="button" onClick={() => setView('unpaid')} className="text-amber-700 hover:underline">Lena baqi {sales(data.totals.due)}</button>}
+            <span className="font-semibold text-slate-900">{tr('{{total}} tickets · {{sales}}', { total: data.total, sales: sales(data.totals.value) })}</span>
+            {data.totals.due > 0 && <button type="button" onClick={() => setView('unpaid')} className="text-amber-700 hover:underline">{tr('Lena baqi {{due}}', { due: sales(data.totals.due) })}</button>}
           </div>
         )}
         {listQ.isLoading ? (
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
-        ) : listQ.isError && !data ? <LoadFailed what="Tickets" retry={() => listQ.refetch()} /> : !rows.length ? (
-          <EmptyList icon={Ruler} title={filtered ? 'Is filter me kuch nahi' : view === 'late' ? 'Koi late nahi — shabash' : 'Koi kapra nahi'}
-            text="Customer ka kapra lein, kya badalna hai likhein aur token dein. Tayyar hone par WhatsApp karein.">
-            {manage && <Button onClick={() => setForm({ ticket: null })} leftIcon={<Plus className="h-4 w-4" />}>Kapra lein</Button>}
-            {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+        ) : listQ.isError && !data ? <LoadFailed what={tr('Tickets')} retry={() => listQ.refetch()} /> : !rows.length ? (
+          <EmptyList icon={Ruler} title={filtered ? tr('Is filter me kuch nahi') : view === 'late' ? tr('Koi late nahi — shabash') : tr('Koi kapra nahi')}
+            text={tr('Customer ka kapra lein, kya badalna hai likhein aur token dein. Tayyar hone par WhatsApp karein.')}>
+            {manage && <Button onClick={() => setForm({ ticket: null })} leftIcon={<Plus className="h-4 w-4" />}>{tr('Kapra lein')}</Button>}
+            {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
           </EmptyList>
         ) : (
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -244,13 +245,13 @@ export default function AlterationsPage() {
 
       {form && <AlterationForm ticket={form.ticket} onClose={() => setForm(null)} onSaved={(t) => { if (!form.ticket) printAlterationSlip(t, shopName); }} />}
       {payOn && (
-        <TakePaymentModal title="Advance / payment" description={`${payOn.customerName ?? ''} · ${payOn.ticketNumber} · ${formatPKR(due(payOn))} baqi`}
-          amount={due(payOn)} max={due(payOn)} loading={pay.isPending} hint="Khate me advance ban kar jama hota hai; kapra dete waqt bill me kat jata hai."
+        <TakePaymentModal title={tr('Advance / payment')} description={tr('{{value}} · {{ticketNumber}} · {{formatPKR}} baqi', { value: payOn.customerName ?? '', ticketNumber: payOn.ticketNumber, formatPKR: formatPKR(due(payOn)) })}
+          amount={due(payOn)} max={due(payOn)} loading={pay.isPending} hint={tr('Khate me advance ban kar jama hota hai; kapra dete waqt bill me kat jata hai.')}
           onConfirm={(amount, method) => pay.mutate({ t: payOn, amount, method })} onClose={() => setPayOn(null)} />
       )}
       {deliverOn && (
-        <TakePaymentModal title="Kapra de diya — bill" confirmLabel="Bill banayein"
-          description={`${deliverOn.customerName ?? ''} · ${deliverOn.ticketNumber} · charges ${formatPKR(deliverOn.charges)}, advance ${formatPKR(deliverOn.paidAmount)}`}
+        <TakePaymentModal title={tr('Kapra de diya — bill')} confirmLabel={tr('Bill banayein')}
+          description={tr('{{value}} · {{ticketNumber}} · charges {{charges}}, advance {{paidAmount}}', { value: deliverOn.customerName ?? '', ticketNumber: deliverOn.ticketNumber, charges: formatPKR(deliverOn.charges), paidAmount: formatPKR(deliverOn.paidAmount) })}
           amount={due(deliverOn)} max={due(deliverOn)} allowZero loading={status.isPending}
           onConfirm={(amount, method) => status.mutate({ t: deliverOn, to: 'DELIVERED', paidNow: amount, method })} onClose={() => setDeliverOn(null)} />
       )}
@@ -260,14 +261,14 @@ export default function AlterationsPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Alterations — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Alterations — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#db2777', title: 'Kapra lein', text: '"Kapra lein": customer, kaunsa kapra, kya badalna hai, charges aur kab lena hai. Token khud print hota hai.' },
-            { icon: Scissors, color: '#7c3aed', title: 'Kaam', text: 'Kaam shuru → tayyar → de diya. Ghalti ho to "Ek qadam peeche".' },
-            { icon: Receipt, color: '#16a34a', title: 'De diya = bill', text: 'Charges ho to dete waqt bill banta hai aur Sale me aata hai; baqi customer ke khate me. Muft alteration ka bill nahi banta.' },
-            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Tayyar hone par WhatsApp se bata dein.' },
+            { icon: Plus, color: '#db2777', title: tr('Kapra lein'), text: tr('"Kapra lein": customer, kaunsa kapra, kya badalna hai, charges aur kab lena hai. Token khud print hota hai.') },
+            { icon: Scissors, color: '#7c3aed', title: tr('Kaam'), text: tr('Kaam shuru → tayyar → de diya. Ghalti ho to "Ek qadam peeche".') },
+            { icon: Receipt, color: '#16a34a', title: tr('De diya = bill'), text: tr('Charges ho to dete waqt bill banta hai aur Sale me aata hai; baqi customer ke khate me. Muft alteration ka bill nahi banta.') },
+            { icon: MessageCircle, color: '#22c55e', title: tr('WhatsApp'), text: tr('Tayyar hone par WhatsApp se bata dein.') },
           ]}
-          shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['1', 'tickets'], ['2', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['N', tr('naya')], ['/', tr('dhoondein')], ['1', tr('tickets')], ['2', tr('analytics')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -295,42 +296,42 @@ function Row({ t, manage, shopName, busy, onNext, onBack, onPay, onEdit, onCance
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="truncate font-semibold text-slate-900">{t.customerName || 'Customer'}</span>
+            <span className="truncate font-semibold text-slate-900">{t.customerName || tr('Customer')}</span>
             <Pill tone={st.tone}>{st.label}</Pill>
             <span className="font-mono text-[0.6875rem] text-slate-400">{t.ticketNumber}</span>
           </div>
-          <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{t.garmentDescription} — <span className="font-medium">{t.alterationType}</span></p>
+          <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{t.garmentDescription} — <span className="font-medium">{tr(t.alterationType)}</span></p>
           <p className={cn('mt-0.5 flex flex-wrap items-center gap-x-3 text-[0.75rem]', late ? 'font-semibold text-rose-700' : soon ? 'font-semibold text-amber-700' : 'text-slate-500')}>
-            <span className="inline-flex items-center gap-1"><CalendarClock className="h-3 w-3" />{closed ? (t.status === 'DELIVERED' ? `Diya ${dayOnly(t.deliveredAt)}` : 'Cancel') : t.promisedDate ? `${whenText(t.promisedDate)} · ${dayOnly(t.promisedDate)}` : 'Date nahi'}</span>
+            <span className="inline-flex items-center gap-1"><CalendarClock className="h-3 w-3" />{closed ? (t.status === 'DELIVERED' ? tr('Diya {{deliveredAt}}', { deliveredAt: dayOnly(t.deliveredAt) }) : tr('Cancel')) : t.promisedDate ? `${whenText(t.promisedDate)} · ${dayOnly(t.promisedDate)}` : tr('Date nahi')}</span>
             {t.tailorName && <span className="inline-flex items-center gap-1 font-normal text-slate-500"><UserRound className="h-3 w-3" />{t.tailorName}</span>}
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-base font-bold tabular-nums text-slate-900">{t.charges > 0 ? formatPKR(t.charges) : 'Muft'}</p>
+        <div className="shrink-0 text-end">
+          <p className="text-base font-bold tabular-nums text-slate-900">{t.charges > 0 ? formatPKR(t.charges) : tr('Muft')}</p>
           {t.charges > 0 && (t.status === 'DELIVERED'
-            ? <p className="text-[0.6875rem] text-slate-500">{left > 0.5 ? `${formatPKR(left)} khate me` : 'Poora mila'}</p>
-            : left > 0.5 ? <p className="text-[0.6875rem] font-semibold text-amber-700">{formatPKR(left)} baqi</p> : <p className="text-[0.6875rem] text-success-700">Poora mila</p>)}
+            ? <p className="text-[0.6875rem] text-slate-500">{left > 0.5 ? tr('{{left}} khate me', { left: formatPKR(left) }) : tr('Poora mila')}</p>
+            : left > 0.5 ? <p className="text-[0.6875rem] font-semibold text-amber-700">{tr('{{left}} baqi', { left: formatPKR(left) })}</p> : <p className="text-[0.6875rem] text-success-700">{tr('Poora mila')}</p>)}
         </div>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur kaam" aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label={tr('Aur kaam')} aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
       </div>
       {manage && !closed && (
-        <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:pl-[4.25rem]">
+        <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:ps-[4.25rem]">
           {next && <Button size="sm" variant={next.to === 'DELIVER' ? 'success' : 'primary'} loading={busy} onClick={onNext} leftIcon={next.to === 'DELIVER' ? <Receipt className="h-4 w-4" /> : <Scissors className="h-4 w-4" />}>{next.label}</Button>}
-          {left > 0.5 && <Button size="sm" variant="secondary" onClick={onPay} leftIcon={<Wallet className="h-4 w-4" />}>Paisa mila</Button>}
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+          {left > 0.5 && <Button size="sm" variant="secondary" onClick={onPay} leftIcon={<Wallet className="h-4 w-4" />}>{tr('Paisa mila')}</Button>}
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />{tr('WhatsApp')}</a>}
         </div>
       )}
       {open && (
-        <div className="space-y-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] sm:pl-[4.25rem]">
+        <div className="space-y-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] sm:ps-[4.25rem]">
           {t.alterationDetails && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 text-slate-700 ring-1 ring-slate-200">{t.alterationDetails}</p>}
           {t.notes && <p className="whitespace-pre-line text-slate-600">{t.notes}</p>}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => printAlterationSlip(t, shopName)} leftIcon={<Printer className="h-4 w-4" />}>Token</Button>
+            <Button size="sm" variant="secondary" onClick={() => printAlterationSlip(t, shopName)} leftIcon={<Printer className="h-4 w-4" />}>{tr('Token')}</Button>
             {t.customerPhone && <a href={`tel:${t.customerPhone}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200"><Phone className="h-4 w-4" />{t.customerPhone}</a>}
-            {t.bill && <Link to={`/sales/${t.bill.id}/receipt`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200"><Receipt className="h-4 w-4" />Bill {t.bill.saleNumber}</Link>}
-            {manage && !closed && <Button size="sm" variant="ghost" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>}
-            {manage && !closed && ALTERATION_PREV[t.status] && <Button size="sm" variant="ghost" onClick={onBack} disabled={busy} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
-            {manage && !closed && <Button size="sm" variant="ghost" className="text-rose-700" onClick={onCancel} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>}
+            {t.bill && <Link to={`/sales/${t.bill.id}/receipt`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200"><Receipt className="h-4 w-4" />{tr('Bill {{saleNumber}}', { saleNumber: t.bill.saleNumber })}</Link>}
+            {manage && !closed && <Button size="sm" variant="ghost" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>{tr('Badlein')}</Button>}
+            {manage && !closed && ALTERATION_PREV[t.status] && <Button size="sm" variant="ghost" onClick={onBack} disabled={busy} leftIcon={<Undo2 className="h-4 w-4" />}>{tr('Ek qadam peeche')}</Button>}
+            {manage && !closed && <Button size="sm" variant="ghost" className="text-rose-700" onClick={onCancel} leftIcon={<Ban className="h-4 w-4" />}>{tr('Cancel')}</Button>}
           </div>
         </div>
       )}

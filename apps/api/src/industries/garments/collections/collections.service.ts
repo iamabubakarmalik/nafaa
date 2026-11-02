@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { DAY_MS, duplicateName, opt, r2 } from '../common/garments-common';
 import { SaleResult, applySale, endSale, moveSale } from '../common/collection-sale';
 import { UpsertCollectionDto } from './dto/upsert-collection.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const SOLD = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
 /** Price changes kept in one activity-log row. */
@@ -43,7 +44,7 @@ export class CollectionsService {
 
   async create(user: AuthenticatedUser, dto: UpsertCollectionDto) {
     return this.prisma.garmentCollection.create({ data: { tenantId: user.tenantId, ...this.data(dto), name: dto.name.trim() } })
-      .catch((e) => duplicateName(e, `Collection "${dto.name}" pehle se hai`));
+      .catch((e) => duplicateName(e, apiMessage('Collection "{{name}}" pehle se hai', { name: dto.name })));
   }
 
   async list(user: AuthenticatedUser, params: { season?: string; active?: boolean; featured?: boolean; search?: string }) {
@@ -135,7 +136,7 @@ export class CollectionsService {
     const c = await this.prisma.garmentCollection.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Collection nahi mili');
     return this.prisma.garmentCollection.update({ where: { id }, data: this.data(dto) })
-      .catch((e) => duplicateName(e, `Collection "${dto.name}" pehle se hai`));
+      .catch((e) => duplicateName(e, apiMessage('Collection "{{name}}" pehle se hai', { name: dto.name })));
   }
 
   async toggleFeatured(user: AuthenticatedUser, id: string) {

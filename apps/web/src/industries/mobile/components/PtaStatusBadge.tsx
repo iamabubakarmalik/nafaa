@@ -4,6 +4,7 @@ import {
   PTA_STATUS_LABELS,
   PTA_STATUS_COLORS,
 } from '@industries/mobile/api/imei.api';
+import { t } from '@core/i18n';
 
 const ICONS: Record<PtaStatus, any> = {
   APPROVED: CheckCircle2,
@@ -40,7 +41,7 @@ export function PtaStatusBadge({ status, size = 'md', showIcon = true, taxPaid }
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full border font-extrabold uppercase tracking-wider ${colors.bg} ${colors.text} ${colors.border} ${sizeClasses[size]}`}
-      title={taxPaid && taxPaid > 0 ? `Tax paid: Rs ${taxPaid.toLocaleString()}` : label}
+      title={taxPaid && taxPaid > 0 ? t('Tax paid: Rs {{taxPaid}}', { taxPaid: taxPaid.toLocaleString() }) : label}
     >
       {showIcon && <Icon className={iconSizes[size]} />}
       {label}

@@ -18,6 +18,7 @@ import {
   ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
 import { assertOwnCustomer, assertOwnShop } from '../common/mobile-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -87,7 +88,7 @@ export class RepairsService {
   /** A billed, delivered or cancelled ticket no longer changes its work or money. */
   private assertOpen(ticket: { ticketNumber: string; status: RepairStatus; saleId: string | null }) {
     if (ticket.saleId || CLOSED.includes(ticket.status)) {
-      throw new BadRequestException(`${ticket.ticketNumber} band ho chuka hai (${ticket.status}) — ab ye badla nahi ja sakta`);
+      throw new BadRequestException(apiMessage('{{ticketNumber}} band ho chuka hai ({{ticketStatus}}) — ab ye badla nahi ja sakta', { ticketNumber: ticket.ticketNumber, ticketStatus: ticket.status }));
     }
   }
 
@@ -109,7 +110,7 @@ export class RepairsService {
     const advance = r2(dto.advancePaid ?? 0);
     const estimated = r2(dto.estimatedCost ?? 0);
     if (estimated > 0 && advance > estimated + 0.01) {
-      throw new BadRequestException(`Advance (Rs ${advance}) andaze (Rs ${estimated}) se zyada nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Advance (Rs {{advance}}) andaze (Rs {{estimated}}) se zyada nahi ho sakta', { advance, estimated }));
     }
     const shopId = dto.shopId ?? user.shopId ?? null;
 
@@ -130,9 +131,9 @@ export class RepairsService {
         where: { tenantId: user.tenantId, ticketNumber: dto.warrantyOf.trim() },
         select: { id: true, ticketNumber: true, status: true, warrantyEnds: true },
       });
-      if (!prior) throw new BadRequestException(`Purana ticket ${dto.warrantyOf} nahi mila`);
+      if (!prior) throw new BadRequestException(apiMessage('Purana ticket {{warrantyOf}} nahi mila', { warrantyOf: dto.warrantyOf }));
       if (prior.status !== 'DELIVERED' || !prior.warrantyEnds || prior.warrantyEnds < new Date()) {
-        throw new BadRequestException(`${prior.ticketNumber} ki repair warranty khatam ho chuki hai`);
+        throw new BadRequestException(apiMessage('{{ticketNumber}} ki repair warranty khatam ho chuki hai', { ticketNumber: prior.ticketNumber }));
       }
       warrantyNote = `Warranty claim: ${prior.ticketNumber}`;
       warrantyOfId = prior.id;
@@ -418,7 +419,7 @@ export class RepairsService {
     }
     const moneyFields = ['estimatedCost', 'laborCost', 'discount', 'warrantyDays'] as const;
     if (closed && moneyFields.some((k) => dto[k] !== undefined && Number(dto[k]) !== Number(ticket[k]))) {
-      throw new BadRequestException(`${ticket.ticketNumber} ka bill ban chuka ya band ho chuka — amount ab nahi badalti`);
+      throw new BadRequestException(apiMessage('{{ticketNumber}} ka bill ban chuka ya band ho chuka — amount ab nahi badalti', { ticketNumber: ticket.ticketNumber }));
     }
 
     const data: Prisma.RepairTicketUncheckedUpdateInput = {};
@@ -442,7 +443,7 @@ export class RepairsService {
       data.totalCost = totals.totalCost;
       data.balanceDue = Math.max(totals.totalCost - Number(ticket.paidAmount), 0);
       if (totals.totalCost > 0 && Number(ticket.paidAmount) > totals.totalCost + 0.01) {
-        throw new BadRequestException(`Rs ${ticket.paidAmount} pehle mil chuke — bill is se kam nahi ho sakta`);
+        throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — bill is se kam nahi ho sakta', { paidAmount: ticket.paidAmount }));
       }
     } else if (dto.estimatedCost !== undefined && !ticket.parts.length && !Number(ticket.laborCost)) {
       data.balanceDue = Math.max(r2(dto.estimatedCost) - Number(ticket.paidAmount), 0);
@@ -464,7 +465,7 @@ export class RepairsService {
       ? this.recalcTotals(ticket.parts.map((p) => ({ quantity: Number(p.quantity), unitPrice: Number(p.unitPrice) })), laborCost, Number(ticket.discount))
       : { partsCost: r2(dto.partsCost ?? 0), totalCost: r2(dto.estimatedCost) };
     if (Number(ticket.paidAmount) > totals.totalCost + 0.01 && totals.totalCost > 0) {
-      throw new BadRequestException(`Rs ${ticket.paidAmount} advance mil chuka — andaza is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Rs {{paidAmount}} advance mil chuka — andaza is se kam nahi ho sakta', { paidAmount: ticket.paidAmount }));
     }
     const toStatus: RepairStatus = ticket.status === 'RECEIVED' ? RepairStatus.DIAGNOSED : ticket.status;
 
@@ -638,7 +639,7 @@ export class RepairsService {
     if (!customerId && netTotal - paidAtCounter > 0.005) {
       if (!ticket.customerName?.trim()) {
         throw new BadRequestException(
-          `${ticket.ticketNumber}: Rs ${r2(netTotal - paidAtCounter)} baqi hai. Poora payment lein ya customer ka naam likhein.`,
+          apiMessage('{{ticketNumber}}: Rs {{netTotal}} baqi hai. Poora payment lein ya customer ka naam likhein.', { ticketNumber: ticket.ticketNumber, netTotal: r2(netTotal - paidAtCounter) }),
         );
       }
       customerId = await ensureCustomer(tx, user, { name: ticket.customerName, phone: ticket.customerPhone, shopId });
@@ -703,11 +704,11 @@ export class RepairsService {
     const ticket = await this.findOne(user, id);
 
     if (ticket.status === 'DELIVERED') {
-      throw new BadRequestException(`${ticket.ticketNumber} pehle hi deliver ho chuka hai`);
+      throw new BadRequestException(apiMessage('{{ticketNumber}} pehle hi deliver ho chuka hai', { ticketNumber: ticket.ticketNumber }));
     }
     if (ticket.status !== 'READY' && ticket.status !== 'UNREPAIRABLE') {
       throw new BadRequestException(
-        `Sirf tayyar (ya theek na ho sakne wala) phone wapas diya jata hai. ${ticket.ticketNumber} abhi ${ticket.status} hai.`,
+        apiMessage('Sirf tayyar (ya theek na ho sakne wala) phone wapas diya jata hai. {{ticketNumber}} abhi {{ticketStatus}} hai.', { ticketNumber: ticket.ticketNumber, ticketStatus: ticket.status }),
       );
     }
 
@@ -715,7 +716,7 @@ export class RepairsService {
     const amount = r2(dto.amount ?? 0);
 
     if (amount > balanceDue + 0.01) {
-      throw new BadRequestException(`Baqi sirf Rs ${balanceDue} hai — Rs ${amount} nahi liya ja sakta`);
+      throw new BadRequestException(apiMessage('Baqi sirf Rs {{balanceDue}} hai — Rs {{amount}} nahi liya ja sakta', { balanceDue, amount }));
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -760,7 +761,7 @@ export class RepairsService {
     const allowed = TRANSITIONS[ticket.status] || [];
     if (!allowed.includes(dto.toStatus)) {
       throw new BadRequestException(
-        `${ticket.status} se ${dto.toStatus} nahi ho sakta. Ho sakta hai: ${allowed.join(', ') || 'kuch nahi'}`,
+        apiMessage('{{ticketStatus}} se {{toStatus}} nahi ho sakta. Ho sakta hai: {{allowed}}', { ticketStatus: ticket.status, toStatus: dto.toStatus, allowed: allowed.join(', ') || 'kuch nahi' }),
       );
     }
     // Handing the phone back bills it, so it goes through deliver().
@@ -811,14 +812,14 @@ export class RepairsService {
     if (!(Number(dto.amount) > 0)) throw new BadRequestException('Amount zero se zyada ho');
     if (ticket.saleId) {
       // After delivery the balance sits in the customer's khata.
-      throw new BadRequestException(`${ticket.ticketNumber} deliver ho chuka — baqi amount customer ke Khata se wasool karein`);
+      throw new BadRequestException(apiMessage('{{ticketNumber}} deliver ho chuka — baqi amount customer ke Khata se wasool karein', { ticketNumber: ticket.ticketNumber }));
     }
     if (['CANCELLED', 'DELIVERED'].includes(ticket.status)) {
-      throw new BadRequestException(`${ticket.ticketNumber} band ho chuka hai`);
+      throw new BadRequestException(apiMessage('{{ticketNumber}} band ho chuka hai', { ticketNumber: ticket.ticketNumber }));
     }
     const ceiling = Number(ticket.totalCost) > 0 ? Number(ticket.totalCost) : Number(ticket.estimatedCost);
     if (ceiling > 0 && Number(ticket.paidAmount) + Number(dto.amount) > ceiling + 0.01) {
-      throw new BadRequestException(`Baqi sirf Rs ${Math.max(ceiling - Number(ticket.paidAmount), 0)} hai`);
+      throw new BadRequestException(apiMessage('Baqi sirf Rs {{ceiling}} hai', { ceiling: Math.max(ceiling - Number(ticket.paidAmount), 0) }));
     }
     const newPaid = Number(ticket.paidAmount) + dto.amount;
     const newBalance = Math.max(Number(ticket.totalCost || ticket.estimatedCost) - newPaid, 0);
@@ -854,7 +855,7 @@ export class RepairsService {
     }
     if (ticket.status !== 'CANCELLED') {
       if (!TRANSITIONS[ticket.status].includes('CANCELLED')) {
-        throw new BadRequestException(`${ticket.ticketNumber} abhi ${ticket.status} hai — pehle kaam rokein`);
+        throw new BadRequestException(apiMessage('{{ticketNumber}} abhi {{ticketStatus}} hai — pehle kaam rokein', { ticketNumber: ticket.ticketNumber, ticketStatus: ticket.status }));
       }
       await this.updateStatus(user, id, { toStatus: 'CANCELLED', note: 'Ticket hataya gaya' });
     }

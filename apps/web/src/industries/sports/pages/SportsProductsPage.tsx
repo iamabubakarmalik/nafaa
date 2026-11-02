@@ -19,12 +19,13 @@ import type { CatalogItem } from '@modules/inventory/products/list/api';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { sportsProductsApi, type SportsMeta } from '../api/products.api';
 import { META_KEY, typeLabel } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/sports/team-orders" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">Team orders</span></Link>
-      <Link to="/sports/repair-services" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">Repairs</span></Link>
+      <Link to="/sports/team-orders" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">{tr('Team orders')}</span></Link>
+      <Link to="/sports/repair-services" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">{tr('Repairs')}</span></Link>
     </>
   );
 }
@@ -63,7 +64,7 @@ export default function SportsProductsPage() {
   const config = useMemo<ProductsPageConfig>(() => {
     const byId = new Map<string, SportsMeta>((metaQ.data?.items ?? []).map((m) => [m.productId, m]));
     return {
-      label: 'Sports',
+      label: tr('Sports'),
       noun: 'item',
       paths: { detail: (id) => `/sports-products/${id}`, edit: (id) => `/sports-products/${id}/edit`, create: '/sports-products/new' },
       HeroExtra: HeroLinks,
@@ -73,25 +74,25 @@ export default function SportsProductsPage() {
         const price = Number(item.price);
         const off = m?.mrp && price > 0 && m.mrp > price ? Math.round(((m.mrp - price) / m.mrp) * 100) : 0;
         return {
-          line: m ? [m.sport, m.categoryType ? typeLabel(m.categoryType) : null, m.teamPrice ? `Team ${formatPKR(m.teamPrice)}` : null].filter(Boolean).join(' · ') || undefined : undefined,
+          line: m ? [m.sport && tr(m.sport), m.categoryType ? typeLabel(m.categoryType) : null, m.teamPrice ? tr('Team {{teamPrice}}', { teamPrice: formatPKR(m.teamPrice) }) : null].filter(Boolean).join(' · ') || undefined : undefined,
           badges: m && (off || m.isNewArrival || m.isProfessional) ? (
             <>
-              {off > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><BadgePercent className="h-3 w-3" />Sale {off}%</span>}
-              {m.isNewArrival && <span className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Sparkles className="h-3 w-3" />Naya</span>}
-              {m.isProfessional && <span className="rounded-md bg-slate-900/80 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">Pro</span>}
+              {off > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><BadgePercent className="h-3 w-3" />{tr('Sale {{off}}%', { off })}</span>}
+              {m.isNewArrival && <span className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Sparkles className="h-3 w-3" />{tr('Naya')}</span>}
+              {m.isProfessional && <span className="rounded-md bg-slate-900/80 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">{tr('Pro')}</span>}
             </>
           ) : undefined,
           chips: <SizeStrip item={item} />,
         };
       },
       columns: [
-        { id: 'sport', label: 'Sport', cell: (i) => byId.get(i.id)?.sport || '—' },
-        { id: 'team', label: 'Team rate', align: 'right', cell: (i) => { const t = byId.get(i.id)?.teamPrice; return t ? formatPKR(t) : '—'; } },
+        { id: 'sport', label: tr('Sport'), cell: (i) => { const s = byId.get(i.id)?.sport; return s ? tr(s) : '—'; } },
+        { id: 'team', label: tr('Team rate'), align: 'right', cell: (i) => { const t = byId.get(i.id)?.teamPrice; return t ? formatPKR(t) : '—'; } },
       ],
       stockChips: () => [1, 6, 12, 24, 50],
       guide: [
-        { icon: Users, color: '#0d9488', title: 'Team rate', text: 'Jo item team ya school ke liye zyada bikta hai us ka team rate likhein — team order me khud lagta hai.' },
-        { icon: Shirt, color: '#7c3aed', title: 'Kit ke sizes', text: 'Jersey, kit aur shoes ke har size ka stock alag. Laal size khatam ho chuka hai.' },
+        { icon: Users, color: '#0d9488', title: tr('Team rate'), text: tr('Jo item team ya school ke liye zyada bikta hai us ka team rate likhein — team order me khud lagta hai.') },
+        { icon: Shirt, color: '#7c3aed', title: tr('Kit ke sizes'), text: tr('Jersey, kit aur shoes ke har size ka stock alag. Laal size khatam ho chuka hai.') },
       ],
     };
   }, [metaQ.data]);

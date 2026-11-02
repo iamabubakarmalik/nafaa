@@ -1,4 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
+import { apiMessage } from '../i18n/api-message';
 
 /**
  * Header the web/desktop client sends on every request to say which branch
@@ -47,7 +48,7 @@ export class ShopScope {
   require(action = 'Ye kaam'): string {
     if (!this.shopId) {
       throw new ForbiddenException(
-        `${action} karne ke liye ek shop select karna zaroori hai. Upar dropdown se shop chunein.`,
+        apiMessage('{{action}} karne ke liye ek shop select karna zaroori hai. Upar dropdown se shop chunein.', { action }),
       );
     }
     return this.shopId;

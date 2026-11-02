@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { encrypt, decrypt } from '../../core/lib/crypto';
 import { parseFbrResponse, shouldRetry } from './fbr-errors';
 import { UpsertFbrConfigDto } from './dto/fbr-config.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const FBR_ENDPOINTS = {
   SANDBOX: 'https://gw.fbr.gov.pk/imsp/v1/api/inv/postinvoicedata_sb',
@@ -135,7 +136,7 @@ export class FbrService {
     } catch (e: any) {
       return {
         success: false,
-        message: 'Connection fail: ' + e.message,
+        ...apiMessage('Connection fail: {{eMessage}}', { eMessage: e.message }),
       };
     }
   }
@@ -369,7 +370,7 @@ export class FbrService {
         },
       });
       this.logger.error(`FBR submit failed: ${e.message}`);
-      throw new BadRequestException('FBR submit failed: ' + e.message);
+      throw new BadRequestException(apiMessage('FBR submit failed: {{eMessage}}', { eMessage: e.message }));
     }
   }
 

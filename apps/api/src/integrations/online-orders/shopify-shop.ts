@@ -8,6 +8,7 @@
 import { promises as dns } from 'dns';
 import { isIP } from 'net';
 import { isPrivateIp } from './website-config';
+import { apiMessage, apiText, messageText, MessageText } from '../../common/i18n/api-message';
 
 export type ShopAddress =
   | { ok: true; shop: string }
@@ -49,13 +50,15 @@ export function normalizeShopifySiteUrl(siteUrl: string | null | undefined): str
 }
 
 /** Message for an address that cannot be used as is. */
-export function shopAddressError(p: Exclude<ShopAddress, { ok: true }>): string {
-  if (p.reason === 'empty') return 'Shopify store ka address daalein — jaise kissanmall-pk.myshopify.com';
+export function shopAddressMessage(p: Exclude<ShopAddress, { ok: true }>): MessageText {
+  if (p.reason === 'empty') return apiText('Shopify store ka address daalein — jaise kissanmall-pk.myshopify.com');
   if (p.reason === 'custom-domain') {
-    return `${p.domain} aap ka apna domain hai. Shopify admin → Settings → Domains me jo address ".myshopify.com" par khatam hota hai, wo daalein.`;
+    return apiMessage('{{domain}} aap ka apna domain hai. Shopify admin → Settings → Domains me jo address ".myshopify.com" par khatam hota hai, wo daalein.', { domain: p.domain });
   }
-  return 'Ye Shopify ka address nahi lagta. Shopify admin → Settings → Domains me ".myshopify.com" wala address copy karein.';
+  return apiText('Ye Shopify ka address nahi lagta. Shopify admin → Settings → Domains me ".myshopify.com" wala address copy karein.');
 }
+
+export const shopAddressError = (p: Exclude<ShopAddress, { ok: true }>): string => messageText(shopAddressMessage(p));
 
 /** Reads `Shopify.shop = "<handle>.myshopify.com"` (or similar) from a storefront page. */
 export function myshopifyFromHtml(html: string): string | null {

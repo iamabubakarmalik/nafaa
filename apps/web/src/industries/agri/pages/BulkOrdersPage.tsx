@@ -29,12 +29,13 @@ import { Pager } from '../components/Pager';
 import { PayModal } from '../components/PayModal';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { NEXT_STATUS, ORDER_STATUS, SEASON_LABEL, errorText, qty, seasonLabel, shortDate, isoDay } from '../lib/meta';
+import { t } from '@core/i18n';
 
 type View = 'OPEN' | 'DELIVERED' | 'CANCELLED' | 'all' | 'analytics';
 const KEY = 'agri-bulk-orders';
-const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: 'Har season' }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
+const SEASON_OPTIONS: Array<FilterOption<string>> = [{ value: '', label: t('Har season') }, ...['RABI', 'KHARIF', 'ZAID'].map((v) => ({ value: v, label: SEASON_LABEL[v] }))];
 
-const who = (o: BulkOrder) => o.customerName || 'Customer';
+const who = (o: BulkOrder) => o.customerName || t('Customer');
 const remaining = (o: BulkOrder) => Math.max(o.total - o.paidAmount, 0);
 
 function orderDoc(o: BulkOrder, money: (n: number) => string): PrintDoc {
@@ -91,9 +92,9 @@ export default function BulkOrdersPage() {
   const setTab = (v: View) => { setView(v); setPage(1); };
 
   const exportCsv = () => {
-    if (!rows.length) { toast.error('Is list me koi order nahi'); return; }
+    if (!rows.length) { toast.error(t('Is list me koi order nahi')); return; }
     downloadCsv('bulk-orders.csv', [
-      ['Order', 'Date', 'Farmer', 'Phone', 'Season', 'Fasal', 'Cheezein', 'Kul', 'Advance', 'Baqi', 'Status', 'Bill'],
+      [t('Order'), t('Date'), t('Farmer'), t('Phone'), t('Season'), t('Fasal'), t('Cheezein'), t('Kul'), t('Advance'), t('Baqi'), t('Status'), t('Bill')],
       ...rows.map((o) => [o.orderNumber, isoDay(o.orderDate), who(o), o.customerPhone, seasonLabel(o.season), o.cropTarget, o.items.map((i) => `${i.productName} x${qty(i.quantity)}`).join(' / '), o.total, o.paidAmount, remaining(o), ORDER_STATUS[o.status].label, o.bill?.saleNumber]),
     ]);
   };
@@ -107,71 +108,71 @@ export default function BulkOrdersPage() {
     <>
       {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
       {season && <FilterChip onRemove={() => setSeason('')}>{SEASON_LABEL[season]}</FilterChip>}
-      {farmerId && <FilterChip onRemove={() => { params.delete('farmer'); setParams(params); }}>Ek farmer</FilterChip>}
+      {farmerId && <FilterChip onRemove={() => { params.delete('farmer'); setParams(params); }}>{t('Ek farmer')}</FilterChip>}
     </>
   ) : undefined;
 
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Bulk orders — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Bulk orders — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Order likhein', text: 'Farmer, season aur fasal chunein, maal aur rate likhein. Stock abhi nahi ghatta.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance farmer ke khate me usi din jama hota hai — day book aur drawer me dikhta hai.' },
-            { icon: Truck, color: '#7c3aed', title: 'Pahunch gaya', text: 'Maal dene par "Pahunch gaya" dabayein — bill ban jata hai, stock ghatta hai aur baqi season ke udhaar me jata hai.' },
-            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Bill se pehle cancel ho sakta hai. Advance farmer ke khate me jama rehta hai — wapas dena ho to khate se dein.' },
+            { icon: Plus, color: '#2563eb', title: t('Order likhein'), text: t('Farmer, season aur fasal chunein, maal aur rate likhein. Stock abhi nahi ghatta.') },
+            { icon: Wallet, color: '#16a34a', title: t('Advance'), text: t('Advance farmer ke khate me usi din jama hota hai — day book aur drawer me dikhta hai.') },
+            { icon: Truck, color: '#7c3aed', title: t('Pahunch gaya'), text: t('Maal dene par "Pahunch gaya" dabayein — bill ban jata hai, stock ghatta hai aur baqi season ke udhaar me jata hai.') },
+            { icon: XCircle, color: '#e11d48', title: t('Cancel'), text: t('Bill se pehle cancel ho sakta hai. Advance farmer ke khate me jama rehta hai — wapas dena ho to khate se dein.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya order'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', t('naya order')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Bulk orders" chip={`${openCount} khule`} busy={isFetching && !isLoading} loading={isLoading}
-        meta="Season ka maal pehle se book — advance khate me"
+      <PageHero title={t('Bulk orders')} chip={`${openCount} khule`} busy={isFetching && !isLoading} loading={isLoading}
+        meta={t('Season ka maal pehle se book — advance khate me')}
         actions={<>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <Link to={`/agri/bulk-orders/new${farmerId ? `?farmer=${farmerId}` : ''}`} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya order</Link>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />{t('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={listDoc} label={t('Print')} /></span>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to={`/agri/bulk-orders/new${farmerId ? `?farmer=${farmerId}` : ''}`} className={heroPrimaryButton}><Plus className="h-4 w-4" />{t('Naya order')}</Link>}
         </>}
         stats={[
-          { label: 'Kul orders ki value', value: money(s?.value) },
-          { label: 'Advance mila', value: money(s?.advance) },
-          { label: 'Khule orders', value: money(s?.openValue) },
+          { label: t('Kul orders ki value'), value: money(s?.value) },
+          { label: t('Advance mila'), value: money(s?.advance) },
+          { label: t('Khule orders'), value: money(s?.openValue) },
         ]} />
 
       <KpiRow cols={4}>
         {isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={ListChecks} color="#2563eb" label="Khule" value={openCount} onClick={() => setTab('OPEN')} active={view === 'OPEN'} />
-            <KpiCard icon={Truck} color="#7c3aed" label="Raste me" value={c.OUT_FOR_DELIVERY ?? 0} />
-            <KpiCard icon={CheckCircle2} color="#16a34a" label="Pahunch gaye" value={c.DELIVERED ?? 0} onClick={() => setTab('DELIVERED')} active={view === 'DELIVERED'} />
-            <KpiCard icon={Wallet} color="#d97706" label="Baqi (orders par)" value={money(s?.pending)} />
+            <KpiCard icon={ListChecks} color="#2563eb" label={t('Khule')} value={openCount} onClick={() => setTab('OPEN')} active={view === 'OPEN'} />
+            <KpiCard icon={Truck} color="#7c3aed" label={t('Raste me')} value={c.OUT_FOR_DELIVERY ?? 0} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label={t('Pahunch gaye')} value={c.DELIVERED ?? 0} onClick={() => setTab('DELIVERED')} active={view === 'DELIVERED'} />
+            <KpiCard icon={Wallet} color="#d97706" label={t('Baqi (orders par)')} value={money(s?.pending)} />
           </>
         )}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Order number, farmer, phone, fasal ya maal…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={t('Order number, farmer, phone, fasal ya maal…')} />}
         chips={chips} onClear={() => { setSearch(''); setSeason(''); if (farmerId) { params.delete('farmer'); setParams(params); } }}>
-        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : 'Season'} value={season} options={SEASON_OPTIONS} onChange={(v) => { setSeason(v); setPage(1); }} active={!!season} align="right" />
+        <FilterMenu icon={CalendarDays} label={season ? SEASON_LABEL[season] : t('Season')} value={season} options={SEASON_OPTIONS} onChange={(v) => { setSeason(v); setPage(1); }} active={!!season} align="right" />
       </FilterBar>
 
       <ViewTabs value={view} onChange={setTab} tabs={[
-        { id: 'OPEN', label: 'Khule', icon: ListChecks, count: openCount },
-        { id: 'DELIVERED', label: 'Pahunch gaye', icon: CheckCircle2, count: c.DELIVERED ?? 0 },
-        { id: 'CANCELLED', label: 'Cancel', icon: XCircle, count: c.CANCELLED ?? 0 },
-        { id: 'all', label: 'Sab', icon: Boxes, count: total },
-        { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        { id: 'OPEN', label: t('Khule'), icon: ListChecks, count: openCount },
+        { id: 'DELIVERED', label: t('Pahunch gaye'), icon: CheckCircle2, count: c.DELIVERED ?? 0 },
+        { id: 'CANCELLED', label: t('Cancel'), icon: XCircle, count: c.CANCELLED ?? 0 },
+        { id: 'all', label: t('Sab'), icon: Boxes, count: total },
+        { id: 'analytics', label: t('Analytics'), icon: BarChart3 },
       ]} />
 
       {view === 'analytics' ? (
         <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
-          <h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">Season ke hisaab se orders</h3>
-          {(data?.analytics.seasons ?? []).length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">Abhi koi order nahi</p> : (() => {
+          <h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">{t('Season ke hisaab se orders')}</h3>
+          {(data?.analytics.seasons ?? []).length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">{t('Abhi koi order nahi')}</p> : (() => {
             const list = data!.analytics.seasons;
             const max = Math.max(1, ...list.map((x) => x.value));
             return (
               <ul className="space-y-2">{list.map((x) => (
                 <li key={x.season ?? 'none'} className="text-[0.8125rem]">
-                  <div className="flex justify-between"><span className="font-medium text-slate-700">{seasonLabel(x.season)} · {x.orders} order</span><span className="tabular-nums text-slate-600">{money(x.value)}</span></div>
+                  <div className="flex justify-between"><span className="font-medium text-slate-700">{t('{{season}} · {{orders}} order', { season: seasonLabel(x.season), orders: x.orders })}</span><span className="tabular-nums text-slate-600">{money(x.value)}</span></div>
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-lime-500" style={{ width: `${(x.value / max) * 100}%` }} /></div>
                 </li>
               ))}</ul>
@@ -184,24 +185,24 @@ export default function BulkOrdersPage() {
             : rows.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-16 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-700"><Boxes className="h-7 w-7" /></span>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? 'Is search me koi order nahi' : 'Is list me koi order nahi'}</h3>
-                <p className="mt-1 text-[0.875rem] text-slate-500">Bijai se pehle farmer ka poore season ka maal yahan book karein.</p>
-                {canManage && <Link to="/agri/bulk-orders/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya order</Link>}
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? t('Is search me koi order nahi') : t('Is list me koi order nahi')}</h3>
+                <p className="mt-1 text-[0.875rem] text-slate-500">{t('Bijai se pehle farmer ka poore season ka maal yahan book karein.')}</p>
+                {canManage && <Link to="/agri/bulk-orders/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{t('Naya order')}</Link>}
               </div>
             ) : (
               <>
                 <Table minWidth="58rem">
-                  <THead><Tr><Th>Order</Th><Th>Farmer</Th><Th>Maal</Th><Th>Delivery</Th><Th align="right">Kul / baqi</Th><Th>Status</Th></Tr></THead>
+                  <THead><Tr><Th>{t('Order')}</Th><Th>{t('Farmer')}</Th><Th>{t('Maal')}</Th><Th>{t('Delivery')}</Th><Th align="right">{t('Kul / baqi')}</Th><Th>{t('Status')}</Th></Tr></THead>
                   <TBody>{rows.map((o) => (
                     <Tr key={o.id} interactive onClick={() => setOpen(o)}>
                       <Td><p className="font-semibold text-slate-900">{o.orderNumber}</p><p className="text-[0.75rem] text-slate-500">{shortDate(o.orderDate)}</p></Td>
                       <Td><p className="font-medium text-slate-900">{who(o)}</p><p className="text-[0.75rem] text-slate-500">{[o.customerPhone, seasonLabel(o.season) !== '—' ? seasonLabel(o.season) : '', o.cropTarget].filter(Boolean).join(' · ')}</p></Td>
                       <Td className="max-w-[18rem] text-[0.8125rem] text-slate-600"><p className="truncate">{o.items.map((i) => `${i.productName} × ${qty(i.quantity)}`).join(', ')}</p></Td>
-                      <Td className="text-[0.8125rem] text-slate-600">{o.deliveryDate ? shortDate(o.deliveryDate) : '—'}{o.isDelivery && <Truck className="ml-1 inline h-3.5 w-3.5 text-violet-600" />}</Td>
-                      <Td align="right"><p className="font-bold">{money(o.total)}</p><p className={cn('text-[0.75rem]', remaining(o) > 0 ? 'text-amber-700' : 'text-emerald-700')}>{remaining(o) > 0 ? `baqi ${money(remaining(o))}` : 'poora mila'}</p></Td>
+                      <Td className="text-[0.8125rem] text-slate-600">{o.deliveryDate ? shortDate(o.deliveryDate) : '—'}{o.isDelivery && <Truck className="ms-1 inline h-3.5 w-3.5 text-violet-600" />}</Td>
+                      <Td align="right"><p className="font-bold">{money(o.total)}</p><p className={cn('text-[0.75rem]', remaining(o) > 0 ? 'text-amber-700' : 'text-emerald-700')}>{remaining(o) > 0 ? t('baqi {{value}}', { value: money(remaining(o)) }) : t('poora mila')}</p></Td>
                       <Td>
                         <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', ORDER_STATUS[o.status].tone)}>{ORDER_STATUS[o.status].label}</span>
-                        {o.bill && <p className="mt-1 text-[0.6875rem] text-slate-500">Bill {o.bill.saleNumber}</p>}
+                        {o.bill && <p className="mt-1 text-[0.6875rem] text-slate-500">{t('Bill {{saleNumber}}', { saleNumber: o.bill.saleNumber })}</p>}
                       </Td>
                     </Tr>
                   ))}</TBody>
@@ -230,60 +231,60 @@ function OrderModal({ order: o, canManage, money, onClose, onChanged }: {
     mutationFn: (v: { status: OrderStatus; reason?: string }) => bulkOrdersApi.updateStatus(o.id, v.status, v.reason),
     onSuccess: (r, v) => {
       onChanged({ ...o, ...r });
-      if (v.status === 'DELIVERED') { qc.invalidateQueries({ queryKey: ['products-for-pos'] }); qc.invalidateQueries({ queryKey: ['agri-farmers'] }); toast.success('Bill ban gaya — stock ghat gaya aur baqi khate me'); }
-      else toast.success(v.status === 'CANCELLED' ? 'Order cancel' : `Ab: ${ORDER_STATUS[v.status].label}`);
+      if (v.status === 'DELIVERED') { qc.invalidateQueries({ queryKey: ['products-for-pos'] }); qc.invalidateQueries({ queryKey: ['agri-farmers'] }); toast.success(t('Bill ban gaya — stock ghat gaya aur baqi khate me')); }
+      else toast.success(v.status === 'CANCELLED' ? t('Order cancel') : t('Ab: {{label}}', { label: ORDER_STATUS[v.status].label }));
       setCancel(false);
     },
-    onError: (e) => toast.error(errorText(e, 'Status nahi badla')),
+    onError: (e) => toast.error(errorText(e, t('Status nahi badla'))),
   });
   const advance = useMutation({
     mutationFn: (v: { amount: number; method: string }) => bulkOrdersApi.addPayment(o.id, v.amount, v.method),
-    onSuccess: (r, v) => { onChanged({ ...o, ...r }); qc.invalidateQueries({ queryKey: ['agri-farmers'] }); toast.success(`${money(v.amount)} advance khate me jama`); setPay(false); },
-    onError: (e) => toast.error(errorText(e, 'Advance nahi likha')),
+    onSuccess: (r, v) => { onChanged({ ...o, ...r }); qc.invalidateQueries({ queryKey: ['agri-farmers'] }); toast.success(t('{{amount}} advance khate me jama', { amount: money(v.amount) })); setPay(false); },
+    onError: (e) => toast.error(errorText(e, t('Advance nahi likha'))),
   });
-  const useful = useMemo(() => [o.isDelivery && o.deliveryAddress ? `Delivery: ${o.deliveryAddress}` : '', o.vehicleNumber ? `Gaari ${o.vehicleNumber}` : '', o.farmerNotes, o.advisorNotes].filter(Boolean), [o]);
+  const useful = useMemo(() => [o.isDelivery && o.deliveryAddress ? t('Delivery: {{deliveryAddress}}', { deliveryAddress: o.deliveryAddress }) : '', o.vehicleNumber ? t('Gaari {{vehicleNumber}}', { vehicleNumber: o.vehicleNumber }) : '', o.farmerNotes, o.advisorNotes].filter(Boolean), [o]);
 
   return (
     <Modal open onClose={onClose} size="lg" title={`${o.orderNumber} · ${who(o)}`} description={[o.customerPhone, seasonLabel(o.season) !== '—' ? seasonLabel(o.season) : '', o.cropTarget, o.landAreaAcres ? `${o.landAreaAcres} acre` : ''].filter(Boolean).join(' · ')}
       footer={<>
-        <span className="mr-auto"><PrintButton doc={() => orderDoc(o, money)} label="Print" /></span>
-        {canManage && !closed && <Button variant="ghost" onClick={() => setCancel(true)} leftIcon={<X className="h-4 w-4" />}>Cancel</Button>}
-        {canManage && !closed && remaining(o) > 0 && <Button variant="secondary" onClick={() => setPay(true)} leftIcon={<Wallet className="h-4 w-4" />}>Advance</Button>}
-        {canManage && next && <Button loading={move.isPending} onClick={() => move.mutate({ status: next })} leftIcon={next === 'DELIVERED' ? <Receipt className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}>{next === 'DELIVERED' ? 'Pahunch gaya — bill banayein' : ORDER_STATUS[next].label}</Button>}
-        {o.bill && <Link to={`/sales?search=${o.bill.saleNumber}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-slate-50"><Receipt className="h-4 w-4" />Bill {o.bill.saleNumber}</Link>}
+        <span className="me-auto"><PrintButton doc={() => orderDoc(o, money)} label={t('Print')} /></span>
+        {canManage && !closed && <Button variant="ghost" onClick={() => setCancel(true)} leftIcon={<X className="h-4 w-4" />}>{t('Cancel')}</Button>}
+        {canManage && !closed && remaining(o) > 0 && <Button variant="secondary" onClick={() => setPay(true)} leftIcon={<Wallet className="h-4 w-4" />}>{t('Advance')}</Button>}
+        {canManage && next && <Button loading={move.isPending} onClick={() => move.mutate({ status: next })} leftIcon={next === 'DELIVERED' ? <Receipt className="h-4 w-4" /> : <ArrowRight className="h-4 w-4 rtl-flip" />}>{next === 'DELIVERED' ? t('Pahunch gaya — bill banayein') : ORDER_STATUS[next].label}</Button>}
+        {o.bill && <Link to={`/sales?search=${o.bill.saleNumber}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[0.875rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-slate-50"><Receipt className="h-4 w-4" />{t('Bill {{saleNumber}}', { saleNumber: o.bill.saleNumber })}</Link>}
       </>}>
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className={cn('rounded-md px-2 py-0.5 text-[0.75rem] font-semibold ring-1', ORDER_STATUS[o.status].tone)}>{ORDER_STATUS[o.status].label}</span>
-          <span className="text-[0.8125rem] text-slate-500">Order {shortDate(o.orderDate)} · Delivery {o.deliveryDate ? shortDate(o.deliveryDate) : '—'}</span>
-          {o.isCredit && <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[0.75rem] font-semibold text-amber-800">Baqi season ke udhaar me</span>}
+          <span className="text-[0.8125rem] text-slate-500">{t('Order {{orderDate}} · Delivery {{value}}', { orderDate: shortDate(o.orderDate), value: o.deliveryDate ? shortDate(o.deliveryDate) : '—' })}</span>
+          {o.isCredit && <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[0.75rem] font-semibold text-amber-800">{t('Baqi season ke udhaar me')}</span>}
         </div>
         <Table>
-          <THead><Tr><Th>Cheez</Th><Th align="right">Qty</Th><Th align="right">Rate</Th><Th align="right">Total</Th></Tr></THead>
+          <THead><Tr><Th>{t('Cheez')}</Th><Th align="right">{t('Qty')}</Th><Th align="right">{t('Rate')}</Th><Th align="right">{t('Total')}</Th></Tr></THead>
           <TBody>{o.items.map((i, n) => (
-            <Tr key={i.id ?? n}><Td>{i.productName}{!i.productId && <span className="ml-1 text-[0.6875rem] text-slate-500">(catalog ke bagair)</span>}</Td><Td align="right">{qty(i.quantity)} {i.unit}</Td><Td align="right">{money(i.pricePerUnit)}</Td><Td align="right" className="font-semibold">{money(i.total)}</Td></Tr>
+            <Tr key={i.id ?? n}><Td>{i.productName}{!i.productId && <span className="ms-1 text-[0.6875rem] text-slate-500">{t('(catalog ke bagair)')}</span>}</Td><Td align="right">{qty(i.quantity)} {i.unit}</Td><Td align="right">{money(i.pricePerUnit)}</Td><Td align="right" className="font-semibold">{money(i.total)}</Td></Tr>
           ))}</TBody>
         </Table>
-        <dl className="ml-auto max-w-xs space-y-1 text-[0.875rem]">
-          <div className="flex justify-between"><dt className="text-slate-500">Maal</dt><dd className="tabular-nums">{money(o.subtotal)}</dd></div>
-          {o.bulkDiscount > 0 && <div className="flex justify-between"><dt className="text-slate-500">Discount</dt><dd className="tabular-nums">-{money(o.bulkDiscount)}</dd></div>}
-          {o.deliveryCharges > 0 && <div className="flex justify-between"><dt className="text-slate-500">Delivery</dt><dd className="tabular-nums">{money(o.deliveryCharges)}</dd></div>}
-          {o.otherCharges > 0 && <div className="flex justify-between"><dt className="text-slate-500">Doosre charges</dt><dd className="tabular-nums">{money(o.otherCharges)}</dd></div>}
-          <div className="flex justify-between border-t border-slate-200 pt-1 font-bold"><dt>Kul</dt><dd className="tabular-nums">{money(o.total)}</dd></div>
-          <div className="flex justify-between text-emerald-700"><dt>Advance</dt><dd className="tabular-nums">{money(o.paidAmount)}</dd></div>
-          <div className="flex justify-between font-semibold text-amber-800"><dt>Baqi</dt><dd className="tabular-nums">{money(remaining(o))}</dd></div>
+        <dl className="ms-auto max-w-xs space-y-1 text-[0.875rem]">
+          <div className="flex justify-between"><dt className="text-slate-500">{t('Maal')}</dt><dd className="tabular-nums">{money(o.subtotal)}</dd></div>
+          {o.bulkDiscount > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Discount')}</dt><dd className="tabular-nums">-{money(o.bulkDiscount)}</dd></div>}
+          {o.deliveryCharges > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Delivery')}</dt><dd className="tabular-nums">{money(o.deliveryCharges)}</dd></div>}
+          {o.otherCharges > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Doosre charges')}</dt><dd className="tabular-nums">{money(o.otherCharges)}</dd></div>}
+          <div className="flex justify-between border-t border-slate-200 pt-1 font-bold"><dt>{t('Kul')}</dt><dd className="tabular-nums">{money(o.total)}</dd></div>
+          <div className="flex justify-between text-emerald-700"><dt>{t('Advance')}</dt><dd className="tabular-nums">{money(o.paidAmount)}</dd></div>
+          <div className="flex justify-between font-semibold text-amber-800"><dt>{t('Baqi')}</dt><dd className="tabular-nums">{money(remaining(o))}</dd></div>
         </dl>
         {useful.length > 0 && <ul className="space-y-1 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">{useful.map((u) => <li key={u}>{u}</li>)}</ul>}
-        {o.status === 'CANCELLED' && o.cancellationReason && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">Cancel: {o.cancellationReason}</p>}
+        {o.status === 'CANCELLED' && o.cancellationReason && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">{t('Cancel: {{cancellationReason}}', { cancellationReason: o.cancellationReason })}</p>}
       </div>
-      {pay && <PayModal title={`${o.orderNumber} — advance`} description="Farmer ke khate me aaj jama hoga" max={remaining(o)} suggest={[Math.round(remaining(o) / 2), remaining(o)]} withNote={false} busy={advance.isPending} onClose={() => setPay(false)} onPay={(v) => advance.mutate(v)} />}
+      {pay && <PayModal title={t('{{orderNumber}} — advance', { orderNumber: o.orderNumber })} description={t('Farmer ke khate me aaj jama hoga')} max={remaining(o)} suggest={[Math.round(remaining(o) / 2), remaining(o)]} withNote={false} busy={advance.isPending} onClose={() => setPay(false)} onPay={(v) => advance.mutate(v)} />}
       {cancel && (
-        <Modal open onClose={() => setCancel(false)} size="sm" title="Order cancel karein?"
-          description={o.paidAmount > 0 ? `${money(o.paidAmount)} advance farmer ke khate me jama rahega — wapas dena ho to khate se dein.` : 'Stock aur khata nahi badlenge.'}
-          footer={<><Button variant="secondary" onClick={() => setCancel(false)}>Wapas</Button><Button variant="danger" disabled={!reason.trim()} loading={move.isPending} onClick={() => move.mutate({ status: 'CANCELLED', reason: reason.trim() })}>Cancel karein</Button></>}>
+        <Modal open onClose={() => setCancel(false)} size="sm" title={t('Order cancel karein?')}
+          description={o.paidAmount > 0 ? t('{{paidAmount}} advance farmer ke khate me jama rahega — wapas dena ho to khate se dein.', { paidAmount: money(o.paidAmount) }) : t('Stock aur khata nahi badlenge.')}
+          footer={<><Button variant="secondary" onClick={() => setCancel(false)}>{t('Wapas')}</Button><Button variant="danger" disabled={!reason.trim()} loading={move.isPending} onClick={() => move.mutate({ status: 'CANCELLED', reason: reason.trim() })}>{t('Cancel karein')}</Button></>}>
           <label className="block">
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Wajah</span>
-            <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Farmer ne mana kar diya, rate ka masla…" className="h-10 w-full rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" data-autofocus />
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Wajah')}</span>
+            <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Farmer ne mana kar diya, rate ka masla…')} className="h-10 w-full rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" data-autofocus />
           </label>
         </Modal>
       )}

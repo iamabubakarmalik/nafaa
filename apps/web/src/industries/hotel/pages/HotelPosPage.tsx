@@ -12,6 +12,7 @@ import { PosScreen, useComboBundles, useProductCatalog, type PosIndustryConfig }
 import { bookingsApi } from '../api/bookings.api';
 import { guestsApi } from '../api/guests.api';
 import { HOTEL_KEYS, roomsOf, stayDay } from '../components/meta';
+import { t } from '@core/i18n';
 
 function InHouseHint({ customerId }: { customerId?: string | null }) {
   const inHouse = useQuery({ queryKey: [HOTEL_KEYS.bookings, 'in-house'], queryFn: () => bookingsApi.inHouse(), staleTime: 60_000 });
@@ -28,18 +29,18 @@ function InHouseHint({ customerId }: { customerId?: string | null }) {
   return (
     <Link to={`/hotel/bookings/${stay.id}`} className="flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-[0.75rem] text-indigo-800 ring-1 ring-indigo-100 hover:bg-indigo-100">
       <BedDouble className="h-4 w-4 shrink-0" />
-      <span>Room {roomsOf(stay)} me thehra hai (rawangi {stayDay(stay.checkOutDate)}). Udhaar is ke khate me jayega aur check-out par nazar aayega.</span>
+      <span>{t('Room {{stay}} me thehra hai (rawangi {{checkOutDate}}). Udhaar is ke khate me jayega aur check-out par nazar aayega.', { stay: roomsOf(stay), checkOutDate: stayDay(stay.checkOutDate) })}</span>
     </Link>
   );
 }
 
 const hotelPos: PosIndustryConfig = {
   id: 'hotel',
-  label: 'Hotel',
+  label: t('Hotel'),
   useCatalog: () => useProductCatalog(),
   useBundles: useComboBundles,
   quickKeys: true,
-  searchHint: 'Chai, khana, pani, minibar…',
+  searchHint: t('Chai, khana, pani, minibar…'),
   receiptFooter: 'Hamare saath thehrne ka shukriya.',
   CartExtra: InHouseHint,
 };

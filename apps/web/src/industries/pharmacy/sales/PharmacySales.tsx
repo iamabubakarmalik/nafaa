@@ -10,6 +10,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { useMedicineFacts } from '../hooks/useMedicineFacts';
 import { REGISTER_CLASSES } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -32,7 +33,7 @@ function useRxExtras(_sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Pharmacy', useBillExtras: useRxExtras };
+const config: SalesHistoryConfig = { label: t('Pharmacy'), useBillExtras: useRxExtras };
 
 export default function PharmacySales() {
   return <SalesHistoryPage config={config} />;

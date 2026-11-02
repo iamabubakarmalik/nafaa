@@ -30,16 +30,17 @@ import { repairServicesApi, type RepairQuery, type RepairView, type SportsRepair
 import { REPAIR_KEY, REPAIR_STATUS, dayOnly } from '../components/meta';
 import { NewRepairModal, RepairModal } from '../components/RepairModals';
 import { EmptyBlock, Pager, StatusPill, card, fetchAll, useDebounced, useListKeys } from '../components/ui';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 25;
 const TABS: Array<{ id: RepairView; label: string; icon: typeof ListChecks }> = [
-  { id: 'active', label: 'Chalu', icon: ListChecks },
-  { id: 'work', label: 'Kaam baqi', icon: Hammer },
-  { id: 'ready', label: 'Tayyar — le jana', icon: PackageCheck },
-  { id: 'late', label: 'Late', icon: AlarmClock },
-  { id: 'advance', label: 'Advance wali', icon: Wallet },
-  { id: 'done', label: 'De di / cancel', icon: CheckCircle2 },
-  { id: 'all', label: 'Sab', icon: ClipboardList },
+  { id: 'active', label: tr('Chalu'), icon: ListChecks },
+  { id: 'work', label: tr('Kaam baqi'), icon: Hammer },
+  { id: 'ready', label: tr('Tayyar — le jana'), icon: PackageCheck },
+  { id: 'late', label: tr('Late'), icon: AlarmClock },
+  { id: 'advance', label: tr('Advance wali'), icon: Wallet },
+  { id: 'done', label: tr('De di / cancel'), icon: CheckCircle2 },
+  { id: 'all', label: tr('Sab'), icon: ClipboardList },
 ];
 
 const isLate = (r: SportsRepairService) => ['RECEIVED', 'IN_PROGRESS', 'ON_HOLD'].includes(r.status) && !!r.estimatedReadyAt && new Date(r.estimatedReadyAt).getTime() < Date.now();
@@ -73,29 +74,29 @@ export default function RepairServicesPage() {
   const add = useCallback(() => { if (canCreate) setAdding(true); }, [canCreate]);
   useListKeys(searchRef, add);
 
-  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const label = range ? rangeLabel(range.from, range.to) : tr('Sab waqt');
   const all = () => fetchAll((p) => repairServicesApi.page({ ...query, page: p, limit: 100 }));
   const exportCsv = async () => {
     setExporting(true);
     try {
       const rows = await all();
-      if (!rows.length) { toast.error('Is filter me koi repair nahi'); return; }
+      if (!rows.length) { toast.error(tr('Is filter me koi repair nahi')); return; }
       downloadCsv('repairs.csv', [
-        ['Number', 'Jama', 'Customer', 'Phone', 'Cheez', 'Brand', 'Kaam', 'Masla', 'Tayyar kab', 'Andaza', 'Charge', 'Advance', 'Status'],
+        [tr('Number'), tr('Jama'), tr('Customer'), tr('Phone'), tr('Cheez'), tr('Brand'), tr('Kaam'), tr('Masla'), tr('Tayyar kab'), tr('Andaza'), tr('Charge'), tr('Advance'), tr('Status')],
         ...rows.map((r) => [r.serviceNumber, r.receivedAt.slice(0, 10), r.customerName, r.customerPhone, r.itemType, r.itemBrand, r.repairType, r.issue,
           r.estimatedReadyAt?.slice(0, 10), r.estimatedCost, r.finalCost, r.advancePaid, REPAIR_STATUS[r.status]?.label]),
       ]);
-      toast.success(`${rows.length} repairs CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} repairs CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await all();
     return {
-      title: 'Repairs', subtitle: `${TABS.find((t) => t.id === tab)?.label} · ${label}`,
-      meta: [['Repairs', String(rows.length)], ['Value', money(data?.totals.value ?? 0)], ['Advance', money(data?.totals.advance ?? 0)]],
+      title: tr('Repairs'), subtitle: `${TABS.find((t) => t.id === tab)?.label} · ${label}`,
+      meta: [[tr('Repairs'), String(rows.length)], [tr('Value'), money(data?.totals.value ?? 0)], [tr('Advance'), money(data?.totals.advance ?? 0)]],
       sections: [{
-        kind: 'table', title: 'Repairs',
-        columns: [{ label: 'Number' }, { label: 'Customer' }, { label: 'Cheez / kaam', wideOnly: true }, { label: 'Tayyar', wideOnly: true }, { label: 'Status' }],
+        kind: 'table', title: tr('Repairs'),
+        columns: [{ label: tr('Number') }, { label: tr('Customer') }, { label: tr('Cheez / kaam'), wideOnly: true }, { label: tr('Tayyar'), wideOnly: true }, { label: tr('Status') }],
         rows: rows.map((r) => [r.serviceNumber, `${r.customerName} ${r.customerPhone}`, `${r.itemType} · ${r.repairType ?? r.issue}`, dayOnly(r.estimatedReadyAt), REPAIR_STATUS[r.status]?.label ?? r.status]),
       }],
     };
@@ -105,58 +106,58 @@ export default function RepairServicesPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Repairs — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Repairs — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Wrench, color: '#2563eb', title: 'Jama karein', text: 'Customer, phone, kya cheez aur kya kaam. Haalat aur photo likhein taake baad me jhagra na ho. Parchi print kar ke dein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khate me jama hota hai aur aaj ke cash me ginta hai.' },
-            { icon: Hammer, color: '#7c3aed', title: 'Kaam', text: 'Kaam shuru → Tayyar. Tayyar par WhatsApp se customer ko batayein.' },
-            { icon: PackageCheck, color: '#ea580c', title: 'Deliver + bill', text: 'Kaam ka charge aur stock se lagi string / grip ek bill me. Advance bill me lag jata hai, baqi udhaar khate me.' },
+            { icon: Wrench, color: '#2563eb', title: tr('Jama karein'), text: tr('Customer, phone, kya cheez aur kya kaam. Haalat aur photo likhein taake baad me jhagra na ho. Parchi print kar ke dein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance'), text: tr('Advance customer ke khate me jama hota hai aur aaj ke cash me ginta hai.') },
+            { icon: Hammer, color: '#7c3aed', title: tr('Kaam'), text: tr('Kaam shuru → Tayyar. Tayyar par WhatsApp se customer ko batayein.') },
+            { icon: PackageCheck, color: '#ea580c', title: tr('Deliver + bill'), text: tr('Kaam ka charge aur stock se lagi string / grip ek bill me. Advance bill me lag jata hai, baqi udhaar khate me.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'nayi repair'], ['G', 'guide']]} />
+          shortcuts={[['/', tr('search')], ['N', tr('nayi repair')], ['G', tr('guide')]]} />
       )}
 
-      <PageHero title="Repairs" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
-        meta="Bat repair, grip, racket stringing, ball silai — jama se deliver tak"
+      <PageHero title={tr('Repairs')} chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta={tr('Bat repair, grip, racket stringing, ball silai — jama se deliver tak')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canCreate && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />Nayi repair</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <button type="button" onClick={add} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Nayi repair')}</button>}
         </>}
         stats={[
-          { label: 'Is filter ki value', value: money(data?.totals.value ?? 0) },
-          { label: 'Advance (hath me)', value: money(data?.totals.advance ?? 0) },
-          { label: 'Lena baqi', value: money(data?.totals.due ?? 0) },
+          { label: tr('Is filter ki value'), value: money(data?.totals.value ?? 0) },
+          { label: tr('Advance (hath me)'), value: money(data?.totals.advance ?? 0) },
+          { label: tr('Lena baqi'), value: money(data?.totals.due ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Hammer} color="#7c3aed" label="Kaam baqi" value={c.work} onClick={() => go('work')} active={tab === 'work'} />
-            <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={c.late} hint="Batayi date guzar gayi" onClick={() => go('late')} active={tab === 'late'} />
-            <KpiCard icon={PackageCheck} color="#16a34a" label="Tayyar — le jana" value={c.ready} hint="Customer ko batayein" onClick={() => go('ready')} active={tab === 'ready'} />
-            <KpiCard icon={Wallet} color="#d97706" label="Advance wali" value={c.advance} onClick={() => go('advance')} active={tab === 'advance'} />
+            <KpiCard icon={Hammer} color="#7c3aed" label={tr('Kaam baqi')} value={c.work} onClick={() => go('work')} active={tab === 'work'} />
+            <KpiCard icon={AlarmClock} color="#e11d48" label={tr('Late')} value={c.late} hint={tr('Batayi date guzar gayi')} onClick={() => go('late')} active={tab === 'late'} />
+            <KpiCard icon={PackageCheck} color="#16a34a" label={tr('Tayyar — le jana')} value={c.ready} hint={tr('Customer ko batayein')} onClick={() => go('ready')} active={tab === 'ready'} />
+            <KpiCard icon={Wallet} color="#d97706" label={tr('Advance wali')} value={c.advance} onClick={() => go('advance')} active={tab === 'advance'} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Number, customer, phone, cheez ya brand…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Number, customer, phone, cheez ya brand…')} />}
         chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
         onClear={() => setSearch('')}>
-        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Jama ki date" />
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label={tr('Jama ki date')} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={go} hint={<>Repair par click kar ke kholein</>}
+      <ViewTabs value={tab} onChange={go} hint={<>{tr('Repair par click kar ke kholein')}</>}
         tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
 
       <section className={card}>
         {isLoading ? (
           <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : items.length === 0 ? (
-          <EmptyBlock icon={Wrench} title={search || tab !== 'active' ? 'Is filter me koi repair nahi' : 'Abhi koi repair hath me nahi'}
-            text="Bat, racket ya ball repair ke liye aaye to yahan jama karein aur parchi dein."
-            action={canCreate ? <button type="button" onClick={add} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Nayi repair</button> : undefined} />
+          <EmptyBlock icon={Wrench} title={search || tab !== 'active' ? tr('Is filter me koi repair nahi') : tr('Abhi koi repair hath me nahi')}
+            text={tr('Bat, racket ya ball repair ke liye aaye to yahan jama karein aur parchi dein.')}
+            action={canCreate ? <button type="button" onClick={add} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Nayi repair')}</button> : undefined} />
         ) : (
           <ul className="divide-y divide-slate-100">
             {items.map((r) => {
@@ -166,7 +167,7 @@ export default function RepairServicesPage() {
               return (
                 <li key={r.id}>
                   <button type="button" onClick={() => setOpenId(r.id)}
-                    className="grid w-full gap-2 px-4 py-3 text-left hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.1fr)_minmax(0,1.6fr)_8rem_9rem_9rem] lg:items-center">
+                    className="grid w-full gap-2 px-4 py-3 text-start hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.1fr)_minmax(0,1.6fr)_8rem_9rem_9rem] lg:items-center">
                     <div>
                       <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.serviceNumber}</p>
                       <p className="text-[0.75rem] text-slate-500">{dayOnly(r.receivedAt)}</p>
@@ -176,15 +177,15 @@ export default function RepairServicesPage() {
                       <p className="truncate text-[0.75rem] text-slate-500">{r.customerPhone}</p>
                     </div>
                     <div className="min-w-0 text-[0.8125rem]">
-                      <p className="truncate font-medium text-slate-800">{r.itemType}{r.itemBrand ? ` · ${r.itemBrand}` : ''}</p>
-                      <p className="truncate text-slate-500">{r.repairType ? `${r.repairType} — ` : ''}{r.issue}</p>
+                      <p className="truncate font-medium text-slate-800">{tr(r.itemType)}{r.itemBrand ? ` · ${r.itemBrand}` : ''}</p>
+                      <p className="truncate text-slate-500">{r.repairType ? `${tr(r.repairType)} — ` : ''}{r.issue}</p>
                     </div>
                     <p className={cn('text-[0.8125rem]', late ? 'font-semibold text-rose-600' : 'text-slate-600')}>
-                      {r.estimatedReadyAt ? `${late ? 'Late · ' : ''}${dayOnly(r.estimatedReadyAt)}` : 'Date tay nahi'}
+                      {r.estimatedReadyAt ? `${late ? 'Late · ' : ''}${dayOnly(r.estimatedReadyAt)}` : tr('Date tay nahi')}
                     </p>
-                    <div className="text-[0.8125rem] lg:text-right">
+                    <div className="text-[0.8125rem] lg:text-end">
                       <p className="font-semibold tabular-nums text-slate-900">{value ? money(value) : '—'}</p>
-                      {r.advancePaid > 0 && <p className="tabular-nums text-emerald-700">Advance {money(r.advancePaid)}</p>}
+                      {r.advancePaid > 0 && <p className="tabular-nums text-emerald-700">{tr('Advance {{advancePaid}}', { advancePaid: money(r.advancePaid) })}</p>}
                     </div>
                     <span className="lg:justify-self-end"><StatusPill tone={st.tone}>{st.label}</StatusPill></span>
                   </button>

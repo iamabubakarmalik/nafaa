@@ -2,9 +2,10 @@
 
 import { ProductsPage } from '../ProductsPage';
 import type { ProductsPageConfig } from '../types';
+import { t } from '@core/i18n';
 
 const config: ProductsPageConfig = {
-  label: 'Dukaan',
+  label: t('Dukaan'),
   paths: {
     detail: (id) => `/products/${id}`,
     edit: (id) => `/products/${id}/edit`,

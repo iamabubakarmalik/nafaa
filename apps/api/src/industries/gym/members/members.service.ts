@@ -6,6 +6,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { DAY_MS, gymClock, nextNumber, opt, paging, r2 } from '../common/gym-common';
 import { UpsertMemberDto } from './dto/upsert-member.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Member lists the desk works from. */
 export type MemberView = 'all' | 'running' | 'expiring' | 'expired' | 'dues' | 'frozen' | 'none' | 'left';
@@ -64,14 +65,14 @@ export class MembersService {
       const existing = await tx.gymMember.findUnique({ where: { customerId }, select: { memberNumber: true, isActive: true } });
       if (existing) {
         throw new BadRequestException(existing.isActive
-          ? `Ye customer pehle se member ${existing.memberNumber} hai`
-          : `Ye customer pehle member ${existing.memberNumber} tha — us profile ko dobara active karein`);
+          ? apiMessage('Ye customer pehle se member {{memberNumber}} hai', { memberNumber: existing.memberNumber })
+          : apiMessage('Ye customer pehle member {{memberNumber}} tha — us profile ko dobara active karein', { memberNumber: existing.memberNumber }));
       }
 
       let memberNumber = opt(typedNumber);
       if (memberNumber) {
         const dup = await tx.gymMember.findFirst({ where: { tenantId: user.tenantId, memberNumber }, select: { id: true } });
-        if (dup) throw new BadRequestException(`Member number ${memberNumber} pehle se kisi aur ka hai`);
+        if (dup) throw new BadRequestException(apiMessage('Member number {{memberNumber}} pehle se kisi aur ka hai', { memberNumber }));
       } else {
         memberNumber = await nextNumber(tx, user.tenantId, 'MEM-', async () => (await tx.gymMember.findFirst({
           where: { tenantId: user.tenantId, memberNumber: { startsWith: 'MEM-' } },
@@ -112,7 +113,7 @@ export class MembersService {
     await this.checkLinks(user.tenantId, rest, id);
     if (memberNumber && memberNumber !== m.memberNumber) {
       const dup = await this.prisma.gymMember.findFirst({ where: { tenantId: user.tenantId, memberNumber, NOT: { id } }, select: { id: true } });
-      if (dup) throw new BadRequestException(`Member number ${memberNumber} pehle se kisi aur ka hai`);
+      if (dup) throw new BadRequestException(apiMessage('Member number {{memberNumber}} pehle se kisi aur ka hai', { memberNumber }));
     }
     const customerPatch: Prisma.CustomerUpdateInput = {
       ...(opt(name) && { name: opt(name) }),
@@ -144,7 +145,7 @@ export class MembersService {
     const card = opt(dto.rfidCard);
     if (card) {
       const holder = await this.prisma.gymMember.findFirst({ where: { tenantId, rfidCard: card, ...(selfId && { NOT: { id: selfId } }) }, select: { memberNumber: true } });
-      if (holder) throw new BadRequestException(`Ye card pehle se member ${holder.memberNumber} ke paas hai`);
+      if (holder) throw new BadRequestException(apiMessage('Ye card pehle se member {{memberNumber}} ke paas hai', { memberNumber: holder.memberNumber }));
     }
     if (dto.preferredTrainerId) {
       const t = await this.prisma.gymTrainer.findFirst({ where: { id: dto.preferredTrainerId, tenantId }, select: { id: true } });

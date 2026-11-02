@@ -5,13 +5,14 @@
  */
 
 import type { UnitConversionType } from '@modules/inventory/products/api/product-units.api';
+import { t } from '@core/i18n';
 
 export const UNITS_KEY = 'units-page';
 /** Queries elsewhere that read packs and must refresh after a change. */
 export const UNIT_KEYS = [UNITS_KEY, 'product-units', 'pos-product-units', 'product-units-for-labels', 'purchase-sources', 'combos', 'pos-combos'];
 
 export const TYPE_LABEL: Record<UnitConversionType, string> = {
-  BASE: 'Asal unit', PACK: 'Pack', BOX: 'Box', DOZEN: 'Dozen', CARTON: 'Carton', KG_TO_GRAM: 'Wazan', L_TO_ML: 'Liquid', CUSTOM: 'Apna',
+  BASE: t('Asal unit'), PACK: t('Pack'), BOX: t('Box'), DOZEN: t('Dozen'), CARTON: t('Carton'), KG_TO_GRAM: t('Wazan'), L_TO_ML: t('Liquid'), CUSTOM: t('Apna'),
 };
 
 export const TYPE_ORDER: UnitConversionType[] = ['PACK', 'DOZEN', 'BOX', 'CARTON', 'KG_TO_GRAM', 'L_TO_ML', 'CUSTOM'];

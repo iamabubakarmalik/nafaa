@@ -12,6 +12,7 @@ import { ReorderSuggestions } from '../components/AiReorderPanel';
 import { useAiStore } from '../store';
 import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 export default function AiPage() {
   const setOpen = useAiStore((s) => s.setOpen);
@@ -24,15 +25,15 @@ export default function AiPage() {
 
   return (
     <div className="-m-3 flex h-[calc(100dvh-3.5rem)] min-h-0 sm:-m-5 sm:h-[calc(100dvh-4rem)] xl:-m-6">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-slate-50 lg:flex" aria-label="Purani chats">
-        <div className="flex h-14 items-center border-b border-slate-200 px-4 text-[0.8125rem] font-semibold text-slate-700">Purani chats</div>
+      <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-200 bg-slate-50 lg:flex" aria-label={t('Purani chats')}>
+        <div className="flex h-14 items-center border-b border-slate-200 px-4 text-[0.8125rem] font-semibold text-slate-700">{t('Purani chats')}</div>
         <AiHistory className="flex-1" />
       </aside>
-      <section className="flex min-w-0 flex-1 flex-col" aria-label="Nafaa AI chat">
+      <section className="flex min-w-0 flex-1 flex-col" aria-label={t('Nafaa AI chat')}>
         <AiChat variant="page" />
       </section>
       {canStock && (
-        <aside className="hidden w-80 shrink-0 overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 2xl:block" aria-label="Reorder suggestions">
+        <aside className="hidden w-80 shrink-0 overflow-y-auto border-s border-slate-200 bg-slate-50 p-4 2xl:block" aria-label={t('Reorder suggestions')}>
           <ReorderSuggestions />
         </aside>
       )}

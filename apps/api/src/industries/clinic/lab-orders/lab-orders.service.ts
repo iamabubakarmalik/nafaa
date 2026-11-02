@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { ShopScope } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { FEE_LINK, billClinicFee, readFeePayment } from '../appointments/fee-billing';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = Object.values(ClinicLabTestStatus);
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
@@ -40,7 +41,7 @@ export class LabOrdersService {
       const testName = str(t?.testName, 200);
       const price = r2(t?.price);
       if (!testName) throw new BadRequestException('Har test ka naam likhein');
-      if (price < 0) throw new BadRequestException(`${testName}: rate manfi nahi ho sakta`);
+      if (price < 0) throw new BadRequestException(apiMessage('{{testName}}: rate manfi nahi ho sakta', { testName }));
       return { testName, testCode: str(t?.testCode, 50), category: str(t?.category, 80), price };
     });
     const totalCost = r2(testsData.reduce((s: number, t: { price: number }) => s + t.price, 0));
@@ -122,7 +123,7 @@ export class LabOrdersService {
     const own = await this.getOne(user, id);
     if (!STATUSES.includes(status as ClinicLabTestStatus)) throw new BadRequestException('Status ghalat hai');
     if (own.status === 'CANCELLED') throw new BadRequestException('Cancel order dobara nahi khulta');
-    if (status === 'CANCELLED' && own.paidAmount > 0) throw new BadRequestException(`Is order ka Rs ${own.paidAmount} bill bana hai — pehle Sales me wo bill void karein`);
+    if (status === 'CANCELLED' && own.paidAmount > 0) throw new BadRequestException(apiMessage('Is order ka Rs {{paidAmount}} bill bana hai — pehle Sales me wo bill void karein', { paidAmount: own.paidAmount }));
     const patch: Prisma.ClinicLabOrderUpdateInput = { status: status as ClinicLabTestStatus };
     if (status === 'SAMPLE_COLLECTED' && !own.sampleCollectedAt) patch.sampleCollectedAt = new Date();
     if ((status === 'REPORTED' || status === 'COMPLETED') && !own.reportedAt) patch.reportedAt = new Date();

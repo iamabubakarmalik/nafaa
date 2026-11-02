@@ -9,6 +9,7 @@ import { NormalizedOrder } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { pkPhone } from './courier-api/postex.adapter';
 import { COURIERS, courierName } from './couriers';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const courierLabel = (c?: string | null) => courierName(c) ?? 'Courier';
 const courierSite = (c?: string | null) => COURIERS.find((x) => x.code === c)?.site ?? null;
@@ -129,11 +130,11 @@ export class StorefrontService {
       next.coupons = (Array.isArray(body.coupons) ? body.coupons : []).slice(0, 50).map((c: any) => {
         const code = cleanCode(c?.code);
         if (code.length < 3) throw new BadRequestException('Coupon code kam az kam 3 harf / number');
-        if (seen.has(code)) throw new BadRequestException(`${code} do dafa likha hai`);
+        if (seen.has(code)) throw new BadRequestException(apiMessage('{{code}} do dafa likha hai', { code }));
         seen.add(code);
         const type = c?.type === 'FLAT' ? 'FLAT' : 'PERCENT';
         const value = Number(c?.value);
-        if (!(value > 0) || (type === 'PERCENT' && value > 90)) throw new BadRequestException(`${code}: discount ${type === 'PERCENT' ? '1–90%' : 'Rs 1 se zyada'} ho`);
+        if (!(value > 0) || (type === 'PERCENT' && value > 90)) throw new BadRequestException(type === 'PERCENT' ? apiMessage('{{code}}: discount 1–90% ho', { code }) : apiMessage('{{code}}: discount Rs 1 se zyada ho', { code }));
         const old = cur.coupons.find((x) => x.code === code);
         return {
           code, type, value: Math.round(value),
@@ -268,7 +269,7 @@ export class StorefrontService {
       if (!p) throw new BadRequestException('Ek cheez ab dastiyab nahi — page refresh karein');
       const qty = Math.min(50, Math.max(1, Math.floor(Number(l?.quantity) || 1)));
       const v = l?.variantId ? p.variants.find((x) => x.id === String(l.variantId)) : null;
-      if (p.hasVariants && p.variants.length && !v) throw new BadRequestException(`${p.name}: size / rang chunein`);
+      if (p.hasVariants && p.variants.length && !v) throw new BadRequestException(apiMessage('{{pName}}: size / rang chunein', { pName: p.name }));
       return {
         name: p.name,
         variant: v?.name,
@@ -330,7 +331,7 @@ export class StorefrontService {
     const ch = await this.channelByFormKey(key);
     const r = couponDiscount(readForm(ch.config).coupons, String(body?.code ?? ''), Math.max(0, Number(body?.subtotal) || 0));
     if ('error' in r) return { ok: false, message: r.error };
-    return { ok: true, code: r.coupon.code, discount: r.discount, message: r.coupon.type === 'PERCENT' ? `${r.coupon.value}% discount laga` : `Rs ${r.coupon.value} discount laga` };
+    return { ok: true, code: r.coupon.code, discount: r.discount, ...(r.coupon.type === 'PERCENT' ? apiMessage('{{couponValue}}% discount laga', { couponValue: r.coupon.value }) : apiMessage('Rs {{couponValue}} discount laga', { couponValue: r.coupon.value })) };
   }
 
   /**

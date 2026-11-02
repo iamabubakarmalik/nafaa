@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Check, Pipette } from 'lucide-react';
 import { BRAND_PRESETS, contrastRatio, industryIdentity, isHexColor, readableOn } from '@/design-system';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 interface AccentPickerProps {
   /** The chosen hex, or null when following the industry color. */
@@ -42,7 +43,7 @@ export function AccentPicker({ value, effectiveHex, industryId, onChange }: Acce
         onClick={() => onChange(null)}
         aria-pressed={!current}
         className={cn(
-          'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition',
+          'flex w-full items-center gap-3 rounded-xl border p-3 text-start transition',
           !current ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300',
         )}
       >
@@ -50,14 +51,14 @@ export function AccentPicker({ value, effectiveHex, industryId, onChange }: Acce
           <IndustryIcon className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[0.8125rem] font-semibold text-slate-900">Industry color — {identity.label}</span>
-          <span className="block text-[0.75rem] text-slate-500">Aap ki industry ki pehchan wala rang</span>
+          <span className="block text-[0.8125rem] font-semibold text-slate-900">{t('Industry color — {{label}}', { label: identity.label })}</span>
+          <span className="block text-[0.75rem] text-slate-500">{t('Aap ki industry ki pehchan wala rang')}</span>
         </span>
         {!current && <Check className="h-4 w-4 shrink-0 text-brand-600" />}
       </button>
 
       <div>
-        <div className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-400">Presets</div>
+        <div className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-400">{t('Presets')}</div>
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
           {BRAND_PRESETS.map((p) => {
             const active = current === p.hex;
@@ -88,11 +89,11 @@ export function AccentPicker({ value, effectiveHex, industryId, onChange }: Acce
           current && !isPreset ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300',
         )}>
           <Pipette className="h-4 w-4 text-slate-500" />
-          Custom
+          {t('Custom')}
           <input type="color" value={effectiveHex} onChange={(e) => onChange(e.target.value.toLowerCase())}
-            className="absolute inset-0 cursor-pointer opacity-0" aria-label="Pick a custom color" />
+            className="absolute inset-0 cursor-pointer opacity-0" aria-label={t('Pick a custom color')} />
         </label>
-        <div className="flex h-10 items-center rounded-lg border border-slate-200 bg-white pl-2 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+        <div className="flex h-10 items-center rounded-lg border border-slate-200 bg-white ps-2 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
           <span className="h-6 w-6 rounded-md ring-1 ring-inset ring-black/10" style={{ backgroundColor: effectiveHex }} />
           <input
             value={hex}
@@ -100,19 +101,19 @@ export function AccentPicker({ value, effectiveHex, industryId, onChange }: Acce
             onBlur={(e) => commitHex(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') commitHex((e.target as HTMLInputElement).value); }}
             spellCheck={false}
-            aria-label="Hex color"
+            aria-label={t('Hex color')}
             className="h-full w-24 bg-transparent px-2 font-mono text-[0.8125rem] uppercase text-slate-900 outline-none"
           />
         </div>
         <span className="inline-flex h-10 items-center rounded-lg bg-brand-600 px-4 text-[0.8125rem] font-semibold text-brand-fg shadow-sm">
-          Button
+          {t('Button')}
         </span>
-        <span className="text-[0.8125rem] font-semibold text-brand-700 underline underline-offset-2">Link</span>
+        <span className="text-[0.8125rem] font-semibold text-brand-700 underline underline-offset-2">{t('Link')}</span>
       </div>
 
       {lowContrast && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-800 ring-1 ring-inset ring-amber-200">
-          Ye rang halka hai — buttons par text khud gehra (dark) kar diya gaya hai taake parhne me aasan rahe.
+          {t('Ye rang halka hai — buttons par text khud gehra (dark) kar diya gaya hai taake parhne me aasan rahe.')}
         </p>
       )}
     </div>

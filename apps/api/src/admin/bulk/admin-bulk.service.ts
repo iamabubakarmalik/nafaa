@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { apiMessage, notificationText } from '../../common/i18n/api-message';
 
 @Injectable()
 export class AdminBulkService {
@@ -12,12 +13,15 @@ export class AdminBulkService {
       data: { status },
     });
 
+    const text = notificationText(
+      apiMessage('Account {{status}}', { status }),
+      reason || apiMessage('Account {{status}} kar diya gaya hai (bulk action).', { status }),
+    );
     await this.prisma.notification.createMany({
       data: tenantIds.map((id) => ({
         tenantId: id,
         type: status === 'SUSPENDED' ? 'WARNING' as const : 'INFO' as const,
-        title: `Account ${status}`,
-        message: reason || `Account ${status} kar diya gaya hai (bulk action).`,
+        ...text,
       })),
     });
 

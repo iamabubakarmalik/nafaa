@@ -29,20 +29,21 @@ import { CancelModal, CustomerField, Pill, emptyCustomer, type CustomerValue } f
 import { LAYAWAY_KEY, MONEY_KEYS, TONE, apiError, daysFrom, dayOnly, opt, r2, whenText } from '../components/meta';
 import { useGarmentsCan } from '../components/permissions';
 import { ProductPick, type PickedProduct } from '../components/ProductPick';
+import { t as tr } from '@core/i18n';
 
 const VIEWS: Array<{ id: LayawayView; label: string; icon: typeof CreditCard }> = [
-  { id: 'active', label: 'Chal rahe', icon: ListChecks },
-  { id: 'overdue', label: 'Qist late', icon: AlertTriangle },
-  { id: 'week', label: 'Is hafte qist', icon: CalendarClock },
-  { id: 'completed', label: 'Poore', icon: CheckCircle2 },
-  { id: 'cancelled', label: 'Cancel', icon: Ban },
-  { id: 'all', label: 'Sab', icon: CreditCard },
+  { id: 'active', label: tr('Chal rahe'), icon: ListChecks },
+  { id: 'overdue', label: tr('Qist late'), icon: AlertTriangle },
+  { id: 'week', label: tr('Is hafte qist'), icon: CalendarClock },
+  { id: 'completed', label: tr('Poore'), icon: CheckCircle2 },
+  { id: 'cancelled', label: tr('Cancel'), icon: Ban },
+  { id: 'all', label: tr('Sab'), icon: CreditCard },
 ];
 const STATUS: Record<string, { label: string; tone: string }> = {
-  ACTIVE: { label: 'Chal raha', tone: TONE.blue }, COMPLETED: { label: 'Poora — bill bana', tone: TONE.green },
-  CANCELLED: { label: 'Cancel', tone: TONE.rose }, DEFAULTED: { label: 'Chhor diya', tone: TONE.rose }, REFUNDED: { label: 'Paisa wapas', tone: TONE.slate },
+  ACTIVE: { label: tr('Chal raha'), tone: TONE.blue }, COMPLETED: { label: tr('Poora — bill bana'), tone: TONE.green },
+  CANCELLED: { label: tr('Cancel'), tone: TONE.rose }, DEFAULTED: { label: tr('Chhor diya'), tone: TONE.rose }, REFUNDED: { label: tr('Paisa wapas'), tone: TONE.slate },
 };
-const FREQ: Record<string, string> = { WEEKLY: 'Har hafte', BIWEEKLY: 'Har 2 hafte', MONTHLY: 'Har mahine' };
+const FREQ: Record<string, string> = { WEEKLY: tr('Har hafte'), BIWEEKLY: tr('Har 2 hafte'), MONTHLY: tr('Har mahine') };
 const viewLabel = (v: LayawayView) => VIEWS.find((x) => x.id === v)?.label ?? v;
 
 export default function LayawayPage() {
@@ -69,15 +70,15 @@ export default function LayawayPage() {
   const pay = useMutation({
     mutationFn: ({ p, amount, method }: { p: LayawayPlan; amount: number; method: PaymentMethod }) => layawayApi.pay(p.id, { amount, paymentMethod: method }),
     onSuccess: (p) => {
-      toast.success(p.status === 'COMPLETED' ? `${p.planNumber} poora — bill ${p.bill?.saleNumber ?? 'ban gaya'}, piece de dein` : `${p.planNumber}: qist darj — baqi ${formatPKR(p.remainingAmount)}`);
+      toast.success(p.status === 'COMPLETED' ? tr('{{planNumber}} poora — bill {{value}}, piece de dein', { planNumber: p.planNumber, value: p.bill?.saleNumber ?? 'ban gaya' }) : tr('{{planNumber}}: qist darj — baqi {{remainingAmount}}', { planNumber: p.planNumber, remainingAmount: formatPKR(p.remainingAmount) }));
       setPayOn(null); refresh();
     },
-    onError: (e) => toast.error(apiError(e, 'Qist darj nahi hui')),
+    onError: (e) => toast.error(apiError(e, tr('Qist darj nahi hui'))),
   });
   const complete = useMutation({
     mutationFn: (p: LayawayPlan) => layawayApi.complete(p.id),
-    onSuccess: (p) => { toast.success(`${p.planNumber}: bill ${p.bill?.saleNumber ?? ''} ban gaya`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Bill nahi bana')),
+    onSuccess: (p) => { toast.success(tr('{{planNumber}}: bill {{value}} ban gaya', { planNumber: p.planNumber, value: p.bill?.saleNumber ?? '' })); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Bill nahi bana'))),
   });
 
   useEffect(() => {
@@ -95,39 +96,39 @@ export default function LayawayPage() {
   const counts = data?.counts;
   return (
     <PageShell>
-      <PageHero title="Qist plan" chip={<><CreditCard /> Layaway</>} meta="Kapra rakhein, qiston me paisa lein, poora hone par dein"
+      <PageHero title={tr('Qist plan')} chip={<><CreditCard /> {' '}{tr('Layaway')}</>} meta={tr('Kapra rakhein, qiston me paisa lein, poora hone par dein')}
         busy={listQ.isFetching && !listQ.isLoading} loading={listQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {manage && <button type="button" onClick={() => setAdding(true)} title="Naya plan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya plan</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setAdding(true)} title={tr('Naya plan (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya plan')}</button>}
         </>}
         stats={[
-          { label: 'Chal rahe plan', value: counts?.active ?? '—' },
-          { label: 'Lena baqi', value: data ? sales(data.totals.remaining) : '—' },
-          { label: 'Mil chuka', value: data ? sales(data.totals.paid) : '—' },
+          { label: tr('Chal rahe plan'), value: counts?.active ?? '—' },
+          { label: tr('Lena baqi'), value: data ? sales(data.totals.remaining) : '—' },
+          { label: tr('Mil chuka'), value: data ? sales(data.totals.paid) : '—' },
         ]}
       />
       <KpiRow cols={4}>
         {!counts ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ListChecks} color="#2563eb" label="Chal rahe" value={counts.active} hint={data ? sales(data.totals.value) : undefined} onClick={() => setView('active')} active={view === 'active'} />
-          <KpiCard icon={AlertTriangle} color={counts.overdue ? '#e11d48' : '#64748b'} label="Qist late" value={counts.overdue} hint={counts.overdue ? 'Phone karein' : 'Sab waqt par'} onClick={() => setView('overdue')} active={view === 'overdue'} />
-          <KpiCard icon={CalendarClock} color="#d97706" label="Is hafte qist" value={counts.week} hint="Yaad dilayein" onClick={() => setView('week')} active={view === 'week'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Poore" value={counts.completed} hint="Bill ban chuka" onClick={() => setView('completed')} active={view === 'completed'} />
+          <KpiCard icon={ListChecks} color="#2563eb" label={tr('Chal rahe')} value={counts.active} hint={data ? sales(data.totals.value) : undefined} onClick={() => setView('active')} active={view === 'active'} />
+          <KpiCard icon={AlertTriangle} color={counts.overdue ? '#e11d48' : '#64748b'} label={tr('Qist late')} value={counts.overdue} hint={counts.overdue ? tr('Phone karein') : tr('Sab waqt par')} onClick={() => setView('overdue')} active={view === 'overdue'} />
+          <KpiCard icon={CalendarClock} color="#d97706" label={tr('Is hafte qist')} value={counts.week} hint={tr('Yaad dilayein')} onClick={() => setView('week')} active={view === 'week'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Poore')} value={counts.completed} hint={tr('Bill ban chuka')} onClick={() => setView('completed')} active={view === 'completed'} />
         </>}
       </KpiRow>
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, plan #…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer, phone, plan #…')} />}
         chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined} onClear={() => setSearch('')}>
         <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-64"
           options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? String(counts[v.id]) : undefined }))} />
       </FilterBar>
-      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search</>}
+      <ViewTabs value={view} onChange={setView} hint={<>{manage && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search')}</>}
         tabs={VIEWS.slice(0, 4).map((v) => ({ id: v.id, label: v.label, icon: v.icon, count: counts?.[v.id] ?? null }))} />
 
       {listQ.isLoading ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
-        : listQ.isError && !data ? <LoadFailed what="Plan" retry={() => listQ.refetch()} />
+        : listQ.isError && !data ? <LoadFailed what={tr('Plan')} retry={() => listQ.refetch()} />
           : !rows.length ? (
-            <EmptyList icon={CreditCard} title={query ? 'Kuch nahi mila' : 'Koi plan nahi'} text="Shadi ka jora ya mehnga suit — customer kuch paisa ab de, baqi qiston me. Aakhri qist par bill banta hai aur piece diya jata hai.">
-              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya plan</Button>}
+            <EmptyList icon={CreditCard} title={query ? tr('Kuch nahi mila') : tr('Koi plan nahi')} text={tr('Shadi ka jora ya mehnga suit — customer kuch paisa ab de, baqi qiston me. Aakhri qist par bill banta hai aur piece diya jata hai.')}>
+              {manage && <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya plan')}</Button>}
             </EmptyList>
           ) : (
             <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -142,43 +143,43 @@ export default function LayawayPage() {
                       <span className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', late ? 'bg-rose-50 text-rose-600' : p.status === 'ACTIVE' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400')}><CreditCard className="h-5 w-5" /></span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="truncate font-semibold text-slate-900">{p.customerName || 'Customer'}</span>
+                          <span className="truncate font-semibold text-slate-900">{p.customerName || tr('Customer')}</span>
                           <Pill tone={st.tone}>{st.label}</Pill>
                           <span className="font-mono text-[0.6875rem] text-slate-400">{p.planNumber}</span>
                         </div>
-                        <p className="truncate text-[0.8125rem] text-slate-600">{p.productName ?? p.notes ?? 'Kapra'} · {p.installmentCount} qist, {FREQ[p.frequency] ?? p.frequency}</p>
+                        <p className="truncate text-[0.8125rem] text-slate-600">{tr('{{value}} · {{installmentCount}} qist, {{value2}}', { value: p.productName ?? p.notes ?? tr('Kapra'), installmentCount: p.installmentCount, value2: FREQ[p.frequency] ?? p.frequency })}</p>
                         <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-success-500" style={{ width: `${pct}%` }} /></div>
-                        {p.status === 'ACTIVE' && p.nextDueDate && <p className={cn('mt-1 text-[0.75rem]', late ? 'font-semibold text-rose-700' : 'text-slate-500')}>Agli qist {whenText(p.nextDueDate)} · {dayOnly(p.nextDueDate)}</p>}
+                        {p.status === 'ACTIVE' && p.nextDueDate && <p className={cn('mt-1 text-[0.75rem]', late ? 'font-semibold text-rose-700' : 'text-slate-500')}>{tr('Agli qist {{nextDueDate}} · {{nextDueDate2}}', { nextDueDate: whenText(p.nextDueDate), nextDueDate2: dayOnly(p.nextDueDate) })}</p>}
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="shrink-0 text-end">
                         <p className="font-bold tabular-nums">{formatPKR(p.totalAmount)}</p>
-                        <p className="text-[0.6875rem] text-slate-500">{p.status === 'ACTIVE' ? `${formatPKR(p.remainingAmount)} baqi` : `${formatPKR(p.paidAmount)} mila`}</p>
+                        <p className="text-[0.6875rem] text-slate-500">{p.status === 'ACTIVE' ? tr('{{remainingAmount}} baqi', { remainingAmount: formatPKR(p.remainingAmount) }) : tr('{{paidAmount}} mila', { paidAmount: formatPKR(p.paidAmount) })}</p>
                       </div>
-                      <button type="button" onClick={() => setOpenId(open ? null : p.id)} aria-label="Qisten" aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
+                      <button type="button" onClick={() => setOpenId(open ? null : p.id)} aria-label={tr('Qisten')} aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} /></button>
                     </div>
                     {manage && p.status === 'ACTIVE' && (
-                      <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:pl-[4.25rem]">
+                      <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:ps-[4.25rem]">
                         {p.remainingAmount > 0.01
-                          ? <Button size="sm" variant="primary" onClick={() => setPayOn(p)} leftIcon={<Wallet className="h-4 w-4" />}>Qist lein</Button>
-                          : <Button size="sm" variant="success" loading={complete.isPending} onClick={() => complete.mutate(p)} leftIcon={<Receipt className="h-4 w-4" />}>Bill banayein</Button>}
-                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(p)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>
+                          ? <Button size="sm" variant="primary" onClick={() => setPayOn(p)} leftIcon={<Wallet className="h-4 w-4" />}>{tr('Qist lein')}</Button>
+                          : <Button size="sm" variant="success" loading={complete.isPending} onClick={() => complete.mutate(p)} leftIcon={<Receipt className="h-4 w-4" />}>{tr('Bill banayein')}</Button>}
+                        <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => setCancelOn(p)} leftIcon={<Ban className="h-4 w-4" />}>{tr('Cancel')}</Button>
                       </div>
                     )}
                     {open && (
-                      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:pl-[4.25rem]">
+                      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:ps-[4.25rem]">
                         <ol className="grid gap-1.5 sm:grid-cols-2">
-                          {p.depositAmount > 0 && <li className="flex justify-between rounded-lg bg-white px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200"><span>Deposit</span><span className="font-semibold text-success-700">{formatPKR(p.depositAmount)}</span></li>}
+                          {p.depositAmount > 0 && <li className="flex justify-between rounded-lg bg-white px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200"><span>{tr('Deposit')}</span><span className="font-semibold text-success-700">{formatPKR(p.depositAmount)}</span></li>}
                           {p.installments.map((i) => (
                             <li key={i.id} className="flex justify-between gap-2 rounded-lg bg-white px-3 py-1.5 text-[0.8125rem] ring-1 ring-slate-200">
-                              <span>Qist {i.installmentNo} · {dayOnly(i.dueDate)}</span>
+                              <span>{tr('Qist {{installmentNo}} · {{dueDate}}', { installmentNo: i.installmentNo, dueDate: dayOnly(i.dueDate) })}</span>
                               <span className={cn('font-semibold tabular-nums', i.status === 'PAID' ? 'text-success-700' : i.status === 'PARTIALLY_PAID' ? 'text-amber-700' : 'text-slate-700')}>
                                 {i.status === 'PAID' ? `${formatPKR(i.amount)} ✓` : i.status === 'PARTIALLY_PAID' ? `${formatPKR(i.paidAmount)} / ${formatPKR(i.amount)}` : formatPKR(i.amount)}
                               </span>
                             </li>
                           ))}
                         </ol>
-                        {p.bill && <Link to={`/sales/${p.bill.id}/receipt`} className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Bill {p.bill.saleNumber} →</Link>}
-                        {p.cancellationReason && <p className="mt-2 text-[0.8125rem] text-rose-700">Cancel: {p.cancellationReason}</p>}
+                        {p.bill && <Link to={`/sales/${p.bill.id}/receipt`} className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Bill {{saleNumber}} →', { saleNumber: p.bill.saleNumber })}</Link>}
+                        {p.cancellationReason && <p className="mt-2 text-[0.8125rem] text-rose-700">{tr('Cancel: {{cancellationReason}}', { cancellationReason: p.cancellationReason })}</p>}
                       </div>
                     )}
                   </li>
@@ -190,22 +191,22 @@ export default function LayawayPage() {
 
       {adding && <PlanForm onClose={() => setAdding(false)} onDone={refresh} />}
       {payOn && (
-        <TakePaymentModal title="Qist lein" description={`${payOn.customerName ?? ''} · ${payOn.planNumber} · ${formatPKR(payOn.remainingAmount)} baqi`}
+        <TakePaymentModal title={tr('Qist lein')} description={tr('{{value}} · {{planNumber}} · {{remainingAmount}} baqi', { value: payOn.customerName ?? '', planNumber: payOn.planNumber, remainingAmount: formatPKR(payOn.remainingAmount) })}
           amount={Math.min(payOn.installmentAmount, payOn.remainingAmount)} max={payOn.remainingAmount} loading={pay.isPending}
-          hint="Khate me jama hota hai. Poora hone par bill khud banega aur piece stock se niklega."
+          hint={tr('Khate me jama hota hai. Poora hone par bill khud banega aur piece stock se niklega.')}
           onConfirm={(amount, method) => pay.mutate({ p: payOn, amount, method })} onClose={() => setPayOn(null)} />
       )}
       {cancelOn && <CancelModal title={`${cancelOn.customerName ?? ''} · ${cancelOn.planNumber}`} paid={cancelOn.paidAmount} onConfirm={(reason) => layawayApi.cancel(cancelOn.id, reason || undefined).then(refresh)} onClose={() => setCancelOn(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Qist plan — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Qist plan — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Plan banayein', text: 'Customer, kaunsa kapra, kul amount, deposit aur kitni qisten. Qisten khud barabar bant jati hain.' },
-            { icon: Wallet, color: '#16a34a', title: 'Qist lein', text: 'Jo paisa aaye "Qist lein" se likhein — pehli baqi qist me lagta hai. Har rupaya customer ke khate me jama hota hai.' },
-            { icon: Receipt, color: '#7c3aed', title: 'Aakhri qist', text: 'Paisa poora hote hi bill banta hai, kapra stock se nikalta hai aur customer ko de dein.' },
-            { icon: AlertTriangle, color: '#e11d48', title: 'Late', text: '"Qist late" wale customers ko phone karein. Cancel se mila paisa khate me jama rehta hai.' },
+            { icon: Plus, color: '#2563eb', title: tr('Plan banayein'), text: tr('Customer, kaunsa kapra, kul amount, deposit aur kitni qisten. Qisten khud barabar bant jati hain.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Qist lein'), text: tr('Jo paisa aaye "Qist lein" se likhein — pehli baqi qist me lagta hai. Har rupaya customer ke khate me jama hota hai.') },
+            { icon: Receipt, color: '#7c3aed', title: tr('Aakhri qist'), text: tr('Paisa poora hote hi bill banta hai, kapra stock se nikalta hai aur customer ko de dein.') },
+            { icon: AlertTriangle, color: '#e11d48', title: tr('Late'), text: tr('"Qist late" wale customers ko phone karein. Cancel se mila paisa khate me jama rehta hai.') },
           ]}
-          shortcuts={[['N', 'naya plan'], ['/', 'dhoondein'], ['G', 'guide']]} />
+          shortcuts={[['N', tr('naya plan')], ['/', tr('dhoondein')], ['G', tr('guide')]]} />
       )}
     </PageShell>
   );
@@ -223,41 +224,41 @@ function PlanForm({ onClose, onDone }: { onClose: () => void; onDone: () => void
   const amount = r2(total === '' ? product?.price ?? 0 : Number(total) || 0);
   const dep = r2(Number(deposit) || 0);
   const each = count ? Math.floor((amount - dep) / count) : 0;
-  const problem = !customer.customerId && !customer.name.trim() ? 'Customer ka naam likhein'
-    : !product && !label.trim() ? 'Product chunein ya kapre ka naam likhein'
-      : amount < 1 ? 'Kul amount likhein' : dep >= amount ? 'Deposit kul se kam ho — poora paisa ho to seedha POS se bechein' : null;
+  const problem = !customer.customerId && !customer.name.trim() ? tr('Customer ka naam likhein')
+    : !product && !label.trim() ? tr('Product chunein ya kapre ka naam likhein')
+      : amount < 1 ? tr('Kul amount likhein') : dep >= amount ? tr('Deposit kul se kam ho — poora paisa ho to seedha POS se bechein') : null;
   const save = useMutation({
     mutationFn: () => layawayApi.create({
       customerId: customer.customerId || undefined, customerName: opt(customer.name), customerPhone: opt(customer.phone),
       productId: product?.productId, variantId: product?.variantId, totalAmount: amount, depositAmount: dep || undefined,
       installmentCount: count, frequency: freq, notes: opt(label), paymentMethod: dep > 0 ? method : undefined,
     }),
-    onSuccess: (p) => { toast.success(`Plan ${p.planNumber} ban gaya — agli qist ${dayOnly(p.nextDueDate)}`); onDone(); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Plan nahi bana')),
+    onSuccess: (p) => { toast.success(tr('Plan {{planNumber}} ban gaya — agli qist {{nextDueDate}}', { planNumber: p.planNumber, nextDueDate: dayOnly(p.nextDueDate) })); onDone(); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Plan nahi bana'))),
   });
   return (
-    <Modal open onClose={onClose} size="lg" title="Naya qist plan" description="Kapra customer ke liye rakha jayega; aakhri qist par bill banega"
+    <Modal open onClose={onClose} size="lg" title={tr('Naya qist plan')} description={tr('Kapra customer ke liye rakha jayega; aakhri qist par bill banega')}
       footer={<>
-        {problem ? <p className="mr-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="mr-auto text-[0.8125rem] text-slate-500">{count} qist × ~{formatPKR(each)}</p>}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CreditCard className="h-4 w-4" />}>Plan banayein</Button>
+        {problem ? <p className="me-auto text-[0.8125rem] text-amber-800">{problem}</p> : <p className="me-auto text-[0.8125rem] text-slate-500">{tr('{{count}} qist × ~{{each}}', { count, each: formatPKR(each) })}</p>}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button disabled={!!problem} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CreditCard className="h-4 w-4" />}>{tr('Plan banayein')}</Button>
       </>}>
       <div className="space-y-4">
         <CustomerField value={customer} onChange={setCustomer} />
-        <ProductPick value={product} onChange={(p) => { setProduct(p); setTotal(''); }} label="Kaunsa kapra (stock se)" hint="Aakhri qist par yeh piece stock se niklega" />
-        {!product && <Input label="Ya kapre ka naam" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={200} placeholder="Shadi ka lehnga (order par)" hint="Stock ka piece na ho to" />}
+        <ProductPick value={product} onChange={(p) => { setProduct(p); setTotal(''); }} label={tr('Kaunsa kapra (stock se)')} hint={tr('Aakhri qist par yeh piece stock se niklega')} />
+        {!product && <Input label={tr('Ya kapre ka naam')} value={label} onChange={(e) => setLabel(e.target.value)} maxLength={200} placeholder={tr('Shadi ka lehnga (order par)')} hint={tr('Stock ka piece na ho to')} />}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Kul amount (Rs)" inputMode="decimal" value={total === '' && product ? String(product.price) : total} onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" />
-          <Input label="Deposit abhi (Rs)" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-right tabular-nums" hint="Khate me jama hota hai" />
+          <Input label={tr('Kul amount (Rs)')} inputMode="decimal" value={total === '' && product ? String(product.price) : total} onChange={(e) => setTotal(e.target.value.replace(/[^\d.]/g, ''))} className="text-end tabular-nums" />
+          <Input label={tr('Deposit abhi (Rs)')} inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} className="text-end tabular-nums" hint={tr('Khate me jama hota hai')} />
         </div>
         {dep > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitni qisten</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitni qisten')}</span>
             <div className="grid grid-cols-6 gap-1">{[2, 3, 4, 6, 9, 12].map((c) => <button key={c} type="button" onClick={() => setCount(c)} className={cn('h-10 rounded-lg text-[0.8125rem] font-semibold ring-1', count === c ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{c}</button>)}</div>
           </div>
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kab kab</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kab kab')}</span>
             <div className="grid grid-cols-3 gap-1">{(['WEEKLY', 'BIWEEKLY', 'MONTHLY'] as const).map((f) => <button key={f} type="button" onClick={() => setFreq(f)} className={cn('h-10 rounded-lg text-[0.75rem] font-semibold ring-1', freq === f ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{FREQ[f]}</button>)}</div>
           </div>
         </div>

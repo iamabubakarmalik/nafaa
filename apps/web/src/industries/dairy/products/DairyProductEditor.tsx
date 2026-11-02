@@ -13,6 +13,7 @@ import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@m
 import { dairyProductsApi, type DairyProductType } from '../api/products.api';
 import { DAIRY_KEYS } from '../lib/meta';
 import { PRODUCT_TYPES, isMilkType, profileUnit, typeLabel } from '../lib/productTypes';
+import { t as tr } from '@core/i18n';
 
 export interface DairyExtra {
   productType: DairyProductType;
@@ -45,11 +46,11 @@ function Kind({ ctx }: { ctx: StepContext<DairyExtra> }) {
   const x = ctx.draft.extra;
   return (
     <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Ye kya hai')}</span>
       <div className="flex flex-wrap gap-1.5">
         {PRODUCT_TYPES.map((t) => <Chip key={t.value} on={x.productType === t.value} onClick={() => ctx.setExtra({ productType: t.value })}>{t.label}</Chip>)}
       </div>
-      <p className="mt-1.5 text-[0.75rem] text-slate-500">Doodh wali cheez gawale ki entry aur ghar delivery me kaam aati hai; dahi, makhan production me.</p>
+      <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Doodh wali cheez gawale ki entry aur ghar delivery me kaam aati hai; dahi, makhan production me.')}</p>
     </div>
   );
 }
@@ -61,22 +62,22 @@ function Milkish({ ctx }: { ctx: StepContext<DairyExtra> }) {
   return (
     <div className="space-y-4">
       {milk && (
-        <Section icon={Star} title="Asal doodh" hint="Gawale se aya doodh isi ke stock me jata hai aur ghar delivery isi se bikti hai">
-          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} icon={Milk} title="Ye dukaan ka asal doodh hai" hint="Ek hi doodh par lagayein; do par laga ho to upar wala chalta hai" />
+        <Section icon={Star} title={tr('Asal doodh')} hint={tr('Gawale se aya doodh isi ke stock me jata hai aur ghar delivery isi se bikti hai')}>
+          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} icon={Milk} title={tr('Ye dukaan ka asal doodh hai')} hint={tr('Ek hi doodh par lagayein; do par laga ho to upar wala chalta hai')} />
         </Section>
       )}
-      <Section icon={Droplets} title="Fat aur SNF" hint="Marzi hai — bill aur quality report par dikhta hai">
+      <Section icon={Droplets} title={tr('Fat aur SNF')} hint={tr('Marzi hai — bill aur quality report par dikhta hai')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <NumberField label="Fat %" allowEmpty value={x.fatContent} onChange={(fatContent) => set({ fatContent })} suffix="%" error={ctx.errors.fat} placeholder="6.5" />
-          <NumberField label="SNF %" allowEmpty value={x.snfContent} onChange={(snfContent) => set({ snfContent })} suffix="%" error={ctx.errors.snf} placeholder="8.5" />
+          <NumberField label={tr('Fat %')} allowEmpty value={x.fatContent} onChange={(fatContent) => set({ fatContent })} suffix="%" error={ctx.errors.fat} placeholder="6.5" />
+          <NumberField label={tr('SNF %')} allowEmpty value={x.snfContent} onChange={(snfContent) => set({ snfContent })} suffix="%" error={ctx.errors.snf} placeholder="8.5" />
         </div>
       </Section>
-      <Section icon={Clock} title="Kitni der chalta hai" hint="Card par dikhta hai — purana maal pehle bechein">
-        <NumberField label="Shelf life" allowEmpty value={x.shelfLifeHours} onChange={(v) => set({ shelfLifeHours: v == null ? null : Math.round(v) })} suffix="ghante" error={ctx.errors.shelf} />
-        <div className="mt-2 flex flex-wrap gap-1.5">{SHELF.map((h) => <Chip key={h} on={x.shelfLifeHours === h} onClick={() => set({ shelfLifeHours: h })}>{h >= 48 ? `${h / 24} din` : `${h} ghante`}</Chip>)}</div>
+      <Section icon={Clock} title={tr('Kitni der chalta hai')} hint={tr('Card par dikhta hai — purana maal pehle bechein')}>
+        <NumberField label={tr('Shelf life')} allowEmpty value={x.shelfLifeHours} onChange={(v) => set({ shelfLifeHours: v == null ? null : Math.round(v) })} suffix="ghante" error={ctx.errors.shelf} />
+        <div className="mt-2 flex flex-wrap gap-1.5">{SHELF.map((h) => <Chip key={h} on={x.shelfLifeHours === h} onClick={() => set({ shelfLifeHours: h })}>{h >= 48 ? tr('{{value}} din', { value: h / 24 }) : tr('{{h}} ghante', { h })}</Chip>)}</div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Toggle on={x.requiresRefrigeration} onChange={(requiresRefrigeration) => set({ requiresRefrigeration })} icon={Snowflake} title="Fridge me rakhna hai" />
-          <Toggle on={x.isPasteurized} onChange={(isPasteurized) => set({ isPasteurized })} title="Pasteurized / packed" />
+          <Toggle on={x.requiresRefrigeration} onChange={(requiresRefrigeration) => set({ requiresRefrigeration })} icon={Snowflake} title={tr('Fridge me rakhna hai')} />
+          <Toggle on={x.isPasteurized} onChange={(isPasteurized) => set({ isPasteurized })} title={tr('Pasteurized / packed')} />
         </div>
       </Section>
     </div>
@@ -89,24 +90,24 @@ function Rates({ ctx }: { ctx: StepContext<DairyExtra> }) {
   const unit = ctx.draft.core.unit || 'liter';
   return (
     <div className="space-y-4">
-      <Section icon={Sunrise} title="Subah aur shaam ka rate" hint={`Khali chhor dein to upar wali qeemat lagti hai. Counter par 3 baje ke baad shaam ka rate lagta hai (ek ${unit})`}>
+      <Section icon={Sunrise} title={tr('Subah aur shaam ka rate')} hint={tr('Khali chhor dein to upar wali qeemat lagti hai. Counter par 3 baje ke baad shaam ka rate lagta hai (ek {{unit}})', { unit })}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <NumberField label="Subah ka rate" prefix="Rs" allowEmpty value={x.morningPrice} onChange={(morningPrice) => set({ morningPrice })} />
-          <NumberField label="Shaam ka rate" prefix="Rs" allowEmpty value={x.eveningPrice} onChange={(eveningPrice) => set({ eveningPrice })} />
+          <NumberField label={tr('Subah ka rate')} prefix="Rs" allowEmpty value={x.morningPrice} onChange={(morningPrice) => set({ morningPrice })} />
+          <NumberField label={tr('Shaam ka rate')} prefix="Rs" allowEmpty value={x.eveningPrice} onChange={(eveningPrice) => set({ eveningPrice })} />
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Toggle on={x.availableMorning} onChange={(availableMorning) => set({ availableMorning })} title="Subah milta hai" />
-          <Toggle on={x.availableEvening} onChange={(availableEvening) => set({ availableEvening })} title="Shaam milta hai" />
+          <Toggle on={x.availableMorning} onChange={(availableMorning) => set({ availableMorning })} title={tr('Subah milta hai')} />
+          <Toggle on={x.availableEvening} onChange={(availableEvening) => set({ availableEvening })} title={tr('Shaam milta hai')} />
         </div>
       </Section>
-      <Section icon={Truck} title="Ghar delivery" hint="Delivery customer ka apna rate na ho to ye lagta hai">
-        <Toggle on={x.homeDeliveryAvailable} onChange={(homeDeliveryAvailable) => set({ homeDeliveryAvailable })} title="Ghar delivery hoti hai" />
-        <div className="mt-3"><NumberField label="Delivery rate" prefix="Rs" allowEmpty value={x.homeDeliveryPrice} onChange={(homeDeliveryPrice) => set({ homeDeliveryPrice })} hint="Khali = subah / shaam ka rate" /></div>
+      <Section icon={Truck} title={tr('Ghar delivery')} hint={tr('Delivery customer ka apna rate na ho to ye lagta hai')}>
+        <Toggle on={x.homeDeliveryAvailable} onChange={(homeDeliveryAvailable) => set({ homeDeliveryAvailable })} title={tr('Ghar delivery hoti hai')} />
+        <div className="mt-3"><NumberField label={tr('Delivery rate')} prefix="Rs" allowEmpty value={x.homeDeliveryPrice} onChange={(homeDeliveryPrice) => set({ homeDeliveryPrice })} hint={tr('Khali = subah / shaam ka rate')} /></div>
       </Section>
-      <Section icon={Tags} title="Zyada lene par rate (bulk)" hint="Hotel, chai wale — itna ya zyada lein to counter par khud kam rate lagta hai">
+      <Section icon={Tags} title={tr('Zyada lene par rate (bulk)')} hint={tr('Hotel, chai wale — itna ya zyada lein to counter par khud kam rate lagta hai')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <NumberField label={`Kam se kam (${unit})`} allowEmpty value={x.minBulkQty} onChange={(minBulkQty) => set({ minBulkQty })} error={ctx.errors.bulk} />
-          <NumberField label="Bulk rate" prefix="Rs" allowEmpty value={x.bulkPrice} onChange={(bulkPrice) => set({ bulkPrice })} />
+          <NumberField label={tr('Kam se kam ({{unit}})', { unit })} allowEmpty value={x.minBulkQty} onChange={(minBulkQty) => set({ minBulkQty })} error={ctx.errors.bulk} />
+          <NumberField label={tr('Bulk rate')} prefix="Rs" allowEmpty value={x.bulkPrice} onChange={(bulkPrice) => set({ bulkPrice })} />
         </div>
       </Section>
     </div>
@@ -115,8 +116,8 @@ function Rates({ ctx }: { ctx: StepContext<DairyExtra> }) {
 
 const core: CoreOptions = {
   units: [
-    { value: 'liter', label: 'Liter' }, { value: 'kg', label: 'Kg' }, { value: 'gram', label: 'Gram' }, { value: 'ml', label: 'ml' },
-    { value: 'piece', label: 'Adad (pcs)' }, { value: 'cup', label: 'Cup' }, { value: 'plate', label: 'Plate' }, { value: 'bottle', label: 'Bottle' }, { value: 'packet', label: 'Packet' },
+    { value: 'liter', label: tr('Liter') }, { value: 'kg', label: tr('Kg') }, { value: 'gram', label: tr('Gram') }, { value: 'ml', label: 'ml' },
+    { value: 'piece', label: tr('Adad (pcs)') }, { value: 'cup', label: tr('Cup') }, { value: 'plate', label: tr('Plate') }, { value: 'bottle', label: tr('Bottle') }, { value: 'packet', label: tr('Packet') },
   ],
   skuPrefix: 'DRY',
   packs: true,
@@ -127,26 +128,26 @@ const core: CoreOptions = {
 
 function rateErrors(x: DairyExtra): Errors {
   const e: Errors = {};
-  if ((x.bulkPrice != null) !== (x.minBulkQty != null)) e.bulk = 'Bulk ke liye quantity aur rate dono likhein';
-  else if (x.minBulkQty != null && !(x.minBulkQty > 0)) e.bulk = 'Quantity 0 se zyada likhein';
-  if ([x.morningPrice, x.eveningPrice, x.homeDeliveryPrice, x.bulkPrice].some((v) => v != null && v < 0)) e.bulk = 'Rate manfi nahi ho sakta';
+  if ((x.bulkPrice != null) !== (x.minBulkQty != null)) e.bulk = tr('Bulk ke liye quantity aur rate dono likhein');
+  else if (x.minBulkQty != null && !(x.minBulkQty > 0)) e.bulk = tr('Quantity 0 se zyada likhein');
+  if ([x.morningPrice, x.eveningPrice, x.homeDeliveryPrice, x.bulkPrice].some((v) => v != null && v < 0)) e.bulk = tr('Rate manfi nahi ho sakta');
   return e;
 }
 function profileErrors(x: DairyExtra): Errors {
   const e: Errors = {};
-  if (x.fatContent != null && (x.fatContent < 0 || x.fatContent > 15)) e.fat = 'Fat 0 se 15 ke beech';
-  if (x.snfContent != null && (x.snfContent < 0 || x.snfContent > 15)) e.snf = 'SNF 0 se 15 ke beech';
-  if (x.shelfLifeHours != null && x.shelfLifeHours <= 0) e.shelf = 'Ghante 0 se zyada likhein';
+  if (x.fatContent != null && (x.fatContent < 0 || x.fatContent > 15)) e.fat = tr('Fat 0 se 15 ke beech');
+  if (x.snfContent != null && (x.snfContent < 0 || x.snfContent > 15)) e.snf = tr('SNF 0 se 15 ke beech');
+  if (x.shelfLifeHours != null && x.shelfLifeHours <= 0) e.shelf = tr('Ghante 0 se zyada likhein');
   return e;
 }
 
 const profileStep: StepDef<DairyExtra> = {
-  id: 'dairy', title: 'Doodh ki details', hint: 'Fat, shelf life, asal doodh', icon: Milk,
+  id: 'dairy', title: tr('Doodh ki details'), hint: tr('Fat, shelf life, asal doodh'), icon: Milk,
   render: (ctx) => <Milkish ctx={ctx} />, validate: (d) => profileErrors(d.extra),
 };
 
 const config: EditorConfig<DairyExtra> = {
-  label: 'Dairy',
+  label: tr('Dairy'),
   draftKey: 'nafaa.product-editor.dairy',
   paths: { list: '/dairy/products', detail: (id) => `/dairy-products/${id}`, create: '/dairy-products/new' },
   core,
@@ -180,7 +181,7 @@ const config: EditorConfig<DairyExtra> = {
   steps: [
     basicStep<DairyExtra>(core, {
       extra: (ctx) => <Kind ctx={ctx} />,
-      namePlaceholder: 'Jaise: Bhains ka doodh, Dahi, Desi ghee',
+      namePlaceholder: tr('Jaise: Bhains ka doodh, Dahi, Desi ghee'),
       categorySuggestions: ['Doodh', 'Dahi', 'Lassi', 'Makhan aur ghee', 'Mithai', 'Packed'],
     }),
     profileStep,
@@ -191,19 +192,19 @@ const config: EditorConfig<DairyExtra> = {
   ],
   summary: (d) => {
     const x = d.extra;
-    const facts = [typeLabel(x.productType), x.fatContent ? `Fat ${x.fatContent}%` : null, x.isFeatured && isMilkType(x.productType) ? 'Asal doodh' : null].filter(Boolean);
+    const facts = [typeLabel(x.productType), x.fatContent ? tr('Fat {{fatContent}}%', { fatContent: x.fatContent }) : null, x.isFeatured && isMilkType(x.productType) ? tr('Asal doodh') : null].filter(Boolean);
     return (
       <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
         {facts.length > 0 && <p className="text-slate-700">{facts.join(' · ')}</p>}
-        {(x.morningPrice || x.eveningPrice) && <p className="text-slate-600">Subah {x.morningPrice ?? '—'} · Shaam {x.eveningPrice ?? '—'}</p>}
+        {(x.morningPrice || x.eveningPrice) && <p className="text-slate-600">{tr('Subah {{value}} · Shaam {{value2}}', { value: x.morningPrice ?? '—', value2: x.eveningPrice ?? '—' })}</p>}
       </div>
     );
   },
   refresh: [DAIRY_KEYS.profiles, 'dairy-product-detail'],
   guide: [
-    { icon: Milk, color: '#0ea5e9', title: 'Khula maal', text: 'Doodh liter me, dahi kg me rakhein — counter par wazan ya paison se dono tarah bikta hai (Rs 100 ka dahi).' },
-    { icon: Sunrise, color: '#ea580c', title: 'Subah / shaam', text: 'Shaam ka rate alag ho to Qeemat step me likhein; counter 3 baje ke baad khud badal deta hai.' },
-    { icon: Star, color: '#0284c7', title: 'Asal doodh', text: 'Jo doodh gawale se aata hai us par "asal doodh" lagayein — collection aur delivery ka stock usi me chalta hai.' },
+    { icon: Milk, color: '#0ea5e9', title: tr('Khula maal'), text: tr('Doodh liter me, dahi kg me rakhein — counter par wazan ya paison se dono tarah bikta hai (Rs 100 ka dahi).') },
+    { icon: Sunrise, color: '#ea580c', title: tr('Subah / shaam'), text: tr('Shaam ka rate alag ho to Qeemat step me likhein; counter 3 baje ke baad khud badal deta hai.') },
+    { icon: Star, color: '#0284c7', title: tr('Asal doodh'), text: tr('Jo doodh gawale se aata hai us par "asal doodh" lagayein — collection aur delivery ka stock usi me chalta hai.') },
   ],
 };
 

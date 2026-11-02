@@ -34,6 +34,7 @@ import { assertUser, customerCards, postCollection, r2, r4, routeNames, shopName
 import { OrdersService } from './orders.service';
 import { InvoicingService } from './invoicing.service';
 import { CollectionsService } from './collections.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Van = Prisma.DistVanGetPayload<object>;
 type Session = Prisma.DistVanSessionGetPayload<object>;
@@ -278,7 +279,7 @@ export class VansService {
       const p = catalog.products.get(it.productId);
       if (!p) throw new BadRequestException('Item nahi mila ya band hai');
       const unit = it.unitId ? catalog.units.get(it.unitId) : null;
-      if (it.unitId && (!unit || unit.productId !== p.id)) throw new BadRequestException(`${p.name}: pack nahi mila`);
+      if (it.unitId && (!unit || unit.productId !== p.id)) throw new BadRequestException(apiMessage('{{pName}}: pack nahi mila', { pName: p.name }));
       const qty = r4(it.qty * (unit ? Number(unit.conversionRate) || 1 : 1));
       const key = k(p.id, it.variantId);
       const e = merged.get(key) ?? { productId: p.id, ...(it.variantId && { variantId: it.variantId }), quantity: 0 };
@@ -315,7 +316,7 @@ export class VansService {
     const order = booked.order;
     if (cash > order.total + 0.005) {
       await this.prisma.salesOrder.delete({ where: { id: order.id } });
-      throw new BadRequestException(`Cash (Rs ${cash}) bill (Rs ${order.total}) se zyada hai`);
+      throw new BadRequestException(apiMessage('Cash (Rs {{cash}}) bill (Rs {{orderTotal}}) se zyada hai', { cash, orderTotal: order.total }));
     }
     await this.prisma.salesOrder.update({ where: { id: order.id }, data: { status: 'APPROVED', approvedById: user.id, approvedAt: new Date(), vanSessionId: session.id } });
     const inv = await this.invoicing.invoiceSpot(user, order.id, { cashNow: cash, managerPin: dto.managerPin });

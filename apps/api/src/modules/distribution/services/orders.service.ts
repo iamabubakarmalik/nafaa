@@ -23,6 +23,7 @@ import { orderNeeds, releaseOrder } from '../helpers/reservation';
 import {
   CUSTOMER_CARD, customerCards, dayRange, nextNumber, parseWhen, r2, r4, routeNames, shopNames, userNames,
 } from '../distribution.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface CreditSnapshot {
   balance: number;
@@ -75,7 +76,7 @@ export class OrdersService {
   private async activeCustomer(tenantId: string, customerId: string) {
     const c = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId }, select: CUSTOMER_CARD });
     if (!c) throw new NotFoundException('Customer nahi mila');
-    if (!c.isActive) throw new BadRequestException(`${c.name} band (inactive) hai`);
+    if (!c.isActive) throw new BadRequestException(apiMessage('{{cName}} band (inactive) hai', { cName: c.name }));
     return c;
   }
 
@@ -183,7 +184,7 @@ export class OrdersService {
     const tenantId = user.tenantId;
     const order = await this.prisma.salesOrder.findFirst({ where: { id, tenantId } });
     if (!order) throw new NotFoundException('Order nahi mila');
-    if (order.status !== 'BOOKED') throw new BadRequestException(`Order ${order.orderNumber} ${order.status} hai — sirf BOOKED Order badal sakte hain`);
+    if (order.status !== 'BOOKED') throw new BadRequestException(apiMessage('Order {{orderNumber}} {{orderStatus}} hai — sirf BOOKED Order badal sakte hain', { orderNumber: order.orderNumber, orderStatus: order.status }));
     const manage = hasPermission(user.role, user.permissions, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE);
     if (!manage && order.bookedById !== user.id) throw new ForbiddenException('Sirf apna Order badal sakte hain');
 

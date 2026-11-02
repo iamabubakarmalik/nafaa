@@ -8,19 +8,20 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { DamageList } from '../api/damage.api';
 import { STATUS, itemLabel, qtyLabel, reasonOf } from './meta';
+import { t as tr } from '@core/i18n';
 
 const day = (v: string) => new Date(v).toLocaleString('en-PK', { day: 'numeric', month: 'short', year: '2-digit', hour: 'numeric', minute: '2-digit' });
 
 export function damageDoc(list: DamageList, period: string, filter: string): PrintDoc {
   const t = list.totals;
   return {
-    title: 'Kharab maal (Damage & wastage)',
+    title: tr('Kharab maal (Damage & wastage)'),
     subtitle: period,
-    meta: [['Reports', String(list.total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Nuqsan', formatPKR(t.lost)], ['Baqi', formatPKR(t.pendingValue)]],
+    meta: [[tr('Reports'), String(list.total)], ...(filter ? [[tr('Filter'), filter] as [string, string]] : []), [tr('Nuqsan'), formatPKR(t.lost)], [tr('Baqi'), formatPKR(t.pendingValue)]],
     sections: [
       {
         kind: 'table',
-        columns: [{ label: 'Waqt' }, { label: 'No.', wideOnly: true }, { label: 'Cheez' }, { label: 'Quantity', align: 'right' }, { label: 'Amount', align: 'right' }, { label: 'Wajah', wideOnly: true }, { label: 'Haal' }, { label: 'Kis ne', wideOnly: true }],
+        columns: [{ label: tr('Waqt') }, { label: tr('No.'), wideOnly: true }, { label: tr('Cheez') }, { label: tr('Quantity'), align: 'right' }, { label: tr('Amount'), align: 'right' }, { label: tr('Wajah'), wideOnly: true }, { label: tr('Haal') }, { label: tr('Kis ne'), wideOnly: true }],
         rows: list.items.map((d) => [
           day(d.createdAt), d.damageNumber, itemLabel(d), qtyLabel(d), formatPKR(d.netLoss),
           reasonOf(d.reasonCode, d.reason).label, STATUS[d.status].label, d.reportedBy?.fullName ?? '',
@@ -28,15 +29,15 @@ export function damageDoc(list: DamageList, period: string, filter: string): Pri
       },
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          { label: 'Approval baqi', value: `${t.reported} · ${formatPKR(t.pendingValue)}` },
-          { label: 'Approve', value: String(t.approved) },
-          { label: 'Rad', value: String(t.rejected) },
-          { label: 'Asal nuqsan', value: `−${formatPKR(t.lost)}`, strong: true },
+          { label: tr('Approval baqi'), value: `${t.reported} · ${formatPKR(t.pendingValue)}` },
+          { label: tr('Approve'), value: String(t.approved) },
+          { label: tr('Rad'), value: String(t.rejected) },
+          { label: tr('Asal nuqsan'), value: `−${formatPKR(t.lost)}`, strong: true },
         ],
       },
     ],
-    footer: list.total > list.items.length ? `Pehli ${list.items.length} reports dikhayi gayi hain (kul ${list.total})` : undefined,
+    footer: list.total > list.items.length ? tr('Pehli {{count}} reports dikhayi gayi hain (kul {{total}})', { count: list.items.length, total: list.total }) : undefined,
   };
 }

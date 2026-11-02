@@ -22,6 +22,7 @@ import { readSettings } from '../helpers/pricing-loader';
 import {
   CUSTOMER_CARD, checkKey, customerCards, dayRange, parseWhen, postCollection, r2, routeNames, todayKey, userNames,
 } from '../distribution.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 
@@ -57,12 +58,12 @@ export class CollectionsService {
         where: { tenantId, saleId: dto.saleId, loadSheetId: { not: null }, deliveryStatus: null },
         select: { orderNumber: true },
       });
-      if (onVan) throw new BadRequestException(`${onVan.orderNumber} load sheet par hai — is ka cash delivery report me likhein, office settlement par ginega`);
+      if (onVan) throw new BadRequestException(apiMessage('{{orderNumber}} load sheet par hai — is ka cash delivery report me likhein, office settlement par ginega', { orderNumber: onVan.orderNumber }));
     }
     if (dto.loadSheetId) {
       const sheet = await this.prisma.loadSheet.findFirst({ where: { id: dto.loadSheetId, tenantId }, select: { status: true, shopId: true } });
       if (!sheet) throw new BadRequestException('Load sheet nahi mili');
-      if (sheet.status === 'SETTLED' || sheet.status === 'CANCELLED') throw new BadRequestException(`Load sheet ${sheet.status} hai`);
+      if (sheet.status === 'SETTLED' || sheet.status === 'CANCELLED') throw new BadRequestException(apiMessage('Load sheet {{sheetStatus}} hai', { sheetStatus: sheet.status }));
       shopId = shopId ?? sheet.shopId;
     }
     if (!shopId && customer.routeId) {
@@ -119,7 +120,7 @@ export class CollectionsService {
       where: { tenantId, customerId: dto.customerId, chequeNo, bankName: { equals: bankName, mode: 'insensitive' }, status: { not: 'CANCELLED' } },
       select: { id: true },
     });
-    if (twin) throw new BadRequestException(`Cheque #${chequeNo} (${bankName}) pehle se darj hai`);
+    if (twin) throw new BadRequestException(apiMessage('Cheque #{{chequeNo}} ({{bankName}}) pehle se darj hai', { chequeNo, bankName }));
     return { bankName, chequeNo, chequeDate };
   }
 

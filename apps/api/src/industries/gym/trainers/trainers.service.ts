@@ -8,6 +8,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { TRAINER_PAYOUT, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { CreateTrainerDto, TrainerPayoutDto, UpdateTrainerDto } from './dto/trainer.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 const CATEGORY = { name: 'Trainer commission', icon: '💪', color: '#dc2626' };
@@ -31,7 +32,7 @@ export class TrainersService {
     if (!staff) throw new NotFoundException('Staff nahi mila');
     const existing = await this.prisma.gymTrainer.findUnique({ where: { staffId: dto.staffId } });
     if (existing) {
-      if (existing.isActive) throw new BadRequestException(`${staff.fullName} pehle se trainer ${existing.trainerNumber} hain`);
+      if (existing.isActive) throw new BadRequestException(apiMessage('{{fullName}} pehle se trainer {{trainerNumber}} hain', { fullName: staff.fullName, trainerNumber: existing.trainerNumber }));
       // A trainer who left and came back keeps the old number and history.
       return this.prisma.gymTrainer.update({ where: { id: existing.id }, data: { ...dto, staffId: undefined, isActive: true } });
     }
@@ -182,7 +183,7 @@ export class TrainersService {
     const amount = r2(dto.amount);
     const owed = r2((await this.prisma.gymPersonalTraining.aggregate({ where: { tenantId, trainerId: id, status: 'COMPLETED' }, _sum: { commissionAmount: true } }))._sum.commissionAmount ?? 0)
       - (await this.paidSoFar(tenantId, t));
-    if (amount > r2(owed) + 0.01) throw new BadRequestException(owed > 0 ? `Baqi commission sirf Rs ${r2(owed)} hai` : 'Is trainer ki koi baqi commission nahi');
+    if (amount > r2(owed) + 0.01) throw new BadRequestException(owed > 0 ? apiMessage('Baqi commission sirf Rs {{owed}} hai', { owed: r2(owed) }) : 'Is trainer ki koi baqi commission nahi');
     const expense = await this.expenses.create(user, scope, {
       title: `${payoutTitle(t.trainerNumber)}${t.name}`.slice(0, 120),
       description: opt(dto.note)?.slice(0, 500),

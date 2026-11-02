@@ -5,20 +5,21 @@
 
 import { CalendarOff, CheckCircle2, Clock, Coffee, LogIn, LogOut, Palmtree, UserX, type LucideIcon } from 'lucide-react';
 import type { DayCell, DayCode, LeaveStatus, LeaveType, Totals } from '../api/attendance.api';
+import { t as tr } from '@core/i18n';
 
 export const ATT_KEY = 'attendance';
 
 export const CODE: Record<DayCode, { short: string; label: string; tone: string; color: string }> = {
-  P: { short: 'P', label: 'Hazir', tone: 'bg-emerald-100 text-emerald-800', color: '#16a34a' },
-  L: { short: 'L', label: 'Late', tone: 'bg-amber-100 text-amber-800', color: '#d97706' },
-  H: { short: '½', label: 'Aadha din', tone: 'bg-sky-100 text-sky-800', color: '#0284c7' },
-  A: { short: 'A', label: 'Ghair hazir', tone: 'bg-rose-100 text-rose-800', color: '#e11d48' },
-  LV: { short: 'C', label: 'Chhutti', tone: 'bg-violet-100 text-violet-800', color: '#7c3aed' },
-  HO: { short: 'T', label: 'Tehwar / band', tone: 'bg-slate-200 text-slate-700', color: '#64748b' },
-  OFF: { short: '·', label: 'Hafta war chhutti', tone: 'bg-slate-100 text-slate-400', color: '#94a3b8' },
-  NONE: { short: '—', label: 'Hazri nahi lagi', tone: 'bg-rose-50 text-rose-500 ring-1 ring-inset ring-rose-200', color: '#fb7185' },
-  NA: { short: '', label: 'Naukri par nahi tha', tone: 'bg-transparent text-slate-300', color: '#cbd5e1' },
-  FUT: { short: '', label: 'Abhi aana hai', tone: 'bg-transparent text-slate-300', color: '#cbd5e1' },
+  P: { short: tr('P'), label: tr('Hazir'), tone: 'bg-emerald-100 text-emerald-800', color: '#16a34a' },
+  L: { short: tr('L'), label: tr('Late'), tone: 'bg-amber-100 text-amber-800', color: '#d97706' },
+  H: { short: '½', label: tr('Aadha din'), tone: 'bg-sky-100 text-sky-800', color: '#0284c7' },
+  A: { short: tr('A'), label: tr('Ghair hazir'), tone: 'bg-rose-100 text-rose-800', color: '#e11d48' },
+  LV: { short: tr('C'), label: tr('Chhutti'), tone: 'bg-violet-100 text-violet-800', color: '#7c3aed' },
+  HO: { short: tr('T'), label: tr('Tehwar / band'), tone: 'bg-slate-200 text-slate-700', color: '#64748b' },
+  OFF: { short: '·', label: tr('Hafta war chhutti'), tone: 'bg-slate-100 text-slate-400', color: '#94a3b8' },
+  NONE: { short: '—', label: tr('Hazri nahi lagi'), tone: 'bg-rose-50 text-rose-500 ring-1 ring-inset ring-rose-200', color: '#fb7185' },
+  NA: { short: '', label: tr('Naukri par nahi tha'), tone: 'bg-transparent text-slate-300', color: '#cbd5e1' },
+  FUT: { short: '', label: tr('Abhi aana hai'), tone: 'bg-transparent text-slate-300', color: '#cbd5e1' },
 };
 
 /** Legend order on the sheet and print-out. */
@@ -28,12 +29,12 @@ export const LEGEND: DayCode[] = ['P', 'L', 'H', 'A', 'LV', 'HO', 'OFF', 'NONE']
 export type LiveState = 'inside' | 'out' | 'notIn' | 'absent' | 'leave' | 'off';
 
 export const LIVE: Record<LiveState, { label: string; hint: string; icon: LucideIcon; color: string; tone: string }> = {
-  inside: { label: 'Andar hain', hint: 'Check-in ho chuka', icon: LogIn, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  out: { label: 'Ja chuke', hint: 'Check-out ho chuka', icon: LogOut, color: '#475569', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  notIn: { label: 'Abhi nahi aaye', hint: 'Check-in baqi', icon: Clock, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  absent: { label: 'Ghair hazir', hint: 'Absent lagaya gaya', icon: UserX, color: '#be123c', tone: 'bg-rose-100 text-rose-800 ring-rose-200' },
-  leave: { label: 'Chhutti par', hint: 'Approve chhutti', icon: Palmtree, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  off: { label: 'Aaj off', hint: 'Hafta war chhutti ya tehwar', icon: CalendarOff, color: '#64748b', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  inside: { label: tr('Andar hain'), hint: tr('Check-in ho chuka'), icon: LogIn, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  out: { label: tr('Ja chuke'), hint: tr('Check-out ho chuka'), icon: LogOut, color: '#475569', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  notIn: { label: tr('Abhi nahi aaye'), hint: tr('Check-in baqi'), icon: Clock, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  absent: { label: tr('Ghair hazir'), hint: tr('Absent lagaya gaya'), icon: UserX, color: '#be123c', tone: 'bg-rose-100 text-rose-800 ring-rose-200' },
+  leave: { label: tr('Chhutti par'), hint: tr('Approve chhutti'), icon: Palmtree, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  off: { label: tr('Aaj off'), hint: tr('Hafta war chhutti ya tehwar'), icon: CalendarOff, color: '#64748b', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
 export function liveState(c: DayCell): LiveState {
@@ -45,14 +46,14 @@ export function liveState(c: DayCell): LiveState {
 }
 
 export const LEAVE_TYPE: Record<LeaveType, string> = {
-  CASUAL: 'Aam chhutti', SICK: 'Beemari', ANNUAL: 'Salana', UNPAID: 'Bina tankhwah', EMERGENCY: 'Emergency', MATERNITY: 'Maternity', OTHER: 'Koi aur',
+  CASUAL: tr('Aam chhutti'), SICK: tr('Beemari'), ANNUAL: tr('Salana'), UNPAID: tr('Bina tankhwah'), EMERGENCY: tr('Emergency'), MATERNITY: tr('Maternity'), OTHER: tr('Koi aur'),
 };
 
 export const LEAVE_STATUS: Record<LeaveStatus, { label: string; tone: string; icon: LucideIcon }> = {
-  PENDING: { label: 'Faisla baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
-  APPROVED: { label: 'Approve', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
-  REJECTED: { label: 'Na-approve', tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: UserX },
-  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-600 ring-slate-200', icon: Coffee },
+  PENDING: { label: tr('Faisla baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
+  APPROVED: { label: tr('Approve'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
+  REJECTED: { label: tr('Na-approve'), tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: UserX },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-slate-100 text-slate-600 ring-slate-200', icon: Coffee },
 };
 
 /** Time of an instant on the shop's clock. */

@@ -9,6 +9,7 @@
 
 import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { Button, Modal } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 interface Ask { title: string; text?: ReactNode; yes?: string; danger?: boolean }
 
@@ -20,8 +21,8 @@ export function useConfirm(): [(q: Ask) => Promise<boolean>, ReactNode] {
   const dialog = q && (
     <Modal open onClose={() => close(false)} size="sm" title={q.title} description={typeof q.text === 'string' ? q.text : undefined}
       footer={<>
-        <Button variant="secondary" onClick={() => close(false)}>Rehne dein</Button>
-        <Button data-autofocus variant={q.danger ? 'danger' : 'primary'} onClick={() => close(true)}>{q.yes ?? 'Haan'}</Button>
+        <Button variant="secondary" onClick={() => close(false)}>{t('Rehne dein')}</Button>
+        <Button data-autofocus variant={q.danger ? 'danger' : 'primary'} onClick={() => close(true)}>{q.yes ?? t('Haan')}</Button>
       </>}>
       {typeof q.text === 'string' ? null : q.text}
     </Modal>

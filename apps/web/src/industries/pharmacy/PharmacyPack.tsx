@@ -14,6 +14,7 @@ import TemperatureLogPage from './pages/TemperatureLogPage';
 import PharmacyProducts from './products/PharmacyProducts';
 import PharmacyProductEditor from './products/PharmacyProductEditor';
 import PharmacyProductDetail from './products/PharmacyProductDetail';
+import { t } from '@core/i18n';
 
 /**
  * Pharmacy / medical store: medicines with formula and schedule on the
@@ -24,11 +25,11 @@ import PharmacyProductDetail from './products/PharmacyProductDetail';
 export const PharmacyPack: IndustryPack = {
   id: 'pharmacy',
   name: 'Pharmacy / Medical Store',
-  shortName: 'Pharmacy',
+  shortName: t('Pharmacy'),
   emoji: '💊',
   priority: 65,
   description:
-    'Prescriptions, salts, doctors, batch tracking, expiry alerts, controlled substance register, cold chain temperature logs.',
+    t('Prescriptions, salts, doctors, batch tracking, expiry alerts, controlled substance register, cold chain temperature logs.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -43,20 +44,20 @@ export const PharmacyPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Pharmacy',
+      label: t('Pharmacy'),
       icon: Pill,
       emoji: '💊',
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/pharmacy/prescriptions/new', label: 'New prescription', icon: FilePlus, permission: PERMISSIONS.POS_USE },
-        { to: '/pharmacy/prescriptions', label: 'Prescriptions', icon: FileText, permission: PERMISSIONS.POS_USE },
-        { to: '/pharmacy/medicines', label: 'Medicines', icon: Pill, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/pharmacy/expiring', label: 'Expiry', icon: CalendarX, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/pharmacy/salts', label: 'Salts / formula', icon: Beaker, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/pharmacy/doctors', label: 'Doctors', icon: Stethoscope },
-        { to: '/pharmacy/controlled-log', label: 'Narcotic register', icon: ShieldAlert, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/pharmacy/temperature-log', label: 'Cold chain', icon: Thermometer },
+        { to: '/pharmacy/prescriptions/new', label: t('New prescription'), icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/prescriptions', label: t('Prescriptions'), icon: FileText, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/medicines', label: t('Medicines'), icon: Pill, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/expiring', label: t('Expiry'), icon: CalendarX, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/salts', label: t('Salts / formula'), icon: Beaker, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/doctors', label: t('Doctors'), icon: Stethoscope },
+        { to: '/pharmacy/controlled-log', label: t('Narcotic register'), icon: ShieldAlert, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/temperature-log', label: t('Cold chain'), icon: Thermometer },
       ],
     },
   ],
@@ -84,27 +85,27 @@ export const PharmacyPack: IndustryPack = {
   productForm: {
     defaultUnit: 'tablet',
     unitOptions: [
-      { value: 'tablet', label: 'Tablet', hint: '💊', group: 'Dosage' },
-      { value: 'capsule', label: 'Capsule', hint: '💊', group: 'Dosage' },
-      { value: 'strip', label: 'Strip', hint: '📦', group: 'Pack' },
-      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Pack' },
-      { value: 'vial', label: 'Vial', hint: '💉', group: 'Pack' },
-      { value: 'ampoule', label: 'Ampoule', hint: '💉', group: 'Pack' },
-      { value: 'tube', label: 'Tube', hint: '🧴', group: 'Pack' },
-      { value: 'sachet', label: 'Sachet', hint: '📦', group: 'Pack' },
-      { value: 'ml', label: 'Milliliter', hint: '🥛', group: 'Volume' },
-      { value: 'gram', label: 'Grams', hint: '⚖️', group: 'Weight' },
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Pack' },
+      { value: 'tablet', label: t('Tablet'), hint: '💊', group: t('Dosage') },
+      { value: 'capsule', label: t('Capsule'), hint: '💊', group: t('Dosage') },
+      { value: 'strip', label: t('Strip'), hint: '📦', group: t('Pack') },
+      { value: 'bottle', label: t('Bottle'), hint: '🍶', group: t('Pack') },
+      { value: 'vial', label: t('Vial'), hint: '💉', group: t('Pack') },
+      { value: 'ampoule', label: t('Ampoule'), hint: '💉', group: t('Pack') },
+      { value: 'tube', label: t('Tube'), hint: '🧴', group: t('Pack') },
+      { value: 'sachet', label: t('Sachet'), hint: '📦', group: t('Pack') },
+      { value: 'ml', label: t('Milliliter'), hint: '🥛', group: t('Volume') },
+      { value: 'gram', label: t('Grams'), hint: '⚖️', group: t('Weight') },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Pack') },
     ],
   },
 
   featureFlags: [
-    { key: 'pharmacyPrescriptions', label: 'Prescription Tracking', defaultEnabled: true },
-    { key: 'pharmacySalts', label: 'Salt / Generic Mapping', defaultEnabled: true },
-    { key: 'pharmacyExpiry', label: 'Expiry Alerts', defaultEnabled: true },
-    { key: 'pharmacyControlled', label: 'Controlled Substances', defaultEnabled: true },
-    { key: 'pharmacyColdChain', label: 'Temperature Logs', defaultEnabled: false },
-    { key: 'expiry', label: 'Batch & Expiry Tracking', defaultEnabled: true },
+    { key: 'pharmacyPrescriptions', label: t('Prescription Tracking'), defaultEnabled: true },
+    { key: 'pharmacySalts', label: t('Salt / Generic Mapping'), defaultEnabled: true },
+    { key: 'pharmacyExpiry', label: t('Expiry Alerts'), defaultEnabled: true },
+    { key: 'pharmacyControlled', label: t('Controlled Substances'), defaultEnabled: true },
+    { key: 'pharmacyColdChain', label: t('Temperature Logs'), defaultEnabled: false },
+    { key: 'expiry', label: t('Batch & Expiry Tracking'), defaultEnabled: true },
   ],
 };

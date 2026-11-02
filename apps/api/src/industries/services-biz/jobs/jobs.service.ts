@@ -30,6 +30,7 @@ import {
 import type {
   AssignJobDto, BillJobDto, CounterSaleDto, CreateJobDto, JobDetailsDto, JobPartDto, JobStatusDto, ListJobsQuery, RatingDto, ReturnVisitDto, UpdateJobDto,
 } from './dto/job.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Tx = Prisma.TransactionClient;
 const TX = { timeout: 30_000 } as const;
@@ -150,7 +151,7 @@ export class JobsService implements OnModuleInit {
     const byId = new Map(products.map((p) => [p.id, p]));
     return parts.map((p, i) => {
       const prod = p.productId ? byId.get(p.productId) : undefined;
-      if (p.productId && !prod) throw new NotFoundException(`"${p.partName}" ka product nahi mila`);
+      if (p.productId && !prod) throw new NotFoundException(apiMessage('"{{partName}}" ka product nahi mila', { partName: p.partName }));
       const name = blank(p.partName) ?? prod?.name;
       if (!name) throw new BadRequestException('Part ka naam likhein');
       const quantity = Number(p.quantity) > 0 ? Number(p.quantity) : 1;
@@ -211,11 +212,11 @@ export class JobsService implements OnModuleInit {
       discountAmount: r2(dto.discountAmount ?? 0), taxAmount: r2(dto.taxAmount ?? 0),
     };
     const gross = r2(charges.visitCharge + charges.labourCharge + charges.partsCharge + charges.transportCharge + charges.emergencyCharge + charges.taxAmount);
-    if (charges.discountAmount > gross + 0.001) throw new BadRequestException(`Discount bill (Rs ${gross}) se zyada nahi ho sakta`);
+    if (charges.discountAmount > gross + 0.001) throw new BadRequestException(apiMessage('Discount bill (Rs {{gross}}) se zyada nahi ho sakta', { gross }));
     const totalCharge = jobTotal(charges);
     const advance = r2(dto.advancePaid ?? 0);
     if (advance > 0 && !hasPermission(user.role, user.permissions, PERMISSIONS.POS_USE)) throw new ForbiddenException('Advance lene ke liye counter (POS) ki permission chahiye');
-    if (advance > 0 && totalCharge > 0 && advance > totalCharge + 0.01) throw new BadRequestException(`Advance bill (Rs ${totalCharge}) se zyada nahi ho sakta`);
+    if (advance > 0 && totalCharge > 0 && advance > totalCharge + 0.01) throw new BadRequestException(apiMessage('Advance bill (Rs {{totalCharge}}) se zyada nahi ho sakta', { totalCharge }));
     const status: ServiceJobStatus = dto.primaryTechnicianId ? 'ASSIGNED' : start ? 'SCHEDULED' : 'CONFIRMED';
 
     for (let attempt = 0; ; attempt++) {
@@ -286,10 +287,10 @@ export class JobsService implements OnModuleInit {
       discountAmount: r2(dto.discountAmount ?? j.discountAmount), taxAmount: r2(dto.taxAmount ?? j.taxAmount),
     };
     const gross = r2(charges.visitCharge + charges.labourCharge + charges.partsCharge + charges.transportCharge + charges.emergencyCharge + charges.taxAmount);
-    if (charges.discountAmount > gross + 0.001) throw new BadRequestException(`Discount bill (Rs ${gross}) se zyada nahi ho sakta`);
+    if (charges.discountAmount > gross + 0.001) throw new BadRequestException(apiMessage('Discount bill (Rs {{gross}}) se zyada nahi ho sakta', { gross }));
     const totalCharge = jobTotal(charges);
     if (j.paidAmount > totalCharge + 0.01 && totalCharge > 0) {
-      throw new BadRequestException(`Rs ${j.paidAmount} pehle mil chuke — bill is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — bill is se kam nahi ho sakta', { paidAmount: j.paidAmount }));
     }
     await this.prisma.serviceJob.update({
       where: { id },
@@ -555,9 +556,9 @@ export class JobsService implements OnModuleInit {
   private async openJob(user: AuthenticatedUser, id: string) {
     const j = await this.prisma.serviceJob.findFirst({ where: { id, tenantId: user.tenantId }, include: { parts: true } });
     if (!j) throw new NotFoundException('Job nahi mili');
-    if (j.status === 'CANCELLED') throw new BadRequestException(`${j.jobNumber} cancel ho chuki — naya job banayein`);
+    if (j.status === 'CANCELLED') throw new BadRequestException(apiMessage('{{jobNumber}} cancel ho chuki — naya job banayein', { jobNumber: j.jobNumber }));
     if (j.status === 'COMPLETED' && (await this.findBill(this.prisma, user.tenantId, j.jobNumber))) {
-      throw new BadRequestException(`${j.jobNumber} ka bill ban chuka — badalna ho to pehle Sales se bill void karein`);
+      throw new BadRequestException(apiMessage('{{jobNumber}} ka bill ban chuka — badalna ho to pehle Sales se bill void karein', { jobNumber: j.jobNumber }));
     }
     return j;
   }
@@ -579,7 +580,7 @@ export class JobsService implements OnModuleInit {
     // Finishing a job is its bill. Only a job with nothing left to pay closes from here;
     // otherwise the bill step takes the money (or puts it on khata knowingly).
     if (dto.status === 'COMPLETED') {
-      if (r2(j.totalCharge - j.paidAmount) > 0.009) throw new BadRequestException(`Rs ${r2(j.totalCharge - j.paidAmount)} baqi hai — "Bill banayein" se paisa lein ya khata me likhein`);
+      if (r2(j.totalCharge - j.paidAmount) > 0.009) throw new BadRequestException(apiMessage('Rs {{totalCharge}} baqi hai — "Bill banayein" se paisa lein ya khata me likhein', { totalCharge: r2(j.totalCharge - j.paidAmount) }));
       await this.bill(user, id, { paidAmount: 0 });
       return this.getOne(user, id);
     }
@@ -659,7 +660,7 @@ export class JobsService implements OnModuleInit {
       await this.retotalParts(tx, jobId);
       const after = await tx.serviceJob.findUniqueOrThrow({ where: { id: jobId }, select: { totalCharge: true, paidAmount: true } });
       if (after.paidAmount > after.totalCharge + 0.01 && after.totalCharge > 0) {
-        throw new BadRequestException(`Rs ${after.paidAmount} pehle mil chuke — part hatane se bill is se kam ho jata`);
+        throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — part hatane se bill is se kam ho jata', { paidAmount: after.paidAmount }));
       }
     });
     return this.getOne(user, jobId);
@@ -681,7 +682,7 @@ export class JobsService implements OnModuleInit {
     const billed = await this.findBill(this.prisma, user.tenantId, j.jobNumber);
     const remaining = r2(j.totalCharge - j.paidAmount);
     if (billed && remaining <= 0.009) throw new BadRequestException('Is job par kuch baqi nahi');
-    if (j.totalCharge > 0 && value > remaining + 0.01) throw new BadRequestException(`Baqi sirf Rs ${Math.max(remaining, 0)} hai`);
+    if (j.totalCharge > 0 && value > remaining + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{remaining}} hai', { remaining: Math.max(remaining, 0) }));
 
     await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`service-job:${id}`}))::text`;
@@ -755,7 +756,7 @@ export class JobsService implements OnModuleInit {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`service-job:${id}`}))::text`;
       const j = await tx.serviceJob.findUniqueOrThrow({ where: { id }, include: { parts: true } });
       if (j.status === 'CANCELLED') throw new BadRequestException('Cancel job ka bill nahi banta');
-      if (await this.findBill(tx, user.tenantId, j.jobNumber)) throw new BadRequestException(`${j.jobNumber} ka bill pehle hi ban chuka hai`);
+      if (await this.findBill(tx, user.tenantId, j.jobNumber)) throw new BadRequestException(apiMessage('{{jobNumber}} ka bill pehle hi ban chuka hai', { jobNumber: j.jobNumber }));
 
       const total = r2(j.totalCharge);
       const advance = r2(j.paidAmount);
@@ -774,7 +775,7 @@ export class JobsService implements OnModuleInit {
       let customerId = j.customerId;
       if (!customerId && stillOwed > 0.009) {
         if (!j.customerName?.trim() && !j.customerPhone?.trim()) {
-          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer jorein`);
+          throw new BadRequestException(apiMessage('Rs {{stillOwed}} baqi hai — poori amount lein, ya udhaar ke liye customer jorein', { stillOwed }));
         }
         customerId = await ensureCustomer(tx, user, { name: j.customerName ?? j.customerPhone, phone: j.customerPhone, shopId });
       }

@@ -38,6 +38,7 @@ import { withManagerPin } from '@core/security/ManagerPin';
 import { getReceiptSetup, printPaper } from '@core/receipt/setup';
 import type { OrderBill, OrderPayMethod } from '../api/cake-orders.api';
 import { BULK_KEY, CAKE_KEY, apiError, fmtQty } from './meta';
+import { t } from '@core/i18n';
 
 interface OrderBillLine {
   productId?: string;
@@ -63,7 +64,7 @@ export interface OrderForBill {
 }
 
 /** Note on every bill line made from an order; the server finds the bill by it. */
-const orderNote = (orderNumber: string) => `Order ${orderNumber}`;
+const orderNote = (orderNumber: string) => t('Order {{orderNumber}}', { orderNumber });
 
 /** Money read fresh from the server when the dialog opens. */
 export interface OrderMoney { paidAmount: number; khataPaid?: number; customerId?: string | null }
@@ -138,33 +139,33 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
   const short = linked.filter((l) => { const p = productBy.get(l.productId!); return p && stockOf(p) < l.qty; });
 
   const errors: string[] = [];
-  if (billQ.isLoading || moneyQ.isLoading) errors.push('Order ka hisaab dekh rahe hain…');
-  if (moneyQ.isError) errors.push('Order ka hisaab nahi mila — dobara kholein');
-  if (already) errors.push('Is order ka bill pehle hi ban chuka hai');
-  if (!shopId) errors.push('Upar se branch chunein');
-  if (!linked.length) errors.push('Kam se kam ek cheez apne maal se jorein — warna bill me koi cheez nahi hogi');
-  if (heldFor && !chosen && !customersQ.isLoading) errors.push('Advance wala customer nahi mila — Customers me check karein');
+  if (billQ.isLoading || moneyQ.isLoading) errors.push(t('Order ka hisaab dekh rahe hain…'));
+  if (moneyQ.isError) errors.push(t('Order ka hisaab nahi mila — dobara kholein'));
+  if (already) errors.push(t('Is order ka bill pehle hi ban chuka hai'));
+  if (!shopId) errors.push(t('Upar se branch chunein'));
+  if (!linked.length) errors.push(t('Kam se kam ek cheez apne maal se jorein — warna bill me koi cheez nahi hogi'));
+  if (heldFor && !chosen && !customersQ.isLoading) errors.push(t('Advance wala customer nahi mila — Customers me check karein'));
 
   const addCustomer = useMutation({
     mutationFn: () => customersApi.create({ name: order.customerName || 'Order customer', phone: order.customerPhone || undefined }),
-    onSuccess: (c: { id: string; name: string }) => { setCustomerId(c.id); qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); toast.success(`${c.name} customer ban gaya`); },
-    onError: (e) => toast.error(apiError(e, 'Customer nahi bana')),
+    onSuccess: (c: { id: string; name: string }) => { setCustomerId(c.id); qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); toast.success(t('{{name}} customer ban gaya', { name: c.name })); },
+    onError: (e) => toast.error(apiError(e, t('Customer nahi bana'))),
   });
 
   const bill = useMutation({
     mutationFn: async (pay: PosCheckoutResult) => {
       // Change given back is not order money; only what stays with the shop counts.
       const now = Math.min(Math.max(pay.paidAmount, 0), due0);
-      setStep('Pehle ka bill dekh rahe hain…');
-      if (await findBill()) throw new Error('Is order ka bill pehle hi ban chuka hai');
-      if (now > 0) { setStep('Paisa order par darj ho raha hai…'); await recordPayment(now, paid0, pay.paymentMethod as OrderPayMethod); }
-      setStep('Bill ban raha hai…');
+      setStep(t('Pehle ka bill dekh rahe hain…'));
+      if (await findBill()) throw new Error(t('Is order ka bill pehle hi ban chuka hai'));
+      if (now > 0) { setStep(t('Paisa order par darj ho raha hai…')); await recordPayment(now, paid0, pay.paymentMethod as OrderPayMethod); }
+      setStep(t('Bill ban raha hai…'));
       // Older money (no khata row) is paid on this bill; the khata advance cancels the unpaid part.
       const parts = netOfChange(pay.payments?.length ? pay.payments : [{ method: pay.paymentMethod, amount: pay.paidAmount }], now);
       if (legacyPaid > 0) parts.push({ method: 'CASH', amount: legacyPaid });
       const paidOnBill = r2(parts.reduce((s, p) => s + p.amount, 0));
       // A khata above the customer's limit needs the owner's PIN; the dialog asks once and retries.
-      const sale = await withManagerPin('Udhaar ke liye malik ka PIN', (managerPin) => offlineSalesApi.create({
+      const sale = await withManagerPin(t('Udhaar ke liye malik ka PIN'), (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: shopId!,
         customerId: chosen?.id || undefined,
@@ -173,11 +174,11 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
         ...(parts.length > 1 && { payments: parts }),
         discount,
         // The sale takes charges as a list; a bare number crashed the bill (400 / "reduce is not a function").
-        serviceCharges: extra > 0 ? [{ type: 'OTHER', label: 'Order ke izafi charges', amount: Math.round(extra * 100) / 100 }] : undefined,
+        serviceCharges: extra > 0 ? [{ type: 'OTHER', label: t('Order ke izafi charges'), amount: Math.round(extra * 100) / 100 }] : undefined,
         items: linked.map((l) => ({ productId: l.productId!, quantity: l.qty, priceOverride: l.rate, note: orderNote(order.orderNumber) })),
       } as Parameters<typeof offlineSalesApi.create>[0]), 'credit') as { id?: string; saleNumber?: string };
-      setStep('Order "De diya" ho raha hai…');
-      try { await markDelivered(); } catch { toast.warning('Bill ban gaya magar order ki halat nahi badli — order khol kar "De diya" dobara dabayein'); }
+      setStep(t('Order "De diya" ho raha hai…'));
+      try { await markDelivered(); } catch { toast.warning(t('Bill ban gaya magar order ki halat nahi badli — order khol kar "De diya" dobara dabayein')); }
       return { sale, now };
     },
     onSuccess: ({ sale, now }) => {
@@ -204,12 +205,12 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
           deliveryAddress: order.deliveryAddress,
           total: order.total,
           paid: paidTotal,
-          paymentLabel: `Mila (advance samet)`,
+          paymentLabel: 'Mila (advance samet)',
         }, { paper: printPaper(setup), setup });
       }
-      toast.success(`Bill ban gaya — ${order.orderNumber} de diya`, {
-        description: dueAfter > 0.5 ? `${formatPKR(dueAfter)} ${chosen?.name ?? ''} ke khate me` : 'Poora paisa mil gaya',
-        action: sale?.id ? { label: 'Bill dekhein', onClick: () => navigate(`/sales/${sale.id}/receipt?fresh=1`) } : undefined,
+      toast.success(t('Bill ban gaya — {{orderNumber}} de diya', { orderNumber: order.orderNumber }), {
+        description: dueAfter > 0.5 ? t('{{dueAfter}} {{value}} ke khate me', { dueAfter: formatPKR(dueAfter), value: chosen?.name ?? '' }) : t('Poora paisa mil gaya'),
+        action: sale?.id ? { label: t('Bill dekhein'), onClick: () => navigate(`/sales/${sale.id}/receipt?fresh=1`) } : undefined,
         duration: 8000,
       });
       onDone();
@@ -218,7 +219,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
       setStep('');
       setPaying(false);
       qc.invalidateQueries({ queryKey: [order.kind === 'cake' ? CAKE_KEY : BULK_KEY, 'money', order.id] });
-      toast.error(apiError(e, 'Bill nahi bana — order jaisa tha waisa hai'));
+      toast.error(apiError(e, t('Bill nahi bana — order jaisa tha waisa hai')));
     },
   });
 
@@ -254,25 +255,25 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
 
   return (
     <Modal open onClose={onClose} size="lg" closeOnBackdrop={!bill.isPending}
-      title={`De diya — bill banayein · ${order.orderNumber}`}
-      description={`${order.customerName || 'Customer'} · kul ${formatPKR(order.total)} · mila ${formatPKR(order.paid)} · baqi ${formatPKR(due0)}`}
+      title={t('De diya — bill banayein · {{orderNumber}}', { orderNumber: order.orderNumber })}
+      description={t('{{value}} · kul {{total}} · mila {{paid}} · baqi {{due0}}', { value: order.customerName || 'Customer', total: formatPKR(order.total), paid: formatPKR(order.paid), due0: formatPKR(due0) })}
       footer={<>
-        {errors[0] && <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{errors[0]}</p>}
-        <Button variant="secondary" onClick={onClose} disabled={bill.isPending}>Rehne dein</Button>
+        {errors[0] && <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{errors[0]}</p>}
+        <Button variant="secondary" onClick={onClose} disabled={bill.isPending}>{t('Rehne dein')}</Button>
         <Button variant="success" onClick={start} disabled={errors.length > 0} loading={bill.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
-          {bill.isPending ? step || 'Ho raha hai…' : due0 > 0 ? `${formatPKR(due0)} lein — bill banao` : 'Bill banao — de diya'}
+          {bill.isPending ? step || t('Ho raha hai…') : due0 > 0 ? t('{{due0}} lein — bill banao', { due0: formatPKR(due0) }) : t('Bill banao — de diya')}
         </Button>
       </>}>
       <div className="space-y-5">
         {already && (
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-success-50 px-3 py-2.5 text-[0.8125rem] text-success-800 ring-1 ring-success-200">
-            <CheckCircle2 className="h-4 w-4" /> Is order ka bill {already.saleNumber} pehle hi ban chuka hai.
-            <Button size="xs" variant="secondary" className="ml-auto" onClick={() => navigate(`/sales/${already.id}/receipt`)}>Bill dekhein</Button>
+            <CheckCircle2 className="h-4 w-4" /> {' '}{t('Is order ka bill {{saleNumber}} pehle hi ban chuka hai.', { saleNumber: already.saleNumber })}
+            <Button size="xs" variant="secondary" className="ms-auto" onClick={() => navigate(`/sales/${already.id}/receipt`)}>{t('Bill dekhein')}</Button>
           </div>
         )}
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><Package className="h-4 w-4 text-brand-600" /> Cheezein <span className="ml-auto text-[0.75rem] font-normal text-slate-500">Jori hui cheez ka stock ghatega</span></h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><Package className="h-4 w-4 text-brand-600" /> {' '}{t('Cheezein')}{' '} <span className="ms-auto text-[0.75rem] font-normal text-slate-500">{t('Jori hui cheez ka stock ghatega')}</span></h3>
           <ul className="space-y-2">
             {lines.map((l, i) => {
               const p = l.productId ? productBy.get(l.productId) : undefined;
@@ -285,18 +286,18 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
                       <p className="truncate text-[0.875rem] font-medium text-slate-900">{l.name}</p>
                       <p className="text-[0.75rem] tabular-nums text-slate-500">{fmtQty(l.qty)}{l.unit ? ` ${l.unit}` : ''} × {formatPKR(l.rate)} = {formatPKR(l.qty * l.rate)}</p>
                       {p
-                        ? <p className={cn('text-[0.75rem] font-medium', lack ? 'text-rose-700' : 'text-success-700')}>↳ {p.name} · stock {fmtQty(stockOf(p))} {p.unit}{lack ? ' — kam hai' : ''}</p>
-                        : <p className="text-[0.75rem] font-medium text-amber-800">Maal se nahi juri — rakam bill me "extra" ban kar jayegi</p>}
+                        ? <p className={cn('text-[0.75rem] font-medium', lack ? 'text-rose-700' : 'text-success-700')}>{t('↳ {{name}} · stock {{fmtQty}} {{unit}}{{value}}', { name: p.name, fmtQty: fmtQty(stockOf(p)), unit: p.unit, value: lack ? t(' — kam hai') : '' })}</p>
+                        : <p className="text-[0.75rem] font-medium text-amber-800">{t('Maal se nahi juri — rakam bill me "extra" ban kar jayegi')}</p>}
                     </div>
-                    <Button size="xs" variant="secondary" onClick={() => { setLinking(linking === i ? null : i); setQ(''); }}>{l.productId ? 'Badlein' : 'Jorein'}</Button>
+                    <Button size="xs" variant="secondary" onClick={() => { setLinking(linking === i ? null : i); setQ(''); }}>{l.productId ? t('Badlein') : t('Maal jorein')}</Button>
                     {l.productId && (
-                      <button type="button" aria-label="Jor hatayein" onClick={() => setLines((xs) => xs.map((x, k) => (k === i ? { ...x, productId: undefined } : x)))}
+                      <button type="button" aria-label={t('Jor hatayein')} onClick={() => setLines((xs) => xs.map((x, k) => (k === i ? { ...x, productId: undefined } : x)))}
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><X className="h-4 w-4" /></button>
                     )}
                   </div>
                   {linking === i && (
                     <div className="mt-2 space-y-2">
-                      <Input size="sm" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Apna maal search…" leftIcon={<Search className="h-4 w-4" />} />
+                      <Input size="sm" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Apna maal search…')} leftIcon={<Search className="h-4 w-4" />} />
                       <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto">
                         {options.map((p) => (
                           <button key={p.id} type="button" onClick={() => { setLines((xs) => xs.map((x, k) => (k === i ? { ...x, productId: p.id, unit: x.unit ?? p.unit } : x))); setLinking(null); }}
@@ -304,7 +305,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
                             {p.name} <span className="text-slate-400">{fmtQty(stockOf(p))} {p.unit}</span>
                           </button>
                         ))}
-                        {!options.length && <span className="text-[0.75rem] text-slate-500">Kuch nahi mila</span>}
+                        {!options.length && <span className="text-[0.75rem] text-slate-500">{t('Kuch nahi mila')}</span>}
                       </div>
                     </div>
                   )}
@@ -314,27 +315,27 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
           </ul>
           {short.length > 0 && (
             <p className="mt-2 flex gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[0.75rem] text-rose-800 ring-1 ring-rose-200">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{short.map((l) => l.name).join(', ')} — stock kam hai. Banaya hua maal pehle stock me daalein (Production me "Stock me daalein"), warna stock minus ho jayega.
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('{{value}} — stock kam hai. Banaya hua maal pehle stock me daalein (Production me "Stock me daalein"), warna stock minus ho jayega.', { value: short.map((l) => l.name).join(', ') })}
             </p>
           )}
         </section>
 
         <section className="space-y-2">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><User className="h-4 w-4 text-brand-600" /> Customer <span className="text-[0.75rem] font-normal text-slate-500">{heldFor ? '— advance isi ke khate me hai' : '— udhaar ho to zaroori'}</span></h3>
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><User className="h-4 w-4 text-brand-600" /> {' '}{t('Customer')}{' '} <span className="text-[0.75rem] font-normal text-slate-500">{heldFor ? t('— advance isi ke khate me hai') : t('— udhaar ho to zaroori')}</span></h3>
           {chosen ? (
             <div className="flex items-center gap-2 rounded-xl bg-success-50 px-3 py-2.5 ring-1 ring-success-200">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-success-700" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[0.875rem] font-medium text-slate-900">{chosen.name}</p>
-                <p className="text-[0.75rem] text-slate-500">{chosen.phone ?? ''}{Number(chosen.balance) > 0 ? ` · pehle se ${formatPKR(Number(chosen.balance))} udhaar` : ''}{!customerId && autoCustomer ? ' · phone se khud mila' : ''}</p>
+                <p className="text-[0.75rem] text-slate-500">{chosen.phone ?? ''}{Number(chosen.balance) > 0 ? t(' · pehle se {{formatPKR}} udhaar', { formatPKR: formatPKR(Number(chosen.balance)) }) : ''}{!customerId && autoCustomer ? t(' · phone se khud mila') : ''}</p>
               </div>
               {heldFor
-                ? <Lock className="h-4 w-4 shrink-0 text-slate-400" aria-label="Advance wala customer badla nahi ja sakta" />
-                : <button type="button" aria-label="Customer hatayein" onClick={() => { setCustomerId('__none__'); setCustQ(''); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>}
+                ? <Lock className="h-4 w-4 shrink-0 text-slate-400" aria-label={t('Advance wala customer badla nahi ja sakta')} />
+                : <button type="button" aria-label={t('Customer hatayein')} onClick={() => { setCustomerId('__none__'); setCustQ(''); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>}
             </div>
           ) : (
             <>
-              <Input size="sm" value={custQ} onChange={(e) => setCustQ(e.target.value)} placeholder="Naam ya phone se search…" leftIcon={<Search className="h-4 w-4" />} />
+              <Input size="sm" value={custQ} onChange={(e) => setCustQ(e.target.value)} placeholder={t('Naam ya phone se search…')} leftIcon={<Search className="h-4 w-4" />} />
               {custOptions.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {custOptions.map((c) => (
@@ -346,7 +347,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
               )}
               {(order.customerName || order.customerPhone) && (
                 <Button size="sm" variant="secondary" fullWidth onClick={() => addCustomer.mutate()} loading={addCustomer.isPending} leftIcon={<UserPlus className="h-4 w-4" />}>
-                  "{order.customerName}" ko naya customer banayein
+                  {t('"{{customerName}}" ko naya customer banayein', { customerName: order.customerName })}
                 </Button>
               )}
             </>
@@ -354,20 +355,20 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, loadMoney,
         </section>
 
         <dl className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem] ring-1 ring-slate-200">
-          <Line k="Maal wali cheezein" v={formatPKR(linkedTotal)} />
-          {extra > 0 && <Line k="Extra (juri nahi / farq)" v={`+${formatPKR(extra)}`} />}
-          {discount > 0 && <Line k="Discount (order ka rate kam)" v={`−${formatPKR(discount)}`} />}
-          <Line k="Bill ka total" v={formatPKR(order.total)} strong />
-          {khataPaid > 0 && <Line k="Advance (khate me jama, us din drawer me aa chuka)" v={`−${formatPKR(khataPaid)}`} />}
-          {legacyPaid > 0 && <Line k="Pehle mila (is bill me gina jayega)" v={`−${formatPKR(legacyPaid)}`} />}
-          <Line k="Ab lena hai" v={formatPKR(due0)} strong />
+          <Line k={t('Maal wali cheezein')} v={formatPKR(linkedTotal)} />
+          {extra > 0 && <Line k={t('Extra (juri nahi / farq)')} v={`+${formatPKR(extra)}`} />}
+          {discount > 0 && <Line k={t('Discount (order ka rate kam)')} v={`−${formatPKR(discount)}`} />}
+          <Line k={t('Bill ka total')} v={formatPKR(order.total)} strong />
+          {khataPaid > 0 && <Line k={t('Advance (khate me jama, us din drawer me aa chuka)')} v={`−${formatPKR(khataPaid)}`} />}
+          {legacyPaid > 0 && <Line k={t('Pehle mila (is bill me gina jayega)')} v={`−${formatPKR(legacyPaid)}`} />}
+          <Line k={t('Ab lena hai')} v={formatPKR(due0)} strong />
         </dl>
 
         <label className="flex cursor-pointer items-center gap-2 text-[0.8125rem] text-slate-700">
           <input type="checkbox" checked={printBill} onChange={(e) => setPrintBill(e.target.checked)} className="h-4 w-4 rounded accent-brand-600" />
-          <Printer className="h-4 w-4 text-slate-500" /> Bill bante hi print karein
+          <Printer className="h-4 w-4 text-slate-500" /> {' '}{t('Bill bante hi print karein')}
         </label>
-        <p className="flex items-start gap-1.5 text-[0.75rem] text-slate-500"><Wallet className="mt-0.5 h-3.5 w-3.5 shrink-0" />Bill poore order ka banta hai. Advance khate se kat jata hai, is liye Sale aur drawer me do baar nahi aata.</p>
+        <p className="flex items-start gap-1.5 text-[0.75rem] text-slate-500"><Wallet className="mt-0.5 h-3.5 w-3.5 shrink-0" />{t('Bill poore order ka banta hai. Advance khate se kat jata hai, is liye Sale aur drawer me do baar nahi aata.')}</p>
       </div>
       {paying && (
         <PosCheckoutModal total={due0} itemCount={linked.length} loading={bill.isPending} initMode="full"

@@ -15,6 +15,7 @@ import { hourInTz } from '../../../common/helpers/business-time.helper';
 import { ShopScope } from '../../../common/shop-scope';
 import { CLOSED_ORDER, DAY_MS, checkRefundPin, orderMoney, positive, postOrderAdvance, r2, refundOrderAdvance, shopClock, withNextNumber, writeShopId } from '../bakery-common';
 import { CreateCakeOrderDto, UpdateCakeOrderDto, UpdateCakeOrderStatusDto } from './dto/create-cake-order.dto';
+import { apiMessage, MessageText } from '../../../common/i18n/api-message';
 
 type CakeOrderView = 'active' | 'today' | 'tomorrow' | 'late' | 'ready' | 'unpaid' | 'done' | 'all';
 
@@ -46,7 +47,7 @@ function paymentStatusOf(paid: number, total: number, advanceRequired: number) {
   return 'PARTIALLY_PAID';
 }
 
-function dateOrThrow(v: string | undefined | null, message: string): Date {
+function dateOrThrow(v: string | undefined | null, message: MessageText): Date {
   const d = v ? new Date(v) : null;
   if (!d || Number.isNaN(d.getTime())) throw new BadRequestException(message);
   return d;
@@ -188,7 +189,7 @@ export class CakeOrdersService {
 
     const money = Object.fromEntries(MONEY_KEYS.map((k) => [k, dto[k] !== undefined ? Math.max(num(dto[k]), 0) : num(order[k])])) as Record<(typeof MONEY_KEYS)[number], number>;
     const total = r2(Math.max(money.basePrice + money.customizationCharges + money.photoCakeCharges + money.deliveryCharges + money.taxAmount - money.discount, 0));
-    if (total + 0.005 < order.paidAmount) throw new BadRequestException(`${order.paidAmount} pehle hi mil chuka hai — kul rakam is se kam nahi ho sakti`);
+    if (total + 0.005 < order.paidAmount) throw new BadRequestException(apiMessage('{{paidAmount}} pehle hi mil chuka hai — kul rakam is se kam nahi ho sakti', { paidAmount: order.paidAmount }));
     const advanceRequired = dto.advanceRequired !== undefined ? r2(Math.max(num(dto.advanceRequired), 0)) : order.advanceRequired;
 
     if (dto.productId) {
@@ -493,7 +494,7 @@ export class CakeOrdersService {
       throw new ConflictException('Yeh paisa pehle hi darj ho chuka hai — safha taaza karein');
     }
     const paid = r2(order.paidAmount + value);
-    if (paid > order.total + 0.005) throw new BadRequestException(`Baqi sirf ${due(order)} hai`);
+    if (paid > order.total + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{order}} hai', { order: due(order) }));
 
     const status = BEFORE_WORK.includes(order.status) && paid >= order.advanceRequired && order.advanceRequired > 0 ? 'DEPOSIT_PAID' : order.status;
     await this.prisma.$transaction(async (tx) => {

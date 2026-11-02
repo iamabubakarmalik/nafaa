@@ -2,6 +2,7 @@ import { ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react';
 import type { CustomerRisk } from '../api/online-orders.api';
 import { rs } from '../lib/labels';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 const TONE: Record<CustomerRisk['level'], string> = {
   NEW: 'bg-sky-100 text-sky-800',
@@ -23,8 +24,8 @@ export function RiskBadge({ risk }: { risk?: CustomerRisk | null }) {
         </span>
       )}
       {(risk.duplicateOpen ?? 0) > 0 && (
-        <span title="Isi customer ka pehle se ek order khula hai" className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-violet-800">
-          Dobara order ({risk.duplicateOpen})
+        <span title={t('Isi customer ka pehle se ek order khula hai')} className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-violet-800">
+          {t('Dobara order ({{duplicateOpen}})', { duplicateOpen: risk.duplicateOpen })}
         </span>
       )}
     </>
@@ -44,20 +45,20 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
             : 'bg-slate-50 text-slate-700')}>
       <div className="flex items-center gap-2 font-bold"><Icon className="h-4 w-4" /> {risk.label}</div>
       {(risk.reasons?.length ?? 0) > 1 ? (
-        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs font-semibold opacity-90">
+        <ul className="mt-1 list-disc space-y-0.5 ps-5 text-xs font-semibold opacity-90">
           {risk.reasons!.map((r) => <li key={r}>{r}</li>)}
         </ul>
       ) : <div className="mt-0.5 text-xs font-semibold opacity-90">{risk.reason}</div>}
       {(risk.duplicateOpen ?? 0) > 0 && (
-        <div className="mt-1 text-xs font-bold">Dhyan: isi customer ke {risk.duplicateOpen} aur order abhi khule hain — dobara to nahi bheja?</div>
+        <div className="mt-1 text-xs font-bold">{t('Dhyan: isi customer ke {{duplicateOpen}} aur order abhi khule hain — dobara to nahi bheja?', { duplicateOpen: risk.duplicateOpen })}</div>
       )}
       {risk.total > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-x-3 text-[0.6875rem] font-bold opacity-80">
-          <span>{risk.total} pichhle order</span>
-          <span>{risk.delivered} liye</span>
-          {risk.returned > 0 && <span>{risk.returned} wapas</span>}
-          {risk.cancelled > 0 && <span>{risk.cancelled} cancel</span>}
-          {risk.spent > 0 && <span>{rs(risk.spent)} ka maal liya</span>}
+          <span>{t('{{total}} pichhle order', { total: risk.total })}</span>
+          <span>{t('{{delivered}} liye', { delivered: risk.delivered })}</span>
+          {risk.returned > 0 && <span>{t('{{returned}} wapas', { returned: risk.returned })}</span>}
+          {risk.cancelled > 0 && <span>{t('{{cancelled}} cancel', { cancelled: risk.cancelled })}</span>}
+          {risk.spent > 0 && <span>{t('{{spent}} ka maal liya', { spent: rs(risk.spent) })}</span>}
         </div>
       )}
     </div>

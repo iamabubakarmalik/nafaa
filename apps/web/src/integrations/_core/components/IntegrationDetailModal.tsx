@@ -11,6 +11,7 @@ import { ProductMappingsPanel } from './ProductMappingsPanel';
 import { ProductSyncPanel } from './ProductSyncPanel';
 import { Button, Input, Modal, Badge, SkeletonCard, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t, Trans } from '@core/i18n';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:4000/api';
 
@@ -40,19 +41,19 @@ export function IntegrationDetailModal({
   const syncMutation = useMutation({
     mutationFn: () => integrationsApi.sync(integration!),
     onSuccess: (r: any) => {
-      toast.success('Sync complete', {
-        description: r?.total ? `${r.success ?? 0} / ${r.total} records imported` : undefined,
+      toast.success(t('Sync complete'), {
+        description: r?.total ? t('{{value}} / {{total}} records imported', { value: r.success ?? 0, total: r.total }) : undefined,
       });
       invalidate();
     },
     onError: (e: any) =>
-      toast.error(e?.response?.data?.message ?? e?.message ?? 'Sync failed'),
+      toast.error(e?.response?.data?.message ?? e?.message ?? t('Sync failed')),
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => integrationsApi.update(integrationId, data),
     onSuccess: () => {
-      toast.success('Save ho gaya');
+      toast.success(t('Save ho gaya'));
       invalidate();
     },
   });
@@ -60,7 +61,7 @@ export function IntegrationDetailModal({
   const removeMutation = useMutation({
     mutationFn: () => integrationsApi.remove(integrationId),
     onSuccess: () => {
-      toast.success('Integration remove ho gaya');
+      toast.success(t('Integration remove ho gaya'));
       invalidate();
       onClose();
     },
@@ -86,11 +87,11 @@ export function IntegrationDetailModal({
     onSuccess: (r) => {
       toast.success(r.message, {
         duration: 6000,
-        description: 'Channel Orders tab kholo aur "Convert to Sale" click karo.',
+        description: t('Channel Orders tab kholo aur "Convert to Sale" click karo.'),
       });
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Demo order fail'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? t('Demo order fail')),
   });
 
   // Daraz ab Sales channel ke safhe par jurta hai (ek click, Daraz login)
@@ -98,7 +99,7 @@ export function IntegrationDetailModal({
 
   if (isLoading || !integration) {
     return (
-      <Modal open onClose={onClose} title="Loading..." size="lg">
+      <Modal open onClose={onClose} title={t('Loading...')} size="lg">
         <SkeletonCard />
       </Modal>
     );
@@ -172,12 +173,12 @@ export function IntegrationDetailModal({
   ].join('\n');
 
   const tabs: Array<[TabKey, string]> = [
-    ['settings', 'Settings'],
-    ['credentials', 'Credentials'],
-    ['connect', isCustomWebsite ? 'API & Code' : 'Webhook'],
-    ['products', 'Products'],
-    ['mappings', 'Product Mappings'],
-    ['logs', 'Sync Logs'],
+    ['settings', t('Settings')],
+    ['credentials', t('Credentials')],
+    ['connect', isCustomWebsite ? t('API & Code') : t('Webhook')],
+    ['products', t('Products')],
+    ['mappings', t('Product Mappings')],
+    ['logs', t('Sync Logs')],
   ];
 
   return (
@@ -195,19 +196,19 @@ export function IntegrationDetailModal({
               onClick={() => syncMutation.mutate()}
               leftIcon={<RefreshCw className="h-4 w-4" />}
             >
-              Sync Now
+              {t('Sync Now')}
             </Button>
           )}
           <Button
             variant="danger"
             loading={removeMutation.isPending}
             onClick={async () => {
-              const ok = await confirmDialog({ title: `${integration.displayName} hatana hai?`, text: 'Ye wapas nahi hoga.', danger: true });
+              const ok = await confirmDialog({ title: t('{{displayName}} hatana hai?', { displayName: integration.displayName }), text: t('Ye wapas nahi hoga.'), danger: true });
               if (ok) removeMutation.mutate();
             }}
             leftIcon={<Trash2 className="h-4 w-4" />}
           >
-            Delete
+            {t('Delete')}
           </Button>
         </>
       }
@@ -260,7 +261,7 @@ export function IntegrationDetailModal({
       {tab === 'settings' && (
         <div className="space-y-4">
           <Input
-            label="Display Name"
+            label={t('Display Name')}
             value={nameDraft ?? integration.displayName}
             onChange={(e) => setNameDraft(e.target.value)}
             onBlur={() => {
@@ -271,10 +272,10 @@ export function IntegrationDetailModal({
           />
 
           <div className="grid grid-cols-3 gap-2">
-            <MetricBox label="Orders" value={integration.totalOrdersSynced} />
-            <MetricBox label="Products" value={integration.totalProductsSynced} />
+            <MetricBox label={t('Orders')} value={integration.totalOrdersSynced} />
+            <MetricBox label={t('Products')} value={integration.totalProductsSynced} />
             <MetricBox
-              label="Errors"
+              label={t('Errors')}
               value={integration.totalErrors}
               danger={integration.totalErrors > 0}
             />
@@ -288,7 +289,7 @@ export function IntegrationDetailModal({
               onClick={() => testMutation.mutate()}
               leftIcon={<CheckCircle2 className="h-4 w-4" />}
             >
-              Test Connection
+              {t('Test Connection')}
             </Button>
             <Button
               variant="outline"
@@ -296,25 +297,25 @@ export function IntegrationDetailModal({
               onClick={() => demoMutation.mutate()}
               leftIcon={<Sparkles className="h-4 w-4" />}
             >
-              Send Demo Order
+              {t('Send Demo Order')}
             </Button>
           </div>
 
           <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
-            <div className="font-black mb-1">💡 Kaise Test Karein?</div>
+            <div className="font-black mb-1">{t('💡 Kaise Test Karein?')}</div>
             <div className="space-y-1 text-[0.6875rem]">
-              <div>1. <strong>Test Connection</strong> → check credentials real hain ya nahi</div>
-              <div>2. <strong>Send Demo Order</strong> → fake order banao</div>
-              <div>3. Modal band karo → <strong>Channel Orders</strong> tab kholo</div>
-              <div>4. Demo order dekho → <strong>Convert to Sale</strong> click karo</div>
-              <div>5. POS ke <strong>Sales</strong> section mein sale check karo</div>
+              <div>1. <Trans text="{{button}} → check credentials real hain ya nahi" values={{ button: <strong>{t('Test Connection')}</strong> }} /></div>
+              <div>2. <Trans text="{{button}} → fake order banao" values={{ button: <strong>{t('Send Demo Order')}</strong> }} /></div>
+              <div>3. <Trans text="Modal band karo → {{tab}} tab kholo" values={{ tab: <strong>{t('Channel Orders')}</strong> }} /></div>
+              <div>4. <Trans text="Demo order dekho → {{button}} click karo" values={{ button: <strong>{t('Convert to Sale')}</strong> }} /></div>
+              <div>5. <Trans text="POS ke {{section}} section mein sale check karo" values={{ section: <strong>{t('Sales')}</strong> }} /></div>
             </div>
           </div>
 
           {integration.lastSyncAt && (
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-ink-800 flex items-center gap-2 text-xs flex-wrap">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-slate-600 dark:text-ink-400 font-bold">Last sync:</span>
+              <span className="text-slate-600 dark:text-ink-400 font-bold">{t('Last sync:')}</span>
               <span className="text-slate-900 dark:text-ink-white font-black">
                 {new Date(integration.lastSyncAt).toLocaleString('en-PK')}
               </span>
@@ -332,10 +333,10 @@ export function IntegrationDetailModal({
           {integration.type === 'DARAZ' && (
             <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
               <div className="font-black text-sm text-orange-900 dark:text-orange-300 mb-1">
-                Daraz Authorization
+                {t('Daraz Authorization')}
               </div>
               <p className="text-[0.6875rem] text-orange-700 dark:text-orange-400 mb-3">
-                Daraz ab Sales channel ke safhe se ek click me jurta hai — orders, stock aur label wahin.
+                {t('Daraz ab Sales channel ke safhe se ek click me jurta hai — orders, stock aur label wahin.')}
               </p>
               <Button
                 size="sm"
@@ -343,7 +344,7 @@ export function IntegrationDetailModal({
                 onClick={openDarazChannel}
                 leftIcon={<ExternalLink className="h-3.5 w-3.5" />}
               >
-                Daraz channel kholein
+                {t('Daraz channel kholein')}
               </Button>
             </div>
           )}
@@ -355,7 +356,7 @@ export function IntegrationDetailModal({
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-extrabold text-brand-600 hover:underline"
             >
-              Partner portal kholein
+              {t('Partner portal kholein')}
               <ExternalLink className="h-3 w-3" />
             </a>
           )}
@@ -367,7 +368,7 @@ export function IntegrationDetailModal({
         <div className="space-y-3">
           {Object.keys(integration.credentials ?? {}).length === 0 ? (
             <div className="text-center py-8 text-sm text-slate-500 font-bold">
-              Is integration ke liye koi credentials required nahi
+              {t('Is integration ke liye koi credentials required nahi')}
             </div>
           ) : (
             Object.entries(integration.credentials ?? {}).map(([key, value]) => (
@@ -386,34 +387,33 @@ export function IntegrationDetailModal({
       {tab === 'connect' && (
         <div className="space-y-4">
           {integration.apiKey && (
-            <CopyField label="API Key" value={integration.apiKey} secret />
+            <CopyField label={t('API Key')} value={integration.apiKey} secret />
           )}
           {webhookUrl && (
-            <CopyField label="Webhook URL (orders yahan bhejein)" value={webhookUrl} />
+            <CopyField label={t('Webhook URL (orders yahan bhejein)')} value={webhookUrl} />
           )}
 
           {isCustomWebsite && (
             <>
-              <CodeBlock label="1. Order bhejne ka code" code={orderSnippet} />
-              <CopyField label="Products API (GET)" value={productsApiUrl} />
-              <CodeBlock label="2. Products fetch karne ka code" code={productsSnippet} />
-              <CodeBlock label="3. Order status update" code={statusSnippet} />
-              <CopyField label="Connection test URL (GET)" value={verifyUrl} />
+              <CodeBlock label={t('1. Order bhejne ka code')} code={orderSnippet} />
+              <CopyField label={t('Products API (GET)')} value={productsApiUrl} />
+              <CodeBlock label={t('2. Products fetch karne ka code')} code={productsSnippet} />
+              <CodeBlock label={t('3. Order status update')} code={statusSnippet} />
+              <CopyField label={t('Connection test URL (GET)')} value={verifyUrl} />
             </>
           )}
 
           {integration.type === 'FOODPANDA' && (
             <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-[0.6875rem] text-blue-700 dark:text-blue-400">
-              <div className="font-black mb-1">Foodpanda webhook setup:</div>
-              Ye URL Foodpanda partner portal ke Webhooks section mein paste karein. Har naya order
-              automatically Nafaa POS mein aa jayega.
+              <div className="font-black mb-1">{t('Foodpanda webhook setup:')}</div>
+              {t('Ye URL Foodpanda partner portal ke Webhooks section mein paste karein. Har naya order automatically Nafaa POS mein aa jayega.')}
             </div>
           )}
 
           {isSalesChannel && (
             <div className="flex items-center gap-2">
               <Badge variant={integration.webhookVerified ? 'success' : 'warning'} size="sm">
-                {integration.webhookVerified ? 'Verified' : 'Waiting for first webhook'}
+                {integration.webhookVerified ? t('Verified') : t('Waiting for first webhook')}
               </Badge>
             </div>
           )}
@@ -430,7 +430,7 @@ export function IntegrationDetailModal({
           {(integration.syncLogs ?? []).length === 0 ? (
             <div className="text-center py-10 text-sm text-slate-500">
               <RefreshCw className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <div className="font-bold">Koi sync log nahi</div>
+              <div className="font-bold">{t('Koi sync log nahi')}</div>
             </div>
           ) : (
             (integration.syncLogs ?? []).map((log) => (
@@ -461,12 +461,10 @@ export function IntegrationDetailModal({
                     {log.operation} · {log.direction}
                   </div>
                   <div className="text-[0.6875rem] text-slate-500">
-                    {log.recordsProcessed} processed · {log.recordsSuccess} ok ·{' '}
-                    {log.recordsFailed} failed
-                    {log.errorMessage ? ' · ' + log.errorMessage : ''}
+                    {t('{{recordsProcessed}} processed · {{recordsSuccess}} ok · {{recordsFailed}} failed{{value}}', { recordsProcessed: log.recordsProcessed, recordsSuccess: log.recordsSuccess, recordsFailed: log.recordsFailed, value: log.errorMessage ? ' · ' + log.errorMessage : '' })}
                   </div>
                 </div>
-                <div className="text-[0.6875rem] text-slate-400 font-bold shrink-0 text-right">
+                <div className="text-[0.6875rem] text-slate-400 font-bold shrink-0 text-end">
                   {new Date(log.startedAt).toLocaleString('en-PK', {
                     day: 'numeric',
                     month: 'short',

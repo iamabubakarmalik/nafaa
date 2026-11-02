@@ -17,6 +17,7 @@ import { bulkPricingApi } from '../api/bulk-pricing.api';
 import { reorderRulesApi } from '../api/reorder-rules.api';
 import { FACTS_KEY, TIERS_KEY } from '../hooks/useHardwareFacts';
 import { CATEGORY, categoryLabel, errorText, isPaint, slipUnit } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 interface TierDraft { id?: string; minQuantity: number | null; price: number | null; label: string }
 
@@ -51,11 +52,11 @@ function Kind({ ctx }: { ctx: StepContext<HardwareExtra> }) {
   const x = ctx.draft.extra;
   return (
     <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Maal ka type</span>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Maal ka type')}</span>
       <div className="flex flex-wrap gap-1.5">
         {CATEGORY.map((c) => <Chip key={c.value} on={x.categoryType === c.value} onClick={() => ctx.setExtra({ categoryType: x.categoryType === c.value ? '' : c.value })}>{c.label}</Chip>)}
       </div>
-      <p className="mt-1.5 text-[0.75rem] text-slate-500">Isi se agla step size, grade ya shade poochta hai aur POS par paint ka shade likhne ka option aata hai.</p>
+      <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Isi se agla step size, grade ya shade poochta hai aur POS par paint ka shade likhne ka option aata hai.')}</p>
     </div>
   );
 }
@@ -74,60 +75,60 @@ function Specs({ ctx }: { ctx: StepContext<HardwareExtra> }) {
   return (
     <div className="space-y-4">
       {(pipe || any) && (
-        <Section icon={Ruler} title="Size" hint="Bill aur challan par naam ke saath likha jata hai — har size ka rate alag ho to Stock step me size ko variant banayein">
-          <TextField label="Size / dia" value={x.diameter} onChange={(diameter) => set({ diameter })} placeholder='3/4", 4 inch, 2.5 mm' />
+        <Section icon={Ruler} title={tr('Size')} hint={tr('Bill aur challan par naam ke saath likha jata hai — har size ka rate alag ho to Stock step me size ko variant banayein')}>
+          <TextField label={tr('Size / dia')} value={x.diameter} onChange={(diameter) => set({ diameter })} placeholder={tr('3/4", 4 inch, 2.5 mm')} />
           <div className="mt-2 flex flex-wrap gap-1.5">{SIZES.map((v) => <Chip key={v} on={x.diameter === v} onClick={() => set({ diameter: x.diameter === v ? '' : v })}>{v}</Chip>)}</div>
-          <div className="mt-3"><TextField label="Class / grade" value={x.grade} onChange={(grade) => set({ grade })} placeholder="Class B, PN-10, Schedule 40" /></div>
+          <div className="mt-3"><TextField label={tr('Class / grade')} value={x.grade} onChange={(grade) => set({ grade })} placeholder={tr('Class B, PN-10, Schedule 40')} /></div>
         </Section>
       )}
       {steel && (
-        <Section icon={Ruler} title="Sarya" hint="Sootar aur grade — contractor isi se maangta hai">
+        <Section icon={Ruler} title={tr('Sarya')} hint={tr('Sootar aur grade — contractor isi se maangta hai')}>
           <div className="flex flex-wrap gap-1.5">{STEEL.map((v) => <Chip key={v} on={x.diameter === v} onClick={() => set({ diameter: x.diameter === v ? '' : v })}>{v}</Chip>)}</div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <TextField label="Grade" value={x.grade} onChange={(grade) => set({ grade })} placeholder="40 / 60" />
-            <NumberField label="Ek ton me kitne kg" allowEmpty value={x.bagWeight} onChange={(bagWeight) => set({ bagWeight })} suffix="kg" hint="Marzi hai" />
+            <TextField label={tr('Grade')} value={x.grade} onChange={(grade) => set({ grade })} placeholder="40 / 60" />
+            <NumberField label={tr('Ek ton me kitne kg')} allowEmpty value={x.bagWeight} onChange={(bagWeight) => set({ bagWeight })} suffix="kg" hint={tr('Marzi hai')} />
           </div>
         </Section>
       )}
       {cement && (
-        <Section icon={Layers} title="Cement" hint="Bag ka wazan aur type">
+        <Section icon={Layers} title={tr('Cement')} hint={tr('Bag ka wazan aur type')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <NumberField label="Bag ka wazan" allowEmpty value={x.bagWeight} onChange={(bagWeight) => set({ bagWeight })} suffix="kg" placeholder="50" />
-            <TextField label="Type" value={x.gradeStrength} onChange={(gradeStrength) => set({ gradeStrength })} placeholder="OPC, SRC, White" />
+            <NumberField label={tr('Bag ka wazan')} allowEmpty value={x.bagWeight} onChange={(bagWeight) => set({ bagWeight })} suffix="kg" placeholder="50" />
+            <TextField label={tr('Type')} value={x.gradeStrength} onChange={(gradeStrength) => set({ gradeStrength })} placeholder={tr('OPC, SRC, White')} />
           </div>
         </Section>
       )}
       {tile && (
-        <Section icon={Layers} title="Tiles" hint="Dabbe me kitni tiles aur kitne square feet — customer ke kamre ke hisaab se dabbe nikalte hain">
+        <Section icon={Layers} title={tr('Tiles')} hint={tr('Dabbe me kitni tiles aur kitne square feet — customer ke kamre ke hisaab se dabbe nikalte hain')}>
           <div className="flex flex-wrap gap-1.5">{TILE.map((v) => <Chip key={v} on={x.tileSize === v} onClick={() => set({ tileSize: x.tileSize === v ? '' : v })}>{v}</Chip>)}</div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <TextField label="Size" value={x.tileSize} onChange={(tileSize) => set({ tileSize })} placeholder="24x24" />
-            <NumberField label="Ek dabbe me tiles" allowEmpty value={x.piecesPerBox} onChange={(piecesPerBox) => set({ piecesPerBox: piecesPerBox == null ? null : Math.round(piecesPerBox) })} />
-            <NumberField label="Ek dabba = sq ft" allowEmpty value={x.sqftPerBox} onChange={(sqftPerBox) => set({ sqftPerBox })} suffix="sq ft" />
+            <TextField label={tr('Size')} value={x.tileSize} onChange={(tileSize) => set({ tileSize })} placeholder={tr('24x24')} />
+            <NumberField label={tr('Ek dabbe me tiles')} allowEmpty value={x.piecesPerBox} onChange={(piecesPerBox) => set({ piecesPerBox: piecesPerBox == null ? null : Math.round(piecesPerBox) })} />
+            <NumberField label={tr('Ek dabba = sq ft')} allowEmpty value={x.sqftPerBox} onChange={(sqftPerBox) => set({ sqftPerBox })} suffix="sq ft" />
           </div>
-          <div className="mt-3"><TextField label="Finish" value={x.finishType} onChange={(finishType) => set({ finishType })} placeholder="Glossy, Matt, Rustic" /></div>
+          <div className="mt-3"><TextField label={tr('Finish')} value={x.finishType} onChange={(finishType) => set({ finishType })} placeholder={tr('Glossy, Matt, Rustic')} /></div>
         </Section>
       )}
       {paint && (
-        <Section icon={Paintbrush} title="Paint" hint="Shade aur finish — tinting wala shade POS par har line par likha ja sakta hai">
+        <Section icon={Paintbrush} title={tr('Paint')} hint={tr('Shade aur finish — tinting wala shade POS par har line par likha ja sakta hai')}>
           <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
-            <TextField label="Shade ka naam" value={x.colorName} onChange={(colorName) => set({ colorName })} placeholder="Off white, Sky blue, Base A" />
-            <TextField label="Shade code" value={x.colorCode} onChange={(colorCode) => set({ colorCode })} placeholder="1234" />
+            <TextField label={tr('Shade ka naam')} value={x.colorName} onChange={(colorName) => set({ colorName })} placeholder={tr('Off white, Sky blue, Base A')} />
+            <TextField label={tr('Shade code')} value={x.colorCode} onChange={(colorCode) => set({ colorCode })} placeholder="1234" />
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">{SHEEN.map((v) => <Chip key={v} on={x.finishSheen === v} onClick={() => set({ finishSheen: x.finishSheen === v ? '' : v })}>{v}</Chip>)}</div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <NumberField label="Dabba (liter)" allowEmpty value={x.litersPerCan} onChange={(litersPerCan) => set({ litersPerCan })} suffix="L" hint="Quarter 0.9 · Gallon 3.64 · Drum 18.2" />
-            <NumberField label="Kitni deewar (sq ft per liter)" allowEmpty value={x.coverage} onChange={(coverage) => set({ coverage })} suffix="sq ft" />
+            <NumberField label={tr('Dabba (liter)')} allowEmpty value={x.litersPerCan} onChange={(litersPerCan) => set({ litersPerCan })} suffix="L" hint={tr('Quarter 0.9 · Gallon 3.64 · Drum 18.2')} />
+            <NumberField label={tr('Kitni deewar (sq ft per liter)')} allowEmpty value={x.coverage} onChange={(coverage) => set({ coverage })} suffix="sq ft" />
           </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">{CANS.map((v) => <Chip key={v} on={x.litersPerCan === v} onClick={() => set({ litersPerCan: v })}>{v} L</Chip>)}</div>
+          <div className="mt-2 flex flex-wrap gap-1.5">{CANS.map((v) => <Chip key={v} on={x.litersPerCan === v} onClick={() => set({ litersPerCan: v })}>{tr('{{v}} L', { v })}</Chip>)}</div>
         </Section>
       )}
-      <Section icon={Truck} title="Delivery aur company">
+      <Section icon={Truck} title={tr('Delivery aur company')}>
         <div className="grid gap-2 sm:grid-cols-2">
-          <Toggle on={x.requiresTruck} onChange={(requiresTruck) => set({ requiresTruck })} icon={Truck} title="Gaari me jata hai" hint="Cement, sarya, ret — bill ke baad challan yaad dilaya jata hai" />
-          <Toggle on={x.isFastMoving} onChange={(isFastMoving) => set({ isFastMoving })} title="Tez bikne wala" hint="Reorder list me upar aata hai" />
+          <Toggle on={x.requiresTruck} onChange={(requiresTruck) => set({ requiresTruck })} icon={Truck} title={tr('Gaari me jata hai')} hint={tr('Cement, sarya, ret — bill ke baad challan yaad dilaya jata hai')} />
+          <Toggle on={x.isFastMoving} onChange={(isFastMoving) => set({ isFastMoving })} title={tr('Tez bikne wala')} hint={tr('Reorder list me upar aata hai')} />
         </div>
-        <div className="mt-3"><TextField label="Kahan bana" value={x.manufacturingLocation} onChange={(manufacturingLocation) => set({ manufacturingLocation })} placeholder="Pakistan, China, Iran" /></div>
+        <div className="mt-3"><TextField label={tr('Kahan bana')} value={x.manufacturingLocation} onChange={(manufacturingLocation) => set({ manufacturingLocation })} placeholder={tr('Pakistan, China, Iran')} /></div>
       </Section>
     </div>
   );
@@ -144,21 +145,21 @@ function Tiers({ ctx }: { ctx: StepContext<HardwareExtra> }) {
     ctx.setExtra({ tiers: x.tiers.filter((_, j) => j !== i), removedTiers: t.id ? [...x.removedTiers, t.id] : x.removedTiers });
   };
   return (
-    <Section icon={Tags} title="Quantity rate (bulk)" hint={`Zyada ${c.unit || 'maal'} lene par kam rate — POS par quantity likhte hi lag jata hai`}
-      actions={<button type="button" onClick={() => set([...x.tiers, { minQuantity: null, price: null, label: '' }])} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />Rate jorein</button>}>
+    <Section icon={Tags} title={tr('Quantity rate (bulk)')} hint={tr('Zyada {{value}} lene par kam rate — POS par quantity likhte hi lag jata hai', { value: c.unit || 'maal' })}
+      actions={<button type="button" onClick={() => set([...x.tiers, { minQuantity: null, price: null, label: '' }])} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />{tr('Rate jorein')}</button>}>
       {x.tiers.length === 0 ? (
-        <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">Koi quantity rate nahi. Jaise: 50 bag se upar Rs 1,180 ek bag.</p>
+        <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">{tr('Koi quantity rate nahi. Jaise: 50 bag se upar Rs 1,180 ek bag.')}</p>
       ) : (
         <ul className="space-y-2">
           {x.tiers.map((t, i) => (
             <li key={t.id ?? i} className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-[1fr_1fr_1.2fr_auto]">
-              <NumberField label={`Kam se kam (${c.unit || 'qty'})`} allowEmpty value={t.minQuantity} onChange={(minQuantity) => update(i, { minQuantity })} />
-              <NumberField label="Ek ka rate" prefix="Rs" allowEmpty value={t.price} onChange={(price) => update(i, { price })} />
+              <NumberField label={tr('Kam se kam ({{value}})', { value: c.unit || 'qty' })} allowEmpty value={t.minQuantity} onChange={(minQuantity) => update(i, { minQuantity })} />
+              <NumberField label={tr('Ek ka rate')} prefix="Rs" allowEmpty value={t.price} onChange={(price) => update(i, { price })} />
               <label className="col-span-2 block sm:col-span-1">
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Naam (marzi)</span>
-                <input value={t.label} onChange={(e) => update(i, { label: e.target.value })} placeholder="Thekedar rate" className={inputClass} />
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Naam (marzi)')}</span>
+                <input value={t.label} onChange={(e) => update(i, { label: e.target.value })} placeholder={tr('Thekedar rate')} className={inputClass} />
               </label>
-              <button type="button" onClick={() => remove(i)} aria-label="Hatayein" className="mt-6 flex h-11 w-11 items-center justify-center self-start rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+              <button type="button" onClick={() => remove(i)} aria-label={tr('Hatayein')} className="mt-6 flex h-11 w-11 items-center justify-center self-start rounded-xl text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
             </li>
           ))}
         </ul>
@@ -173,40 +174,40 @@ function Reorder({ ctx }: { ctx: StepContext<HardwareExtra> }) {
   const x = ctx.draft.extra;
   const set = ctx.setExtra;
   return (
-    <Section title="Kab mangwana hai (reorder)" hint="Stock is had se neeche aaye to Reorder list aur dashboard par aata hai — khali chhor dein to nahi">
+    <Section title={tr('Kab mangwana hai (reorder)')} hint={tr('Stock is had se neeche aaye to Reorder list aur dashboard par aata hai — khali chhor dein to nahi')}>
       <div className="grid gap-3 sm:grid-cols-3">
-        <NumberField label="Reorder point" allowEmpty value={x.reorderPoint} onChange={(reorderPoint) => set({ reorderPoint })} error={ctx.errors.reorder} hint="Itna reh jaye to mangwayein" />
-        <NumberField label="Kam se kam (khatra)" allowEmpty value={x.minStock} onChange={(minStock) => set({ minStock })} />
-        <NumberField label="Kitna mangwana" allowEmpty value={x.reorderQty} onChange={(reorderQty) => set({ reorderQty })} />
+        <NumberField label={tr('Reorder point')} allowEmpty value={x.reorderPoint} onChange={(reorderPoint) => set({ reorderPoint })} error={ctx.errors.reorder} hint={tr('Itna reh jaye to mangwayein')} />
+        <NumberField label={tr('Kam se kam (khatra)')} allowEmpty value={x.minStock} onChange={(minStock) => set({ minStock })} />
+        <NumberField label={tr('Kitna mangwana')} allowEmpty value={x.reorderQty} onChange={(reorderQty) => set({ reorderQty })} />
       </div>
-      <div className="mt-3"><TextField label="Kis se mangwana" value={x.preferredSupplier} onChange={(preferredSupplier) => set({ preferredSupplier })} placeholder="Supplier ka naam / phone" /></div>
+      <div className="mt-3"><TextField label={tr('Kis se mangwana')} value={x.preferredSupplier} onChange={(preferredSupplier) => set({ preferredSupplier })} placeholder={tr('Supplier ka naam / phone')} /></div>
     </Section>
   );
 }
 
 const core: CoreOptions = {
   units: [
-    { value: 'pcs', label: 'Adad (pcs)' }, { value: 'feet', label: 'Feet' }, { value: 'meter', label: 'Meter' }, { value: 'kg', label: 'Kg' },
-    { value: 'bag', label: 'Bag' }, { value: 'box', label: 'Box / dabba' }, { value: 'gallon', label: 'Gallon' }, { value: 'liter', label: 'Liter' },
-    { value: 'sqft', label: 'Sq ft' }, { value: 'ton', label: 'Ton' }, { value: 'bundle', label: 'Bundle' }, { value: 'sheet', label: 'Sheet' },
-    { value: 'roll', label: 'Roll' }, { value: 'cft', label: 'Cft (ret/bajri)' }, { value: 'set', label: 'Set' },
+    { value: 'pcs', label: tr('Adad (pcs)') }, { value: 'feet', label: tr('Feet') }, { value: 'meter', label: tr('Meter') }, { value: 'kg', label: tr('Kg') },
+    { value: 'bag', label: tr('Bag') }, { value: 'box', label: tr('Box / dabba') }, { value: 'gallon', label: tr('Gallon') }, { value: 'liter', label: tr('Liter') },
+    { value: 'sqft', label: tr('Sq ft') }, { value: 'ton', label: tr('Ton') }, { value: 'bundle', label: tr('Bundle') }, { value: 'sheet', label: tr('Sheet') },
+    { value: 'roll', label: tr('Roll') }, { value: 'cft', label: tr('Cft (ret/bajri)') }, { value: 'set', label: tr('Set') },
   ],
   skuPrefix: 'HW',
   packs: true,
   variants: { presets: [
-    { group: 'Pipe / fitting size', values: SIZES },
-    { group: 'Sarya', values: STEEL },
-    { group: 'Paint dabba', values: ['Quarter', 'Gallon', 'Drum'] },
-    { group: 'Rang', values: ['White', 'Black', 'Grey', 'Ivory', 'Chrome'] },
+    { group: tr('Pipe / fitting size'), values: SIZES },
+    { group: tr('Sarya'), values: STEEL },
+    { group: tr('Paint dabba'), values: ['Quarter', 'Gallon', 'Drum'] },
+    { group: tr('Rang'), values: ['White', 'Black', 'Grey', 'Ivory', 'Chrome'] },
   ] },
   batches: false,
   markups: [5, 8, 10, 15, 20],
 };
 
-const specsStep: StepDef<HardwareExtra> = { id: 'specs', title: 'Size / shade', hint: 'Size, grade, paint', icon: Ruler, render: (ctx) => <Specs ctx={ctx} /> };
+const specsStep: StepDef<HardwareExtra> = { id: 'specs', title: tr('Size / shade'), hint: tr('Size, grade, paint'), icon: Ruler, render: (ctx) => <Specs ctx={ctx} /> };
 
 const config: EditorConfig<HardwareExtra> = {
-  label: 'Hardware',
+  label: tr('Hardware'),
   draftKey: 'nafaa.product-editor.hardware',
   paths: { list: '/hardware/products', detail: (id) => `/hardware-products/${id}`, create: '/hardware-products/new' },
   core,
@@ -249,14 +250,14 @@ const config: EditorConfig<HardwareExtra> = {
         await reorderRulesApi.upsert({
           productId, reorderPoint: x.reorderPoint, minStock: x.minStock ?? 0, reorderQty: x.reorderQty ?? Math.max(x.reorderPoint * 2, 1),
           preferredSupplier: opt(x.preferredSupplier), isActive: true,
-        }).catch((e) => toast.error(errorText(e, 'Reorder point save nahi hua')));
+        }).catch((e) => toast.error(errorText(e, tr('Reorder point save nahi hua'))));
       }
     },
   },
   steps: [
     basicStep<HardwareExtra>(core, {
       extra: (ctx) => <Kind ctx={ctx} />,
-      namePlaceholder: 'Jaise: PPR Pipe 3/4" ya Lucky Cement',
+      namePlaceholder: tr('Jaise: PPR Pipe 3/4" ya Lucky Cement'),
       categorySuggestions: ['Cement', 'Sarya', 'Pipe aur fitting', 'Sanitary', 'Paint', 'Electric', 'Tiles', 'Auzar', 'Kil aur pech'],
     }),
     specsStep,
@@ -270,31 +271,31 @@ const config: EditorConfig<HardwareExtra> = {
     return (
       <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
         {facts.length > 0 && <p className="text-slate-700">{facts.join(' · ')}</p>}
-        {x.tiers.length > 0 && <p className={cn('text-slate-600')}>{x.tiers.length} quantity rate</p>}
-        {x.reorderPoint != null && <p className="text-slate-600">Reorder: {x.reorderPoint} par</p>}
+        {x.tiers.length > 0 && <p className={cn('text-slate-600')}>{tr('{{count}} quantity rate', { count: x.tiers.length })}</p>}
+        {x.reorderPoint != null && <p className="text-slate-600">{tr('Reorder: {{reorderPoint}} par', { reorderPoint: x.reorderPoint })}</p>}
       </div>
     );
   },
   refresh: [FACTS_KEY, TIERS_KEY, 'hardware-product-detail', 'hardware-reorder'],
   guide: [
-    { icon: Layers, color: '#a16207', title: 'Khula aur pack', text: 'Base unit feet ya piece rakhein; Price step me "Lambai = 20 feet" ya "Dabba = 100" pack jorein — dono tarah bikta hai, stock base unit me ginta hai.' },
-    { icon: Tags, color: '#16a34a', title: 'Retail, wholesale, quantity rate', text: 'Wholesale rate thekedar ke liye; quantity rate zyada lene par khud lagta hai (50 bag se upar).' },
-    { icon: Ruler, color: '#0891b2', title: 'Size', text: 'Har size ka rate aur stock alag ho to Stock step me size ko variant banayein (1/2", 3/4"…).' },
+    { icon: Layers, color: '#a16207', title: tr('Khula aur pack'), text: tr('Base unit feet ya piece rakhein; Price step me "Lambai = 20 feet" ya "Dabba = 100" pack jorein — dono tarah bikta hai, stock base unit me ginta hai.') },
+    { icon: Tags, color: '#16a34a', title: tr('Retail, wholesale, quantity rate'), text: tr('Wholesale rate thekedar ke liye; quantity rate zyada lene par khud lagta hai (50 bag se upar).') },
+    { icon: Ruler, color: '#0891b2', title: tr('Size'), text: tr('Har size ka rate aur stock alag ho to Stock step me size ko variant banayein (1/2", 3/4"…).') },
   ],
 };
 
 function tierErrors(x: HardwareExtra, price: number): Errors {
   const mins = x.tiers.map((t) => Number(t.minQuantity));
-  if (x.tiers.some((t) => !(Number(t.minQuantity) > 0) || !(Number(t.price) > 0))) return { tiers: 'Har quantity rate me kam se kam quantity aur rate likhein' };
-  if (new Set(mins).size !== mins.length) return { tiers: 'Do rate ek hi quantity par hain' };
-  if (price > 0 && x.tiers.some((t) => Number(t.price) > price)) return { tiers: 'Quantity rate asal qeemat se zyada nahi hona chahiye' };
+  if (x.tiers.some((t) => !(Number(t.minQuantity) > 0) || !(Number(t.price) > 0))) return { tiers: tr('Har quantity rate me kam se kam quantity aur rate likhein') };
+  if (new Set(mins).size !== mins.length) return { tiers: tr('Do rate ek hi quantity par hain') };
+  if (price > 0 && x.tiers.some((t) => Number(t.price) > price)) return { tiers: tr('Quantity rate asal qeemat se zyada nahi hona chahiye') };
   return {};
 }
 
 function reorderErrors(x: HardwareExtra): Errors {
   if (x.reorderPoint == null) return {};
-  if (x.reorderPoint < 0 || (x.minStock ?? 0) < 0) return { reorder: 'Had manfi nahi ho sakti' };
-  if (x.minStock != null && x.minStock > x.reorderPoint) return { reorder: 'Kam se kam wali had reorder point se bari nahi ho sakti' };
+  if (x.reorderPoint < 0 || (x.minStock ?? 0) < 0) return { reorder: tr('Had manfi nahi ho sakti') };
+  if (x.minStock != null && x.minStock > x.reorderPoint) return { reorder: tr('Kam se kam wali had reorder point se bari nahi ho sakti') };
   return {};
 }
 

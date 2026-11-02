@@ -39,20 +39,21 @@ import { StaffCalendar } from '../components/StaffCalendar';
 import { TodayBoard } from '../components/TodayBoard';
 import { ATT_KEY, LEAVE_STATUS, LIVE, absentDays, dayLabel, downloadCsv, liveState, mins, monthLabel, monthRange, recentMonths, type LiveState } from '../components/meta';
 import { boardDoc, sheetCsv, sheetDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'today' | 'month' | 'leaves' | 'analytics';
 type MonthFilter = 'late' | 'absent' | 'leave' | 'overtime' | 'perfect';
 
 const TODAY_FILTERS: Array<FilterOption<LiveState | 'late'>> = [
   ...(Object.keys(LIVE) as LiveState[]).map((k) => ({ value: k, label: LIVE[k].label, hint: LIVE[k].hint, icon: LIVE[k].icon, color: LIVE[k].color })),
-  { value: 'late', label: 'Aaj late aaye', hint: 'Khulne ke waqt ke baad', icon: AlarmClock, color: '#d97706' },
+  { value: 'late', label: tr('Aaj late aaye'), hint: tr('Khulne ke waqt ke baad'), icon: AlarmClock, color: '#d97706' },
 ];
 const MONTH_FILTERS: Array<FilterOption<MonthFilter>> = [
-  { value: 'late', label: 'Late aane wale', hint: 'Mahine me kam az kam ek dafa', icon: AlarmClock, color: '#d97706' },
-  { value: 'absent', label: 'Ghair hazir rahe', hint: 'Absent ya hazri nahi lagi', icon: UserX, color: '#e11d48' },
-  { value: 'leave', label: 'Chhutti li', icon: Palmtree, color: '#7c3aed' },
-  { value: 'overtime', label: 'Overtime kiya', icon: Clock, color: '#0284c7' },
-  { value: 'perfect', label: 'Poori hazri', hint: 'Na late, na ghair hazir', icon: Sun, color: '#16a34a' },
+  { value: 'late', label: tr('Late aane wale'), hint: tr('Mahine me kam az kam ek dafa'), icon: AlarmClock, color: '#d97706' },
+  { value: 'absent', label: tr('Ghair hazir rahe'), hint: tr('Absent ya hazri nahi lagi'), icon: UserX, color: '#e11d48' },
+  { value: 'leave', label: tr('Chhutti li'), icon: Palmtree, color: '#7c3aed' },
+  { value: 'overtime', label: tr('Overtime kiya'), icon: Clock, color: '#0284c7' },
+  { value: 'perfect', label: tr('Poori hazri'), hint: tr('Na late, na ghair hazir'), icon: Sun, color: '#16a34a' },
 ];
 const LEAVE_FILTERS: Array<FilterOption<LeaveStatus>> = (Object.keys(LEAVE_STATUS) as LeaveStatus[]).map((k) => ({ value: k, label: LEAVE_STATUS[k].label, icon: LEAVE_STATUS[k].icon }));
 
@@ -163,7 +164,7 @@ export default function AttendancePage() {
       const s = visible(sheet ?? await fetchSheet());
       downloadCsv(`hazri-${month}.csv`, sheetCsv(s));
     } catch {
-      toast.error('CSV nahi bani — dobara koshish karein');
+      toast.error(tr('CSV nahi bani — dobara koshish karein'));
     }
   };
 
@@ -190,8 +191,8 @@ export default function AttendancePage() {
       <p className="mt-3 font-semibold text-slate-900">{title}</p>
       <p className="mt-1 text-sm text-slate-500">{text}</p>
       {filtered
-        ? <Button className="mt-4" variant="ghost" onClick={clear}>Filter saaf karein</Button>
-        : !board?.rows.length && <Link to="/staff" className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline">Staff page par jayein</Link>}
+        ? <Button className="mt-4" variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>
+        : !board?.rows.length && <Link to="/staff" className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline">{tr('Staff page par jayein')}</Link>}
     </div>
   );
   const listSkeleton = <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>;
@@ -199,59 +200,59 @@ export default function AttendancePage() {
   return (
     <PageShell>
       <PageHero
-        title="Hazri (attendance)"
+        title={tr('Hazri (attendance)')}
         chip={<><CalendarDays /> {dayLabel(today, { weekday: 'long', day: 'numeric', month: 'long' })}</>}
-        meta={clock ? `Dukaan ${clock.openTime} par khulti hai · ${clock.graceMinutes} min tak late nahi` : 'Aaj kaun aaya, kaun late, kaun chhutti par'}
+        meta={clock ? tr('Dukaan {{openTime}} par khulti hai · {{graceMinutes}} min tak late nahi', { openTime: clock.openTime, graceMinutes: clock.graceMinutes }) : tr('Aaj kaun aaya, kaun late, kaun chhutti par')}
         busy={boardQ.isFetching && !boardQ.isLoading}
         loading={boardQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
-            <PrintButton doc={printDoc} disabled={!board?.rows.length} label={tab === 'today' ? 'Aaj' : 'Sheet'} />
+            <PrintButton doc={printDoc} disabled={!board?.rows.length} label={tab === 'today' ? tr('Aaj') : tr('Sheet')} />
           </span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!board?.rows.length} title="Mahine ki sheet CSV (payroll ke liye)" className={heroButton}>
-            <Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span>
+          <button type="button" onClick={() => void exportCsv()} disabled={!board?.rows.length} title={tr('Mahine ki sheet CSV (payroll ke liye)')} className={heroButton}>
+            <Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span>
           </button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canPunch && (
-            <button type="button" onClick={() => setLeaveFor('')} title="Nayi chhutti (L)" className={heroPrimaryButton}><Palmtree className="h-4 w-4" /> Chhutti likhein</button>
+            <button type="button" onClick={() => setLeaveFor('')} title={tr('Nayi chhutti (L)')} className={heroPrimaryButton}><Palmtree className="h-4 w-4" /> {' '}{tr('Chhutti likhein')}</button>
           )}
         </>}
         stats={[
-          { label: 'Aaj aaye', value: c ? `${c.present} / ${c.staff - c.off - c.leave}` : '—', hint: c ? `${c.inside} abhi andar` : undefined },
-          { label: 'Late', value: c ? String(c.late) : '—', hint: c?.lateMinutes ? mins(c.lateMinutes) : undefined },
-          { label: 'Abhi nahi aaye', value: c ? String(c.notIn) : '—' },
-          { label: 'Chhutti par', value: c ? String(c.leave) : '—', hint: c?.pendingLeaves ? `${c.pendingLeaves} darkhwast baqi` : undefined },
+          { label: tr('Aaj aaye'), value: c ? `${c.present} / ${c.staff - c.off - c.leave}` : '—', hint: c ? tr('{{inside}} abhi andar', { inside: c.inside }) : undefined },
+          { label: tr('Late'), value: c ? String(c.late) : '—', hint: c?.lateMinutes ? mins(c.lateMinutes) : undefined },
+          { label: tr('Abhi nahi aaye'), value: c ? String(c.notIn) : '—' },
+          { label: tr('Chhutti par'), value: c ? String(c.leave) : '—', hint: c?.pendingLeaves ? tr('{{pendingLeaves}} darkhwast baqi', { pendingLeaves: c.pendingLeaves }) : undefined },
         ]}
       />
 
       {clock && !clock.openTimeSet && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <Settings2 className="h-4 w-4 shrink-0" />
-          Dukaan khulne ka waqt Settings me nahi likha, is liye late 09:00 se gina ja raha hai.
-          <Link to="/settings/language" className="font-semibold underline">Waqt likhein</Link>
+          {tr('Dukaan khulne ka waqt Settings me nahi likha, is liye late 09:00 se gina ja raha hai.')}
+          <Link to="/settings/language" className="font-semibold underline">{tr('Waqt likhein')}</Link>
         </div>
       )}
 
       <KpiRow cols={5}>
         {!c ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={LogIn} color="#16a34a" label="Abhi andar" value={c.inside} hint={`${c.out} ja chuke`}
+          <KpiCard icon={LogIn} color="#16a34a" label={tr('Abhi andar')} value={c.inside} hint={tr('{{out}} ja chuke', { out: c.out })}
             onClick={() => show('today', 'inside')} active={tab === 'today' && status === 'inside'} />
-          <KpiCard icon={AlarmClock} color="#d97706" label="Aaj late" value={c.late} hint={c.lateMinutes ? `${mins(c.lateMinutes)} kul` : 'Sab waqt par'}
+          <KpiCard icon={AlarmClock} color="#d97706" label={tr('Aaj late')} value={c.late} hint={c.lateMinutes ? tr('{{lateMinutes}} kul', { lateMinutes: mins(c.lateMinutes) }) : tr('Sab waqt par')}
             onClick={() => show('today', 'late')} active={tab === 'today' && status === 'late'} />
-          <KpiCard icon={Clock} color="#e11d48" label="Abhi nahi aaye" value={c.notIn + c.absent} hint={c.absent ? `${c.absent} absent lage` : board?.workingDay ? 'Check-in baqi' : 'Aaj chhutti ka din'}
+          <KpiCard icon={Clock} color="#e11d48" label={tr('Abhi nahi aaye')} value={c.notIn + c.absent} hint={c.absent ? tr('{{absent}} absent lage', { absent: c.absent }) : board?.workingDay ? tr('Check-in baqi') : tr('Aaj chhutti ka din')}
             onClick={() => show('today', 'notIn')} active={tab === 'today' && status === 'notIn'} />
-          <KpiCard icon={Palmtree} color="#7c3aed" label="Chhutti par" value={c.leave} hint={`${c.off} off`}
+          <KpiCard icon={Palmtree} color="#7c3aed" label={tr('Chhutti par')} value={c.leave} hint={tr('{{off}} off', { off: c.off })}
             onClick={() => show('today', 'leave')} active={tab === 'today' && status === 'leave'} />
-          <KpiCard icon={CalendarRange} color="#475569" label="Chhutti darkhwast" value={c.pendingLeaves} hint="Faisla baqi"
+          <KpiCard icon={CalendarRange} color="#475569" label={tr('Chhutti darkhwast')} value={c.pendingLeaves} hint={tr('Faisla baqi')}
             onClick={() => show('leaves', 'PENDING')} active={tab === 'leaves' && status === 'PENDING'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, staff number ya ohda…" label="Staff search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, staff number ya ohda…')} label={tr('Staff search')} />}
         chips={filtered ? <>
           {branch && <FilterChip onRemove={() => setBranch('')}>{branchLabel}</FilterChip>}
-          {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffLabel ?? 'Staff'}</FilterChip>}
+          {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffLabel ?? tr('Staff')}</FilterChip>}
           {status && <FilterChip onRemove={() => setStatus('')}>{statusLabel}</FilterChip>}
           {q && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
@@ -261,36 +262,36 @@ export default function AttendancePage() {
             options={months.map((m) => ({ value: m.value, label: m.label }))} />
         )}
         {allShops && branches.length > 1 && (
-          <FilterMenu icon={Store} label={branchLabel ?? 'Branch'} value={branch} active={!!branch} onChange={setBranch}
-            options={[{ value: '', label: 'Sab branches' }, ...branches.map((s) => ({ value: s.id, label: s.name }))]} />
+          <FilterMenu icon={Store} label={branchLabel ?? tr('Branch')} value={branch} active={!!branch} onChange={setBranch}
+            options={[{ value: '', label: tr('Sab branches') }, ...branches.map((s) => ({ value: s.id, label: s.name }))]} />
         )}
         {tab !== 'leaves' && (
-          <FilterMenu icon={UserRound} label={staffLabel ?? 'Staff'} value={staffId} active={!!staffId} onChange={setStaffId}
-            options={[{ value: '', label: 'Sab staff' }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: s.designation }))]} />
+          <FilterMenu icon={UserRound} label={staffLabel ?? tr('Staff')} value={staffId} active={!!staffId} onChange={setStaffId}
+            options={[{ value: '', label: tr('Sab staff') }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: s.designation }))]} />
         )}
-        <FilterMenu icon={Filter} label={statusLabel ?? 'Haal'} value={status} active={!!status} align="right" onChange={setStatus}
-          options={[{ value: '', label: 'Sab' }, ...statusOptions]} />
+        <FilterMenu icon={Filter} label={statusLabel ?? tr('Haal')} value={status} active={!!status} align="right" onChange={setStatus}
+          options={[{ value: '', label: tr('Sab') }, ...statusOptions]} />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={(t) => show(t)}
-        hint={<><Kbd>T</Kbd> aaj · <Kbd>M</Kbd> mahina · <Kbd>C</Kbd> chhutiyan · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+        hint={<><Kbd>T</Kbd> {' '}{tr('aaj ·')}{' '} <Kbd>M</Kbd> {' '}{tr('mahina ·')}{' '} <Kbd>C</Kbd> {' '}{tr('chhutiyan ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</>}
         tabs={[
-          { id: 'today', label: 'Aaj', icon: Sun, count: c ? c.present : null },
-          { id: 'month', label: 'Mahina', icon: CalendarDays },
-          { id: 'leaves', label: 'Chhutiyan', icon: Palmtree, count: c?.pendingLeaves || null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'today', label: tr('Aaj'), icon: Sun, count: c ? c.present : null },
+          { id: 'month', label: tr('Mahina'), icon: CalendarDays },
+          { id: 'leaves', label: tr('Chhutiyan'), icon: Palmtree, count: c?.pendingLeaves || null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'today' && (
         boardQ.isLoading ? listSkeleton : !board || !boardRows.length
-          ? empty(filtered ? 'Is filter me koi nahi' : 'Abhi koi staff nahi', 'Staff page par staff add karein; phir yahan roz check-in aur check-out lagta hai.')
+          ? empty(filtered ? tr('Is filter me koi nahi') : tr('Abhi koi staff nahi'), tr('Staff page par staff add karein; phir yahan roz check-in aur check-out lagta hai.'))
           : <TodayBoard rows={boardRows} board={board} showShop={allShops} canPunch={canPunch} canCorrect={canCorrect}
               onCorrect={(staff, cell) => setFixing({ staff, date: board.day, cell })} />
       )}
 
       {tab === 'month' && (
         sheetQ.isLoading || !sheet ? <Skeleton className="h-80 rounded-3xl" /> : !sheetRows.length
-          ? empty(filtered ? 'Is filter me koi nahi' : 'Is mahine koi hazri nahi', 'Har din ki hazri yahan ek khane me dikhti hai — hazir, late, chhutti ya ghair hazir.')
+          ? empty(filtered ? tr('Is filter me koi nahi') : tr('Is mahine koi hazri nahi'), tr('Har din ki hazri yahan ek khane me dikhti hai — hazir, late, chhutti ya ghair hazir.'))
           : staffId && sheetRows.length === 1
             ? <StaffCalendar sheet={sheet} row={sheetRows[0]} canCorrect={canCorrect}
                 onCell={(staff, date, cell) => setFixing({ staff, date, cell })} />
@@ -301,7 +302,7 @@ export default function AttendancePage() {
       {tab === 'leaves' && (
         leavesQ.isLoading ? listSkeleton
           : <LeavesList leaves={leaveRows} showShop={allShops} canDecide={canPunch}
-              empty={empty(filtered ? 'Is filter me koi chhutti nahi' : `${monthLabel(month)} me koi chhutti nahi`, 'Chhutti likhne ke liye upar "Chhutti likhein" dabayein. Approve chhutti sheet par khud lagti hai.')} />
+              empty={empty(filtered ? tr('Is filter me koi chhutti nahi') : tr('{{month}} me koi chhutti nahi', { month: monthLabel(month) }), tr('Chhutti likhne ke liye upar "Chhutti likhein" dabayein. Approve chhutti sheet par khud lagti hai.'))} />
       )}
 
       {tab === 'analytics' && (
@@ -318,21 +319,21 @@ export default function AttendancePage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Hazri — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Hazri — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: LogIn, color: '#16a34a', title: 'Check-in / check-out', text: 'Staff aaye to "Check-in", jaye to "Check-out" dabayein. Waqt dukaan ki ghari se lagta hai; do dafa dabane se waqt nahi badalta.' },
-            { icon: AlarmClock, color: '#d97706', title: 'Late khud ginta hai', text: 'Dukaan khulne ke waqt (Settings → Zubaan aur waqt) ke baad check-in late ginta hai. Thori der ki discount hai; us ke baad poore minute gine jate hain.' },
-            { icon: PencilLine, color: '#2563eb', title: 'Hazri theek karein', text: 'Malik ya manager kisi bhi din ka haal aur waqt badal sakta hai. Wajah likhna zaroori hai aur badli hui cheez activity log me jati hai.' },
-            { icon: CalendarDays, color: '#7c3aed', title: 'Mahina', text: 'Har banda ek line, har din ek khana. Daayein taraf kaam ke din, late, ghair hazir, chhutti aur overtime — tankhwah banane ke liye. Staff filter me ek banda chunein to us ka poora calendar dikhta hai.' },
-            { icon: Palmtree, color: '#db2777', title: 'Chhutiyan', text: 'Chhutti likhein, phir manzoor ya na-manzoor karein. Manzoor chhutti ke din sheet par khud "C" dikhta hai; bina tankhwah wali alag gini jati hai.' },
-            { icon: Printer, color: '#475569', title: 'Print aur CSV', text: 'Mahine ki sheet A4 ya PDF me print karein, ya CSV nikal kar payroll me istemal karein. Aaj wale tab par aaj ki list print hoti hai.' },
+            { icon: LogIn, color: '#16a34a', title: tr('Check-in / check-out'), text: tr('Staff aaye to "Check-in", jaye to "Check-out" dabayein. Waqt dukaan ki ghari se lagta hai; do dafa dabane se waqt nahi badalta.') },
+            { icon: AlarmClock, color: '#d97706', title: tr('Late khud ginta hai'), text: tr('Dukaan khulne ke waqt (Settings → Zubaan aur waqt) ke baad check-in late ginta hai. Thori der ki discount hai; us ke baad poore minute gine jate hain.') },
+            { icon: PencilLine, color: '#2563eb', title: tr('Hazri theek karein'), text: tr('Malik ya manager kisi bhi din ka haal aur waqt badal sakta hai. Wajah likhna zaroori hai aur badli hui cheez activity log me jati hai.') },
+            { icon: CalendarDays, color: '#7c3aed', title: tr('Mahina'), text: tr('Har banda ek line, har din ek khana. Daayein taraf kaam ke din, late, ghair hazir, chhutti aur overtime — tankhwah banane ke liye. Staff filter me ek banda chunein to us ka poora calendar dikhta hai.') },
+            { icon: Palmtree, color: '#db2777', title: tr('Chhutiyan'), text: tr('Chhutti likhein, phir manzoor ya na-manzoor karein. Manzoor chhutti ke din sheet par khud "C" dikhta hai; bina tankhwah wali alag gini jati hai.') },
+            { icon: Printer, color: '#475569', title: tr('Print aur CSV'), text: tr('Mahine ki sheet A4 ya PDF me print karein, ya CSV nikal kar payroll me istemal karein. Aaj wale tab par aaj ki list print hoti hai.') },
           ]}
           tips={[
-            'Jin kaam ke dinon hazri nahi lagi wo laal "—" dikhte hain aur ghair hazir me gine jate hain. Aaj ka din raat tak khula rehta hai.',
-            'Hafta war chhutti ke din Settings ke "kaam ke din" se aate hain.',
-            'Check-in aur check-out ke liye "Staff manage" ki ijazat chahiye; theek karna sirf malik aur manager ka kaam hai.',
+            tr('Jin kaam ke dinon hazri nahi lagi wo laal "—" dikhte hain aur ghair hazir me gine jate hain. Aaj ka din raat tak khula rehta hai.'),
+            tr('Hafta war chhutti ke din Settings ke "kaam ke din" se aate hain.'),
+            tr('Check-in aur check-out ke liye "Staff manage" ki ijazat chahiye; theek karna sirf malik aur manager ka kaam hai.'),
           ]}
-          shortcuts={[['T', 'aaj'], ['M', 'mahina'], ['C', 'chhutiyan'], ['A', 'analytics'], ['L', 'nayi chhutti'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['T', tr('aaj')], ['M', tr('mahina')], ['C', tr('chhutiyan')], ['A', tr('analytics')], ['L', tr('nayi chhutti')], ['/', tr('dhoondein')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>

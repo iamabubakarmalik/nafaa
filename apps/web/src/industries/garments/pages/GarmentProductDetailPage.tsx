@@ -14,6 +14,7 @@ import { ProductDetailPage, type DetailConfig } from '@modules/inventory/product
 import { collectionsApi, type GarmentCollection } from '../api/collections.api';
 import { garmentProductsApi, type GarmentProductProfile, type SizeGrid } from '../api/products.api';
 import { fabricLabel, garmentLabel, genderLabel, seasonLabel } from '../components/meta';
+import { t } from '@core/i18n';
 
 interface Extra { profile: GarmentProductProfile | null; grid: SizeGrid | null; collection: GarmentCollection | null }
 
@@ -28,8 +29,8 @@ function GridTable({ grid }: { grid: SizeGrid }) {
       <ul className="divide-y divide-slate-100">
         {grid.variants.map((v) => (
           <li key={v.id} className="flex items-center justify-between gap-3 px-4 py-2 text-[0.8125rem] sm:px-5">
-            <span className="font-medium text-slate-800">{v.name}{v.barcode && <span className="ml-2 font-mono text-[0.6875rem] text-slate-400">{v.barcode}</span>}</span>
-            <span className={cn('tabular-nums font-semibold', v.stock <= 0 ? 'text-rose-600' : v.stock <= v.lowStockAlert ? 'text-amber-700' : 'text-slate-900')}>{Math.round(v.stock)}{v.reserved > 0 ? ` (${Math.round(v.reserved)} hold)` : ''} · {Math.round(v.sold30)} bike</span>
+            <span className="font-medium text-slate-800">{v.name}{v.barcode && <span className="ms-2 font-mono text-[0.6875rem] text-slate-400">{v.barcode}</span>}</span>
+            <span className={cn('tabular-nums font-semibold', v.stock <= 0 ? 'text-rose-600' : v.stock <= v.lowStockAlert ? 'text-amber-700' : 'text-slate-900')}>{t('{{stock}}{{value}} · {{sold30}} bike', { stock: Math.round(v.stock), value: v.reserved > 0 ? t(' ({{reserved}} hold)', { reserved: Math.round(v.reserved) }) : '', sold30: Math.round(v.sold30) })}</span>
           </li>
         ))}
       </ul>
@@ -38,7 +39,7 @@ function GridTable({ grid }: { grid: SizeGrid }) {
   return (
     <Table minWidth="24rem">
       <THead><Tr>
-        <Th className="px-4 py-2.5 sm:px-5">Size</Th>{colors.map((c) => <Th align="center" key={c} className="px-3 py-2.5">{c || 'Stock'}</Th>)}
+        <Th className="px-4 py-2.5 sm:px-5">{t('Size')}</Th>{colors.map((c) => <Th align="center" key={c} className="px-3 py-2.5">{c || t('Stock')}</Th>)}
       </Tr></THead>
       <TBody>
         {sizes.map((s) => (
@@ -50,7 +51,7 @@ function GridTable({ grid }: { grid: SizeGrid }) {
               return (
                 <Td align="center" key={c} className="px-3 py-2" title={v.byShop.map((b) => `${b.name}: ${b.stock}`).join(' · ')}>
                   <span className={cn('inline-block min-w-[2.5rem] rounded-lg px-2 py-1 font-bold tabular-nums', v.stock <= 0 ? 'bg-rose-50 text-rose-700' : v.stock <= v.lowStockAlert ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{Math.round(v.stock)}</span>
-                  <span className="block text-[0.6875rem] text-slate-500">{Math.round(v.sold30)} bike{v.reserved > 0 ? ` · ${Math.round(v.reserved)} hold` : ''}{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</span>
+                  <span className="block text-[0.6875rem] text-slate-500">{t('{{sold30}} bike{{value}}{{value2}}', { sold30: Math.round(v.sold30), value: v.reserved > 0 ? t(' · {{reserved}} hold', { reserved: Math.round(v.reserved) }) : '', value2: grid.shops.length > 1 ? t(' · kul {{allStock}}', { allStock: Math.round(v.allStock) }) : '' })}</span>
                 </Td>
               );
             })}
@@ -62,7 +63,7 @@ function GridTable({ grid }: { grid: SizeGrid }) {
 }
 
 const config: DetailConfig<Extra> = {
-  label: 'Garments',
+  label: t('Garments'),
   paths: { list: '/garments/products', edit: (id) => `/garment-products/${id}/edit` },
   stockChips: [1, 3, 6, 12, 24],
   extra: {
@@ -83,9 +84,9 @@ const config: DetailConfig<Extra> = {
       <>
         {p.gender && <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[0.75rem] font-medium text-slate-700">{genderLabel(p.gender)}</span>}
         {p.categoryType && <span className="rounded-md bg-pink-50 px-2 py-0.5 text-[0.75rem] font-medium text-pink-700">{garmentLabel(p.categoryType)}</span>}
-        {p.isFabricOnly && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">Unstitched</span>}
-        {p.isOnSale && <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[0.75rem] font-bold text-white">Sale</span>}
-        {p.isNewArrival && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">Naya</span>}
+        {p.isFabricOnly && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">{t('Unstitched')}</span>}
+        {p.isOnSale && <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[0.75rem] font-bold text-white">{t('Sale')}</span>}
+        {p.isNewArrival && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-700">{t('Naya')}</span>}
       </>
     );
   },
@@ -93,20 +94,20 @@ const config: DetailConfig<Extra> = {
     const p = extra?.profile;
     if (!p) return [];
     const rows: Array<[string, ReactNode]> = [
-      ['Season', seasonLabel(p.season)],
-      ['Collection', extra?.collection ? <Link to="/garments/collections" className="text-brand-700 hover:underline">{extra.collection.name}</Link> : '—'],
-      ['Kapra', fabricLabel(p.fabricType)],
-      ['Article code', p.styleCode || '—'],
-      ['Ho sakta hai', [p.allowAlteration && 'Alteration', p.allowReservation && 'Hold', p.allowLayaway && 'Qist'].filter(Boolean).join(', ') || '—'],
+      [t('Season'), seasonLabel(p.season)],
+      [t('Collection'), extra?.collection ? <Link to="/garments/collections" className="text-brand-700 hover:underline">{extra.collection.name}</Link> : '—'],
+      [t('Kapra'), fabricLabel(p.fabricType)],
+      [t('Article code'), p.styleCode || '—'],
+      [t('Ho sakta hai'), [p.allowAlteration && t('Alteration'), p.allowReservation && t('Hold'), p.allowLayaway && t('Qist')].filter(Boolean).join(', ') || '—'],
     ];
-    if (p.careInstructions) rows.push(['Dhulai', p.careInstructions]);
+    if (p.careInstructions) rows.push([t('Dhulai'), p.careInstructions]);
     return rows;
   },
   tile: ({ extra }) => {
     const g = extra?.grid;
     if (!g) return null;
     const empty = g.variants.filter((v) => v.isActive && v.stock <= 0).length;
-    return { label: 'Sizes', value: `${g.variants.length - empty}/${g.variants.length}`, hint: empty ? `${empty} khatam` : 'Sab stock me' };
+    return { label: t('Sizes'), value: `${g.variants.length - empty}/${g.variants.length}`, hint: empty ? t('{{empty}} khatam', { empty }) : t('Sab stock me') };
   },
   alerts: ({ extra }) => {
     const empty = (extra?.grid?.variants ?? []).filter((v) => v.isActive && v.stock <= 0 && v.sold30 > 0);
@@ -114,23 +115,23 @@ const config: DetailConfig<Extra> = {
     return (
       <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
         <Ruler className="h-4 w-4" />
-        <span className="text-[0.875rem] font-medium">Bikne wale size khatam: {empty.map((v) => v.name).join(', ')}</span>
-        <Link to="/purchases/new" className="ml-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold hover:underline"><PackagePlus className="h-4 w-4" />Purchase</Link>
+        <span className="text-[0.875rem] font-medium">{t('Bikne wale size khatam: {{value}}', { value: empty.map((v) => v.name).join(', ') })}</span>
+        <Link to="/purchases/new" className="ms-auto inline-flex items-center gap-1 text-[0.8125rem] font-semibold hover:underline"><PackagePlus className="h-4 w-4" />{t('Purchase')}</Link>
       </div>
     );
   },
   tabs: [
     {
-      id: 'sizes', label: 'Size × rang', icon: Grid3x3, when: ({ extra }) => !!extra?.grid,
+      id: 'sizes', label: t('Size × rang'), icon: Grid3x3, when: ({ extra }) => !!extra?.grid,
       render: ({ extra }) => (
-        <Card className="rounded-2xl" flush title="Size aur rang ka stock" description="Is branch ka stock · pichle 30 din ki Sale. Khane par mouse rakhein to har branch ka stock.">
+        <Card className="rounded-2xl" flush title={t('Size aur rang ka stock')} description={t('Is branch ka stock · pichle 30 din ki Sale. Khane par mouse rakhein to har branch ka stock.')}>
           <GridTable grid={extra!.grid!} />
         </Card>
       ),
     },
   ],
   guide: [
-    { icon: Grid3x3, color: '#7c3aed', title: 'Size × rang', text: 'Har size aur rang ka stock is branch me — laal khatam, peela kam. "hold" wale piece customer ke liye rakhe hain, POS par nahi bikte. Doosri branch se Transfer kar sakte hain.' },
+    { icon: Grid3x3, color: '#7c3aed', title: t('Size × rang'), text: t('Har size aur rang ka stock is branch me — laal khatam, peela kam. "hold" wale piece customer ke liye rakhe hain, POS par nahi bikte. Doosri branch se Transfer kar sakte hain.') },
   ],
 };
 

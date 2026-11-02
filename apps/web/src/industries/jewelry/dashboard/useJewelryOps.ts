@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from 'react';
+import { t } from '@core/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { jewelryDashboardApi } from '../api/dashboard.api';
 import { metalRatesApi, type MetalRate } from '../api/metal-rates.api';
@@ -38,7 +39,7 @@ const PURITY: Record<string, string> = {
   STERLING_925: '925', SILVER_999: '999', SILVER_925: '925', SILVER_800: '800', PLATINUM_950: '950', PLATINUM_900: '900',
 };
 const METAL: Record<string, string> = {
-  GOLD: 'Sona', SILVER: 'Chandi', PLATINUM: 'Platinum', PALLADIUM: 'Palladium', ROSE_GOLD: 'Rose gold', WHITE_GOLD: 'White gold',
+  GOLD: t('Sona'), SILVER: t('Chandi'), PLATINUM: t('Platinum'), PALLADIUM: t('Palladium'), ROSE_GOLD: t('Rose gold'), WHITE_GOLD: t('White gold'),
 };
 
 /** "Sona 22K", "Chandi 925". */

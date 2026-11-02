@@ -7,12 +7,13 @@ import { integrationsApi, type AvailableIntegration } from '../api/integrations.
 import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { AppMark } from './AppMark';
+import { t, Trans } from '@core/i18n';
 
 const CATEGORY_LABELS: Record<string, string> = {
-  SALES_CHANNEL: 'Sales Channel',
-  COURIER: 'Courier',
-  PAYMENT: 'Payment',
-  ACCOUNTING: 'Accounting',
+  SALES_CHANNEL: t('Sales Channel'),
+  COURIER: t('Courier'),
+  PAYMENT: t('Payment'),
+  ACCOUNTING: t('Accounting'),
 };
 
 export function ConnectIntegrationModal({
@@ -32,7 +33,7 @@ export function ConnectIntegrationModal({
 
   const createMutation = useMutation({
     mutationFn: () => {
-      if (!selected) throw new Error('No integration selected');
+      if (!selected) throw new Error(t('No integration selected'));
       return integrationsApi.create({
         type: selected.type,
         category: selected.category,
@@ -45,14 +46,14 @@ export function ConnectIntegrationModal({
       });
     },
     onSuccess: (data: any) => {
-      toast.success(`${selected?.name} connect ho gaya! 🎉`);
+      toast.success(t('{{name}} connect ho gaya! 🎉', { name: selected?.name }));
 
       // If custom website, show the API key
       if (selected?.type === 'CUSTOM_WEBSITE') {
         toast.success(
-          `API Key: ${data.apiKey?.slice(0, 12)}...`,
+          t('API Key: {{value}}...', { value: data.apiKey?.slice(0, 12) }),
           {
-            description: `Webhook URL: ${data.webhookUrl}`,
+            description: t('Webhook URL: {{webhookUrl}}', { webhookUrl: data.webhookUrl }),
             duration: 10000,
           },
         );
@@ -60,7 +61,7 @@ export function ConnectIntegrationModal({
 
       // If Daraz, need OAuth
       if (selected?.type === 'DARAZ' && data.id) {
-        toast.info('Daraz authorize karein — redirect ho raha hai...');
+        toast.info(t('Daraz authorize karein — redirect ho raha hai...'));
         // Will handle OAuth redirect
       }
 
@@ -70,7 +71,7 @@ export function ConnectIntegrationModal({
       onClose();
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Connection fail ho gaya');
+      toast.error(err?.response?.data?.message ?? t('Connection fail ho gaya'));
     },
   });
 
@@ -85,7 +86,7 @@ export function ConnectIntegrationModal({
     // Validate required fields
     for (const field of selected.fields) {
       if (field.required && !fieldValues[field.key]) {
-        toast.error(`${field.label} zaroori hai`);
+        toast.error(t('{{label}} zaroori hai', { label: field.label }));
         return;
       }
     }
@@ -103,19 +104,19 @@ export function ConnectIntegrationModal({
     <Modal
       open={open}
       onClose={() => { resetForm(); onClose(); }}
-      title="Integration Connect Karein"
+      title={t('Integration Connect Karein')}
       size={selected ? 'md' : 'xl'}
       footer={
         selected ? (
           <>
-            <Button variant="outline" onClick={() => setSelected(null)}>Back</Button>
+            <Button variant="outline" onClick={() => setSelected(null)}>{t('Back')}</Button>
             <Button
               variant="gradient"
               loading={createMutation.isPending}
               onClick={handleSubmit}
               leftIcon={<Check className="h-4 w-4" />}
             >
-              Connect {selected.name}
+              {t('Connect {{name}}', { name: selected.name })}
             </Button>
           </>
         ) : undefined
@@ -149,7 +150,7 @@ export function ConnectIntegrationModal({
                       });
                       setFieldValues(defaults);
                     }}
-                    className="group p-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-brand-400 dark:hover:border-brand-600 transition text-left"
+                    className="group p-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-brand-400 dark:hover:border-brand-600 transition text-start"
                   >
                     <div className="mb-3"><AppMark type={avail.type} category={avail.category} size={44} /></div>
                     <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">
@@ -161,7 +162,7 @@ export function ConnectIntegrationModal({
                     {avail.popular && (
                       <div className="mt-2">
                         <span className="inline-flex items-center gap-1 text-[0.625rem] font-extrabold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
-                          <Sparkles className="h-2.5 w-2.5" /> Popular
+                          <Sparkles className="h-2.5 w-2.5" /> {' '}{t('Popular')}
                         </span>
                       </div>
                     )}
@@ -191,15 +192,15 @@ export function ConnectIntegrationModal({
           <div className="p-3 rounded-xl bg-info-50 dark:bg-info-950/30 border border-info-200 dark:border-info-800 flex items-start gap-2">
             <Sparkles className="h-4 w-4 text-info-600 shrink-0 mt-0.5" />
             <div className="text-xs text-info-700 dark:text-info-400">
-              <div className="font-bold mb-0.5">Setup Instructions:</div>
+              <div className="font-bold mb-0.5">{t('Setup Instructions:')}</div>
               {selected.docs}
             </div>
           </div>
 
           {/* Display name */}
           <Input
-            label="Display Name"
-            placeholder="e.g. My Foodpanda Shop"
+            label={t('Display Name')}
+            placeholder={t('e.g. My Foodpanda Shop')}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
@@ -208,13 +209,13 @@ export function ConnectIntegrationModal({
           {selected.fields.length > 0 && (
             <div className="space-y-3">
               <div className="text-xs font-extrabold uppercase tracking-widest text-slate-500">
-                API Credentials
+                {t('API Credentials')}
               </div>
               {selected.fields.map((field: any) => (
                 <Input
                   key={field.key}
                   label={field.label}
-                  placeholder={`Enter ${field.label}`}
+                  placeholder={t('Enter {{label}}', { label: field.label })}
                   value={fieldValues[field.key] ?? ''}
                   onChange={(e) => setFieldValues({ ...fieldValues, [field.key]: e.target.value })}
                   required={field.required}
@@ -227,16 +228,16 @@ export function ConnectIntegrationModal({
           {selected.type === 'CUSTOM_WEBSITE' && (
             <div className="p-4 rounded-2xl bg-gradient-to-br from-brand-50 to-emerald-50 dark:from-brand-950/30 dark:to-emerald-950/30 border border-brand-200 dark:border-brand-800">
               <div className="font-extrabold text-sm text-brand-900 dark:text-brand-300 mb-2">
-                🌐 Custom Website Integration
+                {t('🌐 Custom Website Integration')}
               </div>
               <div className="text-xs text-brand-700 dark:text-brand-400 space-y-2">
-                <div>Connect karne ke baad aap ko milega:</div>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li><strong>API Key</strong> — apni website mein use karne ke liye</li>
-                  <li><strong>Webhook URL</strong> — jahan orders bhejne hain</li>
-                  <li><strong>Product API</strong> — GET se products fetch karein</li>
+                <div>{t('Connect karne ke baad aap ko milega:')}</div>
+                <ul className="list-disc list-inside space-y-1 ms-2">
+                  <li><strong>API Key</strong> {t('— apni website mein use karne ke liye')}</li>
+                  <li><strong>Webhook URL</strong> {t('— jahan orders bhejne hain')}</li>
+                  <li><strong>Product API</strong> {t('— GET se products fetch karein')}</li>
                 </ul>
-                <div className="mt-2 p-2 rounded-lg bg-white dark:bg-ink-900 font-mono text-[0.6875rem] text-slate-700 dark:text-ink-300">
+                <div className="dir-ltr mt-2 p-2 rounded-lg bg-white dark:bg-ink-900 font-mono text-[0.6875rem] text-slate-700 dark:text-ink-300">
                   fetch('https://api.nafaa.pk/api/integrations/webhooks/custom-website/YOUR_API_KEY', {'{'}<br/>
                   &nbsp;&nbsp;method: 'POST',<br/>
                   &nbsp;&nbsp;headers: {'{'} 'Content-Type': 'application/json' {'}'},<br/>
@@ -251,14 +252,14 @@ export function ConnectIntegrationModal({
           {selected.type === 'DARAZ' && (
             <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200 dark:border-orange-800">
               <div className="font-extrabold text-sm text-orange-900 dark:text-orange-300 mb-2">
-                🛒 Daraz Setup
+                {t('🛒 Daraz Setup')}
               </div>
               <div className="text-xs text-orange-700 dark:text-orange-400 space-y-1">
-                <div>1. <a href="https://open.lazada.com" target="_blank" rel="noreferrer" className="font-bold underline inline-flex items-center gap-1">open.lazada.com <ExternalLink className="h-3 w-3" /></a> pe jao</div>
-                <div>2. "Create App" karo → App Name: "Nafaa POS"</div>
-                <div>3. App Key + App Secret yahan enter karo</div>
-                <div>4. Connect karne ke baad "Authorize" button pe click karo</div>
-                <div>5. Daraz login → Allow → Done! 🎉</div>
+                <div>1. <a href="https://open.lazada.com" target="_blank" rel="noreferrer" className="font-bold underline inline-flex items-center gap-1">open.lazada.com <ExternalLink className="h-3 w-3" /></a> {' '}{t('pe jao')}</div>
+                <div>{t('2. "Create App" karo → App Name: "Nafaa POS"')}</div>
+                <div>{t('3. App Key + App Secret yahan enter karo')}</div>
+                <div>{t('4. Connect karne ke baad "Authorize" button pe click karo')}</div>
+                <div>{t('5. Daraz login → Allow → Done! 🎉')}</div>
               </div>
             </div>
           )}

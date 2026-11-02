@@ -15,6 +15,7 @@ import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { withManagerPin } from '@core/security/ManagerPin';
 import { ordersApi, type CheckoutPart, type RestaurantOrder } from '../api/orders.api';
 import { ORDER_KEYS, apiError } from '../lib/orderMeta';
+import { t } from '@core/i18n';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -41,7 +42,7 @@ export function useOrderPayment(onPaid?: (order: RestaurantOrder) => void, cance
       const due = r2(order.total - order.paidAmount);
       const customerId = order.customerId || customer?.id || undefined;
       const payments = partsOf(d, due);
-      const res = await withManagerPin('Bill ke liye malik ka PIN', (managerPin) => ordersApi.checkout(order.id, {
+      const res = await withManagerPin(t('Bill ke liye malik ka PIN'), (managerPin) => ordersApi.checkout(order.id, {
         payments,
         ...(d.isCredit && { closeOnCredit: true }),
         ...(customerId && { customerId }),
@@ -53,16 +54,16 @@ export function useOrderPayment(onPaid?: (order: RestaurantOrder) => void, cance
     onSuccess: (order) => {
       ORDER_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       ['sales-history', 'sales-list', 'customers', 'customers-for-pos', 'dashboard-overview', 'cash-register'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(`Bill ban gaya${order.sale?.saleNumber ? ` — ${order.sale.saleNumber}` : ''}`);
+      toast.success(t('Bill ban gaya{{value}}', { value: order.sale?.saleNumber ? ` — ${order.sale.saleNumber}` : '' }));
       if (target?.print && order.saleId) window.open(`/sales/${order.saleId}/receipt?auto=1`, '_blank');
       setTarget(null);
       onPaid?.(order);
     },
-    onError: (e) => toast.error(apiError(e, 'Payment nahi hui')),
+    onError: (e) => toast.error(apiError(e, t('Payment nahi hui'))),
   });
 
   const open = (order: RestaurantOrder, customer?: PayCustomer | null, print = true) => {
-    if (!order.items.some((it) => !it.isReturned)) { toast.error('Order me koi item nahi'); return; }
+    if (!order.items.some((it) => !it.isReturned)) { toast.error(t('Order me koi item nahi')); return; }
     setTarget({ order, customer, print });
   };
 

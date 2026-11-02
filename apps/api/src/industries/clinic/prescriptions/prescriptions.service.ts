@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ClinicPrescriptionStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = Object.values(ClinicPrescriptionStatus);
 const str = (v: unknown, max = 200) => (v === undefined || v === null || String(v).trim() === '' ? undefined : String(v).trim().slice(0, max));
@@ -20,9 +21,9 @@ export class PrescriptionsService {
 
     const lines = items.map((it: any, i: number) => {
       const drugName = str(it?.drugName, 160);
-      if (!drugName) throw new BadRequestException(`Line ${i + 1}: dawai ka naam likhein`);
+      if (!drugName) throw new BadRequestException(apiMessage('Line {{i}}: dawai ka naam likhein', { i: i + 1 }));
       const days = it?.durationDays === undefined || it?.durationDays === '' || it?.durationDays === null ? undefined : Number(it.durationDays);
-      if (days !== undefined && !(days > 0 && days <= 365)) throw new BadRequestException(`${drugName}: din 1 se 365 tak`);
+      if (days !== undefined && !(days > 0 && days <= 365)) throw new BadRequestException(apiMessage('{{drugName}}: din 1 se 365 tak', { drugName }));
       return {
         drugId: str(it.drugId, 60), drugName, strength: str(it.strength), form: str(it.form), dose: str(it.dose), frequency: str(it.frequency),
         route: str(it.route), durationDays: days, quantity: str(it.quantity), beforeMeal: bool(it.beforeMeal), afterMeal: bool(it.afterMeal),

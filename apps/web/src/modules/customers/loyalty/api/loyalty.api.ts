@@ -1,6 +1,7 @@
 /** Loyalty points: programme overview, members, a customer's history, manual adjustment and expiry. */
 
 import { apiClient } from '@core/api/client';
+import { t as tr } from '@core/i18n';
 
 export type LoyaltyTxType = 'EARNED' | 'REDEEMED' | 'EXPIRED' | 'ADJUSTMENT';
 export type TierId = 'starter' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
@@ -40,9 +41,9 @@ export interface LoyaltyLeaderboard {
 }
 
 export const TIERS: Array<{ id: TierId; label: string; min: number; color: string }> = [
-  { id: 'starter', label: 'Starter', min: 1, color: '#64748b' }, { id: 'bronze', label: 'Bronze', min: 100, color: '#b45309' },
-  { id: 'silver', label: 'Silver', min: 500, color: '#64748b' }, { id: 'gold', label: 'Gold', min: 1000, color: '#ca8a04' },
-  { id: 'platinum', label: 'Platinum', min: 2000, color: '#0891b2' }, { id: 'diamond', label: 'Diamond', min: 5000, color: '#7c3aed' },
+  { id: 'starter', label: tr('Starter'), min: 1, color: '#64748b' }, { id: 'bronze', label: tr('Bronze'), min: 100, color: '#b45309' },
+  { id: 'silver', label: tr('Silver'), min: 500, color: '#64748b' }, { id: 'gold', label: tr('Gold'), min: 1000, color: '#ca8a04' },
+  { id: 'platinum', label: tr('Platinum'), min: 2000, color: '#0891b2' }, { id: 'diamond', label: tr('Diamond'), min: 5000, color: '#7c3aed' },
 ];
 export const tierOf = (points: number) => [...TIERS].reverse().find((t) => points >= t.min) ?? TIERS[0];
 

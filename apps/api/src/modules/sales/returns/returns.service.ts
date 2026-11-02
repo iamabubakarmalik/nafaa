@@ -596,16 +596,14 @@ export class ReturnsService {
 
     if (result.repeated) return result;
 
-    const cutPiecesText =
-      result.createdCutPieces.length > 0
-        ? ` • ${result.createdCutPieces.length} cut piece(s) created`
-        : '';
 
     await this.notifications.create({
       tenantId,
       type: 'RETURN_PROCESSED',
       title: 'Return Processed',
-      message: `${returnNumber}: Rs ${result.refundAmount.toFixed(0)} refunded${cutPiecesText}`,
+      message: result.createdCutPieces.length > 0
+        ? apiMessage('{{returnNumber}}: Rs {{amount}} refunded • {{count}} cut piece(s) created', { returnNumber, amount: result.refundAmount.toFixed(0), count: result.createdCutPieces.length })
+        : apiMessage('{{returnNumber}}: Rs {{amount}} refunded', { returnNumber, amount: result.refundAmount.toFixed(0) }),
       link: '/returns',
     });
 

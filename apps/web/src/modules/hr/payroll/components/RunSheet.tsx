@@ -12,6 +12,7 @@ import { formatPKR } from '@core/lib/format';
 import type { RunEdit, RunRow, RunSheet as Sheet } from '../api/payroll.api';
 import { applyEdit, payNow } from './calc';
 import { SALARY_TYPE, STATUS, qty } from './meta';
+import { t } from '@core/i18n';
 
 export function RunSheet({ sheet, rows, edits, selected, onToggle, onToggleAll, onEdit, onPay, onPaySelected, onOpen, onPrint, onPayBalance, showShop }: {
   sheet: Sheet;
@@ -40,11 +41,11 @@ export function RunSheet({ sheet, rows, edits, selected, onToggle, onToggleAll, 
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-3 py-2.5 sm:px-4">
           <button type="button" onClick={() => onToggleAll(open.map((r) => r.staff.id), !allOn)} className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-slate-700">
             {allOn ? <CheckSquare className="h-4 w-4 text-brand-600" /> : <Square className="h-4 w-4 text-slate-400" />}
-            Sab chunein ({open.length} baqi)
+            {t('Sab chunein ({{count}} baqi)', { count: open.length })}
           </button>
-          <span className="text-[0.8125rem] text-slate-500">{chosen.length ? `${chosen.length} chune · ${formatPKR(chosenTotal)}` : 'Jin ki tankhwah deni hai unhein chunein'}</span>
-          <Button size="sm" className="ml-auto" onClick={onPaySelected} disabled={!chosen.length || blocked} leftIcon={<HandCoins className="h-4 w-4" />}>
-            Chune hue ki tankhwah
+          <span className="text-[0.8125rem] text-slate-500">{chosen.length ? t('{{count}} chune · {{chosenTotal}}', { count: chosen.length, chosenTotal: formatPKR(chosenTotal) }) : t('Jin ki tankhwah deni hai unhein chunein')}</span>
+          <Button size="sm" className="ms-auto" onClick={onPaySelected} disabled={!chosen.length || blocked} leftIcon={<HandCoins className="h-4 w-4" />}>
+            {t('Chune hue ki tankhwah')}
           </Button>
         </div>
       )}
@@ -72,35 +73,35 @@ function Line({ r, sheet, edit, on, showShop, onToggle, onEdit, onPay, onOpen, o
 
   const parts: Array<[string, number, 'plus' | 'minus']> = rec
     ? [
-      ['Tankhwah', rec.baseSalary, 'plus'], ['Overtime', rec.overtimePay, 'plus'], ['Commission', rec.commissionEarned, 'plus'], ['Bonus', rec.bonuses, 'plus'],
-      ['Ghair hazri', rec.leaveDeduction, 'minus'], ['Advance', rec.advances, 'minus'], ['Katauti', rec.otherDeductions, 'minus'],
+      [t('Tankhwah'), rec.baseSalary, 'plus'], [t('Overtime'), rec.overtimePay, 'plus'], [t('Commission'), rec.commissionEarned, 'plus'], [t('Bonus'), rec.bonuses, 'plus'],
+      [t('Ghair hazri'), rec.leaveDeduction, 'minus'], [t('Advance'), rec.advances, 'minus'], [t('Katauti'), rec.otherDeductions, 'minus'],
     ]
     : [
-      ['Tankhwah', p.basePay, 'plus'], ['Overtime', p.overtimePay, 'plus'], ['Commission', p.commission, 'plus'], ['Bonus', p.bonuses, 'plus'],
-      ['Ghair hazri', p.absentCut, 'minus'], ['Advance', p.advance, 'minus'], ['Katauti', p.otherCuts, 'minus'],
+      [t('Tankhwah'), p.basePay, 'plus'], [t('Overtime'), p.overtimePay, 'plus'], [t('Commission'), p.commission, 'plus'], [t('Bonus'), p.bonuses, 'plus'],
+      [t('Ghair hazri'), p.absentCut, 'minus'], [t('Advance'), p.advance, 'minus'], [t('Katauti'), p.otherCuts, 'minus'],
     ];
   const shown = parts.filter(([, v], i) => i === 0 || v > 0);
   const net = rec ? rec.netAmount : p.net;
   const att = a.marked
     ? [`${qty(a.present + a.late + a.half * 0.5, 'din')} hazir`, a.absent ? `${a.absent} ghair hazir` : '', a.leave ? `${a.leave} chhutti` : '', a.unpaidLeave ? `${a.unpaidLeave} bina tankhwah` : '', a.overtimeHours >= 0.5 ? `${Math.round(a.overtimeHours * 10) / 10} ghante OT` : '']
       .filter(Boolean).join(' · ')
-    : a.unpaidLeave ? `Hazri nahi lagi · ${a.unpaidLeave} din bina tankhwah chhutti` : 'Hazri nahi lagi';
+    : a.unpaidLeave ? t('Hazri nahi lagi · {{unpaidLeave}} din bina tankhwah chhutti', { unpaidLeave: a.unpaidLeave }) : t('Hazri nahi lagi');
 
   return (
     <li className={cn(on && 'bg-brand-50/40', rec?.status === 'PAID' && 'bg-emerald-50/30')}>
       <div className="flex flex-wrap items-center gap-3 px-3 py-3 sm:flex-nowrap sm:px-4">
         {editable ? (
-          <button type="button" onClick={onToggle} aria-label="Chunein" aria-pressed={on} className="shrink-0">
+          <button type="button" onClick={onToggle} aria-label={t('Chunein')} aria-pressed={on} className="shrink-0">
             {on ? <CheckSquare className="h-5 w-5 text-brand-600" /> : <Square className="h-5 w-5 text-slate-300" />}
           </button>
         ) : <span className="w-5 shrink-0" />}
         <Avatar name={r.staff.fullName} url={r.staff.avatarUrl} size={40} />
-        <button type="button" onClick={rec ? onOpen : editable ? onEdit : undefined} className="min-w-0 flex-1 text-left">
+        <button type="button" onClick={rec ? onOpen : editable ? onEdit : undefined} className="min-w-0 flex-1 text-start">
           <span className="flex flex-wrap items-center gap-1.5">
             <span className="truncate font-semibold text-slate-900">{r.staff.fullName}</span>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium text-slate-600">{type.label}</span>
             {st && rec && <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}><st.icon className="h-3 w-3" />{st.label}</span>}
-            {edit && !rec && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-medium text-brand-700 ring-1 ring-brand-100">Badla hua</span>}
+            {edit && !rec && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-medium text-brand-700 ring-1 ring-brand-100">{t('Badla hua')}</span>}
           </span>
           <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
             {r.staff.designation}{showShop ? ` · ${r.staff.shop?.name ?? 'Branch nahi lagi'}` : ''} · {att}
@@ -111,28 +112,28 @@ function Line({ r, sheet, edit, on, showShop, onToggle, onEdit, onPay, onOpen, o
             ))}
           </span>
         </button>
-        <div className="ml-auto text-right">
+        <div className="ms-auto text-end">
           <p className="text-base font-bold tabular-nums text-slate-900">{formatPKR(net)}</p>
           <p className="text-[0.6875rem] text-slate-500">
-            {rec ? (rec.balanceAmount > 0.5 ? `Baqi ${formatPKR(rec.balanceAmount)}` : rec.paymentNumber) : edit?.payAmount != null && edit.payAmount < p.net ? `Abhi ${formatPKR(edit.payAmount)}` : 'haath me'}
+            {rec ? (rec.balanceAmount > 0.5 ? t('Baqi {{balanceAmount}}', { balanceAmount: formatPKR(rec.balanceAmount) }) : rec.paymentNumber) : edit?.payAmount != null && edit.payAmount < p.net ? t('Abhi {{payAmount}}', { payAmount: formatPKR(edit.payAmount) }) : t('haath me')}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {editable && <>
-            <Button size="sm" variant="ghost" onClick={onEdit} aria-label="Badlein" leftIcon={<Pencil className="h-4 w-4" />}><span className="hidden lg:inline">Badlein</span></Button>
-            <Button size="sm" onClick={onPay} disabled={p.advanceTooBig} leftIcon={<HandCoins className="h-4 w-4" />}>Dein</Button>
+            <Button size="sm" variant="ghost" onClick={onEdit} aria-label={t('Badlein')} leftIcon={<Pencil className="h-4 w-4" />}><span className="hidden lg:inline">{t('Badlein')}</span></Button>
+            <Button size="sm" onClick={onPay} disabled={p.advanceTooBig} leftIcon={<HandCoins className="h-4 w-4" />}>{t('Dein')}</Button>
           </>}
           {rec && <>
             {sheet.canPay && rec.status !== 'CANCELLED' && rec.balanceAmount > 0.5 && (
-              <Button size="sm" onClick={onPayBalance} leftIcon={<Banknote className="h-4 w-4" />}>Baqi dein</Button>
+              <Button size="sm" onClick={onPayBalance} leftIcon={<Banknote className="h-4 w-4" />}>{t('Baqi dein')}</Button>
             )}
-            <Button size="sm" variant="ghost" onClick={onPrint} aria-label="Payslip" leftIcon={<Printer className="h-4 w-4" />}><span className="hidden lg:inline">Payslip</span></Button>
-            <button type="button" onClick={onOpen} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4" /></button>
+            <Button size="sm" variant="ghost" onClick={onPrint} aria-label={t('Payslip')} leftIcon={<Printer className="h-4 w-4" />}><span className="hidden lg:inline">{t('Payslip')}</span></Button>
+            <button type="button" onClick={onOpen} aria-label={t('Details')} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><ChevronRight className="h-4 w-4 rtl-flip" /></button>
           </>}
         </div>
       </div>
       {r.warnings.length > 0 && (
-        <p className="flex items-start gap-1.5 px-4 pb-2.5 text-[0.75rem] text-amber-800 sm:pl-[4.75rem]">
+        <p className="flex items-start gap-1.5 px-4 pb-2.5 text-[0.75rem] text-amber-800 sm:ps-[4.75rem]">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{r.warnings.join(' · ')}
         </p>
       )}

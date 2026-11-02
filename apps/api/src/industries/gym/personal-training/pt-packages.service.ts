@@ -16,6 +16,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { GYM_SALE, assertCan, gymClock, nextNumber, opt, paging, r2 } from '../common/gym-common';
 import { CancelPtPackageDto, SellPtPackageDto } from './dto/pt.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 type Db = Prisma.TransactionClient;
@@ -39,7 +40,7 @@ export class PtPackagesService {
     }
     const price = r2(dto.price);
     const paid = r2(Math.max(Number(dto.paidAmount) || 0, 0));
-    if (paid > price + 0.01) throw new BadRequestException(`Package sirf Rs ${price} ka hai`);
+    if (paid > price + 0.01) throw new BadRequestException(apiMessage('Package sirf Rs {{price}} ka hai', { price }));
     const clock = await gymClock(this.tz, tenantId);
     const startDate = clock.dayStart(dto.startDate);
     const endDate = clock.periodEnd(startDate, dto.validDays ?? 90);
@@ -197,10 +198,10 @@ export class PtPackagesService {
     if (packageId) {
       const asked = await tx.gymPersonalTrainingPackage.findFirst({ where: { id: packageId, tenantId, memberId } });
       if (!asked) throw new NotFoundException('PT package nahi mila');
-      if (asked.status !== 'ACTIVE') throw new BadRequestException(`Package ${asked.packageNumber} band hai`);
-      if (asked.trainerId && asked.trainerId !== trainerId) throw new BadRequestException(`Package ${asked.packageNumber} doosre trainer ka hai`);
-      if (asked.endDate && asked.endDate < at) throw new BadRequestException(`Package ${asked.packageNumber} is date se pehle khatam ho jata hai`);
-      throw new BadRequestException(`Package ${asked.packageNumber} ke sessions khatam (booked bhi shamil)`);
+      if (asked.status !== 'ACTIVE') throw new BadRequestException(apiMessage('Package {{packageNumber}} band hai', { packageNumber: asked.packageNumber }));
+      if (asked.trainerId && asked.trainerId !== trainerId) throw new BadRequestException(apiMessage('Package {{packageNumber}} doosre trainer ka hai', { packageNumber: asked.packageNumber }));
+      if (asked.endDate && asked.endDate < at) throw new BadRequestException(apiMessage('Package {{packageNumber}} is date se pehle khatam ho jata hai', { packageNumber: asked.packageNumber }));
+      throw new BadRequestException(apiMessage('Package {{packageNumber}} ke sessions khatam (booked bhi shamil)', { packageNumber: asked.packageNumber }));
     }
     return null;
   }
@@ -209,12 +210,12 @@ export class PtPackagesService {
   async useOne(tx: Db, tenantId: string, saleId: string) {
     const pkg = await tx.gymPersonalTrainingPackage.findFirst({ where: { tenantId, saleId } });
     if (!pkg) return null;
-    if (pkg.status === 'CANCELLED') throw new BadRequestException(`Package ${pkg.packageNumber} cancel ho chuka`);
+    if (pkg.status === 'CANCELLED') throw new BadRequestException(apiMessage('Package {{packageNumber}} cancel ho chuka', { packageNumber: pkg.packageNumber }));
     const done = await tx.gymPersonalTrainingPackage.updateMany({
       where: { id: pkg.id, sessionsUsed: { lt: pkg.sessionsTotal } },
       data: { sessionsUsed: { increment: 1 } },
     });
-    if (!done.count) throw new BadRequestException(`Package ${pkg.packageNumber} ke sab sessions use ho chuke`);
+    if (!done.count) throw new BadRequestException(apiMessage('Package {{packageNumber}} ke sab sessions use ho chuke', { packageNumber: pkg.packageNumber }));
     if (pkg.sessionsUsed + 1 >= pkg.sessionsTotal) await tx.gymPersonalTrainingPackage.update({ where: { id: pkg.id }, data: { status: 'COMPLETED' } });
     return r2(pkg.price / Math.max(pkg.sessionsTotal, 1));
   }

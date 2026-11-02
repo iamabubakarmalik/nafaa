@@ -16,6 +16,7 @@ import { CreateEmiPlanDto } from './dto/create-emi-plan.dto';
 import { UpdateEmiPlanDto } from './dto/update-emi-plan.dto';
 import { CollectEmiPaymentDto, RecordInstallmentPaymentDto } from './dto/record-installment-payment.dto';
 import { QueryEmiPlansDto } from './dto/query-emi.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const OPEN: EmiInstallmentStatus[] = [EmiInstallmentStatus.PENDING, EmiInstallmentStatus.OVERDUE];
@@ -86,7 +87,7 @@ export class EmiService {
     if (financedAmount <= 0) throw new BadRequestException('Down payment kul qeemat se kam honi chahiye');
     if (Math.abs(financedAmount - billCredit) > 1) {
       throw new BadRequestException(
-        `Is bill ka udhaar Rs ${billCredit} hai — EMI me bhi Rs ${billCredit} hi qiston me jaye (down payment Rs ${r2(Math.max(dto.totalAmount - billCredit, 0))} rakhein)`,
+        apiMessage('Is bill ka udhaar Rs {{billCredit}} hai — EMI me bhi Rs {{billCredit}} hi qiston me jaye (down payment Rs {{totalAmount}} rakhein)', { billCredit, totalAmount: r2(Math.max(dto.totalAmount - billCredit, 0)) }),
       );
     }
     const start = dto.startDate.slice(0, 10);
@@ -353,7 +354,7 @@ export class EmiService {
       include: { installments: { orderBy: { installmentNumber: 'asc' } } },
     });
     if (!plan) throw new NotFoundException('EMI plan nahi mila');
-    if (plan.status !== EmiPlanStatus.ACTIVE) throw new BadRequestException(`Ye plan ${plan.status} hai — is par qist nahi li ja sakti`);
+    if (plan.status !== EmiPlanStatus.ACTIVE) throw new BadRequestException(apiMessage('Ye plan {{planStatus}} hai — is par qist nahi li ja sakti', { planStatus: plan.status }));
     return plan;
   }
 
@@ -427,7 +428,7 @@ export class EmiService {
     if (installment.status === EmiInstallmentStatus.PAID) throw new BadRequestException('Ye qist poori mil chuki');
     if (installment.status === EmiInstallmentStatus.WAIVED) throw new BadRequestException('Ye qist maaf ho chuki');
     const due = r2(Number(installment.amount) - Number(installment.paidAmount));
-    if (dto.amount > due + 0.01) throw new BadRequestException(`Is qist me sirf Rs ${due} baqi hai`);
+    if (dto.amount > due + 0.01) throw new BadRequestException(apiMessage('Is qist me sirf Rs {{due}} baqi hai', { due }));
 
     const shopId = await this.payShop(user, plan, scope);
     const res = await this.applyPayment(user, plan, [installment], r2(dto.amount), {
@@ -443,7 +444,7 @@ export class EmiService {
     const open = plan.installments.filter((i) => OPEN.includes(i.status));
     const due = r2(open.reduce((s, i) => s + Number(i.amount) - Number(i.paidAmount), 0));
     if (due <= 0) throw new BadRequestException('Is plan me koi qist baqi nahi');
-    if (dto.amount > due + 0.01) throw new BadRequestException(`Kul baqi sirf Rs ${due} hai`);
+    if (dto.amount > due + 0.01) throw new BadRequestException(apiMessage('Kul baqi sirf Rs {{due}} hai', { due }));
     const shopId = await this.payShop(user, plan, scope);
     return this.applyPayment(user, plan, open, r2(dto.amount), { method: dto.paymentMethod, notes: dto.notes?.trim(), shopId });
   }

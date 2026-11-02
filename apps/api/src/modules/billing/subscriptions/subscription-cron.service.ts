@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class SubscriptionCronService {
@@ -278,8 +279,8 @@ export class SubscriptionCronService {
     await this.notifications.create({
       tenantId: sub.tenantId,
       type: 'WARNING',
-      title: `Trial ${daysLeft} din mein khatam ho raha hai ⏰`,
-      message: `Plan upgrade karein takay service jaari rahe.`,
+      title: apiMessage('Trial {{days}} din mein khatam ho raha hai ⏰', { days: daysLeft }),
+      message: 'Plan upgrade karein takay service jaari rahe.',
       link: '/plans',
     });
   }
@@ -407,8 +408,8 @@ export class SubscriptionCronService {
     await this.notifications.create({
       tenantId: sub.tenantId,
       type: 'INFO',
-      title: `Subscription ${daysLeft} din mein renew ho gi ⏰`,
-      message: `Rs ${this.formatAmount(sub.amount)} ka payment ready rakhein.`,
+      title: apiMessage('Subscription {{days}} din mein renew ho gi ⏰', { days: daysLeft }),
+      message: apiMessage('Rs {{amount}} ka payment ready rakhein.', { amount: this.formatAmount(sub.amount) }),
       link: '/billing',
     });
   }

@@ -15,6 +15,7 @@ import { Button, Card, Input, Select } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { distSetupApi, distributionApi, type CustomerDistFields } from '../api/distribution.api';
 import { PRICE_LISTS_KEY, ROUTES_KEY } from '../setup/shared';
+import { t } from '@core/i18n';
 
 export interface DistForm {
   businessName: string; strn: string; licenseNo: string; licenseExpiry: string; creditDays: string;
@@ -57,9 +58,9 @@ export function distPayload(f: DistForm, editing: boolean): CustomerDistFields {
 /** First problem with the distribution fields, or null. */
 export function distProblem(f: DistForm): string | null {
   const days = n(f.creditDays);
-  if (f.creditDays.trim() && (days == null || days < 0 || days > 365)) return 'Udhaar ke din 0 se 365';
+  if (f.creditDays.trim() && (days == null || days < 0 || days > 365)) return t('Udhaar ke din 0 se 365');
   const lat = n(f.latitude), lng = n(f.longitude);
-  if ((f.latitude.trim() || f.longitude.trim()) && (lat == null || lng == null || Math.abs(lat) > 90 || Math.abs(lng) > 180)) return 'GPS location theek nahi';
+  if ((f.latitude.trim() || f.longitude.trim()) && (lat == null || lng == null || Math.abs(lat) > 90 || Math.abs(lng) > 180)) return t('GPS location theek nahi');
   return null;
 }
 
@@ -75,51 +76,51 @@ export function CustomerDistributionCard({ value, onChange, title }: { value: Di
   const route = routes.find((r) => r.id === value.routeId);
 
   const locate = () => {
-    if (!navigator.geolocation) { toast.error('Is device par location nahi milti'); return; }
+    if (!navigator.geolocation) { toast.error(t('Is device par location nahi milti')); return; }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setLocating(false);
         onChange({ latitude: p.coords.latitude.toFixed(6), longitude: p.coords.longitude.toFixed(6) });
-        toast.success(`Location mil gayi (±${Math.round(p.coords.accuracy)} m)`);
+        toast.success(t('Location mil gayi (±{{accuracy}} m)', { accuracy: Math.round(p.coords.accuracy) }));
       },
-      (e) => { setLocating(false); toast.error(e.code === 1 ? 'Location ki ijazat nahi di — browser me allow karein' : 'Location nahi mili, dobara koshish karein'); },
+      (e) => { setLocating(false); toast.error(e.code === 1 ? t('Location ki ijazat nahi di — browser me allow karein') : t('Location nahi mili, dobara koshish karein')); },
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 },
     );
   };
   const mapUrl = n(value.latitude) != null && n(value.longitude) != null ? `https://www.google.com/maps?q=${value.latitude},${value.longitude}` : null;
 
   return (
-    <Card className="rounded-2xl" title={title} description="Wholesale customer ki dukaan — booker app aur Invoice par aata hai">
+    <Card className="rounded-2xl" title={title} description={t('Wholesale customer ki dukaan — booker app aur Invoice par aata hai')}>
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Dukaan / business ka naam" value={value.businessName} onChange={(e) => onChange({ businessName: e.target.value })} maxLength={120}
-            placeholder="Noor Traders" leftIcon={<Building2 className="h-4 w-4" />} hint="Invoice aur booker app me pehle yahi naam" />
-          <Input label="Udhaar ke din" inputMode="numeric" value={value.creditDays} onChange={(e) => onChange({ creditDays: e.target.value.replace(/\D/g, '').slice(0, 3) })}
-            placeholder="15" hint="Itne din se purana udhaar 'overdue' ginta hai" />
-          <Select label="Price list" value={value.priceListId} onChange={(e) => onChange({ priceListId: e.target.value })}
-            options={[{ value: '', label: '— Default list —' }, ...lists.filter((l) => l.isActive || l.id === value.priceListId).map((l) => ({ value: l.id, label: l.name }))]}
-            hint="POS aur booker app par isi list ka rate" />
-          <Input label="STRN" value={value.strn} onChange={(e) => onChange({ strn: e.target.value })} maxLength={30} className="font-mono" hint="Sales tax number — tax Invoice par" />
+          <Input label={t('Dukaan / business ka naam')} value={value.businessName} onChange={(e) => onChange({ businessName: e.target.value })} maxLength={120}
+            placeholder={t('Noor Traders')} leftIcon={<Building2 className="h-4 w-4" />} hint={t('Invoice aur booker app me pehle yahi naam')} />
+          <Input label={t('Udhaar ke din')} inputMode="numeric" value={value.creditDays} onChange={(e) => onChange({ creditDays: e.target.value.replace(/\D/g, '').slice(0, 3) })}
+            placeholder="15" hint={t('Itne din se purana udhaar \'overdue\' ginta hai')} />
+          <Select label={t('Price list')} value={value.priceListId} onChange={(e) => onChange({ priceListId: e.target.value })}
+            options={[{ value: '', label: t('— Default list —') }, ...lists.filter((l) => l.isActive || l.id === value.priceListId).map((l) => ({ value: l.id, label: l.name }))]}
+            hint={t('POS aur booker app par isi list ka rate')} />
+          <Input label={t('STRN')} value={value.strn} onChange={(e) => onChange({ strn: e.target.value })} maxLength={30} className="font-mono" hint={t('Sales tax number — tax Invoice par')} />
           <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] gap-2 sm:col-span-2">
-            <Select label="Route" value={value.routeId} onChange={(e) => onChange({ routeId: e.target.value })}
-              options={[{ value: '', label: '— Koi route nahi —' }, ...routes.filter((r) => r.isActive || r.id === value.routeId).map((r) => ({ value: r.id, label: r.name }))]}
-              hint={route?.bookerName ? `Booker: ${route.bookerName}` : 'Kis route par visit hoti hai'} />
-            <Input label="Visit number" inputMode="numeric" value={value.routeSeq} disabled={!value.routeId} onChange={(e) => onChange({ routeSeq: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-              placeholder="Aakhir" />
+            <Select label={t('Route')} value={value.routeId} onChange={(e) => onChange({ routeId: e.target.value })}
+              options={[{ value: '', label: t('— Koi route nahi —') }, ...routes.filter((r) => r.isActive || r.id === value.routeId).map((r) => ({ value: r.id, label: r.name }))]}
+              hint={route?.bookerName ? t('Booker: {{bookerName}}', { bookerName: route.bookerName }) : t('Kis route par visit hoti hai')} />
+            <Input label={t('Visit number')} inputMode="numeric" value={value.routeSeq} disabled={!value.routeId} onChange={(e) => onChange({ routeSeq: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+              placeholder={t('Aakhir')} />
           </div>
-          <Input label="Licence #" value={value.licenseNo} onChange={(e) => onChange({ licenseNo: e.target.value })} maxLength={40} className="font-mono" hint="Drug / trade licence" />
-          <Input label="Licence expiry" type="date" value={value.licenseExpiry} onChange={(e) => onChange({ licenseExpiry: e.target.value })} />
+          <Input label={t('Licence #')} value={value.licenseNo} onChange={(e) => onChange({ licenseNo: e.target.value })} maxLength={40} className="font-mono" hint={t('Drug / trade licence')} />
+          <Input label={t('Licence expiry')} type="date" value={value.licenseExpiry} onChange={(e) => onChange({ licenseExpiry: e.target.value })} />
         </div>
 
         <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
           <div className="flex flex-wrap items-end gap-2">
-            <Input size="sm" label="Latitude" inputMode="decimal" value={value.latitude} onChange={(e) => onChange({ latitude: e.target.value.replace(/[^\d.-]/g, '') })} placeholder="31.5204" wrapperClassName="w-32" className="font-mono" />
-            <Input size="sm" label="Longitude" inputMode="decimal" value={value.longitude} onChange={(e) => onChange({ longitude: e.target.value.replace(/[^\d.-]/g, '') })} placeholder="74.3587" wrapperClassName="w-32" className="font-mono" />
-            <Button size="sm" variant="secondary" loading={locating} onClick={locate} leftIcon={<Crosshair className="h-4 w-4" />}>Meri location</Button>
-            {mapUrl && <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 px-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><MapPin className="h-4 w-4" />Map</a>}
+            <Input size="sm" label={t('Latitude')} inputMode="decimal" value={value.latitude} onChange={(e) => onChange({ latitude: e.target.value.replace(/[^\d.-]/g, '') })} placeholder="31.5204" wrapperClassName="w-32" className="font-mono" />
+            <Input size="sm" label={t('Longitude')} inputMode="decimal" value={value.longitude} onChange={(e) => onChange({ longitude: e.target.value.replace(/[^\d.-]/g, '') })} placeholder="74.3587" wrapperClassName="w-32" className="font-mono" />
+            <Button size="sm" variant="secondary" loading={locating} onClick={locate} leftIcon={<Crosshair className="h-4 w-4" />}>{t('Meri location')}</Button>
+            {mapUrl && <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 px-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><MapPin className="h-4 w-4" />{t('Map')}</a>}
           </div>
-          <p className="mt-1.5 text-[0.6875rem] text-slate-500">Dukaan par khare ho kar "Meri location" dabayein — booker ki visit isi jagah se check hoti hai.</p>
+          <p className="mt-1.5 text-[0.6875rem] text-slate-500">{t('Dukaan par khare ho kar "Meri location" dabayein — booker ki visit isi jagah se check hoti hai.')}</p>
         </div>
       </div>
     </Card>
@@ -135,22 +136,22 @@ export function CustomerDistributionPanel({ customer, canEdit }: { customer: Wit
   const expired = f.licenseExpiry && f.licenseExpiry < new Date().toISOString().slice(0, 10);
   const mapUrl = f.latitude && f.longitude ? `https://www.google.com/maps?q=${f.latitude},${f.longitude}` : null;
   const rows: Array<[React.ReactNode, React.ReactNode]> = [
-    [<><Building2 className="h-3.5 w-3.5" />Dukaan</>, f.businessName || '—'],
-    [<><Tag className="h-3.5 w-3.5" />Price list</>, list?.name ?? (f.priceListId ? '…' : 'Default list')],
-    [<><RouteIcon className="h-3.5 w-3.5" />Route</>, route ? `${route.name}${f.routeSeq ? ` · #${f.routeSeq}` : ''}` : 'Koi route nahi'],
-    [<><Truck className="h-3.5 w-3.5" />Booker</>, route?.bookerName ?? '—'],
-    ['Udhaar ke din', f.creditDays ? `${f.creditDays} din` : '—'],
+    [<><Building2 className="h-3.5 w-3.5" />{t('Dukaan')}</>, f.businessName || '—'],
+    [<><Tag className="h-3.5 w-3.5" />{t('Price list')}</>, list?.name ?? (f.priceListId ? '…' : t('Default list'))],
+    [<><RouteIcon className="h-3.5 w-3.5" />{t('Route')}</>, route ? `${route.name}${f.routeSeq ? ` · #${f.routeSeq}` : ''}` : t('Koi route nahi')],
+    [<><Truck className="h-3.5 w-3.5" />{t('Booker')}</>, route?.bookerName ?? '—'],
+    [t('Udhaar ke din'), f.creditDays ? `${f.creditDays} din` : '—'],
     ['STRN', f.strn || '—'],
-    ['Licence', f.licenseNo ? <span className={cn(expired && 'text-rose-700')}>{f.licenseNo}{f.licenseExpiry ? ` · ${f.licenseExpiry}${expired ? ' (khatam)' : ''}` : ''}</span> : '—'],
-    ['GPS', mapUrl ? <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">{Number(f.latitude).toFixed(4)}, {Number(f.longitude).toFixed(4)}<ExternalLink className="h-3 w-3" /></a> : <span className="text-amber-700">Nahi lagi</span>],
+    [t('Licence'), f.licenseNo ? <span className={cn(expired && 'text-rose-700')}>{f.licenseNo}{f.licenseExpiry ? ` · ${f.licenseExpiry}${expired ? ' (khatam)' : ''}` : ''}</span> : '—'],
+    ['GPS', mapUrl ? <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">{Number(f.latitude).toFixed(4)}, {Number(f.longitude).toFixed(4)}<ExternalLink className="h-3 w-3" /></a> : <span className="text-amber-700">{t('Nahi lagi')}</span>],
   ];
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-teal-700" />Distribution</span>}
-      actions={canEdit ? <Link to={`/customers/${customer.id}/edit`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Badlein</Link> : undefined}>
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-teal-700" />{t('Distribution')}</span>}
+      actions={canEdit ? <Link to={`/customers/${customer.id}/edit`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Badlein')}</Link> : undefined}>
       <dl className="grid gap-x-8 sm:grid-cols-2">
         {rows.map(([k, v], i) => (
           <div key={i} className="flex justify-between gap-3 border-b border-slate-100 py-2 text-[0.8125rem]">
-            <dt className="inline-flex items-center gap-1.5 text-slate-500">{k}</dt><dd className="text-right font-medium text-slate-800">{v}</dd>
+            <dt className="inline-flex items-center gap-1.5 text-slate-500">{k}</dt><dd className="text-end font-medium text-slate-800">{v}</dd>
           </div>
         ))}
       </dl>

@@ -1,4 +1,5 @@
 import type { BakerySize } from '../api/products.api';
+import { t } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    UNIT — EK HI SAWAL, EK HI JAGAH
@@ -31,18 +32,18 @@ export interface UnitDef {
 
 /** Jin tareeqon se bakery ka maal bikta hai */
 export const UNITS: UnitDef[] = [
-  { key: 'pcs',    label: 'Piece',  emoji: '🎂', piecesIn: 1,  hint: 'Ek ek kar ke — cake, patty, burger' },
-  { key: 'dozen',  label: 'Dozen',  emoji: '📦', piecesIn: 12, hint: 'Barah ke hisaab se — cookies, cupcake' },
-  { key: 'kg',     label: 'Kilo',   emoji: '⚖️', weighed: true, hint: 'Wazan se — mithai, barfi, rusk' },
-  { key: 'pound',  label: 'Pound',  emoji: '⚖️', weighed: true, hint: 'Pound se — cake ka aam tareeqa' },
-  { key: 'gram',   label: 'Gram',   emoji: '⚖️', weighed: true, hint: 'Chhoti quantity — dry fruit, chocolate' },
-  { key: 'slice',  label: 'Slice',  emoji: '🍰', hint: 'Tukron me — cake slice, pizza slice' },
-  { key: 'box',    label: 'Box',    emoji: '📦', hint: 'Dabbay me — gift pack, cookies box' },
-  { key: 'tray',   label: 'Tray',   emoji: '🍱', hint: 'Thaal me — mithai, catering' },
-  { key: 'packet', label: 'Packet', emoji: '🛍️', hint: 'Packet me — bahar se laya maal' },
-  { key: 'bottle', label: 'Bottle', emoji: '🥤', hint: 'Bottle — drinks, juice' },
-  { key: 'plate',  label: 'Plate',  emoji: '🍽️', hint: 'Plate me — dessert, halwa' },
-  { key: 'custom', label: 'Apna',   emoji: '⚙️', hint: 'Jo naam aap ki dukaan par chalta hai' },
+  { key: 'pcs',    label: t('Piece'),  emoji: '🎂', piecesIn: 1,  hint: t('Ek ek kar ke — cake, patty, burger') },
+  { key: 'dozen',  label: t('Dozen'),  emoji: '📦', piecesIn: 12, hint: t('Barah ke hisaab se — cookies, cupcake') },
+  { key: 'kg',     label: t('Kilo'),   emoji: '⚖️', weighed: true, hint: t('Wazan se — mithai, barfi, rusk') },
+  { key: 'pound',  label: t('Pound'),  emoji: '⚖️', weighed: true, hint: t('Pound se — cake ka aam tareeqa') },
+  { key: 'gram',   label: t('Gram'),   emoji: '⚖️', weighed: true, hint: t('Chhoti quantity — dry fruit, chocolate') },
+  { key: 'slice',  label: t('Slice'),  emoji: '🍰', hint: t('Tukron me — cake slice, pizza slice') },
+  { key: 'box',    label: t('Box'),    emoji: '📦', hint: t('Dabbay me — gift pack, cookies box') },
+  { key: 'tray',   label: t('Tray'),   emoji: '🍱', hint: t('Thaal me — mithai, catering') },
+  { key: 'packet', label: t('Packet'), emoji: '🛍️', hint: t('Packet me — bahar se laya maal') },
+  { key: 'bottle', label: t('Bottle'), emoji: '🥤', hint: t('Bottle — drinks, juice') },
+  { key: 'plate',  label: t('Plate'),  emoji: '🍽️', hint: t('Plate me — dessert, halwa') },
+  { key: 'custom', label: t('Apna'),   emoji: '⚙️', hint: t('Jo naam aap ki dukaan par chalta hai') },
 ];
 
 export const unitDef = (key: string): UnitDef =>
@@ -50,7 +51,7 @@ export const unitDef = (key: string): UnitDef =>
 
 /** Screen par dikhane wala naam — "apna" ho to dukaan-daar ka likha hua */
 export function unitLabel(key: string, customName?: string): string {
-  if (key === 'custom') return (customName || '').trim() || 'apna naap';
+  if (key === 'custom') return (customName || '').trim() || t('apna naap');
   return unitDef(key).label.toLowerCase();
 }
 

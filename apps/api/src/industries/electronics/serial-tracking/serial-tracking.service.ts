@@ -17,6 +17,7 @@ import { ensureCustomer, resolveIndustryShopId } from '../../_shared/industry-sa
 import { nextNumber, numberHead, payFromDrawer } from '../common/books';
 import { releaseVoidedSerials, warrantyWindow } from '../common/serial-upkeep';
 import { BulkCreateSerialDto, ListSerialsDto, SellSerialDto, TradeInDto, UpsertSerialDto } from './dto/upsert-serial.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 const PROBLEM: ElectronicsSerialStatus[] = ['DEFECTIVE', 'LOST', 'IN_REPAIR', 'RETURNED'];
@@ -104,7 +105,7 @@ export class SerialTrackingService {
         where: { tenantId: user.tenantId, OR: [{ imei: { in: imeis } }, { imei2: { in: imeis } }] },
         select: { serialNumber: true, imei: true },
       });
-      if (clash) throw new BadRequestException(`IMEI ${clash.imei} pehle se serial ${clash.serialNumber} par hai`);
+      if (clash) throw new BadRequestException(apiMessage('IMEI {{imei}} pehle se serial {{serialNumber}} par hai', { imei: clash.imei, serialNumber: clash.serialNumber }));
     }
 
     const shopId = await this.shop(user, dto.shopId);
@@ -327,7 +328,7 @@ export class SerialTrackingService {
     const s = await this.prisma.electronicsSerialTracking.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!s) throw new NotFoundException('Serial nahi mila');
     if (s.status !== 'IN_STOCK' && s.status !== 'RESERVED') {
-      throw new BadRequestException(`Ye unit ${s.status} hai — bech nahi sakte`);
+      throw new BadRequestException(apiMessage('Ye unit {{sStatus}} hai — bech nahi sakte', { sStatus: s.status }));
     }
     const sale = dto.saleId
       ? await this.prisma.sale.findFirst({
@@ -568,7 +569,7 @@ export class SerialTrackingService {
       where: { tenantId, OR: or, ...(exceptId && { id: { not: exceptId } }) },
       select: { serialNumber: true },
     });
-    if (clash) throw new BadRequestException(`Serial / IMEI pehle se mojood hai (${clash.serialNumber})`);
+    if (clash) throw new BadRequestException(apiMessage('Serial / IMEI pehle se mojood hai ({{serialNumber}})', { serialNumber: clash.serialNumber }));
   }
 
   private searchOr(s: string): Prisma.ElectronicsSerialTrackingWhereInput[] {

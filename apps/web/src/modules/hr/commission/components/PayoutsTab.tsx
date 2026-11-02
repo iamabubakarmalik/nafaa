@@ -9,6 +9,7 @@ import { Button, Skeleton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { commissionApi } from '../api/commission.api';
 import { COMMISSION_KEY, dayTime, downloadCsv, periodLabel, shiftPeriod } from './meta';
+import { t } from '@core/i18n';
 
 export function PayoutsTab({ period, search }: { period: string; search: string }) {
   const from = shiftPeriod(period, -11);
@@ -21,8 +22,8 @@ export function PayoutsTab({ period, search }: { period: string; search: string 
   if (q.isError) {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-        <p className="font-semibold text-slate-900">Payment ka record load nahi hua</p>
-        <Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button>
+        <p className="font-semibold text-slate-900">{t('Payment ka record load nahi hua')}</p>
+        <Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>{t('Dobara koshish')}</Button>
       </div>
     );
   }
@@ -30,23 +31,23 @@ export function PayoutsTab({ period, search }: { period: string; search: string 
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Wallet className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">{needle ? 'Is naam ki koi payment nahi' : 'Pichle 12 mahine me koi payment nahi likhi'}</p>
-        <p className="mt-1 text-sm text-slate-500">Hisab tab me kisi bande par "Ada karein" dabayein — yahan record ban jata hai.</p>
+        <p className="mt-3 font-semibold text-slate-900">{needle ? t('Is naam ki koi payment nahi') : t('Pichle 12 mahine me koi payment nahi likhi')}</p>
+        <p className="mt-1 text-sm text-slate-500">{t('Hisab tab me kisi bande par "Ada karein" dabayein — yahan record ban jata hai.')}</p>
       </div>
     );
   }
 
   const csv = () => downloadCsv(`commission-payment-${from}-${period}.csv`, [
-    ['Banda', 'Mahina', 'Amount', 'Kab', 'Kis ne likha', 'Note'],
+    [t('Banda'), t('Mahina'), t('Amount'), t('Kab'), t('Kis ne likha'), t('Note')],
     ...rows.map((p) => [p.name, p.period, p.amount.toFixed(2), dayTime(p.paidAt), p.paidBy ?? '', p.note ?? '']),
   ]);
 
   return (<>
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
-      <span className="text-slate-500">{periodLabel(from)} se {periodLabel(period)} tak</span>
-      <span className="font-semibold text-slate-900">Kul ada {formatPKR(total)} <span className="font-normal text-slate-500">({rows.length})</span></span>
+      <span className="text-slate-500">{t('{{from}} se {{period}} tak', { from: periodLabel(from), period: periodLabel(period) })}</span>
+      <span className="font-semibold text-slate-900">{t('Kul ada {{total}}', { total: formatPKR(total) })}{' '} <span className="font-normal text-slate-500">({rows.length})</span></span>
       <span className="flex-1" />
-      <Button size="sm" variant="ghost" leftIcon={<Download className="h-4 w-4" />} onClick={csv}>CSV</Button>
+      <Button size="sm" variant="ghost" leftIcon={<Download className="h-4 w-4" />} onClick={csv}>{t('CSV')}</Button>
     </div>
     <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       {rows.map((p) => (
@@ -54,7 +55,7 @@ export function PayoutsTab({ period, search }: { period: string; search: string 
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Wallet className="h-4 w-4" /></span>
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-slate-900">{p.name} <span className="font-normal text-slate-500">· {periodLabel(p.period)}</span></p>
-            <p className="truncate text-[0.75rem] text-slate-500">{dayTime(p.paidAt)}{p.paidBy ? ` · ${p.paidBy} ne likha` : ''}{p.note ? ` · ${p.note}` : ''}</p>
+            <p className="truncate text-[0.75rem] text-slate-500">{dayTime(p.paidAt)}{p.paidBy ? t(' · {{paidBy}} ne likha', { paidBy: p.paidBy }) : ''}{p.note ? ` · ${p.note}` : ''}</p>
           </div>
           <p className="shrink-0 font-semibold tabular-nums text-slate-900">{formatPKR(p.amount)}</p>
         </li>

@@ -7,6 +7,7 @@
 import { useSyncExternalStore } from 'react';
 import type { FloristDeliveryTimeSlot, FloristOrderType, OrderFromSale } from '../api/orders.api';
 import { dayKey, phoneOk, shiftDay } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface DeliveryDraft {
   orderType: FloristOrderType;
@@ -54,15 +55,15 @@ export const useDeliveryState = () => useSyncExternalStore(deliveryStore.subscri
 export function draftProblems(d: DeliveryDraft): string[] {
   const out: string[] = [];
   if (d.orderType === 'WALK_IN') return out;
-  if (!d.scheduledDeliveryDate) out.push('Delivery ki date chunein');
-  else if (d.scheduledDeliveryDate < dayKey()) out.push('Delivery ki date guzar chuki hai');
+  if (!d.scheduledDeliveryDate) out.push(tr('Delivery ki date chunein'));
+  else if (d.scheduledDeliveryDate < dayKey()) out.push(tr('Delivery ki date guzar chuki hai'));
   if (d.orderType === 'DELIVERY' || d.orderType === 'CORPORATE') {
-    if (!d.recipientName.trim()) out.push('Lene wale ka naam likhein');
-    if (!phoneOk(d.recipientPhone)) out.push('Lene wale ka phone 10 se 15 hindse');
-    if (!d.deliveryAddress.trim()) out.push('Delivery ka pata likhein');
+    if (!d.recipientName.trim()) out.push(tr('Lene wale ka naam likhein'));
+    if (!phoneOk(d.recipientPhone)) out.push(tr('Lene wale ka phone 10 se 15 hindse'));
+    if (!d.deliveryAddress.trim()) out.push(tr('Delivery ka pata likhein'));
   }
-  if (d.orderType === 'EVENT' && !d.eventVenue.trim()) out.push('Event ki jagah likhein');
-  if (d.messageCard.length > 500) out.push('Card ka message 500 harf tak');
+  if (d.orderType === 'EVENT' && !d.eventVenue.trim()) out.push(tr('Event ki jagah likhein'));
+  if (d.messageCard.length > 500) out.push(tr('Card ka message 500 harf tak'));
   return out;
 }
 

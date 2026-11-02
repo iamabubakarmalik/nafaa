@@ -73,14 +73,14 @@ export function AiMarkdown({ text }: { text: string }) {
         if (b.kind === 'h') return <p key={k} className="font-semibold text-slate-900">{inline(b.text, k)}</p>;
         if (b.kind === 'ul') {
           return (
-            <ul key={k} className="ml-4 list-disc space-y-1 marker:text-brand-500">
+            <ul key={k} className="ms-4 list-disc space-y-1 marker:text-brand-500">
               {b.items.map((it, j) => <li key={j}>{inline(it, `${k}-${j}`)}</li>)}
             </ul>
           );
         }
         if (b.kind === 'ol') {
           return (
-            <ol key={k} className="ml-4 list-decimal space-y-1 marker:text-slate-400">
+            <ol key={k} className="ms-4 list-decimal space-y-1 marker:text-slate-400">
               {b.items.map((it, j) => <li key={j}>{inline(it, `${k}-${j}`)}</li>)}
             </ol>
           );

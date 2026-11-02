@@ -41,6 +41,7 @@ import { RunSheet } from '../components/RunSheet';
 import { applyEdit, payNow } from '../components/calc';
 import { PAYROLL_KEY, STATUS, currentMonth, monthName, shiftMonth } from '../components/meta';
 import { historyCsv, historyDoc, runSheetCsv, runSheetDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'run' | 'advances' | 'history' | 'analytics';
 type View = '' | 'open' | 'due' | 'paid';
@@ -100,7 +101,7 @@ export default function PayrollPage() {
   const sheet = runQ.data;
   const t = sheet?.totals;
   const shops = (shopsQ.data ?? []).filter((s) => s.isActive);
-  const branchName = shopId ? shops.find((s) => s.id === shopId)?.name ?? 'Branch' : allShops ? 'Sab branches' : 'Ye branch';
+  const branchName = shopId ? shops.find((s) => s.id === shopId)?.name ?? tr('Branch') : allShops ? tr('Sab branches') : tr('Ye branch');
   const staffOptions = useMemo(() => (sheet?.rows ?? []).map((r) => r.staff), [sheet]);
   const savedThisMonth = useMemo(() => new Set((sheet?.month === thisMonth ? sheet.rows : []).filter((r) => r.record).map((r) => r.staff.id)), [sheet, thisMonth]);
 
@@ -158,70 +159,70 @@ export default function PayrollPage() {
   return (
     <PageShell>
       <PageHero
-        title="Tankhwah"
-        chip={<><Wallet /> Payroll</>}
-        meta="Hazri, overtime, commission, advance — har mahine ki tankhwah ek jagah"
+        title={tr('Tankhwah')}
+        chip={<><Wallet /> {' '}{tr('Payroll')}</>}
+        meta={tr('Hazri, overtime, commission, advance — har mahine ki tankhwah ek jagah')}
         busy={runQ.isFetching && !runQ.isLoading}
         loading={runQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
             <PrintButton doc={printDoc} disabled={tab === 'history' ? !histQ.data?.items.length : !sheet?.rows.length || tab !== 'run'} />
           </span>
-          <button type="button" onClick={exportCsv} disabled={tab === 'history' ? !histQ.data?.items.length : !sheet?.rows.length || tab !== 'run'} title="CSV" className={heroIconButton}><Download className="h-4 w-4" /></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canWrite && <button type="button" onClick={() => setAdvanceFor('')} disabled={!sheet} title="Advance dein (A)" className={heroButton}><HandCoins className="h-4 w-4" /> Advance</button>}
+          <button type="button" onClick={exportCsv} disabled={tab === 'history' ? !histQ.data?.items.length : !sheet?.rows.length || tab !== 'run'} title={tr('CSV')} className={heroIconButton}><Download className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canWrite && <button type="button" onClick={() => setAdvanceFor('')} disabled={!sheet} title={tr('Advance dein (A)')} className={heroButton}><HandCoins className="h-4 w-4" /> {' '}{tr('Advance')}</button>}
           {canWrite && (
-            <button type="button" title="Sab baqi ki tankhwah (P)" className={heroPrimaryButton} disabled={!openPayable.length || !!sheet?.isFuture}
+            <button type="button" title={tr('Sab baqi ki tankhwah (P)')} className={heroPrimaryButton} disabled={!openPayable.length || !!sheet?.isFuture}
               onClick={() => { const list = selected.size ? openPayable.filter((r) => selected.has(r.staff.id)) : openPayable.filter((r) => !applyEdit(r, edits[r.staff.id]).advanceTooBig); if (list.length) setPayLines(list.map(lineOf)); }}>
-              <Wallet className="h-4 w-4" /> {selected.size ? `${selected.size} ki tankhwah` : 'Sab ki tankhwah'}
+              <Wallet className="h-4 w-4" /> {selected.size ? tr('{{size}} ki tankhwah', { size: selected.size }) : tr('Sab ki tankhwah')}
             </button>
           )}
         </>}
         stats={t ? [
-          { label: `${sheet!.label} — kul`, value: formatPKR(t.gross), hint: `${t.staff} staff` },
-          { label: 'Ada ho gayi', value: formatPKR(t.paid), hint: `${t.saved} bani` },
-          { label: 'Abhi deni hai', value: formatPKR(t.due), hint: t.open ? `${t.open} ki baqi` : undefined },
-        ] : [{ label: 'Is mahine', value: '—' }]}
+          { label: tr('{{label}} — kul', { label: sheet!.label }), value: formatPKR(t.gross), hint: tr('{{staff}} staff', { staff: t.staff }) },
+          { label: tr('Ada ho gayi'), value: formatPKR(t.paid), hint: tr('{{saved}} bani', { saved: t.saved }) },
+          { label: tr('Abhi deni hai'), value: formatPKR(t.due), hint: t.open ? tr('{{open}} ki baqi', { open: t.open }) : undefined },
+        ] : [{ label: tr('Is mahine'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Wallet} color="#7c3aed" label={`${sheet!.label} ki tankhwah`} value={formatPKR(t.gross)} hint={`${t.staff} staff · net ${formatPKR(t.net)}`}
+          <KpiCard icon={Wallet} color="#7c3aed" label={tr('{{label}} ki tankhwah', { label: sheet!.label })} value={formatPKR(t.gross)} hint={tr('{{staff}} staff · net {{net}}', { staff: t.staff, net: formatPKR(t.net) })}
             onClick={() => { setTab('run'); setView(''); }} active={tab === 'run' && !view} />
-          <KpiCard icon={CalendarClock} color="#e11d48" label="Abhi deni hai" value={formatPKR(t.due)} hint={t.open ? `${t.open} ki tankhwah nahi bani` : 'Sab ki ban chuki'}
+          <KpiCard icon={CalendarClock} color="#e11d48" label={tr('Abhi deni hai')} value={formatPKR(t.due)} hint={t.open ? tr('{{open}} ki tankhwah nahi bani', { open: t.open }) : tr('Sab ki ban chuki')}
             onClick={() => { setTab('run'); setView('due'); }} active={tab === 'run' && view === 'due'} />
-          <KpiCard icon={ListChecks} color="#16a34a" label="Ada ho gayi" value={formatPKR(t.paid)} hint={`${t.saved} tankhwah bani`}
+          <KpiCard icon={ListChecks} color="#16a34a" label={tr('Ada ho gayi')} value={formatPKR(t.paid)} hint={tr('{{saved}} tankhwah bani', { saved: t.saved })}
             onClick={() => { setTab('run'); setView('paid'); }} active={tab === 'run' && view === 'paid'} />
-          <KpiCard icon={HandCoins} color="#d97706" label="Advance baqi" value={formatPKR(t.advanceOutstanding.amount)} hint={t.advanceOutstanding.staff ? `${t.advanceOutstanding.staff} staff se katna hai` : 'Koi advance baqi nahi'}
+          <KpiCard icon={HandCoins} color="#d97706" label={tr('Advance baqi')} value={formatPKR(t.advanceOutstanding.amount)} hint={t.advanceOutstanding.staff ? tr('{{staff}} staff se katna hai', { staff: t.advanceOutstanding.staff }) : tr('Koi advance baqi nahi')}
             onClick={() => setTab('advances')} active={tab === 'advances'} />
-          <KpiCard icon={Percent} color="#0891b2" label="Sale ka hissa" value={t.salesPct == null ? '—' : `${t.salesPct}%`} hint={`${sheet!.label} sale ${formatPKR(t.sales)}`}
+          <KpiCard icon={Percent} color="#0891b2" label={tr('Sale ka hissa')} value={t.salesPct == null ? '—' : `${t.salesPct}%`} hint={tr('{{label}} sale {{sales}}', { label: sheet!.label, sales: formatPKR(t.sales) })}
             onClick={() => setTab('analytics')} active={tab === 'analytics'} />
         </>}
       </KpiRow>
 
       <FilterBar
         search={tab === 'run' || tab === 'history'
-          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'run' ? 'Staff ka naam, number ya ohda…' : 'Naam, staff number ya PAY- / ADV- number…'} label="Search" />
-          : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'analytics' ? `${monthName(month)} tak pichle 12 mahine` : 'Diye gaye advance aur qarz — har qist kis mahine kategi'}</p>}
+          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'run' ? tr('Staff ka naam, number ya ohda…') : tr('Naam, staff number ya PAY- / ADV- number…')} label={tr('Search')} />
+          : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'analytics' ? tr('{{month}} tak pichle 12 mahine', { month: monthName(month) }) : tr('Diye gaye advance aur qarz — har qist kis mahine kategi')}</p>}
         chips={(tab === 'run' && filteredRun) || (tab === 'history' && filteredHistory) ? <>
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           {tab === 'run' && view && <FilterChip onRemove={() => setView('')}>{VIEW_LABEL[view]}</FilterChip>}
-          {tab === 'history' && staffId && <FilterChip onRemove={() => setStaffId('')}>{staffOptions.find((s) => s.id === staffId)?.fullName ?? 'Staff'}</FilterChip>}
-          {tab === 'history' && kind && <FilterChip onRemove={() => setKind('')}>{kind === 'advance' ? 'Advance' : 'Tankhwah'}</FilterChip>}
+          {tab === 'history' && staffId && <FilterChip onRemove={() => setStaffId('')}>{staffOptions.find((s) => s.id === staffId)?.fullName ?? tr('Staff')}</FilterChip>}
+          {tab === 'history' && kind && <FilterChip onRemove={() => setKind('')}>{kind === 'advance' ? tr('Advance') : tr('Tankhwah')}</FilterChip>}
           {tab === 'history' && status && <FilterChip onRemove={() => setStatus('')}>{STATUS[status].label}</FilterChip>}
         </> : undefined}
         onClear={clear}>
         {(tab === 'run' || tab === 'analytics') && (
           <div className="inline-flex h-11 items-center gap-1 rounded-2xl bg-slate-100/80 px-1">
-            <button type="button" onClick={() => setMonth((m) => shiftMonth(m, -1))} aria-label="Pichla mahina ([)" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-white"><ChevronLeft className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setMonth((m) => shiftMonth(m, -1))} aria-label="Pichla mahina ([)" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-white"><ChevronLeft className="h-4 w-4 rtl-flip" /></button>
             <span className="min-w-[6.5rem] text-center text-[0.875rem] font-semibold text-slate-800">{monthName(month)}</span>
-            <button type="button" onClick={() => setMonth((m) => shiftMonth(m, 1))} disabled={month >= thisMonth} aria-label="Agla mahina (])" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-white disabled:opacity-40"><ChevronRight className="h-4 w-4" /></button>
-            {month !== thisMonth && <button type="button" onClick={() => setMonth(thisMonth)} className="rounded-xl px-2.5 py-1.5 text-[0.75rem] font-medium text-brand-700 hover:bg-white">Is mahine</button>}
+            <button type="button" onClick={() => setMonth((m) => shiftMonth(m, 1))} disabled={month >= thisMonth} aria-label="Agla mahina (])" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-white disabled:opacity-40"><ChevronRight className="h-4 w-4 rtl-flip" /></button>
+            {month !== thisMonth && <button type="button" onClick={() => setMonth(thisMonth)} className="rounded-xl px-2.5 py-1.5 text-[0.75rem] font-medium text-brand-700 hover:bg-white">{tr('Is mahine')}</button>}
           </div>
         )}
         {allShops && shops.length > 1 && (
-          <FilterMenu icon={Store} label="Branch" value={shopId} active={!!shopId} onChange={setShopId}
-            options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
+          <FilterMenu icon={Store} label={tr('Branch')} value={shopId} active={!!shopId} onChange={setShopId}
+            options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
         )}
         {tab === 'run' && (
           <FilterMenu icon={Filter} label={VIEW_LABEL[view]} value={view} active={!!view} onChange={setView} align="right"
@@ -229,55 +230,55 @@ export default function PayrollPage() {
         )}
         {tab === 'history' && <>
           {staffOptions.length > 0 && (
-            <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId} width="w-72"
-              options={[{ value: '', label: 'Sab staff' }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: s.designation }))]} />
+            <FilterMenu icon={UserRound} label={tr('Staff')} value={staffId} active={!!staffId} onChange={setStaffId} width="w-72"
+              options={[{ value: '', label: tr('Sab staff') }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: s.designation }))]} />
           )}
-          <FilterMenu icon={History} label="Type" value={kind} active={!!kind} onChange={setKind}
-            options={[{ value: '' as const, label: 'Sab' }, { value: 'salary' as const, label: 'Tankhwah' }, { value: 'advance' as const, label: 'Advance' }]} />
-          <FilterMenu icon={Filter} label="Haal" value={status} active={!!status} onChange={setStatus} align="right"
-            options={[{ value: '' as const, label: 'Sab' }, ...(Object.keys(STATUS) as RecordStatus[]).map((k) => ({ value: k as '' | RecordStatus, label: STATUS[k].label, icon: STATUS[k].icon }))]} />
+          <FilterMenu icon={History} label={tr('Type')} value={kind} active={!!kind} onChange={setKind}
+            options={[{ value: '' as const, label: tr('Sab') }, { value: 'salary' as const, label: tr('Tankhwah') }, { value: 'advance' as const, label: tr('Advance') }]} />
+          <FilterMenu icon={Filter} label={tr('Haal')} value={status} active={!!status} onChange={setStatus} align="right"
+            options={[{ value: '' as const, label: tr('Sab') }, ...(Object.keys(STATUS) as RecordStatus[]).map((k) => ({ value: k as '' | RecordStatus, label: STATUS[k].label, icon: STATUS[k].icon }))]} />
         </>}
         {tab === 'advances' && (
-          <FilterMenu icon={Filter} label={allAdvances ? 'Sab advance' : 'Sirf baqi'} value={allAdvances ? 'all' : 'open'} onChange={(v) => setAllAdvances(v === 'all')} align="right"
-            options={[{ value: 'open', label: 'Sirf baqi' }, { value: 'all', label: 'Sab advance (purane bhi)' }]} />
+          <FilterMenu icon={Filter} label={allAdvances ? tr('Sab advance') : tr('Sirf baqi')} value={allAdvances ? 'all' : 'open'} onChange={(v) => setAllAdvances(v === 'all')} align="right"
+            options={[{ value: 'open', label: tr('Sirf baqi') }, { value: 'all', label: tr('Sab advance (purane bhi)') }]} />
         )}
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>[</Kbd> <Kbd>]</Kbd> mahina · <Kbd>/</Kbd> search{canWrite && <> · <Kbd>A</Kbd> advance</>}</>}
+        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> {' '}{tr('tabs ·')}{' '} <Kbd>[</Kbd> <Kbd>]</Kbd> {' '}{tr('mahina ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}{canWrite && <> · <Kbd>A</Kbd> {' '}{tr('advance')}</>}</>}
         tabs={[
-          { id: 'run', label: 'Is mahine', icon: Users, count: t?.open || null },
-          { id: 'advances', label: 'Advance', icon: HandCoins, count: advQ.data?.totals.open ?? null },
-          { id: 'history', label: 'Record', icon: History, count: histQ.data?.total ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'run', label: tr('Is mahine'), icon: Users, count: t?.open || null },
+          { id: 'advances', label: tr('Advance'), icon: HandCoins, count: advQ.data?.totals.open ?? null },
+          { id: 'history', label: tr('Record'), icon: History, count: histQ.data?.total ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'run' && <>
         {sheet && sheet.commission !== 'ok' && (
           <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2.5 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
             <Info className="h-4 w-4 shrink-0" />
-            {sheet.commission === 'hidden' ? 'Commission dekhne ki permission nahi — tankhwah me commission shamil nahi hogi, woh Commission page se alag dein.' : 'Commission abhi load nahi hui — tankhwah bina commission ke ban rahi hai.'}
+            {sheet.commission === 'hidden' ? tr('Commission dekhne ki permission nahi — tankhwah me commission shamil nahi hogi, woh Commission page se alag dein.') : tr('Commission abhi load nahi hui — tankhwah bina commission ke ban rahi hai.')}
           </p>
         )}
         {sheet && sheet.commission === 'ok' && !sheet.canPayCommission && sheet.rows.some((r) => (r.commission?.earned ?? 0) > 0) && (
           <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2.5 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
-            <Info className="h-4 w-4 shrink-0" />Commission ada karne ki permission (Commission manage) nahi — commission tankhwah me nahi judegi.
+            <Info className="h-4 w-4 shrink-0" />{tr('Commission ada karne ki permission (Commission manage) nahi — commission tankhwah me nahi judegi.')}
           </p>
         )}
-        {sheet?.isFuture && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Ye mahina abhi shuru nahi hua — sirf andaza dikh raha hai.</p>}
+        {sheet?.isFuture && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{tr('Ye mahina abhi shuru nahi hua — sirf andaza dikh raha hai.')}</p>}
         {runQ.isLoading ? (
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
         ) : runQ.isError && !sheet ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Tankhwah load nahi hui</p>
-            <Button className="mt-3" variant="secondary" onClick={() => runQ.refetch()}>Dobara koshish</Button>
+            <p className="font-semibold text-slate-900">{tr('Tankhwah load nahi hui')}</p>
+            <Button className="mt-3" variant="secondary" onClick={() => runQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <Users className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filteredRun ? 'Is filter me koi staff nahi' : 'Is branch me koi staff nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">Staff page par bande ki tankhwah aur branch likhein — phir yahan har mahine nazar aayega.</p>
-            {filteredRun && <Button className="mt-4" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+            <p className="mt-3 font-semibold text-slate-900">{filteredRun ? tr('Is filter me koi staff nahi') : tr('Is branch me koi staff nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Staff page par bande ki tankhwah aur branch likhein — phir yahan har mahine nazar aayega.')}</p>
+            {filteredRun && <Button className="mt-4" variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
           </div>
         ) : sheet && (
           <RunSheet sheet={sheet} rows={rows} edits={edits} selected={selected} showShop={allShops && !shopId}
@@ -327,27 +328,27 @@ export default function PayrollPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Tankhwah — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Tankhwah — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Users, color: '#7c3aed', title: 'Har mahine ki list', text: '"Is mahine" me branch ka har banda hai: tankhwah, hazri, overtime, commission aur advance ki qist khud jud kar net amount banti hai.' },
-            { icon: ListChecks, color: '#2563eb', title: 'Badlein', text: 'Kisi line par "Badlein" — bonus ya katauti wajah ke saath, dihari ke din, overtime, ghair hazri ki katauti band, ya abhi kam amount dena.' },
-            { icon: Wallet, color: '#16a34a', title: 'Ada karein', text: 'Ek bande ko "Dein", ya kai chun kar ek saath. Paisa galle se ya bank / wallet account se — ya "baad me dein" chun kar sirf tankhwah bana lein.' },
-            { icon: HandCoins, color: '#d97706', title: 'Advance aur qarz', text: '"Advance" se mahine ke beech paise dein. Ek dafa ya kai qiston me — har mahine ki tankhwah se khud kat jata hai.' },
-            { icon: Printer, color: '#0891b2', title: 'Payslip', text: 'Bani hui tankhwah par Payslip — A4, PDF ya thermal, dastkhat ki jagah ke saath. Upar Print se poori list.' },
-            { icon: BarChart3, color: '#e11d48', title: 'Analytics', text: '12 mahine ki tankhwah, sale ka kitna hissa, branch, ohda aur sab se zyada tankhwah wale.' },
+            { icon: Users, color: '#7c3aed', title: tr('Har mahine ki list'), text: tr('"Is mahine" me branch ka har banda hai: tankhwah, hazri, overtime, commission aur advance ki qist khud jud kar net amount banti hai.') },
+            { icon: ListChecks, color: '#2563eb', title: tr('Badlein'), text: tr('Kisi line par "Badlein" — bonus ya katauti wajah ke saath, dihari ke din, overtime, ghair hazri ki katauti band, ya abhi kam amount dena.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Ada karein'), text: tr('Ek bande ko "Dein", ya kai chun kar ek saath. Paisa galle se ya bank / wallet account se — ya "baad me dein" chun kar sirf tankhwah bana lein.') },
+            { icon: HandCoins, color: '#d97706', title: tr('Advance aur qarz'), text: tr('"Advance" se mahine ke beech paise dein. Ek dafa ya kai qiston me — har mahine ki tankhwah se khud kat jata hai.') },
+            { icon: Printer, color: '#0891b2', title: tr('Payslip'), text: tr('Bani hui tankhwah par Payslip — A4, PDF ya thermal, dastkhat ki jagah ke saath. Upar Print se poori list.') },
+            { icon: BarChart3, color: '#e11d48', title: tr('Analytics'), text: tr('12 mahine ki tankhwah, sale ka kitna hissa, branch, ohda aur sab se zyada tankhwah wale.') },
           ]}
           tips={[
-            'Ek bande ki ek mahine ki tankhwah ek hi dafa banti hai — dobara dabane se dobara paisa nahi jata.',
-            'Ghalti ho to record khol kar "Cancel" karein — diya hua paisa wapas usi galle / account me likha jata hai.',
-            'Hazri na lagi ho to mahana tankhwah poori banti hai; ghair hazri sirf tab katti hai jab hazri lagi ho.',
-            'Galle se dene ke liye "Cash register kholna" aur account se dene ke liye "Expenses likhna" ki permission chahiye.',
-            'Tankhwah ko Expenses me alag se "Salary" likh kar dobara na daalein — profit do dafa kam dikhega.',
+            tr('Ek bande ki ek mahine ki tankhwah ek hi dafa banti hai — dobara dabane se dobara paisa nahi jata.'),
+            tr('Ghalti ho to record khol kar "Cancel" karein — diya hua paisa wapas usi galle / account me likha jata hai.'),
+            tr('Hazri na lagi ho to mahana tankhwah poori banti hai; ghair hazri sirf tab katti hai jab hazri lagi ho.'),
+            tr('Galle se dene ke liye "Cash register kholna" aur account se dene ke liye "Expenses likhna" ki permission chahiye.'),
+            tr('Tankhwah ko Expenses me alag se "Salary" likh kar dobara na daalein — profit do dafa kam dikhega.'),
           ]}
-          shortcuts={[['1', 'is mahine'], ['2', 'advance'], ['3', 'record'], ['4', 'analytics'], ['[ ]', 'mahina'], ['/', 'dhoondein'], ['A', 'advance'], ['P', 'chune hue ki tankhwah'], ['G', 'guide']]}
+          shortcuts={[['1', tr('is mahine')], ['2', tr('advance')], ['3', tr('record')], ['4', tr('analytics')], ['[ ]', tr('mahina')], ['/', tr('dhoondein')], ['A', tr('advance')], ['P', tr('chune hue ki tankhwah')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
   );
 }
 
-const VIEW_LABEL: Record<View, string> = { '': 'Sab staff', open: 'Tankhwah nahi bani', due: 'Abhi deni hai', paid: 'Ada ho gayi' };
+const VIEW_LABEL: Record<View, string> = { '': tr('Sab staff'), open: tr('Tankhwah nahi bani'), due: tr('Abhi deni hai'), paid: tr('Ada ho gayi') };

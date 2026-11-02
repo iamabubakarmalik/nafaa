@@ -16,6 +16,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { techniciansApi } from '../api/technicians.api';
 import { TECH_KEY, TIME_SLOTS, digits, money, phoneOk, type Meta } from './meta';
+import { t as tr } from '@core/i18n';
 
 export function Pill({ meta, className }: { meta: Meta; className?: string }) {
   return <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', meta.tone, className)}>{meta.label}</span>;
@@ -30,8 +31,8 @@ export function ListState({ loading, error, empty, onRetry, icon: Icon, title, h
   if (error) {
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-        <p className="font-semibold text-slate-900">List load nahi hui</p>
-        <Button className="mt-3" variant="secondary" onClick={onRetry}>Dobara koshish</Button>
+        <p className="font-semibold text-slate-900">{tr('List load nahi hui')}</p>
+        <Button className="mt-3" variant="secondary" onClick={onRetry}>{tr('Dobara koshish')}</Button>
       </div>
     );
   }
@@ -52,9 +53,9 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>Pichla</Button>
-      <span className="text-sm text-slate-600">Safha {page} / {pages}</span>
-      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>Agla</Button>
+      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>{tr('Pichla')}</Button>
+      <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages })}</span>
+      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>{tr('Agla')}</Button>
     </div>
   );
 }
@@ -77,7 +78,7 @@ export function Panel({ title, hint, actions, children, className }: { title: Re
 }
 
 /** Horizontal bars for "count by status/type" panels. */
-export function Bars({ rows, empty = 'Abhi kuch nahi' }: { rows: Array<{ key: string; label: string; value: number; color: string; hint?: string }>; empty?: string }) {
+export function Bars({ rows, empty = tr('Abhi kuch nahi') }: { rows: Array<{ key: string; label: string; value: number; color: string; hint?: string }>; empty?: string }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   if (!rows.length) return <p className="text-[0.8125rem] text-slate-500">{empty}</p>;
   return (
@@ -101,26 +102,26 @@ export function PayModal({ title, description, due, pending, onConfirm, onClose 
   const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [note, setNote] = useState('');
   const n = Number(amount) || 0;
-  const error = !amount ? undefined : n <= 0 ? 'Amount likhein' : n > due + 0.01 ? `Sirf ${formatPKR(due)} baqi hai` : undefined;
+  const error = !amount ? undefined : n <= 0 ? tr('Amount likhein') : n > due + 0.01 ? tr('Sirf {{due}} baqi hai', { due: formatPKR(due) }) : undefined;
   const submit = () => { if (n > 0 && !error && !pending) onConfirm({ amount: n, paymentMethod: method, note: note.trim() || undefined }); };
   return (
     <Modal open onClose={onClose} size="sm" title={title} description={description}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} disabled={!(n > 0) || !!error} loading={pending} leftIcon={<Wallet className="h-4 w-4" />}>{n > 0 ? `${formatPKR(n)} lein` : 'Paisa lein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} disabled={!(n > 0) || !!error} loading={pending} leftIcon={<Wallet className="h-4 w-4" />}>{n > 0 ? tr('{{formatPKR}} lein', { formatPKR: formatPKR(n) }) : tr('Paisa lein')}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">Baqi: <strong className="tabular-nums">{formatPKR(due)}</strong></p>
-        <Input label="Kitna mila" inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(money(e.target.value))} error={error} />
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">{tr('Baqi:')}{' '} <strong className="tabular-nums">{formatPKR(due)}</strong></p>
+        <Input label={tr('Kitna mila')} inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(money(e.target.value))} error={error} />
         <PaymentMethodPicker value={method} onChange={setMethod} />
-        <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Marzi hai" />
+        <Input label={tr('Note')} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr('Marzi hai')} />
       </form>
     </Modal>
   );
 }
 
 /** Asks for the reason before a cancel or a failed visit. */
-export function ReasonModal({ title, label = 'Wajah', confirm, pending, presets = [], onConfirm, onClose }: {
+export function ReasonModal({ title, label = tr('Wajah'), confirm, pending, presets = [], onConfirm, onClose }: {
   title: string; label?: string; confirm: string; pending: boolean; presets?: string[];
   onConfirm: (reason: string) => void; onClose: () => void;
 }) {
@@ -129,7 +130,7 @@ export function ReasonModal({ title, label = 'Wajah', confirm, pending, presets 
   return (
     <Modal open onClose={onClose} size="sm" title={title}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
         <Button variant="danger" onClick={() => ok && onConfirm(reason.trim())} disabled={!ok} loading={pending}>{confirm}</Button>
       </>}>
       <div className="space-y-3">
@@ -138,7 +139,7 @@ export function ReasonModal({ title, label = 'Wajah', confirm, pending, presets 
             {presets.map((p) => <button key={p} type="button" onClick={() => setReason(p)} className={cn('h-8 rounded-lg px-2.5 text-[0.8125rem] ring-1', reason === p ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{p}</button>)}
           </div>
         )}
-        <Textarea label={label} rows={3} autoFocus value={reason} onChange={(e) => setReason(e.target.value)} error={reason && !ok ? 'Thori si wajah likhein' : undefined} />
+        <Textarea label={label} rows={3} autoFocus value={reason} onChange={(e) => setReason(e.target.value)} error={reason && !ok ? tr('Thori si wajah likhein') : undefined} />
       </div>
     </Modal>
   );
@@ -162,24 +163,24 @@ export function CustomerFields({ value, onChange, errors = {}, needAddress = tru
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input label="Customer ka naam" required value={value.name} onChange={(e) => set({ name: e.target.value })} placeholder="Ali Raza" error={errors.name} />
-        <Input label="Phone" required inputMode="tel" value={value.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="0300-1234567"
-          error={errors.phone ?? (value.phone && !phoneOk(value.phone) ? '03xx-xxxxxxx likhein' : undefined)} />
+        <Input label={tr('Customer ka naam')} required value={value.name} onChange={(e) => set({ name: e.target.value })} placeholder={tr('Ali Raza')} error={errors.name} />
+        <Input label={tr('Phone')} required inputMode="tel" value={value.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="0300-1234567"
+          error={errors.phone ?? (value.phone && !phoneOk(value.phone) ? tr('03xx-xxxxxxx likhein') : undefined)} />
       </div>
       {matches.length > 0 && !value.customerId && (
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[0.75rem] text-slate-500">Pehle se customer:</span>
+          <span className="text-[0.75rem] text-slate-500">{tr('Pehle se customer:')}</span>
           {matches.map((c) => (
             <button key={c.id} type="button" onClick={() => onChange({ customerId: c.id, name: c.name, phone: c.phone ?? value.phone, address: c.address ?? value.address, area: c.area ?? value.area })}
               className="h-7 rounded-lg bg-brand-50 px-2 text-[0.75rem] font-medium text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100">{c.name}{c.phone ? ` · ${c.phone}` : ''}</button>
           ))}
         </div>
       )}
-      {value.customerId && <p className="text-[0.75rem] text-emerald-700">Saved customer — khata isi ke naam chalega. <button type="button" className="underline" onClick={() => onChange({ ...value, customerId: undefined })}>Alag customer</button></p>}
+      {value.customerId && <p className="text-[0.75rem] text-emerald-700">{tr('Saved customer — khata isi ke naam chalega.')}{' '} <button type="button" className="underline" onClick={() => onChange({ ...value, customerId: undefined })}>{tr('Alag customer')}</button></p>}
       {needAddress && (
         <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
-          <Input label="Pata" required value={value.address} onChange={(e) => set({ address: e.target.value })} placeholder="House 12, Street 4" error={errors.address} hint="Technician / driver isi par jayega" />
-          <Input label="Ilaqa" value={value.area} onChange={(e) => set({ area: e.target.value })} placeholder="Gulberg" />
+          <Input label={tr('Pata')} required value={value.address} onChange={(e) => set({ address: e.target.value })} placeholder={tr('House 12, Street 4')} error={errors.address} hint={tr('Technician / driver isi par jayega')} />
+          <Input label={tr('Ilaqa')} value={value.area} onChange={(e) => set({ area: e.target.value })} placeholder={tr('Gulberg')} />
         </div>
       )}
     </div>
@@ -189,17 +190,17 @@ export function CustomerFields({ value, onChange, errors = {}, needAddress = tru
 /** Problems with a party draft, for forms that need name, phone and address. */
 export function partyErrors(p: PartyDraft, needAddress = true) {
   const e: Partial<Record<'name' | 'phone' | 'address', string>> = {};
-  if (p.name.trim().length < 2) e.name = 'Customer ka naam likhein';
-  if (!phoneOk(p.phone)) e.phone = 'Sahi mobile number likhein (03xx-xxxxxxx)';
-  if (needAddress && p.address.trim().length < 5) e.address = 'Poora pata likhein';
+  if (p.name.trim().length < 2) e.name = tr('Customer ka naam likhein');
+  if (!phoneOk(p.phone)) e.phone = tr('Sahi mobile number likhein (03xx-xxxxxxx)');
+  if (needAddress && p.address.trim().length < 5) e.address = tr('Poora pata likhein');
   return e;
 }
 
 /** Active technicians to pick for a job. */
-export function TechSelect({ value, onChange, label = 'Technician', hint }: { value: string; onChange: (id: string) => void; label?: string; hint?: string }) {
+export function TechSelect({ value, onChange, label = tr('Technician'), hint }: { value: string; onChange: (id: string) => void; label?: string; hint?: string }) {
   const q = useQuery({ queryKey: [TECH_KEY, 'active'], queryFn: () => techniciansApi.list({ active: true }), staleTime: 60_000 });
   return (
-    <Select label={label} hint={hint} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Baad me lagayein"
+    <Select label={label} hint={hint} value={value} onChange={(e) => onChange(e.target.value)} placeholder={tr('Baad me lagayein')}
       options={(q.data ?? []).map((t) => ({ value: t.id, label: `${t.name}${t.currentZone ? ` · ${t.currentZone}` : ''}${t.openJobs ? ` · ${t.openJobs} kaam` : ''}` }))} />
   );
 }
@@ -207,7 +208,7 @@ export function TechSelect({ value, onChange, label = 'Technician', hint }: { va
 export function SlotChips({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Waqt</span>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Waqt')}</span>
       <div className="flex flex-wrap gap-1.5">
         {TIME_SLOTS.map((s) => (
           <button key={s.value} type="button" onClick={() => onChange(value === s.value ? '' : s.value)} aria-pressed={value === s.value}

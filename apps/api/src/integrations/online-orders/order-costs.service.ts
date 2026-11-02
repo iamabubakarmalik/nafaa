@@ -16,6 +16,7 @@ import {
   postableCosts, r2,
 } from './order-costs';
 import { OrderStatusEvent, orderEvents } from './order-events';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const settingKey = (tenantId: string) => `online_order_costs:${tenantId}`;
 const CATEGORY = 'Online selling costs';
@@ -170,7 +171,7 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
       const v = body[k];
       if (v === null || v === '') { values[k] = null; continue; }
       const n = Number(v);
-      if (!Number.isFinite(n) || n < 0 || n > 1_000_000) throw new BadRequestException(`${COST_LABEL[k]} sahi amount nahi`);
+      if (!Number.isFinite(n) || n < 0 || n > 1_000_000) throw new BadRequestException(apiMessage('{{cOSTLABEL}} sahi amount nahi', { cOSTLABEL: COST_LABEL[k] }));
       values[k] = r2(n);
     }
     if (!Object.keys(values).length) throw new BadRequestException('Koi cost nahi bheji');

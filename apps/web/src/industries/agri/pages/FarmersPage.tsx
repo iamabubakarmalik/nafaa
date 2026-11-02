@@ -30,20 +30,21 @@ import { Pager } from '../components/Pager';
 import { PayModal } from '../components/PayModal';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { errorText, shortDate, isoDay } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type View = FarmerTab | 'analytics';
 type Sort = 'name' | 'owed' | 'due' | 'new' | 'land';
 
 const TABS: Array<{ id: FarmerTab; label: string; icon: typeof ListChecks }> = [
-  { id: 'all', label: 'Sab', icon: ListChecks },
-  { id: 'owing', label: 'Udhaar wale', icon: Wallet },
-  { id: 'due', label: 'Wasooli ka waqt', icon: AlertTriangle },
-  { id: 'over', label: 'Had se upar', icon: Ban },
-  { id: 'suspended', label: 'Roke hue', icon: Lock },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
+  { id: 'owing', label: tr('Udhaar wale'), icon: Wallet },
+  { id: 'due', label: tr('Wasooli ka waqt'), icon: AlertTriangle },
+  { id: 'over', label: tr('Had se upar'), icon: Ban },
+  { id: 'suspended', label: tr('Roke hue'), icon: Lock },
 ];
 const SORTS: Array<FilterOption<Sort>> = [
-  { value: 'name', label: 'Naam' }, { value: 'owed', label: 'Zyada udhaar pehle' }, { value: 'due', label: 'Zyada wasooli pehle' },
-  { value: 'new', label: 'Naye pehle' }, { value: 'land', label: 'Zyada zameen pehle' },
+  { value: 'name', label: tr('Naam') }, { value: 'owed', label: tr('Zyada udhaar pehle') }, { value: 'due', label: tr('Zyada wasooli pehle') },
+  { value: 'new', label: tr('Naye pehle') }, { value: 'land', label: tr('Zyada zameen pehle') },
 ];
 const FARMERS_KEY = 'agri-farmers';
 
@@ -84,20 +85,20 @@ export default function FarmersPage() {
 
   const collect = useMutation({
     mutationFn: (v: { f: Farmer; amount: number; method: string; note: string }) => farmersApi.payment(v.f.id, { amount: v.amount, paymentMethod: v.method, note: v.note || undefined }),
-    onSuccess: (_, v) => { refresh(); qc.invalidateQueries({ queryKey: ['customers'] }); toast.success(`${v.f.fullName} se ${money(v.amount)} wasool — khate me likh diya`); setPay(null); },
-    onError: (e) => toast.error(errorText(e, 'Wasooli nahi hui')),
+    onSuccess: (_, v) => { refresh(); qc.invalidateQueries({ queryKey: ['customers'] }); toast.success(tr('{{fullName}} se {{amount}} wasool — khate me likh diya', { fullName: v.f.fullName, amount: money(v.amount) })); setPay(null); },
+    onError: (e) => toast.error(errorText(e, tr('Wasooli nahi hui'))),
   });
   const reactivate = useMutation({
     mutationFn: (id: string) => farmersApi.reactivate(id),
-    onSuccess: () => { refresh(); toast.success('Udhaar dobara chalu'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { refresh(); toast.success(tr('Udhaar dobara chalu')); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi hua'))),
   });
 
   const setTab = (v: View) => { setView(v); setPage(1); };
   const exportCsv = () => {
-    if (!rows.length) { toast.error('Is list me koi farmer nahi'); return; }
+    if (!rows.length) { toast.error(tr('Is list me koi farmer nahi')); return; }
     downloadCsv('farmers.csv', [
-      ['Number', 'Naam', 'Phone', 'Gaon', 'Zila', 'Acre', 'Fasal', 'Udhaar', 'Wasooli ka waqt', 'Had', 'Aakhri khareed', 'Aakhri payment', 'Status'],
+      [tr('Number'), tr('Naam'), tr('Phone'), tr('Gaon'), tr('Zila'), tr('Acre'), tr('Fasal'), tr('Udhaar'), tr('Wasooli ka waqt'), tr('Had'), tr('Aakhri khareed'), tr('Aakhri payment'), tr('Status')],
       ...rows.map((f) => [f.farmerNumber, f.fullName, f.phone, f.village, f.district, f.landAreaAcres, f.primaryCrops.join(' / '), f.currentBalance, f.dueNow, f.creditLimit, isoDay(f.lastPurchaseAt), isoDay(f.lastPaymentAt), f.status]),
     ]);
   };
@@ -117,49 +118,49 @@ export default function FarmersPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Farmers — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Farmers — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Tractor, color: '#65a30d', title: 'Farmer banayein', text: 'Naam, phone, gaon, zameen aur fasal. Is ka customer khata khud ban jata hai (isi phone ka customer ho to wohi jur jata hai).' },
-            { icon: Wallet, color: '#2563eb', title: 'Season ka udhaar', text: 'POS par farmer chun kar "Udhaar" se bill banayein. Rabi (Oct–Mar) ka udhaar 31 May tak, Kharif (Apr–Sep) ka 15 Dec tak wapas aata hai.' },
-            { icon: AlertTriangle, color: '#e11d48', title: 'Wasooli', text: '"Wasooli ka waqt" tab me wo farmers jin ki katai guzar gayi. "Wasool" se paisa lein — khata, day book aur drawer sab me aata hai.' },
-            { icon: Ban, color: '#d97706', title: 'Udhaar rokna', text: 'Rokne se POS par udhaar ki had abhi ke baqi tak aa jati hai — naya udhaar manager PIN ke bagair nahi.' },
+            { icon: Tractor, color: '#65a30d', title: tr('Farmer banayein'), text: tr('Naam, phone, gaon, zameen aur fasal. Is ka customer khata khud ban jata hai (isi phone ka customer ho to wohi jur jata hai).') },
+            { icon: Wallet, color: '#2563eb', title: tr('Season ka udhaar'), text: tr('POS par farmer chun kar "Udhaar" se bill banayein. Rabi (Oct–Mar) ka udhaar 31 May tak, Kharif (Apr–Sep) ka 15 Dec tak wapas aata hai.') },
+            { icon: AlertTriangle, color: '#e11d48', title: tr('Wasooli'), text: tr('"Wasooli ka waqt" tab me wo farmers jin ki katai guzar gayi. "Wasool" se paisa lein — khata, day book aur drawer sab me aata hai.') },
+            { icon: Ban, color: '#d97706', title: tr('Udhaar rokna'), text: tr('Rokne se POS par udhaar ki had abhi ke baqi tak aa jati hai — naya udhaar manager PIN ke bagair nahi.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya farmer'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya farmer')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Farmers" chip={s?.season ?? 'Season'} busy={isFetching && !isLoading} loading={isLoading}
-        meta="Udhaar customer khate se live — season ke hisaab se"
+      <PageHero title={tr('Farmers')} chip={s?.season ?? 'Season'} busy={isFetching && !isLoading} loading={isLoading}
+        meta={tr('Udhaar customer khate se live — season ke hisaab se')}
         actions={<>
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <Link to="/agri/farmers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya farmer</Link>}
+          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" />{tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <Link to="/agri/farmers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya farmer')}</Link>}
         </>}
         stats={[
-          { label: 'Kul udhaar', value: money(s?.owed) },
-          { label: 'Wasooli ka waqt', value: money(s?.dueNow), hint: 'katai guzar gayi' },
-          { label: 'Is season ka', value: money(s?.notDue) },
+          { label: tr('Kul udhaar'), value: money(s?.owed) },
+          { label: tr('Wasooli ka waqt'), value: money(s?.dueNow), hint: tr('katai guzar gayi') },
+          { label: tr('Is season ka'), value: money(s?.notDue) },
         ]} />
 
       <KpiRow cols={5}>
         {isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Tractor} color="#65a30d" label="Farmers" value={s?.farmers ?? 0} onClick={() => setTab('all')} active={view === 'all'} />
-            <KpiCard icon={Wallet} color="#2563eb" label="Udhaar wale" value={data?.counts.owing ?? 0} hint={money(s?.owed)} onClick={() => setTab('owing')} active={view === 'owing'} />
-            <KpiCard icon={AlertTriangle} color="#e11d48" label="Wasooli ka waqt" value={data?.counts.due ?? 0} hint={money(s?.dueNow)} onClick={() => setTab('due')} active={view === 'due'} />
-            <KpiCard icon={Ban} color="#d97706" label="Had se upar" value={data?.counts.over ?? 0} onClick={() => setTab('over')} active={view === 'over'} />
-            <KpiCard icon={Sprout} color="#0891b2" label="Kul zameen" value={`${Math.round(s?.acres ?? 0)} acre`} hint={s?.advance ? `Advance ${money(s.advance)}` : undefined} />
+            <KpiCard icon={Tractor} color="#65a30d" label={tr('Farmers')} value={s?.farmers ?? 0} onClick={() => setTab('all')} active={view === 'all'} />
+            <KpiCard icon={Wallet} color="#2563eb" label={tr('Udhaar wale')} value={data?.counts.owing ?? 0} hint={money(s?.owed)} onClick={() => setTab('owing')} active={view === 'owing'} />
+            <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Wasooli ka waqt')} value={data?.counts.due ?? 0} hint={money(s?.dueNow)} onClick={() => setTab('due')} active={view === 'due'} />
+            <KpiCard icon={Ban} color="#d97706" label={tr('Had se upar')} value={data?.counts.over ?? 0} onClick={() => setTab('over')} active={view === 'over'} />
+            <KpiCard icon={Sprout} color="#0891b2" label={tr('Kul zameen')} value={`${Math.round(s?.acres ?? 0)} acre`} hint={s?.advance ? tr('Advance {{advance}}', { advance: money(s.advance) }) : undefined} />
           </>
         )}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Naam, phone, CNIC, gaon, zila ya fasal…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Naam, phone, CNIC, gaon, zila ya fasal…')} />}
         chips={chips} onClear={() => setSearch('')}>
         <FilterMenu icon={ArrowDownUp} label={SORTS.find((o) => o.value === sort)!.label} value={sort} options={SORTS} onChange={(v) => { setSort(v); setPage(1); }} active={sort !== 'name'} align="right" />
       </FilterBar>
 
       <ViewTabs value={view} onChange={setTab}
-        tabs={[...TABS.map((t) => ({ id: t.id as View, label: t.label, icon: t.icon, count: data?.counts[t.id] ?? null })), { id: 'analytics' as View, label: 'Analytics', icon: BarChart3 }]} />
+        tabs={[...TABS.map((t) => ({ id: t.id as View, label: t.label, icon: t.icon, count: data?.counts[t.id] ?? null })), { id: 'analytics' as View, label: tr('Analytics'), icon: BarChart3 }]} />
 
       {view === 'analytics' ? <Analytics data={data} money={money} /> : (
         <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -168,14 +169,14 @@ export default function FarmersPage() {
           ) : rows.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-16 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-700"><Tractor className="h-7 w-7" /></span>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? 'Is search me koi farmer nahi' : 'Is list me koi farmer nahi'}</h3>
-              <p className="mt-1 text-[0.875rem] text-slate-500">Season ka udhaar lene wale farmer yahan jorein.</p>
-              {canManage && <Link to="/agri/farmers/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya farmer</Link>}
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{search ? tr('Is search me koi farmer nahi') : tr('Is list me koi farmer nahi')}</h3>
+              <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Season ka udhaar lene wale farmer yahan jorein.')}</p>
+              {canManage && <Link to="/agri/farmers/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya farmer')}</Link>}
             </div>
           ) : (
             <>
               <Table minWidth="60rem">
-                <THead><Tr><Th>Farmer</Th><Th>Zameen / fasal</Th><Th align="right">Udhaar</Th><Th>Season</Th><Th>Aakhri payment</Th><Th align="right">Kaam</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Farmer')}</Th><Th>{tr('Zameen / fasal')}</Th><Th align="right">{tr('Udhaar')}</Th><Th>{tr('Season')}</Th><Th>{tr('Aakhri payment')}</Th><Th align="right">{tr('Kaam')}</Th></Tr></THead>
                 <TBody>
                   {rows.map((f) => {
                     const pct = f.creditLimit > 0 ? Math.min((f.currentBalance / f.creditLimit) * 100, 100) : 0;
@@ -183,39 +184,39 @@ export default function FarmersPage() {
                     return (
                       <Tr key={f.id} interactive onClick={() => navigate(`/agri/farmers/${f.id}`)}>
                         <Td>
-                          <p className="font-semibold text-slate-900">{f.fullName}{stopped && <span className="ml-1.5 rounded bg-rose-100 px-1.5 text-[0.6875rem] font-semibold text-rose-700">Roka hua</span>}</p>
+                          <p className="font-semibold text-slate-900">{f.fullName}{stopped && <span className="ms-1.5 rounded bg-rose-100 px-1.5 text-[0.6875rem] font-semibold text-rose-700">{tr('Roka hua')}</span>}</p>
                           <p className="text-[0.75rem] text-slate-500">{[f.farmerNumber, f.phone].join(' · ')}</p>
                           <p className="flex items-center gap-1 text-[0.75rem] text-slate-500"><MapPin className="h-3 w-3" />{[f.village, f.district].filter(Boolean).join(', ') || '—'}</p>
-                          {!f.khataLinked && <p className="text-[0.6875rem] font-medium text-amber-700">Khata nahi jura — farmer khol kar "Khata jorein"</p>}
+                          {!f.khataLinked && <p className="text-[0.6875rem] font-medium text-amber-700">{tr('Khata nahi jura — farmer khol kar "Khata jorein"')}</p>}
                         </Td>
                         <Td className="text-[0.8125rem] text-slate-600">
-                          {f.landAreaAcres ? `${f.landAreaAcres} acre` : '—'}
+                          {f.landAreaAcres ? tr('{{landAreaAcres}} acre', { landAreaAcres: f.landAreaAcres }) : '—'}
                           {f.primaryCrops.length > 0 && <p className="text-[0.75rem] text-slate-500">{f.primaryCrops.slice(0, 3).join(', ')}</p>}
                         </Td>
                         <Td align="right">
                           <p className={cn('text-[0.9375rem] font-bold tabular-nums', f.currentBalance > 0 ? 'text-slate-900' : 'text-slate-400')}>{money(f.currentBalance)}</p>
                           {f.creditLimit > 0 && (
-                            <div className="ml-auto mt-1 w-24">
+                            <div className="ms-auto mt-1 w-24">
                               <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', f.overLimit ? 'bg-rose-500' : pct > 80 ? 'bg-amber-500' : 'bg-emerald-500')} style={{ width: `${pct}%` }} /></div>
-                              <p className={cn('mt-0.5 text-[0.6875rem] tabular-nums', f.overLimit ? 'font-semibold text-rose-600' : 'text-slate-500')}>had {money(f.creditLimit)}</p>
+                              <p className={cn('mt-0.5 text-[0.6875rem] tabular-nums', f.overLimit ? 'font-semibold text-rose-600' : 'text-slate-500')}>{tr('had {{creditLimit}}', { creditLimit: money(f.creditLimit) })}</p>
                             </div>
                           )}
                         </Td>
                         <Td className="text-[0.75rem]">
                           {(f.seasons ?? []).length === 0 ? <span className="text-slate-400">—</span> : (f.seasons ?? []).map((x) => (
-                            <p key={x.key} className={cn('tabular-nums', x.due ? 'font-semibold text-rose-600' : 'text-slate-600')}>{x.label}: {money(x.owed)}{x.due ? ' · waqt guzra' : ` · ${shortDate(x.recoveryBy)} tak`}</p>
+                            <p key={x.key} className={cn('tabular-nums', x.due ? 'font-semibold text-rose-600' : 'text-slate-600')}>{x.label}: {money(x.owed)}{x.due ? tr(' · waqt guzra') : tr(' · {{recoveryBy}} tak', { recoveryBy: shortDate(x.recoveryBy) })}</p>
                           ))}
                         </Td>
-                        <Td className="text-[0.8125rem] text-slate-600">{f.lastPaymentAt ? shortDate(f.lastPaymentAt) : 'Kabhi nahi'}</Td>
+                        <Td className="text-[0.8125rem] text-slate-600">{f.lastPaymentAt ? shortDate(f.lastPaymentAt) : tr('Kabhi nahi')}</Td>
                         <Td align="right">
                           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(f)} className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand-600 px-2.5 text-[0.75rem] font-semibold text-brand-fg"><Wallet className="h-3.5 w-3.5" />Wasool</button>}
-                            {f.currentBalance > 0 && <a href={reminder(f, shopName, money)} target="_blank" rel="noreferrer" title="WhatsApp yaad dihani" className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" /></a>}
-                            <Link to={`/agri/farmers/${f.id}`} title="Khata" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><BookOpen className="h-4 w-4" /></Link>
-                            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} title="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit3 className="h-4 w-4" /></Link>}
+                            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(f)} className="inline-flex h-8 items-center gap-1 rounded-lg bg-brand-600 px-2.5 text-[0.75rem] font-semibold text-brand-fg"><Wallet className="h-3.5 w-3.5" />{tr('Wasool')}</button>}
+                            {f.currentBalance > 0 && <a href={reminder(f, shopName, money)} target="_blank" rel="noreferrer" title={tr('WhatsApp yaad dihani')} className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" /></a>}
+                            <Link to={`/agri/farmers/${f.id}`} title={tr('Khata')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><BookOpen className="h-4 w-4" /></Link>
+                            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} title={tr('Badlein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit3 className="h-4 w-4" /></Link>}
                             {!canManage ? null : stopped
-                              ? <button type="button" title="Dobara chalu" onClick={() => reactivate.mutate(f.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50"><RotateCcw className="h-4 w-4" /></button>
-                              : <button type="button" title="Naya udhaar rokein" onClick={() => setStop(f)} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Ban className="h-4 w-4" /></button>}
+                              ? <button type="button" title={tr('Dobara chalu')} onClick={() => reactivate.mutate(f.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50"><RotateCcw className="h-4 w-4" /></button>
+                              : <button type="button" title={tr('Naya udhaar rokein')} onClick={() => setStop(f)} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Ban className="h-4 w-4" /></button>}
                           </div>
                         </Td>
                       </Tr>
@@ -230,7 +231,7 @@ export default function FarmersPage() {
       )}
 
       {pay && (
-        <PayModal title={`${pay.fullName} se wasooli`} description="Customer khate me likha jayega — day book aur drawer me aata hai" max={pay.currentBalance}
+        <PayModal title={tr('{{fullName}} se wasooli', { fullName: pay.fullName })} description={tr('Customer khate me likha jayega — day book aur drawer me aata hai')} max={pay.currentBalance}
           suggest={[pay.dueNow ?? 0, pay.currentBalance]} busy={collect.isPending} onClose={() => setPay(null)}
           onPay={(v) => collect.mutate({ f: pay, ...v })} />
       )}
@@ -243,7 +244,7 @@ function Analytics({ data, money }: { data?: Awaited<ReturnType<typeof farmersAp
   const a = data?.analytics;
   const bars = (list: Array<{ name: string; count: number }>) => {
     const max = Math.max(1, ...list.map((x) => x.count));
-    return list.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">Abhi data nahi</p> : (
+    return list.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">{tr('Abhi data nahi')}</p> : (
       <ul className="space-y-2">{list.map((x) => (
         <li key={x.name} className="text-[0.8125rem]">
           <div className="flex justify-between"><span className="font-medium text-slate-700">{x.name}</span><span className="tabular-nums text-slate-500">{x.count}</span></div>
@@ -257,18 +258,18 @@ function Analytics({ data, money }: { data?: Awaited<ReturnType<typeof farmersAp
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
-        <h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">Udhaar season ke hisaab se</h3>
-        {seasons.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">Koi udhaar nahi</p> : (
+        <h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">{tr('Udhaar season ke hisaab se')}</h3>
+        {seasons.length === 0 ? <p className="py-6 text-center text-[0.8125rem] text-slate-500">{tr('Koi udhaar nahi')}</p> : (
           <ul className="space-y-2">{seasons.map((x) => (
             <li key={x.key} className="text-[0.8125rem]">
-              <div className="flex justify-between"><span className={cn('font-medium', x.due ? 'text-rose-700' : 'text-slate-700')}>{x.label}{x.due ? ' · waqt guzra' : ''}</span><span className="tabular-nums text-slate-600">{money(x.owed)}</span></div>
+              <div className="flex justify-between"><span className={cn('font-medium', x.due ? 'text-rose-700' : 'text-slate-700')}>{x.label}{x.due ? tr(' · waqt guzra') : ''}</span><span className="tabular-nums text-slate-600">{money(x.owed)}</span></div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', x.due ? 'bg-rose-500' : 'bg-sky-500')} style={{ width: `${(x.owed / maxOwed) * 100}%` }} /></div>
             </li>
           ))}</ul>
         )}
       </section>
-      <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80"><h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">Kaun si fasal</h3>{bars(a?.crops ?? [])}</section>
-      <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80"><h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">Kis zile me</h3>{bars(a?.districts ?? [])}</section>
+      <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80"><h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">{tr('Kaun si fasal')}</h3>{bars(a?.crops ?? [])}</section>
+      <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80"><h3 className="mb-3 text-[0.9375rem] font-semibold text-slate-900">{tr('Kis zile me')}</h3>{bars(a?.districts ?? [])}</section>
     </div>
   );
 }
@@ -277,20 +278,20 @@ function StopModal({ farmer, onClose, onDone }: { farmer: Farmer; onClose: () =>
   const [reason, setReason] = useState('');
   const run = useMutation({
     mutationFn: () => farmersApi.suspend(farmer.id, reason.trim()),
-    onSuccess: () => { onDone(); toast.success('Naya udhaar ruk gaya'); onClose(); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { onDone(); toast.success(tr('Naya udhaar ruk gaya')); onClose(); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi hua'))),
   });
   const reasons = useMemo(() => ['Pichle season ka baqi', 'Had se upar', 'Payment late', 'Zila chhor gaya'], []);
   return (
-    <Modal open onClose={onClose} size="sm" title={`${farmer.fullName} — udhaar rokein?`}
-      description="POS par udhaar ki had abhi ke baqi tak aa jayegi — naya udhaar manager PIN ke bagair nahi. Purana hisaab nahi badalta."
+    <Modal open onClose={onClose} size="sm" title={tr('{{fullName}} — udhaar rokein?', { fullName: farmer.fullName })}
+      description={tr('POS par udhaar ki had abhi ke baqi tak aa jayegi — naya udhaar manager PIN ke bagair nahi. Purana hisaab nahi badalta.')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Wapas</Button>
-        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()}>Udhaar rokein</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
+        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()}>{tr('Udhaar rokein')}</Button>
       </>}>
       <label className="block">
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Wajah</span>
-        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Payment late, had se upar…" className="h-10 w-full rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" data-autofocus />
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Wajah')}</span>
+        <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Payment late, had se upar…')} className="h-10 w-full rounded-lg border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" data-autofocus />
       </label>
       <div className="mt-2 flex flex-wrap gap-1.5">{reasons.map((r) => <button key={r} type="button" onClick={() => setReason(r)} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] text-slate-700 hover:bg-slate-200">{r}</button>)}</div>
     </Modal>

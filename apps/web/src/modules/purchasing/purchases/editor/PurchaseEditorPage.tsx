@@ -32,6 +32,7 @@ import { QuickProductModal, QuickSupplierModal } from '../components/QuickAddMod
 import { LandedCostEditor, landedTotal, newLanded } from '../components/LandedCostEditor';
 import { usePurchaseDraft, type DraftLine } from './draft';
 import { searchSources, usePurchaseSources, type Source, type UnitChoice } from './sources';
+import { t } from '@core/i18n';
 
 export interface PurchaseEditorConfig {
   /** Small badge next to a product line, e.g. electronics "Serial". */
@@ -100,7 +101,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
       const cost = Number((c * l.unit.rate).toFixed(2));
       if (cost !== l.cost) { d.patch(l.key, { cost }); n += 1; }
     }
-    if (n) toast.info(`${n} line ki cost ${supplierCosts.note ?? 'supplier ke rate'} se bhari`);
+    if (n) toast.info(t('{{n}} line ki cost {{value}} se bhari', { n, value: supplierCosts.note ?? t('supplier ke rate') }));
   }, [supplierCosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Opened from a supplier's page: start with that supplier.
@@ -118,7 +119,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
     if (!prefill || loading) return;
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
     void (async () => {
-    if (lines.length && !(await confirmDialog({ title: 'Pehle se adhoora bill hai. Usay hata kar naya order banayein?', danger: true }))) return;
+    if (lines.length && !(await confirmDialog({ title: t('Pehle se adhoora bill hai. Usay hata kar naya order banayein?'), danger: true }))) return;
     d.reset();
     setBill((b) => ({ ...b, mode: 'order', supplierId: prefill.supplierId ?? '', supplierName: prefill.supplierName ?? '' }));
     const skipped: string[] = [];
@@ -128,7 +129,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
       if (s.hasVariants) { skipped.push(s.name); continue; }
       d.add(withSupplierCost(s), s.units[0], undefined, l.qty > 0 ? l.qty : 1);
     }
-    if (skipped.length) toast.info(`Variant wali cheezein khud jorein: ${skipped.join(', ')}`);
+    if (skipped.length) toast.info(t('Variant wali cheezein khud jorein: {{value}}', { value: skipped.join(', ') }));
     })();
   }, [prefill, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -146,7 +147,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const onCode = (raw: string) => {
     const hit = byCode.get(raw.trim().toLowerCase());
     if (hit) { addSource(hit.source, hit.unit); toast.success(`${hit.source.name} · ${hit.unit.name}`, { duration: 900 }); return; }
-    toast.error(`"${raw}" nahi mila — naya product bana lein`);
+    toast.error(t('"{{raw}}" nahi mila — naya product bana lein', { raw }));
     setNewProduct(raw);
   };
 
@@ -161,12 +162,12 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   });
 
   const problems = [
-    !shopId && 'Upar se branch chunein — maal kis branch me aaya',
-    !bill.supplierId && 'Supplier chunein',
-    !lines.length && 'Kam se kam ek cheez jorein',
-    lines.some((l) => !(l.qty > 0)) && 'Har line ki quantity likhein',
-    bill.discount > d.subtotal && 'Discount bill se zyada hai',
-    bill.landed.some((c) => c.currency !== 'PKR' && c.amount > 0 && !(c.rate > 0)) && 'Landed cost: currency ka rate (Rs me) likhein',
+    !shopId && t('Upar se branch chunein — maal kis branch me aaya'),
+    !bill.supplierId && t('Supplier chunein'),
+    !lines.length && t('Kam se kam ek cheez jorein'),
+    lines.some((l) => !(l.qty > 0)) && t('Har line ki quantity likhein'),
+    bill.discount > d.subtotal && t('Discount bill se zyada hai'),
+    bill.landed.some((c) => c.currency !== 'PKR' && c.amount > 0 && !(c.rate > 0)) && t('Landed cost: currency ka rate (Rs me) likhein'),
   ].filter(Boolean) as string[];
 
   const save = useMutation({
@@ -175,13 +176,13 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
       return purchasesApi.create(d.payload(shopId));
     },
     onSuccess: (p) => {
-      toast.success(bill.mode === 'order' ? `Order ${p.purchaseNumber} ban gaya` : `Purchase ${p.purchaseNumber} save — stock barh gaya`);
+      toast.success(bill.mode === 'order' ? t('Order {{purchaseNumber}} ban gaya', { purchaseNumber: p.purchaseNumber }) : t('Purchase {{purchaseNumber}} save — stock barh gaya', { purchaseNumber: p.purchaseNumber }));
       ['purchases', 'purchase-list', 'purchases-summary', 'suppliers', 'product-catalog', 'products', 'purchase-sources', 'pos-product-units', 'dashboard-overview']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       d.reset();
       navigate(`/purchases/${p.id}`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Save nahi hua'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || t('Save nahi hua')),
   });
 
   const order = bill.mode === 'order';
@@ -189,27 +190,27 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   return (
     <PageShell className="pb-24">
       <PageHero
-        title={order ? 'Naya order' : 'Nayi purchase'}
-        chip={<><Truck /> {order ? 'Supplier ko order — maal baad me' : 'Maal aa gaya — stock abhi barhega'}</>}
-        meta="Carton, box, pack ya apna unit — sab chalta hai"
+        title={order ? t('Naya order') : t('Nayi purchase')}
+        chip={<><Truck /> {order ? t('Supplier ko order — maal baad me') : t('Maal aa gaya — stock abhi barhega')}</>}
+        meta={t('Carton, box, pack ya apna unit — sab chalta hai')}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {(lines.length > 0 || bill.supplierId) && (
-            <button type="button" className={heroButton} onClick={async () => { if ((await confirmDialog({ title: 'Yeh bill saaf kar dein?', danger: true }))) d.reset(); }}>
-              <Trash2 className="h-4 w-4" /> Saaf
+            <button type="button" className={heroButton} onClick={async () => { if ((await confirmDialog({ title: t('Yeh bill saaf kar dein?'), danger: true }))) d.reset(); }}>
+              <Trash2 className="h-4 w-4" /> {' '}{t('Saaf')}
             </button>
           )}
-          <button type="button" className={heroButton} onClick={() => navigate('/purchases')}><ClipboardList className="h-4 w-4" /> Sab purchase</button>
+          <button type="button" className={heroButton} onClick={() => navigate('/purchases')}><ClipboardList className="h-4 w-4" /> {' '}{t('Sab purchase')}</button>
         </>}
         stats={[
-          { label: 'Cheezein', value: lines.length },
-          { label: 'Bill', value: money(d.total) },
-          { label: order ? 'Order' : 'Udhaar', value: order ? 'Baad me' : money(d.due) },
+          { label: t('Cheezein'), value: lines.length },
+          { label: t('Bill'), value: money(d.total) },
+          { label: order ? t('Order') : t('Udhaar'), value: order ? t('Baad me') : money(d.due) },
         ]}
       />
 
       {d.restored && lines.length > 0 && (
-        <p className="rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-800 ring-1 ring-blue-100">Pichla adhoora bill wapas aa gaya — jahan chhoda tha wahin se jari rakhein.</p>
+        <p className="rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-800 ring-1 ring-blue-100">{t('Pichla adhoora bill wapas aa gaya — jahan chhoda tha wahin se jari rakhein.')}</p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -218,7 +219,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
           <div className="relative">
             <div className="flex gap-2">
               <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input ref={searchRef} value={query} autoFocus
                   onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
                   onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}
@@ -230,27 +231,27 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                     if (results[0]) addSource(results[0]);
                     else if (query.trim()) setNewProduct(query.trim());
                   }}
-                  placeholder={withIngredients ? 'Product ya raw material, naam ya barcode…  ( / )' : 'Product ka naam, SKU ya barcode…  ( / )'}
-                  aria-label="Cheez search"
-                  className={cn(controlClass(), 'h-11 rounded-xl pl-9 pr-3 text-sm')} />
+                  placeholder={withIngredients ? t('Product ya raw material, naam ya barcode…  ( / )') : t('Product ka naam, SKU ya barcode…  ( / )')}
+                  aria-label={t('Cheez search')}
+                  className={cn(controlClass(), 'h-11 rounded-xl ps-9 pe-3 text-sm')} />
               </div>
-              <Button variant="secondary" className="h-11" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>
-              <Button variant="secondary" className="h-11" onClick={() => setNewProduct('')} leftIcon={<PackagePlus className="h-4 w-4" />}><span className="hidden sm:inline">Naya</span></Button>
+              <Button variant="secondary" className="h-11" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">{t('Scan')}</span></Button>
+              <Button variant="secondary" className="h-11" onClick={() => setNewProduct('')} leftIcon={<PackagePlus className="h-4 w-4" />}><span className="hidden sm:inline">{t('Naya')}</span></Button>
             </div>
             {open && query.trim() && (
               <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-[26rem] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
-                {loading ? <p className="p-4 text-center text-sm text-slate-500">Load ho raha hai…</p>
+                {loading ? <p className="p-4 text-center text-sm text-slate-500">{t('Load ho raha hai…')}</p>
                   : results.length === 0 ? (
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setNewProduct(query.trim())}
-                      className="flex w-full items-center gap-2 p-4 text-sm text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" /> "{query.trim()}" naya product banayein</button>
+                      className="flex w-full items-center gap-2 p-4 text-sm text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" /> {' '}{t('"{{value}}" naya product banayein', { value: query.trim() })}</button>
                   ) : results.map((s) => (
                     <div key={s.key} className="flex items-center gap-3 border-b border-slate-100 px-3 py-2 last:border-0 hover:bg-slate-50">
-                      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addSource(s)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => addSource(s)} className="flex min-w-0 flex-1 items-center gap-3 text-start">
                         {s.kind === 'ingredient' ? <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><Wheat className="h-4 w-4" /></span>
                           : <ProductThumb name={s.name} category={s.category} url={s.image} size="sm" />}
                         <span className="min-w-0">
                           <span className="flex items-center gap-1.5 text-sm font-medium text-slate-900"><span className="truncate">{s.name}</span>{s.isRaw && <RawBadge />}</span>
-                          <span className="block text-[0.75rem] text-slate-500">Stock {qtyText(s.stock)} {s.baseUnit} · cost {money(s.cost)}/{s.baseUnit}</span>
+                          <span className="block text-[0.75rem] text-slate-500">{t('Stock {{stock}} {{baseUnit}} · cost {{cost}}/{{baseUnit}}', { stock: qtyText(s.stock), baseUnit: s.baseUnit, cost: money(s.cost) })}</span>
                         </span>
                       </button>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1">
@@ -269,7 +270,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
           {low.length > 0 && !lines.length && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3">
-              <p className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" /> Kam stock — ek tap me jorein</p>
+              <p className="mb-2 flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><AlertTriangle className="h-4 w-4" /> {' '}{t('Kam stock — ek tap me jorein')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {low.map((s) => (
                   <button key={s.key} type="button" onClick={() => addSource(s)}
@@ -284,8 +285,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
           {lines.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
               <Boxes className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-3 font-semibold text-slate-900">Abhi koi cheez nahi</p>
-              <p className="mt-1 text-sm text-slate-500">Upar naam likhein ya barcode scan karein. Carton/box ka barcode ho to wohi unit khud lagta hai.</p>
+              <p className="mt-3 font-semibold text-slate-900">{t('Abhi koi cheez nahi')}</p>
+              <p className="mt-1 text-sm text-slate-500">{t('Upar naam likhein ya barcode scan karein. Carton/box ka barcode ho to wohi unit khud lagta hai.')}</p>
             </div>
           ) : (
             <ul data-enter-next className="space-y-2">
@@ -296,45 +297,45 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
         {/* ─── Bill ─── */}
         <aside className="min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <Segmented label="Kis tarah" value={bill.mode} onChange={(m) => setBill({ ...bill, mode: m })}
-            items={[{ value: 'receive', label: 'Maal aa gaya' }, { value: 'order', label: 'Order dena hai' }]} className="w-full [&>button]:flex-1" />
+          <Segmented label={t('Kis tarah')} value={bill.mode} onChange={(m) => setBill({ ...bill, mode: m })}
+            items={[{ value: 'receive', label: t('Maal aa gaya') }, { value: 'order', label: t('Order dena hai') }]} className="w-full [&>button]:flex-1" />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Supplier</p>
+            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Supplier')}</p>
             <SupplierPicker suppliers={suppliers} value={bill.supplierId} onChange={(s) => setBill({ ...bill, supplierId: s.id, supplierName: s.name })} onNew={(name) => setNewSupplier(name)} />
             {supplier && (
               <p className="mt-2 text-[0.75rem] text-slate-500">
-                {supplier.phone ?? 'Phone nahi'}{supplier.outstandingDue > 0 && <> · <span className="font-medium text-rose-700">pehle se {money(supplier.outstandingDue)} dena hai</span></>}
+                {supplier.phone ?? t('Phone nahi')}{supplier.outstandingDue > 0 && <> · <span className="font-medium text-rose-700">{t('pehle se {{outstandingDue}} dena hai', { outstandingDue: money(supplier.outstandingDue) })}</span></>}
               </p>
             )}
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <label className="text-[0.75rem] text-slate-500">Supplier ka bill #
-                <input value={bill.invoiceNo} onChange={(e) => setBill({ ...bill, invoiceNo: e.target.value })} className={cn(field, 'mt-1')} maxLength={60} placeholder="Parchi ka #" />
-                <Hint>Supplier ki parchi par likha number — baad me milane ke liye</Hint>
+              <label className="text-[0.75rem] text-slate-500">{t('Supplier ka bill #')}
+                <input value={bill.invoiceNo} onChange={(e) => setBill({ ...bill, invoiceNo: e.target.value })} className={cn(field, 'mt-1')} maxLength={60} placeholder={t('Parchi ka #')} />
+                <Hint>{t('Supplier ki parchi par likha number — baad me milane ke liye')}</Hint>
               </label>
-              <label className="text-[0.75rem] text-slate-500">{order ? 'Order ki date' : 'Date'}
+              <label className="text-[0.75rem] text-slate-500">{order ? t('Order ki date') : t('Date')}
                 <input type="date" value={bill.date} onChange={(e) => setBill({ ...bill, date: e.target.value })} className={cn(field, 'mt-1')} />
-                <Hint>Purana bill ho to us din ki date</Hint>
+                <Hint>{t('Purana bill ho to us din ki date')}</Hint>
               </label>
             </div>
             {order && (
-              <label className="mt-2 block text-[0.75rem] text-slate-500">Maal kab tak aayega
+              <label className="mt-2 block text-[0.75rem] text-slate-500">{t('Maal kab tak aayega')}
                 <input type="date" value={bill.expectedAt} onChange={(e) => setBill({ ...bill, expectedAt: e.target.value })} className={cn(field, 'mt-1')} />
-                <Hint>Supplier ne jo din bataya — list me yaad dilaya jayega</Hint>
+                <Hint>{t('Supplier ne jo din bataya — list me yaad dilaya jayega')}</Hint>
               </label>
             )}
           </div>
 
           <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
-            <Row k={`Cheezein (${lines.length})`} v={money(d.subtotal)} />
-            <MoneyRow label="Discount" hint="Supplier ne poore bill par jo discount di" value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
-            <MoneyRow label="Kiraya / loading" hint="Maal laane ka expense — rickshaw, loader, mazdoori" value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
-            <MoneyRow label="Tax" hint="Bill par laga GST / sales tax" value={bill.taxAmount} onChange={(v) => setBill({ ...bill, taxAmount: v })} sign="+" />
+            <Row k={t('Cheezein ({{count}})', { count: lines.length })} v={money(d.subtotal)} />
+            <MoneyRow label={t('Discount')} hint={t('Supplier ne poore bill par jo discount di')} value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
+            <MoneyRow label={t('Kiraya / loading')} hint={t('Maal laane ka expense — rickshaw, loader, mazdoori')} value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
+            <MoneyRow label={t('Tax')} hint={t('Bill par laga GST / sales tax')} value={bill.taxAmount} onChange={(v) => setBill({ ...bill, taxAmount: v })} sign="+" />
             <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2 text-white">
-              <span className="font-semibold">Kul bill</span><span className="text-lg font-bold tabular-nums">{money(d.total)}</span>
+              <span className="font-semibold">{t('Kul bill')}</span><span className="text-lg font-bold tabular-nums">{money(d.total)}</span>
             </div>
             {(bill.discount > 0 || bill.otherCharges > 0 || bill.taxAmount > 0) && (
-              <p className="text-[0.6875rem] text-slate-500">Discount, kiraya aur tax har cheez ki cost me hisse ke mutabiq jud jate hain.</p>
+              <p className="text-[0.6875rem] text-slate-500">{t('Discount, kiraya aur tax har cheez ki cost me hisse ke mutabiq jud jate hain.')}</p>
             )}
           </div>
 
@@ -342,7 +343,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 
           {!order && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Payment</p>
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">{t('Payment')}</p>
               <div className="grid grid-cols-5 gap-1">
                 {POS_PAYMENT_METHODS.map((m) => (
                   <button key={m.id} type="button" onClick={() => setBill({ ...bill, paymentMethod: m.id })} aria-pressed={bill.paymentMethod === m.id}
@@ -352,22 +353,22 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                 ))}
               </div>
               <div className="mt-3 flex items-center gap-2">
-                <label className="flex-1 text-[0.75rem] text-slate-500">Abhi kitne diye
-                  <input type="number" min={0} inputMode="decimal" value={bill.paid ?? d.total} className={cn(field, 'mt-1 text-right font-semibold tabular-nums')}
+                <label className="flex-1 text-[0.75rem] text-slate-500">{t('Abhi kitne diye')}
+                  <input type="number" min={0} inputMode="decimal" value={bill.paid ?? d.total} className={cn(field, 'mt-1 text-end font-semibold tabular-nums')}
                     onChange={(e) => setBill({ ...bill, paid: e.target.value === '' ? 0 : Math.max(Number(e.target.value), 0) })} />
                 </label>
                 <div className="mt-4 flex gap-1">
-                  <button type="button" onClick={() => setBill({ ...bill, paid: null })} className="rounded-lg px-2 py-1.5 text-[0.75rem] ring-1 ring-slate-200 hover:bg-slate-50">Poora</button>
-                  <button type="button" onClick={() => setBill({ ...bill, paid: 0 })} className="rounded-lg px-2 py-1.5 text-[0.75rem] ring-1 ring-slate-200 hover:bg-slate-50">Udhaar</button>
+                  <button type="button" onClick={() => setBill({ ...bill, paid: null })} className="rounded-lg px-2 py-1.5 text-[0.75rem] ring-1 ring-slate-200 hover:bg-slate-50">{t('Poora')}</button>
+                  <button type="button" onClick={() => setBill({ ...bill, paid: 0 })} className="rounded-lg px-2 py-1.5 text-[0.75rem] ring-1 ring-slate-200 hover:bg-slate-50">{t('Udhaar')}</button>
                 </div>
               </div>
-              <Hint>Khali = poora bill diya. Kuch na diya ho to "Udhaar" dabayein; baqi supplier ke khate me chala jayega.</Hint>
+              <Hint>{t('Khali = poora bill diya. Kuch na diya ho to "Udhaar" dabayein; baqi supplier ke khate me chala jayega.')}</Hint>
               <PayoutWarning amount={d.drawerCash} enabled={!!shopId} className="mt-3"
-                closedText="Is branch me abhi koi shift khuli nahi — yeh cash kisi galle ke hisaab me nahi aayega." />
+                closedText={t('Is branch me abhi koi shift khuli nahi — yeh cash kisi galle ke hisaab me nahi aayega.')} />
               {d.due > 0 && (
                 <div className="mt-3 rounded-xl bg-amber-50 p-2.5 text-[0.8125rem] text-amber-900">
-                  <b>{money(d.due)}</b> supplier ke khate me udhaar jayega.
-                  <label className="mt-2 flex items-center gap-2 text-[0.75rem]"><CalendarClock className="h-3.5 w-3.5" /> Kab tak dena hai
+                  <b>{money(d.due)}</b> {' '}{t('supplier ke khate me udhaar jayega.')}
+                  <label className="mt-2 flex items-center gap-2 text-[0.75rem]"><CalendarClock className="h-3.5 w-3.5" /> {' '}{t('Kab tak dena hai')}
                     <input type="date" value={bill.dueDate} onChange={(e) => setBill({ ...bill, dueDate: e.target.value })} className={cn(controlClass(), 'h-8 flex-1 px-2 text-sm')} />
                   </label>
                 </div>
@@ -375,36 +376,36 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
             </div>
           )}
 
-          <textarea value={bill.notes} onChange={(e) => setBill({ ...bill, notes: e.target.value })} rows={2} maxLength={500} placeholder="Note — misaal: 2 carton toote aaye, agle bill me kam karna"
+          <textarea value={bill.notes} onChange={(e) => setBill({ ...bill, notes: e.target.value })} rows={2} maxLength={500} placeholder={t('Note — misaal: 2 carton toote aaye, agle bill me kam karna')}
             className={cn(controlClass(), 'px-3 py-2 text-sm')} />
 
           {problems.length > 0 && lines.length > 0 && <p className="text-[0.8125rem] text-rose-700">{problems[0]}</p>}
           <Button className="h-12 w-full text-base" loading={save.isPending} disabled={problems.length > 0} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>
-            {order ? 'Order save karein' : 'Purchase save karein'} <kbd className="ml-1 hidden rounded bg-white/20 px-1 text-[0.6875rem] sm:inline">Ctrl S</kbd>
+            {order ? t('Order save karein') : t('Purchase save karein')} <kbd className="ms-1 hidden rounded bg-white/20 px-1 text-[0.6875rem] sm:inline">Ctrl S</kbd>
           </Button>
         </aside>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title={order ? 'Order kaise banayein' : 'Purchase kaise darj karein'} onClose={guide.close}
+        <PageGuide title={order ? t('Order kaise banayein') : t('Purchase kaise darj karein')} onClose={guide.close}
           steps={[
-            { icon: Search, color: '#7c3aed', title: 'Cheez search', text: 'Upar naam, SKU ya barcode likhein ya "Scan" dabayein. Carton ka barcode scan karein to carton hi jud jata hai. Naya maal ho to "Naya" se wahin bana lein.' },
-            { icon: Ruler, color: '#2563eb', title: 'Unit chunein', text: 'Har line par "Unit" me pcs, carton ya box chunein. Bori / peti jaisa unit na ho to "+ Apna unit" — misaal: 1 bori = 50 kg.' },
-            { icon: Calculator, color: '#16a34a', title: 'Quantity aur qeemat', text: 'Kitne unit aaye aur ek unit ki qeemat likhein — jaise supplier ki parchi par hai. Neeche "= 48 pcs" bata deta hai stock me kitna jayega.' },
-            { icon: Truck, color: '#d97706', title: 'Supplier aur bill', text: 'Daayen taraf supplier chunein (naya ho to wahin jor lein), parchi ka number aur date likhein. Discount, kiraya aur tax bhi wahin.' },
-            { icon: Wallet, color: '#db2777', title: 'Kitne diye', text: 'Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to "Udhaar" — baqi supplier ke khate me jata hai, chahein to aakhri date bhi.' },
-            { icon: Wheat, color: '#0891b2', title: 'Raw material', text: 'Bakery ka aata, cheeni waghera bhi isi bill me — dhoondne par "Raw" nishan ke saath aate hain aur unka stock barhta hai.' },
+            { icon: Search, color: '#7c3aed', title: t('Cheez search'), text: t('Upar naam, SKU ya barcode likhein ya "Scan" dabayein. Carton ka barcode scan karein to carton hi jud jata hai. Naya maal ho to "Naya" se wahin bana lein.') },
+            { icon: Ruler, color: '#2563eb', title: t('Unit chunein'), text: t('Har line par "Unit" me pcs, carton ya box chunein. Bori / peti jaisa unit na ho to "+ Apna unit" — misaal: 1 bori = 50 kg.') },
+            { icon: Calculator, color: '#16a34a', title: t('Quantity aur qeemat'), text: t('Kitne unit aaye aur ek unit ki qeemat likhein — jaise supplier ki parchi par hai. Neeche "= 48 pcs" bata deta hai stock me kitna jayega.') },
+            { icon: Truck, color: '#d97706', title: t('Supplier aur bill'), text: t('Daayen taraf supplier chunein (naya ho to wahin jor lein), parchi ka number aur date likhein. Discount, kiraya aur tax bhi wahin.') },
+            { icon: Wallet, color: '#db2777', title: t('Kitne diye'), text: t('Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to "Udhaar" — baqi supplier ke khate me jata hai, chahein to aakhri date bhi.') },
+            { icon: Wheat, color: '#0891b2', title: t('Raw material'), text: t('Bakery ka aata, cheeni waghera bhi isi bill me — dhoondne par "Raw" nishan ke saath aate hain aur unka stock barhta hai.') },
           ]}
           tips={[
-            'Purchase ki qeemat se maal ki average cost banti hai — is liye profit har bill par sahi nikalta hai.',
-            'Bechne ka rate yahin badal sakte hain ("Bechne ka rate, batch, expiry" khol kar) — profit % saath dikhta hai.',
-            'Adhoora bill is device par yaad rehta hai; page band ho jaye to wapas aa kar wahin se jari rakhein.',
-            '"Order dena hai" chunein to stock abhi nahi barhega — maal aane par bill khol kar "Maal aaya".',
+            t('Purchase ki qeemat se maal ki average cost banti hai — is liye profit har bill par sahi nikalta hai.'),
+            t('Bechne ka rate yahin badal sakte hain ("Bechne ka rate, batch, expiry" khol kar) — profit % saath dikhta hai.'),
+            t('Adhoora bill is device par yaad rehta hai; page band ho jaye to wapas aa kar wahin se jari rakhein.'),
+            t('"Order dena hai" chunein to stock abhi nahi barhega — maal aane par bill khol kar "Maal aaya".'),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['Enter', 'pehli cheez jorein'], ['Ctrl S', 'save'], ['G', 'guide']]}
+          shortcuts={[['/', t('dhoondein')], [t('Enter'), t('pehli cheez jorein')], [t('Ctrl S'), t('save')], ['G', t('guide')]]}
         />
       )}
-      {scanner && <BarcodeScanner title="Maal scan karein" hint="Product ya carton ka barcode" onClose={() => setScanner(false)} onDetected={(c) => { setScanner(false); onCode(c); }} />}
+      {scanner && <BarcodeScanner title={t('Maal scan karein')} hint={t('Product ya carton ka barcode')} onClose={() => setScanner(false)} onDetected={(c) => { setScanner(false); onCode(c); }} />}
       {variantFor && <VariantModal target={variantFor} onClose={() => setVariantFor(null)} onPick={(v) => { d.add(variantFor.source, variantFor.unit, v); setVariantFor(null); setQuery(''); }} />}
       {customFor && <CustomUnitModal line={customFor} onClose={() => setCustomFor(null)} onSave={(u) => { d.setUnit(customFor.key, u); setCustomFor(null); }} />}
       {newProduct !== null && (
@@ -425,7 +426,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
 }
 
 function RawBadge() {
-  return <span className="rounded bg-amber-100 px-1 text-[0.625rem] font-semibold uppercase text-amber-800">Raw</span>;
+  return <span className="rounded bg-amber-100 px-1 text-[0.625rem] font-semibold uppercase text-amber-800">{t('Raw')}</span>;
 }
 
 function Row({ k, v }: { k: string; v: string }) {
@@ -444,10 +445,10 @@ function LandedCard({ d }: { d: ReturnType<typeof usePurchaseDraft> }) {
   if (!open) {
     return (
       <button type="button" onClick={() => { setOpen(true); if (!bill.landed.length) setBill({ ...bill, landed: [newLanded()] }); }}
-        className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-left text-[0.8125rem] hover:border-brand-400 hover:bg-brand-50/40">
+        className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-start text-[0.8125rem] hover:border-brand-400 hover:bg-brand-50/40">
         <Truck className="h-4 w-4 text-brand-600" />
-        <span className="flex-1"><span className="font-semibold text-slate-900">Import / landed cost jorein</span>
-          <span className="block text-[0.6875rem] text-slate-500">Freight, customs, clearing agent — dusron ko diye, maal ki Cost me jurenge</span></span>
+        <span className="flex-1"><span className="font-semibold text-slate-900">{t('Import / landed cost jorein')}</span>
+          <span className="block text-[0.6875rem] text-slate-500">{t('Freight, customs, clearing agent — dusron ko diye, maal ki Cost me jurenge')}</span></span>
         <Plus className="h-4 w-4 text-slate-400" />
       </button>
     );
@@ -455,7 +456,7 @@ function LandedCard({ d }: { d: ReturnType<typeof usePurchaseDraft> }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[0.8125rem] font-semibold text-slate-800">Landed cost (import)</p>
+        <p className="text-[0.8125rem] font-semibold text-slate-800">{t('Landed cost (import)')}</p>
         <span className="text-[0.8125rem] font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>
       </div>
       <LandedCostEditor
@@ -474,7 +475,7 @@ function MoneyRow({ label, hint, value, onChange, sign }: { label: string; hint?
       <span className="flex items-center gap-1">
         <span className="text-slate-400">{sign}</span>
         <input type="number" min={0} inputMode="decimal" value={value || ''} placeholder="0" onChange={(e) => onChange(Math.max(Number(e.target.value) || 0, 0))}
-          className={cn(controlClass(), 'h-8 w-28 px-2 text-right text-sm tabular-nums')} />
+          className={cn(controlClass(), 'h-8 w-28 px-2 text-end text-sm tabular-nums')} />
       </span>
     </label>
   );
@@ -496,30 +497,30 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
             {l.source.isRaw && <RawBadge />}{badge}
           </p>
           <p className="text-[0.75rem] text-slate-500">
-            Stock {qtyText(l.source.stock)} {l.source.baseUnit} · pichli cost {money(was)}/{l.source.baseUnit}
-            {Math.abs(change) >= 1 && <span className={cn('ml-1 font-medium', change > 0 ? 'text-rose-600' : 'text-success-700')}>{change > 0 ? '▲' : '▼'} {Math.abs(change).toFixed(0)}%</span>}
+            {t('Stock {{stock}} {{baseUnit}} · pichli cost {{was}}/{{baseUnit}}', { stock: qtyText(l.source.stock), baseUnit: l.source.baseUnit, was: money(was) })}
+            {Math.abs(change) >= 1 && <span className={cn('ms-1 font-medium', change > 0 ? 'text-rose-600' : 'text-success-700')}>{change > 0 ? '▲' : '▼'} {Math.abs(change).toFixed(0)}%</span>}
           </p>
         </div>
-        <button type="button" onClick={() => d.remove(l.key)} aria-label="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>
+        <button type="button" onClick={() => d.remove(l.key)} aria-label={t('Hatayein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
-        <label className="text-[0.6875rem] text-slate-500" title="Jis unit me khareeda: pcs, carton, box — ya apna unit (bori = 50 kg)">Unit (kis me khareeda)
+        <label className="text-[0.6875rem] text-slate-500" title={t('Jis unit me khareeda: pcs, carton, box — ya apna unit (bori = 50 kg)')}>{t('Unit (kis me khareeda)')}
           <select value={l.unit.name} className={cn(field, 'mt-0.5')}
             onChange={(e) => { if (e.target.value === '__new') { onCustomUnit(); return; } const u = units.find((x) => x.name === e.target.value); if (u) d.setUnit(l.key, u); }}>
             {units.map((u) => <option key={u.name} value={u.name}>{u.name}{u.rate !== 1 ? ` = ${qtyText(u.rate)} ${l.source.baseUnit}` : ''}</option>)}
-            <option value="__new">+ Apna unit (bori, peti…)</option>
+            <option value="__new">{t('+ Apna unit (bori, peti…)')}</option>
           </select>
         </label>
-        <label className="text-[0.6875rem] text-slate-500" title="Kitne unit aaye — misaal: 4 carton">Kitne {l.unit.name}
-          <input type="number" min={0} step="any" inputMode="decimal" value={l.qty || ''} placeholder="0" className={cn(field, 'mt-0.5 text-right font-semibold tabular-nums')}
+        <label className="text-[0.6875rem] text-slate-500" title={t('Kitne unit aaye — misaal: 4 carton')}>{t('Kitne {{name}}', { name: l.unit.name })}
+          <input type="number" min={0} step="any" inputMode="decimal" value={l.qty || ''} placeholder="0" className={cn(field, 'mt-0.5 text-end font-semibold tabular-nums')}
             onChange={(e) => d.patch(l.key, { qty: Math.max(Number(e.target.value) || 0, 0) })} />
         </label>
-        <label className="text-[0.6875rem] text-slate-500" title="Supplier ke bill par ek unit ki qeemat">Ek {l.unit.name} ki qeemat
-          <input type="number" min={0} step="any" inputMode="decimal" value={l.cost || ''} placeholder="0" className={cn(field, 'mt-0.5 text-right tabular-nums')}
+        <label className="text-[0.6875rem] text-slate-500" title={t('Supplier ke bill par ek unit ki qeemat')}>{t('Ek {{name}} ki qeemat', { name: l.unit.name })}
+          <input type="number" min={0} step="any" inputMode="decimal" value={l.cost || ''} placeholder="0" className={cn(field, 'mt-0.5 text-end tabular-nums')}
             onChange={(e) => d.patch(l.key, { cost: Math.max(Number(e.target.value) || 0, 0) })} />
         </label>
-        <div className="text-[0.6875rem] text-slate-500">Amount
+        <div className="text-[0.6875rem] text-slate-500">{t('Amount')}
           <p className="mt-0.5 flex h-9 items-center justify-end rounded-lg bg-slate-50 px-2.5 text-sm font-semibold tabular-nums text-slate-900">{money(l.qty * l.cost)}</p>
         </div>
       </div>
@@ -527,24 +528,24 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] text-slate-500">
         {l.unit.rate !== 1 && <span className="font-medium text-brand-700">= {qtyText(base)} {l.source.baseUnit} · {money(perBase)}/{l.source.baseUnit}</span>}
         <button type="button" onClick={() => setMore((m) => !m)} className="inline-flex items-center gap-0.5 text-slate-600 hover:text-slate-900">
-          {l.source.kind === 'product' ? 'Bechne ka rate, batch, expiry' : 'Batch, expiry'} <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
+          {l.source.kind === 'product' ? t('Bechne ka rate, batch, expiry') : t('Batch, expiry')} <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
         </button>
       </div>
       {more && (
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {l.source.kind === 'product' && (
-            <label className="text-[0.6875rem] text-slate-500" title="Khali chhorein to purana rate rahega">Naya bechne ka rate / {l.source.baseUnit} (ikhtiyari)
-              <input type="number" min={0} step="any" value={l.salePrice ?? ''} placeholder={l.source.price ? String(l.source.price) : '—'} className={cn(field, 'mt-0.5 text-right tabular-nums')}
+            <label className="text-[0.6875rem] text-slate-500" title={t('Khali chhorein to purana rate rahega')}>{t('Naya bechne ka rate / {{baseUnit}} (ikhtiyari)', { baseUnit: l.source.baseUnit })}
+              <input type="number" min={0} step="any" value={l.salePrice ?? ''} placeholder={l.source.price ? String(l.source.price) : '—'} className={cn(field, 'mt-0.5 text-end tabular-nums')}
                 onChange={(e) => d.patch(l.key, { salePrice: e.target.value === '' ? null : Math.max(Number(e.target.value), 0) })} />
-              {l.salePrice != null && perBase > 0 && <span className={cn('mt-0.5 block', l.salePrice < perBase ? 'text-rose-600' : 'text-emerald-700')}>Profit {(((l.salePrice - perBase) / perBase) * 100).toFixed(0)}%</span>}
+              {l.salePrice != null && perBase > 0 && <span className={cn('mt-0.5 block', l.salePrice < perBase ? 'text-rose-600' : 'text-emerald-700')}>{t('Profit {{value}}%', { value: (((l.salePrice - perBase) / perBase) * 100).toFixed(0) })}</span>}
             </label>
           )}
-          <label className="text-[0.6875rem] text-slate-500">Batch #
-            <input value={l.batchNo} onChange={(e) => d.patch(l.key, { batchNo: e.target.value })} maxLength={60} placeholder="Packet par likha batch" className={cn(field, 'mt-0.5')} />
+          <label className="text-[0.6875rem] text-slate-500">{t('Batch #')}
+            <input value={l.batchNo} onChange={(e) => d.patch(l.key, { batchNo: e.target.value })} maxLength={60} placeholder={t('Packet par likha batch')} className={cn(field, 'mt-0.5')} />
           </label>
-          <label className="text-[0.6875rem] text-slate-500">Expiry
+          <label className="text-[0.6875rem] text-slate-500">{t('Expiry')}
             <input type="date" value={l.expiry} onChange={(e) => d.patch(l.key, { expiry: e.target.value })} className={cn(field, 'mt-0.5')} />
-            <span className="mt-0.5 block">Dawai, doodh, khane ki cheezon ke liye</span>
+            <span className="mt-0.5 block">{t('Dawai, doodh, khane ki cheezon ke liye')}</span>
           </label>
         </div>
       )}
@@ -559,21 +560,21 @@ function SupplierPicker({ suppliers, value, onChange, onNew }: { suppliers: Supp
   const list = suppliers.filter((s) => `${s.name} ${s.phone ?? ''} ${s.city ?? ''}`.toLowerCase().includes(q.toLowerCase().trim())).slice(0, 40);
   return (
     <div className="relative">
-      <input value={open ? q : current?.name ?? ''} placeholder="Supplier search…" aria-label="Supplier"
+      <input value={open ? q : current?.name ?? ''} placeholder={t('Supplier search…')} aria-label={t('Supplier')}
         onFocus={() => { setOpen(true); setQ(''); }} onBlur={() => window.setTimeout(() => setOpen(false), 150)} onChange={(e) => setQ(e.target.value)}
         className={cn(field, 'h-10')} />
       {open && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
           {list.map((s) => (
             <button key={s.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onChange(s); setOpen(false); }}
-              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-slate-50">
+              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-start hover:bg-slate-50">
               <span className="min-w-0"><span className="block truncate text-sm font-medium text-slate-900">{s.name}</span><span className="block text-[0.75rem] text-slate-500">{[s.phone, s.city].filter(Boolean).join(' · ')}</span></span>
               {s.outstandingDue > 0 && <span className="shrink-0 text-[0.75rem] font-medium text-rose-700">{formatPKR(s.outstandingDue)}</span>}
             </button>
           ))}
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onNew(q.trim()); setOpen(false); }}
             className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50">
-            <UserPlus className="h-4 w-4" /> {q.trim() ? `"${q.trim()}" naya supplier` : 'Naya supplier'}
+            <UserPlus className="h-4 w-4" /> {q.trim() ? t('"{{value}}" naya supplier', { value: q.trim() }) : t('Naya supplier')}
           </button>
         </div>
       )}
@@ -585,19 +586,19 @@ function VariantModal({ target, onClose, onPick }: { target: { source: Source; u
   const q = useQuery({ queryKey: ['variants', target.source.id], queryFn: () => productVariantsApi.list(target.source.id) });
   const list = (Array.isArray(q.data) ? q.data : []).filter((v: any) => v.isActive !== false);
   return (
-    <Modal open onClose={onClose} size="sm" title={`${target.source.name} — kaunsa?`} description="Is product ke variants hain; jo aaya woh chunein">
-      {q.isLoading ? <p className="py-6 text-center text-sm text-slate-500">Load ho raha hai…</p> : (
+    <Modal open onClose={onClose} size="sm" title={t('{{name}} — kaunsa?', { name: target.source.name })} description={t('Is product ke variants hain; jo aaya woh chunein')}>
+      {q.isLoading ? <p className="py-6 text-center text-sm text-slate-500">{t('Load ho raha hai…')}</p> : (
         <div className="space-y-1">
           {list.map((v: any) => (
             <button key={v.id} type="button" onClick={() => onPick({ id: v.id, name: v.name, cost: Number(v.costPrice) || 0 })}
-              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left ring-1 ring-slate-200 hover:bg-slate-50">
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-start ring-1 ring-slate-200 hover:bg-slate-50">
               <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                 {v.colorHex && <span className="h-3 w-3 rounded-full ring-1 ring-black/10" style={{ background: v.colorHex }} />}{v.name}
               </span>
-              <span className="text-[0.75rem] text-slate-500">Stock {Number(v.stock) || 0}</span>
+              <span className="text-[0.75rem] text-slate-500">{t('Stock {{value}}', { value: Number(v.stock) || 0 })}</span>
             </button>
           ))}
-          {!list.length && <p className="py-6 text-center text-sm text-slate-500">Koi type nahi mili</p>}
+          {!list.length && <p className="py-6 text-center text-sm text-slate-500">{t('Koi type nahi mili')}</p>}
         </div>
       )}
     </Modal>
@@ -611,8 +612,8 @@ function CustomUnitModal({ line, onClose, onSave }: { line: DraftLine; onClose: 
   const presets = line.source.baseUnit.toLowerCase() === 'kg'
     ? [['Bori', 50], ['Bori', 40], ['Bag', 25], ['Thaila', 10]] : [['Peti', 12], ['Carton', 24], ['Dozen', 12], ['Box', 10]];
   return (
-    <Modal open onClose={onClose} size="sm" title="Apna unit" description={`Is purchase ke liye — kitne ${line.source.baseUnit} ka ek?`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} onClick={() => onSave({ id: null, name: name.trim(), rate: Number(rate) })}>Lagayein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Apna unit')} description={t('Is purchase ke liye — kitne {{baseUnit}} ka ek?', { baseUnit: line.source.baseUnit })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button disabled={!ok} onClick={() => onSave({ id: null, name: name.trim(), rate: Number(rate) })}>{t('Lagayein')}</Button></>}>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {presets.map(([n, r]) => (
           <button key={`${n}${r}`} type="button" onClick={() => { setName(String(n)); setRate(String(r)); }}
@@ -620,14 +621,14 @@ function CustomUnitModal({ line, onClose, onSave }: { line: DraftLine; onClose: 
         ))}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-[0.75rem] text-slate-500">Unit ka naam
-          <input data-autofocus value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder="Bori" className={cn(field, 'mt-1')} />
+        <label className="text-[0.75rem] text-slate-500">{t('Unit ka naam')}
+          <input data-autofocus value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder={t('Bori')} className={cn(field, 'mt-1')} />
         </label>
-        <label className="text-[0.75rem] text-slate-500">Ek me kitne {line.source.baseUnit}
-          <input type="number" min={0} step="any" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="50" className={cn(field, 'mt-1 text-right')} />
+        <label className="text-[0.75rem] text-slate-500">{t('Ek me kitne {{baseUnit}}', { baseUnit: line.source.baseUnit })}
+          <input type="number" min={0} step="any" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="50" className={cn(field, 'mt-1 text-end')} />
         </label>
       </div>
-      <p className="mt-3 text-[0.75rem] text-slate-500">Hamesha ke liye unit banana ho to product ki setting me "Units" se banayein — phir POS par bhi bikega.</p>
+      <p className="mt-3 text-[0.75rem] text-slate-500">{t('Hamesha ke liye unit banana ho to product ki setting me "Units" se banayein — phir POS par bhi bikega.')}</p>
     </Modal>
   );
 }

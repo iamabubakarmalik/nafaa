@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { cashRegisterApi, type CashBucket, type ShiftQuery } from '../api/cash-register.api';
 import { CASH_KEY, signed } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -31,30 +32,30 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Wallet} label="Shifts" value={String(t.shifts)} sub={t.open ? `${t.open} abhi khuli` : 'Sab band ho chuki'} />
-        <Kpi icon={AlertTriangle} label="Paise kam nikle" value={money(t.short)} sub={`${t.shortCount} shift me`} tone="rose" />
-        <Kpi icon={TrendingUp} label="Paise zyada nikle" value={money(t.over)} sub={`${t.overCount} shift me`} tone="sky" />
-        <Kpi icon={Clock} label="Ausat float · waqt" value={money(t.avgFloat)} sub={t.avgHours ? `Ek shift ausatan ${t.avgHours} ghante` : 'Abhi koi shift band nahi hui'} tone="emerald" />
+        <Kpi icon={Wallet} label={tr('Shifts')} value={String(t.shifts)} sub={t.open ? tr('{{open}} abhi khuli', { open: t.open }) : tr('Sab band ho chuki')} />
+        <Kpi icon={AlertTriangle} label={tr('Paise kam nikle')} value={money(t.short)} sub={tr('{{shortCount}} shift me', { shortCount: t.shortCount })} tone="rose" />
+        <Kpi icon={TrendingUp} label={tr('Paise zyada nikle')} value={money(t.over)} sub={tr('{{overCount}} shift me', { overCount: t.overCount })} tone="sky" />
+        <Kpi icon={Clock} label={tr('Ausat float · waqt')} value={money(t.avgFloat)} sub={t.avgHours ? tr('Ek shift ausatan {{avgHours}} ghante', { avgHours: t.avgHours }) : tr('Abhi koi shift band nahi hui')} tone="emerald" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={Banknote} text="Roz ki cash sale" />} description="Har karobari din galle me kitni cash sale aayi (shift khulne ke din par)">
-          {!days.length ? <Empty text="Is period me koi shift nahi" /> : (
+        <Card className="rounded-2xl" title={<Title icon={Banknote} text={tr('Roz ki cash sale')} />} description={tr('Har karobari din galle me kitni cash sale aayi (shift khulne ke din par)')}>
+          {!days.length ? <Empty text={tr('Is period me koi shift nahi')} /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Cash sale']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Cash sale')]} {...theme.tooltip} />
                   <Bar dataKey="cashSales" name="Cash sale" fill="#16a34a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<Title icon={AlertTriangle} text="Roz ka farak" />} description="Neeche laal: paise kam nikle · upar neela: zyada nikle">
-          {!days.some((x) => x.short || x.over) ? <Empty text="Is period me galla har dafa barabar nikla" /> : (
+        <Card className="rounded-2xl" title={<Title icon={AlertTriangle} text={tr('Roz ka farak')} />} description={tr('Neeche laal: paise kam nikle · upar neela: zyada nikle')}>
+          {!days.some((x) => x.short || x.over) ? <Empty text={tr('Is period me galla har dafa barabar nikla')} /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} stackOffset="sign" margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -74,12 +75,12 @@ export function CashAnalytics({ filters, money }: { filters: Omit<ShiftQuery, 'p
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={Users} title="Staff ke hisaab se" description="Jis ne shift kholi us ke naam par — sab se zyada kam pehle" rows={d.byStaff} money={money} />
+        <Ranked icon={Users} title={tr('Staff ke hisaab se')} description={tr('Jis ne shift kholi us ke naam par — sab se zyada kam pehle')} rows={d.byStaff} money={money} />
         {d.byShop.length > 1
-          ? <Ranked icon={Store} title="Branch ke hisaab se" description="Har branch ki shifts, cash sale aur farak" rows={d.byShop} money={money} />
-          : <Ranked icon={Clock} title="Ausat opening float" description="Har din shift kitne khule paise se shuru hui" rows={[...d.byDay].reverse().slice(0, 10).map((x) => ({ ...x, label: dayLabel(x.key) }))} money={money} float />}
+          ? <Ranked icon={Store} title={tr('Branch ke hisaab se')} description={tr('Har branch ki shifts, cash sale aur farak')} rows={d.byShop} money={money} />
+          : <Ranked icon={Clock} title={tr('Ausat opening float')} description={tr('Har din shift kitne khule paise se shuru hui')} rows={[...d.byDay].reverse().slice(0, 10).map((x) => ({ ...x, label: dayLabel(x.key) }))} money={money} float />}
       </div>
-      {d.capped && <p className="text-center text-[0.75rem] text-slate-500">Bohat zyada shifts hain — pehli 5000 gini gayi hain. Period chhoti karein.</p>}
+      {d.capped && <p className="text-center text-[0.75rem] text-slate-500">{tr('Bohat zyada shifts hain — pehli 5000 gini gayi hain. Period chhoti karein.')}</p>}
     </div>
   );
 }
@@ -90,14 +91,14 @@ function Ranked({ icon, title, description, rows, money, float }: {
   const max = Math.max(1, ...rows.map((r) => (float ? r.avgFloat : Math.max(r.short, r.over))));
   return (
     <Card className="rounded-2xl" title={<Title icon={icon} text={title} />} description={description}>
-      {!rows.length ? <Empty text="Koi shift nahi" /> : (
+      {!rows.length ? <Empty text={tr('Koi shift nahi')} /> : (
         <ul className="space-y-2.5">
           {rows.slice(0, 12).map((r) => (
             <li key={r.key}>
               <div className="flex justify-between gap-2 text-[0.8125rem]">
                 <span className="truncate font-medium text-slate-800">{r.label}</span>
                 <span className={cn('shrink-0 tabular-nums', float ? 'text-slate-900' : r.net < 0 ? 'text-rose-700' : r.net > 0 ? 'text-sky-700' : 'text-emerald-700')}>
-                  {float ? money(r.avgFloat) : r.net ? signed(r.net) : 'Barabar'}
+                  {float ? money(r.avgFloat) : r.net ? signed(r.net) : tr('Barabar')}
                 </span>
               </div>
               {float ? (
@@ -109,9 +110,7 @@ function Ranked({ icon, title, description, rows, money, float }: {
                 </div>
               )}
               <p className="mt-0.5 text-[0.6875rem] text-slate-500">
-                {r.shifts} shift · cash sale {money(r.cashSales)}
-                {!float && r.shortCount > 0 && ` · ${r.shortCount} dafa kam (${money(r.short)})`}
-                {!float && r.overCount > 0 && ` · ${r.overCount} dafa zyada (${money(r.over)})`}
+                {tr('{{shifts}} shift · cash sale {{cashSales}}{{value}}{{value2}}', { shifts: r.shifts, cashSales: money(r.cashSales), value: !float && r.shortCount > 0 ? tr(' · {{shortCount}} dafa kam ({{short}})', { shortCount: r.shortCount, short: money(r.short) }) : '', value2: !float && r.overCount > 0 ? tr(' · {{overCount}} dafa zyada ({{over}})', { overCount: r.overCount, over: money(r.over) }) : '' })}
               </p>
             </li>
           ))}

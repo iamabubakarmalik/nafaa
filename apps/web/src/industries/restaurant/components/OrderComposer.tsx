@@ -35,6 +35,7 @@ import { RestaurantModifierPicker, type PickedDish, type PickedModifier } from '
 import { TablePickerModal } from './TablePickerModal';
 import { MODE_META, ORDER_KEYS, ORDER_MODES, apiError, lineExtras } from '../lib/orderMeta';
 import { printKot } from '../lib/slips';
+import { t as tr } from '@core/i18n';
 
 interface Line { key: string; entry: MenuEntry; size?: MenuSize; quantity: number; modifiers: PickedModifier[]; note: string }
 
@@ -65,7 +66,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const navigate = useNavigate();
   const qc = useQueryClient();
   const me = useAuthStore((s) => s.user);
-  const shopName = useAuthStore((s) => s.tenant?.name) || 'Restaurant';
+  const shopName = useAuthStore((s) => s.tenant?.name) || tr('Restaurant');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<OrderMode>(initialMode ?? (counter ? 'PICKUP' : 'DINE_IN'));
@@ -179,10 +180,10 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
   const setQty = (key: string, q: number) => setLines((prev) => (q <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(q, 999) } : l))));
 
   const problem = (() => {
-    if (!lines.length) return 'Menu se item chunein';
-    if (!adding && mode === 'DELIVERY' && !address.trim()) return 'Delivery ka pata likhein';
-    if (!adding && mode === 'DELIVERY' && !(customerPhone.trim() || customer?.phone)) return 'Delivery ke liye phone likhein';
-    if (disc > itemsNet + service + tax + fee + pack) return 'Discount bill se zyada hai';
+    if (!lines.length) return tr('Menu se item chunein');
+    if (!adding && mode === 'DELIVERY' && !address.trim()) return tr('Delivery ka pata likhein');
+    if (!adding && mode === 'DELIVERY' && !(customerPhone.trim() || customer?.phone)) return tr('Delivery ke liye phone likhein');
+    if (disc > itemsNet + service + tax + fee + pack) return tr('Discount bill se zyada hai');
     return null;
   })();
 
@@ -209,7 +210,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
 
   const refresh = () => ORDER_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  const payment = useOrderPayment(() => reset(), 'Order khula hai — Orders me us par se payment lein');
+  const payment = useOrderPayment(() => reset(), tr('Order khula hai — Orders me us par se payment lein'));
 
   const save = useMutation({
     mutationFn: async ({ kitchen }: { kitchen: boolean; pay?: boolean }) => {
@@ -243,8 +244,8 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
     onSuccess: ({ order, kots }, { pay }) => {
       refresh();
       setServicePct(null);
-      const where = order.table ? `Table ${order.table.tableNumber}` : order.token ? `Token ${order.token}` : order.orderNumber;
-      toast.success(kots ? `${where} — kitchen ko ${kots} ticket gaye` : `${where} — order save ho gaya`);
+      const where = order.table ? tr('Table {{tableNumber}}', { tableNumber: order.table.tableNumber }) : order.token ? tr('Token {{token}}', { token: order.token }) : order.orderNumber;
+      toast.success(kots ? tr('{{where}} — kitchen ko {{kots}} ticket gaye', { where, kots }) : tr('{{where}} — order save ho gaya', { where }));
       if (pay) {
         // The order exists now; the screen is cleared so it cannot be sent twice.
         const who = customer ? { id: customer.id, name: customer.name, balance: Number(customer.balance || 0) } : null;
@@ -256,7 +257,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
       if (counter) { reset(); return; }
       navigate(order.mode === 'DINE_IN' ? '/restaurant/tables' : `/restaurant/orders/${order.id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Order save nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Order save nahi hua'))),
   });
 
   const submit = (kitchen: boolean, pay = false) => {
@@ -281,14 +282,14 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
 
   const createCustomer = useMutation({
     mutationFn: (v: { name: string; phone?: string }) => customersApi.create({ name: v.name.trim(), phone: v.phone?.trim() || undefined }),
-    onSuccess: (c) => { qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); setCustomerId(c.id); setAddCustomer(null); toast.success(`${c.name} jur gaya`); },
-    onError: (e) => toast.error(apiError(e, 'Customer nahi bana')),
+    onSuccess: (c) => { qc.invalidateQueries({ queryKey: ['customers-for-pos'] }); setCustomerId(c.id); setAddCustomer(null); toast.success(tr('{{name}} jur gaya', { name: c.name })); },
+    onError: (e) => toast.error(apiError(e, tr('Customer nahi bana'))),
   });
 
   const ModeIcon = MODE_META[mode].icon;
   const title = adding
-    ? `${existing ? (existing.table ? `Table ${existing.table.tableNumber}` : existing.token ? `Token ${existing.token}` : existing.orderNumber) : '…'} — aur item`
-    : counter ? 'Counter order' : 'Naya order';
+    ? tr('{{value}} — aur item', { value: existing ? existing.table ? tr('Table {{tableNumber}}', { tableNumber: existing.table.tableNumber }) : existing.token ? tr('Token {{token}}', { token: existing.token }) : existing.orderNumber : '…' })
+    : counter ? tr('Counter order') : tr('Naya order');
 
   return (
     <div className="grid h-[calc(100dvh-7rem)] min-h-[34rem] gap-3 lg:grid-cols-[minmax(0,1fr)_25rem]">
@@ -307,9 +308,9 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
       {/* Menu */}
       <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         <header className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2.5 sm:px-4">
-          <button type="button" onClick={() => navigate(adding ? `/restaurant/orders/${orderId}` : counter ? '/restaurant/orders' : '/restaurant/tables')} aria-label="Wapas"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"><ArrowLeft className="h-4 w-4" /></button>
-          <h1 className="mr-auto truncate text-[1.0625rem] font-bold text-slate-900">{title}</h1>
+          <button type="button" onClick={() => navigate(adding ? `/restaurant/orders/${orderId}` : counter ? '/restaurant/orders' : '/restaurant/tables')} aria-label={tr('Wapas')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
+          <h1 className="me-auto truncate text-[1.0625rem] font-bold text-slate-900">{title}</h1>
           {!adding && (
             <div role="tablist" className="inline-flex rounded-xl bg-slate-100 p-1">
               {ORDER_MODES.map((m) => {
@@ -326,18 +327,18 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
         </header>
         <div className="space-y-2 border-b border-slate-100 px-3 py-2.5 sm:px-4">
           <label className="group relative block">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
+            <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') setSearch(''); if (e.key === 'Enter' && shown.length) tap(shown[0]); }}
-              placeholder="Dish ka naam ya code…" aria-label="Menu search"
-              className="h-10 w-full rounded-xl bg-slate-100/80 pl-10 pr-10 text-[0.875rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            {search ? <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
+              placeholder={tr('Dish ka naam ya code…')} aria-label={tr('Menu search')}
+              className="h-10 w-full rounded-xl bg-slate-100/80 ps-10 pe-10 text-[0.875rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
+            {search ? <button type="button" onClick={() => setSearch('')} aria-label={tr('Saaf')} className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+              : <Kbd className="absolute end-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
           {menu.categories.length > 0 && (
             <div className="flex gap-1.5 overflow-x-auto pb-0.5">
               <button type="button" onClick={() => setCategory('all')}
-                className={cn('h-8 shrink-0 rounded-full px-3 text-[0.8125rem] font-semibold', category === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>Sab · {menu.entries.length}</button>
+                className={cn('h-8 shrink-0 rounded-full px-3 text-[0.8125rem] font-semibold', category === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{tr('Sab · {{count}}', { count: menu.entries.length })}</button>
               {menu.categories.map((c) => (
                 <button key={c.id} type="button" onClick={() => setCategory(c.id)}
                   className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-semibold', category === c.id ? 'text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}
@@ -354,9 +355,9 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
           ) : !shown.length ? (
             <div className="flex flex-col items-center px-6 py-16 text-center">
               <ChefHat className="h-10 w-10 text-slate-300" />
-              <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{menu.entries.length ? 'Is search me koi dish nahi' : 'Menu khaali hai'}</p>
-              <p className="mt-1 text-[0.8125rem] text-slate-500">{menu.entries.length ? 'Naam badal kar dekhein' : 'Pehle menu me dishes daalein'}</p>
-              {!menu.entries.length && <Link to="/restaurant/menu" className="mt-3 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Menu kholein →</Link>}
+              <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{menu.entries.length ? tr('Is search me koi dish nahi') : tr('Menu khaali hai')}</p>
+              <p className="mt-1 text-[0.8125rem] text-slate-500">{menu.entries.length ? tr('Naam badal kar dekhein') : tr('Pehle menu me dishes daalein')}</p>
+              {!menu.entries.length && <Link to="/restaurant/menu" className="mt-3 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Menu kholein →')}</Link>}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
@@ -364,21 +365,21 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                 const inCart = lines.filter((l) => l.entry.productId === e.productId).reduce((s, l) => s + l.quantity, 0);
                 return (
                   <button key={e.id} type="button" onClick={() => tap(e)}
-                    className={cn('group relative flex flex-col overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md',
+                    className={cn('group relative flex flex-col overflow-hidden rounded-2xl bg-white text-start shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md',
                       inCart ? 'ring-2 ring-brand-500' : 'ring-slate-200/80')}>
                     {e.image
                       ? <img src={e.image} alt="" loading="lazy" className="h-20 w-full object-cover" />
                       : <span className="flex h-20 w-full items-center justify-center" style={{ backgroundColor: `${e.category?.color ?? '#64748b'}14` }}><ChefHat className="h-7 w-7" style={{ color: e.category?.color ?? '#94a3b8' }} /></span>}
-                    {inCart > 0 && <span className="absolute right-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[0.75rem] font-bold text-white shadow">{inCart}</span>}
-                    <span className="absolute left-1.5 top-1.5 flex gap-1">
-                      {e.chefSpecial && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white" title="Chef special"><Star className="h-3 w-3" /></span>}
+                    {inCart > 0 && <span className="absolute end-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[0.75rem] font-bold text-white shadow">{inCart}</span>}
+                    <span className="absolute start-1.5 top-1.5 flex gap-1">
+                      {e.chefSpecial && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white" title={tr('Chef special')}><Star className="h-3 w-3" /></span>}
                       {e.spiceLevel && e.spiceLevel !== 'NONE' && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white" title={e.spiceLevel}><Flame className="h-3 w-3" /></span>}
                     </span>
                     <span className="flex flex-1 flex-col px-2.5 py-2">
                       <span className="line-clamp-2 text-[0.8125rem] font-semibold leading-snug text-slate-900">{e.name}</span>
                       <span className="mt-auto flex items-center justify-between pt-1">
                         <span className="text-[0.875rem] font-bold tabular-nums text-slate-900">{formatPKR(e.price)}</span>
-                        {(e.groups.length > 0 || e.sizes.length > 0) && <span className="text-[0.6875rem] font-medium text-brand-700">{e.sizes.length ? `${e.sizes.length} size` : 'options'}</span>}
+                        {(e.groups.length > 0 || e.sizes.length > 0) && <span className="text-[0.6875rem] font-medium text-brand-700">{e.sizes.length ? tr('{{count}} size', { count: e.sizes.length }) : 'options'}</span>}
                       </span>
                     </span>
                   </button>
@@ -395,9 +396,9 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
           {adding ? (
             existing && (
               <div className="rounded-2xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">
-                <p className="font-semibold text-slate-900">Pehle se: {existing.items.filter((i) => !i.isReturned).length} item · {formatPKR(existing.total)}</p>
+                <p className="font-semibold text-slate-900">{tr('Pehle se: {{count}} item · {{total}}', { count: existing.items.filter((i) => !i.isReturned).length, total: formatPKR(existing.total) })}</p>
                 <p className="mt-0.5 line-clamp-2">{existing.items.filter((i) => !i.isReturned).map((i) => `${i.quantity}× ${i.product?.name ?? ''}`).join(', ')}</p>
-                <p className="mt-1 text-[0.75rem] text-slate-500">Sirf naye item kitchen jayenge.</p>
+                <p className="mt-1 text-[0.75rem] text-slate-500">{tr('Sirf naye item kitchen jayenge.')}</p>
               </div>
             )
           ) : (
@@ -408,12 +409,12 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                   <>
                     <button type="button" onClick={() => setTablePicker(true)}
                       className={cn('inline-flex h-9 flex-1 items-center justify-between rounded-xl px-3 text-[0.875rem] font-semibold ring-1', table ? 'bg-emerald-50 text-emerald-900 ring-emerald-200' : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50')}>
-                      {table ? `Table ${table.tableNumber}${table.section ? ` · ${table.section}` : ''}` : 'Table chunein'}<span className="text-[0.75rem] font-medium text-slate-500">badlein</span>
+                      {table ? tr('Table {{tableNumber}}{{value}}', { tableNumber: table.tableNumber, value: table.section ? ` · ${table.section}` : '' }) : tr('Table chunein')}<span className="text-[0.75rem] font-medium text-slate-500">{tr('badlein')}</span>
                     </button>
-                    <div className="inline-flex items-center rounded-xl bg-slate-100 p-0.5" title="Mehman">
-                      <button type="button" aria-label="Mehman kam" onClick={() => setGuests((g) => Math.max(1, g - 1))} className="flex h-8 w-7 items-center justify-center rounded-lg hover:bg-white"><Minus className="h-3.5 w-3.5" /></button>
+                    <div className="inline-flex items-center rounded-xl bg-slate-100 p-0.5" title={tr('Mehman')}>
+                      <button type="button" aria-label={tr('Mehman kam')} onClick={() => setGuests((g) => Math.max(1, g - 1))} className="flex h-8 w-7 items-center justify-center rounded-lg hover:bg-white"><Minus className="h-3.5 w-3.5" /></button>
                       <span className="inline-flex w-9 items-center justify-center gap-0.5 text-[0.8125rem] font-bold tabular-nums"><Users className="h-3 w-3 text-slate-500" />{guests}</span>
-                      <button type="button" aria-label="Mehman zyada" onClick={() => setGuests((g) => Math.min(200, g + 1))} className="flex h-8 w-7 items-center justify-center rounded-lg hover:bg-white"><Plus className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label={tr('Mehman zyada')} onClick={() => setGuests((g) => Math.min(200, g + 1))} className="flex h-8 w-7 items-center justify-center rounded-lg hover:bg-white"><Plus className="h-3.5 w-3.5" /></button>
                     </div>
                   </>
                 ) : (
@@ -425,26 +426,26 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
               </div>
               {mode !== 'DINE_IN' && !customerId && (
                 <div className="grid grid-cols-2 gap-2">
-                  <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Naam (token par)" aria-label="Customer ka naam"
+                  <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={tr('Naam (token par)')} aria-label={tr('Customer ka naam')}
                     className="h-9 rounded-xl border border-slate-200 px-3 text-[0.8125rem] outline-none focus:border-brand-500" />
                   <label className="relative">
-                    <Phone className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                    <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value.replace(/[^\d+\s-]/g, ''))} placeholder="03xx…" inputMode="tel" aria-label="Phone"
-                      className="h-9 w-full rounded-xl border border-slate-200 pl-8 pr-2 text-[0.8125rem] outline-none focus:border-brand-500" />
+                    <Phone className="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value.replace(/[^\d+\s-]/g, ''))} placeholder={tr('03xx…')} inputMode="tel" aria-label={tr('Phone')}
+                      className="h-9 w-full rounded-xl border border-slate-200 ps-8 pe-2 text-[0.8125rem] outline-none focus:border-brand-500" />
                   </label>
                 </div>
               )}
               {mode === 'DELIVERY' && (
                 <div className="space-y-2">
                   <label className="relative block">
-                    <MapPin className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-                    <textarea value={address} onChange={(e) => setAddress(e.target.value.slice(0, 300))} rows={2} placeholder="Ghar ka pata, gali, nishani…" aria-label="Delivery ka pata"
-                      className="w-full resize-none rounded-xl border border-slate-200 py-2 pl-8 pr-2 text-[0.8125rem] outline-none focus:border-brand-500" />
+                    <MapPin className="pointer-events-none absolute start-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <textarea value={address} onChange={(e) => setAddress(e.target.value.slice(0, 300))} rows={2} placeholder={tr('Ghar ka pata, gali, nishani…')} aria-label={tr('Delivery ka pata')}
+                      className="w-full resize-none rounded-xl border border-slate-200 py-2 ps-8 pe-2 text-[0.8125rem] outline-none focus:border-brand-500" />
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    <input value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value.slice(0, 300))} placeholder="Rider ke liye note" aria-label="Rider note"
+                    <input value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value.slice(0, 300))} placeholder={tr('Rider ke liye note')} aria-label={tr('Rider note')}
                       className="h-9 rounded-xl border border-slate-200 px-3 text-[0.8125rem] outline-none focus:border-brand-500" />
-                    <input value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="Delivery charge" aria-label="Delivery charge"
+                    <input value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder={tr('Delivery charge')} aria-label={tr('Delivery charge')}
                       className="h-9 rounded-xl border border-slate-200 px-3 text-[0.8125rem] tabular-nums outline-none focus:border-brand-500" />
                   </div>
                 </div>
@@ -452,9 +453,9 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
               {waiters.length > 1 && (
                 <label className="flex items-center gap-2 text-[0.8125rem] text-slate-600">
                   <UserRound className="h-4 w-4 text-slate-400" />
-                  <select value={waiterId} onChange={(e) => setWaiterId(e.target.value)} aria-label="Waiter"
+                  <select value={waiterId} onChange={(e) => setWaiterId(e.target.value)} aria-label={tr('Waiter')}
                     className="h-8 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
-                    <option value="">Waiter: {me?.fullName ?? 'main'}</option>
+                    <option value="">{tr('Waiter: {{value}}', { value: me?.fullName ?? 'main' })}</option>
                     {waiters.filter((w) => w.id !== me?.id).map((w) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
                   </select>
                 </label>
@@ -467,8 +468,8 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
           {!lines.length ? (
             <div className="flex h-full flex-col items-center justify-center px-4 py-10 text-center text-slate-500">
               <NotebookPen className="h-9 w-9 text-slate-300" />
-              <p className="mt-2 text-[0.875rem] font-medium">Menu se dish dabayein</p>
-              <p className="text-[0.75rem]">Options wali dish par size aur add-on poochay jayenge</p>
+              <p className="mt-2 text-[0.875rem] font-medium">{tr('Menu se dish dabayein')}</p>
+              <p className="text-[0.75rem]">{tr('Options wali dish par size aur add-on poochay jayenge')}</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
@@ -484,16 +485,16 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
                   </div>
                   <div className="mt-1.5 flex items-center gap-2">
                     <div className="inline-flex items-center rounded-lg bg-slate-100 p-0.5">
-                      <button type="button" aria-label="Kam" onClick={() => setQty(l.key, l.quantity - 1)} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white"><Minus className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label={tr('Kam')} onClick={() => setQty(l.key, l.quantity - 1)} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white"><Minus className="h-3.5 w-3.5" /></button>
                       <span className="w-8 text-center text-[0.8125rem] font-bold tabular-nums">{l.quantity}</span>
-                      <button type="button" aria-label="Zyada" onClick={() => setQty(l.key, l.quantity + 1)} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white"><Plus className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label={tr('Zyada')} onClick={() => setQty(l.key, l.quantity + 1)} className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white"><Plus className="h-3.5 w-3.5" /></button>
                     </div>
-                    <button type="button" onClick={() => setNoteFor(noteFor === l.key ? null : l.key)} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">{l.note ? 'Note badlein' : 'Note'}</button>
-                    <button type="button" onClick={() => setQty(l.key, 0)} aria-label="Hatayein" className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => setNoteFor(noteFor === l.key ? null : l.key)} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">{l.note ? tr('Note badlein') : tr('Note')}</button>
+                    <button type="button" onClick={() => setQty(l.key, 0)} aria-label={tr('Hatayein')} className="ms-auto flex h-7 w-7 items-center justify-center rounded-md text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
                   {noteFor === l.key && (
                     <input autoFocus value={l.note} onChange={(e) => setLines((prev) => prev.map((x) => (x.key === l.key ? { ...x, note: e.target.value.slice(0, 300) } : x)))}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') setNoteFor(null); }} placeholder="Jaise: kam mirch" aria-label="Kitchen note"
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') setNoteFor(null); }} placeholder={tr('Jaise: kam mirch')} aria-label={tr('Kitchen note')}
                       className="mt-1.5 h-8 w-full rounded-lg border border-slate-200 px-2 text-[0.8125rem] outline-none focus:border-brand-500" />
                   )}
                 </li>
@@ -506,53 +507,53 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
           {!adding && (
             <details className="group rounded-xl bg-white ring-1 ring-slate-200">
               <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[0.8125rem] font-semibold text-slate-700">
-                <Percent className="h-4 w-4 text-slate-400" /> Charges, discount aur note
-                <span className="ml-auto text-[0.75rem] font-medium text-slate-500">{[svcPct ? `Service ${svcPct}%` : '', Number(taxPct) ? `Tax ${taxPct}%` : '', disc ? `Discount ${formatPKR(disc)}` : ''].filter(Boolean).join(' · ') || 'kholein'}</span>
+                <Percent className="h-4 w-4 text-slate-400" /> {' '}{tr('Charges, discount aur note')}
+                <span className="ms-auto text-[0.75rem] font-medium text-slate-500">{[svcPct ? `Service ${svcPct}%` : '', Number(taxPct) ? `Tax ${taxPct}%` : '', disc ? `Discount ${formatPKR(disc)}` : ''].filter(Boolean).join(' · ') || 'kholein'}</span>
               </summary>
               <div className="grid grid-cols-2 gap-2 border-t border-slate-100 p-3">
-                {mode === 'DINE_IN' && <NumField label="Service charge %" value={serviceText} onChange={setServicePct} hint={shopService ? `Dukaan ka ${shopService}% (Settings) — sirf is order ke liye badlein` : 'Sirf is order ke liye; dukaan ka Settings → Counter rules me'} />}
-                <NumField label="Tax %" value={taxPct} onChange={setTaxPct} />
-                <NumField label="Discount (Rs)" value={discount} onChange={setDiscount} hint="Had se zyada ho to payment par PIN" />
-                {mode !== 'DINE_IN' && <NumField label="Packing (Rs)" value={packing} onChange={setPacking} />}
-                <label className="col-span-2 text-[0.75rem] font-medium text-slate-600">Poore order ka note
-                  <input value={orderNote} onChange={(e) => setOrderNote(e.target.value.slice(0, 500))} placeholder="Jaise: bachon ki plate pehle"
+                {mode === 'DINE_IN' && <NumField label={tr('Service charge %')} value={serviceText} onChange={setServicePct} hint={shopService ? tr('Dukaan ka {{shopService}}% (Settings) — sirf is order ke liye badlein', { shopService }) : tr('Sirf is order ke liye; dukaan ka Settings → Counter rules me')} />}
+                <NumField label={tr('Tax %')} value={taxPct} onChange={setTaxPct} />
+                <NumField label={tr('Discount (Rs)')} value={discount} onChange={setDiscount} hint={tr('Had se zyada ho to payment par PIN')} />
+                {mode !== 'DINE_IN' && <NumField label={tr('Packing (Rs)')} value={packing} onChange={setPacking} />}
+                <label className="col-span-2 text-[0.75rem] font-medium text-slate-600">{tr('Poore order ka note')}
+                  <input value={orderNote} onChange={(e) => setOrderNote(e.target.value.slice(0, 500))} placeholder={tr('Jaise: bachon ki plate pehle')}
                     className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-normal outline-none focus:border-brand-500" />
                 </label>
               </div>
             </details>
           )}
           <dl className="space-y-0.5 text-[0.8125rem]">
-            <div className="flex justify-between text-slate-600"><dt>{count} item</dt><dd className="tabular-nums">{formatPKR(subtotal)}</dd></div>
+            <div className="flex justify-between text-slate-600"><dt>{tr('{{count}} item', { count })}</dt><dd className="tabular-nums">{formatPKR(subtotal)}</dd></div>
             {happy > 0 && (
               <div className="flex justify-between text-success-700">
-                <dt className="truncate">Happy hour{happyQ.data?.rules.length ? ` (${happyQ.data.rules.map((r) => r.name).join(', ')})` : ''}</dt>
+                <dt className="truncate">{tr('Happy hour{{value}}', { value: happyQ.data?.rules.length ? ` (${happyQ.data.rules.map((r) => r.name).join(', ')})` : '' })}</dt>
                 <dd className="tabular-nums">−{formatPKR(happy)}</dd>
               </div>
             )}
-            {!adding && service > 0 && <div className="flex justify-between text-slate-600"><dt>Service {svcPct}%</dt><dd className="tabular-nums">{formatPKR(service)}</dd></div>}
-            {!adding && tax > 0 && <div className="flex justify-between text-slate-600"><dt>Tax</dt><dd className="tabular-nums">{formatPKR(tax)}</dd></div>}
-            {!adding && fee + pack > 0 && <div className="flex justify-between text-slate-600"><dt>Delivery / packing</dt><dd className="tabular-nums">{formatPKR(fee + pack)}</dd></div>}
-            {!adding && disc > 0 && <div className="flex justify-between text-rose-600"><dt>Discount</dt><dd className="tabular-nums">−{formatPKR(disc)}</dd></div>}
-            <div className="flex items-baseline justify-between pt-1"><dt className="font-semibold text-slate-900">{adding ? 'Naye item' : 'Kul'}</dt><dd className="text-[1.375rem] font-bold tabular-nums text-slate-900">{formatPKR(adding ? subtotal : total)}</dd></div>
+            {!adding && service > 0 && <div className="flex justify-between text-slate-600"><dt>{tr('Service {{svcPct}}%', { svcPct })}</dt><dd className="tabular-nums">{formatPKR(service)}</dd></div>}
+            {!adding && tax > 0 && <div className="flex justify-between text-slate-600"><dt>{tr('Tax')}</dt><dd className="tabular-nums">{formatPKR(tax)}</dd></div>}
+            {!adding && fee + pack > 0 && <div className="flex justify-between text-slate-600"><dt>{tr('Delivery / packing')}</dt><dd className="tabular-nums">{formatPKR(fee + pack)}</dd></div>}
+            {!adding && disc > 0 && <div className="flex justify-between text-rose-600"><dt>{tr('Discount')}</dt><dd className="tabular-nums">−{formatPKR(disc)}</dd></div>}
+            <div className="flex items-baseline justify-between pt-1"><dt className="font-semibold text-slate-900">{adding ? tr('Naye item') : tr('Kul')}</dt><dd className="text-[1.375rem] font-bold tabular-nums text-slate-900">{formatPKR(adding ? subtotal : total)}</dd></div>
           </dl>
           <label className="flex cursor-pointer items-center gap-2 text-[0.75rem] text-slate-600">
             <input type="checkbox" checked={prefs.kotPrint} onChange={toggleKotPrint} className="h-4 w-4 accent-[rgb(var(--brand-600))]" />
-            <Printer className="h-3.5 w-3.5" /> Kitchen ticket (KOT) print karein
+            <Printer className="h-3.5 w-3.5" /> {' '}{tr('Kitchen ticket (KOT) print karein')}
           </label>
           <div className={cn('grid gap-2', adding ? 'grid-cols-1' : counter ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-[1.4fr_1fr]')}>
             <Button size="lg" variant={counter && !adding ? 'secondary' : 'primary'} loading={save.isPending && !payment.paying} disabled={!lines.length} onClick={() => submit(true)}>
-              <Send className="h-4 w-4" /> Kitchen bhejein <Kbd className="ml-1 hidden bg-white/20 text-current lg:inline-flex">F9</Kbd>
+              <Send className="h-4 w-4" /> {' '}{tr('Kitchen bhejein')}{' '} <Kbd className="ms-1 hidden bg-white/20 text-current lg:inline-flex">F9</Kbd>
             </Button>
             {!adding && (
               <Button size="lg" variant={counter ? 'primary' : 'secondary'} disabled={!lines.length || save.isPending} onClick={() => submit(true, true)}>
-                <Wallet className="h-4 w-4" /> Payment <Kbd className="ml-1 hidden lg:inline-flex">F12</Kbd>
+                <Wallet className="h-4 w-4" /> {' '}{tr('Payment')}{' '} <Kbd className="ms-1 hidden lg:inline-flex">F12</Kbd>
               </Button>
             )}
           </div>
           {!adding && !counter && (
             <button type="button" disabled={!lines.length || save.isPending} onClick={() => submit(false)}
               className="w-full text-center text-[0.75rem] font-medium text-slate-500 hover:text-slate-800 disabled:opacity-50">
-              Abhi kitchen nahi — sirf order save karein
+              {tr('Abhi kitchen nahi — sirf order save karein')}
             </button>
           )}
         </div>

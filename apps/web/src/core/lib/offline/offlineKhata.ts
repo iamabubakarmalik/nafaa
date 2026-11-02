@@ -5,6 +5,7 @@ import {
   type LedgerCustomer,
 } from '@modules/customers/khata/api/customer-ledger.api';
 import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
+import { t } from '@core/i18n';
 
 export interface LedgerResponse {
   customer: LedgerCustomer;
@@ -99,7 +100,7 @@ export async function getCachedLedger(customerId: string): Promise<LedgerRespons
   // Fallback: build from local customer + empty ledgers
   const customer = await db.customers.get(customerId);
   if (!customer) {
-    throw new Error('Customer not found in local cache');
+    throw new Error(t('Customer not found in local cache'));
   }
   return {
     customer: customerToLedgerCustomer(customer),

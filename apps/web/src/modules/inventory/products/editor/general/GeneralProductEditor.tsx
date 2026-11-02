@@ -4,11 +4,12 @@ import { ProductEditorPage } from '../ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '../coreSteps';
 import { RETAIL_UNITS, VARIANT_PRESETS } from '../units';
 import type { CoreOptions, EditorConfig } from '../types';
+import { t } from '@core/i18n';
 
 const core: CoreOptions = { units: RETAIL_UNITS, skuPrefix: 'PROD', packs: true, variants: { presets: VARIANT_PRESETS }, batches: true };
 
 const config: EditorConfig<Record<string, never>> = {
-  label: 'Dukaan',
+  label: t('Dukaan'),
   draftKey: 'nafaa.product-editor.general',
   paths: { list: '/products', detail: (id) => `/products/${id}`, create: '/products/new' },
   core,

@@ -11,6 +11,7 @@ import { hasPermission, type PermissionKey } from '../../../common/constants/per
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, dateKeyTz, tzParts, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -25,7 +26,7 @@ export const opt = (v?: string | null) => (typeof v === 'string' && v.trim() ? v
 /** Throws unless the user holds at least one of the rights. */
 export function assertCan(user: AuthenticatedUser, perms: PermissionKey[], action: string) {
   if (!perms.some((p) => hasPermission(user.role, user.permissions, p))) {
-    throw new ForbiddenException(`${action} ki permission nahi (${perms.join(' / ')})`);
+    throw new ForbiddenException(apiMessage('{{action}} ki permission nahi ({{perms}})', { action, perms: perms.join(' / ') }));
   }
 }
 

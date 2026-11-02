@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { opt, paging } from '../common/garments-common';
 import { UpsertMeasurementDto } from './dto/upsert-measurement.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const customerSelect = { id: true, name: true, phone: true } as const;
 
@@ -30,7 +31,7 @@ export class MeasurementsService {
         await tx.garmentMeasurementProfile.updateMany({ where: { tenantId: user.tenantId, customerId: customer.id, isDefault: true }, data: { isDefault: false } });
       }
       const existing = await tx.garmentMeasurementProfile.findFirst({ where: { tenantId: user.tenantId, customerId: customer.id, profileName } });
-      if (existing?.isActive) throw new BadRequestException(`Is customer ka "${profileName}" naap pehle se hai — usay badlein ya naya naam dein`);
+      if (existing?.isActive) throw new BadRequestException(apiMessage('Is customer ka "{{profileName}}" naap pehle se hai — usay badlein ya naya naam dein', { profileName }));
       // A removed profile with the same name comes back with the new numbers.
       if (existing) {
         return tx.garmentMeasurementProfile.update({
@@ -105,7 +106,7 @@ export class MeasurementsService {
     const name = opt(profileName);
     if (name && name !== m.profileName) {
       const clash = await this.prisma.garmentMeasurementProfile.findFirst({ where: { tenantId: user.tenantId, customerId: m.customerId, profileName: name, id: { not: id } } });
-      if (clash) throw new BadRequestException(`Is customer ka "${name}" naap pehle se hai`);
+      if (clash) throw new BadRequestException(apiMessage('Is customer ka "{{name}}" naap pehle se hai', { name }));
     }
     return this.prisma.$transaction(async (tx) => {
       if (dto.isDefault) {

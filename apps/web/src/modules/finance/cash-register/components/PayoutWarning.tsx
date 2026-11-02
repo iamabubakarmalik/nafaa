@@ -13,6 +13,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { cashRegisterApi } from '../api/cash-register.api';
 import { CASH_KEY } from './meta';
+import { t as tr } from '@core/i18n';
 
 export function PayoutWarning({ amount, registerId, enabled = true, kind = 'payment', closedText, className }: {
   /** Cash leaving the drawer; nothing is checked at 0. */
@@ -57,12 +58,12 @@ export function PayoutWarning({ amount, registerId, enabled = true, kind = 'paym
   const text = kind === 'payment'
     ? c.message
     : expected > 0
-      ? `Galle me hisaab se sirf ${formatPKR(expected)} hain — ${formatPKR(debounced)} nikalne ke baad ${minus} minus ho jayega. Pehle cash gin lein.`
-      : `Galle ka hisaab pehle hi ${formatPKR(Math.abs(expected))} minus hai — yeh nikalne ke baad ${minus} minus ho jayega. Pehle cash gin lein.`;
+      ? tr('Galle me hisaab se sirf {{expected}} hain — {{debounced}} nikalne ke baad {{minus}} minus ho jayega. Pehle cash gin lein.', { expected: formatPKR(expected), debounced: formatPKR(debounced), minus })
+      : tr('Galle ka hisaab pehle hi {{formatPKR}} minus hai — yeh nikalne ke baad {{minus}} minus ho jayega. Pehle cash gin lein.', { formatPKR: formatPKR(Math.abs(expected)), minus });
   return (
     <div role="alert" className={cn('flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200', className)}>
       <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-      <span>{text} <span className="text-amber-700">{kind === 'cashOut' ? 'Phir bhi nikal sakte hain.' : 'Save phir bhi ho jayega.'}</span></span>
+      <span>{text} <span className="text-amber-700">{kind === 'cashOut' ? tr('Phir bhi nikal sakte hain.') : tr('Save phir bhi ho jayega.')}</span></span>
     </div>
   );
 }

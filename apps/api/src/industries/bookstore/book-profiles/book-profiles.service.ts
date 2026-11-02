@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertBookDto } from './dto/upsert-book.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class BookProfilesService {
@@ -28,7 +29,7 @@ export class BookProfilesService {
         where: { tenantId: user.tenantId, OR: [{ isbn10: isbn }, { isbn13: isbn }], NOT: { productId: dto.productId } },
         select: { title: true },
       });
-      if (taken) throw new BadRequestException(`ISBN ${isbn} pehle se "${taken.title}" par laga hai`);
+      if (taken) throw new BadRequestException(apiMessage('ISBN {{isbn}} pehle se "{{takenTitle}}" par laga hai', { isbn, takenTitle: taken.title }));
     }
 
     return this.prisma.$transaction(async (tx) => {

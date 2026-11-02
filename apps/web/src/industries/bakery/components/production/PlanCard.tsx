@@ -13,17 +13,18 @@ import { cn } from '@core/lib/cn';
 import { productionApi, type ProductionItem, type ProductionPlan } from '../../api/production.api';
 import { PRODUCTION_KEY, FRESH_KEY, RAW_KEY, apiError, byWeight, fmtQty, qtyInput, qtyValue } from '../meta';
 import { useConfirm } from '../useConfirm';
+import { t as tr } from '@core/i18n';
 
 const ITEM_STATUS: Record<string, { label: string; tone: string }> = {
-  PLANNED: { label: 'Banana hai', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: 'bg-blue-50 text-blue-700 ring-blue-200' },
-  BAKING: { label: 'Oven me', tone: 'bg-orange-50 text-orange-700 ring-orange-200' },
-  COOLING: { label: 'Thanda ho raha', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
-  DECORATING: { label: 'Sajawat', tone: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200' },
-  QUALITY_CHECK: { label: 'Check ho raha', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  COMPLETED: { label: 'Ban gaya', tone: 'bg-success-50 text-success-700 ring-success-200' },
-  FAILED: { label: 'Kharab hua', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  ON_HOLD: { label: 'Roka hua', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  PLANNED: { label: tr('Banana hai'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  IN_PROGRESS: { label: tr('Kaam chal raha'), tone: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  BAKING: { label: tr('Oven me'), tone: 'bg-orange-50 text-orange-700 ring-orange-200' },
+  COOLING: { label: tr('Thanda ho raha'), tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  DECORATING: { label: tr('Sajawat'), tone: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200' },
+  QUALITY_CHECK: { label: tr('Check ho raha'), tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  COMPLETED: { label: tr('Ban gaya'), tone: 'bg-success-50 text-success-700 ring-success-200' },
+  FAILED: { label: tr('Kharab hua'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  ON_HOLD: { label: tr('Roka hua'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
 };
 export const itemStatus = (s?: string) => ITEM_STATUS[s ?? 'PLANNED'] ?? ITEM_STATUS.PLANNED;
 
@@ -49,13 +50,13 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
 
   const planStep = useMutation({
     mutationFn: (to: 'start' | 'complete') => (to === 'start' ? productionApi.startPlan(plan.id) : productionApi.completePlan(plan.id)),
-    onSuccess: (_d, to) => { toast.success(to === 'start' ? 'Kaam shuru' : 'Plan mukammal'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (_d, to) => { toast.success(to === 'start' ? tr('Kaam shuru') : tr('Plan mukammal')); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const remove = useMutation({
     mutationFn: (it: ProductionItem) => productionApi.removeItem(it.id!),
-    onSuccess: () => { toast.success('Plan se hata diya'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hata')),
+    onSuccess: () => { toast.success(tr('Plan se hata diya')); refresh(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hata'))),
   });
 
   return (
@@ -66,21 +67,21 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-semibold text-slate-900">{plan.planNumber}</span>
             <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', itemStatus(plan.status).tone)}>{itemStatus(plan.status).label}</span>
-            {plan.shift && <span className="text-[0.75rem] text-slate-500">{plan.shift}</span>}
+            {plan.shift && <span className="text-[0.75rem] text-slate-500">{tr(plan.shift)}</span>}
           </div>
-          <p className="text-[0.75rem] text-slate-500">{items.length} cheezein · {fmtQty(made)} / {fmtQty(planned)} bane{plan.notes ? ` · ${plan.notes}` : ''}</p>
+          <p className="text-[0.75rem] text-slate-500">{tr('{{count}} cheezein · {{made}} / {{planned}} bane{{value}}', { count: items.length, made: fmtQty(made), planned: fmtQty(planned), value: plan.notes ? ` · ${plan.notes}` : '' })}</p>
         </div>
         {canManage && (
           <div className="flex flex-wrap gap-1.5">
-            {!closed && <Button size="sm" variant="secondary" onClick={() => onAddItems(plan)} leftIcon={<Plus className="h-4 w-4" />}>Cheez</Button>}
-            {plan.status === 'PLANNED' && <Button size="sm" onClick={() => planStep.mutate('start')} loading={planStep.isPending} leftIcon={<Play className="h-4 w-4" />}>Kaam shuru</Button>}
-            {!closed && plan.status !== 'PLANNED' && <Button size="sm" variant="success" onClick={async () => { if (done < items.length && !(await ask({ title: 'Plan band karein?', text: `${items.length - done} cheezein abhi "ban gaya" nahi hui. Phir bhi plan band karein?`, yes: 'Haan, band karein' }))) return; planStep.mutate('complete'); }} loading={planStep.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Plan mukammal</Button>}
+            {!closed && <Button size="sm" variant="secondary" onClick={() => onAddItems(plan)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Item')}</Button>}
+            {plan.status === 'PLANNED' && <Button size="sm" onClick={() => planStep.mutate('start')} loading={planStep.isPending} leftIcon={<Play className="h-4 w-4" />}>{tr('Kaam shuru')}</Button>}
+            {!closed && plan.status !== 'PLANNED' && <Button size="sm" variant="success" onClick={async () => { if (done < items.length && !(await ask({ title: tr('Plan complete karein?'), text: tr('{{value}} cheezein abhi "ban gaya" nahi hui. Phir bhi plan band karein?', { value: items.length - done }), yes: tr('Haan, complete karein') }))) return; planStep.mutate('complete'); }} loading={planStep.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>{tr('Plan mukammal')}</Button>}
           </div>
         )}
       </header>
       <div className="px-4 pt-2.5">
         <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-success-500 transition-all" style={{ width: `${pct}%` }} /></div>
-        <p className="mt-1 text-[0.6875rem] text-slate-500">{done} / {items.length} ban gaya</p>
+        <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('{{done}} / {{count}} ban gaya', { done, count: items.length })}</p>
       </div>
       <ul className="mt-1 divide-y divide-slate-100">
         {items.map((i) => {
@@ -95,24 +96,24 @@ export function PlanCard({ plan, canManage, onAddItems }: { plan: ProductionPlan
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="truncate font-medium text-slate-900">{i.productName}</span>
                   <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}>{st.label}</span>
-                  {i.cakeOrderId && <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[0.6875rem] font-medium text-pink-700">Order</span>}
+                  {i.cakeOrderId && <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[0.6875rem] font-medium text-pink-700">{tr('Order')}</span>}
                 </div>
                 <p className="text-[0.75rem] text-slate-500">
-                  {[i.ovenNumber && `Oven ${i.ovenNumber}`, i.bakingTempC && `${i.bakingTempC}°C`, i.bakerName, i.batchNumber && `Batch ${i.batchNumber}`, i.bakingDurationMin && `${i.bakingDurationMin} min`].filter(Boolean).join(' · ') || (isDone ? '' : 'Abhi shuru nahi hua')}
+                  {[i.ovenNumber && `Oven ${i.ovenNumber}`, i.bakingTempC && `${i.bakingTempC}°C`, i.bakerName, i.batchNumber && `Batch ${i.batchNumber}`, i.bakingDurationMin && `${i.bakingDurationMin} min`].filter(Boolean).join(' · ') || (isDone ? '' : tr('Abhi shuru nahi hua'))}
                   {isDone && i.qualityNotes ? ` · ${i.qualityNotes}` : ''}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-base font-bold tabular-nums text-slate-900">{isDone ? fmtQty(i.producedQty) : fmtQty(i.plannedQty)}{byWeight(i.unit) && <span className="ml-0.5 text-[0.75rem] font-medium text-slate-500">{i.unit}</span>}</p>
-                <p className="text-[0.6875rem] text-slate-500">{isDone ? `${fmtQty(i.plannedQty)} socha tha` : 'banana hai'}</p>
-                {isDone && i.failedQty > 0 && <p className="text-[0.6875rem] font-semibold text-rose-700">{fmtQty(i.failedQty)} kharab</p>}
+              <div className="text-end">
+                <p className="text-base font-bold tabular-nums text-slate-900">{isDone ? fmtQty(i.producedQty) : fmtQty(i.plannedQty)}{byWeight(i.unit) && <span className="ms-0.5 text-[0.75rem] font-medium text-slate-500">{i.unit}</span>}</p>
+                <p className="text-[0.6875rem] text-slate-500">{isDone ? tr('{{plannedQty}} socha tha', { plannedQty: fmtQty(i.plannedQty) }) : tr('banana hai')}</p>
+                {isDone && i.failedQty > 0 && <p className="text-[0.6875rem] font-semibold text-rose-700">{tr('{{failedQty}} kharab', { failedQty: fmtQty(i.failedQty) })}</p>}
               </div>
               {canManage && !isDone && !closed && (
                 <div className="flex w-full flex-wrap gap-1.5 sm:w-auto">
-                  {i.status === 'PLANNED' && <Button size="sm" variant="secondary" onClick={() => setBake(i)} leftIcon={<Flame className="h-4 w-4" />}>Oven me</Button>}
-                  <Button size="sm" variant="success" onClick={() => setFinish(i)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Ban gaya</Button>
+                  {i.status === 'PLANNED' && <Button size="sm" variant="secondary" onClick={() => setBake(i)} leftIcon={<Flame className="h-4 w-4" />}>{tr('Oven me')}</Button>}
+                  <Button size="sm" variant="success" onClick={() => setFinish(i)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>{tr('Ban gaya')}</Button>
                   {i.status === 'PLANNED' && (
-                    <button type="button" aria-label="Plan se hatayein" onClick={async () => { if (await ask({ title: `"${i.productName}" plan se hatayein?`, yes: 'Hatayein', danger: true })) remove.mutate(i); }}
+                    <button type="button" aria-label={tr('Plan se hatayein')} onClick={async () => { if (await ask({ title: tr('"{{productName}}" plan se hatayein?', { productName: i.productName }), yes: tr('Hatayein'), danger: true })) remove.mutate(i); }}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                   )}
                 </div>
@@ -132,16 +133,16 @@ function BakeModal({ item, onClose, onDone }: { item: ProductionItem; onClose: (
   const [oven, setOven] = useState(item.ovenNumber ?? '');
   const go = useMutation({
     mutationFn: () => productionApi.startBaking(item.id!, { bakingTempC: Number(temp) || undefined, ovenNumber: oven.trim() || undefined }),
-    onSuccess: () => { toast.success('Oven me daal diya'); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(tr('Oven me daal diya')); onDone(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Oven me daala" description={`${item.productName} · ${fmtQty(item.plannedQty)}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={go.isPending} onClick={() => go.mutate()} leftIcon={<Flame className="h-4 w-4" />}>Shuru</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Oven me daala')} description={`${item.productName} · ${fmtQty(item.plannedQty)}`}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={go.isPending} onClick={() => go.mutate()} leftIcon={<Flame className="h-4 w-4" />}>{tr('Shuru')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Temperature (°C)" inputMode="numeric" value={temp} onChange={(e) => setTemp(e.target.value.replace(/\D/g, ''))} data-autofocus />
+        <Input label={tr('Temperature (°C)')} inputMode="numeric" value={temp} onChange={(e) => setTemp(e.target.value.replace(/\D/g, ''))} data-autofocus />
         <div className="flex gap-1.5">{['160', '180', '200', '220'].map((t) => <Button key={t} size="sm" variant={temp === t ? 'primary' : 'secondary'} className="flex-1" onClick={() => setTemp(t)}>{t}°</Button>)}</div>
-        <Input label="Oven" value={oven} onChange={(e) => setOven(e.target.value)} placeholder="1, 2, bara wala…" hint="Baad me pata chalta hai kis oven me kharabi zyada hoti hai" />
+        <Input label={tr('Oven')} value={oven} onChange={(e) => setOven(e.target.value)} placeholder={tr('1, 2, bara wala…')} hint={tr('Baad me pata chalta hai kis oven me kharabi zyada hoti hai')} />
       </div>
     </Modal>
   );
@@ -164,40 +165,40 @@ function FinishModal({ item, onClose, onDone }: { item: ProductionItem; onClose:
       freshHours: linked && prefs.makeBatch ? prefs.hours : undefined,
     }),
     onSuccess: (r) => {
-      toast.success(`${item.productName}: ${fmtQty(producedQty)}${weight ? ` ${item.unit}` : ''} ban gaye${r.stockAdded ? ` · ${fmtQty(r.stockAdded)} stock me` : ''}`);
+      toast.success(tr('{{productName}}: {{producedQty}}{{value}} ban gaye{{value2}}', { productName: item.productName, producedQty: fmtQty(producedQty), value: weight ? ` ${item.unit}` : '', value2: r.stockAdded ? tr(' · {{stockAdded}} stock me', { stockAdded: fmtQty(r.stockAdded) }) : '' }));
       (r.warnings ?? []).forEach((w) => toast.warning(w));
       onDone();
     },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
   const short = Math.round((item.plannedQty - producedQty) * 1000) / 1000;
   return (
-    <Modal open onClose={onClose} size="md" title="Ban gaya" description={`${item.productName} · ${fmtQty(item.plannedQty)} socha tha`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="success" disabled={producedQty + failedQty <= 0} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Darj karein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Ban gaya')} description={tr('{{productName}} · {{plannedQty}} socha tha', { productName: item.productName, plannedQty: fmtQty(item.plannedQty) })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant="success" disabled={producedQty + failedQty <= 0} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<CheckCircle2 className="h-4 w-4" />}>{tr('Darj karein')}</Button></>}>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Input label={weight ? `Kitna bana (${item.unit})` : 'Kitne bane (theek)'} inputMode={weight ? 'decimal' : 'numeric'} value={made} onChange={(e) => setMade(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" data-autofocus />
-          <Input label="Kitne kharab" inputMode={weight ? 'decimal' : 'numeric'} value={failed} onChange={(e) => setFailed(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" hint="Waste ke record me jata hai" />
+          <Input label={weight ? tr('Kitna bana ({{unit}})', { unit: item.unit }) : tr('Kitne bane (theek)')} inputMode={weight ? 'decimal' : 'numeric'} value={made} onChange={(e) => setMade(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" data-autofocus />
+          <Input label={tr('Kitne kharab')} inputMode={weight ? 'decimal' : 'numeric'} value={failed} onChange={(e) => setFailed(qtyInput(e.target.value, weight))} size="lg" className="text-center text-xl font-bold tabular-nums" hint={tr('Waste ke record me jata hai')} />
         </div>
-        {short > 0 && <p className="text-[0.8125rem] text-amber-800">Socha {fmtQty(item.plannedQty)} tha — {fmtQty(short)} kam ban rahe hain.</p>}
-        <Input label="Koi baat" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Thora jal gaya, oven garam tha…" hint={failedQty > 0 ? 'Kharabi ki wajah likhein — waste ke record me dikhti hai' : undefined} />
+        {short > 0 && <p className="text-[0.8125rem] text-amber-800">{tr('Socha {{plannedQty}} tha — {{short}} kam ban rahe hain.', { plannedQty: fmtQty(item.plannedQty), short: fmtQty(short) })}</p>}
+        <Input label={tr('Koi baat')} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('Thora jal gaya, oven garam tha…')} hint={failedQty > 0 ? tr('Kharabi ki wajah likhein — waste ke record me dikhti hai') : undefined} />
         {linked ? (
           <div className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-            <Switch checked={prefs.addToStock} onChange={(e) => setPref({ addToStock: e.target.checked })} label="Bana hua maal stock me daalein"
-              description="Counter par bechne se pehle stock barh jaye. Agar aap stock alag se daalte hain to band rakhein." />
-            <Switch checked={prefs.useIngredients} onChange={(e) => setPref({ useIngredients: e.target.checked })} label="Recipe ka saamaan ghatayein"
-              description="Maida, cheeni waghera recipe ke hisaab se kachche maal se kam honge. Recipe na bani ho to kuch nahi hota." />
-            <Switch checked={prefs.makeBatch} onChange={(e) => setPref({ makeBatch: e.target.checked })} label="Freshness ka batch banayein"
-              description="Kab tak theek rahega — waqt guzarne par yaad dilaye ga" />
+            <Switch checked={prefs.addToStock} onChange={(e) => setPref({ addToStock: e.target.checked })} label={tr('Bana hua maal stock me daalein')}
+              description={tr('Counter par bechne se pehle stock barh jaye. Agar aap stock alag se daalte hain to band rakhein.')} />
+            <Switch checked={prefs.useIngredients} onChange={(e) => setPref({ useIngredients: e.target.checked })} label={tr('Recipe ka saamaan ghatayein')}
+              description={tr('Maida, cheeni waghera recipe ke hisaab se kachche maal se kam honge. Recipe na bani ho to kuch nahi hota.')} />
+            <Switch checked={prefs.makeBatch} onChange={(e) => setPref({ makeBatch: e.target.checked })} label={tr('Freshness ka batch banayein')}
+              description={tr('Kab tak theek rahega — waqt guzarne par yaad dilaye ga')} />
             {prefs.makeBatch && (
-              <div className="flex flex-wrap items-center gap-1.5 pl-1">
+              <div className="flex flex-wrap items-center gap-1.5 ps-1">
                 <Timer className="h-4 w-4 text-slate-500" />
-                {[6, 12, 24, 48, 72].map((h) => <Button key={h} size="xs" variant={prefs.hours === h ? 'primary' : 'secondary'} onClick={() => setPref({ hours: h })}>{h < 24 ? `${h} ghante` : `${h / 24} din`}</Button>)}
+                {[6, 12, 24, 48, 72].map((h) => <Button key={h} size="xs" variant={prefs.hours === h ? 'primary' : 'secondary'} onClick={() => setPref({ hours: h })}>{h < 24 ? tr('{{h}} ghante', { h }) : tr('{{value}} din', { value: h / 24 })}</Button>)}
               </div>
             )}
           </div>
         ) : (
-          <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">Yeh cheez maal se juri nahi, is liye stock, saamaan aur freshness ka hisaab nahi hoga.</p>
+          <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">{tr('Yeh cheez maal se juri nahi, is liye stock, saamaan aur freshness ka hisaab nahi hoga.')}</p>
         )}
       </div>
     </Modal>

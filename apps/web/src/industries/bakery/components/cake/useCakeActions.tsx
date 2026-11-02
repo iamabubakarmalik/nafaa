@@ -11,6 +11,7 @@ import { cakeOrdersApi, type BakeryOrderStatus, type CakeOrder } from '../../api
 import { OrderDeliverModal, type OrderForBill } from '../OrderDeliverModal';
 import { CancelModal, PayModal, RefundModal } from '../OrderModals';
 import { CAKE_KEY, CAKE_PREV, apiError, cakeLine, cakeNext, dueOf, isDelivery, statusOf } from '../meta';
+import { t } from '@core/i18n';
 
 function cakeBill(o: CakeOrder): OrderForBill {
   return {
@@ -32,7 +33,7 @@ export function useCakeActions(shopName: string) {
   const status = useMutation({
     mutationFn: ({ o, to, reason }: { o: CakeOrder; to: BakeryOrderStatus; reason?: string }) => cakeOrdersApi.updateStatus(o.id, to, reason),
     onSuccess: (o) => { toast.success(`${o.orderNumber}: ${statusOf(o.status).label}`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onError: (e) => toast.error(apiError(e, t('Halat nahi badli'))),
   });
 
   const next = (o: CakeOrder) => {

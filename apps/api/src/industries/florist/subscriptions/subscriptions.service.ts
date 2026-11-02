@@ -6,6 +6,7 @@ import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { ShopScope } from '../../../common/shop-scope';
 import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { addDaysTz, dayEnd, dayKey, dayStart, parseDay } from '../florist-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Next delivery day on shop time (start of that day). */
 function calcNextDelivery(freq: string, from: Date): Date {
@@ -136,7 +137,7 @@ export class FloristSubscriptionsService {
     if (s.status !== 'ACTIVE') throw new BadRequestException('Sirf chalti subscription ki delivery likhi ja sakti hai');
     // A second tap would bill the same delivery twice.
     if (s.nextDeliveryDate && s.nextDeliveryDate > dayEnd()) {
-      throw new BadRequestException(`Agli delivery ${dayKey(s.nextDeliveryDate)} ko hai — aaj ki delivery likhi ja chuki hai`);
+      throw new BadRequestException(apiMessage('Agli delivery {{nextDeliveryDate}} ko hai — aaj ki delivery likhi ja chuki hai', { nextDeliveryDate: dayKey(s.nextDeliveryDate) }));
     }
     const next = calcNextDelivery(s.frequency, new Date());
     const deliveryNo = s.completedDeliveries + 1;

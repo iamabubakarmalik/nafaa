@@ -28,6 +28,7 @@ import { DoctorPayouts } from '../components/DoctorPayouts';
 import { ListCard, ListFailed, ListLoading } from '../components/ListBits';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { DAYS, SPECIALTIES, apiError, dayBounds, dayKey, drName, shortDate, specialtyLabel } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'doctors' | 'day' | 'payouts';
 
@@ -38,7 +39,7 @@ interface Draft {
   commissionType: 'PERCENTAGE' | 'FIXED'; commissionPct: string;
 }
 const fromDoctor = (d: Doctor | null): Draft => ({
-  fullName: d?.fullName ?? '', phone: '', title: d?.title ?? 'Dr.', qualifications: (d?.qualifications ?? []).join(', '), specialties: d?.specialties ?? ['GENERAL_PRACTITIONER'],
+  fullName: d?.fullName ?? '', phone: '', title: d?.title ?? tr('Dr.'), qualifications: (d?.qualifications ?? []).join(', '), specialties: d?.specialties ?? ['GENERAL_PRACTITIONER'],
   pmcNumber: d?.pmcNumber ?? '', consultationFee: String(d?.consultationFee ?? ''), followUpFee: String(d?.followUpFee ?? ''), followUpDays: String(d?.followUpDays ?? 7),
   emergencyFee: d?.emergencyFee != null ? String(d.emergencyFee) : '', workStartTime: d?.workStartTime ?? '09:00', workEndTime: d?.workEndTime ?? '21:00',
   workingDays: d?.workingDays ?? [1, 2, 3, 4, 5, 6], slotDurationMin: String(d?.slotDurationMin ?? 15), maxDailyPatients: d?.maxDailyPatients != null ? String(d.maxDailyPatients) : '',
@@ -51,13 +52,13 @@ function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onCl
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
   const num = (v: string) => (v.trim() === '' ? undefined : Number(v));
   const errors: Partial<Record<keyof Draft, string>> = {
-    fullName: d.fullName.trim().length < 2 ? 'Naam likhein' : undefined,
-    phone: !doctor && d.phone.replace(/\D/g, '').length < 10 ? 'Phone likhein (03xx…)' : undefined,
-    consultationFee: !(Number(d.consultationFee) >= 0) || d.consultationFee.trim() === '' ? 'Fees likhein' : undefined,
-    followUpFee: d.followUpFee && !(Number(d.followUpFee) >= 0) ? 'Sahi likhein' : undefined,
-    workEndTime: d.workStartTime >= d.workEndTime ? 'Band hone ka waqt baad me ho' : undefined,
-    commissionPct: !(Number(d.commissionPct) >= 0) || (d.commissionType === 'PERCENTAGE' && Number(d.commissionPct) > 100) ? 'Share 0–100%' : undefined,
-    workingDays: d.workingDays.length === 0 ? 'Kam se kam ek din' : undefined,
+    fullName: d.fullName.trim().length < 2 ? tr('Naam likhein') : undefined,
+    phone: !doctor && d.phone.replace(/\D/g, '').length < 10 ? tr('Phone likhein (03xx…)') : undefined,
+    consultationFee: !(Number(d.consultationFee) >= 0) || d.consultationFee.trim() === '' ? tr('Fees likhein') : undefined,
+    followUpFee: d.followUpFee && !(Number(d.followUpFee) >= 0) ? tr('Sahi likhein') : undefined,
+    workEndTime: d.workStartTime >= d.workEndTime ? tr('Band hone ka waqt baad me ho') : undefined,
+    commissionPct: !(Number(d.commissionPct) >= 0) || (d.commissionType === 'PERCENTAGE' && Number(d.commissionPct) > 100) ? tr('Share 0–100%') : undefined,
+    workingDays: d.workingDays.length === 0 ? tr('Kam se kam ek din') : undefined,
   };
   const save = useMutation({
     mutationFn: () => doctorsApi.upsert({
@@ -68,26 +69,26 @@ function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onCl
       workingDays: [...d.workingDays].sort(), slotDurationMin: num(d.slotDurationMin) ?? 15, maxDailyPatients: num(d.maxDailyPatients),
       commissionType: d.commissionType, commissionPct: Number(d.commissionPct) || 0, isActive: true,
     }),
-    onSuccess: () => { toast.success(doctor ? 'Doctor update ho gaya' : 'Doctor jur gaya'); onSaved(); },
+    onSuccess: () => { toast.success(doctor ? tr('Doctor update ho gaya') : tr('Doctor jur gaya')); onSaved(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const submit = (e: FormEvent) => { e.preventDefault(); setTried(true); if (!Object.values(errors).some(Boolean)) save.mutate(); };
   const err = (k: keyof Draft) => (tried ? errors[k] : undefined);
 
   return (
-    <Modal open onClose={onClose} size="xl" title={doctor ? `${drName(doctor)} — badlein` : 'Naya doctor'} description="Fees, waqt aur share — reception par fees khud lagti hai"
-      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="doctor-form" loading={save.isPending}>Save (Ctrl+S)</Button></div>}>
+    <Modal open onClose={onClose} size="xl" title={doctor ? tr('{{doctor}} — badlein', { doctor: drName(doctor) }) : tr('Naya doctor')} description={tr('Fees, waqt aur share — reception par fees khud lagti hai')}
+      footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button type="submit" form="doctor-form" loading={save.isPending}>{tr('Save (Ctrl+S)')}</Button></div>}>
       <form id="doctor-form" onSubmit={submit} className="space-y-5"
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Naam" required autoFocus value={d.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Ayesha Malik" error={err('fullName')} hint='"Dr." alag khane me' wrapperClassName="sm:col-span-2" />
-          <Input label="Title" value={d.title} onChange={(e) => set('title', e.target.value)} placeholder="Dr." />
-          {!doctor && <Input label="Phone" required inputMode="tel" value={d.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" error={err('phone')} hint="Staff list me bhi jurta hai" />}
-          <Input label="Degree" value={d.qualifications} onChange={(e) => set('qualifications', e.target.value)} placeholder="MBBS, FCPS" />
-          <Input label="PMDC number" value={d.pmcNumber} onChange={(e) => set('pmcNumber', e.target.value)} placeholder="12345-P" hint="Nuskhe par chhapta hai" />
+          <Input label={tr('Naam')} required autoFocus value={d.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder={tr('Ayesha Malik')} error={err('fullName')} hint={tr('"Dr." alag khane me')} wrapperClassName="sm:col-span-2" />
+          <Input label={tr('Title')} value={d.title} onChange={(e) => set('title', e.target.value)} placeholder={tr('Dr.')} />
+          {!doctor && <Input label={tr('Phone')} required inputMode="tel" value={d.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" error={err('phone')} hint={tr('Staff list me bhi jurta hai')} />}
+          <Input label={tr('Degree')} value={d.qualifications} onChange={(e) => set('qualifications', e.target.value)} placeholder={tr('MBBS, FCPS')} />
+          <Input label={tr('PMDC number')} value={d.pmcNumber} onChange={(e) => set('pmcNumber', e.target.value)} placeholder={tr('12345-P')} hint={tr('Nuskhe par chhapta hai')} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Specialist</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Specialist')}</span>
           <div className="flex flex-wrap gap-1.5">
             {SPECIALTIES.map((s) => {
               const on = d.specialties.includes(s.value);
@@ -97,19 +98,19 @@ function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onCl
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <Input label="Fees (pehli visit)" required inputMode="decimal" value={d.consultationFee} onChange={(e) => set('consultationFee', e.target.value)} error={err('consultationFee')} />
-          <Input label="Follow-up fees" inputMode="decimal" value={d.followUpFee} onChange={(e) => set('followUpFee', e.target.value)} error={err('followUpFee')} hint="0 = poori fees" />
-          <Input label="Follow-up kitne din" inputMode="numeric" value={d.followUpDays} onChange={(e) => set('followUpDays', e.target.value)} hint="Is ke andar follow-up fees" />
-          <Input label="Emergency fees" inputMode="decimal" value={d.emergencyFee} onChange={(e) => set('emergencyFee', e.target.value)} placeholder="Wohi" />
+          <Input label={tr('Fees (pehli visit)')} required inputMode="decimal" value={d.consultationFee} onChange={(e) => set('consultationFee', e.target.value)} error={err('consultationFee')} />
+          <Input label={tr('Follow-up fees')} inputMode="decimal" value={d.followUpFee} onChange={(e) => set('followUpFee', e.target.value)} error={err('followUpFee')} hint={tr('0 = poori fees')} />
+          <Input label={tr('Follow-up kitne din')} inputMode="numeric" value={d.followUpDays} onChange={(e) => set('followUpDays', e.target.value)} hint={tr('Is ke andar follow-up fees')} />
+          <Input label={tr('Emergency fees')} inputMode="decimal" value={d.emergencyFee} onChange={(e) => set('emergencyFee', e.target.value)} placeholder={tr('Wohi')} />
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <Input label="Clinic shuru" type="time" value={d.workStartTime} onChange={(e) => set('workStartTime', e.target.value)} />
-          <Input label="Clinic band" type="time" value={d.workEndTime} onChange={(e) => set('workEndTime', e.target.value)} error={err('workEndTime')} />
-          <Input label="Ek mareez (minute)" inputMode="numeric" value={d.slotDurationMin} onChange={(e) => set('slotDurationMin', e.target.value)} />
-          <Input label="Din me zyada se zyada" inputMode="numeric" value={d.maxDailyPatients} onChange={(e) => set('maxDailyPatients', e.target.value)} placeholder="Had nahi" hint="Is ke baad sirf emergency" />
+          <Input label={tr('Clinic shuru')} type="time" value={d.workStartTime} onChange={(e) => set('workStartTime', e.target.value)} />
+          <Input label={tr('Clinic band')} type="time" value={d.workEndTime} onChange={(e) => set('workEndTime', e.target.value)} error={err('workEndTime')} />
+          <Input label={tr('Ek mareez (minute)')} inputMode="numeric" value={d.slotDurationMin} onChange={(e) => set('slotDurationMin', e.target.value)} />
+          <Input label={tr('Din me zyada se zyada')} inputMode="numeric" value={d.maxDailyPatients} onChange={(e) => set('maxDailyPatients', e.target.value)} placeholder={tr('Had nahi')} hint={tr('Is ke baad sirf emergency')} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kin dinon</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kin dinon')}</span>
           <div className="flex flex-wrap gap-1.5">
             {DAYS.map((label, i) => {
               const on = d.workingDays.includes(i);
@@ -121,12 +122,12 @@ function DoctorModal({ doctor, onClose, onSaved }: { doctor: Doctor | null; onCl
         </div>
         <div className="grid gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100 sm:grid-cols-[auto_12rem] sm:items-end">
           <div>
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Doctor ka share</span>
-            <Segmented<'PERCENTAGE' | 'FIXED'> value={d.commissionType} onChange={(v) => set('commissionType', v)} label="Share"
-              items={[{ value: 'PERCENTAGE', label: 'Fees ka %' }, { value: 'FIXED', label: 'Har mareez par Rs' }]} />
-            <p className="mt-1 text-[0.75rem] text-slate-500">"Din ka hisaab" me isi se doctor ka share banta hai</p>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Doctor ka share')}</span>
+            <Segmented<'PERCENTAGE' | 'FIXED'> value={d.commissionType} onChange={(v) => set('commissionType', v)} label={tr('Share')}
+              items={[{ value: 'PERCENTAGE', label: tr('Fees ka %') }, { value: 'FIXED', label: tr('Har mareez par Rs') }]} />
+            <p className="mt-1 text-[0.75rem] text-slate-500">{tr('"Din ka hisaab" me isi se doctor ka share banta hai')}</p>
           </div>
-          <Input label={d.commissionType === 'FIXED' ? 'Rs har mareez' : '% fees ka'} inputMode="decimal" value={d.commissionPct} onChange={(e) => set('commissionPct', e.target.value)} error={err('commissionPct')} />
+          <Input label={d.commissionType === 'FIXED' ? tr('Rs har mareez') : tr('% fees ka')} inputMode="decimal" value={d.commissionPct} onChange={(e) => set('commissionPct', e.target.value)} error={err('commissionPct')} />
         </div>
       </form>
     </Modal>
@@ -140,35 +141,35 @@ function DayClose({ onPayouts }: { onPayouts: () => void }) {
   const rows = q.data?.rows ?? [];
   const t = q.data?.totals;
   const exportCsv = () => downloadCsv(`doctor-hisaab-${day}.csv`, [
-    ['Doctor', 'Booked', 'Dekhe', 'Cancel', 'Fees', 'Lab', 'Cash/Card', 'Khata', 'Share', 'Clinic'],
+    [tr('Doctor'), tr('Booked'), tr('Dekhe'), tr('Cancel'), tr('Fees'), tr('Lab'), tr('Cash/Card'), tr('Khata'), tr('Share'), tr('Clinic')],
     ...rows.map((r) => [drName(r.doctor), r.booked, r.seen, r.cancelled, r.fees, r.labFees, r.collected, r.khata, r.share, r.clinicKeeps]),
   ]);
   return (
     <div className="space-y-4 print:space-y-2">
       <div className="flex flex-wrap items-end gap-2">
-        <Input label="Din" type="date" value={day} onChange={(e) => setDay(e.target.value || dayKey())} wrapperClassName="w-44" />
-        <Button variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={exportCsv} disabled={!rows.length}>CSV</Button>
-        <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print</Button>
-        <Button variant="secondary" className="ml-auto" leftIcon={<HandCoins className="h-4 w-4" />} onClick={onPayouts}>Share ada karein</Button>
+        <Input label={tr('Din')} type="date" value={day} onChange={(e) => setDay(e.target.value || dayKey())} wrapperClassName="w-44" />
+        <Button variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={exportCsv} disabled={!rows.length}>{tr('CSV')}</Button>
+        <Button variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>{tr('Print')}</Button>
+        <Button variant="secondary" className="ms-auto" leftIcon={<HandCoins className="h-4 w-4" />} onClick={onPayouts}>{tr('Share ada karein')}</Button>
       </div>
       <KpiRow>
-        <KpiCard icon={Users} color="#2563eb" label="Mareez dekhe" value={t?.seen ?? 0} hint={`${t?.booked ?? 0} booked`} />
-        <KpiCard icon={Stethoscope} color="#0891b2" label="Consultation fees" value={money(t?.fees)} />
-        <KpiCard icon={CalendarDays} color="#7c3aed" label="Lab fees" value={money(t?.labFees)} />
-        <KpiCard icon={Banknote} color="#16a34a" label="Haath me aaya" value={money(t?.collected)} hint={`Khata: ${money(t?.khata)}`} />
-        <KpiCard icon={HandCoins} color="#d97706" label="Doctors ka share" value={money(t?.share)} />
+        <KpiCard icon={Users} color="#2563eb" label={tr('Mareez dekhe')} value={t?.seen ?? 0} hint={tr('{{value}} booked', { value: t?.booked ?? 0 })} />
+        <KpiCard icon={Stethoscope} color="#0891b2" label={tr('Consultation fees')} value={money(t?.fees)} />
+        <KpiCard icon={CalendarDays} color="#7c3aed" label={tr('Lab fees')} value={money(t?.labFees)} />
+        <KpiCard icon={Banknote} color="#16a34a" label={tr('Haath me aaya')} value={money(t?.collected)} hint={tr('Khata: {{khata}}', { khata: money(t?.khata) })} />
+        <KpiCard icon={HandCoins} color="#d97706" label={tr('Doctors ka share')} value={money(t?.share)} />
       </KpiRow>
       <ListCard>
         {q.isLoading ? <ListLoading rows={3} /> : q.isError ? <ListFailed onRetry={() => q.refetch()} /> : rows.length === 0 ? (
-          <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">{shortDate(dayBounds(day).from)} ko koi visit ya bill nahi.</p>
+          <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">{tr('{{from}} ko koi visit ya bill nahi.', { from: shortDate(dayBounds(day).from) })}</p>
         ) : (
           <Table minWidth="60rem">
-            <THead><Tr><Th>Doctor</Th><Th align="right">Mareez</Th><Th align="right">Fees</Th><Th align="right">Lab</Th><Th align="right">Cash / card</Th><Th align="right">Khata</Th><Th align="right">Share</Th><Th align="right">Clinic ka</Th></Tr></THead>
+            <THead><Tr><Th>{tr('Doctor')}</Th><Th align="right">{tr('Mareez')}</Th><Th align="right">{tr('Fees')}</Th><Th align="right">{tr('Lab')}</Th><Th align="right">{tr('Cash / card')}</Th><Th align="right">{tr('Khata')}</Th><Th align="right">{tr('Share')}</Th><Th align="right">{tr('Clinic ka')}</Th></Tr></THead>
             <TBody>
               {rows.map((r) => (
                 <Tr key={r.doctorId}>
-                  <Td><p className="font-semibold text-slate-900">{drName(r.doctor) || 'Doctor'}</p><p className="text-[0.75rem] text-slate-500">{r.commissionType === 'FIXED' ? `${formatPKR(r.commissionPct)} har mareez` : `${r.commissionPct}% share`}</p></Td>
-                  <Td align="right"><p className="font-semibold">{r.seen}</p><p className="text-[0.75rem] text-slate-500">{r.booked} booked · {r.cancelled} cancel</p></Td>
+                  <Td><p className="font-semibold text-slate-900">{drName(r.doctor) || tr('Doctor')}</p><p className="text-[0.75rem] text-slate-500">{r.commissionType === 'FIXED' ? tr('{{commissionPct}} har mareez', { commissionPct: formatPKR(r.commissionPct) }) : tr('{{commissionPct}}% share', { commissionPct: r.commissionPct })}</p></Td>
+                  <Td align="right"><p className="font-semibold">{r.seen}</p><p className="text-[0.75rem] text-slate-500">{tr('{{booked}} booked · {{cancelled}} cancel', { booked: r.booked, cancelled: r.cancelled })}</p></Td>
                   <Td align="right">{money(r.fees)}</Td>
                   <Td align="right">{money(r.labFees)}</Td>
                   <Td align="right">{money(r.collected)}</Td>
@@ -181,7 +182,7 @@ function DayClose({ onPayouts }: { onPayouts: () => void }) {
           </Table>
         )}
       </ListCard>
-      <p className="text-[0.75rem] text-slate-500">Amount bill se li jati hai (void aur poore wapas bill shamil nahi), is liye day book se milti hai. Share "Share payouts" tab se ada karein — Expense khud likha jata hai.</p>
+      <p className="text-[0.75rem] text-slate-500">{tr('Amount bill se li jati hai (void aur poore wapas bill shamil nahi), is liye day book se milti hai. Share "Share payouts" tab se ada karein — Expense khud likha jata hai.')}</p>
     </div>
   );
 }
@@ -207,7 +208,7 @@ export default function DoctorsPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['clinic-doctors'] });
   const off = useMutation({
     mutationFn: (d: Doctor) => (d.isActive ? doctorsApi.remove(d.id) : doctorsApi.upsert({ staffId: d.staffId, fullName: d.fullName, isActive: true })),
-    onSuccess: (_r, d) => { toast.success(d.isActive ? `${drName(d)} band — purani visits me naam rahega` : `${drName(d)} phir chalu`); refresh(); },
+    onSuccess: (_r, d) => { toast.success(d.isActive ? tr('{{drName}} band — purani visits me naam rahega', { drName: drName(d) }) : tr('{{drName}} phir chalu', { drName: drName(d) })); refresh(); },
     onError: (e) => toast.error(apiError(e)),
   });
 
@@ -219,49 +220,49 @@ export default function DoctorsPage() {
     <PageShell>
       {editing && <DoctorModal doctor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); }} />}
       {guide.isOpen && (
-        <PageGuide title="Doctors — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Doctors — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: UserCog, color: '#2563eb', title: 'Doctor jorein', text: 'Naam, phone aur fees kaafi hain. Follow-up fees aur din likhein — reception par khud lagti hai.' },
-            { icon: Clock, color: '#0891b2', title: 'Waqt aur had', text: 'Clinic ka waqt, din aur din ki had — had poori ho to sirf emergency token banta hai.' },
-            { icon: HandCoins, color: '#d97706', title: 'Share', text: 'Fees ka % ya har mareez par Rs. "Din ka hisaab" me har doctor ka share banta hai.' },
-            { icon: BookOpen, color: '#16a34a', title: 'Din ka hisaab', text: 'Har shaam doctor wise mareez, fees, khata aur share — print kar ke dastakhat lein.' },
-            { icon: Banknote, color: '#7c3aed', title: 'Share payouts', text: 'Doctor aur muddat chunein, baqi share ada karein — Expense khud likha jata hai aur slip print hoti hai.' },
+            { icon: UserCog, color: '#2563eb', title: tr('Doctor jorein'), text: tr('Naam, phone aur fees kaafi hain. Follow-up fees aur din likhein — reception par khud lagti hai.') },
+            { icon: Clock, color: '#0891b2', title: tr('Waqt aur had'), text: tr('Clinic ka waqt, din aur din ki had — had poori ho to sirf emergency token banta hai.') },
+            { icon: HandCoins, color: '#d97706', title: tr('Share'), text: tr('Fees ka % ya har mareez par Rs. "Din ka hisaab" me har doctor ka share banta hai.') },
+            { icon: BookOpen, color: '#16a34a', title: tr('Din ka hisaab'), text: tr('Har shaam doctor wise mareez, fees, khata aur share — print kar ke dastakhat lein.') },
+            { icon: Banknote, color: '#7c3aed', title: tr('Share payouts'), text: tr('Doctor aur muddat chunein, baqi share ada karein — Expense khud likha jata hai aur slip print hoti hai.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya doctor'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya doctor')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Doctors" chip={<><Stethoscope />{all.filter((d) => d.isActive).length} chalu</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading}
-        meta="Fees, waqt, share aur din ka hisaab"
+      <PageHero title={tr('Doctors')} chip={<><Stethoscope />{tr('{{count}} chalu', { count: all.filter((d) => d.isActive).length })}</>} busy={list.isFetching && !list.isLoading} loading={list.isLoading}
+        meta={tr('Fees, waqt, share aur din ka hisaab')}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canMoney && <button type="button" onClick={() => setTab('day')} className={heroButton}><BookOpen className="h-4 w-4" />Din ka hisaab</button>}
-          {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya doctor</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canMoney && <button type="button" onClick={() => setTab('day')} className={heroButton}><BookOpen className="h-4 w-4" />{tr('Din ka hisaab')}</button>}
+          {canManage && <button type="button" onClick={() => setEditing('new')} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya doctor')}</button>}
         </>}
         stats={[
-          { label: 'Aaj ke mareez', value: String(todays.filter((a) => a.status !== 'CANCELLED' && a.status !== 'NO_SHOW').length) },
-          { label: 'Mukammal', value: String(todays.filter((a) => a.status === 'COMPLETED').length) },
+          { label: tr('Aaj ke mareez'), value: String(todays.filter((a) => a.status !== 'CANCELLED' && a.status !== 'NO_SHOW').length) },
+          { label: tr('Mukammal'), value: String(todays.filter((a) => a.status === 'COMPLETED').length) },
         ]} />
 
       <ViewTabs<Tab> value={tab} onChange={setTab}
-        tabs={[{ id: 'doctors', label: 'Doctors', icon: Stethoscope, count: all.length }, ...(canMoney ? [{ id: 'day' as const, label: 'Din ka hisaab', icon: BookOpen }, { id: 'payouts' as const, label: 'Share payouts', icon: HandCoins }] : [])]} />
+        tabs={[{ id: 'doctors', label: tr('Doctors'), icon: Stethoscope, count: all.length }, ...(canMoney ? [{ id: 'day' as const, label: tr('Din ka hisaab'), icon: BookOpen }, { id: 'payouts' as const, label: tr('Share payouts'), icon: HandCoins }] : [])]} />
 
       {tab === 'day' && canMoney ? <DayClose onPayouts={() => setTab('payouts')} /> : tab === 'payouts' && canMoney ? <DoctorPayouts /> : (
         <>
-          <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam ya PMDC number…" />}>
-            <Segmented<'active' | 'off'> value={show} onChange={setShow} label="Kaun" items={[{ value: 'active', label: 'Chalu' }, { value: 'off', label: 'Band' }]} />
-            <Select aria-label="Specialist" value={spec} onChange={(e) => setSpec(e.target.value)} placeholder="Sab specialist" options={SPECIALTIES.map((s) => ({ value: s.value, label: s.label }))} />
+          <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam ya PMDC number…')} />}>
+            <Segmented<'active' | 'off'> value={show} onChange={setShow} label={tr('Kaun')} items={[{ value: 'active', label: tr('Chalu') }, { value: 'off', label: tr('Band') }]} />
+            <Select aria-label={tr('Specialist')} value={spec} onChange={(e) => setSpec(e.target.value)} placeholder={tr('Sab specialist')} options={SPECIALTIES.map((s) => ({ value: s.value, label: s.label }))} />
           </FilterBar>
           <ListCard>
             {list.isLoading ? <ListLoading rows={3} /> : list.isError ? <ListFailed onRetry={() => list.refetch()} /> : rows.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-16 text-center">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Stethoscope className="h-7 w-7" /></span>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">{show === 'off' ? 'Koi band doctor nahi' : 'Abhi koi doctor nahi'}</h3>
-                <p className="mt-1 text-[0.875rem] text-slate-500">Doctor jorein — fees aur waqt reception par khud lagte hain.</p>
-                {canManage && show === 'active' && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya doctor</Button>}
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">{show === 'off' ? tr('Koi band doctor nahi') : tr('Abhi koi doctor nahi')}</h3>
+                <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Doctor jorein — fees aur waqt reception par khud lagte hain.')}</p>
+                {canManage && show === 'active' && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya doctor')}</Button>}
               </div>
             ) : (
               <Table minWidth="56rem">
-                <THead><Tr><Th>Doctor</Th><Th align="right">Fees</Th><Th>Waqt</Th><Th align="right">Aaj</Th><Th align="right">Share</Th><Th align="right" /></Tr></THead>
+                <THead><Tr><Th>{tr('Doctor')}</Th><Th align="right">{tr('Fees')}</Th><Th>{tr('Waqt')}</Th><Th align="right">{tr('Aaj')}</Th><Th align="right">{tr('Share')}</Th><Th align="right" /></Tr></THead>
                 <TBody>
                   {rows.map((d) => {
                     const l = load(d.id);
@@ -271,14 +272,14 @@ export default function DoctorsPage() {
                           <p className="font-semibold text-slate-900">{drName(d)}</p>
                           <p className="text-[0.75rem] text-slate-500">{[d.specialties.map(specialtyLabel).join(', '), d.qualifications.join(', '), d.pmcNumber && `PMDC ${d.pmcNumber}`].filter(Boolean).join(' · ')}</p>
                         </Td>
-                        <Td align="right"><p className="font-semibold">{money(d.consultationFee)}</p>{d.followUpFee > 0 && <p className="text-[0.75rem] text-slate-500">Follow-up {money(d.followUpFee)} · {d.followUpDays} din</p>}</Td>
-                        <Td><p>{d.workStartTime}–{d.workEndTime}</p><p className="text-[0.75rem] text-slate-500">{d.workingDays.length === 7 ? 'Har din' : d.workingDays.map((x) => DAYS[x]?.slice(0, 3)).join(', ')}</p></Td>
-                        <Td align="right"><p className="font-semibold">{l.length}{d.maxDailyPatients ? ` / ${d.maxDailyPatients}` : ''}</p><p className="text-[0.75rem] text-slate-500">{l.filter((a) => a.status === 'COMPLETED').length} mukammal</p></Td>
-                        <Td align="right">{d.commissionPct ? <Badge variant="accent">{d.commissionType === 'FIXED' ? `${money(d.commissionPct)} / mareez` : `${d.commissionPct}%`}</Badge> : '—'}</Td>
+                        <Td align="right"><p className="font-semibold">{money(d.consultationFee)}</p>{d.followUpFee > 0 && <p className="text-[0.75rem] text-slate-500">{tr('Follow-up {{followUpFee}} · {{followUpDays}} din', { followUpFee: money(d.followUpFee), followUpDays: d.followUpDays })}</p>}</Td>
+                        <Td><p>{d.workStartTime}–{d.workEndTime}</p><p className="text-[0.75rem] text-slate-500">{d.workingDays.length === 7 ? tr('Har din') : d.workingDays.map((x) => DAYS[x]?.slice(0, 3)).join(', ')}</p></Td>
+                        <Td align="right"><p className="font-semibold">{l.length}{d.maxDailyPatients ? ` / ${d.maxDailyPatients}` : ''}</p><p className="text-[0.75rem] text-slate-500">{tr('{{count}} mukammal', { count: l.filter((a) => a.status === 'COMPLETED').length })}</p></Td>
+                        <Td align="right">{d.commissionPct ? <Badge variant="accent">{d.commissionType === 'FIXED' ? tr('{{commissionPct}} / mareez', { commissionPct: money(d.commissionPct) }) : `${d.commissionPct}%`}</Badge> : '—'}</Td>
                         <Td align="right">
                           <div className="flex justify-end gap-1">
-                            {canManage && <button type="button" onClick={() => setEditing(d)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
-                            {canManage && <button type="button" onClick={() => off.mutate(d)} title={d.isActive ? 'Band karein' : 'Chalu karein'} aria-label={d.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
+                            {canManage && <button type="button" onClick={() => setEditing(d)} title={tr('Badlein')} aria-label={tr('Badlein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
+                            {canManage && <button type="button" onClick={() => off.mutate(d)} title={d.isActive ? tr('Band karein') : tr('Chalu karein')} aria-label={d.isActive ? tr('Band karein') : tr('Chalu karein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
                           </div>
                         </Td>
                       </Tr>

@@ -177,7 +177,7 @@ export function PageLink({ to, icon: I, title, desc }: { to: string; icon: Icon;
         <span className="block truncate text-sm font-semibold text-slate-900">{title}</span>
         {desc && <span className="block truncate text-xs text-slate-500">{desc}</span>}
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-600 rtl-flip" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 group-hover:text-brand-600 rtl-flip" />
     </Link>
   );
 }

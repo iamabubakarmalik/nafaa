@@ -9,6 +9,7 @@ import { useIndustryPresets } from '@industries/_shared/presets/useIndustryPrese
 import { cn } from '@core/lib/cn';
 import { Checkbox, Input, Textarea } from '@/design-system/components';
 import { TaxonomyPage, type Draft } from '../../taxonomy/TaxonomyPage';
+import { t } from '@core/i18n';
 
 const TEXT = ['description', 'logoUrl', 'website', 'countryOfOrigin', 'dealerCode', 'supportPhone', 'supportEmail', 'warrantyPolicy', 'serviceCenter'] as const;
 const FLAGS = ['isActive', 'isFeatured', 'authorizedDealer', 'installationIncluded', 'demoIncluded'] as const;
@@ -32,30 +33,30 @@ function BrandFields({ d, set }: { d: Draft; set: (k: string, v: unknown) => voi
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Text label="Logo ka link" k="logoUrl" d={d} set={set} placeholder="https://…/logo.png" hint="Brand list aur bill par dikhta hai" type="url" />
-        <Text label="Website" k="website" d={d} set={set} placeholder="https://…" type="url" />
+        <Text label={t('Logo ka link')} k="logoUrl" d={d} set={set} placeholder="https://…/logo.png" hint={t('Brand list aur bill par dikhta hai')} type="url" />
+        <Text label={t('Website')} k="website" d={d} set={set} placeholder="https://…" type="url" />
       </div>
-      <Textarea label="Details" rows={2} value={String(d.description ?? '')} onChange={(e) => set('description', e.target.value)} maxLength={500} />
-      <Flag label="Khaas brand" description="List mein upar dikhega" k="isFeatured" d={d} set={set} />
+      <Textarea label={t('Details')} rows={2} value={String(d.description ?? '')} onChange={(e) => set('description', e.target.value)} maxLength={500} />
+      <Flag label={t('Khaas brand')} description={t('List mein upar dikhega')} k="isFeatured" d={d} set={set} />
       <button type="button" onClick={() => setMore((m) => !m)} aria-expanded={more}
-        className="flex w-full items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-left text-sm font-semibold text-slate-800 ring-1 ring-slate-100 hover:bg-slate-100">
-        <Sparkles className="h-4 w-4 text-brand-600" /> <span className="flex-1">Dealer, warranty aur service</span>
+        className="flex w-full items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-start text-sm font-semibold text-slate-800 ring-1 ring-slate-100 hover:bg-slate-100">
+        <Sparkles className="h-4 w-4 text-brand-600" /> <span className="flex-1">{t('Dealer, warranty aur service')}</span>
         <ChevronDown className={cn('h-4 w-4 transition', more && 'rotate-180')} />
       </button>
       {more && (
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Text label="Mulk" k="countryOfOrigin" d={d} set={set} placeholder="Japan, China…" />
-            <Text label="Dealer code" k="dealerCode" d={d} set={set} hint="Company ki taraf se mila code" />
-            <Text label="Support phone" k="supportPhone" d={d} set={set} type="tel" placeholder="0800-…" />
-            <Text label="Support email" k="supportEmail" d={d} set={set} type="email" />
+            <Text label={t('Mulk')} k="countryOfOrigin" d={d} set={set} placeholder={t('Japan, China…')} />
+            <Text label={t('Dealer code')} k="dealerCode" d={d} set={set} hint={t('Company ki taraf se mila code')} />
+            <Text label={t('Support phone')} k="supportPhone" d={d} set={set} type="tel" placeholder="0800-…" />
+            <Text label={t('Support email')} k="supportEmail" d={d} set={set} type="email" />
           </div>
-          <Text label="Service center" k="serviceCenter" d={d} set={set} placeholder="Pata ya naam" hint="Warranty claim par customer ko yahi batayein" />
-          <Textarea label="Warranty ki shartein" rows={2} value={String(d.warrantyPolicy ?? '')} onChange={(e) => set('warrantyPolicy', e.target.value)} maxLength={1000} />
+          <Text label={t('Service center')} k="serviceCenter" d={d} set={set} placeholder={t('Pata ya naam')} hint={t('Warranty claim par customer ko yahi batayein')} />
+          <Textarea label={t('Warranty ki shartein')} rows={2} value={String(d.warrantyPolicy ?? '')} onChange={(e) => set('warrantyPolicy', e.target.value)} maxLength={1000} />
           <div className="grid gap-2 sm:grid-cols-3">
-            <Flag label="Authorized dealer" k="authorizedDealer" d={d} set={set} />
-            <Flag label="Installation shamil" k="installationIncluded" d={d} set={set} />
-            <Flag label="Demo shamil" k="demoIncluded" d={d} set={set} />
+            <Flag label={t('Authorized dealer')} k="authorizedDealer" d={d} set={set} />
+            <Flag label={t('Installation shamil')} k="installationIncluded" d={d} set={set} />
+            <Flag label={t('Demo shamil')} k="demoIncluded" d={d} set={set} />
           </div>
         </div>
       )}
@@ -67,16 +68,16 @@ export default function BrandsPage() {
   const presets = useIndustryPresets();
   return (
     <TaxonomyPage config={{
-      kind: 'brand', title: 'Brands', one: 'brand', icon: Sparkles,
+      kind: 'brand', title: t('Brands'), one: 'brand', icon: Sparkles,
       productParam: 'brandId', canSwitchOff: true,
       presets: presets.brands, refreshKeys: ['brands', 'brand'], toPayload: payload,
       extraFields: (d, set) => <BrandFields d={d} set={set} />,
       industry: { name: presets.industryName, emoji: presets.industryEmoji },
       guide: [
-        { title: 'Brand kya hai', body: 'Banane wali company — Nestle, Samsung, Lux. Product ke saath brand lagayein.' },
-        { title: 'Sale brand ke hisaab se', body: 'Period chunein — har brand ki sale, profit aur stock ki qeemat dikhti hai. Kis company ka maal zyada chalta hai, yahin pata chalta hai.' },
-        { title: 'Dealer aur warranty', body: 'Electronics aur appliances ke liye: support phone, warranty ki shartein aur service center — bill aur warranty claim me kaam aate hain.' },
-        { title: 'Milana', body: 'Ek hi brand do naam se ban gaya ho ("Nestle", "Nestlé") to "Doosri me milayein".' },
+        { title: t('Brand kya hai'), body: t('Banane wali company — Nestle, Samsung, Lux. Product ke saath brand lagayein.') },
+        { title: t('Sale brand ke hisaab se'), body: t('Period chunein — har brand ki sale, profit aur stock ki qeemat dikhti hai. Kis company ka maal zyada chalta hai, yahin pata chalta hai.') },
+        { title: t('Dealer aur warranty'), body: t('Electronics aur appliances ke liye: support phone, warranty ki shartein aur service center — bill aur warranty claim me kaam aate hain.') },
+        { title: t('Milana'), body: t('Ek hi brand do naam se ban gaya ho ("Nestle", "Nestlé") to "Doosri me milayein".') },
       ],
     }} />
   );

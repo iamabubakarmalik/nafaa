@@ -9,6 +9,7 @@ import { ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { safeDayStart, zonedToUtc } from '../../../common/helpers/business-time.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export type TaxonomyKind = 'category' | 'brand' | 'tag';
 
@@ -46,7 +47,7 @@ export const sameName = (name: string) => ({ equals: name.trim().replace(/\s+/g,
 export const cleanName = (name: string) => name.trim().replace(/\s+/g, ' ');
 
 export function nameTaken(what: string): never {
-  throw new ConflictException(`Is naam ka ${what} pehle se maujood hai`);
+  throw new ConflictException(apiMessage('Is naam ka {{what}} pehle se maujood hai', { what }));
 }
 
 /** Per-item figures for every category, brand or tag, plus products with none. */

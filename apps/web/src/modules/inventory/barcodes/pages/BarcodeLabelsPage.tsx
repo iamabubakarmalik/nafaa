@@ -28,6 +28,7 @@ import { renderLabels, sheetLayout, type LabelData } from '../components/renderL
 import {
   MAX_QTY, loadQueue, nearestExpiry, resolveLine, sameItem, saveQueue, snapVariant, type QueueLine, type ResolvedLine,
 } from '../components/labelLines';
+import { t, Trans } from '@core/i18n';
 
 const SAMPLE: LabelData = { name: 'Namoona cheez', variant: 'Large', unit: 'Piece', sku: 'SKU-101', code: '2001234567893', price: 1250, oldPrice: 1500, expiry: '12/2027' };
 const PRODUCTS_KEY = ['products-for-labels', 'all'];
@@ -108,10 +109,10 @@ export default function BarcodeLabelsPage() {
       const rate = unit?.conversionRate || 1;
       if (p.hasVariants && variants.length) {
         addLines(variants.map((v) => ({ productId: p.id, variant: snapVariant(v), unitId: pick.unitId, expiry: full ? nearestExpiry(full, v.id) : null, stock: v.stock / rate })));
-        if (!quiet && variants.length > 1) toast.success(`${p.name}: ${variants.length} variant list me — har ek ka apna label`);
+        if (!quiet && variants.length > 1) toast.success(t('{{name}}: {{count}} variant list me — har ek ka apna label', { name: p.name, count: variants.length }));
       } else {
         addLines([{ productId: p.id, unitId: pick.unitId, expiry: full ? nearestExpiry(full) : null, stock: p.stock / rate }]);
-        if (!quiet) toast.success(`${p.name}${unit ? ` (${unit.unitLabel || unit.unitName})` : ''} list me`);
+        if (!quiet) toast.success(t('{{name}}{{value}} list me', { name: p.name, value: unit ? ` (${unit.unitLabel || unit.unitName})` : '' }));
       }
     } finally {
       setAdding((n) => n - 1);
@@ -130,16 +131,16 @@ export default function BarcodeLabelsPage() {
       const found = (await productsApi.byBarcode(code)) as Product & { matchedVariant?: ProductVariant };
       return addProduct(byId.get(found.id) ?? found, { variantId: found.matchedVariant?.id });
     } catch {
-      toast.error(`"${code}" se koi cheez nahi mili`);
+      toast.error(t('"{{code}}" se koi cheez nahi mili', { code }));
     }
   };
 
   const addCategory = async (categoryId: string) => {
     const list = products.filter((p) => p.categoryId === categoryId && p.isActive !== false);
-    if (!list.length) { toast.info('Is category me koi cheez nahi'); return; }
-    if (list.length > 150 && !(await confirmDialog({ title: `${list.length} cheezein list me dalni hain?` }))) return;
+    if (!list.length) { toast.info(t('Is category me koi cheez nahi')); return; }
+    if (list.length > 150 && !(await confirmDialog({ title: t('{{count}} cheezein list me dalni hain?', { count: list.length }) }))) return;
     for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).map((p) => addProduct(p, {}, true)));
-    toast.success(`${list.length} cheezein list me aa gayin`);
+    toast.success(t('{{count}} cheezein list me aa gayin', { count: list.length }));
   };
 
   // Items sent from the products pages ("Label" button).
@@ -151,7 +152,7 @@ export default function BarcodeLabelsPage() {
     const list = ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
     (async () => {
       for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).map((p) => addProduct(p, {}, true)));
-      if (list.length) toast.success(`${list.length} cheezein label ki list me`);
+      if (list.length) toast.success(t('{{count}} cheezein label ki list me', { count: list.length }));
     })();
     navigate(location.pathname, { replace: true, state: null });
   }, [productsQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -163,7 +164,7 @@ export default function BarcodeLabelsPage() {
   }));
   const setUnit = (id: string, unitId: string | undefined) => setLines((prev) => prev.map((l) => (l.id === id ? { ...l, unitId } : l)));
   const remove = (id: string) => setLines((prev) => prev.filter((l) => l.id !== id));
-  const clear = async () => { if ((await confirmDialog({ title: 'Poori list saaf karni hai?', danger: true }))) setLines([]); };
+  const clear = async () => { if ((await confirmDialog({ title: t('Poori list saaf karni hai?'), danger: true }))) setLines([]); };
 
   const refreshData = () => {
     qc.invalidateQueries({ queryKey: PRODUCTS_KEY });
@@ -190,9 +191,9 @@ export default function BarcodeLabelsPage() {
     onSuccess: ({ made, fresh }) => {
       refreshVariants(fresh);
       refreshData();
-      toast.success(made ? `${made} naye barcode ban gaye — scanner par chalenge` : 'Sab ke barcode pehle se hain');
+      toast.success(made ? t('{{made}} naye barcode ban gaye — scanner par chalenge', { made }) : t('Sab ke barcode pehle se hain'));
     },
-    onError: () => toast.error('Barcode nahi bane — internet check karke dobara koshish karein'),
+    onError: () => toast.error(t('Barcode nahi bane — internet check karke dobara koshish karein')),
   });
 
   const saveCode = async (r: ResolvedLine, code: string) => {
@@ -204,10 +205,10 @@ export default function BarcodeLabelsPage() {
         setLines((prev) => prev.map((l) => (l.variant?.id === v.id ? { ...l, variant: { ...v, barcode: code } } : l)));
       } else await productsApi.update(r.line.productId, { barcode: code });
       refreshData();
-      toast.success('Barcode save ho gaya');
+      toast.success(t('Barcode save ho gaya'));
       return true;
     } catch {
-      toast.error('Barcode save nahi hua — shayad ye code kisi aur cheez ka hai');
+      toast.error(t('Barcode save nahi hua — shayad ye code kisi aur cheez ka hai'));
       return false;
     }
   };
@@ -230,35 +231,35 @@ export default function BarcodeLabelsPage() {
 
   const print = (test = false) => {
     const list = test ? [labels[0] ?? SAMPLE] : labels;
-    if (!list.length) { toast.error('Pehle list me koi cheez dalain'); return; }
+    if (!list.length) { toast.error(t('Pehle list me koi cheez dalain')); return; }
     printHtml(renderLabels(list, config, { shopName, skip }));
   };
 
-  const sheetName = layout.roll ? `Roll ${layout.w}×${layout.h} mm` : `A4 · ${layout.perPage} label`;
+  const sheetName = layout.roll ? t('Roll {{w}}×{{h}} mm', { w: layout.w, h: layout.h }) : t('A4 · {{perPage}} label', { perPage: layout.perPage });
 
   return (
     <PageShell>
       <PageHero
-        title="Barcode labels"
+        title={t('Barcode labels')}
         chip={<><ScanLine /> {sheetName}</>}
-        meta="Qeemat aur barcode ke sticker — roll ya A4 sheet par"
+        meta={t('Qeemat aur barcode ke sticker — roll ya A4 sheet par')}
         busy={productsQ.isFetching && !productsQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {missing.length > 0 && (
             <button type="button" onClick={() => assign.mutate()} disabled={assign.isPending} className={heroButton}>
-              <Wand2 className="h-4 w-4" /> {assign.isPending ? 'Ban rahe hain…' : `Barcode banayen (${missing.length})`}
+              <Wand2 className="h-4 w-4" /> {assign.isPending ? t('Ban rahe hain…') : t('Barcode banayen ({{count}})', { count: missing.length })}
             </button>
           )}
-          <button type="button" onClick={() => print(true)} className={heroButton} title="Sirf ek label chhap kar naap check karein"><TestTube2 className="h-4 w-4" /> Test print</button>
+          <button type="button" onClick={() => print(true)} className={heroButton} title={t('Sirf ek label chhap kar naap check karein')}><TestTube2 className="h-4 w-4" /> {' '}{t('Test print')}</button>
           <button type="button" onClick={() => print()} disabled={!labels.length} className={`${heroPrimaryButton} disabled:opacity-60`}>
-            <Printer className="h-4 w-4" /> Print <span className="tabular-nums">{labels.length}</span>
+            <Printer className="h-4 w-4" /> {' '}{t('Print')}{' '} <span className="tabular-nums">{labels.length}</span>
           </button>
         </>}
         stats={[
-          { label: 'Chhapne wale label', value: labels.length.toLocaleString('en-PK'), hint: `${lines.length} cheezein` },
-          { label: layout.roll ? 'Roll par' : 'A4 sheets', value: pages, hint: layout.roll ? `${layout.cols} label har line` : `${layout.perPage} har sheet` },
-          { label: 'List me barcode nahi', value: missing.length, hint: missingBarcodes ? `dukaan me ${missingBarcodes} cheezein bina barcode` : undefined },
+          { label: t('Chhapne wale label'), value: labels.length.toLocaleString('en-PK'), hint: t('{{count}} cheezein', { count: lines.length }) },
+          { label: layout.roll ? t('Roll par') : t('A4 sheets'), value: pages, hint: layout.roll ? t('{{cols}} label har line', { cols: layout.cols }) : t('{{perPage}} har sheet', { perPage: layout.perPage }) },
+          { label: t('List me barcode nahi'), value: missing.length, hint: missingBarcodes ? t('dukaan me {{missingBarcodes}} cheezein bina barcode', { missingBarcodes }) : undefined },
         ]}
       />
 
@@ -277,45 +278,46 @@ export default function BarcodeLabelsPage() {
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div>
-                <h2 className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-slate-900"><Eye className="h-4 w-4 text-slate-400" /> Preview</h2>
+                <h2 className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-slate-900"><Eye className="h-4 w-4 text-slate-400" /> {' '}{t('Preview')}</h2>
                 <p className="text-[0.75rem] text-slate-500">
-                  {preview.sample ? 'Namoona label — list me cheez dalein to asal dikhega' : layout.roll ? 'Pehle kuch label, bilkul isi tarah chhapenge' : 'Pehli sheet, bilkul isi tarah chhapegi'}
+                  {preview.sample ? t('Namoona label — list me cheez dalein to asal dikhega') : layout.roll ? t('Pehle kuch label, bilkul isi tarah chhapenge') : t('Pehli sheet, bilkul isi tarah chhapegi')}
                 </p>
               </div>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] tabular-nums text-slate-600">{preview.lay.pageW.toFixed(0)}×{preview.lay.pageH.toFixed(0)} mm</span>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] tabular-nums text-slate-600">{t('{{value}}×{{value2}} mm', { value: preview.lay.pageW.toFixed(0), value2: preview.lay.pageH.toFixed(0) })}</span>
             </div>
             <div className="max-h-[70vh] overflow-auto rounded-xl bg-slate-100 p-3">
               <LabelSheetPreview html={preview.html} pageW={preview.lay.pageW} pageH={preview.lay.pageH} pages={preview.pages} />
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Button variant="secondary" onClick={() => print(true)} leftIcon={<TestTube2 className="h-4 w-4" />}>Test print</Button>
-              <Button onClick={() => print()} disabled={!labels.length} leftIcon={<Printer className="h-4 w-4" />}>Print {labels.length}</Button>
+              <Button variant="secondary" onClick={() => print(true)} leftIcon={<TestTube2 className="h-4 w-4" />}>{t('Test print')}</Button>
+              <Button onClick={() => print()} disabled={!labels.length} leftIcon={<Printer className="h-4 w-4" />}>{t('Print {{count}}', { count: labels.length })}</Button>
             </div>
             <p className="mt-2 text-[0.6875rem] leading-snug text-slate-500">
-              Print ke dabbe me: Scale <b>100%</b> (ya "Actual size"), Margins <b>None</b>, Headers and footers <b>band</b>.
-              {layout.roll ? ' Printer ki setting me bhi label ka yehi naap rakhein.' : ''}
+              {/* i18n-ignore: "None" is the browser print dialog wording */}
+              <Trans text='Print ke dabbe me: Scale {{scale}} (ya "Actual size"), Margins {{margins}}, Headers and footers {{headers}}.' values={{ scale: <b>100%</b>, margins: <b>None</b>, headers: <b>{t('band')}</b> }} />
+              {layout.roll ? t(' Printer ki setting me bhi label ka yehi naap rakhein.') : ''}
             </p>
           </div>
         </aside>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title="Barcode labels — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Barcode labels — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: ListPlus, color: '#16a34a', title: 'Cheezein dalain', text: 'Naam likh kar search ya scanner se scan karein. Poori category bhi ek saath aa sakti hai. Har variant aur har pack (dozen, carton) ka alag label banta hai.' },
-            { icon: LayoutGrid, color: '#2563eb', title: 'Kaghaz chunein', text: 'Thermal roll ho to us ka naap (jaise 50×30). A4 sticker sheet ho to us ke dabbe par likhi ginti — 65, 40, 24, 21 ya 14.' },
-            { icon: Settings2, color: '#7c3aed', title: 'Label par kya ho', text: 'Naam, qeemat, barcode ke number, unit, expiry — jo chahiye on karein. Design poori dukaan ke liye save hota hai.' },
-            { icon: TestTube2, color: '#d97706', title: 'Pehle test print', text: '"Test print" sirf ek label chhapta hai. Sticker par naap theek baithe to poora print karein.' },
-            { icon: Printer, color: '#0891b2', title: 'Print ki setting', text: 'Print ke dabbe me Scale 100%, Margins None aur Headers/footers band rakhein — warna label khisak jate hain.' },
-            { icon: Layers, color: '#db2777', title: 'Barcode nahi hai?', text: 'Upar "Barcode banayen" list ki har bina barcode cheez ko naya EAN-13 de deta hai jo har scanner parhta hai.' },
+            { icon: ListPlus, color: '#16a34a', title: t('Cheezein dalain'), text: t('Naam likh kar search ya scanner se scan karein. Poori category bhi ek saath aa sakti hai. Har variant aur har pack (dozen, carton) ka alag label banta hai.') },
+            { icon: LayoutGrid, color: '#2563eb', title: t('Kaghaz chunein'), text: t('Thermal roll ho to us ka naap (jaise 50×30). A4 sticker sheet ho to us ke dabbe par likhi ginti — 65, 40, 24, 21 ya 14.') },
+            { icon: Settings2, color: '#7c3aed', title: t('Label par kya ho'), text: t('Naam, qeemat, barcode ke number, unit, expiry — jo chahiye on karein. Design poori dukaan ke liye save hota hai.') },
+            { icon: TestTube2, color: '#d97706', title: t('Pehle test print'), text: t('"Test print" sirf ek label chhapta hai. Sticker par naap theek baithe to poora print karein.') },
+            { icon: Printer, color: '#0891b2', title: t('Print ki setting'), text: t('Print ke dabbe me Scale 100%, Margins None aur Headers/footers band rakhein — warna label khisak jate hain.') },
+            { icon: Layers, color: '#db2777', title: t('Barcode nahi hai?'), text: t('Upar "Barcode banayen" list ki har bina barcode cheez ko naya EAN-13 de deta hai jo har scanner parhta hai.') },
           ]}
           tips={[
-            'Thermal label printer ki driver setting (Printing preferences) me bhi wohi paper size banayein jo yahan chuna hai, warna har label ke baad khali label nikalta hai.',
-            'Aadhi istemaal hui A4 sheet? "Shuru kahan se" me agle khali label ka number likh dein.',
-            'Pack (carton, dozen) ki qeemat khaali ho to label par piece ki qeemat × pack ki ginti chhapti hai.',
-            'Ye list isi device par yaad rehti hai — page band kar ke wapas aayein to wohi milegi.',
+            t('Thermal label printer ki driver setting (Printing preferences) me bhi wohi paper size banayein jo yahan chuna hai, warna har label ke baad khali label nikalta hai.'),
+            t('Aadhi istemaal hui A4 sheet? "Shuru kahan se" me agle khali label ka number likh dein.'),
+            t('Pack (carton, dozen) ki qeemat khaali ho to label par piece ki qeemat × pack ki ginti chhapti hai.'),
+            t('Ye list isi device par yaad rehti hai — page band kar ke wapas aayein to wohi milegi.'),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['/', t('dhoondein')], ['G', t('guide')]]}
         />
       )}
     </PageShell>

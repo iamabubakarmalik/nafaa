@@ -30,6 +30,7 @@ import { DisputeDto, PaymentsQueryDto, RecordPaymentDto } from '../dto/trade.dto
 import { DONE_STATUSES, r2, type TradeStatus } from '../helpers/trade-rules';
 import { businessCards, linkFor, notify, requirePerm, requireSideRead, type Side } from '../trade-network.support';
 import { TradeSyncService } from './sync.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -72,7 +73,7 @@ export class TradePaymentsService {
     const s = await tx.supplier.findFirst({ where: { id: link.supplierId, tenantId: user.tenantId }, select: { id: true, outstandingDue: true } });
     if (!s) throw new NotFoundException('Supplier nahi mila');
     if (s.outstandingDue < p.amount - 0.001) {
-      throw new BadRequestException(`Supplier ka khata abhi Rs ${Math.round(s.outstandingDue)} hai — pehle aaya hua maal "Maal mil gaya" se receive karein, phir payment`);
+      throw new BadRequestException(apiMessage('Supplier ka khata abhi Rs {{outstandingDue}} hai — pehle aaya hua maal "Maal mil gaya" se receive karein, phir payment', { outstandingDue: Math.round(s.outstandingDue) }));
     }
     const row = await this.supplierLedger.post(user, s.id, 'PAYMENT_MADE', r2(p.amount), {
       reference: p.reference?.trim() || undefined, note: p.note?.trim() || 'Nafaa network payment', paymentMethod: p.method,
@@ -112,7 +113,7 @@ export class TradePaymentsService {
     const me = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId)?.name ?? '';
     void notify(this.notifications, {
       tenantId: link.side === 'SELLER' ? link.buyerTenantId : link.sellerTenantId, kind: 'PAYMENT_TO_CONFIRM', refId: payment.id, type: 'PAYMENT_RECEIVED',
-      title: 'Payment confirm karein', message: `${me} ne Rs ${amount.toLocaleString('en-PK')} (${METHOD_TEXT[method] ?? method}) ki payment likhi hai`,
+      title: 'Payment confirm karein', message: apiMessage('{{party}} ne Rs {{amount}} ({{method}}) ki payment likhi hai', { party: me, amount: amount.toLocaleString('en-PK'), method: METHOD_TEXT[method] ?? method }),
       link: link.side === 'SELLER' ? `/network/suppliers/${link.id}?tab=payments` : `/network/links/${link.id}?tab=payments`,
     });
     return this.view(payment, link.side);
@@ -130,7 +131,7 @@ export class TradePaymentsService {
     requirePerm(user, PERMISSIONS.TRADE_PAYMENTS_MANAGE);
     const { p, side } = await this.mine(user, id);
     if (p.source === side) throw new BadRequestException('Apni likhi payment doosri party confirm karti hai');
-    if (p.status !== 'PENDING' && p.status !== 'DISPUTED') throw new BadRequestException(`Payment ${p.status} hai`);
+    if (p.status !== 'PENDING' && p.status !== 'DISPUTED') throw new BadRequestException(apiMessage('Payment {{pStatus}} hai', { pStatus: p.status }));
     await this.prisma.$transaction(async (tx) => {
       const claim = await tx.tradePayment.updateMany({
         where: { id: p.id, status: { in: ['PENDING', 'DISPUTED'] }, ...(side === 'SELLER' ? { sellerLedgerId: null } : { buyerLedgerId: null }) },
@@ -145,7 +146,7 @@ export class TradePaymentsService {
     const me = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId)?.name ?? '';
     void notify(this.notifications, {
       tenantId: side === 'SELLER' ? p.buyerTenantId : p.sellerTenantId, kind: 'PAYMENT_CONFIRMED', refId: p.id, type: 'SUCCESS',
-      title: 'Payment confirm ho gayi', message: `${me} ne Rs ${p.amount.toLocaleString('en-PK')} ki payment confirm kar di — dono khate barabar`,
+      title: 'Payment confirm ho gayi', message: apiMessage('{{party}} ne Rs {{amount}} ki payment confirm kar di — dono khate barabar', { party: me, amount: p.amount.toLocaleString('en-PK') }),
       link: side === 'SELLER' ? `/network/suppliers/${p.linkId}?tab=payments` : `/network/links/${p.linkId}?tab=payments`,
     });
     return this.view((await this.prisma.tradePayment.findUniqueOrThrow({ where: { id: p.id } })), side);
@@ -160,7 +161,7 @@ export class TradePaymentsService {
     const me = (await businessCards(this.prisma, [user.tenantId])).get(user.tenantId)?.name ?? '';
     void notify(this.notifications, {
       tenantId: side === 'SELLER' ? p.buyerTenantId : p.sellerTenantId, kind: 'PAYMENT_DISPUTED', refId: p.id, type: 'WARNING',
-      title: 'Payment par ikhtilaf', message: `${me}: Rs ${p.amount.toLocaleString('en-PK')} — ${dto.reason.trim()}`,
+      title: 'Payment par ikhtilaf', message: apiMessage('{{party}}: Rs {{amount}} — {{reason}}', { party: me, amount: p.amount.toLocaleString('en-PK'), reason: dto.reason.trim() }),
       link: side === 'SELLER' ? `/network/suppliers/${p.linkId}?tab=payments` : `/network/links/${p.linkId}?tab=payments`,
     });
     return this.view((await this.prisma.tradePayment.findUniqueOrThrow({ where: { id: p.id } })), side);

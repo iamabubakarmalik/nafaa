@@ -8,6 +8,7 @@ import { Crown } from 'lucide-react';
 import { Button, Input, Modal, Switch } from '@/design-system/components';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { directoryApi } from '../api';
+import { t as tr, Trans } from '@core/i18n';
 
 const digits = (v: string) => v.replace(/\D/g, '');
 const validPhone = (v: string) => !v || /^(92|0)?3\d{9}$/.test(digits(v));
@@ -26,26 +27,26 @@ export function QuickAddModal({ onClose, onCreated }: { onClose: () => void; onC
   const existing = dup.data?.items[0];
   const save = useMutation({
     mutationFn: () => customersApi.create({ name: name.trim(), phone: phone.trim() || undefined, isVip: vip }),
-    onSuccess: (c) => { toast.success(`${c.name} jor diya`); onCreated(c.id); },
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Nahi bana'),
+    onSuccess: (c) => { toast.success(tr('{{name}} jor diya', { name: c.name })); onCreated(c.id); },
+    onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || tr('Nahi bana')),
   });
   const ok = name.trim().length > 0 && validPhone(phone);
   return (
-    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Baqi details baad mein bhi bhar sakte hain"
+    <Modal open onClose={onClose} size="sm" title={tr('Naya customer')} description={tr('Baqi details baad mein bhi bhar sakte hain')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>Jor dein</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>{tr('Jor dein')}</Button>
       </>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (ok) save.mutate(); }}>
-        <Input label="Naam" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Jaise: Ahmed bhai" />
-        <Input label="Phone" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567"
-          error={!validPhone(phone) ? 'Mobile number theek nahi (03xx-xxxxxxx)' : undefined} />
+        <Input label={tr('Naam')} autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Jaise: Ahmed bhai')} />
+        <Input label={tr('Phone')} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567"
+          error={!validPhone(phone) ? tr('Mobile number theek nahi (03xx-xxxxxxx)') : undefined} />
         {existing && (
           <p className="rounded-xl bg-amber-50 p-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-            Yeh number pehle se <Link to={`/customers/${existing.id}`} className="font-semibold underline">{existing.name}</Link> ka hai.
+            <Trans text="Yeh number pehle se {{name}} ka hai." values={{ name: <Link to={`/customers/${existing.id}`} className="font-semibold underline">{existing.name}</Link> }} />
           </p>
         )}
-        <Switch label={<span className="inline-flex items-center gap-1.5"><Crown className="h-4 w-4 text-amber-500" />VIP customer</span>} checked={vip} onChange={(e) => setVip(e.target.checked)} />
+        <Switch label={<span className="inline-flex items-center gap-1.5"><Crown className="h-4 w-4 text-amber-500" />{tr('VIP customer')}</span>} checked={vip} onChange={(e) => setVip(e.target.checked)} />
         <button type="submit" hidden />
       </form>
     </Modal>

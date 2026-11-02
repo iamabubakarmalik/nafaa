@@ -10,9 +10,10 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { CommissionRow } from '../api/commission.api';
 import { signed } from './meta';
+import { t as tr } from '@core/i18n';
 
 type By = 'earned' | 'sale' | 'bills';
-const LABEL: Record<By, string> = { earned: 'Commission', sale: 'Sale', bills: 'Bill' };
+const LABEL: Record<By, string> = { earned: tr('Commission'), sale: tr('Sale'), bills: tr('Bill') };
 const MEDAL = ['#f59e0b', '#94a3b8', '#b45309'];
 
 export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (r: CommissionRow) => void }) {
@@ -25,8 +26,8 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
     return (
       <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
         <Trophy className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">Abhi koi muqabla nahi</p>
-        <p className="mt-1 text-sm text-slate-500">Jin bandon par commission chaalu hai woh yahan sale ke hisaab se aate hain.</p>
+        <p className="mt-3 font-semibold text-slate-900">{tr('Abhi koi muqabla nahi')}</p>
+        <p className="mt-1 text-sm text-slate-500">{tr('Jin bandon par commission chaalu hai woh yahan sale ke hisaab se aate hain.')}</p>
       </div>
     );
   }
@@ -34,8 +35,8 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[0.8125rem] text-slate-500">Sirf chaalu bande · return nikaal kar</p>
-        <Segmented label="Kis par" value={by} onChange={(v) => setBy(v as By)} items={(Object.keys(LABEL) as By[]).map((k) => ({ value: k, label: LABEL[k] }))} />
+        <p className="text-[0.8125rem] text-slate-500">{tr('Sirf chaalu bande · return nikaal kar')}</p>
+        <Segmented label={tr('Kis par')} value={by} onChange={(v) => setBy(v as By)} items={(Object.keys(LABEL) as By[]).map((k) => ({ value: k, label: LABEL[k] }))} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -44,13 +45,13 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
             className={cn('flex flex-col items-center rounded-2xl bg-white p-4 text-center shadow-sm ring-1 ring-slate-200/80 transition hover:ring-brand-300', i === 0 && 'sm:order-2 sm:-mt-2 ring-2 ring-amber-300', i === 2 && 'sm:order-3')}>
             <span className="relative">
               <Avatar name={r.name} size={i === 0 ? 60 : 48} />
-              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full text-white shadow" style={{ background: MEDAL[i] }}>
+              <span className="absolute -bottom-1 -end-1 flex h-6 w-6 items-center justify-center rounded-full text-white shadow" style={{ background: MEDAL[i] }}>
                 {i === 0 ? <Trophy className="h-3.5 w-3.5" /> : <Medal className="h-3.5 w-3.5" />}
               </span>
             </span>
             <p className="mt-2 max-w-full truncate font-semibold text-slate-900">{r.name}</p>
             <p className="text-xl font-bold tabular-nums text-brand-700">{show(r)}</p>
-            <p className="text-[0.75rem] text-slate-500">{r.bills} bill · {formatPKR(r.sale)}</p>
+            <p className="text-[0.75rem] text-slate-500">{tr('{{bills}} bill · {{sale}}', { bills: r.bills, sale: formatPKR(r.sale) })}</p>
           </button>
         ))}
       </div>
@@ -60,7 +61,7 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
           const t = r.targets[0];
           return (
             <li key={r.userId}>
-              <button type="button" onClick={() => onOpen(r)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50">
+              <button type="button" onClick={() => onOpen(r)} className="flex w-full items-center gap-3 px-4 py-3 text-start hover:bg-slate-50">
                 <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-slate-400">{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -70,7 +71,7 @@ export function Leaderboard({ rows, onOpen }: { rows: CommissionRow[]; onOpen: (
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(0, (r[by] / max) * 100)}%` }} /></div>
                   {t && (
                     <p className={cn('mt-1 inline-flex items-center gap-1 text-[0.6875rem]', t.reached ? 'text-emerald-700' : 'text-slate-500')}>
-                      <Target className="h-3 w-3" />Target {formatPKR(t.amount)}: {Math.round(t.pct)}%{t.reached ? ' — poora' : ''}
+                      <Target className="h-3 w-3" />{tr('Target {{amount}}: {{pct}}%{{value}}', { amount: formatPKR(t.amount), pct: Math.round(t.pct), value: t.reached ? tr(' — poora') : '' })}
                     </p>
                   )}
                 </div>

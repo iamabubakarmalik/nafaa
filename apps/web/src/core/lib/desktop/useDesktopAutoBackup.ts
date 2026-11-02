@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { getElectron, isElectron } from './electron';
 import { db, getMeta, setMeta } from '@core/lib/offline/db';
+import { t } from '@core/i18n';
 
 /* ═══════════════════════════════════════════════════════════
    AUTO-BACKUP TO LOCAL DISK (Desktop only)
@@ -51,7 +52,7 @@ async function performLocalBackup(silent = true): Promise<boolean> {
       await setMeta(LAST_LOCAL_BACKUP_KEY, Date.now());
       console.log(`[auto-backup] Saved to: ${result.path}`);
       if (!silent) {
-        toast.success('Backup saved to Documents folder');
+        toast.success(t('Backup saved to Documents folder'));
       }
       return true;
     } else {

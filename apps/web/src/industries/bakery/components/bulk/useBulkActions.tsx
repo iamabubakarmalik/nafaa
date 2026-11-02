@@ -11,6 +11,7 @@ import type { BakeryOrderStatus } from '../../api/cake-orders.api';
 import { OrderDeliverModal, type OrderForBill } from '../OrderDeliverModal';
 import { CancelModal, PayModal, RefundModal } from '../OrderModals';
 import { BULK_KEY, BULK_PREV, apiError, bulkNext, bulkPrice, statusOf } from '../meta';
+import { t } from '@core/i18n';
 
 export function bulkLines(o: BulkOrder) {
   return (Array.isArray(o.items) ? o.items : []).map((i: Record<string, unknown>) => ({
@@ -44,7 +45,7 @@ export function useBulkActions(shopName: string) {
   const status = useMutation({
     mutationFn: ({ o, to }: { o: BulkOrder; to: BakeryOrderStatus }) => bulkOrdersApi.updateStatus(o.id, to),
     onSuccess: (o) => { toast.success(`${o.orderNumber}: ${statusOf(o.status).label}`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onError: (e) => toast.error(apiError(e, t('Halat nahi badli'))),
   });
   const next = (o: BulkOrder) => {
     const n = bulkNext(o.status);

@@ -6,6 +6,7 @@
 import { Bike, Building2, Package, Store, Truck, type LucideIcon } from 'lucide-react';
 import type { BakeryOrderStatus, CakeOrder, DeliveryType, OrderPayMethod } from '../api/cake-orders.api';
 import { FLAVORS, OCCASIONS, SIZES, SHAPES, CREAMS } from '../api/constants';
+import { t as tr } from '@core/i18n';
 
 /** Query roots; every bakery order screen invalidates these after a change. */
 export const CAKE_KEY = 'cake-orders';
@@ -30,19 +31,19 @@ const tone = {
 };
 
 const ORDER_STATUS: Record<BakeryOrderStatus, StatusMeta> = {
-  DRAFT: { label: 'Poocha hai', tone: tone.slate, color: '#94a3b8' },
-  QUOTED: { label: 'Rate bataya', tone: tone.sky, color: '#0ea5e9' },
-  CONFIRMED: { label: 'Pakka hua', tone: tone.blue, color: '#3b82f6' },
-  DEPOSIT_PAID: { label: 'Advance mila', tone: tone.cyan, color: '#06b6d4' },
-  IN_PRODUCTION: { label: 'Ban raha hai', tone: tone.orange, color: '#f97316' },
-  BAKING: { label: 'Oven me', tone: tone.orange, color: '#fb923c' },
-  DECORATING: { label: 'Sajawat', tone: tone.fuchsia, color: '#d946ef' },
-  QUALITY_CHECK: { label: 'Check ho raha', tone: tone.violet, color: '#8b5cf6' },
-  READY: { label: 'Tayyar hai', tone: tone.green, color: '#10b981' },
-  OUT_FOR_DELIVERY: { label: 'Raaste me', tone: tone.amber, color: '#f59e0b' },
-  DELIVERED: { label: 'De diya', tone: tone.green, color: '#059669' },
-  CANCELLED: { label: 'Cancel', tone: tone.rose, color: '#f43f5e' },
-  REFUNDED: { label: 'Paisa wapas', tone: tone.slate, color: '#64748b' },
+  DRAFT: { label: tr('Poocha hai'), tone: tone.slate, color: '#94a3b8' },
+  QUOTED: { label: tr('Rate bataya'), tone: tone.sky, color: '#0ea5e9' },
+  CONFIRMED: { label: tr('Pakka hua'), tone: tone.blue, color: '#3b82f6' },
+  DEPOSIT_PAID: { label: tr('Advance mila'), tone: tone.cyan, color: '#06b6d4' },
+  IN_PRODUCTION: { label: tr('Ban raha hai'), tone: tone.orange, color: '#f97316' },
+  BAKING: { label: tr('Oven me'), tone: tone.orange, color: '#fb923c' },
+  DECORATING: { label: tr('Sajawat'), tone: tone.fuchsia, color: '#d946ef' },
+  QUALITY_CHECK: { label: tr('Check ho raha'), tone: tone.violet, color: '#8b5cf6' },
+  READY: { label: tr('Tayyar hai'), tone: tone.green, color: '#10b981' },
+  OUT_FOR_DELIVERY: { label: tr('Raaste me'), tone: tone.amber, color: '#f59e0b' },
+  DELIVERED: { label: tr('De diya'), tone: tone.green, color: '#059669' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.rose, color: '#f43f5e' },
+  REFUNDED: { label: tr('Paisa wapas'), tone: tone.slate, color: '#64748b' },
 };
 
 export const statusOf = (s?: string | null): StatusMeta => ORDER_STATUS[(s ?? 'DRAFT') as BakeryOrderStatus] ?? { label: String(s ?? '—'), tone: tone.slate, color: '#94a3b8' };
@@ -56,15 +57,15 @@ interface NextStep { to: BakeryOrderStatus | 'DELIVER'; label: string }
 export function cakeNext(o: Pick<CakeOrder, 'status' | 'deliveryType'>): NextStep | null {
   switch (o.status) {
     case 'DRAFT':
-    case 'QUOTED': return { to: 'CONFIRMED', label: 'Pakka karein' };
+    case 'QUOTED': return { to: 'CONFIRMED', label: tr('Pakka karein') };
     case 'CONFIRMED':
-    case 'DEPOSIT_PAID': return { to: 'IN_PRODUCTION', label: 'Banana shuru' };
+    case 'DEPOSIT_PAID': return { to: 'IN_PRODUCTION', label: tr('Banana shuru') };
     case 'IN_PRODUCTION':
-    case 'BAKING': return { to: 'DECORATING', label: 'Sajawat shuru' };
+    case 'BAKING': return { to: 'DECORATING', label: tr('Sajawat shuru') };
     case 'DECORATING':
-    case 'QUALITY_CHECK': return { to: 'READY', label: 'Tayyar hai' };
-    case 'READY': return isDelivery(o.deliveryType) ? { to: 'OUT_FOR_DELIVERY', label: 'Bhej diya' } : { to: 'DELIVER', label: 'De diya — bill' };
-    case 'OUT_FOR_DELIVERY': return { to: 'DELIVER', label: 'Pahunch gaya — bill' };
+    case 'QUALITY_CHECK': return { to: 'READY', label: tr('Tayyar hai') };
+    case 'READY': return isDelivery(o.deliveryType) ? { to: 'OUT_FOR_DELIVERY', label: tr('Bhej diya') } : { to: 'DELIVER', label: tr('De diya — bill') };
+    case 'OUT_FOR_DELIVERY': return { to: 'DELIVER', label: tr('Pahunch gaya — bill') };
     default: return null;
   }
 }
@@ -87,16 +88,16 @@ export function flowIndex(s: BakeryOrderStatus): number {
 
 export function bulkNext(status: string): NextStep | null {
   switch (status) {
-    case 'DRAFT': return { to: 'QUOTED', label: 'Rate bata diya' };
-    case 'QUOTED': return { to: 'CONFIRMED', label: 'Pakka karein' };
+    case 'DRAFT': return { to: 'QUOTED', label: tr('Rate bata diya') };
+    case 'QUOTED': return { to: 'CONFIRMED', label: tr('Pakka karein') };
     case 'CONFIRMED':
-    case 'DEPOSIT_PAID': return { to: 'IN_PRODUCTION', label: 'Banana shuru' };
+    case 'DEPOSIT_PAID': return { to: 'IN_PRODUCTION', label: tr('Banana shuru') };
     case 'IN_PRODUCTION':
     case 'BAKING':
     case 'DECORATING':
-    case 'QUALITY_CHECK': return { to: 'READY', label: 'Tayyar hai' };
+    case 'QUALITY_CHECK': return { to: 'READY', label: tr('Tayyar hai') };
     case 'READY':
-    case 'OUT_FOR_DELIVERY': return { to: 'DELIVER', label: 'De diya — bill' };
+    case 'OUT_FOR_DELIVERY': return { to: 'DELIVER', label: tr('De diya — bill') };
     default: return null;
   }
 }
@@ -109,35 +110,35 @@ export const BULK_PREV: Partial<Record<BakeryOrderStatus, BakeryOrderStatus>> = 
 export const BULK_COMMITTED = ['CONFIRMED', 'DEPOSIT_PAID', 'IN_PRODUCTION', 'BAKING', 'DECORATING', 'QUALITY_CHECK', 'READY', 'OUT_FOR_DELIVERY'];
 
 export const DELIVERY: Array<{ id: DeliveryType; label: string; hint: string; icon: LucideIcon }> = [
-  { id: 'SELF_PICKUP', label: 'Dukaan se lenge', hint: 'Customer khud aayega', icon: Store },
-  { id: 'HOME_DELIVERY', label: 'Ghar pahunchana', hint: 'Hamara rider le jayega', icon: Bike },
-  { id: 'VENUE_DELIVERY', label: 'Hall / venue', hint: 'Shadi hall ya daftar', icon: Building2 },
-  { id: 'COURIER', label: 'Courier', hint: 'Doosre shehar', icon: Package },
+  { id: 'SELF_PICKUP', label: tr('Dukaan se lenge'), hint: tr('Customer khud aayega'), icon: Store },
+  { id: 'HOME_DELIVERY', label: tr('Ghar pahunchana'), hint: tr('Hamara rider le jayega'), icon: Bike },
+  { id: 'VENUE_DELIVERY', label: tr('Hall / venue'), hint: tr('Shadi hall ya daftar'), icon: Building2 },
+  { id: 'COURIER', label: tr('Courier'), hint: tr('Doosre shehar'), icon: Package },
 ];
 
 /** Ways an order advance can be paid (same names as the sale's payment methods). */
 export const PAY_METHODS: Array<{ id: OrderPayMethod; label: string }> = [
-  { id: 'CASH', label: 'Cash' },
-  { id: 'CARD', label: 'Card' },
-  { id: 'JAZZCASH', label: 'JazzCash' },
-  { id: 'EASYPAISA', label: 'EasyPaisa' },
-  { id: 'BANK_TRANSFER', label: 'Bank' },
+  { id: 'CASH', label: tr('Cash') },
+  { id: 'CARD', label: tr('Card') },
+  { id: 'JAZZCASH', label: tr('JazzCash') },
+  { id: 'EASYPAISA', label: tr('EasyPaisa') },
+  { id: 'BANK_TRANSFER', label: tr('Bank') },
 ];
 
 export const isDelivery = (t?: string | null) => !!t && !['SELF_PICKUP', 'PICKUP', 'DINE_IN'].includes(t);
-export const deliveryOf = (t?: string | null) => DELIVERY.find((d) => d.id === t) ?? (isDelivery(t) ? { id: t as DeliveryType, label: 'Pahunchana', hint: '', icon: Truck } : DELIVERY[0]);
+export const deliveryOf = (t?: string | null) => DELIVERY.find((d) => d.id === t) ?? (isDelivery(t) ? { id: t as DeliveryType, label: tr('Pahunchana'), hint: '', icon: Truck } : DELIVERY[0]);
 
 export const BULK_TYPES = [
-  { value: 'WEDDING', label: 'Shadi', emoji: '💍' },
-  { value: 'BIRTHDAY', label: 'Birthday', emoji: '🎂' },
-  { value: 'CORPORATE', label: 'Daftar', emoji: '🏢' },
-  { value: 'SCHOOL', label: 'School', emoji: '🎓' },
-  { value: 'RELIGIOUS', label: 'Mazhabi', emoji: '🕌' },
-  { value: 'PARTY', label: 'Party', emoji: '🎉' },
-  { value: 'CATERING', label: 'Catering', emoji: '🍽️' },
-  { value: 'OTHER', label: 'Aur koi', emoji: '📦' },
+  { value: 'WEDDING', label: tr('Shadi'), emoji: '💍' },
+  { value: 'BIRTHDAY', label: tr('Birthday'), emoji: '🎂' },
+  { value: 'CORPORATE', label: tr('Daftar'), emoji: '🏢' },
+  { value: 'SCHOOL', label: tr('School'), emoji: '🎓' },
+  { value: 'RELIGIOUS', label: tr('Mazhabi'), emoji: '🕌' },
+  { value: 'PARTY', label: tr('Party'), emoji: '🎉' },
+  { value: 'CATERING', label: tr('Catering'), emoji: '🍽️' },
+  { value: 'OTHER', label: tr('Aur koi'), emoji: '📦' },
 ];
-export const bulkTypeOf = (v?: string | null) => BULK_TYPES.find((t) => t.value === v) ?? { value: v ?? 'OTHER', label: v ? nice(v) : 'Aur koi', emoji: '📦' };
+export const bulkTypeOf = (v?: string | null) => BULK_TYPES.find((t) => t.value === v) ?? { value: v ?? 'OTHER', label: v ? nice(v) : tr('Aur koi'), emoji: '📦' };
 
 /** "CHOCOLATE_FUDGE" → "chocolate fudge" for values without a label. */
 const nice = (s?: string | null) => String(s ?? '').replace(/_/g, ' ').toLowerCase();
@@ -146,7 +147,7 @@ export const sizeLabel = (v?: string | null) => labelOf(SIZES, v);
 export const flavorLabel = (v?: string | null) => labelOf(FLAVORS, v);
 export const shapeLabel = (v?: string | null) => labelOf(SHAPES, v);
 export const creamLabel = (v?: string | null) => labelOf(CREAMS, v);
-export const occasionOf = (v?: string | null) => OCCASIONS.find((o) => o.value === v) ?? { value: v ?? 'OTHER', label: v ? nice(v) : 'Aur koi', emoji: '⭐' };
+export const occasionOf = (v?: string | null) => OCCASIONS.find((o) => o.value === v) ?? { value: v ?? 'OTHER', label: v ? nice(v) : tr('Aur koi'), emoji: '⭐' };
 
 /** One-line cake description: "Birthday · 2 Pound · Chocolate". */
 export function cakeLine(o: Pick<CakeOrder, 'occasion' | 'size' | 'flavor' | 'customWeightKg' | 'customFlavorDesc' | 'productName'>) {
@@ -171,14 +172,14 @@ export const hoursTo = (iso?: string | null) => {
 
 /** "3 ghante me", "2 din late". */
 export function leftText(h: number | null): string {
-  if (h === null) return 'Date nahi';
+  if (h === null) return tr('Date nahi');
   if (h < 0) {
     const p = Math.abs(h);
-    return p < 1 ? `${Math.round(p * 60)} minute late` : p < 24 ? `${Math.round(p)} ghante late` : `${Math.round(p / 24)} din late`;
+    return p < 1 ? tr('{{value}} minute late', { value: Math.round(p * 60) }) : p < 24 ? tr('{{p}} ghante late', { p: Math.round(p) }) : tr('{{value}} din late', { value: Math.round(p / 24) });
   }
-  if (h < 1) return `${Math.max(Math.round(h * 60), 1)} minute me`;
-  if (h < 24) return `${Math.round(h)} ghante me`;
-  return `${Math.round(h / 24)} din baad`;
+  if (h < 1) return tr('{{value}} minute me', { value: Math.max(Math.round(h * 60), 1) });
+  if (h < 24) return tr('{{h}} ghante me', { h: Math.round(h) });
+  return tr('{{value}} din baad', { value: Math.round(h / 24) });
 }
 
 export const dateTime = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('en-PK', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '—');

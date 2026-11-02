@@ -36,6 +36,7 @@ import { StockModal } from '../list/components/StockModal';
 import { CATALOG_KEY } from '../list/useCatalog';
 import { productInsightsApi, type ProductInsights } from './api';
 import { BatchesTab, MOVE, OverviewTab, PurchasesTab, SalesTab, StockTab, UnitsTab, fmt, when } from './tabs';
+import { t as tr } from '@core/i18n';
 
 export interface DetailContext<X> {
   product: Product;
@@ -69,10 +70,10 @@ export interface DetailConfig<X> {
 }
 
 const GUIDE: GuideStep[] = [
-  { icon: TrendingUp, color: '#2563eb', title: 'Upar ke numbers', text: 'Stock is branch ka hai. Sale, profit aur stock ki value chart ke period (7, 30, 90 din) ke hisaab se badalte hain.' },
-  { icon: Plus, color: '#16a34a', title: 'Stock badlein', text: '"Stock" button (S) se stock daalein ya nikalein. Har badlao Adjustment ban kar record mein rehta hai — product edit karne se stock nahi badalta.' },
-  { icon: Truck, color: '#0891b2', title: 'Purchase', text: 'Purchase tab mein har bill, supplier aur aakhri cost. Cost badal gayi ho to product ki cost bhi theek kar lein.' },
-  { icon: EyeOff, color: '#64748b', title: 'Band karein', text: 'Jo cheez ab nahi bechni use band kar dein — POS par nahi dikhegi, magar bill aur history waisi hi rahegi.' },
+  { icon: TrendingUp, color: '#2563eb', title: tr('Upar ke numbers'), text: tr('Stock is branch ka hai. Sale, profit aur stock ki value chart ke period (7, 30, 90 din) ke hisaab se badalte hain.') },
+  { icon: Plus, color: '#16a34a', title: tr('Stock badlein'), text: tr('"Stock" button (S) se stock daalein ya nikalein. Har badlao Adjustment ban kar record mein rehta hai — product edit karne se stock nahi badalta.') },
+  { icon: Truck, color: '#0891b2', title: tr('Purchase'), text: tr('Purchase tab mein har bill, supplier aur aakhri cost. Cost badal gayi ho to product ki cost bhi theek kar lein.') },
+  { icon: EyeOff, color: '#64748b', title: tr('Band karein'), text: tr('Jo cheez ab nahi bechni use band kar dein — POS par nahi dikhegi, magar bill aur history waisi hi rahegi.') },
 ];
 
 export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
@@ -113,19 +114,19 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
   const tabs = useMemo(() => {
     if (!ctx) return [];
     const list: Array<{ id: string; label: string; icon: typeof Package; count?: number; render?: () => ReactNode }> = [
-      { id: 'overview', label: 'Overview', icon: LineChart },
-      { id: 'stock', label: 'Stock', icon: Hourglass },
-      { id: 'sales', label: 'Sale', icon: Receipt },
+      { id: 'overview', label: tr('Overview'), icon: LineChart },
+      { id: 'stock', label: tr('Stock'), icon: Hourglass },
+      { id: 'sales', label: tr('Sale'), icon: Receipt },
     ];
-    if (can.purchases) list.push({ id: 'purchases', label: 'Purchase', icon: Truck });
+    if (can.purchases) list.push({ id: 'purchases', label: tr('Purchase'), icon: Truck });
     const batches = ctx.product.batches?.length ?? 0;
-    if (batches || ctx.product.expiryTracked) list.push({ id: 'batches', label: 'Batches', icon: CalendarClock, count: batches || undefined });
+    if (batches || ctx.product.expiryTracked) list.push({ id: 'batches', label: tr('Batches'), icon: CalendarClock, count: batches || undefined });
     const nUnits = ctx.units.length;
     const nVariants = ctx.product.variants?.length ?? 0;
     if (nUnits || nVariants) {
-      list.push({ id: 'units', label: nUnits && nVariants ? 'Packing / Variants' : nUnits ? 'Packing' : 'Variants', icon: nVariants ? Layers : Boxes, count: nUnits + nVariants });
+      list.push({ id: 'units', label: nUnits && nVariants ? tr('Packing / Variants') : nUnits ? tr('Packing') : tr('Variants'), icon: nVariants ? Layers : Boxes, count: nUnits + nVariants });
     }
-    if (manufacturing && can.recipe && !ctx.product.hasVariants) list.push({ id: 'recipe', label: 'Recipe', icon: Factory });
+    if (manufacturing && can.recipe && !ctx.product.hasVariants) list.push({ id: 'recipe', label: tr('Recipe'), icon: Factory });
     for (const t of config.tabs ?? []) if (!t.when || t.when(ctx)) list.push({ id: t.id, label: t.label, icon: t.icon, render: () => t.render(ctx) });
     return list;
   }, [ctx, config.tabs, can.purchases, can.recipe, manufacturing]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -150,8 +151,8 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     return (
       <PageShell>
         <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
-          <p className="font-semibold text-slate-900">Product nahi mila</p>
-          <Link to={config.paths.list} className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">Products ki list →</Link>
+          <p className="font-semibold text-slate-900">{tr('Product nahi mila')}</p>
+          <Link to={config.paths.list} className="mt-3 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">{tr('Products ki list →')}</Link>
         </div>
       </PageShell>
     );
@@ -178,25 +179,25 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
       toast.success(done);
       refresh();
       void forceRefreshProducts().catch(() => undefined);
-    } catch (e) { toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || (e as Error).message || 'Nahi hua'); }
+    } catch (e) { toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || (e as Error).message || tr('Nahi hua')); }
     finally { setBusy(false); setConfirmOff(false); }
   };
 
   const printDoc = (): PrintDoc => ({
     title: p.name,
     subtitle: [p.sku, p.barcode].filter(Boolean).join(' · ') || undefined,
-    meta: [['Category', p.category?.name ?? '—'], ['Unit', p.unit]],
+    meta: [[tr('Category'), p.category?.name ?? '—'], [tr('Unit'), p.unit]],
     sections: [
-      { kind: 'rows', title: 'Qeemat aur stock', rows: [
-        { label: 'Retail price', value: formatPKR(p.price) },
-        ...(p.wholesalePrice ? [{ label: 'Wholesale price', value: formatPKR(p.wholesalePrice) }] : []),
-        ...(p.creditPrice ? [{ label: 'Credit (udhaar) price', value: formatPKR(p.creditPrice) }] : []),
-        ...(costHidden ? [] : [{ label: 'Cost price', value: formatPKR(p.costPrice) }]),
-        { label: 'Stock', value: `${fmt(stock)} ${p.unit}`, strong: true },
-        ...(ins ? [{ label: `${ins.window} din ki sale`, value: `${fmt(ins.totals.qty)} ${p.unit} · ${formatPKR(ins.totals.revenue)}` }] : []),
+      { kind: 'rows', title: tr('Qeemat aur stock'), rows: [
+        { label: tr('Retail price'), value: formatPKR(p.price) },
+        ...(p.wholesalePrice ? [{ label: tr('Wholesale price'), value: formatPKR(p.wholesalePrice) }] : []),
+        ...(p.creditPrice ? [{ label: tr('Credit (udhaar) price'), value: formatPKR(p.creditPrice) }] : []),
+        ...(costHidden ? [] : [{ label: tr('Cost price'), value: formatPKR(p.costPrice) }]),
+        { label: tr('Stock'), value: `${fmt(stock)} ${p.unit}`, strong: true },
+        ...(ins ? [{ label: tr('{{window}} din ki sale', { window: ins.window }), value: `${fmt(ins.totals.qty)} ${p.unit} · ${formatPKR(ins.totals.revenue)}` }] : []),
       ] },
-      ...(ctx.units.length ? [{ kind: 'table' as const, title: 'Packing', columns: [{ label: 'Packing' }, { label: `Kitne ${p.unit}`, align: 'right' as const }, { label: 'Rate', align: 'right' as const }], rows: ctx.units.map((u) => [u.unitName, fmt(u.conversionRate), formatPKR(u.price)]) }] : []),
-      ...(ins?.movements.length ? [{ kind: 'table' as const, title: 'Stock ki movements', columns: [{ label: 'Waqt' }, { label: 'Kya hua' }, { label: 'Quantity', align: 'right' as const }, { label: 'Baad mein', align: 'right' as const }], rows: ins.movements.slice(0, 25).map((m) => [when(m.createdAt), MOVE[m.type]?.label ?? m.type, fmt(m.quantity), fmt(m.balanceAfter)]) }] : []),
+      ...(ctx.units.length ? [{ kind: 'table' as const, title: tr('Packing'), columns: [{ label: tr('Packing') }, { label: tr('Kitne {{unit}}', { unit: p.unit }), align: 'right' as const }, { label: tr('Rate'), align: 'right' as const }], rows: ctx.units.map((u) => [u.unitName, fmt(u.conversionRate), formatPKR(u.price)]) }] : []),
+      ...(ins?.movements.length ? [{ kind: 'table' as const, title: tr('Stock ki movements'), columns: [{ label: tr('Waqt') }, { label: tr('Kya hua') }, { label: tr('Quantity'), align: 'right' as const }, { label: tr('Baad mein'), align: 'right' as const }], rows: ins.movements.slice(0, 25).map((m) => [when(m.createdAt), MOVE[m.type]?.label ?? m.type, fmt(m.quantity), fmt(m.balanceAfter)]) }] : []),
     ],
   });
 
@@ -208,43 +209,43 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     <PageShell>
       {stockOpen && <StockModal item={{ id: p.id, name: p.name, unit: p.unit, stock, price: p.price }} chips={config.stockChips} money={money} onClose={() => setStockOpen(false)} onSaved={refresh} />}
       {confirmOff && (
-        <Modal open onClose={() => setConfirmOff(false)} size="sm" title={`"${p.name}" band karein?`}
-          description="POS, online store aur naye bill mein nahi dikhegi. Purane bill, stock aur history waise hi rahenge. Baad mein dobara chalu kar sakte hain."
+        <Modal open onClose={() => setConfirmOff(false)} size="sm" title={tr('"{{name}}" band karein?', { name: p.name })}
+          description={tr('POS, online store aur naye bill mein nahi dikhegi. Purane bill, stock aur history waise hi rahenge. Baad mein dobara chalu kar sakte hain.')}
           footer={<>
-            <Button variant="secondary" onClick={() => setConfirmOff(false)}>Rehne dein</Button>
-            <Button variant="danger" loading={busy} onClick={() => void setFlag({ isActive: false }, 'Band kar di')}>Band karein</Button>
+            <Button variant="secondary" onClick={() => setConfirmOff(false)}>{tr('Rehne dein')}</Button>
+            <Button variant="danger" loading={busy} onClick={() => void setFlag({ isActive: false }, tr('Band kar di'))}>{tr('Band karein')}</Button>
           </>}>
-          {stock > 0 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Abhi {fmt(stock)} {p.unit} stock pada hai — band karne se stock nahi hatega.</p>}
+          {stock > 0 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{tr('Abhi {{stock}} {{unit}} stock pada hai — band karne se stock nahi hatega.', { stock: fmt(stock), unit: p.unit })}</p>}
         </Modal>
       )}
       {guide.isOpen && (
-        <PageGuide title="Product ka safha" onClose={guide.close} steps={[...GUIDE, ...(config.guide ?? [])]}
-          tips={['Har branch ka stock alag hai — branch badlein to numbers us branch ke hon ge.', 'Cost chhupani ho to aankh wala button dabayein; profit aur cost chhup jayenge.']}
-          shortcuts={[['E', 'badlein'], ['S', 'stock'], ['L', 'label'], ['1–9', 'tabs'], ['G', 'guide']]} />
+        <PageGuide title={tr('Product ka safha')} onClose={guide.close} steps={[...GUIDE, ...(config.guide ?? [])]}
+          tips={[tr('Har branch ka stock alag hai — branch badlein to numbers us branch ke hon ge.'), tr('Cost chhupani ho to aankh wala button dabayein; profit aur cost chhup jayenge.')]}
+          shortcuts={[['E', tr('badlein')], ['S', tr('stock')], ['L', tr('label')], ['1–9', tr('tabs')], ['G', tr('guide')]]} />
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to={config.paths.list} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Products ki list</Link>
-        <p className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 md:inline-flex"><Kbd>E</Kbd> badlein · <Kbd>S</Kbd> stock · <Kbd>G</Kbd> guide</p>
+        <Link to={config.paths.list} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900"><ArrowLeft className="h-4 w-4 rtl-flip" />{tr('Products ki list')}</Link>
+        <p className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 md:inline-flex"><Kbd>E</Kbd> {' '}{tr('badlein ·')}{' '} <Kbd>S</Kbd> {' '}{tr('stock ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</p>
       </div>
 
       {/* Header */}
       <div className="flex flex-col gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:flex-row sm:items-start sm:p-5">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-28 sm:w-28">
           <ProductThumb name={p.name} category={p.category?.name} url={images[0]?.url} size="full" />
-          {images.length > 1 && <span className="absolute bottom-1 right-1 rounded-md bg-black/60 px-1.5 text-[0.625rem] font-bold text-white">+{images.length - 1}</span>}
+          {images.length > 1 && <span className="absolute bottom-1 end-1 rounded-md bg-black/60 px-1.5 text-[0.625rem] font-bold text-white">+{images.length - 1}</span>}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {!p.isActive && <Badge variant="default">Band hai</Badge>}
+            {!p.isActive && <Badge variant="default">{tr('Band hai')}</Badge>}
             {p.category && <span className="rounded-md px-2 py-0.5 text-[0.75rem] font-semibold" style={{ backgroundColor: `${p.category.color}18`, color: p.category.color }}>{p.category.name}</span>}
-            {p.isFeatured && <Badge variant="accent"><Star className="h-3 w-3 fill-current" />Khaas</Badge>}
+            {p.isFeatured && <Badge variant="accent"><Star className="h-3 w-3 fill-current" />{tr('Khaas')}</Badge>}
             {config.badges?.(ctx)}
           </div>
           <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{p.name}</h1>
-          <p className="mt-0.5 text-[0.9375rem] text-slate-700"><strong className="tabular-nums">{money(p.price)}</strong> <span className="text-slate-500">/ {p.unit}</span>{p.wholesalePrice ? <span className="ml-2 text-[0.8125rem] text-slate-500">Wholesale {money(p.wholesalePrice)}</span> : null}{p.creditPrice ? <span className="ml-2 text-[0.8125rem] text-slate-500">Credit {money(p.creditPrice)}</span> : null}</p>
+          <p className="mt-0.5 text-[0.9375rem] text-slate-700"><strong className="tabular-nums">{money(p.price)}</strong> <span className="text-slate-500">/ {p.unit}</span>{p.wholesalePrice ? <span className="ms-2 text-[0.8125rem] text-slate-500">{tr('Wholesale {{wholesalePrice}}', { wholesalePrice: money(p.wholesalePrice) })}</span> : null}{p.creditPrice ? <span className="ms-2 text-[0.8125rem] text-slate-500">{tr('Credit {{creditPrice}}', { creditPrice: money(p.creditPrice) })}</span> : null}</p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-[0.75rem]">
-            {p.sku && <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">SKU {p.sku}</span>}
+            {p.sku && <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">{tr('SKU {{sku}}', { sku: p.sku })}</span>}
             {p.barcode && <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">{p.barcode}</span>}
             {p.brand && <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-700">{p.brand.name}</span>}
             {tags.map((t) => <span key={t.id} className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600">#{t.name}</span>)}
@@ -252,35 +253,35 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:max-w-[26rem] sm:justify-end">
           <PrivacyToggle compact />
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={iconBtn}><GraduationCap className="h-4 w-4" /></button>
-          <PrintButton doc={printDoc} label="Print" size="sm" />
-          <Link to="/retail/barcode-labels" state={{ productIds: [p.id] }} title="Label (L)" className={btn}><Tag className="h-4 w-4" />Label</Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={iconBtn}><GraduationCap className="h-4 w-4" /></button>
+          <PrintButton doc={printDoc} label={tr('Print')} size="sm" />
+          <Link to="/retail/barcode-labels" state={{ productIds: [p.id] }} title={tr('Label (L)')} className={btn}><Tag className="h-4 w-4" />{tr('Label')}</Link>
           {can.edit && (
             <>
-              <button type="button" disabled={busy} onClick={() => void setFlag({ isFeatured: !p.isFeatured }, p.isFeatured ? 'Aam kar di' : 'Khaas bana di')} title={p.isFeatured ? 'Aam karein' : 'Khaas banayein'} aria-label="Khaas"
+              <button type="button" disabled={busy} onClick={() => void setFlag({ isFeatured: !p.isFeatured }, p.isFeatured ? tr('Aam kar di') : tr('Khaas bana di'))} title={p.isFeatured ? tr('Aam karein') : tr('Khaas banayein')} aria-label={tr('Khaas')}
                 className={cn(iconBtn, p.isFeatured && 'bg-amber-50 text-amber-600')}><Star className={cn('h-4 w-4', p.isFeatured && 'fill-current')} /></button>
               {p.isActive
-                ? <button type="button" onClick={() => setConfirmOff(true)} className={btn}><EyeOff className="h-4 w-4" />Band karein</button>
-                : <button type="button" disabled={busy} onClick={() => void setFlag({ isActive: true }, 'Chalu kar di')} className={btn}><Eye className="h-4 w-4" />Chalu karein</button>}
+                ? <button type="button" onClick={() => setConfirmOff(true)} className={btn}><EyeOff className="h-4 w-4" />{tr('Band karein')}</button>
+                : <button type="button" disabled={busy} onClick={() => void setFlag({ isActive: true }, tr('Chalu kar di'))} className={btn}><Eye className="h-4 w-4" />{tr('Chalu karein')}</button>}
             </>
           )}
-          {can.stock && <button type="button" onClick={() => setStockOpen(true)} title="Stock (S)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-100"><Plus className="h-4 w-4" />Stock</button>}
-          {can.edit && <Link to={config.paths.edit(p.id)} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />Badlein</Link>}
+          {can.stock && <button type="button" onClick={() => setStockOpen(true)} title={tr('Stock (S)')} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-100"><Plus className="h-4 w-4" />{tr('Stock')}</button>}
+          {can.edit && <Link to={config.paths.edit(p.id)} title={tr('Badlein (E)')} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />{tr('Badlein')}</Link>}
         </div>
       </div>
 
       {/* KPIs */}
       <KpiRow>
-        <KpiCard icon={Package} color={stock <= 0 ? '#e11d48' : low ? '#d97706' : '#16a34a'} label={branch ? `Stock · ${branch.name}` : 'Stock'} value={`${fmt(stock)} ${p.unit}`}
-          hint={shops.length > 1 ? `Sab branches: ${fmt(allStock)} ${p.unit}` : stock <= 0 ? 'Khatam' : low ? `Kam — had ${fmt(p.lowStockAlert)}` : ins?.totals.daysLeft != null ? `~${ins.totals.daysLeft} din chalega` : `Had ${fmt(p.lowStockAlert)}`}
+        <KpiCard icon={Package} color={stock <= 0 ? '#e11d48' : low ? '#d97706' : '#16a34a'} label={branch ? tr('Stock · {{name}}', { name: branch.name }) : tr('Stock')} value={`${fmt(stock)} ${p.unit}`}
+          hint={shops.length > 1 ? tr('Sab branches: {{allStock}} {{unit}}', { allStock: fmt(allStock), unit: p.unit }) : stock <= 0 ? tr('Khatam') : low ? tr('Kam — had {{lowStockAlert}}', { lowStockAlert: fmt(p.lowStockAlert) }) : ins?.totals.daysLeft != null ? tr('~{{daysLeft}} din chalega', { daysLeft: ins.totals.daysLeft }) : tr('Had {{lowStockAlert}}', { lowStockAlert: fmt(p.lowStockAlert) })}
           onClick={() => setTab('stock')} active={active.id === 'stock'} />
-        <KpiCard icon={ShoppingBag} color="#2563eb" label={`${days} din mein bika`} value={ins ? `${fmt(ins.totals.qty)} ${p.unit}` : '…'} hint={ins ? `${ins.totals.bills} bill · roz ~${fmt(ins.totals.perDay)}` : undefined}
+        <KpiCard icon={ShoppingBag} color="#2563eb" label={tr('{{days}} din mein bika', { days })} value={ins ? `${fmt(ins.totals.qty)} ${p.unit}` : '…'} hint={ins ? tr('{{bills}} bill · roz ~{{perDay}}', { bills: ins.totals.bills, perDay: fmt(ins.totals.perDay) }) : undefined}
           onClick={() => setTab('sales')} active={active.id === 'sales'} />
-        <KpiCard icon={Wallet} color="#0891b2" label={`${days} din ki Sale`} value={ins ? money(ins.totals.revenue) : '…'} hint={ins?.allTime.lastSoldAt ? `aakhri ${when(ins.allTime.lastSoldAt)}` : 'abhi nahi bika'} />
-        <KpiCard icon={TrendingUp} color="#16a34a" label={`${days} din ka Profit`} value={ins ? cost(ins.totals.profit) : '…'} hint={costHidden ? 'Cost lock' : margin !== null ? `${margin.toFixed(1)}% margin` : p.costPrice ? undefined : 'Cost nahi likhi'} />
+        <KpiCard icon={Wallet} color="#0891b2" label={tr('{{days}} din ki Sale', { days })} value={ins ? money(ins.totals.revenue) : '…'} hint={ins?.allTime.lastSoldAt ? tr('aakhri {{lastSoldAt}}', { lastSoldAt: when(ins.allTime.lastSoldAt) }) : tr('abhi nahi bika')} />
+        <KpiCard icon={TrendingUp} color="#16a34a" label={tr('{{days}} din ka Profit', { days })} value={ins ? cost(ins.totals.profit) : '…'} hint={costHidden ? tr('Cost lock') : margin !== null ? tr('{{value}}% margin', { value: margin.toFixed(1) }) : p.costPrice ? undefined : tr('Cost nahi likhi')} />
         {tile
           ? <KpiCard icon={Coins} color="#7c3aed" label={tile.label} value={tile.value} hint={tile.hint} />
-          : <KpiCard icon={Coins} color="#7c3aed" label="Stock ki value" value={cost(Math.max(0, stock) * p.costPrice)} hint={`Bechne par ${money(Math.max(0, stock) * p.price)}`} />}
+          : <KpiCard icon={Coins} color="#7c3aed" label={tr('Stock ki value')} value={cost(Math.max(0, stock) * p.costPrice)} hint={tr('Bechne par {{value}}', { value: money(Math.max(0, stock) * p.price) })} />}
       </KpiRow>
 
       {/* Alerts */}
@@ -289,23 +290,23 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
           {(stock <= 0 || low) && p.isActive && (
             <div className={cn('flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 ring-1', stock <= 0 ? 'bg-rose-50 text-rose-900 ring-rose-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
               <AlertTriangle className="h-4 w-4" />
-              <span className="text-[0.875rem] font-medium">{stock <= 0 ? 'Stock khatam hai — grahak wapas ja raha hoga' : `Sirf ${fmt(stock)} ${p.unit} bacha hai`}
-                {ins && ins.totals.perDay > 0 && ` · roz ~${fmt(ins.totals.perDay)} bikta hai, ${Math.ceil(ins.totals.perDay * 14)} mangwa lein (2 hafte ka)`}</span>
-              {can.buy && <Link to="/purchases/new" className="ml-auto text-[0.8125rem] font-semibold hover:underline">Purchase karein →</Link>}
+              <span className="text-[0.875rem] font-medium">{stock <= 0 ? tr('Stock khatam hai — grahak wapas ja raha hoga') : tr('Sirf {{stock}} {{unit}} bacha hai', { stock: fmt(stock), unit: p.unit })}
+                {ins && ins.totals.perDay > 0 && tr(' · roz ~{{perDay}} bikta hai, {{value}} mangwa lein (2 hafte ka)', { perDay: fmt(ins.totals.perDay), value: Math.ceil(ins.totals.perDay * 14) })}</span>
+              {can.buy && <Link to="/purchases/new" className="ms-auto text-[0.8125rem] font-semibold hover:underline">{tr('Purchase karein →')}</Link>}
             </div>
           )}
           {expiring.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
               <CalendarClock className="h-4 w-4" />
-              <span className="text-[0.875rem] font-medium">{expiring.length} batch {expiring.some((b) => expiryOf(b)! < today) ? 'expire ho chuke / qareeb hain' : '30 din mein expire honge'}</span>
-              <button type="button" onClick={() => setTab('batches')} className="ml-auto text-[0.8125rem] font-semibold hover:underline">Dekhein →</button>
+              <span className="text-[0.875rem] font-medium">{tr('{{count}} batch {{value}}', { count: expiring.length, value: expiring.some((b) => expiryOf(b)! < today) ? tr('expire ho chuke / qareeb hain') : tr('30 din mein expire honge') })}</span>
+              <button type="button" onClick={() => setTab('batches')} className="ms-auto text-[0.8125rem] font-semibold hover:underline">{tr('Dekhein →')}</button>
             </div>
           )}
           {config.alerts?.(ctx)}
         </div>
       )}
 
-      <ViewTabs value={active.id} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>{Math.min(9, tabs.length)}</Kbd> se badlein</>}
+      <ViewTabs value={active.id} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>{Math.min(9, tabs.length)}</Kbd> {' '}{tr('se badlein')}</>}
         tabs={tabs.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: t.count }))} />
 
       {active.id === 'overview' && (

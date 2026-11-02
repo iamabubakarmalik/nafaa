@@ -18,15 +18,16 @@ import DeliveryTrackingPage from './pages/DeliveryTrackingPage';
 import RestaurantProductEditor from './products/RestaurantProductEditor';
 import RestaurantProductDetail from './products/RestaurantProductDetail';
 import { restaurantReceiptRows } from './lib/receiptRows';
+import { t } from '@core/i18n';
 
 export const RestaurantPack: IndustryPack = {
   id: 'restaurant',
   name: 'Restaurant / Café',
-  shortName: 'Restaurant',
+  shortName: t('Restaurant'),
   emoji: '🍽️',
   priority: 70,
   description:
-    'Dine-in, takeaway & delivery. Tables, KOT, modifiers, recipes, kitchen stations, riders, happy hours.',
+    t('Dine-in, takeaway & delivery. Tables, KOT, modifiers, recipes, kitchen stations, riders, happy hours.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -69,26 +70,26 @@ export const RestaurantPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Restaurant',
+      label: t('Restaurant'),
       icon: ChefHat,
       emoji: '🍽️',
       color: '#ea580c',
       order: 20,
       items: [
         // ✅ wizard button
-        { to: '/restaurant-menu-items/new', label: 'Add menu item', icon: Sparkles, badge: 'FAST' },
+        { to: '/restaurant-menu-items/new', label: t('Add menu item'), icon: Sparkles, badge: t('FAST') },
 
-        { to: '/restaurant/dashboard', label: 'Restaurant dashboard', icon: LayoutDashboard, badge: 'NEW' },
-        { to: '/restaurant/orders', label: 'Orders', icon: ShoppingBag },
-        { to: '/restaurant/tables', label: 'Tables', icon: Utensils },
-        { to: '/restaurant/menu', label: 'Menu', icon: ChefHat },
-        { to: '/restaurant/modifiers', label: 'Add-ons', icon: Sparkles },
-        { to: '/restaurant/kot', label: 'Kitchen (KOT)', icon: Timer },
-        { to: '/restaurant/riders', label: 'Riders', icon: Bike },
-        { to: '/restaurant/happy-hours', label: 'Happy hours', icon: Zap },
-        { to: '/restaurant/recipes', label: 'Recipes', icon: BookOpen },
-        { to: '/restaurant/stations', label: 'Kitchen stations', icon: Flame },
-        { to: '/restaurant/delivery', label: 'Delivery tracking', icon: MapPin },
+        { to: '/restaurant/dashboard', label: t('Restaurant dashboard'), icon: LayoutDashboard, badge: t('NEW') },
+        { to: '/restaurant/orders', label: t('Orders'), icon: ShoppingBag },
+        { to: '/restaurant/tables', label: t('Tables'), icon: Utensils },
+        { to: '/restaurant/menu', label: t('Menu'), icon: ChefHat },
+        { to: '/restaurant/modifiers', label: t('Add-ons'), icon: Sparkles },
+        { to: '/restaurant/kot', label: t('Kitchen (KOT)'), icon: Timer },
+        { to: '/restaurant/riders', label: t('Riders'), icon: Bike },
+        { to: '/restaurant/happy-hours', label: t('Happy hours'), icon: Zap },
+        { to: '/restaurant/recipes', label: t('Recipes'), icon: BookOpen },
+        { to: '/restaurant/stations', label: t('Kitchen stations'), icon: Flame },
+        { to: '/restaurant/delivery', label: t('Delivery tracking'), icon: MapPin },
       ],
     },
   ],
@@ -120,24 +121,24 @@ export const RestaurantPack: IndustryPack = {
   productForm: {
     defaultUnit: 'plate',
     unitOptions: [
-      { value: 'plate', label: 'Plate', hint: '🍽️', group: 'Serving' },
-      { value: 'cup', label: 'Cup', hint: '🥤', group: 'Serving' },
-      { value: 'bowl', label: 'Bowl', hint: '🍜', group: 'Serving' },
-      { value: 'glass', label: 'Glass', hint: '🥛', group: 'Serving' },
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'kg', label: 'Kilograms', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Grams', hint: '⚖️', group: 'Weight' },
-      { value: 'liter', label: 'Liter', hint: '🥛', group: 'Volume' },
-      { value: 'ml', label: 'Milliliter', hint: '🥛', group: 'Volume' },
+      { value: 'plate', label: t('Plate'), hint: '🍽️', group: t('Serving') },
+      { value: 'cup', label: t('Cup'), hint: '🥤', group: t('Serving') },
+      { value: 'bowl', label: t('Bowl'), hint: '🍜', group: t('Serving') },
+      { value: 'glass', label: t('Glass'), hint: '🥛', group: t('Serving') },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'kg', label: t('Kilograms'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Grams'), hint: '⚖️', group: t('Weight') },
+      { value: 'liter', label: t('Liter'), hint: '🥛', group: t('Volume') },
+      { value: 'ml', label: t('Milliliter'), hint: '🥛', group: t('Volume') },
     ],
   },
 
   featureFlags: [
-    { key: 'restaurantTables', label: 'Table Management', defaultEnabled: true },
-    { key: 'restaurantModifiers', label: 'Modifiers', defaultEnabled: true },
-    { key: 'restaurantKot', label: 'KOT Printing', defaultEnabled: true },
-    { key: 'restaurantDelivery', label: 'Delivery Tracking', defaultEnabled: false },
-    { key: 'restaurantRecipes', label: 'Recipes / BOM', defaultEnabled: false },
+    { key: 'restaurantTables', label: t('Table Management'), defaultEnabled: true },
+    { key: 'restaurantModifiers', label: t('Modifiers'), defaultEnabled: true },
+    { key: 'restaurantKot', label: t('KOT Printing'), defaultEnabled: true },
+    { key: 'restaurantDelivery', label: t('Delivery Tracking'), defaultEnabled: false },
+    { key: 'restaurantRecipes', label: t('Recipes / BOM'), defaultEnabled: false },
   ],
 
   /** Token and waiter on the shared bill page. */

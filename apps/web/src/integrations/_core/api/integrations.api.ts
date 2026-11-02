@@ -5,6 +5,7 @@ IntegrationItem,
 ChannelOrderItem,
 SyncLogItem,
 } from '../types/integration.types';
+import { t } from '@core/i18n';
 
 export type {
 AvailableIntegration,
@@ -80,7 +81,7 @@ apiClient
 // ═══ Generic sync dispatcher ═══
 sync: (integration: IntegrationItem): Promise<any> => {
 if (integration.type === 'FOODPANDA') return integrationsApi.syncFoodpanda(integration.id);
-return Promise.reject(new Error('Manual sync available nahi'));
+return Promise.reject(new Error(t('Manual sync available nahi')));
 },
 
 // ═══ Sync logs ═══

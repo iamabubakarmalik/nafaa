@@ -1,3 +1,5 @@
+import { t } from '@core/i18n';
+
 type CurrencyFormatOptions = {
   compact?: boolean;
   minimumFractionDigits?: number;
@@ -91,14 +93,14 @@ export const formatRelative = (date: string | Date) => {
   const diff = Date.now() - d.getTime();
   const mins = Math.floor(diff / 60000);
 
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('Just now');
+  if (mins < 60) return t('{{count}}m ago', { count: mins });
 
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('{{count}}h ago', { count: hours });
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t('{{count}}d ago', { count: days });
 
   return formatDate(d);
 };

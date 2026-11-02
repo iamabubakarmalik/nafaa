@@ -14,6 +14,7 @@ import BakeryProductEditor from './products/BakeryProductEditor';
 import BakeryProducts from './products/BakeryProducts';
 import BakeryDashboard from './dashboard/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
+import { t } from '@core/i18n';
 
 /**
  * Bakery / Cake Shop / Sweet Shop industry pack.
@@ -23,11 +24,11 @@ import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 export const BakeryPack: IndustryPack = {
   id: 'bakery',
   name: 'Bakery / Cake Shop',
-  shortName: 'Bakery',
+  shortName: t('Bakery'),
   emoji: '🍰',
   priority: 72,
   description:
-    'Cake customizer, production batches, freshness / expiry, ingredient inventory, wedding & event bulk orders.',
+    t('Cake customizer, production batches, freshness / expiry, ingredient inventory, wedding & event bulk orders.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,18 +46,18 @@ export const BakeryPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Bakery extras',
+      label: t('Bakery extras'),
       icon: Cake,
       emoji: '🍰',
       color: '#f472b6',
       order: 20,
       items: [
-        { to: '/bakery/cake-orders/new', label: 'New cake order', icon: Cake },
-        { to: '/bakery/cake-orders', label: 'Cake orders', icon: Calendar },
-        { to: '/bakery/production', label: 'Baking', icon: ChefHat },
-        { to: '/bakery/ingredients', label: 'Raw materials', icon: Wheat },
-        { to: '/bakery/freshness', label: 'Freshness & waste', icon: Timer },
-        { to: '/bakery/bulk-orders', label: 'Bulk orders', icon: ShoppingBag },
+        { to: '/bakery/cake-orders/new', label: t('New cake order'), icon: Cake },
+        { to: '/bakery/cake-orders', label: t('Cake orders'), icon: Calendar },
+        { to: '/bakery/production', label: t('Baking'), icon: ChefHat },
+        { to: '/bakery/ingredients', label: t('Raw materials'), icon: Wheat },
+        { to: '/bakery/freshness', label: t('Freshness & waste'), icon: Timer },
+        { to: '/bakery/bulk-orders', label: t('Bulk orders'), icon: ShoppingBag },
       ],
     },
   ],
@@ -89,29 +90,29 @@ export const BakeryPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Piece', hint: '🧁', group: 'Count' },
-      { value: 'slice', label: 'Slice', hint: '🍰', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Pack' },
-      { value: 'tray', label: 'Tray', hint: '🥮', group: 'Pack' },
-      { value: 'dozen', label: 'Dozen (12)', hint: '📦', group: 'Pack' },
-      { value: 'half-dozen', label: 'Half Dozen (6)', hint: '📦', group: 'Pack' },
-      { value: 'pound', label: 'Pound (cake)', hint: '⚖️', group: 'Weight' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Gram', hint: '⚖️', group: 'Weight' },
-      { value: 'loaf', label: 'Loaf (bread)', hint: '🍞', group: 'Bread' },
-      { value: 'liter', label: 'Liter', hint: '🥛', group: 'Volume' },
-      { value: 'plate', label: 'Plate (sweets)', hint: '🍽️', group: 'Serving' },
-      { value: 'maan', label: 'Maan (bulk mithai)', hint: '⚖️', group: 'Weight' },
-      { value: 'seer', label: 'Seer', hint: '⚖️', group: 'Weight' },
+      { value: 'pcs', label: t('Piece'), hint: '🧁', group: t('Count') },
+      { value: 'slice', label: t('Slice'), hint: '🍰', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Pack') },
+      { value: 'tray', label: t('Tray'), hint: '🥮', group: t('Pack') },
+      { value: 'dozen', label: t('Dozen (12)'), hint: '📦', group: t('Pack') },
+      { value: 'half-dozen', label: t('Half Dozen (6)'), hint: '📦', group: t('Pack') },
+      { value: 'pound', label: t('Pound (cake)'), hint: '⚖️', group: t('Weight') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Gram'), hint: '⚖️', group: t('Weight') },
+      { value: 'loaf', label: t('Loaf (bread)'), hint: '🍞', group: t('Bread') },
+      { value: 'liter', label: t('Liter'), hint: '🥛', group: t('Volume') },
+      { value: 'plate', label: t('Plate (sweets)'), hint: '🍽️', group: t('Serving') },
+      { value: 'maan', label: t('Maan (bulk mithai)'), hint: '⚖️', group: t('Weight') },
+      { value: 'seer', label: t('Seer'), hint: '⚖️', group: t('Weight') },
     ],
   },
 
   featureFlags: [
-    { key: 'bakeryCakeCustomizer', label: 'Cake Customizer', defaultEnabled: true },
-    { key: 'bakeryProduction', label: 'Production Batches', defaultEnabled: true },
-    { key: 'bakeryFreshness', label: 'Freshness / Expiry', defaultEnabled: true },
-    { key: 'bakeryIngredients', label: 'Ingredient Inventory', defaultEnabled: true },
-    { key: 'bakeryBulkOrders', label: 'Wedding / Event Orders', defaultEnabled: true },
-    { key: 'expiry', label: 'Batch & Expiry Tracking', defaultEnabled: true },
+    { key: 'bakeryCakeCustomizer', label: t('Cake Customizer'), defaultEnabled: true },
+    { key: 'bakeryProduction', label: t('Production Batches'), defaultEnabled: true },
+    { key: 'bakeryFreshness', label: t('Freshness / Expiry'), defaultEnabled: true },
+    { key: 'bakeryIngredients', label: t('Ingredient Inventory'), defaultEnabled: true },
+    { key: 'bakeryBulkOrders', label: t('Wedding / Event Orders'), defaultEnabled: true },
+    { key: 'expiry', label: t('Batch & Expiry Tracking'), defaultEnabled: true },
   ],
 };

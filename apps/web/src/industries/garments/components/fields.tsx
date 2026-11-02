@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
 import { staffApi } from '@modules/organization/staff/api/staff.api';
 import { apiError } from './meta';
+import { t as tr } from '@core/i18n';
 
 export interface CustomerValue { customerId: string; name: string; phone: string; balance?: number }
 export const emptyCustomer: CustomerValue = { customerId: '', name: '', phone: '' };
@@ -58,12 +59,12 @@ export function CustomerField({ value, onChange, error, hint, locked }: {
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.9375rem] font-semibold text-slate-900">{value.name}</p>
           <p className="text-[0.75rem] text-slate-500">
-            {value.phone || 'Phone nahi'}
-            {bal > 0.5 && <span className="ml-2 font-semibold text-rose-700">Udhaar {formatPKR(bal)}</span>}
-            {bal < -0.5 && <span className="ml-2 font-semibold text-success-700">Advance jama {formatPKR(-bal)}</span>}
+            {value.phone || tr('Phone nahi')}
+            {bal > 0.5 && <span className="ms-2 font-semibold text-rose-700">{tr('Udhaar {{bal}}', { bal: formatPKR(bal) })}</span>}
+            {bal < -0.5 && <span className="ms-2 font-semibold text-success-700">{tr('Advance jama {{formatPKR}}', { formatPKR: formatPKR(-bal) })}</span>}
           </p>
         </div>
-        {!locked && <button type="button" onClick={() => onChange(emptyCustomer)} aria-label="Customer hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>}
+        {!locked && <button type="button" onClick={() => onChange(emptyCustomer)} aria-label={tr('Customer hatayein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>}
       </div>
     );
   }
@@ -71,14 +72,14 @@ export function CustomerField({ value, onChange, error, hint, locked }: {
   return (
     <div ref={box} className="space-y-3">
       <div className="relative">
-        <Input label="Purana customer dhoondein" value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
-          placeholder="Naam ya phone likhein" leftIcon={<Search className="h-4 w-4" />} hint={hint ?? 'Na mile to neeche naya naam aur phone likh dein'} />
+        <Input label={tr('Purana customer dhoondein')} value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
+          placeholder={tr('Naam ya phone likhein')} leftIcon={<Search className="h-4 w-4" />} hint={hint ?? tr('Na mile to neeche naya naam aur phone likh dein')} />
         {open && term.length >= 2 && (
           <div className="absolute inset-x-0 top-[4.25rem] z-30 max-h-72 overflow-auto rounded-2xl bg-white p-1 shadow-xl ring-1 ring-slate-200">
-            {found.isLoading ? <p className="px-3 py-2 text-[0.8125rem] text-slate-500">Dhoond rahe hain…</p>
-              : !(found.data?.items ?? []).length ? <p className="px-3 py-2 text-[0.8125rem] text-slate-500">Koi nahi mila — neeche naya likhein</p>
+            {found.isLoading ? <p className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Dhoond rahe hain…')}</p>
+              : !(found.data?.items ?? []).length ? <p className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Koi nahi mila — neeche naya likhein')}</p>
               : found.data!.items.map((c) => (
-                <button key={c.id} type="button" onClick={() => pick(c)} className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left hover:bg-slate-50">
+                <button key={c.id} type="button" onClick={() => pick(c)} className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-start hover:bg-slate-50">
                   <span className="min-w-0"><span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.name}</span><span className="text-[0.75rem] text-slate-500">{c.phone ?? '—'}</span></span>
                   {Number(c.balance) > 0.5 && <span className="shrink-0 text-[0.75rem] font-semibold text-rose-700">{formatPKR(Number(c.balance))}</span>}
                 </button>
@@ -87,9 +88,9 @@ export function CustomerField({ value, onChange, error, hint, locked }: {
         )}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input label="Naya customer — naam" value={value.name} error={error} onChange={(e) => onChange({ ...value, name: e.target.value })} placeholder="Ahmad Raza" maxLength={120} />
-        <Input label="Phone" inputMode="tel" value={value.phone} onChange={(e) => onChange({ ...value, phone: e.target.value.replace(/[^\d+\- ]/g, '') })} placeholder="03001234567"
-          leftIcon={<Phone className="h-4 w-4" />} maxLength={20} hint="Tayyar hone par WhatsApp isi par" />
+        <Input label={tr('Naya customer — naam')} value={value.name} error={error} onChange={(e) => onChange({ ...value, name: e.target.value })} placeholder={tr('Ahmad Raza')} maxLength={120} />
+        <Input label={tr('Phone')} inputMode="tel" value={value.phone} onChange={(e) => onChange({ ...value, phone: e.target.value.replace(/[^\d+\- ]/g, '') })} placeholder="03001234567"
+          leftIcon={<Phone className="h-4 w-4" />} maxLength={20} hint={tr('Tayyar hone par WhatsApp isi par')} />
       </div>
     </div>
   );
@@ -104,9 +105,9 @@ export function useTailors() {
 export function TailorSelect({ value, onChange, hint }: { value: string; onChange: (id: string) => void; hint?: string }) {
   const tailors = useTailors();
   return (
-    <Select label="Karigar" value={value} onChange={(e) => onChange(e.target.value)}
-      options={[{ value: '', label: tailors.length ? '— Baad me —' : 'Staff me karigar nahi' }, ...tailors.map((t) => ({ value: t.id, label: t.job ? `${t.name} · ${t.job}` : t.name }))]}
-      hint={hint ?? 'Kis ko kaam diya — report me karigar ke hisaab se ginti'} />
+    <Select label={tr('Karigar')} value={value} onChange={(e) => onChange(e.target.value)}
+      options={[{ value: '', label: tailors.length ? tr('— Baad me —') : tr('Staff me karigar nahi') }, ...tailors.map((t) => ({ value: t.id, label: t.job ? `${t.name} · ${t.job}` : t.name }))]}
+      hint={hint ?? tr('Kis ko kaam diya — report me karigar ke hisaab se ginti')} />
   );
 }
 
@@ -120,24 +121,24 @@ export function CancelModal({ title, paid, onConfirm, onClose }: {
   const [reason, setReason] = useState('');
   const run = useMutation({
     mutationFn: () => onConfirm(reason.trim()),
-    onSuccess: () => { toast.success('Cancel ho gaya'); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Cancel nahi hua')),
+    onSuccess: () => { toast.success(tr('Cancel ho gaya')); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Cancel nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Cancel karein?" description={title}
+    <Modal open onClose={onClose} size="sm" title={tr('Cancel karein?')} description={title}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()} leftIcon={<Ban className="h-4 w-4" />}>Haan, cancel</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button variant="danger" loading={run.isPending} onClick={() => run.mutate()} leftIcon={<Ban className="h-4 w-4" />}>{tr('Haan, cancel')}</Button>
       </>}>
       <div className="space-y-3">
         {paid > 0 && (
           <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            {formatPKR(paid)} customer ke khate me advance ban kar jama rahenge. Wapas dene hon to Khata se "Paisa wapas" karein, ya agle bill me kat jayenge.
+            {tr('{{paid}} customer ke khate me advance ban kar jama rahenge. Wapas dene hon to Khata se "Paisa wapas" karein, ya agle bill me kat jayenge.', { paid: formatPKR(paid) })}
           </p>
         )}
-        <Textarea data-autofocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300}
-          placeholder="Customer ne mana kar diya, kapra pasand nahi aaya…" hint="Marzi hai — baad me yaad rehta hai" />
+        <Textarea data-autofocus label={tr('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300}
+          placeholder={tr('Customer ne mana kar diya, kapra pasand nahi aaya…')} hint={tr('Marzi hai — baad me yaad rehta hai')} />
       </div>
     </Modal>
   );

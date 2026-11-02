@@ -28,6 +28,7 @@ import { paidOnKhata } from '../../_shared/industry-sale.helper';
 import { ensureServiceProduct, r2, withNextNumber } from '../common/salon-common';
 import { spreadVoucher, usableVoucher, voucherTag } from '../gift-vouchers/voucher-rules';
 import { CreateSalonBillDto } from './dto/create-salon-bill.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type StaffWithServices = SalonStaffProfile & { services: SalonStaffService[] };
 type SaleItemInput = CreateSaleDto['items'][number];
@@ -78,7 +79,7 @@ export class SalonBillsService {
       ? await this.prisma.salonAppointment.findFirst({ where: { id: dto.appointmentId, tenantId }, include: { services: true } })
       : null;
     if (dto.appointmentId && !apt) throw new NotFoundException('Appointment nahi mili');
-    if (apt?.saleId) throw new BadRequestException(`${apt.appointmentNumber} ka bill pehle hi ban chuka hai`);
+    if (apt?.saleId) throw new BadRequestException(apiMessage('{{appointmentNumber}} ka bill pehle hi ban chuka hai', { appointmentNumber: apt.appointmentNumber }));
     if (apt && (apt.status === 'CANCELLED' || apt.status === 'NO_SHOW')) throw new BadRequestException('Cancel / no-show appointment ka bill nahi banta');
     if (apt?.customerId && dto.customerId && apt.customerId !== dto.customerId) throw new BadRequestException('Ye appointment kisi aur customer ki hai');
     const customerId = apt?.customerId ?? dto.customerId ?? null;
@@ -120,16 +121,16 @@ export class SalonBillsService {
     for (const l of lines) {
       if (!l.packagePurchaseId) continue;
       const p = purchaseMap.get(l.packagePurchaseId)!;
-      if (!customerId || p.customerId !== customerId) throw new BadRequestException(`${p.purchaseNumber} is customer ka package nahi hai`);
-      if (p.status !== 'ACTIVE') throw new BadRequestException(`${p.purchaseNumber} active nahi hai`);
-      if (p.expiryDate < new Date()) throw new BadRequestException(`${p.purchaseNumber} ki muddat khatam ho chuki`);
+      if (!customerId || p.customerId !== customerId) throw new BadRequestException(apiMessage('{{purchaseNumber}} is customer ka package nahi hai', { purchaseNumber: p.purchaseNumber }));
+      if (p.status !== 'ACTIVE') throw new BadRequestException(apiMessage('{{purchaseNumber}} active nahi hai', { purchaseNumber: p.purchaseNumber }));
+      if (p.expiryDate < new Date()) throw new BadRequestException(apiMessage('{{purchaseNumber}} ki muddat khatam ho chuki', { purchaseNumber: p.purchaseNumber }));
       const covered = packageServiceIds(p.package.services);
-      if (covered.size && !covered.has(l.serviceId)) throw new BadRequestException(`${svcMap.get(l.serviceId)?.name} ${p.package.name} me shamil nahi`);
+      if (covered.size && !covered.has(l.serviceId)) throw new BadRequestException(apiMessage('{{serviceIdName}} {{packageName}} me shamil nahi', { serviceIdName: svcMap.get(l.serviceId)?.name, packageName: p.package.name }));
       usesOf.set(p.id, (usesOf.get(p.id) ?? 0) + 1);
     }
     for (const [id, n] of usesOf) {
       const p = purchaseMap.get(id)!;
-      if (n > p.sessionsRemaining) throw new BadRequestException(`${p.purchaseNumber} me sirf ${p.sessionsRemaining} session baqi hain`);
+      if (n > p.sessionsRemaining) throw new BadRequestException(apiMessage('{{purchaseNumber}} me sirf {{sessionsRemaining}} session baqi hain', { purchaseNumber: p.purchaseNumber, sessionsRemaining: p.sessionsRemaining }));
       await this.assertSaleAlive(tenantId, `SLN-${p.purchaseNumber}`, p.purchaseNumber);
     }
 
@@ -147,7 +148,9 @@ export class SalonBillsService {
     const keepPaid = new Map<number, string>();
     for (const old of paidOld) {
       const idx = lines.findIndex((l, i) => !keepPaid.has(i) && l.serviceId === old.serviceId && (l.staffProfileId ?? null) === old.staffProfileId);
-      if (idx < 0) throw new BadRequestException(`${old.serviceName}${old.staffName ? ` (${old.staffName})` : ''} ki commission di ja chuki — ye service isi stylist ke saath bill me rakhein`);
+      if (idx < 0) throw new BadRequestException(old.staffName
+        ? apiMessage('{{serviceName}} ({{staffName}}) ki commission di ja chuki — ye service isi stylist ke saath bill me rakhein', { serviceName: old.serviceName, staffName: old.staffName })
+        : apiMessage('{{serviceName}} ki commission di ja chuki — ye service isi stylist ke saath bill me rakhein', { serviceName: old.serviceName }));
       keepPaid.set(idx, old.id);
     }
 
@@ -260,7 +263,7 @@ export class SalonBillsService {
         where: { id: apt.id, tenantId, saleId: null, paymentStatus: { not: 'BILLING' } },
         data: { paymentStatus: 'BILLING' },
       });
-      if (!claimed.count) throw new BadRequestException(`${apt.appointmentNumber} ka bill ban raha hai — thora intezar karein`);
+      if (!claimed.count) throw new BadRequestException(apiMessage('{{appointmentNumber}} ka bill ban raha hai — thora intezar karein', { appointmentNumber: apt.appointmentNumber }));
     }
     const release = async () => {
       if (apt) await this.prisma.salonAppointment.updateMany({ where: { id: apt.id, paymentStatus: 'BILLING' }, data: { paymentStatus: apt.paymentStatus } });
@@ -275,7 +278,7 @@ export class SalonBillsService {
       if (!took.count) {
         voucherUsed = 0;
         await release();
-        throw new BadRequestException(`${voucher.code} ka balance abhi badla hai — dobara koshish karein`);
+        throw new BadRequestException(apiMessage('{{voucherCode}} ka balance abhi badla hai — dobara koshish karein', { voucherCode: voucher.code }));
       }
     }
 
@@ -481,7 +484,7 @@ export class SalonBillsService {
   /** Refuses a package or membership whose own bill was voided or returned. */
   async assertSaleAlive(tenantId: string, saleNumber: string, label: string) {
     const sale = await this.prisma.sale.findFirst({ where: { tenantId, saleNumber }, select: { status: true } });
-    if (sale && DEAD_SALE.includes(sale.status)) throw new BadRequestException(`${label} ka bill cancel / wapas ho chuka — ye istemal nahi ho sakta`);
+    if (sale && DEAD_SALE.includes(sale.status)) throw new BadRequestException(apiMessage('{{label}} ka bill cancel / wapas ho chuka — ye istemal nahi ho sakta', { label }));
   }
 
   /** Running totals on the service and staff screens; `sign` -1 takes a voided bill back out. */

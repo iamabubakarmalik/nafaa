@@ -8,6 +8,7 @@ import CarpetBulkImportPage from './pages/CarpetBulkImportPage';
 import CarpetProductEditor from './products/CarpetProductEditor';
 import CarpetProductDetail from './products/CarpetProductDetail';
 import CarpetDashboard from './dashboard/CarpetDashboard';
+import { t } from '@core/i18n';
 
 /**
  * Carpet / flooring industry pack: rolls, cut pieces and roll import in the
@@ -19,11 +20,11 @@ import CarpetDashboard from './dashboard/CarpetDashboard';
 export const CarpetPack: IndustryPack = {
   id: 'carpet',
   name: 'Carpet / Flooring',
-  shortName: 'Carpet',
+  shortName: t('Carpet'),
   emoji: '🧶',
   priority: 90,
   description:
-    'Roll-based inventory, cut pieces, length × width calculator, sqft pricing — for carpet, flooring, and matting businesses.',
+    t('Roll-based inventory, cut pieces, length × width calculator, sqft pricing — for carpet, flooring, and matting businesses.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -41,15 +42,15 @@ export const CarpetPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Carpet extras',
+      label: t('Carpet extras'),
       icon: Sparkles,
       emoji: '🧶',
       color: '#059669',
       order: 20,
       items: [
-        { to: '/carpet-rolls',       label: 'Carpet rolls',  icon: Layers },
-        { to: '/carpet-cut-pieces',  label: 'Pieces',         icon: Scissors },
-        { to: '/carpet-bulk-import', label: 'Rolls import',  icon: Download },
+        { to: '/carpet-rolls',       label: t('Carpet rolls'),  icon: Layers },
+        { to: '/carpet-cut-pieces',  label: t('Pieces'),         icon: Scissors },
+        { to: '/carpet-bulk-import', label: t('Rolls import'),  icon: Download },
       ],
     },
   ],
@@ -72,19 +73,19 @@ export const CarpetPack: IndustryPack = {
   productForm: {
     defaultUnit: 'sqft',
     unitOptions: [
-      { value: 'sqft', label: 'Sq ft', hint: '📐', group: 'Area' },
-      { value: 'sqm',  label: 'Sq meter', hint: '📐', group: 'Area' },
-      { value: 'sqyd', label: 'Sq gaz', hint: '📐', group: 'Area' },
-      { value: 'ft',   label: 'Running ft', hint: '📏', group: 'Length' },
-      { value: 'm',    label: 'Running meter', hint: '📏', group: 'Length' },
-      { value: 'pcs',  label: 'Piece (rug)', hint: '🔢', group: 'Count' },
-      { value: 'roll', label: 'Poora roll', hint: '🧻', group: 'Count' },
+      { value: 'sqft', label: t('Sq ft'), hint: '📐', group: t('Area') },
+      { value: 'sqm',  label: t('Sq meter'), hint: '📐', group: t('Area') },
+      { value: 'sqyd', label: t('Sq gaz'), hint: '📐', group: t('Area') },
+      { value: 'ft',   label: t('Running ft'), hint: '📏', group: t('Length') },
+      { value: 'm',    label: t('Running meter'), hint: '📏', group: t('Length') },
+      { value: 'pcs',  label: t('Piece (rug)'), hint: '🔢', group: t('Count') },
+      { value: 'roll', label: t('Poora roll'), hint: '🧻', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'carpetRolls',     label: 'Roll Tracking',    description: 'Per-roll length + width + sqft', defaultEnabled: true },
-    { key: 'carpetCutPieces', label: 'Cut Pieces',       description: 'Track leftover pieces separately', defaultEnabled: true },
-    { key: 'lengthWidthCalc', label: 'L × W Calculator', description: 'Interactive dimension picker in POS', defaultEnabled: true },
+    { key: 'carpetRolls',     label: t('Roll Tracking'),    description: t('Per-roll length + width + sqft'), defaultEnabled: true },
+    { key: 'carpetCutPieces', label: t('Cut Pieces'),       description: t('Track leftover pieces separately'), defaultEnabled: true },
+    { key: 'lengthWidthCalc', label: t('L × W Calculator'), description: t('Interactive dimension picker in POS'), defaultEnabled: true },
   ],
 };

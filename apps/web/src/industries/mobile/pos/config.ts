@@ -34,6 +34,7 @@ import { ImeiPicker } from './ImeiPicker';
 import { CATALOG_KEY, useLiveCatalog } from './liveCatalog';
 import { CounterNotes } from './CounterNotes';
 import { RepairHandover } from './RepairHandover';
+import { t as tr } from '@core/i18n';
 
 type Kind = 'phone' | 'used' | 'accessory' | 'repair';
 const kindOf = (it: PosItem) => it.meta?.kind as Kind | undefined;
@@ -65,8 +66,8 @@ function phoneItems(phones: PosPhone[]): PosItem[] {
       searchText: [first.brandName, ...variants, ...list.flatMap((p) => [p.imei1, p.imei2 ?? '', p.color ?? ''])].filter(Boolean).join(' '),
       rank: 0,
       badges: [
-        { label: 'IMEI', tone: 'neutral' as const, icon: Smartphone },
-        ...(unapproved ? [{ label: `${unapproved} PTA baqi`, tone: 'warning' as const, icon: ShieldAlert }] : []),
+        { label: tr('IMEI'), tone: 'neutral' as const, icon: Smartphone },
+        ...(unapproved ? [{ label: tr('{{unapproved}} PTA baqi', { unapproved }), tone: 'warning' as const, icon: ShieldAlert }] : []),
       ],
       subline: [first.brandName, variants.length > 1 ? `${variants.length} variant` : variants[0], `${list.length} phone`].filter(Boolean).join(' · '),
       meta: { kind: 'phone' satisfies Kind, phones: list },
@@ -87,7 +88,7 @@ function usedItems(list: UsedPhone[]): PosItem[] {
       unit: 'pcs',
       searchText: [u.usedPhoneCode, u.imei1, u.imei2 ?? '', u.color ?? '', 'used'].join(' '),
       rank: 1,
-      badges: [{ label: 'Used', tone: 'info' as const, icon: Recycle }],
+      badges: [{ label: tr('Used'), tone: 'info' as const, icon: Recycle }],
       subline: [u.usedPhoneCode, CONDITION_LABELS[u.condition], PTA_STATUS_LABELS[u.ptaStatus]].filter(Boolean).join(' · '),
       meta: { kind: 'used' satisfies Kind, used: u },
     };
@@ -163,14 +164,14 @@ function useMobileTradeIns(): PosTradeIn[] {
 /** Phones, used phones and repair hand-overs are checked on the server, so they need a connection. */
 function needsInternet(what: string) {
   if (navigator.onLine) return false;
-  toast.error(`Internet nahi — ${what} sirf online hota hai. Accessories offline bik sakti hain.`);
+  toast.error(tr('Internet nahi — {{what}} sirf online hota hai. Accessories offline bik sakti hain.', { what }));
   return true;
 }
 
 /** Puts one exact phone on the bill, after a check when it is not PTA approved. */
 async function addPhone(item: PosItem, p: PosPhone, api: PosEngineApi, opts: AddOptions = {}) {
   if ((p.ptaStatus === 'NON_PTA' || p.ptaStatus === 'PENDING')
-    && !(await confirmDialog({ title: `${item.name} (${p.imei1}) ${PTA_STATUS_LABELS[p.ptaStatus]} hai. Customer ko bata diya?`, text: 'Bill me daalein?' }))) return;
+    && !(await confirmDialog({ title: tr('{{name}} ({{imei1}}) {{value}} hai. Customer ko bata diya?', { name: item.name, imei1: p.imei1, value: PTA_STATUS_LABELS[p.ptaStatus] }), text: tr('Bill me daalein?') }))) return;
   api.addItem(item, {
     ...opts,
     imei: { id: p.id, imei1: p.imei1, imei2: p.imei2 ?? null },
@@ -182,7 +183,7 @@ async function addPhone(item: PosItem, p: PosPhone, api: PosEngineApi, opts: Add
 }
 
 function addUsed(item: PosItem, api: PosEngineApi) {
-  if (needsInternet('used phone bechna')) return;
+  if (needsInternet(tr('used phone bechna'))) return;
   const u = item.meta?.used as UsedPhone;
   api.addUsedPhone({
     usedPhoneId: u.id, code: u.usedPhoneCode, name: item.name, price: item.price,
@@ -191,7 +192,7 @@ function addUsed(item: PosItem, api: PosEngineApi) {
 }
 
 function handOver(item: PosItem, api: PosEngineApi) {
-  if (needsInternet('repair wapas dena')) return;
+  if (needsInternet(tr('repair wapas dena'))) return;
   api.openPicker(createElement(RepairHandover, { ticket: item.meta?.ticket as RepairTicket, onClose: api.closePicker }));
 }
 
@@ -199,15 +200,15 @@ function handOver(item: PosItem, api: PosEngineApi) {
 export const mobileSaleListener: { current: ((sale: PosSavedSale) => void) | null } = { current: null };
 
 const filters: PosFilter[] = [
-  { id: 'phones', label: 'Naye phone', icon: Smartphone, match: (i) => kindOf(i) === 'phone' },
-  { id: 'used', label: 'Used phone', icon: Recycle, match: (i) => kindOf(i) === 'used' },
-  { id: 'accessories', label: 'Accessories', icon: Headphones, match: (i) => kindOf(i) === 'accessory' },
-  { id: 'repairs', label: 'Repair wapsi', icon: Wrench, match: (i) => kindOf(i) === 'repair' },
+  { id: 'phones', label: tr('Naye phone'), icon: Smartphone, match: (i) => kindOf(i) === 'phone' },
+  { id: 'used', label: tr('Used phone'), icon: Recycle, match: (i) => kindOf(i) === 'used' },
+  { id: 'accessories', label: tr('Accessories'), icon: Headphones, match: (i) => kindOf(i) === 'accessory' },
+  { id: 'repairs', label: tr('Repair wapsi'), icon: Wrench, match: (i) => kindOf(i) === 'repair' },
 ];
 
 export const mobilePos: PosIndustryConfig = {
   id: 'mobile',
-  label: 'Mobile shop',
+  label: tr('Mobile shop'),
   useCatalog: useMobileCatalog,
   useTradeIns: useMobileTradeIns,
   quickKeys: true,
@@ -215,11 +216,11 @@ export const mobilePos: PosIndustryConfig = {
   voice: false,
   filters,
   CartExtra: CounterNotes,
-  searchHint: 'Model, accessory, job number — ya IMEI / barcode scan karein',
+  searchHint: tr('Model, accessory, job number — ya IMEI / barcode scan karein'),
   receiptFooter: 'Warranty ke liye ye bill aur dabba sambhaal kar rakhein. Paani ya tootne ka nuqsan warranty me nahi.',
   // A phone line is checked on the server when sold, so such a bill is never queued offline.
   beforeCheckout: (cart) => (!navigator.onLine && cart.some((l) => l.imeiId || l.usedPhoneId)
-    ? 'Internet nahi — phone wala bill online hi banta hai'
+    ? tr('Internet nahi — phone wala bill online hi banta hai')
     : null),
   onSale: (sale) => mobileSaleListener.current?.(sale),
   beforeAdd: (item, opts, api) => {
@@ -227,9 +228,9 @@ export const mobilePos: PosIndustryConfig = {
     if (kind === 'used') { addUsed(item, api); return 'handled'; }
     if (kind === 'repair') { handOver(item, api); return 'handled'; }
     if (kind === 'phone' && !opts.imei) {
-      if (needsInternet('naya phone (IMEI) bechna')) return 'handled';
+      if (needsInternet(tr('naya phone (IMEI) bechna'))) return 'handled';
       const phones = phonesOf(item);
-      if (!phones.length) { toast.error(`${item.name} — koi phone stock me nahi`); return 'handled'; }
+      if (!phones.length) { toast.error(tr('{{name}} — koi phone stock me nahi', { name: item.name })); return 'handled'; }
       const inCart = new Set(api.cart.map((l) => l.imeiId).filter((x): x is string => !!x));
       api.openPicker(createElement(ImeiPicker, {
         name: item.name, phones, inCart,
@@ -249,7 +250,7 @@ export const mobilePos: PosIndustryConfig = {
       const kind = kindOf(it);
       if (kind === 'phone') {
         const p = phonesOf(it).find((x) => x.imei1 === c || x.imei2 === c);
-        if (p) { if (!needsInternet('naya phone (IMEI) bechna')) addPhone(it, p, api); return true; }
+        if (p) { if (!needsInternet(tr('naya phone (IMEI) bechna'))) addPhone(it, p, api); return true; }
       } else if (kind === 'used') {
         const u = it.meta?.used as UsedPhone;
         if (u.imei1 === c || u.imei2 === c || u.usedPhoneCode.toLowerCase() === lower) { addUsed(it, api); return true; }

@@ -1,13 +1,14 @@
 import type { ProjectStatus } from '../api/projects.api';
+import { t } from '@core/i18n';
 
 export const PROJECT_STATUS: Record<ProjectStatus, { label: string; tone: string }> = {
-  PLANNING: { label: 'Shuru hone wali', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  QUOTED: { label: 'Quotation de di', tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
-  APPROVED: { label: 'Pakki ho gayi', tone: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  ON_HOLD: { label: 'Ruki hui', tone: 'bg-orange-50 text-orange-800 ring-orange-200' },
-  COMPLETED: { label: 'Mukammal', tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  CANCELLED: { label: 'Band', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  PLANNING: { label: t('Shuru hone wali'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  QUOTED: { label: t('Quotation de di'), tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  APPROVED: { label: t('Pakki ho gayi'), tone: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
+  IN_PROGRESS: { label: t('Kaam chal raha'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  ON_HOLD: { label: t('Ruki hui'), tone: 'bg-orange-50 text-orange-800 ring-orange-200' },
+  COMPLETED: { label: t('Mukammal'), tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  CANCELLED: { label: t('Band'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 /** Moves offered on a site, in working order. */

@@ -16,6 +16,7 @@ import { getReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import type { Purchase } from '../api/purchases.api';
+import { t } from '@core/i18n';
 
 type Kind = 'bill' | 'order' | 'grn';
 interface Opts {
@@ -34,6 +35,7 @@ interface Opts {
 }
 
 const STORE = 'nafaa-purchase-print';
+// i18n-ignore: printed/sent in the shop's language
 const TITLES: Record<Kind, string> = { bill: 'PURCHASE BILL', order: 'PURCHASE ORDER', grn: 'GOODS RECEIVED' };
 const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
@@ -68,6 +70,7 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
     return {
       saleNumber: p.purchaseNumber,
       date: new Date(p.purchasedAt),
+      // i18n-ignore: printed/sent in the shop's language
       partyLabel: 'Supplier',
       signLabels: o.kind === 'grn' ? ['Maal dene wala', 'Maal lene wala (dukaan)'] : ['Supplier ke dastkhat', 'Dukaan ki mohar / dastkhat'],
       customerName: p.supplier.name,
@@ -77,8 +80,11 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
       cashierName: p.createdBy?.fullName,
       branchName: p.shop?.name,
       infoRows: [
+        // i18n-ignore: printed/sent in the shop's language
         ...(p.supplierInvoiceNo ? [{ label: 'Supplier bill #', value: p.supplierInvoiceNo }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...(o.kind === 'order' && p.expectedAt ? [{ label: 'Maal chahiye', value: day(p.expectedAt), bold: true }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...(p.dueDate && o.prices ? [{ label: 'Payment tak', value: day(p.dueDate) }] : []),
       ],
       lines: p.items.map((i) => {
@@ -97,18 +103,24 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
       subtotal: p.subtotal,
       discount: p.discount,
       extraRows: [
+        // i18n-ignore: printed/sent in the shop's language
         ...((p.otherCharges ?? 0) > 0 ? [{ label: 'Kiraya / loading', value: `+Rs ${Math.round(p.otherCharges!).toLocaleString('en-PK')}` }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...((p.taxAmount ?? 0) > 0 ? [{ label: 'Tax', value: `+Rs ${Math.round(p.taxAmount!).toLocaleString('en-PK')}` }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...((p.returnedAmount ?? 0) > 0 && o.kind === 'bill' ? [{ label: 'Maal wapas', value: `−Rs ${Math.round(p.returnedAmount!).toLocaleString('en-PK')}` }] : []),
       ],
       total: amount,
       paid: o.kind === 'order' ? amount : p.paidAmount,
+      // i18n-ignore: printed/sent in the shop's language
       paymentLabel: o.kind === 'order' ? 'Order ki amount' : `Diye (${method})`,
       hidePrices: !o.prices,
       footerNote: o.notes && p.notes ? p.notes : undefined,
       boxes: o.supplierBank && (s.bankName || s.accountNumber || s.iban)
+        // i18n-ignore: printed/sent in the shop's language
         ? [{ title: 'Supplier ka bank', lines: [s.bankName, s.accountNumber && `A/C ${s.accountNumber}`, s.iban && `IBAN ${s.iban}`].filter(Boolean) as string[] }]
         : undefined,
+      // i18n-ignore: printed/sent in the shop's language
       stamp: p.status === 'CANCELLED' ? 'CANCEL' : undefined,
     };
   }, [p, o]);
@@ -123,43 +135,43 @@ export function PurchasePrintModal({ p, onClose }: { p: Purchase; onClose: () =>
   );
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Print — kya chhape" description="Chunein aur saath preview dekhein; pasand is device par yaad rahegi"
+    <Modal open onClose={onClose} size="xl" title={t('Print — kya chhape')} description={t('Chunein aur saath preview dekhein; pasand is device par yaad rahegi')}
       footer={<>
-        <span className="mr-auto text-[0.75rem] text-slate-500">PDF chahiye to print me "Save as PDF" chunein</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>Print{o.copies > 1 ? ` (${o.copies})` : ''}</Button>
+        <span className="me-auto text-[0.75rem] text-slate-500">{t('PDF chahiye to print me "Save as PDF" chunein')}</span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>{t('Print{{value}}', { value: o.copies > 1 ? ` (${o.copies})` : '' })}</Button>
       </>}>
       <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <div className="space-y-4">
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kya hai</p>
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Kya hai')}</p>
             <div className="grid grid-cols-3 gap-1">
-              {([['bill', 'Bill'], ['order', 'Order'], ['grn', 'Maal receiving']] as const).map(([k, l]) => (
+              {([['bill', t('Bill')], ['order', t('Order')], ['grn', t('Maal receiving')]] as const).map(([k, l]) => (
                 <button key={k} type="button" onClick={() => setO((x) => ({ ...x, kind: k, prices: k === 'order' ? false : x.prices }))} aria-pressed={o.kind === k}
                   className={cn('rounded-lg px-2 py-2 text-[0.8125rem] font-medium ring-1 transition', o.kind === k ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-700 ring-slate-200')}>{l}</button>
               ))}
             </div>
-            <p className="mt-1 text-[0.6875rem] text-slate-500">{o.kind === 'order' ? 'Supplier ko bhejne ke liye — kya chahiye' : o.kind === 'grn' ? 'Jo maal asal me aaya, dastkhat ke saath' : 'Poora bill amount ke saath'}</p>
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{o.kind === 'order' ? t('Supplier ko bhejne ke liye — kya chahiye') : o.kind === 'grn' ? t('Jo maal asal me aaya, dastkhat ke saath') : t('Poora bill amount ke saath')}</p>
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kaghaz</p>
-            <Segmented label="Kaghaz" value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: 'A4' }, { value: '80', label: '80mm' }, { value: '58', label: '58mm' }]} />
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Kaghaz')}</p>
+            <Segmented label={t('Kaghaz')} value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: t('A4') }, { value: '80', label: t('80mm') }, { value: '58', label: t('58mm') }]} />
           </div>
           <div>
-            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Bill par</p>
-            <Toggle k="prices" label="Rates aur amount" hint="Order bhejte waqt chhupa sakte hain" />
-            <Toggle k="supplier" label="Supplier ka pata, phone, NTN" />
-            <Toggle k="supplierBank" label="Supplier ka bank account" hint="Payment karne wale ke liye" />
-            <Toggle k="ourAccounts" label="Hamare payment accounts" hint="Settings → Raseed wale accounts" />
-            <Toggle k="batch" label="Batch aur expiry" />
-            <Toggle k="notes" label="Bill ka note" />
-            <Toggle k="terms" label="Shartein (Settings se)" />
-            <Toggle k="signature" label="Dastkhat ki jagah (A4)" />
-            <Toggle k="logo" label="Logo" />
+            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Bill par')}</p>
+            <Toggle k="prices" label={t('Rates aur amount')} hint={t('Order bhejte waqt chhupa sakte hain')} />
+            <Toggle k="supplier" label={t('Supplier ka pata, phone, NTN')} />
+            <Toggle k="supplierBank" label={t('Supplier ka bank account')} hint={t('Payment karne wale ke liye')} />
+            <Toggle k="ourAccounts" label={t('Hamare payment accounts')} hint={t('Settings → Raseed wale accounts')} />
+            <Toggle k="batch" label={t('Batch aur expiry')} />
+            <Toggle k="notes" label={t('Bill ka note')} />
+            <Toggle k="terms" label={t('Shartein (Settings se)')} />
+            <Toggle k="signature" label={t('Dastkhat ki jagah (A4)')} />
+            <Toggle k="logo" label={t('Logo')} />
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Copies</p>
-            <Segmented label="Copies" value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Copies')}</p>
+            <Segmented label={t('Copies')} value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
           </div>
         </div>
         <div className="max-h-[70vh] overflow-auto rounded-2xl bg-slate-100 p-3">

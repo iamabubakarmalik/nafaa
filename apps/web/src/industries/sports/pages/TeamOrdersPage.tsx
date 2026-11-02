@@ -30,17 +30,18 @@ import { teamOrdersApi, type SportsTeamOrder, type TeamQuery, type TeamView } fr
 import { TEAM_KEY, TEAM_STATUS, dayOnly } from '../components/meta';
 import { TeamOrderModal } from '../components/TeamOrderModal';
 import { EmptyBlock, Pager, StatusPill, card, fetchAll, useDebounced, useListKeys } from '../components/ui';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 25;
 const TABS: Array<{ id: TeamView; label: string; icon: typeof ListChecks }> = [
-  { id: 'active', label: 'Chalu', icon: ListChecks },
-  { id: 'quote', label: 'Rate / kacha', icon: FileText },
-  { id: 'production', label: 'Ban raha', icon: Factory },
-  { id: 'ready', label: 'Tayyar', icon: PackageCheck },
-  { id: 'late', label: 'Late', icon: AlarmClock },
-  { id: 'unpaid', label: 'Paise baqi', icon: Wallet },
-  { id: 'done', label: 'Mukammal / cancel', icon: CheckCircle2 },
-  { id: 'all', label: 'Sab', icon: ClipboardList },
+  { id: 'active', label: tr('Chalu'), icon: ListChecks },
+  { id: 'quote', label: tr('Rate / kacha'), icon: FileText },
+  { id: 'production', label: tr('Ban raha'), icon: Factory },
+  { id: 'ready', label: tr('Tayyar'), icon: PackageCheck },
+  { id: 'late', label: tr('Late'), icon: AlarmClock },
+  { id: 'unpaid', label: tr('Paise baqi'), icon: Wallet },
+  { id: 'done', label: tr('Mukammal / cancel'), icon: CheckCircle2 },
+  { id: 'all', label: tr('Sab'), icon: ClipboardList },
 ];
 
 const isLate = (o: SportsTeamOrder) => ['CONFIRMED', 'IN_PRODUCTION', 'READY'].includes(o.status) && !!o.expectedDeliveryDate
@@ -75,29 +76,29 @@ export default function TeamOrdersPage() {
   const newOrder = useCallback(() => { if (canCreate) navigate('/sports/team-orders/new'); }, [canCreate, navigate]);
   useListKeys(searchRef, newOrder);
 
-  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const label = range ? rangeLabel(range.from, range.to) : tr('Sab waqt');
   const all = () => fetchAll((p) => teamOrdersApi.page({ ...query, page: p, limit: 100 }));
   const exportCsv = async () => {
     setExporting(true);
     try {
       const rows = await all();
-      if (!rows.length) { toast.error('Is filter me koi order nahi'); return; }
+      if (!rows.length) { toast.error(tr('Is filter me koi order nahi')); return; }
       downloadCsv('team-orders.csv', [
-        ['Order', 'Date', 'Team', 'Idara', 'Rabta', 'Phone', 'Piece', 'Players', 'Delivery', 'Kul', 'Advance', 'Baqi', 'Status'],
+        [tr('Order'), tr('Date'), tr('Team'), tr('Idara'), tr('Rabta'), tr('Phone'), tr('Piece'), tr('Players'), tr('Delivery'), tr('Kul'), tr('Advance'), tr('Baqi'), tr('Status')],
         ...rows.map((o) => [o.orderNumber, o.createdAt.slice(0, 10), o.teamName, o.organization, o.contactPerson, o.contactPhone, o.totalQuantity,
           o.playerNames?.length ?? 0, o.expectedDeliveryDate?.slice(0, 10), o.totalAmount, o.advancePaid, o.balanceAmount, TEAM_STATUS[o.status]?.label]),
       ]);
-      toast.success(`${rows.length} orders CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} orders CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await all();
     return {
-      title: 'Team orders', subtitle: `${TABS.find((t) => t.id === tab)?.label} · ${label}`,
-      meta: [['Orders', String(rows.length)], ['Kul', money(data?.totals.value ?? 0)], ['Baqi', money(data?.totals.due ?? 0)]],
+      title: tr('Team orders'), subtitle: `${TABS.find((t) => t.id === tab)?.label} · ${label}`,
+      meta: [[tr('Orders'), String(rows.length)], [tr('Kul'), money(data?.totals.value ?? 0)], [tr('Baqi'), money(data?.totals.due ?? 0)]],
       sections: [{
-        kind: 'table', title: 'Orders',
-        columns: [{ label: 'Order' }, { label: 'Team' }, { label: 'Delivery', wideOnly: true }, { label: 'Kul', align: 'right' }, { label: 'Baqi', align: 'right' }, { label: 'Status', wideOnly: true }],
+        kind: 'table', title: tr('Orders'),
+        columns: [{ label: tr('Order') }, { label: tr('Team') }, { label: tr('Delivery'), wideOnly: true }, { label: tr('Kul'), align: 'right' }, { label: tr('Baqi'), align: 'right' }, { label: tr('Status'), wideOnly: true }],
         rows: rows.map((o) => [o.orderNumber, o.teamName, dayOnly(o.expectedDeliveryDate), money(o.totalAmount), money(o.balanceAmount), TEAM_STATUS[o.status]?.label ?? o.status]),
       }],
     };
@@ -111,59 +112,59 @@ export default function TeamOrdersPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Team orders — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Team orders — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Users, color: '#2563eb', title: 'Order likhein', text: 'Team / school, rabte wala, kit ka maal aur har piece ki printing. Players ke naam, number aur size list me daalein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance team ke khate me jama hota hai aur aaj ke cash me ginta hai. Baad ki payment "Payment lein" se.' },
-            { icon: Factory, color: '#7c3aed', title: 'Kaam ka haal', text: 'Rate diya → Pakka → Ban raha → Tayyar. Tayyar hone par WhatsApp se team ko batayein.' },
-            { icon: PackageCheck, color: '#ea580c', title: 'Deliver + bill', text: 'Deliver par bill banta hai, stock nikalta hai aur advance bill me lag jata hai. Baqi team ke khate me udhaar.' },
-            { icon: Ban, color: '#e11d48', title: 'Cancel', text: 'Cancel par advance khate me rehta hai; "Advance wapas" se cash lautayein (Return ki permission chahiye).' },
+            { icon: Users, color: '#2563eb', title: tr('Order likhein'), text: tr('Team / school, rabte wala, kit ka maal aur har piece ki printing. Players ke naam, number aur size list me daalein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance'), text: tr('Advance team ke khate me jama hota hai aur aaj ke cash me ginta hai. Baad ki payment "Payment lein" se.') },
+            { icon: Factory, color: '#7c3aed', title: tr('Kaam ka haal'), text: tr('Rate diya → Pakka → Ban raha → Tayyar. Tayyar hone par WhatsApp se team ko batayein.') },
+            { icon: PackageCheck, color: '#ea580c', title: tr('Deliver + bill'), text: tr('Deliver par bill banta hai, stock nikalta hai aur advance bill me lag jata hai. Baqi team ke khate me udhaar.') },
+            { icon: Ban, color: '#e11d48', title: tr('Cancel'), text: tr('Cancel par advance khate me rehta hai; "Advance wapas" se cash lautayein (Return ki permission chahiye).') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya order'], ['G', 'guide']]} />
+          shortcuts={[['/', tr('search')], ['N', tr('naya order')], ['G', tr('guide')]]} />
       )}
 
-      <PageHero title="Team orders" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
-        meta="School, club aur team ki kit — naam / number printing, advance aur delivery"
+      <PageHero title={tr('Team orders')} chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta={tr('School, club aur team ki kit — naam / number printing, advance aur delivery')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canCreate && <Link to="/sports/team-orders/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya order</Link>}
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <Link to="/sports/team-orders/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya order')}</Link>}
         </>}
         stats={[
-          { label: 'Is filter ki value', value: money(data?.totals.value ?? 0) },
-          { label: 'Advance mila', value: money(data?.totals.advance ?? 0) },
-          { label: 'Baqi', value: money(data?.totals.due ?? 0) },
+          { label: tr('Is filter ki value'), value: money(data?.totals.value ?? 0) },
+          { label: tr('Advance mila'), value: money(data?.totals.advance ?? 0) },
+          { label: tr('Baqi'), value: money(data?.totals.due ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={FileText} color="#0284c7" label="Rate / kacha" value={c.quote} hint="Pakka karwana hai" onClick={() => go('quote')} active={tab === 'quote'} />
-            <KpiCard icon={Factory} color="#7c3aed" label="Ban raha / printing" value={c.production} onClick={() => go('production')} active={tab === 'production'} />
-            <KpiCard icon={PackageCheck} color="#16a34a" label="Tayyar" value={c.ready} hint="Team ko batayein" onClick={() => go('ready')} active={tab === 'ready'} />
-            <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={c.late} hint="Delivery ki date guzar gayi" onClick={() => go('late')} active={tab === 'late'} />
+            <KpiCard icon={FileText} color="#0284c7" label={tr('Rate / kacha')} value={c.quote} hint={tr('Pakka karwana hai')} onClick={() => go('quote')} active={tab === 'quote'} />
+            <KpiCard icon={Factory} color="#7c3aed" label={tr('Ban raha / printing')} value={c.production} onClick={() => go('production')} active={tab === 'production'} />
+            <KpiCard icon={PackageCheck} color="#16a34a" label={tr('Tayyar')} value={c.ready} hint={tr('Team ko batayein')} onClick={() => go('ready')} active={tab === 'ready'} />
+            <KpiCard icon={AlarmClock} color="#e11d48" label={tr('Late')} value={c.late} hint={tr('Delivery ki date guzar gayi')} onClick={() => go('late')} active={tab === 'late'} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Order number, team, school, rabta, phone ya PO…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Order number, team, school, rabta, phone ya PO…')} />}
         chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined}
         onClear={() => setSearch('')}>
-        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Order date" />
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label={tr('Order date')} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={go} hint={<>Order par click kar ke kholein</>}
+      <ViewTabs value={tab} onChange={go} hint={<>{tr('Order par click kar ke kholein')}</>}
         tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
 
       <section className={card}>
         {isLoading ? (
           <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : items.length === 0 ? (
-          <EmptyBlock icon={Shirt} title={search || tab !== 'active' ? 'Is filter me koi order nahi' : 'Abhi koi chalu order nahi'}
-            text="School ya club ki kit ka order yahan likhein — printing list, advance aur delivery sab ek jagah."
-            action={canCreate ? <Link to="/sports/team-orders/new" className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya order</Link> : undefined} />
+          <EmptyBlock icon={Shirt} title={search || tab !== 'active' ? tr('Is filter me koi order nahi') : tr('Abhi koi chalu order nahi')}
+            text={tr('School ya club ki kit ka order yahan likhein — printing list, advance aur delivery sab ek jagah.')}
+            action={canCreate ? <Link to="/sports/team-orders/new" className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya order')}</Link> : undefined} />
         ) : (
           <ul className="divide-y divide-slate-100">
             {items.map((o) => {
@@ -172,7 +173,7 @@ export default function TeamOrdersPage() {
               return (
                 <li key={o.id}>
                   <button type="button" onClick={() => setOpenId(o.id)}
-                    className="grid w-full gap-2 px-4 py-3 text-left hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.3fr)_minmax(0,1.4fr)_8rem_10rem_9rem] lg:items-center">
+                    className="grid w-full gap-2 px-4 py-3 text-start hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.3fr)_minmax(0,1.4fr)_8rem_10rem_9rem] lg:items-center">
                     <div>
                       <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{o.orderNumber}</p>
                       <p className="text-[0.75rem] text-slate-500">{dayOnly(o.createdAt)}</p>
@@ -183,15 +184,15 @@ export default function TeamOrdersPage() {
                     </div>
                     <p className="min-w-0 truncate text-[0.8125rem] text-slate-600">
                       {o.items.map((i) => `${i.productName}${i.size ? ` ${i.size}` : ''} ×${i.quantity}`).join(', ')}
-                      {(o.playerNames?.length ?? 0) > 0 && <span className="ml-1 text-violet-700">· {o.playerNames!.length} naam printing</span>}
+                      {(o.playerNames?.length ?? 0) > 0 && <span className="ms-1 text-violet-700">{tr('· {{count}} naam printing', { count: o.playerNames!.length })}</span>}
                     </p>
                     <p className={cn('text-[0.8125rem]', late ? 'font-semibold text-rose-600' : 'text-slate-600')}>
-                      {o.expectedDeliveryDate ? `${late ? 'Late · ' : ''}${dayOnly(o.expectedDeliveryDate)}` : 'Date tay nahi'}
+                      {o.expectedDeliveryDate ? `${late ? 'Late · ' : ''}${dayOnly(o.expectedDeliveryDate)}` : tr('Date tay nahi')}
                     </p>
-                    <div className="text-[0.8125rem] lg:text-right">
+                    <div className="text-[0.8125rem] lg:text-end">
                       <p className="font-semibold tabular-nums text-slate-900">{money(o.totalAmount)}</p>
                       <p className={cn('tabular-nums', o.balanceAmount > 0 && o.status !== 'CANCELLED' ? 'text-amber-700' : 'text-slate-500')}>
-                        {o.status === 'CANCELLED' ? '—' : o.balanceAmount > 0 ? `Baqi ${money(o.balanceAmount)}` : 'Poora mila'}
+                        {o.status === 'CANCELLED' ? '—' : o.balanceAmount > 0 ? tr('Baqi {{balanceAmount}}', { balanceAmount: money(o.balanceAmount) }) : tr('Poora mila')}
                       </p>
                     </div>
                     <span className="lg:justify-self-end"><StatusPill tone={st.tone}>{st.label}</StatusPill></span>

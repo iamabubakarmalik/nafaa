@@ -8,6 +8,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { clockOf, inWindow } from '../menu-items/time-window';
 import { round2 } from '../recipes/recipe-units';
 import { UpsertHappyHourDto } from './dto/upsert-happy-hour.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** A bill line to price: menu price per plate before any discount. */
 export interface HappyLine { productId: string; quantity: number; unitPrice: number }
@@ -69,7 +70,7 @@ export class HappyHoursService {
         pct = cheapest ? Math.min(100, (dto.discountValue / cheapest.price) * 100) : 0;
       }
       if (pct > limit + 0.01) {
-        throw new ForbiddenException(`Dukaan me discount ki had ${limit}% hai — is se zyada wala happy hour malik ya "Had se zyada discount" wala bana sakta hai`);
+        throw new ForbiddenException(apiMessage('Dukaan me discount ki had {{limit}}% hai — is se zyada wala happy hour malik ya "Had se zyada discount" wala bana sakta hai', { limit }));
       }
     }
     return {

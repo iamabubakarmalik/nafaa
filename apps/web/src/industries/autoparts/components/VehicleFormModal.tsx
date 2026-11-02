@@ -11,6 +11,7 @@ import type { CustomerVehicle, FuelType, VehicleInput } from '../api/customer-ve
 import { vehicleMakesApi } from '../api/vehicle-makes.api';
 import { vehicleModelsApi, type VehicleType } from '../api/vehicle-models.api';
 import { FUEL, MAKES_KEY, MODELS_KEY, VEHICLE_TYPES, digits, plate, vehicleTypeOf } from './meta';
+import { t as tr } from '@core/i18n';
 
 const day = (iso?: string | null) => (iso ? iso.slice(0, 10) : '');
 
@@ -33,9 +34,9 @@ export function VehicleFormModal({ vehicle, pending, onSave, onClose }: {
   const models = useQuery({ queryKey: [MODELS_KEY, f.makeId], queryFn: () => vehicleModelsApi.list({ makeId: f.makeId, active: true }), enabled: !!f.makeId, staleTime: 5 * 60_000 });
 
   const errors: Record<string, string> = {};
-  if (plate(f.reg).length < 3) errors.reg = 'Gaari ka number likhein';
-  if (f.year && (Number(f.year) < 1950 || Number(f.year) > new Date().getFullYear() + 1)) errors.year = 'Saal sahi likhein';
-  if (f.phone && digits(f.phone).length < 10) errors.phone = 'Phone poora likhein';
+  if (plate(f.reg).length < 3) errors.reg = tr('Gaari ka number likhein');
+  if (f.year && (Number(f.year) < 1950 || Number(f.year) > new Date().getFullYear() + 1)) errors.year = tr('Saal sahi likhein');
+  if (f.phone && digits(f.phone).length < 10) errors.phone = tr('Phone poora likhein');
   const err = (k: string) => (touched ? errors[k] : undefined);
 
   const submit = () => {
@@ -53,40 +54,40 @@ export function VehicleFormModal({ vehicle, pending, onSave, onClose }: {
   };
 
   return (
-    <Modal open onClose={onClose} size="lg" title={vehicle ? `Gaari badlein — ${vehicle.registrationNumber}` : 'Nayi gaari darj karein'}
-      description="Malik ka phone likhein to gaari us ke khata se jur jati hai"
+    <Modal open onClose={onClose} size="lg" title={vehicle ? tr('Gaari badlein — {{registrationNumber}}', { registrationNumber: vehicle.registrationNumber }) : tr('Nayi gaari darj karein')}
+      description={tr('Malik ka phone likhein to gaari us ke khata se jur jati hai')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={pending}>{vehicle ? 'Save' : 'Darj karein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={pending}>{vehicle ? tr('Save') : tr('Darj karein')}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Gaari ka number" required value={f.reg} onChange={(e) => set({ reg: e.target.value.toUpperCase() })} autoFocus placeholder="LEA-1234" error={err('reg')} />
-          <Select label="Gaari ki type" value={f.type} onChange={(e) => set({ type: e.target.value as VehicleType })} options={VEHICLE_TYPES.map((v) => ({ value: v, label: vehicleTypeOf(v) }))} />
-          <Select label="Fuel" value={f.fuel} onChange={(e) => set({ fuel: e.target.value as FuelType })} options={FUEL} />
-          <Select label="Company" value={f.makeId} placeholder={f.makeName && !f.makeId ? f.makeName : 'Chunein'}
+          <Input label={tr('Gaari ka number')} required value={f.reg} onChange={(e) => set({ reg: e.target.value.toUpperCase() })} autoFocus placeholder={tr('LEA-1234')} error={err('reg')} />
+          <Select label={tr('Gaari ki type')} value={f.type} onChange={(e) => set({ type: e.target.value as VehicleType })} options={VEHICLE_TYPES.map((v) => ({ value: v, label: vehicleTypeOf(v) }))} />
+          <Select label={tr('Fuel')} value={f.fuel} onChange={(e) => set({ fuel: e.target.value as FuelType })} options={FUEL} />
+          <Select label={tr('Company')} value={f.makeId} placeholder={f.makeName && !f.makeId ? f.makeName : tr('Chunein')}
             onChange={(e) => set({ makeId: e.target.value, makeName: makes.data?.find((m) => m.id === e.target.value)?.name ?? '', modelId: '', modelName: '' })}
             options={(makes.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
-          <Select label="Model" value={f.modelId} disabled={!f.makeId} placeholder={f.modelName && !f.modelId ? f.modelName : 'Chunein'}
+          <Select label={tr('Model')} value={f.modelId} disabled={!f.makeId} placeholder={f.modelName && !f.modelId ? f.modelName : tr('Chunein')}
             onChange={(e) => { const m = models.data?.find((x) => x.id === e.target.value); set({ modelId: e.target.value, modelName: m?.name ?? '', ...(m && { type: m.vehicleType }) }); }}
             options={(models.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
-          <Input label="Saal" inputMode="numeric" value={f.year} onChange={(e) => set({ year: digits(e.target.value).slice(0, 4) })} placeholder="2016" error={err('year')} />
-          <Input label="Rang" value={f.color} onChange={(e) => set({ color: e.target.value })} placeholder="Safed" />
-          <Input label="Meter (km)" inputMode="numeric" value={f.odometer} onChange={(e) => set({ odometer: digits(e.target.value) })} placeholder="84500" />
-          <Input label="Chassis number" value={f.chassis} onChange={(e) => set({ chassis: e.target.value.toUpperCase() })} hint="Marzi hai" />
+          <Input label={tr('Saal')} inputMode="numeric" value={f.year} onChange={(e) => set({ year: digits(e.target.value).slice(0, 4) })} placeholder="2016" error={err('year')} />
+          <Input label={tr('Rang')} value={f.color} onChange={(e) => set({ color: e.target.value })} placeholder={tr('Safed')} />
+          <Input label={tr('Meter (km)')} inputMode="numeric" value={f.odometer} onChange={(e) => set({ odometer: digits(e.target.value) })} placeholder="84500" />
+          <Input label={tr('Chassis number')} value={f.chassis} onChange={(e) => set({ chassis: e.target.value.toUpperCase() })} hint={tr('Marzi hai')} />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Malik ka naam" value={f.owner} onChange={(e) => set({ owner: e.target.value })} placeholder="Bilal Ahmad" />
-          <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03001234567" error={err('phone')} hint="Reminder WhatsApp isi par" />
-          <Input label="CNIC" inputMode="numeric" value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} hint="Marzi hai" />
+          <Input label={tr('Malik ka naam')} value={f.owner} onChange={(e) => set({ owner: e.target.value })} placeholder={tr('Bilal Ahmad')} />
+          <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03001234567" error={err('phone')} hint={tr('Reminder WhatsApp isi par')} />
+          <Input label={tr('CNIC')} inputMode="numeric" value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} hint={tr('Marzi hai')} />
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <Input label="Insurance company" value={f.insurer} onChange={(e) => set({ insurer: e.target.value })} placeholder="Adamjee" />
-          <Input label="Insurance khatam" type="date" value={f.insurance} onChange={(e) => set({ insurance: e.target.value })} />
-          <Input label="Token tax khatam" type="date" value={f.token} onChange={(e) => set({ token: e.target.value })} />
-          <Input label="Fitness khatam" type="date" value={f.fitness} onChange={(e) => set({ fitness: e.target.value })} hint="Commercial gaari" />
+          <Input label={tr('Insurance company')} value={f.insurer} onChange={(e) => set({ insurer: e.target.value })} placeholder={tr('Adamjee')} />
+          <Input label={tr('Insurance khatam')} type="date" value={f.insurance} onChange={(e) => set({ insurance: e.target.value })} />
+          <Input label={tr('Token tax khatam')} type="date" value={f.token} onChange={(e) => set({ token: e.target.value })} />
+          <Input label={tr('Fitness khatam')} type="date" value={f.fitness} onChange={(e) => set({ fitness: e.target.value })} hint={tr('Commercial gaari')} />
         </div>
-        <Textarea label="Note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Customer hamesha synthetic oil leta hai…" />
+        <Textarea label={tr('Note')} rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder={tr('Customer hamesha synthetic oil leta hai…')} />
       </form>
     </Modal>
   );

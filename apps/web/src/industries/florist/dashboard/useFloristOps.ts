@@ -11,6 +11,7 @@ import type { FloristOrder } from '../api/orders.api';
 import type { WeddingContract } from '../api/wedding-contracts.api';
 import type { FloristSubscription } from '../api/subscriptions.api';
 import type { FloristProductProfile } from '../api/products.api';
+import { t } from '@core/i18n';
 
 const MINUTE = 60_000;
 const DAY = 86_400_000;
@@ -36,7 +37,7 @@ interface FloristOverview {
 }
 
 export const flowerName = (p: Pick<FloristProductProfile, 'flowerType' | 'categoryType'> & { product?: { name?: string } }) =>
-  p.product?.name || p.flowerType || p.categoryType?.replace(/_/g, ' ').toLowerCase() || 'Phool';
+  p.product?.name || p.flowerType || p.categoryType?.replace(/_/g, ' ').toLowerCase() || t('Phool');
 
 export function useFloristOps() {
   const overview = useQuery({

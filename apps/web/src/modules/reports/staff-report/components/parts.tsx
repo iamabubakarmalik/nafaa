@@ -9,6 +9,7 @@ import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/component
 import { cn } from '@core/lib/cn';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { hourLabel } from './meta';
+import { t } from '@core/i18n';
 
 export function Panel({ icon: Icon, title, hint, actions, className, flush, children }: {
   icon: LucideIcon; title: ReactNode; hint?: ReactNode; actions?: ReactNode; className?: string; flush?: boolean; children: ReactNode;
@@ -28,14 +29,14 @@ export function Empty({ text }: { text: string }) {
 /** Change against the previous period; `up` says whether a rise is good. */
 export function Delta({ now, before, up = 'good' }: { now: number; before: number | null | undefined; up?: 'good' | 'bad' }) {
   if (before == null) return null;
-  if (Math.abs(before) < 0.005) return now ? <span className="text-slate-500">pichli dafa 0</span> : null;
+  if (Math.abs(before) < 0.005) return now ? <span className="text-slate-500">{t('pichli dafa 0')}</span> : null;
   const change = ((now - before) / Math.abs(before)) * 100;
-  if (Math.abs(change) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />pehle jaisa</span>;
+  if (Math.abs(change) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />{t('pehle jaisa')}</span>;
   const good = (change > 0) === (up === 'good');
   const Icon = change > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(change).toFixed(0)}% pichli period se
+      <Icon className="h-3.5 w-3.5" />{t('{{value}}% pichli period se', { value: Math.abs(change).toFixed(0) })}
     </span>
   );
 }
@@ -62,13 +63,13 @@ export function HeatGrid({ rows, onRow }: {
       <TBody className="divide-y-0">
         {rows.map((r) => (
           <Tr key={r.key}>
-            <Th scope="row" className="max-w-[8rem] truncate py-0 pl-0 pr-2 text-left font-medium text-slate-600">
+            <Th scope="row" className="max-w-[8rem] truncate py-0 ps-0 pe-2 text-start font-medium text-slate-600">
               {onRow ? <button type="button" onClick={() => onRow(r.key)} className="max-w-full truncate hover:text-brand-700 hover:underline">{r.label}</button> : r.label}
             </Th>
             {hours.map((h) => {
               const v = r.values[h] ?? 0;
               return (
-                <Td key={h} title={`${hourLabel(h)}: ${v} bill`} className="h-6 min-w-[1.4rem] rounded-[0.3125rem] p-0"
+                <Td key={h} title={t('{{hourLabel}}: {{v}} bill', { hourLabel: hourLabel(h), v })} className="h-6 min-w-[1.4rem] rounded-[0.3125rem] p-0"
                   style={{ backgroundColor: v ? theme.primary : theme.isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.12)', opacity: v ? 0.18 + 0.82 * (v / max) : 1 }} />
               );
             })}

@@ -8,6 +8,7 @@ import { apiClient } from '@core/api/client';
 import type { ShopStamp } from '@core/lib/shopScope';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { businessDayKey, cachedDayStartHour } from '@core/lib/business-day';
+import { t as tr } from '@core/i18n';
 
 export type ExpenseStatus = 'PENDING' | 'PAID' | 'CANCELLED';
 export type ExpenseMethod = Extract<PaymentMethod, 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA'>;
@@ -318,16 +319,16 @@ export const expensesApi = {
       const { db, isTempId } = await import('@core/lib/offline/db');
       const { queueGenericMutation } = await import('@core/lib/offline/syncEngine');
       const existing = (await db.expenses.get(id)) as unknown as LocalRow | undefined;
-      if (!existing) return { message: 'Already removed' };
+      if (!existing) return { message: tr('Already removed') };
       if (isTempId(id) && existing._tempId) {
         await db.expenses.delete(id);
         const pendingCreate = await db.syncQueue.where('tempId').equals(id).first();
         if (pendingCreate?.id != null) await db.syncQueue.delete(pendingCreate.id);
-        return { message: 'Removed (was offline-only)' };
+        return { message: tr('Removed (was offline-only)') };
       }
       await db.expenses.update(id, { _localDeleted: true, _localDirty: true } as never);
       await queueGenericMutation({ type: 'DELETE_EXPENSE', payload: {}, endpoint: `/expenses/${id}`, method: 'DELETE' });
-      return { message: 'Queued for delete' };
+      return { message: tr('Queued for delete') };
     }
   },
 };

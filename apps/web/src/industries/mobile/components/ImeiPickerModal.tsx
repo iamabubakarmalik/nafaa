@@ -4,6 +4,7 @@ import { X, ScanLine, Check, AlertCircle, ShieldCheck, Sparkles } from 'lucide-r
 import { imeiApi, type ProductImei, type PtaStatus } from '../api/imei.api';
 import { PtaStatusBadge } from './PtaStatusBadge';
 import { Input, Modal } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 interface Props {
   productId: string;
@@ -46,11 +47,11 @@ export function ImeiPickerModal({
       onClose={onClose}
       size="lg"
       title={productName}
-      description={`IMEI chunein${variantName ? ` · ${variantName}` : ''} · ${imeis.length} mojood · ${filtered.length} dikh rahe`}
+      description={t('IMEI chunein{{value}} · {{count}} mojood · {{count2}} dikh rahe', { value: variantName ? ` · ${variantName}` : '', count: imeis.length, count2: filtered.length })}
       footer={(
-        <span className="mr-auto inline-flex items-center gap-1.5 text-[0.6875rem] text-slate-500">
+        <span className="me-auto inline-flex items-center gap-1.5 text-[0.6875rem] text-slate-500">
           <Sparkles className="h-3 w-3 text-amber-500" />
-          Purana Stock pehle dikhta hai
+          {t('Purana Stock pehle dikhta hai')}
         </span>
       )}
     >
@@ -60,13 +61,13 @@ export function ImeiPickerModal({
           data-autofocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="IMEI / Serial scan karein ya likhein"
+          placeholder={t('IMEI / Serial scan karein ya likhein')}
           className="font-mono"
           leftIcon={<ScanLine className="h-4 w-4 text-blue-600" />}
           rightIcon={search ? (
             <button
               type="button"
-              aria-label="Saaf karein"
+              aria-label={t('Saaf karein')}
               onClick={() => setSearch('')}
               className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-slate-200"
             >
@@ -88,12 +89,12 @@ export function ImeiPickerModal({
               <AlertCircle className="h-7 w-7 text-rose-600" />
             </div>
             <div className="font-bold text-slate-900">
-              {imeis.length === 0 ? 'Koi IMEI mojood nahi' : 'Koi IMEI nahi mila'}
+              {imeis.length === 0 ? t('Koi IMEI mojood nahi') : t('Koi IMEI nahi mila')}
             </div>
             <div className="text-xs text-slate-500 mt-1">
               {imeis.length === 0
-                ? 'Pehle product page se IMEI daalein'
-                : 'Kuch aur likh kar dhoondein'}
+                ? t('Pehle product page se IMEI daalein')
+                : t('Kuch aur likh kar dhoondein')}
             </div>
           </div>
         ) : (
@@ -106,7 +107,7 @@ export function ImeiPickerModal({
                   type="button"
                   onClick={() => !excluded && onSelect(imei)}
                   disabled={excluded}
-                  className={`group w-full text-left rounded-2xl border-2 p-4 transition ${
+                  className={`group w-full text-start rounded-2xl border-2 p-4 transition ${
                     excluded
                       ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
                       : 'bg-white border-slate-200 hover:border-blue-500 hover:shadow-md hover:bg-blue-50/30'
@@ -120,7 +121,7 @@ export function ImeiPickerModal({
                         </span>
                         {excluded && (
                           <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
-                            Bill me hai
+                            {t('Bill me hai')}
                           </span>
                         )}
                         {imei.color && (
@@ -137,12 +138,12 @@ export function ImeiPickerModal({
 
                       {imei.imei2 && (
                         <div className="text-xs text-slate-500 mt-1 font-mono">
-                          IMEI 2: {imei.imei2}
+                          {t('IMEI 2: {{imei2}}', { imei2: imei.imei2 })}
                         </div>
                       )}
                       {imei.serialNumber && (
                         <div className="text-xs text-slate-500 font-mono">
-                          S/N: {imei.serialNumber}
+                          {t('S/N: {{serialNumber}}', { serialNumber: imei.serialNumber })}
                         </div>
                       )}
 
@@ -150,12 +151,12 @@ export function ImeiPickerModal({
                         {imei.warrantyMonths && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-bold">
                             <ShieldCheck className="h-3 w-3" />
-                            {imei.warrantyMonths} mahine warranty
+                            {t('{{warrantyMonths}} mahine warranty', { warrantyMonths: imei.warrantyMonths })}
                           </span>
                         )}
                         {imei.purchasedAt && (
                           <span className="text-slate-500">
-                            Stock me aaya: {new Date(imei.purchasedAt).toLocaleDateString('en-PK')}
+                            {t('Stock me aaya: {{value}}', { value: new Date(imei.purchasedAt).toLocaleDateString('en-PK') })}
                           </span>
                         )}
                       </div>

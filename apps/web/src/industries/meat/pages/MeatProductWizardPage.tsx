@@ -12,6 +12,7 @@ import { Chip, NumberField, Section, TextField, Toggle } from '@modules/inventor
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { meatProductsApi, type AnimalType, type CutCategory, type FreshnessType, type SaleUnit } from '../api/products.api';
 import { ANIMALS, CUTS, KEYS, animalOf, cutLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export interface MeatExtra {
   animalType: AnimalType | '';
@@ -37,8 +38,8 @@ const initial: MeatExtra = {
 };
 
 const FRESH: Array<{ value: FreshnessType; label: string }> = [
-  { value: 'LIVE', label: 'Zinda' }, { value: 'FRESH_SLAUGHTERED', label: 'Taaza zibah' }, { value: 'FRESH_CHILLED', label: 'Thanda (chiller)' },
-  { value: 'FROZEN', label: 'Frozen' }, { value: 'MARINATED', label: 'Masala laga' }, { value: 'PROCESSED', label: 'Tayyar (kabab, nuggets)' },
+  { value: 'LIVE', label: t('Zinda') }, { value: 'FRESH_SLAUGHTERED', label: t('Taaza zibah') }, { value: 'FRESH_CHILLED', label: t('Thanda (chiller)') },
+  { value: 'FROZEN', label: t('Frozen') }, { value: 'MARINATED', label: t('Masala laga') }, { value: 'PROCESSED', label: t('Tayyar (kabab, nuggets)') },
 ];
 const COMMON_CUTS: CutCategory[] = ['WHOLE_ANIMAL', 'BONELESS', 'WITH_BONE', 'MINCE', 'CHOPS', 'LEG', 'BREAST', 'WING', 'LIVER', 'TROTTERS', 'BONES', 'OFFAL'];
 const opt = (v: string) => v.trim() || undefined;
@@ -50,26 +51,26 @@ function Kind({ ctx }: { ctx: StepContext<MeatExtra> }) {
   return (
     <div className="space-y-3">
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Janwar <span className="text-rose-500">*</span></span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Janwar')}{' '} <span className="text-rose-500">*</span></span>
         <div className="flex flex-wrap gap-1.5">
           {ANIMALS.map((a) => <Chip key={a.value} on={x.animalType === a.value} onClick={() => ctx.setExtra({ animalType: a.value as AnimalType })}>{a.emoji} {a.label}</Chip>)}
         </div>
         {ctx.errors.animalType && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.animalType}</p>}
       </div>
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Cut <span className="text-rose-500">*</span></span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Cut')}{' '} <span className="text-rose-500">*</span></span>
         <div className="flex flex-wrap gap-1.5">
           {CUTS.filter((c) => COMMON_CUTS.includes(c.value as CutCategory) || c.value === x.cutCategory).map((c) => (
             <Chip key={c.value} on={x.cutCategory === c.value} onClick={() => ctx.setExtra({ cutCategory: c.value as CutCategory, isBoneless: c.value === 'BONELESS' || c.value === 'MINCE' ? true : x.isBoneless })}>{c.label}</Chip>
           ))}
         </div>
-        <select value={x.cutCategory} onChange={(e) => ctx.setExtra({ cutCategory: e.target.value as CutCategory })} aria-label="Baqi cuts"
+        <select value={x.cutCategory} onChange={(e) => ctx.setExtra({ cutCategory: e.target.value as CutCategory })} aria-label={t('Baqi cuts')}
           className="mt-2 h-10 rounded-xl bg-slate-100 px-3 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500">
-          <option value="">Baqi cuts…</option>
+          <option value="">{t('Baqi cuts…')}</option>
           {CUTS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
         {ctx.errors.cutCategory && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.cutCategory}</p>}
-        <p className="mt-1.5 text-[0.75rem] text-slate-500">Zinda maal (mandi se aayi murgi / bakra) ke liye cut "Poora" rakhein aur halat "Zinda" — zibah aur cutting usi se stock banati hai.</p>
+        <p className="mt-1.5 text-[0.75rem] text-slate-500">{t('Zinda maal (mandi se aayi murgi / bakra) ke liye cut "Poora" rakhein aur halat "Zinda" — zibah aur cutting usi se stock banati hai.')}</p>
       </div>
     </div>
   );
@@ -80,31 +81,31 @@ function Details({ ctx }: { ctx: StepContext<MeatExtra> }) {
   const set = ctx.setExtra;
   return (
     <div className="space-y-4">
-      <Section icon={Snowflake} title="Halat" hint="Taaza, frozen ya masala laga — bill aur order par dikhta hai">
+      <Section icon={Snowflake} title={t('Halat')} hint={t('Taaza, frozen ya masala laga — bill aur order par dikhta hai')}>
         <div className="flex flex-wrap gap-1.5">{FRESH.map((f) => <Chip key={f.value} on={x.freshnessType === f.value} onClick={() => set({ freshnessType: f.value, isFrozen: f.value === 'FROZEN', isMarinated: f.value === 'MARINATED' })}>{f.label}</Chip>)}</div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Toggle on={x.isBoneless} onChange={(isBoneless) => set({ isBoneless })} title="Boneless" hint="Haddi ke bagair" />
-          <NumberField label="Kitne din chalta hai" suffix="din" allowEmpty value={x.shelfLifeDays} onChange={(shelfLifeDays) => set({ shelfLifeDays })} hint="Frozen ke liye; khali = usi din" />
+          <Toggle on={x.isBoneless} onChange={(isBoneless) => set({ isBoneless })} title={t('Boneless')} hint={t('Haddi ke bagair')} />
+          <NumberField label={t('Kitne din chalta hai')} suffix="din" allowEmpty value={x.shelfLifeDays} onChange={(shelfLifeDays) => set({ shelfLifeDays })} hint={t('Frozen ke liye; khali = usi din')} />
         </div>
       </Section>
-      <Section icon={ShieldCheck} title="Halal" hint="Certificate ho to likhein — halal record aur bill par kaam aata hai">
-        <Toggle on={x.isHalalCertified} onChange={(isHalalCertified) => set({ isHalalCertified })} title="Halal certified" icon={ShieldCheck} />
+      <Section icon={ShieldCheck} title={t('Halal')} hint={t('Certificate ho to likhein — halal record aur bill par kaam aata hai')}>
+        <Toggle on={x.isHalalCertified} onChange={(isHalalCertified) => set({ isHalalCertified })} title={t('Halal certified')} icon={ShieldCheck} />
         {x.isHalalCertified && (
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <TextField label="Certificate #" value={x.halalCertNumber} onChange={(halalCertNumber) => set({ halalCertNumber })} placeholder="PHA-12345" />
-            <TextField label="Kis ne diya" value={x.halalCertBy} onChange={(halalCertBy) => set({ halalCertBy })} placeholder="PHA, SANHA…" />
+            <TextField label={t('Certificate #')} value={x.halalCertNumber} onChange={(halalCertNumber) => set({ halalCertNumber })} placeholder={t('PHA-12345')} />
+            <TextField label={t('Kis ne diya')} value={x.halalCertBy} onChange={(halalCertBy) => set({ halalCertBy })} placeholder={t('PHA, SANHA…')} />
             <label className="block">
-              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kab tak</span>
+              <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Kab tak')}</span>
               <input type="date" value={x.halalCertExpiry} onChange={(e) => set({ halalCertExpiry: e.target.value })} className="h-11 w-full rounded-xl bg-slate-100 px-3 text-[0.9375rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
               {ctx.errors.halalCertExpiry && <span className="mt-1 block text-[0.75rem] font-medium text-rose-600">{ctx.errors.halalCertExpiry}</span>}
             </label>
           </div>
         )}
       </Section>
-      <Section icon={Leaf} title="Kahan se" hint="Marzi hai">
+      <Section icon={Leaf} title={t('Kahan se')} hint={t('Marzi hai')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Farm / mandi" value={x.farmName} onChange={(farmName) => set({ farmName })} placeholder="Shahpur poultry farm" />
-          <TextField label="Zibah khana" value={x.slaughterhouseName} onChange={(slaughterhouseName) => set({ slaughterhouseName })} placeholder="Apni dukaan / municipal" />
+          <TextField label={t('Farm / mandi')} value={x.farmName} onChange={(farmName) => set({ farmName })} placeholder={t('Shahpur poultry farm')} />
+          <TextField label={t('Zibah khana')} value={x.slaughterhouseName} onChange={(slaughterhouseName) => set({ slaughterhouseName })} placeholder={t('Apni dukaan / municipal')} />
         </div>
       </Section>
     </div>
@@ -113,14 +114,14 @@ function Details({ ctx }: { ctx: StepContext<MeatExtra> }) {
 
 function OrderMin({ ctx }: { ctx: StepContext<MeatExtra> }) {
   return (
-    <NumberField label="Order par kam se kam" suffix="kg" allowEmpty value={ctx.draft.extra.minOrderKg} onChange={(minOrderKg) => ctx.setExtra({ minOrderKg })}
-      hint="Wazan wale order me isse kam likhne par yaad dilata hai — khali chhor dein to koi had nahi" />
+    <NumberField label={t('Order par kam se kam')} suffix="kg" allowEmpty value={ctx.draft.extra.minOrderKg} onChange={(minOrderKg) => ctx.setExtra({ minOrderKg })}
+      hint={t('Wazan wale order me isse kam likhne par yaad dilata hai — khali chhor dein to koi had nahi')} />
   );
 }
 
 const core: CoreOptions = {
   units: [
-    { value: 'kg', label: 'Kg' }, { value: 'gram', label: 'Gram' }, { value: 'pcs', label: 'Adad (pcs)' }, { value: 'dozen', label: 'Darjan' },
+    { value: 'kg', label: t('Kg') }, { value: 'gram', label: t('Gram') }, { value: 'pcs', label: t('Adad (pcs)') }, { value: 'dozen', label: t('Darjan') },
   ],
   skuPrefix: 'MT',
   packs: true,
@@ -131,16 +132,16 @@ const core: CoreOptions = {
 
 function meatErrors(x: MeatExtra): Errors {
   const e: Errors = {};
-  if (!x.animalType) e.animalType = 'Janwar chunein — murgi, mutton, beef…';
-  if (!x.cutCategory) e.cutCategory = 'Cut chunein — poora, boneless, qeema…';
-  if (x.isHalalCertified && x.halalCertExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(x.halalCertExpiry)) e.halalCertExpiry = 'Tareekh theek likhein';
+  if (!x.animalType) e.animalType = t('Janwar chunein — murgi, mutton, beef…');
+  if (!x.cutCategory) e.cutCategory = t('Cut chunein — poora, boneless, qeema…');
+  if (x.isHalalCertified && x.halalCertExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(x.halalCertExpiry)) e.halalCertExpiry = t('Tareekh theek likhein');
   return e;
 }
 
-const detailsStep: StepDef<MeatExtra> = { id: 'meat', title: 'Gosht', hint: 'Halat, halal, source', icon: Beef, render: (ctx) => <Details ctx={ctx} /> };
+const detailsStep: StepDef<MeatExtra> = { id: 'meat', title: t('Gosht'), hint: t('Halat, halal, source'), icon: Beef, render: (ctx) => <Details ctx={ctx} /> };
 
 const config: EditorConfig<MeatExtra> = {
-  label: 'Meat',
+  label: t('Meat'),
   draftKey: 'nafaa.product-editor.meat',
   paths: { list: '/meat/products', detail: (id) => `/meat-products/${id}`, create: '/meat-products/new' },
   core,
@@ -172,7 +173,7 @@ const config: EditorConfig<MeatExtra> = {
   steps: [
     { ...basicStep<MeatExtra>(core, {
       extra: (ctx) => <Kind ctx={ctx} />,
-      namePlaceholder: 'Jaise: Chicken boneless, Mutton qeema, Zinda murgi',
+      namePlaceholder: t('Jaise: Chicken boneless, Mutton qeema, Zinda murgi'),
       categorySuggestions: ['Murgi', 'Mutton', 'Beef', 'Machhli', 'Andar ka maal', 'Zinda maal', 'Frozen'],
     }) },
     detailsStep,
@@ -181,14 +182,14 @@ const config: EditorConfig<MeatExtra> = {
   ].map((s): StepDef<MeatExtra> => (s.id === 'basic' ? { ...s, validate: (d, e) => ({ ...s.validate?.(d, e), ...meatErrors(d.extra) }) } : s)),
   summary: (d) => {
     const x = d.extra;
-    const facts = [x.animalType ? `${animalOf(x.animalType).emoji} ${animalOf(x.animalType).label}` : '', cutLabel(x.cutCategory), FRESH.find((f) => f.value === x.freshnessType)?.label, x.isHalalCertified ? 'Halal' : ''].filter(Boolean);
+    const facts = [x.animalType ? `${animalOf(x.animalType).emoji} ${animalOf(x.animalType).label}` : '', cutLabel(x.cutCategory), FRESH.find((f) => f.value === x.freshnessType)?.label, x.isHalalCertified ? t('Halal') : ''].filter(Boolean);
     return facts.length ? <p className="mt-3 border-t border-slate-100 pt-3 text-[0.8125rem] text-slate-700">{facts.join(' · ')}</p> : null;
   },
   refresh: [KEYS.profiles, 'meat-product-detail', KEYS.daySheet],
   guide: [
-    { icon: Beef, color: '#dc2626', title: 'Janwar aur cut', text: 'Pehle step me janwar aur cut zaroori hain — POS ke filter, cutting aur orders inhi se chalte hain.' },
-    { icon: ShieldCheck, color: '#16a34a', title: 'Halal', text: 'Certificate number aur tareekh likhein; khatam hone wali tareekh product par yaad dilati hai.' },
-    { icon: Snowflake, color: '#0891b2', title: 'Kg aur pack', text: 'Unit kg rakhein. Qeemat step me "Pao = 0.25" ya "1 kg pack" jorein — dono tarah bikta hai, stock kg me ginta hai. Wholesale qeemat = restaurant rate.' },
+    { icon: Beef, color: '#dc2626', title: t('Janwar aur cut'), text: t('Pehle step me janwar aur cut zaroori hain — POS ke filter, cutting aur orders inhi se chalte hain.') },
+    { icon: ShieldCheck, color: '#16a34a', title: t('Halal'), text: t('Certificate number aur tareekh likhein; khatam hone wali tareekh product par yaad dilati hai.') },
+    { icon: Snowflake, color: '#0891b2', title: t('Kg aur pack'), text: t('Unit kg rakhein. Qeemat step me "Pao = 0.25" ya "1 kg pack" jorein — dono tarah bikta hai, stock kg me ginta hai. Wholesale qeemat = restaurant rate.') },
   ],
 };
 

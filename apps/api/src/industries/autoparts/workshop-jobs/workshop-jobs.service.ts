@@ -15,6 +15,7 @@ import { coreCode, recordCore } from '../core-returns/core-returns.service';
 import {
   ensureCustomer, postIndustrySale, recordKhataPayment, resolveIndustryShopId, toPaymentMethod, type IndustrySaleLine,
 } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Tx = Prisma.TransactionClient;
 
@@ -63,7 +64,7 @@ export class WorkshopJobsService implements OnModuleInit {
     const partsTotal = r2(parts.reduce((s, p) => s + Number(p.total || 0), 0));
     const externalTotal = r2(external.reduce((s, e) => s + Number(e.total || 0), 0));
     const subtotal = r2(laborTotal + partsTotal + externalTotal);
-    if (r2(discount) > subtotal + r2(tax) + 0.001) throw new BadRequestException(`Discount bill (Rs ${r2(subtotal + tax)}) se zyada nahi ho sakta`);
+    if (r2(discount) > subtotal + r2(tax) + 0.001) throw new BadRequestException(apiMessage('Discount bill (Rs {{subtotal}}) se zyada nahi ho sakta', { subtotal: r2(subtotal + tax) }));
     const total = r2(Math.max(subtotal + r2(tax) - r2(discount), 0));
     return { laborTotal, partsTotal, externalTotal, subtotal, total };
   }
@@ -92,8 +93,8 @@ export class WorkshopJobsService implements OnModuleInit {
   }
 
   private assertOpen(job: { status: JobStatus; jobNumber: string }) {
-    if (job.status === 'DELIVERED') throw new BadRequestException(`${job.jobNumber} ki gaari di ja chuki aur bill ban gaya — ab job nahi badalti`);
-    if (job.status === 'CANCELLED') throw new BadRequestException(`${job.jobNumber} cancel ho chuki — naya job banayein`);
+    if (job.status === 'DELIVERED') throw new BadRequestException(apiMessage('{{jobNumber}} ki gaari di ja chuki aur bill ban gaya — ab job nahi badalti', { jobNumber: job.jobNumber }));
+    if (job.status === 'CANCELLED') throw new BadRequestException(apiMessage('{{jobNumber}} cancel ho chuki — naya job banayein', { jobNumber: job.jobNumber }));
   }
 
   private async mechanicName(tx: Tx | PrismaService, tenantId: string, mechanicId?: string) {
@@ -114,9 +115,9 @@ export class WorkshopJobsService implements OnModuleInit {
       where: { id: p.productId, tenantId: user.tenantId },
       select: { id: true, name: true, costPrice: true, productType: true, unit: true },
     });
-    if (!product) throw new NotFoundException(`"${label}" ka product nahi mila`);
+    if (!product) throw new NotFoundException(apiMessage('"{{label}}" ka product nahi mila', { label }));
     if (p.variantId && !(await tx.productVariant.findFirst({ where: { id: p.variantId, productId: product.id }, select: { id: true } }))) {
-      throw new NotFoundException(`"${label}" ka size/variant nahi mila`);
+      throw new NotFoundException(apiMessage('"{{label}}" ka size/variant nahi mila', { label }));
     }
     if (p.isCustomerSupplied || isServiceProduct(product)) return { taken: false, product };
     const settings = await tx.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { allowNegativeStock: true } });
@@ -256,7 +257,7 @@ export class WorkshopJobsService implements OnModuleInit {
 
       if (advance > 0) {
         const fresh = await tx.workshopJob.findUniqueOrThrow({ where: { id: job.id } });
-        if (fresh.total > 0 && advance > fresh.total + 0.01) throw new BadRequestException(`Advance bill (Rs ${fresh.total}) se zyada nahi ho sakta`);
+        if (fresh.total > 0 && advance > fresh.total + 0.01) throw new BadRequestException(apiMessage('Advance bill (Rs {{freshTotal}}) se zyada nahi ho sakta', { freshTotal: fresh.total }));
         await this.takeMoney(tx, user, fresh, shopId, advance, dto.advanceMethod ?? 'CASH', 'Gaari aate waqt advance');
       }
       return tx.workshopJob.findUniqueOrThrow({ where: { id: job.id }, include: JOB_INCLUDE });
@@ -271,7 +272,7 @@ export class WorkshopJobsService implements OnModuleInit {
     if (p.productId) taken = (await this.takePart(tx, user, job, shopId, { ...p, quantity: qty }, name)).taken;
     const unit = r2(p.unitPrice ?? 0);
     const disc = r2(p.discount ?? 0);
-    if (disc > unit * qty + 0.001) throw new BadRequestException(`"${name}" ka discount us ki qeemat se zyada hai`);
+    if (disc > unit * qty + 0.001) throw new BadRequestException(apiMessage('"{{name}}" ka discount us ki qeemat se zyada hai', { name }));
     return tx.workshopJobPart.create({
       data: {
         jobId: job.id, productId: p.productId, variantId: p.variantId, partName: name, partNumber: blank(p.partNumber),
@@ -638,7 +639,7 @@ export class WorkshopJobsService implements OnModuleInit {
     const amount = r2(dto.amount ?? 0);
     const due = r2(Math.max(job.total - job.paidAmount, 0));
     const newCore = r2(dto.coreReturn?.value ?? 0);
-    if (amount > due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);
+    if (amount > due + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{due}} hai', { due }));
     const nextDate = blank(dto.nextServiceDate) ? new Date(dto.nextServiceDate!) : null;
     if (nextDate && Number.isNaN(nextDate.getTime())) throw new BadRequestException('Agli service ki date sahi likhein');
 
@@ -662,7 +663,7 @@ export class WorkshopJobsService implements OnModuleInit {
       const cores = held.filter((c) => !onBill.some((p) => p.reference === coreCode(c.id)));
       const coreValue = r2(cores.reduce((s, c) => s + c.value, 0));
       if (amount + coreValue > due + 0.01) {
-        throw new BadRequestException(`Baqi Rs ${due} hai — purane part (Rs ${coreValue}) ke baad sirf Rs ${r2(Math.max(due - coreValue, 0))} lein`);
+        throw new BadRequestException(apiMessage('Baqi Rs {{due}} hai — purane part (Rs {{coreValue}}) ke baad sirf Rs {{due2}} lein', { due, coreValue, due2: r2(Math.max(due - coreValue, 0)) }));
       }
       const bill = await this.postJobBill(tx, user, fresh, shopId, amount, dto.paymentMethod, cores);
 
@@ -763,7 +764,7 @@ export class WorkshopJobsService implements OnModuleInit {
     let customerId: string | null = job.customerId || null;
     if (!customerId && owed > 0.009) {
       if (!job.customerName?.trim() && !job.customerPhone?.trim()) {
-        throw new BadRequestException(`Rs ${owed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam/phone job me likhein`);
+        throw new BadRequestException(apiMessage('Rs {{owed}} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam/phone job me likhein', { owed }));
       }
       customerId = await ensureCustomer(tx, user, { name: job.customerName ?? job.customerPhone, phone: job.customerPhone, shopId });
     }
@@ -912,7 +913,7 @@ export class WorkshopJobsService implements OnModuleInit {
     if (job.status === 'CANCELLED') throw new BadRequestException('Cancel job par payment nahi li ja sakti');
     const amount = r2(dto.amount);
     const remaining = r2(job.total - job.paidAmount);
-    if (job.total > 0 && amount > remaining + 0.01) throw new BadRequestException(`Sirf Rs ${Math.max(remaining, 0)} baqi hai`);
+    if (job.total > 0 && amount > remaining + 0.01) throw new BadRequestException(apiMessage('Sirf Rs {{remaining}} baqi hai', { remaining: Math.max(remaining, 0) }));
     if (job.status === 'DELIVERED' && amount > remaining + 0.01) throw new BadRequestException('Is job par kuch baqi nahi');
 
     await this.prisma.$transaction(async (tx) => {

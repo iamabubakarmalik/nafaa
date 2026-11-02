@@ -13,6 +13,7 @@ import { DIST_KEY, distError, distSetupApi } from '../../api/distribution.api';
 import { packText, partyName, rs } from '../../lib/meta';
 import { num, useCustomerRoster, useDebounced } from '../shared';
 import { ProductSearch, type PickedProduct } from '../ProductSearch';
+import { t } from '@core/i18n';
 
 export function SchemePreviewBox({ title, hint, initialProduct, note }: { title: string; hint?: string; initialProduct?: PickedProduct | null; note?: string }) {
   const [product, setProduct] = useState<PickedProduct | null>(initialProduct ?? null);
@@ -59,41 +60,41 @@ export function SchemePreviewBox({ title, hint, initialProduct, note }: { title:
         {product ? (
           <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
             <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-semibold text-slate-900">{product.name}</span>
-            <button type="button" aria-label="Item badlein" onClick={() => { setProduct(null); setUnitKey(null); }} className="rounded p-0.5 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+            <button type="button" aria-label={t('Item badlein')} onClick={() => { setProduct(null); setUnitKey(null); }} className="rounded p-0.5 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
           </div>
-        ) : <ProductSearch onPick={(p) => { setProduct(p); setUnitKey(null); }} placeholder="Item chunein…" />}
+        ) : <ProductSearch onPick={(p) => { setProduct(p); setUnitKey(null); }} placeholder={t('Item chunein…')} />}
         <div className="grid grid-cols-2 gap-2">
-          <Input size="sm" label="Qty" inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value.replace(/[^\d.]/g, ''))} />
-          <Select size="sm" label="Pack" value={pack?.unitId ?? ''} onChange={(e) => setUnitKey(e.target.value)} disabled={!packs.length}
+          <Input size="sm" label={t('Qty')} inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value.replace(/[^\d.]/g, ''))} />
+          <Select size="sm" label={t('Pack')} value={pack?.unitId ?? ''} onChange={(e) => setUnitKey(e.target.value)} disabled={!packs.length}
             options={packs.length ? packs.map((p) => ({ value: p.unitId ?? '', label: p.conversionRate > 1 ? `${p.unitName} (${p.conversionRate})` : p.unitName })) : [{ value: '', label: '—' }]} />
         </div>
         {customers.length > 0 && (
-          <Select size="sm" label="Customer (marzi)" value={customerId} onChange={(e) => setCustomerId(e.target.value)}
-            options={[{ value: '', label: 'Default list wala customer' }, ...customers.map((c) => ({ value: c.id, label: partyName(c) }))]} />
+          <Select size="sm" label={t('Customer (marzi)')} value={customerId} onChange={(e) => setCustomerId(e.target.value)}
+            options={[{ value: '', label: t('Default list wala customer') }, ...customers.map((c) => ({ value: c.id, label: partyName(c) }))]} />
         )}
       </div>
 
       <div className="mt-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
-        {!product ? <p className="text-center text-[0.8125rem] text-slate-500">Item chunein</p>
+        {!product ? <p className="text-center text-[0.8125rem] text-slate-500">{t('Item chunein')}</p>
           : resolveQ.isLoading || previewQ.isLoading ? <Skeleton className="h-24" />
           : resolveQ.error || previewQ.error ? <p className="text-[0.8125rem] text-rose-700">{distError(resolveQ.error ?? previewQ.error)}</p>
-          : !pack ? <p className="text-[0.8125rem] text-slate-500">Is item ka rate nahi mila</p>
+          : !pack ? <p className="text-[0.8125rem] text-slate-500">{t('Is item ka rate nahi mila')}</p>
           : (
             <div className="space-y-1.5 text-[0.8125rem]">
               <Row k={`${q} ${pack.unitName} × ${rs(pack.price)}`} v={rs(gross)} />
-              {resolveQ.data?.priceListName && <p className="text-[0.6875rem] text-slate-500">Rate: {resolveQ.data.priceListName} list</p>}
+              {resolveQ.data?.priceListName && <p className="text-[0.6875rem] text-slate-500">{t('Rate: {{priceListName}} list', { priceListName: resolveQ.data.priceListName })}</p>}
               {r?.schemeId ? (<>
                 <p className="flex items-center gap-1.5 pt-1 font-semibold text-violet-800"><Sparkles className="h-3.5 w-3.5" />{r.schemeName}</p>
-                {r.discount > 0 && <Row k="Discount" v={`− ${rs(r.discount)}`} tone="text-success-700" />}
+                {r.discount > 0 && <Row k={t('Discount')} v={`− ${rs(r.discount)}`} tone="text-success-700" />}
                 {r.freeBaseQty > 0 && (
                   <p className="flex items-center gap-1.5 font-semibold text-success-700">
-                    <Gift className="h-3.5 w-3.5" />{packText(r.freeBaseQty, r.freeProductId ? null : pack.conversionRate, r.freeProductId ? null : pack.unitName, baseUnit)} free{r.freeProductId ? ' (doosra item)' : ''}
+                    <Gift className="h-3.5 w-3.5" />{t('{{freeBaseQty}} free{{value}}', { freeBaseQty: packText(r.freeBaseQty, r.freeProductId ? null : pack.conversionRate, r.freeProductId ? null : pack.unitName, baseUnit), value: r.freeProductId ? t(' (doosra item)') : '' })}
                   </p>
                 )}
-              </>) : <p className="pt-1 text-slate-500">Is qty par koi scheme nahi lagti</p>}
+              </>) : <p className="pt-1 text-slate-500">{t('Is qty par koi scheme nahi lagti')}</p>}
               <div className="border-t border-slate-200 pt-1.5">
-                <Row k="Kul" v={rs(net)} bold />
-                {q > 0 && <p className="text-right text-[0.6875rem] text-slate-500">{rs(net / q)} per {pack.unitName}</p>}
+                <Row k={t('Kul')} v={rs(net)} bold />
+                {q > 0 && <p className="text-end text-[0.6875rem] text-slate-500">{t('{{rs}} per {{unitName}}', { rs: rs(net / q), unitName: pack.unitName })}</p>}
               </div>
             </div>
           )}

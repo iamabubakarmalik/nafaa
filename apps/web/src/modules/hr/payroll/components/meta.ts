@@ -6,6 +6,7 @@
 import { Building2, CheckCircle2, Clock, Landmark, Smartphone, Wallet, XCircle, type LucideIcon } from 'lucide-react';
 import { businessDayKey } from '@core/lib/business-day';
 import type { AccountKind, RecordStatus, SalaryType } from '../api/payroll.api';
+import { t } from '@core/i18n';
 
 /** Every payroll query lives under this key. */
 export const PAYROLL_KEY = 'payroll';
@@ -14,29 +15,29 @@ export const PAYROLL_KEY = 'payroll';
 export const TOUCHED_KEYS = [PAYROLL_KEY, 'cash-register', 'money', 'commission', 'staff', 'pnl'];
 
 export const SALARY_TYPE: Record<SalaryType, { label: string; unit: string }> = {
-  MONTHLY: { label: 'Mahana', unit: 'mahina' },
-  DAILY: { label: 'Dihari', unit: 'din' },
-  HOURLY: { label: 'Ghante ke hisaab', unit: 'ghante' },
-  PER_TASK: { label: 'Kaam ke hisaab', unit: 'kaam' },
-  COMMISSION: { label: 'Sirf commission', unit: '' },
-  HYBRID: { label: 'Tankhwah + commission', unit: 'mahina' },
+  MONTHLY: { label: t('Mahana'), unit: 'mahina' },
+  DAILY: { label: t('Dihari'), unit: 'din' },
+  HOURLY: { label: t('Ghante ke hisaab'), unit: 'ghante' },
+  PER_TASK: { label: t('Kaam ke hisaab'), unit: 'kaam' },
+  COMMISSION: { label: t('Sirf commission'), unit: '' },
+  HYBRID: { label: t('Tankhwah + commission'), unit: 'mahina' },
 };
 
 export const STATUS: Record<RecordStatus, { label: string; tone: string; icon: LucideIcon }> = {
-  PAID: { label: 'Ada ho gayi', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
-  PARTIAL: { label: 'Kuch baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
-  PENDING: { label: 'Abhi deni hai', tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: Clock },
-  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-500 ring-slate-200', icon: XCircle },
+  PAID: { label: t('Ada ho gayi'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
+  PARTIAL: { label: t('Kuch baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
+  PENDING: { label: t('Abhi deni hai'), tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: Clock },
+  CANCELLED: { label: t('Cancel'), tone: 'bg-slate-100 text-slate-500 ring-slate-200', icon: XCircle },
 };
 
 export const ACCOUNT_ICON: Record<AccountKind, LucideIcon> = { CASH: Landmark, BANK: Building2, WALLET: Smartphone };
 export const DRAWER_ICON = Wallet;
 
 export const METHOD_LABEL: Record<string, string> = {
-  CASH: 'Cash', BANK_TRANSFER: 'Bank', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa', CARD: 'Card',
+  CASH: t('Cash'), BANK_TRANSFER: t('Bank'), JAZZCASH: t('JazzCash'), EASYPAISA: t('Easypaisa'), CARD: t('Card'),
 };
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = [t('Jan'), t('Feb'), t('Mar'), t('Apr'), t('May'), t('Jun'), t('Jul'), t('Aug'), t('Sep'), t('Oct'), t('Nov'), t('Dec')];
 
 /** "2026-10" → "Oct 2026". */
 export const monthName = (key: string) => `${MONTHS[Number(key.slice(5, 7)) - 1] ?? ''} ${key.slice(0, 4)}`;

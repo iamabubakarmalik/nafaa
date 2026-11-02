@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class AdminInvoicesService {
@@ -71,7 +72,7 @@ export class AdminInvoicesService {
       tenantId: dto.tenantId,
       type: 'INFO',
       title: 'New Invoice 📄',
-      message: `Aap ko Rs ${dto.amount} ka naya invoice mila hai. Due date: ${new Date(dto.dueDate).toLocaleDateString('en-PK')}`,
+      message: apiMessage('Aap ko Rs {{amount}} ka naya invoice mila hai. Due date: {{dueDate}}', { amount: dto.amount, dueDate: new Date(dto.dueDate).toLocaleDateString('en-PK') }),
       link: `/billing/invoice/${invoice.id}/pay`,
     });
 

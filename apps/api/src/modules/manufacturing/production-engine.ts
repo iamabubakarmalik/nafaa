@@ -19,6 +19,7 @@ import { Prisma } from '@prisma/client';
 import { addToBatch, applyStockDelta, putIntoBatches, type BatchTake } from '../../common/shop-scope';
 import { tzParts } from '../../common/helpers/business-time.helper';
 import { blendCost, costRecipe, lineUnitOk, r2, r4, unblendCost, type RecipeCost, type RecipeCostInput } from './manufacturing-cost';
+import { apiMessage } from '../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient | { [k: string]: any };
 
@@ -133,10 +134,10 @@ export async function produceInTx(tx: Db, a: ProduceArgs): Promise<ProduceResult
   const r = a.loaded.recipe;
   const qty = r4(a.quantity);
   if (!(qty > 0)) throw new BadRequestException('Kitna banana hai — quantity likhein');
-  if (!r.lines.length) throw new BadRequestException(`${r.product.name} ki Recipe me koi raw item nahi`);
-  if (r.product.hasVariants) throw new BadRequestException(`${r.product.name} ke variants hain — Recipe sirf bina variant wale product par chalti hai`);
+  if (!r.lines.length) throw new BadRequestException(apiMessage('{{productName}} ki Recipe me koi raw item nahi', { productName: r.product.name }));
+  if (r.product.hasVariants) throw new BadRequestException(apiMessage('{{productName}} ke variants hain — Recipe sirf bina variant wale product par chalti hai', { productName: r.product.name }));
   const bad = badUnitLines(a.loaded);
-  if (bad.length) throw new BadRequestException(`Recipe ki unit stock ki unit se nahi milti: ${bad.join(', ')}`);
+  if (bad.length) throw new BadRequestException(apiMessage('Recipe ki unit stock ki unit se nahi milti: {{bad}}', { bad: bad.join(', ') }));
 
   // Today's cost of each raw item, read inside the transaction.
   const raws: Array<{ id: string; name: string; costPrice: number }> = await t.product.findMany({

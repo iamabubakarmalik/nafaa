@@ -12,6 +12,7 @@ import { gymMembersApi, type GymMember, type MemberSummary } from '../api/member
 import { attendanceApi, type Attendance } from '../api/attendance.api';
 import { classesApi, type GymClass } from '../api/classes.api';
 import { equipmentApi, type EquipmentStatus } from '../api/equipment.api';
+import { t } from '@core/i18n';
 
 const SECOND = 1_000;
 const MINUTE = 60 * SECOND;
@@ -65,7 +66,7 @@ export function useGymOps() {
   const memberships = useMemo(() => {
     const sum = summaryQ.data;
     const renewals: RenewalRow[] = (expiringQ.data ?? [])
-      .map((m) => ({ id: m.id, name: m.customer?.name ?? m.memberNumber, plan: m.current?.plan?.name ?? 'Plan', left: daysTo(m.current?.endDate), due: m.due ?? 0 }))
+      .map((m) => ({ id: m.id, name: m.customer?.name ?? m.memberNumber, plan: m.current?.plan?.name ?? t('Plan'), left: daysTo(m.current?.endDate), due: m.due ?? 0 }))
       .sort((a, b) => a.left - b.left)
       .slice(0, 8);
     return {

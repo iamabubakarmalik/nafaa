@@ -13,6 +13,7 @@ import { UpdateUsedPhoneDto } from './dto/update-used-phone.dto';
 import { CreateInspectionDto } from './dto/create-inspection.dto';
 import { QueryUsedPhonesDto } from './dto/query-used-phones.dto';
 import { assertOwnCustomer, assertOwnShop, normaliseCnic } from '../common/mobile-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Statuses a phone can be moved to by hand. SOLD comes from a bill, IN_TRANSIT from a transfer. */
 const MANUAL_STATUS: UsedPhoneStatus[] = ['PENDING_INSPECTION', 'IN_STOCK', 'REPAIRING', 'RETURNED'];
@@ -81,7 +82,7 @@ export class UsedPhonesService {
     if (dto.imei2 && dto.imei2 === dto.imei1) throw new BadRequestException('IMEI 1 aur IMEI 2 ek jaise nahi ho sakte');
     const held = await this.heldWithImei(user.tenantId, dto.imei1);
     if (held) {
-      throw new ConflictException(`IMEI ${dto.imei1} abhi dukaan me hai (used phone ${held.usedPhoneCode}) — usi record ko kholein`);
+      throw new ConflictException(apiMessage('IMEI {{imei1}} abhi dukaan me hai (used phone {{usedPhoneCode}}) — usi record ko kholein', { imei1: dto.imei1, usedPhoneCode: held.usedPhoneCode }));
     }
     // A phone still on our shelf as new stock cannot be bought in again;
     // one we sold earlier can (a customer selling it back is normal).
@@ -90,7 +91,7 @@ export class UsedPhonesService {
       select: { status: true },
     });
     if (onShelf) {
-      throw new ConflictException(`IMEI ${dto.imei1} naye phone ke stock me hai (${onShelf.status}) — ye wapas khareeda nahi ja sakta`);
+      throw new ConflictException(apiMessage('IMEI {{imei1}} naye phone ke stock me hai ({{onShelfStatus}}) — ye wapas khareeda nahi ja sakta', { imei1: dto.imei1, onShelfStatus: onShelf.status }));
     }
     if (dto.status && !['PENDING_INSPECTION', 'IN_STOCK'].includes(dto.status)) {
       throw new BadRequestException('Naya used phone "Check baqi" ya "Stock" me hi aata hai');
@@ -447,7 +448,9 @@ export class UsedPhonesService {
       const allowed = ['notes', 'conditionNotes', 'devicePhotos', 'imeiPhotoUrl', 'cnicPhotoUrl'];
       const touched = Object.keys(dto).filter((k) => (dto as Record<string, unknown>)[k] !== undefined);
       if (touched.some((k) => !allowed.includes(k))) {
-        throw new BadRequestException(`${phone.usedPhoneCode} ${phone.status === 'SOLD' ? 'bik chuka' : 'discard ho chuka'} hai — sirf note aur tasveerein badal sakti hain`);
+        throw new BadRequestException(phone.status === 'SOLD'
+          ? apiMessage('{{usedPhoneCode}} bik chuka hai — sirf note aur tasveerein badal sakti hain', { usedPhoneCode: phone.usedPhoneCode })
+          : apiMessage('{{usedPhoneCode}} discard ho chuka hai — sirf note aur tasveerein badal sakti hain', { usedPhoneCode: phone.usedPhoneCode }));
       }
     }
     if (dto.status && dto.status !== phone.status && !MANUAL_STATUS.includes(dto.status)) {
@@ -460,11 +463,11 @@ export class UsedPhonesService {
         throw new BadRequestException('Is phone ke paise galle se diye ja chuke hain — khareed ki qeemat ab nahi badal sakti');
       }
       const bill = await this.tradeInBill(user.tenantId, phone.usedPhoneCode);
-      if (bill) throw new BadRequestException(`Ye phone bill ${bill.saleNumber} me trade-in laga hai — qeemat nahi badal sakti`);
+      if (bill) throw new BadRequestException(apiMessage('Ye phone bill {{saleNumber}} me trade-in laga hai — qeemat nahi badal sakti', { saleNumber: bill.saleNumber }));
     }
     if (dto.imei1 && dto.imei1 !== phone.imei1) {
       const held = await this.heldWithImei(user.tenantId, dto.imei1, id);
-      if (held) throw new ConflictException(`IMEI ${dto.imei1} abhi dukaan me hai (used phone ${held.usedPhoneCode})`);
+      if (held) throw new ConflictException(apiMessage('IMEI {{imei1}} abhi dukaan me hai (used phone {{usedPhoneCode}})', { imei1: dto.imei1, usedPhoneCode: held.usedPhoneCode }));
     }
     if (dto.shopId !== undefined) await assertOwnShop(this.prisma, user, dto.shopId);
     if (dto.fromCustomerId !== undefined) await assertOwnCustomer(this.prisma, user, dto.fromCustomerId);
@@ -495,7 +498,7 @@ export class UsedPhonesService {
   async addInspection(user: AuthenticatedUser, usedPhoneId: string, dto: CreateInspectionDto) {
     const phone = await this.findOne(user, usedPhoneId);
     if (['SOLD', 'DISCARDED', 'IN_TRANSIT'].includes(phone.status)) {
-      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — check nahi ho sakta`);
+      throw new BadRequestException(apiMessage('{{usedPhoneCode}} abhi {{phoneStatus}} hai — check nahi ho sakta', { usedPhoneCode: phone.usedPhoneCode, phoneStatus: phone.status }));
     }
     const refurbish = dto.estimatedRepairCost ?? Number(phone.refurbishCost);
 
@@ -545,7 +548,7 @@ export class UsedPhonesService {
   async markInStock(user: AuthenticatedUser, id: string) {
     const phone = await this.findOne(user, id);
     if (!['PENDING_INSPECTION', 'REPAIRING', 'RETURNED'].includes(phone.status)) {
-      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — stock me nahi daala ja sakta`);
+      throw new BadRequestException(apiMessage('{{usedPhoneCode}} abhi {{phoneStatus}} hai — stock me nahi daala ja sakta', { usedPhoneCode: phone.usedPhoneCode, phoneStatus: phone.status }));
     }
     return this.prisma.usedPhone.update({
       where: { id },
@@ -577,7 +580,7 @@ export class UsedPhonesService {
     const price = Number(body.finalPrice);
     if (!(price > 0)) throw new BadRequestException('Bechne ki qeemat likhein');
     if (phone.status !== 'IN_STOCK') {
-      throw new BadRequestException(`${phone.usedPhoneCode} abhi ${phone.status} hai — pehle check kar ke stock me daalein`);
+      throw new BadRequestException(apiMessage('{{usedPhoneCode}} abhi {{phoneStatus}} hai — pehle check kar ke stock me daalein', { usedPhoneCode: phone.usedPhoneCode, phoneStatus: phone.status }));
     }
     await this.sales.create(user, scope, {
       shopId: scope.shopId ?? phone.shopId ?? undefined,
@@ -613,7 +616,7 @@ export class UsedPhonesService {
       throw new BadRequestException('Bika hua phone hataya nahi ja sakta');
     }
     const bill = await this.tradeInBill(user.tenantId, phone.usedPhoneCode);
-    if (bill) throw new BadRequestException(`Ye phone bill ${bill.saleNumber} me trade-in laga hai — pehle wo bill cancel karein`);
+    if (bill) throw new BadRequestException(apiMessage('Ye phone bill {{saleNumber}} me trade-in laga hai — pehle wo bill cancel karein', { saleNumber: bill.saleNumber }));
     await this.markDiscarded(user, id, 'Ghalat entry — hataya gaya');
     return { message: 'Used phone hata diya (record "Discard" me mehfooz hai)', usedPhoneCode: phone.usedPhoneCode };
   }

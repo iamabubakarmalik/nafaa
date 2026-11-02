@@ -15,6 +15,7 @@ import { teamApi } from '@modules/organization/team/api/team.api';
 import type { DirectoryPerson } from '../api/people.api';
 import { usePermissionGroups, useRoleDefaults } from './PermissionPicker';
 import { ASSIGNABLE, ROLES, permText, type RoleKey } from './meta';
+import { t } from '@core/i18n';
 
 export function RolesPanel({ people, canSeeLogins, onRole }: { people: DirectoryPerson[]; canSeeLogins: boolean; onRole: (role: RoleKey) => void }) {
   const defaults = useRoleDefaults();
@@ -47,32 +48,32 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
         {counts.map(({ r, n }) => {
           const meta = ROLES[r];
           return (
-            <button key={r} type="button" onClick={() => onRole(r)} className="flex flex-col rounded-2xl bg-white p-3.5 text-left shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md">
+            <button key={r} type="button" onClick={() => onRole(r)} className="flex flex-col rounded-2xl bg-white p-3.5 text-start shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md">
               <span className="flex items-center justify-between">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${meta.color}17`, color: meta.color }}><meta.icon className="h-4 w-4" /></span>
                 <span className="text-xl font-bold tabular-nums text-slate-900">{n}</span>
               </span>
               <span className="mt-2 font-semibold text-slate-900">{meta.label}</span>
               <span className="text-[0.75rem] text-slate-500">{meta.hint}</span>
-              {r !== 'OWNER' && r !== 'NO_LOGIN' && <span className="mt-1 text-[0.6875rem] font-medium text-brand-700">{(defaults[r] ?? []).length} permissions shuru me</span>}
+              {r !== 'OWNER' && r !== 'NO_LOGIN' && <span className="mt-1 text-[0.6875rem] font-medium text-brand-700">{t('{{count}} permissions shuru me', { count: (defaults[r] ?? []).length })}</span>}
             </button>
           );
         })}
       </div>
 
       <Card className="rounded-2xl" flush
-        title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />Har role ko shuru me kya milta hai</span>}
-        description="Naya login banate waqt role yeh nishan laga deta hai. Baad me har bande ki apni list hoti hai — role badalne se permission khud nahi badalti."
+        title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />{t('Har role ko shuru me kya milta hai')}</span>}
+        description={t('Naya login banate waqt role yeh nishan laga deta hai. Baad me har bande ki apni list hoti hai — role badalne se permission khud nahi badalti.')}
         actions={
-          <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" aria-label="Permission search karein"
+          <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Search…')} aria-label={t('Permission search karein')}
             leftIcon={<Search className="h-4 w-4" />} wrapperClassName="w-44" />
         }>
         <Table minWidth="34rem" className="[&_table]:text-[0.8125rem]">
           <THead>
             <Tr>
-              <Th className="px-4 py-2">Permission</Th>
+              <Th className="px-4 py-2">{t('Permission')}</Th>
               {ASSIGNABLE.map((r) => <Th key={r} className="w-24 px-2 py-2 text-center font-semibold" style={{ color: ROLES[r].color }}>{ROLES[r].label}</Th>)}
-              <Th className="w-20 px-2 py-2 text-center font-semibold" style={{ color: ROLES.OWNER.color }}>Malik</Th>
+              <Th className="w-20 px-2 py-2 text-center font-semibold" style={{ color: ROLES.OWNER.color }}>{t('Malik')}</Th>
             </Tr>
           </THead>
           {groups.map((g) => {
@@ -89,11 +90,11 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
                       {ASSIGNABLE.map((r) => (
                         <Td key={r} className="px-2 py-1.5 text-center">
                           {(defaults[r] ?? []).includes(p)
-                            ? <Check className="mx-auto h-4 w-4" style={{ color: ROLES[r].color }} aria-label="Haan" />
-                            : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label="Nahi" />}
+                            ? <Check className="mx-auto h-4 w-4" style={{ color: ROLES[r].color }} aria-label={t('Haan')} />
+                            : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label={t('Nahi')} />}
                         </Td>
                       ))}
-                      <Td className="px-2 py-1.5 text-center"><Check className="mx-auto h-4 w-4 text-amber-500" aria-label="Haan" /></Td>
+                      <Td className="px-2 py-1.5 text-center"><Check className="mx-auto h-4 w-4 text-amber-500" aria-label={t('Haan')} /></Td>
                     </Tr>
                   );
                 })}
@@ -103,13 +104,13 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
         </Table>
       </Card>
 
-      <Card className="rounded-2xl" title="Role se alag permission wale log" description="In logon ki apni list un ke role se mukhtalif hai. Theek hai to rehne dein; ghalti se hai to profile kholein.">
+      <Card className="rounded-2xl" title={t('Role se alag permission wale log')} description={t('In logon ki apni list un ke role se mukhtalif hai. Theek hai to rehne dein; ghalti se hai to profile kholein.')}>
         {!canSeeLogins ? (
-          <p className="text-sm text-slate-500">Yeh dekhne ke liye "Team dekhna" ki permission chahiye.</p>
+          <p className="text-sm text-slate-500">{t('Yeh dekhne ke liye "Team dekhna" ki permission chahiye.')}</p>
         ) : teamQ.isLoading ? (
           <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
         ) : !differs.length ? (
-          <p className="text-sm text-success-700">Sab ki permission bilkul un ke role jaisi hai.</p>
+          <p className="text-sm text-success-700">{t('Sab ki permission bilkul un ke role jaisi hai.')}</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {differs.map(({ m, extra, missing, person }) => (
@@ -117,7 +118,7 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
                 <Avatar name={m.fullName} size={36} />
                 <div className="min-w-0 flex-1">
                   <Link to={`/staff/${person?.id ?? m.id}`} className="font-semibold text-slate-900 hover:underline">{m.fullName}</Link>
-                  <span className="ml-2 text-[0.75rem]" style={{ color: ROLES[m.role as RoleKey]?.color }}>{ROLES[m.role as RoleKey]?.label ?? m.role}</span>
+                  <span className="ms-2 text-[0.75rem]" style={{ color: ROLES[m.role as RoleKey]?.color }}>{ROLES[m.role as RoleKey]?.label ?? m.role}</span>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {extra.map((p) => <span key={p} className="inline-flex items-center gap-0.5 rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.6875rem] font-medium text-violet-700"><Plus className="h-3 w-3" />{permText(p)[0]}</span>)}
                     {missing.map((p) => <span key={p} className={cn('inline-flex items-center gap-0.5 rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-medium text-amber-800')}><Minus className="h-3 w-3" />{permText(p)[0]}</span>)}

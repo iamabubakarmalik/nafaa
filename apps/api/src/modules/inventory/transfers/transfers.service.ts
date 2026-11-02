@@ -21,6 +21,7 @@ import {
 } from '../../../common/shop-scope';
 import { periodRange } from '../taxonomy/taxonomy.helper';
 import { CancelTransferDto, CreateTransferDto, ListTransfersDto, ReceiveTransferDto } from './dto/create-transfer.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -152,8 +153,8 @@ export class TransfersService {
       if (item.usedPhoneId) {
         const used = await this.prisma.usedPhone.findFirst({ where: { id: item.usedPhoneId, tenantId: user.tenantId } });
         if (!used) throw new NotFoundException('Used phone nahi mila');
-        if (used.shopId && used.shopId !== dto.fromShopId) throw new BadRequestException(`${used.usedPhoneCode} ${fromShop.name} me nahi hai`);
-        if (used.status !== 'IN_STOCK') throw new BadRequestException(`${used.usedPhoneCode} abhi ${used.status} hai — bhej nahi sakte`);
+        if (used.shopId && used.shopId !== dto.fromShopId) throw new BadRequestException(apiMessage('{{usedPhoneCode}} {{fromShopName}} me nahi hai', { usedPhoneCode: used.usedPhoneCode, fromShopName: fromShop.name }));
+        if (used.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('{{usedPhoneCode}} abhi {{usedStatus}} hai — bhej nahi sakte', { usedPhoneCode: used.usedPhoneCode, usedStatus: used.status }));
         const cost = Number(used.totalCost) || Number(used.buybackPrice) || 0;
         lines.push({ ...item, quantity: 1, kind: 'used', product: null, roll: null, imei: null, serial: null, usedPhone: used, cost, label: used.usedPhoneCode });
         continue;
@@ -163,10 +164,10 @@ export class TransfersService {
       if (!product) throw new NotFoundException('Product nahi mila');
 
       if (CARPET_UNITS.has(product.unit)) {
-        if (!item.carpetRollId) throw new BadRequestException(`${product.name}: roll chunna zaroori hai`);
+        if (!item.carpetRollId) throw new BadRequestException(apiMessage('{{productName}}: roll chunna zaroori hai', { productName: product.name }));
         const roll = await this.prisma.carpetRoll.findFirst({ where: { id: item.carpetRollId, tenantId: user.tenantId, shopId: dto.fromShopId } });
-        if (!roll) throw new BadRequestException(`Roll ${fromShop.name} me nahi mila`);
-        if (roll.status !== 'ACTIVE' || roll.remainingLengthFt <= 0) throw new BadRequestException(`Roll ${roll.rollNumber} bhej nahi sakte (${roll.status})`);
+        if (!roll) throw new BadRequestException(apiMessage('Roll {{fromShopName}} me nahi mila', { fromShopName: fromShop.name }));
+        if (roll.status !== 'ACTIVE' || roll.remainingLengthFt <= 0) throw new BadRequestException(apiMessage('Roll {{rollNumber}} bhej nahi sakte ({{rollStatus}})', { rollNumber: roll.rollNumber, rollStatus: roll.status }));
         const cost = Number(roll.costPerSqft) || Number(product.costPrice) || 0;
         lines.push({ ...item, quantity: roll.remainingSqft, kind: 'carpet', product, roll, imei: null, serial: null, usedPhone: null, cost, label: `${product.name} · ${roll.rollNumber}` });
         continue;
@@ -176,18 +177,18 @@ export class TransfersService {
       if (item.imeiId) {
         const found = await this.prisma.productImei.findFirst({ where: { id: item.imeiId, tenantId: user.tenantId, productId: product.id } });
         if (!found) throw new NotFoundException('Device nahi mila');
-        if (found.shopId && found.shopId !== dto.fromShopId) throw new BadRequestException(`IMEI ${found.imei1} ${fromShop.name} me nahi hai`);
-        if (found.status !== 'IN_STOCK') throw new BadRequestException(`IMEI ${found.imei1} abhi ${found.status} hai`);
-        if (Number(item.quantity) !== 1) throw new BadRequestException(`IMEI ${found.imei1}: ginti 1 honi chahiye`);
+        if (found.shopId && found.shopId !== dto.fromShopId) throw new BadRequestException(apiMessage('IMEI {{imei1}} {{fromShopName}} me nahi hai', { imei1: found.imei1, fromShopName: fromShop.name }));
+        if (found.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('IMEI {{imei1}} abhi {{foundStatus}} hai', { imei1: found.imei1, foundStatus: found.status }));
+        if (Number(item.quantity) !== 1) throw new BadRequestException(apiMessage('IMEI {{imei1}}: ginti 1 honi chahiye', { imei1: found.imei1 }));
         imei = { id: found.id, imei1: found.imei1, costPrice: Number(found.costPrice) || 0 };
       }
       let serial: Line['serial'] = null;
       if (item.serialId) {
         const found = await this.prisma.electronicsSerialTracking.findFirst({ where: { id: item.serialId, tenantId: user.tenantId, productId: product.id } });
         if (!found) throw new NotFoundException('Serial unit nahi mila');
-        if (found.shopId && found.shopId !== dto.fromShopId) throw new BadRequestException(`Serial ${found.serialNumber} ${fromShop.name} me nahi hai`);
-        if (found.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${found.serialNumber} abhi ${found.status} hai`);
-        if (Number(item.quantity) !== 1) throw new BadRequestException(`Serial ${found.serialNumber}: ginti 1 honi chahiye`);
+        if (found.shopId && found.shopId !== dto.fromShopId) throw new BadRequestException(apiMessage('Serial {{serialNumber}} {{fromShopName}} me nahi hai', { serialNumber: found.serialNumber, fromShopName: fromShop.name }));
+        if (found.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('Serial {{serialNumber}} abhi {{foundStatus}} hai', { serialNumber: found.serialNumber, foundStatus: found.status }));
+        if (Number(item.quantity) !== 1) throw new BadRequestException(apiMessage('Serial {{serialNumber}}: ginti 1 honi chahiye', { serialNumber: found.serialNumber }));
         serial = { id: found.id, serialNumber: found.serialNumber };
       }
       let cost = imei?.costPrice || Number(product.costPrice) || 0;
@@ -228,12 +229,12 @@ export class TransfersService {
       for (const l of lines) {
         if (l.kind === 'used' && l.usedPhone) {
           const claimed = await tx.usedPhone.updateMany({ where: { id: l.usedPhone.id, status: 'IN_STOCK' }, data: { status: 'IN_TRANSIT' } });
-          if (!claimed.count) throw new BadRequestException(`${l.label} abhi bik gaya ya kahin aur gaya`);
+          if (!claimed.count) throw new BadRequestException(apiMessage('{{lLabel}} abhi bik gaya ya kahin aur gaya', { lLabel: l.label }));
           continue;
         }
         if (l.kind === 'carpet' && l.roll && l.product) {
           const claimed = await tx.carpetRoll.updateMany({ where: { id: l.roll.id, status: 'ACTIVE' }, data: { status: 'TRANSFERRED' } });
-          if (!claimed.count) throw new BadRequestException(`Roll ${l.roll.rollNumber} abhi badal gaya — dobara koshish karein`);
+          if (!claimed.count) throw new BadRequestException(apiMessage('Roll {{rollNumber}} abhi badal gaya — dobara koshish karein', { rollNumber: l.roll.rollNumber }));
           await tx.carpetRollMovement.create({
             data: {
               rollId: l.roll.id, tenantId: user.tenantId, type: 'TRANSFER', lengthFt: 0, sqft: 0,
@@ -254,11 +255,11 @@ export class TransfersService {
         if (!l.product) continue;
         if (l.imei) {
           const claimed = await tx.productImei.updateMany({ where: { id: l.imei.id, status: 'IN_STOCK' }, data: { status: 'RESERVED' } });
-          if (!claimed.count) throw new BadRequestException(`IMEI ${l.imei.imei1} abhi bik gaya`);
+          if (!claimed.count) throw new BadRequestException(apiMessage('IMEI {{imei1}} abhi bik gaya', { imei1: l.imei.imei1 }));
         }
         if (l.serial) {
           const claimed = await tx.electronicsSerialTracking.updateMany({ where: { id: l.serial.id, status: 'IN_STOCK' }, data: { status: 'IN_TRANSIT' } });
-          if (!claimed.count) throw new BadRequestException(`Serial ${l.serial.serialNumber} abhi bik gaya`);
+          if (!claimed.count) throw new BadRequestException(apiMessage('Serial {{serialNumber}} abhi bik gaya', { serialNumber: l.serial.serialNumber }));
         }
         const moved = await applyStockDelta({
           tx, tenantId: user.tenantId, shopId: dto.fromShopId, productId: l.product.id, variantId: l.variantId ?? null, delta: -l.quantity,
@@ -275,7 +276,7 @@ export class TransfersService {
 
     await this.notifications.create({
       tenantId: user.tenantId, type: 'INFO', title: 'Maal raste me',
-      message: `${transferNumber}: ${fromShop.name} → ${toShop.name} (${lines.length} cheezen)`, link: '/transfers',
+      message: apiMessage('{{transferNumber}}: {{from}} → {{to}} ({{count}} cheezen)', { transferNumber, from: fromShop.name, to: toShop.name, count: lines.length }), link: '/transfers',
     });
     return transfer;
   }
@@ -386,7 +387,7 @@ export class TransfersService {
     if (result.short > 0) {
       await this.notifications.create({
         tenantId: user.tenantId, type: 'WARNING', title: 'Transfer me maal kam aaya',
-        message: `${transfer.transferNumber}: Rs ${Math.round(result.short).toLocaleString('en-PK')} ka maal kam pohncha`, link: '/transfers',
+        message: apiMessage('{{transferNumber}}: Rs {{amount}} ka maal kam pohncha', { transferNumber: transfer.transferNumber, amount: Math.round(result.short).toLocaleString('en-PK') }), link: '/transfers',
       });
     }
     return this.findOne(user, id);

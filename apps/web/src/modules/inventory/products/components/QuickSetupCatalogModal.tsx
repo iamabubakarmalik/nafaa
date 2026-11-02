@@ -15,6 +15,7 @@ import {
 } from '../api/quick-setup.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
+import { t as tr } from '@core/i18n';
 
 interface Props {
   onClose: () => void;
@@ -55,7 +56,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
     },
     onError: (e: any) => {
       setStep('review');
-      toast.error(e?.response?.data?.message || 'Import nahi hua — dobara koshish karein');
+      toast.error(e?.response?.data?.message || tr('Import nahi hua — dobara koshish karein'));
     },
   });
 
@@ -112,7 +113,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   const selectAllVisible = () => {
     const all = filtered.filter((p) => !p.alreadyExists).map((p) => p.id);
     setSelectedIds((prev) => new Set([...prev, ...all]));
-    toast.success(`${all.length} products select ho gaye`);
+    toast.success(tr('{{count}} products select ho gaye', { count: all.length }));
   };
 
   const deselectAll = () => setSelectedIds(new Set());
@@ -123,7 +124,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
       .filter((p) => p.category === categoryName && !p.alreadyExists)
       .map((p) => p.id);
     setSelectedIds((prev) => new Set([...prev, ...ids]));
-    toast.success(`${categoryName} — ${ids.length} products select ho gaye`);
+    toast.success(tr('{{categoryName}} — {{count}} products select ho gaye', { categoryName, count: ids.length }));
   };
 
   const clearFilters = () => {
@@ -141,7 +142,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
 
   const startImport = () => {
     if (selectedIds.size === 0) {
-      toast.error('Pehle products select karein');
+      toast.error(tr('Pehle products select karein'));
       return;
     }
     setStep('review');
@@ -158,32 +159,32 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
     return {
       title: (
         <span className="inline-flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Import mukammal ho gaya
+          <CheckCircle2 className="h-5 w-5 text-emerald-600" /> {' '}{tr('Import mukammal ho gaya')}
         </span>
       ),
       description: r.message,
       size: 'md' as const,
       onClose,
-      footer: <Button onClick={onClose}>Theek hai — Products dekhein</Button>,
+      footer: <Button onClick={onClose}>{tr('Theek hai — Products dekhein')}</Button>,
       body: (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <StatBox label="Products" value={r.imported} icon={Package} tone="emerald" />
-            <StatBox label="Brands" value={r.brandsCreated} icon={Tag} tone="blue" />
-            <StatBox label="Categories" value={r.categoriesCreated} icon={Boxes} tone="violet" />
-            <StatBox label="Tags" value={r.tagsCreated} icon={Sparkles} tone="amber" />
+            <StatBox label={tr('Products')} value={r.imported} icon={Package} tone="emerald" />
+            <StatBox label={tr('Brands')} value={r.brandsCreated} icon={Tag} tone="blue" />
+            <StatBox label={tr('Categories')} value={r.categoriesCreated} icon={Boxes} tone="violet" />
+            <StatBox label={tr('Tags')} value={r.tagsCreated} icon={Sparkles} tone="amber" />
           </div>
 
           {r.skipped > 0 && (
             <div className="rounded-lg bg-slate-100 p-3 text-center text-sm text-slate-700">
-              {r.skipped} products pehle se maujood the, unhein chhor diya
+              {tr('{{skipped}} products pehle se maujood the, unhein chhor diya', { skipped: r.skipped })}
             </div>
           )}
 
           {r.errorCount > 0 && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 p-3">
               <div className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-rose-900">
-                <AlertCircle className="h-4 w-4" /> {r.errorCount} products me masla aaya
+                <AlertCircle className="h-4 w-4" /> {' '}{tr('{{errorCount}} products me masla aaya', { errorCount: r.errorCount })}
               </div>
               <ul className="space-y-0.5 text-xs text-rose-800">
                 {r.errors.slice(0, 5).map((e, i) => (
@@ -200,7 +201,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   // ─── IMPORTING screen ──────────────────────────────
   function importingView() {
     return {
-      title: `${selectedIds.size} products import ho rahe hain...`,
+      title: tr('{{size}} products import ho rahe hain...', { size: selectedIds.size }),
       size: 'sm' as const,
       // Import is in progress; Escape must not close the dialog.
       onClose: () => {},
@@ -209,7 +210,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
         <div className="py-4 text-center" aria-live="polite">
           <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-brand-600" />
           <p className="text-sm text-slate-600">
-            Brands, categories, tags aur products ban rahe hain. 1-2 minute lag sakte hain.
+            {tr('Brands, categories, tags aur products ban rahe hain. 1-2 minute lag sakte hain.')}
           </p>
           <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-200">
             <div className="h-full animate-pulse rounded-full bg-brand-600" style={{ width: '60%' }} />
@@ -224,15 +225,15 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
     const selectedProducts = data?.catalog.filter((p) => selectedIds.has(p.id)) ?? [];
     const back = () => setStep('select');
     return {
-      title: `${selectedIds.size} products import ke liye tayyar`,
-      description: 'Qadam 2/2 — check kar ke pakka karein',
+      title: tr('{{size}} products import ke liye tayyar', { size: selectedIds.size }),
+      description: tr('Qadam 2/2 — check kar ke pakka karein'),
       size: 'xl' as const,
       onClose: back,
       footer: (
         <>
-          <Button variant="secondary" onClick={back}>← Wapas select karein</Button>
+          <Button variant="secondary" onClick={back}>{tr('← Wapas select karein')}</Button>
           <Button onClick={confirmImport} leftIcon={<Rocket className="h-4 w-4" />}>
-            {selectedIds.size} Products import karein
+            {tr('{{size}} Products import karein', { size: selectedIds.size })}
           </Button>
         </>
       ),
@@ -240,21 +241,21 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
             <div>
-              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">Products</div>
+              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">{tr('Products')}</div>
               <div className="text-2xl font-bold tabular-nums text-slate-900">{stats.selectedCount}</div>
             </div>
             <div>
-              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">Andazan Sale</div>
+              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">{tr('Andazan Sale')}</div>
               <div className="text-2xl font-bold tabular-nums text-emerald-700">{formatPKR(stats.totalPrice)}</div>
             </div>
             <div>
-              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">Andazan Cost</div>
+              <div className="text-[0.6875rem] font-semibold uppercase text-slate-500">{tr('Andazan Cost')}</div>
               <div className="text-2xl font-bold tabular-nums text-amber-700">{formatPKR(stats.totalCost)}</div>
             </div>
           </div>
 
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-600">
-            Price / Stock badlein (zaroori nahi)
+            {tr('Price / Stock badlein (zaroori nahi)')}
           </div>
 
           <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200">
@@ -277,19 +278,19 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   <PriceInput
-                    label="Sale"
+                    label={tr('Sale')}
                     value={priceOverrides[p.id]?.price ?? p.price}
                     onChange={(v) => updateOverride(p.id, 'price', v)}
                     tone="emerald"
                   />
                   <PriceInput
-                    label="Cost"
+                    label={tr('Cost')}
                     value={priceOverrides[p.id]?.costPrice ?? p.costPrice}
                     onChange={(v) => updateOverride(p.id, 'costPrice', v)}
                     tone="amber"
                   />
                   <PriceInput
-                    label="Stock"
+                    label={tr('Stock')}
                     value={priceOverrides[p.id]?.stock ?? 0}
                     onChange={(v) => updateOverride(p.id, 'stock', v)}
                     tone="sky"
@@ -307,32 +308,32 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   function selectView() {
     const selectableCount = filtered.filter((p) => !p.alreadyExists).length;
     return {
-      title: 'Pakistan Grocery Catalog',
-      description: 'Bani banayi products ki list — select karein aur import kar dein',
+      title: tr('Pakistan Grocery Catalog'),
+      description: tr('Bani banayi products ki list — select karein aur import kar dein'),
       size: 'full' as const,
       onClose,
       footer: (
         <>
-          <div className="mr-auto flex min-w-0 flex-wrap items-center gap-3">
-            <span className="font-semibold text-slate-900">{selectedIds.size} select</span>
+          <div className="me-auto flex min-w-0 flex-wrap items-center gap-3">
+            <span className="font-semibold text-slate-900">{tr('{{size}} select', { size: selectedIds.size })}</span>
             {selectedIds.size > 0 && (
               <>
                 <span className="text-slate-400">•</span>
                 <span className="inline-flex items-center gap-1 text-sm font-medium tabular-nums text-emerald-700">
                   <DollarSign className="h-3 w-3" />
-                  Sale: {formatPKR(stats.totalPrice)}
+                  {tr('Sale: {{totalPrice}}', { totalPrice: formatPKR(stats.totalPrice) })}
                 </span>
                 <span className="text-slate-400">•</span>
                 <span className="inline-flex items-center gap-1 text-sm font-medium tabular-nums text-amber-700">
                   <TrendingUp className="h-3 w-3" />
-                  Cost: {formatPKR(stats.totalCost)}
+                  {tr('Cost: {{totalCost}}', { totalCost: formatPKR(stats.totalCost) })}
                 </span>
               </>
             )}
           </div>
-          <Button variant="secondary" onClick={onClose}>Band karein</Button>
+          <Button variant="secondary" onClick={onClose}>{tr('Band karein')}</Button>
           <Button onClick={startImport} disabled={selectedIds.size === 0} leftIcon={<Rocket className="h-4 w-4" />}>
-            Check kar ke import ({selectedIds.size})
+            {tr('Check kar ke import ({{size}})', { size: selectedIds.size })}
           </Button>
         </>
       ),
@@ -343,16 +344,16 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
               {shopName && (
                 <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs">
                   <span>🏪</span>
-                  <span className="text-slate-600">Stock jayegi:</span>
+                  <span className="text-slate-600">{tr('Stock jayegi:')}</span>
                   <span className="font-semibold text-emerald-800">{shopName}</span>
                 </div>
               )}
               {data && (
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <MiniStat label="Mojood" value={data.total - data.alreadyImported} />
-                  <MiniStat label="Select kiye" value={selectedIds.size} highlight />
-                  <MiniStat label="Categories" value={data.categories.length} />
-                  <MiniStat label="Brands" value={data.brands.length} />
+                  <MiniStat label={tr('Mojood')} value={data.total - data.alreadyImported} />
+                  <MiniStat label={tr('Select kiye')} value={selectedIds.size} highlight />
+                  <MiniStat label={tr('Categories')} value={data.categories.length} />
+                  <MiniStat label={tr('Brands')} value={data.brands.length} />
                 </div>
               )}
             </div>
@@ -362,19 +363,19 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
           <div className="sticky -top-4 z-10 -mx-5 mb-4 space-y-3 border-b border-slate-200 bg-white px-5 py-3">
             <div className="flex flex-wrap gap-2">
               <div className="relative min-w-[200px] flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Product, brand ya tag talaash karein..."
-                  className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  placeholder={tr('Product, brand ya tag talaash karein...')}
+                  className="h-10 w-full rounded-lg border border-slate-300 bg-white ps-9 pe-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={() => setSearch('')}
-                    aria-label="Talaash saaf karein"
-                    className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md hover:bg-slate-100"
+                    aria-label={tr('Talaash saaf karein')}
+                    className="absolute end-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md hover:bg-slate-100"
                   >
                     <X className="h-3.5 w-3.5 text-slate-400" />
                   </button>
@@ -385,7 +386,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                 onChange={(e) => setActiveBrand(e.target.value)}
                 className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               >
-                <option value="all">Sab Brands</option>
+                <option value="all">{tr('Sab Brands')}</option>
                 {data?.brands.map((b) => (
                   <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
                 ))}
@@ -397,7 +398,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                   onChange={(e) => setHideAlreadyImported(e.target.checked)}
                   className="h-4 w-4"
                 />
-                <span className="text-xs font-medium text-slate-700">Pehle se import shuda chhupayein</span>
+                <span className="text-xs font-medium text-slate-700">{tr('Pehle se import shuda chhupayein')}</span>
               </label>
             </div>
 
@@ -412,7 +413,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                Sab ({data?.total ?? 0})
+                {tr('Sab ({{value}})', { value: data?.total ?? 0 })}
               </button>
               {data?.categories.map((cat) => {
                 const active = activeCategory === cat.name;
@@ -439,25 +440,25 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
             {/* Bulk actions */}
             <div className="flex flex-wrap items-center gap-2">
               <Button size="xs" variant="secondary" onClick={selectAllVisible} leftIcon={<CheckCircle2 className="h-3 w-3" />}>
-                Nazar aane wale sab select ({selectableCount})
+                {tr('Nazar aane wale sab select ({{selectableCount}})', { selectableCount })}
               </Button>
               {activeCategory !== 'all' && (
                 <Button size="xs" variant="secondary" onClick={() => selectCategory(activeCategory)} leftIcon={<Boxes className="h-3 w-3" />}>
-                  Sab {activeCategory} select karein
+                  {tr('Sab {{activeCategory}} select karein', { activeCategory })}
                 </Button>
               )}
               {selectedIds.size > 0 && (
                 <Button size="xs" variant="critical" onClick={deselectAll} leftIcon={<X className="h-3 w-3" />}>
-                  Selection hatayein ({selectedIds.size})
+                  {tr('Selection hatayein ({{size}})', { size: selectedIds.size })}
                 </Button>
               )}
               {(search || activeCategory !== 'all' || activeBrand !== 'all') && (
                 <Button size="xs" variant="ghost" onClick={clearFilters} leftIcon={<Filter className="h-3 w-3" />}>
-                  Filter hatayein
+                  {tr('Filter hatayein')}
                 </Button>
               )}
-              <div className="ml-auto text-xs font-medium text-slate-500">
-                {filtered.length} products nazar aa rahe hain
+              <div className="ms-auto text-xs font-medium text-slate-500">
+                {tr('{{count}} products nazar aa rahe hain', { count: filtered.length })}
               </div>
             </div>
           </div>
@@ -470,8 +471,8 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
           ) : filtered.length === 0 ? (
             <div className="py-20 text-center">
               <Package className="mx-auto mb-3 h-16 w-16 text-slate-300" />
-              <h3 className="font-semibold text-slate-900">Kuch nahi mila</h3>
-              <p className="mt-1 text-sm text-slate-500">Filter badal kar dekhein</p>
+              <h3 className="font-semibold text-slate-900">{tr('Kuch nahi mila')}</h3>
+              <p className="mt-1 text-sm text-slate-500">{tr('Filter badal kar dekhein')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -534,7 +535,7 @@ function ProductCard({
       disabled={p.alreadyExists}
       aria-pressed={selected}
       className={[
-        'group relative overflow-hidden rounded-xl border-2 bg-white text-left transition-all',
+        'group relative overflow-hidden rounded-xl border-2 bg-white text-start transition-all',
         selected
           ? 'border-brand-500 shadow-md ring-2 ring-brand-500/20'
           : p.alreadyExists
@@ -543,13 +544,13 @@ function ProductCard({
       ].join(' ')}
     >
       {selected && (
-        <div className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-brand-600 text-white shadow-lg">
+        <div className="absolute start-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-brand-600 text-white shadow-lg">
           <CheckCircle2 className="h-3.5 w-3.5" />
         </div>
       )}
       {p.alreadyExists && (
-        <div className="absolute right-2 top-2 z-10 rounded-md bg-emerald-500 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-white shadow">
-          Pehle se hai
+        <div className="absolute end-2 top-2 z-10 rounded-md bg-emerald-500 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-white shadow">
+          {tr('Pehle se hai')}
         </div>
       )}
 

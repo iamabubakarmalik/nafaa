@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { hardwareProductsApi, type HardwareFacts } from '../api/products.api';
 import { bulkPricingApi, type Tier } from '../api/bulk-pricing.api';
 import { categoryLabel } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export const FACTS_KEY = 'hardware-facts';
 export const TIERS_KEY = 'hardware-tiers';
@@ -38,10 +39,10 @@ export function tierFor(tiers: Tier[] | undefined, qty: number): Tier | null {
 export function factLine(f?: HardwareFacts): string | undefined {
   if (!f) return undefined;
   const parts = [
-    f.diameter, f.tileSize, f.grade ? `Grade ${f.grade}` : undefined, f.gradeStrength,
+    f.diameter, f.tileSize, f.grade ? tr('Grade {{grade}}', { grade: f.grade }) : undefined, f.gradeStrength,
     [f.colorName, f.colorCode].filter(Boolean).join(' ') || undefined, f.finishSheen ?? f.finishType,
-    f.litersPerCan ? `${f.litersPerCan} L` : undefined, f.bagWeight ? `${f.bagWeight} kg bag` : undefined,
-    f.piecesPerBox ? `${f.piecesPerBox} pcs/box` : undefined, f.sqftPerBox ? `${f.sqftPerBox} sq ft/box` : undefined,
+    f.litersPerCan ? `${f.litersPerCan} L` : undefined, f.bagWeight ? tr('{{bagWeight}} kg bag', { bagWeight: f.bagWeight }) : undefined,
+    f.piecesPerBox ? tr('{{piecesPerBox}} pcs/box', { piecesPerBox: f.piecesPerBox }) : undefined, f.sqftPerBox ? tr('{{sqftPerBox}} sq ft/box', { sqftPerBox: f.sqftPerBox }) : undefined,
   ].filter(Boolean);
   return parts.length ? parts.join(' · ') : categoryLabel(f.categoryType) || undefined;
 }

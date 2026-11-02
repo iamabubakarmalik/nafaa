@@ -12,6 +12,7 @@ import { LIVE_ORDERS_KEY } from '../../hooks/useLiveOnlineOrders';
 import { NEXT_ACTION, STATUS_LABEL } from '../../lib/labels';
 import { isClosed, orderNo } from '../../lib/orders';
 import { COURIERS_KEY } from '../couriers/CourierForms';
+import { t } from '@core/i18n';
 
 export type QuickAction =
   | { kind: 'accept' }
@@ -29,7 +30,7 @@ export function orderOptions(o: OnlineOrder) {
     confirm: o.isCod && o.paymentStatus !== 'PAID' && !closed && !o.dispatchedAt && o.confirmation?.result !== 'CONFIRMED' && o.orderStatus !== 'PENDING',
     // Handing over without a courier booking needs the CN form in the drawer.
     next: !!o.nextStatus && !!o.nafaaSaleId && !(o.nextStatus === 'OUT_FOR_DELIVERY' && !o.courierBooked),
-    nextLabel: NEXT_ACTION[o.orderStatus] ?? 'Aage',
+    nextLabel: NEXT_ACTION[o.orderStatus] ?? t('Aage'),
     book: !!o.nafaaSaleId && ['CONFIRMED', 'PREPARING', 'READY'].includes(o.orderStatus) && !o.courierBooked && !o.dispatchedAt && o.integration?.type !== 'DARAZ',
     label: !!o.courierBooked && o.orderStatus !== 'RETURNED',
     invoice: !!o.nafaaSaleId,
@@ -56,26 +57,26 @@ export function useOrderActions(onNeedsDrawer: (id: string) => void) {
       switch (a.kind) {
         case 'accept': {
           const r = await onlineOrdersApi.accept(o.id);
-          return `Bill ban gaya — ${r.sale.saleNumber}`;
+          return t('Bill ban gaya — {{saleNumber}}', { saleNumber: r.sale.saleNumber });
         }
         case 'confirm':
           await onlineOrdersApi.setConfirmation(o.id, 'CONFIRMED');
-          return 'Customer ne order confirm kiya';
+          return t('Customer ne order confirm kiya');
         case 'next': {
           const r = await onlineOrdersApi.bulk('next', [o.id]);
-          if (!r.done) throw new Error(r.results[0]?.error ?? 'Agla qadam nahi hua');
-          return o.nextStatus ? STATUS_LABEL[o.nextStatus].label : 'Ho gaya';
+          if (!r.done) throw new Error(r.results[0]?.error ?? t('Agla qadam nahi hua'));
+          return o.nextStatus ? STATUS_LABEL[o.nextStatus].label : t('Ho gaya');
         }
         case 'book': {
           const r = await couriersApi.book(o.id, { courier: a.courier });
-          return `Book ho gaya · CN ${r.trackingNumber}`;
+          return t('Book ho gaya · CN {{trackingNumber}}', { trackingNumber: r.trackingNumber });
         }
         case 'label':
           await couriersApi.openLabel(o.id);
           return '';
         case 'cancel':
           await onlineOrdersApi.cancel(o.id, a.reason);
-          return o.nafaaSaleId ? 'Order cancel — bill void, stock wapas' : 'Order cancel ho gaya';
+          return o.nafaaSaleId ? t('Order cancel — bill void, stock wapas') : t('Order cancel ho gaya');
       }
     },
     onMutate: ({ o }) => setBusyId(o.id),
@@ -84,11 +85,11 @@ export function useOrderActions(onNeedsDrawer: (id: string) => void) {
     onError: (err, { o, a }) => {
       // Items not linked to Nafaa products: the drawer opens the matching screen.
       if (a.kind === 'accept' && (unmatchedFromError(err) !== null || (err as { response?: { status?: number } })?.response?.status === 409)) {
-        toast.message(`#${orderNo(o)} · kuch items Nafaa product se jodne hain`);
+        toast.message(t('#{{orderNo}} · kuch items Nafaa product se jodne hain', { orderNo: orderNo(o) }));
         onNeedsDrawer(o.id);
         return;
       }
-      toast.error(apiErrorMessage(err, 'Nahi hua'));
+      toast.error(apiErrorMessage(err, t('Nahi hua')));
       refresh(o.id);
     },
   });

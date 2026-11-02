@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const TOOTH_SYSTEMS = ['FDI', 'UNIVERSAL', 'PALMER'];
 
@@ -11,7 +12,7 @@ function num(v: unknown, label: string, min: number, max: number, int = false) {
   if (v === undefined) return undefined;
   if (v === null || v === '') return null;
   const n = Number(v);
-  if (!Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) throw new BadRequestException(`${label} sahi likhein`);
+  if (!Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) throw new BadRequestException(apiMessage('{{label}} sahi likhein', { label }));
   return n;
 }
 
@@ -19,7 +20,7 @@ function date(v: unknown, label: string) {
   if (v === undefined) return undefined;
   if (v === null || v === '') return null;
   const d = new Date(String(v));
-  if (Number.isNaN(d.getTime())) throw new BadRequestException(`${label} sahi likhein`);
+  if (Number.isNaN(d.getTime())) throw new BadRequestException(apiMessage('{{label}} sahi likhein', { label }));
   return d;
 }
 

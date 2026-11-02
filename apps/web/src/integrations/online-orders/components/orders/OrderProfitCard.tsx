@@ -17,9 +17,10 @@ import { cn } from '@core/lib/cn';
 import { apiErrorMessage, type OnlineOrderDetail } from '../../api/online-orders.api';
 import { COST_KINDS, COST_LABEL, orderMoneyApi, type CostKind, type CostSource } from '../../api/order-money.api';
 import { rs, whenText } from '../../lib/labels';
+import { t, Trans } from '@core/i18n';
 
 const SOURCE_TEXT: Record<CostSource, string> = {
-  API: 'courier se', STATEMENT: 'statement se', MANUAL: 'aap ne likha', POSTED: 'likha hua', ESTIMATE: 'andaza', NONE: '',
+  API: t('courier se'), STATEMENT: t('statement se'), MANUAL: t('aap ne likha'), POSTED: t('likha hua'), ESTIMATE: 'andaza', NONE: '',
 };
 
 export function OrderProfitCard({ order: o, onChanged }: { order: OnlineOrderDetail; onChanged: () => void }) {
@@ -36,11 +37,11 @@ export function OrderProfitCard({ order: o, onChanged }: { order: OnlineOrderDet
   return (
     <section className="rounded-2xl bg-white p-4 ring-1 ring-slate-200/80">
       <div className="flex items-center gap-2">
-        <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{p ? 'Asli profit' : 'Selling costs'}</span>
-        {!done && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.625rem] font-semibold text-slate-500">abhi andaza</span>}
+        <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{p ? t('Asli profit') : t('Selling costs')}</span>
+        {!done && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.625rem] font-semibold text-slate-500">{t('abhi andaza')}</span>}
         <span className="flex-1" />
         <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50">
-          <Pencil className="h-3 w-3" /> Cost theek karein
+          <Pencil className="h-3 w-3" /> {' '}{t('Cost theek karein')}
         </button>
       </div>
 
@@ -50,37 +51,37 @@ export function OrderProfitCard({ order: o, onChanged }: { order: OnlineOrderDet
             {p.profit >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
             {p.profit < 0 ? '− ' : ''}{rs(Math.abs(p.profit))}
           </div>
-          {p.margin !== null && <div className="text-right text-xs text-slate-500">Margin <span className={cn('font-bold', p.margin >= 0 ? 'text-slate-800' : 'text-rose-600')}>{p.margin}%</span></div>}
+          {p.margin !== null && <div className="text-end text-xs text-slate-500">{t('Margin')}{' '} <span className={cn('font-bold', p.margin >= 0 ? 'text-slate-800' : 'text-rose-600')}>{p.margin}%</span></div>}
         </div>
       )}
 
       <dl className="mt-3 space-y-1.5 border-t border-slate-100 pt-3 text-[0.8125rem]">
         {p && <>
-          <Row label="Sale (maal)" value={rs(p.sale)} hint={o.orderStatus === 'RETURNED' ? 'Parcel wapas — bill void' : undefined} />
-          <Row label="Product cost" value={`− ${rs(p.cost)}`} />
-          {p.deliveryCollected > 0 && <Row label="Delivery customer se mili" value={`+ ${rs(p.deliveryCollected)}`} tone="text-success-700" />}
+          <Row label={t('Sale (maal)')} value={rs(p.sale)} hint={o.orderStatus === 'RETURNED' ? t('Parcel wapas — bill void') : undefined} />
+          <Row label={t('Product cost')} value={`− ${rs(p.cost)}`} />
+          {p.deliveryCollected > 0 && <Row label={t('Delivery customer se mili')} value={`+ ${rs(p.deliveryCollected)}`} tone="text-success-700" />}
         </>}
         {shown.map((k) => (
           <Row key={k} label={COST_LABEL[k]} value={`− ${rs(c[k].value)}`} hint={SOURCE_TEXT[c[k].source]}
             tone={c[k].source === 'ESTIMATE' ? 'text-slate-500' : undefined} />
         ))}
-        {!shown.length && <p className="text-xs text-slate-500">Is order par abhi koi selling cost nahi.</p>}
-        <Row label="Selling costs total" value={`− ${rs(c.total)}`} strong />
+        {!shown.length && <p className="text-xs text-slate-500">{t('Is order par abhi koi selling cost nahi.')}</p>}
+        <Row label={t('Selling costs total')} value={`− ${rs(c.total)}`} strong />
       </dl>
 
       {c.courierMissing && (
         <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-[0.75rem] text-amber-900">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>{o.courierLabel ?? 'Is courier'} ka rate likha nahi — <Link to="/online-store/costs" className="font-semibold underline">Selling costs</Link> me rate likhein, profit khud ban jayega.</span>
+          <span>{o.courierLabel ? <Trans text="{{courier}} ka rate likha nahi — {{link}} me rate likhein, profit khud ban jayega." values={{ courier: o.courierLabel, link: <Link to="/online-store/costs" className="font-semibold underline">{t('Selling costs')}</Link> }} /> : <Trans text="Is courier ka rate likha nahi — {{link}} me rate likhein, profit khud ban jayega." values={{ link: <Link to="/online-store/costs" className="font-semibold underline">{t('Selling costs')}</Link> }} />}</span>
         </p>
       )}
       {o.costPosting?.on && (
         <p className="mt-2 text-[0.6875rem] text-slate-500">
           {o.costPosting.postedAt
-            ? `Expense ${o.costPosting.expenseNumber ?? ''} me likha gaya · ${whenText(o.costPosting.postedAt)} — P&L me shamil`
+            ? t('Expense {{value}} me likha gaya · {{postedAt}} — P&L me shamil', { value: o.costPosting.expenseNumber ?? '', postedAt: whenText(o.costPosting.postedAt) })
             : done
-              ? 'Ye order setting chalu hone se pehle band hua — is ke costs Expenses me nahi likhe gaye. Statement milane ya cost theek karne par likh diye jayenge.'
-              : 'Deliver ya wapas hote hi ye costs Expenses me khud likhe jayenge (P&L).'}
+              ? t('Ye order setting chalu hone se pehle band hua — is ke costs Expenses me nahi likhe gaye. Statement milane ya cost theek karne par likh diye jayenge.')
+              : t('Deliver ya wapas hote hi ye costs Expenses me khud likhe jayenge (P&L).')}
         </p>
       )}
 
@@ -93,7 +94,7 @@ function Row({ label, value, hint, tone, strong }: { label: string; value: strin
   return (
     <div className={cn('flex items-baseline justify-between gap-3', strong && 'border-t border-slate-100 pt-1.5')}>
       <dt className={cn(strong ? 'font-bold text-slate-900' : 'text-slate-600')}>
-        {label}{hint && <span className="ml-1.5 text-[0.6875rem] text-slate-400">{hint}</span>}
+        {label}{hint && <span className="ms-1.5 text-[0.6875rem] text-slate-400">{hint}</span>}
       </dt>
       <dd className={cn('tabular-nums', strong ? 'font-bold text-slate-900' : 'font-semibold text-slate-700', tone)}>{value}</dd>
     </div>
@@ -107,17 +108,17 @@ function EditCosts({ order: o, onClose, onSaved }: { order: OnlineOrderDetail; o
     Object.fromEntries(COST_KINDS.map((k) => [k, saved(k) ? String(c[k].value) : ''])) as Record<CostKind, string>);
   const save = useMutation({
     mutationFn: () => orderMoneyApi.setCosts(o.id, Object.fromEntries(COST_KINDS.map((k) => [k, vals[k].trim() === '' ? null : Number(vals[k])])) as Record<CostKind, number | null>),
-    onSuccess: () => { toast.success('Costs save ho gayi'); onSaved(); },
+    onSuccess: () => { toast.success(t('Costs save ho gayi')); onSaved(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const bad = COST_KINDS.some((k) => vals[k].trim() !== '' && !(Number(vals[k]) >= 0));
   return (
-    <Modal open onClose={onClose} size="sm" title={`Order #${o.externalOrderNumber ?? o.externalOrderId} — costs`}
-      description="Courier ki asli raseed ya statement se amount likhein. Khali chhorein to rate card wala andaza lagega."
-      footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={bad} onClick={() => save.mutate()}>Save</Button></div>}>
+    <Modal open onClose={onClose} size="sm" title={t('Order #{{value}} — costs', { value: o.externalOrderNumber ?? o.externalOrderId })}
+      description={t('Courier ki asli raseed ya statement se amount likhein. Khali chhorein to rate card wala andaza lagega.')}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={save.isPending} disabled={bad} onClick={() => save.mutate()}>{t('Save')}</Button></div>}>
       <div className="grid gap-3 sm:grid-cols-2">
         {COST_KINDS.map((k) => (
-          <Input key={k} size="sm" type="number" min={0} label={`${COST_LABEL[k]} (Rs)`} value={vals[k]} placeholder={c[k].value ? `Andaza ${Math.round(c[k].value)}` : 'Khali'}
+          <Input key={k} size="sm" type="number" min={0} label={t('{{value}} (Rs)', { value: COST_LABEL[k] })} value={vals[k]} placeholder={c[k].value ? t('Andaza {{value}}', { value: Math.round(c[k].value) }) : t('Khali')}
             onChange={(e) => setVals((v) => ({ ...v, [k]: e.target.value }))} />
         ))}
       </div>

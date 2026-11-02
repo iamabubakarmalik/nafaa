@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Allowed readings and their sane range; anything outside is a typing mistake. */
 const RANGES: Record<string, [number, number, boolean]> = {
@@ -16,7 +17,7 @@ function readVitals(dto: any) {
     if (dto[k] === undefined) continue;
     if (dto[k] === null || dto[k] === '') { out[k] = null; continue; }
     const n = Number(dto[k]);
-    if (!Number.isFinite(n) || n < min || n > max) throw new BadRequestException(`${k}: ${min} se ${max} ke darmiyan likhein`);
+    if (!Number.isFinite(n) || n < min || n > max) throw new BadRequestException(apiMessage('{{k}}: {{min}} se {{max}} ke darmiyan likhein', { k, min, max }));
     out[k] = int ? Math.round(n) : n;
   }
   if (out.temperatureF != null && out.temperatureC === undefined) out.temperatureC = Number((((out.temperatureF as number) - 32) * 5 / 9).toFixed(1));

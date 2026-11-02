@@ -16,6 +16,7 @@ import QurbaniPage from './pages/QurbaniPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import WholesalePage from './pages/WholesalePage';
 import MeatDashboard from './dashboard/MeatDashboard';
+import { t } from '@core/i18n';
 
 /**
  * Meat shop, butcher and chicken shop: mandi purchase, slaughter and
@@ -25,11 +26,11 @@ import MeatDashboard from './dashboard/MeatDashboard';
 export const MeatPack: IndustryPack = {
   id: 'meat',
   name: 'Meat / Butcher / Halal',
-  shortName: 'Meat',
+  shortName: t('Meat'),
   emoji: '🥩',
   priority: 65,
   description:
-    'Halal certification, livestock tracking, slaughter logs, cutting jobs, weight-based orders, wholesale accounts.',
+    t('Halal certification, livestock tracking, slaughter logs, cutting jobs, weight-based orders, wholesale accounts.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,23 +46,23 @@ export const MeatPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Meat shop',
+      label: t('Meat shop'),
       icon: Beef,
       emoji: '🥩',
       color: '#dc2626',
       order: 20,
       items: [
-        { to: '/meat/dashboard', label: 'Meat dashboard', icon: LayoutDashboard },
-        { to: '/meat/rates', label: 'Today\'s rates', icon: Gauge, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-        { to: '/meat/weight-orders', label: 'Weight orders', icon: Package, permission: PERMISSIONS.SALES_VIEW },
-        { to: '/meat/weight-orders/new', label: 'New order', icon: Plus, permission: PERMISSIONS.POS_USE },
-        { to: '/meat/live-animals', label: 'Livestock', icon: Heart, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/meat/slaughter', label: 'Slaughter (halal)', icon: ShieldCheck, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/meat/cutting', label: 'Cutting', icon: Scissors, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/meat/wholesale', label: 'Restaurants / hotels', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/meat/subscriptions', label: 'Supply plans', icon: CalendarClock, permission: PERMISSIONS.CUSTOMERS_VIEW, featureFlag: 'meatSubscriptions' },
-        { to: '/meat/qurbani', label: 'Qurbani / aqeeqa bookings', icon: Beef, permission: PERMISSIONS.SALES_VIEW, featureFlag: 'meatQurbani' },
-        { to: '/meat/products', label: 'Items', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/dashboard', label: t('Meat dashboard'), icon: LayoutDashboard },
+        { to: '/meat/rates', label: t('Today\'s rates'), icon: Gauge, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+        { to: '/meat/weight-orders', label: t('Weight orders'), icon: Package, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/meat/weight-orders/new', label: t('New order'), icon: Plus, permission: PERMISSIONS.POS_USE },
+        { to: '/meat/live-animals', label: t('Livestock'), icon: Heart, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/slaughter', label: t('Slaughter (halal)'), icon: ShieldCheck, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/cutting', label: t('Cutting'), icon: Scissors, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/meat/wholesale', label: t('Restaurants / hotels'), icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/meat/subscriptions', label: t('Supply plans'), icon: CalendarClock, permission: PERMISSIONS.CUSTOMERS_VIEW, featureFlag: 'meatSubscriptions' },
+        { to: '/meat/qurbani', label: t('Qurbani / aqeeqa bookings'), icon: Beef, permission: PERMISSIONS.SALES_VIEW, featureFlag: 'meatQurbani' },
+        { to: '/meat/products', label: t('Items'), icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
     },
   ],
@@ -92,24 +93,24 @@ export const MeatPack: IndustryPack = {
   productForm: {
     defaultUnit: 'kg',
     unitOptions: [
-      { value: 'kg', label: 'Kilograms', hint: '⚖️', group: 'Weight' },
-      { value: 'gram', label: 'Grams', hint: '⚖️', group: 'Weight' },
-      { value: 'pound', label: 'Pounds', hint: '⚖️', group: 'Weight' },
-      { value: 'piece', label: 'Piece', hint: '🔢', group: 'Count' },
-      { value: 'dozen', label: 'Dozen', hint: '📦', group: 'Count' },
-      { value: 'whole', label: 'Whole', hint: '🥩', group: 'Portion' },
-      { value: 'half', label: 'Half', hint: '🥩', group: 'Portion' },
-      { value: 'quarter', label: 'Quarter', hint: '🥩', group: 'Portion' },
+      { value: 'kg', label: t('Kilograms'), hint: '⚖️', group: t('Weight') },
+      { value: 'gram', label: t('Grams'), hint: '⚖️', group: t('Weight') },
+      { value: 'pound', label: t('Pounds'), hint: '⚖️', group: t('Weight') },
+      { value: 'piece', label: t('Piece'), hint: '🔢', group: t('Count') },
+      { value: 'dozen', label: t('Dozen'), hint: '📦', group: t('Count') },
+      { value: 'whole', label: t('Whole'), hint: '🥩', group: t('Portion') },
+      { value: 'half', label: t('Half'), hint: '🥩', group: t('Portion') },
+      { value: 'quarter', label: t('Quarter'), hint: '🥩', group: t('Portion') },
     ],
   },
 
   featureFlags: [
-    { key: 'meatHalal', label: 'Halal Certification', defaultEnabled: true },
-    { key: 'meatLivestock', label: 'Live Animals', defaultEnabled: true },
-    { key: 'meatSlaughter', label: 'Slaughter Logs', defaultEnabled: true },
-    { key: 'meatCutting', label: 'Cutting Jobs', defaultEnabled: true },
-    { key: 'meatWholesale', label: 'Wholesale Accounts', defaultEnabled: true },
-    { key: 'meatQurbani', label: 'Qurbani Bookings', defaultEnabled: false },
-    { key: 'meatSubscriptions', label: 'Meat Subscriptions', defaultEnabled: true },
+    { key: 'meatHalal', label: t('Halal Certification'), defaultEnabled: true },
+    { key: 'meatLivestock', label: t('Live Animals'), defaultEnabled: true },
+    { key: 'meatSlaughter', label: t('Slaughter Logs'), defaultEnabled: true },
+    { key: 'meatCutting', label: t('Cutting Jobs'), defaultEnabled: true },
+    { key: 'meatWholesale', label: t('Wholesale Accounts'), defaultEnabled: true },
+    { key: 'meatQurbani', label: t('Qurbani Bookings'), defaultEnabled: false },
+    { key: 'meatSubscriptions', label: t('Meat Subscriptions'), defaultEnabled: true },
   ],
 };

@@ -6,6 +6,7 @@ import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
 import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { ensureSizeVariant, sizeLabel } from '../common/size-stock.helper';
 import { CreateExchangeDto, UpdateExchangeStatusDto } from './dto/create-exchange.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = ['REQUESTED', 'APPROVED', 'COMPLETED', 'REJECTED'];
 /** Notes the garments exchange service (shared by shoe shops) puts on an exchange's return. */
@@ -122,7 +123,7 @@ export class ShoeExchangesService {
         };
         const from = pick(e.originalSize);
         const to = pick(e.newSize);
-        if (!from || !to) throw new BadRequestException(`Is product me size ${!from ? e.originalSize : e.newSize} nahi mila`);
+        if (!from || !to) throw new BadRequestException(apiMessage('Is product me size {{value}} nahi mila', { value: !from ? e.originalSize : e.newSize }));
         const note = `Exchange ${e.exchangeNumber}: ${sizeLabel(from)} wapas, ${sizeLabel(to)} diya`;
         for (const [sz, delta] of [[from, 1], [to, -1]] as const) {
           const variantId = await ensureSizeVariant(tx, { tenantId: user.tenantId, userId: user.id, shopId, size: sz });
@@ -133,7 +134,7 @@ export class ShoeExchangesService {
               preventNegative: delta < 0, label: `Size ${sizeLabel(sz)}`, userId: user.id,
             });
           } else {
-            if (delta < 0 && sz.stock < 1) throw new BadRequestException(`Size ${sizeLabel(sz)} stock me nahi`);
+            if (delta < 0 && sz.stock < 1) throw new BadRequestException(apiMessage('Size {{sz}} stock me nahi', { sz: sizeLabel(sz) }));
             await tx.shoeSizeVariant.update({ where: { id: sz.id }, data: { stock: { increment: delta } } });
           }
         }

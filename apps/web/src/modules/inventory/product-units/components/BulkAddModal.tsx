@@ -16,6 +16,7 @@ import type { UnitConversionType } from '@modules/inventory/products/api/product
 import { unitsPageApi, type OverviewProduct } from '../api/units-page.api';
 import { apiMessage } from './UnitEditor';
 import { TYPE_LABEL, TYPE_ORDER, UNIT_KEYS, packPrice, presetsFor, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const input = 'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
 const ROUND = [1, 5, 10, 50, 100] as const;
@@ -46,21 +47,21 @@ export function BulkAddModal({ products, industryId, onClose, onDone }: {
     }),
     onSuccess: (res) => {
       UNIT_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(`${res.created} products me ${name.trim()} jur gaya${res.updated ? `, ${res.updated} update` : ''}${res.skipped ? ` · ${res.skipped} chhor diye` : ''}`);
+      toast.success(tr('{{created}} products me {{value}} jur gaya{{value2}}{{value3}}', { created: res.created, value: name.trim(), value2: res.updated ? tr(', {{updated}} update', { updated: res.updated }) : '', value3: res.skipped ? tr(' · {{skipped}} chhor diye', { skipped: res.skipped }) : '' }));
       onDone();
     },
-    onError: (e) => toast.error(apiMessage(e, 'Pack nahi jure')),
+    onError: (e) => toast.error(apiMessage(e, tr('Pack nahi jure'))),
   });
 
-  const problem = !name.trim() ? 'Pack ka naam likhein' : !(r > 0) || r === 1 ? 'Ek pack me kitne — 1 se alag likhein' : null;
+  const problem = !name.trim() ? tr('Pack ka naam likhein') : !(r > 0) || r === 1 ? tr('Ek pack me kitne — 1 se alag likhein') : null;
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`${products.length} products me ek pack jorein`}
-      description="Misaal: sab cold drinks me carton = 24. Qeemat har product ke khule rate se khud banti hai."
+    <Modal open onClose={onClose} size="lg" title={tr('{{count}} products me ek pack jorein', { count: products.length })}
+      description={tr('Misaal: sab cold drinks me carton = 24. Qeemat har product ke khule rate se khud banti hai.')}
       footer={<>
-        {problem && <span className="mr-auto text-[0.75rem] text-amber-700">{problem}</span>}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={run.isPending} disabled={!!problem} onClick={() => run.mutate()} leftIcon={<Layers className="h-4 w-4" />}>Sab me jorein</Button>
+        {problem && <span className="me-auto text-[0.75rem] text-amber-700">{problem}</span>}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={run.isPending} disabled={!!problem} onClick={() => run.mutate()} leftIcon={<Layers className="h-4 w-4" />}>{tr('Sab me jorein')}</Button>
       </>}>
       <div className="space-y-4">
         <div className="flex flex-wrap gap-1.5">
@@ -72,37 +73,37 @@ export function BulkAddModal({ products, industryId, onClose, onDone }: {
           ))}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Pack ka naam *
-            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Carton" className={cn(input, 'mt-1')} />
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{existing ? `${existing} products me ye pack pehle se hai` : 'Har product me isi naam se jurega'}</span>
+          <label className="block text-[0.8125rem] font-medium text-slate-700">{tr('Pack ka naam *')}
+            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={tr('Carton')} className={cn(input, 'mt-1')} />
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{existing ? tr('{{existing}} products me ye pack pehle se hai', { existing }) : tr('Har product me isi naam se jurega')}</span>
           </label>
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Ek pack me kitne *
+          <label className="block text-[0.8125rem] font-medium text-slate-700">{tr('Ek pack me kitne *')}
             <input value={rate} onChange={(e) => setRate(e.target.value)} inputMode="decimal" placeholder="24" className={cn(input, 'mt-1 tabular-nums')} />
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{mixed ? 'Products ke asal unit alag hain — rate har ek ke apne unit me lagega' : `${base} me`}</span>
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{mixed ? tr('Products ke asal unit alag hain — rate har ek ke apne unit me lagega') : tr('{{base}} me', { base })}</span>
           </label>
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Khule rate se kitna kam (%)
+          <label className="block text-[0.8125rem] font-medium text-slate-700">{tr('Khule rate se kitna kam (%)')}
             <input value={off} onChange={(e) => setOff(e.target.value)} inputMode="decimal" className={cn(input, 'mt-1 tabular-nums')} />
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">0 = khule ke barabar. Pack par discount dene ke liye 2–5%</span>
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{tr('0 = khule ke barabar. Pack par discount dene ke liye 2–5%')}</span>
           </label>
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Qeemat gol karein
+          <label className="block text-[0.8125rem] font-medium text-slate-700">{tr('Qeemat gol karein')}
             <select value={roundTo} onChange={(e) => setRoundTo(Number(e.target.value) as (typeof ROUND)[number])} className={cn(input, 'mt-1')}>
-              {ROUND.map((n) => <option key={n} value={n}>{n === 1 ? 'Poore rupay' : `${n} ke hisaab se`}</option>)}
+              {ROUND.map((n) => <option key={n} value={n}>{n === 1 ? tr('Poore rupay') : tr('{{n}} ke hisaab se', { n })}</option>)}
             </select>
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Misaal: 1,437 → 1,440 (10 ke hisaab se)</span>
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{tr('Misaal: 1,437 → 1,440 (10 ke hisaab se)')}</span>
           </label>
-          <label className="block text-[0.8125rem] font-medium text-slate-700">Type (type)
+          <label className="block text-[0.8125rem] font-medium text-slate-700">{tr('Type')}
             <select value={type} onChange={(e) => setType(e.target.value as UnitConversionType)} className={cn(input, 'mt-1')}>
               {TYPE_ORDER.map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
             </select>
-            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">Sirf reports ke liye</span>
+            <span className="mt-1 block text-[0.75rem] font-normal text-slate-500">{tr('Sirf reports ke liye')}</span>
           </label>
           <div className="self-center">
-            <Switch checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} label="Pehle se ho to update karein" description="Rate aur qeemat naye hisaab se badal dein" />
+            <Switch checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} label={tr('Pehle se ho to update karein')} description={tr('Rate aur qeemat naye hisaab se badal dein')} />
           </div>
         </div>
 
         <div className="rounded-2xl ring-1 ring-slate-200">
-          <p className="border-b border-slate-100 px-3 py-2 text-[0.75rem] font-semibold text-slate-500">Jhalak (pehle 6)</p>
+          <p className="border-b border-slate-100 px-3 py-2 text-[0.75rem] font-semibold text-slate-500">{tr('Jhalak (pehle 6)')}</p>
           <ul className="divide-y divide-slate-100 text-[0.8125rem]">
             {products.slice(0, 6).map((p) => {
               const has = p.units.some((u) => u.unitName.trim().toLowerCase() === name.trim().toLowerCase());
@@ -115,7 +116,7 @@ export function BulkAddModal({ products, industryId, onClose, onDone }: {
                 </li>
               );
             })}
-            {products.length > 6 && <li className="px-3 py-2 text-[0.75rem] text-slate-500">aur {products.length - 6}…</li>}
+            {products.length > 6 && <li className="px-3 py-2 text-[0.75rem] text-slate-500">{tr('aur {{value}}…', { value: products.length - 6 })}</li>}
           </ul>
         </div>
       </div>

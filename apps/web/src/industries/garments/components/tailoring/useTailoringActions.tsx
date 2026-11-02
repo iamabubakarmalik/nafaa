@@ -13,6 +13,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { tailoringApi, type TailoringOrder, type TailoringStatus } from '../../api/tailoring.api';
 import { CancelModal } from '../fields';
 import { MONEY_KEYS, TAILORING_KEY, TAILORING_PREV, apiError, dueOf, tailoringNext, tailoringStatus } from '../meta';
+import { t } from '@core/i18n';
 
 export function useTailoringActions() {
   const qc = useQueryClient();
@@ -24,23 +25,23 @@ export function useTailoringActions() {
   const status = useMutation({
     mutationFn: ({ o, to }: { o: TailoringOrder; to: TailoringStatus }) => tailoringApi.updateStatus(o.id, to),
     onSuccess: (o) => { toast.success(`${o.orderNumber}: ${tailoringStatus(o.orderStatus).label}`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Halat nahi badli')),
+    onError: (e) => toast.error(apiError(e, t('Halat nahi badli'))),
   });
   const pay = useMutation({
     mutationFn: ({ o, amount, method }: { o: TailoringOrder; amount: number; method: PaymentMethod }) =>
       tailoringApi.addPayment(o.id, { amount, paymentMethod: method }),
-    onSuccess: (o) => { toast.success(`${o.orderNumber}: payment darj — baqi ${formatPKR(dueOf(o))}`); setPayOn(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Payment darj nahi hui')),
+    onSuccess: (o) => { toast.success(t('{{orderNumber}}: payment darj — baqi {{formatPKR}}', { orderNumber: o.orderNumber, formatPKR: formatPKR(dueOf(o)) })); setPayOn(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Payment darj nahi hui'))),
   });
   const deliver = useMutation({
     mutationFn: ({ o, amount, method }: { o: TailoringOrder; amount: number; method: PaymentMethod }) =>
       tailoringApi.updateStatus(o.id, 'DELIVERED', { paidNow: amount, paymentMethod: method }),
     onSuccess: (o) => {
       const left = dueOf(o);
-      toast.success(`${o.orderNumber} de diya — bill ${o.bill?.saleNumber ?? 'ban gaya'}${left > 0.5 ? ` · ${formatPKR(left)} khate me` : ''}`);
+      toast.success(t('{{orderNumber}} de diya — bill {{value}}{{value2}}', { orderNumber: o.orderNumber, value: o.bill?.saleNumber ?? 'ban gaya', value2: left > 0.5 ? t(' · {{left}} khate me', { left: formatPKR(left) }) : '' }));
       setDeliverOn(null); refresh();
     },
-    onError: (e) => toast.error(apiError(e, 'Deliver nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Deliver nahi hua'))),
   });
 
   const next = (o: TailoringOrder) => {
@@ -58,14 +59,14 @@ export function useTailoringActions() {
   const modals = (
     <>
       {payOn && (
-        <TakePaymentModal title="Advance / payment" description={`${payOn.customerName ?? ''} · ${payOn.orderNumber} · ${formatPKR(dueOf(payOn))} baqi`}
+        <TakePaymentModal title={t('Advance / payment')} description={t('{{value}} · {{orderNumber}} · {{formatPKR}} baqi', { value: payOn.customerName ?? '', orderNumber: payOn.orderNumber, formatPKR: formatPKR(dueOf(payOn)) })}
           amount={dueOf(payOn)} max={dueOf(payOn)} loading={pay.isPending}
-          hint="Yeh paisa customer ke khate me advance ban kar jama hota hai; suit dete waqt bill me kat jata hai."
+          hint={t('Yeh paisa customer ke khate me advance ban kar jama hota hai; suit dete waqt bill me kat jata hai.')}
           onConfirm={(amount, method) => pay.mutate({ o: payOn, amount, method })} onClose={() => setPayOn(null)} />
       )}
       {deliverOn && (
-        <TakePaymentModal title="Suit de diya — bill" confirmLabel="Bill banayein"
-          description={`${deliverOn.customerName ?? ''} · ${deliverOn.orderNumber} · kul ${formatPKR(deliverOn.total)}, advance ${formatPKR(deliverOn.paidAmount)}`}
+        <TakePaymentModal title={t('Suit de diya — bill')} confirmLabel={t('Bill banayein')}
+          description={t('{{value}} · {{orderNumber}} · kul {{total}}, advance {{paidAmount}}', { value: deliverOn.customerName ?? '', orderNumber: deliverOn.orderNumber, total: formatPKR(deliverOn.total), paidAmount: formatPKR(deliverOn.paidAmount) })}
           amount={dueOf(deliverOn)} max={dueOf(deliverOn)} allowZero loading={deliver.isPending}
           onConfirm={(amount, method) => deliver.mutate({ o: deliverOn, amount, method })} onClose={() => setDeliverOn(null)} />
       )}

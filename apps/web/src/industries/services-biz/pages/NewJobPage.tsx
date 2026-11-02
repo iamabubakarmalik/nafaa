@@ -33,6 +33,7 @@ import {
   CATALOG_KEY, CATEGORIES, JOB_KEY, LOCATIONS, MONEY_KEYS, PRIORITIES, TECH_KEY, apiError, atHour, categoryOf, digits, isOnSite, localInput, locationOf,
   money, priorityOf,
 } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 interface Draft {
   customerId: string; name: string; phone: string; altPhone: string;
@@ -115,16 +116,16 @@ export default function NewJobPage() {
 
   const problems = useMemo(() => {
     const out: Record<string, string> = {};
-    if (!f.customerId && !f.name.trim() && !f.phone.trim()) out.name = 'Customer ka naam ya phone likhein';
-    if (f.phone && digits(f.phone).length < 10) out.phone = 'Phone number poora likhein (03xx…)';
-    if (!f.serviceId && !f.serviceName.trim()) out.service = 'Service chunein ya kaam ka naam likhein';
-    if (onSite && !f.address.trim() && !f.area.trim()) out.address = 'Ghar / site ka pata likhein';
-    if (!editing && f.start && new Date(f.start).getTime() < Date.now() - 30 * 60_000) out.start = 'Ye waqt guzar chuka hai';
-    if (f.start && f.end && new Date(f.end) < new Date(f.start)) out.end = 'Khatam ka waqt shuru se pehle nahi ho sakta';
-    if (n(f.discount) > gross + 0.001) out.discount = `Discount ${formatPKR(gross)} se zyada nahi ho sakta`;
-    if (svc?.maxCharge && n(f.labour) > svc.maxCharge) out.labour = `Rate list me zyada se zyada ${formatPKR(svc.maxCharge)} hai`;
-    if (n(f.advance) > 0 && total > 0 && n(f.advance) > total) out.advance = `Advance andaze (${formatPKR(total)}) se zyada hai`;
-    if (n(f.advance) > 0 && !f.name.trim() && !f.customerId) out.advance = 'Advance ke liye customer ka naam likhein';
+    if (!f.customerId && !f.name.trim() && !f.phone.trim()) out.name = tr('Customer ka naam ya phone likhein');
+    if (f.phone && digits(f.phone).length < 10) out.phone = tr('Phone number poora likhein (03xx…)');
+    if (!f.serviceId && !f.serviceName.trim()) out.service = tr('Service chunein ya kaam ka naam likhein');
+    if (onSite && !f.address.trim() && !f.area.trim()) out.address = tr('Ghar / site ka pata likhein');
+    if (!editing && f.start && new Date(f.start).getTime() < Date.now() - 30 * 60_000) out.start = tr('Ye waqt guzar chuka hai');
+    if (f.start && f.end && new Date(f.end) < new Date(f.start)) out.end = tr('Khatam ka waqt shuru se pehle nahi ho sakta');
+    if (n(f.discount) > gross + 0.001) out.discount = tr('Discount {{formatPKR}} se zyada nahi ho sakta', { formatPKR: formatPKR(gross) });
+    if (svc?.maxCharge && n(f.labour) > svc.maxCharge) out.labour = tr('Rate list me zyada se zyada {{formatPKR}} hai', { formatPKR: formatPKR(svc.maxCharge) });
+    if (n(f.advance) > 0 && total > 0 && n(f.advance) > total) out.advance = tr('Advance andaze ({{formatPKR}}) se zyada hai', { formatPKR: formatPKR(total) });
+    if (n(f.advance) > 0 && !f.name.trim() && !f.customerId) out.advance = tr('Advance ke liye customer ka naam likhein');
     return out;
   }, [f, gross, total, onSite, editing, svc]);
   const err = (k: string) => (touched ? problems[k] : undefined);
@@ -150,11 +151,11 @@ export default function NewJobPage() {
     },
     onSuccess: (job) => {
       [JOB_KEY, ...(n(f.advance) > 0 ? MONEY_KEYS : [])].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(editing ? `${job.jobNumber} save ho gaya` : `${job.jobNumber} ban gaya`);
+      toast.success(editing ? tr('{{jobNumber}} save ho gaya', { jobNumber: job.jobNumber }) : tr('{{jobNumber}} ban gaya', { jobNumber: job.jobNumber }));
       if (print) printJobCard(job, shopName);
       navigate(`/services-biz/jobs/${job.id}`, { replace: true });
     },
-    onError: (e) => toast.error(apiError(e, editing ? 'Save nahi hua' : 'Job nahi bana')),
+    onError: (e) => toast.error(apiError(e, editing ? tr('Save nahi hua') : tr('Job nahi bana'))),
     onSettled: () => { lock.current = false; },
   });
 
@@ -183,33 +184,33 @@ export default function NewJobPage() {
   return (
     <PageShell>
       <PageHero
-        title={editing ? `Job badlein — ${jobQ.data?.jobNumber ?? ''}` : 'Naya job card'}
-        chip={<><ClipboardList /> {editing ? 'Badlein' : 'Kaam lein'}</>}
-        meta={editing ? 'Bill banne tak sab kuch badal sakta hai' : 'Customer, kaam, kahan aur kab — parts kaam ke dauran job par jorein'}
+        title={editing ? tr('Job badlein — {{value}}', { value: jobQ.data?.jobNumber ?? '' }) : tr('Naya job card')}
+        chip={<><ClipboardList /> {editing ? tr('Badlein') : tr('Kaam lein')}</>}
+        meta={editing ? tr('Bill banne tak sab kuch badal sakta hai') : tr('Customer, kaam, kahan aur kab — parts kaam ke dauran job par jorein')}
         actions={<>
-          <button type="button" onClick={() => navigate(-1)} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? 'Save ho raha…' : editing ? 'Save' : 'Job banayein'}</button>
+          <button type="button" onClick={() => navigate(-1)} title={tr('Wapas (Esc)')} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? tr('Save ho raha…') : editing ? tr('Save') : tr('Job banayein')}</button>
         </>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>} description="Phone likhte hi purana customer mil jata hai — udhaar aur advance usi ke khata me">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{tr('Customer')}</T>} description={tr('Phone likhte hi purana customer mil jata hai — udhaar aur advance usi ke khata me')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value, customerId: '' })} placeholder="03001234567" autoFocus={!editing} error={err('phone')}
-                hint={match ? `Purana customer: ${match.name}${Number(match.balance) > 0 ? ` · ${formatPKR(Number(match.balance))} udhaar` : ''}` : 'WhatsApp par khabar isi par jayegi'} />
-              <Input label="Naam" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder={match?.name ?? 'Bilal Ahmad'} error={err('name')} />
-              <Input label="Doosra phone" inputMode="tel" value={f.altPhone} onChange={(e) => set({ altPhone: e.target.value })} hint="Marzi hai" />
+              <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value, customerId: '' })} placeholder="03001234567" autoFocus={!editing} error={err('phone')}
+                hint={match ? tr('Purana customer: {{name}}{{value}}', { name: match.name, value: Number(match.balance) > 0 ? tr(' · {{formatPKR}} udhaar', { formatPKR: formatPKR(Number(match.balance)) }) : '' }) : tr('WhatsApp par khabar isi par jayegi')} />
+              <Input label={tr('Naam')} value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder={match?.name ?? tr('Bilal Ahmad')} error={err('name')} />
+              <Input label={tr('Doosra phone')} inputMode="tel" value={f.altPhone} onChange={(e) => set({ altPhone: e.target.value })} hint={tr('Marzi hai')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wrench}>Kaam</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wrench}>{tr('Kaam')}</T>}>
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <Select label="Rate list se service" value={f.serviceId} onChange={(e) => pickService(e.target.value)} placeholder="Chunein ya neeche likhein"
-                  options={(svcQ.data ?? []).map((s) => ({ value: s.id, label: s.name }))} hint={svc ? `${categoryOf(svc.category)} · ${svc.estimatedDurationMin} min` : svcQ.data && !svcQ.data.length ? 'Service Catalog me rate list banayein' : undefined} />
-                <Input label="Kaam ka naam" value={f.serviceName} onChange={(e) => set({ serviceName: e.target.value })} placeholder="AC gas refill" error={err('service')} />
+                <Select label={tr('Rate list se service')} value={f.serviceId} onChange={(e) => pickService(e.target.value)} placeholder={tr('Chunein ya neeche likhein')}
+                  options={(svcQ.data ?? []).map((s) => ({ value: s.id, label: s.name }))} hint={svc ? tr('{{category}} · {{estimatedDurationMin}} min', { category: categoryOf(svc.category), estimatedDurationMin: svc.estimatedDurationMin }) : svcQ.data && !svcQ.data.length ? tr('Service Catalog me rate list banayein') : undefined} />
+                <Input label={tr('Kaam ka naam')} value={f.serviceName} onChange={(e) => set({ serviceName: e.target.value })} placeholder={tr('AC gas refill')} error={err('service')} />
               </div>
               {popular.length > 0 && !f.serviceId && (
                 <div className="flex flex-wrap gap-1">
@@ -217,25 +218,25 @@ export default function NewJobPage() {
                 </div>
               )}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Select label="Kis tarah ka kaam" value={f.category} onChange={(e) => set({ category: e.target.value })} options={CATEGORIES.map((c) => ({ value: c, label: categoryOf(c) }))} />
-                <Select label="Jaldi" value={f.priority} onChange={(e) => set({ priority: e.target.value as Priority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
+                <Select label={tr('Kis tarah ka kaam')} value={f.category} onChange={(e) => set({ category: e.target.value })} options={CATEGORIES.map((c) => ({ value: c, label: categoryOf(c) }))} />
+                <Select label={tr('Jaldi')} value={f.priority} onChange={(e) => set({ priority: e.target.value as Priority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
               </div>
-              <Textarea label="Kharabi / kya karna hai" rows={3} value={f.problem} onChange={(e) => set({ problem: e.target.value })} placeholder="Customer ne kya bataya — thanda nahi karta, pani tapakta hai…" />
+              <Textarea label={tr('Kharabi / kya karna hai')} rows={3} value={f.problem} onChange={(e) => set({ problem: e.target.value })} placeholder={tr('Customer ne kya bataya — thanda nahi karta, pani tapakta hai…')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Box}>Cheez</T>} description="Kis cheez par kaam hai — warranty aur agli dafa pehchan ke liye">
+          <Card className="rounded-2xl" title={<T icon={Box}>{tr('Cheez')}</T>} description={tr('Kis cheez par kaam hai — warranty aur agli dafa pehchan ke liye')}>
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Brand" value={f.brand} onChange={(e) => set({ brand: e.target.value })} placeholder="Haier, Dawlance…" />
-                <Input label="Model" value={f.model} onChange={(e) => set({ model: e.target.value })} placeholder="1.5 ton inverter" />
-                <Input label="Serial number" value={f.serial} onChange={(e) => set({ serial: e.target.value })} hint="Marzi hai" />
+                <Input label={tr('Brand')} value={f.brand} onChange={(e) => set({ brand: e.target.value })} placeholder={tr('Haier, Dawlance…')} />
+                <Input label={tr('Model')} value={f.model} onChange={(e) => set({ model: e.target.value })} placeholder={tr('1.5 ton inverter')} />
+                <Input label={tr('Serial number')} value={f.serial} onChange={(e) => set({ serial: e.target.value })} hint={tr('Marzi hai')} />
               </div>
-              <Switch checked={f.underWarranty} onChange={(e) => set({ underWarranty: e.target.checked })} label="Company warranty me hai" description="Sirf yaad ke liye — bill par asar nahi" />
+              <Switch checked={f.underWarranty} onChange={(e) => set({ underWarranty: e.target.checked })} label={tr('Company warranty me hai')} description={tr('Sirf yaad ke liye — bill par asar nahi')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={MapPin}>Kahan</T>}>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>{tr('Kahan')}</T>}>
             <div className="space-y-3">
               <div className="flex flex-wrap gap-1.5">
                 {LOCATIONS.map((l) => (
@@ -245,10 +246,10 @@ export default function NewJobPage() {
               </div>
               {onSite && (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Input label="Pata" value={f.address} onChange={(e) => set({ address: e.target.value })} placeholder="Ghar 12, Street 4" error={err('address')} wrapperClassName="sm:col-span-2" />
-                  <Input label="Area" value={f.area} onChange={(e) => set({ area: e.target.value })} placeholder="DHA Phase 5" />
-                  <Input label="Shehar" value={f.city} onChange={(e) => set({ city: e.target.value })} placeholder="Lahore" />
-                  <Input label="Nishani" value={f.landmark} onChange={(e) => set({ landmark: e.target.value })} placeholder="Masjid ke saath" hint="Technician ko dhoondne me aasani" wrapperClassName="sm:col-span-2" />
+                  <Input label={tr('Pata')} value={f.address} onChange={(e) => set({ address: e.target.value })} placeholder={tr('Ghar 12, Street 4')} error={err('address')} wrapperClassName="sm:col-span-2" />
+                  <Input label={tr('Area')} value={f.area} onChange={(e) => set({ area: e.target.value })} placeholder={tr('DHA Phase 5')} />
+                  <Input label={tr('Shehar')} value={f.city} onChange={(e) => set({ city: e.target.value })} placeholder={tr('Lahore')} />
+                  <Input label={tr('Nishani')} value={f.landmark} onChange={(e) => set({ landmark: e.target.value })} placeholder={tr('Masjid ke saath')} hint={tr('Technician ko dhoondne me aasani')} wrapperClassName="sm:col-span-2" />
                 </div>
               )}
             </div>
@@ -256,51 +257,51 @@ export default function NewJobPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={CalendarClock}>Kab aur kaun</T>}>
+          <Card className="rounded-2xl" title={<T icon={CalendarClock}>{tr('Kab aur kaun')}</T>}>
             <div className="space-y-3">
               <div>
-                <Input label={onSite ? 'Visit ka waqt' : 'Kab tayyar karna hai'} type="datetime-local" value={f.start} onChange={(e) => set({ start: e.target.value })} error={err('start')}
-                  hint="Is waqt ke baad job “Late” me aati hai" />
+                <Input label={onSite ? tr('Visit ka waqt') : tr('Kab tayyar karna hai')} type="datetime-local" value={f.start} onChange={(e) => set({ start: e.target.value })} error={err('start')}
+                  hint={tr('Is waqt ke baad job “Late” me aati hai')} />
                 <div className="mt-1.5 flex flex-wrap gap-1">
-                  {([['Aaj shaam', atHour(0, 17)], ['Kal subah', atHour(1, 10)], ['Kal shaam', atHour(1, 17)], ['Parson', atHour(2, 12)]] as Array<[string, Date]>).map(([label, d]) => (
+                  {([[tr('Aaj shaam'), atHour(0, 17)], [tr('Kal subah'), atHour(1, 10)], [tr('Kal shaam'), atHour(1, 17)], [tr('Parson'), atHour(2, 12)]] as Array<[string, Date]>).map(([label, d]) => (
                     <button key={label} type="button" onClick={() => set({ start: localInput(d) })} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{label}</button>
                   ))}
                 </div>
               </div>
-              <Input label="Kaam khatam hone ka waqt" type="datetime-local" value={f.end} onChange={(e) => set({ end: e.target.value })} error={err('end')} hint="Marzi hai" />
+              <Input label={tr('Kaam khatam hone ka waqt')} type="datetime-local" value={f.end} onChange={(e) => set({ end: e.target.value })} error={err('end')} hint={tr('Marzi hai')} />
               {!editing && (
-                <Select label="Technician" value={f.technicianId} onChange={(e) => set({ technicianId: e.target.value })} placeholder="Baad me"
+                <Select label={tr('Technician')} value={f.technicianId} onChange={(e) => set({ technicianId: e.target.value })} placeholder={tr('Baad me')}
                   options={(techQ.data ?? []).map((t) => ({ value: t.staffId, label: `${t.staff?.fullName ?? 'Technician'}${t.openJobs ? ` (${t.openJobs} haath me)` : ''}` }))}
-                  hint={techQ.data && !techQ.data.length ? 'Technicians page par staff ko technician banayein' : 'Job par baad me bhi laga sakte hain'} />
+                  hint={techQ.data && !techQ.data.length ? tr('Technicians page par staff ko technician banayein') : tr('Job par baad me bhi laga sakte hain')} />
               )}
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Receipt}>Andaza</T>} description="Rate list se khud bharta hai — kaam ke baad badal sakte hain">
+          <Card className="rounded-2xl" title={<T icon={Receipt}>{tr('Andaza')}</T>} description={tr('Rate list se khud bharta hai — kaam ke baad badal sakte hain')}>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Money label="Visit charge" value={f.visit} onChange={(v) => set({ visit: v })} />
-                <Money label="Kaam (labour)" value={f.labour} onChange={(v) => set({ labour: v })} error={err('labour')} />
-                <Money label="Transport" value={f.transport} onChange={(v) => set({ transport: v })} />
-                <Money label="Emergency charge" value={f.emergency} onChange={(v) => set({ emergency: v })} />
-                <Money label="Discount" value={f.discount} onChange={(v) => set({ discount: v })} error={err('discount')} />
+                <Money label={tr('Visit charge')} value={f.visit} onChange={(v) => set({ visit: v })} />
+                <Money label={tr('Kaam (labour)')} value={f.labour} onChange={(v) => set({ labour: v })} error={err('labour')} />
+                <Money label={tr('Transport')} value={f.transport} onChange={(v) => set({ transport: v })} />
+                <Money label={tr('Emergency charge')} value={f.emergency} onChange={(v) => set({ emergency: v })} />
+                <Money label={tr('Discount')} value={f.discount} onChange={(v) => set({ discount: v })} error={err('discount')} />
               </div>
-              {partsCharge > 0 && <p className="text-[0.8125rem] text-slate-600">Parts (job par jore hue): {formatPKR(partsCharge)}</p>}
-              <p className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-slate-900"><span>Kul andaza</span><span className="tabular-nums">{formatPKR(total)}</span></p>
+              {partsCharge > 0 && <p className="text-[0.8125rem] text-slate-600">{tr('Parts (job par jore hue): {{partsCharge}}', { partsCharge: formatPKR(partsCharge) })}</p>}
+              <p className="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-slate-900"><span>{tr('Kul andaza')}</span><span className="tabular-nums">{formatPKR(total)}</span></p>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={ShieldCheck}>Kaam ki warranty</T>}>
+          <Card className="rounded-2xl" title={<T icon={ShieldCheck}>{tr('Kaam ki warranty')}</T>}>
             <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
-              <Input label="Din" inputMode="numeric" value={f.warrantyDays} onChange={(e) => set({ warrantyDays: digits(e.target.value).slice(0, 4) })} placeholder="30" hint="Bill ke din se" />
-              <Input label="Shartein" value={f.warrantyTerms} onChange={(e) => set({ warrantyTerms: e.target.value })} placeholder="Sirf kaam ki warranty, parts company ki" />
+              <Input label={tr('Din')} inputMode="numeric" value={f.warrantyDays} onChange={(e) => set({ warrantyDays: digits(e.target.value).slice(0, 4) })} placeholder="30" hint={tr('Bill ke din se')} />
+              <Input label={tr('Shartein')} value={f.warrantyTerms} onChange={(e) => set({ warrantyTerms: e.target.value })} placeholder={tr('Sirf kaam ki warranty, parts company ki')} />
             </div>
           </Card>
 
           {!editing && canTakeMoney && (
-            <Card className="rounded-2xl" title={<T icon={Wallet}>Advance</T>} description="Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai">
+            <Card className="rounded-2xl" title={<T icon={Wallet}>{tr('Advance')}</T>} description={tr('Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai')}>
               <div className="space-y-3">
-                <Money label="Advance (Rs)" value={f.advance} onChange={(v) => set({ advance: v })} error={err('advance')} hint={n(f.advance) ? formatPKR(n(f.advance)) : 'Khali chhorein agar kuch nahi mila'} />
+                <Money label={tr('Advance (Rs)')} value={f.advance} onChange={(v) => set({ advance: v })} error={err('advance')} hint={n(f.advance) ? formatPKR(n(f.advance)) : tr('Khali chhorein agar kuch nahi mila')} />
                 {n(f.advance) > 0 && <PaymentMethodPicker value={f.method} onChange={(method) => set({ method })} />}
               </div>
             </Card>
@@ -308,26 +309,26 @@ export default function NewJobPage() {
 
           <Card className="rounded-2xl">
             <div className="space-y-3">
-              <Textarea label="Technician ke liye note" rows={2} value={f.techNotes} onChange={(e) => set({ techNotes: e.target.value })} placeholder="Seerhi saath le jayein" hint="Parchi par nahi chhapta" />
-              <Textarea label="Andar ka note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Sirf staff ke liye" />
-              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label="Save ke baad parchi print karein" />
+              <Textarea label={tr('Technician ke liye note')} rows={2} value={f.techNotes} onChange={(e) => set({ techNotes: e.target.value })} placeholder={tr('Seerhi saath le jayein')} hint={tr('Parchi par nahi chhapta')} />
+              <Textarea label={tr('Andar ka note')} rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder={tr('Sirf staff ke liye')} />
+              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label={tr('Save ke baad parchi print karein')} />
             </div>
           </Card>
 
           <div className="flex items-center justify-between gap-3">
-            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Esc</Kbd> wapas</span>
-            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>{editing ? 'Save' : 'Job banayein'}</Button>
+            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save ·')}{' '} <Kbd>Esc</Kbd> {' '}{tr('wapas')}</span>
+            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>{editing ? tr('Save') : tr('Job banayein')}</Button>
           </div>
         </div>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title={editing ? 'Job badlein' : 'Naya job — aasaan tareeqa'} onClose={guide.close}
+        <PageGuide title={editing ? tr('Job badlein') : tr('Naya job — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#2563eb', title: 'Customer', text: 'Phone likhein — purana customer khud mil jata hai. Naya ho to naam bhi likhein; udhaar ya advance par khata khud ban jata hai.' },
-            { icon: Wrench, color: '#7c3aed', title: 'Kaam', text: 'Rate list se service chunein — charges aur warranty khud bhar jate hain. List me na ho to kaam ka naam khud likhein.' },
-            { icon: MapPin, color: '#0891b2', title: 'Kahan', text: '"Dukaan par" (saman aaya) ya "Customer ke ghar" (technician jayega). Ghar ka pata aur nishani likhein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khata me jama hota hai aur bill banate waqt khud kat jata hai.' },
+            { icon: UserRound, color: '#2563eb', title: tr('Customer'), text: tr('Phone likhein — purana customer khud mil jata hai. Naya ho to naam bhi likhein; udhaar ya advance par khata khud ban jata hai.') },
+            { icon: Wrench, color: '#7c3aed', title: tr('Kaam'), text: tr('Rate list se service chunein — charges aur warranty khud bhar jate hain. List me na ho to kaam ka naam khud likhein.') },
+            { icon: MapPin, color: '#0891b2', title: tr('Kahan'), text: tr('"Dukaan par" (saman aaya) ya "Customer ke ghar" (technician jayega). Ghar ka pata aur nishani likhein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance'), text: tr('Advance customer ke khata me jama hota hai aur bill banate waqt khud kat jata hai.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
         />
@@ -341,5 +342,5 @@ function T({ icon: Icon, children }: { icon: typeof Wrench; children: string }) 
 }
 
 function Money({ label, value, onChange, error, hint }: { label: string; value: string; onChange: (v: string) => void; error?: string; hint?: ReactNode }) {
-  return <Input label={label} inputMode="decimal" value={value} onChange={(e) => onChange(money(e.target.value))} placeholder="0" error={error} hint={hint} className="text-right tabular-nums" />;
+  return <Input label={label} inputMode="decimal" value={value} onChange={(e) => onChange(money(e.target.value))} placeholder="0" error={error} hint={hint} className="text-end tabular-nums" />;
 }

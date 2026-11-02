@@ -33,14 +33,15 @@ import { CancelOrderDialog, ChargesDialog, MergeDialog, SplitItemsDialog, VoidIt
 import { TablePickerModal } from '../components/TablePickerModal';
 import { MODE_META, ORDER_KEYS, STATUS_META, apiError, duration, isOpenOrder, itemName, lineExtras, minutesSince, orderTitle } from '../lib/orderMeta';
 import { printKot, printPreBill } from '../lib/slips';
+import { t as tr, Trans } from '@core/i18n';
 
 const ITEM_STATE: Record<string, { label: string; tone: string }> = {
-  UNSENT: { label: 'Kitchen nahi gaya', tone: 'bg-slate-100 text-slate-700' },
-  PLACED: { label: 'Kitchen me', tone: 'bg-blue-50 text-blue-700' },
-  CONFIRMED: { label: 'Kitchen me', tone: 'bg-blue-50 text-blue-700' },
-  COOKING: { label: 'Ban raha hai', tone: 'bg-orange-50 text-orange-700' },
-  READY: { label: 'Tayyar', tone: 'bg-emerald-50 text-emerald-700' },
-  SERVED: { label: 'Serve', tone: 'bg-teal-50 text-teal-700' },
+  UNSENT: { label: tr('Kitchen nahi gaya'), tone: 'bg-slate-100 text-slate-700' },
+  PLACED: { label: tr('Kitchen me'), tone: 'bg-blue-50 text-blue-700' },
+  CONFIRMED: { label: tr('Kitchen me'), tone: 'bg-blue-50 text-blue-700' },
+  COOKING: { label: tr('Ban raha hai'), tone: 'bg-orange-50 text-orange-700' },
+  READY: { label: tr('Tayyar'), tone: 'bg-emerald-50 text-emerald-700' },
+  SERVED: { label: tr('Serve'), tone: 'bg-teal-50 text-teal-700' },
 };
 
 type Dialog = 'void' | 'cancel' | 'charges' | 'merge' | 'split' | 'move' | 'rider' | 'guide' | null;
@@ -49,7 +50,7 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const shopName = useAuthStore((s) => s.tenant?.name) || 'Restaurant';
+  const shopName = useAuthStore((s) => s.tenant?.name) || tr('Restaurant');
   const canManage = usePermission(PERMISSIONS.RESTAURANT_ORDERS_MANAGE);
   const canPay = usePermission(PERMISSIONS.POS_USE);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -77,9 +78,9 @@ export default function OrderDetailPage() {
     const before = (o.kots ?? []).map((k) => k.id);
     const res = await ordersApi.sendToKitchen(o.id);
     (res.order.kots ?? []).filter((k: Kot) => !before.includes(k.id)).forEach((k: Kot) => printKot(k, shopName));
-    toast.success(`${res.kots.length} ticket kitchen ko gaye`);
+    toast.success(tr('{{count}} ticket kitchen ko gaye', { count: res.kots.length }));
   });
-  const preBill = () => o && run(async () => { const r = await ordersApi.printBill(o.id); printPreBill(r, shopName); }, 'Bill print — table payment ka intezar');
+  const preBill = () => o && run(async () => { const r = await ordersApi.printBill(o.id); printPreBill(r, shopName); }, tr('Bill print — table payment ka intezar'));
   const pay = () => o && payment.open(o, o.customerId ? { id: o.customerId, name: o.customerName ?? 'Customer' } : null);
 
   useEffect(() => {
@@ -103,8 +104,8 @@ export default function OrderDetailPage() {
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <ReceiptText className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">Order nahi mila</p>
-          <Link to="/restaurant/orders" className="mt-2 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">Orders par wapas</Link>
+          <p className="mt-3 font-semibold text-slate-900">{tr('Order nahi mila')}</p>
+          <Link to="/restaurant/orders" className="mt-2 inline-block text-[0.875rem] font-semibold text-brand-700 hover:underline">{tr('Orders par wapas')}</Link>
         </div>
       </PageShell>
     );
@@ -119,54 +120,54 @@ export default function OrderDetailPage() {
       {payment.modal}
       {dialog === 'void' && voidItem && (
         <VoidItemDialog item={voidItem} saving={act.isPending} onClose={() => { setDialog(null); setVoidItem(null); }}
-          onConfirm={(d) => run(() => withManagerPin('Kitchen ja chuka item hatane ke liye PIN', (managerPin) => ordersApi.voidItem(o.id, voidItem.id!, { ...d, ...(managerPin && { managerPin }) }), 'void'), 'Item hata diya')} />
+          onConfirm={(d) => run(() => withManagerPin(tr('Kitchen ja chuka item hatane ke liye PIN'), (managerPin) => ordersApi.voidItem(o.id, voidItem.id!, { ...d, ...(managerPin && { managerPin }) }), 'void'), tr('Item hata diya'))} />
       )}
       {dialog === 'cancel' && (
         <CancelOrderDialog order={o} saving={act.isPending} onClose={() => setDialog(null)}
-          onConfirm={(reason) => run(() => withManagerPin('Order cancel ke liye PIN', (managerPin) => ordersApi.updateStatus(o.id, 'CANCELLED', { cancellationReason: reason, ...(managerPin && { managerPin }) }), 'void'), 'Order cancel ho gaya')} />
+          onConfirm={(reason) => run(() => withManagerPin(tr('Order cancel ke liye PIN'), (managerPin) => ordersApi.updateStatus(o.id, 'CANCELLED', { cancellationReason: reason, ...(managerPin && { managerPin }) }), 'void'), tr('Order cancel ho gaya'))} />
       )}
-      {dialog === 'charges' && <ChargesDialog order={o} saving={act.isPending} onClose={() => setDialog(null)} onSave={(d) => run(() => ordersApi.update(o.id, d), 'Bill badal gaya')} />}
-      {dialog === 'merge' && <MergeDialog order={o} saving={act.isPending} onClose={() => setDialog(null)} onConfirm={(from) => run(() => ordersApi.merge(o.id, from), 'Order mil gaye')} />}
+      {dialog === 'charges' && <ChargesDialog order={o} saving={act.isPending} onClose={() => setDialog(null)} onSave={(d) => run(() => ordersApi.update(o.id, d), tr('Bill badal gaya'))} />}
+      {dialog === 'merge' && <MergeDialog order={o} saving={act.isPending} onClose={() => setDialog(null)} onConfirm={(from) => run(() => ordersApi.merge(o.id, from), tr('Order mil gaye'))} />}
       {dialog === 'split' && (
         <SplitItemsDialog order={o} saving={act.isPending} onClose={() => setDialog(null)}
-          onConfirm={(lines) => act.mutate(async () => { const r = await ordersApi.splitItems(o.id, lines); toast.success(`Alag bill ${r.child.orderNumber} ban gaya`); navigate(`/restaurant/orders/${r.child.id}`); })} />
+          onConfirm={(lines) => act.mutate(async () => { const r = await ordersApi.splitItems(o.id, lines); toast.success(tr('Alag bill {{orderNumber}} ban gaya', { orderNumber: r.child.orderNumber })); navigate(`/restaurant/orders/${r.child.id}`); })} />
       )}
       {dialog === 'move' && (
         <TablePickerModal value={o.tableId} onClose={() => setDialog(null)}
-          onPick={(t) => run(() => ordersApi.moveTable(o.id, t.id), `Table ${t.tableNumber} par chale gaye`)} />
+          onPick={(t) => run(() => ordersApi.moveTable(o.id, t.id), tr('Table {{tableNumber}} par chale gaye', { tableNumber: t.tableNumber }))} />
       )}
       {dialog === 'rider' && <RiderDialog order={o} onClose={() => setDialog(null)} onDone={() => { refresh(); setDialog(null); }} />}
       {dialog === 'guide' && <OrderGuide onClose={() => setDialog(null)} />}
 
       <PageHero
-        title={<span className="inline-flex items-center gap-2"><button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="rounded-lg p-1 hover:bg-white/15"><ArrowLeft className="h-5 w-5" /></button>{orderTitle(o)}</span>}
+        title={<span className="inline-flex items-center gap-2"><button type="button" onClick={() => navigate(-1)} aria-label={tr('Wapas')} className="rounded-lg p-1 hover:bg-white/15"><ArrowLeft className="h-5 w-5 rtl-flip" /></button>{orderTitle(o)}</span>}
         chip={<><ModeIcon />{MODE_META[o.mode].label} · {status.label}</>}
         meta={`${o.orderNumber} · ${new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(o.createdAt))}${o.waiter ? ` · ${o.waiter.fullName}` : ''}`}
         actions={<>
           {open && canManage && <>
-            <button type="button" onClick={() => navigate(`/restaurant/orders/new?orderId=${o.id}`)} className={heroButton}><Plus className="h-4 w-4" />Aur item <Kbd className="hidden bg-white/20 text-white md:inline-flex">A</Kbd></button>
-            {unsent > 0 && <button type="button" onClick={sendKitchen} className={heroButton}><Send className="h-4 w-4" />Kitchen ({unsent})</button>}
-            <button type="button" onClick={preBill} className={heroButton}><Printer className="h-4 w-4" />Bill print</button>
-            {canPay && <button type="button" onClick={pay} className={heroPrimaryButton}><Wallet className="h-4 w-4" />Payment · {formatPKR(due)}</button>}
+            <button type="button" onClick={() => navigate(`/restaurant/orders/new?orderId=${o.id}`)} className={heroButton}><Plus className="h-4 w-4" />{tr('Aur item')}{' '} <Kbd className="hidden bg-white/20 text-white md:inline-flex">A</Kbd></button>
+            {unsent > 0 && <button type="button" onClick={sendKitchen} className={heroButton}><Send className="h-4 w-4" />{tr('Kitchen ({{unsent}})', { unsent })}</button>}
+            <button type="button" onClick={preBill} className={heroButton}><Printer className="h-4 w-4" />{tr('Bill print ho gaya')}</button>
+            {canPay && <button type="button" onClick={pay} className={heroPrimaryButton}><Wallet className="h-4 w-4" />{tr('Payment · {{due}}', { due: formatPKR(due) })}</button>}
           </>}
-          {o.saleId && o.sale && <Link to={`/sales/${o.saleId}/receipt`} className={heroPrimaryButton}><Receipt className="h-4 w-4" />Bill {o.sale.saleNumber}</Link>}
-          <button type="button" onClick={() => setDialog('guide')} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {o.saleId && o.sale && <Link to={`/sales/${o.saleId}/receipt`} className={heroPrimaryButton}><Receipt className="h-4 w-4" />{tr('Bill {{saleNumber}}', { saleNumber: o.sale.saleNumber })}</Link>}
+          <button type="button" onClick={() => setDialog('guide')} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Kul bill', value: formatPKR(o.total), hint: o.discount ? `discount ${formatPKR(o.discount)}` : undefined },
-          { label: o.saleId ? 'Mila' : 'Baqi', value: formatPKR(o.saleId ? o.paidAmount : due), hint: o.sale?.creditAmount ? `udhaar ${formatPKR(o.sale.creditAmount)}` : undefined },
-          { label: 'Dishes', value: String(live.reduce((s, it) => s + it.quantity, 0)), hint: voided.length ? `${voided.length} void` : undefined },
-          { label: open ? 'Waqt' : 'Token', value: open ? duration(age) : o.token ? `#${o.token}` : '—' },
+          { label: tr('Kul bill'), value: formatPKR(o.total), hint: o.discount ? tr('discount {{discount}}', { discount: formatPKR(o.discount) }) : undefined },
+          { label: o.saleId ? tr('Mila') : tr('Baqi'), value: formatPKR(o.saleId ? o.paidAmount : due), hint: o.sale?.creditAmount ? tr('udhaar {{creditAmount}}', { creditAmount: formatPKR(o.sale.creditAmount) }) : undefined },
+          { label: tr('Dishes'), value: String(live.reduce((s, it) => s + it.quantity, 0)), hint: voided.length ? tr('{{count}} void', { count: voided.length }) : undefined },
+          { label: open ? tr('Waqt') : tr('Token'), value: open ? duration(age) : o.token ? `#${o.token}` : '—' },
         ]}
       />
 
       {!open && o.status === 'CANCELLED' && (
-        <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-800 ring-1 ring-rose-100"><Ban className="mr-1.5 inline h-4 w-4" />Cancel: {o.cancellationReason || '—'}</p>
+        <p className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.875rem] text-rose-800 ring-1 ring-rose-100"><Ban className="me-1.5 inline h-4 w-4" />{tr('Cancel: {{value}}', { value: o.cancellationReason || '—' })}</p>
       )}
       {(o.parentOrder || (o.splitOrders?.length ?? 0) > 0) && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white px-4 py-3 text-[0.8125rem] ring-1 ring-slate-200/80">
           <Split className="h-4 w-4 text-slate-500" />
-          {o.parentOrder && <>Ye bill <Link className="font-semibold text-brand-700 hover:underline" to={`/restaurant/orders/${o.parentOrder.id}`}>{o.parentOrder.orderNumber}</Link> se alag hua</>}
+          {o.parentOrder && <><Trans text="Ye bill {{order}} se alag hua" values={{ order: <Link className="font-semibold text-brand-700 hover:underline" to={`/restaurant/orders/${o.parentOrder.id}`}>{o.parentOrder.orderNumber}</Link> }} /></>}
           {o.splitOrders?.map((c) => (
             <Link key={c.id} to={`/restaurant/orders/${c.id}`} className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700 hover:bg-slate-200">{c.orderNumber} · {formatPKR(c.total)} · {STATUS_META[c.status].label}</Link>
           ))}
@@ -175,8 +176,8 @@ export default function OrderDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
-          <Card title="Dishes" right={open && canManage ? <Button size="sm" variant="secondary" onClick={() => navigate(`/restaurant/orders/new?orderId=${o.id}`)}><Plus className="h-4 w-4" />Aur item</Button> : undefined}>
-            {!live.length ? <p className="px-4 py-8 text-center text-[0.875rem] text-slate-500">Koi dish nahi</p> : (
+          <Card title={tr('Dishes')} right={open && canManage ? <Button size="sm" variant="secondary" onClick={() => navigate(`/restaurant/orders/new?orderId=${o.id}`)}><Plus className="h-4 w-4" />{tr('Aur item')}</Button> : undefined}>
+            {!live.length ? <p className="px-4 py-8 text-center text-[0.875rem] text-slate-500">{tr('Koi dish nahi')}</p> : (
               <ul className="divide-y divide-slate-100">
                 {live.map((it) => {
                   const st = ITEM_STATE[it.sentToKitchenAt ? (it.status ?? 'PLACED') : 'UNSENT'] ?? ITEM_STATE.PLACED;
@@ -189,13 +190,13 @@ export default function OrderDetailPage() {
                         {it.specialInstructions && <p className="text-[0.8125rem] italic text-amber-700">“{it.specialInstructions}”</p>}
                         <span className={cn('mt-1 inline-block rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', st.tone)}>{st.label}</span>
                       </div>
-                      <div className="text-right">
+                      <div className="text-end">
                         <p className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{formatPKR(it.total ?? 0)}</p>
                         {(it.itemDiscount ?? 0) > 0 && <p className="text-[0.75rem] text-rose-600">−{formatPKR(it.itemDiscount ?? 0)}</p>}
                         {open && canManage && (
                           <button type="button" onClick={() => { setVoidItem(it); setDialog('void'); }}
                             className="mt-1 inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[0.75rem] font-semibold text-rose-600 hover:bg-rose-50">
-                            <Trash2 className="h-3.5 w-3.5" />{it.sentToKitchenAt ? 'Void' : 'Hatayein'}
+                            <Trash2 className="h-3.5 w-3.5" />{it.sentToKitchenAt ? tr('Void') : tr('Hatayein')}
                           </button>
                         )}
                       </div>
@@ -206,7 +207,7 @@ export default function OrderDetailPage() {
             )}
             {voided.length > 0 && (
               <details className="border-t border-slate-100 px-4 py-2">
-                <summary className="cursor-pointer text-[0.8125rem] font-semibold text-slate-600">{voided.length} item void / hataye</summary>
+                <summary className="cursor-pointer text-[0.8125rem] font-semibold text-slate-600">{tr('{{count}} item void / hataye', { count: voided.length })}</summary>
                 <ul className="mt-2 space-y-1 text-[0.8125rem] text-slate-500">
                   {voided.map((it) => <li key={it.id} className="flex justify-between gap-2"><span className="line-through">{it.quantity}× {it.product?.name}</span><span>{it.returnReason}</span></li>)}
                 </ul>
@@ -214,8 +215,8 @@ export default function OrderDetailPage() {
             )}
           </Card>
 
-          <Card title="Kitchen tickets (KOT)">
-            {!(o.kots ?? []).length ? <p className="px-4 py-6 text-center text-[0.8125rem] text-slate-500">Abhi kitchen ko kuch nahi gaya</p> : (
+          <Card title={tr('Kitchen tickets (KOT)')}>
+            {!(o.kots ?? []).length ? <p className="px-4 py-6 text-center text-[0.8125rem] text-slate-500">{tr('Abhi kitchen ko kuch nahi gaya')}</p> : (
               <ul className="divide-y divide-slate-100">
                 {(o.kots as Kot[]).map((k) => {
                   const snap = (k.itemsSnapshot ?? {}) as { items?: Array<{ name: string; quantity: number }> };
@@ -224,12 +225,12 @@ export default function OrderDetailPage() {
                       <ChefHat className={cn('h-4 w-4', k.status === 'CANCELLED' ? 'text-rose-500' : 'text-slate-400')} />
                       <div className="min-w-0 flex-1">
                         <p className="text-[0.8125rem] font-semibold text-slate-900">{k.kotNumber}{k.station ? ` · ${k.station}` : ''}
-                          <span className={cn('ml-2 rounded-md px-1.5 py-0.5 text-[0.6875rem]', k.status === 'CANCELLED' ? 'bg-rose-50 text-rose-700' : k.status === 'READY' || k.status === 'SERVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600')}>
-                            {k.status === 'CANCELLED' ? 'Cancel' : k.status === 'READY' ? 'Tayyar' : k.status === 'SERVED' ? 'Serve' : k.status === 'COOKING' ? 'Ban raha' : 'Naya'}
+                          <span className={cn('ms-2 rounded-md px-1.5 py-0.5 text-[0.6875rem]', k.status === 'CANCELLED' ? 'bg-rose-50 text-rose-700' : k.status === 'READY' || k.status === 'SERVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600')}>
+                            {k.status === 'CANCELLED' ? tr('Cancel') : k.status === 'READY' ? tr('Tayyar') : k.status === 'SERVED' ? tr('Serve') : k.status === 'COOKING' ? tr('Ban raha') : tr('Naya')}
                           </span></p>
                         <p className="truncate text-[0.75rem] text-slate-500">{(snap.items ?? []).map((x) => `${x.quantity}× ${x.name}`).join(', ')}</p>
                       </div>
-                      <button type="button" onClick={() => printKot({ ...k, order: k.order ?? undefined }, shopName)} title="Dobara print" className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => printKot({ ...k, order: k.order ?? undefined }, shopName)} title={tr('Dobara print')} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
                     </li>
                   );
                 })}
@@ -239,18 +240,18 @@ export default function OrderDetailPage() {
         </div>
 
         <div className="space-y-4">
-          <Card title="Bill" right={open && canManage ? <Button size="sm" variant="ghost" onClick={() => setDialog('charges')}><Percent className="h-4 w-4" />Badlein</Button> : undefined}>
+          <Card title={tr('Bill')} right={open && canManage ? <Button size="sm" variant="ghost" onClick={() => setDialog('charges')}><Percent className="h-4 w-4" />{tr('Badlein')}</Button> : undefined}>
             <dl className="space-y-1.5 px-4 py-3 text-[0.875rem]">
-              <Row label="Dishes" value={formatPKR(o.subtotal)} />
-              {o.serviceCharge > 0 && <Row label={`Service ${o.serviceChargePct}%`} value={formatPKR(o.serviceCharge)} />}
-              {o.taxAmount > 0 && <Row label={`Tax ${o.taxPct}%`} value={formatPKR(o.taxAmount)} />}
-              {o.deliveryFee > 0 && <Row label="Delivery" value={formatPKR(o.deliveryFee)} />}
-              {o.packagingFee > 0 && <Row label="Packing" value={formatPKR(o.packagingFee)} />}
-              {o.tip > 0 && <Row label="Tip" value={formatPKR(o.tip)} />}
-              {o.discount > 0 && <Row label="Discount" value={`−${formatPKR(o.discount)}`} tone="text-rose-600" />}
-              <div className="flex items-baseline justify-between border-t border-slate-100 pt-2"><dt className="font-semibold text-slate-900">Kul</dt><dd className="text-[1.25rem] font-bold tabular-nums">{formatPKR(o.total)}</dd></div>
-              {o.paidAmount > 0 && <Row label="Mila" value={formatPKR(o.paidAmount)} tone="text-emerald-700" />}
-              {o.sale?.creditAmount ? <Row label="Udhaar (khata)" value={formatPKR(o.sale.creditAmount)} tone="text-amber-700" /> : null}
+              <Row label={tr('Dishes')} value={formatPKR(o.subtotal)} />
+              {o.serviceCharge > 0 && <Row label={tr('Service {{serviceChargePct}}%', { serviceChargePct: o.serviceChargePct })} value={formatPKR(o.serviceCharge)} />}
+              {o.taxAmount > 0 && <Row label={tr('Tax {{taxPct}}%', { taxPct: o.taxPct })} value={formatPKR(o.taxAmount)} />}
+              {o.deliveryFee > 0 && <Row label={tr('Delivery')} value={formatPKR(o.deliveryFee)} />}
+              {o.packagingFee > 0 && <Row label={tr('Packing')} value={formatPKR(o.packagingFee)} />}
+              {o.tip > 0 && <Row label={tr('Tip')} value={formatPKR(o.tip)} />}
+              {o.discount > 0 && <Row label={tr('Discount')} value={`−${formatPKR(o.discount)}`} tone="text-rose-600" />}
+              <div className="flex items-baseline justify-between border-t border-slate-100 pt-2"><dt className="font-semibold text-slate-900">{tr('Kul')}</dt><dd className="text-[1.25rem] font-bold tabular-nums">{formatPKR(o.total)}</dd></div>
+              {o.paidAmount > 0 && <Row label={tr('Mila')} value={formatPKR(o.paidAmount)} tone="text-emerald-700" />}
+              {o.sale?.creditAmount ? <Row label={tr('Udhaar (khata)')} value={formatPKR(o.sale.creditAmount)} tone="text-amber-700" /> : null}
             </dl>
             {(o.payments ?? []).length > 0 && (
               <ul className="border-t border-slate-100 px-4 py-2 text-[0.75rem] text-slate-500">
@@ -259,40 +260,40 @@ export default function OrderDetailPage() {
             )}
             {open && due > 0 && <EqualShare due={due} guests={o.numberOfGuests ?? 2} />}
             {open && canManage && canPay && (
-              <div className="border-t border-slate-100 p-3"><Button fullWidth size="lg" onClick={pay}><Wallet className="h-4 w-4" />Payment lein · {formatPKR(due)}</Button></div>
+              <div className="border-t border-slate-100 p-3"><Button fullWidth size="lg" onClick={pay}><Wallet className="h-4 w-4" />{tr('Payment lein · {{due}}', { due: formatPKR(due) })}</Button></div>
             )}
           </Card>
 
-          <Card title="Order">
+          <Card title={tr('Order')}>
             <ul className="space-y-2 px-4 py-3 text-[0.8125rem] text-slate-700">
-              {o.table && <li className="flex items-center gap-2"><Users className="h-4 w-4 text-slate-400" />Table {o.table.tableNumber}{o.table.section ? ` · ${o.table.section}` : ''}{o.numberOfGuests ? ` · ${o.numberOfGuests} mehman` : ''}</li>}
-              {o.token && <li className="flex items-center gap-2"><Receipt className="h-4 w-4 text-slate-400" />Token #{o.token}</li>}
+              {o.table && <li className="flex items-center gap-2"><Users className="h-4 w-4 text-slate-400" />{tr('Table {{tableNumber}}{{value}}{{value2}}', { tableNumber: o.table.tableNumber, value: o.table.section ? ` · ${o.table.section}` : '', value2: o.numberOfGuests ? tr(' · {{numberOfGuests}} mehman', { numberOfGuests: o.numberOfGuests }) : '' })}</li>}
+              {o.token && <li className="flex items-center gap-2"><Receipt className="h-4 w-4 text-slate-400" />{tr('Token #{{token}}', { token: o.token })}</li>}
               {o.customerName && <li className="flex items-center gap-2"><UserRound className="h-4 w-4 text-slate-400" />{o.customerName}</li>}
               {o.customerPhone && <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-slate-400" /><a className="hover:underline" href={`tel:${o.customerPhone}`}>{o.customerPhone}</a></li>}
               {o.deliveryAddress && <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />{o.deliveryAddress}{o.deliveryNotes ? ` — ${o.deliveryNotes}` : ''}</li>}
               {o.specialRequests && <li className="rounded-lg bg-amber-50 px-2 py-1.5 text-amber-900">{o.specialRequests}</li>}
-              <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-400" />{new Intl.DateTimeFormat('en-PK', { timeStyle: 'short' }).format(new Date(o.createdAt))}{open ? ` · ${duration(age)} se` : ''}</li>
+              <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-400" />{new Intl.DateTimeFormat('en-PK', { timeStyle: 'short' }).format(new Date(o.createdAt))}{open ? tr(' · {{age}} se', { age: duration(age) }) : ''}</li>
             </ul>
           </Card>
 
           {o.mode === 'DELIVERY' && (
-            <Card title="Delivery" right={o.status !== 'CANCELLED' && canManage ? <Button size="sm" variant="ghost" onClick={() => setDialog('rider')}><Bike className="h-4 w-4" />{o.delivery?.rider ? 'Badlein' : 'Rider lagayein'}</Button> : undefined}>
+            <Card title={tr('Delivery')} right={o.status !== 'CANCELLED' && canManage ? <Button size="sm" variant="ghost" onClick={() => setDialog('rider')}><Bike className="h-4 w-4" />{o.delivery?.rider ? tr('Badlein') : tr('Rider lagayein')}</Button> : undefined}>
               <div className="px-4 py-3 text-[0.8125rem] text-slate-700">
                 {o.delivery?.rider ? (
                   <p><b>{o.delivery.rider.name}</b> · {o.delivery.rider.phone} · <Badge variant="info">{o.delivery.status}</Badge></p>
-                ) : <p className="text-slate-500">Abhi rider nahi laga</p>}
-                <Link to="/restaurant/delivery" className="mt-2 inline-block font-semibold text-brand-700 hover:underline">Delivery board →</Link>
+                ) : <p className="text-slate-500">{tr('Abhi rider nahi laga')}</p>}
+                <Link to="/restaurant/delivery" className="mt-2 inline-block font-semibold text-brand-700 hover:underline">{tr('Delivery board →')}</Link>
               </div>
             </Card>
           )}
 
           {open && canManage && (
-            <Card title="Aur kaam">
+            <Card title={tr('Aur kaam')}>
               <div className="grid grid-cols-2 gap-2 p-3">
-                {o.mode === 'DINE_IN' && <Action icon={MoveRight} label="Table badlein" onClick={() => setDialog('move')} />}
-                <Action icon={Combine} label="Order milayein" onClick={() => setDialog('merge')} />
-                <Action icon={Split} label="Bill alag karein" onClick={() => setDialog('split')} disabled={o.paidAmount > 0 || live.length < 1 || (live.length === 1 && live[0].quantity < 2)} />
-                <Action icon={Ban} label="Order cancel" onClick={() => setDialog('cancel')} danger />
+                {o.mode === 'DINE_IN' && <Action icon={MoveRight} label={tr('Table badlein')} onClick={() => setDialog('move')} />}
+                <Action icon={Combine} label={tr('Order milayein')} onClick={() => setDialog('merge')} />
+                <Action icon={Split} label={tr('Bill alag karein')} onClick={() => setDialog('split')} disabled={o.paidAmount > 0 || live.length < 1 || (live.length === 1 && live[0].quantity < 2)} />
+                <Action icon={Ban} label={tr('Order cancel karein')} onClick={() => setDialog('cancel')} danger />
               </div>
             </Card>
           )}
@@ -319,11 +320,11 @@ function EqualShare({ due, guests }: { due: number; guests: number }) {
   const each = Math.ceil((due / n) * 100) / 100;
   return (
     <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2 text-[0.8125rem] text-slate-600">
-      <span className="inline-flex items-center gap-1.5">Barabar baantein
-        <input value={n} onChange={(e) => setN(Math.min(50, Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1)))} inputMode="numeric" aria-label="Kitne log"
-          className="h-7 w-12 rounded-lg border border-slate-200 px-1.5 text-center tabular-nums" /> log
+      <span className="inline-flex items-center gap-1.5">{tr('Barabar baantein')}
+        <input value={n} onChange={(e) => setN(Math.min(50, Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1)))} inputMode="numeric" aria-label={tr('Kitne log')}
+          className="h-7 w-12 rounded-lg border border-slate-200 px-1.5 text-center tabular-nums" /> {' '}{tr('mehman')}
       </span>
-      <b className="tabular-nums text-slate-900">{formatPKR(each)} har ek</b>
+      <b className="tabular-nums text-slate-900">{tr('{{each}} har ek', { each: formatPKR(each) })}</b>
     </div>
   );
 }
@@ -335,7 +336,7 @@ function Row({ label, value, tone }: { label: string; value: string; tone?: stri
 function Action({ icon: Icon, label, onClick, disabled, danger }: { icon: typeof Ban; label: string; onClick: () => void; disabled?: boolean; danger?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled}
-      className={cn('flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-[0.8125rem] font-semibold ring-1 transition disabled:cursor-not-allowed disabled:opacity-40',
+      className={cn('flex items-center gap-2 rounded-xl px-3 py-2.5 text-start text-[0.8125rem] font-semibold ring-1 transition disabled:cursor-not-allowed disabled:opacity-40',
         danger ? 'text-rose-700 ring-rose-200 hover:bg-rose-50' : 'text-slate-700 ring-slate-200 hover:bg-slate-50')}>
       <Icon className="h-4 w-4" />{label}
     </button>
@@ -348,20 +349,20 @@ function RiderDialog({ order, onClose, onDone }: { order: RestaurantOrder; onClo
   const [riderId, setRiderId] = useState<string>(order.delivery?.riderId ?? '');
   const save = useMutation({
     mutationFn: () => deliveryApi.assign(order.id, { riderId }),
-    onSuccess: () => { toast.success('Rider lag gaya'); onDone(); },
+    onSuccess: () => { toast.success(tr('Rider lag gaya')); onDone(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const free = riders.filter((r) => r.status === 'ACTIVE' || r.status === 'BUSY' || r.id === riderId);
   return (
-    <Modal open onClose={onClose} size="md" title="Rider chunein" description="Rider lagte hi order delivery board par 'Rider laga' me aa jata hai"
-      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!riderId} loading={save.isPending} onClick={() => save.mutate()}>Rider lagayein</Button></div>}>
-      {!free.length ? <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">Koi rider duty par nahi. <Link to="/restaurant/riders" className="font-semibold text-brand-700">Riders</Link></p> : (
+    <Modal open onClose={onClose} size="md" title={tr('Rider chunein')} description={tr('Rider lagte hi order delivery board par \'Rider laga\' me aa jata hai')}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!riderId} loading={save.isPending} onClick={() => save.mutate()}>{tr('Rider lagayein')}</Button></div>}>
+      {!free.length ? <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">{tr('Koi rider duty par nahi.')}{' '} <Link to="/restaurant/riders" className="font-semibold text-brand-700">{tr('Riders')}</Link></p> : (
         <ul className="space-y-1.5">
           {free.map((r) => (
             <li key={r.id}><button type="button" onClick={() => setRiderId(r.id)}
-              className={cn('flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left ring-1', riderId === r.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
+              className={cn('flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-start ring-1', riderId === r.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
               <span><span className="block text-[0.875rem] font-semibold">{r.name}</span><span className="text-[0.75rem] text-slate-500">{r.phone}{r.vehicleNumber ? ` · ${r.vehicleNumber}` : ''}</span></span>
-              <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', r.status === 'BUSY' ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')}>{r.status === 'BUSY' ? `${r.activeTrips ?? 1} trip par` : 'Free'}</span>
+              <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', r.status === 'BUSY' ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')}>{r.status === 'BUSY' ? tr('{{value}} trip par', { value: r.activeTrips ?? 1 }) : tr('Free')}</span>
             </button></li>
           ))}
         </ul>
@@ -372,15 +373,15 @@ function RiderDialog({ order, onClose, onDone }: { order: RestaurantOrder; onClo
 
 function OrderGuide({ onClose }: { onClose: () => void }) {
   const steps = [
-    { t: 'Aur item', d: 'A dabayein ya "Aur item" — sirf naye item kitchen jate hain, naya ticket banta hai.' },
-    { t: 'Void', d: 'Kitchen ja chuki dish hatane ke liye wajah aur "Bill void" ki ijazat (ya PIN) chahiye. Kitchen ko cancel ticket jata hai.' },
-    { t: 'Bill print', d: 'B — table ko bill dikhayein. Table "Bill print" me chali jati hai.' },
-    { t: 'Payment', d: 'P — cash, card, wallet, split ya udhaar. Payment hote hi bill banta hai aur day book, drawer aur khata me jata hai.' },
-    { t: 'Table badlein / milayein', d: 'Mehman doosri table par gaye ya do tables ka ek bill — "Aur kaam" se.' },
-    { t: 'Bill alag karein', d: 'Kuch log apni dishes ka alag payment karein — dishes chunein, naya bill isi table par banta hai.' },
+    { t: tr('Aur item'), d: 'A dabayein ya "Aur item" — sirf naye item kitchen jate hain, naya ticket banta hai.' },
+    { t: tr('Void'), d: 'Kitchen ja chuki dish hatane ke liye wajah aur "Bill void" ki ijazat (ya PIN) chahiye. Kitchen ko cancel ticket jata hai.' },
+    { t: tr('Bill print ho gaya'), d: 'B — table ko bill dikhayein. Table "Bill print" me chali jati hai.' },
+    { t: tr('Payment'), d: 'P — cash, card, wallet, split ya udhaar. Payment hote hi bill banta hai aur day book, drawer aur khata me jata hai.' },
+    { t: tr('Table badlein / milayein'), d: 'Mehman doosri table par gaye ya do tables ka ek bill — "Aur kaam" se.' },
+    { t: tr('Bill alag karein'), d: 'Kuch log apni dishes ka alag payment karein — dishes chunein, naya bill isi table par banta hai.' },
   ];
   return (
-    <Modal open onClose={onClose} size="lg" title="Order — aasaan tareeqa">
+    <Modal open onClose={onClose} size="lg" title={tr('Order — aasaan tareeqa')}>
       <ol className="grid gap-3 sm:grid-cols-2">
         {steps.map((s, i) => (
           <li key={s.t} className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">

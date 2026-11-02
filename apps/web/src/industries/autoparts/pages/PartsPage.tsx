@@ -13,18 +13,19 @@ import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { categoryOf, conditionOf } from '../components/meta';
 import { usePartFacts } from '../hooks/usePartFacts';
+import { t } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/autoparts/makes" className={heroButton}><Car className="h-4 w-4" /><span className="hidden sm:inline">Gaariyan</span></Link>
-      <Link to="/autoparts/jobs" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">Workshop</span></Link>
+      <Link to="/autoparts/makes" className={heroButton}><Car className="h-4 w-4" /><span className="hidden sm:inline">{t('Gaariyan')}</span></Link>
+      <Link to="/autoparts/jobs" className={heroButton}><Wrench className="h-4 w-4" /><span className="hidden sm:inline">{t('Workshop')}</span></Link>
     </>
   );
 }
 
 const base: Omit<ProductsPageConfig, 'extras' | 'columns'> = {
-  label: 'Auto Parts',
+  label: t('Auto Parts'),
   noun: 'part',
   paths: {
     detail: (id) => `/autoparts-parts/${id}`,
@@ -35,9 +36,9 @@ const base: Omit<ProductsPageConfig, 'extras' | 'columns'> = {
   filters: ['tags'],
   stockChips: () => [1, 2, 5, 10, 20],
   guide: [
-    { icon: Hash, color: '#2563eb', title: 'Part number', text: 'Har part ka number likhein — SKU wahi banta hai aur search me milta hai. OEM aur doosre number counter par dhoondne ke kaam aate hain.' },
-    { icon: Car, color: '#0891b2', title: 'Kis gaari ka', text: 'Part kholein → Edit → "Gaari" step. Card par likha aata hai aur counter par "corolla brake" se part milta hai.' },
-    { icon: BadgeCheck, color: '#16a34a', title: 'Genuine / local / used', text: 'Card par harra nishan genuine, peela local, sleti used. Grahak ko sach batayein — wapsi kam hoti hai.' },
+    { icon: Hash, color: '#2563eb', title: t('Part number'), text: t('Har part ka number likhein — SKU wahi banta hai aur search me milta hai. OEM aur doosre number counter par dhoondne ke kaam aate hain.') },
+    { icon: Car, color: '#0891b2', title: t('Kis gaari ka'), text: t('Part kholein → Edit → "Gaari" step. Card par likha aata hai aur counter par "corolla brake" se part milta hai.') },
+    { icon: BadgeCheck, color: '#16a34a', title: t('Genuine / local / used'), text: t('Card par harra nishan genuine, peela local, sleti used. Grahak ko sach batayein — wapsi kam hoti hai.') },
   ],
 };
 
@@ -50,26 +51,26 @@ export default function PartsPage() {
       if (!f) return {};
       const c = conditionOf(f.condition);
       return {
-        line: [f.partNumber, f.brand, f.universal ? 'Har gaari' : f.fitment].filter(Boolean).join(' · ') || undefined,
+        line: [f.partNumber, f.brand, f.universal ? t('Har gaari') : f.fitment].filter(Boolean).join(' · ') || undefined,
         badges: (
           <>
             {f.condition !== 'NEW' && <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold text-white" style={{ backgroundColor: c.color }}>{c.label}</span>}
-            {f.isFastMoving && <span className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Zap className="h-3 w-3" />Zyada bikta</span>}
+            {f.isFastMoving && <span className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Zap className="h-3 w-3" />{t('Zyada bikta')}</span>}
           </>
         ),
         chips: f.category !== 'OTHER' ? <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-600">{categoryOf(f.category)}</span> : undefined,
       };
     },
     columns: [
-      { id: 'partNumber', label: 'Part #', cell: (i) => facts.get(i.id)?.partNumber || <span className="text-slate-400">—</span> },
+      { id: 'partNumber', label: t('Part #'), cell: (i) => facts.get(i.id)?.partNumber || <span className="text-slate-400">—</span> },
       {
-        id: 'fits', label: 'Gaari', cell: (i) => {
+        id: 'fits', label: t('Gaari'), cell: (i) => {
           const f = facts.get(i.id);
-          return f ? <span className={cn('line-clamp-1 max-w-[14rem]', !f.fitment && 'text-slate-400')}>{f.universal ? 'Har gaari' : f.fitment || '—'}</span> : <span className="text-slate-400">—</span>;
+          return f ? <span className={cn('line-clamp-1 max-w-[14rem]', !f.fitment && 'text-slate-400')}>{f.universal ? t('Har gaari') : f.fitment || '—'}</span> : <span className="text-slate-400">—</span>;
         },
       },
       {
-        id: 'condition', label: 'Quality', cell: (i) => {
+        id: 'condition', label: t('Quality'), cell: (i) => {
           const f = facts.get(i.id);
           return f ? <span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', conditionOf(f.condition).tone)}>{conditionOf(f.condition).label}</span> : <span className="text-slate-400">—</span>;
         },

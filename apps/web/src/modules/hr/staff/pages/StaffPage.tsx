@@ -32,20 +32,21 @@ import { PersonCard } from '../components/PersonCard';
 import { RolesPanel } from '../components/RolesPanel';
 import { staffListDoc } from '../components/print';
 import { PEOPLE_KEY, ROLES, STATUS, downloadCsv, roleOf, type RoleKey } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'staff' | 'roles' | 'analytics';
 type StatusFilter = 'current' | 'ACTIVE' | 'DUTY' | 'ON_LEAVE' | 'INACTIVE' | 'LEFT' | 'PENDING' | 'all';
 type Sort = 'name' | 'login' | 'sales' | 'joined';
 
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'current', label: 'Maujooda (chhorne wale nahi)' },
-  { value: 'ACTIVE', label: 'Kaam par' },
-  { value: 'DUTY', label: 'Abhi duty par' },
-  { value: 'ON_LEAVE', label: 'Chhutti par' },
-  { value: 'PENDING', label: 'Login abhi nahi kiya' },
-  { value: 'INACTIVE', label: 'Band' },
-  { value: 'LEFT', label: 'Chhor gaye' },
-  { value: 'all', label: 'Sab' },
+  { value: 'current', label: tr('Maujooda (chhorne wale nahi)') },
+  { value: 'ACTIVE', label: tr('Kaam par') },
+  { value: 'DUTY', label: tr('Abhi duty par') },
+  { value: 'ON_LEAVE', label: tr('Chhutti par') },
+  { value: 'PENDING', label: tr('Login abhi nahi kiya') },
+  { value: 'INACTIVE', label: tr('Band') },
+  { value: 'LEFT', label: tr('Chhor gaye') },
+  { value: 'all', label: tr('Sab') },
 ];
 
 function matches(p: DirectoryPerson, s: StatusFilter) {
@@ -119,15 +120,15 @@ export default function StaffPage() {
 
   const filtered = !!role || !!shopId || status !== 'current' || !!needle;
   const clear = () => { setRole(''); setShopId(''); setStatus('current'); setSearch(''); };
-  const shopName = shopId === 'none' ? 'Sab branches wale' : shops.find((s) => s.id === shopId)?.name;
+  const shopName = shopId === 'none' ? tr('Sab branches wale') : shops.find((s) => s.id === shopId)?.name;
   const filterText = [role && ROLES[role].label, shopName, status !== 'current' && STATUS_FILTERS.find((s) => s.value === status)?.label, needle && `"${search.trim()}"`].filter(Boolean).join(' · ');
   const period = resolveRange(range, startHour);
 
   const exportCsv = () => downloadCsv(`staff-${new Date().toISOString().slice(0, 10)}.csv`, [
-    ['Naam', 'Staff no.', 'Role', 'Kaam', 'Branch', 'Phone', 'Email', 'Haal', 'Joining', 'Aakhri login', ...(seesSales ? ['Aaj sale', 'Aaj bill'] : [])],
+    [tr('Naam'), tr('Staff no.'), tr('Role'), tr('Kaam'), tr('Branch'), tr('Phone'), tr('Email'), tr('Haal'), tr('Joining'), tr('Aakhri login'), ...(seesSales ? [tr('Aaj sale'), tr('Aaj bill')] : [])],
     ...rows.map((p) => [
-      p.fullName, p.staffNumber, roleOf(p.role).label, p.designation, p.shop?.name ?? 'Sab branches', p.phone, p.email, STATUS[p.status].label,
-      p.joinDate?.slice(0, 10), p.login ? (p.login.lastLoginAt ?? 'Kabhi nahi') : '', ...(seesSales ? [p.today?.sales ?? 0, p.today?.bills ?? 0] : []),
+      p.fullName, p.staffNumber, roleOf(p.role).label, p.designation, p.shop?.name ?? tr('Sab branches'), p.phone, p.email, STATUS[p.status].label,
+      p.joinDate?.slice(0, 10), p.login ? (p.login.lastLoginAt ?? tr('Kabhi nahi')) : '', ...(seesSales ? [p.today?.sales ?? 0, p.today?.bills ?? 0] : []),
     ]),
   ]);
 
@@ -149,77 +150,77 @@ export default function StaffPage() {
   return (
     <PageShell>
       <PageHero
-        title="Staff"
-        chip={<><Users /> Team</>}
-        meta="Har banda ek jagah — login wale bhi, bina login wale bhi"
+        title={tr('Staff')}
+        chip={<><Users /> {' '}{tr('Team')}</>}
+        meta={tr('Har banda ek jagah — login wale bhi, bina login wale bhi')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => staffListDoc(rows, filterText)} disabled={tab !== 'staff' || !rows.length} /></span>
-          <button type="button" onClick={exportCsv} disabled={tab !== 'staff' || !rows.length} className={heroButton}><Download className="h-4 w-4" /> CSV</button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canAdd && <button type="button" onClick={() => navigate('/staff/new')} title="Naya banda (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya banda</button>}
+          <button type="button" onClick={exportCsv} disabled={tab !== 'staff' || !rows.length} className={heroButton}><Download className="h-4 w-4" /> {' '}{tr('CSV')}</button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => navigate('/staff/new')} title={tr('Naya banda (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya banda')}</button>}
         </>}
         stats={listQ.data ? [
-          { label: 'Kaam par', value: String(k.active), hint: `${current.length} me se` },
-          { label: 'Abhi duty par', value: String(k.duty) },
-          ...(seesSales ? [{ label: 'Aaj staff ki sale', value: formatPKR(k.sales), hint: `${k.bills} bill` }] : []),
-        ] : [{ label: 'Kaam par', value: '—' }]}
+          { label: tr('Kaam par'), value: String(k.active), hint: tr('{{count}} me se', { count: current.length }) },
+          { label: tr('Abhi duty par'), value: String(k.duty) },
+          ...(seesSales ? [{ label: tr('Aaj staff ki sale'), value: formatPKR(k.sales), hint: tr('{{bills}} bill', { bills: k.bills }) }] : []),
+        ] : [{ label: tr('Kaam par'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!listQ.data ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={UserCheck} color="#16a34a" label="Kaam par" value={k.active} hint={k.leave ? `${k.leave} chhutti par` : 'Koi chhutti par nahi'}
+          <KpiCard icon={UserCheck} color="#16a34a" label={tr('Kaam par')} value={k.active} hint={k.leave ? tr('{{leave}} chhutti par', { leave: k.leave }) : tr('Koi chhutti par nahi')}
             onClick={() => show('ACTIVE')} active={tab === 'staff' && status === 'ACTIVE' && !role} />
-          <KpiCard icon={Clock} color="#0891b2" label="Abhi duty par" value={k.duty} hint={k.duty ? 'Galla khula ya haazri lagi' : 'Abhi koi duty par nahi'}
+          <KpiCard icon={Clock} color="#0891b2" label={tr('Abhi duty par')} value={k.duty} hint={k.duty ? tr('Galla khula ya haazri lagi') : tr('Abhi koi duty par nahi')}
             onClick={() => show('DUTY')} active={tab === 'staff' && status === 'DUTY'} />
-          <KpiCard icon={UserCog} color="#7c3aed" label="Roles" value={roleCounts.length ? roleCounts.map(([r, n]) => `${n} ${ROLES[r].label}`).join(' · ') : '—'}
-            hint="Role aur permission dekhein" onClick={() => setTab('roles')} active={tab === 'roles'} />
-          <KpiCard icon={LogIn} color="#0284c7" label="Login abhi nahi kiya" value={k.pending} hint={k.pending ? 'Login bana, magar istemal nahi hua' : 'Sab ne login kar liya'}
+          <KpiCard icon={UserCog} color="#7c3aed" label={tr('Roles')} value={roleCounts.length ? roleCounts.map(([r, n]) => `${n} ${ROLES[r].label}`).join(' · ') : '—'}
+            hint={tr('Role aur permission dekhein')} onClick={() => setTab('roles')} active={tab === 'roles'} />
+          <KpiCard icon={LogIn} color="#0284c7" label={tr('Login abhi nahi kiya')} value={k.pending} hint={k.pending ? tr('Login bana, magar istemal nahi hua') : tr('Sab ne login kar liya')}
             onClick={() => show('PENDING')} active={tab === 'staff' && status === 'PENDING'} />
           {seesSales
-            ? <KpiCard icon={ShoppingBag} color="#d97706" label="Aaj ki sale (staff)" value={formatPKR(k.sales)} hint={`${k.bills} bill`} onClick={() => { setTab('staff'); setSort('sales'); }} active={tab === 'staff' && sort === 'sales'} />
-            : <KpiCard icon={KeyRound} color="#64748b" label="Bina login" value={k.noLogin} hint="Sirf tankhwah aur haazri" onClick={() => show('current', 'NO_LOGIN')} active={tab === 'staff' && role === 'NO_LOGIN'} />}
+            ? <KpiCard icon={ShoppingBag} color="#d97706" label={tr('Aaj ki sale (staff)')} value={formatPKR(k.sales)} hint={tr('{{bills}} bill', { bills: k.bills })} onClick={() => { setTab('staff'); setSort('sales'); }} active={tab === 'staff' && sort === 'sales'} />
+            : <KpiCard icon={KeyRound} color="#64748b" label={tr('Bina login')} value={k.noLogin} hint={tr('Sirf tankhwah aur haazri')} onClick={() => show('current', 'NO_LOGIN')} active={tab === 'staff' && role === 'NO_LOGIN'} />}
         </>}
       </KpiRow>
 
       {tab === 'roles' ? null : (
         <FilterBar
           search={tab === 'staff'
-            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, email, kaam ya staff no.…" label="Search" />
-            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Sale, haazri aur login isi period ke hain</p>}
+            ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, phone, email, kaam ya staff no.…')} label={tr('Search')} />
+            : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Sale, haazri aur login isi period ke hain')}</p>}
           chips={tab === 'staff' && filtered ? <>
             {role && <FilterChip onRemove={() => setRole('')}>{ROLES[role].label}</FilterChip>}
-            {shopId && <FilterChip onRemove={() => setShopId('')}>{shopName ?? 'Branch'}</FilterChip>}
+            {shopId && <FilterChip onRemove={() => setShopId('')}>{shopName ?? tr('Branch')}</FilterChip>}
             {status !== 'current' && <FilterChip onRemove={() => setStatus('current')}>{STATUS_FILTERS.find((s) => s.value === status)?.label}</FilterChip>}
             {needle && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
           </> : undefined}
           onClear={clear}>
           {tab === 'analytics' && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />}
           {tab === 'staff' && <>
-            <FilterMenu icon={UserCog} label="Role" value={role} active={!!role} onChange={setRole}
-              options={[{ value: '' as const, label: 'Sab roles' }, ...(Object.keys(ROLES) as RoleKey[]).map((r) => ({ value: r, label: ROLES[r].label, icon: ROLES[r].icon, color: ROLES[r].color }))]} />
+            <FilterMenu icon={UserCog} label={tr('Role')} value={role} active={!!role} onChange={setRole}
+              options={[{ value: '' as const, label: tr('Sab roles') }, ...(Object.keys(ROLES) as RoleKey[]).map((r) => ({ value: r, label: ROLES[r].label, icon: ROLES[r].icon, color: ROLES[r].color }))]} />
             {allShops && shops.length > 1 && (
-              <FilterMenu icon={Store} label="Branch" value={shopId} active={!!shopId} onChange={setShopId}
-                options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name })), { value: 'none', label: 'Kisi ek branch ke nahi' }]} />
+              <FilterMenu icon={Store} label={tr('Branch')} value={shopId} active={!!shopId} onChange={setShopId}
+                options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name })), { value: 'none', label: tr('Kisi ek branch ke nahi') }]} />
             )}
-            <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'current'} onChange={setStatus} align="right" options={STATUS_FILTERS} />
+            <FilterMenu icon={Filter} label={tr('Haal')} value={status} active={status !== 'current'} onChange={setStatus} align="right" options={STATUS_FILTERS} />
             <FilterMenu icon={ArrowDownWideNarrow} label={{ name: 'Naam', login: 'Aakhri login', sales: 'Aaj ki sale', joined: 'Naye pehle' }[sort]} value={sort} onChange={setSort} align="right"
               options={[
-                { value: 'name', label: 'Duty wale pehle, phir naam' }, { value: 'joined', label: 'Naye pehle' },
-                ...(canTeam ? [{ value: 'login' as Sort, label: 'Aakhri login' }] : []),
-                ...(seesSales ? [{ value: 'sales' as Sort, label: 'Aaj ki sale' }] : []),
+                { value: 'name', label: tr('Duty wale pehle, phir naam') }, { value: 'joined', label: tr('Naye pehle') },
+                ...(canTeam ? [{ value: 'login' as Sort, label: tr('Aakhri login') }] : []),
+                ...(seesSales ? [{ value: 'sales' as Sort, label: tr('Aaj ki sale') }] : []),
               ]} />
           </>}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canAdd && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canAdd && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>3</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'staff', label: 'Staff', icon: Users, count: listQ.data ? rows.length : null },
-          { id: 'roles', label: 'Roles aur permission', icon: ShieldCheck },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'staff', label: tr('Staff'), icon: Users, count: listQ.data ? rows.length : null },
+          { id: 'roles', label: tr('Roles aur permission'), icon: ShieldCheck },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? (
@@ -231,17 +232,17 @@ export default function StaffPage() {
       ) : listQ.isError && !listQ.data ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <WifiOff className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">Staff load nahi hua</p>
-          <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+          <p className="mt-3 font-semibold text-slate-900">{tr('Staff load nahi hua')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>{tr('Dobara koshish')}</Button>
         </div>
       ) : !rows.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <Users className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi nahi' : 'Abhi koi staff nahi'}</p>
-          <p className="mt-1 text-sm text-slate-500">Cashier, manager ya helper — sab ko yahan jorein. Login dena marzi hai.</p>
+          <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi nahi') : tr('Abhi koi staff nahi')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Cashier, manager ya helper — sab ko yahan jorein. Login dena marzi hai.')}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {canAdd && <Button onClick={() => navigate('/staff/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya banda</Button>}
-            {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+            {canAdd && <Button onClick={() => navigate('/staff/new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya banda')}</Button>}
+            {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
           </div>
         </div>
       ) : (
@@ -251,21 +252,21 @@ export default function StaffPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Staff — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Staff — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#16a34a', title: 'Naya banda', text: '"Naya banda" dabayein: naam, phone, kaam aur tankhwah. App chalana hai to "Login dein" on karein — role chunein, permission khud lag jati hain, aur login ki parchi chhap lein.' },
-            { icon: Clock, color: '#0891b2', title: 'Abhi duty par', text: 'Jis ka galla (shift) khula hai ya aaj haazri lagi aur abhi chhutti nahi hui — hara nishan. Card par kab se duty par hai woh bhi likha hai.' },
-            { icon: ShieldCheck, color: '#7c3aed', title: 'Roles aur permission', text: 'Table me saaf likha hai ke Manager, Cashier aur Staff ko shuru me kya milta hai. Kisi ki permission role se alag ho to neeche list me nazar aata hai.' },
-            { icon: LogIn, color: '#0284c7', title: 'Login abhi nahi kiya', text: 'Login bana diya magar banda ne abhi tak khola nahi. Profile se naya password de kar parchi ya WhatsApp par bhej dein.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis ne kitna becha, haazri, kitne aaye aur gaye, aur login ki ginti — period chun kar.' },
+            { icon: Plus, color: '#16a34a', title: tr('Naya banda'), text: tr('"Naya banda" dabayein: naam, phone, kaam aur tankhwah. App chalana hai to "Login dein" on karein — role chunein, permission khud lag jati hain, aur login ki parchi chhap lein.') },
+            { icon: Clock, color: '#0891b2', title: tr('Abhi duty par'), text: tr('Jis ka galla (shift) khula hai ya aaj haazri lagi aur abhi chhutti nahi hui — hara nishan. Card par kab se duty par hai woh bhi likha hai.') },
+            { icon: ShieldCheck, color: '#7c3aed', title: tr('Roles aur permission'), text: tr('Table me saaf likha hai ke Manager, Cashier aur Staff ko shuru me kya milta hai. Kisi ki permission role se alag ho to neeche list me nazar aata hai.') },
+            { icon: LogIn, color: '#0284c7', title: tr('Login abhi nahi kiya'), text: tr('Login bana diya magar banda ne abhi tak khola nahi. Profile se naya password de kar parchi ya WhatsApp par bhej dein.') },
+            { icon: BarChart3, color: '#d97706', title: tr('Analytics'), text: tr('Kis ne kitna becha, haazri, kitne aaye aur gaye, aur login ki ginti — period chun kar.') },
           ]}
           tips={[
-            'Card par click karein — poori profile: permission, branch, haazri, tankhwah, login aur devices.',
-            'Jis ki sale ho chuki ho us ka login kabhi mitta nahi, sirf band hota hai — hisaab mehfooz rehta hai.',
-            'Login, permission aur password sirf malik badal sakta hai.',
-            'Bina login wale (helper, driver) bhi yahan rakhein — tankhwah aur haazri unhi se chalti hai.',
+            tr('Card par click karein — poori profile: permission, branch, haazri, tankhwah, login aur devices.'),
+            tr('Jis ki sale ho chuki ho us ka login kabhi mitta nahi, sirf band hota hai — hisaab mehfooz rehta hai.'),
+            tr('Login, permission aur password sirf malik badal sakta hai.'),
+            tr('Bina login wale (helper, driver) bhi yahan rakhein — tankhwah aur haazri unhi se chalti hai.'),
           ]}
-          shortcuts={[['N', 'naya banda'], ['/', 'dhoondein'], ['1', 'staff'], ['2', 'roles'], ['3', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['N', tr('naya banda')], ['/', tr('dhoondein')], ['1', tr('staff')], ['2', tr('roles')], ['3', tr('analytics')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>

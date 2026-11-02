@@ -11,6 +11,7 @@ import { workshopJobsApi, type DeliverInput, type WorkshopJob } from '../api/wor
 import { DeliverJobModal } from '../components/DeliverJobModal';
 import { JOB_KEY, MONEY_KEYS, REMINDER_KEY, VEHICLE_KEY, apiError } from '../components/meta';
 import { printJobCard } from '../components/slips';
+import { t } from '@core/i18n';
 
 export function JobHandover({ job, onClose }: { job: WorkshopJob; onClose: () => void }) {
   const qc = useQueryClient();
@@ -20,13 +21,13 @@ export function JobHandover({ job, onClose }: { job: WorkshopJob; onClose: () =>
   const deliver = useMutation({
     mutationFn: (v: DeliverInput) => workshopJobsApi.deliver(job.id, v),
     onSuccess: (r) => {
-      toast.success(r.sale ? `${job.jobNumber} — gaari de di, bill ${r.sale.saleNumber}` : `${job.jobNumber} — gaari de di`, {
-        action: { label: 'Print', onClick: () => printJobCard(r, shopName) },
+      toast.success(r.sale ? t('{{jobNumber}} — gaari de di, bill {{saleNumber}}', { jobNumber: job.jobNumber, saleNumber: r.sale.saleNumber }) : t('{{jobNumber}} — gaari de di', { jobNumber: job.jobNumber }), {
+        action: { label: t('Print'), onClick: () => printJobCard(r, shopName) },
       });
       [JOB_KEY, VEHICLE_KEY, REMINDER_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Gaari wapas nahi hui')),
+    onError: (e) => toast.error(apiError(e, t('Gaari wapas nahi hui'))),
   });
   if (detail.isLoading) return null;
   return <DeliverJobModal job={detail.data ?? job} pending={deliver.isPending} onClose={onClose} onConfirm={(v) => { if (!deliver.isPending) deliver.mutate(v); }} />;

@@ -12,6 +12,7 @@ import { formatPKR } from '@core/lib/format';
 import type { CakeOrder } from '../../api/cake-orders.api';
 import { printCakeSlip, cakeMessage } from '../orderSlip';
 import { CAKE_PREV, cakeLine, cakeNext, dateTime, deliveryOf, dueOf, hoursTo, isClosed, leftText, statusOf, waLink } from '../meta';
+import { t } from '@core/i18n';
 
 interface CakeRowActions {
   canManage: boolean;
@@ -57,46 +58,46 @@ export function CakeOrderRow({ o, a }: { o: CakeOrder; a: CakeRowActions }) {
             <span className="inline-flex items-center gap-1 font-normal text-slate-500"><Del className="h-3 w-3" />{deliveryOf(o.deliveryType).label}</span>
           </p>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 text-end">
           <p className="text-base font-bold tabular-nums text-slate-900">{formatPKR(o.total)}</p>
           {o.status === 'DELIVERED'
-            ? <p className="text-[0.6875rem] text-slate-500">{due > 0.5 ? `${formatPKR(due)} khate me` : 'Poora mila'}</p>
-            : due > 0.5 ? <p className="text-[0.6875rem] font-semibold tabular-nums text-amber-700">{formatPKR(due)} baqi</p>
-              : <p className="text-[0.6875rem] font-medium text-success-700">Poora mila</p>}
+            ? <p className="text-[0.6875rem] text-slate-500">{due > 0.5 ? t('{{due}} khate me', { due: formatPKR(due) }) : t('Poora mila')}</p>
+            : due > 0.5 ? <p className="text-[0.6875rem] font-semibold tabular-nums text-amber-700">{t('{{due}} baqi', { due: formatPKR(due) })}</p>
+              : <p className="text-[0.6875rem] font-medium text-success-700">{t('Poora mila')}</p>}
         </div>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur kaam" aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label={t('Aur kaam')} aria-expanded={open} className="mt-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
         </button>
       </div>
 
       {advanceShort > 0.5 && (
-        <p className="mx-3 mb-2 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.75rem] text-amber-900 ring-1 ring-amber-200 sm:mx-4 sm:ml-[4.25rem]">
-          Advance me {formatPKR(advanceShort)} kam hai — bara cake bina advance ke na banayein.
+        <p className="mx-3 mb-2 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.75rem] text-amber-900 ring-1 ring-amber-200 sm:mx-4 sm:ms-[4.25rem]">
+          {t('Advance me {{advanceShort}} kam hai — bara cake bina advance ke na banayein.', { advanceShort: formatPKR(advanceShort) })}
         </p>
       )}
 
       {a.canManage && !closed && (
-        <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:pl-[4.25rem]">
+        <div className="flex flex-wrap gap-1.5 px-3 pb-3 sm:px-4 sm:ps-[4.25rem]">
           {next && (
             <Button size="sm" variant={next.to === 'DELIVER' ? 'success' : 'primary'} loading={busy} onClick={() => a.next(o)}
               leftIcon={next.to === 'DELIVER' ? <Receipt className="h-4 w-4" /> : <ChefHat className="h-4 w-4" />}>{next.label}</Button>
           )}
-          {due > 0.5 && <Button size="sm" variant="secondary" onClick={() => a.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>Paisa mila</Button>}
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+          {due > 0.5 && <Button size="sm" variant="secondary" onClick={() => a.pay(o)} leftIcon={<Wallet className="h-4 w-4" />}>{t('Paisa mila')}</Button>}
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-success-200 hover:bg-success-50"><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
         </div>
       )}
 
       {open && (
-        <div className="space-y-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] sm:pl-[4.25rem]">
+        <div className="space-y-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] sm:ps-[4.25rem]">
           {o.designInstructions && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 text-slate-700 ring-1 ring-slate-200">{o.designInstructions}</p>}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => printCakeSlip(o, a.shopName)} leftIcon={<Printer className="h-4 w-4" />}>Parchi</Button>
-            <Button size="sm" variant="secondary" onClick={() => printCakeSlip(o, a.shopName, true)} leftIcon={<ChefHat className="h-4 w-4" />}>Kitchen parchi</Button>
+            <Button size="sm" variant="secondary" onClick={() => printCakeSlip(o, a.shopName)} leftIcon={<Printer className="h-4 w-4" />}>{t('Parchi')}</Button>
+            <Button size="sm" variant="secondary" onClick={() => printCakeSlip(o, a.shopName, true)} leftIcon={<ChefHat className="h-4 w-4" />}>{t('Kitchen parchi')}</Button>
             {o.customerPhone && <a href={`tel:${o.customerPhone}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Phone className="h-4 w-4" />{o.customerPhone}</a>}
-            {wa && (closed || !a.canManage) && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-slate-200"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-            {a.canManage && !closed && CAKE_PREV[o.status] && <Button size="sm" variant="ghost" onClick={() => a.back(o)} disabled={busy} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
-            {a.canManage && !closed && <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => a.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>}
-            <Link to={`/bakery/cake-orders/${o.id}`} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Poori details <ExternalLink className="h-3.5 w-3.5" /></Link>
+            {wa && (closed || !a.canManage) && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-slate-200"><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+            {a.canManage && !closed && CAKE_PREV[o.status] && <Button size="sm" variant="ghost" onClick={() => a.back(o)} disabled={busy} leftIcon={<Undo2 className="h-4 w-4" />}>{t('Ek qadam peeche')}</Button>}
+            {a.canManage && !closed && <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => a.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>{t('Cancel')}</Button>}
+            <Link to={`/bakery/cake-orders/${o.id}`} className="ms-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">{t('Poori details')}{' '} <ExternalLink className="h-3.5 w-3.5" /></Link>
           </div>
         </div>
       )}

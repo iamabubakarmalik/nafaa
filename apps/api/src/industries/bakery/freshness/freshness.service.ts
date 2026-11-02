@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
 import { DAY_MS, bakeQty, positive, productUnit, qtyNumbers, r2, r3, recipeOf, shopClock, syncBatchesWithStock, withUnits, writeShopId } from '../bakery-common';
+import { apiMessage, MessageText } from '../../../common/i18n/api-message';
 
 export type WasteSource = 'BATCH' | 'BAKING' | 'RAW' | 'DAMAGE';
 
@@ -102,7 +103,7 @@ export class FreshnessService {
     const why = String(reason ?? '').trim() || 'Waqt guzar gaya';
     const log = await this.mustFind(user, id);
     const n = this.qty(qty, await productUnit(this.prisma, user.tenantId, log.productId), 'Kitne phenke — tadaad likhein');
-    if (log.currentQty < n) throw new BadRequestException(`Sirf ${log.currentQty} baqi hain`);
+    if (log.currentQty < n) throw new BadRequestException(apiMessage('Sirf {{currentQty}} baqi hain', { currentQty: log.currentQty }));
     const entry = `${n} — ${why}`;
     const done = await this.prisma.bakeryFreshnessLog.updateMany({
       where: { id, tenantId: user.tenantId, currentQty: log.currentQty },
@@ -268,7 +269,7 @@ export class FreshnessService {
   }
 
   /** A positive quantity: decimals for goods sold by weight, whole pieces otherwise. */
-  private qty(value: unknown, unit: string | null, message: string) {
+  private qty(value: unknown, unit: string | null, message: MessageText) {
     const n = bakeQty(positive(value, message), unit);
     if (!(n > 0)) throw new BadRequestException(message);
     return n;

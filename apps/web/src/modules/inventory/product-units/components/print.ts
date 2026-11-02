@@ -8,6 +8,7 @@ import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
 import type { UnitsOverview } from '../api/units-page.api';
 import { qtyText } from './meta';
+import { t } from '@core/i18n';
 
 export function unitsDoc(data: UnitsOverview, filter: string, branch: string): PrintDoc {
   const rows: string[][] = [];
@@ -26,15 +27,15 @@ export function unitsDoc(data: UnitsOverview, filter: string, branch: string): P
     }
   }
   return {
-    title: 'Packs aur rate',
+    title: t('Packs aur rate'),
     subtitle: branch,
-    meta: [['Products', String(data.items.length)], ...(filter ? [['Filter', filter] as [string, string]] : [])],
+    meta: [[t('Products'), String(data.items.length)], ...(filter ? [[t('Filter'), filter] as [string, string]] : [])],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Cheez / pack' }, { label: 'Quantity', align: 'right' }, { label: 'Qeemat', align: 'right' }, { label: 'Bachat', align: 'right', wideOnly: true }, { label: 'Barcode', wideOnly: true }],
+      columns: [{ label: t('Cheez / pack') }, { label: t('Quantity'), align: 'right' }, { label: t('Qeemat'), align: 'right' }, { label: t('Bachat'), align: 'right', wideOnly: true }, { label: t('Barcode'), wideOnly: true }],
       rows,
       groupRows,
     }],
-    footer: data.total > data.items.length ? `Pehle ${data.items.length} products dikhaye gaye hain (kul ${data.total})` : undefined,
+    footer: data.total > data.items.length ? t('Pehle {{count}} products dikhaye gaye hain (kul {{total}})', { count: data.items.length, total: data.total }) : undefined,
   };
 }

@@ -116,15 +116,45 @@ already arrives in the user's language:
   `throw new BadRequestException(apiMessage('Stock kam hai — {{item}}', { item }))`.
   The response gains `messageKey` and `params`; the global exception filter
   passes them through. Success responses can spread `...apiMessage(...)`.
-- Add a server folder to `API_DIRS` in `scripts/i18n/lib/files.mjs` when you
-  convert its messages; `i18n:extract` then collects them into the `api`
-  area and lists template literals still to convert.
-- Converted so far: `common/filters`, `modules/auth`, `modules/pos`,
-  `modules/sales`.
-- Not translated yet: notification titles/messages and activity-log lines
-  stored in the database, server-provided catalog data (business types,
-  industry names from the API). These need a `messageKey` column or a
-  render-time `t()` on known values.
+- A value can itself be an `apiMessage()` (a phrase inside a sentence, such
+  as the action a PIN protects); fixed words passed as values ('Customer',
+  'Discount') are translated too when the catalog has them
+  (`core/i18n/serverMessage.ts`). `joinMessages([...])` sends several
+  messages as one ("a; b") with each part translatable.
+- `apiText('...')` marks a fixed text that reaches the user indirectly (a
+  constant, a helper's return value) so the scan collects it.
+- Helpers that take a message (`positive(value, message)`,
+  `requireManagerPin(..., action)`) accept `MessageText` (string or
+  `apiMessage()`).
+- `API_DIRS` in `scripts/i18n/lib/files.mjs` covers the whole API except the
+  marketplace and the marketing admin. `i18n:extract --area api` collects:
+  exception texts (also the integrations' own `*Error` classes), `message:`
+  values and the `title` beside one, `apiMessage()` templates and their fixed
+  values, `apiText()`, same-file constants used as messages, and texts passed
+  to message helpers. It lists template literals still to convert.
+
+### Notifications
+
+Stored notifications keep finished text in `title`/`message` (mobile push,
+old clients). `NotificationsService.create()` (and `notificationText()` for
+direct Prisma writes) also accept `apiMessage()`; the template is kept in
+`metadata.i18n = { title?: { key, params }, message?: { key, params } }`.
+`modules/notifications/api/notifications.api.ts` shows the viewer's language:
+the template when there is one, else the stored text when the catalog has it.
+Rows saved before this keep their Roman Urdu text unless it is a fixed text.
+
+### Not translated (by design or not yet)
+
+- Long composed texts: the daily summary and the AI morning summary
+  notifications, report contents, audit-log lines.
+- Text stored as data: stock movement notes, khata/ledger descriptions,
+  activity-log lines, expense titles. They are records, written once.
+- Nested result lists (import row errors and warnings, bulk results,
+  `warnings[]` arrays); the client translates only `message`.
+- Errors that pass on a provider's own text (courier, payment, accounting,
+  Shopify/Daraz/WooCommerce clients: "TCS: …").
+- Super-admin notifications, SMS/WhatsApp/email to customers (these follow
+  the shop language), the public storefront, marketplace customers.
 
 ## Receipts and prints
 

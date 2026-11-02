@@ -26,6 +26,7 @@ import { schoolsApi } from '../api/schools.api';
 import { KEYS, LIST_STATUS, apiError, currentSession } from '../lib/meta';
 import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys } from '../components/ui';
 import { SchoolListEditor } from '../components/SchoolListEditor';
+import { t } from '@core/i18n';
 
 type Tab = 'ACTIVE' | 'DRAFT' | 'CLOSED' | 'ARCHIVED' | 'all';
 
@@ -68,23 +69,23 @@ export default function SchoolListsPage() {
   const refresh = () => { void qc.invalidateQueries({ queryKey: [KEYS.lists] }); void qc.invalidateQueries({ queryKey: [KEYS.posLists] }); void qc.invalidateQueries({ queryKey: [KEYS.schools] }); };
   const save = useMutation({
     mutationFn: ({ id, body }: { id?: string; body: Record<string, unknown> }) => (id ? schoolListsApi.update(id, body) : schoolListsApi.create(body)),
-    onSuccess: () => { toast.success('List save ho gayi'); setForm(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hui')),
+    onSuccess: () => { toast.success(t('List save ho gayi')); setForm(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Save nahi hui'))),
   });
   const status = useMutation({
     mutationFn: ({ l, to }: { l: SchoolBookList; to: string }) => schoolListsApi.updateStatus(l.id, to),
-    onSuccess: (_r, { to }) => { toast.success(to === 'ACTIVE' ? 'List counter par — POS ke Combos me set bikega' : 'List counter se hat gayi'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (_r, { to }) => { toast.success(to === 'ACTIVE' ? t('List counter par — POS ke Combos me set bikega') : t('List counter se hat gayi')); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Nahi hua'))),
   });
   const duplicate = useMutation({
     mutationFn: ({ l, s }: { l: SchoolBookList; s: string }) => schoolListsApi.duplicate(l.id, s),
-    onSuccess: (r) => { toast.success(`${r.title} draft ban gayi — aaj ke rate lag gaye`); setCopy(null); setTab('DRAFT'); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Copy nahi hui')),
+    onSuccess: (r) => { toast.success(t('{{title}} draft ban gayi — aaj ke rate lag gaye', { title: r.title })); setCopy(null); setTab('DRAFT'); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Copy nahi hui'))),
   });
   const remove = useMutation({
     mutationFn: (l: SchoolBookList) => schoolListsApi.remove(l.id),
-    onSuccess: () => { toast.success('List purani me chali gayi'); setArchive(null); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: () => { toast.success(t('List purani me chali gayi')); setArchive(null); refresh(); },
+    onError: (e) => toast.error(apiError(e, t('Nahi hua'))),
   });
 
   const printList = (l: SchoolBookList) => print({
@@ -105,45 +106,45 @@ export default function SchoolListsPage() {
   return (
     <PageShell>
       <PageHero
-        title="School lists"
-        chip={<><ClipboardList /> Class ke sets</>}
-        meta={schoolName ? `${schoolName} ki lists` : 'Har class ki kitaben — counter par ek saath set bikta hai'}
+        title={t('School lists')}
+        chip={<><ClipboardList /> {' '}{t('Class ke sets')}</>}
+        meta={schoolName ? t('{{schoolName}} ki lists', { schoolName }) : t('Har class ki kitaben — counter par ek saath set bikta hai')}
         loading={listQ.isLoading}
         actions={<>
-          <Link to="/bookstore/schools" className={heroButton}><SchoolIcon className="h-4 w-4" /><span className="hidden sm:inline">Schools</span></Link>
-          {canSell && <Link to="/pos" className={heroButton}><ShoppingCart className="h-4 w-4" /><span className="hidden sm:inline">POS</span></Link>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={() => setForm('new')} title="Nayi list (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> List</button>}
+          <Link to="/bookstore/schools" className={heroButton}><SchoolIcon className="h-4 w-4" /><span className="hidden sm:inline">{t('Schools')}</span></Link>
+          {canSell && <Link to="/pos" className={heroButton}><ShoppingCart className="h-4 w-4" /><span className="hidden sm:inline">{t('POS')}</span></Link>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title={t('Nayi list (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('List')}</button>}
         </>}
         stats={[
-          { label: 'Counter par', value: count('ACTIVE') },
-          { label: 'Draft', value: count('DRAFT') },
-          { label: 'Session', value: session || 'Sab' },
+          { label: t('Counter par'), value: count('ACTIVE') },
+          { label: t('Draft'), value: count('DRAFT') },
+          { label: t('Session'), value: session || 'Sab' },
         ]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Play} color="#16a34a" label="Counter par" value={count('ACTIVE')} onClick={() => setTab('ACTIVE')} active={tab === 'ACTIVE'} hint="POS ke Combos me" />
-        <KpiCard icon={Pencil} color="#64748b" label="Draft" value={count('DRAFT')} onClick={() => setTab('DRAFT')} active={tab === 'DRAFT'} hint="Abhi tayyar ho rahi" />
-        <KpiCard icon={SchoolIcon} color="#2563eb" label="School" value={new Set(scoped.map((l) => l.schoolId)).size} />
-        <KpiCard icon={BookOpen} color="#d97706" label="Catalog se bahar" value={notInCatalog} hint="Chalti lists ki lines jo POS par nahi bikti" />
+        <KpiCard icon={Play} color="#16a34a" label={t('Counter par')} value={count('ACTIVE')} onClick={() => setTab('ACTIVE')} active={tab === 'ACTIVE'} hint={t('POS ke Combos me')} />
+        <KpiCard icon={Pencil} color="#64748b" label={t('Draft')} value={count('DRAFT')} onClick={() => setTab('DRAFT')} active={tab === 'DRAFT'} hint={t('Abhi tayyar ho rahi')} />
+        <KpiCard icon={SchoolIcon} color="#2563eb" label={t('School')} value={new Set(scoped.map((l) => l.schoolId)).size} />
+        <KpiCard icon={BookOpen} color="#d97706" label={t('Catalog se bahar')} value={notInCatalog} hint={t('Chalti lists ki lines jo POS par nahi bikti')} />
       </KpiRow>
 
       <ViewTabs<Tab> tabs={[
-        { id: 'ACTIVE', label: 'Counter par', count: count('ACTIVE') }, { id: 'DRAFT', label: 'Draft', count: count('DRAFT') },
-        { id: 'CLOSED', label: 'Band', count: count('CLOSED') }, { id: 'ARCHIVED', label: 'Purani', count: count('ARCHIVED') }, { id: 'all', label: 'Sab', count: count('all') },
+        { id: 'ACTIVE', label: t('Counter par'), count: count('ACTIVE') }, { id: 'DRAFT', label: t('Draft'), count: count('DRAFT') },
+        { id: 'CLOSED', label: t('Band'), count: count('CLOSED') }, { id: 'ARCHIVED', label: t('Purani'), count: count('ARCHIVED') }, { id: 'all', label: t('Sab'), count: count('all') },
       ]} value={tab} onChange={setTab} />
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Class, school ya list ka naam" label="Search" />}>
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Class, school ya list ka naam')} label={t('Search')} />}>
         <Select value={schoolId} onChange={(e) => { const p = new URLSearchParams(params); if (e.target.value) p.set('school', e.target.value); else p.delete('school'); setParams(p, { replace: true }); }}
-          options={[{ value: '', label: 'Sab school' }, ...schools.map((s) => ({ value: s.id, label: s.name }))]} aria-label="School" size="sm" />
-        <Select value={session} onChange={(e) => setSession(e.target.value)} options={[{ value: '', label: 'Har session' }, ...sessions.map((s) => ({ value: s, label: s }))]} aria-label="Session" size="sm" />
+          options={[{ value: '', label: t('Sab school') }, ...schools.map((s) => ({ value: s.id, label: s.name }))]} aria-label={t('School')} size="sm" />
+        <Select value={session} onChange={(e) => setSession(e.target.value)} options={[{ value: '', label: t('Har session') }, ...sessions.map((s) => ({ value: s, label: s }))]} aria-label={t('Session')} size="sm" />
       </FilterBar>
 
       {listQ.isLoading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-3xl" />)}</div>
         : rows.length === 0 ? (
-          <EmptyBox icon={ClipboardList} title={search ? 'Koi list nahi mili' : 'Is tab me koi list nahi'}
-            text="School aur class chun kar list banayein; 'Class ki kitaben' se us class ki saari textbooks ek click me jur jati hain. Phir 'Counter par' karein."
-            action={canEdit && !search ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />} disabled={!schools.length}>List banayein</Button> : undefined} />
+          <EmptyBox icon={ClipboardList} title={search ? t('Koi list nahi mili') : t('Is tab me koi list nahi')}
+            text={t('School aur class chun kar list banayein; \'Class ki kitaben\' se us class ki saari textbooks ek click me jur jati hain. Phir \'Counter par\' karein.')}
+            action={canEdit && !search ? <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />} disabled={!schools.length}>{t('List banayein')}</Button> : undefined} />
         ) : (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {rows.map((l) => {
@@ -161,28 +162,28 @@ export default function SchoolListsPage() {
                     <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', st.tone)}>{st.label}</span>
                   </div>
                   <dl className="mt-3 grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-2.5 text-center text-[0.75rem]">
-                    <div><dt className="text-slate-500">Cheezein</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{l.items.length}</dd></div>
-                    <div><dt className="text-slate-500">Discount</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{l.discountPct ? `${l.discountPct}%` : '—'}</dd></div>
-                    <div><dt className="text-slate-500">Set</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{sales(priceOf(l))}</dd></div>
+                    <div><dt className="text-slate-500">{t('Cheezein')}</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{l.items.length}</dd></div>
+                    <div><dt className="text-slate-500">{t('Discount')}</dt><dd className="text-[0.9375rem] font-bold text-slate-900">{l.discountPct ? `${l.discountPct}%` : '—'}</dd></div>
+                    <div><dt className="text-slate-500">{t('Set')}</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{sales(priceOf(l))}</dd></div>
                   </dl>
                   <p className="mt-2 truncate text-[0.75rem] text-slate-500">
                     {l.items.slice(0, 4).map((i) => i.itemName).join(', ')}{l.items.length > 4 ? ` +${l.items.length - 4}` : ''}
                   </p>
                   {(outside > 0 || optional > 0) && (
                     <p className="mt-1 text-[0.75rem]">
-                      {outside > 0 && <span className="text-amber-700">{outside} catalog se bahar · </span>}
-                      {optional > 0 && <span className="text-slate-500">{optional} marzi ki</span>}
+                      {outside > 0 && <span className="text-amber-700">{t('{{outside}} catalog se bahar ·', { outside })}{' '} </span>}
+                      {optional > 0 && <span className="text-slate-500">{t('{{optional}} marzi ki', { optional })}</span>}
                     </p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <button type="button" onClick={() => printList(l)} className={cardAction}><Printer className="h-3.5 w-3.5" />Print</button>
+                    <button type="button" onClick={() => printList(l)} className={cardAction}><Printer className="h-3.5 w-3.5" />{t('Print')}</button>
                     {canEdit && <>
-                      <button type="button" onClick={() => setForm(l)} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</button>
+                      <button type="button" onClick={() => setForm(l)} className={cardAction}><Pencil className="h-3.5 w-3.5" />{t('Badlein')}</button>
                       {l.status !== 'ACTIVE'
-                        ? <button type="button" onClick={() => status.mutate({ l, to: 'ACTIVE' })} disabled={status.isPending} className={cardLink}><Play className="h-3.5 w-3.5" />Counter par</button>
-                        : <button type="button" onClick={() => status.mutate({ l, to: 'CLOSED' })} disabled={status.isPending} className={cardAction}><Square className="h-3.5 w-3.5" />Band</button>}
-                      <button type="button" onClick={() => setCopy(l)} className={cardAction}><Copy className="h-3.5 w-3.5" />Agla session</button>
-                      {l.status !== 'ARCHIVED' && <button type="button" onClick={() => setArchive(l)} className={`ml-auto ${cardDanger}`}><Archive className="h-3.5 w-3.5" />Purani</button>}
+                        ? <button type="button" onClick={() => status.mutate({ l, to: 'ACTIVE' })} disabled={status.isPending} className={cardLink}><Play className="h-3.5 w-3.5" />{t('Counter par')}</button>
+                        : <button type="button" onClick={() => status.mutate({ l, to: 'CLOSED' })} disabled={status.isPending} className={cardAction}><Square className="h-3.5 w-3.5" />{t('Band')}</button>}
+                      <button type="button" onClick={() => setCopy(l)} className={cardAction}><Copy className="h-3.5 w-3.5" />{t('Agla session')}</button>
+                      {l.status !== 'ARCHIVED' && <button type="button" onClick={() => setArchive(l)} className={`ms-auto ${cardDanger}`}><Archive className="h-3.5 w-3.5" />{t('Purani')}</button>}
                     </>}
                   </div>
                 </li>
@@ -191,22 +192,22 @@ export default function SchoolListsPage() {
           </ul>
         )}
 
-      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> nayi · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> {' '}{t('nayi ·')}{' '} </>}<Kbd>/</Kbd> {' '}{t('search ·')}{' '} <Kbd>G</Kbd> {' '}{t('guide')}</p>
 
       {form && <SchoolListEditor list={form === 'new' ? null : form} schools={schools} presetSchool={schoolId || undefined} pending={save.isPending}
         onSave={(body) => save.mutate({ id: form === 'new' ? undefined : form.id, body })} onClose={() => setForm(null)} />}
       {copy && <CopyModal list={copy} pending={duplicate.isPending} onCopy={(s) => duplicate.mutate({ l: copy, s })} onClose={() => setCopy(null)} />}
-      {archive && <ConfirmModal title="List purani karein?" text={`${archive.title} counter se hat jayegi aur "Purani" tab me rahegi. Agle session ke liye wahan se copy ho sakti hai.`} confirm="Purani karein" pending={remove.isPending} onConfirm={() => remove.mutate(archive)} onClose={() => setArchive(null)} />}
+      {archive && <ConfirmModal title={t('List purani karein?')} text={t('{{title}} counter se hat jayegi aur "Purani" tab me rahegi. Agle session ke liye wahan se copy ho sakti hai.', { title: archive.title })} confirm={t('Purani karein')} pending={remove.isPending} onConfirm={() => remove.mutate(archive)} onClose={() => setArchive(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="School lists — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('School lists — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: ClipboardList, color: '#7c3aed', title: 'List banayein', text: 'School, session aur class chunein. "Class ki kitaben" se us class ki textbooks khud jur jati hain; copy, cover jaisi cheezein dhoond kar jorein.' },
-            { icon: Play, color: '#16a34a', title: 'Counter par', text: '"Counter par" karne se POS ke Combos tab me set aata hai. Poora set ek click me, ya jo kitab bachay ke paas hai wo nikal kar.' },
-            { icon: Copy, color: '#2563eb', title: 'Naya session', text: 'Season se pehle "Agla session" se pichli list copy karein — aaj ke rate lagte hain, sirf badli hui kitab badlein.' },
-            { icon: Printer, color: '#64748b', title: 'Print', text: 'Walidain ke liye list print karein — set ki qeemat neeche likhi hoti hai.' },
+            { icon: ClipboardList, color: '#7c3aed', title: t('List banayein'), text: t('School, session aur class chunein. "Class ki kitaben" se us class ki textbooks khud jur jati hain; copy, cover jaisi cheezein dhoond kar jorein.') },
+            { icon: Play, color: '#16a34a', title: t('Counter par'), text: t('"Counter par" karne se POS ke Combos tab me set aata hai. Poora set ek click me, ya jo kitab bachay ke paas hai wo nikal kar.') },
+            { icon: Copy, color: '#2563eb', title: t('Naya session'), text: t('Season se pehle "Agla session" se pichli list copy karein — aaj ke rate lagte hain, sirf badli hui kitab badlein.') },
+            { icon: Printer, color: '#64748b', title: t('Print'), text: t('Walidain ke liye list print karein — set ki qeemat neeche likhi hoti hai.') },
           ]}
-          tips={['Set ki pakki qeemat likhein to wohi lagti hai; warna lines − discount %.', 'Catalog se bahar wali line (jaise uniform) sirf list par hai — POS par nahi bikti.']}
+          tips={[t('Set ki pakki qeemat likhein to wohi lagti hai; warna lines − discount %.'), t('Catalog se bahar wali line (jaise uniform) sirf list par hai — POS par nahi bikti.')]}
           shortcuts={[['N', 'nayi'], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
@@ -217,9 +218,9 @@ export default function SchoolListsPage() {
 function CopyModal({ list, pending, onCopy, onClose }: { list: SchoolBookList; pending: boolean; onCopy: (session: string) => void; onClose: () => void }) {
   const [s, setS] = useState(nextSession(list.session));
   return (
-    <Modal open onClose={onClose} size="sm" title="Agle session me copy" description={`${list.title} — nayi list draft banegi`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => s.trim() && onCopy(s.trim())} disabled={!s.trim()} loading={pending}>Copy karein</Button></>}>
-      <Input label="Naya session" value={s} onChange={(e) => setS(e.target.value)} placeholder="2027-2028" hint="Catalog wali kitabon par aaj ka rate lagta hai" autoFocus />
+    <Modal open onClose={onClose} size="sm" title={t('Agle session me copy')} description={t('{{title}} — nayi list draft banegi', { title: list.title })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={() => s.trim() && onCopy(s.trim())} disabled={!s.trim()} loading={pending}>{t('Copy karein')}</Button></>}>
+      <Input label={t('Naya session')} value={s} onChange={(e) => setS(e.target.value)} placeholder="2027-2028" hint={t('Catalog wali kitabon par aaj ka rate lagta hai')} autoFocus />
     </Modal>
   );
 }

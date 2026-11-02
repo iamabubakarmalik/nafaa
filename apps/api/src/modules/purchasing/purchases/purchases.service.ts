@@ -28,6 +28,7 @@ import {
   AddLandedCostsDto, CancelPurchaseDto, CreatePurchaseDto, CreatePurchaseItemDto, LandedCostDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
 } from './dto/create-purchase.dto';
 import { LANDED_METHODS, LandedCostRow, LandedMethod, allocate, cleanLandedCost, perUnit, recostRemaining } from './landed-cost';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Tx = Prisma.TransactionClient;
 
@@ -88,7 +89,7 @@ const cleanCosts = (list: LandedCostDto[] | undefined): LandedCostRow[] => {
   try {
     return (list ?? []).map((c) => cleanLandedCost(c));
   } catch (e) {
-    throw new BadRequestException(`Landed cost: ${(e as Error).message}`);
+    throw new BadRequestException(apiMessage('Landed cost: {{eMessage}}', { eMessage: (e as Error).message }));
   }
 };
 const methodOf = (m?: string | null): LandedMethod => ((LANDED_METHODS as readonly string[]).includes(String(m)) ? (m as LandedMethod) : 'VALUE');
@@ -238,7 +239,7 @@ export class PurchasesService {
           where: { id: item.ingredientId, ...(!ctx.allowNegative && { currentStock: { gte: baseQty - 0.0001 } }) },
           data: { currentStock: { decrement: baseQty }, totalPurchased: { decrement: baseQty } },
         });
-        if (!ok.count) throw new BadRequestException(`${item.itemName} itna stock me nahi — pehle istemal ho chuka`);
+        if (!ok.count) throw new BadRequestException(apiMessage('{{itemName}} itna stock me nahi — pehle istemal ho chuka', { itemName: item.itemName }));
         await tx.bakeryIngredientTransaction.create({
           data: { tenantId: user.tenantId, ingredientId: item.ingredientId, transactionType: 'RETURN', quantity: -baseQty, unit: '', performedById: user.id, notes: `${ctx.reference} · ${ctx.note}` },
         });
@@ -435,7 +436,7 @@ export class PurchasesService {
       const item = byId.get(q.itemId);
       if (!item) throw new BadRequestException('Line is purchase ki nahi');
       const baseQty = r4(q.quantity * item.conversionRate);
-      if (baseQty > item.receivedQty - item.returnedQty + 0.0001) throw new BadRequestException(`${item.itemName}: itna wapas nahi ho sakta`);
+      if (baseQty > item.receivedQty - item.returnedQty + 0.0001) throw new BadRequestException(apiMessage('{{itemName}}: itna wapas nahi ho sakta', { itemName: item.itemName }));
       return { item, baseQty, amount: r2(baseQty * this.baseCost(p, item)) };
     }).filter((r) => r.baseQty > 0);
     const total = r2(rows.reduce((s, r) => s + r.amount, 0));

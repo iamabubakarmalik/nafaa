@@ -23,11 +23,12 @@ import { Empty, Pill } from '../../components/parts';
 import { useMoney } from '../../hooks/useDistribution';
 import { COLLECTION_STATUS, dayYearLabel, partyName, partySub, rs, typingInField, type Tone } from '../../lib/meta';
 import { useDebounced } from '../../setup/shared';
+import { t as tr } from '@core/i18n';
 
 const KEY = [DIST_KEY, 'cheques'] as const;
 type Tab = 'due' | 'open' | 'DEPOSITED' | 'CLEARED' | 'BOUNCED';
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: 'due', label: 'Is hafte' }, { id: 'open', label: 'Sab khule' }, { id: 'DEPOSITED', label: 'Bank me' }, { id: 'CLEARED', label: 'Clear' }, { id: 'BOUNCED', label: 'Bounce' },
+  { id: 'due', label: tr('Is hafte') }, { id: 'open', label: tr('Sab khule') }, { id: 'DEPOSITED', label: tr('Bank me') }, { id: 'CLEARED', label: tr('Clear') }, { id: 'BOUNCED', label: tr('Bounce') },
 ];
 const STATUS_TONE: Record<ChequeStatus, Tone> = { RECEIVED: 'amber', DEPOSITED: 'blue', CLEARED: 'green', BOUNCED: 'rose', CANCELLED: 'slate' };
 
@@ -52,13 +53,13 @@ function Cheques() {
   const due = q.data?.due;
 
   const done = (msg: string) => () => { toast.success(msg); qc.invalidateQueries({ queryKey: KEY }); qc.invalidateQueries({ queryKey: [DIST_KEY, 'collections'] }); };
-  const deposit = useMutation({ mutationFn: (id: string) => phase2Api.depositCheque(id), onSuccess: done('Bank me jama likh diya'), onError: (e) => toast.error(distError(e)) });
-  const clear = useMutation({ mutationFn: (id: string) => phase2Api.clearCheque(id), onSuccess: done('Cheque clear'), onError: (e) => toast.error(distError(e, 'Clear nahi hua')) });
-  const cancel = useMutation({ mutationFn: (id: string) => phase2Api.cancelCheque(id), onSuccess: done('Cheque cancel'), onError: (e) => toast.error(distError(e)) });
+  const deposit = useMutation({ mutationFn: (id: string) => phase2Api.depositCheque(id), onSuccess: done(tr('Bank me jama likh diya')), onError: (e) => toast.error(distError(e)) });
+  const clear = useMutation({ mutationFn: (id: string) => phase2Api.clearCheque(id), onSuccess: done(tr('Cheque clear')), onError: (e) => toast.error(distError(e, tr('Clear nahi hua'))) });
+  const cancel = useMutation({ mutationFn: (id: string) => phase2Api.cancelCheque(id), onSuccess: done(tr('Cheque cancel')), onError: (e) => toast.error(distError(e)) });
   const bounce = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string }) => phase2Api.bounceCheque(id, reason),
-    onSuccess: () => { setBouncing(null); done('Bounce likh diya — khata me wapas chadh gaya')(); },
-    onError: (e) => toast.error(distError(e, 'Bounce nahi hua')),
+    onSuccess: () => { setBouncing(null); done(tr('Bounce likh diya — khata me wapas chadh gaya'))(); },
+    onError: (e) => toast.error(distError(e, tr('Bounce nahi hua'))),
   });
   const busy = deposit.isPending || clear.isPending || cancel.isPending;
 
@@ -74,41 +75,41 @@ function Cheques() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution" backLabel="Distribution"
-        title="Cheques"
-        chip={<><Landmark /> PDC register</>}
-        meta="Customers ke cheque — date aane par bank me jama, clear ya bounce. Bounce par payment khate se wapas."
+        back="/distribution" backLabel={tr('Distribution')}
+        title={tr('Cheques')}
+        chip={<><Landmark /> {' '}{tr('PDC register')}</>}
+        meta={tr('Customers ke cheque — date aane par bank me jama, clear ya bounce. Bounce par payment khate se wapas.')}
         busy={q.isFetching && !q.isLoading}
         loading={q.isLoading}
-        actions={<button type="button" onClick={() => void q.refetch()} title="Refresh" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>}
+        actions={<button type="button" onClick={() => void q.refetch()} title={tr('Refresh')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>}
       />
 
       <KpiRow>
-        <KpiCard icon={CalendarClock} color="#d97706" label="Aaj tak jama karne wale" value={money(due?.today.amount ?? 0)} hint={`${due?.today.count ?? 0} cheques`} onClick={() => setTab('due')} active={tab === 'due'} />
-        <KpiCard icon={CalendarClock} color="#2563eb" label="Is hafte" value={money(due?.week.amount ?? 0)} hint={`${due?.week.count ?? 0} cheques`} onClick={() => setTab('due')} />
-        <KpiCard icon={Banknote} color="#0891b2" label="Bank me (clear baqi)" value={money(totals.DEPOSITED?.amount ?? 0)} hint={`${totals.DEPOSITED?.count ?? 0} cheques`} onClick={() => setTab('DEPOSITED')} active={tab === 'DEPOSITED'} />
-        <KpiCard icon={AlertTriangle} color="#e11d48" label="Bounce" value={money(totals.BOUNCED?.amount ?? 0)} hint={`${totals.BOUNCED?.count ?? 0} cheques`} onClick={() => setTab('BOUNCED')} active={tab === 'BOUNCED'} />
+        <KpiCard icon={CalendarClock} color="#d97706" label={tr('Aaj tak jama karne wale')} value={money(due?.today.amount ?? 0)} hint={tr('{{value}} cheques', { value: due?.today.count ?? 0 })} onClick={() => setTab('due')} active={tab === 'due'} />
+        <KpiCard icon={CalendarClock} color="#2563eb" label={tr('Is hafte')} value={money(due?.week.amount ?? 0)} hint={tr('{{value}} cheques', { value: due?.week.count ?? 0 })} onClick={() => setTab('due')} />
+        <KpiCard icon={Banknote} color="#0891b2" label={tr('Bank me (clear baqi)')} value={money(totals.DEPOSITED?.amount ?? 0)} hint={tr('{{value}} cheques', { value: totals.DEPOSITED?.count ?? 0 })} onClick={() => setTab('DEPOSITED')} active={tab === 'DEPOSITED'} />
+        <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Bounce')} value={money(totals.BOUNCED?.amount ?? 0)} hint={tr('{{value}} cheques', { value: totals.BOUNCED?.count ?? 0 })} onClick={() => setTab('BOUNCED')} active={tab === 'BOUNCED'} />
       </KpiRow>
 
       <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: t.id === tab ? q.data?.total ?? null : null }))}
         right={<div className="flex items-center gap-3">
-          <span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex"><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs</span>
-          <SearchField value={search} onChange={setSearch} placeholder="Cheque no. ya bank" />
+          <span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex"><Kbd>1</Kbd>-<Kbd>5</Kbd> {' '}{tr('tabs')}</span>
+          <SearchField value={search} onChange={setSearch} placeholder={tr('Cheque no. ya bank')} />
         </div>} />
 
       <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {q.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
-          : !rows.length ? <Empty icon={<Landmark className="h-5 w-5" />} text="Is filter me koi cheque nahi. Cheque Recoveries me 'Cheque' chun kar ya phone se recovery me likha jata hai." />
+          : !rows.length ? <Empty icon={<Landmark className="h-5 w-5" />} text={tr('Is filter me koi cheque nahi. Cheque Recoveries me \'Cheque\' chun kar ya phone se recovery me likha jata hai.')} />
             : <div className="overflow-x-auto">
               <Table minWidth="58rem" className="[&_table]:text-[0.8125rem]">
-                <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                   <Tr>
-                    <Th className="px-4 py-2">Customer</Th>
-                    <Th className="px-3 py-2">Bank · Cheque</Th>
-                    <Th className="px-3 py-2">Cheque date</Th>
-                    <Th className="px-3 py-2 text-right">Amount</Th>
-                    <Th className="px-3 py-2">Halat</Th>
-                    <Th className="px-3 py-2">Collection</Th>
+                    <Th className="px-4 py-2">{tr('Customer')}</Th>
+                    <Th className="px-3 py-2">{tr('Bank · Cheque')}</Th>
+                    <Th className="px-3 py-2">{tr('Cheque date')}</Th>
+                    <Th className="px-3 py-2 text-end">{tr('Amount')}</Th>
+                    <Th className="px-3 py-2">{tr('Halat')}</Th>
+                    <Th className="px-3 py-2">{tr('Collection')}</Th>
                     <Th className="px-4 py-2" />
                   </Tr>
                 </THead>
@@ -122,18 +123,18 @@ function Cheques() {
                         <Td className="px-3 py-2"><div className="text-slate-900">{c.bankName}</div><div className="font-mono text-[0.75rem] text-slate-500">#{c.chequeNo}</div></Td>
                         <Td className="whitespace-nowrap px-3 py-2">
                           <div className="text-slate-900">{dayYearLabel(c.chequeDate)}</div>
-                          <div className="flex gap-1">{c.postDated && <Pill tone="violet">PDC</Pill>}{c.overdue && <Pill tone="rose">Date guzar gayi</Pill>}</div>
+                          <div className="flex gap-1">{c.postDated && <Pill tone="violet">{tr('PDC')}</Pill>}{c.overdue && <Pill tone="rose">{tr('Date guzar gayi')}</Pill>}</div>
                         </Td>
-                        <Td className="px-3 py-2 text-right font-semibold tabular-nums">{money(c.amount)}</Td>
+                        <Td className="px-3 py-2 text-end font-semibold tabular-nums">{money(c.amount)}</Td>
                         <Td className="px-3 py-2"><Pill tone={STATUS_TONE[c.status]}>{CHEQUE_STATUS_LABEL[c.status]}</Pill>
                           {c.bounceReason && <div className="mt-0.5 max-w-[10rem] truncate text-[0.6875rem] text-rose-600">{c.bounceReason}</div>}</Td>
                         <Td className="px-3 py-2">{col ? <Pill tone={col.tone}>{col.label}</Pill> : <span className="text-slate-400">—</span>}</Td>
-                        <Td className="px-4 py-2 text-right">
+                        <Td className="px-4 py-2 text-end">
                           {open && <span className="inline-flex flex-wrap justify-end gap-1.5">
-                            {c.status === 'RECEIVED' && <Button size="sm" variant="secondary" disabled={busy} onClick={() => deposit.mutate(c.id)}>Deposit</Button>}
-                            <Button size="sm" variant="secondary" disabled={busy} leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => clear.mutate(c.id)}>Clear</Button>
-                            <Button size="sm" variant="secondary" disabled={busy} leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => setBouncing(c)}>Bounce</Button>
-                            {c.status === 'RECEIVED' && c.collectionStatus !== 'VERIFIED' && <Button size="sm" variant="ghost" disabled={busy} onClick={() => cancel.mutate(c.id)}>Cancel</Button>}
+                            {c.status === 'RECEIVED' && <Button size="sm" variant="secondary" disabled={busy} onClick={() => deposit.mutate(c.id)}>{tr('Deposit')}</Button>}
+                            <Button size="sm" variant="secondary" disabled={busy} leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => clear.mutate(c.id)}>{tr('Clear')}</Button>
+                            <Button size="sm" variant="secondary" disabled={busy} leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => setBouncing(c)}>{tr('Bounce')}</Button>
+                            {c.status === 'RECEIVED' && c.collectionStatus !== 'VERIFIED' && <Button size="sm" variant="ghost" disabled={busy} onClick={() => cancel.mutate(c.id)}>{tr('Cancel')}</Button>}
                           </span>}
                         </Td>
                       </Tr>
@@ -145,8 +146,8 @@ function Cheques() {
                 <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-600">
                   <span>{(page - 1) * 50 + 1}–{Math.min(page * 50, q.data!.total)} / {q.data!.total}</span>
                   <span className="flex gap-2">
-                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
-                    <Button size="sm" variant="secondary" disabled={page * 50 >= q.data!.total} onClick={() => setPage(page + 1)}>Next</Button>
+                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>{tr('Previous')}</Button>
+                    <Button size="sm" variant="secondary" disabled={page * 50 >= q.data!.total} onClick={() => setPage(page + 1)}>{tr('Next')}</Button>
                   </span>
                 </div>
               )}
@@ -162,13 +163,13 @@ function BounceModal({ cheque, busy, onClose, onSubmit }: { cheque: ChequeRow; b
   const [reason, setReason] = useState('');
   const verified = cheque.collectionStatus === 'VERIFIED';
   return (
-    <Modal open onClose={onClose} size="sm" title={`Cheque #${cheque.chequeNo} bounce`} description={`${partyName(cheque.customer)} · ${cheque.bankName} · ${rs(cheque.amount)}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant="danger" loading={busy} onClick={() => onSubmit(reason.trim() || undefined)}>Bounce likhein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Cheque #{{chequeNo}} bounce', { chequeNo: cheque.chequeNo })} description={`${partyName(cheque.customer)} · ${cheque.bankName} · ${rs(cheque.amount)}`}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button><Button variant="danger" loading={busy} onClick={() => onSubmit(reason.trim() || undefined)}>{tr('Bounce likhein')}</Button></>}>
       <div className="space-y-3">
         <p className={cn('rounded-xl px-3 py-2 text-[0.8125rem]', verified ? 'bg-rose-50 text-rose-800' : 'bg-slate-50 text-slate-700')}>
-          {verified ? `Payment khate se wapas — ${rs(cheque.amount)} udhaar dobara chadh jayega (note ke sath).` : 'Is cheque ki collection abhi verify nahi hui thi — woh reject ho jayegi, khata nahi badlega.'}
+          {verified ? tr('Payment khate se wapas — {{amount}} udhaar dobara chadh jayega (note ke sath).', { amount: rs(cheque.amount) }) : tr('Is cheque ki collection abhi verify nahi hui thi — woh reject ho jayegi, khata nahi badlega.')}
         </p>
-        <Input autoFocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Account me paise nahi (insufficient funds)" />
+        <Input autoFocus label={tr('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Account me paise nahi (insufficient funds)')} />
       </div>
     </Modal>
   );

@@ -15,12 +15,13 @@ import { formatPKR } from '@core/lib/format';
 import { moneyApi, type MoneyDrawer } from '../api/money.api';
 import { PayoutWarning } from '@modules/finance/cash-register/components/PayoutWarning';
 import { MONEY_KEY, apiError, newRequestId } from './meta';
+import { t } from '@core/i18n';
 
 type Kind = 'CASH_IN' | 'CASH_OUT';
 
 const REASONS: Record<Kind, string[]> = {
-  CASH_IN: ['Khulle paise laye', 'Ghar se daala', 'Bank se nikal kar laye', 'Doosri branch se aaya', 'Kal ka bacha cash'],
-  CASH_OUT: ['Malik ne liya', 'Bank me jama karaya', 'Doosri branch ko diya', 'Khulle paise ke liye', 'Ghar ke kharch ke liye'],
+  CASH_IN: [t('Khulle paise laye'), t('Ghar se daala'), t('Bank se nikal kar laye'), t('Doosri branch se aaya'), t('Kal ka bacha cash')],
+  CASH_OUT: [t('Malik ne liya'), t('Bank me jama karaya'), t('Doosri branch ko diya'), t('Khulle paise ke liye'), t('Ghar ke kharch ke liye')],
 };
 
 export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
@@ -43,8 +44,8 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
   const value = Number(amount) || 0;
   const out = kind === 'CASH_OUT';
   const errors = {
-    amount: value <= 0 ? 'Amount likhein' : undefined,
-    reason: reason.trim().length < 2 ? 'Wajah likhein ya upar se chunein' : undefined,
+    amount: value <= 0 ? t('Amount likhein') : undefined,
+    reason: reason.trim().length < 2 ? t('Wajah likhein ya upar se chunein') : undefined,
   };
   const ok = !errors.amount && !errors.reason;
 
@@ -53,12 +54,12 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
       type: kind, amount: value, reason: reason.trim(), note: note.trim() || undefined, registerId: drawer?.id, requestId,
     }),
     onSuccess: () => {
-      toast.success(out ? `${formatPKR(value)} golak se nikal gaye` : `${formatPKR(value)} golak me daal diye`);
+      toast.success(out ? t('{{formatPKR}} golak se nikal gaye', { formatPKR: formatPKR(value) }) : t('{{formatPKR}} golak me daal diye', { formatPKR: formatPKR(value) }));
       qc.invalidateQueries({ queryKey: [MONEY_KEY] });
       qc.invalidateQueries({ queryKey: ['cash-register'] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
     onSettled: () => { busy.current = false; },
   });
 
@@ -73,20 +74,20 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
 
   return (
     <Modal open onClose={onClose} size="md"
-      title={out ? 'Golak se cash nikalein' : 'Golak me cash daalein'}
-      description="Sirf cash ke liye. Ye Cash register me bhi dikhega aur din band karte waqt hisaab me judega."
-      footer={blocked ? <Button variant="secondary" onClick={onClose}>Theek hai</Button> : <>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+      title={out ? t('Golak se cash nikalein') : t('Golak me cash daalein')}
+      description={t('Sirf cash ke liye. Ye Cash register me bhi dikhega aur din band karte waqt hisaab me judega.')}
+      footer={blocked ? <Button variant="secondary" onClick={onClose}>{t('Theek hai')}</Button> : <>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button variant={out ? 'danger' : 'primary'} loading={save.isPending} onClick={submit}
           leftIcon={out ? <ArrowUpFromLine className="h-4 w-4" /> : <ArrowDownToLine className="h-4 w-4" />}>
-          {out ? 'Nikalein' : 'Daalein'}
+          {out ? t('Nikalein') : t('Daalein')}
         </Button>
       </>}>
       {allShops ? (
-        <Notice icon={Store} text='Abhi "Sab branches" chuni hai. Cash kisi ek branch ki golak me jata hai, is liye upar se branch chunein.' />
+        <Notice icon={Store} text={t('Abhi "Sab branches" chuni hai. Cash kisi ek branch ki golak me jata hai, is liye upar se branch chunein.')} />
       ) : !drawer ? (
-        <Notice icon={TriangleAlert} text="Is branch ka register band hai. Pehle Cash register khol kar din shuru karein.">
-          <Link to="/cash-register" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cash register kholein</Link>
+        <Notice icon={TriangleAlert} text={t('Is branch ka register band hai. Pehle Cash register khol kar din shuru karein.')}>
+          <Link to="/cash-register" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Cash register kholein')}</Link>
         </Notice>
       ) : (
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
@@ -96,26 +97,26 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
                 className={cn('inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold transition',
                   kind === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900')}>
                 {k === 'CASH_IN' ? <ArrowDownToLine className="h-4 w-4 text-emerald-600" /> : <ArrowUpFromLine className="h-4 w-4 text-rose-600" />}
-                {k === 'CASH_IN' ? 'Daalna' : 'Nikalna'}
+                {k === 'CASH_IN' ? t('Daalna') : t('Nikalna')}
               </button>
             ))}
           </div>
 
           <p className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">
-            <span>{drawer.shop?.name ?? 'Golak'} · {drawer.registerNumber}</span>
-            <span>Abhi hona chahiye <b className="tabular-nums text-slate-900">{formatPKR(drawer.expected)}</b></span>
+            <span>{drawer.shop?.name ?? t('Golak')} · {drawer.registerNumber}</span>
+            <span>{t('Abhi hona chahiye')}{' '} <b className="tabular-nums text-slate-900">{formatPKR(drawer.expected)}</b></span>
           </p>
 
-          <Input label="Amount" required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
+          <Input label={t('Amount')} required type="number" inputMode="decimal" min={0} step="any" value={amount} data-autofocus
             onChange={(e) => setAmount(e.target.value)} placeholder="0" size="lg"
             error={tried ? errors.amount : undefined}
-            hint={out ? 'Jitna cash golak se bahar gaya' : 'Jitna cash golak me aaya'} />
+            hint={out ? t('Jitna cash golak se bahar gaya') : t('Jitna cash golak me aaya')} />
           <PayoutWarning kind="cashOut" amount={value} registerId={drawer.id} enabled={out} />
 
           <div>
-            <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120}
-              placeholder={out ? 'Maslan: Malik ne liya' : 'Maslan: Khulle paise laye'}
-              error={tried ? errors.reason : undefined} hint="Ledger aur Cash register me yahi likha dikhega" />
+            <Input label={t('Wajah')} required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120}
+              placeholder={out ? t('Maslan: Malik ne liya') : t('Maslan: Khulle paise laye')}
+              error={tried ? errors.reason : undefined} hint={t('Ledger aur Cash register me yahi likha dikhega')} />
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {REASONS[kind].map((r) => (
                 <button key={r} type="button" onClick={() => setReason(r)}
@@ -125,8 +126,8 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
             </div>
           </div>
 
-          <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300}
-            placeholder="Marzi hai" hint="Bank slip number, kis ko diya, waghera" />
+          <Input label={t('Note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300}
+            placeholder={t('Marzi hai')} hint={t('Bank slip number, kis ko diya, waghera')} />
         </form>
       )}
     </Modal>

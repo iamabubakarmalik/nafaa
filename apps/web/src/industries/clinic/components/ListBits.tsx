@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { Button, EmptyState, Skeleton } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export function ListCard({ children }: { children: ReactNode }) {
   return <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">{children}</section>;
@@ -14,8 +15,8 @@ export function ListLoading({ rows = 6 }: { rows?: number }) {
 
 export function ListFailed({ onRetry }: { onRetry: () => void }) {
   return (
-    <EmptyState title="List nahi khuli" description="Internet ya server ka masla — dobara koshish karein."
-      action={<Button variant="secondary" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={onRetry}>Dobara</Button>} />
+    <EmptyState title={t('List nahi khuli')} description={t('Internet ya server ka masla — dobara koshish karein.')}
+      action={<Button variant="secondary" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={onRetry}>{t('Dobara')}</Button>} />
   );
 }
 
@@ -26,8 +27,8 @@ export function Pager({ page, total, limit, onPage }: { page: number; total: num
     <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-[0.8125rem] text-slate-600">
       <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} / {total}</span>
       <div className="flex gap-1.5">
-        <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} leftIcon={<ChevronLeft className="h-4 w-4" />}>Pichhla</Button>
-        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)} rightIcon={<ChevronRight className="h-4 w-4" />}>Agla</Button>
+        <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} leftIcon={<ChevronLeft className="h-4 w-4 rtl-flip" />}>{t('Pichhla')}</Button>
+        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)} rightIcon={<ChevronRight className="h-4 w-4 rtl-flip" />}>{t('Agla')}</Button>
       </div>
     </div>
   );

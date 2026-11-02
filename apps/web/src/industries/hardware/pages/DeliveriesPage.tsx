@@ -25,15 +25,16 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { deliveriesApi, type Delivery, type DeliveryQuery, type DeliveryTab } from '../api/deliveries.api';
 import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { CHALLAN_STATUS, OPEN_CHALLAN, qty, shortDate, vehicleLabel } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const LIMIT = 25;
 const TABS: Array<{ id: DeliveryTab; label: string; icon: typeof ListChecks }> = [
-  { id: 'all', label: 'Sab', icon: ListChecks },
-  { id: 'open', label: 'Bhejna / raste me', icon: Truck },
-  { id: 'today', label: 'Aaj aur late', icon: Clock },
-  { id: 'partial', label: 'Kuch pohancha', icon: PackageCheck },
-  { id: 'delivered', label: 'Pohanch gaya', icon: CheckCircle2 },
-  { id: 'cancelled', label: 'Cancel', icon: Ban },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
+  { id: 'open', label: tr('Bhejna / raste me'), icon: Truck },
+  { id: 'today', label: tr('Aaj aur late'), icon: Clock },
+  { id: 'partial', label: tr('Kuch pohancha'), icon: PackageCheck },
+  { id: 'delivered', label: tr('Pohanch gaya'), icon: CheckCircle2 },
+  { id: 'cancelled', label: tr('Cancel'), icon: Ban },
 ];
 
 async function fetchAll(q: DeliveryQuery) {
@@ -76,20 +77,20 @@ export default function DeliveriesPage() {
   const go = (t: DeliveryTab) => { setTab(t); setPage(1); };
   usePageKeys(searchRef, { n: () => navigate('/hardware/deliveries/new') });
 
-  const label = range ? rangeLabel(range.from, range.to) : 'Sab waqt';
+  const label = range ? rangeLabel(range.from, range.to) : tr('Sab waqt');
   const exportCsv = async () => {
     setExporting(true);
     try {
       const rows = await fetchAll(query);
-      if (!rows.length) { toast.error('Is filter me koi challan nahi'); return; }
+      if (!rows.length) { toast.error(tr('Is filter me koi challan nahi')); return; }
       downloadCsv('challan.csv', [
-        ['Challan', 'Tareekh', 'Bill', 'Customer', 'Phone', 'Pata', 'Maal', 'Gaari', 'Driver', 'Bhejne ki tareekh', 'Kiraya', 'Status'],
+        [tr('Challan'), tr('Tareekh'), tr('Bill'), tr('Customer'), tr('Phone'), tr('Pata'), tr('Maal'), tr('Gaari'), tr('Driver'), tr('Bhejne ki tareekh'), tr('Kiraya'), tr('Status')],
         ...rows.map((r) => [r.deliveryNumber, r.createdAt.slice(0, 10), r.saleNumber, r.customerName, r.customerPhone, r.deliveryAddress,
           r.items.map((i) => `${i.itemName} x${qty(i.orderedQty)}`).join('; '), [vehicleLabel(r.vehicleType), r.vehicleNumber].filter(Boolean).join(' '),
           r.driverName, r.scheduledDate?.slice(0, 10), r.totalCharges, CHALLAN_STATUS[r.status].label]),
       ]);
-      toast.success(`${rows.length} challan CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} challan CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await fetchAll(query);
@@ -110,53 +111,53 @@ export default function DeliveriesPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Challan — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Challan — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Receipt, color: '#2563eb', title: 'Bill se challan', text: 'Bill banne ke baad "Challan banayein" — sirf wahi maal aata hai jo abhi bhejna baqi hai. Aadha aaj, baqi kal alag challan par.' },
-            { icon: Truck, color: '#7c3aed', title: 'Gaari aur driver', text: 'Gaari, number aur driver likhein, print kar ke driver ko dein. "Nikal gaya" dabayein.' },
-            { icon: PackageCheck, color: '#16a34a', title: 'Pohanch gaya', text: 'Site par jitna utra wo likhein. Kam utra to baqi maal bill par dobara bhejne ke liye aa jata hai.' },
-            { icon: Ban, color: '#e11d48', title: 'Stock aur paisa', text: 'Challan stock ya paisa nahi badalta — wo bill ne kar diya. Maal wapas aaye to Sales se Return karein.' },
+            { icon: Receipt, color: '#2563eb', title: tr('Bill se challan'), text: tr('Bill banne ke baad "Challan banayein" — sirf wahi maal aata hai jo abhi bhejna baqi hai. Aadha aaj, baqi kal alag challan par.') },
+            { icon: Truck, color: '#7c3aed', title: tr('Gaari aur driver'), text: tr('Gaari, number aur driver likhein, print kar ke driver ko dein. "Nikal gaya" dabayein.') },
+            { icon: PackageCheck, color: '#16a34a', title: tr('Pohanch gaya'), text: tr('Site par jitna utra wo likhein. Kam utra to baqi maal bill par dobara bhejne ke liye aa jata hai.') },
+            { icon: Ban, color: '#e11d48', title: tr('Stock aur paisa'), text: tr('Challan stock ya paisa nahi badalta — wo bill ne kar diya. Maal wapas aaye to Sales se Return karein.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya challan'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya challan')], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Delivery challan" chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
-        meta="Site par maal — bill se challan, aadhi aur poori delivery"
+      <PageHero title={tr('Delivery challan')} chip={<><CalendarRange />{label}</>} busy={isFetching && !isLoading} loading={isLoading || !c}
+        meta={tr('Site par maal — bill se challan, aadhi aur poori delivery')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/hardware/deliveries/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya challan</Link>
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/hardware/deliveries/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya challan')}</Link>
         </>}
         stats={[
-          { label: 'Bhejna / raste me', value: String(c?.open ?? 0) },
-          { label: 'Aaj aur late', value: String(c?.today ?? 0) },
-          { label: 'Kiraya / mazdoori', value: money(data?.charges ?? 0) },
+          { label: tr('Bhejna / raste me'), value: String(c?.open ?? 0) },
+          { label: tr('Aaj aur late'), value: String(c?.today ?? 0) },
+          { label: tr('Kiraya / mazdoori'), value: money(data?.charges ?? 0) },
         ]} />
 
       <KpiRow cols={4}>
         {!c ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Clock} color="#d97706" label="Aaj aur late" value={c.today} hint="Gaari tayyar karein" onClick={() => go('today')} active={tab === 'today'} />
-            <KpiCard icon={Truck} color="#7c3aed" label="Bhejna / raste me" value={c.open} onClick={() => go('open')} active={tab === 'open'} />
-            <KpiCard icon={PackageCheck} color="#ea580c" label="Kuch pohancha" value={c.partial} hint="Baqi maal bhejna hai" onClick={() => go('partial')} active={tab === 'partial'} />
-            <KpiCard icon={CheckCircle2} color="#16a34a" label="Pohanch gaya" value={c.delivered} onClick={() => go('delivered')} active={tab === 'delivered'} />
+            <KpiCard icon={Clock} color="#d97706" label={tr('Aaj aur late')} value={c.today} hint={tr('Gaari tayyar karein')} onClick={() => go('today')} active={tab === 'today'} />
+            <KpiCard icon={Truck} color="#7c3aed" label={tr('Bhejna / raste me')} value={c.open} onClick={() => go('open')} active={tab === 'open'} />
+            <KpiCard icon={PackageCheck} color="#ea580c" label={tr('Kuch pohancha')} value={c.partial} hint={tr('Baqi maal bhejna hai')} onClick={() => go('partial')} active={tab === 'partial'} />
+            <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Pohanch gaya')} value={c.delivered} onClick={() => go('delivered')} active={tab === 'delivered'} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Challan number, customer, pata, gaari, driver ya item…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Challan number, customer, pata, gaari, driver ya item…')} />}
         chips={search.trim() || saleId || projectId ? <>
-          {saleId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>Ek bill</FilterChip>}
-          {projectId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>Ek site</FilterChip>}
+          {saleId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>{tr('Ek bill')}</FilterChip>}
+          {projectId && <FilterChip onRemove={() => navigate('/hardware/deliveries')}>{tr('Ek site')}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); if (saleId || projectId) navigate('/hardware/deliveries'); }}>
-        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label="Date" />
+        <DateRangeMenu value={period} onChange={(v) => { setPeriod(v); setPage(1); }} startHour={startHour} label={tr('Date')} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={go} hint={<>Challan par click kar ke kholein</>}
+      <ViewTabs value={tab} onChange={go} hint={<>{tr('Challan par click kar ke kholein')}</>}
         tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: c ? c[t.id] : null }))} />
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -165,9 +166,9 @@ export default function DeliveriesPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Truck className="h-7 w-7" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? 'Is filter me koi challan nahi' : 'Abhi koi challan nahi'}</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">Bill ke baad site par maal bhejna ho to challan banayein.</p>
-            <Link to="/hardware/deliveries/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya challan</Link>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'all' ? tr('Is filter me koi challan nahi') : tr('Abhi koi challan nahi')}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Bill ke baad site par maal bhejna ho to challan banayein.')}</p>
+            <Link to="/hardware/deliveries/new" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya challan')}</Link>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
@@ -178,7 +179,7 @@ export default function DeliveriesPage() {
                   <Link to={`/hardware/deliveries/${r.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[9rem_minmax(0,1.2fr)_minmax(0,1.5fr)_minmax(0,1fr)_9rem] lg:items-center">
                     <div>
                       <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.deliveryNumber}</p>
-                      <p className="text-[0.75rem] text-slate-500">{r.saleNumber ? `Bill ${r.saleNumber}` : 'Bill ke bagair'}</p>
+                      <p className="text-[0.75rem] text-slate-500">{r.saleNumber ? tr('Bill {{saleNumber}}', { saleNumber: r.saleNumber }) : tr('Bill ke bagair')}</p>
                     </div>
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-900">{r.customerName}</p>
@@ -187,7 +188,7 @@ export default function DeliveriesPage() {
                     <p className="min-w-0 truncate text-[0.8125rem] text-slate-600">{r.items.map((i) => `${i.itemName} ×${qty(i.orderedQty)}`).join(', ')}</p>
                     <div className="min-w-0 text-[0.8125rem]">
                       <p className="truncate text-slate-700">{[vehicleLabel(r.vehicleType), r.vehicleNumber].filter(Boolean).join(' · ')}</p>
-                      <p className={cn('truncate text-[0.75rem]', late(r) ? 'font-semibold text-rose-600' : 'text-slate-500')}>{r.scheduledDate ? `${late(r) ? 'Late · ' : ''}${shortDate(r.scheduledDate)}${r.scheduledTime ? ` ${r.scheduledTime}` : ''}` : 'Tareekh tay nahi'}</p>
+                      <p className={cn('truncate text-[0.75rem]', late(r) ? 'font-semibold text-rose-600' : 'text-slate-500')}>{r.scheduledDate ? `${late(r) ? 'Late · ' : ''}${shortDate(r.scheduledDate)}${r.scheduledTime ? ` ${r.scheduledTime}` : ''}` : tr('Tareekh tay nahi')}</p>
                     </div>
                     <span className={cn('w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 lg:justify-self-end', st.tone)}>{st.label}</span>
                   </Link>
@@ -200,8 +201,8 @@ export default function DeliveriesPage() {
           <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
             <span>{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, data.total)} / {data.total}</span>
             <div className="flex gap-2">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
-              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Pichla')}</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Agla')}</button>
             </div>
           </footer>
         )}

@@ -9,6 +9,7 @@ import { Plus, Redo2, Replace, Trash2, Undo2, Wand2 } from 'lucide-react';
 import { Button, Checkbox, Input, Modal, Select } from '@/design-system/components';
 import type { GridColumn } from './SheetGrid';
 import type { CellPatch, GridRow } from './useSheetRows';
+import { t } from '@core/i18n';
 
 interface Props {
   columns: GridColumn[];
@@ -39,14 +40,14 @@ export function SheetTools({ columns, rows, selected, onEdit, canUndo, canRedo, 
   const [whole, setWhole] = useState(false);
 
   const targets = selected.size ? rows.filter((r) => selected.has(r.id)) : rows;
-  const targetText = selected.size ? `${selected.size} chuni hui lines` : `sab ${rows.length} lines`;
+  const targetText = selected.size ? t('{{size}} chuni hui lines', { size: selected.size }) : t('sab {{count}} lines', { count: rows.length });
 
   const applySet = () => {
     const col = columns.find((c) => c.key === setKey);
     if (!col) return;
     const patches = targets.filter((r) => !col.lock?.(r.id)).map((r) => ({ id: r.id, key: col.key, value: setValue.trim() }));
     onEdit(patches);
-    toast.success(`${patches.length} lines me ${col.label} = "${setValue.trim() || 'khaali'}"`);
+    toast.success(t('{{count}} lines me {{label}} = "{{value}}"', { count: patches.length, label: col.label, value: setValue.trim() || 'khaali' }));
     setSetOpen(false);
   };
 
@@ -64,52 +65,52 @@ export function SheetTools({ columns, rows, selected, onEdit, canUndo, canRedo, 
         if (next !== v) patches.push({ id: r.id, key: c.key, value: next });
       }
     }
-    if (!patches.length) { toast.info(`"${find}" kahin nahi mila`); return; }
+    if (!patches.length) { toast.info(t('"{{find}}" kahin nahi mila', { find })); return; }
     onEdit(patches);
-    toast.success(`${patches.length} cells badle — Ctrl+Z se wapas`);
+    toast.success(t('{{count}} cells badle — Ctrl+Z se wapas', { count: patches.length }));
     setFindOpen(false);
   };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-4 w-4" />} disabled={!canUndo} onClick={onUndo} title="Wapas (Ctrl+Z)">Wapas</Button>
-      <Button size="sm" variant="secondary" leftIcon={<Redo2 className="h-4 w-4" />} disabled={!canRedo} onClick={onRedo} title="Dobara (Ctrl+Y)">Dobara</Button>
+      <Button size="sm" variant="secondary" leftIcon={<Undo2 className="h-4 w-4" />} disabled={!canUndo} onClick={onUndo} title={t('Wapas (Ctrl+Z)')}>{t('Wapas')}</Button>
+      <Button size="sm" variant="secondary" leftIcon={<Redo2 className="h-4 w-4" />} disabled={!canRedo} onClick={onRedo} title={t('Dobara (Ctrl+Y)')}>{t('Dobara')}</Button>
       <span className="mx-1 h-5 w-px bg-slate-200" aria-hidden />
       <Button size="sm" variant="secondary" leftIcon={<Wand2 className="h-4 w-4" />} onClick={() => { setSetKey(editable[0]?.key ?? ''); setSetOpen(true); }}>
-        Column ek saath {selected.size ? `(${selected.size})` : ''}
+        {t('Column ek saath {{value}}', { value: selected.size ? `(${selected.size})` : '' })}
       </Button>
-      <Button size="sm" variant="secondary" leftIcon={<Replace className="h-4 w-4" />} onClick={() => setFindOpen(true)}>Dhoondein / badlein</Button>
-      {onAddRow && <Button size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={onAddRow}>Line jodein</Button>}
+      <Button size="sm" variant="secondary" leftIcon={<Replace className="h-4 w-4" />} onClick={() => setFindOpen(true)}>{t('Dhoondein / badlein')}</Button>
+      {onAddRow && <Button size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={onAddRow}>{t('Line jodein')}</Button>}
       {onDelete && selected.size > 0 && (
-        <Button size="sm" variant="secondary" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>{selected.size} lines hatayein</Button>
+        <Button size="sm" variant="secondary" leftIcon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>{t('{{size}} lines hatayein', { size: selected.size })}</Button>
       )}
       {extra}
 
-      <Modal open={setOpen} onClose={() => setSetOpen(false)} title="Ek column ek saath badlein" description={`Ye value ${targetText} me lagegi.`}
+      <Modal open={setOpen} onClose={() => setSetOpen(false)} title={t('Ek column ek saath badlein')} description={t('Ye value {{targetText}} me lagegi.', { targetText })}
         footer={<>
-          <Button variant="secondary" onClick={() => setSetOpen(false)}>Wapas</Button>
-          <Button onClick={applySet} disabled={!setKey}>Lagayein</Button>
+          <Button variant="secondary" onClick={() => setSetOpen(false)}>{t('Wapas')}</Button>
+          <Button onClick={applySet} disabled={!setKey}>{t('Lagayein')}</Button>
         </>}>
         <div className="space-y-3">
-          <Select label="Column" value={setKey} onChange={(e) => setSetKey(e.target.value)} options={editable.map((c) => ({ value: c.key, label: c.label }))} />
-          <Input label="Nayi value" value={setValue} onChange={(e) => setSetValue(e.target.value)} placeholder="jaise Rice, kg, 0"
+          <Select label={t('Column')} value={setKey} onChange={(e) => setSetKey(e.target.value)} options={editable.map((c) => ({ value: c.key, label: c.label }))} />
+          <Input label={t('Nayi value')} value={setValue} onChange={(e) => setSetValue(e.target.value)} placeholder={t('jaise Rice, kg, 0')}
             list={columns.find((c) => c.key === setKey)?.options?.length ? `sheet-opts-${setKey}` : undefined}
             onKeyDown={(e) => { if (e.key === 'Enter') applySet(); }}
-            hint="Khaali chhorein to cell khaali ho jayega" />
+            hint={t('Khaali chhorein to cell khaali ho jayega')} />
         </div>
       </Modal>
 
-      <Modal open={findOpen} onClose={() => setFindOpen(false)} title="Dhoondein aur badlein" description={`${targetText} me dhoondta hai.`}
+      <Modal open={findOpen} onClose={() => setFindOpen(false)} title={t('Dhoondein aur badlein')} description={t('{{targetText}} me dhoondta hai.', { targetText })}
         footer={<>
-          <Button variant="secondary" onClick={() => setFindOpen(false)}>Wapas</Button>
-          <Button onClick={applyReplace} disabled={!find}>Sab badlein</Button>
+          <Button variant="secondary" onClick={() => setFindOpen(false)}>{t('Wapas')}</Button>
+          <Button onClick={applyReplace} disabled={!find}>{t('Sab badlein')}</Button>
         </>}>
         <div className="space-y-3">
-          <Input label="Dhoondein" value={find} onChange={(e) => setFind(e.target.value)} placeholder="jaise Pcs" />
-          <Input label="Is se badlein" value={replace} onChange={(e) => setReplace(e.target.value)} placeholder="jaise pcs" onKeyDown={(e) => { if (e.key === 'Enter') applyReplace(); }} />
-          <Select label="Kis column me" value={findKey} onChange={(e) => setFindKey(e.target.value)}
-            options={[{ value: 'all', label: 'Sab columns' }, ...editable.map((c) => ({ value: c.key, label: c.label }))]} />
-          <Checkbox label="Sirf poora cell milaayein" checked={whole} onChange={(e) => setWhole(e.target.checked)} />
+          <Input label={t('Dhoondein')} value={find} onChange={(e) => setFind(e.target.value)} placeholder={t('jaise Pcs')} />
+          <Input label={t('Is se badlein')} value={replace} onChange={(e) => setReplace(e.target.value)} placeholder={t('jaise pcs')} onKeyDown={(e) => { if (e.key === 'Enter') applyReplace(); }} />
+          <Select label={t('Kis column me')} value={findKey} onChange={(e) => setFindKey(e.target.value)}
+            options={[{ value: 'all', label: t('Sab columns') }, ...editable.map((c) => ({ value: c.key, label: c.label }))]} />
+          <Checkbox label={t('Sirf poora cell milaayein')} checked={whole} onChange={(e) => setWhole(e.target.checked)} />
         </div>
       </Modal>
     </div>

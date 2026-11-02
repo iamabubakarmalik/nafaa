@@ -12,14 +12,15 @@ import { cn } from '@core/lib/cn';
 import { pnlApi, type PnlDetailKind, type PnlQuery } from '../api';
 import { downloadCsv } from '../print';
 import type { Fmt } from './parts';
+import { t } from '@core/i18n';
 
 const PAGE: Record<PnlDetailKind, { to: string; label: string }> = {
-  expense: { to: '/expenses', label: 'Kharchay page' },
-  staff: { to: '/staff', label: 'Staff page' },
-  writeoff: { to: '/stock-adjustments', label: 'Stock adjustments' },
-  booking: { to: '/bookings', label: 'Bookings' },
-  income: { to: '/income', label: 'Doosri aamdani' },
-  credit: { to: '/khata', label: 'Khata' },
+  expense: { to: '/expenses', label: t('Kharchay page') },
+  staff: { to: '/staff', label: t('Staff page') },
+  writeoff: { to: '/stock-adjustments', label: t('Stock adjustments') },
+  booking: { to: '/bookings', label: t('Bookings') },
+  income: { to: '/income', label: t('Doosri aamdani') },
+  credit: { to: '/khata', label: t('Khata') },
 };
 
 export function DetailModal({ query, kind, categoryId, title, period, fmt, onClose }: {
@@ -37,8 +38,8 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
   const page = PAGE[kind];
   const day = (v: string) => new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  const csv = () => d && downloadCsv(`pnl-${kind}`, [title, period], [
-    ['Date', 'Details', 'Type', 'Ref', 'Branch', 'Note', 'Amount'],
+  const csv = () => d && downloadCsv(`pnl-${kind}`, [title, period], [ // i18n-ignore
+    [t('Date'), t('Details'), t('Type'), t('Ref'), t('Branch'), t('Note'), t('Amount')],
     ...d.rows.map((r) => [day(r.at), r.title, r.kind ?? '', r.ref ?? '', r.branch ?? '', r.note ?? '', r.amount.toFixed(2)]),
   ]);
 
@@ -47,15 +48,15 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
       footer={
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <Link to={page.to} className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">{page.label} <ExternalLink className="h-3.5 w-3.5" /></Link>
-          <button type="button" onClick={csv} disabled={!d?.rows.length} className="rounded-lg px-3 py-1.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50">CSV</button>
+          <button type="button" onClick={csv} disabled={!d?.rows.length} className="rounded-lg px-3 py-1.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 disabled:opacity-50">{t('CSV')}</button>
         </div>
       }>
       {q.isLoading ? (
         <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
       ) : q.isError ? (
-        <p className="py-10 text-center text-[0.875rem] text-rose-600">Record nahi aa sake</p>
+        <p className="py-10 text-center text-[0.875rem] text-rose-600">{t('Record nahi aa sake')}</p>
       ) : !d?.rows.length ? (
-        <p className="py-10 text-center text-[0.875rem] text-slate-500">Is period me koi record nahi</p>
+        <p className="py-10 text-center text-[0.875rem] text-slate-500">{t('Is period me koi record nahi')}</p>
       ) : (
         <>
           <ul className="divide-y divide-slate-100">
@@ -70,7 +71,7 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
                     {r.note && <p className="truncate text-[0.75rem] text-slate-400">{r.note}</p>}
                   </div>
                   <span className={cn('shrink-0 font-semibold tabular-nums', r.amount < 0 ? 'text-emerald-700' : 'text-slate-900')}>{money(r.amount)}</span>
-                  {r.link && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />}
+                  {r.link && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 rtl-flip" />}
                 </>
               );
               return (
@@ -82,7 +83,7 @@ export function DetailModal({ query, kind, categoryId, title, period, fmt, onClo
               );
             })}
           </ul>
-          {d.truncated && <p className="mt-2 text-[0.75rem] text-slate-500">Sirf naye {d.count} record dikh rahe hain — baqi ke liye period chhoti karein</p>}
+          {d.truncated && <p className="mt-2 text-[0.75rem] text-slate-500">{t('Sirf naye {{count}} record dikh rahe hain — baqi ke liye period chhoti karein', { count: d.count })}</p>}
         </>
       )}
     </Modal>

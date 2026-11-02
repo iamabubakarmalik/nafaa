@@ -6,6 +6,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { SalesService } from '../../../modules/sales/sales/sales.service';
 import { recordKhataPayment } from '../../_shared/industry-sale.helper';
 import { dayRange, ensureKhataCustomer, parseDay, resolveShopId, shopYear } from '../agri-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = ['DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'CANCELLED'];
 
@@ -41,7 +42,7 @@ export class BulkOrdersService {
     if (dto.farmerId) {
       const farmer = await this.prisma.agriFarmer.findFirst({ where: { id: dto.farmerId, tenantId: user.tenantId }, select: { customerId: true, status: true, fullName: true } });
       if (!farmer) throw new NotFoundException('Farmer nahi mila');
-      if (farmer.status === 'SUSPENDED' && dto.isCredit) throw new BadRequestException(`${farmer.fullName} ka udhaar roka hua hai — cash order banayein`);
+      if (farmer.status === 'SUSPENDED' && dto.isCredit) throw new BadRequestException(apiMessage('{{fullName}} ka udhaar roka hua hai — cash order banayein', { fullName: farmer.fullName }));
       customerId = customerId ?? farmer.customerId ?? undefined;
     }
     if (customerId) {
@@ -60,10 +61,10 @@ export class BulkOrdersService {
       const qty = Number(it.quantity);
       const price = Number(it.pricePerUnit);
       const discount = Number(it.discount) || 0;
-      if (!name) throw new BadRequestException(`Line ${idx + 1}: cheez ka naam likhein`);
-      if (!(qty > 0)) throw new BadRequestException(`${name}: quantity 0 se zyada likhein`);
-      if (!(price >= 0) || !Number.isFinite(price)) throw new BadRequestException(`${name}: rate sahi likhein`);
-      if (discount < 0 || discount > qty * price) throw new BadRequestException(`${name}: discount line ki amount se zyada nahi ho sakta`);
+      if (!name) throw new BadRequestException(apiMessage('Line {{idx}}: cheez ka naam likhein', { idx: idx + 1 }));
+      if (!(qty > 0)) throw new BadRequestException(apiMessage('{{name}}: quantity 0 se zyada likhein', { name }));
+      if (!(price >= 0) || !Number.isFinite(price)) throw new BadRequestException(apiMessage('{{name}}: rate sahi likhein', { name }));
+      if (discount < 0 || discount > qty * price) throw new BadRequestException(apiMessage('{{name}}: discount line ki amount se zyada nahi ho sakta', { name }));
       const total = r2(qty * price - discount);
       subtotal += total;
       return {
@@ -84,7 +85,7 @@ export class BulkOrdersService {
 
     const money = (v: unknown, label: string) => {
       const n = Number(v) || 0;
-      if (n < 0) throw new BadRequestException(`${label} manfi nahi ho sakta`);
+      if (n < 0) throw new BadRequestException(apiMessage('{{label}} manfi nahi ho sakta', { label }));
       return r2(n);
     };
     const bulkDiscount = money(dto.bulkDiscount, 'Discount');
@@ -234,10 +235,10 @@ export class BulkOrdersService {
     if (o.status === status) return o;
     const billed = await this.billFor(user.tenantId, o.orderNumber);
     if (billed && (status === 'CANCELLED' || status === 'RETURNED')) {
-      throw new BadRequestException(`Is order ka bill ${billed.saleNumber} ban chuka hai — maal wapas lene ke liye us bill par Return karein`);
+      throw new BadRequestException(apiMessage('Is order ka bill {{saleNumber}} ban chuka hai — maal wapas lene ke liye us bill par Return karein', { saleNumber: billed.saleNumber }));
     }
     if (o.status === 'CANCELLED') throw new BadRequestException('Cancel order dobara nahi khulta — naya order banayein');
-    if (billed && status !== 'DELIVERED') throw new BadRequestException(`Order pahunch chuka aur bill ${billed.saleNumber} ban gaya — ab status nahi badalta`);
+    if (billed && status !== 'DELIVERED') throw new BadRequestException(apiMessage('Order pahunch chuka aur bill {{saleNumber}} ban gaya — ab status nahi badalta', { saleNumber: billed.saleNumber }));
     if (status === 'CANCELLED' && !String(cancellationReason ?? '').trim()) throw new BadRequestException('Cancel ki wajah likhein');
 
     if (status === 'DELIVERED' && !billed) await this.bill(user, scope, o);
@@ -300,7 +301,7 @@ export class BulkOrdersService {
     amount = r2(amount);
     if (!(amount > 0)) throw new BadRequestException('Amount sahi likhein');
     const remaining = r2(o.total - o.paidAmount);
-    if (amount > remaining + 0.01) throw new BadRequestException(`Is order par sirf Rs ${remaining} baqi hain`);
+    if (amount > remaining + 0.01) throw new BadRequestException(apiMessage('Is order par sirf Rs {{remaining}} baqi hain', { remaining }));
 
     return this.prisma.$transaction(async (tx) => {
       const claimed = await tx.agriBulkOrder.updateMany({

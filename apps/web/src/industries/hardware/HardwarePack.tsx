@@ -17,6 +17,7 @@ import HardwareReorderRulesPage from './pages/ReorderRulesPage';
 import HardwareProducts from './products/HardwareProducts';
 import HardwareProductEditor from './products/HardwareProductEditor';
 import HardwareProductDetail from './products/HardwareProductDetail';
+import { t } from '@core/i18n';
 
 /**
  * Hardware / sanitary / paint / building material store: sized items with
@@ -27,11 +28,11 @@ import HardwareProductDetail from './products/HardwareProductDetail';
 export const HardwarePack: IndustryPack = {
   id: 'hardware',
   name: 'Hardware / Building Materials',
-  shortName: 'Hardware',
+  shortName: t('Hardware'),
   emoji: '🔨',
   priority: 48,
   description:
-    'Sizes and shades, retail, contractor and bulk rates, quotations to bills, delivery challans, contractor sites and khata, reorder alerts.',
+    t('Sizes and shades, retail, contractor and bulk rates, quotations to bills, delivery challans, contractor sites and khata, reorder alerts.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -51,21 +52,21 @@ export const HardwarePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Hardware',
+      label: t('Hardware'),
       icon: HardHat,
       emoji: '🔨',
       color: '#a16207',
       order: 20,
       items: [
-        { to: '/hardware/dashboard', label: 'Hardware dashboard', icon: LayoutDashboard },
-        { to: '/hardware/quotations/new', label: 'New quotation', icon: FilePlus, permission: PERMISSIONS.POS_USE },
-        { to: '/hardware/quotations', label: 'Quotations', icon: FileText, permission: PERMISSIONS.SALES_VIEW },
-        { to: '/hardware/deliveries', label: 'Delivery challan', icon: Truck, permission: PERMISSIONS.SALES_VIEW },
-        { to: '/hardware/credit-accounts', label: 'Contractor credit', icon: HardHat, permission: PERMISSIONS.KHATA_VIEW },
-        { to: '/hardware/projects', label: 'Sites / projects', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/hardware/products', label: 'Items', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/hardware/reorder-rules', label: 'Reorder', icon: RefreshCw, permission: PERMISSIONS.LOW_STOCK_VIEW },
-        { to: '/hardware/brands', label: 'Brands', icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
+        { to: '/hardware/dashboard', label: t('Hardware dashboard'), icon: LayoutDashboard },
+        { to: '/hardware/quotations/new', label: t('New quotation'), icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/hardware/quotations', label: t('Quotations'), icon: FileText, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/hardware/deliveries', label: t('Delivery challan'), icon: Truck, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/hardware/credit-accounts', label: t('Contractor credit'), icon: HardHat, permission: PERMISSIONS.KHATA_VIEW },
+        { to: '/hardware/projects', label: t('Sites / projects'), icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/hardware/products', label: t('Items'), icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/hardware/reorder-rules', label: t('Reorder'), icon: RefreshCw, permission: PERMISSIONS.LOW_STOCK_VIEW },
+        { to: '/hardware/brands', label: t('Brands'), icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
       ],
     },
   ],
@@ -97,30 +98,30 @@ export const HardwarePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'bag', label: 'Bag (cement)', hint: '🛍️', group: 'Bulk' },
-      { value: 'ton', label: 'Ton (steel/sand)', hint: '⚖️', group: 'Bulk' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Weight' },
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'bundle', label: 'Bundle', hint: '📦', group: 'Count' },
-      { value: 'meter', label: 'Meter', hint: '📏', group: 'Length' },
-      { value: 'feet', label: 'Feet', hint: '📏', group: 'Length' },
-      { value: 'sqft', label: 'Sq Feet (tiles)', hint: '📐', group: 'Area' },
-      { value: 'sqm', label: 'Sq Meter', hint: '📐', group: 'Area' },
-      { value: 'cft', label: 'Cubic Feet (sand/gravel)', hint: '📦', group: 'Volume' },
-      { value: 'liter', label: 'Liter (paint)', hint: '🥛', group: 'Volume' },
-      { value: 'gallon', label: 'Gallon (paint)', hint: '🪣', group: 'Volume' },
-      { value: 'sheet', label: 'Sheet', hint: '📄', group: 'Count' },
-      { value: 'box', label: 'Box (tiles)', hint: '📦', group: 'Count' },
-      { value: 'roll', label: 'Roll (wire)', hint: '🧵', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🧰', group: 'Count' },
+      { value: 'bag', label: t('Bag (cement)'), hint: '🛍️', group: t('Bulk') },
+      { value: 'ton', label: t('Ton (steel/sand)'), hint: '⚖️', group: t('Bulk') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Weight') },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'bundle', label: t('Bundle'), hint: '📦', group: t('Count') },
+      { value: 'meter', label: t('Meter'), hint: '📏', group: t('Length') },
+      { value: 'feet', label: t('Feet'), hint: '📏', group: t('Length') },
+      { value: 'sqft', label: t('Sq Feet (tiles)'), hint: '📐', group: t('Area') },
+      { value: 'sqm', label: t('Sq Meter'), hint: '📐', group: t('Area') },
+      { value: 'cft', label: t('Cubic Feet (sand/gravel)'), hint: '📦', group: t('Volume') },
+      { value: 'liter', label: t('Liter (paint)'), hint: '🥛', group: t('Volume') },
+      { value: 'gallon', label: t('Gallon (paint)'), hint: '🪣', group: t('Volume') },
+      { value: 'sheet', label: t('Sheet'), hint: '📄', group: t('Count') },
+      { value: 'box', label: t('Box (tiles)'), hint: '📦', group: t('Count') },
+      { value: 'roll', label: t('Roll (wire)'), hint: '🧵', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🧰', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'hardwareBulkPricing', label: 'Bulk Pricing Tiers', defaultEnabled: true },
-    { key: 'hardwareProjects', label: 'Project Tracking', defaultEnabled: true },
-    { key: 'hardwareQuotations', label: 'Quotations', defaultEnabled: true },
-    { key: 'hardwareDeliveries', label: 'Delivery Dispatch', defaultEnabled: true },
-    { key: 'hardwareCredit', label: 'Credit Khata', defaultEnabled: true },
+    { key: 'hardwareBulkPricing', label: t('Bulk Pricing Tiers'), defaultEnabled: true },
+    { key: 'hardwareProjects', label: t('Project Tracking'), defaultEnabled: true },
+    { key: 'hardwareQuotations', label: t('Quotations'), defaultEnabled: true },
+    { key: 'hardwareDeliveries', label: t('Delivery Dispatch'), defaultEnabled: true },
+    { key: 'hardwareCredit', label: t('Credit Khata'), defaultEnabled: true },
   ],
 };

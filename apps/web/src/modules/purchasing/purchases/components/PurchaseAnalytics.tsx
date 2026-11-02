@@ -17,9 +17,10 @@ import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { purchasesApi, type PurchaseAnalytics as Data } from '../api/purchases.api';
+import { t as tr } from '@core/i18n';
 
 const PALETTE = ['#0f766e', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#64748b', '#9333ea'];
-const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const DAYS = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 const q = (n: number) => Number(n.toFixed(2)).toLocaleString('en-PK');
 
 export function PurchaseAnalytics({ range, money }: { range: { from: string; to: string } | null; money: (n: number) => string }) {
@@ -38,19 +39,19 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Truck} label="Maal aaya" value={money(t.value)} sub={
+        <Kpi icon={Truck} label={tr('Maal aaya')} value={money(t.value)} sub={
           <span className={cn('inline-flex items-center gap-0.5', up ? 'text-rose-600' : 'text-emerald-600')}>
-            {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{Math.abs(t.growth).toFixed(0)}% pichli period se ({money(t.prevValue)})
+            {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}{tr('{{value}}% pichli period se ({{prevValue}})', { value: Math.abs(t.growth).toFixed(0), prevValue: money(t.prevValue) })}
           </span>} />
-        <Kpi icon={Wallet} label="Diye" value={money(t.paid)} sub={`Udhaar par ${money(t.credit)}`} tone={t.credit > 0 ? 'amber' : 'emerald'} />
-        <Kpi icon={ClipboardList} label="Bill" value={String(t.bills)} sub={`Ausat bill ${money(t.avgBill)}`} />
-        <Kpi icon={Boxes} label="Suppliers / cheezein" value={`${t.suppliers} / ${t.items}`} sub={t.returned > 0 ? `Wapas ${money(t.returned)}` : 'Koi return nahi'} />
+        <Kpi icon={Wallet} label={tr('Diye')} value={money(t.paid)} sub={tr('Udhaar par {{credit}}', { credit: money(t.credit) })} tone={t.credit > 0 ? 'amber' : 'emerald'} />
+        <Kpi icon={ClipboardList} label={tr('Bill')} value={String(t.bills)} sub={tr('Ausat bill {{avgBill}}', { avgBill: money(t.avgBill) })} />
+        <Kpi icon={Boxes} label={tr('Suppliers / cheezein')} value={`${t.suppliers} / ${t.items}`} sub={t.returned > 0 ? tr('Wapas {{returned}}', { returned: money(t.returned) }) : tr('Koi return nahi')} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Purchase ka rujhan</span>}
-          description={d.range.byMonth ? 'Mahine war' : 'Din war'}
-          actions={<Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'value', label: 'Maal' }, { value: 'paid', label: 'Diye' }, { value: 'bills', label: 'Bill' }]} />}>
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Purchase ka rujhan')}</span>}
+          description={d.range.byMonth ? tr('Mahine war') : tr('Din war')}
+          actions={<Segmented label={tr('Kya dikhayein')} value={metric} onChange={setMetric} items={[{ value: 'value', label: tr('Maal') }, { value: 'paid', label: tr('Diye') }, { value: 'bills', label: tr('Bill') }]} />}>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={d.trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -62,15 +63,15 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'bills' ? undefined : axisMoney} width={44} allowDecimals={false} />
-                <Tooltip formatter={(v) => [metric === 'bills' ? String(v) : formatPKR(Number(v)), metric === 'bills' ? 'Bill' : metric === 'paid' ? 'Diye' : 'Maal']} {...tip} />
+                <Tooltip formatter={(v) => [metric === 'bills' ? String(v) : formatPKR(Number(v)), metric === 'bills' ? tr('Bill') : metric === 'paid' ? tr('Diye') : tr('Maal')]} {...tip} />
                 <Area type="monotone" dataKey={metric} stroke={theme.primary} strokeWidth={2.25} fill="url(#pur-trend)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Payment kaise hui</span>}>
-          {!d.payments.length ? <Empty text="Koi payment nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />{tr('Payment kaise hui')}</span>}>
+          {!d.payments.length ? <Empty text={tr('Koi payment nahi')} /> : (
             <>
               <div className="h-[170px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -89,7 +90,7 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
                     <span className="tabular-nums text-slate-900">{money(p.value)}</span>
                   </li>
                 ))}
-                {t.credit > 0 && <li className="flex justify-between border-t border-slate-100 pt-1 text-amber-700"><span>Udhaar par</span><span className="tabular-nums">{money(t.credit)}</span></li>}
+                {t.credit > 0 && <li className="flex justify-between border-t border-slate-100 pt-1 text-amber-700"><span>{tr('Udhaar par')}</span><span className="tabular-nums">{money(t.credit)}</span></li>}
               </ul>
             </>
           )}
@@ -97,8 +98,8 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />Suppliers</span>} description="Kis se kitna maal aaya">
-          {!d.suppliers.length ? <Empty text="Koi purchase nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-brand-600" />{tr('Suppliers')}</span>} description={tr('Kis se kitna maal aaya')}>
+          {!d.suppliers.length ? <Empty text={tr('Koi purchase nahi')} /> : (
             <ul className="space-y-2.5">
               {d.suppliers.map((s, i) => (
                 <li key={s.id}>
@@ -110,7 +111,7 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                       <div className="h-full rounded-full" style={{ width: `${s.share}%`, background: PALETTE[i % PALETTE.length] }} />
                     </div>
-                    <p className="mt-0.5 text-[0.6875rem] text-slate-500">{s.bills} bill · diye {money(s.paid)}</p>
+                    <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{bills}} bill · diye {{paid}}', { bills: s.bills, paid: money(s.paid) })}</p>
                   </Link>
                 </li>
               ))}
@@ -118,15 +119,15 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Categories</span>} description="Paisa kis type ke maal par laga">
-          {!d.categories.length ? <Empty text="Koi purchase nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />{tr('Categories')}</span>} description={tr('Paisa kis type ke maal par laga')}>
+          {!d.categories.length ? <Empty text={tr('Koi purchase nahi')} /> : (
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.categories} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
                   <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={110} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Maal']} {...tip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Maal')]} {...tip} />
                   <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={16}>
                     {d.categories.map((c, i) => <Cell key={c.name} fill={c.color || PALETTE[i % PALETTE.length]} />)}
                   </Bar>
@@ -137,22 +138,22 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada khareeda maal</span>} description="Amount, quantity aur ausat cost (fi base unit)">
-        {!d.items.length ? <Empty text="Koi purchase nahi" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />{tr('Sab se zyada khareeda maal')}</span>} description={tr('Amount, quantity aur ausat cost (fi base unit)')}>
+        {!d.items.length ? <Empty text={tr('Koi purchase nahi')} /> : (
           <div className="overflow-x-auto">
             <Table minWidth="34rem" className="[&>table]:text-sm">
-              <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">Cheez</Th><Th className="px-0 py-2 text-right">Quantity</Th><Th className="px-0 py-2 text-right">Ausat cost</Th><Th className="px-0 py-2 text-right">Bill</Th><Th className="px-0 py-2 text-right">Amount</Th></Tr>
+              <THead className="text-start text-[0.75rem] uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">{tr('Cheez')}</Th><Th className="px-0 py-2 text-end">{tr('Quantity')}</Th><Th className="px-0 py-2 text-end">{tr('Ausat cost')}</Th><Th className="px-0 py-2 text-end">{tr('Bill')}</Th><Th className="px-0 py-2 text-end">{tr('Amount')}</Th></Tr>
               </THead>
               <TBody className="divide-y divide-slate-100">
                 {d.items.map((i, n) => (
                   <Tr key={`${i.name}${n}`}>
                     <Td className="px-0 py-2 text-slate-400">{n + 1}</Td>
-                    <Td className="px-0 py-2 font-medium text-slate-900">{i.name}{i.raw && <span className="ml-1.5 rounded bg-amber-100 px-1 text-[0.625rem] font-semibold text-amber-800">RAW</span>}</Td>
-                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{q(i.qty)} {i.unit}</Td>
-                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{money(i.avgCost)}</Td>
-                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{i.bills}</Td>
-                    <Td className="px-0 text-inherit py-2 text-right font-semibold tabular-nums">{money(i.value)}</Td>
+                    <Td className="px-0 py-2 font-medium text-slate-900">{i.name}{i.raw && <span className="ms-1.5 rounded bg-amber-100 px-1 text-[0.625rem] font-semibold text-amber-800">{tr('RAW')}</span>}</Td>
+                    <Td className="px-0 text-inherit py-2 text-end tabular-nums">{q(i.qty)} {i.unit}</Td>
+                    <Td className="px-0 text-inherit py-2 text-end tabular-nums">{money(i.avgCost)}</Td>
+                    <Td className="px-0 text-inherit py-2 text-end tabular-nums">{i.bills}</Td>
+                    <Td className="px-0 text-inherit py-2 text-end font-semibold tabular-nums">{money(i.value)}</Td>
                   </Tr>
                 ))}
               </TBody>
@@ -162,8 +163,8 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />Mehngi hoti cheezein</span>} description="Is period me cost kitni barhi">
-          {!d.costRises.length ? <Empty text="Kisi cheez ki cost nahi barhi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-rose-600" />{tr('Mehngi hoti cheezein')}</span>} description={tr('Is period me cost kitni barhi')}>
+          {!d.costRises.length ? <Empty text={tr('Kisi cheez ki cost nahi barhi')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.costRises.map((c) => (
                 <li key={c.name} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem]">
@@ -175,15 +176,15 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Boxes className="h-4 w-4 text-brand-600" />Kis unit me khareeda</span>} description="Pcs, carton, box, bori…">
-          {!d.units.length ? <Empty text="Koi purchase nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Boxes className="h-4 w-4 text-brand-600" />{tr('Kis unit me khareeda')}</span>} description={tr('Pcs, carton, box, bori…')}>
+          {!d.units.length ? <Empty text={tr('Koi purchase nahi')} /> : (
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.units} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="unit" tick={theme.axis} axisLine={false} tickLine={false} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p as { payload?: { lines?: number } }).payload?.lines ?? 0} lines`, 'Maal']} {...tip} />
+                  <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p as { payload?: { lines?: number } }).payload?.lines ?? 0} lines`, tr('Maal')]} {...tip} />
                   <Bar dataKey="value" fill={theme.primary} radius={[6, 6, 0, 0]} barSize={28} />
                 </BarChart>
               </ResponsiveContainer>
@@ -191,14 +192,14 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />Hafte ke din</span>} description="Kis din zyada maal aata hai">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarClock className="h-4 w-4 text-brand-600" />{tr('Hafte ke din')}</span>} description={tr('Kis din zyada maal aata hai')}>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.weekday.map((w) => ({ ...w, name: DAYS[w.day] }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => v.slice(0, 3)} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Maal']} {...tip} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Maal')]} {...tip} />
                 <Bar dataKey="value" fill={theme.highlight} radius={[6, 6, 0, 0]} barSize={22} />
               </BarChart>
             </ResponsiveContainer>
@@ -207,25 +208,25 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ClipboardList className="h-4 w-4 text-blue-600" />Khule orders</span>} description={`${d.openOrders.count} order · ${money(d.openOrders.value)} ka maal aana baqi${d.openOrders.late ? ` · ${d.openOrders.late} late` : ''}`}>
-          {!d.openOrders.list.length ? <Empty text="Koi khula order nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ClipboardList className="h-4 w-4 text-blue-600" />{tr('Khule orders')}</span>} description={tr('{{count}} order · {{value}} ka maal aana baqi{{value2}}', { count: d.openOrders.count, value: money(d.openOrders.value), value2: d.openOrders.late ? tr(' · {{late}} late', { late: d.openOrders.late }) : '' })}>
+          {!d.openOrders.list.length ? <Empty text={tr('Koi khula order nahi')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.openOrders.list.map((o) => (
                 <li key={o.id}>
                   <Link to={`/purchases/${o.id}`} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem] hover:opacity-80">
                     <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{o.supplier}</span><span className="text-[0.75rem] text-slate-500">{o.number}{o.expectedAt ? ` · ${new Date(o.expectedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}` : ''}</span></span>
-                    <span className="flex shrink-0 items-center gap-2">{o.late && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700">Late</span>}<span className="tabular-nums">{money(o.value)}</span></span>
+                    <span className="flex shrink-0 items-center gap-2">{o.late && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700">{tr('Late')}</span>}<span className="tabular-nums">{money(o.value)}</span></span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" />Return</span>} description="Supplier ko lautaya maal">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><RotateCcw className="h-4 w-4 text-amber-600" />{tr('Return')}</span>} description={tr('Supplier ko lautaya maal')}>
           <div className="flex items-end gap-6 py-4">
-            <div><p className="text-3xl font-bold tabular-nums text-slate-900">{d.returns.count}</p><p className="text-[0.75rem] text-slate-500">return</p></div>
-            <div><p className="text-3xl font-bold tabular-nums text-amber-700">{money(d.returns.total)}</p><p className="text-[0.75rem] text-slate-500">amount (khate se kam hui)</p></div>
-            {t.value > 0 && <div><p className="text-3xl font-bold tabular-nums text-slate-900">{((d.returns.total / t.value) * 100).toFixed(1)}%</p><p className="text-[0.75rem] text-slate-500">purchase ka</p></div>}
+            <div><p className="text-3xl font-bold tabular-nums text-slate-900">{d.returns.count}</p><p className="text-[0.75rem] text-slate-500">{tr('return')}</p></div>
+            <div><p className="text-3xl font-bold tabular-nums text-amber-700">{money(d.returns.total)}</p><p className="text-[0.75rem] text-slate-500">{tr('amount (khate se kam hui)')}</p></div>
+            {t.value > 0 && <div><p className="text-3xl font-bold tabular-nums text-slate-900">{((d.returns.total / t.value) * 100).toFixed(1)}%</p><p className="text-[0.75rem] text-slate-500">{tr('purchase ka')}</p></div>}
           </div>
         </Card>
       </div>

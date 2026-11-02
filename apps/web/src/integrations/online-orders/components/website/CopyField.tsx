@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Copy, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 /** Ek line ki cheez (URL, key) — ek click me copy. Secret ho to chhupi rehti hai. */
 export function CopyField({ label, value, secret, hint }: { label: string; value: string; secret?: boolean; hint?: string }) {
@@ -11,7 +12,7 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
   const copy = () => {
     navigator.clipboard?.writeText(value).then(() => {
       setCopied(true);
-      toast.success(`${label} copy ho gaya`);
+      toast.success(t('{{label}} copy ho gaya', { label }));
       setTimeout(() => setCopied(false), 1500);
     });
   };
@@ -31,11 +32,11 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
           {display}
         </code>
         {secret && (
-          <button type="button" onClick={() => setShown((s) => !s)} className={btn} title={shown ? 'Chhupao' : 'Dikhao'} aria-label={shown ? 'Chhupao' : 'Dikhao'}>
+          <button type="button" onClick={() => setShown((s) => !s)} className={btn} title={shown ? t('Chhupao') : t('Dikhao')} aria-label={shown ? t('Chhupao') : t('Dikhao')}>
             {shown ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         )}
-        <button type="button" onClick={copy} className={cn(btn, 'border-brand-600 bg-brand-600 text-brand-fg hover:bg-brand-700')} title="Copy" aria-label={`${label} copy`}>
+        <button type="button" onClick={copy} className={cn(btn, 'border-brand-600 bg-brand-600 text-brand-fg hover:bg-brand-700')} title={t('Copy')} aria-label={t('{{label}} copy', { label })}>
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>

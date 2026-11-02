@@ -10,11 +10,12 @@ import { applianceSerialApi, type ApplianceSerial } from '../api/serial-tracking
 import { Pill } from '../components/ui';
 import { catLabel, dayOnly, serialStatusOf } from '../components/meta';
 import { sizeLine } from './ApplianceProducts';
+import { t } from '@core/i18n';
 
 interface Extra { profile: ApplianceProductProfile | null; units: ApplianceSerial[]; total: number }
 
 const config: DetailConfig<Extra> = {
-  label: 'Appliance',
+  label: t('Appliance'),
   paths: { list: '/products', edit: (id) => `/appliances-products/${id}/edit` },
   stockChips: [1, 2, 5, 10],
   extra: {
@@ -33,8 +34,8 @@ const config: DetailConfig<Extra> = {
     return (
       <>
         {p.categoryType && <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[0.75rem] font-semibold text-sky-800 ring-1 ring-sky-200">{catLabel(p.categoryType)}</span>}
-        {p.warrantyMonths > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[0.75rem] font-semibold text-emerald-700"><ShieldCheck className="h-3 w-3" />{p.warrantyMonths} mahine</span>}
-        {p.requiresInstallation && <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[0.75rem] font-semibold text-blue-700"><HardHat className="h-3 w-3" />Fitting</span>}
+        {p.warrantyMonths > 0 && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[0.75rem] font-semibold text-emerald-700"><ShieldCheck className="h-3 w-3" />{t('{{warrantyMonths}} mahine', { warrantyMonths: p.warrantyMonths })}</span>}
+        {p.requiresInstallation && <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[0.75rem] font-semibold text-blue-700"><HardHat className="h-3 w-3" />{t('Fitting')}</span>}
       </>
     );
   },
@@ -42,32 +43,32 @@ const config: DetailConfig<Extra> = {
     const p = extra?.profile;
     if (!p) return [];
     const rows: Array<[string, ReactNode]> = [
-      ['Model', p.modelNumber], ['Size', sizeLine(p)], ['Rang', p.colorName], ['Bijli', p.powerConsumption],
-      ['Company warranty', p.warrantyMonths && !(p.warrantyType === 'SHOP' && p.shopWarrantyMonths == null) ? `${p.warrantyMonths} mahine` : undefined],
-      ['Dukaan ki warranty', p.shopWarrantyMonths ? `${p.shopWarrantyMonths} mahine` : p.warrantyType === 'SHOP' && p.warrantyMonths ? `${p.warrantyMonths} mahine` : undefined],
-      ['Compressor', p.compressorWarrantyMonths ? `${p.compressorWarrantyMonths} mahine` : undefined], ['Motor', p.motorWarrantyMonths ? `${p.motorWarrantyMonths} mahine` : undefined],
-      ['Installation', p.requiresInstallation ? (p.installationCovered ? 'Free' : money(Number(p.installationCharge) || 0)) : undefined],
-      ['MRP', p.mrp ? money(p.mrp) : undefined], ['Delivery', p.freeDelivery ? 'Free' : p.requiresLargeVehicle ? 'Bari gaari' : undefined],
+      [t('Model'), p.modelNumber], [t('Size'), sizeLine(p)], [t('Rang'), p.colorName], [t('Bijli'), p.powerConsumption],
+      [t('Company warranty'), p.warrantyMonths && !(p.warrantyType === 'SHOP' && p.shopWarrantyMonths == null) ? `${p.warrantyMonths} mahine` : undefined],
+      [t('Dukaan ki warranty'), p.shopWarrantyMonths ? `${p.shopWarrantyMonths} mahine` : p.warrantyType === 'SHOP' && p.warrantyMonths ? `${p.warrantyMonths} mahine` : undefined],
+      [t('Compressor'), p.compressorWarrantyMonths ? `${p.compressorWarrantyMonths} mahine` : undefined], [t('Motor'), p.motorWarrantyMonths ? `${p.motorWarrantyMonths} mahine` : undefined],
+      [t('Installation'), p.requiresInstallation ? (p.installationCovered ? t('Free') : money(Number(p.installationCharge) || 0)) : undefined],
+      ['MRP', p.mrp ? money(p.mrp) : undefined], [t('Delivery'), p.freeDelivery ? t('Free') : p.requiresLargeVehicle ? t('Bari gaari') : undefined],
     ];
     return rows.filter(([, v]) => v !== undefined && v !== null && v !== '');
   },
-  tile: ({ extra }) => (extra?.profile?.requiresSerial ? { label: 'Serial stock me', value: String(extra.units.filter((u) => u.status === 'IN_STOCK').length), hint: `${extra.total} kul register` } : null),
+  tile: ({ extra }) => (extra?.profile?.requiresSerial ? { label: t('Serial stock me'), value: String(extra.units.filter((u) => u.status === 'IN_STOCK').length), hint: t('{{total}} kul register', { total: extra.total }) } : null),
   alerts: ({ extra, stock }) => {
     const shelf = extra?.units.filter((u) => u.status === 'IN_STOCK').length ?? 0;
     if (!extra?.profile?.requiresSerial || extra.total > 50 || Math.round(stock) === shelf) return null;
     return (
       <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-violet-50 px-4 py-3 text-violet-900 ring-1 ring-violet-200">
         <Barcode className="h-4 w-4" />
-        <span className="text-[0.875rem] font-medium">Stock {Math.round(stock)} hai lekin {shelf} serial register me — naye maal ke serial jorein</span>
-        <Link to="/appliances/serials" className="ml-auto text-[0.8125rem] font-semibold hover:underline">Serial register →</Link>
+        <span className="text-[0.875rem] font-medium">{t('Stock {{stock}} hai lekin {{shelf}} serial register me — naye maal ke serial jorein', { stock: Math.round(stock), shelf })}</span>
+        <Link to="/appliances/serials" className="ms-auto text-[0.8125rem] font-semibold hover:underline">{t('Serial register →')}</Link>
       </div>
     );
   },
   tabs: [
     {
-      id: 'serials', label: 'Serial', icon: Barcode, when: ({ extra }) => !!extra?.units.length,
+      id: 'serials', label: t('Serial'), icon: Barcode, when: ({ extra }) => !!extra?.units.length,
       render: ({ extra }) => (
-        <Card className="rounded-2xl" flush title="Serial units" description={extra!.total > extra!.units.length ? `Pehle ${extra!.units.length} (kul ${extra!.total})` : undefined}>
+        <Card className="rounded-2xl" flush title={t('Serial units')} description={extra!.total > extra!.units.length ? t('Pehle {{count}} (kul {{total}})', { count: extra!.units.length, total: extra!.total }) : undefined}>
           <ul className="divide-y divide-slate-100">
             {extra!.units.map((u) => (
               <li key={u.id} className="flex items-center justify-between gap-2 px-5 py-2.5 text-[0.875rem]">
@@ -81,8 +82,8 @@ const config: DetailConfig<Extra> = {
     },
   ],
   guide: [
-    { icon: Barcode, color: '#7c3aed', title: 'Serial', text: 'Is product ke har unit ka serial, kis ko bika aur kab — tab "Serial" me.' },
-    { icon: ShieldCheck, color: '#16a34a', title: 'Warranty', text: 'Warranty ke mahine product par hain; har unit ki warranty bill ki date se chalti hai.' },
+    { icon: Barcode, color: '#7c3aed', title: t('Serial'), text: t('Is product ke har unit ka serial, kis ko bika aur kab — tab "Serial" me.') },
+    { icon: ShieldCheck, color: '#16a34a', title: t('Warranty'), text: t('Warranty ke mahine product par hain; har unit ki warranty bill ki date se chalti hai.') },
   ],
 };
 

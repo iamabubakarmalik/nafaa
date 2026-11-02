@@ -21,6 +21,7 @@ import { liveAnimalsApi, type PetLiveAnimal } from '../api/live-animals.api';
 import type { PetSpeciesType } from '../api/products.api';
 import { useSaveKey } from '../hooks/usePageKeys';
 import { PET_KEYS, SPECIES, dayKey, errorText, numIn } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 interface Draft {
   species: PetSpeciesType | ''; breed: string; name: string; gender: string; ageMonths: string; color: string; weightKg: string;
@@ -45,8 +46,8 @@ const fromAnimal = (a: PetLiveAnimal): Draft => ({
   feedingSchedule: a.feedingSchedule ?? '', specialNeeds: a.specialNeeds ?? '', isFeatured: a.isFeatured, notes: a.notes ?? '', imageUrls: a.imageUrls ?? [],
 });
 
-const SOURCES = [{ value: '', label: '—' }, { value: 'BREEDER', label: 'Breeder' }, { value: 'MANDI', label: 'Mandi' }, { value: 'IMPORT', label: 'Import' }, { value: 'CUSTOMER', label: 'Customer se liya' }, { value: 'OWN', label: 'Apni nasal' }];
-const GENDERS = [{ value: '', label: '—' }, { value: 'Male', label: 'Nar (male)' }, { value: 'Female', label: 'Mada (female)' }, { value: 'Pair', label: 'Jora' }];
+const SOURCES = [{ value: '', label: '—' }, { value: 'BREEDER', label: tr('Breeder') }, { value: 'MANDI', label: tr('Mandi') }, { value: 'IMPORT', label: tr('Import') }, { value: 'CUSTOMER', label: tr('Customer se liya') }, { value: 'OWN', label: tr('Apni nasal') }];
+const GENDERS = [{ value: '', label: '—' }, { value: 'Male', label: tr('Nar (male)') }, { value: 'Female', label: tr('Mada (female)') }, { value: 'Pair', label: tr('Jora') }];
 
 export default function LiveAnimalFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -65,12 +66,12 @@ export default function LiveAnimalFormPage() {
   const cost = numIn(d.costPrice);
   const price = numIn(d.askingPrice);
   const errors: Partial<Record<keyof Draft, string>> = {};
-  if (!d.species) errors.species = 'Kaun sa janwar — chunein';
-  if (price === null || price <= 0) errors.askingPrice = 'Bechne ka rate likhein';
-  if (cost !== null && cost < 0) errors.costPrice = 'Cost sahi likhein';
-  if (d.ageMonths && (numIn(d.ageMonths) ?? -1) < 0) errors.ageMonths = 'Umar mahinon me';
-  if (d.weightKg && !((numIn(d.weightKg) ?? 0) > 0)) errors.weightKg = 'Wazan sahi likhein';
-  if (d.acquiredDate && d.acquiredDate > dayKey()) errors.acquiredDate = 'Aane ki date aage ki nahi ho sakti';
+  if (!d.species) errors.species = tr('Kaun sa janwar — chunein');
+  if (price === null || price <= 0) errors.askingPrice = tr('Bechne ka rate likhein');
+  if (cost !== null && cost < 0) errors.costPrice = tr('Cost sahi likhein');
+  if (d.ageMonths && (numIn(d.ageMonths) ?? -1) < 0) errors.ageMonths = tr('Umar mahinon me');
+  if (d.weightKg && !((numIn(d.weightKg) ?? 0) > 0)) errors.weightKg = tr('Wazan sahi likhein');
+  if (d.acquiredDate && d.acquiredDate > dayKey()) errors.acquiredDate = tr('Aane ki date aage ki nahi ho sakti');
   const problems = Object.values(errors);
 
   const save = useMutation({
@@ -89,10 +90,10 @@ export default function LiveAnimalFormPage() {
     },
     onSuccess: (a) => {
       [PET_KEYS.animals, PET_KEYS.animal, 'petshop-pos-animals', 'petshop-dashboard-overview'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(editing ? 'Save ho gaya' : `${a.animalNumber} darj ho gaya — counter par card aa gaya`);
+      toast.success(editing ? tr('Save ho gaya') : tr('{{animalNumber}} darj ho gaya — counter par card aa gaya', { animalNumber: a.animalNumber }));
       navigate(`/petshop/live-animals/${a.id}`);
     },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onError: (e) => toast.error(errorText(e, tr('Save nahi hua'))),
   });
   const submit = () => { setTouched(true); if (problems.length) { toast.error(problems[0]); return; } if (!save.isPending && !locked) save.mutate(); };
   useSaveKey(submit);
@@ -104,28 +105,28 @@ export default function LiveAnimalFormPage() {
   const err = (k: keyof Draft) => (touched ? errors[k] : undefined);
 
   if (editing && animalQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
-  if (editing && !animalQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye janwar nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/petshop/live-animals')}>Wapas</Button></div></PageShell>;
+  if (editing && !animalQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Ye janwar nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/petshop/live-animals')}>{tr('Wapas')}</Button></div></PageShell>;
 
   const margin = cost !== null && price ? price - cost : null;
 
   return (
     <PageShell>
       <PageHero
-        title={editing ? `${animalQ.data?.animalNumber} — badlein` : 'Naya janwar'}
-        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Darj hote hi counter par iska card aa jata hai'}
+        title={editing ? tr('{{animalNumber}} — badlein', { animalNumber: animalQ.data?.animalNumber }) : tr('Naya janwar')}
+        subtitle={editing ? tr('Jo badalna hai badlein — baqi waisa hi rahega') : tr('Darj hote hi counter par iska card aa jata hai')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        backLabel={tr('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save')}</span>}
       />
 
-      {locked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Ye janwar {animalQ.data?.status === 'SOLD' ? 'bik chuka' : 'record se band'} hai — badla nahi ja sakta.</p>}
+      {locked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">{tr('Ye janwar {{value}} hai — badla nahi ja sakta.', { value: animalQ.data?.status === 'SOLD' ? tr('bik chuka') : tr('record se band') })}</p>}
 
       <fieldset disabled={locked} className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={PawPrint}>Janwar</T>}>
+          <Card className="rounded-2xl" title={<T icon={PawPrint}>{tr('Janwar')}</T>}>
             <div className="space-y-3">
               <div>
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaun sa janwar <span className="text-rose-600">*</span></span>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kaun sa janwar')}{' '} <span className="text-rose-600">*</span></span>
                 <div className="flex flex-wrap gap-1.5">
                   {(Object.keys(SPECIES) as Array<keyof typeof SPECIES>).map((k) => (
                     <button key={k} type="button" onClick={() => set('species', k)}
@@ -137,63 +138,63 @@ export default function LiveAnimalFormPage() {
                 {err('species') && <p className="mt-1 text-[0.75rem] text-rose-600">{err('species')}</p>}
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="Nasal (breed)" value={d.breed} onChange={(e) => set('breed', e.target.value)} placeholder="Persian, German Shepherd, Budgie" hint="Counter par isi se dhoondte hain" />
-                <Input label="Naam (marzi)" value={d.name} onChange={(e) => set('name', e.target.value)} placeholder="Tiger" />
-                <Select label="Jins" value={d.gender} onChange={(e) => set('gender', e.target.value)} options={GENDERS} />
-                <Input label="Umar (mahine)" inputMode="numeric" value={d.ageMonths} onChange={(e) => set('ageMonths', e.target.value)} error={err('ageMonths')} placeholder="3" />
-                <Input label="Rang" value={d.color} onChange={(e) => set('color', e.target.value)} placeholder="Safed, bhoora" />
-                <Input label="Wazan (kg)" inputMode="decimal" value={d.weightKg} onChange={(e) => set('weightKg', e.target.value)} error={err('weightKg')} />
+                <Input label={tr('Nasal (breed)')} value={d.breed} onChange={(e) => set('breed', e.target.value)} placeholder={tr('Persian, German Shepherd, Budgie')} hint={tr('Counter par isi se dhoondte hain')} />
+                <Input label={tr('Naam (marzi)')} value={d.name} onChange={(e) => set('name', e.target.value)} placeholder={tr('Tiger')} />
+                <Select label={tr('Jins')} value={d.gender} onChange={(e) => set('gender', e.target.value)} options={GENDERS} />
+                <Input label={tr('Umar (mahine)')} inputMode="numeric" value={d.ageMonths} onChange={(e) => set('ageMonths', e.target.value)} error={err('ageMonths')} placeholder="3" />
+                <Input label={tr('Rang')} value={d.color} onChange={(e) => set('color', e.target.value)} placeholder={tr('Safed, bhoora')} />
+                <Input label={tr('Wazan (kg)')} inputMode="decimal" value={d.weightKg} onChange={(e) => set('weightKg', e.target.value)} error={err('weightKg')} />
               </div>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={HeartPulse}>Sehat</T>}>
+          <Card className="rounded-2xl" title={<T icon={HeartPulse}>{tr('Sehat')}</T>}>
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2"><Switch label="Vaccine lagi hai" checked={d.isVaccinated} onChange={(e) => set('isVaccinated', e.target.checked)} />
-                  {d.isVaccinated && <Input aria-label="Kaun si vaccine" value={d.vaccinationDetails} onChange={(e) => set('vaccinationDetails', e.target.value)} placeholder="DHPP, Rabies — date" />}</div>
-                <div className="space-y-2"><Switch label="Deworming hui hai" checked={d.isDewormed} onChange={(e) => set('isDewormed', e.target.checked)} />
-                  {d.isDewormed && <Input aria-label="Deworming tafseel" value={d.dewormingDetails} onChange={(e) => set('dewormingDetails', e.target.value)} placeholder="Dawa aur date" />}</div>
+                <div className="space-y-2"><Switch label={tr('Vaccine lagi hai')} checked={d.isVaccinated} onChange={(e) => set('isVaccinated', e.target.checked)} />
+                  {d.isVaccinated && <Input aria-label={tr('Kaun si vaccine')} value={d.vaccinationDetails} onChange={(e) => set('vaccinationDetails', e.target.value)} placeholder={tr('DHPP, Rabies — date')} />}</div>
+                <div className="space-y-2"><Switch label={tr('Deworming hui hai')} checked={d.isDewormed} onChange={(e) => set('isDewormed', e.target.checked)} />
+                  {d.isDewormed && <Input aria-label={tr('Deworming tafseel')} value={d.dewormingDetails} onChange={(e) => set('dewormingDetails', e.target.value)} placeholder={tr('Dawa aur date')} />}</div>
               </div>
-              <Switch label="Sehat ka certificate hai" checked={d.hasHealthCertificate} onChange={(e) => set('hasHealthCertificate', e.target.checked)} />
-              <Textarea label="Sehat ke note (marzi)" rows={2} value={d.healthNotes} onChange={(e) => set('healthNotes', e.target.value)} placeholder="Khaansi thi, ab theek…" />
-              <p className="text-[0.75rem] text-slate-500">Baad ki vaccine / doctor visit janwar ke page par "Sehat record" se likhein.</p>
+              <Switch label={tr('Sehat ka certificate hai')} checked={d.hasHealthCertificate} onChange={(e) => set('hasHealthCertificate', e.target.checked)} />
+              <Textarea label={tr('Sehat ke note (marzi)')} rows={2} value={d.healthNotes} onChange={(e) => set('healthNotes', e.target.value)} placeholder={tr('Khaansi thi, ab theek…')} />
+              <p className="text-[0.75rem] text-slate-500">{tr('Baad ki vaccine / doctor visit janwar ke page par "Sehat record" se likhein.')}</p>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Home}>Kahan se, kahan rakha</T>}>
+          <Card className="rounded-2xl" title={<T icon={Home}>{tr('Kahan se, kahan rakha')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Select label="Kahan se aaya" value={d.sourceType} onChange={(e) => set('sourceType', e.target.value)} options={SOURCES} />
-              <Input label="Kis se (marzi)" value={d.sourceName} onChange={(e) => set('sourceName', e.target.value)} placeholder="Breeder ka naam" />
-              <Input label="Aane ki date" type="date" max={dayKey()} value={d.acquiredDate} onChange={(e) => set('acquiredDate', e.target.value)} error={err('acquiredDate')} hint="Kitne din se dukaan me — isi se ginti" />
-              <Input label="Cage" value={d.currentCage} onChange={(e) => set('currentCage', e.target.value)} placeholder="A-3" />
-              <Input label="Khana kab" value={d.feedingSchedule} onChange={(e) => set('feedingSchedule', e.target.value)} placeholder="Subah 9, shaam 6" />
-              <Input label="Khaas dekh bhaal" value={d.specialNeeds} onChange={(e) => set('specialNeeds', e.target.value)} placeholder="Garam jagah" />
-              <div className="sm:col-span-2"><Textarea label="Note (marzi)" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} /></div>
+              <Select label={tr('Kahan se aaya')} value={d.sourceType} onChange={(e) => set('sourceType', e.target.value)} options={SOURCES} />
+              <Input label={tr('Kis se (marzi)')} value={d.sourceName} onChange={(e) => set('sourceName', e.target.value)} placeholder={tr('Breeder ka naam')} />
+              <Input label={tr('Aane ki date')} type="date" max={dayKey()} value={d.acquiredDate} onChange={(e) => set('acquiredDate', e.target.value)} error={err('acquiredDate')} hint={tr('Kitne din se dukaan me — isi se ginti')} />
+              <Input label={tr('Cage')} value={d.currentCage} onChange={(e) => set('currentCage', e.target.value)} placeholder={tr('A-3')} />
+              <Input label={tr('Khana kab')} value={d.feedingSchedule} onChange={(e) => set('feedingSchedule', e.target.value)} placeholder={tr('Subah 9, shaam 6')} />
+              <Input label={tr('Khaas dekh bhaal')} value={d.specialNeeds} onChange={(e) => set('specialNeeds', e.target.value)} placeholder={tr('Garam jagah')} />
+              <div className="sm:col-span-2"><Textarea label={tr('Note (marzi)')} rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} /></div>
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Paisa</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{tr('Paisa')}</T>}>
             <div className="space-y-3">
-              <Input label="Bechne ka rate (Rs)" required inputMode="decimal" value={d.askingPrice} onChange={(e) => set('askingPrice', e.target.value)} error={err('askingPrice')} hint="Counter par yahi rate aata hai; bill par kam kar sakte hain" />
-              {!costHidden && <Input label="Cost (Rs)" inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value)} error={err('costPrice')} hint="Kitne ka liya — profit aur mar jane par loss isi se" />}
-              {!costHidden && margin !== null && <p className={cn('text-[0.8125rem] font-semibold', margin >= 0 ? 'text-success-700' : 'text-rose-700')}>Profit: {costMoney(margin)}</p>}
-              <Switch label="Counter par upar dikhayein" checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
+              <Input label={tr('Bechne ka rate (Rs)')} required inputMode="decimal" value={d.askingPrice} onChange={(e) => set('askingPrice', e.target.value)} error={err('askingPrice')} hint={tr('Counter par yahi rate aata hai; bill par kam kar sakte hain')} />
+              {!costHidden && <Input label={tr('Cost (Rs)')} inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value)} error={err('costPrice')} hint={tr('Kitne ka liya — profit aur mar jane par loss isi se')} />}
+              {!costHidden && margin !== null && <p className={cn('text-[0.8125rem] font-semibold', margin >= 0 ? 'text-success-700' : 'text-rose-700')}>{tr('Profit: {{margin}}', { margin: costMoney(margin) })}</p>}
+              <Switch label={tr('Counter par upar dikhayein')} checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={ImageIcon}>Tasveerein</T>}>
-            <UploadDropzone purpose="animal-photo" maxFiles={10} hint="Counter card par pehli tasveer aati hai"
+          <Card className="rounded-2xl" title={<T icon={ImageIcon}>{tr('Tasveerein')}</T>}>
+            <UploadDropzone purpose="animal-photo" maxFiles={10} hint={tr('Counter card par pehli tasveer aati hai')}
               onUploaded={(recs) => set('imageUrls', [...d.imageUrls, ...recs.map((r) => r.url)])} />
             {d.imageUrls.length > 0 && (
               <div className="mt-3 grid grid-cols-4 gap-2">
                 {d.imageUrls.map((url, i) => (
                   <div key={url} className="relative">
                     <img src={url} alt="" className="aspect-square w-full rounded-xl object-cover ring-1 ring-slate-200" />
-                    <button type="button" onClick={() => set('imageUrls', d.imageUrls.filter((_, x) => x !== i))} aria-label="Tasveer hatayein"
-                      className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-700 ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => set('imageUrls', d.imageUrls.filter((_, x) => x !== i))} aria-label={tr('Tasveer hatayein')}
+                      className="absolute end-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-700 ring-1 ring-slate-200"><X className="h-3.5 w-3.5" /></button>
                   </div>
                 ))}
               </div>
@@ -204,10 +205,10 @@ export default function LiveAnimalFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {touched && problems.length > 0
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{price ? `Rate ${formatPKR(price)}` : 'Janwar aur rate zaroori hain'}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} disabled={locked}>{editing ? 'Save karein' : 'Janwar darj karein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{price ? tr('Rate {{price}}', { price: formatPKR(price) }) : tr('Janwar aur rate zaroori hain')}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} disabled={locked}>{editing ? tr('Save karein') : tr('Janwar darj karein')}</Button>
       </div>
     </PageShell>
   );

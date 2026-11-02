@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { UpsertCreditAccountDto } from './dto/upsert-credit-account.dto';
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
 import { loadKhata, withKhata } from '../common/customer-khata';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class CreditAccountsService {
@@ -34,7 +35,7 @@ export class CreditAccountsService {
       if (accountId) {
         const current = await this.prisma.hardwareCreditAccount.findFirst({ where: { id: accountId }, select: { customerId: true, currentBalance: true } });
         if (current && !current.customerId && Math.abs(current.currentBalance) > 0.009) {
-          throw new BadRequestException(`Is account ka purana hisaab Rs ${Math.round(current.currentBalance)} hai — ye purane register me hai. Customer khate me jorne ke liye support se rabta karein taake ye paisa khate me sahi muntaqil ho`);
+          throw new BadRequestException(apiMessage('Is account ka purana hisaab Rs {{currentBalance}} hai — ye purane register me hai. Customer khate me jorne ke liye support se rabta karein taake ye paisa khate me sahi muntaqil ho', { currentBalance: Math.round(current.currentBalance) }));
         }
       }
     }

@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { moneyApi, type MoneyPeriod } from '../api/money.api';
 import { ACCOUNTS, MONEY_KEY, SOURCES } from './meta';
+import { t as tr } from '@core/i18n';
 
 const label = (k: string, monthly: boolean) =>
   monthly
@@ -25,7 +26,7 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
   const q = useQuery({ queryKey: [MONEY_KEY, 'analytics', filters], queryFn: () => moneyApi.analytics(filters), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError) return <Card className="rounded-2xl"><Empty text="Analytics load nahi hui. Period ek saal se chhoti rakhein aur dobara koshish karein." /></Card>;
+  if (q.isError) return <Card className="rounded-2xl"><Empty text={tr('Analytics load nahi hui. Period ek saal se chhoti rakhein aur dobara koshish karein.')} /></Card>;
   if (q.isLoading || !d) {
     return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
   }
@@ -39,16 +40,16 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={ArrowDownCircle} label="Kul aaya" value={money(d.totals.in)} sub={`${ins.reduce((s, x) => s + x.count, 0)} entries`} tone="emerald" />
-        <Kpi icon={ArrowUpCircle} label="Kul gaya" value={money(d.totals.out)} sub={`${outs.reduce((s, x) => s + x.count, 0)} entries`} tone="rose" />
-        <Kpi icon={Scale} label="Bacha (net)" value={money(d.totals.net)} sub={d.totals.net >= 0 ? 'Aaya zyada, gaya kam' : 'Gaya zyada, aaya kam'} tone={d.totals.net >= 0 ? 'brand' : 'amber'} />
-        <Kpi icon={TrendingUp} label={monthly ? 'Sab se acha mahina' : 'Sab se acha din'} value={busiest && busiest.in > 0 ? label(busiest.key, monthly) : '—'}
-          sub={busiest && busiest.in > 0 ? `${money(busiest.in)} aaya` : 'Abhi kuch nahi aaya'} />
+        <Kpi icon={ArrowDownCircle} label={tr('Kul aaya')} value={money(d.totals.in)} sub={tr('{{value}} entries', { value: ins.reduce((s, x) => s + x.count, 0) })} tone="emerald" />
+        <Kpi icon={ArrowUpCircle} label={tr('Kul gaya')} value={money(d.totals.out)} sub={tr('{{value}} entries', { value: outs.reduce((s, x) => s + x.count, 0) })} tone="rose" />
+        <Kpi icon={Scale} label={tr('Bacha (net)')} value={money(d.totals.net)} sub={d.totals.net >= 0 ? tr('Aaya zyada, gaya kam') : tr('Gaya zyada, aaya kam')} tone={d.totals.net >= 0 ? 'brand' : 'amber'} />
+        <Kpi icon={TrendingUp} label={monthly ? tr('Sab se acha mahina') : tr('Sab se acha din')} value={busiest && busiest.in > 0 ? label(busiest.key, monthly) : '—'}
+          sub={busiest && busiest.in > 0 ? tr('{{in}} aaya', { in: money(busiest.in) }) : tr('Abhi kuch nahi aaya')} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{monthly ? 'Har mahine aaya aur gaya' : 'Roz aaya aur gaya'}</span>}
-        description={monthly ? 'Lambi period hai, is liye mahine ke hisaab se' : 'Har karobari din — line bacha hua (net) dikhati hai'}>
-        {!trend.some((t) => t.in || t.out) ? <Empty text="Is period me paisa na aaya na gaya" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{monthly ? tr('Har mahine aaya aur gaya') : tr('Roz aaya aur gaya')}</span>}
+        description={monthly ? tr('Lambi period hai, is liye mahine ke hisaab se') : tr('Har karobari din — line bacha hua (net) dikhati hai')}>
+        {!trend.some((t) => t.in || t.out) ? <Empty text={tr('Is period me paisa na aaya na gaya')} /> : (
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -67,14 +68,14 @@ export function MoneyAnalytics({ filters, money }: { filters: MoneyPeriod; money
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={ArrowDownCircle} title="Paisa kahan se aaya" description="Sale, khata wasooli aur golak me daala cash" money={money}
-          rows={ins.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: `${s.count} entries · ${SOURCES[s.source].hint}` }))} />
-        <Ranked icon={ArrowUpCircle} title="Paisa kahan gaya" description="Purchase, supplier, kharch, return aur nikala cash" money={money}
-          rows={outs.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: `${s.count} entries · ${SOURCES[s.source].hint}` }))} />
-        <Ranked icon={Landmark} title="Account ke hisaab se" description="Har account me kitna aaya — gaya neeche likha hai" money={money}
-          rows={accounts.map((a) => ({ key: a.method, label: ACCOUNTS[a.method].label, color: ACCOUNTS[a.method].color, value: a.in, sub: `Gaya ${money(a.out)} · bacha ${money(a.net)}` }))} />
-        <Ranked icon={Receipt} title="Kharch kis par" description="Sirf adaa kiye gaye kharch" money={money}
-          rows={d.expenseCategories.map((c) => ({ key: c.id ?? 'none', label: c.name, color: c.color, value: c.amount, sub: `${c.count} kharch` }))} />
+        <Ranked icon={ArrowDownCircle} title={tr('Paisa kahan se aaya')} description={tr('Sale, khata wasooli aur golak me daala cash')} money={money}
+          rows={ins.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: tr('{{count}} entries · {{hint}}', { count: s.count, hint: SOURCES[s.source].hint }) }))} />
+        <Ranked icon={ArrowUpCircle} title={tr('Paisa kahan gaya')} description={tr('Purchase, supplier, kharch, return aur nikala cash')} money={money}
+          rows={outs.map((s) => ({ key: s.source, label: SOURCES[s.source].label, color: SOURCES[s.source].color, value: s.amount, sub: tr('{{count}} entries · {{hint}}', { count: s.count, hint: SOURCES[s.source].hint }) }))} />
+        <Ranked icon={Landmark} title={tr('Account ke hisaab se')} description={tr('Har account me kitna aaya — gaya neeche likha hai')} money={money}
+          rows={accounts.map((a) => ({ key: a.method, label: ACCOUNTS[a.method].label, color: ACCOUNTS[a.method].color, value: a.in, sub: tr('Gaya {{out}} · bacha {{net}}', { out: money(a.out), net: money(a.net) }) }))} />
+        <Ranked icon={Receipt} title={tr('Kharch kis par')} description={tr('Sirf adaa kiye gaye kharch')} money={money}
+          rows={d.expenseCategories.map((c) => ({ key: c.id ?? 'none', label: c.name, color: c.color, value: c.amount, sub: tr('{{count}} kharch', { count: c.count }) }))} />
       </div>
     </div>
   );
@@ -90,7 +91,7 @@ function Ranked({ icon: I, title, description, rows, money }: {
   const total = list.reduce((s, r) => s + r.value, 0);
   return (
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{title}</span>} description={description}>
-      {!list.length ? <Empty text="Koi entry nahi" /> : (
+      {!list.length ? <Empty text={tr('Koi entry nahi')} /> : (
         <ul className="space-y-2.5">
           {list.map((r) => (
             <li key={r.key}>
@@ -99,7 +100,7 @@ function Ranked({ icon: I, title, description, rows, money }: {
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.color }} />
                   <span className="truncate font-medium text-slate-800">{r.label}</span>
                 </span>
-                <span className="shrink-0 tabular-nums text-slate-900">{money(r.value)}<span className="ml-1 text-[0.75rem] text-slate-500">{Math.round((r.value / total) * 100)}%</span></span>
+                <span className="shrink-0 tabular-nums text-slate-900">{money(r.value)}<span className="ms-1 text-[0.75rem] text-slate-500">{Math.round((r.value / total) * 100)}%</span></span>
               </div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full" style={{ width: `${(r.value / max) * 100}%`, background: r.color }} />

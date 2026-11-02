@@ -19,6 +19,7 @@ import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-tim
 import {
   CorrectAttendanceDto, CreateLeaveRequestDto, DecideLeaveDto, LeaveQueryDto, PunchDto, SheetQueryDto,
 } from './dto/attendance.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Minutes after opening time that still count as on time. */
 const GRACE_MINUTES = 10;
@@ -286,7 +287,7 @@ export class AttendanceService {
     const to = q.to ?? today;
     if (to < from) throw new BadRequestException('"Tak" ki date "Se" se pehle hai');
     const keys = keysBetween(from, to);
-    if (keys.length > MAX_DAYS) throw new BadRequestException(`Ek dafa me ${MAX_DAYS} din tak ka hisaab dekh sakte hain`);
+    if (keys.length > MAX_DAYS) throw new BadRequestException(apiMessage('Ek dafa me {{mAXDAYS}} din tak ka hisaab dekh sakte hain', { mAXDAYS: MAX_DAYS }));
 
     const staff = await this.staffInView(user, scope, q, from, to);
     const ids = staff.map((s) => s.id);
@@ -325,7 +326,7 @@ export class AttendanceService {
 
   async checkIn(user: AuthenticatedUser, dto: PunchDto) {
     const staff = await this.loadStaff(user, dto.staffId);
-    if (staff.status !== 'ACTIVE' && staff.status !== 'ON_LEAVE') throw new BadRequestException(`${staff.fullName} ab kaam par nahi (${staff.status})`);
+    if (staff.status !== 'ACTIVE' && staff.status !== 'ON_LEAVE') throw new BadRequestException(apiMessage('{{fullName}} ab kaam par nahi ({{staffStatus}})', { fullName: staff.fullName, staffStatus: staff.status }));
     const clock = await this.shopClock(user.tenantId);
     const day = this.today(clock);
     const now = new Date();
@@ -373,7 +374,7 @@ export class AttendanceService {
       },
       orderBy: { date: 'desc' },
     });
-    if (!open) throw new BadRequestException(`${staff.fullName} ka aaj check-in nahi hua`);
+    if (!open) throw new BadRequestException(apiMessage('{{fullName}} ka aaj check-in nahi hua', { fullName: staff.fullName }));
     if (open.checkOut) return { record: open, already: true };
 
     const key = keyOf(open.date);
@@ -472,11 +473,13 @@ export class AttendanceService {
     const staff = await this.loadStaff(user, dto.staffId);
     if (dto.endDate < dto.startDate) throw new BadRequestException('Aakhri din pehle din se pehle hai');
     const days = keysBetween(dto.startDate, dto.endDate).length;
-    if (days > MAX_DAYS) throw new BadRequestException(`Ek chhutti ${MAX_DAYS} din se lambi nahi ho sakti`);
+    if (days > MAX_DAYS) throw new BadRequestException(apiMessage('Ek chhutti {{mAXDAYS}} din se lambi nahi ho sakti', { mAXDAYS: MAX_DAYS }));
     const overlap = await this.leavesFor(user.tenantId, [staff.id], dto.startDate, dto.endDate, ['APPROVED', 'PENDING']);
     if (overlap.length) {
       const o = overlap[0];
-      throw new BadRequestException(`In dinon ki chhutti pehle se hai (${keyOf(o.startDate)} se ${keyOf(o.endDate)}, ${o.status === 'PENDING' ? 'approval baqi' : 'manzoor'})`);
+      throw new BadRequestException(o.status === 'PENDING'
+        ? apiMessage('In dinon ki chhutti pehle se hai ({{startDate}} se {{endDate}}, approval baqi)', { startDate: keyOf(o.startDate), endDate: keyOf(o.endDate) })
+        : apiMessage('In dinon ki chhutti pehle se hai ({{startDate}} se {{endDate}}, manzoor)', { startDate: keyOf(o.startDate), endDate: keyOf(o.endDate) }));
     }
     const approve = !!dto.approve;
     return this.prisma.$transaction(async (tx) => {

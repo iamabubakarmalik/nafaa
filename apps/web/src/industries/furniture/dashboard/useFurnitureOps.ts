@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { furnitureDashboardApi } from '../api/dashboard.api';
 import { customOrdersApi } from '../api/custom-orders.api';
 import { FURNITURE_KEYS } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const MINUTE = 60_000;
 const DAY = 86_400_000;
@@ -60,10 +61,10 @@ export function useFurnitureOps() {
       daysLate: x.expectedDeliveryDate ? Math.max(Math.ceil((now - new Date(x.expectedDeliveryDate).getTime()) / DAY), 1) : 0,
     }));
     const pipeline = [
-      { key: 'quotation', label: 'Quotation', count: s?.quotation ?? 0, color: 'bg-amber-500' },
-      { key: 'deposit', label: 'Advance mila', count: s?.deposit ?? 0, color: 'bg-sky-500' },
-      { key: 'production', label: 'Ban raha', count: s?.production ?? 0, color: 'bg-brand-600' },
-      { key: 'ready', label: 'Tayyar', count: s?.ready ?? 0, color: 'bg-success-600' },
+      { key: 'quotation', label: t('Quotation'), count: s?.quotation ?? 0, color: 'bg-amber-500' },
+      { key: 'deposit', label: t('Advance mila'), count: s?.deposit ?? 0, color: 'bg-sky-500' },
+      { key: 'production', label: t('Ban raha'), count: s?.production ?? 0, color: 'bg-brand-600' },
+      { key: 'ready', label: t('Tayyar'), count: s?.ready ?? 0, color: 'bg-success-600' },
     ];
     return {
       loading: overview.isLoading,

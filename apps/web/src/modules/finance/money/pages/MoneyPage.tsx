@@ -43,6 +43,7 @@ import { MoveMoneyModal } from '../components/MoveMoneyModal';
 import { MoneyAnalytics } from '../components/MoneyAnalytics';
 import { ACCOUNTS, ACCOUNT_IDS, MONEY_KEY, SOURCES, SOURCE_IDS, entryLink, entryTitle, when } from '../components/meta';
 import { statementDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'accounts' | 'ledger' | 'analytics';
 type TypeFilter = '' | MoneyDirection | MoneySource;
@@ -108,13 +109,13 @@ export default function MoneyPage() {
   /** Drawer cash plus every active account in view. */
   const totalBalance = (acc?.cash.inHand ?? 0) + accountsTotal;
   const nonCashIn = acc ? acc.accounts.filter((a) => a.method !== 'CASH').reduce((s, a) => s + a.in, 0) : 0;
-  const typeLabel = type === 'in' ? 'Sirf aaya' : type === 'out' ? 'Sirf gaya' : type ? SOURCES[type].label : '';
+  const typeLabel = type === 'in' ? tr('Sirf aaya') : type === 'out' ? tr('Sirf gaya') : type ? SOURCES[type].label : '';
   const filtered = !!account || !!type || !!query;
   const periodText = period ? rangeLabel(period.from, period.to) : '';
 
   const filterText = [account && ACCOUNTS[account].label, typeLabel, query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => statementDoc(await moneyApi.ledger({ ...ledgerQ, page: 1, limit: 500 }), {
-    title: account ? `${ACCOUNTS[account].label} statement` : 'Shop accounts statement',
+    title: account ? tr('{{label}} statement', { label: ACCOUNTS[account].label }) : tr('Shop accounts statement'),
     period: periodText,
     filter: filterText,
   });
@@ -141,47 +142,47 @@ export default function MoneyPage() {
   return (
     <PageShell>
       <PageHero
-        title="Shop accounts"
-        chip={<><Landmark /> {periodText || 'Dukaan ka hisaab'}</>}
-        meta="Cash, bank aur wallets — kitna aaya, kitna gaya, kitna bacha"
+        title={tr('Shop accounts')}
+        chip={<><Landmark /> {periodText || tr('Dukaan ka hisaab')}</>}
+        meta={tr('Cash, bank aur wallets — kitna aaya, kitna gaya, kitna bacha')}
         busy={accountsQ.isFetching && !accountsQ.isLoading}
         loading={accountsQ.isLoading}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Statement" disabled={!acc} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Statement')} disabled={!acc} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canMoveMoney && (
-            <button type="button" onClick={() => setTransfer({})} title="Paisa bhejein (B)" className={heroIconButton}><ArrowLeftRight className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setTransfer({})} title={tr('Paisa bhejein (B)')} className={heroIconButton}><ArrowLeftRight className="h-4 w-4" /></button>
           )}
           {canMoveCash && <>
-            <button type="button" onClick={() => setMove('CASH_OUT')} title="Cash nikalein (O)" className={heroIconButton}><ArrowUpFromLine className="h-4 w-4" /></button>
-            <button type="button" onClick={() => setMove('CASH_IN')} title="Cash daalein (I)" className={heroPrimaryButton}><ArrowDownToLine className="h-4 w-4" /> Cash daalein</button>
+            <button type="button" onClick={() => setMove('CASH_OUT')} title={tr('Cash nikalein (O)')} className={heroIconButton}><ArrowUpFromLine className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setMove('CASH_IN')} title={tr('Cash daalein (I)')} className={heroPrimaryButton}><ArrowDownToLine className="h-4 w-4" /> {' '}{tr('Cash daalein')}</button>
           </>}
         </>}
         stats={acc ? [
-          { label: 'Kul paisa (golak + accounts)', value: money(totalBalance), hint: `${activeAccounts.length} account + golak` },
-          { label: 'Bacha (aaya − gaya)', value: money(acc.totals.net) },
-          { label: 'Aaya', value: money(acc.totals.in) },
-          { label: 'Gaya', value: money(acc.totals.out) },
-          { label: 'Golak me hona chahiye', value: money(acc.cash.inHand), hint: acc.cash.drawers.length ? `${acc.cash.drawers.length} khula register` : 'koi register khula nahi' },
-        ] : [{ label: 'Bacha (aaya − gaya)', value: '—' }]}
+          { label: tr('Kul paisa (golak + accounts)'), value: money(totalBalance), hint: tr('{{count}} account + golak', { count: activeAccounts.length }) },
+          { label: tr('Bacha (aaya − gaya)'), value: money(acc.totals.net) },
+          { label: tr('Aaya'), value: money(acc.totals.in) },
+          { label: tr('Gaya'), value: money(acc.totals.out) },
+          { label: tr('Golak me hona chahiye'), value: money(acc.cash.inHand), hint: acc.cash.drawers.length ? tr('{{count}} khula register', { count: acc.cash.drawers.length }) : tr('koi register khula nahi') },
+        ] : [{ label: tr('Bacha (aaya − gaya)'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!acc ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Wallet} color={ACCOUNTS.CASH.color} label="Golak me cash" value={money(acc.cash.inHand)}
-            hint={acc.cash.drawers.length ? 'Khule register ka hisaab' : 'Register band hai'} onClick={() => setTab('accounts')} active={tab === 'accounts'} />
-          <KpiCard icon={ArrowDownCircle} color="#16a34a" label="Aaj aaya" value={money(acc.totals.todayIn)} hint="Aaj ke karobari din me"
+          <KpiCard icon={Wallet} color={ACCOUNTS.CASH.color} label={tr('Golak me cash')} value={money(acc.cash.inHand)}
+            hint={acc.cash.drawers.length ? tr('Khule register ka hisaab') : tr('Register band hai')} onClick={() => setTab('accounts')} active={tab === 'accounts'} />
+          <KpiCard icon={ArrowDownCircle} color="#16a34a" label={tr('Aaj aaya')} value={money(acc.totals.todayIn)} hint={tr('Aaj ke karobari din me')}
             onClick={() => openToday('in')} />
-          <KpiCard icon={ArrowUpCircle} color="#e11d48" label="Aaj gaya" value={money(acc.totals.todayOut)} hint="Kharch, purchase, return"
+          <KpiCard icon={ArrowUpCircle} color="#e11d48" label={tr('Aaj gaya')} value={money(acc.totals.todayOut)} hint={tr('Kharch, purchase, return')}
             onClick={() => openToday('out')} />
-          <KpiCard icon={Landmark} color={ACCOUNTS.BANK_TRANSFER.color} label="Tijori, bank aur wallets" value={moneyAccounts ? money(accountsTotal) : '—'}
-            hint={`Asal balance · is period ${money(nonCashIn)} aaya`} onClick={() => setTab('accounts')} />
-          <KpiCard icon={Scale} color="#0891b2" label="Dukaan ki maliyat" value={pos ? cost(pos.netWorth) : '—'} hint="Cash + maal + lena − dena" />
+          <KpiCard icon={Landmark} color={ACCOUNTS.BANK_TRANSFER.color} label={tr('Tijori, bank aur wallets')} value={moneyAccounts ? money(accountsTotal) : '—'}
+            hint={tr('Asal balance · is period {{nonCashIn}} aaya', { nonCashIn: money(nonCashIn) })} onClick={() => setTab('accounts')} />
+          <KpiCard icon={Scale} color="#0891b2" label={tr('Dukaan ki maliyat')} value={pos ? cost(pos.netWorth) : '—'} hint={tr('Cash + maal + lena − dena')} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill no., customer, supplier, kharch ya wajah…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Bill no., customer, supplier, kharch ya wajah…')} label={tr('Search')} />}
         chips={filtered ? <>
           {account && <FilterChip onRemove={() => setAccount('')}>{ACCOUNTS[account].label}</FilterChip>}
           {type && <FilterChip onRemove={() => setType('')}>{typeLabel}</FilterChip>}
@@ -189,23 +190,23 @@ export default function MoneyPage() {
         </> : undefined}
         onClear={clear}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" />
-        <FilterMenu icon={Landmark} label={account ? ACCOUNTS[account].short : 'Account'} value={account} active={!!account} onChange={setAccount}
-          options={[{ value: '' as const, label: 'Sab accounts' }, ...ACCOUNT_IDS.map((id) => ({ value: id, label: ACCOUNTS[id].label, icon: ACCOUNTS[id].icon, color: ACCOUNTS[id].color }))]} />
-        <FilterMenu icon={Filter} label={typeLabel || 'Type'} value={type} active={!!type} onChange={setType} align="right"
+        <FilterMenu icon={Landmark} label={account ? ACCOUNTS[account].short : tr('Account')} value={account} active={!!account} onChange={setAccount}
+          options={[{ value: '' as const, label: tr('Sab accounts') }, ...ACCOUNT_IDS.map((id) => ({ value: id, label: ACCOUNTS[id].label, icon: ACCOUNTS[id].icon, color: ACCOUNTS[id].color }))]} />
+        <FilterMenu icon={Filter} label={typeLabel || tr('Type')} value={type} active={!!type} onChange={setType} align="right"
           options={[
-            { value: '' as TypeFilter, label: 'Sab' },
-            { value: 'in' as TypeFilter, label: 'Sirf aaya', icon: ArrowDownCircle, color: '#16a34a' },
-            { value: 'out' as TypeFilter, label: 'Sirf gaya', icon: ArrowUpCircle, color: '#e11d48' },
+            { value: '' as TypeFilter, label: tr('Sab') },
+            { value: 'in' as TypeFilter, label: tr('Sirf aaya'), icon: ArrowDownCircle, color: '#16a34a' },
+            { value: 'out' as TypeFilter, label: tr('Sirf gaya'), icon: ArrowUpCircle, color: '#e11d48' },
             ...SOURCE_IDS.map((s) => ({ value: s as TypeFilter, label: SOURCES[s].label, hint: SOURCES[s].hint, icon: SOURCES[s].icon, color: SOURCES[s].color })),
           ]} />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>/</Kbd> search · <Kbd>L</Kbd> ledger · <Kbd>A</Kbd> analytics{canMoveCash && <> · <Kbd>I</Kbd>/<Kbd>O</Kbd> cash</>}{canMoveMoney && <> · <Kbd>B</Kbd> bhejein</>}</>}
+        hint={<><Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>L</Kbd> {' '}{tr('ledger ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics')}{canMoveCash && <> · <Kbd>I</Kbd>/<Kbd>O</Kbd> {' '}{tr('cash')}</>}{canMoveMoney && <> · <Kbd>B</Kbd> {' '}{tr('bhejein')}</>}</>}
         tabs={[
-          { id: 'accounts', label: 'Accounts', icon: LayoutGrid },
-          { id: 'ledger', label: 'Ledger', icon: ListChecks, count: tab === 'ledger' ? ledger?.total ?? null : null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'accounts', label: tr('Accounts'), icon: LayoutGrid },
+          { id: 'ledger', label: tr('Ledger'), icon: ListChecks, count: tab === 'ledger' ? ledger?.total ?? null : null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <MoneyAnalytics filters={base} money={money} /> : tab === 'accounts' ? (
@@ -231,26 +232,26 @@ export default function MoneyPage() {
       {entry && <AccountEntryModal account={entry.account} kind={entry.kind} onClose={() => setEntry(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Shop accounts — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Shop accounts — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Landmark, color: '#7c3aed', title: 'Accounts', text: 'Har payment ka tareeqa ek account hai: Cash, Bank transfer, Card, JazzCash aur Easypaisa. Card par click karein to us ki sari entries Ledger me khul jati hain.' },
-            { icon: Landmark, color: '#2563eb', title: 'Tijori, bank aur wallets', text: '"Naya account" se bank, JazzCash ya tijori banayein. Default account par us tareeqe ki sale, return, kharch aur payment khud judti hai, is liye balance asal hota hai. Statement me har line aur chalta balance milta hai.' },
-            { icon: ArrowLeftRight, color: '#0891b2', title: 'Paisa bhejein', text: 'Golak se bank me jama, bank se khulle laye, ya wallet se bank — "Paisa bhejein" dabayein. Dono taraf ka hisaab saath badalta hai aur golak wala hissa Cash register me bhi judta hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Golak ka cash', text: 'Khule register ki shuru ki amount + cash sale + khata wasooli + daala cash − nikala cash − cash kharch, purchase, supplier payment aur return. Yahi golak me hona chahiye.' },
-            { icon: ListChecks, color: '#2563eb', title: 'Ledger', text: 'Sale, return, khata, purchase, supplier, kharch aur golak ki har entry ek jagah — nayi sab se upar. Entry par click karein to asal bill ya khata khulta hai.' },
-            { icon: ArrowDownToLine, color: '#059669', title: 'Cash daalna / nikalna', text: 'Malik ne paise liye, bank me jama karaye ya khulle laye? "Cash daalein" ya nikalne wala button dabayein, amount aur wajah likhein. Ye Cash register me bhi judta hai.' },
-            { icon: Printer, color: '#0891b2', title: 'Statement', text: 'Account aur period chun kar "Statement" dabayein — A4, PDF ya thermal par har entry, aaya, gaya aur bacha.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Roz kitna aaya aur gaya, paisa kahan se aaya aur kahan gaya, aur kharch kis par hua — karobari din ke hisaab se.' },
+            { icon: Landmark, color: '#7c3aed', title: tr('Accounts'), text: tr('Har payment ka tareeqa ek account hai: Cash, Bank transfer, Card, JazzCash aur Easypaisa. Card par click karein to us ki sari entries Ledger me khul jati hain.') },
+            { icon: Landmark, color: '#2563eb', title: tr('Tijori, bank aur wallets'), text: tr('"Naya account" se bank, JazzCash ya tijori banayein. Default account par us tareeqe ki sale, return, kharch aur payment khud judti hai, is liye balance asal hota hai. Statement me har line aur chalta balance milta hai.') },
+            { icon: ArrowLeftRight, color: '#0891b2', title: tr('Paisa bhejein'), text: tr('Golak se bank me jama, bank se khulle laye, ya wallet se bank — "Paisa bhejein" dabayein. Dono taraf ka hisaab saath badalta hai aur golak wala hissa Cash register me bhi judta hai.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Golak ka cash'), text: tr('Khule register ki shuru ki amount + cash sale + khata wasooli + daala cash − nikala cash − cash kharch, purchase, supplier payment aur return. Yahi golak me hona chahiye.') },
+            { icon: ListChecks, color: '#2563eb', title: tr('Ledger'), text: tr('Sale, return, khata, purchase, supplier, kharch aur golak ki har entry ek jagah — nayi sab se upar. Entry par click karein to asal bill ya khata khulta hai.') },
+            { icon: ArrowDownToLine, color: '#059669', title: tr('Cash daalna / nikalna'), text: tr('Malik ne paise liye, bank me jama karaye ya khulle laye? "Cash daalein" ya nikalne wala button dabayein, amount aur wajah likhein. Ye Cash register me bhi judta hai.') },
+            { icon: Printer, color: '#0891b2', title: tr('Statement'), text: tr('Account aur period chun kar "Statement" dabayein — A4, PDF ya thermal par har entry, aaya, gaya aur bacha.') },
+            { icon: BarChart3, color: '#d97706', title: tr('Analytics'), text: tr('Roz kitna aaya aur gaya, paisa kahan se aaya aur kahan gaya, aur kharch kis par hua — karobari din ke hisaab se.') },
           ]}
           tips={[
-            'Khata wasooli aur purani supplier payment par tareeqa likha nahi hota, is liye wo Cash me gini jati hain.',
-            'Sale me wohi amount judti hai jo rakh li gayi — customer ko diya hua change nikal kar.',
-            'Branch chuni ho to sirf us branch ka hisaab dikhta hai; "Sab branches" par poora karobar.',
-            'Cash daalne ya nikalne ke liye "Cash register" ki permission aur khula register chahiye.',
-            'Account banane ke liye "Settings badalna" aur paisa bhejne ke liye "Kharch likhna" ki permission chahiye.',
-            'Kul paisa = golak + sab chalu accounts. Branch chuni ho to us branch ke aur poore karobar wale accounts gine jate hain.',
+            tr('Khata wasooli aur purani supplier payment par tareeqa likha nahi hota, is liye wo Cash me gini jati hain.'),
+            tr('Sale me wohi amount judti hai jo rakh li gayi — customer ko diya hua change nikal kar.'),
+            tr('Branch chuni ho to sirf us branch ka hisaab dikhta hai; "Sab branches" par poora karobar.'),
+            tr('Cash daalne ya nikalne ke liye "Cash register" ki permission aur khula register chahiye.'),
+            tr('Account banane ke liye "Settings badalna" aur paisa bhejne ke liye "Kharch likhna" ki permission chahiye.'),
+            tr('Kul paisa = golak + sab chalu accounts. Branch chuni ho to us branch ke aur poore karobar wale accounts gine jate hain.'),
           ]}
-          shortcuts={[['/', 'dhoondein'], ['L', 'ledger'], ['A', 'analytics'], ['I', 'cash daalein'], ['O', 'cash nikalein'], ['B', 'paisa bhejein'], ['G', 'guide']]}
+          shortcuts={[['/', tr('dhoondein')], ['L', tr('ledger')], ['A', tr('analytics')], ['I', tr('cash daalein')], ['O', tr('cash nikalein')], ['B', tr('paisa bhejein')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -273,43 +274,43 @@ function AccountsView({ acc, pos, money, cost, allShops, canMoveCash, onAccount,
           const quiet = !a.in && !a.out;
           return (
             <button key={a.method} type="button" onClick={() => onAccount(a.method)}
-              className={cn('group flex flex-col rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md', quiet && 'opacity-70')}>
+              className={cn('group flex flex-col rounded-2xl bg-white p-4 text-start shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md', quiet && 'opacity-70')}>
               <span className="flex items-center gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${m.color}17`, color: m.color }}><m.icon className="h-4 w-4" /></span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold text-slate-900">{m.label}</span>
                   <span className="block truncate text-[0.75rem] text-slate-500">{m.hint}</span>
                 </span>
-                <ChevronRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:text-slate-500" />
+                <ChevronRight className="ms-auto h-4 w-4 text-slate-300 transition group-hover:text-slate-500 rtl-flip" />
               </span>
-              <span className="mt-3 text-[0.75rem] text-slate-500">Bacha (is period)</span>
+              <span className="mt-3 text-[0.75rem] text-slate-500">{tr('Bacha (is period)')}</span>
               <span className={cn('text-xl font-bold tabular-nums', a.net < 0 ? 'text-rose-700' : 'text-slate-900')}>{money(a.net)}</span>
               <span className="mt-2 grid grid-cols-2 gap-2 text-[0.75rem]">
-                <span><span className="block text-slate-500">Aaya</span><b className="tabular-nums text-emerald-700">{money(a.in)}</b></span>
-                <span><span className="block text-slate-500">Gaya</span><b className="tabular-nums text-rose-700">{money(a.out)}</b></span>
+                <span><span className="block text-slate-500">{tr('Aaya')}</span><b className="tabular-nums text-emerald-700">{money(a.in)}</b></span>
+                <span><span className="block text-slate-500">{tr('Gaya')}</span><b className="tabular-nums text-rose-700">{money(a.out)}</b></span>
               </span>
               <span className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full" style={{ width: `${(a.in / maxIn) * 100}%`, background: m.color }} /></span>
-              <span className="mt-2 truncate text-[0.6875rem] text-slate-500">Aaj: +{money(a.todayIn)} · −{money(a.todayOut)} · {a.count} entries</span>
+              <span className="mt-2 truncate text-[0.6875rem] text-slate-500">{tr('Aaj: +{{todayIn}} · −{{todayOut}} · {{count}} entries', { todayIn: money(a.todayIn), todayOut: money(a.todayOut), count: a.count })}</span>
             </button>
           );
         })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Golak (khule register)</span>}
-          description="Register khulne se ab tak — yahi cash drawer me hona chahiye"
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />{tr('Golak (khule register)')}</span>}
+          description={tr('Register khulne se ab tak — yahi cash drawer me hona chahiye')}
           actions={canMoveCash && !allShops && acc.cash.drawers.length > 0 ? (
             <span className="flex gap-1.5">
-              <Button size="sm" variant="secondary" onClick={() => onMove('CASH_OUT')} leftIcon={<ArrowUpFromLine className="h-4 w-4" />}>Nikalein</Button>
-              <Button size="sm" onClick={() => onMove('CASH_IN')} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>Daalein</Button>
+              <Button size="sm" variant="secondary" onClick={() => onMove('CASH_OUT')} leftIcon={<ArrowUpFromLine className="h-4 w-4" />}>{tr('Nikalein')}</Button>
+              <Button size="sm" onClick={() => onMove('CASH_IN')} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>{tr('Daalein')}</Button>
             </span>
           ) : undefined}>
           {!acc.cash.drawers.length ? (
             <div className="py-8 text-center">
               <Store className="mx-auto h-9 w-9 text-slate-300" />
-              <p className="mt-2 font-semibold text-slate-900">Koi register khula nahi</p>
-              <p className="mt-1 text-sm text-slate-500">Din shuru karne ke liye Cash register kholein — phir golak ka hisaab yahan dikhega.</p>
-              <Link to="/cash-register" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cash register par jayein</Link>
+              <p className="mt-2 font-semibold text-slate-900">{tr('Koi register khula nahi')}</p>
+              <p className="mt-1 text-sm text-slate-500">{tr('Din shuru karne ke liye Cash register kholein — phir golak ka hisaab yahan dikhega.')}</p>
+              <Link to="/cash-register" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Cash register par jayein')}</Link>
             </div>
           ) : (
             <ul className="space-y-3">{acc.cash.drawers.map((d) => <DrawerRow key={d.id} d={d} money={money} />)}</ul>
@@ -325,19 +326,19 @@ function AccountsView({ acc, pos, money, cost, allShops, canMoveCash, onAccount,
 function DrawerRow({ d, money }: { d: MoneyDrawer; money: (n: number) => string }) {
   const [open, setOpen] = useState(false);
   const lines: Array<[string, number]> = [
-    ['Shuru ki amount', d.opening], ['Cash sale', d.sales], ['Khata wasooli', d.khata], ['Booking', d.bookings], ['Daala', d.cashIn],
-    ['Nikala', -d.cashOut], ['Return', -d.refunds], ['Purchase', -d.purchases], ['Supplier payment', -d.suppliers], ['Kharch', -d.expenses],
+    [tr('Shuru ki amount'), d.opening], [tr('Cash sale'), d.sales], [tr('Khata wasooli'), d.khata], [tr('Booking'), d.bookings], [tr('Daala'), d.cashIn],
+    [tr('Nikala'), -d.cashOut], [tr('Return'), -d.refunds], [tr('Purchase'), -d.purchases], [tr('Supplier payment'), -d.suppliers], [tr('Kharch'), -d.expenses],
   ];
   return (
     <li className="rounded-xl ring-1 ring-slate-200">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-3 px-3 py-2.5 text-left">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-3 px-3 py-2.5 text-start">
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium text-slate-900">{d.shop?.name ?? 'Golak'} · {d.registerNumber}</span>
-          <span className="block truncate text-[0.75rem] text-slate-500">Khula {when(d.openedAt)}{d.openedBy ? ` · ${d.openedBy}` : ''}</span>
+          <span className="block truncate font-medium text-slate-900">{d.shop?.name ?? tr('Golak')} · {d.registerNumber}</span>
+          <span className="block truncate text-[0.75rem] text-slate-500">{tr('Khula {{openedAt}}{{value}}', { openedAt: when(d.openedAt), value: d.openedBy ? ` · ${d.openedBy}` : '' })}</span>
         </span>
-        <span className="text-right">
+        <span className="text-end">
           <span className="block text-base font-bold tabular-nums text-slate-900">{money(d.expected)}</span>
-          <span className="block text-[0.6875rem] text-slate-500">{open ? 'Chhupayein' : 'Details'}</span>
+          <span className="block text-[0.6875rem] text-slate-500">{open ? tr('Chhupayein') : tr('Details')}</span>
         </span>
       </button>
       {open && (
@@ -358,14 +359,14 @@ function PositionCard({ pos, cost, money }: { pos?: MoneyPosition; cost: (n: num
   const want = Number(spend) || 0;
   const left = pos.spendable - want;
   const rows: Array<{ icon: typeof Coins; label: string; value: string; hint: string; color: string; to: string; minus?: boolean }> = [
-    { icon: Wallet, label: 'Golak me cash', value: money(pos.cashInHand), hint: 'Khule register', color: ACCOUNTS.CASH.color, to: '/cash-register' },
-    { icon: Package, label: 'Maal (cost par)', value: cost(pos.stockCost), hint: `Bik jaye to ${cost(pos.stockRetail)}`, color: '#0ea5e9', to: '/products' },
-    { icon: BookOpen, label: 'Logon se lena', value: money(pos.receivables), hint: `${pos.receivableCount} customer`, color: '#8b5cf6', to: '/khata' },
-    { icon: Truck, label: 'Supplier ko dena', value: money(pos.payables), hint: `${pos.payableCount} supplier`, color: '#e11d48', to: '/suppliers', minus: true },
+    { icon: Wallet, label: tr('Golak me cash'), value: money(pos.cashInHand), hint: tr('Khule register'), color: ACCOUNTS.CASH.color, to: '/cash-register' },
+    { icon: Package, label: tr('Maal (cost par)'), value: cost(pos.stockCost), hint: tr('Bik jaye to {{stockRetail}}', { stockRetail: cost(pos.stockRetail) }), color: '#0ea5e9', to: '/products' },
+    { icon: BookOpen, label: tr('Logon se lena'), value: money(pos.receivables), hint: tr('{{receivableCount}} customer', { receivableCount: pos.receivableCount }), color: '#8b5cf6', to: '/khata' },
+    { icon: Truck, label: tr('Supplier ko dena'), value: money(pos.payables), hint: tr('{{payableCount}} supplier', { payableCount: pos.payableCount }), color: '#e11d48', to: '/suppliers', minus: true },
   ];
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Coins className="h-4 w-4 text-brand-600" />Paisa kahan para hai</span>}
-      description="Abhi ka haal — chuni hui period se farq nahi parta">
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Coins className="h-4 w-4 text-brand-600" />{tr('Paisa kahan para hai')}</span>}
+      description={tr('Abhi ka haal — chuni hui period se farq nahi parta')}>
       <ul className="divide-y divide-slate-100">
         {rows.map((r) => (
           <li key={r.label}>
@@ -378,21 +379,21 @@ function PositionCard({ pos, cost, money }: { pos?: MoneyPosition; cost: (n: num
         ))}
       </ul>
       <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2.5 text-white">
-        <span className="text-[0.8125rem]">Dukaan ki maliyat</span><b className="tabular-nums">{cost(pos.netWorth)}</b>
+        <span className="text-[0.8125rem]">{tr('Dukaan ki maliyat')}</span><b className="tabular-nums">{cost(pos.netWorth)}</b>
       </div>
 
       <div className="mt-3 rounded-xl bg-emerald-50/70 p-3 ring-1 ring-emerald-200">
-        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-900"><Calculator className="h-4 w-4" />Kya khareed sakta hoon?</p>
+        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-emerald-900"><Calculator className="h-4 w-4" />{tr('Kya khareed sakta hoon?')}</p>
         <p className="mt-0.5 text-[0.75rem] text-emerald-800">
           {pos.shortfall > 0
-            ? `Supplier ka ${money(pos.payables)} dena hai — golak se ${money(pos.shortfall)} zyada. Abhi kharch karne layak kuch nahi.`
-            : `Golak me supplier ka hissa nikal kar ${money(pos.spendable)} kharch karne layak hai.`}
+            ? tr('Supplier ka {{payables}} dena hai — golak se {{shortfall}} zyada. Abhi kharch karne layak kuch nahi.', { payables: money(pos.payables), shortfall: money(pos.shortfall) })
+            : tr('Golak me supplier ka hissa nikal kar {{spendable}} kharch karne layak hai.', { spendable: money(pos.spendable) })}
         </p>
-        <label className="mt-2 block text-[0.75rem] font-medium text-emerald-900" htmlFor="spend-calc">Kitne ka maal ya kharch?</label>
+        <label className="mt-2 block text-[0.75rem] font-medium text-emerald-900" htmlFor="spend-calc">{tr('Kitne ka maal ya kharch?')}</label>
         <input id="spend-calc" type="number" inputMode="decimal" min={0} value={spend} onChange={(e) => setSpend(e.target.value)} placeholder="0"
           className="mt-1 h-9 w-full rounded-lg border border-emerald-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" />
         <p className="mt-1 text-[0.75rem] text-emerald-800">
-          {want > 0 ? (left >= 0 ? `Theek hai — is ke baad bhi ${money(left)} bachega.` : `${money(-left)} kam par jayega — supplier ka paisa istemal hoga.`) : 'Amount likhein, foran bata dega ke paisa poora hai ya nahi.'}
+          {want > 0 ? (left >= 0 ? tr('Theek hai — is ke baad bhi {{left}} bachega.', { left: money(left) }) : tr('{{value}} kam par jayega — supplier ka paisa istemal hoga.', { value: money(-left) })) : tr('Amount likhein, foran bata dega ke paisa poora hai ya nahi.')}
         </p>
       </div>
     </Card>
@@ -411,17 +412,17 @@ function LedgerView({ ledger, loading, money, filtered, onClear, page, setPage }
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-2 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
-        <span><span className="block text-[0.75rem] text-slate-500">Aaya</span><b className="tabular-nums text-emerald-700">+{money(t.in)}</b></span>
-        <span><span className="block text-[0.75rem] text-slate-500">Gaya</span><b className="tabular-nums text-rose-700">−{money(t.out)}</b></span>
-        <span className="text-right"><span className="block text-[0.75rem] text-slate-500">Bacha</span><b className={cn('tabular-nums', t.net < 0 ? 'text-rose-700' : 'text-slate-900')}>{money(t.net)}</b></span>
+        <span><span className="block text-[0.75rem] text-slate-500">{tr('Aaya')}</span><b className="tabular-nums text-emerald-700">+{money(t.in)}</b></span>
+        <span><span className="block text-[0.75rem] text-slate-500">{tr('Gaya')}</span><b className="tabular-nums text-rose-700">−{money(t.out)}</b></span>
+        <span className="text-end"><span className="block text-[0.75rem] text-slate-500">{tr('Bacha')}</span><b className={cn('tabular-nums', t.net < 0 ? 'text-rose-700' : 'text-slate-900')}>{money(t.net)}</b></span>
       </div>
 
       {!ledger.items.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <ListChecks className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi entry nahi' : 'Is period me paisa na aaya na gaya'}</p>
-          <p className="mt-1 text-sm text-slate-500">Sale, kharch, purchase ya khata wasooli hote hi yahan dikhegi.</p>
-          {filtered && <Button className="mt-4" variant="ghost" onClick={onClear}>Filter saaf karein</Button>}
+          <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi entry nahi') : tr('Is period me paisa na aaya na gaya')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Sale, kharch, purchase ya khata wasooli hote hi yahan dikhegi.')}</p>
+          {filtered && <Button className="mt-4" variant="ghost" onClick={onClear}>{tr('Filter saaf karein')}</Button>}
         </div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -431,9 +432,9 @@ function LedgerView({ ledger, loading, money, filtered, onClear, page, setPage }
 
       {ledger.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-          <span className="text-sm text-slate-600">Safha {page} / {ledger.pages}</span>
-          <Button variant="secondary" size="sm" disabled={page >= ledger.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+          <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: ledger.pages })}</span>
+          <Button variant="secondary" size="sm" disabled={page >= ledger.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
         </div>
       )}
     </div>
@@ -458,7 +459,7 @@ function EntryRow({ e, money }: { e: MoneyEntry; money: (n: number) => string })
         <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400">{meta}</span>
         {e.note && e.note !== e.party && <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{e.note}</span>}
       </span>
-      <span className={cn('shrink-0 text-right text-base font-bold tabular-nums', inflow ? 'text-emerald-700' : 'text-rose-700')}>{inflow ? '+' : '−'}{money(e.amount)}</span>
+      <span className={cn('shrink-0 text-end text-base font-bold tabular-nums', inflow ? 'text-emerald-700' : 'text-rose-700')}>{inflow ? '+' : '−'}{money(e.amount)}</span>
     </>
   );
   return (

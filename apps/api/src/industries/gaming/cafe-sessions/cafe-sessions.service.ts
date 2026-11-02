@@ -14,6 +14,7 @@ import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.
 import { CloseSaleDto, EndSessionDto, StartSessionDto } from './dto/start-session.dto';
 import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BILL_PREFIX, TIME_SKU, ensureTimeProduct, r2 } from '../common/gaming-catalog';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Session = Prisma.GamingCafeSessionGetPayload<{ include: { station: true } }>;
 
@@ -39,7 +40,7 @@ export class CafeSessionsService {
     const existing = await this.prisma.gamingCafeSession.findFirst({
       where: { tenantId: user.tenantId, stationId: dto.stationId, status: { in: ['ACTIVE', 'PAUSED'] } },
     });
-    if (existing) throw new BadRequestException(`${station.name} par pehle se khel chal raha hai`);
+    if (existing) throw new BadRequestException(apiMessage('{{stationName}} par pehle se khel chal raha hai', { stationName: station.name }));
 
     if (dto.customerId) {
       const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { name: true, phone: true } });
@@ -140,7 +141,7 @@ export class CafeSessionsService {
       let customerId = s.customerId;
       if (!customerId && kept < totalAmount - 0.01) {
         if (!s.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${r2(totalAmount - kept)} baqi hai — poori amount lein, ya udhaar ke liye player ka naam likhein`);
+          throw new BadRequestException(apiMessage('Rs {{totalAmount}} baqi hai — poori amount lein, ya udhaar ke liye player ka naam likhein', { totalAmount: r2(totalAmount - kept) }));
         }
         customerId = await ensureCustomer(tx, user, { name: s.customerName, phone: s.customerPhone, shopId });
       }
@@ -299,7 +300,7 @@ export class CafeSessionsService {
         const s = await tx.gamingCafeSession.findFirst({ where: { id: p.id, tenantId: user.tenantId }, include: { station: true } });
         if (!s) throw new NotFoundException('Session nahi mila');
         if (s.status === 'ENDED' && (s.notes ?? '').includes(sale.saleNumber)) { out.push({ id: s.id, sessionNumber: s.sessionNumber, totalAmount: s.totalAmount }); continue; }
-        if (s.status !== 'ACTIVE' && s.status !== 'PAUSED') throw new BadRequestException(`${s.sessionNumber} pehle hi band ho chuka`);
+        if (s.status !== 'ACTIVE' && s.status !== 'PAUSED') throw new BadRequestException(apiMessage('{{sessionNumber}} pehle hi band ho chuka', { sessionNumber: s.sessionNumber }));
         const live = liveBill(s, endedAt.getTime());
         const minutes = Math.max(Math.round(Number(p.minutes) || live.billableMinutes), 0);
         const amount = r2(Math.max(Number(p.amount) || 0, 0) * scale);

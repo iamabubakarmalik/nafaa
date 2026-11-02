@@ -10,9 +10,9 @@ import type { OpticalLensOrder } from '../api/lens-orders.api';
 import type { OpticalPrescription } from '../api/prescriptions.api';
 import { dayOnly, fmtPower, rxTypeLabel, type Power } from './meta';
 
-const POWER_COLS = [{ label: 'Aankh' }, { label: 'SPH', align: 'right' as const }, { label: 'CYL', align: 'right' as const }, { label: 'AXIS', align: 'right' as const }, { label: 'ADD', align: 'right' as const }];
+const POWER_COLS = [{ label: 'Aankh' }, { label: 'SPH', align: 'right' as const }, { label: 'CYL', align: 'right' as const }, { label: 'AXIS', align: 'right' as const }, { label: 'ADD', align: 'right' as const }]; // i18n-ignore
 
-function powerSection(p: Power, title = 'Number (power)'): PrintSection {
+function powerSection(p: Power, title = 'Number (power)'): PrintSection { // i18n-ignore
   const c = (v?: number | null, axis?: boolean) => (v == null ? '—' : axis ? `${v}` : fmtPower(v));
   return {
     kind: 'table', title, columns: POWER_COLS,
@@ -29,29 +29,29 @@ const rows = (pairs: Array<[string, string | number | null | undefined]>) =>
 
 export function rxDoc(rx: OpticalPrescription): PrintDoc {
   return {
-    title: 'Nuskha (Prescription)',
+    title: 'Nuskha (Prescription)', // i18n-ignore
     subtitle: rx.prescriptionNumber,
     meta: [['Date', dayOnly(rx.prescriptionDate)], ['Muddat', dayOnly(rx.expiryDate)]],
     sections: [
       { kind: 'rows', rows: rows([['Customer', rx.customerName], ['Mobile', rx.customerPhone], ['Umar', rx.customerAge], ['Type', rxTypeLabel(rx.prescriptionType)], ['Doctor', rx.doctorName ?? rx.prescribedBy], ['Clinic', rx.clinicName]]) },
       powerSection(rx),
-      ...(rx.rightVa || rx.leftVa ? [{ kind: 'rows' as const, title: 'Nazar (VA)', rows: rows([['R', rx.rightVa], ['L', rx.leftVa]]) }] : []),
-      ...(rx.clRightBaseCurve || rx.clLeftBaseCurve ? [{ kind: 'rows' as const, title: 'Contact lens', rows: rows([['R BC / DIA', [rx.clRightBaseCurve, rx.clRightDiameter].filter(Boolean).join(' / ')], ['L BC / DIA', [rx.clLeftBaseCurve, rx.clLeftDiameter].filter(Boolean).join(' / ')]]) }] : []),
-      ...(rx.notes ? [{ kind: 'text' as const, title: 'Note', text: rx.notes }] : []),
+      ...(rx.rightVa || rx.leftVa ? [{ kind: 'rows' as const, title: 'Nazar (VA)', rows: rows([['R', rx.rightVa], ['L', rx.leftVa]]) }] : []), // i18n-ignore
+      ...(rx.clRightBaseCurve || rx.clLeftBaseCurve ? [{ kind: 'rows' as const, title: 'Contact lens', rows: rows([['R BC / DIA', [rx.clRightBaseCurve, rx.clRightDiameter].filter(Boolean).join(' / ')], ['L BC / DIA', [rx.clLeftBaseCurve, rx.clLeftDiameter].filter(Boolean).join(' / ')]]) }] : []), // i18n-ignore
+      ...(rx.notes ? [{ kind: 'text' as const, title: 'Note', text: rx.notes }] : []), // i18n-ignore
     ],
-    footer: 'Saal me ek dafa aankh zaroor check karwayein.',
+    footer: 'Saal me ek dafa aankh zaroor check karwayein.', // i18n-ignore
   };
 }
 
 export function testDoc(t: OpticalEyeTest): PrintDoc {
   return {
-    title: 'Eye test report',
+    title: 'Eye test report', // i18n-ignore
     subtitle: t.testNumber,
     meta: [['Date', dayOnly(t.testCompletedAt ?? t.appointmentDate)]],
     sections: [
       { kind: 'rows', rows: rows([['Customer', t.customerName], ['Mobile', t.customerPhone], ['Umar', t.customerAge], ['Optometrist', t.optometristName], ['Shikayat', t.chiefComplaint]]) },
       powerSection(t),
-      { kind: 'rows', title: 'Check', rows: rows([['Nazar R / L', [t.rightVa, t.leftVa].filter(Boolean).join(' / ')], ['Aankh ka pressure', t.intraocularPressure], ['Rang ki pehchan', t.colorVisionTest], ['Tashkhees', t.diagnosis], ['Mashwara', t.recommendation], ['Dobara aayein', t.requiresFollowUp ? dayOnly(t.followUpDate) : null]]) },
+      { kind: 'rows', title: 'Check', rows: rows([['Nazar R / L', [t.rightVa, t.leftVa].filter(Boolean).join(' / ')], ['Aankh ka pressure', t.intraocularPressure], ['Rang ki pehchan', t.colorVisionTest], ['Tashkhees', t.diagnosis], ['Mashwara', t.recommendation], ['Dobara aayein', t.requiresFollowUp ? dayOnly(t.followUpDate) : null]]) }, // i18n-ignore
     ],
   };
 }
@@ -59,36 +59,36 @@ export function testDoc(t: OpticalEyeTest): PrintDoc {
 /** Customer's copy of a glasses or repair order: what was ordered, money and pickup date. */
 export function orderDoc(o: OpticalLensOrder, repair: boolean): PrintDoc {
   return {
-    title: repair ? 'Repair parchi' : 'Chashma order',
+    title: repair ? 'Repair parchi' : 'Chashma order', // i18n-ignore
     subtitle: o.orderNumber,
     meta: [['Order', dayOnly(o.orderedAt)], ['Tayyar hoga', dayOnly(o.expectedDate)]],
     sections: [
       { kind: 'rows', rows: rows([['Customer', o.customerName], ['Mobile', o.customerPhone], ['Frame', o.frameName], ...(repair ? [] : [['Lens', [o.lensType, o.lensIndex, o.lensMaterial].filter(Boolean).join(' · ')], ['Coating', o.lensCoatings.join(', ')]] as Array<[string, string]>)]) },
       ...(repair ? [] : [powerSection(o)]),
       {
-        kind: 'rows', title: 'Hisaab',
+        kind: 'rows', title: 'Hisaab', // i18n-ignore
         rows: [
-          ...rows([['Frame', o.framePrice ? formatPKR(o.framePrice) : null], [repair ? 'Repair' : 'Lens', o.lensPrice ? formatPKR(o.lensPrice) : null], ['Fitting', o.fittingCharge ? formatPKR(o.fittingCharge) : null]]),
-          { label: 'Kul', value: formatPKR(o.totalPrice), strong: true },
-          { label: 'Advance / mila', value: formatPKR(o.paidAmount) },
-          { label: 'Baqi', value: formatPKR(o.remainingAmount), strong: true },
+          ...rows([['Frame', o.framePrice ? formatPKR(o.framePrice) : null], [repair ? 'Repair' : 'Lens', o.lensPrice ? formatPKR(o.lensPrice) : null], ['Fitting', o.fittingCharge ? formatPKR(o.fittingCharge) : null]]), // i18n-ignore
+          { label: 'Kul', value: formatPKR(o.totalPrice), strong: true }, // i18n-ignore
+          { label: 'Advance / mila', value: formatPKR(o.paidAmount) }, // i18n-ignore
+          { label: 'Baqi', value: formatPKR(o.remainingAmount), strong: true }, // i18n-ignore
         ],
       },
     ],
-    footer: 'Chashma lene aate waqt ye parchi saath layein.',
+    footer: 'Chashma lene aate waqt ye parchi saath layein.', // i18n-ignore
   };
 }
 
 /** Slip that goes to the lab with the frame: power and lens only, no prices. */
 export function labDoc(o: OpticalLensOrder): PrintDoc {
   return {
-    title: 'Lab order',
+    title: 'Lab order', // i18n-ignore
     subtitle: o.orderNumber,
     meta: [['Date', dayOnly(o.orderedAt)], ['Chahiye', dayOnly(o.expectedDate)]],
     sections: [
       { kind: 'rows', rows: rows([['Lab', o.labName], ['Lab ref', o.labOrderRef], ['Frame', o.frameName], ['Lens', o.lensType], ['Index', o.lensIndex], ['Material', o.lensMaterial], ['Coating', o.lensCoatings.join(', ')]]) },
       powerSection(o),
-      ...(o.notes ? [{ kind: 'text' as const, title: 'Note', text: o.notes.split('\n').filter((l) => !/^(Booking|Bill) /.test(l)).join('\n') }] : []),
+      ...(o.notes ? [{ kind: 'text' as const, title: 'Note', text: o.notes.split('\n').filter((l) => !/^(Booking|Bill) /.test(l)).join('\n') }] : []), // i18n-ignore
     ],
   };
 }

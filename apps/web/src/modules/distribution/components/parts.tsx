@@ -50,7 +50,7 @@ export function Fact({ label, children, className }: { label: ReactNode; childre
 /** Dark sticky bar for bulk actions on selected rows. */
 export function BulkBar({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-2 z-10 m-3 mr-16 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-lg sm:m-4 sm:mr-20">
+    <div className="sticky bottom-2 z-10 m-3 me-16 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-lg sm:m-4 sm:me-20">
       {children}
     </div>
   );

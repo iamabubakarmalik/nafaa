@@ -1,6 +1,7 @@
 import { apiClient } from '@core/api/client';
 import { withManagerPin } from '@core/security/ManagerPin';
 import { setToDayStart, cachedDayStartHour } from '@core/lib/business-day';
+import { t } from '@core/i18n';
 
 export interface ServiceChargeItem {
   type: string;
@@ -297,7 +298,7 @@ export const salesApi = {
     merged.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
 
     if (!serverOk && merged.length === 0 && navigator.onLine) {
-      throw new Error('Sales load nahi ho sakin');
+      throw new Error(t('Sales load nahi ho sakin'));
     }
     return merged;
   },
@@ -371,7 +372,7 @@ export const salesApi = {
       const { db } = await import('@core/lib/offline/db');
       const { pendingSaleToSale } = await import('@core/lib/offline/offlineSales');
       const local = await db.pendingSales.get(id);
-      if (!local) throw new Error('Sale nahi mili');
+      if (!local) throw new Error(t('Sale nahi mili'));
       return pendingSaleToSale(local) as Sale;
     }
 
@@ -391,7 +392,7 @@ export const salesApi = {
     const synced = await db.pendingSales.where('serverSaleId').equals(id).first();
     if (synced) return pendingSaleToSale(synced) as Sale;
 
-    throw new Error('Sale nahi mili (offline — cache me nahi hai)');
+    throw new Error(t('Sale nahi mili (offline — cache me nahi hai)'));
   },
 
   /**
@@ -399,9 +400,9 @@ export const salesApi = {
    */
   voidSale: (id: string, reason?: string) => {
     if (!navigator.onLine) {
-      return Promise.reject(new Error('Void karne ke liye internet chahiye'));
+      return Promise.reject(new Error(t('Void karne ke liye internet chahiye')));
     }
-    return withManagerPin('Bill cancel', (managerPin) =>
+    return withManagerPin(t('Bill cancel'), (managerPin) =>
       apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason, managerPin }).then(unwrap), 'void');
   },
 };

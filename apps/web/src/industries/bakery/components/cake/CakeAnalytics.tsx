@@ -15,13 +15,14 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { cakeOrdersApi } from '../../api/cake-orders.api';
 import { AnalyticsSkeleton, CardTitle, LoadFailed, RankedBars, StatTile } from '../charts';
 import { CAKE_KEY, deliveryOf, flavorLabel, keyLabel, occasionOf, sizeLabel, statusOf } from '../meta';
+import { t as tr } from '@core/i18n';
 
 export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to: string } | null; onOccasion: (key: string) => void }) {
   const theme = useChartTheme();
   const { sales } = useMasked();
   const q = useQuery({ queryKey: [CAKE_KEY, 'summary', range], queryFn: () => cakeOrdersApi.summary(range ?? undefined), placeholderData: (p) => p });
   const d = q.data;
-  if (q.isError && !d) return <LoadFailed what="Analytics" retry={() => q.refetch()} />;
+  if (q.isError && !d) return <LoadFailed what={tr('Analytics')} retry={() => q.refetch()} />;
   if (!d) return <AnalyticsSkeleton />;
 
   const t = d.totals;
@@ -32,15 +33,15 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile icon={Cake} label="Orders" value={t.orders} sub={`${t.delivered} de diye · ${sales(t.deliveredValue)}`} tone="brand" />
-        <StatTile icon={Wallet} label="Kul rakam" value={sales(t.value)} sub={`Advance / mila ${sales(t.collected)}`} tone="green" />
-        <StatTile icon={Layers} label="Ausat order" value={sales(t.avgOrder)} sub="Ek order ki ausat rakam" tone="violet" />
-        <StatTile icon={t.avgRating ? Star : Ban} label={t.avgRating ? 'Customer ki raye' : 'Cancel'} value={t.avgRating ? `${t.avgRating} / 5` : t.cancelled}
-          sub={t.avgRating ? `${t.rated} orders par · ${t.cancelled} cancel` : 'Is period me cancel hue'} tone={t.avgRating ? 'amber' : 'rose'} />
+        <StatTile icon={Cake} label={tr('Orders')} value={t.orders} sub={tr('{{delivered}} de diye · {{deliveredValue}}', { delivered: t.delivered, deliveredValue: sales(t.deliveredValue) })} tone="brand" />
+        <StatTile icon={Wallet} label={tr('Kul rakam')} value={sales(t.value)} sub={tr('Advance / mila {{collected}}', { collected: sales(t.collected) })} tone="green" />
+        <StatTile icon={Layers} label={tr('Ausat order')} value={sales(t.avgOrder)} sub={tr('Ek order ki ausat rakam')} tone="violet" />
+        <StatTile icon={t.avgRating ? Star : Ban} label={t.avgRating ? tr('Customer ki raye') : tr('Cancel')} value={t.avgRating ? `${t.avgRating} / 5` : t.cancelled}
+          sub={t.avgRating ? tr('{{rated}} orders par · {{cancelled}} cancel', { rated: t.rated, cancelled: t.cancelled }) : tr('Is period me cancel hue')} tone={t.avgRating ? 'amber' : 'rose'} />
       </div>
 
-      <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>{d.period.grouping === 'month' ? 'Har mahine ke orders' : 'Har din ke orders'}</CardTitle>} description="Jis din cake dena tha, us din ke hisaab se">
-        {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me koi order nahi</p> : (
+      <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>{d.period.grouping === 'month' ? tr('Har mahine ke orders') : tr('Har din ke orders')}</CardTitle>} description={tr('Jis din cake dena tha, us din ke hisaab se')}>
+        {!days.length ? <p className="py-10 text-center text-sm text-slate-500">{tr('Is period me koi order nahi')}</p> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -48,7 +49,7 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                 <YAxis yAxisId="v" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
                 <YAxis yAxisId="c" orientation="right" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
-                <Tooltip formatter={(v, n) => (n === 'value' ? [formatPKR(Number(v)), 'Rakam'] : [v, 'Orders'])} {...theme.tooltip} />
+                <Tooltip formatter={(v, n) => (n === 'value' ? [formatPKR(Number(v)), tr('Rakam')] : [v, tr('Orders')])} {...theme.tooltip} />
                 <Bar yAxisId="v" dataKey="value" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
                 <Bar yAxisId="c" dataKey="count" fill={theme.highlight} radius={[4, 4, 0, 0]} maxBarSize={10} />
               </BarChart>
@@ -58,21 +59,21 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<CardTitle icon={Clock}>Kis waqt dena hota hai</CardTitle>} description="Is se pata chalta hai kab staff aur oven tayyar hon">
+        <Card className="rounded-2xl" title={<CardTitle icon={Clock}>{tr('Kis waqt dena hota hai')}</CardTitle>} description={tr('Is se pata chalta hai kab staff aur oven tayyar hon')}>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={hours} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="hour" tickFormatter={hourTick} tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={32} />
-                <Tooltip labelFormatter={(h) => hourLabel(Number(h))} formatter={(v) => [v, 'Orders']} {...theme.tooltip} />
+                <Tooltip labelFormatter={(h) => hourLabel(Number(h))} formatter={(v) => [v, tr('Orders')]} {...theme.tooltip} />
                 <Bar dataKey="count" fill={theme.primary} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="rounded-2xl" title={<CardTitle icon={Layers}>Orders ki halat</CardTitle>} description="Is period ke har order ka haal">
-          {!states.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me koi order nahi</p> : (
+        <Card className="rounded-2xl" title={<CardTitle icon={Layers}>{tr('Orders ki halat')}</CardTitle>} description={tr('Is period ke har order ka haal')}>
+          {!states.length ? <p className="py-10 text-center text-sm text-slate-500">{tr('Is period me koi order nahi')}</p> : (
             <div className="grid items-center gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
               <div className="mx-auto h-40 w-40">
                 <ResponsiveContainer width="100%" height="100%">
@@ -99,16 +100,16 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<CardTitle icon={PartyPopper}>Mauqa</CardTitle>} description="Kis mauqe ke cake zyada — click karein to sirf woh orders">
+        <Card className="rounded-2xl" title={<CardTitle icon={PartyPopper}>{tr('Mauqa')}</CardTitle>} description={tr('Kis mauqe ke cake zyada — click karein to sirf woh orders')}>
           <RankedBars onPick={onOccasion} rows={d.byOccasion.map((b) => ({ key: b.key, label: `${occasionOf(b.key).emoji} ${occasionOf(b.key).label}`, value: b.count, display: `${b.count} · ${sales(b.value)}` }))} />
         </Card>
-        <Card className="rounded-2xl" title={<CardTitle icon={Cake}>Flavour</CardTitle>} description="Kaunsa flavour sab se zyada bikta hai">
+        <Card className="rounded-2xl" title={<CardTitle icon={Cake}>{tr('Flavour')}</CardTitle>} description={tr('Kaunsa flavour sab se zyada bikta hai')}>
           <RankedBars rows={d.byFlavor.map((b) => ({ key: b.key, label: flavorLabel(b.key), value: b.count, display: `${b.count} · ${sales(b.value)}`, color: '#ec4899' }))} />
         </Card>
-        <Card className="rounded-2xl" title={<CardTitle icon={Ruler}>Size</CardTitle>} description="Kitne pound / kilo ke cake">
+        <Card className="rounded-2xl" title={<CardTitle icon={Ruler}>{tr('Size')}</CardTitle>} description={tr('Kitne pound / kilo ke cake')}>
           <RankedBars rows={d.bySize.map((b) => ({ key: b.key, label: sizeLabel(b.key), value: b.count, display: `${b.count} · ${sales(b.value)}`, color: '#8b5cf6' }))} />
         </Card>
-        <Card className="rounded-2xl" title={<CardTitle icon={Truck}>Kaise diya</CardTitle>} description="Dukaan se ya pahunchana">
+        <Card className="rounded-2xl" title={<CardTitle icon={Truck}>{tr('Kaise diya')}</CardTitle>} description={tr('Dukaan se ya pahunchana')}>
           <RankedBars rows={d.byDelivery.map((b) => ({ key: b.key, label: deliveryOf(b.key).label, value: b.count, display: `${b.count} · ${sales(b.value)}`, color: '#0ea5e9' }))} />
         </Card>
       </div>

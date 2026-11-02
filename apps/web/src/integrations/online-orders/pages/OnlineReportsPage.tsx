@@ -36,16 +36,17 @@ import { reportDoc } from '../lib/print';
 import { OnlineProfit } from '../components/analytics/OnlineProfit';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'summary' | 'profit' | 'channels' | 'couriers' | 'products' | 'aging';
 
 const TABS: Array<{ id: Tab; label: string; icon: typeof Globe; sections: AnalyticsSection[] }> = [
-  { id: 'summary', label: 'Khulasa', icon: LayoutDashboard, sections: ['pipeline', 'trend', 'payment', 'time'] },
-  { id: 'profit', label: 'Asli profit', icon: TrendingUp, sections: [] },
-  { id: 'channels', label: 'Channel & shehar', icon: MapPin, sections: ['channels', 'cities'] },
-  { id: 'couriers', label: 'Courier & RTO', icon: Truck, sections: ['couriers', 'cities'] },
-  { id: 'products', label: 'Products & customers', icon: Package, sections: ['products', 'customers'] },
-  { id: 'aging', label: 'COD', icon: Clock, sections: ['payment', 'codAging'] },
+  { id: 'summary', label: tr('Khulasa'), icon: LayoutDashboard, sections: ['pipeline', 'trend', 'payment', 'time'] },
+  { id: 'profit', label: tr('Asli profit'), icon: TrendingUp, sections: [] },
+  { id: 'channels', label: tr('Channel & shehar'), icon: MapPin, sections: ['channels', 'cities'] },
+  { id: 'couriers', label: tr('Courier & RTO'), icon: Truck, sections: ['couriers', 'cities'] },
+  { id: 'products', label: tr('Products & customers'), icon: Package, sections: ['products', 'customers'] },
+  { id: 'aging', label: tr('COD'), icon: Clock, sections: ['payment', 'codAging'] },
 ];
 
 const change = (now: number, before: number) => (before ? Math.round(((now - before) / before) * 100) : null);
@@ -64,7 +65,7 @@ export default function OnlineReportsPage() {
   const today = businessDayKey(new Date(), startHour);
   const period = resolveRange(range, startHour) ?? { from: today, to: today };
   const periodText = rangeLabel(period.from, period.to);
-  const channelName = channels?.find((c) => c.id === channelId)?.displayName ?? 'Sab channels';
+  const channelName = channels?.find((c) => c.id === channelId)?.displayName ?? tr('Sab channels');
   const q = { ...period, integrationId: channelId || undefined };
 
   const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
@@ -74,8 +75,8 @@ export default function OnlineReportsPage() {
   });
   const exp = useMutation({
     mutationFn: () => onlineOrdersApi.exportCsv(q),
-    onSuccess: () => toast.success('CSV download ho gayi — Excel me kholein'),
-    onError: (e) => toast.error(apiErrorMessage(e, 'CSV nahi bani')),
+    onSuccess: () => toast.success(tr('CSV download ho gayi — Excel me kholein')),
+    onError: (e) => toast.error(apiErrorMessage(e, tr('CSV nahi bani'))),
   });
 
   useEffect(() => {
@@ -92,97 +93,97 @@ export default function OnlineReportsPage() {
   const p = data?.previous;
   const valueChange = t && p ? change(t.netValue, p.netValue) : null;
   const ordersChange = t && p ? change(t.orders, p.orders) : null;
-  const vs = (n: number | null) => (n == null ? 'pichli period me kuch nahi' : `${n >= 0 ? '+' : ''}${n}% pichli period se`);
-  const acceptText = (m: number | null) => (m == null ? '—' : m < 60 ? `${m} min` : `${Math.round(m / 60)} ghante`);
+  const vs = (n: number | null) => (n == null ? tr('pichli period me kuch nahi') : tr('{{value}}{{n}}% pichli period se', { value: n >= 0 ? '+' : '', n }));
+  const acceptText = (m: number | null) => (m == null ? '—' : m < 60 ? tr('{{m}} min', { m }) : tr('{{value}} ghante', { value: Math.round(m / 60) }));
 
   return (
     <PageShell>
       <PageHero
-        title="Online reports"
+        title={tr('Online reports')}
         chip={<><BarChart3 />{periodText}</>}
-        meta={`${channelName} · cancel aur wapas orders sale me nahi gine jate`}
+        meta={tr('{{channelName}} · cancel aur wapas orders sale me nahi gine jate', { channelName })}
         busy={isFetching && !isLoading}
         loading={isLoading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={() => exp.mutate()} disabled={exp.isPending} className={heroButton} title="Har order ki line (malik / manager)">
-            <Download className="h-4 w-4" /> {exp.isPending ? 'Ban rahi…' : 'CSV (Excel)'}
+          <button type="button" onClick={() => exp.mutate()} disabled={exp.isPending} className={heroButton} title={tr('Har order ki line (malik / manager)')}>
+            <Download className="h-4 w-4" /> {exp.isPending ? tr('Ban rahi…') : tr('CSV (Excel)')}
           </button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => reportDoc(data!, periodText, channelName)} disabled={!data} /></span>
-          <Link to="/online-orders/customers" className={heroButton}><Users className="h-4 w-4" /> <span className="hidden sm:inline">Customers</span></Link>
-          <Link to="/online-store/blocklist" title="Block list" className={heroIconButton}><ShieldBan className="h-4 w-4" /></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/online-orders/customers" className={heroButton}><Users className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Customers')}</span></Link>
+          <Link to="/online-store/blocklist" title={tr('Block list')} className={heroIconButton}><ShieldBan className="h-4 w-4" /></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={t ? [
-          { label: `Online sale · ${t.netOrders} order`, value: money(t.netValue), hint: vs(valueChange) },
-          { label: 'Orders aaye', value: String(t.orders), hint: vs(ordersChange) },
-          { label: 'Deliver', value: money(t.deliveredValue), hint: `${t.delivered} · ${t.deliveryRate}% bheje hue` },
-          { label: 'RTO (wapas)', value: `${t.rtoRate}%`, hint: `${t.returned} / ${t.dispatched}${p?.rtoRate != null ? ` · pehle ${p.rtoRate}%` : ''}` },
-        ] : [{ label: 'Online sale', value: '' }, { label: 'Orders', value: '' }, { label: 'Deliver', value: '' }, { label: 'RTO', value: '' }]}
+          { label: tr('Online sale · {{netOrders}} order', { netOrders: t.netOrders }), value: money(t.netValue), hint: vs(valueChange) },
+          { label: tr('Orders aaye'), value: String(t.orders), hint: vs(ordersChange) },
+          { label: tr('Deliver hue'), value: money(t.deliveredValue), hint: tr('{{delivered}} · {{deliveryRate}}% bheje hue', { delivered: t.delivered, deliveryRate: t.deliveryRate }) },
+          { label: tr('RTO (wapas)'), value: `${t.rtoRate}%`, hint: `${t.returned} / ${t.dispatched}${p?.rtoRate != null ? ` · pehle ${p.rtoRate}%` : ''}` },
+        ] : [{ label: tr('Online sale'), value: '' }, { label: tr('Orders'), value: '' }, { label: tr('Deliver hue'), value: '' }, { label: tr('RTO'), value: '' }]}
       />
 
       <KpiRow>
         {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={(valueChange ?? 0) >= 0 ? ArrowUpRight : ArrowDownRight} color={(valueChange ?? 0) >= 0 ? '#16a34a' : '#e11d48'} label="Ausat order"
-            value={money(t.avgOrderValue)} hint={`${t.customers} customer · ${t.repeatCustomers} dobara`} />
-          <KpiCard icon={XCircle} color="#e11d48" label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order`} />
-          <KpiCard icon={RotateCcw} color="#c026d3" label="Wapas aaya maal" value={money(t.returnedValue)} hint={`${t.returned} parcel`} onClick={() => setTab('couriers')} active={tab === 'couriers'} />
-          <KpiCard icon={Timer} color="#0284c7" label="Accept me waqt" value={acceptText(t.avgAcceptMinutes)} hint="Order aane se bill tak" />
-          <KpiCard icon={PackageCheck} color="#0d9488" label="Delivery me waqt" value={t.avgDeliveryDays == null ? '—' : `${t.avgDeliveryDays} din`}
-            hint={t.pending ? `${t.pending} naye abhi accept baqi` : 'Courier ko dene se deliver tak'} />
+          <KpiCard icon={(valueChange ?? 0) >= 0 ? ArrowUpRight : ArrowDownRight} color={(valueChange ?? 0) >= 0 ? '#16a34a' : '#e11d48'} label={tr('Ausat order')}
+            value={money(t.avgOrderValue)} hint={tr('{{customers}} customer · {{repeatCustomers}} dobara', { customers: t.customers, repeatCustomers: t.repeatCustomers })} />
+          <KpiCard icon={XCircle} color="#e11d48" label={tr('Cancel / reject')} value={`${t.cancelRate}%`} hint={tr('{{cancelled}} order', { cancelled: t.cancelled })} />
+          <KpiCard icon={RotateCcw} color="#c026d3" label={tr('Wapas aaya maal')} value={money(t.returnedValue)} hint={tr('{{returned}} parcel', { returned: t.returned })} onClick={() => setTab('couriers')} active={tab === 'couriers'} />
+          <KpiCard icon={Timer} color="#0284c7" label={tr('Accept me waqt')} value={acceptText(t.avgAcceptMinutes)} hint={tr('Order aane se bill tak')} />
+          <KpiCard icon={PackageCheck} color="#0d9488" label={tr('Delivery me waqt')} value={t.avgDeliveryDays == null ? '—' : `${t.avgDeliveryDays} din`}
+            hint={t.pending ? tr('{{pending}} naye abhi accept baqi', { pending: t.pending }) : tr('Courier ko dene se deliver tak')} />
         </>}
       </KpiRow>
 
       <FilterBar
         search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">
-          Saare charts isi period ke hain · pichli period {p ? rangeLabel(p.from, p.to) : ''} se muqabla
+          {tr('Saare charts isi period ke hain · pichli period {{value}} se muqabla', { value: p ? rangeLabel(p.from, p.to) : '' })}
         </p>}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         {(channels?.length ?? 0) > 1 && (
-          <FilterMenu icon={Globe} label="Channel" value={channelId} active={!!channelId} onChange={setChannelId} width="w-72" align="right"
-            options={[{ value: '', label: 'Sab channels' }, ...channels!.map((c) => {
+          <FilterMenu icon={Globe} label={tr('Channel')} value={channelId} active={!!channelId} onChange={setChannelId} width="w-72" align="right"
+            options={[{ value: '', label: tr('Sab channels') }, ...channels!.map((c) => {
               const b = brandForChannel(c.type, { platform: c.platform });
               return { value: c.id, label: c.displayName, hint: brandLabel(b), icon: brandIcon(b) };
             })]} />
         )}
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>{tabs.length}</Kbd> tabs</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>{tabs.length}</Kbd> {' '}{tr('tabs')}</>}
         tabs={tabs.map(({ id, label, icon }) => ({ id, label, icon }))} />
 
       {isLoading ? (
         <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
       ) : isError || !data ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Report nahi bani</p>
+          <p className="font-semibold text-slate-900">{tr('Report nahi bani')}</p>
           <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>
-          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
+          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>{tr('Dobara koshish')}</Button>
         </div>
       ) : tab === 'profit' ? (
         <OnlineProfit q={{ ...period, integrationId: channelId || undefined }} money={money} />
       ) : data.totals.orders === 0 && tab !== 'aging' ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">Is period me koi online order nahi</h3>
-          <p className="mt-1 text-[0.875rem] text-slate-500">Date ya channel badal kar dekhein.</p>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{tr('Is period me koi online order nahi')}</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Date ya channel badal kar dekhein.')}</p>
         </div>
       ) : (
         <OnlineAnalytics data={data} money={money} sections={TABS.find((x) => x.id === tab)!.sections} />
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Online reports — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Online reports — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: BarChart3, color: '#2563eb', title: 'Period chunein', text: 'Aaj, 7 din, 30 din, mahina ya apni date. Upar ke number pichli itni hi period se milaye jate hain.' },
-            { icon: ShoppingBag, color: '#16a34a', title: 'Sale ka hisaab', text: 'Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.' },
-            { icon: TrendingUp, color: '#16a34a', title: 'Asli profit', text: 'Har order ka profit courier charge, COD fee, packaging aur RTO nikal kar — channel, courier, shehar aur product ke hisaab se.' },
-            { icon: MapPin, color: '#7c3aed', title: 'Channel aur shehar', text: 'Kahan se zyada order aata hai, aur kis shehar me RTO zyada — wahan COD call karke confirm karein.' },
-            { icon: Truck, color: '#0284c7', title: 'Courier aur RTO', text: 'Kaun sa courier zyada deliver karta hai aur kis ke parcel wapas aate hain.' },
-            { icon: Package, color: '#d97706', title: 'Products aur customers', text: 'Sab se zyada bikne wali cheezein aur sab se qeemti customer.' },
-            { icon: Download, color: '#0891b2', title: 'CSV aur print', text: 'CSV me har order ki line (malik ya manager). Print me khulasa, channel, shehar, courier aur products.' },
+            { icon: BarChart3, color: '#2563eb', title: tr('Period chunein'), text: tr('Aaj, 7 din, 30 din, mahina ya apni date. Upar ke number pichli itni hi period se milaye jate hain.') },
+            { icon: ShoppingBag, color: '#16a34a', title: tr('Sale ka hisaab'), text: tr('Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.') },
+            { icon: TrendingUp, color: '#16a34a', title: tr('Asli profit'), text: tr('Har order ka profit courier charge, COD fee, packaging aur RTO nikal kar — channel, courier, shehar aur product ke hisaab se.') },
+            { icon: MapPin, color: '#7c3aed', title: tr('Channel aur shehar'), text: tr('Kahan se zyada order aata hai, aur kis shehar me RTO zyada — wahan COD call karke confirm karein.') },
+            { icon: Truck, color: '#0284c7', title: tr('Courier aur RTO'), text: tr('Kaun sa courier zyada deliver karta hai aur kis ke parcel wapas aate hain.') },
+            { icon: Package, color: '#d97706', title: tr('Products aur customers'), text: tr('Sab se zyada bikne wali cheezein aur sab se qeemti customer.') },
+            { icon: Download, color: '#0891b2', title: tr('CSV aur print'), text: tr('CSV me har order ki line (malik ya manager). Print me khulasa, channel, shehar, courier aur products.') },
           ]}
-          tips={['Test order kisi report me nahi aata.', 'Din dukaan ke apne waqt par badalta hai (Settings → karobari din).', 'COD tab ka "kitne din se" poore account ka hai, date ka nahi.']}
-          shortcuts={[['1', 'khulasa'], ['2', 'asli profit'], ['3', 'channel'], ['4', 'courier'], ['5', 'products'], ['6', 'COD'], ['G', 'guide']]}
+          tips={[tr('Test order kisi report me nahi aata.'), tr('Din dukaan ke apne waqt par badalta hai (Settings → karobari din).'), tr('COD tab ka "kitne din se" poore account ka hai, date ka nahi.')]}
+          shortcuts={[['1', 'khulasa'], ['2', tr('asli profit')], ['3', 'channel'], ['4', 'courier'], ['5', 'products'], ['6', 'COD'], ['G', 'guide']]}
         />
       )}
     </PageShell>

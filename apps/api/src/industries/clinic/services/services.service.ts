@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ClinicService } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type LinkedProduct = { id: string; name: string; price: number; unit: string; isActive: boolean; categoryId: string | null };
 
@@ -72,7 +73,7 @@ export class ClinicServicesService {
     if (!data.name) throw new BadRequestException('Service ka naam zaroori hai');
     const existing = await this.prisma.clinicService.findFirst({ where: { tenantId: user.tenantId, name: data.name } });
     if (existing) {
-      if (!product) throw new BadRequestException(`"${data.name}" pehle se mojood hai`);
+      if (!product) throw new BadRequestException(apiMessage('"{{dataName}}" pehle se mojood hai', { dataName: data.name }));
       const row = await this.prisma.clinicService.update({ where: { id: existing.id }, data });
       return this.toView(row, product);
     }

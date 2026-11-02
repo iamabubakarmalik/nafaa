@@ -3,6 +3,7 @@ import type { VehicleType } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertVehicleMakeDto } from './dto/upsert-vehicle-make.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const PK_MODELS: Record<string, Array<[string, VehicleType]>> = {
   Toyota: [['Corolla', 'CAR'], ['Yaris', 'CAR'], ['Vitz', 'CAR'], ['Passo', 'CAR'], ['Prius', 'CAR'], ['Camry', 'CAR'], ['Fortuner', 'SUV'], ['Land Cruiser', 'SUV'], ['Prado', 'SUV'], ['Hilux', 'PICKUP'], ['Hiace', 'VAN'], ['Raize', 'SUV'], ['Rush', 'SUV']],
@@ -32,7 +33,7 @@ export class VehicleMakesService {
     const name = dto.name.trim();
     if (!name) throw new BadRequestException('Company ka naam likhein');
     const dup = await this.prisma.vehicleMake.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`Company "${name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Company "{{name}}" pehle se hai', { name }));
     return this.prisma.vehicleMake.create({ data: { tenantId: user.tenantId, ...dto, name } });
   }
 
@@ -62,7 +63,7 @@ export class VehicleMakesService {
     if (!m) throw new NotFoundException('Make not found');
     const name = dto.name?.trim() || m.name;
     const dup = await this.prisma.vehicleMake.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, id: { not: id } }, select: { id: true } });
-    if (dup) throw new BadRequestException(`Company "${name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Company "{{name}}" pehle se hai', { name }));
     return this.prisma.vehicleMake.update({ where: { id }, data: { ...dto, name } });
   }
 

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { cleanInput } from '../bookstore-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Fields a school form may set; stats and ownership are never taken from the body. */
 const FIELDS = [
@@ -18,7 +19,7 @@ function pick(dto: any): Record<string, unknown> {
     if (src[k] === undefined) continue;
     if (NUMBERS.has(k)) {
       const n = Number(src[k]);
-      if (!Number.isFinite(n) || n < 0) throw new BadRequestException(`${k} sahi likhein`);
+      if (!Number.isFinite(n) || n < 0) throw new BadRequestException(apiMessage('{{k}} sahi likhein', { k }));
       if (k === 'discountPct' && n > 100) throw new BadRequestException('Discount 100% se zyada nahi ho sakta');
       out[k] = k === 'creditDays' ? Math.round(n) : n;
     } else if (k === 'isActive') {
@@ -45,7 +46,7 @@ export class SchoolsService {
     const name = String(data.name ?? '').trim();
     if (!name) throw new BadRequestException('School ka naam likhein');
     const dup = await this.prisma.school.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`School "${name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('School "{{name}}" pehle se hai', { name }));
     return this.prisma.school.create({ data: { ...data, name, tenantId: user.tenantId } });
   }
 
@@ -90,7 +91,7 @@ export class SchoolsService {
       const name = String(data.name ?? '').trim();
       if (!name) throw new BadRequestException('School ka naam likhein');
       const dup = await this.prisma.school.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, NOT: { id } } });
-      if (dup) throw new BadRequestException(`School "${name}" pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('School "{{name}}" pehle se hai', { name }));
     }
     return this.prisma.school.update({ where: { id }, data });
   }

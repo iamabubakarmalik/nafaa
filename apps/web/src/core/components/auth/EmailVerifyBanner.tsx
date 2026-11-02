@@ -46,7 +46,7 @@ export function EmailVerifyBanner() {
 
   return (
     <div className="rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 p-4 mb-4 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-amber-200/30 blur-2xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute top-0 end-0 h-32 w-32 rounded-full bg-amber-200/30 blur-2xl -translate-y-1/2 translate-x-1/2 rtl:-translate-x-1/2" />
 
       <div className="relative flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3 flex-1 min-w-0">

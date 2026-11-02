@@ -6,6 +6,7 @@ import { Button, EmptyState, Input, Modal, Select, Skeleton, Textarea } from '@/
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PAY_METHODS, numIn } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export function ListCard({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   return (
@@ -40,7 +41,7 @@ export function ConfirmModal({ title, text, cta, danger, busy, onConfirm, onClos
 }) {
   return (
     <Modal open onClose={onClose} size="sm" title={title}
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant={danger ? 'danger' : 'primary'} loading={busy} onClick={onConfirm}>{cta}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button variant={danger ? 'danger' : 'primary'} loading={busy} onClick={onConfirm}>{cta}</Button></>}>
       <div className="text-[0.875rem] text-slate-700">{text}</div>
     </Modal>
   );
@@ -53,8 +54,8 @@ export function Pager({ page, total, limit, onPage }: { page: number; total: num
     <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
       <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} / {total}</span>
       <div className="flex gap-2">
-        <button type="button" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
-        <button type="button" disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+        <button type="button" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{t('Pichla')}</button>
+        <button type="button" disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{t('Agla')}</button>
       </div>
     </footer>
   );
@@ -68,7 +69,7 @@ export const actionBtn = 'inline-flex h-9 items-center gap-1.5 rounded-lg px-3 t
 export const primaryBtn = 'inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg hover:bg-brand-700 disabled:opacity-50';
 
 /** Analytics block: a title and horizontal bars (count and money per row). */
-export function BarList({ title, rows, money, empty = 'Is period me kuch nahi' }: {
+export function BarList({ title, rows, money, empty = t('Is period me kuch nahi') }: {
   title: string; rows: Array<{ key: string; label?: string; count: number; value: number }>; money: (n: number) => string; empty?: string;
 }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
@@ -95,7 +96,7 @@ export function BarList({ title, rows, money, empty = 'Is period me kuch nahi' }
 export interface MoneyInput { amount: number; paymentMethod: string; notes?: string }
 
 /** Takes an amount with its method; `max` stops more than what is due. */
-export function MoneyModal({ title, description, due, max, hint, busy, onSubmit, onClose, cta = 'Payment lein' }: {
+export function MoneyModal({ title, description, due, max, hint, busy, onSubmit, onClose, cta = t('Payment lein') }: {
   title: string; description?: string; due?: number; max?: number; hint?: ReactNode; busy?: boolean; cta?: string;
   onSubmit: (v: MoneyInput) => void; onClose: () => void;
 }) {
@@ -105,23 +106,23 @@ export function MoneyModal({ title, description, due, max, hint, busy, onSubmit,
   const [error, setError] = useState('');
   const submit = () => {
     const n = numIn(amount);
-    if (!n || n <= 0) { setError('Amount likhein'); return; }
-    if (max !== undefined && n > max + 0.01) { setError(`Zyada se zyada ${formatPKR(max)}`); return; }
+    if (!n || n <= 0) { setError(t('Amount likhein')); return; }
+    if (max !== undefined && n > max + 0.01) { setError(t('Zyada se zyada {{max}}', { max: formatPKR(max) })); return; }
     setError('');
     onSubmit({ amount: Math.round(n * 100) / 100, paymentMethod: method, notes: notes.trim() || undefined });
   };
   const chips = [due && due > 0 ? Math.round(due) : null, 1000, 5000, 10000, 25000].filter((v, i, a): v is number => !!v && a.indexOf(v) === i && (max === undefined || v <= max + 0.01));
   return (
     <Modal open onClose={onClose} size="sm" title={title} description={description}
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={busy} onClick={submit}>{cta}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button loading={busy} onClick={submit}>{cta}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
-        <Input label="Amount (Rs)" inputMode="decimal" autoFocus value={amount} error={error} onChange={(e) => setAmount(e.target.value)} hint={hint} />
+        <Input label={t('Amount (Rs)')} inputMode="decimal" autoFocus value={amount} error={error} onChange={(e) => setAmount(e.target.value)} hint={hint} />
         <div className="flex flex-wrap gap-1.5">
-          {chips.map((c) => <button key={c} type="button" onClick={() => setAmount(String(c))} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ring-slate-200 hover:bg-slate-50">{c === Math.round(due ?? -1) ? `Poora ${formatPKR(c)}` : formatPKR(c)}</button>)}
+          {chips.map((c) => <button key={c} type="button" onClick={() => setAmount(String(c))} className="h-8 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 ring-slate-200 hover:bg-slate-50">{c === Math.round(due ?? -1) ? t('Poora {{formatPKR}}', { formatPKR: formatPKR(c) }) : formatPKR(c)}</button>)}
         </div>
-        <Select label="Kaise mila" value={method} onChange={(e) => setMethod(e.target.value)} options={PAY_METHODS} hint={method === 'CASH' ? 'Cash khule drawer me jata hai' : 'Is account me jata hai; drawer ka cash nahi badalta'} />
-        <Textarea label="Note (marzi)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <Select label={t('Kaise mila')} value={method} onChange={(e) => setMethod(e.target.value)} options={PAY_METHODS} hint={method === 'CASH' ? t('Cash khule drawer me jata hai') : t('Is account me jata hai; drawer ka cash nahi badalta')} />
+        <Textarea label={t('Note (marzi)')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </form>
     </Modal>
   );

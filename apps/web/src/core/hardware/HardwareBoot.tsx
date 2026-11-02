@@ -3,6 +3,7 @@ import { Archive } from 'lucide-react';
 import { reconnectPrinter, useDeviceStatus } from './devices';
 import { openCashDrawer } from './print';
 import { useHardwareSettings } from './settings';
+import { t } from '@core/i18n';
 
 /**
  * App khulte hi pehle se jora printer khud jor lo (koi popup nahi —
@@ -28,7 +29,7 @@ export function DrawerButton({ className }: { className?: string }) {
   const ready = useDeviceStatus((s) => s.printer.ready);
   if (!(mode === 'desktop' || (mode === 'direct' && ready))) return null;
   return (
-    <button type="button" onClick={() => void openCashDrawer()} title="Cash drawer kholein" className={className}>
+    <button type="button" onClick={() => void openCashDrawer()} title={t('Cash drawer kholein')} className={className}>
       <Archive className="h-5 w-5" />
     </button>
   );

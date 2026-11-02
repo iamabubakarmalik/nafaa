@@ -28,6 +28,7 @@ import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_
 import { nextNumber, numberHead, payFromDrawer, writeOffUnit } from '../common/books';
 import { warrantyWindow } from '../common/serial-upkeep';
 import { BrandContactDto, CreateClaimDto, ListClaimsDto, ResolveClaimDto, UpdateClaimStatusDto } from './dto/create-claim.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 const OPEN_STATUSES = ['ACTIVE', 'CLAIMED', 'IN_REPAIR'] as const;
@@ -71,7 +72,7 @@ export class WarrantyClaimsService {
         where: { tenantId: user.tenantId, serialTrackingId: serial.id, ...OPEN },
         select: { claimNumber: true },
       });
-      if (open) throw new BadRequestException(`Is unit ka claim ${open.claimNumber} pehle se khula hai`);
+      if (open) throw new BadRequestException(apiMessage('Is unit ka claim {{claimNumber}} pehle se khula hai', { claimNumber: open.claimNumber }));
     }
 
     for (let attempt = 0; ; attempt++) {
@@ -427,8 +428,8 @@ export class WarrantyClaimsService {
       ? await tx.electronicsSerialTracking.findFirst({ where: { id: replacementSerialId, tenantId: user.tenantId } })
       : null;
     if (replacementSerialId && !fresh) throw new NotFoundException('Naya unit nahi mila');
-    if (fresh && fresh.status !== 'IN_STOCK') throw new BadRequestException(`Unit ${fresh.serialNumber} stock mein nahi (${fresh.status})`);
-    if (fresh && fresh.shopId && fresh.shopId !== shopId) throw new BadRequestException(`Unit ${fresh.serialNumber} is branch mein nahi`);
+    if (fresh && fresh.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('Unit {{serialNumber}} stock mein nahi ({{freshStatus}})', { serialNumber: fresh.serialNumber, freshStatus: fresh.status }));
+    if (fresh && fresh.shopId && fresh.shopId !== shopId) throw new BadRequestException(apiMessage('Unit {{serialNumber}} is branch mein nahi', { serialNumber: fresh.serialNumber }));
     const productId = fresh?.productId ?? c.productId!;
     const old = c.serialTrackingId
       ? await tx.electronicsSerialTracking.findFirst({ where: { id: c.serialTrackingId, tenantId: user.tenantId } })

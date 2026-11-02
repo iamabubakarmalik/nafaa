@@ -18,6 +18,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS, hasPermission, type PermissionKey } from '../../../common/constants/permissions.constants';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const isUniqueClash = (e: unknown) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002';
 
@@ -29,7 +30,7 @@ export class ShopsService {
 
   private need(user: AuthenticatedUser, key: PermissionKey, label: string) {
     if (!hasPermission(user.role, user.permissions, key)) {
-      throw new ForbiddenException(`Is kaam ke liye "${label}" ki permission chahiye`);
+      throw new ForbiddenException(apiMessage('Is kaam ke liye "{{label}}" ki permission chahiye', { label }));
     }
   }
   /**
@@ -406,11 +407,7 @@ export class ShopsService {
 
     if (history > 0) {
       throw new BadRequestException({
-        message:
-          `${shop.name} ka hisab mojood hai (${shop._count.sales} sales, ` +
-          `${shop._count.purchases} purchases, ${shop._count.expenses} expenses, ` +
-          `${shop._count.customerLedgers} khata entries). Delete nahi kar sakte — ` +
-          `deactivate karein taake record mehfooz rahe.`,
+        ...apiMessage('{{shopName}} ka hisab mojood hai ({{salesCount}} sales, {{purchasesCount}} purchases, {{expensesCount}} expenses, {{customerLedgersCount}} khata entries). Delete nahi kar sakte — deactivate karein taake record mehfooz rahe.', { shopName: shop.name, salesCount: shop._count.sales, purchasesCount: shop._count.purchases, expensesCount: shop._count.expenses, customerLedgersCount: shop._count.customerLedgers }),
         code: 'HAS_FINANCIAL_HISTORY',
         suggestion: 'DEACTIVATE',
         stats: {
@@ -436,7 +433,7 @@ export class ShopsService {
 
     if (pendingTransfers > 0) {
       throw new BadRequestException({
-        message: `${shop.name} mein ${pendingTransfers} pending transfers hain. Pehle unko complete karein.`,
+        ...apiMessage('{{shopName}} mein {{pendingTransfers}} pending transfers hain. Pehle unko complete karein.', { shopName: shop.name, pendingTransfers }),
         code: 'HAS_PENDING_TRANSFERS',
         suggestion: 'COMPLETE_TRANSFERS_FIRST',
       });
@@ -449,7 +446,7 @@ export class ShopsService {
 
     if (openRegister) {
       throw new BadRequestException({
-        message: `${shop.name} mein cash register OPEN hai. Pehle close karein.`,
+        ...apiMessage('{{shopName}} mein cash register OPEN hai. Pehle close karein.', { shopName: shop.name }),
         code: 'HAS_OPEN_REGISTER',
         suggestion: 'CLOSE_REGISTER_FIRST',
       });

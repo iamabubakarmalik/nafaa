@@ -6,6 +6,7 @@ import { VerifyJazzCashDto } from './dto/verify-payment.dto';
 import { RefundJazzCashDto } from './dto/refund.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * JazzCash Payment Gateway integration.
@@ -159,7 +160,7 @@ export class JazzCashService {
       };
     } catch (e: any) {
       this.logger.error(`JazzCash wallet API failed: ${e.message}`);
-      throw new BadRequestException('Payment gateway error: ' + e.message);
+      throw new BadRequestException(apiMessage('Payment gateway error: {{eMessage}}', { eMessage: e.message }));
     }
   }
 
@@ -205,7 +206,7 @@ export class JazzCashService {
       return { success: isSuccess, ...data };
     } catch (e: any) {
       this.logger.error(`JazzCash verify failed: ${e.message}`);
-      throw new BadRequestException('Verify failed: ' + e.message);
+      throw new BadRequestException(apiMessage('Verify failed: {{eMessage}}', { eMessage: e.message }));
     }
   }
 
@@ -284,7 +285,7 @@ export class JazzCashService {
       };
     } catch (e: any) {
       this.logger.error(`JazzCash refund failed: ${e.message}`);
-      throw new BadRequestException('Refund failed: ' + e.message);
+      throw new BadRequestException(apiMessage('Refund failed: {{eMessage}}', { eMessage: e.message }));
     }
   }
 

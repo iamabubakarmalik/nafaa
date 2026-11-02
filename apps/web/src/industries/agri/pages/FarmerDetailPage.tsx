@@ -21,9 +21,10 @@ import { bulkOrdersApi } from '../api/bulk-orders.api';
 import { farmersApi } from '../api/farmers.api';
 import { PayModal } from '../components/PayModal';
 import { ORDER_STATUS, PAY_METHODS, errorText, seasonLabel, shortDate } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const ENTRY: Record<string, string> = {
-  SALE_CREDIT: 'Udhaar bill', PAYMENT_RECEIVED: 'Wasooli', ADJUSTMENT: 'Adjustment', OPENING_BALANCE: 'Purana baqi', REFUND: 'Wapsi', LOYALTY_REDEEMED: 'Points',
+  SALE_CREDIT: t('Udhaar bill'), PAYMENT_RECEIVED: t('Wasooli'), ADJUSTMENT: t('Adjustment'), OPENING_BALANCE: t('Purana baqi'), REFUND: t('Wapsi'), LOYALTY_REDEEMED: t('Points'),
 };
 const methodLabel = (m?: string | null) => PAY_METHODS.find((x) => x.value === m)?.label ?? (m ? m : '');
 
@@ -48,27 +49,27 @@ export default function FarmerDetailPage() {
 
   const collect = useMutation({
     mutationFn: (v: { amount: number; method: string; note: string }) => farmersApi.payment(id, { amount: v.amount, paymentMethod: v.method, note: v.note || undefined }),
-    onSuccess: (_, v) => { refresh(); toast.success(`${money(v.amount)} wasool — khate me likh diya`); setPay(false); },
-    onError: (e) => toast.error(errorText(e, 'Wasooli nahi hui')),
+    onSuccess: (_, v) => { refresh(); toast.success(t('{{amount}} wasool — khate me likh diya', { amount: money(v.amount) })); setPay(false); },
+    onError: (e) => toast.error(errorText(e, t('Wasooli nahi hui'))),
   });
   const link = useMutation({
     mutationFn: () => farmersApi.linkCustomer(id),
-    onSuccess: () => { refresh(); toast.success('Khata jur gaya'); },
-    onError: (e) => toast.error(errorText(e, 'Khata nahi jura')),
+    onSuccess: () => { refresh(); toast.success(t('Khata jur gaya')); },
+    onError: (e) => toast.error(errorText(e, t('Khata nahi jura'))),
   });
   const reactivate = useMutation({
     mutationFn: () => farmersApi.reactivate(id),
-    onSuccess: () => { refresh(); toast.success('Udhaar dobara chalu'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { refresh(); toast.success(t('Udhaar dobara chalu')); },
+    onError: (e) => toast.error(errorText(e, t('Nahi hua'))),
   });
   const remove = useMutation({
     mutationFn: () => farmersApi.remove(id),
-    onSuccess: () => { refresh(); toast.success('Farmer list se hat gaya — khata aur bill mehfooz'); navigate('/agri/farmers'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { refresh(); toast.success(t('Farmer list se hat gaya — khata aur bill mehfooz')); navigate('/agri/farmers'); },
+    onError: (e) => toast.error(errorText(e, t('Nahi hua'))),
   });
 
   if (farmerQ.isLoading) return <PageShell><Skeleton className="h-28 rounded-3xl" /><Skeleton className="h-24 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></PageShell>;
-  if (!f) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Ye farmer nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/agri/farmers')}>Farmers par wapas</Button></div></PageShell>;
+  if (!f) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Ye farmer nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/agri/farmers')}>{t('Farmers par wapas')}</Button></div></PageShell>;
 
   const stopped = f.status === 'SUSPENDED' || f.status === 'CLOSED';
   const seasons = khataQ.data?.seasons ?? [];
@@ -86,7 +87,7 @@ export default function FarmerDetailPage() {
   return (
     <PageShell>
       <PageHero
-        title={<>{f.fullName}{stopped && <span className="ml-2 rounded-full bg-rose-500/90 px-2 py-0.5 align-middle text-[0.6875rem] font-semibold">Udhaar roka hua</span>}</>}
+        title={<>{f.fullName}{stopped && <span className="ms-2 rounded-full bg-rose-500/90 px-2 py-0.5 align-middle text-[0.6875rem] font-semibold">{t('Udhaar roka hua')}</span>}</>}
         subtitle={(
           <span className="flex flex-wrap items-center gap-x-3">
             <span>{f.farmerNumber}</span><span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{f.phone}</span>
@@ -96,42 +97,42 @@ export default function FarmerDetailPage() {
         back="/agri/farmers"
         actions={(
           <>
-            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(true)} className={heroPrimaryButton}><Wallet className="h-4 w-4" />Wasool</button>}
-            {f.currentBalance > 0 && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-            {canKhata && khataQ.data && <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label="Statement" /></span>}
-            {canOrders && <Link to={`/agri/bulk-orders/new?farmer=${f.id}`} className={heroButton}><Boxes className="h-4 w-4" />Bulk order</Link>}
-            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />Badlein</Link>}
+            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(true)} className={heroPrimaryButton}><Wallet className="h-4 w-4" />{t('Wasool')}</button>}
+            {f.currentBalance > 0 && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
+            {canKhata && khataQ.data && <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label={t('Statement')} /></span>}
+            {canOrders && <Link to={`/agri/bulk-orders/new?farmer=${f.id}`} className={heroButton}><Boxes className="h-4 w-4" />{t('Bulk order')}</Link>}
+            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />{t('Badlein')}</Link>}
           </>
         )}
       />
 
       {!f.khataLinked && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
-          <AlertTriangle className="h-4 w-4" /><span className="text-[0.875rem] font-medium">Ye farmer kisi customer khate se nahi jura — POS ka udhaar yahan nahi dikhta</span>
-          {canManage && <Button size="sm" className="ml-auto" loading={link.isPending} onClick={() => link.mutate()} leftIcon={<Link2 className="h-4 w-4" />}>Khata jorein</Button>}
+          <AlertTriangle className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{t('Ye farmer kisi customer khate se nahi jura — POS ka udhaar yahan nahi dikhta')}</span>
+          {canManage && <Button size="sm" className="ms-auto" loading={link.isPending} onClick={() => link.mutate()} leftIcon={<Link2 className="h-4 w-4" />}>{t('Khata jorein')}</Button>}
         </div>
       )}
       {(f.dueNow ?? 0) > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-rose-900 ring-1 ring-rose-200">
-          <AlertTriangle className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{money(f.dueNow)} pichle season ka baqi hai — katai guzar chuki, wasooli ka waqt hai</span>
+          <AlertTriangle className="h-4 w-4" /><span className="text-[0.875rem] font-medium">{t('{{dueNow}} pichle season ka baqi hai — katai guzar chuki, wasooli ka waqt hai', { dueNow: money(f.dueNow) })}</span>
         </div>
       )}
 
       <KpiRow cols={4}>
-        <KpiCard icon={Wallet} color="#2563eb" label="Udhaar" value={money(f.currentBalance)} hint={(f.advance ?? 0) > 0 ? `Advance ${money(f.advance)}` : f.currentSeasonLabel} />
-        <KpiCard icon={AlertTriangle} color="#e11d48" label="Wasooli ka waqt" value={money(f.dueNow)} hint="Katai guzar gayi" />
-        <KpiCard icon={Ban} color="#d97706" label="Udhaar ki had" value={f.creditLimit > 0 ? money(f.creditLimit) : 'Koi had nahi'} hint={f.overLimit ? 'Had se upar' : undefined} />
-        <KpiCard icon={Sprout} color="#65a30d" label="Zameen" value={f.landAreaAcres ? `${f.landAreaAcres} acre` : '—'} hint={f.primaryCrops.slice(0, 3).join(', ') || undefined} />
+        <KpiCard icon={Wallet} color="#2563eb" label={t('Udhaar')} value={money(f.currentBalance)} hint={(f.advance ?? 0) > 0 ? t('Advance {{advance}}', { advance: money(f.advance) }) : f.currentSeasonLabel} />
+        <KpiCard icon={AlertTriangle} color="#e11d48" label={t('Wasooli ka waqt')} value={money(f.dueNow)} hint={t('Katai guzar gayi')} />
+        <KpiCard icon={Ban} color="#d97706" label={t('Udhaar ki had')} value={f.creditLimit > 0 ? money(f.creditLimit) : t('Koi had nahi')} hint={f.overLimit ? t('Had se upar') : undefined} />
+        <KpiCard icon={Sprout} color="#65a30d" label={t('Zameen')} value={f.landAreaAcres ? `${f.landAreaAcres} acre` : '—'} hint={f.primaryCrops.slice(0, 3).join(', ') || undefined} />
       </KpiRow>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" flush title="Season ka khata" description="Rabi (Oct–Mar) 31 May tak, Kharif (Apr–Sep) 15 Dec tak wapas">
-            {!canKhata ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">Khata dekhne ki permission nahi</p>
+          <Card className="rounded-2xl" flush title={t('Season ka khata')} description={t('Rabi (Oct–Mar) 31 May tak, Kharif (Apr–Sep) 15 Dec tak wapas')}>
+            {!canKhata ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">{t('Khata dekhne ki permission nahi')}</p>
               : khataQ.isLoading ? <div className="p-4"><Skeleton className="h-24 rounded-xl" /></div>
-                : seasons.length === 0 ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">Abhi khate me koi entry nahi — POS par farmer chun kar udhaar bill banayein</p> : (
+                : seasons.length === 0 ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">{t('Abhi khate me koi entry nahi — POS par farmer chun kar udhaar bill banayein')}</p> : (
                   <Table>
-                    <THead><Tr><Th>Season</Th><Th align="right">Udhaar diya</Th><Th align="right">Wasool hua</Th><Th align="right">Aakhir me baqi</Th><Th>Wapsi</Th></Tr></THead>
+                    <THead><Tr><Th>{t('Season')}</Th><Th align="right">{t('Udhaar diya')}</Th><Th align="right">{t('Wasool hua')}</Th><Th align="right">{t('Aakhir me baqi')}</Th><Th>{t('Wapsi')}</Th></Tr></THead>
                     <TBody>{seasons.map((s) => (
                       <Tr key={s.key}>
                         <Td className="font-semibold text-slate-900">{s.label}</Td>
@@ -145,9 +146,9 @@ export default function FarmerDetailPage() {
                 )}
           </Card>
           {canKhata && entries.length > 0 && (
-            <Card className="rounded-2xl" flush title="Khate ki entries" description={f.customerId ? <Link to={`/customers/${f.customerId}`} className="font-semibold text-brand-700 hover:underline">Poora khata customer page par →</Link> : undefined}>
+            <Card className="rounded-2xl" flush title={t('Khate ki entries')} description={f.customerId ? <Link to={`/customers/${f.customerId}`} className="font-semibold text-brand-700 hover:underline">{t('Poora khata customer page par →')}</Link> : undefined}>
               <Table minWidth="40rem">
-                <THead><Tr><Th>Date</Th><Th>Kya</Th><Th>Note</Th><Th align="right">Amount</Th><Th align="right">Baqi</Th></Tr></THead>
+                <THead><Tr><Th>{t('Date')}</Th><Th>{t('Kya')}</Th><Th>{t('Note')}</Th><Th align="right">{t('Amount')}</Th><Th align="right">{t('Baqi')}</Th></Tr></THead>
                 <TBody>{entries.slice(0, 50).map((e) => (
                   <Tr key={e.id}>
                     <Td className="text-[0.8125rem]">{shortDate(e.createdAt)}</Td>
@@ -161,8 +162,8 @@ export default function FarmerDetailPage() {
             </Card>
           )}
           {canOrders && (
-            <Card className="rounded-2xl" flush title="Bulk orders" description={<Link to={`/agri/bulk-orders?farmer=${f.id}`} className="font-semibold text-brand-700 hover:underline">Sab dekhein →</Link>}>
-              {(ordersQ.data?.items ?? []).length === 0 ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">Koi bulk order nahi</p> : (
+            <Card className="rounded-2xl" flush title={t('Bulk orders')} description={<Link to={`/agri/bulk-orders?farmer=${f.id}`} className="font-semibold text-brand-700 hover:underline">{t('Sab dekhein →')}</Link>}>
+              {(ordersQ.data?.items ?? []).length === 0 ? <p className="px-5 py-8 text-center text-[0.8125rem] text-slate-500">{t('Koi bulk order nahi')}</p> : (
                 <ul className="divide-y divide-slate-100">{ordersQ.data!.items.map((o) => (
                   <li key={o.id} className="flex items-center gap-3 px-5 py-2.5 text-[0.8125rem]">
                     <span className="font-semibold text-slate-900">{o.orderNumber}</span>
@@ -176,41 +177,41 @@ export default function FarmerDetailPage() {
           )}
         </div>
         <div className="space-y-4">
-          <Card className="rounded-2xl" title="Farmer">
+          <Card className="rounded-2xl" title={t('Farmer')}>
             <dl className="space-y-2 text-[0.875rem]">
               {([
-                ['Walid', f.fatherName], ['CNIC', f.cnic], ['Doosra phone', f.altPhone], ['Pata', f.address],
-                ['Zameen kis ki', f.landOwnership], ['Paani', f.waterSource], ['Mitti', f.soilType],
-                ['Abhi laga hai', [f.currentCrop, f.currentSeason ? seasonLabel(f.currentSeason) : ''].filter(Boolean).join(' · ')],
-                ['Kaam', f.farmingType.join(', ')], ['Aakhri khareed', f.lastPurchaseAt ? shortDate(f.lastPurchaseAt) : ''], ['Aakhri payment', f.lastPaymentAt ? shortDate(f.lastPaymentAt) : ''],
+                [t('Walid'), f.fatherName], ['CNIC', f.cnic], [t('Doosra phone'), f.altPhone], [t('Pata'), f.address],
+                [t('Zameen kis ki'), f.landOwnership], [t('Paani'), f.waterSource], [t('Mitti'), f.soilType],
+                [t('Abhi laga hai'), [f.currentCrop, f.currentSeason ? seasonLabel(f.currentSeason) : ''].filter(Boolean).join(' · ')],
+                [t('Kaam'), f.farmingType.join(', ')], [t('Aakhri khareed'), f.lastPurchaseAt ? shortDate(f.lastPurchaseAt) : ''], [t('Aakhri payment'), f.lastPaymentAt ? shortDate(f.lastPaymentAt) : ''],
               ] as Array<[string, string | undefined | null]>).filter(([, v]) => v).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-right font-medium text-slate-900">{v}</dd></div>
+                <div key={k} className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-end font-medium text-slate-900">{v}</dd></div>
               ))}
             </dl>
             {f.notes && <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">{f.notes}</p>}
-            {stopped && f.suspensionReason && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">Roka: {f.suspensionReason}</p>}
+            {stopped && f.suspensionReason && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">{t('Roka: {{suspensionReason}}', { suspensionReason: f.suspensionReason })}</p>}
           </Card>
-          <Card className="rounded-2xl" title="Aur">
+          <Card className="rounded-2xl" title={t('Aur')}>
             <div className="flex flex-col gap-2">
-              {f.customerId && <Link to={`/customers/${f.customerId}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><BookOpen className="h-4 w-4" />Customer khata</Link>}
-              <Link to={`/agri/advisory?farmer=${f.id}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Leaf className="h-4 w-4" />Fasal ka mashwara</Link>
-              <Link to={`/agri/subsidy?farmer=${f.id}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Landmark className="h-4 w-4" />Subsidy claims</Link>
-              {canManage && stopped && <Button variant="secondary" loading={reactivate.isPending} onClick={() => reactivate.mutate()} leftIcon={<RotateCcw className="h-4 w-4" />}>Udhaar dobara chalu</Button>}
-              {canManage && <Button variant="ghost" onClick={() => setHide(true)} leftIcon={<EyeOff className="h-4 w-4" />}>List se hatayein</Button>}
+              {f.customerId && <Link to={`/customers/${f.customerId}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><BookOpen className="h-4 w-4" />{t('Customer khata')}</Link>}
+              <Link to={`/agri/advisory?farmer=${f.id}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Leaf className="h-4 w-4" />{t('Fasal ka mashwara')}</Link>
+              <Link to={`/agri/subsidy?farmer=${f.id}`} className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Landmark className="h-4 w-4" />{t('Subsidy claims')}</Link>
+              {canManage && stopped && <Button variant="secondary" loading={reactivate.isPending} onClick={() => reactivate.mutate()} leftIcon={<RotateCcw className="h-4 w-4" />}>{t('Udhaar dobara chalu')}</Button>}
+              {canManage && <Button variant="ghost" onClick={() => setHide(true)} leftIcon={<EyeOff className="h-4 w-4" />}>{t('List se hatayein')}</Button>}
             </div>
           </Card>
         </div>
       </div>
 
       {pay && (
-        <PayModal title={`${f.fullName} se wasooli`} description="Customer khate me likha jayega — day book aur drawer me aata hai" max={f.currentBalance}
+        <PayModal title={t('{{fullName}} se wasooli', { fullName: f.fullName })} description={t('Customer khate me likha jayega — day book aur drawer me aata hai')} max={f.currentBalance}
           suggest={[f.dueNow ?? 0, f.currentBalance]} busy={collect.isPending} onClose={() => setPay(false)} onPay={(v) => collect.mutate(v)} />
       )}
       {hide && (
-        <Modal open onClose={() => setHide(false)} size="sm" title={`${f.fullName} ko list se hatayein?`}
-          description={f.currentBalance > 0 ? `Is par ${money(f.currentBalance)} udhaar hai. Farmer list se hatega, magar khata, bill aur udhaar customer page par rahenge.` : 'Farmer list se hatega. Khata aur bill mehfooz rahenge.'}
-          footer={<><Button variant="secondary" onClick={() => setHide(false)}>Wapas</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate()}>Hatayein</Button></>}>
-          <p className="text-[0.8125rem] text-slate-600">Wapas laana ho to isi phone se naya farmer banayein — purana khata jur jayega.</p>
+        <Modal open onClose={() => setHide(false)} size="sm" title={t('{{fullName}} ko list se hatayein?', { fullName: f.fullName })}
+          description={f.currentBalance > 0 ? t('Is par {{currentBalance}} udhaar hai. Farmer list se hatega, magar khata, bill aur udhaar customer page par rahenge.', { currentBalance: money(f.currentBalance) }) : t('Farmer list se hatega. Khata aur bill mehfooz rahenge.')}
+          footer={<><Button variant="secondary" onClick={() => setHide(false)}>{t('Wapas')}</Button><Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate()}>{t('Hatayein')}</Button></>}>
+          <p className="text-[0.8125rem] text-slate-600">{t('Wapas laana ho to isi phone se naya farmer banayein — purana khata jur jayega.')}</p>
         </Modal>
       )}
     </PageShell>

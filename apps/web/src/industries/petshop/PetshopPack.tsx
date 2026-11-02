@@ -12,15 +12,16 @@ import LiveAnimalDetailPage from './pages/LiveAnimalDetailPage';
 import GroomingPage from './pages/GroomingPage';
 import GroomingFormPage from './pages/GroomingFormPage';
 import GroomersPage from './pages/GroomersPage';
+import { t } from '@core/i18n';
 
 export const PetshopPack: IndustryPack = {
   id: 'petshop',
   name: 'Pet Shop & Vet Store',
-  shortName: 'Pet Shop',
+  shortName: t('Pet Shop'),
   emoji: '🐾',
   priority: 76,
   description:
-    'Pet food, accessories, aquarium, vet medicine, live animals with health tracking, grooming appointments.',
+    t('Pet food, accessories, aquarium, vet medicine, live animals with health tracking, grooming appointments.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -33,16 +34,16 @@ export const PetshopPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Pet shop',
+      label: t('Pet shop'),
       icon: PawPrint,
       emoji: '🐾',
       color: '#f59e0b',
       order: 20,
       items: [
-        { to: '/petshop/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/petshop/live-animals', label: 'Live animals', icon: Heart },
-        { to: '/petshop/grooming', label: 'Grooming', icon: Scissors },
-        { to: '/petshop/groomers', label: 'Groomers', icon: Users },
+        { to: '/petshop/dashboard', label: t('Dashboard'), icon: LayoutDashboard },
+        { to: '/petshop/live-animals', label: t('Live animals'), icon: Heart },
+        { to: '/petshop/grooming', label: t('Grooming'), icon: Scissors },
+        { to: '/petshop/groomers', label: t('Groomers'), icon: Users },
       ],
     },
   ],
@@ -75,19 +76,19 @@ export const PetshopPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🐾', group: 'Count' },
-      { value: 'kg', label: 'Kilograms', hint: '⚖️', group: 'Weight' },
-      { value: 'g', label: 'Grams', hint: '⚖️', group: 'Weight' },
-      { value: 'ml', label: 'Milliliters', hint: '🧴', group: 'Volume' },
-      { value: 'l', label: 'Liters', hint: '🧴', group: 'Volume' },
-      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Pieces'), hint: '🐾', group: t('Count') },
+      { value: 'kg', label: t('Kilograms'), hint: '⚖️', group: t('Weight') },
+      { value: 'g', label: t('Grams'), hint: '⚖️', group: t('Weight') },
+      { value: 'ml', label: t('Milliliters'), hint: '🧴', group: t('Volume') },
+      { value: 'l', label: t('Liters'), hint: '🧴', group: t('Volume') },
+      { value: 'pack', label: t('Pack'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'petshopLiveAnimals', label: 'Live Animals Inventory', defaultEnabled: true },
-    { key: 'petshopGrooming', label: 'Grooming Appointments', defaultEnabled: true },
-    { key: 'petshopVetMedicine', label: 'Vet Medicine + Expiry Tracking', defaultEnabled: true },
-    { key: 'petshopAquarium', label: 'Aquarium Products', defaultEnabled: true },
+    { key: 'petshopLiveAnimals', label: t('Live Animals Inventory'), defaultEnabled: true },
+    { key: 'petshopGrooming', label: t('Grooming Appointments'), defaultEnabled: true },
+    { key: 'petshopVetMedicine', label: t('Vet Medicine + Expiry Tracking'), defaultEnabled: true },
+    { key: 'petshopAquarium', label: t('Aquarium Products'), defaultEnabled: true },
   ],
 };

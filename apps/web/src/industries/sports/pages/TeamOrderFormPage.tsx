@@ -20,6 +20,7 @@ import { sportsProductsApi } from '../api/products.api';
 import { teamOrdersApi, type RosterRow, type TeamOrderInput } from '../api/team-orders.api';
 import { META_KEY, MONEY_KEYS, TEAM_KEY, apiError, dateInput, opt, r2 } from '../components/meta';
 import { Line } from '../components/ui';
+import { t } from '@core/i18n';
 
 interface KitLine { key: string; productId: string; variantId?: string; productName: string; quantity: string; unitPrice: string; printingPrice: string; size: string; color: string; note: string }
 
@@ -96,14 +97,14 @@ export default function TeamOrderFormPage() {
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (team.teamName.trim().length < 2) e.teamName = 'Team ya school ka naam likhein';
-    if (team.contactPerson.trim().length < 2) e.contactPerson = 'Rabte wale ka naam likhein';
-    if (!/^[0-9+\-\s]{7,16}$/.test(team.contactPhone.trim())) e.contactPhone = 'Phone number sahi likhein (03001234567)';
-    if (!lines.length) e.lines = 'Kam az kam ek item daalein';
-    if (lines.some((l) => !(num(l.quantity) >= 1) || !Number.isInteger(num(l.quantity)))) e.lines = 'Har item ki ginti 1 ya zyada (poora adad)';
+    if (team.teamName.trim().length < 2) e.teamName = t('Team ya school ka naam likhein');
+    if (team.contactPerson.trim().length < 2) e.contactPerson = t('Rabte wale ka naam likhein');
+    if (!/^[0-9+\-\s]{7,16}$/.test(team.contactPhone.trim())) e.contactPhone = t('Phone number sahi likhein (03001234567)');
+    if (!lines.length) e.lines = t('Kam az kam ek item daalein');
+    if (lines.some((l) => !(num(l.quantity) >= 1) || !Number.isInteger(num(l.quantity)))) e.lines = t('Har item ki ginti 1 ya zyada (poora adad)');
     const d = num(money.discountPct);
-    if (d < 0 || d > 100) e.discountPct = 'Discount 0 se 100% tak';
-    if (!isEdit && num(money.advance) > totals.total + 0.01) e.advance = `Advance kul (${formatPKR(totals.total)}) se zyada nahi`;
+    if (d < 0 || d > 100) e.discountPct = t('Discount 0 se 100% tak');
+    if (!isEdit && num(money.advance) > totals.total + 0.01) e.advance = t('Advance kul ({{total}}) se zyada nahi', { total: formatPKR(totals.total) });
     return e;
   }, [team, lines, money, totals.total, isEdit]);
 
@@ -125,7 +126,7 @@ export default function TeamOrderFormPage() {
       return teamOrdersApi.create({ ...body, advancePaid: num(money.advance) || undefined, paymentMethod: money.method });
     },
     onSuccess: (o) => {
-      toast.success(isEdit ? `${o.orderNumber} save ho gaya` : `Order ${o.orderNumber} ban gaya`);
+      toast.success(isEdit ? t('{{orderNumber}} save ho gaya', { orderNumber: o.orderNumber }) : t('Order {{orderNumber}} ban gaya', { orderNumber: o.orderNumber }));
       [TEAM_KEY, 'sports-team-orders-summary', 'sports-dashboard-overview', ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       navigate(`/sports/team-orders?open=${o.id}`);
     },
@@ -159,42 +160,42 @@ export default function TeamOrderFormPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Team order — kaise likhein" onClose={guide.close}
+        <PageGuide title={t('Team order — kaise likhein')} onClose={guide.close}
           steps={[
-            { icon: Users, color: '#2563eb', title: 'Team', text: 'Team / school ka naam aur rabte wale ka phone. Isi naam se team ka khata banta hai.' },
-            { icon: Shirt, color: '#7c3aed', title: 'Kit', text: 'Product chunein (size wala ho to size bhi). Team rate khud aata hai; printing ka rate per piece alag likhein.' },
-            { icon: ListOrdered, color: '#ea580c', title: 'Printing list', text: 'Har player ka naam, number aur size. Excel / WhatsApp se list paste bhi kar sakte hain.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me ginta hai aur team ke khate me jama rehta hai. Deliver par bill me lag jata hai.' },
+            { icon: Users, color: '#2563eb', title: t('Team'), text: t('Team / school ka naam aur rabte wale ka phone. Isi naam se team ka khata banta hai.') },
+            { icon: Shirt, color: '#7c3aed', title: t('Kit'), text: t('Product chunein (size wala ho to size bhi). Team rate khud aata hai; printing ka rate per piece alag likhein.') },
+            { icon: ListOrdered, color: '#ea580c', title: t('Printing list'), text: t('Har player ka naam, number aur size. Excel / WhatsApp se list paste bhi kar sakte hain.') },
+            { icon: Wallet, color: '#16a34a', title: t('Advance'), text: t('Advance aaj ke cash me ginta hai aur team ke khate me jama rehta hai. Deliver par bill me lag jata hai.') },
           ]}
-          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
+          shortcuts={[['Ctrl+S', t('save')], ['Esc', t('wapas')], ['G', t('guide')]]} />
       )}
 
       <PageHero
-        title={isEdit ? `Order ${orderQ.data?.orderNumber} badlein` : 'Naya team order'}
-        subtitle="School, club ya team ki kit — printing ke saath"
+        title={isEdit ? t('Order {{orderNumber}} badlein', { orderNumber: orderQ.data?.orderNumber }) : t('Naya team order')}
+        subtitle={t('School, club ya team ki kit — printing ke saath')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={t('Wapas (Esc)')}
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
-      {closed && <Alert tone="warning" title="Ye order band ho chuka">Deliver ya cancel shuda order badla nahi ja sakta.</Alert>}
+      {closed && <Alert tone="warning" title={t('Ye order band ho chuka')}>{t('Deliver ya cancel shuda order badla nahi ja sakta.')}</Alert>}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-5">
-          <Card className="rounded-2xl" title="Team">
+          <Card className="rounded-2xl" title={t('Team')}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Team / school ka naam" required value={team.teamName} error={err('teamName')} maxLength={80} placeholder="Shaheen XI" onChange={(e) => setTeam({ ...team, teamName: e.target.value })} hint="Bill aur khate par yahi naam" />
-              <Input label="Idara (school / club)" value={team.organization} maxLength={80} placeholder="Govt High School No. 1" onChange={(e) => setTeam({ ...team, organization: e.target.value })} hint="Marzi hai" />
-              <Input label="Rabte wala" required value={team.contactPerson} error={err('contactPerson')} maxLength={80} placeholder="Coach Imran" onChange={(e) => setTeam({ ...team, contactPerson: e.target.value })} hint="Captain, coach ya PT teacher" />
-              <Input label="Phone" required inputMode="tel" value={team.contactPhone} error={err('contactPhone')} placeholder="03001234567" onChange={(e) => setTeam({ ...team, contactPhone: e.target.value })} hint="WhatsApp isi par" />
-              <Input label="Shehar" value={team.city} placeholder="Sialkot" onChange={(e) => setTeam({ ...team, city: e.target.value })} hint="Marzi hai" />
-              <Input label="PO / letter number" value={team.poNumber} placeholder="PO-114" onChange={(e) => setTeam({ ...team, poNumber: e.target.value })} hint="School ka purchase order ho to" />
-              <Input wrapperClassName="sm:col-span-2" label="Pata (delivery)" value={team.address} placeholder="Ground / school ka pata" onChange={(e) => setTeam({ ...team, address: e.target.value })} hint="Marzi hai" />
+              <Input label={t('Team / school ka naam')} required value={team.teamName} error={err('teamName')} maxLength={80} placeholder={t('Shaheen XI')} onChange={(e) => setTeam({ ...team, teamName: e.target.value })} hint={t('Bill aur khate par yahi naam')} />
+              <Input label={t('Idara (school / club)')} value={team.organization} maxLength={80} placeholder={t('Govt High School No. 1')} onChange={(e) => setTeam({ ...team, organization: e.target.value })} hint={t('Marzi hai')} />
+              <Input label={t('Rabte wala')} required value={team.contactPerson} error={err('contactPerson')} maxLength={80} placeholder={t('Coach Imran')} onChange={(e) => setTeam({ ...team, contactPerson: e.target.value })} hint={t('Captain, coach ya PT teacher')} />
+              <Input label={t('Phone')} required inputMode="tel" value={team.contactPhone} error={err('contactPhone')} placeholder="03001234567" onChange={(e) => setTeam({ ...team, contactPhone: e.target.value })} hint={t('WhatsApp isi par')} />
+              <Input label={t('Shehar')} value={team.city} placeholder={t('Sialkot')} onChange={(e) => setTeam({ ...team, city: e.target.value })} hint={t('Marzi hai')} />
+              <Input label={t('PO / letter number')} value={team.poNumber} placeholder={t('PO-114')} onChange={(e) => setTeam({ ...team, poNumber: e.target.value })} hint={t('School ka purchase order ho to')} />
+              <Input wrapperClassName="sm:col-span-2" label={t('Pata (delivery)')} value={team.address} placeholder={t('Ground / school ka pata')} onChange={(e) => setTeam({ ...team, address: e.target.value })} hint={t('Marzi hai')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title="Kit ka maal" description="Product chunein — size wale product me size bhi">
-            <ProductPick value={pick} onChange={setPick} label="Product" hint="Naam likhein ya barcode scan karein — team rate khud aa jata hai" />
+          <Card className="rounded-2xl" title={t('Kit ka maal')} description={t('Product chunein — size wale product me size bhi')}>
+            <ProductPick value={pick} onChange={setPick} label={t('Product')} hint={t('Naam likhein ya barcode scan karein — team rate khud aa jata hai')} />
             {err('lines') && <p className="mt-2 text-[0.8125rem] font-medium text-rose-600">{err('lines')}</p>}
             {lines.length > 0 && (
               <ul className="mt-4 space-y-3">
@@ -203,15 +204,15 @@ export default function TeamOrderFormPage() {
                     <div className="mb-2 flex items-center gap-2">
                       <p className="min-w-0 flex-1 truncate font-semibold text-slate-900">{l.productName}</p>
                       <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-700">{formatPKR(num(l.quantity) * (num(l.unitPrice) + num(l.printingPrice)))}</span>
-                      <button type="button" aria-label="Hatayein" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                      <button type="button" aria-label={t('Hatayein')} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                      <Input label="Ginti" inputMode="numeric" value={l.quantity} onChange={(e) => setLine(l.key, { quantity: e.target.value.replace(/\D/g, '') })} />
-                      <Input label="Rate" inputMode="decimal" value={l.unitPrice} onChange={(e) => setLine(l.key, { unitPrice: clean(e.target.value) })} hint="Per piece" />
-                      <Input label="Printing" inputMode="decimal" value={l.printingPrice} placeholder="0" onChange={(e) => setLine(l.key, { printingPrice: clean(e.target.value) })} hint="Naam / number per piece" />
-                      <Input label="Size" value={l.size} disabled={!!l.variantId} placeholder="M / 32" onChange={(e) => setLine(l.key, { size: e.target.value })} hint={l.variantId ? 'Product ka size' : 'Size wale product me zaroori'} />
-                      <Input label="Rang" value={l.color} placeholder="Green" onChange={(e) => setLine(l.key, { color: e.target.value })} />
-                      <Input label="Note" value={l.note} placeholder="Logo seene par" onChange={(e) => setLine(l.key, { note: e.target.value })} />
+                      <Input label={t('Ginti')} inputMode="numeric" value={l.quantity} onChange={(e) => setLine(l.key, { quantity: e.target.value.replace(/\D/g, '') })} />
+                      <Input label={t('Rate')} inputMode="decimal" value={l.unitPrice} onChange={(e) => setLine(l.key, { unitPrice: clean(e.target.value) })} hint={t('Per piece')} />
+                      <Input label={t('Printing')} inputMode="decimal" value={l.printingPrice} placeholder="0" onChange={(e) => setLine(l.key, { printingPrice: clean(e.target.value) })} hint={t('Naam / number per piece')} />
+                      <Input label={t('Size')} value={l.size} disabled={!!l.variantId} placeholder={t('M / 32')} onChange={(e) => setLine(l.key, { size: e.target.value })} hint={l.variantId ? t('Product ka size') : t('Size wale product me zaroori')} />
+                      <Input label={t('Rang')} value={l.color} placeholder={t('Green')} onChange={(e) => setLine(l.key, { color: e.target.value })} />
+                      <Input label={t('Note')} value={l.note} placeholder={t('Logo seene par')} onChange={(e) => setLine(l.key, { note: e.target.value })} />
                     </div>
                   </li>
                 ))}
@@ -219,18 +220,18 @@ export default function TeamOrderFormPage() {
             )}
           </Card>
 
-          <Card className="rounded-2xl" title="Printing list" description={`${roster.length} players — naam, number aur size`}
+          <Card className="rounded-2xl" title={t('Printing list')} description={t('{{count}} players — naam, number aur size', { count: roster.length })}
             actions={<div className="flex gap-2">
-              <Button variant="secondary" size="sm" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPaste('')}>List paste</Button>
-              <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRoster((r) => [...r, { name: '', number: '', size: '' }])}>Player</Button>
+              <Button variant="secondary" size="sm" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPaste('')}>{t('List paste')}</Button>
+              <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setRoster((r) => [...r, { name: '', number: '', size: '' }])}>{t('Player')}</Button>
             </div>}>
-            <Switch checked={printing.on || roster.length > 0} onChange={(e) => setPrinting({ ...printing, on: e.target.checked })} label="Kit par naam / number / logo printing" description="Players ki list ho to khud on" />
+            <Switch checked={printing.on || roster.length > 0} onChange={(e) => setPrinting({ ...printing, on: e.target.checked })} label={t('Kit par naam / number / logo printing')} description={t('Players ki list ho to khud on')} />
             {paste !== null && (
               <div className="mt-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-                <Textarea label="Har line par ek player" rows={5} value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={'Ali Raza 10 M\nUsman 7 L\nHamza, 18, XL'} hint="Naam, number, size — space ya comma se" />
+                <Textarea label={t('Har line par ek player')} rows={5} value={paste} onChange={(e) => setPaste(e.target.value)} placeholder={t('Ali Raza 10 M\nUsman 7 L\nHamza, 18, XL')} hint={t('Naam, number, size — space ya comma se')} />
                 <div className="mt-2 flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setPaste(null)}>Band</Button>
-                  <Button size="sm" onClick={() => { const rows = parseRoster(paste); setRoster((r) => [...r, ...rows]); setPaste(null); toast.success(`${rows.length} players jur gaye`); }}>List me daalein</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setPaste(null)}>{t('Band')}</Button>
+                  <Button size="sm" onClick={() => { const rows = parseRoster(paste); setRoster((r) => [...r, ...rows]); setPaste(null); toast.success(t('{{count}} players jur gaye', { count: rows.length })); }}>{t('List me daalein')}</Button>
                 </div>
               </div>
             )}
@@ -239,54 +240,54 @@ export default function TeamOrderFormPage() {
                 {roster.map((p, i) => (
                   <div key={i} className="grid grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_2rem] items-center gap-2">
                     <span className="text-center text-[0.75rem] text-slate-500">{i + 1}</span>
-                    <Input aria-label="Naam" value={p.name} placeholder="Naam" maxLength={40} onChange={(e) => setPlayer(i, { name: e.target.value })} />
-                    <Input aria-label="Number" value={p.number} placeholder="No." maxLength={4} onChange={(e) => setPlayer(i, { number: e.target.value })} />
-                    <Input aria-label="Size" value={p.size} placeholder="Size" maxLength={12} onChange={(e) => setPlayer(i, { size: e.target.value })} />
-                    <button type="button" aria-label="Hatayein" onClick={() => setRoster((r) => r.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                    <Input aria-label={t('Naam')} value={p.name} placeholder={t('Naam')} maxLength={40} onChange={(e) => setPlayer(i, { name: e.target.value })} />
+                    <Input aria-label={t('Number')} value={p.number} placeholder={t('No.')} maxLength={4} onChange={(e) => setPlayer(i, { number: e.target.value })} />
+                    <Input aria-label={t('Size')} value={p.size} placeholder={t('Size')} maxLength={12} onChange={(e) => setPlayer(i, { size: e.target.value })} />
+                    <button type="button" aria-label={t('Hatayein')} onClick={() => setRoster((r) => r.filter((_, n) => n !== i))} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 ))}
               </div>
             )}
             {(printing.on || roster.length > 0) && (
-              <Textarea wrapperClassName="mt-3" label="Printing / design" rows={2} value={printing.details} onChange={(e) => setPrinting({ ...printing, details: e.target.value })} placeholder="Peeche naam aur number, seene par school ka logo" hint="Printer ko yahi batana hai" />
+              <Textarea wrapperClassName="mt-3" label={t('Printing / design')} rows={2} value={printing.details} onChange={(e) => setPrinting({ ...printing, details: e.target.value })} placeholder={t('Peeche naam aur number, seene par school ka logo')} hint={t('Printer ko yahi batana hai')} />
             )}
           </Card>
 
-          <Card className="rounded-2xl" title="Note">
+          <Card className="rounded-2xl" title={t('Note')}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Textarea label="Team ke liye" rows={2} value={notes.notes} onChange={(e) => setNotes({ ...notes, notes: e.target.value })} hint="Slip par chhapta hai" />
-              <Textarea label="Andar ka note" rows={2} value={notes.internalNotes} onChange={(e) => setNotes({ ...notes, internalNotes: e.target.value })} hint="Sirf dukaan ke liye" />
+              <Textarea label={t('Team ke liye')} rows={2} value={notes.notes} onChange={(e) => setNotes({ ...notes, notes: e.target.value })} hint={t('Slip par chhapta hai')} />
+              <Textarea label={t('Andar ka note')} rows={2} value={notes.internalNotes} onChange={(e) => setNotes({ ...notes, internalNotes: e.target.value })} hint={t('Sirf dukaan ke liye')} />
             </div>
           </Card>
         </div>
 
         <aside className="h-fit space-y-4 lg:sticky lg:top-4">
-          <Card className="rounded-2xl" title="Hisaab">
-            <Input label="Delivery ki date" type="date" value={delivery} onChange={(e) => setDelivery(e.target.value)} hint="Kab tak tayyar dena hai" />
+          <Card className="rounded-2xl" title={t('Hisaab')}>
+            <Input label={t('Delivery ki date')} type="date" value={delivery} onChange={(e) => setDelivery(e.target.value)} hint={t('Kab tak tayyar dena hai')} />
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <Input label="Discount %" inputMode="decimal" value={money.discountPct} error={err('discountPct')} placeholder="0" onChange={(e) => setMoney({ ...money, discountPct: clean(e.target.value) })} />
-              <Input label="Delivery Rs" inputMode="decimal" value={money.shippingCharge} placeholder="0" onChange={(e) => setMoney({ ...money, shippingCharge: clean(e.target.value) })} />
+              <Input label={t('Discount %')} inputMode="decimal" value={money.discountPct} error={err('discountPct')} placeholder="0" onChange={(e) => setMoney({ ...money, discountPct: clean(e.target.value) })} />
+              <Input label={t('Delivery Rs')} inputMode="decimal" value={money.shippingCharge} placeholder="0" onChange={(e) => setMoney({ ...money, shippingCharge: clean(e.target.value) })} />
             </div>
             <div className="mt-3">
-              <Line label={`Maal (${totals.pieces} piece)`} value={formatPKR(totals.subtotal)} />
-              {totals.discount > 0 && <Line label="Discount" value={`- ${formatPKR(totals.discount)}`} />}
-              {num(money.shippingCharge) > 0 && <Line label="Delivery" value={formatPKR(num(money.shippingCharge))} />}
-              <Line strong label="Kul" value={formatPKR(totals.total)} />
+              <Line label={t('Maal ({{pieces}} piece)', { pieces: totals.pieces })} value={formatPKR(totals.subtotal)} />
+              {totals.discount > 0 && <Line label={t('Discount')} value={`- ${formatPKR(totals.discount)}`} />}
+              {num(money.shippingCharge) > 0 && <Line label={t('Delivery')} value={formatPKR(num(money.shippingCharge))} />}
+              <Line strong label={t('Kul')} value={formatPKR(totals.total)} />
             </div>
             {!isEdit ? (
               <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
-                <Input label="Advance (abhi mila)" inputMode="decimal" value={money.advance} error={err('advance')} placeholder="0" onChange={(e) => setMoney({ ...money, advance: clean(e.target.value) })} hint="Team ke khate me jama hoga" />
-                {num(money.advance) > 0 && <PaymentMethodPicker value={money.method} onChange={(m) => setMoney({ ...money, method: m })} label="Advance kaise mila" />}
-                <Line label="Baqi" value={formatPKR(Math.max(totals.total - num(money.advance), 0))} />
+                <Input label={t('Advance (abhi mila)')} inputMode="decimal" value={money.advance} error={err('advance')} placeholder="0" onChange={(e) => setMoney({ ...money, advance: clean(e.target.value) })} hint={t('Team ke khate me jama hoga')} />
+                {num(money.advance) > 0 && <PaymentMethodPicker value={money.method} onChange={(m) => setMoney({ ...money, method: m })} label={t('Advance kaise mila')} />}
+                <Line label={t('Baqi')} value={formatPKR(Math.max(totals.total - num(money.advance), 0))} />
               </div>
             ) : (
-              <p className="mt-3 text-[0.75rem] text-slate-500">Advance {formatPKR(orderQ.data?.advancePaid ?? 0)} mil chuka. Nayi payment order kholein aur "Payment lein" dabayein.</p>
+              <p className="mt-3 text-[0.75rem] text-slate-500">{t('Advance {{formatPKR}} mil chuka. Nayi payment order kholein aur "Payment lein" dabayein.', { formatPKR: formatPKR(orderQ.data?.advancePaid ?? 0) })}</p>
             )}
           </Card>
           <Button fullWidth size="lg" loading={save.isPending} disabled={!!closed} onClick={submit}>
-            {isEdit ? 'Save karein' : 'Order banayein'} <Kbd className="ml-2 bg-white/20 text-white">Ctrl S</Kbd>
+            {isEdit ? t('Save karein') : t('Order banayein')} <Kbd className="ms-2 bg-white/20 text-white">Ctrl S</Kbd>
           </Button>
-          <Link to="/sports/team-orders" className="block text-center text-[0.8125rem] font-medium text-slate-500 hover:text-slate-700">Sab team orders</Link>
+          <Link to="/sports/team-orders" className="block text-center text-[0.8125rem] font-medium text-slate-500 hover:text-slate-700">{t('Sab team orders')}</Link>
         </aside>
       </div>
     </PageShell>

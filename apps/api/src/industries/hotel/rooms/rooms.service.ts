@@ -11,6 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { HOLDING, IN_HOUSE, OPEN_RESERVATION, dayOf, found, keyOf, nightsBetween, today } from '../common/hotel-common';
 import { CreateRoomDto, UpdateRoomDto } from '../common/hotel.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Rooms of the branch being viewed plus rooms tied to no branch (rooms made
@@ -35,7 +36,7 @@ export class RoomsService {
     const roomNumber = dto.roomNumber.trim();
     if (!roomNumber) throw new BadRequestException('Room number likhein');
     const dup = await this.prisma.hotelRoom.findFirst({ where: { tenantId: user.tenantId, roomNumber } });
-    if (dup) throw new BadRequestException(dup.isActive ? `Room ${roomNumber} pehle se hai` : `Room ${roomNumber} band para hai — use dobara chalu karein`);
+    if (dup) throw new BadRequestException(dup.isActive ? apiMessage('Room {{roomNumber}} pehle se hai', { roomNumber }) : apiMessage('Room {{roomNumber}} band para hai — use dobara chalu karein', { roomNumber }));
     found(await this.prisma.hotelRoomType.findFirst({ where: { id: dto.roomTypeId, tenantId: user.tenantId } }), 'Room type');
     if (dto.status === 'OCCUPIED') throw new BadRequestException('Naya room bhara hua nahi ho sakta');
     const shopId = await this.branch(user.tenantId, dto.shopId !== undefined ? dto.shopId : scope?.shopId);
@@ -113,7 +114,7 @@ export class RoomsService {
     const r = await this.getOne(user, id);
     if (dto.roomNumber && dto.roomNumber.trim() !== r.roomNumber) {
       const dup = await this.prisma.hotelRoom.findFirst({ where: { tenantId: user.tenantId, roomNumber: dto.roomNumber.trim(), id: { not: id } } });
-      if (dup) throw new BadRequestException(`Room ${dto.roomNumber.trim()} pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('Room {{roomNumber}} pehle se hai', { roomNumber: dto.roomNumber.trim() }));
       dto.roomNumber = dto.roomNumber.trim();
     }
     if (dto.roomTypeId) found(await this.prisma.hotelRoomType.findFirst({ where: { id: dto.roomTypeId, tenantId: user.tenantId } }), 'Room type');
@@ -131,14 +132,14 @@ export class RoomsService {
       where: { roomId, booking: { tenantId, status: { in: [...HOLDING] }, checkOutDate: { gte: today() } } },
       select: { booking: { select: { bookingNumber: true, status: true } } },
     });
-    if (held) throw new BadRequestException(`Is room par booking ${held.booking.bookingNumber} hai — pehle room badlein, phir ${what} karein`);
+    if (held) throw new BadRequestException(apiMessage('Is room par booking {{bookingNumber}} hai — pehle room badlein, phir {{what}} karein', { bookingNumber: held.booking.bookingNumber, what }));
   }
 
   async updateStatus(user: AuthenticatedUser, id: string, status: string, notes?: string) {
     const r = await this.getOne(user, id);
     if (!MANUAL.includes(status)) throw new BadRequestException('Bhara hua status sirf check-in se lagta hai');
     const inHouse = await this.prisma.hotelBookedRoom.findFirst({ where: { roomId: id, booking: { tenantId: user.tenantId, status: { in: [...IN_HOUSE] } } }, select: { id: true } });
-    if (inHouse) throw new BadRequestException(`Room ${r.roomNumber} me guest hai — check-out ya room change se badlein`);
+    if (inHouse) throw new BadRequestException(apiMessage('Room {{roomNumber}} me guest hai — check-out ya room change se badlein', { roomNumber: r.roomNumber }));
     return this.prisma.hotelRoom.update({
       where: { id },
       data: {

@@ -11,6 +11,7 @@ import { BrandLogo, brandForCourier } from '@/assets/brands/BrandLogo';
 
 import { COURIERS_KEY } from './couriers/CourierForms';
 import { CourierHint } from './couriers/CourierHint';
+import { t as tr } from '@core/i18n';
 export { COURIERS_KEY };
 
 /** COD the courier collects: the total less every advance received (payment links and manual), as the API books it. */
@@ -23,17 +24,17 @@ const codDue = (o: OnlineOrderDetail) => {
 };
 
 const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: BadgeVariant }> = {
-  BOOKING: { label: 'Book ho raha…', tone: 'default' },
-  BOOKED: { label: 'Book ho gaya — pickup ka intezar', tone: 'info' },
-  PICKED_UP: { label: 'Courier le gaya', tone: 'info' },
-  IN_TRANSIT: { label: 'Raste me', tone: 'accent' },
-  OUT_FOR_DELIVERY: { label: 'Aaj deliver hoga', tone: 'accent' },
-  ATTEMPTED: { label: 'Customer nahi mila — dobara koshish', tone: 'warning' },
-  DELIVERED: { label: 'Deliver ho gaya', tone: 'success' },
-  RETURNING: { label: 'Wapas aa raha hai', tone: 'danger' },
-  RETURNED: { label: 'Wapas aa gaya (RTO)', tone: 'danger' },
-  CANCELLED: { label: 'Booking cancel', tone: 'danger' },
-  UNKNOWN: { label: 'Status nahi mila', tone: 'default' },
+  BOOKING: { label: tr('Book ho raha…'), tone: 'default' },
+  BOOKED: { label: tr('Book ho gaya — pickup ka intezar'), tone: 'info' },
+  PICKED_UP: { label: tr('Courier le gaya'), tone: 'info' },
+  IN_TRANSIT: { label: tr('Raste me'), tone: 'accent' },
+  OUT_FOR_DELIVERY: { label: tr('Aaj deliver hoga'), tone: 'accent' },
+  ATTEMPTED: { label: tr('Customer nahi mila — dobara koshish'), tone: 'warning' },
+  DELIVERED: { label: tr('Deliver ho gaya'), tone: 'success' },
+  RETURNING: { label: tr('Wapas aa raha hai'), tone: 'danger' },
+  RETURNED: { label: tr('Wapas aa gaya (RTO)'), tone: 'danger' },
+  CANCELLED: { label: tr('Booking cancel'), tone: 'danger' },
+  UNKNOWN: { label: tr('Status nahi mila'), tone: 'default' },
 };
 
 /**
@@ -55,17 +56,17 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
   const refresh = useMutation({
     mutationFn: () => couriersApi.refresh(o.id),
-    onSuccess: (r) => { onChanged(); toast.success(r.label ? `Courier: ${r.label}` : 'Taaza status le liya'); },
+    onSuccess: (r) => { onChanged(); toast.success(r.label ? tr('Courier: {{label}}', { label: r.label }) : tr('Taaza status le liya')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const cancel = useMutation({
     mutationFn: () => couriersApi.cancel(o.id),
-    onSuccess: () => { onChanged(); toast.success('Booking cancel ho gayi'); },
+    onSuccess: () => { onChanged(); toast.success(tr('Booking cancel ho gayi')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const label = useMutation({
     mutationFn: () => couriersApi.openLabel(o.id),
-    onError: (e) => toast.error(apiErrorMessage(e, 'Label nahi khula')),
+    onError: (e) => toast.error(apiErrorMessage(e, tr('Label nahi khula'))),
   });
 
   if (o.courierBooked && o.trackingNumber) {
@@ -77,11 +78,11 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           <BrandLogo name={brandForCourier(o.courierCode)} size={36} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold text-slate-900">{o.courierLabel ?? 'Courier'}</span>
+              <span className="text-sm font-bold text-slate-900">{o.courierLabel ?? tr('Courier')}</span>
               <button
                 type="button"
                 className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline"
-                onClick={() => navigator.clipboard?.writeText(o.trackingNumber!).then(() => toast.success('CN copy ho gaya'))}
+                onClick={() => navigator.clipboard?.writeText(o.trackingNumber!).then(() => toast.success(tr('CN copy ho gaya')))}
               >
                 {o.trackingNumber} <Copy className="h-3 w-3" />
               </button>
@@ -96,8 +97,8 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
         {history.length > 1 && (
           <details className="mt-3 text-xs">
-            <summary className="cursor-pointer font-bold text-slate-500">Courier ka safar ({history.length})</summary>
-            <ol className="mt-2 space-y-1 border-l border-slate-200 pl-3">
+            <summary className="cursor-pointer font-bold text-slate-500">{tr('Courier ka safar ({{count}})', { count: history.length })}</summary>
+            <ol className="mt-2 space-y-1 border-s border-slate-200 ps-3">
               {[...history].reverse().map((h, i) => (
                 <li key={i} className="text-slate-600">
                   {h.label}{h.at ? <span className="text-slate-400"> · {h.at}</span> : null}
@@ -110,28 +111,28 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
         <div className="mt-3 flex flex-wrap gap-2">
           {canLabel && (
             <Button size="xs" variant="primary" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>
-              Label print
+              {tr('Label print')}
             </Button>
           )}
           <Button size="xs" variant="outline" loading={refresh.isPending} onClick={() => refresh.mutate()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
-            Taaza status
+            {tr('Taaza status')}
           </Button>
           {o.courierSite && (
             <Button size="xs" variant="ghost" onClick={() => window.open(o.courierSite!, '_blank', 'noopener')} leftIcon={<ExternalLink className="h-3.5 w-3.5" />}>
-              Courier site
+              {tr('Courier site')}
             </Button>
           )}
           {o.courierStatus === 'BOOKED' && canCancel && (
             <Button
               size="xs" variant="critical" loading={cancel.isPending}
-              onClick={async () => { if ((await confirmDialog({ title: 'Courier booking cancel karein?', text: 'CN khatam ho jayega.', danger: true }))) cancel.mutate(); }}
+              onClick={async () => { if ((await confirmDialog({ title: tr('Courier booking cancel karein?'), text: tr('CN khatam ho jayega.'), danger: true }))) cancel.mutate(); }}
               leftIcon={<X className="h-3.5 w-3.5" />}
             >
-              Booking cancel
+              {tr('Booking cancel')}
             </Button>
           )}
         </div>
-        <p className="mt-2 text-[0.6875rem] text-slate-400">Nafaa har 30 minute courier se status leta hai — deliver ya wapas (RTO) hote hi order khud update hota hai.</p>
+        <p className="mt-2 text-[0.6875rem] text-slate-400">{tr('Nafaa har 30 minute courier se status leta hai — deliver ya wapas (RTO) hote hi order khud update hota hai.')}</p>
       </Card>
     );
   }
@@ -145,9 +146,9 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           {(['postex', 'leopards', 'tcs'] as const).map((b) => <BrandLogo key={b} name={b} size={26} />)}
         </span>
         <div className="min-w-0 flex-1 text-xs text-slate-500">
-          <span className="font-bold text-slate-700">Courier jorein</span> — phir yahin se ek click me booking, CN aur label.
+          <span className="font-bold text-slate-700">{tr('Courier jorein')}</span> {' '}{tr('— phir yahin se ek click me booking, CN aur label.')}
         </div>
-        <Link to="/online-store/couriers" className="text-xs font-bold text-brand-700 hover:underline">Couriers →</Link>
+        <Link to="/online-store/couriers" className="text-xs font-bold text-brand-700 hover:underline">{tr('Couriers →')}</Link>
       </section>
     );
   }
@@ -160,11 +161,11 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           ? <BrandLogo name={brandForCourier(connected[0].code)} size={36} />
           : <span className="flex gap-1">{connected.slice(0, 3).map((c) => <BrandLogo key={c.code} name={brandForCourier(c.code)} size={28} />)}</span>}
         <div className="min-w-[11rem] flex-1">
-          <div className="text-sm font-bold text-slate-900">Courier par book karein</div>
-          <div className="text-xs text-slate-500">CN khud banega · COD {codDue(o) ? rs(codDue(o)) : 'nahi (paid)'}</div>
+          <div className="text-sm font-bold text-slate-900">{tr('Courier par book karein')}</div>
+          <div className="text-xs text-slate-500">{tr('CN khud banega · COD {{value}}', { value: codDue(o) ? rs(codDue(o)) : tr('nahi (paid)') })}</div>
         </div>
         <Button size="sm" variant="primary" onClick={() => setBookOpen(true)} leftIcon={<Zap className="h-3.5 w-3.5" />}>
-          {connected.length === 1 ? `${connected[0].name} par book` : 'Book karein'}
+          {connected.length === 1 ? tr('{{name}} par book', { name: connected[0].name }) : tr('Book karein')}
         </Button>
         </div>
       </Card>
@@ -177,10 +178,10 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
             setBookOpen(false);
             onChanged();
             qc.invalidateQueries({ queryKey: COURIERS_KEY });
-            toast.success(`${name} par book ho gaya · CN ${tn}`, hasLabel ? {
-              description: 'Label print karke parcel par lagayein',
-              action: { label: 'Label print', onClick: () => couriersApi.openLabel(o.id).catch((e) => toast.error(apiErrorMessage(e))) },
-            } : { description: `Label ${name} portal se print karein` });
+            toast.success(tr('{{name}} par book ho gaya · CN {{tn}}', { name, tn }), hasLabel ? {
+              description: tr('Label print karke parcel par lagayein'),
+              action: { label: tr('Label print'), onClick: () => couriersApi.openLabel(o.id).catch((e) => toast.error(apiErrorMessage(e))) },
+            } : { description: tr('Label {{name}} portal se print karein', { name }) });
           }}
         />
       )}
@@ -230,7 +231,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
       courier, cityId: cityId || undefined, weightKg: Number(weight), pieces: Number(pieces), codAmount: Number(cod), notes: notes.trim() || undefined,
     }),
     onSuccess: (r) => onBooked(r.trackingNumber, current.name, current.label),
-    onError: (e) => toast.error(apiErrorMessage(e, 'Booking nahi hui')),
+    onError: (e) => toast.error(apiErrorMessage(e, tr('Booking nahi hui'))),
   });
 
   const cityName = opts?.cities.find((c) => c.id === cityId)?.name;
@@ -241,15 +242,15 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
       open
       onClose={onClose}
       size="md"
-      title={`Order #${o.externalOrderNumber ?? o.externalOrderId} — courier booking`}
+      title={tr('Order #{{value}} — courier booking', { value: o.externalOrderNumber ?? o.externalOrderId })}
       description={`${o.customerName} · ${o.customerPhone ?? 'phone nahi'} · ${[o.customerAddress, o.customerCity].filter(Boolean).join(', ')}`}
       footer={
         <div className="flex w-full items-center justify-between gap-2">
-          <span className="text-xs text-slate-500">{cityName ? `${current.name} → ${cityName}` : 'Shehar chunein'}</span>
+          <span className="text-xs text-slate-500">{cityName ? `${current.name} → ${cityName}` : tr('Shehar chunein')}</span>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>Chhoro</Button>
+            <Button variant="ghost" onClick={onClose}>{tr('Chhoro')}</Button>
             <Button variant="primary" loading={book.isPending} disabled={!valid} onClick={() => book.mutate()} leftIcon={<Zap className="h-4 w-4" />}>
-              Book karein
+              {tr('Book karein')}
             </Button>
           </div>
         </div>
@@ -258,26 +259,26 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
       <div className="space-y-4">
         {current.missing.length > 0 && (
           <Alert tone="warning">
-            {current.name} ki settings poori karein: {current.missing.join(', ')} —{' '}
-            <Link to={`/online-store/couriers/${current.code.toLowerCase()}?tab=settings`} className="font-semibold underline">Settings kholein</Link>
+            {tr('{{name}} ki settings poori karein: {{value}} —', { name: current.name, value: current.missing.join(', ') })}{' '}
+            <Link to={`/online-store/couriers/${current.code.toLowerCase()}?tab=settings`} className="font-semibold underline">{tr('Settings kholein')}</Link>
           </Alert>
         )}
         {couriers.length > 1 && (
-          <Segmented label="Courier" value={courier} onChange={setCourier} className="flex-wrap"
+          <Segmented label={tr('Courier')} value={courier} onChange={setCourier} className="flex-wrap"
             items={couriers.map((c) => ({ value: c.code, label: <><BrandLogo name={brandForCourier(c.code)} size={18} />{c.name}</> }))} />
         )}
         <CourierHint orderId={o.id} current={courier} pickable={couriers.map((c) => c.code)} onPick={setCourier} />
 
-        <Field label={<>Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}</>}>
+        <Field label={<>{tr('Shehar')}{' '} {o.customerCity ? <span className="font-normal text-slate-400">{tr('(customer ne likha: {{customerCity}})', { customerCity: o.customerCity })}</span> : null}</>}>
           {(id) => optsLoading ? (
-            <div className="flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {current.name} ke shehar aa rahe hain…</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {' '}{tr('{{name}} ke shehar aa rahe hain…', { name: current.name })}</div>
           ) : optsError ? (
             <div className="text-xs text-rose-600">{apiErrorMessage(optsError)}</div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder="Shehar search…" aria-label="Shehar search" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder={tr('Shehar search…')} aria-label={tr('Shehar search')} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
               <select id={id} value={cityId} onChange={(e) => setCityId(e.target.value)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
-                <option value="">— chunein —</option>
+                <option value="">{tr('— chunein —')}</option>
                 {cityId && !cities.some((c) => c.id === cityId) && cityName && <option value={cityId}>{cityName}</option>}
                 {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -286,18 +287,18 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
         </Field>
 
         <div className="grid grid-cols-3 gap-2">
-          <Input size="sm" label="Wazan (kg)" type="number" min="0.01" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} />
-          <Input size="sm" label="Pieces" type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} />
-          <Input size="sm" label="COD (Rs)" type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} />
+          <Input size="sm" label={tr('Wazan (kg)')} type="number" min="0.01" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} />
+          <Input size="sm" label={tr('Pieces')} type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} />
+          <Input size="sm" label={tr('COD (Rs)')} type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} />
         </div>
         {Number(cod) !== codDue(o) && (
-          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-700">Customer se lena {rs(codDue(o))} hai — COD alag rakh rahe hain</p>
+          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-700">{tr('Customer se lena {{rs}} hai — COD alag rakh rahe hain', { rs: rs(codDue(o)) })}</p>
         )}
         {codDue(o) > 0 && codDue(o) < Math.round(o.total) && (
-          <p className="-mt-2 text-[0.6875rem] text-slate-500">Advance {rs(Math.round(o.total) - codDue(o))} mil chuka — COD utna kam</p>
+          <p className="-mt-2 text-[0.6875rem] text-slate-500">{tr('Advance {{rs}} mil chuka — COD utna kam', { rs: rs(Math.round(o.total) - codDue(o)) })}</p>
         )}
 
-        <Input size="sm" label="Courier ke liye note (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Fragile, call karke aayein…" maxLength={200} />
+        <Input size="sm" label={tr('Courier ke liye note (optional)')} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('Fragile, call karke aayein…')} maxLength={200} />
       </div>
     </Modal>
   );

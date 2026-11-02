@@ -8,6 +8,7 @@
 
 import { ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface ClashSkip {
   unitId?: string;
@@ -48,5 +49,5 @@ export async function findCodeClash(prisma: PrismaService, tenantId: string, raw
 export async function assertCodeFree(prisma: PrismaService, tenantId: string, code: string | null | undefined, skip: ClashSkip = {}) {
   if (!code?.trim()) return;
   const owner = await findCodeClash(prisma, tenantId, code, skip);
-  if (owner) throw new ConflictException(`Barcode ${code.trim()} pehle se ${owner} par laga hai`);
+  if (owner) throw new ConflictException(apiMessage('Barcode {{code}} pehle se {{owner}} par laga hai', { code: code.trim(), owner }));
 }

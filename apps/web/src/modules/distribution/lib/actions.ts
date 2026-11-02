@@ -7,6 +7,7 @@
 
 import { askManagerPin } from '@core/security/ManagerPin';
 import { distributionApi, type ID, type InvoiceRun } from '../api/distribution.api';
+import { t } from '@core/i18n';
 
 export type RunResult = InvoiceRun['results'][number];
 
@@ -16,7 +17,7 @@ export async function approveOrInvoice(kind: 'approve' | 'invoice', ids: ID[]): 
   let pinSkipped = false;
   if (first.needsPin) {
     const pinIds = first.results.filter((r) => r.needsPin).map((r) => r.id);
-    const pin = await askManagerPin(`${pinIds.length} order credit limit se upar ya udhaar purana — Invoice`, 'credit');
+    const pin = await askManagerPin(t('{{count}} order credit limit se upar ya udhaar purana — Invoice', { count: pinIds.length }), 'credit');
     if (pin) {
       const again = await distributionApi.invoice(pinIds, pin);
       again.results.forEach((r) => byId.set(r.id, r));

@@ -28,10 +28,11 @@ import { BulkBar, Empty, Fact, Pill } from '../../components/parts';
 import { useMoney } from '../../hooks/useDistribution';
 import { dayTime, partyName, partySub, rs, trim, typingInField, type Tone } from '../../lib/meta';
 import { CustomerSearch, ItemSearch, PackSelect, defaultPack, newKey, useCatalog, type PickedCustomer } from '../shared';
+import { t as tr } from '@core/i18n';
 
 const KEY = [DIST_KEY, 'market-returns'] as const;
 const TABS: Array<{ id: MarketReturnStatus; label: string }> = [
-  { id: 'PENDING', label: 'Approve baqi' }, { id: 'APPROVED', label: 'Approved' }, { id: 'REJECTED', label: 'Reject' },
+  { id: 'PENDING', label: tr('Approve baqi') }, { id: 'APPROVED', label: tr('Approved') }, { id: 'REJECTED', label: tr('Reject') },
 ];
 const CONDITION_TONE: Record<ReturnCondition, Tone> = { GOOD: 'green', DAMAGED: 'rose', EXPIRED: 'amber' };
 const STATUS_TONE: Record<MarketReturnStatus, Tone> = { PENDING: 'amber', APPROVED: 'green', REJECTED: 'slate' };
@@ -62,7 +63,7 @@ function Returns() {
 
   const handle = (r: ApproveResult, ids: string[]) => {
     qc.invalidateQueries({ queryKey: KEY });
-    if (r.approved) toast.success(`${r.approved} return approve — khata credit ho gaya`);
+    if (r.approved) toast.success(tr('{{approved}} return approve — khata credit ho gaya', { approved: r.approved }));
     if (r.needsPin) { setPinFor(r.results.filter((x) => x.needsPin).map((x) => x.id)); return; }
     const bad = r.results.filter((x) => !x.ok);
     if (bad.length) toast.error(`${bad[0].number ?? ''} ${bad[0].error ?? ''}`.trim());
@@ -71,12 +72,12 @@ function Returns() {
   const approve = useMutation({
     mutationFn: ({ ids, pin }: { ids: string[]; pin?: string }) => phase2Api.approveReturns(ids, pin).then((r) => ({ r, ids })),
     onSuccess: ({ r, ids }) => handle(r, ids),
-    onError: (e) => toast.error(distError(e, 'Approve nahi hua')),
+    onError: (e) => toast.error(distError(e, tr('Approve nahi hua'))),
   });
   const reject = useMutation({
     mutationFn: ({ ids, reason }: { ids: string[]; reason?: string }) => phase2Api.rejectReturns(ids, reason),
     onSuccess: (r) => { toast.success(`${r.rejected} reject`); setRejecting(null); setPicked(new Set()); qc.invalidateQueries({ queryKey: KEY }); },
-    onError: (e) => toast.error(distError(e, 'Reject nahi hua')),
+    onError: (e) => toast.error(distError(e, tr('Reject nahi hua'))),
   });
 
   useEffect(() => {
@@ -95,41 +96,41 @@ function Returns() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution" backLabel="Distribution"
-        title="Market returns"
-        chip={<><Undo2 /> Retailer se wapsi</>}
-        meta="Expiry, kharab ya na bika maal — approve par khata credit, theek maal shelf par, kharab maal write-off"
+        back="/distribution" backLabel={tr('Distribution')}
+        title={tr('Market returns')}
+        chip={<><Undo2 /> {' '}{tr('Retailer se wapsi')}</>}
+        meta={tr('Expiry, kharab ya na bika maal — approve par khata credit, theek maal shelf par, kharab maal write-off')}
         busy={q.isFetching && !q.isLoading}
         loading={q.isLoading}
         actions={<>
-          <button type="button" onClick={() => void q.refetch()} title="Refresh" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
-          {canCollect && <button type="button" onClick={() => setCreating(true)} title="New return (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">New return</span></button>}
+          <button type="button" onClick={() => void q.refetch()} title={tr('Refresh')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
+          {canCollect && <button type="button" onClick={() => setCreating(true)} title={tr('New return (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">{tr('New return')}</span></button>}
         </>}
         stats={[
-          { label: 'Approve baqi', value: String(totals.PENDING?.count ?? 0), hint: money(totals.PENDING?.value ?? 0) },
-          { label: 'Approved', value: String(totals.APPROVED?.count ?? 0), hint: `credit ${money(totals.APPROVED?.credited ?? 0)}` },
+          { label: tr('Approve baqi'), value: String(totals.PENDING?.count ?? 0), hint: money(totals.PENDING?.value ?? 0) },
+          { label: tr('Approved'), value: String(totals.APPROVED?.count ?? 0), hint: tr('credit {{value}}', { value: money(totals.APPROVED?.credited ?? 0) }) },
         ]}
       />
 
       <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: totals[t.id]?.count ?? null }))}
-        right={<span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex">{canCollect && <><Kbd>N</Kbd> naya · </>}<Kbd>1</Kbd>-<Kbd>3</Kbd> tabs{canApprove && <> · <Kbd>A</Kbd> approve</>}</span>} />
+        right={<span className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:inline-flex">{canCollect && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>1</Kbd>-<Kbd>3</Kbd> {' '}{tr('tabs')}{canApprove && <> · <Kbd>A</Kbd> {' '}{tr('approve')}</>}</span>} />
 
       <section className="relative rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {q.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
-          : !rows.length ? <Empty icon={<Undo2 className="h-5 w-5" />} text={tab === 'PENDING' ? 'Koi return approve ke liye baqi nahi.' : 'Is tab me kuch nahi.'} />
+          : !rows.length ? <Empty icon={<Undo2 className="h-5 w-5" />} text={tab === 'PENDING' ? tr('Koi return approve ke liye baqi nahi.') : tr('Is tab me kuch nahi.')} />
             : <>
               <div className="overflow-x-auto">
                 <Table minWidth="54rem" className="[&_table]:text-[0.8125rem]">
-                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                     <Tr>
-                      {tab === 'PENDING' && canApprove && <Th className="w-10 px-4 py-2"><Checkbox aria-label="Sab" checked={allOn} onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} /></Th>}
-                      <Th className="px-4 py-2">Return</Th>
-                      <Th className="px-3 py-2">Customer</Th>
-                      <Th className="px-3 py-2">Route · Kis ne liya</Th>
-                      <Th className="px-3 py-2 text-right">Items</Th>
-                      <Th className="px-3 py-2 text-right">Value</Th>
-                      <Th className="px-3 py-2 text-right">Credit</Th>
-                      <Th className="px-4 py-2">Halat</Th>
+                      {tab === 'PENDING' && canApprove && <Th className="w-10 px-4 py-2"><Checkbox aria-label={tr('Sab')} checked={allOn} onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} /></Th>}
+                      <Th className="px-4 py-2">{tr('Return')}</Th>
+                      <Th className="px-3 py-2">{tr('Customer')}</Th>
+                      <Th className="px-3 py-2">{tr('Route · Kis ne liya')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Items')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Value')}</Th>
+                      <Th className="px-3 py-2 text-end">{tr('Credit')}</Th>
+                      <Th className="px-4 py-2">{tr('Halat')}</Th>
                     </Tr>
                   </THead>
                   <TBody className="divide-y divide-slate-100">
@@ -141,9 +142,9 @@ function Returns() {
                         <Td className="px-4 py-2"><div className="font-semibold text-slate-900">{r.number}</div><div className="whitespace-nowrap text-[0.75rem] text-slate-500">{dayTime(r.collectedAt)}</div></Td>
                         <Td className="max-w-[14rem] px-3 py-2"><div className="truncate font-medium text-slate-900">{partyName(r.customer)}</div><div className="truncate text-[0.75rem] text-slate-500">{partySub(r.customer)}</div></Td>
                         <Td className="px-3 py-2"><div className="text-slate-800">{r.routeName ?? '—'}</div><div className="text-[0.75rem] text-slate-500">{r.collectedByName ?? ''}</div></Td>
-                        <Td className="px-3 py-2 text-right tabular-nums">{r.itemCount}</Td>
-                        <Td className="px-3 py-2 text-right font-semibold tabular-nums">{money(r.totalValue)}</Td>
-                        <Td className="px-3 py-2 text-right tabular-nums">{r.status === 'APPROVED' ? money(r.creditedAmount) : '—'}</Td>
+                        <Td className="px-3 py-2 text-end tabular-nums">{r.itemCount}</Td>
+                        <Td className="px-3 py-2 text-end font-semibold tabular-nums">{money(r.totalValue)}</Td>
+                        <Td className="px-3 py-2 text-end tabular-nums">{r.status === 'APPROVED' ? money(r.creditedAmount) : '—'}</Td>
                         <Td className="px-4 py-2"><Pill tone={STATUS_TONE[r.status]}>{TABS.find((t) => t.id === r.status)?.label}</Pill></Td>
                       </Tr>
                     ))}
@@ -154,16 +155,16 @@ function Returns() {
                 <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-600">
                   <span>{(page - 1) * 50 + 1}–{Math.min(page * 50, total)} / {total}</span>
                   <span className="flex gap-2">
-                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
-                    <Button size="sm" variant="secondary" disabled={page * 50 >= total} onClick={() => setPage(page + 1)}>Next</Button>
+                    <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>{tr('Previous')}</Button>
+                    <Button size="sm" variant="secondary" disabled={page * 50 >= total} onClick={() => setPage(page + 1)}>{tr('Next')}</Button>
                   </span>
                 </div>
               )}
               {picked.size > 0 && (
                 <BulkBar>
-                  <span className="mr-auto text-[0.8125rem]">{picked.size} chune</span>
-                  <Button size="sm" variant="secondary" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setRejecting([...picked])}>Reject</Button>
-                  <Button size="sm" loading={approve.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => approve.mutate({ ids: [...picked] })}>Approve</Button>
+                  <span className="me-auto text-[0.8125rem]">{tr('{{size}} chune', { size: picked.size })}</span>
+                  <Button size="sm" variant="secondary" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setRejecting([...picked])}>{tr('Reject')}</Button>
+                  <Button size="sm" loading={approve.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => approve.mutate({ ids: [...picked] })}>{tr('Approve')}</Button>
                 </BulkBar>
               )}
             </>}
@@ -186,29 +187,29 @@ function ReturnDetail({ id, canApprove, busy, onClose, onApprove, onReject }: {
   const q = useQuery({ queryKey: [...KEY, 'one', id], queryFn: () => phase2Api.marketReturn(id) });
   const r = q.data;
   return (
-    <Modal open onClose={onClose} size="xl" title={r ? `${r.number} · ${partyName(r.customer)}` : 'Market return'} description={r ? `${dayTime(r.collectedAt)} · ${r.collectedByName ?? ''}${r.shopName ? ` · ${r.shopName}` : ''}` : undefined}
+    <Modal open onClose={onClose} size="xl" title={r ? `${r.number} · ${partyName(r.customer)}` : tr('Market return')} description={r ? `${dayTime(r.collectedAt)} · ${r.collectedByName ?? ''}${r.shopName ? ` · ${r.shopName}` : ''}` : undefined}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Close</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Close')}</Button>
         {r?.status === 'PENDING' && canApprove && <>
-          <Button variant="secondary" onClick={() => { onReject(r.id); onClose(); }}>Reject</Button>
-          <Button loading={busy} onClick={() => { onApprove(r.id); onClose(); }}>Approve — khata credit</Button>
+          <Button variant="secondary" onClick={() => { onReject(r.id); onClose(); }}>{tr('Reject')}</Button>
+          <Button loading={busy} onClick={() => { onApprove(r.id); onClose(); }}>{tr('Approve — khata credit')}</Button>
         </>}
       </>}>
       {!r ? <Skeleton className="h-40 rounded-2xl" /> : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Fact label="Halat"><Pill tone={STATUS_TONE[r.status]}>{TABS.find((t) => t.id === r.status)?.label}</Pill></Fact>
-            <Fact label="Value">{money(r.totalValue)}</Fact>
-            <Fact label="Khata credit">{r.status === 'APPROVED' ? money(r.creditedAmount) : '—'}</Fact>
-            <Fact label="Khata abhi">{rs(r.customer?.balance ?? 0)}</Fact>
+            <Fact label={tr('Halat')}><Pill tone={STATUS_TONE[r.status]}>{TABS.find((t) => t.id === r.status)?.label}</Pill></Fact>
+            <Fact label={tr('Value')}>{money(r.totalValue)}</Fact>
+            <Fact label={tr('Khata credit')}>{r.status === 'APPROVED' ? money(r.creditedAmount) : '—'}</Fact>
+            <Fact label={tr('Khata abhi')}>{rs(r.customer?.balance ?? 0)}</Fact>
           </div>
-          {r.rejectReason && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">Reject: {r.rejectReason}</p>}
-          {r.note && <p className="text-[0.8125rem] text-slate-600">Note: {r.note}</p>}
+          {r.rejectReason && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">{tr('Reject: {{rejectReason}}', { rejectReason: r.rejectReason })}</p>}
+          {r.note && <p className="text-[0.8125rem] text-slate-600">{tr('Note: {{note}}', { note: r.note })}</p>}
           <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200/80">
             <Table minWidth="48rem" className="[&_table]:text-[0.8125rem]">
-              <THead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <Tr><Th className="px-3 py-2">Item</Th><Th className="px-2 py-2">Halat</Th><Th className="px-2 py-2 text-right">Quantity</Th><Th className="px-2 py-2 text-right">Rate</Th>
-                  <Th className="px-2 py-2 text-right">Value</Th><Th className="px-2 py-2">Claim</Th><Th className="px-3 py-2 text-right">Invoice se mila</Th></Tr>
+              <THead className="bg-slate-50 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-3 py-2">{tr('Item')}</Th><Th className="px-2 py-2">{tr('Halat')}</Th><Th className="px-2 py-2 text-end">{tr('Quantity')}</Th><Th className="px-2 py-2 text-end">{tr('Rate')}</Th>
+                  <Th className="px-2 py-2 text-end">{tr('Value')}</Th><Th className="px-2 py-2">{tr('Claim')}</Th><Th className="px-3 py-2 text-end">{tr('Invoice se mila')}</Th></Tr>
               </THead>
               <TBody className="divide-y divide-slate-100">
                 {r.items.map((i) => (
@@ -216,11 +217,11 @@ function ReturnDetail({ id, canApprove, busy, onClose, onApprove, onReject }: {
                     <Td className="px-3 py-2"><div className="font-medium text-slate-900">{i.productName}</div>
                       <div className="text-[0.6875rem] text-slate-500">{[i.reason, i.batchNo && `Batch ${i.batchNo}`, i.expiryDate && `Exp ${i.expiryDate.slice(0, 10)}`].filter(Boolean).join(' · ')}</div></Td>
                     <Td className="px-2 py-2"><Pill tone={CONDITION_TONE[i.condition]}>{RETURN_CONDITION_LABEL[i.condition]}</Pill></Td>
-                    <Td className="px-2 py-2 text-right tabular-nums">{trim(i.qty)} {i.unitName ?? i.baseUnit}{i.conversionRate > 1 && <div className="text-[0.6875rem] text-slate-500">{trim(i.baseQty)} {i.baseUnit}</div>}</Td>
-                    <Td className="px-2 py-2 text-right tabular-nums">{rs(i.rate * i.conversionRate)}</Td>
-                    <Td className="px-2 py-2 text-right font-semibold tabular-nums">{money(i.value)}</Td>
-                    <Td className="px-2 py-2">{i.claimable ? <span className="text-[0.75rem]"><Pill tone="violet">Claim</Pill> <span className="text-slate-500">{i.supplierName ?? 'principal nahi'}</span></span> : <span className="text-slate-400">—</span>}</Td>
-                    <Td className="px-3 py-2 text-right tabular-nums">{r.status === 'APPROVED' ? `${trim(i.matchedQty)} / ${trim(i.baseQty)}` : '—'}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums">{trim(i.qty)} {i.unitName ?? i.baseUnit}{i.conversionRate > 1 && <div className="text-[0.6875rem] text-slate-500">{trim(i.baseQty)} {i.baseUnit}</div>}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums">{rs(i.rate * i.conversionRate)}</Td>
+                    <Td className="px-2 py-2 text-end font-semibold tabular-nums">{money(i.value)}</Td>
+                    <Td className="px-2 py-2">{i.claimable ? <span className="text-[0.75rem]"><Pill tone="violet">{tr('Claim')}</Pill> <span className="text-slate-500">{i.supplierName ?? tr('principal nahi')}</span></span> : <span className="text-slate-400">—</span>}</Td>
+                    <Td className="px-3 py-2 text-end tabular-nums">{r.status === 'APPROVED' ? `${trim(i.matchedQty)} / ${trim(i.baseQty)}` : '—'}</Td>
                   </Tr>
                 ))}
               </TBody>
@@ -228,8 +229,8 @@ function ReturnDetail({ id, canApprove, busy, onClose, onApprove, onReject }: {
           </div>
           {r.saleReturns.length > 0 && (
             <div className="text-[0.8125rem] text-slate-600">
-              <div className="mb-1 font-semibold text-slate-800">Invoices par wapsi</div>
-              <ul className="space-y-0.5">{r.saleReturns.map((s) => <li key={s.id}>{s.returnNumber} · bill {s.saleNumber} · {rs(s.refundAmount)}</li>)}</ul>
+              <div className="mb-1 font-semibold text-slate-800">{tr('Invoices par wapsi')}</div>
+              <ul className="space-y-0.5">{r.saleReturns.map((s) => <li key={s.id}>{tr('{{returnNumber}} · bill {{saleNumber}} · {{refundAmount}}', { returnNumber: s.returnNumber, saleNumber: s.saleNumber, refundAmount: rs(s.refundAmount) })}</li>)}</ul>
             </div>
           )}
         </div>
@@ -262,26 +263,26 @@ function NewReturnModal({ canApprove, onClose }: { canApprove: boolean; onClose:
   });
   const save = useMutation({
     mutationFn: () => {
-      if (!customer) throw new Error('Customer chunein');
-      if (!payload.length) throw new Error('Kam se kam ek item aur quantity likhein');
+      if (!customer) throw new Error(tr('Customer chunein'));
+      if (!payload.length) throw new Error(tr('Kam se kam ek item aur quantity likhein'));
       return phase2Api.createReturn({ customerId: customer.id, items: payload, note: note.trim() || undefined, ...(approveNow && { approve: true, ...(pin && { managerPin: pin }) }) });
     },
     onSuccess: (r) => { toast.success(`${r.marketReturn.number} ${r.marketReturn.status === 'APPROVED' ? 'approve — khata credit' : 'save — approve baqi'}`); qc.invalidateQueries({ queryKey: KEY }); onClose(); },
-    onError: (e) => toast.error(distError(e, 'Return save nahi hua')),
+    onError: (e) => toast.error(distError(e, tr('Return save nahi hua'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="xl" title="New market return" description="Retailer se wapas aaya maal. Rate customer ki pichli Invoice se lagta hai."
+    <Modal open onClose={onClose} size="xl" title={tr('New market return')} description={tr('Retailer se wapas aaya maal. Rate customer ki pichli Invoice se lagta hai.')}
       footer={<>
-        <span className="mr-auto text-[0.8125rem] text-slate-600">{payload.length} items · <b className="text-slate-900">{rs(preview.data?.total ?? 0)}</b></span>
-        <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button loading={save.isPending} disabled={!customer || !payload.length} onClick={() => save.mutate()}>{approveNow ? 'Save and approve' : 'Save'}</Button>
+        <span className="me-auto text-[0.8125rem] text-slate-600">{tr('{{count}} items ·', { count: payload.length })}{' '} <b className="text-slate-900">{rs(preview.data?.total ?? 0)}</b></span>
+        <Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button>
+        <Button loading={save.isPending} disabled={!customer || !payload.length} onClick={() => save.mutate()}>{approveNow ? tr('Save and approve') : tr('Save')}</Button>
       </>}>
       <div className="space-y-3">
         <CustomerSearch value={customer} onPick={setCustomer} autoFocus />
         <ItemSearch options={catalog.options} loading={catalog.isLoading}
           onPick={(o) => setLines((ls) => [...ls, { key: newKey(), productId: o.productId, variantId: o.variantId, unitId: defaultPack(o.product, o.variantId), qty: '', condition: 'EXPIRED', reason: '', rate: '', label: o.label }])} />
-        {!lines.length ? <p className="py-4 text-center text-[0.8125rem] text-slate-500">Upar se item dhoond kar line banayein</p>
+        {!lines.length ? <p className="py-4 text-center text-[0.8125rem] text-slate-500">{tr('Upar se item dhoond kar line banayein')}</p>
           : <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200/80">
             {lines.map((l) => {
               const pv = preview.data?.lines.find((x) => x.productId === l.productId && (x.variantId ?? null) === l.variantId);
@@ -290,32 +291,32 @@ function NewReturnModal({ canApprove, onClose }: { canApprove: boolean; onClose:
                   <div className="flex items-center gap-2">
                     <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-semibold text-slate-900">{l.label}</span>
                     {pv && <span className="text-[0.75rem] tabular-nums text-slate-600">{rs(pv.value)}</span>}
-                    <button type="button" aria-label="Hatayein" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="text-slate-400 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                    <button type="button" aria-label={tr('Hatayein')} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="text-slate-400 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                   </div>
                   <div className={cn('grid gap-2', canApprove ? 'grid-cols-2 sm:grid-cols-[7rem_6rem_9rem_minmax(0,1fr)_6rem]' : 'grid-cols-2 sm:grid-cols-[7rem_6rem_9rem_minmax(0,1fr)]')}>
                     <PackSelect product={catalog.byId.get(l.productId)} variantId={l.variantId} value={l.unitId} onChange={(v) => set(l.key, { unitId: v })} />
-                    <input type="number" min={0} step="any" value={l.qty} autoFocus onChange={(e) => set(l.key, { qty: e.target.value })} aria-label="Quantity" placeholder="Qty"
-                      className="h-9 rounded-lg border border-slate-200 px-2 text-right text-[0.875rem] tabular-nums outline-none focus:border-brand-500" />
-                    <select value={l.condition} aria-label="Halat" onChange={(e) => set(l.key, { condition: e.target.value as ReturnCondition })}
+                    <input type="number" min={0} step="any" value={l.qty} autoFocus onChange={(e) => set(l.key, { qty: e.target.value })} aria-label={tr('Quantity')} placeholder={tr('Qty')}
+                      className="h-9 rounded-lg border border-slate-200 px-2 text-end text-[0.875rem] tabular-nums outline-none focus:border-brand-500" />
+                    <select value={l.condition} aria-label={tr('Halat')} onChange={(e) => set(l.key, { condition: e.target.value as ReturnCondition })}
                       className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500">
                       {(Object.keys(RETURN_CONDITION_LABEL) as ReturnCondition[]).map((c) => <option key={c} value={c}>{RETURN_CONDITION_LABEL[c]}</option>)}
                     </select>
-                    <input value={l.reason} onChange={(e) => set(l.key, { reason: e.target.value })} placeholder="Wajah (zaroori nahi)" aria-label="Wajah"
+                    <input value={l.reason} onChange={(e) => set(l.key, { reason: e.target.value })} placeholder={tr('Wajah (zaroori nahi)')} aria-label={tr('Wajah')}
                       className="h-9 rounded-lg border border-slate-200 px-2 text-[0.8125rem] outline-none focus:border-brand-500" />
-                    {canApprove && <input type="number" min={0} step="any" value={l.rate} onChange={(e) => set(l.key, { rate: e.target.value })} aria-label="Rate per pack"
-                      placeholder={pv ? trim(pv.rate * (catalog.byId.get(l.productId)?.units.find((u) => u.id === l.unitId)?.conversionRate ?? 1)) : 'Rate'}
-                      className="h-9 rounded-lg border border-slate-200 px-2 text-right text-[0.8125rem] tabular-nums outline-none focus:border-brand-500" />}
+                    {canApprove && <input type="number" min={0} step="any" value={l.rate} onChange={(e) => set(l.key, { rate: e.target.value })} aria-label={tr('Rate per pack')}
+                      placeholder={pv ? trim(pv.rate * (catalog.byId.get(l.productId)?.units.find((u) => u.id === l.unitId)?.conversionRate ?? 1)) : tr('Rate')}
+                      className="h-9 rounded-lg border border-slate-200 px-2 text-end text-[0.8125rem] tabular-nums outline-none focus:border-brand-500" />}
                   </div>
-                  {pv?.claimable && <p className="text-[0.6875rem] text-violet-700">Company (principal) se claim hoga</p>}
+                  {pv?.claimable && <p className="text-[0.6875rem] text-violet-700">{tr('Company (principal) se claim hoga')}</p>}
                 </li>
               );
             })}
           </ul>}
-        <Input size="sm" label="Note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Zaroori nahi" />
+        <Input size="sm" label={tr('Note')} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr('Zaroori nahi')} />
         {canApprove && (
           <div className="flex flex-wrap items-end gap-3">
-            <Checkbox label="Abhi approve karein" description="Maal godown aa gaya ho to — khata foran credit" checked={approveNow} onChange={(e) => setApproveNow(e.target.checked)} />
-            {approveNow && <Input size="sm" type="password" label="Owner PIN (agar mange)" value={pin} onChange={(e) => setPin(e.target.value)} className="w-40" />}
+            <Checkbox label={tr('Abhi approve karein')} description={tr('Maal godown aa gaya ho to — khata foran credit')} checked={approveNow} onChange={(e) => setApproveNow(e.target.checked)} />
+            {approveNow && <Input size="sm" type="password" label={tr('Owner PIN (agar mange)')} value={pin} onChange={(e) => setPin(e.target.value)} className="w-40" />}
           </div>
         )}
       </div>
@@ -326,9 +327,9 @@ function NewReturnModal({ canApprove, onClose }: { canApprove: boolean; onClose:
 function PinModal({ busy, onClose, onSubmit }: { busy: boolean; onClose: () => void; onSubmit: (pin: string) => void }) {
   const [pin, setPin] = useState('');
   return (
-    <Modal open onClose={onClose} size="sm" title="Owner PIN chahiye" description="Settings me wapsi par PIN mangta hai. PIN likh kar dobara approve karein."
-      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button loading={busy} disabled={!pin} onClick={() => onSubmit(pin)}>Approve</Button></>}>
-      <Input type="password" autoFocus label="PIN" value={pin} onChange={(e) => setPin(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && pin) onSubmit(pin); }} />
+    <Modal open onClose={onClose} size="sm" title={tr('Owner PIN chahiye')} description={tr('Settings me wapsi par PIN mangta hai. PIN likh kar dobara approve karein.')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button><Button loading={busy} disabled={!pin} onClick={() => onSubmit(pin)}>{tr('Approve')}</Button></>}>
+      <Input type="password" autoFocus label={tr('PIN')} value={pin} onChange={(e) => setPin(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && pin) onSubmit(pin); }} />
     </Modal>
   );
 }
@@ -336,9 +337,9 @@ function PinModal({ busy, onClose, onSubmit }: { busy: boolean; onClose: () => v
 function RejectModal({ count, busy, onClose, onSubmit }: { count: number; busy: boolean; onClose: () => void; onSubmit: (reason?: string) => void }) {
   const [reason, setReason] = useState('');
   return (
-    <Modal open onClose={onClose} size="sm" title={`${count} return reject karein`} description="Khata aur stock par kuch nahi hoga."
-      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant="danger" loading={busy} onClick={() => onSubmit(reason.trim() || undefined)}>Reject</Button></>}>
-      <Input autoFocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Maal godown nahi pohncha" />
+    <Modal open onClose={onClose} size="sm" title={tr('{{count}} return reject karein', { count })} description={tr('Khata aur stock par kuch nahi hoga.')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button><Button variant="danger" loading={busy} onClick={() => onSubmit(reason.trim() || undefined)}>{tr('Reject')}</Button></>}>
+      <Input autoFocus label={tr('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Maal godown nahi pohncha')} />
     </Modal>
   );
 }

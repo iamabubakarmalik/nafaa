@@ -20,6 +20,7 @@ import { cn } from '@core/lib/cn';
 import { aiApi, type AiActionProposal, type AiLink } from '../api';
 import { COMPACT_CELL, COMPACT_HEAD } from './AiChartView';
 import { isPushLayout, useAiStore, type ActionOutcome } from '../store';
+import { t as tr } from '@core/i18n';
 
 const money = (n: number) => formatPKR(n, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const qtyText = (n: number) => Number(n.toFixed(3)).toLocaleString('en-PK');
@@ -96,7 +97,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
   const [error, setError] = useState<string | null>(null);
   const secondsLeft = useSecondsLeft(action.expiresAt, !outcome);
   const expired = !outcome && secondsLeft <= 0;
-  const final: ActionOutcome | null = outcome ?? (expired ? { status: 'expired', message: 'Waqt khatam — ye action ab nahi ho sakta. Dobara poochein.', links: [] } : null);
+  const final: ActionOutcome | null = outcome ?? (expired ? { status: 'expired', message: tr('Waqt khatam — ye action ab nahi ho sakta. Dobara poochein.'), links: [] } : null);
 
   const lines = useMemo(() => (action.lines ?? []).map((l) => {
     const q = Number(qty[l.productId]);
@@ -134,7 +135,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
     e?.preventDefault();
     if (busy || final || !online) return;
     const missing = action.fields.find((f) => f.required && !(values[f.key] ?? '').trim());
-    if (missing) { setError(`"${missing.label}" zaroori hai`); return; }
+    if (missing) { setError(tr('"{{label}}" zaroori hai', { label: missing.label })); return; }
     setBusy('confirm');
     setError(null);
     try {
@@ -144,10 +145,10 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
       const status = axios.isAxiosError(err) ? err.response?.status : undefined;
       const body = axios.isAxiosError(err) ? (err.response?.data as { message?: string | string[]; error?: { message?: string } } | undefined) : undefined;
       const msg = (Array.isArray(body?.message) ? body?.message.join(', ') : body?.message) || body?.error?.message;
-      if (status === 400) setError(msg || 'Kuch ghalat hai — fields check karein');
-      else if (status === 410) setOutcome(action.id, { status: 'expired', message: msg || 'Ye action pehle hi ho chuka ya waqt khatam ho gaya.', links: [] });
-      else if (status === 403) setOutcome(action.id, { status: 'failed', message: msg || 'Is kaam ki permission aap ke paas nahi.', links: [] });
-      else setError(msg || 'Action nahi ho saka — internet check kar ke dobara koshish karein');
+      if (status === 400) setError(msg || tr('Kuch ghalat hai — fields check karein'));
+      else if (status === 410) setOutcome(action.id, { status: 'expired', message: msg || tr('Ye action pehle hi ho chuka ya waqt khatam ho gaya.'), links: [] });
+      else if (status === 403) setOutcome(action.id, { status: 'failed', message: msg || tr('Is kaam ki permission aap ke paas nahi.'), links: [] });
+      else setError(msg || tr('Action nahi ho saka — internet check kar ke dobara koshish karein'));
     } finally {
       setBusy(null);
     }
@@ -157,7 +158,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
     if (busy || final) return;
     setBusy('cancel');
     try { await aiApi.cancelAction(action.id); } catch { /* the proposal expires on its own */ }
-    setOutcome(action.id, { status: 'cancelled', message: 'Cancel kar diya — kuch save nahi hua.', links: [] });
+    setOutcome(action.id, { status: 'cancelled', message: tr('Cancel kar diya — kuch save nahi hua.'), links: [] });
     setBusy(null);
   };
 
@@ -181,7 +182,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
         </div>
         {!final && (
           <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium tabular-nums',
-            secondsLeft < 60 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500')} title="Is waqt ke baad ye action khatam ho jayega">
+            secondsLeft < 60 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500')} title={tr('Is waqt ke baad ye action khatam ho jayega')}>
             <Clock className="h-3 w-3" /> {mm}:{ss}
           </span>
         )}
@@ -211,7 +212,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
                         {(f.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                       </select>
                     ) : (
-                      <input id={id} className={cn(input, f.type !== 'text' && 'text-right tabular-nums')} disabled={readOnly}
+                      <input id={id} className={cn(input, f.type !== 'text' && 'text-end tabular-nums')} disabled={readOnly}
                         type={f.type === 'text' ? 'text' : 'number'} step="any" min={f.type === 'text' ? undefined : 0}
                         inputMode={f.type === 'text' ? undefined : 'decimal'}
                         value={values[f.key] ?? ''} required={f.required}
@@ -227,10 +228,10 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
             <Table>
               <THead className={COMPACT_HEAD}>
                 <Tr>
-                  <Th className={COMPACT_CELL}>Cheez</Th>
-                  <Th align="right" className={cn(COMPACT_CELL, 'w-20')}>Qty</Th>
-                  <Th align="right" className={COMPACT_CELL}>Rate</Th>
-                  <Th align="right" className={COMPACT_CELL}>Total</Th>
+                  <Th className={COMPACT_CELL}>{tr('Cheez')}</Th>
+                  <Th align="right" className={cn(COMPACT_CELL, 'w-20')}>{tr('Qty')}</Th>
+                  <Th align="right" className={COMPACT_CELL}>{tr('Rate')}</Th>
+                  <Th align="right" className={COMPACT_CELL}>{tr('Total')}</Th>
                 </Tr>
               </THead>
               <TBody>
@@ -238,10 +239,10 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
                   <Tr key={l.productId}>
                     <Td className={cn(COMPACT_CELL, 'text-slate-800')}>
                       {l.name}
-                      {l.stock != null && <span className={cn('block text-[0.6875rem]', l.qty > l.stock ? 'text-amber-700' : 'text-slate-400')}>Stock {qtyText(l.stock)} {l.unit}</span>}
+                      {l.stock != null && <span className={cn('block text-[0.6875rem]', l.qty > l.stock ? 'text-amber-700' : 'text-slate-400')}>{tr('Stock {{stock}} {{unit}}', { stock: qtyText(l.stock), unit: l.unit })}</span>}
                     </Td>
                     <Td className={COMPACT_CELL}>
-                      <input aria-label={`${l.name} qty`} className={cn(input, 'h-7 text-right tabular-nums')} disabled={readOnly}
+                      <input aria-label={tr('{{name}} qty', { name: l.name })} className={cn(input, 'h-7 text-end tabular-nums')} disabled={readOnly}
                         type="number" step="any" min={0} inputMode="decimal" value={qty[l.productId] ?? ''}
                         onChange={(e) => setQty((q) => ({ ...q, [l.productId]: e.target.value }))} />
                     </Td>
@@ -255,26 +256,26 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
 
           {totals && (
             <dl className="space-y-0.5 rounded-lg bg-slate-50 px-2.5 py-1.5 text-[0.75rem]">
-              {totals.subtotal !== totals.total && <div className="flex justify-between text-slate-500"><dt>Subtotal</dt><dd className="tabular-nums">{money(totals.subtotal)}</dd></div>}
-              <div className="flex justify-between font-semibold text-slate-900"><dt>Total</dt><dd className="tabular-nums">{money(totals.total)}</dd></div>
-              {totals.paid != null && <div className="flex justify-between text-slate-600"><dt>Paid</dt><dd className="tabular-nums">{money(totals.paid)}</dd></div>}
-              {totals.credit != null && totals.credit > 0 && <div className="flex justify-between text-amber-700"><dt>Udhaar</dt><dd className="tabular-nums">{money(totals.credit)}</dd></div>}
+              {totals.subtotal !== totals.total && <div className="flex justify-between text-slate-500"><dt>{tr('Subtotal')}</dt><dd className="tabular-nums">{money(totals.subtotal)}</dd></div>}
+              <div className="flex justify-between font-semibold text-slate-900"><dt>{tr('Total')}</dt><dd className="tabular-nums">{money(totals.total)}</dd></div>
+              {totals.paid != null && <div className="flex justify-between text-slate-600"><dt>{tr('Paid')}</dt><dd className="tabular-nums">{money(totals.paid)}</dd></div>}
+              {totals.credit != null && totals.credit > 0 && <div className="flex justify-between text-amber-700"><dt>{tr('Udhaar')}</dt><dd className="tabular-nums">{money(totals.credit)}</dd></div>}
             </dl>
           )}
 
           {error && <p className="text-[0.75rem] text-rose-600" role="alert">{error}</p>}
           {!online && (
-            <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-700" role="status"><WifiOff className="h-3.5 w-3.5" /> Internet nahi — action abhi nahi ho sakta</p>
+            <p className="flex items-center gap-1.5 text-[0.75rem] text-amber-700" role="status"><WifiOff className="h-3.5 w-3.5" /> {' '}{tr('Internet nahi — action abhi nahi ho sakta')}</p>
           )}
 
           <div className="flex flex-wrap items-center gap-1.5">
             <Button type="submit" size="sm" disabled={!online || !!busy} leftIcon={busy === 'confirm' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : undefined}>
-              {action.confirmLabel || 'Confirm'} <span className="ml-1 hidden text-[0.6875rem] opacity-70 sm:inline">(Enter)</span>
+              {action.confirmLabel || tr('Confirm')} <span className="ms-1 hidden text-[0.6875rem] opacity-70 sm:inline">{tr('(Enter)')}</span>
             </Button>
-            <Button type="button" size="sm" variant="secondary" disabled={!!busy} onClick={cancel}>Cancel</Button>
+            <Button type="button" size="sm" variant="secondary" disabled={!!busy} onClick={cancel}>{tr('Cancel')}</Button>
             {action.alt && (
               <button type="button" onClick={() => openLink(action.alt!)}
-                className="ml-auto inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
+                className="ms-auto inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                 {action.alt.label} <ArrowUpRight className="h-3 w-3" />
               </button>
             )}

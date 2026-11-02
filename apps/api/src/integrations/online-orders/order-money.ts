@@ -1,3 +1,4 @@
+import { apiMessage, apiText, MessageText } from '../../common/i18n/api-message';
 /**
  * Money on an online order: advance received (payment links and advances
  * the shop records by hand), the COD the courier still has to collect, and
@@ -68,12 +69,12 @@ export function orderMoney(
 export function buildManualAdvance(
   body: { amount?: unknown; method?: unknown; reference?: unknown },
   ctx: { due: number; ref: string; userId: string | null; now?: Date },
-): { entry: ManualAdvance } | { error: string } {
+): { entry: ManualAdvance } | { error: MessageText } {
   const amount = Math.round(Number(body?.amount) * 100) / 100;
-  if (!Number.isFinite(amount) || amount < 1) return { error: 'Advance kam az kam Rs 1' };
-  if (amount > ctx.due + 0.5) return { error: `Baqi sirf Rs ${Math.round(ctx.due).toLocaleString('en-PK')} hai` };
+  if (!Number.isFinite(amount) || amount < 1) return { error: apiText('Advance kam az kam Rs 1') };
+  if (amount > ctx.due + 0.5) return { error: apiMessage('Baqi sirf Rs {{due}} hai', { due: Math.round(ctx.due).toLocaleString('en-PK') }) };
   const method = String(body?.method ?? '').toUpperCase() as AdvanceMethod;
-  if (!ADVANCE_METHODS.includes(method)) return { error: 'Paisa kaise aaya — JazzCash, Easypaisa, bank, cash ya doosra chunein' };
+  if (!ADVANCE_METHODS.includes(method)) return { error: apiText('Paisa kaise aaya — JazzCash, Easypaisa, bank, cash ya doosra chunein') };
   const reference = typeof body?.reference === 'string' && body.reference.trim() ? body.reference.trim().slice(0, 80) : null;
   const at = (ctx.now ?? new Date()).toISOString();
   return {

@@ -4,12 +4,13 @@
  */
 import { BadRequestException } from '@nestjs/common';
 import { ElectronicsCategoryType } from '@prisma/client';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const TYPES = new Set<string>(Object.values(ElectronicsCategoryType));
 
 export function categoryTypeParam(value?: string): ElectronicsCategoryType | undefined {
   const v = value?.trim().toUpperCase();
   if (!v) return undefined;
-  if (!TYPES.has(v)) throw new BadRequestException(`Product type "${value}" nahi mila`);
+  if (!TYPES.has(v)) throw new BadRequestException(apiMessage('Product type "{{value}}" nahi mila', { value }));
   return v as ElectronicsCategoryType;
 }

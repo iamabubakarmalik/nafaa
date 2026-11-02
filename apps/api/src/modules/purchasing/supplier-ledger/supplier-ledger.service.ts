@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import {
   AddDueDto, AdjustmentDto, OpeningBalanceDto, PaymentDto, ReturnDto,
 } from './dto/ledger.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * SupplierLedgerService — supplier ka khata.
@@ -74,7 +75,7 @@ export class SupplierLedgerService {
         });
         if (!ok.count) {
           const s = await db.supplier.findUniqueOrThrow({ where: { id: supplierId }, select: { outstandingDue: true } });
-          throw new BadRequestException(`Sirf ${Number(s.outstandingDue).toFixed(0)} dena baqi hai — is se ziyada payment darj nahi hoti`);
+          throw new BadRequestException(apiMessage('Sirf {{outstandingDue}} dena baqi hai — is se ziyada payment darj nahi hoti', { outstandingDue: Number(s.outstandingDue).toFixed(0) }));
         }
       } else {
         await db.supplier.update({ where: { id: supplierId }, data: { outstandingDue: { increment: delta } } });

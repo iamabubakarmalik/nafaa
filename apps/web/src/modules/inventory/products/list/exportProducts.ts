@@ -2,6 +2,7 @@
 
 import type { PrintDoc } from '@core/print';
 import { catalogApi, type CatalogFilters, type CatalogItem, type CatalogStats } from './api';
+import { t } from '@core/i18n';
 
 const fmt = (n: number) => String(Number(Number(n).toFixed(2)));
 
@@ -21,13 +22,13 @@ export async function fetchAllProducts(filters: CatalogFilters, max = 10_000): P
 }
 
 export function productsCsv(items: CatalogItem[], header: string[], withCost: boolean) {
-  const head = ['Naam', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Retail price', 'Wholesale price', 'Credit price', ...(withCost ? ['Cost price', 'Stock ki cost'] : []),
-    'Stock', 'Kam ki had', 'Halat', '30 din bika', 'Kitne din ka stock', 'Expiry', 'Chalu'];
+  const head = [t('Naam'), 'SKU', t('Barcode'), t('Category'), t('Brand'), t('Unit'), t('Retail price'), t('Wholesale price'), t('Credit price'), ...(withCost ? [t('Cost price'), t('Stock ki cost')] : []),
+    t('Stock'), t('Kam ki had'), t('Halat'), t('30 din bika'), t('Kitne din ka stock'), t('Expiry'), t('Chalu')];
   const rows = items.map((p) => [
     p.name, p.sku ?? '', p.barcode ?? '', p.category?.name ?? '', p.brand?.name ?? '', p.unit, p.price.toFixed(2), p.wholesalePrice?.toFixed(2) ?? '', p.creditPrice?.toFixed(2) ?? '',
     ...(withCost ? [p.costPrice.toFixed(2), (Math.max(0, p.stock) * p.costPrice).toFixed(2)] : []),
-    fmt(p.stock), fmt(p.lowStockAlert), p.status === 'out' ? 'Khatam' : p.status === 'low' ? 'Kam' : 'Theek',
-    fmt(p.sold30), p.daysLeft ?? '', p.expiry ? new Date(p.expiry).toLocaleDateString('en-PK') : '', p.isActive ? 'Haan' : 'Nahi',
+    fmt(p.stock), fmt(p.lowStockAlert), p.status === 'out' ? t('Khatam') : p.status === 'low' ? t('Kam') : t('Theek'),
+    fmt(p.sold30), p.daysLeft ?? '', p.expiry ? new Date(p.expiry).toLocaleDateString('en-PK') : '', p.isActive ? t('Haan') : t('Nahi'),
   ]);
   const csv = [...header.map((h) => [h]), [''], head, ...rows]
     .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -43,22 +44,22 @@ export function productsDoc(items: CatalogItem[], stats: CatalogStats | undefine
   return {
     title,
     subtitle: new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date()),
-    meta: [['Cheezein', String(items.length)], ['Kam stock', String(stats?.low ?? 0)], ['Khatam', String(stats?.out ?? 0)]],
+    meta: [[t('Cheezein'), String(items.length)], [t('Kam stock'), String(stats?.low ?? 0)], [t('Khatam'), String(stats?.out ?? 0)]],
     sections: [
       {
-        kind: 'rows', title: 'Khulasa', rows: [
-          { label: 'Chalu cheezein', value: String(stats?.products ?? items.length) },
-          { label: 'Kul stock (units)', value: fmt(stats?.units ?? 0) },
-          ...(withCost ? [{ label: 'Stock ki cost', value: money(stats?.costValue ?? 0) }] : []),
-          { label: 'Bechne par milega', value: money(stats?.saleValue ?? 0), strong: true },
+        kind: 'rows', title: t('Khulasa'), rows: [
+          { label: t('Chalu cheezein'), value: String(stats?.products ?? items.length) },
+          { label: t('Kul stock (units)'), value: fmt(stats?.units ?? 0) },
+          ...(withCost ? [{ label: t('Stock ki cost'), value: money(stats?.costValue ?? 0) }] : []),
+          { label: t('Bechne par milega'), value: money(stats?.saleValue ?? 0), strong: true },
         ],
       },
       {
-        kind: 'table', title: 'Maal ki list',
+        kind: 'table', title: t('Maal ki list'),
         columns: [
-          { label: 'Naam' }, { label: 'Category', wideOnly: true }, { label: 'Rate', align: 'right' },
-          ...(withCost ? [{ label: 'Cost', align: 'right' as const, wideOnly: true }] : []),
-          { label: 'Stock', align: 'right' }, { label: '30 din', align: 'right', wideOnly: true },
+          { label: t('Naam') }, { label: t('Category'), wideOnly: true }, { label: t('Rate'), align: 'right' },
+          ...(withCost ? [{ label: t('Cost'), align: 'right' as const, wideOnly: true }] : []),
+          { label: t('Stock'), align: 'right' }, { label: t('30 din'), align: 'right', wideOnly: true },
         ],
         rows: items.map((p) => [
           p.name, p.category?.name ?? '—', money(p.price), ...(withCost ? [money(p.costPrice)] : []),
@@ -66,6 +67,6 @@ export function productsDoc(items: CatalogItem[], stats: CatalogStats | undefine
         ]),
       },
     ],
-    footer: '✕ = khatam · ! = kam stock',
+    footer: t('✕ = khatam · ! = kam stock'),
   };
 }

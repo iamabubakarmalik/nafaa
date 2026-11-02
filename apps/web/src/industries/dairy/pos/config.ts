@@ -14,6 +14,7 @@ import type { DairyProduct } from '../api/products.api';
 import { useDairyProfiles } from '../hooks/useDairyProfiles';
 import { DAIRY_KEYS, slotNow } from '../lib/meta';
 import { isMilkType } from '../lib/productTypes';
+import { t } from '@core/i18n';
 
 const CULTURED = new Set(['DAHI', 'YOGURT', 'LASSI', 'BUTTER_MILK']);
 const FATS = new Set(['MAKHAN', 'BUTTER', 'DESI_GHEE', 'CREAM', 'MALAI']);
@@ -37,10 +38,10 @@ function useDairyCatalog() {
       price,
       rank: p.isFeatured ? 0 : isMilkType(p.productType) ? 1 : 2,
       badges: [
-        ...(evening ? [{ label: 'Shaam rate', tone: 'warning' as const, icon: Sunset }] : []),
-        ...(p.requiresRefrigeration ? [{ label: 'Fridge', tone: 'info' as const, icon: Snowflake }] : []),
+        ...(evening ? [{ label: t('Shaam rate'), tone: 'warning' as const, icon: Sunset }] : []),
+        ...(p.requiresRefrigeration ? [{ label: t('Fridge'), tone: 'info' as const, icon: Snowflake }] : []),
       ],
-      subline: p.bulkPrice && p.minBulkQty ? `${p.minBulkQty}+ ${it.unit} par ${formatPKR(p.bulkPrice)}` : undefined,
+      subline: p.bulkPrice && p.minBulkQty ? t('{{minBulkQty}}+ {{unit}} par {{bulkPrice}}', { minBulkQty: p.minBulkQty, unit: it.unit, bulkPrice: formatPKR(p.bulkPrice) }) : undefined,
       meta: { profile: p },
     };
   }, [profiles]);
@@ -51,15 +52,15 @@ const kind = (i: PosItem) => (i.meta?.profile as DairyProduct | undefined)?.prod
 
 export const dairyPos: PosIndustryConfig = {
   id: 'dairy',
-  label: 'Dairy',
+  label: t('Dairy'),
   useCatalog: useDairyCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters: [
-    { id: 'milk', label: 'Doodh', icon: Milk, match: (i) => isMilkType(kind(i)) },
-    { id: 'dahi', label: 'Dahi / lassi', icon: Droplets, match: (i) => CULTURED.has(kind(i)) },
-    { id: 'fat', label: 'Makhan / ghee', icon: Droplets, match: (i) => FATS.has(kind(i)) },
-    { id: 'sweet', label: 'Mithai / khoya', icon: CakeSlice, match: (i) => SWEET.has(kind(i)) },
+    { id: 'milk', label: t('Doodh'), icon: Milk, match: (i) => isMilkType(kind(i)) },
+    { id: 'dahi', label: t('Dahi / lassi'), icon: Droplets, match: (i) => CULTURED.has(kind(i)) },
+    { id: 'fat', label: t('Makhan / ghee'), icon: Droplets, match: (i) => FATS.has(kind(i)) },
+    { id: 'sweet', label: t('Mithai / khoya'), icon: CakeSlice, match: (i) => SWEET.has(kind(i)) },
   ],
   repriceLine: (line, item) => {
     const p = item.meta?.profile as DairyProduct | undefined;
@@ -75,5 +76,5 @@ export const dairyPos: PosIndustryConfig = {
     doodh: 'doodh milk', milk: 'doodh milk', dahi: 'dahi yogurt', yogurt: 'dahi yogurt', lassi: 'lassi', makhan: 'makhan butter',
     butter: 'makhan butter', ghee: 'desi ghee', khoya: 'khoya khoa', malai: 'malai cream', paneer: 'paneer', kheer: 'kheer',
   },
-  searchHint: 'Doodh, dahi, lassi… ya barcode scan karein',
+  searchHint: t('Doodh, dahi, lassi… ya barcode scan karein'),
 };

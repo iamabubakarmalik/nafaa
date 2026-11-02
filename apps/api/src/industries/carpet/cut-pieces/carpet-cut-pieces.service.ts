@@ -15,6 +15,7 @@ import { UpdateCutPieceDto } from './dto/update-cut-piece.dto';
 import { QueryCutPiecesDto } from './dto/query-cut-pieces.dto';
 import { ROLL_UNITS, calcSqft, r2, syncCarpetStock } from '../common/carpet-stock';
 import { nextPieceCode } from '../common/roll-cut';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const IN_STOCK = new Set<CarpetCutPieceStatus>([CarpetCutPieceStatus.AVAILABLE, CarpetCutPieceStatus.RESERVED]);
 
@@ -34,7 +35,7 @@ export class CarpetCutPiecesService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product nahi mila');
     if (!ROLL_UNITS.includes(product.unit.toLowerCase())) {
-      throw new BadRequestException(`${product.name} ${product.unit} me bikta hai — tukra sirf sqft, sq meter, sq gaz ya running ft / meter wale product ka banta hai`);
+      throw new BadRequestException(apiMessage('{{productName}} {{unit}} me bikta hai — tukra sirf sqft, sq meter, sq gaz ya running ft / meter wale product ka banta hai', { productName: product.name, unit: product.unit }));
     }
     if (dto.variantId) {
       const variant = await this.prisma.productVariant.findFirst({ where: { id: dto.variantId, productId: dto.productId } });
@@ -43,7 +44,7 @@ export class CarpetCutPiecesService {
     if (dto.sourceRollId) {
       const roll = await this.prisma.carpetRoll.findFirst({ where: { id: dto.sourceRollId, tenantId: user.tenantId } });
       if (!roll) throw new NotFoundException('Roll nahi mila');
-      if (roll.productId !== dto.productId) throw new BadRequestException(`Roll ${roll.rollNumber} is product ka nahi`);
+      if (roll.productId !== dto.productId) throw new BadRequestException(apiMessage('Roll {{rollNumber}} is product ka nahi', { rollNumber: roll.rollNumber }));
     }
     if (dto.status === CarpetCutPieceStatus.SOLD) throw new BadRequestException('Naya piece Sold nahi ho sakta');
 
@@ -53,7 +54,7 @@ export class CarpetCutPiecesService {
     let pieceCode = dto.pieceCode?.trim();
     if (pieceCode) {
       const exists = await this.prisma.carpetCutPiece.findFirst({ where: { tenantId: user.tenantId, pieceCode } });
-      if (exists) throw new ConflictException(`Piece code "${pieceCode}" pehle se hai`);
+      if (exists) throw new ConflictException(apiMessage('Piece code "{{pieceCode}}" pehle se hai', { pieceCode }));
     } else {
       pieceCode = await nextPieceCode(this.db, user.tenantId);
     }

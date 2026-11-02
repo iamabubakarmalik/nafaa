@@ -10,6 +10,7 @@ import { ArrowDownRight, ArrowUpRight, Crown, Minus, type LucideIcon } from 'luc
 import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useReportMasked } from '../../prefs';
+import { t } from '@core/i18n';
 
 const PALETTE = ['#2563eb', '#16a34a', '#d97706', '#db2777', '#7c3aed', '#0891b2', '#ea580c', '#65a30d', '#64748b', '#9333ea'];
 
@@ -29,7 +30,7 @@ export const keyLabel = (k: string) =>
     : new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
 /** "3 din pehle", "aaj". */
-export const daysAgo = (d: number | null | undefined) => (d == null ? '—' : d <= 0 ? 'aaj' : d === 1 ? 'kal' : `${d} din pehle`);
+export const daysAgo = (d: number | null | undefined) => (d == null ? '—' : d <= 0 ? t('aaj') : d === 1 ? t('kal') : t('{{d}} din pehle', { d }));
 
 export function Panel({ icon: Icon, title, hint, actions, className, flush, children }: {
   icon: LucideIcon; title: ReactNode; hint?: ReactNode; actions?: ReactNode; className?: string; flush?: boolean; children: ReactNode;
@@ -50,19 +51,19 @@ export function Empty({ text }: { text: string }) {
 export function Delta({ now, before, up = 'good', points }: { now: number; before: number | null | undefined; up?: 'good' | 'bad'; points?: boolean }) {
   if (before == null) return null;
   const diff = points ? now - before : Math.abs(before) < 0.005 ? null : ((now - before) / Math.abs(before)) * 100;
-  if (diff == null) return now ? <span className="text-slate-500">pichli dafa 0</span> : null;
-  if (Math.abs(diff) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />pehle jaisa</span>;
+  if (diff == null) return now ? <span className="text-slate-500">{t('pichli dafa 0')}</span> : null;
+  if (Math.abs(diff) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />{t('pehle jaisa')}</span>;
   const good = (diff > 0) === (up === 'good');
   const Icon = diff > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(diff).toFixed(0)}{points ? ' point' : '%'} pichli period se
+      <Icon className="h-3.5 w-3.5" />{t('{{value}}{{value2}} pichli period se', { value: Math.abs(diff).toFixed(0), value2: points ? t(' point') : '%' })}
     </span>
   );
 }
 
 /** Ranked list with share bars. */
-export function BarList({ rows, format, empty = 'Kuch nahi' }: {
+export function BarList({ rows, format, empty = t('Kuch nahi') }: {
   rows: Array<{ key: string; name: ReactNode; value: number; hint?: ReactNode; color?: string }>; format: (n: number) => string; empty?: string;
 }) {
   if (!rows.length) return <Empty text={empty} />;
@@ -88,7 +89,7 @@ export function BarList({ rows, format, empty = 'Kuch nahi' }: {
 interface Column<T> { label: string; align?: 'right'; render: (row: T, i: number) => ReactNode; hide?: boolean }
 
 /** Plain table that scrolls sideways on phones. */
-export function DataTable<T>({ rows, columns, empty = 'Kuch nahi', rowKey }: {
+export function DataTable<T>({ rows, columns, empty = t('Kuch nahi'), rowKey }: {
   rows: T[]; columns: Array<Column<T>>; empty?: string; rowKey: (row: T, i: number) => string;
 }) {
   const cols = columns.filter((c) => !c.hide);

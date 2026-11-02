@@ -1,5 +1,6 @@
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 import DistributorHome from './DistributorHome';
+import { t } from '@core/i18n';
 
 /**
  * Distributor / wholesale business: field order booking, routes, price
@@ -16,10 +17,10 @@ import DistributorHome from './DistributorHome';
 export const DistributionPack: IndustryPack = {
   id: 'distribution',
   name: 'Distributor / Wholesale',
-  shortName: 'Distributor',
+  shortName: t('Distributor'),
   emoji: '🚚',
   priority: 85,
-  description: 'Order booker app, routes, price lists, trade schemes, load sheets, delivery settlement and recovery.',
+  description: t('Order booker app, routes, price lists, trade schemes, load sheets, delivery settlement and recovery.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -35,14 +36,14 @@ export const DistributionPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', group: 'Count' },
-      { value: 'pack', label: 'Pack', group: 'Count' },
-      { value: 'dozen', label: 'Dozen (12)', group: 'Count' },
-      { value: 'box', label: 'Box', group: 'Count' },
-      { value: 'carton', label: 'Carton', group: 'Count' },
-      { value: 'bag', label: 'Bag', group: 'Count' },
-      { value: 'kg', label: 'Kilograms', group: 'Weight' },
-      { value: 'liter', label: 'Liter', group: 'Volume' },
+      { value: 'pcs', label: t('Pieces'), group: t('Count') },
+      { value: 'pack', label: t('Pack'), group: t('Count') },
+      { value: 'dozen', label: t('Dozen (12)'), group: t('Count') },
+      { value: 'box', label: t('Box'), group: t('Count') },
+      { value: 'carton', label: t('Carton'), group: t('Count') },
+      { value: 'bag', label: t('Bag'), group: t('Count') },
+      { value: 'kg', label: t('Kilograms'), group: t('Weight') },
+      { value: 'liter', label: t('Liter'), group: t('Volume') },
     ],
   },
 };

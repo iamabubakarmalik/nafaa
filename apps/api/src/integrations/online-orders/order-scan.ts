@@ -3,6 +3,8 @@
  * each scan (apps/web …/lib/pack.ts) and the server checks the final counts.
  */
 
+import { apiMessage, type ApiMessage } from '../../common/i18n/api-message';
+
 export interface PackLine { index: number; name: string; quantity: number; codes: string[] }
 
 const norm = (v: unknown) => String(v ?? '').toUpperCase().replace(/\s+/g, '');
@@ -26,12 +28,12 @@ export function matchScan(lines: PackLine[], counts: Record<string, number>, sca
  * The order is packed when every line was scanned exactly its quantity.
  * Lines with no barcode or SKU may be ticked by hand (`manual`).
  */
-export function checkPack(lines: PackLine[], counts: Record<string, number>, manual: number[]): { ok: true } | { ok: false; message: string } {
+export function checkPack(lines: PackLine[], counts: Record<string, number>, manual: number[]): { ok: true } | ({ ok: false } & ApiMessage) {
   for (const l of lines) {
     const n = Number(counts[l.index] ?? 0);
     if (!l.codes.length && manual.includes(l.index)) continue;
-    if (n > l.quantity) return { ok: false, message: `${l.name}: ${n} scan hue, order me sirf ${l.quantity} — zyada nikal dein` };
-    if (n < l.quantity) return { ok: false, message: `${l.name}: ${l.quantity - n} abhi scan nahi hue` };
+    if (n > l.quantity) return { ok: false, ...apiMessage('{{lName}}: {{n}} scan hue, order me sirf {{quantity}} — zyada nikal dein', { lName: l.name, n, quantity: l.quantity }) };
+    if (n < l.quantity) return { ok: false, ...apiMessage('{{lName}}: {{quantity}} abhi scan nahi hue', { lName: l.name, quantity: l.quantity - n }) };
   }
   return { ok: true };
 }

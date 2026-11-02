@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ShopScope } from './shop-scope.types';
+import { apiMessage } from '../i18n/api-message';
 
 /**
  * Pick the branch a *write* belongs to.
@@ -27,7 +28,7 @@ export async function resolveWriteShopId(
     });
     if (!shop) throw new NotFoundException('Shop not found');
     if (!shop.isActive) {
-      throw new BadRequestException(`${shop.name} band hai — pehle activate karein`);
+      throw new BadRequestException(apiMessage('{{shopName}} band hai — pehle activate karein', { shopName: shop.name }));
     }
     return shop.id;
   }
@@ -54,6 +55,6 @@ export async function resolveWriteShopId(
 export function assertShopAccess(user: { role: string; shopId?: string | null }, shopId: string, action = 'Yeh kaam') {
   if (user.role === 'OWNER' || user.role === 'SUPER_ADMIN') return;
   if (user.shopId && user.shopId !== shopId) {
-    throw new ForbiddenException(`${action} sirf apni branch me kar sakte hain`);
+    throw new ForbiddenException(apiMessage('{{action}} sirf apni branch me kar sakte hain', { action }));
   }
 }

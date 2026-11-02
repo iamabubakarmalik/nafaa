@@ -17,6 +17,7 @@ import { MEDICINE_FACTS_KEY, useMedicineFacts } from '../hooks/useMedicineFacts'
 import { REGISTER_CLASSES, parseRxNote, rxNote } from '../lib/meta';
 import { RxDetailsModal } from './RxDetailsModal';
 import { SubstituteModal } from './SubstituteModal';
+import { t } from '@core/i18n';
 
 /** The counter's current catalog, for the substitute picker (beforeAdd only sees one item). */
 const shelf: { items: PosItem[] } = { items: [] };
@@ -32,8 +33,8 @@ function usePharmacyCatalog() {
     return {
       ...it,
       badges: [
-        ...(register ? [{ label: 'Register', tone: 'danger' as const, icon: ShieldAlert }] : m.requiresPrescription ? [{ label: 'Rx', tone: 'warning' as const, icon: FileText }] : []),
-        ...(m.requiresColdChain || m.isRefrigerated ? [{ label: 'Fridge', tone: 'info' as const, icon: Snowflake }] : []),
+        ...(register ? [{ label: t('Register'), tone: 'danger' as const, icon: ShieldAlert }] : m.requiresPrescription ? [{ label: t('Rx'), tone: 'warning' as const, icon: FileText }] : []),
+        ...(m.requiresColdChain || m.isRefrigerated ? [{ label: t('Fridge'), tone: 'info' as const, icon: Snowflake }] : []),
       ],
       subline: [m.generic, m.dosageForm].filter(Boolean).join(' · ') || undefined,
       searchText: [it.searchText, m.generic, m.manufacturer, m.dosageForm].filter(Boolean).join(' '),
@@ -48,19 +49,19 @@ function usePharmacyCatalog() {
 }
 
 const filters: PosFilter[] = [
-  { id: 'otc', label: 'OTC', icon: Pill, match: (i) => !!i.meta?.generic && !i.meta?.rx },
-  { id: 'rx', label: 'Rx', icon: FileText, match: (i) => !!i.meta?.rx },
-  { id: 'register', label: 'Register wali', icon: ShieldAlert, match: (i) => !!i.meta?.register },
-  { id: 'cold', label: 'Fridge', icon: Snowflake, match: (i) => !!i.meta?.cold },
+  { id: 'otc', label: t('OTC'), icon: Pill, match: (i) => !!i.meta?.generic && !i.meta?.rx },
+  { id: 'rx', label: t('Rx'), icon: FileText, match: (i) => !!i.meta?.rx },
+  { id: 'register', label: t('Register wali'), icon: ShieldAlert, match: (i) => !!i.meta?.register },
+  { id: 'cold', label: t('Fridge'), icon: Snowflake, match: (i) => !!i.meta?.cold },
 ];
 
 export const pharmacyPos: PosIndustryConfig = {
   id: 'pharmacy',
-  label: 'Pharmacy',
+  label: t('Pharmacy'),
   useCatalog: usePharmacyCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Dawai ka naam, formula (salt) ya barcode…',
+  searchHint: t('Dawai ka naam, formula (salt) ya barcode…'),
   beforeAdd: (item, opts, api) => {
     const confirmed = opts.confirmed ?? [];
 
@@ -98,7 +99,7 @@ export const pharmacyPos: PosIndustryConfig = {
     }
 
     if (item.meta?.rx && !item.meta?.register && !api.cart.some((l) => l.productId === item.id)) {
-      toast.info(`${item.name} nuskhe wali dawai hai — nuskha dekh lein`, { duration: 2500 });
+      toast.info(t('{{name}} nuskhe wali dawai hai — nuskha dekh lein', { name: item.name }), { duration: 2500 });
     }
     return 'continue';
   },

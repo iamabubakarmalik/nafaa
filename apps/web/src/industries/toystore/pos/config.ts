@@ -16,6 +16,7 @@ import type { PosCartLine } from '@modules/pos/lib/posCart';
 import { toyGiftPacksApi, type ToyGiftPack } from '../api/gift-packs.api';
 import { agesOf, cellsNeeded, factLine, useToyFacts } from '../hooks/useToyFacts';
 import { AGE_GROUPS, GIFT_WRAP_SKU, KEYS } from '../lib/meta';
+import { t } from '@core/i18n';
 
 /** Gift wrapping is a service: never out of stock at the counter. */
 const SERVICE_STOCK = 9999;
@@ -24,7 +25,7 @@ function useToyCatalog() {
   const facts = useToyFacts();
   const catalog = useProductCatalog((it): PosItem => {
     if (it.product.sku === GIFT_WRAP_SKU) {
-      return { ...it, stock: SERVICE_STOCK, rank: -1, badges: [{ label: 'Service', tone: 'info' as const, icon: Gift }], meta: { ...(it.meta ?? {}), service: true, wrap: true } };
+      return { ...it, stock: SERVICE_STOCK, rank: -1, badges: [{ label: t('Service'), tone: 'info' as const, icon: Gift }], meta: { ...(it.meta ?? {}), service: true, wrap: true } };
     }
     const f = facts.get(it.id);
     if (!f) return it;
@@ -35,9 +36,9 @@ function useToyCatalog() {
       searchText: [it.searchText, f.brand, f.characterFranchise].filter(Boolean).join(' '),
       badges: [
         ...(it.badges ?? []),
-        ...(f.chokingHazard ? [{ label: 'Chhote purze', tone: 'warning' as const, icon: AlertTriangle }] : []),
-        ...(cells ? [{ label: 'Cell alag', tone: 'info' as const, icon: BatteryCharging }] : []),
-        ...(f.isEidGift ? [{ label: 'Eid', tone: 'brand' as const, icon: Moon }] : []),
+        ...(f.chokingHazard ? [{ label: t('Chhote purze'), tone: 'warning' as const, icon: AlertTriangle }] : []),
+        ...(cells ? [{ label: t('Cell alag'), tone: 'info' as const, icon: BatteryCharging }] : []),
+        ...(f.isEidGift ? [{ label: t('Eid'), tone: 'brand' as const, icon: Moon }] : []),
       ],
       meta: { ...(it.meta ?? {}), ages: agesOf(f), cells, eid: f.isEidGift },
     };
@@ -80,8 +81,8 @@ function useToyBundles(): PosBundle[] {
 }
 
 const filters: PosFilter[] = [
-  { id: 'wrap', label: 'Gift wrap', icon: Gift, match: (i) => !!i.meta?.wrap },
-  { id: 'eid', label: 'Eid', icon: Moon, match: (i) => !!i.meta?.eid },
+  { id: 'wrap', label: t('Gift wrap'), icon: Gift, match: (i) => !!i.meta?.wrap },
+  { id: 'eid', label: t('Eid'), icon: Moon, match: (i) => !!i.meta?.eid },
   ...AGE_GROUPS.filter(([v]) => v !== 'ALL_AGES').map(([v, label]): PosFilter => ({
     id: `age-${v}`, label, icon: Gift, match: (i) => ((i.meta?.ages as string[] | undefined) ?? []).some((a) => a === v || a === 'ALL_AGES'),
   })),
@@ -98,7 +99,7 @@ const variantStockChecked = new Set<string>();
  */
 function beforeAdd(item: PosItem, opts: AddOptions, api: PosEngineApi): 'continue' | 'handled' {
   const cells = item.meta?.cells as string | null | undefined;
-  if (cells && !api.cart.some((l) => l.productId === item.id)) toast.info(`${item.name}: cell dabbe me nahi — ${cells}`, { duration: 3000 });
+  if (cells && !api.cart.some((l) => l.productId === item.id)) toast.info(t('{{name}}: cell dabbe me nahi — {{cells}}', { name: item.name, cells }), { duration: 3000 });
   if (!item.hasVariants || opts.variant || variantStockChecked.has(item.id)) return 'continue';
   variantStockChecked.add(item.id);
   apiClient.post(`/toystore/products/${item.id}/variant-stock-split`)
@@ -122,7 +123,7 @@ function onSale() {
 
 export const toystorePos: PosIndustryConfig = {
   id: 'toystore',
-  label: 'Toy shop',
+  label: t('Toy shop'),
   useCatalog: useToyCatalog,
   useBundles: useToyBundles,
   quickKeys: true,
@@ -130,6 +131,6 @@ export const toystorePos: PosIndustryConfig = {
   beforeAdd,
   beforeCheckout,
   onSale,
-  searchHint: 'Khilone ka naam, brand, character ya barcode',
+  searchHint: t('Khilone ka naam, brand, character ya barcode'),
   voiceAliases: { gaari: 'car', gurya: 'doll', khilona: 'toy', wrap: 'gift wrapping' },
 };

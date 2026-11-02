@@ -18,6 +18,7 @@ import { useShopParam } from '@core/stores/auth.store';
 import { jobsApi, type ServiceJob } from '../api/jobs.api';
 import { JOB_KEY, itemName, statusOf } from '../components/meta';
 import { JobHandover } from './JobHandover';
+import { t } from '@core/i18n';
 
 type Kind = 'service' | 'part' | 'job';
 const kindOf = (it: PosItem) => it.meta?.kind as Kind | undefined;
@@ -55,7 +56,7 @@ function useServicesCatalog() {
     const type = String((it.product as { productType?: string | null }).productType ?? '').toUpperCase();
     const isService = it.unit.toLowerCase() === 'service' || type === 'SERVICE' || String(it.product.sku ?? '').startsWith('SVCB-');
     return isService
-      ? { ...it, stock: SERVICE_STOCK, rank: 0, badges: [{ label: 'Service', tone: 'info' as const, icon: Wrench }], meta: { ...it.meta, kind: 'service' satisfies Kind } }
+      ? { ...it, stock: SERVICE_STOCK, rank: 0, badges: [{ label: t('Service'), tone: 'info' as const, icon: Wrench }], meta: { ...it.meta, kind: 'service' satisfies Kind } }
       : { ...it, rank: 1, meta: { ...it.meta, kind: 'part' satisfies Kind } };
   }, []);
   const jobs = useQuery({
@@ -69,23 +70,23 @@ function useServicesCatalog() {
 }
 
 function billJob(item: PosItem, api: PosEngineApi) {
-  if (!navigator.onLine) { toast.error('Internet nahi — job ka bill sirf online banta hai. Services aur parts offline bik sakte hain.'); return; }
+  if (!navigator.onLine) { toast.error(t('Internet nahi — job ka bill sirf online banta hai. Services aur parts offline bik sakte hain.')); return; }
   api.openPicker(createElement(JobHandover, { job: item.meta?.job as ServiceJob, onClose: api.closePicker }));
 }
 
 const filters: PosFilter[] = [
-  { id: 'services', label: 'Services', icon: Wrench, match: (i) => kindOf(i) === 'service' },
-  { id: 'parts', label: 'Parts / saman', icon: Box, match: (i) => kindOf(i) === 'part' },
-  { id: 'jobs', label: 'Tayyar jobs', icon: CheckCircle2, match: (i) => kindOf(i) === 'job' },
+  { id: 'services', label: t('Services'), icon: Wrench, match: (i) => kindOf(i) === 'service' },
+  { id: 'parts', label: t('Parts / saman'), icon: Box, match: (i) => kindOf(i) === 'part' },
+  { id: 'jobs', label: t('Tayyar jobs'), icon: CheckCircle2, match: (i) => kindOf(i) === 'job' },
 ];
 
 export const servicesBizPos: PosIndustryConfig = {
   id: 'services-biz',
-  label: 'Services',
+  label: t('Services'),
   useCatalog: useServicesCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Service, part ka naam / barcode — ya job number',
+  searchHint: t('Service, part ka naam / barcode — ya job number'),
   receiptFooter: 'Kaam ki warranty bill ke saath. Shikayat ho to ye bill saath laayein.',
   beforeAdd: (item, _opts, api) => {
     if (kindOf(item) === 'job') { billJob(item, api); return 'handled'; }

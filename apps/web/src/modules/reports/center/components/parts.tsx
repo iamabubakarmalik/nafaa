@@ -15,9 +15,10 @@ import { useReportMasked } from '../../prefs';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Fmt } from '../api';
+import { t } from '@core/i18n';
 
 export const PALETTE = ['#2563eb', '#16a34a', '#d97706', '#db2777', '#7c3aed', '#0891b2', '#ea580c', '#65a30d', '#64748b', '#9333ea'];
-export const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+export const WEEKDAYS = [t('Itwar'), t('Peer'), t('Mangal'), t('Budh'), t('Jumeraat'), t('Juma'), t('Hafta')];
 
 const qtyText = (n: number) => Number(n.toFixed(2)).toLocaleString('en-PK');
 const dateText = (v: string) => new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -70,14 +71,14 @@ export function Empty({ text }: { text: string }) {
 /** Change against the previous period; `up` says whether a rise is good. */
 export function Delta({ now, before, up = 'good' }: { now: number; before: number | null | undefined; up?: 'good' | 'bad' }) {
   if (before == null) return null;
-  if (Math.abs(before) < 0.005) return now ? <span className="text-slate-500">pichli dafa 0</span> : null;
+  if (Math.abs(before) < 0.005) return now ? <span className="text-slate-500">{t('pichli dafa 0')}</span> : null;
   const pct = ((now - before) / Math.abs(before)) * 100;
-  if (Math.abs(pct) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />pehle jaisa</span>;
+  if (Math.abs(pct) < 0.5) return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="h-3 w-3" />{t('pehle jaisa')}</span>;
   const good = (pct > 0) === (up === 'good');
   const Icon = pct > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
-      <Icon className="h-3.5 w-3.5" />{Math.abs(pct).toFixed(0)}% pichli period se
+      <Icon className="h-3.5 w-3.5" />{t('{{value}}% pichli period se', { value: Math.abs(pct).toFixed(0) })}
     </span>
   );
 }
@@ -172,7 +173,7 @@ export function Donut({ data, fmt, f, colors }: {
 }
 
 /** Ranked list with share bars. */
-export function BarList({ rows, fmt, f, empty = 'Kuch nahi' }: {
+export function BarList({ rows, fmt, f, empty = t('Kuch nahi') }: {
   rows: Array<{ key: string; name: ReactNode; value: number; hint?: ReactNode; color?: string }>; fmt: Fmt; f: Formatter; empty?: string;
 }) {
   if (!rows.length) return <Empty text={empty} />;
@@ -198,7 +199,7 @@ export function BarList({ rows, fmt, f, empty = 'Kuch nahi' }: {
 export interface Column<T> { label: string; align?: 'right'; render: (row: T, i: number) => ReactNode; hide?: boolean }
 
 /** Plain table that scrolls sideways on phones. */
-export function DataTable<T>({ rows, columns, empty = 'Kuch nahi', rowKey }: {
+export function DataTable<T>({ rows, columns, empty = t('Kuch nahi'), rowKey }: {
   rows: T[]; columns: Array<Column<T>>; empty?: string; rowKey: (row: T, i: number) => string;
 }) {
   const cols = columns.filter((c) => !c.hide);
@@ -224,7 +225,7 @@ export function Heatmap({ grid }: { grid: number[][] }) {
   const theme = useChartTheme();
   const hours = Array.from({ length: 24 }, (_, h) => h).filter((h) => grid.some((row) => row[h] > 0));
   const max = Math.max(1, ...grid.flat());
-  if (!hours.length) return <Empty text="Koi sale nahi" />;
+  if (!hours.length) return <Empty text={t('Koi sale nahi')} />;
   const order = [1, 2, 3, 4, 5, 6, 0];
   return (
     <div className="overflow-x-auto pb-1">
@@ -236,7 +237,7 @@ export function Heatmap({ grid }: { grid: number[][] }) {
             <span className="flex items-center text-[0.75rem] font-medium text-slate-600">{WEEKDAYS[d]}</span>
             {hours.map((h) => {
               const v = grid[d]?.[h] ?? 0;
-              return <span key={h} title={`${WEEKDAYS[d]} ${h}:00 — ${v} bill`} className={cn('h-7 rounded-md', !v && 'bg-slate-100')}
+              return <span key={h} title={t('{{value}} {{h}}:00 — {{v}} bill', { value: WEEKDAYS[d], h, v })} className={cn('h-7 rounded-md', !v && 'bg-slate-100')}
                 style={v ? { backgroundColor: theme.primary, opacity: 0.15 + 0.85 * (v / max) } : undefined} />;
             })}
           </div>

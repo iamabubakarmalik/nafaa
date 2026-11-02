@@ -7,6 +7,7 @@
    ka khata (26–51) bilkul waisa hi rehta hai.
    ═════════════════════════════════════════════════════════════ */
 
+import { t as tr } from '@core/i18n';
 export interface Tlv { id: string; value: string }
 
 export function crc16(s: string): string {
@@ -25,7 +26,7 @@ export function parseTlv(s: string): Tlv[] {
   while (i < s.length) {
     const id = s.slice(i, i + 2);
     const len = Number(s.slice(i + 2, i + 4));
-    if (!/^\d{2}$/.test(id) || !Number.isInteger(len) || i + 4 + len > s.length) throw new Error('QR ka data toota hua hai');
+    if (!/^\d{2}$/.test(id) || !Number.isInteger(len) || i + 4 + len > s.length) throw new Error(tr('QR ka data toota hua hai'));
     out.push({ id, value: s.slice(i + 4, i + 4 + len) });
     i += 4 + len;
   }
@@ -34,7 +35,7 @@ export function parseTlv(s: string): Tlv[] {
 
 const enc = (id: string, v: string) => {
   const len = [...v].length;
-  if (len > 99) throw new Error(`QR khana ${id} bohat lamba`);
+  if (len > 99) throw new Error(tr('QR khana {{id}} bohat lamba', { id }));
   return id + String(len).padStart(2, '0') + v;
 };
 
@@ -58,16 +59,16 @@ export function readPaymentQr(raw: string): QrInfo {
   try { tlv = parseTlv(payload); } catch (e) { problems.push((e as Error).message); }
   const get = (id: string) => tlv.find((t) => t.id === id)?.value ?? '';
   if (tlv.length) {
-    if (get('00') !== '01') problems.push('Ye payment QR nahi lagta (EMV format nahi)');
+    if (get('00') !== '01') problems.push(tr('Ye payment QR nahi lagta (EMV format nahi)'));
     const crc = tlv[tlv.length - 1];
-    if (crc?.id !== '63' || crc.value.toUpperCase() !== crc16(payload.slice(0, -4))) problems.push('QR ka checksum ghalat — tasveer saaf nahi ya QR adhoora');
-    if (get('53') && get('53') !== '586') problems.push('Ye QR Pakistani rupay (586) ka nahi');
-    if (get('58') && get('58') !== 'PK') problems.push('Ye QR Pakistan ka nahi');
+    if (crc?.id !== '63' || crc.value.toUpperCase() !== crc16(payload.slice(0, -4))) problems.push(tr('QR ka checksum ghalat — tasveer saaf nahi ya QR adhoora'));
+    if (get('53') && get('53') !== '586') problems.push(tr('Ye QR Pakistani rupay (586) ka nahi'));
+    if (get('58') && get('58') !== 'PK') problems.push(tr('Ye QR Pakistan ka nahi'));
   }
   const mai = tlv.find((t) => Number(t.id) >= 26 && Number(t.id) <= 51);
   let scheme = '';
   if (mai) { try { scheme = parseTlv(mai.value).find((t) => t.id === '00')?.value ?? ''; } catch { /* */ } }
-  else if (tlv.length) problems.push('QR me merchant khata nahi mila');
+  else if (tlv.length) problems.push(tr('QR me merchant khata nahi mila'));
   const amt = get('54');
   return {
     payload, merchantName: get('59'), city: get('60'), scheme,

@@ -23,6 +23,7 @@ import { periodRange } from '../../inventory/taxonomy/taxonomy.helper';
 import {
   AccountEntryDto, CreateMoneyAccountDto, DrawerMoveDto, ListMoneyAccountsDto, StatementDto, TransferDto, UpdateMoneyAccountDto,
 } from './dto/money-account.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -77,7 +78,7 @@ export class MoneyAccountsService {
   }
 
   private active(a: MoneyAccount) {
-    if (!a.isActive) throw new BadRequestException(`${a.name} band hai — pehle chalu karein`);
+    if (!a.isActive) throw new BadRequestException(apiMessage('{{aName}} band hai — pehle chalu karein', { aName: a.name }));
   }
 
   /** Kind, method and default must fit together. */
@@ -229,7 +230,7 @@ export class MoneyAccountsService {
       }
       const balance = await accountBalance(tx, a);
       if (Math.abs(balance) >= 0.01) {
-        throw new BadRequestException(`${a.name} me abhi ${rs(balance)} hain. Pehle ye paisa doosre account ya golak me bhejein.`);
+        throw new BadRequestException(apiMessage('{{aName}} me abhi {{balance}} hain. Pehle ye paisa doosre account ya golak me bhejein.', { aName: a.name, balance: rs(balance) }));
       }
       await tx.moneyAccount.update({ where: { id: a.id }, data: { isActive: false, isDefault: false } });
       return { removed: false, deactivated: true };
@@ -462,7 +463,7 @@ export class MoneyAccountsService {
     if (allowNegative) return;
     const balance = await accountBalance(tx, a);
     if (balance - amount < -0.005) {
-      throw new BadRequestException(`${a.name} me sirf ${rs(balance)} hain. Amount kam karein ya "minus me jane dein" chunein.`);
+      throw new BadRequestException(apiMessage('{{aName}} me sirf {{balance}} hain. Amount kam karein ya "minus me jane dein" chunein.', { aName: a.name, balance: rs(balance) }));
     }
   }
 
@@ -536,7 +537,7 @@ export class MoneyAccountsService {
         if (!dto.allowNegative) {
           const live = await computeLiveCash(tx, tenantId, register);
           if (live.expected - amount < -0.005) {
-            throw new BadRequestException(`Golak me sirf ${rs(live.expected)} hone chahiye. Pehle gin lein ya amount kam karein.`);
+            throw new BadRequestException(apiMessage('Golak me sirf {{expected}} hone chahiye. Pehle gin lein ya amount kam karein.', { expected: rs(live.expected) }));
           }
         }
       } else {

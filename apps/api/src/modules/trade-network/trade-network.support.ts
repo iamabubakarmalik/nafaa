@@ -13,6 +13,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { NotificationType, Prisma, TradeLink, UserRole } from '@prisma/client';
 import { PERMISSIONS, hasPermission, type PermissionKey } from '../../common/constants/permissions.constants';
 import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { MessageText } from '../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -99,8 +100,8 @@ export interface BusinessCard {
 
 export interface Notice {
   tenantId: string;
-  title: string;
-  message: string;
+  title: MessageText;
+  message: MessageText;
   link: string;
   type?: NotificationType;
   kind: string;
@@ -109,7 +110,7 @@ export interface Notice {
 
 /** Notifications never block the work that raised them. */
 export interface Notifier {
-  create(p: { tenantId: string; type: NotificationType; title: string; message: string; link?: string; metadata?: unknown }): Promise<unknown>;
+  create(p: { tenantId: string; type: NotificationType; title: MessageText; message: MessageText; link?: string; metadata?: unknown }): Promise<unknown>;
 }
 
 export function notify(n: Notifier, x: Notice) {

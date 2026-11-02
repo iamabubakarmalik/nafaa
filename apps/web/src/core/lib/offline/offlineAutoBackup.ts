@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 import { exportBackup } from './offlineBackup';
 import { getMeta, setMeta } from './db';
+import { t } from '@core/i18n';
 
 const LAST_BACKUP_KEY = 'lastBackupExportedAt';
 const REMIND_EVERY_MS = 7 * 24 * 60 * 60 * 1000; // 7 din
@@ -15,18 +16,18 @@ async function checkAndRemind() {
     const gap = last ? Date.now() - last : Infinity;
 
     if (gap > REMIND_EVERY_MS) {
-      toast.info('📦 Weekly Backup Reminder', {
-        description: 'Apna offline data safe rakhne ke liye backup download karein',
+      toast.info(t('📦 Weekly Backup Reminder'), {
+        description: t('Apna offline data safe rakhne ke liye backup download karein'),
         duration: 10000,
         action: {
-          label: 'Download Now',
+          label: t('Download Now'),
           onClick: async () => {
             try {
               await exportBackup();
               await setMeta(LAST_BACKUP_KEY, Date.now());
-              toast.success('✅ Backup download ho gaya — safe jagah rakhein');
+              toast.success(t('✅ Backup download ho gaya — safe jagah rakhein'));
             } catch {
-              toast.error('Backup fail — /sync page se try karein');
+              toast.error(t('Backup fail — /sync page se try karein'));
             }
           },
         },

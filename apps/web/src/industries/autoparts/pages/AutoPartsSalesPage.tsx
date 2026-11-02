@@ -10,6 +10,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { workshopJobsApi } from '../api/workshop-jobs.api';
 import { JOB_KEY } from '../components/meta';
+import { t } from '@core/i18n';
 
 function useJobExtras(sales: HistorySale[]) {
   const ids = sales.map((s) => s.id);
@@ -27,14 +28,14 @@ function useJobExtras(sales: HistorySale[]) {
       <div className="mt-1.5 flex flex-wrap gap-1">
         <Link to={`/autoparts/jobs/${job.jobId}`}
           className="inline-flex items-center gap-1 rounded-md bg-violet-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-violet-700 hover:bg-violet-100">
-          <Wrench className="h-3 w-3" />Workshop job {job.jobNumber}
+          <Wrench className="h-3 w-3" />{t('Workshop job {{jobNumber}}', { jobNumber: job.jobNumber })}
         </Link>
       </div>
     );
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Auto Parts', useBillExtras: useJobExtras };
+const config: SalesHistoryConfig = { label: t('Auto Parts'), useBillExtras: useJobExtras };
 
 export default function AutoPartsSalesPage() {
   return <SalesHistoryPage config={config} />;

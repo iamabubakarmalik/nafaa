@@ -6,6 +6,7 @@ import { apiErrorMessage, couriersApi, type CourierAccount, type CourierSettingF
 import { cn } from '@core/lib/cn';
 import { Button, controlClass, Field } from '@/design-system/components';
 import { BrandLogo, brandForCourier } from '@/assets/brands/BrandLogo';
+import { t } from '@core/i18n';
 
 export const COURIERS_KEY = ['courier-accounts'];
 
@@ -29,7 +30,7 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: COURIERS_KEY });
       qc.invalidateQueries({ queryKey: ['courier-options', c.code] });
-      toast.success(`${c.name} jur gaya ✓`, { description: `${r.cities} shehar me delivery` });
+      toast.success(t('{{name}} jur gaya ✓', { name: c.name }), { description: t('{{cities}} shehar me delivery', { cities: r.cities }) });
       setVals({});
       onDone?.();
     },
@@ -42,12 +43,12 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
     <div className="space-y-4">
       {c.connect?.portalUrl && (
         <a href={c.connect.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-          {c.name} portal kholein <ExternalLink className="h-3.5 w-3.5" />
+          {t('{{name}} portal kholein', { name: c.name })}{' '} <ExternalLink className="h-3.5 w-3.5" />
         </a>
       )}
       <div className={cn('grid gap-3', fields.length > 1 && 'sm:grid-cols-2')}>
         {fields.map((f) => (
-          <Field key={f.key} label={<>{f.label}{f.optional && <span className="font-normal text-slate-400"> (optional)</span>}</>} hint={f.help}>
+          <Field key={f.key} label={<>{f.label}{f.optional && <span className="font-normal text-slate-400"> {' '}{t('(optional)')}</span>}</>} hint={f.help}>
             {(id) => (f.options ? (
               <select id={id} value={vals[f.key] ?? f.options[0]?.value ?? ''} onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
                 {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -65,9 +66,9 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> Keys encrypted save hoti hain · sirf malik / manager</span>
+        <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> {' '}{t('Keys encrypted save hoti hain · sirf malik / manager')}</span>
         <Button size="sm" variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} leftIcon={<Zap className="h-4 w-4" />}>
-          {c.connected ? 'Nayi key check karke lagayein' : 'Check karke jorein'}
+          {c.connected ? t('Nayi key check karke lagayein') : t('Check karke jorein')}
         </Button>
       </div>
     </div>
@@ -92,12 +93,12 @@ export function CourierSettingsForm({ c }: { c: CourierAccount }) {
       qc.invalidateQueries({ queryKey: COURIERS_KEY });
       // Shehar badla to us ke areas / pickup dobara (Call Courier)
       qc.invalidateQueries({ queryKey: ['courier-options', c.code] });
-      toast.success('Save ho gaya');
+      toast.success(t('Save ho gaya'));
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
-  if (!defs.length) return <p className="text-[0.8125rem] text-slate-500">Is courier ki koi setting nahi.</p>;
+  if (!defs.length) return <p className="text-[0.8125rem] text-slate-500">{t('Is courier ki koi setting nahi.')}</p>;
 
   return (
     <div className="divide-y divide-slate-100">
@@ -128,7 +129,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
           : d.options ?? [];
     return (
       <select value={current} disabled={loading && d.type !== 'select'} onChange={(e) => onSave(e.target.value || null)} className={cn(controlClass(), 'h-9 w-60 max-w-full px-3 text-[0.8125rem]')}>
-        <option value="">{loading && d.type !== 'select' ? 'Aa raha hai…' : d.placeholder ?? 'Default'}</option>
+        <option value="">{loading && d.type !== 'select' ? t('Aa raha hai…') : d.placeholder ?? t('Default')}</option>
         {current && !list.some((o) => o.value === current) && <option value={current}>{current}</option>}
         {list.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -137,7 +138,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
   return (
     <input
       type={d.type === 'number' ? 'number' : 'text'} step={d.type === 'number' ? '0.1' : undefined} min={d.type === 'number' ? '0.01' : undefined}
-      value={draft} placeholder={d.placeholder ?? '(khali)'} maxLength={200}
+      value={draft} placeholder={d.placeholder ?? t('(khali)')} maxLength={200}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== current && onSave(draft === '' ? null : d.type === 'number' ? Number(draft) : draft)}
       className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', d.type === 'number' ? 'w-24' : 'w-60 max-w-full')}

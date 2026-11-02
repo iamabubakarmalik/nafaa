@@ -20,6 +20,7 @@ import { useCommissionDetail } from '../hooks/useCommission';
 import { PAY, day, dayTime, periodLabel, qtyText, rateText, signed } from './meta';
 import { lineBase, returnText, statementDoc } from './print';
 import { StatementPrintModal } from './StatementPrintModal';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'hisab' | 'goods' | 'bills' | 'returns' | 'months';
 
@@ -57,46 +58,46 @@ export function CommissionDetailDrawer({ userId, name, period, canManage, costHi
             <div className="min-w-0">
               <h2 className="truncate text-lg font-bold text-slate-900">{name}</h2>
               <p className="truncate text-[0.8125rem] text-slate-500">
-                {periodLabel(period)}{d?.staff?.designation ? ` · ${d.staff.designation}` : ''}{d && !d.enrolled ? ' · commission chaalu nahi' : ''}
+                {periodLabel(period)}{d?.staff?.designation ? ` · ${d.staff.designation}` : ''}{d && !d.enrolled ? tr(' · commission chaalu nahi') : ''}
               </p>
             </div>
           </div>
-          <IconButton label="Band karein" onClick={onClose}><X className="h-5 w-5" /></IconButton>
+          <IconButton label={tr('Band karein')} onClick={onClose}><X className="h-5 w-5" /></IconButton>
         </header>
 
         {!d ? (
           <div className="space-y-3 p-5">
             {q.isError
-              ? <div className="py-14 text-center"><p className="font-semibold text-slate-900">Hisab load nahi hua</p><Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button></div>
+              ? <div className="py-14 text-center"><p className="font-semibold text-slate-900">{tr('Hisab load nahi hua')}</p><Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>{tr('Dobara koshish')}</Button></div>
               : Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
           </div>
         ) : (<>
           <div className="grid grid-cols-3 gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
-            <Fig label="Commission" value={signed(d.earned)} tone="text-brand-700" />
-            <Fig label={d.paidAmount != null ? `Ada · ${day(d.paidAt)}` : 'Ada'} value={d.paidAmount != null ? formatPKR(d.paidAmount) : '—'} />
-            <Fig label="Baqi" value={formatPKR(d.due)} tone={d.due > 0 ? 'text-amber-700' : undefined} />
+            <Fig label={tr('Commission')} value={signed(d.earned)} tone="text-brand-700" />
+            <Fig label={d.paidAmount != null ? tr('Ada · {{paidAt}}', { paidAt: day(d.paidAt) }) : tr('Ada')} value={d.paidAmount != null ? formatPKR(d.paidAmount) : '—'} />
+            <Fig label={tr('Baqi')} value={formatPKR(d.due)} tone={d.due > 0 ? 'text-amber-700' : undefined} />
           </div>
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2.5 sm:px-5">
             <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', PAY[d.payStatus].tone)}>
               {(() => { const I = PAY[d.payStatus].icon; return <I className="h-3 w-3" />; })()}{PAY[d.payStatus].label}
             </span>
             <span className="flex-1" />
-            <PrintButton size="sm" label="Statement" doc={() => statementDoc(d, showCost)} />
-            <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => setSlip(true)}>Slip</Button>
-            {d.paidInSalary && <span className="text-[0.75rem] text-slate-500">Tankhwah ke saath ada hui</span>}
+            <PrintButton size="sm" label={tr('Statement')} doc={() => statementDoc(d, showCost)} />
+            <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => setSlip(true)}>{tr('Slip')}</Button>
+            {d.paidInSalary && <span className="text-[0.75rem] text-slate-500">{tr('Tankhwah ke saath ada hui')}</span>}
             {canManage && d.paidAmount != null && !d.paidInSalary && (
-              <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-4 w-4" />} disabled={busy} onClick={() => onUndo(d)}>Payment wapas</Button>
+              <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-4 w-4" />} disabled={busy} onClick={() => onUndo(d)}>{tr('Payment wapas')}</Button>
             )}
             {canManage && d.enrolled && d.due > 0 && !d.paidInSalary && (
-              <Button size="sm" leftIcon={<HandCoins className="h-4 w-4" />} disabled={busy} onClick={() => onPay(d)}>Ada karein</Button>
+              <Button size="sm" leftIcon={<HandCoins className="h-4 w-4" />} disabled={busy} onClick={() => onPay(d)}>{tr('Ada karein')}</Button>
             )}
           </div>
 
           <div className="border-b border-slate-100 px-4 py-2 sm:px-5">
-            <Segmented label="Hissa" value={tab} onChange={(v) => setTab(v as Tab)} className="max-w-full overflow-x-auto"
+            <Segmented label={tr('Hissa')} value={tab} onChange={(v) => setTab(v as Tab)} className="max-w-full overflow-x-auto"
               items={[
-                { value: 'hisab', label: 'Hisab' }, { value: 'goods', label: 'Cheezein' }, { value: 'bills', label: `Bill (${d.billCount})` },
-                { value: 'returns', label: `Return (${d.returnList.length})` }, { value: 'months', label: 'Mahine' },
+                { value: 'hisab', label: tr('Hisab') }, { value: 'goods', label: tr('Cheezein') }, { value: 'bills', label: tr('Bill ({{billCount}})', { billCount: d.billCount }) },
+                { value: 'returns', label: tr('Return ({{count}})', { count: d.returnList.length }) }, { value: 'months', label: tr('Mahine') },
               ]} />
           </div>
 
@@ -128,20 +129,20 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
   return (<>
     <section className="rounded-2xl ring-1 ring-slate-200">
       <dl className="divide-y divide-slate-100 text-sm">
-        <Row k="Sale (discount ke baad)" v={formatPKR(d.grossSale)} hint={`${d.bills} bill${d.reassigned ? ` · ${d.reassigned} counter par kisi aur ne banaye` : ''}`} />
-        {d.returnSale > 0 && <Row k="Is mahine wapas aaya maal" v={`−${formatPKR(d.returnSale)}`} hint="Return us mahine me katti hai jis me maal wapas aaya" tone="text-rose-700" />}
-        <Row k="Asal sale" v={formatPKR(d.sale)} strong />
-        {showCost && <Row k="Profit" v={formatPKR(d.profit ?? 0)} hint={d.noCost ? `${d.noCost} line par cost nahi thi — aaj ki cost lagi` : undefined} />}
+        <Row k={tr('Sale (discount ke baad)')} v={formatPKR(d.grossSale)} hint={tr('{{bills}} bill{{value}}', { bills: d.bills, value: d.reassigned ? tr(' · {{reassigned}} counter par kisi aur ne banaye', { reassigned: d.reassigned }) : '' })} />
+        {d.returnSale > 0 && <Row k={tr('Is mahine wapas aaya maal')} v={`−${formatPKR(d.returnSale)}`} hint={tr('Return us mahine me katti hai jis me maal wapas aaya')} tone="text-rose-700" />}
+        <Row k={tr('Asal sale')} v={formatPKR(d.sale)} strong />
+        {showCost && <Row k={tr('Profit')} v={formatPKR(d.profit ?? 0)} hint={d.noCost ? tr('{{noCost}} line par cost nahi thi — aaj ki cost lagi', { noCost: d.noCost }) : undefined} />}
       </dl>
     </section>
 
     <section>
-      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">Commission kaise bani</h3>
+      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">{tr('Commission kaise bani')}</h3>
       {!d.enrolled ? (
-        <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">Is bande par commission chaalu nahi — Team tab se chaalu karein.</p>
+        <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">{tr('Is bande par commission chaalu nahi — Team tab se chaalu karein.')}</p>
       ) : !d.lines.length ? (
         <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">
-          {d.blockedByMin ? `Abhi ${formatPKR(d.blockedByMin.short)} aur sale chahiye — tab commission shuru hogi (hadd ${formatPKR(d.blockedByMin.need)})` : 'Is mahine koi commission nahi bani'}
+          {d.blockedByMin ? tr('Abhi {{short}} aur sale chahiye — tab commission shuru hogi (hadd {{need}})', { short: formatPKR(d.blockedByMin.short), need: formatPKR(d.blockedByMin.need) }) : tr('Is mahine koi commission nahi bani')}
         </p>
       ) : (
         <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -154,44 +155,44 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
               <p className={cn('shrink-0 font-semibold tabular-nums', l.amount < 0 ? 'text-rose-700' : 'text-slate-900')}>{signed(l.amount)}</p>
             </li>
           ))}
-          <li className="flex justify-between bg-slate-50 px-4 py-2.5 font-bold text-slate-900"><span>Kul</span><span className="tabular-nums">{signed(d.earned)}</span></li>
+          <li className="flex justify-between bg-slate-50 px-4 py-2.5 font-bold text-slate-900"><span>{tr('Kul')}</span><span className="tabular-nums">{signed(d.earned)}</span></li>
         </ul>
       )}
-      {d.earned < 0 && <p className="mt-2 text-xs text-rose-700">Is mahine return sale se zyada thi, is liye commission minus me hai. Agle mahine ki payment me hisab kar lein.</p>}
-      {d.blockedByMin && d.lines.length > 0 && <p className="mt-2 text-xs text-slate-500">Agla slab: {formatPKR(d.blockedByMin.short)} aur sale par (hadd {formatPKR(d.blockedByMin.need)})</p>}
+      {d.earned < 0 && <p className="mt-2 text-xs text-rose-700">{tr('Is mahine return sale se zyada thi, is liye commission minus me hai. Agle mahine ki payment me hisab kar lein.')}</p>}
+      {d.blockedByMin && d.lines.length > 0 && <p className="mt-2 text-xs text-slate-500">{tr('Agla slab: {{short}} aur sale par (hadd {{need}})', { short: formatPKR(d.blockedByMin.short), need: formatPKR(d.blockedByMin.need) })}</p>}
     </section>
 
     {d.targets.length > 0 && (
       <section className="space-y-2">
-        <h3 className="text-[0.8125rem] font-semibold text-slate-700">Target</h3>
+        <h3 className="text-[0.8125rem] font-semibold text-slate-700">{tr('Target')}</h3>
         {d.targets.map((t) => (
           <div key={t.ruleId} className="rounded-2xl px-4 py-3 ring-1 ring-slate-200">
             <div className="flex items-center justify-between gap-2 text-sm">
-              <span className="inline-flex items-center gap-1.5 text-slate-700"><Target className="h-4 w-4 text-brand-600" />{formatPKR(t.amount)} → bonus {formatPKR(t.bonus)}</span>
+              <span className="inline-flex items-center gap-1.5 text-slate-700"><Target className="h-4 w-4 text-brand-600" />{tr('{{amount}} → bonus {{bonus}}', { amount: formatPKR(t.amount), bonus: formatPKR(t.bonus) })}</span>
               <span className={cn('font-semibold tabular-nums', t.reached ? 'text-success-700' : 'text-slate-900')}>{Math.round(t.pct)}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', t.reached ? 'bg-success-500' : 'bg-brand-500')} style={{ width: `${Math.min(100, t.pct)}%` }} /></div>
-            {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{formatPKR(Math.max(0, t.amount - d.sale))} aur sale chahiye</p>}
+            {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('{{formatPKR}} aur sale chahiye', { formatPKR: formatPKR(Math.max(0, t.amount - d.sale)) })}</p>}
           </div>
         ))}
       </section>
     )}
 
     <section>
-      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">Is bande par kaunse rule lagte hain</h3>
-      {!d.rules.length ? <p className="text-sm text-slate-500">Koi chaalu rule nahi.</p> : (
+      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">{tr('Is bande par kaunse rule lagte hain')}</h3>
+      {!d.rules.length ? <p className="text-sm text-slate-500">{tr('Koi chaalu rule nahi.')}</p> : (
         <ul className="space-y-1.5">
           {d.rules.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] ring-1 ring-slate-200">
               <span className="font-medium text-slate-900">{r.label}</span>
               <span className="text-slate-600">{rateText(r)}</span>
-              <span className="text-[0.6875rem] text-slate-500">{r.own ? 'sirf is ka' : 'sab ke liye'}{r.categoryIds.length ? ` · ${r.categoryIds.length} category` : ''}{r.minMonthlySale ? ` · hadd ${formatPKR(r.minMonthlySale)}` : ''}</span>
+              <span className="text-[0.6875rem] text-slate-500">{r.own ? tr('sirf is ka') : tr('sab ke liye')}{r.categoryIds.length ? tr(' · {{count}} category', { count: r.categoryIds.length }) : ''}{r.minMonthlySale ? tr(' · hadd {{minMonthlySale}}', { minMonthlySale: formatPKR(r.minMonthlySale) }) : ''}</span>
             </li>
           ))}
         </ul>
       )}
-      {d.rules.some((r) => r.own) && <p className="mt-1.5 text-[0.6875rem] text-slate-500">Is bande ka apna rule hai, is liye "sab ke liye" wale rule is par nahi lagte.</p>}
-      <p className="mt-1.5 text-[0.6875rem] text-slate-500">Sale yaani discount ke baad maal ki qeemat; service charge shamil nahi. Void bill shamil nahi.</p>
+      {d.rules.some((r) => r.own) && <p className="mt-1.5 text-[0.6875rem] text-slate-500">{tr('Is bande ka apna rule hai, is liye "sab ke liye" wale rule is par nahi lagte.')}</p>}
+      <p className="mt-1.5 text-[0.6875rem] text-slate-500">{tr('Sale yaani discount ke baad maal ki qeemat; service charge shamil nahi. Void bill shamil nahi.')}</p>
     </section>
   </>);
 }
@@ -207,43 +208,43 @@ function Row({ k, v, hint, strong, tone }: { k: string; v: string; hint?: string
 
 function Goods({ d }: { d: CommissionDetail }) {
   const [view, setView] = useState<'product' | 'category'>('product');
-  if (!d.byProduct.length) return <Empty text="Is mahine koi cheez nahi biki" />;
+  if (!d.byProduct.length) return <Empty text={tr('Is mahine koi cheez nahi biki')} />;
   return (<>
-    <Segmented label="Kis tarah" value={view} onChange={(v) => setView(v as 'product' | 'category')} items={[{ value: 'product', label: 'Cheez' }, { value: 'category', label: 'Category' }]} />
+    <Segmented label={tr('Kis tarah')} value={view} onChange={(v) => setView(v as 'product' | 'category')} items={[{ value: 'product', label: tr('Cheez') }, { value: 'category', label: tr('Category') }]} />
     <Table minWidth="32rem" className="rounded-2xl ring-1 ring-slate-200 [&_table]:text-[0.8125rem]">
       <THead><Tr>
-        <Th className="px-3 py-2">{view === 'product' ? 'Cheez' : 'Category'}</Th>
-        <Th className="px-3 py-2 text-right">Quantity</Th>
-        <Th className="px-3 py-2 text-right">Sale</Th>
-        <Th className="px-3 py-2 text-right">Wapas</Th>
-        <Th className="px-3 py-2 text-right">Commission</Th>
+        <Th className="px-3 py-2">{view === 'product' ? tr('Cheez') : tr('Category')}</Th>
+        <Th className="px-3 py-2 text-end">{tr('Quantity')}</Th>
+        <Th className="px-3 py-2 text-end">{tr('Sale')}</Th>
+        <Th className="px-3 py-2 text-end">{tr('Wapas')}</Th>
+        <Th className="px-3 py-2 text-end">{tr('Commission')}</Th>
       </Tr></THead>
       <TBody>
         {view === 'product' ? d.byProduct.map((p) => (
           <Tr key={p.productId}>
-            <Td className="max-w-[14rem] px-3 py-2"><p className="truncate font-medium text-slate-900">{p.name}</p><p className="truncate text-[0.6875rem] text-slate-500">{p.categoryName ?? 'Bina category'}</p></Td>
-            <Td className="px-3 py-2 text-right tabular-nums">{qtyText(p.qty)} {p.unit}</Td>
-            <Td className="px-3 py-2 text-right tabular-nums">{formatPKR(p.sale)}</Td>
-            <Td className="px-3 py-2 text-right tabular-nums text-rose-700">{p.returnedSale ? `−${formatPKR(p.returnedSale)}` : '—'}</Td>
-            <Td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(p.commission)}</Td>
+            <Td className="max-w-[14rem] px-3 py-2"><p className="truncate font-medium text-slate-900">{p.name}</p><p className="truncate text-[0.6875rem] text-slate-500">{p.categoryName ?? tr('Bina category')}</p></Td>
+            <Td className="px-3 py-2 text-end tabular-nums">{qtyText(p.qty)} {p.unit}</Td>
+            <Td className="px-3 py-2 text-end tabular-nums">{formatPKR(p.sale)}</Td>
+            <Td className="px-3 py-2 text-end tabular-nums text-rose-700">{p.returnedSale ? `−${formatPKR(p.returnedSale)}` : '—'}</Td>
+            <Td className="px-3 py-2 text-end font-semibold tabular-nums">{signed(p.commission)}</Td>
           </Tr>
         )) : d.byCategory.map((c) => (
           <Tr key={c.categoryId ?? 'none'}>
-            <Td className="px-3 py-2 font-medium text-slate-900">{c.name} <span className="text-[0.6875rem] font-normal text-slate-500">{c.items} cheezein</span></Td>
-            <Td className="px-3 py-2 text-right tabular-nums">{qtyText(c.qty)}</Td>
-            <Td className="px-3 py-2 text-right tabular-nums">{formatPKR(c.sale)}</Td>
-            <Td className="px-3 py-2 text-right tabular-nums text-rose-700">{c.returnedSale ? `−${formatPKR(c.returnedSale)}` : '—'}</Td>
-            <Td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(c.commission)}</Td>
+            <Td className="px-3 py-2 font-medium text-slate-900">{c.name} <span className="text-[0.6875rem] font-normal text-slate-500">{tr('{{items}} cheezein', { items: c.items })}</span></Td>
+            <Td className="px-3 py-2 text-end tabular-nums">{qtyText(c.qty)}</Td>
+            <Td className="px-3 py-2 text-end tabular-nums">{formatPKR(c.sale)}</Td>
+            <Td className="px-3 py-2 text-end tabular-nums text-rose-700">{c.returnedSale ? `−${formatPKR(c.returnedSale)}` : '—'}</Td>
+            <Td className="px-3 py-2 text-end font-semibold tabular-nums">{signed(c.commission)}</Td>
           </Tr>
         ))}
       </TBody>
     </Table>
-    <p className="text-[0.6875rem] text-slate-500">Har bill aur target wali amount kisi ek cheez par nahi lagti, is liye yahan shamil nahi.</p>
+    <p className="text-[0.6875rem] text-slate-500">{tr('Har bill aur target wali amount kisi ek cheez par nahi lagti, is liye yahan shamil nahi.')}</p>
   </>);
 }
 
 function Bills({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
-  if (!d.billList.length) return <Empty text="Is mahine koi bill nahi" />;
+  if (!d.billList.length) return <Empty text={tr('Is mahine koi bill nahi')} />;
   return (<>
     <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
       {d.billList.map((b) => (
@@ -252,31 +253,31 @@ function Bills({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-slate-900"><span className="font-mono">{b.saleNumber}</span>{b.customer ? ` · ${b.customer}` : ''}</p>
             <p className="truncate text-[0.6875rem] text-slate-500">
-              {dayTime(b.soldAt)}{b.shop ? ` · ${b.shop}` : ''}{b.cashier ? ` · bill ${b.cashier} ne banaya` : ''}
-              {b.status === 'PARTIALLY_RETURNED' ? ' · kuch wapas' : b.status === 'FULLY_RETURNED' ? ' · poora wapas' : ''}
+              {dayTime(b.soldAt)}{b.shop ? ` · ${b.shop}` : ''}{b.cashier ? tr(' · bill {{cashier}} ne banaya', { cashier: b.cashier }) : ''}
+              {b.status === 'PARTIALLY_RETURNED' ? tr(' · kuch wapas') : b.status === 'FULLY_RETURNED' ? tr(' · poora wapas') : ''}
             </p>
           </div>
-          <div className="shrink-0 text-right">
+          <div className="shrink-0 text-end">
             <p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.goods)}</p>
-            {showCost && b.profit != null && <p className="text-[0.6875rem] tabular-nums text-slate-500">profit {formatPKR(b.profit)}</p>}
+            {showCost && b.profit != null && <p className="text-[0.6875rem] tabular-nums text-slate-500">{tr('profit {{profit}}', { profit: formatPKR(b.profit) })}</p>}
           </div>
         </li>
       ))}
     </ul>
-    {d.billCount > d.billList.length && <p className="text-center text-[0.75rem] text-slate-500">Pehle {d.billList.length} bill dikhaye — kul {d.billCount}</p>}
+    {d.billCount > d.billList.length && <p className="text-center text-[0.75rem] text-slate-500">{tr('Pehle {{count}} bill dikhaye — kul {{billCount}}', { count: d.billList.length, billCount: d.billCount })}</p>}
   </>);
 }
 
 function Returns({ d }: { d: CommissionDetail }) {
-  if (!d.returnList.length) return <Empty text="Is mahine is bande ke beche maal ki koi return nahi" />;
+  if (!d.returnList.length) return <Empty text={tr('Is mahine is bande ke beche maal ki koi return nahi')} />;
   return (
     <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
       {d.returnList.map((r) => (
         <li key={r.id} className="flex items-center gap-3 px-3 py-2.5 text-[0.8125rem]">
           <RotateCcw className="h-4 w-4 shrink-0 text-rose-500" />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium text-slate-900"><span className="font-mono">{r.returnNumber}</span> · bill {r.saleNumber}</p>
-            <p className="truncate text-[0.6875rem] text-slate-500">Wapas {dayTime(r.returnedAt)} · becha tha {day(r.soldAt)} · {r.items} cheezein</p>
+            <p className="truncate font-medium text-slate-900"><span className="font-mono">{r.returnNumber}</span> {' '}{tr('· bill {{saleNumber}}', { saleNumber: r.saleNumber })}</p>
+            <p className="truncate text-[0.6875rem] text-slate-500">{tr('Wapas {{returnedAt}} · becha tha {{soldAt}} · {{items}} cheezein', { returnedAt: dayTime(r.returnedAt), soldAt: day(r.soldAt), items: r.items })}</p>
           </div>
           <p className="shrink-0 font-semibold tabular-nums text-rose-700">−{formatPKR(r.value)}</p>
         </li>
@@ -295,7 +296,7 @@ function Months({ d }: { d: CommissionDetail }) {
           <CartesianGrid stroke={theme.grid} vertical={false} />
           <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
           <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-          <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'earned' ? 'Commission' : 'Ada']} {...theme.tooltip} />
+          <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'earned' ? tr('Commission') : tr('Ada')]} {...theme.tooltip} />
           <Bar dataKey="earned" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
           <Bar dataKey="paidN" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={28} />
         </BarChart>
@@ -304,10 +305,10 @@ function Months({ d }: { d: CommissionDetail }) {
     <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
       {[...d.history].reverse().map((h) => (
         <li key={h.period} className="flex items-center justify-between gap-3 px-3 py-2 text-[0.8125rem]">
-          <div><p className="font-medium text-slate-900">{periodLabel(h.period)}</p><p className="text-[0.6875rem] text-slate-500">{h.bills} bill · {formatPKR(h.sale)}</p></div>
-          <div className="text-right">
+          <div><p className="font-medium text-slate-900">{periodLabel(h.period)}</p><p className="text-[0.6875rem] text-slate-500">{tr('{{bills}} bill · {{sale}}', { bills: h.bills, sale: formatPKR(h.sale) })}</p></div>
+          <div className="text-end">
             <p className="font-semibold tabular-nums">{signed(h.earned)}</p>
-            <p className={cn('text-[0.6875rem]', h.payStatus === 'over' ? 'text-rose-700' : 'text-slate-500')}>{h.paid != null ? `Ada ${formatPKR(h.paid)}` : PAY[h.payStatus].label}</p>
+            <p className={cn('text-[0.6875rem]', h.payStatus === 'over' ? 'text-rose-700' : 'text-slate-500')}>{h.paid != null ? tr('Ada {{paid}}', { paid: formatPKR(h.paid) }) : PAY[h.payStatus].label}</p>
           </div>
         </li>
       ))}

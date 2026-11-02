@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { queryClient } from '@core/lib/queryClient';
 import { liveAnimalsApi } from '../api/live-animals.api';
 import { PET_KEYS, errorText } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export const ANIMALS_KEY = 'petshop-pos-animals';
 
@@ -27,11 +28,11 @@ export function markAnimalsSold(saleId: string, saleNumber: string) {
     .then((r) => {
       failedStore.set(null);
       [ANIMALS_KEY, PET_KEYS.animals, 'petshop-dashboard-overview'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
-      if (r.marked.length) toast.success(`${r.marked.length} janwar bik gaye — record me likh diya`);
+      if (r.marked.length) toast.success(t('{{count}} janwar bik gaye — record me likh diya', { count: r.marked.length }));
     })
     .catch((e) => {
       failedStore.set({ saleId, saleNumber });
-      toast.error(errorText(e, `Bill ${saleNumber} ban gaya magar janwar "bik gaya" nahi likha — cart me "Dobara" dabayein`));
+      toast.error(errorText(e, t('Bill {{saleNumber}} ban gaya magar janwar "bik gaya" nahi likha — cart me "Dobara" dabayein', { saleNumber })));
     });
 }
 

@@ -19,13 +19,14 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { billItemRoles, dayRange, jobBillPrefix, jobNumberOfBill, r2, workCharge } from '../jobs/job-rules';
 import { CommissionQuery, PayCommissionDto } from './dto/technician.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const PAID = 'COMMISSION_PAID';
 const CATEGORY = { name: 'Technician commission', icon: '🛠️', color: '#0ea5e9' };
 
 function assertCan(user: AuthenticatedUser, perms: PermissionKey[], action: string) {
   if (!perms.some((p) => hasPermission(user.role, user.permissions, p))) {
-    throw new ForbiddenException(`${action} ki permission nahi — dukaan ke malik se kehein`);
+    throw new ForbiddenException(apiMessage('{{action}} ki permission nahi — dukaan ke malik se kehein', { action }));
   }
 }
 

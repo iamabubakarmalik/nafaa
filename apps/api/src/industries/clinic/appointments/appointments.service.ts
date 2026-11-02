@@ -9,6 +9,7 @@ import { ReturnsService } from '../../../modules/sales/returns/returns.service';
 import { PanelsService } from '../panels/panels.service';
 import { DOCTOR_SELECT, doctorShares } from './doctor-share';
 import { FEE_LINK, billClinicFee, clinicFeeLines, readFeePayment } from './fee-billing';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = Object.values(ClinicAppointmentStatus);
 const VISIT_TYPES = Object.values(ClinicVisitType);
@@ -33,7 +34,7 @@ const PANEL = { select: { id: true, name: true, isActive: true } } as const;
 
 function validDate(v: unknown, label: string) {
   const d = new Date(String(v ?? ''));
-  if (!v || Number.isNaN(d.getTime())) throw new BadRequestException(`${label} sahi likhein`);
+  if (!v || Number.isNaN(d.getTime())) throw new BadRequestException(apiMessage('{{label}} sahi likhein', { label }));
   return d;
 }
 
@@ -169,7 +170,7 @@ export class AppointmentsService implements OnModuleInit {
       const booked = await this.prisma.clinicAppointment.count({
         where: { tenantId: user.tenantId, doctorId: doctor.id, scheduledStart: { gte: dayStart, lte: dayEnd }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } },
       });
-      if (booked >= doctor.maxDailyPatients && !dto.isEmergency) throw new BadRequestException(`Dr. ${doctor.fullName} ke aaj ke ${doctor.maxDailyPatients} mareez poore hain`);
+      if (booked >= doctor.maxDailyPatients && !dto.isEmergency) throw new BadRequestException(apiMessage('Dr. {{fullName}} ke aaj ke {{maxDailyPatients}} mareez poore hain', { fullName: doctor.fullName, maxDailyPatients: doctor.maxDailyPatients }));
     }
 
     // Fee: emergency / home / online rate, else follow-up inside the doctor's follow-up days.
@@ -352,9 +353,9 @@ export class AppointmentsService implements OnModuleInit {
     if (!STATUSES.includes(status as ClinicAppointmentStatus)) throw new BadRequestException('Status ghalat hai');
     const next = status as ClinicAppointmentStatus;
     if (next === apt.status) return apt;
-    if (!NEXT[apt.status].includes(next)) throw new BadRequestException(`"${apt.status}" ke baad "${next}" nahi ho sakta`);
+    if (!NEXT[apt.status].includes(next)) throw new BadRequestException(apiMessage('"{{aptStatus}}" ke baad "{{next}}" nahi ho sakta', { aptStatus: apt.status, next }));
     if ((next === 'CANCELLED' || next === 'NO_SHOW') && apt.paidAmount > 0) {
-      throw new BadRequestException(`Is appointment ka Rs ${apt.paidAmount} bill bana hua hai — pehle Sales me wo bill void karein, phir cancel karein`);
+      throw new BadRequestException(apiMessage('Is appointment ka Rs {{paidAmount}} bill bana hua hai — pehle Sales me wo bill void karein, phir cancel karein', { paidAmount: apt.paidAmount }));
     }
     if (next === 'CANCELLED' && !cancellationReason?.trim()) throw new BadRequestException('Cancel karne ki wajah likhein');
 

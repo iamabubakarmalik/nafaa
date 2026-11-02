@@ -8,15 +8,16 @@ import { Link } from 'react-router-dom';
 import { Bookmark, CreditCard, Ruler, Scissors, Tag } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium';
 
 /** Bill made by a garments record; the record number is the bill's sourceRef. */
 const RECORDS = [
-  { prefix: 'TO-', label: 'Silai order', to: '/garments/tailoring', icon: Scissors, tone: 'bg-pink-50 text-pink-700' },
-  { prefix: 'ALT-', label: 'Alteration', to: '/garments/alterations', icon: Ruler, tone: 'bg-violet-50 text-violet-700' },
-  { prefix: 'LAY-', label: 'Qist plan', to: '/garments/layaway', icon: CreditCard, tone: 'bg-blue-50 text-blue-700' },
-  { prefix: 'RES-', label: 'Hold', to: '/garments/reservations', icon: Bookmark, tone: 'bg-amber-50 text-amber-800' },
+  { prefix: 'TO-', label: t('Silai order'), to: '/garments/tailoring', icon: Scissors, tone: 'bg-pink-50 text-pink-700' },
+  { prefix: 'ALT-', label: t('Alteration'), to: '/garments/alterations', icon: Ruler, tone: 'bg-violet-50 text-violet-700' },
+  { prefix: 'LAY-', label: t('Qist plan'), to: '/garments/layaway', icon: CreditCard, tone: 'bg-blue-50 text-blue-700' },
+  { prefix: 'RES-', label: t('Hold'), to: '/garments/reservations', icon: Bookmark, tone: 'bg-amber-50 text-amber-800' },
 ] as const;
 
 function recordOf(sale: HistorySale) {
@@ -48,7 +49,7 @@ function GarmentExtras({ sale }: { sale: HistorySale }) {
 
 const useGarmentExtras = () => (sale: HistorySale) => <GarmentExtras sale={sale} />;
 
-const config: SalesHistoryConfig = { label: 'Garments', useBillExtras: useGarmentExtras };
+const config: SalesHistoryConfig = { label: t('Garments'), useBillExtras: useGarmentExtras };
 
 export default function GarmentSalesPage() {
   return <SalesHistoryPage config={config} />;

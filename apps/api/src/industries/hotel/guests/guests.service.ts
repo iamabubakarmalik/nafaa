@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { cleanIdNumber, cleanPhone, dayOf, found, nextGuestNumber, r2, type Db } from '../common/hotel-common';
 import { GuestDto } from '../common/hotel.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class GuestsService {
@@ -48,7 +49,7 @@ export class GuestsService {
   private async assertUniqueId(tenantId: string, idNumber: string | null | undefined, exceptId?: string) {
     if (!idNumber) return;
     const dup = await this.prisma.hotelGuest.findFirst({ where: { tenantId, idNumber, isActive: true, ...(exceptId && { id: { not: exceptId } }) }, select: { fullName: true, guestNumber: true } });
-    if (dup) throw new BadRequestException(`Ye ID pehle se ${dup.fullName} (${dup.guestNumber}) ke naam hai`);
+    if (dup) throw new BadRequestException(apiMessage('Ye ID pehle se {{fullName}} ({{guestNumber}}) ke naam hai', { fullName: dup.fullName, guestNumber: dup.guestNumber }));
   }
 
   private async linkCustomer(tenantId: string, customerId?: string) {
@@ -177,7 +178,7 @@ export class GuestsService {
       where: { tenantId: user.tenantId, primaryGuestId: id, status: { in: ['INQUIRY', 'QUOTED', 'TENTATIVE', 'CONFIRMED', 'CHECKED_IN', 'EXTENDED'] } },
       select: { bookingNumber: true },
     });
-    if (open) throw new BadRequestException(`Is guest ki booking ${open.bookingNumber} chal rahi hai — pehle use band karein`);
+    if (open) throw new BadRequestException(apiMessage('Is guest ki booking {{bookingNumber}} chal rahi hai — pehle use band karein', { bookingNumber: open.bookingNumber }));
     return this.prisma.hotelGuest.update({ where: { id }, data: { isActive: false } });
   }
 

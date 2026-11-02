@@ -21,6 +21,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { PUSH_MIN_WIDTH, useAiStore } from '../store';
 import { AiChat } from './AiChat';
 import { NafaaAiMark } from './NafaaAiMark';
+import { t as tr } from '@core/i18n';
 
 export function useCanUseAi(): boolean {
   const user = useAuthStore((s) => s.user);
@@ -82,15 +83,15 @@ export function AiDrawer() {
         <div className="fixed inset-0 z-[65] hidden bg-slate-950/20 sm:block print:hidden" onClick={() => setOpen(false)} aria-hidden />
       )}
       <aside
-        aria-label="Nafaa AI"
+        aria-label={tr('Nafaa AI')}
         aria-hidden={!shown}
         className={cn(
           'flex flex-col overflow-hidden border-slate-200 bg-white print:hidden',
           push
-            ? cn('relative h-screen-dvh shrink-0 border-l transition-[width,visibility] duration-300 ease-out', shown ? 'visible w-[420px]' : 'invisible w-0 border-l-0')
+            ? cn('relative h-screen-dvh shrink-0 border-s transition-[width,visibility] duration-300 ease-out', shown ? 'visible w-[420px]' : 'invisible w-0 border-s-0')
             : cn(
-              'fixed inset-0 z-[70] transition-[transform,visibility] duration-300 ease-out sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[420px] sm:border-l sm:shadow-2xl',
-              shown ? 'visible translate-x-0' : 'invisible translate-x-full',
+              'fixed inset-0 z-[70] transition-[transform,visibility] duration-300 ease-out sm:inset-y-0 sm:start-auto sm:end-0 sm:w-[420px] sm:border-s sm:shadow-2xl',
+              shown ? 'visible translate-x-0' : 'invisible translate-x-full rtl:-translate-x-full',
             ),
         )}
       >
@@ -128,9 +129,9 @@ export function AiLauncher() {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Nafaa AI kholein (Alt+I)"
-      title="Nafaa AI (Alt+I)"
-      className="group fixed bottom-5 right-5 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 print:hidden"
+      aria-label={tr('Nafaa AI kholein (Alt+I)')}
+      title={tr('Nafaa AI (Alt+I)')}
+      className="group fixed bottom-5 end-5 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 print:hidden"
     >
       <NafaaAiMark size={34} state={streaming ? 'thinking' : 'idle'} />
     </button>
@@ -147,9 +148,9 @@ export function AiTopbarButton() {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Nafaa AI (Alt+I)"
+      aria-label={tr('Nafaa AI (Alt+I)')}
       aria-pressed={open}
-      title="Nafaa AI (Alt+I)"
+      title={tr('Nafaa AI (Alt+I)')}
       className={cn(
         'inline-flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         open && 'bg-brand-50',

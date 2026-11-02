@@ -11,6 +11,7 @@ import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import SerialTrackingPage from './pages/SerialTrackingPage';
 import ElectronicsBundlesPage from './pages/ElectronicsBundlesPage';
 import BundleFormPage from './pages/BundleFormPage';
+import { t } from '@core/i18n';
 
 /**
  * Electronics & Gadgets pack — STRICT MATCHING
@@ -21,11 +22,11 @@ import BundleFormPage from './pages/BundleFormPage';
 export const ElectronicsPack: IndustryPack = {
   id: 'electronics',
   name: 'Electronics & Gadgets',
-  shortName: 'Electronics',
+  shortName: t('Electronics'),
   emoji: '🔌',
   priority: 62,
   description:
-    'Serial/IMEI tracking, warranty claims, brand management, tech specs, bundles, condition grading.',
+    t('Serial/IMEI tracking, warranty claims, brand management, tech specs, bundles, condition grading.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -65,15 +66,15 @@ export const ElectronicsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Electronics extras',
+      label: t('Electronics extras'),
       icon: Cpu,
       emoji: '🔌',
       color: '#3b82f6',
       order: 20,
       items: [
-        { to: '/electronics/serials', label: 'Serial / IMEI', icon: Barcode },
-        { to: '/electronics/warranty-claims', label: 'Warranty claims', icon: Shield },
-        { to: '/electronics/bundles', label: 'Bundles', icon: Layers },
+        { to: '/electronics/serials', label: t('Serial / IMEI'), icon: Barcode },
+        { to: '/electronics/warranty-claims', label: t('Warranty claims'), icon: Shield },
+        { to: '/electronics/bundles', label: t('Bundles'), icon: Layers },
       ],
     },
   ],
@@ -102,17 +103,17 @@ export const ElectronicsPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '📱', group: 'Count' },
-      { value: 'pack', label: 'Pack', hint: '📦', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Pieces'), hint: '📱', group: t('Count') },
+      { value: 'pack', label: t('Pack'), hint: '📦', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'electronicsSerialTracking', label: 'Serial/IMEI Tracking', defaultEnabled: true },
-    { key: 'electronicsWarrantyClaims', label: 'Warranty Claims', defaultEnabled: true },
-    { key: 'electronicsBundles', label: 'Product Bundles', defaultEnabled: true },
-    { key: 'electronicsConditionGrading', label: 'Used/Refurbished Grading', defaultEnabled: true },
+    { key: 'electronicsSerialTracking', label: t('Serial/IMEI Tracking'), defaultEnabled: true },
+    { key: 'electronicsWarrantyClaims', label: t('Warranty Claims'), defaultEnabled: true },
+    { key: 'electronicsBundles', label: t('Product Bundles'), defaultEnabled: true },
+    { key: 'electronicsConditionGrading', label: t('Used/Refurbished Grading'), defaultEnabled: true },
   ],
 };

@@ -17,6 +17,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { expensesApi, type ExpenseBucket, type ExpenseFilter } from '../api/expenses.api';
 import { EXPENSES_KEY, day, methodOf, monthLabel } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -25,7 +26,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
   const q = useQuery({ queryKey: [EXPENSES_KEY, 'analytics', filters], queryFn: () => expensesApi.analytics(filters), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Analytics load nahi hui — internet check karein aur dobara kholein.</p>;
+  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('Analytics load nahi hui — internet check karein aur dobara kholein.')}</p>;
   if (!d) return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
 
   const t = d.totals;
@@ -38,15 +39,15 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Wallet} label="Kul expense" value={formatPKR(t.amount)} sub={`${t.count} expenses · ${t.days} din`} tone="rose" />
-        <Kpi icon={up ? TrendingUp : TrendingDown} label="Pichli itni period se" value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
-          sub={`Pehle ${formatPKR(t.previous)}`} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
-        <Kpi icon={CalendarDays} label="Roz ka ausat" value={formatPKR(t.perDay)} sub="Har din ka andaza" />
-        <Kpi icon={Clock} label="Baqi bill" value={formatPKR(t.pending)} sub={t.pendingCount ? `${t.pendingCount} bill abhi dene hain` : 'Sab ada ho chuke'} tone="amber" />
+        <Kpi icon={Wallet} label={tr('Kul expense')} value={formatPKR(t.amount)} sub={tr('{{count}} expenses · {{days}} din', { count: t.count, days: t.days })} tone="rose" />
+        <Kpi icon={up ? TrendingUp : TrendingDown} label={tr('Pichli itni period se')} value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
+          sub={tr('Pehle {{previous}}', { previous: formatPKR(t.previous) })} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
+        <Kpi icon={CalendarDays} label={tr('Roz ka ausat')} value={formatPKR(t.perDay)} sub={tr('Har din ka andaza')} />
+        <Kpi icon={Clock} label={tr('Baqi bill')} value={formatPKR(t.pending)} sub={t.pendingCount ? tr('{{pendingCount}} bill abhi dene hain', { pendingCount: t.pendingCount }) : tr('Sab ada ho chuke')} tone="amber" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        <Card className="rounded-2xl" title={<Title icon={PieIcon}>Category</Title>} description="Paisa kahan gaya — kisi hisse par click karein to sirf woh dikhega">
+        <Card className="rounded-2xl" title={<Title icon={PieIcon}>{tr('Category')}</Title>} description={tr('Paisa kahan gaya — kisi hisse par click karein to sirf woh dikhega')}>
           {!cats.length ? <Empty /> : (
             <div className="grid items-center gap-3 sm:grid-cols-[11rem_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[11rem_minmax(0,1fr)]">
               <div className="relative mx-auto h-44 w-44">
@@ -60,18 +61,18 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
                   </PieChart>
                 </ResponsiveContainer>
                 <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-[0.6875rem] text-slate-500">Kul</span>
+                  <span className="text-[0.6875rem] text-slate-500">{tr('Kul')}</span>
                   <span className="text-sm font-bold tabular-nums text-slate-900">{formatPKR(t.amount)}</span>
                 </span>
               </div>
               <ul className="space-y-1.5">
                 {cats.slice(0, 8).map((c) => (
                   <li key={c.key}>
-                    <button type="button" onClick={() => onCategory(c.key)} className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left text-[0.8125rem] hover:bg-slate-50">
+                    <button type="button" onClick={() => onCategory(c.key)} className="flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-start text-[0.8125rem] hover:bg-slate-50">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c.color }} />
                       <span className="min-w-0 flex-1 truncate text-slate-700">{c.icon ? `${c.icon} ` : ''}{c.label}</span>
                       <span className="shrink-0 tabular-nums text-slate-900">{formatPKR(c.amount)}</span>
-                      <span className="w-9 shrink-0 text-right text-[0.6875rem] tabular-nums text-slate-500">{t.amount ? Math.round((c.amount / t.amount) * 100) : 0}%</span>
+                      <span className="w-9 shrink-0 text-end text-[0.6875rem] tabular-nums text-slate-500">{t.amount ? Math.round((c.amount / t.amount) * 100) : 0}%</span>
                     </button>
                   </li>
                 ))}
@@ -80,7 +81,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Roz ka expense</Title>} description="Har karobari din kitna gaya">
+        <Card className="rounded-2xl" title={<Title icon={CalendarRange}>{tr('Roz ka expense')}</Title>} description={tr('Har karobari din kitna gaya')}>
           {!t.count ? <Empty /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -88,7 +89,7 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Expense']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Expense')]} {...theme.tooltip} />
                   <Bar dataKey="amount" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
@@ -97,14 +98,14 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={CalendarDays}>Mahine</Title>} description="Pichle 12 mahine — kis mahine zyada gaya">
+      <Card className="rounded-2xl" title={<Title icon={CalendarDays}>{tr('Mahine')}</Title>} description={tr('Pichle 12 mahine — kis mahine zyada gaya')}>
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-              <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Expense']} {...theme.tooltip} />
+              <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Expense')]} {...theme.tooltip} />
               <Bar dataKey="amount" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
             </BarChart>
           </ResponsiveContainer>
@@ -112,21 +113,21 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={Trophy} title="Sab se zyada kis par" description="Expenses ke naam se — kiraya, bijli, salary…" rows={d.topPayees} />
-        <Ranked icon={CreditCard} title="Kahan se diye" description="Cash galle se, baqi wallet aur bank se" rows={methods} />
-        {d.byBranch.length > 1 && <Ranked icon={Store} title="Branch" description="Har branch ka expense" rows={d.byBranch} />}
-        <Ranked icon={Users} title="Kis ne likha" description="Har bande ke likhe expenses" rows={d.byPerson} />
+        <Ranked icon={Trophy} title={tr('Sab se zyada kis par')} description={tr('Expenses ke naam se — kiraya, bijli, salary…')} rows={d.topPayees} />
+        <Ranked icon={CreditCard} title={tr('Kahan se diye')} description={tr('Cash galle se, baqi wallet aur bank se')} rows={methods} />
+        {d.byBranch.length > 1 && <Ranked icon={Store} title={tr('Branch')} description={tr('Har branch ka expense')} rows={d.byBranch} />}
+        <Ranked icon={Users} title={tr('Kis ne likha')} description={tr('Har bande ke likhe expenses')} rows={d.byPerson} />
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={Receipt}>Category har mahine</Title>} description="Ek hi bill mahine ba mahine — maslan bijli July vs August" flush>
+      <Card className="rounded-2xl" title={<Title icon={Receipt}>{tr('Category har mahine')}</Title>} description={tr('Ek hi bill mahine ba mahine — maslan bijli July vs August')} flush>
         {!d.matrix.rows.length ? <Empty /> : (
           <div className="mt-3 overflow-x-auto">
             <Table minWidth="48rem" className="[&>table]:text-[0.75rem]">
               <THead>
                 <Tr className="border-b border-slate-100 text-slate-500">
-                  <Th className="sticky left-0 bg-white px-4 py-2 text-left font-medium">Category</Th>
-                  {d.matrix.months.map((m) => <Th key={m} className="px-2 py-2 text-right font-medium">{monthLabel(m)}</Th>)}
-                  <Th className="px-4 py-2 text-right font-semibold text-slate-700">Kul</Th>
+                  <Th className="sticky start-0 bg-white px-4 py-2 text-start font-medium">{tr('Category')}</Th>
+                  {d.matrix.months.map((m) => <Th key={m} className="px-2 py-2 text-end font-medium">{monthLabel(m)}</Th>)}
+                  <Th className="px-4 py-2 text-end font-semibold text-slate-700">{tr('Kul')}</Th>
                 </Tr>
               </THead>
               <TBody>
@@ -134,28 +135,28 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
                   const max = Math.max(1, ...r.values);
                   return (
                     <Tr key={r.key} className="border-b border-slate-50">
-                      <Td className="sticky left-0 max-w-[12rem] truncate bg-white px-4 py-1.5 font-medium text-slate-800">
-                        <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ background: r.color }} />{r.label}
+                      <Td className="sticky start-0 max-w-[12rem] truncate bg-white px-4 py-1.5 font-medium text-slate-800">
+                        <span className="me-1.5 inline-block h-2 w-2 rounded-full" style={{ background: r.color }} />{r.label}
                       </Td>
                       {r.values.map((v, i) => (
-                        <Td key={i} className="px-2 py-1.5 text-right tabular-nums text-slate-700" style={v ? { backgroundColor: `${r.color}${Math.round(10 + (v / max) * 40).toString(16).padStart(2, '0')}` } : undefined}>
+                        <Td key={i} className="px-2 py-1.5 text-end tabular-nums text-slate-700" style={v ? { backgroundColor: `${r.color}${Math.round(10 + (v / max) * 40).toString(16).padStart(2, '0')}` } : undefined}>
                           {v ? axisMoney(v) : <span className="text-slate-300">·</span>}
                         </Td>
                       ))}
-                      <Td className="px-4 py-1.5 text-right font-semibold tabular-nums text-slate-900">{formatPKR(r.total)}</Td>
+                      <Td className="px-4 py-1.5 text-end font-semibold tabular-nums text-slate-900">{formatPKR(r.total)}</Td>
                     </Tr>
                   );
                 })}
                 <Tr className="bg-slate-50 font-semibold text-slate-900">
-                  <Td className="text-inherit sticky left-0 bg-slate-50 px-4 py-2">Kul</Td>
-                  {d.matrix.totals.map((v, i) => <Td key={i} className="text-inherit px-2 py-2 text-right tabular-nums">{v ? axisMoney(v) : '—'}</Td>)}
-                  <Td className="text-inherit px-4 py-2 text-right tabular-nums">{formatPKR(d.matrix.totals.reduce((s, v) => s + v, 0))}</Td>
+                  <Td className="text-inherit sticky start-0 bg-slate-50 px-4 py-2">{tr('Kul')}</Td>
+                  {d.matrix.totals.map((v, i) => <Td key={i} className="text-inherit px-2 py-2 text-end tabular-nums">{v ? axisMoney(v) : '—'}</Td>)}
+                  <Td className="text-inherit px-4 py-2 text-end tabular-nums">{formatPKR(d.matrix.totals.reduce((s, v) => s + v, 0))}</Td>
                 </Tr>
               </TBody>
             </Table>
           </div>
         )}
-        {t.biggest && <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Is period ka sab se bara expense: <b className="text-slate-700">{t.biggest.title}</b> · {formatPKR(t.biggest.amount)} · {day(t.biggest.date)}</p>}
+        {t.biggest && <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">{tr('Is period ka sab se bara expense:')}{' '} <b className="text-slate-700">{t.biggest.title}</b> · {formatPKR(t.biggest.amount)} · {day(t.biggest.date)}</p>}
       </Card>
     </div>
   );
@@ -180,7 +181,7 @@ function Ranked({ icon, title, description, rows }: { icon: LucideIcon; title: s
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full" style={{ width: `${(r.amount / max) * 100}%`, background: r.color ?? '#e11d48' }} />
               </div>
-              <p className="mt-0.5 text-[0.6875rem] text-slate-500">{r.count} expenses</p>
+              <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{count}} expenses', { count: r.count })}</p>
             </li>
           ))}
         </ul>
@@ -201,5 +202,5 @@ function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon;
 }
 
 function Empty() {
-  return <p className="py-10 text-center text-[0.875rem] text-slate-500">Is period me koi expense nahi</p>;
+  return <p className="py-10 text-center text-[0.875rem] text-slate-500">{tr('Is period me koi expense nahi')}</p>;
 }

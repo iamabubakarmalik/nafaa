@@ -22,43 +22,44 @@ import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { STATUS_LABEL, timeAgo, whenText } from '../lib/labels';
 import { GuideBody, GuideCard } from '../components/guides/Guide';
 import { courierGuide } from '../components/guides/courierGuides';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'overview' | 'book' | 'parcels' | 'settings' | 'connection';
 
 const CARD = 'rounded-3xl border-0 ring-1 ring-slate-200/80';
 
 const COURIER_STATE: Record<string, { label: string; tone: BadgeVariant }> = {
-  BOOKING: { label: 'Book ho raha', tone: 'default' },
-  BOOKED: { label: 'Pickup ka intezar', tone: 'info' },
-  PICKED_UP: { label: 'Courier le gaya', tone: 'info' },
-  IN_TRANSIT: { label: 'Raste me', tone: 'brand' },
-  OUT_FOR_DELIVERY: { label: 'Aaj deliver', tone: 'brand' },
-  ATTEMPTED: { label: 'Customer nahi mila', tone: 'warning' },
-  DELIVERED: { label: 'Deliver', tone: 'success' },
-  RETURNING: { label: 'Wapas aa raha', tone: 'danger' },
-  RETURNED: { label: 'Wapas (RTO)', tone: 'danger' },
-  CANCELLED: { label: 'Booking cancel', tone: 'default' },
+  BOOKING: { label: tr('Book ho raha'), tone: 'default' },
+  BOOKED: { label: tr('Pickup ka intezar'), tone: 'info' },
+  PICKED_UP: { label: tr('Courier le gaya'), tone: 'info' },
+  IN_TRANSIT: { label: tr('Raste me'), tone: 'brand' },
+  OUT_FOR_DELIVERY: { label: tr('Aaj deliver'), tone: 'brand' },
+  ATTEMPTED: { label: tr('Customer tak nahi pohanche'), tone: 'warning' },
+  DELIVERED: { label: tr('Deliver hue'), tone: 'success' },
+  RETURNING: { label: tr('Wapas aa raha'), tone: 'danger' },
+  RETURNED: { label: tr('Wapas (RTO)'), tone: 'danger' },
+  CANCELLED: { label: tr('Booking cancel'), tone: 'default' },
   UNKNOWN: { label: '—', tone: 'default' },
 };
 
 const PARCEL_FILTERS = [
-  { value: 'active', label: 'Raste me' },
-  { value: 'booked', label: 'Pickup baqi' },
-  { value: 'attempted', label: 'Customer nahi mila' },
-  { value: 'returning', label: 'Wapas aa rahe' },
-  { value: 'cod', label: 'Paisa baqi' },
-  { value: 'delivered', label: 'Deliver' },
-  { value: 'returned', label: 'RTO' },
-  { value: 'all', label: 'Sab' },
+  { value: 'active', label: tr('Raste me') },
+  { value: 'booked', label: tr('Pickup baqi') },
+  { value: 'attempted', label: tr('Customer tak nahi pohanche') },
+  { value: 'returning', label: tr('Wapas aa rahe') },
+  { value: 'cod', label: tr('Paisa baqi') },
+  { value: 'delivered', label: tr('Deliver hue') },
+  { value: 'returned', label: tr('RTO') },
+  { value: 'all', label: tr('Sab') },
 ];
 
 const PORTAL_FILTERS = [
-  { value: 'all', label: 'Sab' },
-  { value: 'active', label: 'Raste me' },
-  { value: 'attempted', label: 'Customer nahi mila' },
-  { value: 'delivered', label: 'Deliver' },
-  { value: 'returned', label: 'RTO' },
-  { value: 'unlinked', label: 'Nafaa order se nahi jure' },
+  { value: 'all', label: tr('Sab') },
+  { value: 'active', label: tr('Raste me') },
+  { value: 'attempted', label: tr('Customer tak nahi pohanche') },
+  { value: 'delivered', label: tr('Deliver hue') },
+  { value: 'returned', label: tr('RTO') },
+  { value: 'unlinked', label: tr('Nafaa order se nahi jure') },
 ];
 
 export default function CourierDetailPage() {
@@ -75,15 +76,15 @@ export default function CourierDetailPage() {
   const tabs: Array<{ id: Tab; label: string; count?: number | null }> = c
     ? isApi && c.connected
       ? [
-          { id: 'overview', label: 'Overview' },
-          { id: 'book', label: 'Book karein' },
-          { id: 'parcels', label: 'Parcels', count: c.stats.active || null },
-          { id: 'settings', label: 'Settings' },
-          { id: 'connection', label: 'Connection' },
+          { id: 'overview', label: tr('Overview') },
+          { id: 'book', label: tr('Book karein') },
+          { id: 'parcels', label: tr('Parcels'), count: c.stats.active || null },
+          { id: 'settings', label: tr('Settings') },
+          { id: 'connection', label: tr('Connection') },
         ]
       : isApi
-        ? [{ id: 'connection', label: 'Jorein' }, { id: 'parcels', label: 'Parcels' }]
-        : [{ id: 'overview', label: 'Overview' }, { id: 'parcels', label: 'Parcels', count: c.stats.active || null }]
+        ? [{ id: 'connection', label: tr('Jorein') }, { id: 'parcels', label: tr('Parcels') }]
+        : [{ id: 'overview', label: tr('Overview') }, { id: 'parcels', label: tr('Parcels'), count: c.stats.active || null }]
     : [];
   const want = params.get('tab') as Tab | null;
   const tab: Tab = want && tabs.some((t) => t.id === want) ? want : tabs[0]?.id ?? 'overview';
@@ -97,60 +98,60 @@ export default function CourierDetailPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">{error ? 'Courier nahi khula' : 'Ye courier list me nahi'}</p>
+          <p className="font-semibold text-slate-900">{error ? tr('Courier nahi khula') : tr('Ye courier list me nahi')}</p>
           {error && <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>}
-          <Link to="/online-store/couriers"><Button className="mt-3" variant="secondary">Sab couriers</Button></Link>
+          <Link to="/online-store/couriers"><Button className="mt-3" variant="secondary">{tr('Sab couriers')}</Button></Link>
         </div>
       </PageShell>
     );
   }
 
   const s = c.stats;
-  const statusText = c.connected ? (c.lastError ? 'Masla' : c.active ? 'Jura hua' : 'Band') : isApi ? 'Ek click connect' : 'Manual';
+  const statusText = c.connected ? (c.lastError ? tr('Masla') : c.active ? tr('Jura hua') : tr('Band')) : isApi ? tr('Ek click connect') : tr('Manual');
 
   return (
     <PageShell>
       <PageHero
         back="/online-store/couriers"
-        backLabel="Sab couriers"
+        backLabel={tr('Sab couriers')}
         title={<span className="inline-flex items-center gap-3"><span className="inline-flex rounded-[28%] bg-white"><CourierLogo c={c} size={32} /></span>{c.name}</span>}
         chip={<><Truck />{statusText}</>}
         meta={c.connected
-          ? `Key ${c.maskedKey ?? ''}${c.lastSyncAt ? ` · aakhri sync ${timeAgo(c.lastSyncAt)}` : ''}`
-          : isApi ? `${c.name} ki details paste karein — booking, label, tracking aur RTO sab khud` : c.code === 'RIDER' ? 'Order ka safar aur COD ka paisa Nafaa sambhalta hai' : 'CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai'}
+          ? tr('Key {{value}}{{value2}}', { value: c.maskedKey ?? '', value2: c.lastSyncAt ? tr(' · aakhri sync {{lastSyncAt}}', { lastSyncAt: timeAgo(c.lastSyncAt) }) : '' })
+          : isApi ? tr('{{name}} ki details paste karein — booking, label, tracking aur RTO sab khud', { name: c.name }) : c.code === 'RIDER' ? tr('Order ka safar aur COD ka paisa Nafaa sambhalta hai') : tr('CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai')}
         busy={isFetching}
         actions={<HeaderActions c={c} />}
         stats={[
-          { label: 'Raste me', value: String(s.active), hint: s.awaitingPickup ? `${s.awaitingPickup} pickup baqi` : undefined },
-          { label: 'Deliver (30 din)', value: String(s.delivered30), hint: `${s.dispatched30} bheje` },
-          { label: 'RTO (30 din)', value: `${s.rtoRate}%`, hint: `${s.returned30} wapas` },
-          { label: 'Courier ke paas (COD)', value: money(s.codPendingValue), hint: `${s.codPending} parcel` },
+          { label: tr('Raste me'), value: String(s.active), hint: s.awaitingPickup ? tr('{{awaitingPickup}} pickup baqi', { awaitingPickup: s.awaitingPickup }) : undefined },
+          { label: tr('Deliver (30 din)'), value: String(s.delivered30), hint: tr('{{dispatched30}} bheje', { dispatched30: s.dispatched30 }) },
+          { label: tr('RTO (30 din)'), value: `${s.rtoRate}%`, hint: tr('{{returned30}} wapas', { returned30: s.returned30 }) },
+          { label: tr('Courier ke paas (COD)'), value: money(s.codPendingValue), hint: tr('{{codPending}} parcel', { codPending: s.codPending }) },
         ]}
       />
 
       {isApi ? (
         <KpiRow cols={4}>
-          <KpiCard icon={Zap} color="#2563eb" label="Book (30 din)" value={s.booked30} hint="Nafaa se book hue" />
-          <KpiCard icon={Printer} color="#d97706" label="Pickup ka intezar" value={s.awaitingPickup} hint="Label print karke parcel dein" onClick={() => showParcels('booked')} />
-          <KpiCard icon={UserX} color="#e11d48" label="Customer nahi mila" value={s.attempted} hint="Call karein warna RTO" onClick={() => showParcels('attempted')} />
-          <KpiCard icon={Wallet} color="#ea580c" label="COD paas" value={money(s.codPendingValue)} hint={`${s.codPending} parcel · dabayein`} onClick={() => showParcels('cod')} />
+          <KpiCard icon={Zap} color="#2563eb" label={tr('Book (30 din)')} value={s.booked30} hint={tr('Nafaa se book hue')} />
+          <KpiCard icon={Printer} color="#d97706" label={tr('Pickup ka intezar')} value={s.awaitingPickup} hint={tr('Label print karke parcel dein')} onClick={() => showParcels('booked')} />
+          <KpiCard icon={UserX} color="#e11d48" label={tr('Customer tak nahi pohanche')} value={s.attempted} hint={tr('Call karein warna RTO')} onClick={() => showParcels('attempted')} />
+          <KpiCard icon={Wallet} color="#ea580c" label={tr('COD paas')} value={money(s.codPendingValue)} hint={tr('{{codPending}} parcel · dabayein', { codPending: s.codPending })} onClick={() => showParcels('cod')} />
         </KpiRow>
       ) : (
         <KpiRow cols={3}>
-          <KpiCard icon={UserX} color="#e11d48" label="Customer nahi mila" value={s.attempted} hint="Call karein warna RTO" onClick={() => showParcels('attempted')} />
-          <KpiCard icon={Wallet} color="#ea580c" label="COD paas" value={money(s.codPendingValue)} hint={`${s.codPending} parcel · dabayein`} onClick={() => showParcels('cod')} />
-          <KpiCard icon={Undo2} color="#c026d3" label="Wapas (30 din)" value={s.returned30} hint={`${s.dispatched30} bheje · dabayein`} onClick={() => showParcels('returned')} />
+          <KpiCard icon={UserX} color="#e11d48" label={tr('Customer tak nahi pohanche')} value={s.attempted} hint={tr('Call karein warna RTO')} onClick={() => showParcels('attempted')} />
+          <KpiCard icon={Wallet} color="#ea580c" label={tr('COD paas')} value={money(s.codPendingValue)} hint={tr('{{codPending}} parcel · dabayein', { codPending: s.codPending })} onClick={() => showParcels('cod')} />
+          <KpiCard icon={Undo2} color="#c026d3" label={tr('Wapas (30 din)')} value={s.returned30} hint={tr('{{dispatched30}} bheje · dabayein', { dispatched30: s.dispatched30 })} onClick={() => showParcels('returned')} />
         </KpiRow>
       )}
 
       {c.connected && c.lastError && (
-        <Alert tone="danger" title={`${c.name} se rabta nahi ho raha`} action={<Button size="sm" variant="secondary" onClick={() => setTab('connection')}>Key check karein</Button>}>
+        <Alert tone="danger" title={tr('{{name}} se rabta nahi ho raha', { name: c.name })} action={<Button size="sm" variant="secondary" onClick={() => setTab('connection')}>{tr('Key check karein')}</Button>}>
           {c.lastError}
         </Alert>
       )}
       {c.connected && c.missingSettings.length > 0 && tab !== 'settings' && (
-        <Alert tone="warning" title="Booking se pehle settings poori karein" action={<Button size="sm" variant="secondary" onClick={() => setTab('settings')}>Settings</Button>}>
-          Khali hain: {c.missingSettings.join(', ')}
+        <Alert tone="warning" title={tr('Booking se pehle settings poori karein')} action={<Button size="sm" variant="secondary" onClick={() => setTab('settings')}>{tr('Settings')}</Button>}>
+          {tr('Khali hain: {{value}}', { value: c.missingSettings.join(', ') })}
         </Alert>
       )}
 
@@ -159,7 +160,7 @@ export default function CourierDetailPage() {
       {tab === 'overview' && <Overview c={c} onTab={setTab} onParcels={showParcels} />}
       {tab === 'book' && <BookTab c={c} money={money} onOpen={setOrderId} />}
       {tab === 'parcels' && <ParcelsTab c={c} money={money} filter={parcelFilter} setFilter={setParcelFilter} onOpen={setOrderId} />}
-      {tab === 'settings' && <Card className={CARD} title="Booking settings" description="Har nayi booking par yahi lagengi — booking ke waqt badal bhi sakte hain."><CourierSettingsForm c={c} /></Card>}
+      {tab === 'settings' && <Card className={CARD} title={tr('Booking settings')} description={tr('Har nayi booking par yahi lagengi — booking ke waqt badal bhi sakte hain.')}><CourierSettingsForm c={c} /></Card>}
       {tab === 'connection' && <ConnectionTab c={c} onConnected={() => setTab('overview')} />}
 
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
@@ -175,27 +176,27 @@ function HeaderActions({ c }: { c: CourierAccount }) {
       qc.invalidateQueries({ queryKey: COURIERS_KEY });
       qc.invalidateQueries({ queryKey: ['courier-shipments', c.code] });
       qc.invalidateQueries({ queryKey: ['courier-portal', c.code] });
-      if (r.lastError) toast.error(r.lastError); else toast.success('Sab parcels ka taaza status aa gaya');
+      if (r.lastError) toast.error(r.lastError); else toast.success(tr('Sab parcels ka taaza status aa gaya'));
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const setActive = useMutation({
     mutationFn: (active: boolean) => couriersApi.update(c.code, { active }),
-    onSuccess: (_r, active) => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(active ? `${c.name} chalu` : `${c.name} band — nayi booking nahi hogi`); },
+    onSuccess: (_r, active) => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(active ? `${c.name} chalu` : tr('{{name}} band — nayi booking nahi hogi', { name: c.name })); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   return (
     <>
       <HeroGuideButton c={c} />
-      {c.site && <a href={c.site} target="_blank" rel="noreferrer" className={heroButton}><ExternalLink className="h-4 w-4" /> <span className="hidden sm:inline">Website</span></a>}
+      {c.site && <a href={c.site} target="_blank" rel="noreferrer" className={heroButton}><ExternalLink className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Website')}</span></a>}
       {c.connected && (
         <>
           <button type="button" onClick={() => sync.mutate()} disabled={sync.isPending} className={heroButton}>
-            <RefreshCw className={cn('h-4 w-4', sync.isPending && 'animate-spin')} /> Abhi sync
+            <RefreshCw className={cn('h-4 w-4', sync.isPending && 'animate-spin')} /> {' '}{tr('Abhi sync')}
           </button>
           <button type="button" onClick={() => setActive.mutate(!c.active)} disabled={setActive.isPending} className={heroButton}
-            title={c.active ? 'Band karne par nayi booking nahi hogi' : 'Dobara chalu karein'}>
-            <Power className="h-4 w-4" /> {c.active ? 'Band karein' : 'Chalu karein'}
+            title={c.active ? tr('Band karne par nayi booking nahi hogi') : tr('Dobara chalu karein')}>
+            <Power className="h-4 w-4" /> {c.active ? tr('Band karein') : tr('Chalu karein')}
           </button>
         </>
       )}
@@ -209,7 +210,7 @@ function HeroGuideButton({ c }: { c: CourierAccount }) {
   const guide = courierGuide(c);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={heroButton}><BookOpen className="h-4 w-4" /> Guide</button>
+      <button type="button" onClick={() => setOpen(true)} className={heroButton}><BookOpen className="h-4 w-4" /> {' '}{tr('Guide')}</button>
       <Modal open={open} onClose={() => setOpen(false)} size="lg" title={<span className="flex items-center gap-2.5"><CourierLogo c={c} size={28} />{guide.title}</span>}>
         <GuideBody guide={guide} />
       </Modal>
@@ -223,28 +224,28 @@ function Overview({ c, onTab, onParcels }: { c: CourierAccount; onTab: (t: Tab) 
   return (
     <div className="space-y-4">
       {s.attempted > 0 && (
-        <Alert tone="warning" title={`${s.attempted} parcel — customer nahi mila`} action={<Button size="sm" variant="secondary" onClick={() => onParcels('attempted')}>Dekhein</Button>}>
-          Customer ko call ya WhatsApp karein — warna parcel wapas (RTO) aa jayega.
+        <Alert tone="warning" title={tr('{{attempted}} parcel — customer nahi mila', { attempted: s.attempted })} action={<Button size="sm" variant="secondary" onClick={() => onParcels('attempted')}>{tr('Dekhein')}</Button>}>
+          {tr('Customer ko call ya WhatsApp karein — warna parcel wapas (RTO) aa jayega.')}
         </Alert>
       )}
       {isApi ? (
-        <Card className={CARD} title="Kya kya khud hota hai">
+        <Card className={CARD} title={tr('Kya kya khud hota hai')}>
           <ul className="grid gap-2 text-[0.8125rem] text-slate-700 sm:grid-cols-2">
-            <Li>Order par &quot;{c.name} par book&quot; — CN khud</Li>
+            <Li>{tr('Order par "{{name}} par book" — CN khud', { name: c.name })}</Li>
             {c.connect?.features.label
-              ? <Li>{c.connect.labelKind === 'pdf' ? 'Label PDF' : 'Label link'} ek click me print</Li>
-              : <Li>Label {c.name} portal se (CN Nafaa me khud aata hai)</Li>}
-            <Li>Courier utha le → order &quot;Raste me&quot;</Li>
-            <Li>Deliver → &quot;Courier ke paas&quot; (COD)</Li>
-            <Li>Wapas (RTO) → bill void, stock wapas</Li>
+              ? <Li>{tr('{{value}} ek click me print', { value: c.connect.labelKind === 'pdf' ? tr('Label PDF') : tr('Label link') })}</Li>
+              : <Li>{tr('Label {{name}} portal se (CN Nafaa me khud aata hai)', { name: c.name })}</Li>}
+            <Li>{tr('Courier utha le → order "Raste me"')}</Li>
+            <Li>{tr('Deliver → "Courier ke paas" (COD)')}</Li>
+            <Li>{tr('Wapas (RTO) → bill void, stock wapas')}</Li>
             {c.connect?.features.settlement
-              ? <Li>COD ka paisa aaya → khud &quot;Paisa mil gaya&quot;</Li>
-              : <Li>COD settlement: COD safhe par chun kar &quot;mil gaya&quot;</Li>}
+              ? <Li>{tr('COD ka paisa aaya → khud "Paisa mil gaya"')}</Li>
+              : <Li>{tr('COD settlement: COD safhe par chun kar "mil gaya"')}</Li>}
           </ul>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button onClick={() => onTab('book')} leftIcon={<Zap className="h-4 w-4" />}>Orders book karein</Button>
-            <Button variant="secondary" onClick={() => onParcels('active')} leftIcon={<Truck className="h-4 w-4" />}>Parcels</Button>
-            <Link to="/online-orders/cod"><Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />}>COD hisaab</Button></Link>
+            <Button onClick={() => onTab('book')} leftIcon={<Zap className="h-4 w-4" />}>{tr('Orders book karein')}</Button>
+            <Button variant="secondary" onClick={() => onParcels('active')} leftIcon={<Truck className="h-4 w-4" />}>{tr('Parcels')}</Button>
+            <Link to="/online-orders/cod"><Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />}>{tr('COD hisaab')}</Button></Link>
           </div>
         </Card>
       ) : (
@@ -276,10 +277,10 @@ function BookTab({ c, money, onOpen }: { c: CourierAccount; money: (n: number) =
       qc.invalidateQueries({ queryKey: ['courier-shipments', c.code] });
       qc.invalidateQueries({ queryKey: COURIERS_KEY });
       qc.invalidateQueries({ queryKey: ['online-orders'] });
-      setFailed(Object.fromEntries(r.results.filter((x) => !x.ok).map((x) => [x.orderId, x.error ?? 'Nahi hua'])));
+      setFailed(Object.fromEntries(r.results.filter((x) => !x.ok).map((x) => [x.orderId, x.error ?? tr('Nahi hua')])));
       setPicked(new Set(r.results.filter((x) => !x.ok).map((x) => x.orderId)));
-      if (r.booked) toast.success(`${r.booked} order ${c.name} par book`, { description: 'Parcels tab se label print karein' });
-      if (r.failed) toast.error(`${r.failed} order book nahi hue — wajah neeche likhi hai`);
+      if (r.booked) toast.success(tr('{{booked}} order {{name}} par book', { booked: r.booked, name: c.name }), { description: tr('Parcels tab se label print karein') });
+      if (r.failed) toast.error(tr('{{failed}} order book nahi hue — wajah neeche likhi hai', { failed: r.failed }));
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -288,39 +289,39 @@ function BookTab({ c, money, onOpen }: { c: CourierAccount; money: (n: number) =
   return (
     <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <header className="border-b border-slate-100 px-4 py-3 sm:px-5">
-        <h2 className="text-[0.9375rem] font-semibold text-slate-900">Book hone ke liye tayyar</h2>
-        <p className="text-[0.8125rem] text-slate-500">Accept ho chuke orders jo abhi kisi courier ko nahi diye. Chunein → ek click me sab book — shehar khud milta hai.</p>
+        <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Book hone ke liye tayyar')}</h2>
+        <p className="text-[0.8125rem] text-slate-500">{tr('Accept ho chuke orders jo abhi kisi courier ko nahi diye. Chunein → ek click me sab book — shehar khud milta hai.')}</p>
       </header>
       {picked.size > 0 && (
         <div className="sticky top-2 z-10 mx-3 mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-lg sm:mx-4">
-          <span className="text-[0.8125rem] font-semibold">{picked.size} chune</span>
+          <span className="text-[0.8125rem] font-semibold">{tr('{{size}} chune', { size: picked.size })}</span>
           <input value={weight} onChange={(e) => setWeight(e.target.value)} type="number" min="0.01" step="0.1"
-            placeholder={`Wazan (default ${c.settings?.defaultWeightKg ?? 0.5} kg)`}
+            placeholder={tr('Wazan (default {{value}} kg)', { value: c.settings?.defaultWeightKg ?? 0.5 })}
             className="h-8 w-44 rounded-lg border border-white/20 bg-white/10 px-2.5 text-[0.8125rem] text-white placeholder:text-white/50 outline-none" />
           <span className="flex-1" />
-          <button type="button" onClick={() => setPicked(new Set())} className="h-8 rounded-lg px-3 text-[0.8125rem] font-semibold hover:bg-white/10">Chhoro</button>
-          <Button size="sm" variant="success" loading={bulk.isPending} onClick={() => bulk.mutate()} leftIcon={<Zap className="h-4 w-4" />}>{c.name} par book</Button>
+          <button type="button" onClick={() => setPicked(new Set())} className="h-8 rounded-lg px-3 text-[0.8125rem] font-semibold hover:bg-white/10">{tr('Chhoro')}</button>
+          <Button size="sm" variant="success" loading={bulk.isPending} onClick={() => bulk.mutate()} leftIcon={<Zap className="h-4 w-4" />}>{tr('{{name}} par book', { name: c.name })}</Button>
         </div>
       )}
       {isLoading ? <div className="p-4"><Skeleton className="h-32 rounded-xl" /></div>
-        : error ? <Empty title="List nahi khuli" text={apiErrorMessage(error)} />
-          : !rows.length ? <Empty title="Sab bhej diye" text="Koi accept hua order courier ka intezar nahi kar raha." />
+        : error ? <Empty title={tr('List nahi khuli')} text={apiErrorMessage(error)} />
+          : !rows.length ? <Empty title={tr('Sab bhej diye')} text={tr('Koi accept hua order courier ka intezar nahi kar raha.')} />
             : (
               <ul className="divide-y divide-slate-100">
                 <li className="flex items-center gap-3 px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 sm:px-5">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chunein" checked={rows.every((r) => picked.has(r.id))}
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label={tr('Sab chunein')} checked={rows.every((r) => picked.has(r.id))}
                     onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} />
-                  <span className="flex-1">Order · customer · shehar</span><span className="hidden w-16 text-right sm:block">Pieces</span><span className="w-24 text-right">COD</span>
+                  <span className="flex-1">{tr('Order · customer · shehar')}</span><span className="hidden w-16 text-end sm:block">{tr('Pieces')}</span><span className="w-24 text-end">{tr('COD')}</span>
                 </li>
                 {rows.map((o) => (
                   <li key={o.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/80 sm:px-5">
-                    <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} aria-label={`#${o.externalOrderNumber ?? o.externalOrderId} chunein`} />
-                    <button type="button" onClick={() => onOpen(o.id)} className="min-w-0 flex-1 text-left">
-                      <span className="block truncate text-[0.875rem]"><b className="font-semibold text-slate-900">#{o.externalOrderNumber ?? o.externalOrderId}</b> <span className="text-slate-600">· {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ' · shehar nahi likha'}</span></span>
+                    <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} aria-label={tr('#{{value}} chunein', { value: o.externalOrderNumber ?? o.externalOrderId })} />
+                    <button type="button" onClick={() => onOpen(o.id)} className="min-w-0 flex-1 text-start">
+                      <span className="block truncate text-[0.875rem]"><b className="font-semibold text-slate-900">#{o.externalOrderNumber ?? o.externalOrderId}</b> <span className="text-slate-600">· {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : tr(' · shehar nahi likha')}</span></span>
                       {failed[o.id] && <span className="block text-[0.75rem] font-medium text-rose-600">{failed[o.id]}</span>}
                     </button>
-                    <span className="hidden w-16 text-right text-[0.8125rem] tabular-nums text-slate-600 sm:block">{o.pieces || 1}</span>
-                    <span className="w-24 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{o.paymentStatus === 'PAID' ? 'Paid' : money(o.total)}</span>
+                    <span className="hidden w-16 text-end text-[0.8125rem] tabular-nums text-slate-600 sm:block">{o.pieces || 1}</span>
+                    <span className="w-24 text-end text-[0.875rem] font-semibold tabular-nums text-slate-900">{o.paymentStatus === 'PAID' ? tr('Paid') : money(o.total)}</span>
                   </li>
                 ))}
               </ul>
@@ -338,8 +339,8 @@ function ParcelsTab({ c, money, filter, setFilter, onOpen }: {
     <div className="space-y-3">
       {portal && (
         <Segmented value={src} onChange={setSrc} items={[
-          { value: 'nafaa', label: 'Nafaa orders' },
-          { value: 'portal', label: `${c.name} portal (sab)` },
+          { value: 'nafaa', label: tr('Nafaa orders') },
+          { value: 'portal', label: tr('{{name}} portal (sab)', { name: c.name }) },
         ]} />
       )}
       {src === 'portal' && portal ? <PortalParcels c={c} money={money} onOpen={onOpen} /> : <NafaaParcels c={c} money={money} filter={filter} setFilter={setFilter} onOpen={onOpen} />}
@@ -363,40 +364,40 @@ function PortalParcels({ c, money, onOpen }: { c: CourierAccount; money: (n: num
   const pages = Math.ceil((data?.total ?? 0) / limit);
   const labels = useMutation({
     mutationFn: () => couriersApi.openLabels(c.code, [...picked]),
-    onError: (e) => toast.error(apiErrorMessage(e, 'Labels nahi khule')),
+    onError: (e) => toast.error(apiErrorMessage(e, tr('Labels nahi khule'))),
   });
   const toggle = (tn: string) => setPicked((s) => { const n = new Set(s); if (n.has(tn)) n.delete(tn); else n.add(tn); return n; });
 
   return (
     <>
-      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN ya shehar…" label="Parcel search" />}>
-        <FilterMenu icon={ListFilter} label="Parcel" value={filter} active={filter !== 'all'} onChange={(v) => { setFilter(v); setPage(0); }} options={PORTAL_FILTERS} align="right" />
+      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder={tr('CN ya shehar…')} label={tr('Parcel search')} />}>
+        <FilterMenu icon={ListFilter} label={tr('Parcel')} value={filter} active={filter !== 'all'} onChange={(v) => { setFilter(v); setPage(0); }} options={PORTAL_FILTERS} align="right" />
       </FilterBar>
       <section className={cn('rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80', isFetching && 'opacity-80')}>
         {picked.size > 0 && c.connect?.features.label && (
           <div className="mx-3 mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white sm:mx-4">
-            <span className="text-[0.8125rem] font-semibold">{picked.size} chune</span>
+            <span className="text-[0.8125rem] font-semibold">{tr('{{size}} chune', { size: picked.size })}</span>
             <span className="flex-1" />
-            <button type="button" onClick={() => setPicked(new Set())} className="h-8 rounded-lg px-3 text-[0.8125rem] font-semibold hover:bg-white/10">Chhoro</button>
-            <Button size="sm" variant="success" loading={labels.isPending} onClick={() => labels.mutate()} leftIcon={<Printer className="h-4 w-4" />}>Labels print</Button>
+            <button type="button" onClick={() => setPicked(new Set())} className="h-8 rounded-lg px-3 text-[0.8125rem] font-semibold hover:bg-white/10">{tr('Chhoro')}</button>
+            <Button size="sm" variant="success" loading={labels.isPending} onClick={() => labels.mutate()} leftIcon={<Printer className="h-4 w-4" />}>{tr('Labels print')}</Button>
           </div>
         )}
         {isLoading ? <div className="p-4"><Skeleton className="h-32 rounded-xl" /></div>
-          : error ? <Empty title="Parcels nahi khule" text={apiErrorMessage(error)} />
+          : error ? <Empty title={tr('Parcels nahi khule')} text={apiErrorMessage(error)} />
             : !rows.length ? (
-              <Empty title={c.lastSyncAt ? 'Yahan koi parcel nahi' : `${c.name} se parcels abhi nahi aaye`}
-                text={c.lastSyncAt ? 'Pichhle 30 din me is filter ka koi parcel nahi.' : 'Upar "Abhi sync" dabayein — pichhle 30 din ke saare parcels aa jayenge.'} />
+              <Empty title={c.lastSyncAt ? tr('Yahan koi parcel nahi') : tr('{{name}} se parcels abhi nahi aaye', { name: c.name })}
+                text={c.lastSyncAt ? tr('Pichhle 30 din me is filter ka koi parcel nahi.') : tr('Upar "Abhi sync" dabayein — pichhle 30 din ke saare parcels aa jayenge.')} />
             ) : (
               <div className="overflow-x-auto">
                 <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
-                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                     <Tr>
                       <Th className="w-10 px-4 py-2 sm:px-5">
-                        <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chunein" checked={rows.every((r) => picked.has(r.trackingNumber))}
+                        <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label={tr('Sab chunein')} checked={rows.every((r) => picked.has(r.trackingNumber))}
                           onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.trackingNumber)) : new Set())} />
                       </Th>
-                      <Th className="px-3 py-2">CN</Th><Th className="px-3 py-2">Customer</Th><Th className="px-3 py-2">Status</Th><Th className="px-3 py-2">Nafaa order</Th>
-                      <Th className="px-4 py-2 text-right sm:px-5">COD</Th>
+                      <Th className="px-3 py-2">{tr('CN')}</Th><Th className="px-3 py-2">{tr('Customer')}</Th><Th className="px-3 py-2">{tr('Status')}</Th><Th className="px-3 py-2">{tr('Nafaa order')}</Th>
+                      <Th className="px-4 py-2 text-end sm:px-5">{tr('COD')}</Th>
                     </Tr>
                   </THead>
                   <TBody className="divide-y divide-slate-100">
@@ -404,10 +405,10 @@ function PortalParcels({ c, money, onOpen }: { c: CourierAccount; money: (n: num
                       const st = COURIER_STATE[r.state] ?? COURIER_STATE.UNKNOWN;
                       return (
                         <Tr key={r.id} className="hover:bg-slate-50/80">
-                          <Td className="px-4 py-2.5 sm:px-5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.trackingNumber)} onChange={() => toggle(r.trackingNumber)} aria-label={`${r.trackingNumber} chunein`} /></Td>
+                          <Td className="px-4 py-2.5 sm:px-5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.trackingNumber)} onChange={() => toggle(r.trackingNumber)} aria-label={tr('{{trackingNumber}} chunein', { trackingNumber: r.trackingNumber })} /></Td>
                           <Td className="px-3 py-2.5">
                             <CopyCn cn={r.trackingNumber} />
-                            <div className="text-[0.75rem] text-slate-400">{whenText(r.bookedAt)}{r.orderRef ? ` · ref ${r.orderRef}` : ''}</div>
+                            <div className="text-[0.75rem] text-slate-400">{whenText(r.bookedAt)}{r.orderRef ? tr(' · ref {{orderRef}}', { orderRef: r.orderRef }) : ''}</div>
                           </Td>
                           <Td className="px-3 py-2.5">
                             <div className="max-w-[12rem] truncate text-slate-800">{r.customerName ?? '—'}</div>
@@ -420,9 +421,9 @@ function PortalParcels({ c, money, onOpen }: { c: CourierAccount; money: (n: num
                           <Td className="px-3 py-2.5">
                             {r.order
                               ? <button type="button" onClick={() => onOpen(r.order!.id)} className="font-semibold text-brand-700 hover:underline">#{r.order.number}</button>
-                              : <span className="text-[0.75rem] text-slate-400">Portal se book</span>}
+                              : <span className="text-[0.75rem] text-slate-400">{tr('Portal se book')}</span>}
                           </Td>
-                          <Td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.codAmount)}</Td>
+                          <Td className="px-4 py-2.5 text-end font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.codAmount)}</Td>
                         </Tr>
                       );
                     })}
@@ -452,18 +453,18 @@ function NafaaParcels({ c, money, filter, setFilter, onOpen }: {
 
   return (
     <>
-      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="CN, order #, customer, phone…" label="Parcel search" />}>
-        <FilterMenu icon={ListFilter} label="Parcel" value={filter} active={filter !== 'active'} onChange={(v) => { setFilter(v); setPage(0); }} options={PARCEL_FILTERS} align="right" />
+      <FilterBar search={<SearchField value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder={tr('CN, order #, customer, phone…')} label={tr('Parcel search')} />}>
+        <FilterMenu icon={ListFilter} label={tr('Parcel')} value={filter} active={filter !== 'active'} onChange={(v) => { setFilter(v); setPage(0); }} options={PARCEL_FILTERS} align="right" />
       </FilterBar>
       <section className={cn('rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80', isFetching && 'opacity-80')}>
         {isLoading ? <div className="p-4"><Skeleton className="h-32 rounded-xl" /></div>
-          : error ? <Empty title="Parcels nahi khule" text={apiErrorMessage(error)} />
-            : !rows.length ? <Empty title="Yahan koi parcel nahi" text={q ? 'Is talaash se kuch nahi mila.' : 'Is filter me abhi kuch nahi.'} />
+          : error ? <Empty title={tr('Parcels nahi khule')} text={apiErrorMessage(error)} />
+            : !rows.length ? <Empty title={tr('Yahan koi parcel nahi')} text={q ? tr('Is talaash se kuch nahi mila.') : tr('Is filter me abhi kuch nahi.')} />
               : (
                 <div className="overflow-x-auto">
                   <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
-                    <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                      <Tr><Th className="px-4 py-2 sm:px-5">Order</Th><Th className="px-3 py-2">CN</Th><Th className="px-3 py-2">Customer</Th><Th className="px-3 py-2">Courier status</Th><Th className="px-3 py-2">Order</Th><Th className="px-3 py-2 text-right">Amount</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
+                    <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                      <Tr><Th className="px-4 py-2 sm:px-5">{tr('Order')}</Th><Th className="px-3 py-2">{tr('CN')}</Th><Th className="px-3 py-2">{tr('Customer')}</Th><Th className="px-3 py-2">{tr('Courier status')}</Th><Th className="px-3 py-2">{tr('Order')}</Th><Th className="px-3 py-2 text-end">{tr('Amount')}</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
                     </THead>
                     <TBody className="divide-y divide-slate-100">
                       {rows.map((o) => <ParcelRow key={o.id} o={o} c={c} money={money} onOpen={() => onOpen(o.id)} />)}
@@ -482,7 +483,7 @@ function ParcelRow({ o, c, money, onOpen }: { o: CourierShipment; c: CourierAcco
   const ord = STATUS_LABEL[o.orderStatus];
   const label = useMutation({
     mutationFn: () => couriersApi.openLabel(o.id),
-    onError: (e) => toast.error(apiErrorMessage(e, 'Label nahi khula')),
+    onError: (e) => toast.error(apiErrorMessage(e, tr('Label nahi khula'))),
   });
   const waitingDays = o.courierStatus === 'BOOKED' && o.courierBookedAt ? Math.floor((Date.now() - new Date(o.courierBookedAt).getTime()) / 86_400_000) : 0;
   return (
@@ -493,7 +494,7 @@ function ParcelRow({ o, c, money, onOpen }: { o: CourierShipment; c: CourierAcco
       </Td>
       <Td className="px-3 py-2.5">
         {o.trackingNumber ? <CopyCn cn={o.trackingNumber} /> : <span className="text-slate-400">—</span>}
-        {!o.viaApi && <div className="text-[0.6875rem] text-slate-400"><PenLine className="mr-0.5 inline h-3 w-3" />manual</div>}
+        {!o.viaApi && <div className="text-[0.6875rem] text-slate-400"><PenLine className="me-0.5 inline h-3 w-3" />{tr('manual')}</div>}
       </Td>
       <Td className="px-3 py-2.5">
         <div className="max-w-[11rem] truncate text-slate-800">{o.customerName}</div>
@@ -502,16 +503,16 @@ function ParcelRow({ o, c, money, onOpen }: { o: CourierShipment; c: CourierAcco
       <Td className="px-3 py-2.5">
         {st ? <Badge variant={st.tone}>{st.label}</Badge> : <span className="text-slate-400">—</span>}
         {o.courierLabel && <div className="mt-0.5 max-w-[11rem] truncate text-[0.6875rem] text-slate-400" title={o.courierLabel}>{o.courierLabel}</div>}
-        {waitingDays >= 2 && <div className="mt-0.5 text-[0.6875rem] font-medium text-amber-700">{waitingDays} din se pickup nahi hua</div>}
+        {waitingDays >= 2 && <div className="mt-0.5 text-[0.6875rem] font-medium text-amber-700">{tr('{{waitingDays}} din se pickup nahi hua', { waitingDays })}</div>}
       </Td>
       <Td className="px-3 py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', ord?.tone)}>{ord?.short ?? o.orderStatus}</span></Td>
-      <Td className="px-3 py-2.5 text-right tabular-nums">
+      <Td className="px-3 py-2.5 text-end tabular-nums">
         <div className="font-semibold text-slate-900">{money(o.total)}</div>
-        <div className="text-[0.6875rem] text-slate-400">{o.paymentStatus === 'PAID' ? 'mil gaya' : o.paymentStatus === 'COLLECTED' ? 'courier ke paas' : o.paymentStatus === 'NOT_COLLECTED' ? 'nahi aayega' : 'COD'}</div>
+        <div className="text-[0.6875rem] text-slate-400">{o.paymentStatus === 'PAID' ? tr('mil gaya') : o.paymentStatus === 'COLLECTED' ? tr('courier ke paas') : o.paymentStatus === 'NOT_COLLECTED' ? tr('nahi aayega') : tr('COD')}</div>
       </Td>
-      <Td className="px-4 py-2.5 text-right sm:px-5">
+      <Td className="px-4 py-2.5 text-end sm:px-5">
         {o.viaApi && c.connected && c.connect?.features.label && o.orderStatus !== 'RETURNED' && (
-          <Button size="xs" variant="ghost" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>Label</Button>
+          <Button size="xs" variant="ghost" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>{tr('Label')}</Button>
         )}
       </Td>
     </Tr>
@@ -523,12 +524,12 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
   const [replace, setReplace] = useState(!c.connected);
   const test = useMutation({
     mutationFn: () => couriersApi.test(c.code),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(`${c.name} theek chal raha hai · ${r.cities} shehar`); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(tr('{{name}} theek chal raha hai · {{cities}} shehar', { name: c.name, cities: r.cities })); },
     onError: (e) => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.error(apiErrorMessage(e)); },
   });
   const disconnect = useMutation({
     mutationFn: () => couriersApi.disconnect(c.code),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(`${c.name} hata diya`); setReplace(true); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: COURIERS_KEY }); toast.success(tr('{{name}} hata diya', { name: c.name })); setReplace(true); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const since = useMemo(() => (c.connectedAt ? whenText(c.connectedAt) : null), [c.connectedAt]);
@@ -537,32 +538,32 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="min-w-0 space-y-4">
         {c.connected && (
-          <Card className={CARD} title="Connection" description={[since && `Jura: ${since}`, c.lastTestedAt && `aakhri check ${timeAgo(c.lastTestedAt)}`].filter(Boolean).join(' · ')}>
+          <Card className={CARD} title={tr('Connection')} description={[since && `Jura: ${since}`, c.lastTestedAt && `aakhri check ${timeAgo(c.lastTestedAt)}`].filter(Boolean).join(' · ')}>
             <div className="flex flex-wrap items-center gap-2">
               <KeyRound className="h-4 w-4 text-slate-400" />
               <span className="font-mono text-[0.8125rem] text-slate-700">{c.maskedKey}</span>
               <span className="flex-1" />
-              <Button size="sm" variant="secondary" loading={test.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Check karein</Button>
-              <Button size="sm" variant="ghost" leftIcon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? 'Rehne dein' : 'Nayi key'}</Button>
+              <Button size="sm" variant="secondary" loading={test.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>{tr('Check karein')}</Button>
+              <Button size="sm" variant="ghost" leftIcon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? tr('Rehne dein') : tr('Nayi key')}</Button>
               <Button size="sm" variant="critical" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
-                onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Book parcels ki tracking ruk jayegi (orders waise hi rahenge).', danger: true }))) disconnect.mutate(); }}>
-                Hatayein
+                onClick={async () => { if ((await confirmDialog({ title: tr('{{name}} hatayein?', { name: c.name }), text: tr('Book parcels ki tracking ruk jayegi (orders waise hi rahenge).'), danger: true }))) disconnect.mutate(); }}>
+                {tr('Hatayein')}
               </Button>
             </div>
           </Card>
         )}
         {replace && (
-          <Card className={CARD} title={c.connected ? 'Nayi key lagayein' : `${c.name} jorein`} description="Nafaa details usi waqt courier se check karta hai — ghalat details save nahi hotin.">
+          <Card className={CARD} title={c.connected ? tr('Nayi key lagayein') : tr('{{name}} jorein', { name: c.name })} description={tr('Nafaa details usi waqt courier se check karta hai — ghalat details save nahi hotin.')}>
             <ConnectForm c={c} onDone={() => { setReplace(false); if (!c.connected) onConnected(); }} />
           </Card>
         )}
         {!c.connected && c.connect && (
-          <Card className={CARD} title="Jurne ke baad kya milega">
+          <Card className={CARD} title={tr('Jurne ke baad kya milega')}>
             <ul className="grid gap-2 text-[0.8125rem] text-slate-700 sm:grid-cols-2">
-              <Li>Ek click booking aur CN</Li>
-              <Li>{c.connect.features.label ? 'Label print' : 'Tracking khud'}</Li>
-              <Li>Deliver aur RTO par order khud update</Li>
-              <Li>{c.connect.features.settlement ? 'COD settlement khud' : 'COD hisaab ek jagah'}</Li>
+              <Li>{tr('Ek click booking aur CN')}</Li>
+              <Li>{c.connect.features.label ? tr('Label print') : tr('Tracking khud')}</Li>
+              <Li>{tr('Deliver aur RTO par order khud update')}</Li>
+              <Li>{c.connect.features.settlement ? tr('COD settlement khud') : tr('COD hisaab ek jagah')}</Li>
             </ul>
           </Card>
         )}
@@ -574,8 +575,8 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
 
 function CopyCn({ cn: value }: { cn: string }) {
   return (
-    <button type="button" onClick={() => navigator.clipboard?.writeText(value).then(() => toast.success('CN copy ho gaya'))}
-      className="font-mono text-[0.8125rem] text-slate-800 hover:underline" title="Copy">{value}</button>
+    <button type="button" onClick={() => navigator.clipboard?.writeText(value).then(() => toast.success(tr('CN copy ho gaya')))}
+      className="font-mono text-[0.8125rem] text-slate-800 hover:underline" title={tr('Copy')}>{value}</button>
   );
 }
 
@@ -583,10 +584,10 @@ function Pager({ total, page, pages, setPage }: { total: number; page: number; p
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-500 sm:px-5">
-      <span>{total} parcels · safha {page + 1} / {pages}</span>
+      <span>{tr('{{total}} parcels · safha {{value}} / {{pages}}', { total, value: page + 1, pages })}</span>
       <div className="flex gap-1">
-        <Button size="sm" variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Pichhla</Button>
-        <Button size="sm" variant="secondary" disabled={page + 1 >= pages} onClick={() => setPage((p) => p + 1)}>Agla</Button>
+        <Button size="sm" variant="secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>{tr('Pichhla')}</Button>
+        <Button size="sm" variant="secondary" disabled={page + 1 >= pages} onClick={() => setPage((p) => p + 1)}>{tr('Agla')}</Button>
       </div>
     </div>
   );

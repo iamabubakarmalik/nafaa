@@ -10,6 +10,7 @@ import { Badge } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { gymMembersApi } from '../api/members.api';
 import { GYM_KEYS, MEMBER_STATE, dateOf, daysLeft } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export function GymCartMember({ customerId }: { customerId?: string | null }) {
   const q = useQuery({
@@ -27,10 +28,10 @@ export function GymCartMember({ customerId }: { customerId?: string | null }) {
       <Dumbbell className="h-4 w-4 shrink-0 text-brand-600" />
       <div className="min-w-0 flex-1">
         <Link to={`/gym/members/${m.id}`} className="font-medium text-slate-900 hover:underline">{m.memberNumber}</Link>
-        <span className="text-slate-500"> · {m.current?.plan?.name ?? 'Plan nahi'}{m.current ? ` · ${dateOf(m.current.endDate)}` : ''}</span>
-        {(m.due ?? 0) > 0 && <p className="text-amber-700">Fee baqi {formatPKR(m.due ?? 0)}</p>}
+        <span className="text-slate-500"> · {m.current?.plan?.name ?? t('Plan nahi')}{m.current ? ` · ${dateOf(m.current.endDate)}` : ''}</span>
+        {(m.due ?? 0) > 0 && <p className="text-amber-700">{t('Fee baqi {{formatPKR}}', { formatPKR: formatPKR(m.due ?? 0) })}</p>}
       </div>
-      <Badge size="xs" variant={st.variant}>{left != null && left >= 0 && (m.state === 'ACTIVE' || m.state === 'EXPIRING') ? `${left} din` : st.label}</Badge>
+      <Badge size="xs" variant={st.variant}>{left != null && left >= 0 && (m.state === 'ACTIVE' || m.state === 'EXPIRING') ? t('{{left}} din', { left }) : st.label}</Badge>
     </div>
   );
 }

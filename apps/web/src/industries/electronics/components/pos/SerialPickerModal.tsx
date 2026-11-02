@@ -5,6 +5,7 @@ import { Badge, EmptyState, Input, Modal, Skeleton } from '@/design-system/compo
 import { formatPKR } from '@core/lib/format';
 import { serialTrackingApi } from '../../api/serial-tracking.api';
 import type { Product } from '@modules/inventory/products/api/products.api';
+import { t } from '@core/i18n';
 
 interface Props {
   product: Product;
@@ -39,7 +40,7 @@ export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props)
       onClose={onClose}
       size="lg"
       title={product.name}
-      description={`Serial / IMEI chunein · Mojood: ${serials.length} pcs · ${formatPKR(product.price)}`}
+      description={t('Serial / IMEI chunein · Mojood: {{count}} pcs · {{price}}', { count: serials.length, price: formatPKR(product.price) })}
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 border-b border-slate-100 bg-white px-5 py-3">
         <Input
@@ -47,7 +48,7 @@ export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props)
           size="lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Serial / IMEI / MAC se dhoondein"
+          placeholder={t('Serial / IMEI / MAC se dhoondein')}
           leftIcon={<Search className="h-5 w-5" />}
         />
       </div>
@@ -56,7 +57,7 @@ export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props)
         {isLoading ? (
           <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-[4.25rem] rounded-2xl" />)}</div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={<Barcode className="h-6 w-6" />} title="Koi serial stock me nahi" description="Purchase ya product page se serial daalein" />
+          <EmptyState icon={<Barcode className="h-6 w-6" />} title={t('Koi serial stock me nahi')} description={t('Purchase ya product page se serial daalein')} />
         ) : (
           <div className="space-y-2">
             {filtered.map((s: any) => (
@@ -65,15 +66,15 @@ export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props)
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-600 group-hover:text-brand-fg">
                   <Barcode className="h-5 w-5" />
                 </span>
-                <div className="min-w-0 flex-1 text-left">
+                <div className="min-w-0 flex-1 text-start">
                   <div className="truncate font-mono text-sm font-semibold text-slate-900">{s.serialNumber}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                    {s.imei && <span className="font-mono text-[0.6875rem] text-slate-600">IMEI: {s.imei}</span>}
-                    {s.macAddress && <span className="font-mono text-[0.6875rem] text-slate-600">MAC: {s.macAddress}</span>}
+                    {s.imei && <span className="font-mono text-[0.6875rem] text-slate-600">{t('IMEI: {{imei}}', { imei: s.imei })}</span>}
+                    {s.macAddress && <span className="font-mono text-[0.6875rem] text-slate-600">{t('MAC: {{macAddress}}', { macAddress: s.macAddress })}</span>}
                   </div>
                   {s.warrantyEndDate && (
                     <Badge size="xs" variant="success" className="mt-1 gap-1">
-                      <Shield className="h-3 w-3" /> Warranty {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')} tak
+                      <Shield className="h-3 w-3" /> {' '}{t('Warranty {{value}} tak', { value: new Date(s.warrantyEndDate).toLocaleDateString('en-PK') })}
                     </Badge>
                   )}
                 </div>

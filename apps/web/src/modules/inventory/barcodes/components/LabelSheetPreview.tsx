@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MM_TO_PX } from './renderLabels';
+import { t } from '@core/i18n';
 
 export function LabelSheetPreview({ html, pageW, pageH, pages }: {
   html: string;
@@ -35,7 +36,7 @@ export function LabelSheetPreview({ html, pageW, pageH, pages }: {
       {scale > 0 && (
         <div style={{ height: docH * scale }}>
           <iframe
-            title="Label preview"
+            title={t('Label preview')}
             srcDoc={html}
             sandbox=""
             style={{ width: docW, height: docH, transform: `scale(${scale})`, transformOrigin: 'top left', border: 0, display: 'block', marginLeft: Math.max(0, (width - docW * scale) / 2) }}

@@ -17,6 +17,7 @@ import { periodRange } from '../../../modules/inventory/taxonomy/taxonomy.helper
 import { assertCodeFree } from '../product-units/code-clash.helper';
 import { ComboItemDto, ComboRangeDto, CreateComboDto } from './dto/create-combo.dto';
 import { UpdateComboDto } from './dto/update-combo.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const DAY = 86_400_000;
@@ -82,10 +83,10 @@ export class CombosService {
       const p = product.get(it.productId)!;
       const v = it.variantId ? variant.get(it.variantId) : undefined;
       const u = it.unitId ? unit.get(it.unitId) : undefined;
-      if (it.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(`"${p.name}" ki type nahi mili`);
-      if (it.unitId && (!u || u.productId !== p.id)) throw new BadRequestException(`"${p.name}" ka pack nahi mila`);
+      if (it.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(apiMessage('"{{pName}}" ki type nahi mili', { pName: p.name }));
+      if (it.unitId && (!u || u.productId !== p.id)) throw new BadRequestException(apiMessage('"{{pName}}" ka pack nahi mila', { pName: p.name }));
       const key = `${p.id}:${v?.id ?? ''}:${u?.id ?? ''}`;
-      if (seen.has(key)) throw new BadRequestException(`"${p.name}" do dafa hai — ek hi line me quantity barhayein`);
+      if (seen.has(key)) throw new BadRequestException(apiMessage('"{{pName}}" do dafa hai — ek hi line me quantity barhayein', { pName: p.name }));
       seen.add(key);
       const rate = u ? Number(u.conversionRate) || 1 : 1;
       const base = v ? Number(v.price) : Number(p.price);
@@ -113,7 +114,7 @@ export class CombosService {
       where: { tenantId, name: { equals: name.trim(), mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { id: true },
     });
-    if (dup) throw new ConflictException(`"${name.trim()}" naam ka combo pehle se hai`);
+    if (dup) throw new ConflictException(apiMessage('"{{name}}" naam ka combo pehle se hai', { name: name.trim() }));
   }
 
   private static checkDates(from?: Date | null, to?: Date | null) {

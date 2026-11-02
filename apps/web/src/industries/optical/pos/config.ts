@@ -11,6 +11,7 @@ import { Droplet, Eye, Glasses, Sun } from 'lucide-react';
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { FACTS_KEY, factLine, kindOf, typeLabel, useOpticalFacts } from '../hooks/useOpticalFacts';
 import { CustomerOptical } from './CustomerOptical';
+import { t } from '@core/i18n';
 
 function useOpticalCatalog() {
   const facts = useOpticalFacts();
@@ -21,8 +22,8 @@ function useOpticalCatalog() {
       ...it,
       subline: factLine(f),
       badges: [
-        ...(f.hasBlueCut ? [{ label: 'Blue cut', tone: 'info' as const }] : []),
-        ...(f.isPolarized ? [{ label: 'Polarized', tone: 'neutral' as const }] : []),
+        ...(f.hasBlueCut ? [{ label: t('Blue cut'), tone: 'info' as const }] : []),
+        ...(f.isPolarized ? [{ label: t('Polarized'), tone: 'neutral' as const }] : []),
       ],
       searchText: [it.searchText, f.brand, f.modelNumber, f.colorName, f.lensIndex, typeLabel(f.categoryType), f.clDuration].filter(Boolean).join(' '),
       meta: { ...it.meta, kind: kindOf(f.categoryType) },
@@ -34,20 +35,20 @@ function useOpticalCatalog() {
 const kind = (k: string) => (i: PosItem) => i.meta?.kind === k;
 
 const filters: PosFilter[] = [
-  { id: 'frame', label: 'Frames', icon: Glasses, match: kind('frame') },
-  { id: 'sun', label: 'Sunglasses', icon: Sun, match: kind('sun') },
-  { id: 'contact', label: 'Contact lens', icon: Eye, match: kind('contact') },
-  { id: 'care', label: 'Solution / case', icon: Droplet, match: kind('care') },
+  { id: 'frame', label: t('Frames'), icon: Glasses, match: kind('frame') },
+  { id: 'sun', label: t('Sunglasses'), icon: Sun, match: kind('sun') },
+  { id: 'contact', label: t('Contact lens'), icon: Eye, match: kind('contact') },
+  { id: 'care', label: t('Solution / case'), icon: Droplet, match: kind('care') },
 ];
 
 export const opticalPos: PosIndustryConfig = {
   id: 'optical',
-  label: 'Optical',
+  label: t('Optical'),
   useCatalog: useOpticalCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Brand, model, rang ya barcode…',
+  searchHint: t('Brand, model, rang ya barcode…'),
   CartExtra: CustomerOptical,
   receiptFooter: 'Chashma ki warranty ke liye ye bill sambhal kar rakhein.',
   voiceAliases: { chashma: 'frame', ainak: 'frame', dhoop: 'sunglasses', lens: 'contact lens', solution: 'solution' },

@@ -1,24 +1,25 @@
 /** Labels, tones and small helpers shared by the agri pages. */
 
 import type { OrderStatus } from '../api/bulk-orders.api';
+import { t as tr } from '@core/i18n';
 
 export const CROPS = ['Gandum', 'Kapas', 'Chawal', 'Makai', 'Ganna', 'Aloo', 'Chana', 'Sarson', 'Chara', 'Pyaz', 'Tamatar', 'Mirch', 'Sabzi', 'Baagh'];
 
 export const SEASON_LABEL: Record<string, string> = {
-  RABI: 'Rabi', KHARIF: 'Kharif', ZAID: 'Zaid', ALL_SEASON: 'Har season', SPRING: 'Bahar', SUMMER: 'Garmi', MONSOON: 'Barsaat', WINTER: 'Sardi',
+  RABI: tr('Rabi'), KHARIF: tr('Kharif'), ZAID: tr('Zaid'), ALL_SEASON: tr('Har season'), SPRING: tr('Bahar'), SUMMER: tr('Garmi'), MONSOON: tr('Barsaat'), WINTER: tr('Sardi'),
 };
 export const seasonLabel = (s?: string | null) => (s ? SEASON_LABEL[s] ?? s : '—');
 
 export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: string }> = {
-  DRAFT: { label: 'Draft', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  PENDING: { label: 'Baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  CONFIRMED: { label: 'Pakka', tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
-  PROCESSING: { label: 'Tayyari', tone: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
-  READY: { label: 'Tayyar', tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
-  OUT_FOR_DELIVERY: { label: 'Raste me', tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
-  DELIVERED: { label: 'Pahunch gaya', tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  RETURNED: { label: 'Wapas', tone: 'bg-rose-50 text-rose-800 ring-rose-200' },
-  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  DRAFT: { label: tr('Draft'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  PENDING: { label: tr('Baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  CONFIRMED: { label: tr('Pakka'), tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  PROCESSING: { label: tr('Tayyari'), tone: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
+  READY: { label: tr('Tayyar'), tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
+  OUT_FOR_DELIVERY: { label: tr('Raste me'), tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
+  DELIVERED: { label: tr('Pahunch gaya'), tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  RETURNED: { label: tr('Wapas'), tone: 'bg-rose-50 text-rose-800 ring-rose-200' },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-slate-100 text-slate-600 ring-slate-200' },
 };
 
 /** Next step offered for an open order. */
@@ -28,15 +29,15 @@ export const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
 export const OPEN_STATUSES: OrderStatus[] = ['DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING', 'READY', 'OUT_FOR_DELIVERY'];
 
 export const CLAIM_STATUS: Record<string, { label: string; tone: string }> = {
-  PENDING: { label: 'Baqi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  APPROVED: { label: 'Manzoor', tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
-  DISBURSED: { label: 'Paisa mil gaya', tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  REJECTED: { label: 'Radd', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  PENDING: { label: tr('Baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  APPROVED: { label: tr('Manzoor'), tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  DISBURSED: { label: tr('Paisa mil gaya'), tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  REJECTED: { label: tr('Radd'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const PAY_METHODS = [
-  { value: 'CASH', label: 'Cash' }, { value: 'BANK_TRANSFER', label: 'Bank' }, { value: 'JAZZCASH', label: 'JazzCash' },
-  { value: 'EASYPAISA', label: 'Easypaisa' }, { value: 'CARD', label: 'Card' }, { value: 'CHEQUE', label: 'Cheque' },
+  { value: 'CASH', label: tr('Cash') }, { value: 'BANK_TRANSFER', label: tr('Bank') }, { value: 'JAZZCASH', label: tr('JazzCash') },
+  { value: 'EASYPAISA', label: tr('Easypaisa') }, { value: 'CARD', label: tr('Card') }, { value: 'CHEQUE', label: tr('Cheque') },
 ];
 
 /** API error message or the fallback. */
@@ -63,8 +64,8 @@ export function dayPhrase(d: number | null): string {
   if (d === null) return '—';
   if (d === 0) return 'aaj';
   if (d === 1) return 'kal';
-  if (d === -1) return 'kal guzra';
-  return d > 0 ? `${d} din me` : `${-d} din pehle`;
+  if (d === -1) return tr('kal guzra');
+  return d > 0 ? tr('{{d}} din me', { d }) : tr('{{value}} din pehle', { value: -d });
 }
 
 export const qty = (n: number) => String(Number((Number(n) || 0).toFixed(2)));

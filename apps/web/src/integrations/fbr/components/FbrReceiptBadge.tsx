@@ -2,6 +2,7 @@ import { Shield } from 'lucide-react';
 import { useFbrForSale } from '../hooks/useFbrForSale';
 import { cn } from '@core/lib/cn';
 import { TaxAuthorityReceiptBadge } from '@integrations/tax-authority/TaxAuthorityReceiptBadge';
+import { t } from '@core/i18n';
 
 interface Props {
   saleId: string;
@@ -47,18 +48,18 @@ function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
             </div>
           )}
           <div className="flex-1">
-            <div className="font-black text-sm uppercase tracking-wider">FBR Verified Invoice</div>
-            <div className="text-xs font-mono mt-0.5">FBR #: {inv.fbrInvoiceNumber}</div>
-            <div className="text-[0.625rem] text-slate-600 mt-0.5">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
+            <div className="font-black text-sm uppercase tracking-wider">{t('FBR Verified Invoice')}</div>
+            <div className="text-xs font-mono mt-0.5">{t('FBR #: {{fbrInvoiceNumber}}', { fbrInvoiceNumber: inv.fbrInvoiceNumber })}</div>
+            <div className="text-[0.625rem] text-slate-600 mt-0.5">{t('Tax: Rs {{taxAmount}}', { taxAmount: inv.taxAmount.toLocaleString() })}</div>
           </div>
           {showQr && (
             <div className="h-20 w-20 bg-white p-1 shrink-0">
-              <img src={`data:image/png;base64,${inv.fbrQrCode}`} alt="FBR QR" className="w-full h-full" />
+              <img src={`data:image/png;base64,${inv.fbrQrCode}`} alt={t('FBR QR')} className="w-full h-full" />
             </div>
           )}
         </div>
         <div className="text-[0.625rem] text-slate-500 mt-2 border-t pt-2">
-          Federal Board of Revenue · Government of Pakistan · Scan QR to verify
+          {t('Federal Board of Revenue · Government of Pakistan · Scan QR to verify')}
         </div>
       </div>
     );
@@ -79,17 +80,17 @@ function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
       {showLogo && (
         <div className="flex items-center justify-center gap-1 mb-1">
           <Shield className="h-3 w-3" />
-          <span className="text-[0.625rem] font-black uppercase tracking-widest">FBR Verified</span>
+          <span className="text-[0.625rem] font-black uppercase tracking-widest">{t('FBR Verified')}</span>
         </div>
       )}
-      <div className="text-[0.625rem] font-bold">FBR #: {inv.fbrInvoiceNumber}</div>
-      <div className="text-[0.625rem]">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
+      <div className="text-[0.625rem] font-bold">{t('FBR #: {{fbrInvoiceNumber}}', { fbrInvoiceNumber: inv.fbrInvoiceNumber })}</div>
+      <div className="text-[0.625rem]">{t('Tax: Rs {{taxAmount}}', { taxAmount: inv.taxAmount.toLocaleString() })}</div>
       {showQr && (
         <div className="mt-1 mx-auto w-24 h-24 bg-white p-1">
-          <img src={`data:image/png;base64,${inv.fbrQrCode}`} alt="FBR QR" className="w-full h-full" />
+          <img src={`data:image/png;base64,${inv.fbrQrCode}`} alt={t('FBR QR')} className="w-full h-full" />
         </div>
       )}
-        <div className="text-[0.625rem] text-slate-500 mt-1">Scan to verify</div>
+        <div className="text-[0.625rem] text-slate-500 mt-1">{t('Scan to verify')}</div>
       </div>
     </>
   );

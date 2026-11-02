@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { BleApi, BleCharacteristic, BleDevice, SerialApi, SerialPortLike, UsbApi, UsbDevice } from './webDevices';
 import { useHardwareSettings, type Transport } from './settings';
+import { t as tr } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    DEVICES — printer aur tarazu se seedha baat (browser se, bina
@@ -30,10 +31,12 @@ const setScale = (p: Partial<ReturnType<typeof useDeviceStatus.getState>['scale'
   useDeviceStatus.setState((s) => ({ scale: { ...s.scale, ...p } }));
 
 const hex = (n?: number) => (n ?? 0).toString(16).padStart(4, '0');
+// i18n-ignore: device id, not shown text
 const serialLabel = (p: SerialPortLike) => { const i = p.getInfo(); return `serial:${hex(i.usbVendorId)}:${hex(i.usbProductId)}`; };
+// i18n-ignore: device id, not shown text
 const usbLabel = (d: UsbDevice) => `usb:${hex(d.vendorId)}:${hex(d.productId)}`;
 export const prettyLabel = (l: string) =>
-  !l ? '' : l.startsWith('ble:') ? `Bluetooth — ${l.slice(4)}` : l.startsWith('usb:') ? `USB (${l.slice(4)})` : `Serial / COM (${l.slice(7)})`;
+  !l ? '' : l.startsWith('ble:') ? tr('Bluetooth — {{value}}', { value: l.slice(4) }) : l.startsWith('usb:') ? tr('USB ({{value}})', { value: l.slice(4) }) : tr('Serial / COM ({{value}})', { value: l.slice(7) });
 
 /* ─────────────────────────── USB ─────────────────────────── */
 
@@ -44,10 +47,10 @@ async function openUsb(d: UsbDevice): Promise<Conn> {
   // Pehle printer class (7), warna koi bhi jis me bulk OUT ho
   const pick = [...ifaces].sort((a, b) => Number(b.alternate.interfaceClass === 7) - Number(a.alternate.interfaceClass === 7))
     .find((i) => i.alternate.endpoints.some((e) => e.direction === 'out' && e.type === 'bulk'));
-  if (!pick) throw new Error('Is USB device me printer wala rasta nahi mila');
+  if (!pick) throw new Error(tr('Is USB device me printer wala rasta nahi mila'));
   const ep = pick.alternate.endpoints.find((e) => e.direction === 'out' && e.type === 'bulk')!.endpointNumber;
   try { if (!pick.claimed) await d.claimInterface(pick.interfaceNumber); } catch {
-    throw new Error('Printer Windows ke driver ke qabze me hai — "Serial" chunein, ya Browser print hi rakhein (madad neeche)');
+    throw new Error(tr('Printer Windows ke driver ke qabze me hai — "Serial" chunein, ya Browser print hi rakhein (madad neeche)'));
   }
   const label = usbLabel(d);
   return {
@@ -87,9 +90,10 @@ async function openBle(dev: BleDevice): Promise<Conn> {
     ch = (await s.getCharacteristics()).find((c) => c.properties.writeWithoutResponse || c.properties.write);
     if (ch) break;
   }
-  if (!ch) { server.disconnect(); throw new Error('Is Bluetooth device me likhne ka rasta nahi mila'); }
+  if (!ch) { server.disconnect(); throw new Error(tr('Is Bluetooth device me likhne ka rasta nahi mila')); }
   const c = ch;
   return {
+    // i18n-ignore: device id, not shown text
     kind: 'bluetooth', label: `ble:${dev.name ?? 'printer'}`,
     write: async (b) => {
       // BLE ek waqt me thora hi leta hai — tukron me, thora ruk ruk kar
@@ -115,13 +119,13 @@ export async function pairPrinter(kind: Transport): Promise<string> {
   await disconnectPrinter();
   let conn: Conn;
   if (kind === 'usb') {
-    if (!nav().usb) throw new Error('Ye browser USB nahi chalata — Chrome ya Edge kholein');
+    if (!nav().usb) throw new Error(tr('Ye browser USB nahi chalata — Chrome ya Edge kholein'));
     conn = await openUsb(await nav().usb!.requestDevice({ filters: [] }));
   } else if (kind === 'serial') {
-    if (!nav().serial) throw new Error('Ye browser Serial nahi chalata — Chrome ya Edge (computer) kholein');
+    if (!nav().serial) throw new Error(tr('Ye browser Serial nahi chalata — Chrome ya Edge (computer) kholein'));
     conn = await openSerial(await nav().serial!.requestPort(), s.printerBaud);
   } else {
-    if (!nav().bluetooth) throw new Error('Ye browser Bluetooth nahi chalata — Chrome kholein');
+    if (!nav().bluetooth) throw new Error(tr('Ye browser Bluetooth nahi chalata — Chrome kholein'));
     conn = await openBle(await nav().bluetooth!.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES }));
   }
   printer = conn;
@@ -151,7 +155,7 @@ export async function reconnectPrinter(): Promise<boolean> {
     setPrinter({ ready: false, error: (e as Error).message });
     return false;
   }
-  setPrinter({ ready: !!printer, label: s.printerLabel, error: printer ? undefined : 'Printer nahi mila — cable / power check karein' });
+  setPrinter({ ready: !!printer, label: s.printerLabel, error: printer ? undefined : tr('Printer nahi mila — cable / power check karein') });
   return !!printer;
 }
 
@@ -166,7 +170,7 @@ export const printerReady = () => !!printer;
 /** Bytes printer ko — ek ke baad ek (do bill aapas me na milein) */
 export function sendToPrinter(bytes: Uint8Array): Promise<void> {
   const job = queue.then(async () => {
-    if (!printer && !(await reconnectPrinter())) throw new Error('Printer jura hua nahi');
+    if (!printer && !(await reconnectPrinter())) throw new Error(tr('Printer jura hua nahi'));
     try { await printer!.write(bytes); } catch (e) {
       // Cable nikal gayi / printer band — ek dafa dobara jor kar koshish
       await disconnectPrinter();
@@ -233,7 +237,7 @@ async function readScale(p: SerialPortLike) {
       }
     }
   } catch (e) {
-    if (alive) setScale({ ready: false, error: `Tarazu se rabta toot gaya: ${(e as Error).message}` });
+    if (alive) setScale({ ready: false, error: tr('Tarazu se rabta toot gaya: {{message}}', { message: (e as Error).message }) });
   } finally {
     clearInterval(poll);
     reader.releaseLock();
@@ -249,7 +253,7 @@ async function startScale(p: SerialPortLike) {
 }
 
 export async function pairScale(): Promise<string> {
-  if (!nav().serial) throw new Error('Ye browser Serial nahi chalata — Chrome ya Edge (computer) kholein');
+  if (!nav().serial) throw new Error(tr('Ye browser Serial nahi chalata — Chrome ya Edge (computer) kholein'));
   await disconnectScale();
   const p = await nav().serial!.requestPort();
   await startScale(p);
@@ -263,7 +267,7 @@ export async function reconnectScale(): Promise<boolean> {
   if (!s.scaleEnabled || !s.scaleLabel || !nav().serial) return false;
   try {
     const p = (await nav().serial!.getPorts()).find((x) => serialLabel(x) === s.scaleLabel && !x.writable);
-    if (!p) { setScale({ ready: false, error: 'Tarazu nahi mila — cable check karein' }); return false; }
+    if (!p) { setScale({ ready: false, error: tr('Tarazu nahi mila — cable check karein') }); return false; }
     await startScale(p);
     return true;
   } catch (e) {

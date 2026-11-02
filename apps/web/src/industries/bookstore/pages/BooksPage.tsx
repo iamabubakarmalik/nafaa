@@ -25,6 +25,7 @@ import { bookProfilesApi, type BookProfile } from '../api/book-profiles.api';
 import { publishersApi } from '../api/publishers.api';
 import { BOOK_CATEGORIES, KEYS, labelOf } from '../lib/meta';
 import { EmptyBox, useDebounced, usePageKeys } from '../components/ui';
+import { t } from '@core/i18n';
 
 type Tab = 'all' | 'text' | 'rent' | 'low';
 
@@ -71,41 +72,41 @@ export default function BooksPage() {
   return (
     <PageShell>
       <PageHero
-        title="Kitaben"
-        chip={<><BookOpen /> ISBN, author, publisher</>}
-        meta="Har kitab ka edition, class, rate aur stock"
+        title={t('Kitaben')}
+        chip={<><BookOpen /> {' '}{t('ISBN, author, publisher')}</>}
+        meta={t('Har kitab ka edition, class, rate aur stock')}
         loading={listQ.isLoading}
         actions={<>
-          <Link to="/bookstore/authors" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">Authors</span></Link>
-          <Link to="/bookstore/publishers" className={heroButton}><Building2 className="h-4 w-4" /><span className="hidden sm:inline">Publishers</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canCreate && <Link to="/bookstore-products/new" title="Nayi kitab (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Kitab</Link>}
+          <Link to="/bookstore/authors" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">{t('Authors')}</span></Link>
+          <Link to="/bookstore/publishers" className={heroButton}><Building2 className="h-4 w-4" /><span className="hidden sm:inline">{t('Publishers')}</span></Link>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canCreate && <Link to="/bookstore-products/new" title={t('Nayi kitab (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Kitab')}</Link>}
         </>}
-        stats={[{ label: 'Kitaben', value: all.length }, { label: 'Copies', value: copies }, { label: 'Stock ki value', value: sales(value) }]}
+        stats={[{ label: t('Kitaben'), value: all.length }, { label: t('Copies'), value: copies }, { label: t('Stock ki value'), value: sales(value) }]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={BookOpen} color="#0891b2" label="Titles" value={all.length} onClick={() => setTab('all')} active={tab === 'all'} />
-        <KpiCard icon={GraduationCap} color="#7c3aed" label="School ki" value={all.filter((b) => b.isTextbook).length} onClick={() => setTab('text')} active={tab === 'text'} />
-        <KpiCard icon={Timer} color="#d97706" label="Kiraye wali" value={all.filter((b) => b.isRentable).length} onClick={() => setTab('rent')} active={tab === 'rent'} />
-        <KpiCard icon={Package} color="#e11d48" label="Stock kam" value={all.filter(low).length} onClick={() => setTab('low')} active={tab === 'low'} hint="Mangwani hain" />
+        <KpiCard icon={BookOpen} color="#0891b2" label={t('Titles')} value={all.length} onClick={() => setTab('all')} active={tab === 'all'} />
+        <KpiCard icon={GraduationCap} color="#7c3aed" label={t('School ki')} value={all.filter((b) => b.isTextbook).length} onClick={() => setTab('text')} active={tab === 'text'} />
+        <KpiCard icon={Timer} color="#d97706" label={t('Kiraye wali')} value={all.filter((b) => b.isRentable).length} onClick={() => setTab('rent')} active={tab === 'rent'} />
+        <KpiCard icon={Package} color="#e11d48" label={t('Stock kam')} value={all.filter(low).length} onClick={() => setTab('low')} active={tab === 'low'} hint={t('Mangwani hain')} />
       </KpiRow>
 
-      <ViewTabs<Tab> tabs={[{ id: 'all', label: 'Sab' }, { id: 'text', label: 'School ki' }, { id: 'rent', label: 'Kiraye wali' }, { id: 'low', label: 'Stock kam' }]} value={tab} onChange={setTab}
+      <ViewTabs<Tab> tabs={[{ id: 'all', label: t('Sab') }, { id: 'text', label: t('School ki') }, { id: 'rent', label: t('Kiraye wali') }, { id: 'low', label: t('Stock kam') }]} value={tab} onChange={setTab}
         right={<PrintButton doc={doc} disabled={!rows.length} size="sm" />} />
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, ISBN ya publisher code" label="Search" />}>
-        <Select size="sm" aria-label="Class" value={grade} onChange={(e) => setGrade(e.target.value)} options={[{ value: '', label: 'Har class' }, ...grades.map((g) => ({ value: g, label: g }))]} />
-        <Select size="sm" aria-label="Publisher" value={publisherId} onChange={(e) => setPublisherId(e.target.value)} options={[{ value: '', label: 'Har publisher' }, ...(pubsQ.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Naam, ISBN ya publisher code')} label={t('Search')} />}>
+        <Select size="sm" aria-label={t('Class')} value={grade} onChange={(e) => setGrade(e.target.value)} options={[{ value: '', label: t('Har class') }, ...grades.map((g) => ({ value: g, label: g }))]} />
+        <Select size="sm" aria-label={t('Publisher')} value={publisherId} onChange={(e) => setPublisherId(e.target.value)} options={[{ value: '', label: t('Har publisher') }, ...(pubsQ.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
       </FilterBar>
 
       {listQ.isLoading ? <SkeletonTable />
         : rows.length === 0 ? (
-          <EmptyBox icon={BookOpen} title={search ? 'Koi kitab nahi mili' : 'Abhi koi kitab nahi'}
-            text="Nayi kitab banayein: ISBN, author, publisher aur class likhein — POS par in sab se dhoondi jati hai."
-            action={canCreate && !search ? <Button onClick={() => navigate('/bookstore-products/new')} leftIcon={<Plus className="h-4 w-4" />}>Kitab banayein</Button> : undefined} />
+          <EmptyBox icon={BookOpen} title={search ? t('Koi kitab nahi mili') : t('Abhi koi kitab nahi')}
+            text={t('Nayi kitab banayein: ISBN, author, publisher aur class likhein — POS par in sab se dhoondi jati hai.')}
+            action={canCreate && !search ? <Button onClick={() => navigate('/bookstore-products/new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Kitab banayein')}</Button> : undefined} />
         ) : (
           <Table minWidth="56rem">
-            <THead><Tr><Th>Kitab</Th><Th>Author</Th><Th>Publisher</Th><Th>Class</Th><Th align="right">Rate</Th><Th align="right">Stock</Th></Tr></THead>
+            <THead><Tr><Th>{t('Kitab')}</Th><Th>{t('Author')}</Th><Th>{t('Publisher')}</Th><Th>{t('Class')}</Th><Th align="right">{t('Rate')}</Th><Th align="right">{t('Stock')}</Th></Tr></THead>
             <TBody>
               {rows.map((b) => (
                 <Tr key={b.id} interactive onClick={() => navigate(`/bookstore-products/${b.productId}`)}>
@@ -113,7 +114,7 @@ export default function BooksPage() {
                     <p className="font-medium text-slate-900">{b.product?.name ?? b.title}</p>
                     <p className="text-[0.75rem] text-slate-500">
                       {[b.isbn13 || b.isbn10, b.edition && `${b.edition} ed`, labelOf(BOOK_CATEGORIES, b.category)].filter(Boolean).join(' · ')}
-                      {b.isRentable && <span className="ml-1 font-semibold text-amber-700">· Kiraya</span>}
+                      {b.isRentable && <span className="ms-1 font-semibold text-amber-700">{t('· Kiraya')}</span>}
                     </p>
                   </Td>
                   <Td>{authorsOf(b) || <span className="text-slate-400">—</span>}</Td>
@@ -126,18 +127,18 @@ export default function BooksPage() {
             </TBody>
           </Table>
         )}
-      {all.length >= 300 && <p className="px-1 text-[0.75rem] text-slate-500">Pehli 300 kitaben dikh rahi hain — naam ya ISBN se dhoondein.</p>}
+      {all.length >= 300 && <p className="px-1 text-[0.75rem] text-slate-500">{t('Pehli 300 kitaben dikh rahi hain — naam ya ISBN se dhoondein.')}</p>}
 
-      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canCreate && <><Kbd>N</Kbd> nayi kitab · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canCreate && <><Kbd>N</Kbd> {' '}{t('nayi kitab ·')}{' '} </>}<Kbd>/</Kbd> {' '}{t('search ·')}{' '} <Kbd>G</Kbd> {' '}{t('guide')}</p>
 
       {guide.isOpen && (
-        <PageGuide title="Kitaben — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Kitaben — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: ScanLine, color: '#0891b2', title: 'ISBN se', text: 'Search me ISBN likhein ya scan karein — kitab foran milti hai. Row dabane se poori tafseel aur stock khulta hai.' },
-            { icon: GraduationCap, color: '#7c3aed', title: 'Class aur publisher', text: 'Class ya publisher chun kar list print karein — publisher ko order bhejne ya season se pehle stock ginne ke liye.' },
-            { icon: Package, color: '#e11d48', title: 'Stock kam', text: '"Stock kam" tab me wo kitaben jo had tak aa gayin — Publishers se purchase karein.' },
+            { icon: ScanLine, color: '#0891b2', title: t('ISBN se'), text: t('Search me ISBN likhein ya scan karein — kitab foran milti hai. Row dabane se poori tafseel aur stock khulta hai.') },
+            { icon: GraduationCap, color: '#7c3aed', title: t('Class aur publisher'), text: t('Class ya publisher chun kar list print karein — publisher ko order bhejne ya season se pehle stock ginne ke liye.') },
+            { icon: Package, color: '#e11d48', title: t('Stock kam'), text: t('"Stock kam" tab me wo kitaben jo had tak aa gayin — Publishers se purchase karein.') },
           ]}
-          shortcuts={[['N', 'nayi kitab'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', t('nayi kitab')], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
     </PageShell>

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { apiMessage, notificationText } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ReferralsService {
@@ -147,8 +148,7 @@ export class ReferralsService {
         data: {
           tenantId: referrer.id,
           type: 'REFERRAL_EARNED',
-          title: 'Referral Reward Earned! 🎉',
-          message: `Aap ne Rs ${rewardAmount} kamaye! Aap ka referral subscribed ho gaya.`,
+          ...notificationText('Referral Reward Earned! 🎉', apiMessage('Aap ne Rs {{amount}} kamaye! Aap ka referral subscribed ho gaya.', { amount: rewardAmount })),
           link: '/referrals',
         },
       });

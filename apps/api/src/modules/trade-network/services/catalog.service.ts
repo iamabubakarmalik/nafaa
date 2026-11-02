@@ -20,6 +20,7 @@ import { schemeCovers, schemeIsLive } from '../../distribution/helpers/scheme-re
 import { CartDto, CatalogQueryDto, ProductMapDto, ProductMapLineDto } from '../dto/trade.dto';
 import { matchProducts, r2, r4, reorderQty, schemeLabel, type MatchedBy } from '../helpers/trade-rules';
 import { businessCards, linkFor } from '../trade-network.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -240,7 +241,7 @@ export class TradeCatalogService {
         buyerVariantId = null;
         by = 'CREATED';
       } else {
-        throw new BadRequestException(`${s.name}: apna product chunein ya naya banayein`);
+        throw new BadRequestException(apiMessage('{{sName}}: apna product chunein ya naya banayein', { sName: s.name }));
       }
       await this.remember(db, link, s.id, m.sellerVariantId || null, buyerProductId, buyerVariantId, by);
       saved++;

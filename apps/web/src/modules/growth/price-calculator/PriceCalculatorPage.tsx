@@ -28,6 +28,7 @@ import { onlineProductsApi } from '@integrations/online-orders/api/online-produc
 import { PRICE_CALC_KEY, apiError, priceCalcApi, type CalcContext, type ChannelKind } from '../api/growth.api';
 import { CalcInputs, ResultCards, inputCls, useQuote } from './PriceCalculator';
 import { KIND_BRAND, KIND_LABEL, initialState, num, quoteBody, type CalcState } from './meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'single' | 'bulk';
 
@@ -64,23 +65,23 @@ export default function PriceCalculatorPage() {
   return (
     <PageShell>
       <PageHero
-        title="Price calculator"
-        chip={<><Calculator /> Price nikalein</>}
-        meta="Cost, courier, COD, channel fees, ads aur RTO — sab ke baad har channel par kitne me bechein ke Profit bache"
+        title={tr('Price calculator')}
+        chip={<><Calculator /> {' '}{tr('Price nikalein')}</>}
+        meta={tr('Cost, courier, COD, channel fees, ads aur RTO — sab ke baad har channel par kitne me bechein ke Profit bache')}
         busy={quote.isFetching || ctxQ.isFetching}
         loading={ctxQ.isLoading}
         stats={ctx ? [
-          { label: 'Channels', value: String(ctx.channels.length || '—') },
-          { label: 'RTO (90 din)', value: ctx.rto.ALL.pct != null ? `${ctx.rto.ALL.pct}%` : '—', hint: `${ctx.rto.ALL.parcels} parcel` },
-          { label: 'Ads / order', value: ctx.ads.value != null ? rs(ctx.ads.value) : '—', hint: 'pichle 30 din' },
-        ] : [{ label: 'Channels', value: '—' }]}
+          { label: tr('Channels'), value: String(ctx.channels.length || '—') },
+          { label: tr('RTO (90 din)'), value: ctx.rto.ALL.pct != null ? `${ctx.rto.ALL.pct}%` : '—', hint: tr('{{parcels}} parcel', { parcels: ctx.rto.ALL.parcels }) },
+          { label: tr('Ads / order'), value: ctx.ads.value != null ? rs(ctx.ads.value) : '—', hint: tr('pichle 30 din') },
+        ] : [{ label: tr('Channels'), value: '—' }]}
       />
 
       {costHidden ? (
-        <Alert tone="warning">Cost aur Profit abhi chhupe hain (privacy lock). Unlock karke calculator chalayein.</Alert>
+        <Alert tone="warning">{tr('Cost aur Profit abhi chhupe hain (privacy lock). Unlock karke calculator chalayein.')}</Alert>
       ) : (<>
         <ViewTabs value={tab} onChange={setTab}
-          tabs={[{ id: 'single', label: 'Ek product', icon: Package }, { id: 'bulk', label: 'Bulk (bohat products)', icon: Layers }]} />
+          tabs={[{ id: 'single', label: tr('Ek product'), icon: Package }, { id: 'bulk', label: tr('Bulk (bohat products)'), icon: Layers }]} />
 
         {!ctx || !state ? (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,26rem)_1fr]"><Skeleton className="h-[36rem] rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div>
@@ -122,26 +123,26 @@ function ProductPicker({ ctx, productId, onPick }: { ctx: CalcContext; productId
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-slate-900">{p.name}</p>
           <p className="truncate text-[0.75rem] text-slate-500">
-            Cost {rs(p.cost)} · Retail {rs(p.price)}{p.links.length ? ` · ${p.links.length} channel link` : ''}
+            {tr('Cost {{cost}} · Retail {{price}}{{value}}', { cost: rs(p.cost), price: rs(p.price), value: p.links.length ? tr(' · {{count}} channel link', { count: p.links.length }) : '' })}
           </p>
         </div>
-        <button type="button" onClick={() => onPick('')} aria-label="Product hatayein" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+        <button type="button" onClick={() => onPick('')} aria-label={tr('Product hatayein')} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
       </div>
     );
   }
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Product dhoondein (ya neeche Cost khud likhein)" aria-label="Product dhoondein" className={cn(inputCls, 'h-11 pl-9 text-[0.875rem]')} />
+        placeholder={tr('Product dhoondein (ya neeche Cost khud likhein)')} aria-label={tr('Product dhoondein')} className={cn(inputCls, 'h-11 ps-9 text-[0.875rem]')} />
       {open && debounced.length >= 2 && (
         <ul className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl bg-white py-1 shadow-lg ring-1 ring-slate-200">
-          {listQ.isLoading && <li className="px-3 py-2 text-sm text-slate-500">Dhoond rahe hain…</li>}
-          {listQ.data?.items.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">Koi product nahi mila</li>}
+          {listQ.isLoading && <li className="px-3 py-2 text-sm text-slate-500">{tr('Dhoond rahe hain…')}</li>}
+          {listQ.data?.items.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">{tr('Koi product nahi mila')}</li>}
           {listQ.data?.items.map((it) => (
             <li key={it.id}>
               <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(it.id); setQ(''); setOpen(false); }}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50">
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-sm hover:bg-slate-50">
                 <span className="truncate font-medium text-slate-800">{it.name}</span>
                 <span className="shrink-0 text-[0.75rem] tabular-nums text-slate-500">{rs(Number((it as any).price ?? 0))}</span>
               </button>
@@ -197,19 +198,19 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
       return { done, failed };
     },
     onSuccess: ({ done, failed }) => {
-      toast[failed ? 'warning' : 'success'](`${done} Price lag gayi${failed ? ` · ${failed} nahi lagi` : ''}`);
+      toast[failed ? 'warning' : 'success'](tr('{{done}} Price lag gayi{{value}}', { done, value: failed ? tr(' · {{failed}} nahi lagi', { failed }) : '' }));
       setPicked(new Set());
       qc.invalidateQueries({ queryKey: [PRICE_CALC_KEY] });
       qc.invalidateQueries({ queryKey: ['products'] });
       qc.invalidateQueries({ queryKey: ['online-products'] });
     },
-    onError: (e) => toast.error(apiError(e, 'Price nahi lagi')),
+    onError: (e) => toast.error(apiError(e, tr('Price nahi lagi'))),
   });
   const channelLinks = chosen.reduce((s, x) => s + linksOf(x.it).length, 0);
   const ask = async (target: 'RETAIL' | 'CHANNEL') => {
     const ok = await confirmDialog(target === 'RETAIL'
-      ? { title: `${chosen.length} products ki Retail price badlein?`, text: `${KIND_LABEL[kind]} ke hisaab se nikli Price Nafaa ki Retail price ban jayegi. Jo channel Nafaa ki Price lete hain un par bhi jayegi.` }
-      : { title: `Sirf ${KIND_LABEL[kind]} par ${channelLinks} links ki Price lagayein?`, text: 'Nafaa ki Retail price wahi rahegi; sirf is channel par apni Price jayegi.' });
+      ? { title: tr('{{count}} products ki Retail price badlein?', { count: chosen.length }), text: tr('{{value}} ke hisaab se nikli Price Nafaa ki Retail price ban jayegi. Jo channel Nafaa ki Price lete hain un par bhi jayegi.', { value: KIND_LABEL[kind] }) }
+      : { title: tr('Sirf {{value}} par {{channelLinks}} links ki Price lagayein?', { value: KIND_LABEL[kind], channelLinks }), text: tr('Nafaa ki Retail price wahi rahegi; sirf is channel par apni Price jayegi.') });
     if (ok) apply.mutate(target);
   };
 
@@ -217,23 +218,23 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
     <div className="min-w-0 space-y-3">
       <CalcInputs ctx={ctx} state={state} set={set} courier={listQ.data?.courier} hideCost wide />
       <FilterBar
-        search={<SearchField value={search} onChange={setSearch} placeholder="Product, SKU ya barcode…" label="Search" />}
+        search={<SearchField value={search} onChange={setSearch} placeholder={tr('Product, SKU ya barcode…')} label={tr('Search')} />}
         chips={filtered ? <>
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
-          {categoryId && <FilterChip onRemove={() => setCategoryId('')}>{catsQ.data?.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
-          {channelId && <FilterChip onRemove={() => setChannelId('')}>{ctx.channels.find((c) => c.id === channelId)?.name ?? 'Channel'}</FilterChip>}
+          {categoryId && <FilterChip onRemove={() => setCategoryId('')}>{catsQ.data?.find((c) => c.id === categoryId)?.name ?? tr('Category')}</FilterChip>}
+          {channelId && <FilterChip onRemove={() => setChannelId('')}>{ctx.channels.find((c) => c.id === channelId)?.name ?? tr('Channel')}</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); setCategoryId(''); setChannelId(''); }}>
-        <FilterMenu icon={PieChart} label="Category" value={categoryId} active={!!categoryId} onChange={setCategoryId} width="w-72"
-          options={[{ value: '', label: 'Sab categories' }, ...(catsQ.data ?? []).map((c) => ({ value: c.id, label: c.name, color: c.color }))]} />
+        <FilterMenu icon={PieChart} label={tr('Category')} value={categoryId} active={!!categoryId} onChange={setCategoryId} width="w-72"
+          options={[{ value: '', label: tr('Sab categories') }, ...(catsQ.data ?? []).map((c) => ({ value: c.id, label: c.name, color: c.color }))]} />
         {ctx.channels.length > 0 && (
-          <FilterMenu icon={Store} label="Channel par jura" value={channelId} active={!!channelId} onChange={setChannelId} align="right"
-            options={[{ value: '', label: 'Sab products' }, ...ctx.channels.map((c) => ({ value: c.id, label: c.name }))]} />
+          <FilterMenu icon={Store} label={tr('Channel par jura')} value={channelId} active={!!channelId} onChange={setChannelId} align="right"
+            options={[{ value: '', label: tr('Sab products') }, ...ctx.channels.map((c) => ({ value: c.id, label: c.name }))]} />
         )}
       </FilterBar>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[0.8125rem] text-slate-600">Price kis channel ke hisaab se:</span>
+        <span className="text-[0.8125rem] text-slate-600">{tr('Price kis channel ke hisaab se:')}</span>
         {state.kinds.map((k) => (
           <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k}
             className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold ring-1 transition',
@@ -246,36 +247,36 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
       {listQ.isLoading ? <Skeleton className="h-96 rounded-2xl" /> : !items.length ? (
         <div className="rounded-2xl bg-white px-6 py-12 text-center ring-1 ring-slate-200/80">
           <Package className="mx-auto h-9 w-9 text-slate-300" />
-          <p className="mt-2 font-semibold text-slate-900">Is filter me koi product nahi</p>
+          <p className="mt-2 font-semibold text-slate-900">{tr('Is filter me koi product nahi')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2.5 text-[0.8125rem]">
             <label className="inline-flex items-center gap-2 font-medium text-slate-700">
               <input type="checkbox" checked={allOn} onChange={() => setPicked(allOn ? new Set() : new Set(ready.map((x) => x.it.id)))} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-              Sab chunein
+              {tr('Sab chunein')}
             </label>
-            <span className="text-slate-500">{listQ.data!.shown} / {listQ.data!.total} products{listQ.data!.total > listQ.data!.shown ? ' — filter se kam karein' : ''}</span>
-            <span className="ml-auto flex flex-wrap gap-2">
-              {canEdit && <Button size="sm" disabled={!chosen.length} loading={apply.isPending && apply.variables === 'RETAIL'} onClick={() => ask('RETAIL')}>Retail price lagao ({chosen.length})</Button>}
+            <span className="text-slate-500">{tr('{{shown}} / {{total}} products{{value}}', { shown: listQ.data!.shown, total: listQ.data!.total, value: listQ.data!.total > listQ.data!.shown ? tr(' — filter se kam karein') : '' })}</span>
+            <span className="ms-auto flex flex-wrap gap-2">
+              {canEdit && <Button size="sm" disabled={!chosen.length} loading={apply.isPending && apply.variables === 'RETAIL'} onClick={() => ask('RETAIL')}>{tr('Retail price lagao ({{count}})', { count: chosen.length })}</Button>}
               {canChannel && kind !== 'WEBSITE' && (
                 <Button size="sm" variant="secondary" disabled={!channelLinks} loading={apply.isPending && apply.variables === 'CHANNEL'} onClick={() => ask('CHANNEL')}>
-                  Sirf {KIND_LABEL[kind]} par ({channelLinks})
+                  {tr('Sirf {{value}} par ({{channelLinks}})', { value: KIND_LABEL[kind], channelLinks })}
                 </Button>
               )}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[40rem] text-[0.8125rem]">
-              <thead className="bg-slate-50 text-left text-[0.75rem] text-slate-500">
+              <thead className="bg-slate-50 text-start text-[0.75rem] text-slate-500">
                 <tr>
                   <th className="w-10 px-3 py-2" />
-                  <th className="px-2 py-2 font-medium">Product</th>
-                  <th className="px-2 py-2 text-right font-medium">Cost</th>
-                  <th className="px-2 py-2 text-right font-medium">Abhi Price</th>
-                  <th className="px-2 py-2 text-right font-medium">Break-even</th>
-                  <th className="px-2 py-2 text-right font-medium">Nayi Price</th>
-                  <th className="px-3 py-2 text-right font-medium">Profit</th>
+                  <th className="px-2 py-2 font-medium">{tr('Product')}</th>
+                  <th className="px-2 py-2 text-end font-medium">{tr('Cost')}</th>
+                  <th className="px-2 py-2 text-end font-medium">{tr('Abhi Price')}</th>
+                  <th className="px-2 py-2 text-end font-medium">{tr('Break-even')}</th>
+                  <th className="px-2 py-2 text-end font-medium">{tr('Nayi Price')}</th>
+                  <th className="px-3 py-2 text-end font-medium">{tr('Profit')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -285,7 +286,7 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
                   return (
                     <tr key={it.id} className={cn(picked.has(it.id) && 'bg-brand-50/50')}>
                       <td className="px-3 py-2">
-                        <input type="checkbox" disabled={!r?.price} checked={picked.has(it.id)} aria-label={`${it.name} chunein`}
+                        <input type="checkbox" disabled={!r?.price} checked={picked.has(it.id)} aria-label={tr('{{name}} chunein', { name: it.name })}
                           onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(it.id)) n.delete(it.id); else n.add(it.id); return n; })}
                           className="h-4 w-4 rounded border-slate-300 text-brand-600 disabled:opacity-40" />
                       </td>
@@ -293,19 +294,19 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
                         <p className="truncate font-medium text-slate-900">{it.name}</p>
                         <p className="truncate text-[0.6875rem] text-slate-500">{[it.sku, it.category, linksOf(it).length ? `${linksOf(it).length} ${KIND_LABEL[kind]} link` : null].filter(Boolean).join(' · ')}</p>
                       </td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-600">{it.cost > 0 ? rs(it.cost) : <span className="text-amber-600">Cost nahi</span>}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-600">{rs(now)}</td>
-                      <td className={cn('px-2 py-2 text-right tabular-nums', r?.breakEven != null && now < r.breakEven ? 'font-semibold text-rose-600' : 'text-slate-600')}>
+                      <td className="px-2 py-2 text-end tabular-nums text-slate-600">{it.cost > 0 ? rs(it.cost) : <span className="text-amber-600">{tr('Cost nahi')}</span>}</td>
+                      <td className="px-2 py-2 text-end tabular-nums text-slate-600">{rs(now)}</td>
+                      <td className={cn('px-2 py-2 text-end tabular-nums', r?.breakEven != null && now < r.breakEven ? 'font-semibold text-rose-600' : 'text-slate-600')}>
                         {r?.breakEven != null ? rs(r.breakEven) : '—'}
                       </td>
-                      <td className="px-2 py-2 text-right">
+                      <td className="px-2 py-2 text-end">
                         {r?.price != null ? (
                           <span className="font-semibold tabular-nums text-slate-900">{rs(r.price)}
-                            {Math.abs(up) >= 1 && <span className={cn('ml-1 text-[0.6875rem] font-medium', up > 0 ? 'text-amber-700' : 'text-success-700')}>{up > 0 ? '+' : ''}{Math.round(up)}</span>}
+                            {Math.abs(up) >= 1 && <span className={cn('ms-1 text-[0.6875rem] font-medium', up > 0 ? 'text-amber-700' : 'text-success-700')}>{up > 0 ? '+' : ''}{Math.round(up)}</span>}
                           </span>
                         ) : <span className="text-slate-400">—</span>}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-success-700">{r?.profit != null ? rs(r.profit) : '—'}</td>
+                      <td className="px-3 py-2 text-end tabular-nums text-success-700">{r?.profit != null ? rs(r.profit) : '—'}</td>
                     </tr>
                   );
                 })}
@@ -314,7 +315,7 @@ function BulkView({ ctx, state, set }: { ctx: CalcContext; state: CalcState; set
           </div>
         </div>
       )}
-      <p className="text-[0.75rem] text-slate-500">Laal break-even ka matlab: abhi wali Price par har order me nuksan ho raha hai. Sizes wale products par ek hi Price lagti hai.</p>
+      <p className="text-[0.75rem] text-slate-500">{tr('Laal break-even ka matlab: abhi wali Price par har order me nuksan ho raha hai. Sizes wale products par ek hi Price lagti hai.')}</p>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type OnlineChannel, type Remote
 import { timeAgo } from '../../lib/labels';
 import { ProductPicker } from '../products/ProductPicker';
 import { ChannelMark, channelName, refreshOnlineProducts, rs } from './meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'sure' | 'maybe' | 'missing';
 export interface LinkFocus { productId: string; variantId: string | null; title: string }
@@ -55,7 +56,7 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
 
   const refresh = useMutation({
     mutationFn: () => onlineProductsApi.suggestions(channel.id, true),
-    onSuccess: (d) => { qc.setQueryData(key, d); toast.success(`${name} se taaza list aa gayi`); },
+    onSuccess: (d) => { qc.setQueryData(key, d); toast.success(tr('{{name}} se taaza list aa gayi', { name })); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const after = (msg: string, errors?: string[]) => {
@@ -65,12 +66,12 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
   };
   const link = useMutation({
     mutationFn: (links: LinkInput[]) => onlineProductsApi.link(channel.id, links),
-    onSuccess: (r) => { after(r.saved === 1 ? 'Jor diya' : `${r.saved} jor diye`, r.errors); if (focus && r.saved) onClose(); },
+    onSuccess: (r) => { after(r.saved === 1 ? tr('Jor diya') : tr('{{saved}} jor diye', { saved: r.saved }), r.errors); if (focus && r.saved) onClose(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const create = useMutation({
     mutationFn: (ids: string[]) => onlineProductsApi.importItems(channel.id, ids),
-    onSuccess: (r) => { setPicked(new Set()); after(`${r.created} naye products Nafaa me bane${r.linkedExisting ? `, ${r.linkedExisting} pehle walon se jure` : ''}`, r.errors); },
+    onSuccess: (r) => { setPicked(new Set()); after(tr('{{created}} naye products Nafaa me bane{{value}}', { created: r.created, value: r.linkedExisting ? tr(', {{linkedExisting}} pehle walon se jure', { linkedExisting: r.linkedExisting }) : '' }), r.errors); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
@@ -103,36 +104,36 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
 
   return (
     <Modal open onClose={onClose} size="xl"
-      title={<span className="flex items-center gap-2"><ChannelMark channel={channel} size="sm" />{focus ? `${focus.title} — ${name} par jorein` : `${name} — products jorein`}</span>}
-      description={d?.fetchedAt && d.stats.variants ? `${d.stats.products} products · ${d.stats.linked} / ${d.stats.variants} jure · list ${timeAgo(d.fetchedAt)} ki` : d ? name : `${name} ki list aa rahi hai…`}>
+      title={<span className="flex items-center gap-2"><ChannelMark channel={channel} size="sm" />{focus ? tr('{{title}} — {{name}} par jorein', { title: focus.title, name }) : tr('{{name}} — products jorein', { name })}</span>}
+      description={d?.fetchedAt && d.stats.variants ? tr('{{products}} products · {{linked}} / {{variants}} jure · list {{fetchedAt}} ki', { products: d.stats.products, linked: d.stats.linked, variants: d.stats.variants, fetchedAt: timeAgo(d.fetchedAt) }) : d ? name : tr('{{name}} ki list aa rahi hai…', { name })}>
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-[12rem] flex-1">
-            <SearchField value={search} onChange={(v) => { setSearch(v); setShown(PAGE); }} placeholder="Naam ya SKU…" label="Channel products search" />
+            <SearchField value={search} onChange={(v) => { setSearch(v); setShown(PAGE); }} placeholder={tr('Naam ya SKU…')} label={tr('Channel products search')} />
           </div>
           <Button size="sm" variant="secondary" loading={refresh.isPending || (q.isFetching && !q.isLoading)} onClick={() => refresh.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>
-            Taaza list
+            {tr('Taaza list')}
           </Button>
         </div>
 
         {q.isLoading ? (
           <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : q.isError || !d ? (
-          <EmptyState icon={<Package className="h-5 w-5" />} title="List nahi aayi" description={apiErrorMessage(q.error)} action={<Button size="sm" onClick={() => q.refetch()}>Dobara</Button>} />
+          <EmptyState icon={<Package className="h-5 w-5" />} title={tr('List nahi aayi')} description={apiErrorMessage(q.error)} action={<Button size="sm" onClick={() => q.refetch()}>{tr('Dobara')}</Button>} />
         ) : !d.canFetch || (d.remoteError && !d.stats.variants) ? (
-          <EmptyState icon={<Package className="h-5 w-5" />} title={`${name} ki list nahi aayi`} description={d.remoteError ?? 'Channel jura nahi'} action={<Button size="sm" onClick={() => refresh.mutate()}>Dobara</Button>} />
+          <EmptyState icon={<Package className="h-5 w-5" />} title={tr('{{name}} ki list nahi aayi', { name })} description={d.remoteError ?? tr('Channel jura nahi')} action={<Button size="sm" onClick={() => refresh.mutate()}>{tr('Dobara')}</Button>} />
         ) : focus ? (
           focusList.length === 0 ? (
-            <EmptyState icon={<Check className="h-5 w-5" />} title="Koi khula product nahi mila" description={`${name} ka har product pehle se jura hai, ya search badal kar dekhein.`} />
+            <EmptyState icon={<Check className="h-5 w-5" />} title={tr('Koi khula product nahi mila')} description={tr('{{name}} ka har product pehle se jura hai, ya search badal kar dekhein.', { name })} />
           ) : (
             <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
               {focusList.map(({ r, mine }) => (
                 <li key={rowKey(r)} className="flex flex-wrap items-center gap-3 bg-white px-3 py-2.5">
                   <Remote r={r} className="min-w-[12rem] flex-1" />
-                  {mine && <span className="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-success-700"><Sparkles className="h-3 w-3" /> Salah</span>}
+                  {mine && <span className="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-success-700"><Sparkles className="h-3 w-3" /> {' '}{tr('Salah')}</span>}
                   {canManage && (
                     <Button size="sm" variant={mine ? 'primary' : 'secondary'} loading={link.isPending && link.variables?.[0]?.externalVariantId === r.externalVariantId && link.variables?.[0]?.externalProductId === r.externalProductId}
-                      onClick={() => link.mutate([toLink(r, focus.productId, focus.variantId)])} leftIcon={<Link2 className="h-4 w-4" />}>Is se jorein</Button>
+                      onClick={() => link.mutate([toLink(r, focus.productId, focus.variantId)])} leftIcon={<Link2 className="h-4 w-4" />}>{tr('Is se jorein')}</Button>
                   )}
                 </li>
               ))}
@@ -141,24 +142,24 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
         ) : (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <Segmented<Tab> label="Kaunse dikhayein" value={tab} onChange={(t) => { setTab(t); setShown(PAGE); }} className="max-w-full overflow-x-auto"
+              <Segmented<Tab> label={tr('Kaunse dikhayein')} value={tab} onChange={(t) => { setTab(t); setShown(PAGE); }} className="max-w-full overflow-x-auto"
                 items={[
-                  { value: 'sure', label: 'Pakka match', count: sure.length },
-                  { value: 'maybe', label: 'Shayad', count: maybe.length },
-                  { value: 'missing', label: 'Nafaa me nahi', count: missing.reduce((n, g) => n + g.variants.length, 0) },
+                  { value: 'sure', label: tr('Pakka match'), count: sure.length },
+                  { value: 'maybe', label: tr('Shayad'), count: maybe.length },
+                  { value: 'missing', label: tr('Nafaa me nahi'), count: missing.reduce((n, g) => n + g.variants.length, 0) },
                 ]} />
               {canManage && tab === 'sure' && sure.length > 0 && (
                 <Button size="sm" loading={link.isPending} leftIcon={<Sparkles className="h-4 w-4" />}
                   onClick={() => link.mutate(sure.map((r) => toLink(r, r.match.productId, r.match.variantId)))}>
-                  Sab pakke jod dein ({sure.length})
+                  {tr('Sab pakke jod dein ({{count}})', { count: sure.length })}
                 </Button>
               )}
               {canManage && tab === 'missing' && importable.length > 0 && (
                 <Button size="sm" variant="success" loading={create.isPending} leftIcon={<CloudDownload className="h-4 w-4" />} disabled={!picked.size}
                   onClick={async () => {
-                    if (await confirmDialog({ title: `${picked.size} products Nafaa me banayein?`, text: 'Naam, Price, tasveer aur sizes aa jayenge. Channel par minus Stock ho to Nafaa me 0 se shuru hoga. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.' })) create.mutate([...picked]);
+                    if (await confirmDialog({ title: tr('{{size}} products Nafaa me banayein?', { size: picked.size }), text: tr('Naam, Price, tasveer aur sizes aa jayenge. Channel par minus Stock ho to Nafaa me 0 se shuru hoga. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.') })) create.mutate([...picked]);
                   }}>
-                  {picked.size ? `Chune hue ${picked.size} Nafaa me banayein` : 'Chun kar Nafaa me banayein'}
+                  {picked.size ? tr('Chune hue {{size}} Nafaa me banayein', { size: picked.size }) : tr('Chun kar Nafaa me banayein')}
                 </Button>
               )}
             </div>
@@ -168,8 +169,8 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
             {tab !== 'missing' ? (
               list.length === 0 ? (
                 <EmptyState icon={<Check className="h-5 w-5" />}
-                  title={tab === 'sure' ? 'Koi pakka match baqi nahi' : 'Koi shayad wala match nahi'}
-                  description={tab === 'sure' ? 'Same SKU ya barcode wale sab jure hue hain. "Shayad" aur "Nafaa me nahi" dekhein.' : 'Naam se milte products yahan aate hain.'} />
+                  title={tab === 'sure' ? tr('Koi pakka match baqi nahi') : tr('Koi shayad wala match nahi')}
+                  description={tab === 'sure' ? tr('Same SKU ya barcode wale sab jure hue hain. "Shayad" aur "Nafaa me nahi" dekhein.') : tr('Naam se milte products yahan aate hain.')} />
               ) : (
                 <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
                   {list.slice(0, shown).map((r) => (
@@ -181,7 +182,7 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
                 </ul>
               )
             ) : missing.length === 0 ? (
-              <EmptyState icon={<Check className="h-5 w-5" />} title="Sab products ka jora mil gaya" description={`${name} ka har product Nafaa me hai.`} />
+              <EmptyState icon={<Check className="h-5 w-5" />} title={tr('Sab products ka jora mil gaya')} description={tr('{{name}} ka har product Nafaa me hai.', { name })} />
             ) : (
               <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
                 {missing.slice(0, shown).map((g) => (
@@ -195,7 +196,7 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
             )}
             {(tab === 'missing' ? missing.length : list.length) > shown && (
               <button type="button" onClick={() => setShown((n) => n + PAGE)} className="w-full rounded-2xl bg-white py-2.5 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-brand-50">
-                Aur dikhayein
+                {tr('Aur dikhayein')}
               </button>
             )}
           </>
@@ -225,7 +226,7 @@ function Remote({ r, className }: { r: RemoteView; className?: string }) {
         <p className="truncate text-[0.84375rem] font-semibold text-slate-900" title={r.title}>{r.title}</p>
         <p className="flex min-w-0 items-center gap-1.5 text-[0.75rem] text-slate-500">
           {r.variantTitle && <SizeChip>{r.variantTitle}</SizeChip>}
-          <span className="truncate">{r.sku ? <span className="font-mono">{r.sku}</span> : 'SKU nahi'} · {rs(r.price)}{r.stock !== null ? ` · Stock ${r.stock}` : ''}</span>
+          <span className="truncate">{r.sku ? <span className="font-mono">{r.sku}</span> : tr('SKU nahi')} · {rs(r.price)}{r.stock !== null ? tr(' · Stock {{stock}}', { stock: r.stock }) : ''}</span>
         </p>
       </div>
     </div>
@@ -236,27 +237,27 @@ function SuggestionItem({ r, sure, canManage, busy, onLink, onHide }: {
   r: SuggestionRow; sure: boolean; canManage: boolean; busy: boolean; onLink: (productId: string, variantId: string | null) => void; onHide: () => void;
 }) {
   const m = r.match;
-  const why = m.kind === 'sku' ? 'SKU mila' : m.kind === 'name' ? 'Naam mila' : `${Math.round(m.score * 100)}% milta`;
+  const why = m.kind === 'sku' ? tr('SKU mila') : m.kind === 'name' ? tr('Naam mila') : tr('{{value}}% milta', { value: Math.round(m.score * 100) });
   return (
     <li className="grid gap-2 bg-white px-3 py-2.5 md:grid-cols-[minmax(0,1fr)_1.25rem_minmax(0,1fr)_auto] md:items-center md:gap-3">
       <Remote r={r} />
-      <ArrowRight className="hidden h-4 w-4 text-slate-300 md:block" />
-      <div className="min-w-0 pl-[3.125rem] md:pl-0">
+      <ArrowRight className="hidden h-4 w-4 text-slate-300 md:block rtl-flip" />
+      <div className="min-w-0 ps-[3.125rem] md:ps-0">
         <p className="truncate text-[0.84375rem] font-medium text-slate-900" title={m.name}>{m.name}</p>
         <p className="flex min-w-0 items-center gap-1.5 text-[0.75rem] text-slate-500">
           {m.variantName && <SizeChip>{m.variantName}</SizeChip>}
           <span className={cn('shrink-0 rounded-full px-1.5 py-px text-[0.6875rem] font-semibold', sure ? 'bg-success-50 text-success-700' : m.score >= 0.85 ? 'bg-brand-50 text-brand-700' : 'bg-amber-50 text-amber-800')}>{why}</span>
-          <span className="truncate">Nafaa {rs(m.price)}{m.sku ? <span className="font-mono"> · {m.sku}</span> : null}</span>
+          <span className="truncate">{tr('Nafaa {{price}}', { price: rs(m.price) })}{m.sku ? <span className="font-mono"> · {m.sku}</span> : null}</span>
         </p>
       </div>
       {canManage && (
-        <div className="flex items-center gap-1.5 pl-[3.125rem] md:pl-0">
+        <div className="flex items-center gap-1.5 ps-[3.125rem] md:ps-0">
           <Button size="xs" variant={sure ? 'secondary' : 'primary'} loading={busy} onClick={() => onLink(m.productId, m.variantId)} leftIcon={<Link2 className="h-3.5 w-3.5" />}>
-            {sure ? 'Jorein' : 'Haan, jorein'}
+            {sure ? tr('Jorein') : tr('Haan, jorein')}
           </Button>
-          <span className="min-w-0 flex-1 md:w-36 md:flex-none"><ProductPicker compact initialSearch={r.title.split(/\s+/).slice(0, 2).join(' ')} placeholder="Doosra" onPick={(p) => onLink(p.productId, p.variantId)} /></span>
+          <span className="min-w-0 flex-1 md:w-36 md:flex-none"><ProductPicker compact initialSearch={r.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Doosra')} onPick={(p) => onLink(p.productId, p.variantId)} /></span>
           {!sure && (
-            <button type="button" onClick={onHide} aria-label="Ye match ghalat hai" title="Ghalat match — chhupayein"
+            <button type="button" onClick={onHide} aria-label={tr('Ye match ghalat hai')} title={tr('Ghalat match — chhupayein')}
               className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X className="h-4 w-4" /></button>
           )}
         </div>
@@ -273,29 +274,29 @@ function MissingItem({ g, canManage, picked, onPick, creating, onCreate, onLink 
     <li className="bg-white px-3 py-2.5">
       <div className="flex flex-wrap items-center gap-3">
         {canManage && g.canImport && (
-          <input type="checkbox" checked={picked} onChange={onPick} aria-label={`${g.title} chunein`} className="h-4 w-4 rounded border-slate-300" />
+          <input type="checkbox" checked={picked} onChange={onPick} aria-label={tr('{{title}} chunein', { title: g.title })} className="h-4 w-4 rounded border-slate-300" />
         )}
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <Thumb src={g.image} />
           <div className="min-w-0">
             <p className="truncate text-[0.84375rem] font-semibold text-slate-900">{g.title}</p>
-            <p className="text-[0.75rem] text-slate-500">{g.hasVariants ? (g.variants.length === 1 ? '1 size jorna baqi' : `${g.variants.length} sizes jorne baqi`) : `${g.variants[0]?.sku ? `SKU ${g.variants[0].sku} · ` : ''}${rs(g.variants[0]?.price ?? 0)}`}</p>
+            <p className="text-[0.75rem] text-slate-500">{g.hasVariants ? (g.variants.length === 1 ? tr('1 size jorna baqi') : tr('{{count}} sizes jorne baqi', { count: g.variants.length })) : `${g.variants[0]?.sku ? `SKU ${g.variants[0].sku} · ` : ''}${rs(g.variants[0]?.price ?? 0)}`}</p>
           </div>
         </div>
         {canManage && g.canImport && (
-          <Button size="xs" variant="success" loading={creating} onClick={onCreate} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>Nafaa me banayein</Button>
+          <Button size="xs" variant="success" loading={creating} onClick={onCreate} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>{tr('Nafaa me banayein')}</Button>
         )}
         {canManage && !g.hasVariants && (
-          <span className="w-48"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder="Nafaa product chunein" onPick={(p) => onLink(g.variants[0], p.productId, p.variantId)} /></span>
+          <span className="w-48"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa product chunein')} onPick={(p) => onLink(g.variants[0], p.productId, p.variantId)} /></span>
         )}
       </div>
       {g.hasVariants && (
-        <ul className="mt-2 space-y-1.5 pl-0 sm:pl-[3.25rem]">
+        <ul className="mt-2 space-y-1.5 ps-0 sm:ps-[3.25rem]">
           {g.variants.map((v) => (
             <li key={v.externalVariantId ?? v.title} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-2.5 py-1.5 ring-1 ring-slate-100">
-              <SizeChip>{v.variantTitle ?? 'Default'}</SizeChip>
-              <span className="min-w-0 flex-1 truncate text-[0.75rem] text-slate-500">{v.sku ? <span className="font-mono">{v.sku}</span> : 'SKU nahi'} · {rs(v.price)}{v.stock !== null ? ` · Stock ${v.stock}` : ''}</span>
-              {canManage && <span className="w-44"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder="Nafaa size chunein" onPick={(p) => onLink(v, p.productId, p.variantId)} /></span>}
+              <SizeChip>{v.variantTitle ?? tr('Default')}</SizeChip>
+              <span className="min-w-0 flex-1 truncate text-[0.75rem] text-slate-500">{v.sku ? <span className="font-mono">{v.sku}</span> : tr('SKU nahi')} · {rs(v.price)}{v.stock !== null ? tr(' · Stock {{stock}}', { stock: v.stock }) : ''}</span>
+              {canManage && <span className="w-44"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa size chunein')} onPick={(p) => onLink(v, p.productId, p.variantId)} /></span>}
             </li>
           ))}
         </ul>

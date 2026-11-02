@@ -26,6 +26,7 @@ import { useDebounced, useFormKeys } from '../hooks/usePageKeys';
 import {
   COATINGS, LENS_INDEX, LENS_MATERIAL, LENS_TYPES, MONEY_KEYS, OPTICAL_KEYS, REPAIR, REPAIR_KINDS, apiError, dayOnly, moneyInput, powerErrors, powerSummary, todayInput,
 } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const plusDays = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('en-CA'); };
 const T = ({ icon: Icon, children }: { icon: typeof Eye; children: string }) => <span className="inline-flex items-center gap-2"><Icon className="h-4 w-4 text-brand-600" />{children}</span>;
@@ -46,7 +47,7 @@ export default function LensOrderFormPage() {
   const [frame, setFrame] = useState<Frame>({ name: '', price: '' });
   const [frameQ, setFrameQ] = useState('');
   const [ownFrame, setOwnFrame] = useState(repair);
-  const [lensType, setLensType] = useState(repair ? REPAIR : 'Single vision');
+  const [lensType, setLensType] = useState(repair ? REPAIR : t('Single vision'));
   const [lensIndex, setLensIndex] = useState('1.56');
   const [material, setMaterial] = useState('');
   const [coatings, setCoatings] = useState<string[]>(['ARC (anti-glare)']);
@@ -87,13 +88,13 @@ export default function LensOrderFormPage() {
 
   const errors = useMemo(() => {
     const e: Record<string, string> = { ...pe };
-    if (!ownFrame && !frame.name.trim()) e.frame = 'Frame chunein ya "Customer ka apna frame" lagayein';
-    if (repair && !frame.name.trim()) e.frame = 'Frame ka naam likhein (jaise: kala metal frame)';
-    if (!repair && !rx && !Object.keys(p).length) e.power = 'Nuskha chunein ya number likhein';
+    if (!ownFrame && !frame.name.trim()) e.frame = t('Frame chunein ya "Customer ka apna frame" lagayein');
+    if (repair && !frame.name.trim()) e.frame = t('Frame ka naam likhein (jaise: kala metal frame)');
+    if (!repair && !rx && !Object.keys(p).length) e.power = t('Nuskha chunein ya number likhein');
     if (Object.keys(pErr).length) e.power = Object.values(pErr)[0];
-    if (!(total > 0)) e.total = repair ? 'Repair ka charge likhein' : 'Qeemat likhein';
-    if (adv > total + 0.01) e.advance = `Advance kul (${formatPKR(total)}) se zyada nahi`;
-    if (Number(lensCost) > 0 && Number(lensCost) > lp && lp > 0) e.lensCost = 'Lab ka kharcha lens ki qeemat se zyada hai — dobara dekhein';
+    if (!(total > 0)) e.total = repair ? t('Repair ka charge likhein') : t('Qeemat likhein');
+    if (adv > total + 0.01) e.advance = t('Advance kul ({{total}}) se zyada nahi', { total: formatPKR(total) });
+    if (Number(lensCost) > 0 && Number(lensCost) > lp && lp > 0) e.lensCost = t('Lab ka kharcha lens ki qeemat se zyada hai — dobara dekhein');
     return e;
   }, [pe, ownFrame, frame.name, repair, rx, p, pErr, total, adv, lensCost, lp]);
   const blocking = Object.keys(errors).filter((k) => k !== 'lensCost');
@@ -116,12 +117,12 @@ export default function LensOrderFormPage() {
       return lensOrdersApi.create(body);
     },
     onSuccess: (o) => {
-      toast.success(`${o.orderNumber} ban gaya${adv > 0 ? ` — ${formatPKR(adv)} advance` : ''}`);
+      toast.success(t('{{orderNumber}} ban gaya{{value}}', { orderNumber: o.orderNumber, value: adv > 0 ? t(' — {{adv}} advance', { adv: formatPKR(adv) }) : '' }));
       qc.invalidateQueries({ queryKey: [OPTICAL_KEYS.orders] });
       if (adv > 0) MONEY_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       navigate(`/optical/lens-orders/${o.id}`, { replace: true });
     },
-    onError: (e) => toast.error(apiError(e, 'Order save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Order save nahi hua'))),
   });
   const submit = () => {
     setTried(true);
@@ -134,39 +135,39 @@ export default function LensOrderFormPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title={repair ? 'Repair order' : 'Chashma order'} onClose={guide.close}
+        <PageGuide title={repair ? t('Repair order') : t('Chashma order')} onClose={guide.close}
           steps={repair ? [
-            { icon: UserRound, color: '#2563eb', title: 'Customer', text: 'Naam aur mobile — tayyar hone par isi number par WhatsApp.' },
-            { icon: Wrench, color: '#a16207', title: 'Kya kharab hai', text: 'Pech, nose pad, dandi… chunein aur charge likhein.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me aata hai; baqi dete waqt.' },
+            { icon: UserRound, color: '#2563eb', title: t('Customer'), text: t('Naam aur mobile — tayyar hone par isi number par WhatsApp.') },
+            { icon: Wrench, color: '#a16207', title: t('Kya kharab hai'), text: t('Pech, nose pad, dandi… chunein aur charge likhein.') },
+            { icon: Wallet, color: '#16a34a', title: t('Advance'), text: t('Advance aaj ke cash me aata hai; baqi dete waqt.') },
           ] : [
-            { icon: Eye, color: '#2563eb', title: 'Nuskha', text: 'Saved customer ka nuskha khud aa jata hai. Bahar ka nuskha ho to number yahan likhein.' },
-            { icon: Glasses, color: '#7c3aed', title: 'Frame', text: 'Stock se frame dhoondein — dete waqt stock se nikalta hai. Apna frame ho to switch lagayein.' },
-            { icon: FlaskConical, color: '#0891b2', title: 'Lens aur lab', text: 'Lens type, index, coating. Lab ka kharcha likhein to profit sahi aata hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance aaj ke cash me; baqi customer ko dete waqt ya khata me.' },
+            { icon: Eye, color: '#2563eb', title: t('Nuskha'), text: t('Saved customer ka nuskha khud aa jata hai. Bahar ka nuskha ho to number yahan likhein.') },
+            { icon: Glasses, color: '#7c3aed', title: t('Frame'), text: t('Stock se frame dhoondein — dete waqt stock se nikalta hai. Apna frame ho to switch lagayein.') },
+            { icon: FlaskConical, color: '#0891b2', title: t('Lens aur lab'), text: t('Lens type, index, coating. Lab ka kharcha likhein to profit sahi aata hai.') },
+            { icon: Wallet, color: '#16a34a', title: t('Advance'), text: t('Advance aaj ke cash me; baqi customer ko dete waqt ya khata me.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
-      <FormHeader title={repair ? 'Naya repair' : 'Naya chashma order'} hint={repair ? 'Customer ka frame, kya theek karna hai, charge aur date' : 'Customer, nuskha, frame, lens, lab aur advance'} />
+      <FormHeader title={repair ? t('Naya repair') : t('Naya chashma order')} hint={repair ? t('Customer ka frame, kya theek karna hai, charge aur date') : t('Customer, nuskha, frame, lens, lab aur advance')} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Customer')}</T>}>
             <CustomerFields value={party} onChange={(v) => { setParty(v); if (v.customerId !== party.customerId) setRxId(''); }} errors={tried ? pe : {}} />
           </Card>
 
           {!repair && (
-            <Card className="rounded-2xl" title={<T icon={Eye}>Nuskha (number)</T>} description="Saved nuskha chunein, ya number yahan likhein">
+            <Card className="rounded-2xl" title={<T icon={Eye}>{t('Nuskha (number)')}</T>} description={t('Saved nuskha chunein, ya number yahan likhein')}>
               {usable.length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-1.5">
                   {usable.map((r) => (
                     <button key={r.id} type="button" onClick={() => setRxId(rxId === r.id ? '' : r.id)} aria-pressed={rxId === r.id}
-                      className={`rounded-xl px-3 py-2 text-left text-[0.8125rem] ring-1 ${rxId === r.id ? 'bg-brand-50 ring-brand-400' : 'bg-white ring-slate-200 hover:bg-slate-50'}`}>
+                      className={`rounded-xl px-3 py-2 text-start text-[0.8125rem] ring-1 ${rxId === r.id ? 'bg-brand-50 ring-brand-400' : 'bg-white ring-slate-200 hover:bg-slate-50'}`}>
                       <span className="font-semibold">{r.prescriptionNumber}</span> <span className="text-slate-500">· {dayOnly(r.prescriptionDate)}</span>
                       <span className="block font-mono text-[0.75rem] text-slate-600">{powerSummary(r) || '—'}</span>
                     </button>
                   ))}
-                  {rxId && <button type="button" onClick={() => setRxId('')} className="rounded-xl px-3 py-2 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Naya number likhein</button>}
+                  {rxId && <button type="button" onClick={() => setRxId('')} className="rounded-xl px-3 py-2 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">{t('Naya number likhein')}</button>}
                 </div>
               )}
               {rx ? <PowerTable p={rx} /> : (
@@ -178,48 +179,48 @@ export default function LensOrderFormPage() {
             </Card>
           )}
 
-          <Card className="rounded-2xl" title={<T icon={repair ? Wrench : Glasses}>{repair ? 'Frame aur kaam' : 'Frame'}</T>}>
+          <Card className="rounded-2xl" title={<T icon={repair ? Wrench : Glasses}>{repair ? t('Frame aur kaam') : t('Frame')}</T>}>
             {!repair && (
               <label className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
-                <span className="text-[0.875rem] text-slate-800">Customer ka apna frame<span className="block text-[0.75rem] text-slate-500">Sirf lens lagane hain — frame ki qeemat nahi lagti</span></span>
-                <Switch checked={ownFrame} onChange={(e) => { setOwnFrame(e.target.checked); setFrame({ name: '', price: '' }); }} aria-label="Apna frame" />
+                <span className="text-[0.875rem] text-slate-800">{t('Customer ka apna frame')}<span className="block text-[0.75rem] text-slate-500">{t('Sirf lens lagane hain — frame ki qeemat nahi lagti')}</span></span>
+                <Switch checked={ownFrame} onChange={(e) => { setOwnFrame(e.target.checked); setFrame({ name: '', price: '' }); }} aria-label={t('Apna frame')} />
               </label>
             )}
             {!ownFrame ? (
               <div className="space-y-2">
                 {frame.productId ? (
                   <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-200">
-                    <div className="min-w-0"><p className="truncate font-semibold text-slate-900">{frame.name}</p><p className="text-[0.75rem] text-slate-600">{factLine(facts.get(frame.productId)) ?? 'Stock se'} · stock {frame.stock ?? 0}</p></div>
-                    <Button size="sm" variant="secondary" onClick={() => setFrame({ name: '', price: '' })}>Badlein</Button>
+                    <div className="min-w-0"><p className="truncate font-semibold text-slate-900">{frame.name}</p><p className="text-[0.75rem] text-slate-600">{t('{{value}} · stock {{value2}}', { value: factLine(facts.get(frame.productId)) ?? 'Stock se', value2: frame.stock ?? 0 })}</p></div>
+                    <Button size="sm" variant="secondary" onClick={() => setFrame({ name: '', price: '' })}>{t('Badlein')}</Button>
                   </div>
                 ) : (
                   <>
-                    <Input label="Frame dhoondein" value={frameQ} onChange={(e) => setFrameQ(e.target.value)} placeholder="Brand, model, rang ya barcode" leftIcon={<Search className="h-4 w-4" />} error={show('frame')} />
+                    <Input label={t('Frame dhoondein')} value={frameQ} onChange={(e) => setFrameQ(e.target.value)} placeholder={t('Brand, model, rang ya barcode')} leftIcon={<Search className="h-4 w-4" />} error={show('frame')} />
                     {(frames.data?.items ?? []).length > 0 && (
                       <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl ring-1 ring-slate-200">
                         {frames.data!.items.map((pr) => (
                           <li key={pr.id}>
                             <button type="button" onClick={() => { setFrame({ productId: pr.id, name: pr.name, price: String(pr.price ?? ''), stock: pr.stock }); setFrameQ(''); }}
-                              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50">
+                              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-start hover:bg-slate-50">
                               <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{pr.name}</span><span className="block truncate text-[0.75rem] text-slate-500">{factLine(facts.get(pr.id)) ?? pr.sku ?? ''}</span></span>
-                              <span className="shrink-0 text-right text-[0.8125rem]"><span className="block font-semibold tabular-nums">{formatPKR(pr.price)}</span><span className={pr.stock > 0 ? 'text-slate-500' : 'text-rose-600'}>stock {pr.stock}</span></span>
+                              <span className="shrink-0 text-end text-[0.8125rem]"><span className="block font-semibold tabular-nums">{formatPKR(pr.price)}</span><span className={pr.stock > 0 ? 'text-slate-500' : 'text-rose-600'}>{t('stock {{stock}}', { stock: pr.stock })}</span></span>
                             </button>
                           </li>
                         ))}
                       </ul>
                     )}
-                    {q.length >= 2 && frames.isSuccess && !frames.data.items.length && <p className="text-[0.8125rem] text-slate-500">Stock me nahi mila — <button type="button" className="font-semibold text-brand-700 underline" onClick={() => { setFrame({ name: frameQ.trim(), price: '' }); setFrameQ(''); }}>"{frameQ.trim()}" naam se likhein</button> (stock se nahi niklega)</p>}
-                    {!frame.productId && frame.name && <Input label="Frame (stock ke bagair)" value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} />}
+                    {q.length >= 2 && frames.isSuccess && !frames.data.items.length && <p className="text-[0.8125rem] text-slate-500">{t('Stock me nahi mila —')}{' '} <button type="button" className="font-semibold text-brand-700 underline" onClick={() => { setFrame({ name: frameQ.trim(), price: '' }); setFrameQ(''); }}>{t('"{{value}}" naam se likhein', { value: frameQ.trim() })}</button> {' '}{t('(stock se nahi niklega)')}</p>}
+                    {!frame.productId && frame.name && <Input label={t('Frame (stock ke bagair)')} value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} />}
                   </>
                 )}
-                <Input label="Frame ki qeemat" inputMode="decimal" value={frame.price} onChange={(e) => setFrame({ ...frame, price: moneyInput(e.target.value) })} placeholder="0" hint="Customer ko jo batayi" />
+                <Input label={t('Frame ki qeemat')} inputMode="decimal" value={frame.price} onChange={(e) => setFrame({ ...frame, price: moneyInput(e.target.value) })} placeholder="0" hint={t('Customer ko jo batayi')} />
               </div>
             ) : (
               <div className="space-y-3">
-                <Input label="Frame" value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} placeholder={repair ? 'Jaise: kala metal frame, Ray-Ban' : 'Customer ka apna frame'} error={show('frame')} maxLength={160} />
+                <Input label={t('Frame')} value={frame.name} onChange={(e) => setFrame({ ...frame, name: e.target.value })} placeholder={repair ? t('Jaise: kala metal frame, Ray-Ban') : t('Customer ka apna frame')} error={show('frame')} maxLength={160} />
                 {repair && (
                   <div>
-                    <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kya theek karna hai</span>
+                    <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Kya theek karna hai')}</span>
                     <div className="flex flex-wrap gap-1.5">
                       {REPAIR_KINDS.map((k) => (
                         <button key={k} type="button" aria-pressed={repairKinds.includes(k)} onClick={() => setRepairKinds((v) => (v.includes(k) ? v.filter((x) => x !== k) : [...v, k]))}
@@ -233,12 +234,12 @@ export default function LensOrderFormPage() {
           </Card>
 
           {!repair && (
-            <Card className="rounded-2xl" title={<T icon={FlaskConical}>Lens</T>}>
+            <Card className="rounded-2xl" title={<T icon={FlaskConical}>{t('Lens')}</T>}>
               <div className="space-y-3">
-                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Lens type</span><Chips options={LENS_TYPES} value={lensType} onChange={setLensType} /></div>
-                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Index (patla-mota)</span><Chips options={LENS_INDEX} value={lensIndex} onChange={setLensIndex} clearable /></div>
+                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Lens type')}</span><Chips options={LENS_TYPES} value={lensType} onChange={setLensType} /></div>
+                <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Index (patla-mota)')}</span><Chips options={LENS_INDEX} value={lensIndex} onChange={setLensIndex} clearable /></div>
                 <div>
-                  <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Coating</span>
+                  <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Coating')}</span>
                   <div className="flex flex-wrap gap-1.5">
                     {COATINGS.map((c) => (
                       <button key={c} type="button" aria-pressed={coatings.includes(c)} onClick={() => setCoatings((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]))}
@@ -246,39 +247,39 @@ export default function LensOrderFormPage() {
                     ))}
                   </div>
                 </div>
-                <Select label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} options={[{ value: '', label: '—' }, ...LENS_MATERIAL.map((m) => ({ value: m, label: m }))]} hint="Marzi hai" />
+                <Select label={t('Material')} value={material} onChange={(e) => setMaterial(e.target.value)} options={[{ value: '', label: '—' }, ...LENS_MATERIAL.map((m) => ({ value: m, label: m }))]} hint={t('Marzi hai')} />
               </div>
             </Card>
           )}
 
-          <Card className="rounded-2xl" title={<T icon={CalendarClock}>{repair ? 'Kab tayyar' : 'Lab aur date'}</T>}>
+          <Card className="rounded-2xl" title={<T icon={CalendarClock}>{repair ? t('Kab tayyar') : t('Lab aur date')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              {!repair && <Input label="Lab" value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Abhi na pata ho to baad me" hint="Lab bhejte waqt bhi likh sakte hain" maxLength={120} />}
-              <Input label="Customer ko kab dena hai" type="date" min={todayInput()} value={date} onChange={(e) => setDate(e.target.value)} hint="Is date ke baad order 'Late' dikhta hai" />
+              {!repair && <Input label={t('Lab')} value={labName} onChange={(e) => setLabName(e.target.value)} placeholder={t('Abhi na pata ho to baad me')} hint={t('Lab bhejte waqt bhi likh sakte hain')} maxLength={120} />}
+              <Input label={t('Customer ko kab dena hai')} type="date" min={todayInput()} value={date} onChange={(e) => setDate(e.target.value)} hint={t('Is date ke baad order \'Late\' dikhta hai')} />
             </div>
           </Card>
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Hisaab</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Hisaab')}</T>}>
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label={repair ? 'Repair charge' : 'Lens ki qeemat'} inputMode="decimal" value={lensPrice} onChange={(e) => setLensPrice(moneyInput(e.target.value))} placeholder="0" error={show('total')} />
-                <Input label="Lab / karigar ka kharcha" inputMode="decimal" value={lensCost} onChange={(e) => setLensCost(moneyInput(e.target.value))} placeholder="0" hint={errors.lensCost ?? 'Profit sahi aane ke liye'} />
-                {!repair && <Input label="Fitting charge" inputMode="decimal" value={fitting} onChange={(e) => setFitting(moneyInput(e.target.value))} placeholder="0" hint="Marzi hai" />}
+                <Input label={repair ? t('Repair charge') : t('Lens ki qeemat')} inputMode="decimal" value={lensPrice} onChange={(e) => setLensPrice(moneyInput(e.target.value))} placeholder="0" error={show('total')} />
+                <Input label={t('Lab / karigar ka kharcha')} inputMode="decimal" value={lensCost} onChange={(e) => setLensCost(moneyInput(e.target.value))} placeholder="0" hint={errors.lensCost ?? t('Profit sahi aane ke liye')} />
+                {!repair && <Input label={t('Fitting charge')} inputMode="decimal" value={fitting} onChange={(e) => setFitting(moneyInput(e.target.value))} placeholder="0" hint={t('Marzi hai')} />}
               </div>
               <dl className="space-y-1 rounded-xl bg-slate-50 px-3 py-2.5 text-[0.875rem]">
-                {!repair && <div className="flex justify-between"><dt className="text-slate-600">Frame</dt><dd className="tabular-nums">{formatPKR(fp)}</dd></div>}
-                <div className="flex justify-between"><dt className="text-slate-600">{repair ? 'Repair' : 'Lens'}</dt><dd className="tabular-nums">{formatPKR(lp)}</dd></div>
-                {fit > 0 && <div className="flex justify-between"><dt className="text-slate-600">Fitting</dt><dd className="tabular-nums">{formatPKR(fit)}</dd></div>}
-                <div className="flex justify-between border-t border-slate-200 pt-1 font-bold"><dt>Kul</dt><dd className="tabular-nums">{formatPKR(total)}</dd></div>
+                {!repair && <div className="flex justify-between"><dt className="text-slate-600">{t('Frame')}</dt><dd className="tabular-nums">{formatPKR(fp)}</dd></div>}
+                <div className="flex justify-between"><dt className="text-slate-600">{repair ? t('Repair') : t('Lens')}</dt><dd className="tabular-nums">{formatPKR(lp)}</dd></div>
+                {fit > 0 && <div className="flex justify-between"><dt className="text-slate-600">{t('Fitting')}</dt><dd className="tabular-nums">{formatPKR(fit)}</dd></div>}
+                <div className="flex justify-between border-t border-slate-200 pt-1 font-bold"><dt>{t('Kul')}</dt><dd className="tabular-nums">{formatPKR(total)}</dd></div>
               </dl>
-              <Input label="Advance (abhi)" inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} placeholder="0" error={show('advance') ?? (adv > total + 0.01 ? errors.advance : undefined)}
-                hint={total > 0 ? `Baqi dete waqt: ${formatPKR(Math.max(total - adv, 0))}` : undefined} />
-              {total > 0 && <div className="flex flex-wrap gap-1.5">{[0.5, 1].map((f) => <button key={f} type="button" onClick={() => setAdvance(String(Math.round(total * f)))} className="h-8 rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium ring-1 ring-slate-200 hover:bg-slate-50">{f === 1 ? 'Poora' : 'Aadha'} ({formatPKR(Math.round(total * f))})</button>)}</div>}
-              {adv > 0 && <PaymentMethodPicker value={method} onChange={setMethod} label="Advance kaise mila" />}
-              <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Jaise: customer Friday ko aayega" hint="Marzi hai" maxLength={1000} />
-              <Button fullWidth size="lg" onClick={submit} loading={save.isPending} leftIcon={<Package className="h-4 w-4" />}>{adv > 0 ? `Order + ${formatPKR(adv)} advance` : 'Order save karein'}</Button>
+              <Input label={t('Advance (abhi)')} inputMode="decimal" value={advance} onChange={(e) => setAdvance(moneyInput(e.target.value))} placeholder="0" error={show('advance') ?? (adv > total + 0.01 ? errors.advance : undefined)}
+                hint={total > 0 ? t('Baqi dete waqt: {{formatPKR}}', { formatPKR: formatPKR(Math.max(total - adv, 0)) }) : undefined} />
+              {total > 0 && <div className="flex flex-wrap gap-1.5">{[0.5, 1].map((f) => <button key={f} type="button" onClick={() => setAdvance(String(Math.round(total * f)))} className="h-8 rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium ring-1 ring-slate-200 hover:bg-slate-50">{f === 1 ? t('Poora') : t('Aadha')} ({formatPKR(Math.round(total * f))})</button>)}</div>}
+              {adv > 0 && <PaymentMethodPicker value={method} onChange={setMethod} label={t('Advance kaise mila')} />}
+              <Textarea label={t('Note')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('Jaise: customer Friday ko aayega')} hint={t('Marzi hai')} maxLength={1000} />
+              <Button fullWidth size="lg" onClick={submit} loading={save.isPending} leftIcon={<Package className="h-4 w-4" />}>{adv > 0 ? t('Order + {{adv}} advance', { adv: formatPKR(adv) }) : t('Order save karein')}</Button>
             </div>
           </Card>
         </div>

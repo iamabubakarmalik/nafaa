@@ -34,6 +34,7 @@ import { incomeApi, incomeCategoriesApi, type Income, type IncomeQuery, type Inc
 import { IncomeCategoryManager } from '../components/IncomeCategoryManager';
 import { IncomeForm, type IncomeDraft } from '../components/IncomeForm';
 import { FIXED_CATEGORIES, INCOME_AFFECTED_KEYS, INCOME_CATEGORIES_KEY, INCOME_KEY, VIA, apiError, catOf, day, monthLabel } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'record' | 'monthly';
 
@@ -89,14 +90,14 @@ export default function IncomePage() {
   const suppliers = suppliersQ.data?.items ?? [];
 
   const categoryOptions = useMemo(() => [
-    { value: '', label: 'Sab categories' },
+    { value: '', label: tr('Sab categories') },
     ...FIXED_CATEGORIES.map((c) => ({ value: c.id as string, label: c.label, icon: c.icon, color: c.color })),
     ...custom.map((c) => ({ value: c.id, label: c.name, color: c.color })),
   ], [custom]);
-  const catLabel = categoryOptions.find((c) => c.value === category)?.label ?? 'Category';
+  const catLabel = categoryOptions.find((c) => c.value === category)?.label ?? tr('Category');
   const filtered = !!category || !!supplierId || !!via || !!shopId || !!query;
   const clear = () => { setCategory(''); setSupplierId(''); setVia(''); setShopId(''); setSearch(''); };
-  const periodText = period ? rangeLabel(period.from, period.to) : 'Sab tareekhen';
+  const periodText = period ? rangeLabel(period.from, period.to) : tr('Sab tareekhen');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -112,16 +113,16 @@ export default function IncomePage() {
 
   const remove = useMutation({
     mutationFn: (i: Income) => incomeApi.remove(i.id),
-    onSuccess: () => { toast.success('Aamdani ka record mita diya'); INCOME_AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
-    onError: (err) => toast.error(apiError(err, 'Nahi mita')),
+    onSuccess: () => { toast.success(tr('Aamdani ka record mita diya')); INCOME_AFFECTED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
+    onError: (err) => toast.error(apiError(err, tr('Nahi mita'))),
   });
   const again = (i: Income): IncomeDraft => ({
     mode: 'new',
     prefill: { title: i.title, amount: i.amount, category: i.category, categoryId: i.categoryId, supplierId: i.supplierId, receivedVia: i.receivedVia, moneyAccountId: i.moneyAccountId, repeatMonthly: i.repeatMonthly },
   });
   const askRemove = async (i: Income) => {
-    const back = i.receivedVia === 'CASH_DRAWER' ? 'Galle ka hisaab bhi wapas ho jayega.' : i.receivedVia === 'ACCOUNT' ? 'Account ki entry bhi hat jayegi.' : 'Supplier khate mein amount wapas jur jayegi.';
-    if (await confirmDialog({ title: `"${i.title}" (${formatPKR(i.amount)}) mitayein?`, text: `Profit se bhi nikal jayegi. ${back}`, danger: true })) remove.mutate(i);
+    const back = i.receivedVia === 'CASH_DRAWER' ? tr('Galle ka hisaab bhi wapas ho jayega.') : i.receivedVia === 'ACCOUNT' ? tr('Account ki entry bhi hat jayegi.') : tr('Supplier khate mein amount wapas jur jayegi.');
+    if (await confirmDialog({ title: tr('"{{title}}" ({{amount}}) mitayein?', { title: i.title, amount: formatPKR(i.amount) }), text: tr('Profit se bhi nikal jayegi. {{back}}', { back }), danger: true })) remove.mutate(i);
   };
 
   const change = o && o.lastMonth.amount > 0 ? Math.round(((o.month.amount - o.lastMonth.amount) / o.lastMonth.amount) * 1000) / 10 : null;
@@ -131,44 +132,44 @@ export default function IncomePage() {
   return (
     <PageShell>
       <PageHero
-        title="Doosri aamdani"
-        chip={<><HandCoins /> Income</>}
-        meta="Company incentive, scheme claim, commission, kiraya — sale ke ilawa jo paisa aaye, net profit mein judta hai"
+        title={tr('Doosri aamdani')}
+        chip={<><HandCoins /> {' '}{tr('Income')}</>}
+        meta={tr('Company incentive, scheme claim, commission, kiraya — sale ke ilawa jo paisa aaye, net profit mein judta hai')}
         busy={(listQ.isFetching && !listQ.isLoading) || overviewQ.isFetching}
         loading={overviewQ.isLoading}
         actions={<>
-          {canSeeExpenses && <Link to="/expenses" className={heroButton}><Wallet className="h-4 w-4" /> Expenses</Link>}
-          <button type="button" onClick={() => setCats(true)} className={heroButton}><Tags className="h-4 w-4" /> Categories</button>
-          {canWrite && <button type="button" onClick={() => setForm({ mode: 'new' })} title="Nayi aamdani (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi aamdani</button>}
+          {canSeeExpenses && <Link to="/expenses" className={heroButton}><Wallet className="h-4 w-4" /> {' '}{tr('Expenses')}</Link>}
+          <button type="button" onClick={() => setCats(true)} className={heroButton}><Tags className="h-4 w-4" /> {' '}{tr('Categories')}</button>
+          {canWrite && <button type="button" onClick={() => setForm({ mode: 'new' })} title={tr('Nayi aamdani (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi aamdani')}</button>}
         </>}
         stats={o ? [
-          { label: 'Is mahine', value: formatPKR(o.month.amount), hint: `${o.month.count} records` },
-          { label: 'Pichle mahine', value: formatPKR(o.lastMonth.amount) },
-          ...(o.due.length ? [{ label: 'Is mahine baqi', value: String(o.due.length), hint: 'har mahine wali' }] : []),
-        ] : [{ label: 'Is mahine', value: '—' }]}
+          { label: tr('Is mahine'), value: formatPKR(o.month.amount), hint: tr('{{count}} records', { count: o.month.count }) },
+          { label: tr('Pichle mahine'), value: formatPKR(o.lastMonth.amount) },
+          ...(o.due.length ? [{ label: tr('Is mahine baqi'), value: String(o.due.length), hint: tr('har mahine wali') }] : []),
+        ] : [{ label: tr('Is mahine'), value: '—' }]}
       />
 
       <KpiRow cols={3}>
         {!o ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={HandCoins} color="#16a34a" label="Is mahine" value={formatPKR(o.month.amount)} hint={`${o.month.count} records`}
+          <KpiCard icon={HandCoins} color="#16a34a" label={tr('Is mahine')} value={formatPKR(o.month.amount)} hint={tr('{{count}} records', { count: o.month.count })}
             onClick={() => { setTab('record'); setRange({ preset: 'thisMonth', custom: { from: '', to: '' } }); }} active={tab === 'record' && range.preset === 'thisMonth'} />
-          <KpiCard icon={up ? TrendingUp : TrendingDown} color={change == null ? '#64748b' : up ? '#16a34a' : '#e11d48'} label="Farq"
-            value={change == null ? '—' : `${up ? '+' : ''}${change}%`} hint={`Pichle mahine ${formatPKR(o.lastMonth.amount)}`}
+          <KpiCard icon={up ? TrendingUp : TrendingDown} color={change == null ? '#64748b' : up ? '#16a34a' : '#e11d48'} label={tr('Farq')}
+            value={change == null ? '—' : `${up ? '+' : ''}${change}%`} hint={tr('Pichle mahine {{amount}}', { amount: formatPKR(o.lastMonth.amount) })}
             onClick={() => { setTab('record'); setRange({ preset: 'lastMonth', custom: { from: '', to: '' } }); }} active={tab === 'record' && range.preset === 'lastMonth'} />
-          <KpiCard icon={Repeat} color="#d97706" label="Baqi mahana" value={o.due.length}
-            hint={o.due.length ? `Abhi nahi likhi: ${o.due.slice(0, 2).map((d) => d.title).join(', ')}` : 'Sab likh li'} />
+          <KpiCard icon={Repeat} color="#d97706" label={tr('Baqi mahana')} value={o.due.length}
+            hint={o.due.length ? tr('Abhi nahi likhi: {{value}}', { value: o.due.slice(0, 2).map((d) => d.title).join(', ') }) : tr('Sab likh li')} />
         </>}
       </KpiRow>
 
       {o && o.due.length > 0 && canWrite && (
         <div className="rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200 sm:p-4">
-          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><CalendarClock className="h-4 w-4" /> Is mahine ki abhi nahi likhi</p>
+          <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900"><CalendarClock className="h-4 w-4" /> {' '}{tr('Is mahine ki abhi nahi likhi')}</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {o.due.map((d) => (
               <li key={d.id}>
                 <button type="button" onClick={() => setForm(again(d))}
                   className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-white px-3 py-1 text-[0.8125rem] font-medium text-slate-800 ring-1 ring-amber-200 hover:bg-amber-100">
-                  {d.title} · {formatPKR(d.amount)} <span className="font-semibold text-amber-800">Is mahine ka likhein</span>
+                  {d.title} · {formatPKR(d.amount)} <span className="font-semibold text-amber-800">{tr('Is mahine ka likhein')}</span>
                 </button>
               </li>
             ))}
@@ -178,41 +179,41 @@ export default function IncomePage() {
 
       {tab === 'record' && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Aamdani, number, company ya details…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Aamdani, number, company ya details…')} label={tr('Search')} />}
           chips={filtered ? <>
             {category && <FilterChip onRemove={() => setCategory('')}>{catLabel}</FilterChip>}
-            {supplierId && <FilterChip onRemove={() => setSupplierId('')}>{suppliers.find((s) => s.id === supplierId)?.name ?? 'Company'}</FilterChip>}
+            {supplierId && <FilterChip onRemove={() => setSupplierId('')}>{suppliers.find((s) => s.id === supplierId)?.name ?? tr('Company')}</FilterChip>}
             {via && <FilterChip onRemove={() => setVia('')}>{VIA[via].short}</FilterChip>}
-            {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((s) => s.id === shopId)?.name ?? 'Branch'}</FilterChip>}
+            {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((s) => s.id === shopId)?.name ?? tr('Branch')}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll />
-          <FilterMenu icon={PieChart} label="Category" value={category} active={!!category} onChange={setCategory} options={categoryOptions} width="w-72" />
+          <FilterMenu icon={PieChart} label={tr('Category')} value={category} active={!!category} onChange={setCategory} options={categoryOptions} width="w-72" />
           {suppliers.length > 0 && (
-            <FilterMenu icon={Building2} label="Company" value={supplierId} active={!!supplierId} onChange={setSupplierId} width="w-72"
-              options={[{ value: '', label: 'Sab companies' }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]} />
+            <FilterMenu icon={Building2} label={tr('Company')} value={supplierId} active={!!supplierId} onChange={setSupplierId} width="w-72"
+              options={[{ value: '', label: tr('Sab companies') }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]} />
           )}
-          <FilterMenu icon={Wallet} label="Kahan aaya" value={via} active={!!via} onChange={setVia} align="right"
-            options={[{ value: '' as const, label: 'Sab' }, ...(Object.keys(VIA) as IncomeReceivedVia[]).map((k) => ({ value: k, label: VIA[k].label, icon: VIA[k].icon, color: VIA[k].color }))]} />
+          <FilterMenu icon={Wallet} label={tr('Kahan aaya')} value={via} active={!!via} onChange={setVia} align="right"
+            options={[{ value: '' as const, label: tr('Sab') }, ...(Object.keys(VIA) as IncomeReceivedVia[]).map((k) => ({ value: k, label: VIA[k].label, icon: VIA[k].icon, color: VIA[k].color }))]} />
           {allShops && shops.length > 1 && (
-            <FilterMenu icon={Store} label="Branch" value={shopId} active={!!shopId} onChange={setShopId} align="right"
-              options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
+            <FilterMenu icon={Store} label={tr('Branch')} value={shopId} active={!!shopId} onChange={setShopId} align="right"
+              options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
           )}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canWrite && <><Kbd>N</Kbd> nayi · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        hint={<>{canWrite && <><Kbd>N</Kbd> {' '}{tr('nayi ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'record', label: 'Record', icon: ListChecks, count: data?.total ?? null },
-          { id: 'monthly', label: 'Mahine', icon: BarChart3 },
+          { id: 'record', label: tr('Record'), icon: ListChecks, count: data?.total ?? null },
+          { id: 'monthly', label: tr('Mahine'), icon: BarChart3 },
         ]} />
 
       {tab === 'monthly' ? (
         <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-          <p className="text-sm font-semibold text-slate-900">Pichle 12 mahine</p>
-          <p className="text-[0.75rem] text-slate-500">Har mahine ki doosri aamdani — net profit mein judti hai</p>
+          <p className="text-sm font-semibold text-slate-900">{tr('Pichle 12 mahine')}</p>
+          <p className="text-[0.75rem] text-slate-500">{tr('Har mahine ki doosri aamdani — net profit mein judti hai')}</p>
           {!o ? <Skeleton className="mt-4 h-48 rounded-xl" /> : (
             <ul className="mt-4 space-y-1.5">
               {[...o.months].reverse().map((m) => (
@@ -221,7 +222,7 @@ export default function IncomePage() {
                   <span className="h-2.5 overflow-hidden rounded-full bg-slate-100">
                     <span className="block h-full rounded-full bg-emerald-500" style={{ width: `${(m.amount / maxMonth) * 100}%` }} />
                   </span>
-                  <span className={cn('text-right font-semibold tabular-nums', m.amount ? 'text-emerald-700' : 'text-slate-400')}>{formatPKR(m.amount)}</span>
+                  <span className={cn('text-end font-semibold tabular-nums', m.amount ? 'text-emerald-700' : 'text-slate-400')}>{formatPKR(m.amount)}</span>
                 </li>
               ))}
             </ul>
@@ -231,7 +232,7 @@ export default function IncomePage() {
         {data && data.total > 0 && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
             <span className="text-slate-500">{periodText}</span>
-            <span className="font-semibold text-slate-900">Aamdani {formatPKR(data.totals.amount)} <span className="font-normal text-slate-500">({data.totals.count})</span></span>
+            <span className="font-semibold text-slate-900">{tr('Aamdani {{amount}}', { amount: formatPKR(data.totals.amount) })}{' '} <span className="font-normal text-slate-500">({data.totals.count})</span></span>
             {data.byCategory.slice(0, 3).map((c) => <span key={c.key} className="text-slate-600">{c.label} {formatPKR(c.amount)}</span>)}
           </div>
         )}
@@ -240,17 +241,17 @@ export default function IncomePage() {
           <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
         ) : listQ.isError && !data ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">Aamdani load nahi hui</p>
-            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+            <p className="font-semibold text-slate-900">{tr('Aamdani load nahi hui')}</p>
+            <Button className="mt-3" variant="secondary" onClick={() => listQ.refetch()}>{tr('Dobara koshish')}</Button>
           </div>
         ) : !rows.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <HandCoins className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter mein koi aamdani nahi' : 'Is period mein koi doosri aamdani nahi likhi'}</p>
-            <p className="mt-1 text-sm text-slate-500">Company ka incentive ya scheme claim mila? Likhein — net profit mein jud jayega.</p>
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter mein koi aamdani nahi') : tr('Is period mein koi doosri aamdani nahi likhi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Company ka incentive ya scheme claim mila? Likhein — net profit mein jud jayega.')}</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {canWrite && <Button onClick={() => setForm({ mode: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>Nayi aamdani</Button>}
-              {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+              {canWrite && <Button onClick={() => setForm({ mode: 'new' })} leftIcon={<Plus className="h-4 w-4" />}>{tr('Nayi aamdani')}</Button>}
+              {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
             </div>
           </div>
         ) : (
@@ -264,9 +265,9 @@ export default function IncomePage() {
 
         {data && data.pages > 1 && (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-            <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
-            <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+            <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: data.pages })}</span>
+            <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
           </div>
         )}
       </>)}
@@ -290,31 +291,31 @@ function Row({ i, showShop, canWrite, busy, onEdit, onAgain, onRemove }: {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${cat.color}1a`, color: cat.color }}>
           <cat.icon className="h-4 w-4" />
         </span>
-        <button type="button" onClick={() => setOpen((x) => !x)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
+        <button type="button" onClick={() => setOpen((x) => !x)} className="min-w-0 flex-1 text-start" aria-expanded={open}>
           <span className="flex flex-wrap items-center gap-1.5">
             <span className="truncate font-semibold text-slate-900">{i.title}</span>
             <span className="rounded-full px-2 py-0.5 text-[0.6875rem] font-medium" style={{ backgroundColor: `${cat.color}14`, color: cat.color }}>{cat.label}</span>
-            {i.repeatMonthly && <Repeat className="h-3.5 w-3.5 text-slate-400" aria-label="Har mahine" />}
+            {i.repeatMonthly && <Repeat className="h-3.5 w-3.5 text-slate-400" aria-label={tr('Har mahine')} />}
           </span>
           <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400"><span className="font-mono">{i.incomeNumber}</span> · {meta}</span>
         </button>
-        <div className="text-right">
+        <div className="text-end">
           <p className="text-base font-bold tabular-nums text-emerald-700">+{formatPKR(i.amount)}</p>
           <p className="inline-flex items-center gap-1 text-[0.6875rem] font-medium" style={{ color: v.color }}><v.icon className="h-3 w-3" />{v.short}</p>
         </div>
-        <button type="button" onClick={() => setOpen((x) => !x)} aria-label="Details" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" onClick={() => setOpen((x) => !x)} aria-label={tr('Details')} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
         </button>
       </div>
       {open && (
-        <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:pl-[4.25rem]">
+        <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:ps-[4.25rem]">
           {i.note && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{i.note}</p>}
-          <p className="text-slate-600">{v.label}{i.receivedVia === 'SUPPLIER_KHATA' && i.supplier ? ` — ${i.supplier.name} ko dena itna kam hua` : ''}</p>
+          <p className="text-slate-600">{v.label}{i.receivedVia === 'SUPPLIER_KHATA' && i.supplier ? tr(' — {{name}} ko dena itna kam hua', { name: i.supplier.name }) : ''}</p>
           {canWrite && (
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>
-              <Button size="sm" variant="secondary" onClick={onAgain} leftIcon={<Copy className="h-4 w-4" />}>Phir likhein</Button>
-              <Button size="sm" variant="ghost" onClick={onRemove} disabled={busy} leftIcon={<Trash2 className="h-4 w-4" />} className="text-rose-700">Mitayein</Button>
+              <Button size="sm" variant="secondary" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>{tr('Badlein')}</Button>
+              <Button size="sm" variant="secondary" onClick={onAgain} leftIcon={<Copy className="h-4 w-4" />}>{tr('Phir likhein')}</Button>
+              <Button size="sm" variant="ghost" onClick={onRemove} disabled={busy} leftIcon={<Trash2 className="h-4 w-4" />} className="text-rose-700">{tr('Mitayein')}</Button>
             </div>
           )}
         </div>

@@ -5,12 +5,13 @@
  */
 
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 const unwrap = <T,>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data !== undefined ? r.data : r) as T;
 
 export const TRADE_KEY = 'trade-network';
 
-export function tradeError(e: unknown, fallback = 'Kaam nahi hua, dobara koshish karein') {
+export function tradeError(e: unknown, fallback = t('Kaam nahi hua, dobara koshish karein')) {
   const err = e as { response?: { data?: { message?: string | string[] } }; message?: string };
   const m = err?.response?.data?.message;
   return (Array.isArray(m) ? m[0] : m) || err?.message || fallback;

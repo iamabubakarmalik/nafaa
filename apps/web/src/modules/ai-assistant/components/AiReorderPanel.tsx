@@ -95,7 +95,7 @@ function IdleNote({ idle, days }: { idle: AiReorder['idle']; days: number }) {
     <div className="rounded-xl border border-slate-200 bg-slate-50">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
         className="flex w-full items-center gap-1.5 px-3 py-2 text-start text-[0.75rem] font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl">
-        <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-90' : 'rtl-flip'}`} />
         {t('Bikri nahi hui — abhi order ki zaroorat nahi ({{count}})', { count: idle.length })}
       </button>
       {open && (

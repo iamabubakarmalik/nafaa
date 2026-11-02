@@ -22,6 +22,7 @@ import { DeliveryMode, buildManualAdvance, orderMoney, paidAdvance } from './ord
 import { randomBytes } from 'crypto';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /**
  * Online order ka poora safar:
@@ -147,8 +148,8 @@ export class OnlineOrdersService implements OnModuleInit {
     await this.notifications.create({
       tenantId: order.tenantId,
       type: 'INFO' as any,
-      title: blocked ? `⛔ Blocked number se order #${num}` : `🛍️ Naya online order #${num}`,
-      message: `${order.customerName} · Rs ${Math.round(Number(order.total)).toLocaleString('en-PK')} · ${itemCount} item`,
+      title: blocked ? apiMessage('⛔ Blocked number se order #{{num}}', { num }) : apiMessage('🛍️ Naya online order #{{num}}', { num }),
+      message: apiMessage('{{customer}} · Rs {{total}} · {{count}} item', { customer: order.customerName, total: Math.round(Number(order.total)).toLocaleString('en-PK'), count: itemCount }),
       link: `/online-orders?order=${order.id}`,
       metadata: { kind: 'ONLINE_ORDER', channelOrderId: order.id, source: integration.type },
     } as any).catch(() => null);
@@ -529,17 +530,17 @@ export class OnlineOrdersService implements OnModuleInit {
           where: { id: manual.productId, tenantId: user.tenantId, isActive: true },
           select: { id: true, hasVariants: true },
         });
-        if (!ok) throw new BadRequestException(`${items[i].name}: chuna hua product nahi mila`);
+        if (!ok) throw new BadRequestException(apiMessage('{{itemsName}}: chuna hua product nahi mila', { itemsName: items[i].name }));
         // A product with sizes keeps its stock on the variants, so the base row is empty.
         if (ok.hasVariants && !manual.variantId) {
-          throw new BadRequestException(`${items[i].name}: is product ke size/variant hain — jodte waqt sahi size chunein`);
+          throw new BadRequestException(apiMessage('{{itemsName}}: is product ke size/variant hain — jodte waqt sahi size chunein', { itemsName: items[i].name }));
         }
         if (manual.variantId) {
           const v = await this.prisma.productVariant.findFirst({
             where: { id: manual.variantId, productId: manual.productId, isActive: true },
             select: { id: true },
           });
-          if (!v) throw new BadRequestException(`${items[i].name}: chuna hua variant is product ka nahi`);
+          if (!v) throw new BadRequestException(apiMessage('{{itemsName}}: chuna hua variant is product ka nahi', { itemsName: items[i].name }));
         }
         matched[i] = { productId: manual.productId, variantId: manual.variantId ?? null, via: 'manual' };
         continue;
@@ -551,7 +552,7 @@ export class OnlineOrdersService implements OnModuleInit {
     if (unmatched.length) {
       throw new ConflictException({
         code: 'UNMATCHED_ITEMS',
-        message: `${unmatched.length} item ka Nafaa product nahi mila — pehle jodein`,
+        ...apiMessage('{{unmatchedCount}} item ka Nafaa product nahi mila — pehle jodein', { unmatchedCount: unmatched.length }),
         unmatched,
       });
     }
@@ -1133,7 +1134,7 @@ export class OnlineOrdersService implements OnModuleInit {
         await this.notifications.create({
           tenantId: order.tenantId,
           type: 'WARNING' as any,
-          title: `⚠️ Customer ne order #${order.externalOrderNumber ?? externalOrderId} cancel kiya`,
+          title: apiMessage('⚠️ Customer ne order #{{num}} cancel kiya', { num: order.externalOrderNumber ?? externalOrderId }),
           message: 'Bill ban chuka hai — Online Orders me ja kar cancel karein taake stock wapas aaye',
           link: `/online-orders?order=${order.id}`,
           metadata: { channelOrderId: order.id },

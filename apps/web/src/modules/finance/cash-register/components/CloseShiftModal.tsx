@@ -15,6 +15,7 @@ import { formatPKR } from '@core/lib/format';
 import { cashRegisterApi, type CashRegister } from '../api/cash-register.api';
 import { DenominationCounter } from './DenominationCounter';
 import { CASH_KEY, DIFF, cleanDenoms, diffKind, duration, signed, sumDenoms, tillName } from './meta';
+import { t } from '@core/i18n';
 
 type Mode = 'amount' | 'notes';
 
@@ -47,47 +48,47 @@ export function CloseShiftModal({ register, onClose, onClosed }: {
     }),
     onSuccess: (r) => {
       const k = diffKind(r.difference);
-      const text = k === 'match' ? 'Galla barabar nikla' : k === 'short' ? `${formatPKR(Math.abs(r.difference))} kam nikle` : `${formatPKR(r.difference)} zyada nikle`;
-      (k === 'short' ? toast.warning : toast.success)(`Shift band — ${text}`, { description: `Hona chahiye tha ${formatPKR(r.expectedBalance)}, gina ${formatPKR(r.closingBalance)}` });
+      const text = k === 'match' ? t('Galla barabar nikla') : k === 'short' ? t('{{formatPKR}} kam nikle', { formatPKR: formatPKR(Math.abs(r.difference)) }) : t('{{difference}} zyada nikle', { difference: formatPKR(r.difference) });
+      (k === 'short' ? toast.warning : toast.success)(t('Shift band — {{text}}', { text }), { description: t('Hona chahiye tha {{expectedBalance}}, gina {{closingBalance}}', { expectedBalance: formatPKR(r.expectedBalance), closingBalance: formatPKR(r.closingBalance) }) });
       void qc.invalidateQueries({ queryKey: [CASH_KEY] });
       void qc.invalidateQueries({ queryKey: ['money'] });
       onClosed(r.id);
     },
-    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? 'Shift band nahi hui'),
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? t('Shift band nahi hui')),
   });
 
   const D = DIFF[kind];
   return (
-    <Modal open onClose={onClose} size="lg" title={`Shift band karein — ${tillName(register)}`}
-      description={`${duration(register.openedAt)} se khuli · ${register.openedBy?.fullName ?? ''}`}
+    <Modal open onClose={onClose} size="lg" title={t('Shift band karein — {{register}}', { register: tillName(register) })}
+      description={t('{{openedAt}} se khuli · {{value}}', { openedAt: duration(register.openedAt), value: register.openedBy?.fullName ?? '' })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" onClick={() => m.mutate()} loading={m.isPending} disabled={!valid} leftIcon={<StopCircle className="h-4 w-4" />}>Shift band karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" onClick={() => m.mutate()} loading={m.isPending} disabled={!valid} leftIcon={<StopCircle className="h-4 w-4" />}>{t('Shift band karein')}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !m.isPending) m.mutate(); }}>
         <div className="grid grid-cols-3 gap-2">
-          <Fig label="Hona chahiye" value={formatPKR(expected)} />
-          <Fig label="Gina" value={hasCount ? formatPKR(counted) : '—'} />
+          <Fig label={t('Hona chahiye')} value={formatPKR(expected)} />
+          <Fig label={t('Gina')} value={hasCount ? formatPKR(counted) : '—'} />
           <div className={cn('rounded-xl px-3 py-2 ring-1', hasCount ? D.tone : 'bg-slate-50 text-slate-500 ring-slate-200')}>
-            <p className="text-[0.6875rem] font-medium">{hasCount ? D.label : 'Farak'}</p>
+            <p className="text-[0.6875rem] font-medium">{hasCount ? D.label : t('Farak')}</p>
             <p className="text-base font-bold tabular-nums">{hasCount ? signed(diff) : '—'}</p>
           </div>
         </div>
 
-        <Segmented label="Ginti ka tareeqa" value={mode} onChange={(v) => setMode(v as Mode)}
-          items={[{ value: 'notes', label: 'Note gin kar' }, { value: 'amount', label: 'Kul amount' }]} />
+        <Segmented label={t('Ginti ka tareeqa')} value={mode} onChange={(v) => setMode(v as Mode)}
+          items={[{ value: 'notes', label: t('Note gin kar') }, { value: 'amount', label: t('Kul amount') }]} />
         {mode === 'notes' ? <DenominationCounter value={denoms} onChange={setDenoms} /> : (
-          <Input data-autofocus label="Galle me gina hua cash" type="number" inputMode="decimal" min={0} size="lg" required
+          <Input data-autofocus label={t('Galle me gina hua cash')} type="number" inputMode="decimal" min={0} size="lg" required
             value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" leftIcon={<Calculator className="h-4 w-4" />}
-            hint="Pehle galla gin lein, phir kul amount likhein. 'Hona chahiye' dekh kar mat likhein — asal ginti likhein." />
+            hint={t('Pehle galla gin lein, phir kul amount likhein. \'Hona chahiye\' dekh kar mat likhein — asal ginti likhein.')} />
         )}
 
-        <Textarea label={kind !== 'match' && hasCount ? 'Farak ki wajah' : 'Note (marzi se)'} required={kind !== 'match' && hasCount}
+        <Textarea label={kind !== 'match' && hasCount ? t('Farak ki wajah') : t('Note (marzi se)')} required={kind !== 'match' && hasCount}
           rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500}
-          error={needsReason ? 'Paise kam ya zyada hain — wajah likhna zaroori hai' : undefined}
-          placeholder={kind === 'short' ? 'Masalan: 500 ka khula customer ko zyada diya' : 'Masalan: shaam ki shift, sab theek'}
-          hint="Shift record aur Z-report me dikhega" />
-        <p className="text-[0.75rem] text-slate-500">Band karte waqt "hona chahiye" dobara taaza hisaab se banta hai — beech me koi sale hui to woh bhi gini jayegi.</p>
+          error={needsReason ? t('Paise kam ya zyada hain — wajah likhna zaroori hai') : undefined}
+          placeholder={kind === 'short' ? t('Masalan: 500 ka khula customer ko zyada diya') : t('Masalan: shaam ki shift, sab theek')}
+          hint={t('Shift record aur Z-report me dikhega')} />
+        <p className="text-[0.75rem] text-slate-500">{t('Band karte waqt "hona chahiye" dobara taaza hisaab se banta hai — beech me koi sale hui to woh bhi gini jayegi.')}</p>
         <button type="submit" hidden aria-hidden />
       </form>
     </Modal>

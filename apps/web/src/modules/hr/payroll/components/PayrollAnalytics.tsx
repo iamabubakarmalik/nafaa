@@ -13,6 +13,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { payrollApi } from '../api/payroll.api';
 import { PAYROLL_KEY } from './meta';
+import { t as tr } from '@core/i18n';
 
 const MIX_COLORS: Record<string, string> = { base: '#7c3aed', overtime: '#0891b2', commission: '#16a34a', bonuses: '#f59e0b' };
 
@@ -21,7 +22,7 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
   const q = useQuery({ queryKey: [PAYROLL_KEY, 'analytics', month, shopId], queryFn: () => payrollApi.analytics(month, shopId), placeholderData: (p) => p });
   const d = q.data;
 
-  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Analytics load nahi hui — internet check karein aur dobara kholein.</p>;
+  if (q.isError && !d) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('Analytics load nahi hui — internet check karein aur dobara kholein.')}</p>;
   if (!d) return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>;
 
   const t = d.totals;
@@ -32,14 +33,14 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={Wallet} label="12 mahine ki tankhwah" value={formatPKR(t.gross)} sub={`Ausat ${formatPKR(t.average)} har mahine`} tone="brand" />
-        <Kpi icon={Percent} label="Sale ka hissa" value={t.pct == null ? '—' : `${t.pct}%`} sub={`Sale ${formatPKR(t.sales)}`} tone={t.pct != null && t.pct > 25 ? 'rose' : 'emerald'} />
-        <Kpi icon={up ? TrendingUp : TrendingDown} label="Pichle mahine se" value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
-          sub={`Is mahine ${formatPKR(t.current)} · pehle ${formatPKR(t.previous)}`} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
-        <Kpi icon={HandCoins} label="Advance ki qisten" value={formatPKR(t.advanceGiven)} sub={`Fi banda ausat ${formatPKR(t.perStaff)} (is mahine)`} tone="amber" />
+        <Kpi icon={Wallet} label={tr('12 mahine ki tankhwah')} value={formatPKR(t.gross)} sub={tr('Ausat {{average}} har mahine', { average: formatPKR(t.average) })} tone="brand" />
+        <Kpi icon={Percent} label={tr('Sale ka hissa')} value={t.pct == null ? '—' : `${t.pct}%`} sub={tr('Sale {{sales}}', { sales: formatPKR(t.sales) })} tone={t.pct != null && t.pct > 25 ? 'rose' : 'emerald'} />
+        <Kpi icon={up ? TrendingUp : TrendingDown} label={tr('Pichle mahine se')} value={t.change == null ? '—' : `${up ? '+' : ''}${t.change}%`}
+          sub={tr('Is mahine {{current}} · pehle {{previous}}', { current: formatPKR(t.current), previous: formatPKR(t.previous) })} tone={t.change == null ? 'brand' : up ? 'rose' : 'emerald'} />
+        <Kpi icon={HandCoins} label={tr('Advance ki qisten')} value={formatPKR(t.advanceGiven)} sub={tr('Fi banda ausat {{perStaff}} (is mahine)', { perStaff: formatPKR(t.perStaff) })} tone="amber" />
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Har mahine ki tankhwah aur sale ka %</Title>} description="Bar = tankhwah ka expense (kul kamai) aur us mahine katne wali advance · line = sale ka kitna hissa tankhwah me gaya">
+      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>{tr('Har mahine ki tankhwah aur sale ka %')}</Title>} description={tr('Bar = tankhwah ka expense (kul kamai) aur us mahine katne wali advance · line = sale ka kitna hissa tankhwah me gaya')}>
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -58,7 +59,7 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={BarChart3}>Tankhwah kis cheez ki</Title>} description="12 mahine me asal tankhwah, overtime, commission aur bonus">
+        <Card className="rounded-2xl" title={<Title icon={BarChart3}>{tr('Tankhwah kis cheez ki')}</Title>} description={tr('12 mahine me asal tankhwah, overtime, commission aur bonus')}>
           {!d.mix.length ? <Empty /> : (
             <ul className="space-y-2.5">
               {d.mix.map((m) => (
@@ -75,40 +76,40 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
             </ul>
           )}
         </Card>
-        <Ranked icon={Store} title="Branch" description="Har branch ki tankhwah aur us ki sale ka %" empty={d.byBranch.length < 1}
-          rows={d.byBranch.map((b) => ({ key: b.key, label: b.label, amount: b.gross, sub: `${b.staff} staff${b.pct != null ? ` · sale ka ${b.pct}%` : ''}` }))} />
-        <Ranked icon={Users} title="Sab se zyada tankhwah" description="12 mahine me kis ko kitna mila (kul kamai)" empty={!d.byStaff.length}
-          rows={d.byStaff.map((s) => ({ key: s.key, label: s.label, amount: s.gross, sub: `${s.designation} · ${s.months} mahine · ausat ${formatPKR(s.average)}` }))} />
-        <Ranked icon={Briefcase} title="Ohda" description="Kis kaam par kitna expense" empty={!d.byDesignation.length}
+        <Ranked icon={Store} title={tr('Branch')} description={tr('Har branch ki tankhwah aur us ki sale ka %')} empty={d.byBranch.length < 1}
+          rows={d.byBranch.map((b) => ({ key: b.key, label: b.label, amount: b.gross, sub: tr('{{staff}} staff{{value}}', { staff: b.staff, value: b.pct != null ? tr(' · sale ka {{pct}}%', { pct: b.pct }) : '' }) }))} />
+        <Ranked icon={Users} title={tr('Sab se zyada tankhwah')} description={tr('12 mahine me kis ko kitna mila (kul kamai)')} empty={!d.byStaff.length}
+          rows={d.byStaff.map((s) => ({ key: s.key, label: s.label, amount: s.gross, sub: tr('{{designation}} · {{months}} mahine · ausat {{average}}', { designation: s.designation, months: s.months, average: formatPKR(s.average) }) }))} />
+        <Ranked icon={Briefcase} title={tr('Ohda')} description={tr('Kis kaam par kitna expense')} empty={!d.byDesignation.length}
           rows={d.byDesignation.map((x) => ({ key: x.key, label: x.label, amount: x.amount }))} />
       </div>
 
-      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Mahine ba mahine</Title>} description="Kamai, katauti, ada aur baqi" flush>
+      <Card className="rounded-2xl" title={<Title icon={CalendarRange}>{tr('Mahine ba mahine')}</Title>} description={tr('Kamai, katauti, ada aur baqi')} flush>
         <Table minWidth="44rem" className="mt-3 [&_table]:text-[0.75rem]">
           <THead>
             <Tr>
-              {['Mahina', 'Staff', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Sale', '%'].map((h, i) => (
-                <Th key={h} className={cn('px-3 py-2', i === 0 ? 'sticky left-0 bg-slate-50 px-4 text-left' : 'text-right')}>{h}</Th>
+              {[tr('Mahina'), tr('Staff'), tr('Kul kamai'), tr('Katauti'), tr('Net'), tr('Ada'), tr('Baqi'), tr('Sale'), '%'].map((h, i) => (
+                <Th key={h} className={cn('px-3 py-2', i === 0 ? 'sticky start-0 bg-slate-50 px-4 text-start' : 'text-end')}>{h}</Th>
               ))}
             </Tr>
           </THead>
           <TBody>
             {[...d.months].reverse().map((m) => (
               <Tr key={m.key}>
-                <Td className="sticky left-0 bg-white px-4 py-1.5 font-medium text-slate-800">{m.label}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums">{m.staff || '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums">{m.gross ? axisMoney(m.gross) : '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums text-rose-700">{m.cuts ? axisMoney(m.cuts) : '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums">{m.net ? axisMoney(m.net) : '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums text-success-700">{m.paid ? axisMoney(m.paid) : '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums text-amber-700">{m.due ? axisMoney(m.due) : '·'}</Td>
-                <Td className="px-3 py-1.5 text-right tabular-nums">{m.sales ? axisMoney(m.sales) : '·'}</Td>
-                <Td className="px-4 py-1.5 text-right tabular-nums">{m.pct == null ? '·' : `${m.pct}%`}</Td>
+                <Td className="sticky start-0 bg-white px-4 py-1.5 font-medium text-slate-800">{m.label}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums">{m.staff || '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums">{m.gross ? axisMoney(m.gross) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums text-rose-700">{m.cuts ? axisMoney(m.cuts) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums">{m.net ? axisMoney(m.net) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums text-success-700">{m.paid ? axisMoney(m.paid) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums text-amber-700">{m.due ? axisMoney(m.due) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-end tabular-nums">{m.sales ? axisMoney(m.sales) : '·'}</Td>
+                <Td className="px-4 py-1.5 text-end tabular-nums">{m.pct == null ? '·' : `${m.pct}%`}</Td>
               </Tr>
             ))}
           </TBody>
         </Table>
-        <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Kul kamai = asal tankhwah + overtime + commission + bonus. Advance pehle diya ja chuka hota hai, is liye jis mahine katta hai us ki Net me se nikal kar aata hai.</p>
+        <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">{tr('Kul kamai = asal tankhwah + overtime + commission + bonus. Advance pehle diya ja chuka hota hai, is liye jis mahine katta hai us ki Net me se nikal kar aata hai.')}</p>
       </Card>
     </div>
   );
@@ -156,5 +157,5 @@ function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon;
 }
 
 function Empty() {
-  return <p className="py-10 text-center text-[0.875rem] text-slate-500">Abhi koi tankhwah record nahi</p>;
+  return <p className="py-10 text-center text-[0.875rem] text-slate-500">{tr('Abhi koi tankhwah record nahi')}</p>;
 }

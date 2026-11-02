@@ -43,6 +43,7 @@ import { MonthlyReportView } from './components/MonthlyReportView';
 import { OverviewView } from './components/OverviewView';
 import { SettingsView } from './components/SettingsView';
 import { TaxGuide } from './components/TaxGuide';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'overview' | 'invoices' | 'reports' | 'settings';
 const PATH: Record<Tab, string> = { overview: '/tax', invoices: '/tax/invoices', reports: '/tax/reports', settings: '/tax/settings' };
@@ -55,8 +56,8 @@ export default function TaxPage() {
   const { pathname } = useLocation();
   if (!role || !MANAGERS.includes(role)) {
     const empty = (
-      <EmptyState className="min-h-[50vh]" icon={<ShieldAlert className="h-6 w-6" />} title="Tax sirf malik ya manager dekh sakte hain"
-        description="Is safhe par dukaan ki poori sale aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai." />
+      <EmptyState className="min-h-[50vh]" icon={<ShieldAlert className="h-6 w-6" />} title={tr('Tax sirf malik ya manager dekh sakte hain')}
+        description={tr('Is safhe par dukaan ki poori sale aur tax ka hisaab hai. Malik se kahein agar aap ko dekhna hai.')} />
     );
     return isSettingsPath(pathname) ? empty : <PageShell>{empty}</PageShell>;
   }
@@ -81,13 +82,13 @@ function TaxSettingsFrame() {
   return (
     <div className="space-y-4">
       <HeaderActions>
-        <Button size="sm" variant="secondary" title="Tax overview (1)" leftIcon={<BarChart3 className="h-4 w-4" />} onClick={() => navigate(PATH.overview)}>
-          <span className="hidden sm:inline">Tax overview</span>
+        <Button size="sm" variant="secondary" title={tr('Tax overview (1)')} leftIcon={<BarChart3 className="h-4 w-4" />} onClick={() => navigate(PATH.overview)}>
+          <span className="hidden sm:inline">{tr('Tax overview')}</span>
         </Button>
-        <Button size="sm" variant="secondary" title="Invoices (2)" leftIcon={<FileText className="h-4 w-4" />} onClick={() => navigate(PATH.invoices)}>
-          <span className="hidden sm:inline">Invoices</span>
+        <Button size="sm" variant="secondary" title={tr('Invoices (2)')} leftIcon={<FileText className="h-4 w-4" />} onClick={() => navigate(PATH.invoices)}>
+          <span className="hidden sm:inline">{tr('Invoices')}</span>
         </Button>
-        <IconButton label="Guide (G)" variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
+        <IconButton label={tr('Guide (G)')} variant="secondary" onClick={guide.open}><GraduationCap className="h-4 w-4" /></IconButton>
       </HeaderActions>
       <SettingsView />
       {guide.isOpen && <TaxGuide onClose={guide.close} />}
@@ -149,7 +150,7 @@ function Tax() {
 
   const a = analyticsQ.data;
   const shops = (shopsQ.data ?? []).filter((s) => s.isActive);
-  const branchOf = (id: string | null) => (id ? (shopsQ.data ?? []).find((s) => s.id === id)?.name ?? 'Branch' : '—');
+  const branchOf = (id: string | null) => (id ? (shopsQ.data ?? []).find((s) => s.id === id)?.name ?? tr('Branch') : '—');
   const authorities = AUTHORITY_ORDER.filter((x) => a?.profiles.some((p) => p.authority === x));
   const onNames = (a?.profiles ?? []).filter((p) => p.enabled).map((p) => p.authority);
 
@@ -158,26 +159,26 @@ function Tax() {
     mutationFn: taxApi.retry,
     onSuccess: (r) => {
       if ('skipped' in r) toast.error(r.reason);
-      else if (r.status === 'SUCCESS') toast.success(`Number mil gaya: ${r.fiscalNumber}`);
-      else if (r.status === 'PENDING') toast('Abhi bheja ja raha hai, thori der me dekhein');
-      else toast.error(r.error ?? 'Abhi bhi fail');
+      else if (r.status === 'SUCCESS') toast.success(tr('Number mil gaya: {{fiscalNumber}}', { fiscalNumber: r.fiscalNumber }));
+      else if (r.status === 'PENDING') toast(tr('Abhi bheja ja raha hai, thori der me dekhein'));
+      else toast.error(r.error ?? tr('Abhi bhi fail'));
       refresh();
     },
-    onError: (e) => toast.error(apiError(e, 'Dobara nahi bheja')),
+    onError: (e) => toast.error(apiError(e, tr('Dobara nahi bheja'))),
   });
   const retryAll = useMutation({
     mutationFn: () => taxApi.retryFailed(authority),
     onSuccess: (r) => {
-      if (r.queued) toast.success(`${r.queued} bill dobara bheje ja rahe hain. 1-2 minute me list taaza karein.`);
-      else toast(r.running ? 'Pehle wale bill abhi bheje ja rahe hain' : 'Koi fail bill nahi');
+      if (r.queued) toast.success(tr('{{queued}} bill dobara bheje ja rahe hain. 1-2 minute me list taaza karein.', { queued: r.queued }));
+      else toast(r.running ? tr('Pehle wale bill abhi bheje ja rahe hain') : tr('Koi fail bill nahi'));
       setTimeout(refresh, 15_000);
     },
     onError: (e) => toast.error(apiError(e)),
   });
   const csv = useMutation({
     mutationFn: () => taxApi.reportCsv({ month, authority, shopId: shopId || undefined }),
-    onSuccess: () => toast.success('CSV download ho gayi (Excel me khulti hai)'),
-    onError: (e) => toast.error(apiError(e, 'CSV nahi bani')),
+    onSuccess: () => toast.success(tr('CSV download ho gayi (Excel me khulti hai)')),
+    onError: (e) => toast.error(apiError(e, tr('CSV nahi bani'))),
   });
 
   useEffect(() => {
@@ -191,8 +192,8 @@ function Tax() {
     return () => window.removeEventListener('keydown', onKey);
   }, [navigate, tab]);
 
-  const periodText = resolved ? rangeLabel(resolved.from, resolved.to) : 'Sab tareekhen';
-  const filterText = [authority && AUTH[authority].label, shopId && branchOf(shopId), status && STATUS[status].label, kind && (kind === 'RETURN' ? 'Return' : 'Bill'), query && `"${query}"`].filter(Boolean).join(' · ');
+  const periodText = resolved ? rangeLabel(resolved.from, resolved.to) : tr('Sab tareekhen');
+  const filterText = [authority && AUTH[authority].label, shopId && branchOf(shopId), status && STATUS[status].label, kind && (kind === 'RETURN' ? tr('Return') : tr('Bill')), query && `"${query}"`].filter(Boolean).join(' · ');
   const filtered = !!authority || !!shopId || !!status || !!kind || !!query;
   const clear = () => { setAuthority(''); setShopId(''); setStatus(''); setKind(''); setSearch(''); };
 
@@ -207,27 +208,27 @@ function Tax() {
   const r = reportQ.data;
 
   const authorityMenu = authorities.length > 1 && (
-    <FilterMenu icon={Landmark} label="Authority" value={authority} active={!!authority} onChange={setAuthority}
-      options={[{ value: '' as const, label: 'Sab authorities' }, ...authorities.map((x) => ({ value: x, label: AUTH[x].label, color: AUTH[x].color }))]} />
+    <FilterMenu icon={Landmark} label={tr('Authority')} value={authority} active={!!authority} onChange={setAuthority}
+      options={[{ value: '' as const, label: tr('Sab authorities') }, ...authorities.map((x) => ({ value: x, label: AUTH[x].label, color: AUTH[x].color }))]} />
   );
   const branchMenu = allShops && shops.length > 1 && (
-    <FilterMenu icon={Store} label="Branch" value={shopId} active={!!shopId} onChange={setShopId}
-      options={[{ value: '', label: 'Sab branches' }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
+    <FilterMenu icon={Store} label={tr('Branch')} value={shopId} active={!!shopId} onChange={setShopId}
+      options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name }))]} />
   );
   const chips = filtered ? <>
     {authority && <FilterChip onRemove={() => setAuthority('')}>{AUTH[authority].label}</FilterChip>}
     {shopId && <FilterChip onRemove={() => setShopId('')}>{branchOf(shopId)}</FilterChip>}
     {status && tab === 'invoices' && <FilterChip onRemove={() => setStatus('')}>{STATUS[status].label}</FilterChip>}
-    {kind && tab === 'invoices' && <FilterChip onRemove={() => setKind('')}>{kind === 'RETURN' ? 'Sirf return' : 'Sirf bill'}</FilterChip>}
+    {kind && tab === 'invoices' && <FilterChip onRemove={() => setKind('')}>{kind === 'RETURN' ? tr('Sirf return') : tr('Sirf bill')}</FilterChip>}
     {query && tab === 'invoices' && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
   </> : undefined;
 
   return (
     <PageShell>
       <PageHero
-        title="Tax"
-        chip={<><Landmark /> {onNames.length ? onNames.join(' · ') : 'Band'}</>}
-        meta="Har bill authority ko, bill par fiscal number aur QR, mahine ki report"
+        title={tr('Tax')}
+        chip={<><Landmark /> {onNames.length ? onNames.join(' · ') : tr('Band')}</>}
+        meta={tr('Har bill authority ko, bill par fiscal number aur QR, mahine ki report')}
         busy={analyticsQ.isFetching && !analyticsQ.isLoading}
         loading={analyticsQ.isLoading && tab !== 'settings'}
         actions={<>
@@ -235,34 +236,34 @@ function Tax() {
             <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!canPrint} /></span>
           )}
           {tab === 'reports' && (
-            <button type="button" onClick={() => csv.mutate()} disabled={csv.isPending || !r} className={heroButton}><Download className="h-4 w-4" /> CSV</button>
+            <button type="button" onClick={() => csv.mutate()} disabled={csv.isPending || !r} className={heroButton}><Download className="h-4 w-4" /> {' '}{tr('CSV')}</button>
           )}
-          {tab !== 'settings' && <button type="button" onClick={() => go('settings')} className={heroButton}><Settings2 className="h-4 w-4" /> Settings</button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {tab !== 'settings' && <button type="button" onClick={() => go('settings')} className={heroButton}><Settings2 className="h-4 w-4" /> {' '}{tr('Settings')}</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={a ? [
-          { label: 'Is mahine ka tax', value: money(a.thisMonth.tax), hint: `${a.thisMonth.bills} bill` },
-          { label: 'Pichla mahina', value: money(a.lastMonth.tax) },
-          { label: 'Fail', value: a.health.failed, hint: waiting ? `${waiting} qatar me` : undefined },
-        ] : [{ label: 'Is mahine ka tax', value: '—' }]}
+          { label: tr('Is mahine ka tax'), value: money(a.thisMonth.tax), hint: tr('{{bills}} bill', { bills: a.thisMonth.bills }) },
+          { label: tr('Pichla mahina'), value: money(a.lastMonth.tax) },
+          { label: tr('Fail'), value: a.health.failed, hint: waiting ? tr('{{waiting}} qatar me', { waiting }) : undefined },
+        ] : [{ label: tr('Is mahine ka tax'), value: '—' }]}
       />
 
       {(tab === 'overview' || tab === 'invoices') && (
         <KpiRow cols={5}>
           {!a || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-            <KpiCard icon={ReceiptText} color="#2563eb" label="Taxable sale" value={money(t.saleValue)}
-              hint={`${t.bills} bill${t.returns ? ` · ${t.returns} return` : ''} · tax ke baghair`} />
-            <KpiCard icon={Percent} color="#16a34a" label="Tax jama hua" value={money(t.tax)}
+            <KpiCard icon={ReceiptText} color="#2563eb" label={tr('Taxable sale')} value={money(t.saleValue)}
+              hint={tr('{{bills}} bill{{value}} · tax ke baghair', { bills: t.bills, value: t.returns ? tr(' · {{returns}} return', { returns: t.returns }) : '' })} />
+            <KpiCard icon={Percent} color="#16a34a" label={tr('Tax jama hua')} value={money(t.tax)}
               hint={`${t.saleValue ? `Ausat ${((t.tax / t.saleValue) * 100).toFixed(1)}% · ` : ''}${rangeLabel(period.from, period.to)}`} />
             <KpiCard icon={vsLast != null && vsLast < 0 ? TrendingDown : TrendingUp} color={vsLast == null ? '#64748b' : vsLast >= 0 ? '#16a34a' : '#e11d48'}
-              label="Pichle mahine se" value={vsLast == null ? '—' : `${vsLast > 0 ? '+' : ''}${vsLast}%`}
-              hint={`Is mahine ${money(a.thisMonth.tax)} · pichle isi din tak ${money(a.lastMonthToDate.tax)}`}
+              label={tr('Pichle mahine se')} value={vsLast == null ? '—' : `${vsLast > 0 ? '+' : ''}${vsLast}%`}
+              hint={tr('Is mahine {{tax}} · pichle isi din tak {{tax2}}', { tax: money(a.thisMonth.tax), tax2: money(a.lastMonthToDate.tax) })}
               onClick={() => setRange({ preset: 'thisMonth', custom: { from: '', to: '' } })} active={range.preset === 'thisMonth' && tab === 'overview'} />
-            <KpiCard icon={CheckCircle2} color="#0891b2" label="Authority ne liye" value={a.health.success}
-              hint={a.health.successRate == null ? 'Abhi koi bill nahi gaya' : `${a.health.successRate}% kamyab${a.health.avgSeconds != null ? ` · ausat ${a.health.avgSeconds}s` : ''}`}
+            <KpiCard icon={CheckCircle2} color="#0891b2" label={tr('Authority ne liye')} value={a.health.success}
+              hint={a.health.successRate == null ? tr('Abhi koi bill nahi gaya') : tr('{{successRate}}% kamyab{{value}}', { successRate: a.health.successRate, value: a.health.avgSeconds != null ? tr(' · ausat {{avgSeconds}}s', { avgSeconds: a.health.avgSeconds }) : '' })}
               onClick={() => showInvoices('SUCCESS')} active={tab === 'invoices' && status === 'SUCCESS'} />
-            <KpiCard icon={a.health.failed ? RotateCcw : Clock} color={a.health.failed ? '#e11d48' : '#d97706'} label="Fail / qatar me" value={a.health.failed + waiting}
-              hint={`${a.health.failed} fail · ${a.health.pending} qatar me${a.missing ? ` · ${a.missing} abhi nahi gaye` : ''}`}
+            <KpiCard icon={a.health.failed ? RotateCcw : Clock} color={a.health.failed ? '#e11d48' : '#d97706'} label={tr('Fail / qatar me')} value={a.health.failed + waiting}
+              hint={tr('{{failed}} fail · {{pending}} qatar me{{value}}', { failed: a.health.failed, pending: a.health.pending, value: a.missing ? tr(' · {{missing}} abhi nahi gaye', { missing: a.missing }) : '' })}
               onClick={() => showInvoices(a.health.failed ? 'FAILED' : 'PENDING')} active={tab === 'invoices' && (status === 'FAILED' || status === 'PENDING')} />
           </>}
         </KpiRow>
@@ -271,19 +272,19 @@ function Tax() {
       {tab === 'reports' && (
         <KpiRow cols={5}>
           {!r ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-            <KpiCard icon={ReceiptText} color="#2563eb" label="Sale (tax ke baghair)" value={money(r.totals.grossValue)} hint={`${r.totals.bills} bill`} />
-            <KpiCard icon={Percent} color="#16a34a" label="Output tax" value={money(r.totals.grossTax)} hint="Bills par laga tax" />
-            <KpiCard icon={RotateCcw} color="#d97706" label="Credit notes (return)" value={money(r.totals.returnTax)} hint={`${r.totals.returns} return · ${money(r.totals.returnValue)}`} />
-            <KpiCard icon={Landmark} color="#7c3aed" label="Net tax" value={money(r.totals.tax)} hint="Output tax - credit notes" />
-            <KpiCard icon={Clock} color={r.notSent.bills ? '#e11d48' : '#64748b'} label="Report me nahi" value={r.notSent.bills}
-              hint={r.notSent.bills ? `Tax ${money(r.notSent.tax)} · authority ne abhi nahi liya` : 'Sab bill shamil hain'}
+            <KpiCard icon={ReceiptText} color="#2563eb" label={tr('Sale (tax ke baghair)')} value={money(r.totals.grossValue)} hint={tr('{{bills}} bill', { bills: r.totals.bills })} />
+            <KpiCard icon={Percent} color="#16a34a" label={tr('Output tax')} value={money(r.totals.grossTax)} hint={tr('Bills par laga tax')} />
+            <KpiCard icon={RotateCcw} color="#d97706" label={tr('Credit notes (return)')} value={money(r.totals.returnTax)} hint={tr('{{returns}} return · {{returnValue}}', { returns: r.totals.returns, returnValue: money(r.totals.returnValue) })} />
+            <KpiCard icon={Landmark} color="#7c3aed" label={tr('Net tax')} value={money(r.totals.tax)} hint={tr('Output tax - credit notes')} />
+            <KpiCard icon={Clock} color={r.notSent.bills ? '#e11d48' : '#64748b'} label={tr('Report me nahi')} value={r.notSent.bills}
+              hint={r.notSent.bills ? tr('Tax {{tax}} · authority ne abhi nahi liya', { tax: money(r.notSent.tax) }) : tr('Sab bill shamil hain')}
               onClick={r.notSent.bills ? () => showInvoices('FAILED') : undefined} />
           </>}
         </KpiRow>
       )}
 
       {tab === 'overview' && (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare figures isi period ke hain. Sirf woh bill ginte hain jo authority ne qabool kiye.</p>}
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Saare figures isi period ke hain. Sirf woh bill ginte hain jo authority ne qabool kiye.')}</p>}
           chips={chips} onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />
           {authorityMenu}
@@ -292,17 +293,17 @@ function Tax() {
       )}
 
       {tab === 'invoices' && (
-        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill number ya authority ka number…" label="Search" />}
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Bill number ya authority ka number…')} label={tr('Search')} />}
           chips={chips} onClear={clear}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" />
           {authorityMenu}
-          <FilterMenu icon={Filter} label="Haal" value={status} active={!!status} onChange={setStatus}
-            options={[{ value: '' as const, label: 'Sab' }, ...(Object.keys(STATUS) as TaxStatus[]).map((k) => ({
+          <FilterMenu icon={Filter} label={tr('Haal')} value={status} active={!!status} onChange={setStatus}
+            options={[{ value: '' as const, label: tr('Sab') }, ...(Object.keys(STATUS) as TaxStatus[]).map((k) => ({
               value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color,
               hint: invoicesQ.data?.counts[k] != null ? String(invoicesQ.data.counts[k]) : undefined,
             }))]} />
-          <FilterMenu icon={FileText} label={kind === 'RETURN' ? 'Sirf return' : kind === 'SALE' ? 'Sirf bill' : 'Bill aur return'} value={kind} active={!!kind} onChange={setKind} align="right"
-            options={[{ value: '' as const, label: 'Bill aur return' }, { value: 'SALE' as const, label: 'Sirf bill' }, { value: 'RETURN' as const, label: 'Sirf return (credit note)' }]} />
+          <FilterMenu icon={FileText} label={kind === 'RETURN' ? tr('Sirf return') : kind === 'SALE' ? tr('Sirf bill') : tr('Bill aur return')} value={kind} active={!!kind} onChange={setKind} align="right"
+            options={[{ value: '' as const, label: tr('Bill aur return') }, { value: 'SALE' as const, label: tr('Sirf bill') }, { value: 'RETURN' as const, label: tr('Sirf return (credit note)') }]} />
           {branchMenu}
         </FilterBar>
       )}
@@ -310,10 +311,10 @@ function Tax() {
       {tab === 'reports' && (
         <FilterBar search={
           <label className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="text-[0.8125rem] font-medium text-slate-600">Mahina</span>
+            <span className="text-[0.8125rem] font-medium text-slate-600">{tr('Mahina')}</span>
             <input type="month" value={month} max={thisMonth} onChange={(e) => e.target.value && setMonth(e.target.value)}
               className="h-11 rounded-2xl border-0 bg-slate-100/80 px-4 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            <span className="hidden text-[0.8125rem] text-slate-500 sm:inline">{monthName(month)} ka sales tax return</span>
+            <span className="hidden text-[0.8125rem] text-slate-500 sm:inline">{tr('{{month}} ka sales tax return', { month: monthName(month) })}</span>
           </label>
         } chips={authority || shopId ? chips : undefined} onClear={clear}>
           {authorityMenu}
@@ -322,12 +323,12 @@ function Tax() {
       )}
 
       <ViewTabs value={tab} onChange={go}
-        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> tabs · <Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</>}
+        hint={<><Kbd>1</Kbd>-<Kbd>4</Kbd> {' '}{tr('tabs ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</>}
         tabs={[
-          { id: 'overview', label: 'Overview', icon: BarChart3 },
-          { id: 'invoices', label: 'Invoices', icon: FileText, count: a ? a.health.failed || null : null },
-          { id: 'reports', label: 'Mahine ki report', icon: Download },
-          { id: 'settings', label: 'Settings', icon: Settings2 },
+          { id: 'overview', label: tr('Overview'), icon: BarChart3 },
+          { id: 'invoices', label: tr('Invoices'), icon: FileText, count: a ? a.health.failed || null : null },
+          { id: 'reports', label: tr('Mahine ki report'), icon: Download },
+          { id: 'settings', label: tr('Settings'), icon: Settings2 },
         ]} />
 
       {tab === 'overview' && (

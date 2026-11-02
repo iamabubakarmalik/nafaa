@@ -27,6 +27,7 @@ import { CLAIM_STATUSES, INVOICED_STATUSES } from '../distribution.constants';
 import { CreateClaimDto, ListClaimsDto, ReceiveClaimDto, SubmitClaimDto } from '../dto/phase2.dto';
 import { customerCards, dayRange, nextNumber, r2, r4, userNames } from '../distribution.support';
 import { DistributionPrintService } from './print.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface ClaimLine {
   kind: 'SCHEME' | 'RETURN';
@@ -264,7 +265,7 @@ export class ClaimsService {
     const tenantId = user.tenantId;
     const claim = await this.prisma.distClaim.findFirst({ where: { id, tenantId } });
     if (!claim) throw new NotFoundException('Claim nahi mila');
-    if (claim.status !== 'DRAFT' && claim.status !== 'SUBMITTED') throw new BadRequestException(`Claim ${claim.status} hai`);
+    if (claim.status !== 'DRAFT' && claim.status !== 'SUBMITTED') throw new BadRequestException(apiMessage('Claim {{claimStatus}} hai', { claimStatus: claim.status }));
     const amount = r2(dto.amount);
     if (!(amount > 0)) throw new BadRequestException('Amount likhein');
     const income = await this.income.create(user, new ShopScope(null, true), {

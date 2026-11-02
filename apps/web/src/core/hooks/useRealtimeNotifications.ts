@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { notificationsApi, type Notification } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from './useNotificationSound';
+import { t } from '@core/i18n';
 
 const SEEN_KEY = 'nafaa-notifications-seen-v2';
 const URGENT_TYPES = ['OUT_OF_STOCK', 'PAYMENT_REJECTED', 'CREDIT_ALERT', 'ERROR', 'INVOICE_DUE', 'LOW_STOCK'];
@@ -83,7 +84,7 @@ export function useRealtimeNotifications() {
             description: n.message,
             duration: isUrgent ? 10000 : 6000,
             action: n.link ? {
-              label: 'View',
+              label: t('View'),
               onClick: () => { window.location.href = n.link!; },
             } : undefined,
           });

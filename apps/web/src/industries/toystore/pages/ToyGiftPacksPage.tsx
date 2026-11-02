@@ -27,6 +27,7 @@ import { packBody, toyGiftPacksApi, type ToyGiftPack } from '../api/gift-packs.a
 import { toyProductsApi, type GiftWrap } from '../api/products.api';
 import { AGE_GROUPS, KEYS, OCCASIONS, apiError, labelOf } from '../lib/meta';
 import { ConfirmModal, EmptyBox, cardAction, cardDanger, cardLink, usePageKeys } from '../components/ui';
+import { t } from '@core/i18n';
 
 type Tab = 'live' | 'season' | 'off';
 
@@ -71,28 +72,28 @@ export default function ToyGiftPacksPage() {
   const refresh = () => [KEYS.packs, KEYS.posPacks].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const switchOff = useMutation({
     mutationFn: (p: ToyGiftPack) => toyGiftPacksApi.remove(p.id),
-    onSuccess: () => { refresh(); setOff(null); toast.success('Pack band ho gaya — counter par nahi dikhega'); },
-    onError: (e) => toast.error(apiError(e, 'Band nahi hua')),
+    onSuccess: () => { refresh(); setOff(null); toast.success(t('Pack band ho gaya — counter par nahi dikhega')); },
+    onError: (e) => toast.error(apiError(e, t('Band nahi hua'))),
   });
   const switchOn = useMutation({
     mutationFn: (p: ToyGiftPack) => toyGiftPacksApi.update(p.id, packBody(p, { isActive: true })),
-    onSuccess: () => { refresh(); toast.success('Pack phir counter par'); },
-    onError: (e) => toast.error(apiError(e, 'Chalu nahi hua')),
+    onSuccess: () => { refresh(); toast.success(t('Pack phir counter par')); },
+    onError: (e) => toast.error(apiError(e, t('Chalu nahi hua'))),
   });
   const copy = useMutation({
     mutationFn: (p: ToyGiftPack) => toyGiftPacksApi.duplicate(p.id),
-    onSuccess: (p) => { refresh(); toast.success('Copy ban gayi (band) — badal kar chalu karein'); navigate(`/toystore/gift-packs/${p.id}/edit`); },
-    onError: (e) => toast.error(apiError(e, 'Copy nahi bani')),
+    onSuccess: (p) => { refresh(); toast.success(t('Copy ban gayi (band) — badal kar chalu karein')); navigate(`/toystore/gift-packs/${p.id}/edit`); },
+    onError: (e) => toast.error(apiError(e, t('Copy nahi bani'))),
   });
 
   usePageKeys(searchRef, canEdit ? { n: () => navigate('/toystore/gift-packs/new') } : {});
 
   const doc = () => ({
-    title: 'Gift packs',
-    subtitle: tab === 'off' ? 'Band' : tab === 'season' ? 'Season wale' : 'Chalu',
+    title: t('Gift packs'),
+    subtitle: tab === 'off' ? t('Band') : tab === 'season' ? t('Season wale') : t('Chalu'),
     sections: [{
       kind: 'table' as const,
-      columns: [{ label: 'Pack' }, { label: 'Khilone', wideOnly: true }, { label: 'Asal', align: 'right' as const }, { label: 'Pack', align: 'right' as const }, { label: 'Bane', align: 'right' as const }],
+      columns: [{ label: t('Pack') }, { label: t('Khilone'), wideOnly: true }, { label: t('Asal'), align: 'right' as const }, { label: t('Pack'), align: 'right' as const }, { label: t('Bane'), align: 'right' as const }],
       rows: rows.map((p) => [p.name, p.items.map((i) => `${i.product?.name ?? '—'} x${i.quantity}`).join(', '), String(p.originalPrice), String(p.giftPackPrice), String(buildable(p))]),
     }],
   });
@@ -100,35 +101,35 @@ export default function ToyGiftPacksPage() {
   return (
     <PageShell>
       <PageHero
-        title="Gift packs"
-        chip={<><Gift /> Eid aur saalgirah</>}
-        meta="Kai khilone ek qeemat par — counter ke Combos tab se bikte hain"
+        title={t('Gift packs')}
+        chip={<><Gift /> {' '}{t('Eid aur saalgirah')}</>}
+        meta={t('Kai khilone ek qeemat par — counter ke Combos tab se bikte hain')}
         loading={listQ.isLoading}
         actions={<>
-          {canEdit && <button type="button" onClick={() => setWrapOpen(true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">{wrap?.isActive ? `Gift wrap ${sales(wrap.price)}` : 'Gift wrap'}</span></button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <Link to="/toystore/gift-packs/new" title="Naya pack (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Pack</Link>}
+          {canEdit && <button type="button" onClick={() => setWrapOpen(true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">{wrap?.isActive ? t('Gift wrap {{price}}', { price: sales(wrap.price) }) : t('Gift wrap')}</span></button>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <Link to="/toystore/gift-packs/new" title={t('Naya pack (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Pack')}</Link>}
         </>}
-        stats={[{ label: 'Counter par', value: live.length }, { label: 'Ab tak bike', value: all.reduce((s, p) => s + p.totalSold, 0) }]}
+        stats={[{ label: t('Counter par'), value: live.length }, { label: t('Ab tak bike'), value: all.reduce((s, p) => s + p.totalSold, 0) }]}
       />
 
       <KpiRow cols={4}>
-        <KpiCard icon={Gift} color="#db2777" label="Chalu" value={all.filter((p) => p.isActive).length} onClick={() => setTab('live')} active={tab === 'live'} />
-        <KpiCard icon={Moon} color="#16a34a" label="Season (Eid)" value={all.filter((p) => p.isActive && p.isSeasonal).length} onClick={() => setTab('season')} active={tab === 'season'} />
-        <KpiCard icon={Package} color="#e11d48" label="Stock nahi" value={short.length} hint="Ek bhi pack nahi banta" onClick={() => setTab('live')} />
-        <KpiCard icon={Power} color="#64748b" label="Band" value={all.filter((p) => !p.isActive).length} onClick={() => setTab('off')} active={tab === 'off'} />
+        <KpiCard icon={Gift} color="#db2777" label={t('Chalu')} value={all.filter((p) => p.isActive).length} onClick={() => setTab('live')} active={tab === 'live'} />
+        <KpiCard icon={Moon} color="#16a34a" label={t('Season (Eid)')} value={all.filter((p) => p.isActive && p.isSeasonal).length} onClick={() => setTab('season')} active={tab === 'season'} />
+        <KpiCard icon={Package} color="#e11d48" label={t('Stock nahi')} value={short.length} hint={t('Ek bhi pack nahi banta')} onClick={() => setTab('live')} />
+        <KpiCard icon={Power} color="#64748b" label={t('Band')} value={all.filter((p) => !p.isActive).length} onClick={() => setTab('off')} active={tab === 'off'} />
       </KpiRow>
 
-      <ViewTabs<Tab> tabs={[{ id: 'live', label: 'Chalu' }, { id: 'season', label: 'Season' }, { id: 'off', label: 'Band' }]} value={tab} onChange={setTab}
+      <ViewTabs<Tab> tabs={[{ id: 'live', label: t('Chalu') }, { id: 'season', label: t('Season') }, { id: 'off', label: t('Band') }]} value={tab} onChange={setTab}
         right={<PrintButton doc={doc} disabled={!rows.length} size="sm" />} />
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Pack ya khilone ka naam" label="Search" />} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Pack ya khilone ka naam')} label={t('Search')} />} />
 
       {listQ.isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-56 rounded-2xl" />)}</div>
       ) : rows.length === 0 ? (
-        <EmptyBox icon={Gift} title={search ? 'Koi pack nahi mila' : tab === 'off' ? 'Koi band pack nahi' : 'Abhi koi gift pack nahi'}
-          text="Do ya zyada khilone chun kar ek qeemat rakhein — Eid aur saalgirah par jaldi bikta hai aur purana stock bhi nikalta hai."
-          action={canEdit && !search && tab !== 'off' ? <Button onClick={() => navigate('/toystore/gift-packs/new')} leftIcon={<Plus className="h-4 w-4" />}>Pack banayein</Button> : undefined} />
+        <EmptyBox icon={Gift} title={search ? t('Koi pack nahi mila') : tab === 'off' ? t('Koi band pack nahi') : t('Abhi koi gift pack nahi')}
+          text={t('Do ya zyada khilone chun kar ek qeemat rakhein — Eid aur saalgirah par jaldi bikta hai aur purana stock bhi nikalta hai.')}
+          action={canEdit && !search && tab !== 'off' ? <Button onClick={() => navigate('/toystore/gift-packs/new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Pack banayein')}</Button> : undefined} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map((p) => {
@@ -141,36 +142,36 @@ export default function ToyGiftPacksPage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="flex items-center gap-1.5 truncate font-semibold text-slate-900">{p.isFeatured && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}{p.name}</h3>
                     <p className="truncate text-[0.75rem] text-slate-500">
-                      {[labelOf(OCCASIONS, p.occasion), labelOf(AGE_GROUPS, p.targetAgeGroup), p.isSeasonal && p.seasonName].filter(Boolean).join(' · ') || `${p.itemCount} khilone`}
+                      {[labelOf(OCCASIONS, p.occasion), labelOf(AGE_GROUPS, p.targetAgeGroup), p.isSeasonal && p.seasonName].filter(Boolean).join(' · ') || t('{{itemCount}} khilone', { itemCount: p.itemCount })}
                     </p>
                   </div>
                   <span className={cn('shrink-0 rounded-md px-2 py-0.5 text-[0.6875rem] font-semibold ring-1',
                     on ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : p.isActive ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-slate-100 text-slate-500 ring-slate-200')}>
-                    {on ? 'Counter par' : p.isActive ? 'Tareekh se bahar' : 'Band'}
+                    {on ? t('Counter par') : p.isActive ? t('Tareekh se bahar') : t('Band')}
                   </span>
                 </div>
                 <ul className="mt-3 space-y-1 text-[0.8125rem] text-slate-700">
                   {p.items.slice(0, 4).map((i, n) => (
-                    <li key={`${i.productId}-${n}`} className="flex justify-between gap-2"><span className="truncate">{i.product?.name ?? 'Khilona nahi mila'} × {i.quantity}</span><span className="shrink-0 tabular-nums text-slate-500">{sales(i.unitPrice * i.quantity)}</span></li>
+                    <li key={`${i.productId}-${n}`} className="flex justify-between gap-2"><span className="truncate">{i.product?.name ?? t('Khilona nahi mila')} × {i.quantity}</span><span className="shrink-0 tabular-nums text-slate-500">{sales(i.unitPrice * i.quantity)}</span></li>
                   ))}
-                  {p.items.length > 4 && <li className="text-[0.75rem] text-slate-500">+{p.items.length - 4} aur</li>}
+                  {p.items.length > 4 && <li className="text-[0.75rem] text-slate-500">{t('+{{value}} aur', { value: p.items.length - 4 })}</li>}
                 </ul>
                 <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-[0.75rem]">
-                  <div><dt className="text-slate-500">Pack</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{sales(p.giftPackPrice)}</dd></div>
-                  <div><dt className="text-slate-500">Bachat</dt><dd className="font-semibold tabular-nums text-emerald-700">{p.savings > 0 ? `${sales(p.savings)} (${p.savingsPct}%)` : '—'}</dd></div>
-                  <div><dt className="text-slate-500">Stock se</dt><dd className={cn('font-semibold tabular-nums', can === 0 ? 'text-rose-600' : 'text-slate-900')}>{can} pack</dd></div>
+                  <div><dt className="text-slate-500">{t('Pack')}</dt><dd className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{sales(p.giftPackPrice)}</dd></div>
+                  <div><dt className="text-slate-500">{t('Bachat')}</dt><dd className="font-semibold tabular-nums text-emerald-700">{p.savings > 0 ? `${sales(p.savings)} (${p.savingsPct}%)` : '—'}</dd></div>
+                  <div><dt className="text-slate-500">{t('Stock se')}</dt><dd className={cn('font-semibold tabular-nums', can === 0 ? 'text-rose-600' : 'text-slate-900')}>{t('{{can}} pack', { can })}</dd></div>
                 </dl>
                 {(p.validFrom || p.validUntil) && (
                   <p className="mt-2 flex items-center gap-1 text-[0.75rem] text-slate-500"><CalendarClock className="h-3.5 w-3.5" />{[day(p.validFrom), day(p.validUntil)].filter(Boolean).join(' se ')}{p.validUntil && !p.validFrom ? ' tak' : ''}</p>
                 )}
-                <p className="mt-1 text-[0.75rem] text-slate-500">{p.totalSold} bike{p.isGiftWrapped ? ' · Wrap ke saath' : ''}</p>
+                <p className="mt-1 text-[0.75rem] text-slate-500">{t('{{totalSold}} bike{{value}}', { totalSold: p.totalSold, value: p.isGiftWrapped ? t(' · Wrap ke saath') : '' })}</p>
                 <div className="mt-auto flex flex-wrap gap-1 pt-3">
-                  {canSell && on && <Link to="/pos" className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />Bechein</Link>}
-                  {canEdit && <Link to={`/toystore/gift-packs/${p.id}/edit`} className={cardAction}><Pencil className="h-3.5 w-3.5" />Badlein</Link>}
-                  {canEdit && <button type="button" onClick={() => copy.mutate(p)} disabled={copy.isPending} className={cardAction}><Copy className="h-3.5 w-3.5" />Copy</button>}
+                  {canSell && on && <Link to="/pos" className={cardLink}><ShoppingCart className="h-3.5 w-3.5" />{t('Bechein')}</Link>}
+                  {canEdit && <Link to={`/toystore/gift-packs/${p.id}/edit`} className={cardAction}><Pencil className="h-3.5 w-3.5" />{t('Badlein')}</Link>}
+                  {canEdit && <button type="button" onClick={() => copy.mutate(p)} disabled={copy.isPending} className={cardAction}><Copy className="h-3.5 w-3.5" />{t('Copy')}</button>}
                   {canEdit && (p.isActive
-                    ? <button type="button" onClick={() => setOff(p)} className={cardDanger}><Power className="h-3.5 w-3.5" />Band</button>
-                    : <button type="button" onClick={() => switchOn.mutate(p)} disabled={switchOn.isPending} className={cardLink}><Power className="h-3.5 w-3.5" />Chalu</button>)}
+                    ? <button type="button" onClick={() => setOff(p)} className={cardDanger}><Power className="h-3.5 w-3.5" />{t('Band')}</button>
+                    : <button type="button" onClick={() => switchOn.mutate(p)} disabled={switchOn.isPending} className={cardLink}><Power className="h-3.5 w-3.5" />{t('Chalu')}</button>)}
                 </div>
               </article>
             );
@@ -178,26 +179,26 @@ export default function ToyGiftPacksPage() {
         </div>
       )}
 
-      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> naya pack · </>}<Kbd>/</Kbd> search · <Kbd>G</Kbd> guide</p>
+      <p className="hidden items-center gap-1 px-1 text-[0.75rem] text-slate-500 sm:flex">{canEdit && <><Kbd>N</Kbd> {' '}{t('naya pack ·')}{' '} </>}<Kbd>/</Kbd> {' '}{t('search ·')}{' '} <Kbd>G</Kbd> {' '}{t('guide')}</p>
 
       {off && (
-        <ConfirmModal title={`${off.name} band karein?`} confirm="Band karein" danger pending={switchOff.isPending}
-          text="Counter par nahi dikhega. Bike hue bill aur ginti waisi rahengi; baad me Chalu kar sakte hain."
+        <ConfirmModal title={t('{{name}} band karein?', { name: off.name })} confirm={t('Band karein')} danger pending={switchOff.isPending}
+          text={t('Counter par nahi dikhega. Bike hue bill aur ginti waisi rahengi; baad me Chalu kar sakte hain.')}
           onConfirm={() => switchOff.mutate(off)} onClose={() => setOff(null)} />
       )}
 
       {wrapOpen && <GiftWrapModal current={wrap ?? null} onClose={() => setWrapOpen(false)} onSaved={() => { setWrapOpen(false); qc.invalidateQueries({ queryKey: ['toy-gift-wrap'] }); qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Gift packs — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={t('Gift packs — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Gift, color: '#db2777', title: 'Pack banayein', text: 'Do ya zyada khilone chunein aur pack ki qeemat rakhein. Counter ke Combos tab me 🎁 ke saath aata hai.' },
-            { icon: Package, color: '#e11d48', title: 'Stock', text: 'Pack bikne par har khilona stock se nikalta hai. "Stock se" batata hai abhi kitne pack ban sakte hain.' },
-            { icon: Moon, color: '#16a34a', title: 'Eid season', text: 'Season pack par shuru aur khatam ki tareekh rakhein — tareekh ke bahar counter par nahi dikhta.' },
-            { icon: Scissors, color: '#0891b2', title: 'Gift wrap', text: '"Gift wrap" se charge rakhein — POS par "Gift wrap" chip se ek tap me bill par lagta hai, stock nahi ginta. 0 rakhne se band.' },
-            { icon: Sparkles, color: '#7c3aed', title: 'Copy', text: 'Pichle saal ka pack Copy karein, qeemat badlein aur chalu kar dein.' },
+            { icon: Gift, color: '#db2777', title: t('Pack banayein'), text: t('Do ya zyada khilone chunein aur pack ki qeemat rakhein. Counter ke Combos tab me 🎁 ke saath aata hai.') },
+            { icon: Package, color: '#e11d48', title: t('Stock'), text: t('Pack bikne par har khilona stock se nikalta hai. "Stock se" batata hai abhi kitne pack ban sakte hain.') },
+            { icon: Moon, color: '#16a34a', title: t('Eid season'), text: t('Season pack par shuru aur khatam ki tareekh rakhein — tareekh ke bahar counter par nahi dikhta.') },
+            { icon: Scissors, color: '#0891b2', title: t('Gift wrap'), text: t('"Gift wrap" se charge rakhein — POS par "Gift wrap" chip se ek tap me bill par lagta hai, stock nahi ginta. 0 rakhne se band.') },
+            { icon: Sparkles, color: '#7c3aed', title: t('Copy'), text: t('Pichle saal ka pack Copy karein, qeemat badlein aur chalu kar dein.') },
           ]}
-          shortcuts={[['N', 'naya pack'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', t('naya pack')], ['/', t('dhoondein')], ['G', t('guide')]]}
         />
       )}
     </PageShell>
@@ -211,18 +212,18 @@ function GiftWrapModal({ current, onClose, onSaved }: { current: GiftWrap | null
   const save = useMutation({
     mutationFn: () => {
       const n = Number(price || 0);
-      if (!(n >= 0)) throw new Error('Charge sahi likhein');
+      if (!(n >= 0)) throw new Error(t('Charge sahi likhein'));
       return toyProductsApi.setGiftWrap({ price: n, name: name.trim() || undefined });
     },
-    onSuccess: (w) => { toast.success(w.isActive ? `Gift wrap ${w.price} — POS par chip se lagayein` : 'Gift wrap band'); onSaved(); },
-    onError: (e) => toast.error(apiError(e, (e as Error).message || 'Save nahi hua')),
+    onSuccess: (w) => { toast.success(w.isActive ? t('Gift wrap {{price}} — POS par chip se lagayein', { price: w.price }) : t('Gift wrap band')); onSaved(); },
+    onError: (e) => toast.error(apiError(e, (e as Error).message || t('Save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Gift wrap ka charge" description="Bill par alag line — stock nahi ginta, Sale me aata hai"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button onClick={() => save.mutate()} loading={save.isPending}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Gift wrap ka charge')} description={t('Bill par alag line — stock nahi ginta, Sale me aata hai')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button onClick={() => save.mutate()} loading={save.isPending}>{t('Save karein')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Charge (Rs)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="100" hint="0 ya khali = band" autoFocus />
-        <Input label="Bill par naam" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+        <Input label={t('Charge (Rs)')} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="100" hint={t('0 ya khali = band')} autoFocus />
+        <Input label={t('Bill par naam')} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
       </div>
     </Modal>
   );

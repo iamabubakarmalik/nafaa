@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
+import { STATUS_CODES } from 'http';
 
 /** Plain answers for database errors the client can act on. */
 const PRISMA_KNOWN: Record<string, { status: number; message: string }> = {
@@ -51,7 +52,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         const r = res as Record<string, unknown>;
         message = (r.message as string | string[]) ?? message;
         error = (r.error as string) ?? exception.name;
-        if (typeof r.messageKey === 'string') translation = { messageKey: r.messageKey, params: r.params };
+        if (typeof r.messageKey === 'string') {
+          translation = { messageKey: r.messageKey, params: r.params };
+          // Same `error` text Nest gives a plain-string exception ("Bad Request").
+          if (r.error === undefined) error = STATUS_CODES[status] ?? exception.name;
+        }
       }
     } else {
       const where = `${request.method} ${request.originalUrl ?? request.url}`;

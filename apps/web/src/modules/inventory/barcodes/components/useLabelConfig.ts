@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { barcodeLabelsApi, LABEL_DEFAULTS, type LabelConfig } from '../api/barcode-labels.api';
+import { t } from '@core/i18n';
 
 export const LABEL_SETTINGS_KEY = ['barcode-label-settings'];
 
@@ -38,7 +39,7 @@ export function useLabelConfig() {
       },
       onError: () => {
         pending.current = { ...patch, ...pending.current };
-        toast.error('Label ki setting save nahi hui — internet check karein');
+        toast.error(t('Label ki setting save nahi hui — internet check karein'));
       },
     });
   };

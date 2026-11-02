@@ -13,6 +13,7 @@ import type { HistorySale } from '@modules/sales/history/api';
 import { formatPKR } from '@core/lib/format';
 import { imeiApi, type ImeiForSales } from '../api/imei.api';
 import { planStatusOf, ptaOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem]';
 
@@ -47,7 +48,7 @@ function usePhoneExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Mobile', useBillExtras: usePhoneExtras };
+const config: SalesHistoryConfig = { label: tr('Mobile'), useBillExtras: usePhoneExtras };
 
 export default function MobileSalesPage() {
   return <SalesHistoryPage config={config} />;

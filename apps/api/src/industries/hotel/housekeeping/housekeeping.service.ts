@@ -13,6 +13,7 @@ import { startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { IN_HOUSE, dayOf, found, nextTaskNumber, type Db } from '../common/hotel-common';
 import { AssignTaskDto, CompleteTaskDto, HousekeepingTaskDto } from '../common/hotel.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const OPEN = ['PENDING', 'ASSIGNED', 'IN_PROGRESS'];
 const PRIORITY_RANK: Record<string, number> = { URGENT: 0, HIGH: 1, NORMAL: 2, LOW: 3 };
@@ -24,7 +25,7 @@ export class HousekeepingService {
   async create(user: AuthenticatedUser, dto: HousekeepingTaskDto) {
     const room = found(await this.prisma.hotelRoom.findFirst({ where: { id: dto.roomId, tenantId: user.tenantId, isActive: true } }), 'Room');
     const same = await this.prisma.hotelHousekeepingTask.findFirst({ where: { tenantId: user.tenantId, roomId: room.id, taskType: dto.taskType, status: { in: OPEN } }, select: { taskNumber: true } });
-    if (same) throw new BadRequestException(`Room ${room.roomNumber} ka ye kaam pehle se khula hai (${same.taskNumber})`);
+    if (same) throw new BadRequestException(apiMessage('Room {{roomNumber}} ka ye kaam pehle se khula hai ({{taskNumber}})', { roomNumber: room.roomNumber, taskNumber: same.taskNumber }));
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, null);
       const task = await tx.hotelHousekeepingTask.create({

@@ -14,6 +14,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { panelsApi } from '../api/panels.api';
 import { patientsApi, type Patient, type PatientInput } from '../api/patients.api';
 import { BLOOD_GROUPS, GENDERS, apiError, formatCnic } from '../lib/meta';
+import { t } from '@core/i18n';
 
 interface Draft {
   fullName: string; phonePrimary: string; gender: string; ageYears: string; dateOfBirth: string; fatherOrHusbandName: string; cnic: string;
@@ -48,11 +49,11 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
 
   const phone = d.phonePrimary.replace(/\D/g, '');
   const errors: Partial<Record<keyof Draft, string>> = {
-    fullName: d.fullName.trim().length < 2 ? 'Mareez ka naam likhein' : undefined,
-    phonePrimary: phone && (phone.length < 10 || phone.length > 13) ? 'Phone 03xx-xxxxxxx' : undefined,
-    cnic: d.cnic && d.cnic.replace(/\D/g, '').length !== 13 ? 'CNIC 13 hindsay ka hota hai' : undefined,
-    ageYears: d.ageYears && !(Number(d.ageYears) >= 0 && Number(d.ageYears) <= 130) ? 'Umar sahi likhein' : undefined,
-    dateOfBirth: d.dateOfBirth && new Date(d.dateOfBirth) > new Date() ? 'Aage ki tareekh nahi' : undefined,
+    fullName: d.fullName.trim().length < 2 ? t('Mareez ka naam likhein') : undefined,
+    phonePrimary: phone && (phone.length < 10 || phone.length > 13) ? t('Phone 03xx-xxxxxxx') : undefined,
+    cnic: d.cnic && d.cnic.replace(/\D/g, '').length !== 13 ? t('CNIC 13 hindsay ka hota hai') : undefined,
+    ageYears: d.ageYears && !(Number(d.ageYears) >= 0 && Number(d.ageYears) <= 130) ? t('Umar sahi likhein') : undefined,
+    dateOfBirth: d.dateOfBirth && new Date(d.dateOfBirth) > new Date() ? t('Aage ki tareekh nahi') : undefined,
   };
 
   const panelNext = d.hasInsurance ? d.panelId : '';
@@ -75,7 +76,7 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
       };
       return patient ? patientsApi.update(patient.id, body) : patientsApi.create(body);
     },
-    onSuccess: (p) => { toast.success(patient ? 'Record update ho gaya' : `${p.fullName} registered — ${p.mrn}`); onSaved(p); },
+    onSuccess: (p) => { toast.success(patient ? t('Record update ho gaya') : t('{{fullName}} registered — {{mrn}}', { fullName: p.fullName, mrn: p.mrn })); onSaved(p); },
     onError: (e) => {
       const status = (e as { response?: { status?: number } })?.response?.status;
       if (status === 409 && !patient) setDupOk(true);
@@ -92,53 +93,53 @@ export function PatientFormModal({ patient, initialName, onClose, onSaved }: {
   const err = (k: keyof Draft) => (tried ? errors[k] : undefined);
 
   return (
-    <Modal open onClose={onClose} size="lg" title={patient ? `${patient.fullName} — record badlein` : 'Naya mareez'}
-      description={patient ? `${patient.mrn} · khata aur bill isi naam se` : 'Naam kaafi hai; phone se agli dafa foran mil jata hai'}
+    <Modal open onClose={onClose} size="lg" title={patient ? t('{{fullName}} — record badlein', { fullName: patient.fullName }) : t('Naya mareez')}
+      description={patient ? t('{{mrn}} · khata aur bill isi naam se', { mrn: patient.mrn }) : t('Naam kaafi hai; phone se agli dafa foran mil jata hai')}
       footer={<div className="flex items-center justify-between gap-2">
-        {!more ? <button type="button" onClick={() => setMore(true)} className="text-[0.8125rem] font-semibold text-brand-700">+ Mazeed (CNIC, allergy, panel…)</button> : <span />}
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button type="submit" form="patient-form" loading={save.isPending}>{dupOk ? 'Phir bhi save karein' : 'Save (Ctrl+S)'}</Button></div>
+        {!more ? <button type="button" onClick={() => setMore(true)} className="text-[0.8125rem] font-semibold text-brand-700">{t('+ Mazeed (CNIC, allergy, panel…)')}</button> : <span />}
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button type="submit" form="patient-form" loading={save.isPending}>{dupOk ? t('Phir bhi save karein') : t('Save (Ctrl+S)')}</Button></div>
       </div>}>
       <form id="patient-form" onSubmit={submit} className="grid gap-3 sm:grid-cols-2"
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); e.currentTarget.requestSubmit(); } }}>
-        <Input label="Naam" required autoFocus value={d.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Saima Bibi" error={err('fullName')} />
-        <Input label="Phone" inputMode="tel" value={d.phonePrimary} onChange={(e) => set('phonePrimary', e.target.value)} placeholder="03xx-xxxxxxx" error={err('phonePrimary')} hint="Isi se agli dafa dhoondein" />
+        <Input label={t('Naam')} required autoFocus value={d.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder={t('Saima Bibi')} error={err('fullName')} />
+        <Input label={t('Phone')} inputMode="tel" value={d.phonePrimary} onChange={(e) => set('phonePrimary', e.target.value)} placeholder="03xx-xxxxxxx" error={err('phonePrimary')} hint={t('Isi se agli dafa dhoondein')} />
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Jins</span>
-          <Segmented<string> value={d.gender} onChange={(v) => set('gender', v)} label="Jins" items={GENDERS.map((g) => ({ value: g.value, label: g.label }))} />
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Jins')}</span>
+          <Segmented<string> value={d.gender} onChange={(v) => set('gender', v)} label={t('Jins')} items={GENDERS.map((g) => ({ value: g.value, label: g.label }))} />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Input label="Umar (saal)" inputMode="numeric" value={d.ageYears} onChange={(e) => set('ageYears', e.target.value)} placeholder="34" disabled={!!d.dateOfBirth} error={err('ageYears')} />
-          <Input label="Ya paidaish" type="date" value={d.dateOfBirth} onChange={(e) => set('dateOfBirth', e.target.value)} error={err('dateOfBirth')} />
+          <Input label={t('Umar (saal)')} inputMode="numeric" value={d.ageYears} onChange={(e) => set('ageYears', e.target.value)} placeholder="34" disabled={!!d.dateOfBirth} error={err('ageYears')} />
+          <Input label={t('Ya paidaish')} type="date" value={d.dateOfBirth} onChange={(e) => set('dateOfBirth', e.target.value)} error={err('dateOfBirth')} />
         </div>
-        <Input label="Walid / shohar ka naam" value={d.fatherOrHusbandName} onChange={(e) => set('fatherOrHusbandName', e.target.value)} />
-        <Input label="Allergy" value={d.allergies} onChange={(e) => set('allergies', e.target.value)} placeholder="Penicillin, Sulfa" hint="Comma laga kar; nuskhe par laal likhi aati hai" leftIcon={<AlertTriangle className="h-4 w-4 text-rose-500" />} />
+        <Input label={t('Walid / shohar ka naam')} value={d.fatherOrHusbandName} onChange={(e) => set('fatherOrHusbandName', e.target.value)} />
+        <Input label={t('Allergy')} value={d.allergies} onChange={(e) => set('allergies', e.target.value)} placeholder={t('Penicillin, Sulfa')} hint={t('Comma laga kar; nuskhe par laal likhi aati hai')} leftIcon={<AlertTriangle className="h-4 w-4 text-rose-500" />} />
         {more && (
           <>
-            <Input label="CNIC" inputMode="numeric" value={d.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} placeholder="35202-1234567-1" error={err('cnic')} />
-            <Select label="Blood group" value={d.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} placeholder="Maloom nahi" options={BLOOD_GROUPS.map((b) => ({ value: b.value, label: b.label }))} />
-            <Input label="Purani bimari" value={d.chronicConditions} onChange={(e) => set('chronicConditions', e.target.value)} placeholder="Sugar, BP" hint="Comma laga kar" />
-            <Input label="Jo dawai chal rahi hai" value={d.currentMedications} onChange={(e) => set('currentMedications', e.target.value)} placeholder="Metformin 500" />
-            <Input label="Pata" value={d.address} onChange={(e) => set('address', e.target.value)} />
-            <Input label="Shehar" value={d.city} onChange={(e) => set('city', e.target.value)} />
-            <Input label="Emergency rabta" value={d.emergencyContactName} onChange={(e) => set('emergencyContactName', e.target.value)} placeholder="Naam" />
-            <Input label="Emergency phone" inputMode="tel" value={d.emergencyContactPhone} onChange={(e) => set('emergencyContactPhone', e.target.value)} />
+            <Input label={t('CNIC')} inputMode="numeric" value={d.cnic} onChange={(e) => set('cnic', formatCnic(e.target.value))} placeholder="35202-1234567-1" error={err('cnic')} />
+            <Select label={t('Blood group')} value={d.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} placeholder={t('Maloom nahi')} options={BLOOD_GROUPS.map((b) => ({ value: b.value, label: b.label }))} />
+            <Input label={t('Purani bimari')} value={d.chronicConditions} onChange={(e) => set('chronicConditions', e.target.value)} placeholder={t('Sugar, BP')} hint={t('Comma laga kar')} />
+            <Input label={t('Jo dawai chal rahi hai')} value={d.currentMedications} onChange={(e) => set('currentMedications', e.target.value)} placeholder={t('Metformin 500')} />
+            <Input label={t('Pata')} value={d.address} onChange={(e) => set('address', e.target.value)} />
+            <Input label={t('Shehar')} value={d.city} onChange={(e) => set('city', e.target.value)} />
+            <Input label={t('Emergency rabta')} value={d.emergencyContactName} onChange={(e) => set('emergencyContactName', e.target.value)} placeholder={t('Naam')} />
+            <Input label={t('Emergency phone')} inputMode="tel" value={d.emergencyContactPhone} onChange={(e) => set('emergencyContactPhone', e.target.value)} />
             <div className="sm:col-span-2 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-100">
-              <Switch checked={d.hasInsurance} onChange={(e) => set('hasInsurance', e.target.checked)} label={<span className="inline-flex items-center gap-1.5"><ShieldPlus className="h-4 w-4 text-brand-600" />Panel / insurance wala mareez</span>}
-                description="Company ka naam aur card number — fees khata me rakh kar company se wasool karein" />
+              <Switch checked={d.hasInsurance} onChange={(e) => set('hasInsurance', e.target.checked)} label={<span className="inline-flex items-center gap-1.5"><ShieldPlus className="h-4 w-4 text-brand-600" />{t('Panel / insurance wala mareez')}</span>}
+                description={t('Company ka naam aur card number — fees khata me rakh kar company se wasool karein')} />
               {d.hasInsurance && (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {panelOptions.length > 0 && (
-                    <Select label="Panel (company khata)" value={d.panelId} wrapperClassName="sm:col-span-2"
+                    <Select label={t('Panel (company khata)')} value={d.panelId} wrapperClassName="sm:col-span-2"
                       onChange={(e) => { const id = e.target.value; setD((x) => ({ ...x, panelId: id, insuranceProvider: x.insuranceProvider || (panelOptions.find((o) => o.id === id)?.name ?? '') })); }}
-                      options={[{ value: '', label: 'Koi nahi — mareez khud deta hai' }, ...panelOptions.map((o) => ({ value: o.id, label: o.name }))]}
-                      hint="Panel chunein to fees company ke khata me jati hai" />
+                      options={[{ value: '', label: t('Koi nahi — mareez khud deta hai') }, ...panelOptions.map((o) => ({ value: o.id, label: o.name }))]}
+                      hint={t('Panel chunein to fees company ke khata me jati hai')} />
                   )}
-                  <Input label="Company / panel" value={d.insuranceProvider} onChange={(e) => set('insuranceProvider', e.target.value)} placeholder="State Life, Sehat Card…" />
-                  <Input label="Card number" value={d.insuranceNumber} onChange={(e) => set('insuranceNumber', e.target.value)} />
+                  <Input label={t('Company / panel')} value={d.insuranceProvider} onChange={(e) => set('insuranceProvider', e.target.value)} placeholder={t('State Life, Sehat Card…')} />
+                  <Input label={t('Card number')} value={d.insuranceNumber} onChange={(e) => set('insuranceNumber', e.target.value)} />
                 </div>
               )}
             </div>
-            <Textarea label="Note" rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} wrapperClassName="sm:col-span-2" />
+            <Textarea label={t('Note')} rows={2} value={d.notes} onChange={(e) => set('notes', e.target.value)} wrapperClassName="sm:col-span-2" />
           </>
         )}
       </form>

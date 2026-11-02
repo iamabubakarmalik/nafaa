@@ -20,9 +20,10 @@ import { deriveAgriKind, isFeedKind, isFertKind, isSeedKind, isSprayKind, pretty
 import type { ProfitPanelProps } from '../../config';
 import { pct, qty } from '../meta';
 import { usePeriodItems } from './usePeriodItems';
+import { t } from '@core/i18n';
 
 type Group = 'seed' | 'fert' | 'spray' | 'feed' | 'tool';
-const GROUP_LABEL: Record<Group, string> = { seed: '🌱 Beej', fert: '🧪 Khaad', spray: '🐛 Dawa', feed: '🐄 Feed', tool: '🔧 Auzaar / baqi' };
+const GROUP_LABEL: Record<Group, string> = { seed: t('🌱 Beej'), fert: t('🧪 Khaad'), spray: t('🐛 Dawa'), feed: t('🐄 Feed'), tool: t('🔧 Auzaar / baqi') };
 const groupOf = (k: AgriKind): Group => (isSeedKind(k) ? 'seed' : isFertKind(k) ? 'fert' : isSprayKind(k) ? 'spray' : isFeedKind(k) ? 'feed' : 'tool');
 
 export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
@@ -54,7 +55,7 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
   const chart = useMemo(() => {
     const m = new Map<string, { name: string; sale: number; profit: number }>();
     for (const r of rows) {
-      const name = by === 'kind' ? GROUP_LABEL[r.group] : (() => { const s = SEASONS.find((x) => x.v === r.season); return s ? `${s.e} ${s.l}` : 'Likha nahi'; })();
+      const name = by === 'kind' ? GROUP_LABEL[r.group] : (() => { const s = SEASONS.find((x) => x.v === r.season); return s ? `${s.e} ${s.l}` : t('Likha nahi'); })();
       const e = m.get(name) ?? { name, sale: 0, profit: 0 };
       e.sale += r.revenue; e.profit += r.profit ?? 0;
       m.set(name, e);
@@ -69,16 +70,16 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl" title={by === 'kind' ? 'Type war' : 'Mausam war'} description={fmt.costHidden ? 'Sale' : 'Sale aur profit'}
-        actions={<Segmented label="Kis hisaab se" value={by} onChange={setBy} items={[{ value: 'kind', label: 'Type' }, { value: 'season', label: 'Mausam' }]} />}>
-        {!chart.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">Koi sale nahi</p> : (
+      <Card className="rounded-2xl" title={by === 'kind' ? t('Type war') : t('Mausam war')} description={fmt.costHidden ? t('Sale') : t('Sale aur profit')}
+        actions={<Segmented label={t('Kis hisaab se')} value={by} onChange={setBy} items={[{ value: 'kind', label: t('Type') }, { value: 'season', label: t('Mausam') }]} />}>
+        {!chart.length ? <p className="py-8 text-center text-[0.875rem] text-slate-500">{t('Koi sale nahi')}</p> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'profit' ? 'Profit' : 'Sale']} {...theme.tooltip} />
+                <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'profit' ? t('Profit') : t('Sale')]} {...theme.tooltip} />
                 <Bar dataKey="sale" fill={theme.primarySoft} radius={[6, 6, 0, 0]} barSize={22} />
                 {!fmt.costHidden && <Bar dataKey="profit" fill={theme.profit} radius={[6, 6, 0, 0]} barSize={22} />}
               </BarChart>
@@ -88,18 +89,18 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
       </Card>
 
       {!fmt.costHidden && (
-        <Card className="rounded-2xl" flush title="Bori aur thok ka hisaab" description={bulkGap > 0 ? `Agar sab thok rate par bikta to ${fmt.money(bulkGap)} kam milte (andaza)` : 'Thok rate kisi product par nahi bhara'}
+        <Card className="rounded-2xl" flush title={t('Bori aur thok ka hisaab')} description={bulkGap > 0 ? t('Agar sab thok rate par bikta to {{bulkGap}} kam milte (andaza)', { bulkGap: fmt.money(bulkGap) }) : t('Thok rate kisi product par nahi bhara')}
           actions={(
             <button type="button" onClick={() => setOnlyProblems((v) => !v)}
               className={cn('inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold ring-1', onlyProblems ? 'bg-amber-50 text-amber-800 ring-amber-300' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-              <AlertTriangle className="h-4 w-4" />Sirf masle wali
+              <AlertTriangle className="h-4 w-4" />{t('Sirf masle wali')}
             </button>
           )}>
-          {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi' : 'Koi sale nahi'}</p> : (
+          {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? t('Koi masla nahi') : t('Koi sale nahi')}</p> : (
             <div className="overflow-x-auto">
               <Table minWidth="46rem" className="[&>table]:text-[0.8125rem]">
-                <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <Tr><Th className="px-4 py-2">Cheez</Th><Th className="px-3 py-2 text-right">Biki</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-3 py-2 text-right">Per kilo / naap</Th><Th className="px-3 py-2 text-right">Thok rate</Th><Th className="px-4 py-2 text-right">Thok margin</Th></Tr>
+                <THead className="bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <Tr><Th className="px-4 py-2">{t('Cheez')}</Th><Th className="px-3 py-2 text-end">{t('Biki')}</Th><Th className="px-3 py-2 text-end">{t('Profit')}</Th><Th className="px-3 py-2 text-end">{t('Per kilo / naap')}</Th><Th className="px-3 py-2 text-end">{t('Thok rate')}</Th><Th className="px-4 py-2 text-end">{t('Thok margin')}</Th></Tr>
                 </THead>
                 <TBody className="divide-y divide-slate-100">
                   {shown.map((r) => (
@@ -108,11 +109,11 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
                         <span className="block font-medium text-slate-900">{r.name}</span>
                         <span className="text-[0.6875rem] text-slate-500">{prettyAgriKind(r.kind)}{r.season ? ` · ${SEASONS.find((s) => s.v === r.season)?.l ?? ''}` : ''}</span>
                       </Td>
-                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}{r.pack > 0 && <span className="block text-[0.6875rem] text-slate-400"><Package className="mr-0.5 inline h-3 w-3" />{qty(r.qty * r.pack)} {r.packUnit}</span>}</Td>
-                      <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
-                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.perPack !== null ? `${fmt.cost(r.perPack)} / ${r.packUnit}` : '—'}</Td>
-                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.bulkPrice ? `${fmt.money(r.bulkPrice)} (−${r.bulkPct}%)` : '—'}</Td>
-                      <Td className={cn('px-4 py-2 text-right tabular-nums', r.bulkRisk && 'font-semibold text-rose-700')}>{r.bulkMargin !== null ? pct(r.bulkMargin) : '—'}</Td>
+                      <Td className="text-inherit px-3 py-2 text-end tabular-nums">{qty(r.qty)} {r.unit}{r.pack > 0 && <span className="block text-[0.6875rem] text-slate-400"><Package className="me-0.5 inline h-3 w-3" />{qty(r.qty * r.pack)} {r.packUnit}</span>}</Td>
+                      <Td className={cn('px-3 py-2 text-end font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
+                      <Td className="text-inherit px-3 py-2 text-end tabular-nums">{r.perPack !== null ? `${fmt.cost(r.perPack)} / ${r.packUnit}` : '—'}</Td>
+                      <Td className="text-inherit px-3 py-2 text-end tabular-nums">{r.bulkPrice ? `${fmt.money(r.bulkPrice)} (−${r.bulkPct}%)` : '—'}</Td>
+                      <Td className={cn('px-4 py-2 text-end tabular-nums', r.bulkRisk && 'font-semibold text-rose-700')}>{r.bulkMargin !== null ? pct(r.bulkMargin) : '—'}</Td>
                     </Tr>
                   ))}
                 </TBody>

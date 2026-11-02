@@ -15,6 +15,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { ensureCustomer, paidOnKhata, recordKhataPayment, resolveIndustryShopId } from '../_shared/industry-sale.helper';
+import { MessageText } from '../../common/i18n/api-message';
 
 type Db = PrismaService | Prisma.TransactionClient;
 
@@ -32,7 +33,7 @@ export function payMethod(v: unknown): string {
 }
 
 /** A positive number from a request, or a Roman Urdu error. */
-export function positive(value: unknown, message: string): number {
+export function positive(value: unknown, message: MessageText): number {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(message);
   return n;

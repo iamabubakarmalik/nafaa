@@ -21,6 +21,7 @@ import { BulkGenerateDto, ConfirmAllDto, ConfirmDeliveryDto, CreateDeliveryDto, 
 import {
   MILK_TYPES, dayEnd, dayKey, dayNumber, dayRange, dayStart, linkKhata, milkProduct, parseDay, r2, r3, weekdayInTz,
 } from '../dairy-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Tx = Prisma.TransactionClient;
 type Delivery = Prisma.DairyDeliveryGetPayload<object>;
@@ -71,7 +72,7 @@ export class DairyDeliveriesService {
 
   private qty(value: unknown, label: string) {
     const n = Number(value);
-    if (!Number.isFinite(n) || n <= 0 || n > 1000) throw new BadRequestException(`${label} 0 se zyada aur 1000 se kam likhein`);
+    if (!Number.isFinite(n) || n <= 0 || n > 1000) throw new BadRequestException(apiMessage('{{label}} 0 se zyada aur 1000 se kam likhein', { label }));
     return r3(n);
   }
 

@@ -13,8 +13,9 @@ import { businessDayKey } from '@core/lib/business-day';
 import { cn } from '@core/lib/cn';
 import { bookingsApi, type BookingQuery } from '../api/bookings.api';
 import { BOOKINGS_KEY, STATUS, itemsSummary } from './meta';
+import { t } from '@core/i18n';
 
-const WEEK = ['Pir', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta', 'Itwaar'];
+const WEEK = [t('Pir'), t('Mangal'), t('Budh'), t('Jumeraat'), t('Juma'), t('Hafta'), t('Itwaar')];
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function BookingCalendar({ filters, startHour, money }: {
@@ -52,12 +53,12 @@ export function BookingCalendar({ filters, startHour, money }: {
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <Button variant="secondary" size="sm" onClick={() => go(-1)} aria-label="Pichhla mahina"><ChevronLeft className="h-4 w-4" /></Button>
+          <Button variant="secondary" size="sm" onClick={() => go(-1)} aria-label={t('Pichhla mahina')}><ChevronLeft className="h-4 w-4 rtl-flip" /></Button>
           <div className="text-center">
             <p className="font-semibold text-slate-900">{title}</p>
-            <p className="text-[0.75rem] text-slate-500">{res.data ? `${res.data.total} khuli bookings ka pickup` : 'Load ho raha hai'}</p>
+            <p className="text-[0.75rem] text-slate-500">{res.data ? t('{{total}} khuli bookings ka pickup', { total: res.data.total }) : t('Load ho raha hai')}</p>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => go(1)} aria-label="Agla mahina"><ChevronRight className="h-4 w-4" /></Button>
+          <Button variant="secondary" size="sm" onClick={() => go(1)} aria-label={t('Agla mahina')}><ChevronRight className="h-4 w-4 rtl-flip" /></Button>
         </div>
         {res.isLoading ? <Skeleton className="h-80 rounded-2xl" /> : (
           <div className="grid grid-cols-7 gap-1 text-center">
@@ -82,12 +83,12 @@ export function BookingCalendar({ filters, startHour, money }: {
             })}
           </div>
         )}
-        <p className="mt-3 text-[0.6875rem] text-slate-500">Laal ginti: pickup ka din guzar gaya. Sirf khuli bookings dikhti hain.</p>
+        <p className="mt-3 text-[0.6875rem] text-slate-500">{t('Laal ginti: pickup ka din guzar gaya. Sirf khuli bookings dikhti hain.')}</p>
       </div>
 
       <div className="rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <p className="font-semibold text-slate-900">{picked ? new Date(`${picked}T12:00:00`).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Din chunein'}</p>
-        <p className="text-[0.75rem] text-slate-500">{dayRows.length ? `${dayRows.length} pickup · ${money(dayRows.reduce((s, b) => s + b.balanceDue, 0))} baqi` : 'Is din koi pickup nahi'}</p>
+        <p className="font-semibold text-slate-900">{picked ? new Date(`${picked}T12:00:00`).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'short' }) : t('Din chunein')}</p>
+        <p className="text-[0.75rem] text-slate-500">{dayRows.length ? t('{{count}} pickup · {{value}} baqi', { count: dayRows.length, value: money(dayRows.reduce((s, b) => s + b.balanceDue, 0)) }) : t('Is din koi pickup nahi')}</p>
         <ul className="mt-3 space-y-2">
           {dayRows.map((b) => {
             const s = STATUS[b.status];
@@ -95,11 +96,11 @@ export function BookingCalendar({ filters, startHour, money }: {
               <li key={b.id}>
                 <Link to={`/bookings/${b.id}`} className="block rounded-2xl px-3 py-2 ring-1 ring-slate-200 transition hover:bg-slate-50">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="truncate font-medium text-slate-900">{b.customer?.name ?? 'Customer'}</span>
+                    <span className="truncate font-medium text-slate-900">{b.customer?.name ?? t('Customer')}</span>
                     <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}><s.icon className="h-3 w-3" />{s.label}</span>
                   </span>
                   <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{b.bookingNumber} · {itemsSummary(b)}</span>
-                  {b.balanceDue > 0 && <span className="mt-0.5 block text-[0.75rem] font-semibold tabular-nums text-amber-700">Baqi {money(b.balanceDue)}</span>}
+                  {b.balanceDue > 0 && <span className="mt-0.5 block text-[0.75rem] font-semibold tabular-nums text-amber-700">{t('Baqi {{balanceDue}}', { balanceDue: money(b.balanceDue) })}</span>}
                 </Link>
               </li>
             );

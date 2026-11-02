@@ -5,12 +5,13 @@
 import type { BrandName } from '@/assets/brands/BrandLogo';
 import { formatPKR } from '@core/lib/format';
 import type { AdPlatform } from '../api/growth.api';
+import { t } from '@core/i18n';
 
 export const PLATFORM: Record<AdPlatform, { label: string; short: string; brand: BrandName }> = {
-  META: { label: 'Facebook / Instagram', short: 'FB / Insta', brand: 'meta' },
-  TIKTOK: { label: 'TikTok', short: 'TikTok', brand: 'tiktok' },
-  GOOGLE: { label: 'Google', short: 'Google', brand: 'google' },
-  OTHER: { label: 'Doosra', short: 'Doosra', brand: 'other' },
+  META: { label: t('Facebook / Instagram'), short: t('FB / Insta'), brand: 'meta' },
+  TIKTOK: { label: t('TikTok'), short: t('TikTok'), brand: 'tiktok' },
+  GOOGLE: { label: t('Google'), short: t('Google'), brand: 'google' },
+  OTHER: { label: t('Doosra'), short: t('Doosra'), brand: 'other' },
 };
 
 export const dayLabel = (key: string) => new Date(`${key}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
@@ -22,4 +23,4 @@ export const weekLabel = (key: string) => {
 /** Whole rupees for ads amounts. */
 export const rs = (n: number | null | undefined) => formatPKR(n ?? 0, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-export const roasText = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v.toFixed(2)}x`);
+export const roasText = (v: number | null | undefined) => (v === null || v === undefined ? '—' : t('{{value}}x', { value: v.toFixed(2) }));

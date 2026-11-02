@@ -26,6 +26,7 @@ import { trainersApi } from '../api/trainers.api';
 import { usePlans } from '../components/MembershipModals';
 import { GOALS, GYM_KEYS, MONEY_KEYS, apiError, num, opt, todayInput } from '../lib/meta';
 import { useGymCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 interface Form {
   name: string; phone: string; cnic: string; email: string; address: string; gender: string; dateOfBirth: string; bloodGroup: string;
@@ -42,8 +43,8 @@ const EMPTY: Form = {
   preferredWorkoutTime: '', preferredTrainerId: '', memberNumber: '', rfidCard: '', photoUrl: '', notes: '',
 };
 const BLOOD = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-const TIMES = [{ value: '', label: '—' }, { value: 'MORNING', label: 'Subah' }, { value: 'AFTERNOON', label: 'Dopahar' }, { value: 'EVENING', label: 'Shaam' }, { value: 'NIGHT', label: 'Raat' }];
-const LEVELS = [{ value: '', label: '—' }, { value: 'BEGINNER', label: 'Naya' }, { value: 'INTERMEDIATE', label: 'Kuch tajurba' }, { value: 'ADVANCED', label: 'Purana' }];
+const TIMES = [{ value: '', label: '—' }, { value: 'MORNING', label: tr('Subah') }, { value: 'AFTERNOON', label: tr('Dopahar') }, { value: 'EVENING', label: tr('Shaam') }, { value: 'NIGHT', label: tr('Raat') }];
+const LEVELS = [{ value: '', label: '—' }, { value: 'BEGINNER', label: tr('Naya') }, { value: 'INTERMEDIATE', label: tr('Kuch tajurba') }, { value: 'ADVANCED', label: tr('Purana') }];
 const PHONE = /^[0-9+\-\s]{7,20}$/;
 
 function payload(f: Form): MemberInput {
@@ -101,15 +102,15 @@ export default function MemberFormPage() {
 
   const problems = useMemo(() => {
     const out: string[] = [];
-    if (!f.name.trim()) out.push('Member ka naam likhein');
-    if (!f.phone.trim()) out.push('Phone number likhein');
-    else if (!PHONE.test(f.phone.trim())) out.push('Phone number sahi likhein (03001234567)');
-    if (f.cnic.trim() && f.cnic.replace(/\D/g, '').length !== 13) out.push('CNIC me 13 number hote hain');
-    if (f.emergencyContactPhone.trim() && !PHONE.test(f.emergencyContactPhone.trim())) out.push('Emergency phone sahi likhein');
-    if (f.email.trim() && !/^\S+@\S+\.\S+$/.test(f.email.trim())) out.push('Email theek nahi');
+    if (!f.name.trim()) out.push(tr('Member ka naam likhein'));
+    if (!f.phone.trim()) out.push(tr('Phone number likhein'));
+    else if (!PHONE.test(f.phone.trim())) out.push(tr('Phone number sahi likhein (03001234567)'));
+    if (f.cnic.trim() && f.cnic.replace(/\D/g, '').length !== 13) out.push(tr('CNIC me 13 number hote hain'));
+    if (f.emergencyContactPhone.trim() && !PHONE.test(f.emergencyContactPhone.trim())) out.push(tr('Emergency phone sahi likhein'));
+    if (f.email.trim() && !/^\S+@\S+\.\S+$/.test(f.email.trim())) out.push(tr('Email theek nahi'));
     if (!editing && join && can.bill) {
-      if (!plan) out.push('Plan chunein ya "Abhi plan nahi" karein');
-      else if (amount > total) out.push(`Zyada se zyada ${formatPKR(total)}`);
+      if (!plan) out.push(tr('Plan chunein ya "Abhi plan nahi" karein'));
+      else if (amount > total) out.push(tr('Zyada se zyada {{total}}', { total: formatPKR(total) }));
     }
     return out;
   }, [f, editing, join, can.bill, plan, amount, total]);
@@ -124,16 +125,16 @@ export default function MemberFormPage() {
         const sold = await membershipsApi.subscribe({ memberId: member.id, planId: plan.id, startDate: start, waiveAdmission: waive, paidAmount: amount, paymentMethod: method });
         return { member, sold };
       } catch (e) {
-        toast.error(`Member ban gaya, magar membership nahi bani: ${apiError(e, 'dobara koshish karein')}`);
+        toast.error(tr('Member ban gaya, magar membership nahi bani: {{apiError}}', { apiError: apiError(e, 'dobara koshish karein') }));
         return { member, sold: null };
       }
     },
     onSuccess: ({ member, sold }) => {
-      toast.success(sold ? `${member.memberNumber} ban gaya · ${sold.membershipNumber}` : editing ? 'Save ho gaya' : `${member.memberNumber} ban gaya`);
+      toast.success(sold ? tr('{{memberNumber}} ban gaya · {{membershipNumber}}', { memberNumber: member.memberNumber, membershipNumber: sold.membershipNumber }) : editing ? tr('Save ho gaya') : tr('{{memberNumber}} ban gaya', { memberNumber: member.memberNumber }));
       [...MONEY_KEYS, GYM_KEYS.members].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       navigate(`/gym/members/${member.id}`, { replace: true });
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
     onSettled: () => { lock.current = false; },
   });
   const submit = () => { if (lock.current || save.isPending) return; lock.current = true; save.mutate(); };
@@ -151,120 +152,120 @@ export default function MemberFormPage() {
   });
 
   if (editing && memberQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
-  if (editing && !memberQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Member nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/gym/members')}>Members par wapas</Button></div></PageShell>;
+  if (editing && !memberQ.data) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Member nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/gym/members')}>{tr('Members par wapas')}</Button></div></PageShell>;
 
   const trainers = trainersQ.data ?? [];
   return (
     <PageShell>
       <PageHero
-        title={editing ? `${memberQ.data?.customer?.name ?? 'Member'} — badlein` : 'Naya member'}
-        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, phone aur plan kaafi hai. Baqi baad me bhi bhar sakte hain.'}
+        title={editing ? tr('{{value}} — badlein', { value: memberQ.data?.customer?.name ?? 'Member' }) : tr('Naya member')}
+        subtitle={editing ? tr('Jo badalna hai badlein — baqi waisa hi rahega') : tr('Naam, phone aur plan kaafi hai. Baqi baad me bhi bhar sakte hain.')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={tr('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</span>}
+        actions={<button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Member</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{tr('Member')}</T>}>
             <div className="space-y-4">
               <div className="flex flex-wrap items-start gap-4">
                 <AvatarUpload value={f.photoUrl || null} onChange={(u) => set('photoUrl', u ?? '')} purpose="avatar" size="md" fallbackText={f.name || 'M'} />
                 <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
-                  <Input label="Poora naam" required value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Ali Raza" maxLength={120} hint="Card, bill aur khate par yahi naam" />
-                  <Input label="Phone" required inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} hint="WhatsApp yaad dihani isi par. Isi phone ka khata pehle se ho to wahi jurta hai." />
+                  <Input label={tr('Poora naam')} required value={f.name} onChange={(e) => set('name', e.target.value)} placeholder={tr('Ali Raza')} maxLength={120} hint={tr('Card, bill aur khate par yahi naam')} />
+                  <Input label={tr('Phone')} required inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03001234567" leftIcon={<Phone className="h-4 w-4" />} hint={tr('WhatsApp yaad dihani isi par. Isi phone ka khata pehle se ho to wahi jurta hai.')} />
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input label="CNIC" inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" hint="13 number. Marzi hai magar zaroori record" />
-                <Select label="Jins" value={f.gender} onChange={(e) => set('gender', e.target.value)} options={[{ value: '', label: '—' }, { value: 'MALE', label: 'Mard' }, { value: 'FEMALE', label: 'Aurat' }]} hint="Ladies timing ke liye" />
-                <Input label="Paidaish ki date" type="date" value={f.dateOfBirth} max={todayInput()} onChange={(e) => set('dateOfBirth', e.target.value)} hint="Marzi hai — birthday wish ke liye" />
-                <Select label="Blood group" value={f.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} options={[{ value: '', label: '—' }, ...BLOOD.map((b) => ({ value: b, label: b }))]} hint="Haadse me kaam aata hai" />
-                <Input label="Email" type="email" value={f.email} onChange={(e) => set('email', e.target.value)} hint="Marzi hai" />
-                <Input label="Pata" value={f.address} onChange={(e) => set('address', e.target.value)} placeholder="Gali, mohalla" hint="Marzi hai" />
+                <Input label={tr('CNIC')} inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" hint={tr('13 number. Marzi hai magar zaroori record')} />
+                <Select label={tr('Jins')} value={f.gender} onChange={(e) => set('gender', e.target.value)} options={[{ value: '', label: '—' }, { value: 'MALE', label: tr('Mard') }, { value: 'FEMALE', label: tr('Aurat') }]} hint={tr('Ladies timing ke liye')} />
+                <Input label={tr('Paidaish ki date')} type="date" value={f.dateOfBirth} max={todayInput()} onChange={(e) => set('dateOfBirth', e.target.value)} hint={tr('Marzi hai — birthday wish ke liye')} />
+                <Select label={tr('Blood group')} value={f.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} options={[{ value: '', label: '—' }, ...BLOOD.map((b) => ({ value: b, label: b }))]} hint={tr('Haadse me kaam aata hai')} />
+                <Input label={tr('Email')} type="email" value={f.email} onChange={(e) => set('email', e.target.value)} hint={tr('Marzi hai')} />
+                <Input label={tr('Pata')} value={f.address} onChange={(e) => set('address', e.target.value)} placeholder={tr('Gali, mohalla')} hint={tr('Marzi hai')} />
               </div>
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={ShieldAlert}>Emergency contact</T>} description="Training me chot ya tabiyat kharab ho to kis ko call karein">
+          <Card className="rounded-2xl" title={<T icon={ShieldAlert}>{tr('Emergency contact')}</T>} description={tr('Training me chot ya tabiyat kharab ho to kis ko call karein')}>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Input label="Naam" value={f.emergencyContactName} onChange={(e) => set('emergencyContactName', e.target.value)} placeholder="Walid / bhai" />
-              <Input label="Phone" inputMode="tel" value={f.emergencyContactPhone} onChange={(e) => set('emergencyContactPhone', e.target.value)} placeholder="03001234567" />
-              <Input label="Rishta" value={f.emergencyContactRelation} onChange={(e) => set('emergencyContactRelation', e.target.value)} placeholder="Walid" />
+              <Input label={tr('Naam')} value={f.emergencyContactName} onChange={(e) => set('emergencyContactName', e.target.value)} placeholder={tr('Walid / bhai')} />
+              <Input label={tr('Phone')} inputMode="tel" value={f.emergencyContactPhone} onChange={(e) => set('emergencyContactPhone', e.target.value)} placeholder="03001234567" />
+              <Input label={tr('Rishta')} value={f.emergencyContactRelation} onChange={(e) => set('emergencyContactRelation', e.target.value)} placeholder={tr('Walid')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={HeartPulse}>Sehat</T>} description="Trainer ko pata ho ke kya nahi karwana">
+          <Card className="rounded-2xl" title={<T icon={HeartPulse}>{tr('Sehat')}</T>} description={tr('Trainer ko pata ho ke kya nahi karwana')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Bimari" value={f.medicalConditions} onChange={(e) => set('medicalConditions', e.target.value)} placeholder="BP, sugar, dama" hint="Marzi hai" />
-              <Input label="Chot" value={f.injuries} onChange={(e) => set('injuries', e.target.value)} placeholder="Ghutna, kamar" hint="Marzi hai" />
-              <Input label="Dawai" value={f.medications} onChange={(e) => set('medications', e.target.value)} hint="Marzi hai" />
-              <div className="flex items-end"><Switch checked={f.doctorClearance} onChange={(e) => set('doctorClearance', e.target.checked)} label="Doctor ki ijazat hai" description="Bimari ya chot ho to" /></div>
+              <Input label={tr('Bimari')} value={f.medicalConditions} onChange={(e) => set('medicalConditions', e.target.value)} placeholder={tr('BP, sugar, dama')} hint={tr('Marzi hai')} />
+              <Input label={tr('Chot')} value={f.injuries} onChange={(e) => set('injuries', e.target.value)} placeholder={tr('Ghutna, kamar')} hint={tr('Marzi hai')} />
+              <Input label={tr('Dawai')} value={f.medications} onChange={(e) => set('medications', e.target.value)} hint={tr('Marzi hai')} />
+              <div className="flex items-end"><Switch checked={f.doctorClearance} onChange={(e) => set('doctorClearance', e.target.checked)} label={tr('Doctor ki ijazat hai')} description={tr('Bimari ya chot ho to')} /></div>
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
           {!editing && can.bill && (
-            <Card className="rounded-2xl" title={<T icon={Wallet}>Joining</T>} description="Fee ka bill Sales me jata hai; jo paisa na mile woh khate me udhaar">
+            <Card className="rounded-2xl" title={<T icon={Wallet}>{tr('Joining')}</T>} description={tr('Fee ka bill Sales me jata hai; jo paisa na mile woh khate me udhaar')}>
               <div className="space-y-3">
-                <Switch checked={join} onChange={(e) => setJoin(e.target.checked)} label="Abhi plan bechein" description="Off karein to sirf profile banegi" />
+                <Switch checked={join} onChange={(e) => setJoin(e.target.checked)} label={tr('Abhi plan bechein')} description={tr('Off karein to sirf profile banegi')} />
                 {join && (plans.length ? (
                   <>
-                    <Select label="Plan" value={plan?.id ?? ''} onChange={(e) => setPlanId(e.target.value)} options={plans.map((p) => ({ value: p.id, label: `${p.name} · ${formatPKR(p.price)} · ${p.durationDays} din` }))} />
-                    <Input label="Kab se" type="date" value={start} onChange={(e) => setStart(e.target.value)} hint="Aaj ya aane wali date" />
-                    {plan && plan.registrationFee > 0 && <Switch checked={waive} onChange={(e) => setWaive(e.target.checked)} label={`Admission fee (${formatPKR(plan.registrationFee)}) maaf`} description="Offer ya purana member" />}
-                    {plan && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">Kul {formatPKR(total)}: plan {formatPKR(plan.price)}{plan.registrationFee > 0 && !waive ? ` + admission ${formatPKR(plan.registrationFee)}` : ''}{plan.securityDeposit > 0 ? ` + security ${formatPKR(plan.securityDeposit)}` : ''}</p>}
-                    <Input label="Abhi kitna mila" inputMode="decimal" value={paid} placeholder={String(total)} onChange={(e) => setPaid(num(e.target.value))} className="text-right font-semibold tabular-nums"
-                      hint={amount < total ? `${formatPKR(total - amount)} khate me udhaar` : 'Khali chhorein to poora'} />
+                    <Select label={tr('Plan')} value={plan?.id ?? ''} onChange={(e) => setPlanId(e.target.value)} options={plans.map((p) => ({ value: p.id, label: tr('{{name}} · {{price}} · {{durationDays}} din', { name: p.name, price: formatPKR(p.price), durationDays: p.durationDays }) }))} />
+                    <Input label={tr('Kab se')} type="date" value={start} onChange={(e) => setStart(e.target.value)} hint={tr('Aaj ya aane wali date')} />
+                    {plan && plan.registrationFee > 0 && <Switch checked={waive} onChange={(e) => setWaive(e.target.checked)} label={tr('Admission fee ({{registrationFee}}) maaf', { registrationFee: formatPKR(plan.registrationFee) })} description={tr('Offer ya purana member')} />}
+                    {plan && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">{tr('Kul {{total}}: plan {{price}}{{value}}{{value2}}', { total: formatPKR(total), price: formatPKR(plan.price), value: plan.registrationFee > 0 && !waive ? tr(' + admission {{registrationFee}}', { registrationFee: formatPKR(plan.registrationFee) }) : '', value2: plan.securityDeposit > 0 ? tr(' + security {{securityDeposit}}', { securityDeposit: formatPKR(plan.securityDeposit) }) : '' })}</p>}
+                    <Input label={tr('Abhi kitna mila')} inputMode="decimal" value={paid} placeholder={String(total)} onChange={(e) => setPaid(num(e.target.value))} className="text-end font-semibold tabular-nums"
+                      hint={amount < total ? tr('{{formatPKR}} khate me udhaar', { formatPKR: formatPKR(total - amount) }) : tr('Khali chhorein to poora')} />
                     {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
                   </>
-                ) : <p className="text-[0.8125rem] text-amber-800">Abhi koi plan nahi. Pehle Plans me plan banayein, ya profile bana kar baad me bechein.</p>)}
+                ) : <p className="text-[0.8125rem] text-amber-800">{tr('Abhi koi plan nahi. Pehle Plans me plan banayein, ya profile bana kar baad me bechein.')}</p>)}
               </div>
             </Card>
           )}
 
-          <Card className="rounded-2xl" title={<T icon={Target}>Maqsad aur training</T>}>
+          <Card className="rounded-2xl" title={<T icon={Target}>{tr('Maqsad aur training')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Select label="Maqsad" value={f.primaryGoal} onChange={(e) => set('primaryGoal', e.target.value as Goal)} options={GOALS} />
-              <Select label="Tajurba" value={f.fitnessLevel} onChange={(e) => set('fitnessLevel', e.target.value)} options={LEVELS} />
-              <Input label="Qad (cm)" inputMode="decimal" value={f.heightCm} onChange={(e) => set('heightCm', num(e.target.value))} placeholder="175" hint="BMI ke liye" />
-              <Input label="Wazan (kg)" inputMode="decimal" value={f.currentWeightKg} onChange={(e) => set('currentWeightKg', num(e.target.value))} placeholder="80" />
-              <Input label="Target wazan (kg)" inputMode="decimal" value={f.targetWeightKg} onChange={(e) => set('targetWeightKg', num(e.target.value))} hint="Marzi hai" />
-              <Select label="Kis waqt aata hai" value={f.preferredWorkoutTime} onChange={(e) => set('preferredWorkoutTime', e.target.value)} options={TIMES} />
-              <Select label="Trainer" wrapperClassName="sm:col-span-2" value={f.preferredTrainerId} onChange={(e) => set('preferredTrainerId', e.target.value)}
-                options={[{ value: '', label: '— Koi nahi —' }, ...trainers.map((t) => ({ value: t.id, label: `${t.staff?.fullName ?? t.trainerNumber} · ${t.trainerNumber}` }))]} hint="PT ke liye pehle yahi trainer aata hai" />
+              <Select label={tr('Maqsad')} value={f.primaryGoal} onChange={(e) => set('primaryGoal', e.target.value as Goal)} options={GOALS} />
+              <Select label={tr('Tajurba')} value={f.fitnessLevel} onChange={(e) => set('fitnessLevel', e.target.value)} options={LEVELS} />
+              <Input label={tr('Qad (cm)')} inputMode="decimal" value={f.heightCm} onChange={(e) => set('heightCm', num(e.target.value))} placeholder="175" hint={tr('BMI ke liye')} />
+              <Input label={tr('Wazan (kg)')} inputMode="decimal" value={f.currentWeightKg} onChange={(e) => set('currentWeightKg', num(e.target.value))} placeholder="80" />
+              <Input label={tr('Target wazan (kg)')} inputMode="decimal" value={f.targetWeightKg} onChange={(e) => set('targetWeightKg', num(e.target.value))} hint={tr('Marzi hai')} />
+              <Select label={tr('Kis waqt aata hai')} value={f.preferredWorkoutTime} onChange={(e) => set('preferredWorkoutTime', e.target.value)} options={TIMES} />
+              <Select label={tr('Trainer')} wrapperClassName="sm:col-span-2" value={f.preferredTrainerId} onChange={(e) => set('preferredTrainerId', e.target.value)}
+                options={[{ value: '', label: tr('— Koi nahi —') }, ...trainers.map((t) => ({ value: t.id, label: `${t.staff?.fullName ?? t.trainerNumber} · ${t.trainerNumber}` }))]} hint={tr('PT ke liye pehle yahi trainer aata hai')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={CreditCard}>Card aur number</T>} description="Check-in par card, QR, member number ya phone — koi bhi chalta hai">
+          <Card className="rounded-2xl" title={<T icon={CreditCard}>{tr('Card aur number')}</T>} description={tr('Check-in par card, QR, member number ya phone — koi bhi chalta hai')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Member number" value={f.memberNumber} onChange={(e) => set('memberNumber', e.target.value.toUpperCase())} placeholder="Khud banega (MEM-00012)" hint={editing ? 'Badal sakte hain, do members ka ek number nahi' : 'Khali chhorein'} />
-              <Input label="RFID card" value={f.rfidCard} onChange={(e) => set('rfidCard', e.target.value)} placeholder="Card scan karein" hint="Ek card ek hi member ka" />
+              <Input label={tr('Member number')} value={f.memberNumber} onChange={(e) => set('memberNumber', e.target.value.toUpperCase())} placeholder={tr('Khud banega (MEM-00012)')} hint={editing ? tr('Badal sakte hain, do members ka ek number nahi') : tr('Khali chhorein')} />
+              <Input label={tr('RFID card')} value={f.rfidCard} onChange={(e) => set('rfidCard', e.target.value)} placeholder={tr('Card scan karein')} hint={tr('Ek card ek hi member ka')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={IdCard}>Note</T>}>
-            <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={1000} placeholder="Maslan: sirf shaam ko aata hai" hint="Sirf andar ke liye — kahin chhapta nahi" />
+          <Card className="rounded-2xl" title={<T icon={IdCard}>{tr('Note')}</T>}>
+            <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={1000} placeholder={tr('Maslan: sirf shaam ko aata hai')} hint={tr('Sirf andar ke liye — kahin chhapta nahi')} />
           </Card>
         </div>
       </div>
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (f.name || f.phone || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{editing ? 'Save karein' : join && plan && can.bill ? `Member banega aur ${plan.name} ka bill ${formatPKR(total)}` : 'Sirf profile banegi'}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} disabled={!can.members}>{editing ? 'Save karein' : join && plan && can.bill ? `Member banayein · ${formatPKR(amount)} lein` : 'Member banayein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{editing ? tr('Save karein') : join && plan && can.bill ? tr('Member banega aur {{name}} ka bill {{total}}', { name: plan.name, total: formatPKR(total) }) : tr('Sirf profile banegi')}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} disabled={!can.members}>{editing ? tr('Save karein') : join && plan && can.bill ? tr('Member banayein · {{amount}} lein', { amount: formatPKR(amount) }) : tr('Member banayein')}</Button>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title="Naya member — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Naya member — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#2563eb', title: 'Zaroori', text: 'Sirf naam aur phone zaroori hai. CNIC, photo aur emergency contact record ke liye achhe hain.' },
-            { icon: Wallet, color: '#16a34a', title: 'Fee', text: 'Plan chunein aur jo paisa mila likhein. Admission sirf pehli dafa lagti hai. Baqi paisa member ke khate me udhaar jata hai aur check-in par yaad dilaya jata hai.' },
-            { icon: CreditCard, color: '#7c3aed', title: 'Check-in', text: 'Member number khud banta hai. Card ho to scan kar dein — door par card, QR ya phone se check-in hota hai.' },
+            { icon: UserRound, color: '#2563eb', title: tr('Zaroori'), text: tr('Sirf naam aur phone zaroori hai. CNIC, photo aur emergency contact record ke liye achhe hain.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Fee'), text: tr('Plan chunein aur jo paisa mila likhein. Admission sirf pehli dafa lagti hai. Baqi paisa member ke khate me udhaar jata hai aur check-in par yaad dilaya jata hai.') },
+            { icon: CreditCard, color: '#7c3aed', title: tr('Check-in'), text: tr('Member number khud banta hai. Card ho to scan kar dein — door par card, QR ya phone se check-in hota hai.') },
           ]}
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
         />

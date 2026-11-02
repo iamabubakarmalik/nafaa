@@ -11,6 +11,7 @@ import {
   AssignPlanDto,
   ExtendSubscriptionDto,
 } from './dto/assign-plan.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class AdminSubscriptionsService {
@@ -188,7 +189,9 @@ export class AdminSubscriptionsService {
       tenantId: dto.tenantId,
       type: 'SUCCESS',
       title: 'Plan Assigned 🎉',
-      message: `Aap ko ${plan.name} plan ${dto.markAsPaid !== false ? 'free mein' : ''} assign kiya gaya hai.`,
+      message: dto.markAsPaid !== false
+        ? apiMessage('Aap ko {{plan}} plan free mein assign kiya gaya hai.', { plan: plan.name })
+        : apiMessage('Aap ko {{plan}} plan assign kiya gaya hai.', { plan: plan.name }),
       link: '/billing',
     });
 
@@ -215,7 +218,9 @@ export class AdminSubscriptionsService {
       tenantId: sub.tenantId,
       type: 'SUCCESS',
       title: 'Subscription Extended ⏰',
-      message: `Aap ki subscription ${dto.days} din extend ho gayi. ${dto.reason ? `Reason: ${dto.reason}` : ''}`,
+      message: dto.reason
+        ? apiMessage('Aap ki subscription {{days}} din extend ho gayi. Reason: {{reason}}', { days: dto.days, reason: dto.reason })
+        : apiMessage('Aap ki subscription {{days}} din extend ho gayi.', { days: dto.days }),
       link: '/billing',
     });
 

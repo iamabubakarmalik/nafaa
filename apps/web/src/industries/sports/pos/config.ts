@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { sportsProductsApi, type SportsMeta } from '../api/products.api';
 import { META_KEY, SPORTS, typeLabel } from '../components/meta';
+import { t } from '@core/i18n';
 
 const norm = (s?: string | null) => String(s ?? '').trim().toLowerCase();
 
@@ -31,11 +32,11 @@ function useSportsCatalog() {
       searchText: [it.searchText, p.sport, typeLabel(p.categoryType)].filter(Boolean).join(' '),
       badges: [
         ...(it.badges ?? []),
-        ...(onSale ? [{ label: `Sale ${Math.round(((p.mrp! - Number(it.price)) / p.mrp!) * 100)}%`, tone: 'danger' as const, icon: BadgePercent }] : []),
-        ...(p.sport ? [{ label: p.sport, tone: 'info' as const, icon: Trophy }] : []),
-        ...(p.isTeamOrderable ? [{ label: 'Team', tone: 'brand' as const, icon: Users }] : []),
+        ...(onSale ? [{ label: t('Sale {{value}}%', { value: Math.round(((p.mrp! - Number(it.price)) / p.mrp!) * 100) }), tone: 'danger' as const, icon: BadgePercent }] : []),
+        ...(p.sport ? [{ label: t(p.sport), tone: 'info' as const, icon: Trophy }] : []),
+        ...(p.isTeamOrderable ? [{ label: t('Team'), tone: 'brand' as const, icon: Users }] : []),
       ],
-      subline: teamPrice > 0 ? `Team rate ${formatPKR(teamPrice)}` : onSale ? `MRP ${formatPKR(p.mrp!)}` : it.subline,
+      subline: teamPrice > 0 ? t('Team rate {{teamPrice}}', { teamPrice: formatPKR(teamPrice) }) : onSale ? t('MRP {{formatPKR}}', { formatPKR: formatPKR(p.mrp!) }) : it.subline,
       meta: { ...(it.meta ?? {}), sport: norm(p.sport), teamPrice: teamPrice > 0 && teamPrice < Number(it.price) ? teamPrice : null, teamMin: Number(p.minTeamOrder || 0) },
     };
   }, [byProduct]);
@@ -43,19 +44,19 @@ function useSportsCatalog() {
   return { ...catalog, refreshKeys: [...catalog.refreshKeys, META_KEY] };
 }
 
-const filters: PosFilter[] = SPORTS.filter((s) => s !== 'Other').map((s) => ({ id: `sport-${s}`, label: s, match: (i) => i.meta?.sport === norm(s) }));
+const filters: PosFilter[] = SPORTS.filter((s) => s !== 'Other').map((s) => ({ id: `sport-${s}`, label: t(s), match: (i) => i.meta?.sport === norm(s) }));
 
 /** Products already checked this session for older variant stock. */
 const variantStockChecked = new Set<string>();
 
 export const sportsPos: PosIndustryConfig = {
   id: 'sports',
-  label: 'Sports',
+  label: t('Sports'),
   useCatalog: useSportsCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, SKU, barcode ya sport likhein',
+  searchHint: t('Naam, SKU, barcode ya sport likhein'),
   repriceLine: (line, item) => {
     const team = Number(item.meta?.teamPrice || 0);
     const min = Number(item.meta?.teamMin || 0);

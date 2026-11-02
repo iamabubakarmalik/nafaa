@@ -10,6 +10,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { weightOrdersApi } from '../api/weight-orders.api';
 import { KEYS } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -23,21 +24,21 @@ function useMeatExtras(sales: HistorySale[]) {
   });
   return (sale: HistorySale) => {
     if (sale.saleNumber.startsWith('QRB-')) {
-      return <div className="mt-1.5"><Link to="/meat/qurbani" onClick={(e) => e.stopPropagation()} className={`${chip} bg-amber-50 text-amber-800 hover:underline`}><Beef className="h-3 w-3" /> Qurbani {sale.sourceRef}</Link></div>;
+      return <div className="mt-1.5"><Link to="/meat/qurbani" onClick={(e) => e.stopPropagation()} className={`${chip} bg-amber-50 text-amber-800 hover:underline`}><Beef className="h-3 w-3" /> {' '}{t('Qurbani {{sourceRef}}', { sourceRef: sale.sourceRef })}</Link></div>;
     }
     const o = (q.data as Record<string, { id: string; orderNumber: string; isDelivery: boolean; occasion: string | null }> | undefined)?.[sale.id];
     if (!o) return null;
     return (
       <div className="mt-1.5 flex flex-wrap gap-1">
-        <Link to={`/meat/weight-orders?open=${o.id}`} onClick={(e) => e.stopPropagation()} className={`${chip} bg-violet-50 text-violet-700 hover:underline`}><Package className="h-3 w-3" /> Order {o.orderNumber}</Link>
-        {o.isDelivery && <span className={`${chip} bg-sky-50 text-sky-700`}><Truck className="h-3 w-3" /> Delivery</span>}
+        <Link to={`/meat/weight-orders?open=${o.id}`} onClick={(e) => e.stopPropagation()} className={`${chip} bg-violet-50 text-violet-700 hover:underline`}><Package className="h-3 w-3" /> {' '}{t('Order {{orderNumber}}', { orderNumber: o.orderNumber })}</Link>
+        {o.isDelivery && <span className={`${chip} bg-sky-50 text-sky-700`}><Truck className="h-3 w-3" /> {' '}{t('Delivery')}</span>}
         {o.occasion?.startsWith('Subscription ') && <span className={`${chip} bg-emerald-50 text-emerald-700`}><CalendarClock className="h-3 w-3" /> {o.occasion}</span>}
       </div>
     );
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Meat', useBillExtras: useMeatExtras };
+const config: SalesHistoryConfig = { label: t('Meat'), useBillExtras: useMeatExtras };
 
 export default function MeatSalesPage() {
   return <SalesHistoryPage config={config} />;

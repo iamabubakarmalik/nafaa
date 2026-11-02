@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { uploadsApi } from '@modules/organization/settings/api/uploads.api';
 import type { UploadPurpose, UploadRecord } from '@modules/organization/settings/api/uploads.api';
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 
 export interface UploadingItem {
   id: string;
@@ -30,8 +31,8 @@ export function useImageUpload(opts: UseImageUploadOptions = {}) {
 
   const validate = useCallback(
     (file: File): string | null => {
-      if (!ALLOWED.includes(file.type)) return 'Only JPG, PNG, WebP, GIF allowed';
-      if (file.size > maxSizeMB * 1024 * 1024) return `Max size is ${maxSizeMB} MB`;
+      if (!ALLOWED.includes(file.type)) return t('Only JPG, PNG, WebP, GIF allowed');
+      if (file.size > maxSizeMB * 1024 * 1024) return t('Max size is {{maxSizeMB}} MB', { maxSizeMB });
       return null;
     },
     [maxSizeMB],
@@ -41,7 +42,7 @@ export function useImageUpload(opts: UseImageUploadOptions = {}) {
     async (files: File[]) => {
       const remaining = maxFiles - items.filter((i) => i.status === 'done').length;
       if (remaining <= 0) {
-        toast.error(`Maximum ${maxFiles} files reached`);
+        toast.error(t('Maximum {{maxFiles}} files reached', { maxFiles }));
         return;
       }
 
@@ -102,7 +103,7 @@ export function useImageUpload(opts: UseImageUploadOptions = {}) {
                 ? {
                     ...i,
                     status: 'error',
-                    error: e?.response?.data?.message || e.message || 'Upload failed',
+                    error: e?.response?.data?.message || e.message || t('Upload failed'),
                   }
                 : i,
             ),
@@ -113,7 +114,7 @@ export function useImageUpload(opts: UseImageUploadOptions = {}) {
       setUploading(false);
       if (successful.length && onUploaded) onUploaded(successful);
       if (successful.length) {
-        toast.success(`${successful.length} image${successful.length > 1 ? 's' : ''} uploaded`);
+        toast.success(t('{{count}} images uploaded', { count: successful.length }));
       }
     },
     [items, maxFiles, onUploaded, purpose, validate],

@@ -19,6 +19,7 @@ import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
 import { isDispatched, isFinal, normalizeCourierStatus } from './courier-api/status';
 import { CourierApiError, CourierCity, CourierCreds, CourierSettings, CourierState, PortalShipment, TrackResult } from './courier-api/types';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const CITY_TTL_MS = 12 * 3600_000;
@@ -177,7 +178,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     const creds = { apiKey: '' } as CourierCreds;
     for (const f of api.credentials) {
       const v = String(raw[f.key] ?? '').trim();
-      if (!v && !f.optional) throw new BadRequestException(`${f.label} daalein`);
+      if (!v && !f.optional) throw new BadRequestException(apiMessage('{{fLabel}} daalein', { fLabel: f.label }));
       if (v) creds[f.key] = v.slice(0, 500);
     }
 
@@ -416,7 +417,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     if (!order.nafaaSaleId) throw new BadRequestException('Pehle order accept karein — phir courier book hoga');
     if (CLOSED.includes(order.orderStatus) || order.orderStatus === 'DELIVERED') throw new BadRequestException('Band ya deliver ho chuke order ki booking nahi hoti');
     if (order.courierBookedAt && order.trackingNumber && order.courierStatus !== 'CANCELLED') {
-      throw new ConflictException(`Ye order pehle hi ${courierName(order.courierCode)} par book hai (CN ${order.trackingNumber})`);
+      throw new ConflictException(apiMessage('Ye order pehle hi {{courierCode}} par book hai (CN {{trackingNumber}})', { courierCode: courierName(order.courierCode), trackingNumber: order.trackingNumber }));
     }
 
     // Do log ek saath "book" dabayein to do CN na banein — pehle claim
@@ -443,7 +444,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
         : matchCity(cities, order.customerCity);
       if (!city) {
         throw new BadRequestException(order.customerCity
-          ? `"${order.customerCity}" ${courierName(code)} ki shehar list me nahi mila — list se shehar chunein`
+          ? apiMessage('"{{customerCity}}" {{code}} ki shehar list me nahi mila — list se shehar chunein', { customerCity: order.customerCity, code: courierName(code) })
           : 'Customer ka shehar likha nahi — list se chunein');
       }
       const items = (Array.isArray(order.items) ? order.items : []) as any[];
@@ -505,7 +506,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException('Courier parcel utha chuka — ab booking cancel nahi hoti. Courier se baat karein ya RTO karein');
     }
     const { cfg, creds, api } = await this.account(user.tenantId, order.courierCode!);
-    if (!api.features.cancel) throw new BadRequestException(`${courierName(order.courierCode)} ki booking API se cancel nahi hoti — courier portal se cancel karein`);
+    if (!api.features.cancel) throw new BadRequestException(apiMessage('{{courierCode}} ki booking API se cancel nahi hoti — courier portal se cancel karein', { courierCode: courierName(order.courierCode) }));
     await this.wrap(() => api.adapter.cancel(creds, order.trackingNumber!, readSettings(cfg)));
     await this.prisma.channelOrder.update({
       where: { id: order.id },
@@ -517,7 +518,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
   async label(user: AuthenticatedUser, scope: ShopScope, orderId: string) {
     const order = await this.bookedOrder(user, scope, orderId);
     const { creds, api } = await this.account(user.tenantId, order.courierCode!);
-    if (!api.features.label) throw new BadRequestException(`${courierName(order.courierCode)} ka label un ke portal se print karein — CN ${order.trackingNumber}`);
+    if (!api.features.label) throw new BadRequestException(apiMessage('{{courierCode}} ka label un ke portal se print karein — CN {{trackingNumber}}', { courierCode: courierName(order.courierCode), trackingNumber: order.trackingNumber }));
     return this.wrap(() => api.adapter.label(creds, order.trackingNumber!, order.courierLabelUrl));
   }
 
@@ -738,7 +739,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     const tns = [...new Set((trackingNumbers ?? []).map(String).filter(Boolean))].slice(0, 50);
     if (!tns.length) throw new BadRequestException('Koi CN nahi chuna');
     const { creds, api } = await this.account(user.tenantId, code);
-    if (!api.features.label) throw new BadRequestException(`${courierName(code)} ka label un ke portal se print karein`);
+    if (!api.features.label) throw new BadRequestException(apiMessage('{{code}} ka label un ke portal se print karein', { code: courierName(code) }));
     // Sirf apne tenant ke CN
     const own = await this.prisma.courierShipment.count({ where: { tenantId: user.tenantId, trackingNumber: { in: tns } } })
       + await this.prisma.channelOrder.count({ where: { tenantId: user.tenantId, trackingNumber: { in: tns } } });
@@ -786,14 +787,14 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
 
   private apiOrThrow(code: string) {
     const api = courierApi(code);
-    if (!api) throw new BadRequestException(`${courierName(code) ?? code} ka API connect abhi nahi — CN khud likh kar "Rider/courier ko de diya" karein`);
+    if (!api) throw new BadRequestException(apiMessage('{{code}} ka API connect abhi nahi — CN khud likh kar "Rider/courier ko de diya" karein', { code: courierName(code) ?? code }));
     return api;
   }
 
   private async account(tenantId: string, code: string, opts: { includeInactive?: boolean } = {}) {
     const api = this.apiOrThrow(code);
     const cfg = await this.prisma.courierConfig.findUnique({ where: { tenantId_provider: { tenantId, provider: code.toUpperCase() as CourierProvider } } });
-    if (!cfg || (!opts.includeInactive && !cfg.isActive)) throw new BadRequestException(`${courierName(code)} jura nahi — Settings → Couriers se connect karein`);
+    if (!cfg || (!opts.includeInactive && !cfg.isActive)) throw new BadRequestException(apiMessage('{{code}} jura nahi — Settings → Couriers se connect karein', { code: courierName(code) }));
     return { cfg, creds: credsOf(cfg), api };
   }
 

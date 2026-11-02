@@ -7,6 +7,7 @@ import { addMonths, subMonths } from 'date-fns';
 import { AssignSaleSerialsDto, BulkSerialDto, CreateApplianceSerialDto, MoveSerialsDto, UpdateApplianceSerialDto } from './dto/upsert-serial.dto';
 import { UNSOLD } from '../common/appliance-bill-void.service';
 import { optDate, stamp } from '../common/appliance-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 
@@ -150,7 +151,7 @@ export class ApplianceSerialService {
     const dup = await this.prisma.applianceSerialTracking.findFirst({
       where: { tenantId: user.tenantId, serialNumber: dto.serialNumber },
     });
-    if (dup && dup.status !== 'REMOVED') throw new BadRequestException(`Serial "${dto.serialNumber}" pehle se mojood hai`);
+    if (dup && dup.status !== 'REMOVED') throw new BadRequestException(apiMessage('Serial "{{serialNumber}}" pehle se mojood hai', { serialNumber: dto.serialNumber }));
 
     const product = await this.prisma.product.findFirst({
       where: { id: dto.productId, tenantId: user.tenantId },
@@ -248,7 +249,9 @@ export class ApplianceSerialService {
       created: fresh.length,
       skipped: taken.size,
       skippedSerials: [...taken],
-      message: `${fresh.length} serial register ho gaye${taken.size ? `, ${taken.size} pehle se thay` : ''}`,
+      ...(taken.size
+        ? apiMessage('{{freshCount}} serial register ho gaye, {{takenCount}} pehle se thay', { freshCount: fresh.length, takenCount: taken.size })
+        : apiMessage('{{freshCount}} serial register ho gaye', { freshCount: fresh.length })),
     };
   }
 
@@ -483,13 +486,15 @@ export class ApplianceSerialService {
       const dup = await this.prisma.applianceSerialTracking.findFirst({
         where: { tenantId: user.tenantId, serialNumber: dto.serialNumber, id: { not: id } },
       });
-      if (dup) throw new BadRequestException(`Serial "${dto.serialNumber}" pehle se mojood hai`);
+      if (dup) throw new BadRequestException(apiMessage('Serial "{{serialNumber}}" pehle se mojood hai', { serialNumber: dto.serialNumber }));
     }
 
     // A unit sold on one bill cannot be sold again on another.
     const selling = dto.status === 'SOLD' && s.status !== 'SOLD';
     if (dto.status === 'SOLD' && s.status === 'SOLD' && dto.saleId && s.saleId && dto.saleId !== s.saleId) {
-      throw new BadRequestException(`Serial ${s.serialNumber} pehle hi bik chuka hai (${s.invoiceNumber ?? 'doosra bill'})`);
+      throw new BadRequestException(s.invoiceNumber
+        ? apiMessage('Serial {{serialNumber}} pehle hi bik chuka hai ({{invoiceNumber}})', { serialNumber: s.serialNumber, invoiceNumber: s.invoiceNumber })
+        : apiMessage('Serial {{serialNumber}} pehle hi bik chuka hai (doosra bill)', { serialNumber: s.serialNumber }));
     }
 
     // Customer warranty runs from the day of sale unless the shop set its own dates.
@@ -568,12 +573,14 @@ export class ApplianceSerialService {
     const used = new Map(already.map((a) => [a.productId, a._count._all]));
     for (const u of units) {
       if (u.status === 'SOLD' && u.saleId === sale.id) continue;
-      if (u.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${u.serialNumber} ${u.status === 'SOLD' ? `pehle hi bill ${u.invoiceNumber ?? ''} par bik chuka` : `ki halat ${u.status} hai`}`);
-      if (u.shopId && sale.shopId && u.shopId !== sale.shopId) throw new BadRequestException(`Serial ${u.serialNumber} doosri branch me hai — pehle Transfer karein`);
+      if (u.status !== 'IN_STOCK') throw new BadRequestException(u.status === 'SOLD'
+        ? apiMessage('Serial {{serialNumber}} pehle hi bill {{invoiceNumber}} par bik chuka', { serialNumber: u.serialNumber, invoiceNumber: u.invoiceNumber ?? '' })
+        : apiMessage('Serial {{serialNumber}} ki halat {{uStatus}} hai', { serialNumber: u.serialNumber, uStatus: u.status }));
+      if (u.shopId && sale.shopId && u.shopId !== sale.shopId) throw new BadRequestException(apiMessage('Serial {{serialNumber}} doosri branch me hai — pehle Transfer karein', { serialNumber: u.serialNumber }));
       const line = onBill.get(u.productId);
-      if (!line) throw new BadRequestException(`Serial ${u.serialNumber} ka product is bill par nahi`);
+      if (!line) throw new BadRequestException(apiMessage('Serial {{serialNumber}} ka product is bill par nahi', { serialNumber: u.serialNumber }));
       const n = (used.get(u.productId) ?? 0) + 1;
-      if (n > Math.floor(line.qty)) throw new BadRequestException(`Bill par is product ke sirf ${line.qty} unit hain`);
+      if (n > Math.floor(line.qty)) throw new BadRequestException(apiMessage('Bill par is product ke sirf {{qty}} unit hain', { qty: line.qty }));
       used.set(u.productId, n);
     }
 
@@ -719,11 +726,11 @@ export class ApplianceSerialService {
       where: { tenantId: user.tenantId, OR: [{ id: { in: wanted } }, { serialNumber: { in: numbers } }] },
     });
     const missing = numbers.filter((n) => !units.some((u) => u.serialNumber === n));
-    if (missing.length) throw new NotFoundException(`Ye serial register me nahi: ${missing.slice(0, 5).join(', ')}`);
+    if (missing.length) throw new NotFoundException(apiMessage('Ye serial register me nahi: {{missing}}', { missing: missing.slice(0, 5).join(', ') }));
     if (wanted.some((id) => !units.some((u) => u.id === id))) throw new NotFoundException('Ek ya zyada serial nahi mile');
     const ids = units.map((u) => u.id);
     for (const u of units) {
-      if (u.status !== 'IN_STOCK') throw new BadRequestException(`Serial ${u.serialNumber} abhi ${u.status} hai — sirf stock wala unit branch badalta hai`);
+      if (u.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('Serial {{serialNumber}} abhi {{uStatus}} hai — sirf stock wala unit branch badalta hai', { serialNumber: u.serialNumber, uStatus: u.status }));
     }
 
     let toShopId: string;
@@ -739,7 +746,7 @@ export class ApplianceSerialService {
         },
       });
       if (!t) throw new NotFoundException('Transfer nahi mila');
-      if (t.status !== 'RECEIVED') throw new BadRequestException(`Transfer ${t.transferNumber} abhi receive nahi hua`);
+      if (t.status !== 'RECEIVED') throw new BadRequestException(apiMessage('Transfer {{transferNumber}} abhi receive nahi hua', { transferNumber: t.transferNumber }));
       if (!isOwner(user) && user.shopId && user.shopId !== t.fromShopId && user.shopId !== t.toShopId) {
         throw new ForbiddenException('Ye transfer aap ki branch ka nahi');
       }
@@ -751,11 +758,11 @@ export class ApplianceSerialService {
       });
       const room = new Map([...arrived].map(([pid, qty]) => [pid, qty - (earlier.find((e) => e.productId === pid)?._count._all ?? 0)]));
       for (const u of units) {
-        if (u.shopId === t.toShopId) throw new BadRequestException(`Serial ${u.serialNumber} pehle se ${t.toShop.name} me hai`);
-        if (u.shopId && u.shopId !== t.fromShopId) throw new BadRequestException(`Serial ${u.serialNumber} ${t.fromShop.name} me nahi — is transfer se nahi badalta`);
+        if (u.shopId === t.toShopId) throw new BadRequestException(apiMessage('Serial {{serialNumber}} pehle se {{toShopName}} me hai', { serialNumber: u.serialNumber, toShopName: t.toShop.name }));
+        if (u.shopId && u.shopId !== t.fromShopId) throw new BadRequestException(apiMessage('Serial {{serialNumber}} {{fromShopName}} me nahi — is transfer se nahi badalta', { serialNumber: u.serialNumber, fromShopName: t.fromShop.name }));
         const left = room.get(u.productId);
-        if (left === undefined) throw new BadRequestException(`Serial ${u.serialNumber} ka product transfer ${t.transferNumber} me nahi`);
-        if (left <= 0) throw new BadRequestException(`Transfer ${t.transferNumber} me is product ke itne unit nahi aaye`);
+        if (left === undefined) throw new BadRequestException(apiMessage('Serial {{serialNumber}} ka product transfer {{transferNumber}} me nahi', { serialNumber: u.serialNumber, transferNumber: t.transferNumber }));
+        if (left <= 0) throw new BadRequestException(apiMessage('Transfer {{transferNumber}} me is product ke itne unit nahi aaye', { transferNumber: t.transferNumber }));
         room.set(u.productId, left - 1);
       }
       toShopId = t.toShopId;
@@ -767,7 +774,7 @@ export class ApplianceSerialService {
       if (!shop) throw new NotFoundException('Branch nahi mili');
       assertShopAccess(user, shop.id, 'Serial branch me rakhna');
       const placed = units.find((u) => u.shopId);
-      if (placed) throw new BadRequestException(`Serial ${placed.serialNumber} pehle se kisi branch me hai — doosri branch bhejne ke liye stock Transfer karein, phir us transfer se branch badlein`);
+      if (placed) throw new BadRequestException(apiMessage('Serial {{serialNumber}} pehle se kisi branch me hai — doosri branch bhejne ke liye stock Transfer karein, phir us transfer se branch badlein', { serialNumber: placed.serialNumber }));
       toShopId = shop.id;
       dest = shop.name;
       label = `Branch: ${shop.name}`;
@@ -776,6 +783,6 @@ export class ApplianceSerialService {
     await this.prisma.$transaction(units.map((u) => this.prisma.applianceSerialTracking.update({
       where: { id: u.id }, data: { shopId: toShopId, notes: stamp(u.notes, label) },
     })));
-    return { moved: units.length, message: `${units.length} unit ${dest} me rakh diye` };
+    return { moved: units.length, ...apiMessage('{{unitsCount}} unit {{dest}} me rakh diye', { unitsCount: units.length, dest }) };
   }
 }

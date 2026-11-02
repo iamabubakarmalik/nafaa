@@ -15,6 +15,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { CreateRentalDto, ReturnRentalDto, UpdateRentalStatusDto } from './dto/create-rental.dto';
 import { ensureCustomer, postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { BILL_PREFIX, r2 } from '../common/gaming-catalog';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 /** Statuses set by hand; cancelling goes through the bill. */
@@ -44,7 +45,7 @@ export class GamingRentalsService {
     const { paymentMethod: _method, ...fields } = dto;
     const totalPrice = r2(dto.daysRented * dto.pricePerDay);
     const paidAmount = r2(Math.max(dto.paidAmount ?? totalPrice, 0));
-    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(`Kiraya sirf Rs ${totalPrice} hai (deposit alag hai)`);
+    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(apiMessage('Kiraya sirf Rs {{totalPrice}} hai (deposit alag hai)', { totalPrice }));
     const remainingAmount = r2(Math.max(totalPrice - paidAmount, 0));
 
     // The rent is income on the day the item goes out; the unpaid part is udhaar.

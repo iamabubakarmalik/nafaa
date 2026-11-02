@@ -22,6 +22,7 @@ import { CORE_KEY, JOB_KEY, conditionOf, statusOf } from '../components/meta';
 import { PART_FACTS_KEY, partSearchText, usePartFacts } from '../hooks/usePartFacts';
 import { CoreTakeBack, useCoreTradeIns } from './CoreTakeBack';
 import { JobHandover } from './JobHandover';
+import { t } from '@core/i18n';
 
 type Kind = 'part' | 'job';
 const kindOf = (it: PosItem) => it.meta?.kind as Kind | undefined;
@@ -68,9 +69,9 @@ function useAutoPartsCatalog() {
       ...it,
       badges: [
         ...(f.condition !== 'NEW' ? [{ label: c.label, tone: GOOD.includes(f.condition) ? 'success' as const : SECOND.includes(f.condition) ? 'neutral' as const : 'info' as const }] : []),
-        ...(f.isFastMoving ? [{ label: 'Zyada bikta', tone: 'brand' as const, icon: Zap }] : []),
+        ...(f.isFastMoving ? [{ label: t('Zyada bikta'), tone: 'brand' as const, icon: Zap }] : []),
       ],
-      subline: [f.partNumber, f.brand, f.universal ? 'Har gaari' : f.fitment].filter(Boolean).join(' · ') || undefined,
+      subline: [f.partNumber, f.brand, f.universal ? t('Har gaari') : f.fitment].filter(Boolean).join(' · ') || undefined,
       searchText: [it.searchText, partSearchText(f)].filter(Boolean).join(' '),
       meta: { ...it.meta, kind: 'part' satisfies Kind, condition: f.condition, universal: f.universal, fits: !!f.fitment, warrantyMonths: f.warrantyMonths },
     };
@@ -86,27 +87,27 @@ function useAutoPartsCatalog() {
 }
 
 function handOver(item: PosItem, api: PosEngineApi) {
-  if (!navigator.onLine) { toast.error('Internet nahi — gaari wapas dena sirf online hota hai. Parts offline bik sakte hain.'); return; }
+  if (!navigator.onLine) { toast.error(t('Internet nahi — gaari wapas dena sirf online hota hai. Parts offline bik sakte hain.')); return; }
   api.openPicker(createElement(JobHandover, { job: item.meta?.job as WorkshopJob, onClose: api.closePicker }));
 }
 
 const filters: PosFilter[] = [
-  { id: 'genuine', label: 'Genuine / OEM', icon: BadgeCheck, match: (i) => GOOD.includes(String(i.meta?.condition)) },
-  { id: 'local', label: 'Local / aftermarket', icon: Globe2, match: (i) => OTHER.includes(String(i.meta?.condition)) },
-  { id: 'used', label: 'Used / kabari', icon: Recycle, match: (i) => SECOND.includes(String(i.meta?.condition)) },
-  { id: 'universal', label: 'Har gaari ka', icon: Car, match: (i) => !!i.meta?.universal },
-  { id: 'jobs', label: 'Gaari wapsi', icon: Wrench, match: (i) => kindOf(i) === 'job' },
+  { id: 'genuine', label: t('Genuine / OEM'), icon: BadgeCheck, match: (i) => GOOD.includes(String(i.meta?.condition)) },
+  { id: 'local', label: t('Local / aftermarket'), icon: Globe2, match: (i) => OTHER.includes(String(i.meta?.condition)) },
+  { id: 'used', label: t('Used / kabari'), icon: Recycle, match: (i) => SECOND.includes(String(i.meta?.condition)) },
+  { id: 'universal', label: t('Har gaari ka'), icon: Car, match: (i) => !!i.meta?.universal },
+  { id: 'jobs', label: t('Gaari wapsi'), icon: Wrench, match: (i) => kindOf(i) === 'job' },
 ];
 
 export const autoPartsPos: PosIndustryConfig = {
   id: 'autoparts',
-  label: 'Auto parts',
+  label: t('Auto parts'),
   useCatalog: useAutoPartsCatalog,
   quickKeys: true,
   filters,
   CartExtra: CoreTakeBack,
   useTradeIns: useCoreTradeIns,
-  searchHint: 'Part ka naam, part number, gaari (corolla brake) — ya job number',
+  searchHint: t('Part ka naam, part number, gaari (corolla brake) — ya job number'),
   receiptFooter: 'Bijli ka saman aur fit kiya hua part wapas nahi hota. Part wapas karna ho to bill aur dabba saath laayein.',
   beforeAdd: (item, opts, api) => {
     if (kindOf(item) === 'job') { handOver(item, api); return 'handled'; }

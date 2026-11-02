@@ -12,6 +12,7 @@ import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { SUMMARY_KEY, isCarpetUnit, unitLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -22,9 +23,9 @@ function useSummary() {
 function HeroLinks() {
   return (
     <>
-      <Link to="/carpet-rolls" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">Rolls</span></Link>
-      <Link to="/carpet-cut-pieces" className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">Tukre</span></Link>
-      <Link to="/carpet-bulk-import" className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">Rolls import</span></Link>
+      <Link to="/carpet-rolls" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{t('Rolls')}</span></Link>
+      <Link to="/carpet-cut-pieces" className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">{t('Tukre')}</span></Link>
+      <Link to="/carpet-bulk-import" className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{t('Rolls import')}</span></Link>
     </>
   );
 }
@@ -37,11 +38,11 @@ function RollsBanner() {
   const pieces = data.reduce((a, s) => a + s.cutPiecesCount, 0);
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-4 py-3 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
-      <span className="inline-flex items-center gap-2 font-semibold text-slate-900"><Layers className="h-4 w-4 text-brand-600" />Rolls aur tukron ka stock</span>
-      <span className="text-slate-600">Kul <strong className="tabular-nums text-slate-900">{Math.round(sqft).toLocaleString('en-PK')} sqft</strong></span>
-      <span className="text-slate-600"><strong className="tabular-nums text-slate-900">{rolls}</strong> chalu roll</span>
-      <span className="text-slate-600"><strong className="tabular-nums text-slate-900">{pieces}</strong> tukre</span>
-      <Link to="/carpet-rolls" className="ml-auto font-semibold text-brand-700 hover:underline">Rolls dekhein</Link>
+      <span className="inline-flex items-center gap-2 font-semibold text-slate-900"><Layers className="h-4 w-4 text-brand-600" />{t('Rolls aur tukron ka stock')}</span>
+      <span className="text-slate-600">{t('Kul')}{' '} <strong className="tabular-nums text-slate-900">{t('{{sqft}} sqft', { sqft: Math.round(sqft).toLocaleString('en-PK') })}</strong></span>
+      <span className="text-slate-600"><strong className="tabular-nums text-slate-900">{rolls}</strong> {' '}{t('chalu roll')}</span>
+      <span className="text-slate-600"><strong className="tabular-nums text-slate-900">{pieces}</strong> {' '}{t('tukre')}</span>
+      <Link to="/carpet-rolls" className="ms-auto font-semibold text-brand-700 hover:underline">{t('Rolls dekhein')}</Link>
     </div>
   );
 }
@@ -49,10 +50,10 @@ function RollsBanner() {
 function RollChip({ productId }: { productId: string }) {
   const { data } = useSummary();
   const s = data?.find((x) => x.productId === productId);
-  if (!s) return <span className={`${chip} bg-amber-50 text-amber-700`}>Koi roll nahi</span>;
+  if (!s) return <span className={`${chip} bg-amber-50 text-amber-700`}>{t('Koi roll nahi')}</span>;
   return (
     <Link to={`/carpet-rolls?productId=${productId}`} onClick={(e) => e.stopPropagation()} className={`${chip} bg-violet-50 text-violet-700 hover:underline`}>
-      <Ruler className="h-3 w-3" />{Math.round(s.totalSqft).toLocaleString('en-PK')} sqft · {s.rollCount} roll{s.cutPiecesCount ? ` · ${s.cutPiecesCount} tukre` : ''}
+      <Ruler className="h-3 w-3" />{t('{{totalSqft}} sqft · {{rollCount}} roll{{value}}', { totalSqft: Math.round(s.totalSqft).toLocaleString('en-PK'), rollCount: s.rollCount, value: s.cutPiecesCount ? t(' · {{cutPiecesCount}} tukre', { cutPiecesCount: s.cutPiecesCount }) : '' })}
     </Link>
   );
 }
@@ -61,11 +62,11 @@ function RollCell({ productId, unit }: { productId: string; unit: string }) {
   const { data } = useSummary();
   if (!isCarpetUnit(unit)) return <span className="text-slate-400">—</span>;
   const s = data?.find((x) => x.productId === productId);
-  return s ? <span className="tabular-nums">{s.rollCount} roll · {Math.round(s.totalSqft).toLocaleString('en-PK')} sqft</span> : <span className="text-amber-700">Koi roll nahi</span>;
+  return s ? <span className="tabular-nums">{t('{{rollCount}} roll · {{totalSqft}} sqft', { rollCount: s.rollCount, totalSqft: Math.round(s.totalSqft).toLocaleString('en-PK') })}</span> : <span className="text-amber-700">{t('Koi roll nahi')}</span>;
 }
 
 const config: ProductsPageConfig = {
-  label: 'Carpet',
+  label: t('Carpet'),
   noun: 'maal',
   paths: {
     detail: (id) => `/carpet-products/${id}`,
@@ -77,17 +78,17 @@ const config: ProductsPageConfig = {
   Banners: RollsBanner,
   filters: ['tags'],
   extras: (item) => (isCarpetUnit(item.unit)
-    ? { line: `${unitLabel(item.unit)} me bikta hai`, chips: <RollChip productId={item.id} /> }
+    ? { line: t('{{value}} me bikta hai', { value: unitLabel(item.unit) }), chips: <RollChip productId={item.id} /> }
     : {}),
   columns: [
-    { id: 'rolls', label: 'Rolls', cell: (i) => <RollCell productId={i.id} unit={i.unit} /> },
+    { id: 'rolls', label: t('Rolls'), cell: (i) => <RollCell productId={i.id} unit={i.unit} /> },
   ],
   stockChips: () => [1, 2, 5, 10],
-  stockLocked: (item) => (isCarpetUnit(item.unit) ? 'Roll wale maal ka stock Rolls page ya purchase se aata hai' : null),
+  stockLocked: (item) => (isCarpetUnit(item.unit) ? t('Roll wale maal ka stock Rolls page ya purchase se aata hai') : null),
   guide: [
-    { icon: Layers, color: '#059669', title: 'Roll wala maal', text: 'Sqft, sq gaz ya running ft wale carpet ka stock rolls aur tukron se banta hai — stock Rolls page se daalein ya purchase karein, yahan se nahi.' },
-    { icon: Scissors, color: '#7c3aed', title: 'Tukre', text: 'Roll kaatne par bachi patti khud tukra ban jati hai; Tukre page par rate aur rack likhein.' },
-    { icon: Ruler, color: '#0891b2', title: 'Rugs aur baqi maal', text: 'Rug, dari, underlay piece me bikte hain — un ka stock aam maal ki tarah hai.' },
+    { icon: Layers, color: '#059669', title: t('Roll wala maal'), text: t('Sqft, sq gaz ya running ft wale carpet ka stock rolls aur tukron se banta hai — stock Rolls page se daalein ya purchase karein, yahan se nahi.') },
+    { icon: Scissors, color: '#7c3aed', title: t('Tukre'), text: t('Roll kaatne par bachi patti khud tukra ban jati hai; Tukre page par rate aur rack likhein.') },
+    { icon: Ruler, color: '#0891b2', title: t('Rugs aur baqi maal'), text: t('Rug, dari, underlay piece me bikte hain — un ka stock aam maal ki tarah hai.') },
   ],
 };
 

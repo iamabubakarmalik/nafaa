@@ -21,10 +21,11 @@ import { liveAnimalsApi, type PetLiveAnimal, type PetSaleStatus } from '../api/l
 import { ConfirmModal, Empty, Info, Pill } from '../components/ui';
 import { useSaveKey } from '../hooks/usePageKeys';
 import { ANIMAL_STATUS, MONEY_KEYS, PAY_METHODS, PET_KEYS, ageText, dayKey, daysFromToday, errorText, longDate, numIn, shortDate, speciesLabel } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const RECORD_TYPES = [
-  { value: 'VACCINATION', label: 'Vaccine' }, { value: 'DEWORMING', label: 'Deworming' }, { value: 'VET_VISIT', label: 'Doctor visit' },
-  { value: 'TREATMENT', label: 'Ilaj' }, { value: 'OTHER', label: 'Aur' },
+  { value: 'VACCINATION', label: tr('Vaccine') }, { value: 'DEWORMING', label: tr('Deworming') }, { value: 'VET_VISIT', label: tr('Doctor visit') },
+  { value: 'TREATMENT', label: tr('Ilaj') }, { value: 'OTHER', label: tr('Aur') },
 ];
 const typeLabel = (v: string) => RECORD_TYPES.find((t) => t.value === v)?.label ?? v;
 
@@ -44,22 +45,22 @@ export default function LiveAnimalDetailPage() {
 
   const reserve = useMutation({
     mutationFn: (name?: string) => liveAnimalsApi.reserve(id!, name),
-    onSuccess: () => { refresh(); setDialog(null); toast.success('Rok liya — counter par "Rok liya" dikhega'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { refresh(); setDialog(null); toast.success(tr('Rok liya — counter par "Rok liya" dikhega')); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi hua'))),
   });
   const unreserve = useMutation({
     mutationFn: () => liveAnimalsApi.unreserve(id!),
-    onSuccess: () => { refresh(); toast.success('Dobara bikne ke liye'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: () => { refresh(); toast.success(tr('Dobara bikne ke liye')); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi hua'))),
   });
   const close = useMutation({
     mutationFn: ({ status, reason }: { status: PetSaleStatus; reason?: string }) => liveAnimalsApi.updateStatus(id!, { status, reason }),
-    onSuccess: (r) => { refresh(); setDialog(null); toast.success(r.status === 'DECEASED' ? 'Likh diya — cost loss me gayi' : 'Record band — counter se hat gaya'); },
-    onError: (e) => toast.error(errorText(e, 'Nahi hua')),
+    onSuccess: (r) => { refresh(); setDialog(null); toast.success(r.status === 'DECEASED' ? tr('Likh diya — cost loss me gayi') : tr('Record band — counter se hat gaya')); },
+    onError: (e) => toast.error(errorText(e, tr('Nahi hua'))),
   });
 
   if (q.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div></PageShell>;
-  if (!a) return <PageShell><Empty icon={HeartPulse} title="Ye janwar nahi mila" action={<Button variant="secondary" onClick={() => navigate('/petshop/live-animals')}>Wapas</Button>} /></PageShell>;
+  if (!a) return <PageShell><Empty icon={HeartPulse} title={tr('Ye janwar nahi mila')} action={<Button variant="secondary" onClick={() => navigate('/petshop/live-animals')}>{tr('Wapas')}</Button>} /></PageShell>;
 
   const onSale = a.status === 'AVAILABLE' || a.status === 'RESERVED';
   const inStore = daysFromToday(a.acquiredDate);
@@ -69,13 +70,13 @@ export default function LiveAnimalDetailPage() {
 
   const card = (): PrintDoc => ({
     title: `${title} (${a.animalNumber})`, subtitle: [speciesLabel(a.species), a.breed, ageText(a.ageMonths)].filter(Boolean).join(' · '),
-    meta: [['Rate', money(a.askingPrice)], ['Vaccine', a.isVaccinated ? 'Haan' : 'Nahi'], ['Deworm', a.isDewormed ? 'Haan' : 'Nahi']],
+    meta: [['Rate', money(a.askingPrice)], ['Vaccine', a.isVaccinated ? 'Haan' : 'Nahi'], ['Deworm', a.isDewormed ? 'Haan' : 'Nahi']], // i18n-ignore
     sections: [
-      { kind: 'rows', title: 'Janwar', rows: [
-        { label: 'Jins', value: a.gender || '—' }, { label: 'Rang', value: a.color || '—' }, { label: 'Wazan', value: a.weightKg ? `${a.weightKg} kg` : '—' },
-        { label: 'Vaccine', value: a.vaccinationDetails || (a.isVaccinated ? 'Haan' : 'Nahi') }, { label: 'Deworming', value: a.dewormingDetails || (a.isDewormed ? 'Haan' : 'Nahi') },
+      { kind: 'rows', title: 'Janwar', rows: [ // i18n-ignore
+        { label: 'Jins', value: a.gender || '—' }, { label: 'Rang', value: a.color || '—' }, { label: 'Wazan', value: a.weightKg ? `${a.weightKg} kg` : '—' }, // i18n-ignore
+        { label: 'Vaccine', value: a.vaccinationDetails || (a.isVaccinated ? 'Haan' : 'Nahi') }, { label: 'Deworming', value: a.dewormingDetails || (a.isDewormed ? 'Haan' : 'Nahi') }, // i18n-ignore
       ] },
-      ...(history.length ? [{ kind: 'table' as const, title: 'Sehat record', columns: [{ label: 'Date' }, { label: 'Kya' }, { label: 'Agli baar' }], rows: history.map((h) => [shortDate(h.at), `${typeLabel(h.type)}: ${h.description}`, h.nextDueDate ? shortDate(h.nextDueDate) : '—']) }] : []),
+      ...(history.length ? [{ kind: 'table' as const, title: 'Sehat record', columns: [{ label: 'Date' }, { label: 'Kya' }, { label: 'Agli baar' }], rows: history.map((h) => [shortDate(h.at), `${typeLabel(h.type)}: ${h.description}`, h.nextDueDate ? shortDate(h.nextDueDate) : '—']) }] : []), // i18n-ignore
     ],
   });
 
@@ -88,8 +89,8 @@ export default function LiveAnimalDetailPage() {
         actions={(
           <>
             <Pill tone={ANIMAL_STATUS[a.status]?.tone ?? ''}>{ANIMAL_STATUS[a.status]?.label}</Pill>
-            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={card} label="Card print" /></span>
-            {canEdit && onSale && <Link to={`/petshop/live-animals/${a.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={card} label={tr('Card print')} /></span>
+            {canEdit && onSale && <Link to={`/petshop/live-animals/${a.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" />{tr('Badlein')}</Link>}
           </>
         )}
       />
@@ -107,52 +108,52 @@ export default function LiveAnimalDetailPage() {
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Paisa</span>}>
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />{tr('Paisa')}</span>}>
             <div className="grid grid-cols-2 gap-2">
-              <Stat label={a.status === 'SOLD' ? 'Bika' : 'Rate'} value={money(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice)} />
-              {!costHidden && <Stat label="Cost" value={costMoney(a.costPrice ?? 0)} />}
-              {!costHidden && <Stat label="Profit" value={costMoney((a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) - (a.costPrice ?? 0))} tone={(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) >= (a.costPrice ?? 0) ? 'text-success-700' : 'text-rose-700'} />}
-              <Stat label="Dukaan me" value={inStore === null ? '—' : `${-inStore} din`} tone={inStore !== null && -inStore > 60 && onSale ? 'text-amber-700' : undefined} />
+              <Stat label={a.status === 'SOLD' ? tr('Bika') : tr('Rate')} value={money(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice)} />
+              {!costHidden && <Stat label={tr('Cost')} value={costMoney(a.costPrice ?? 0)} />}
+              {!costHidden && <Stat label={tr('Profit')} value={costMoney((a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) - (a.costPrice ?? 0))} tone={(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) >= (a.costPrice ?? 0) ? 'text-success-700' : 'text-rose-700'} />}
+              <Stat label={tr('Dukaan me')} value={inStore === null ? '—' : `${-inStore} din`} tone={inStore !== null && -inStore > 60 && onSale ? 'text-amber-700' : undefined} />
             </div>
             {a.status === 'SOLD' && <p className="mt-3 text-[0.8125rem] text-slate-600">{longDate(a.soldAt)}{a.soldToCustomerName ? ` · ${a.soldToCustomerName}` : ''}</p>}
             {onSale && canSell && (
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link to="/pos" className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.875rem] font-semibold text-brand-fg hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />Counter par bechein</Link>
+                <Link to="/pos" className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.875rem] font-semibold text-brand-fg hover:bg-brand-700"><ShoppingCart className="h-4 w-4" />{tr('Counter par bechein')}</Link>
                 {a.status === 'AVAILABLE'
-                  ? <Button variant="secondary" onClick={() => setDialog('reserve')}><Tag className="h-4 w-4" />Rok lein</Button>
-                  : <Button variant="secondary" loading={unreserve.isPending} onClick={() => unreserve.mutate()}><Undo2 className="h-4 w-4" />Rokna khatam</Button>}
+                  ? <Button variant="secondary" onClick={() => setDialog('reserve')}><Tag className="h-4 w-4" />{tr('Rok lein')}</Button>
+                  : <Button variant="secondary" loading={unreserve.isPending} onClick={() => unreserve.mutate()}><Undo2 className="h-4 w-4" />{tr('Rokna khatam')}</Button>}
               </div>
             )}
-            {onSale && canSell && <p className="mt-2 text-[0.75rem] text-slate-500">Counter par "Janwar" filter me {a.animalNumber} ka card dabayein — bill banta hai.</p>}
+            {onSale && canSell && <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Counter par "Janwar" filter me {{animalNumber}} ka card dabayein — bill banta hai.', { animalNumber: a.animalNumber })}</p>}
           </Card>
         </div>
 
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Info icon={ShieldCheck} title="Vaccine / deworming">
-              <p className={a.isVaccinated ? 'font-semibold text-success-700' : 'font-semibold text-rose-700'}>{a.isVaccinated ? 'Vaccine lagi' : 'Vaccine nahi lagi'}</p>
+            <Info icon={ShieldCheck} title={tr('Vaccine / deworming')}>
+              <p className={a.isVaccinated ? 'font-semibold text-success-700' : 'font-semibold text-rose-700'}>{a.isVaccinated ? tr('Vaccine lagi') : tr('Vaccine nahi lagi')}</p>
               {a.vaccinationDetails && <p className="whitespace-pre-line text-[0.8125rem] text-slate-600">{a.vaccinationDetails}</p>}
-              <p className={a.isDewormed ? 'mt-1 font-semibold text-success-700' : 'mt-1 font-semibold text-amber-700'}>{a.isDewormed ? 'Deworming hui' : 'Deworming baqi'}</p>
-              {nextDue && <p className="mt-1 inline-flex items-center gap-1 text-[0.8125rem] text-slate-700"><CalendarClock className="h-3.5 w-3.5" />Agli baar {shortDate(nextDue)}</p>}
+              <p className={a.isDewormed ? 'mt-1 font-semibold text-success-700' : 'mt-1 font-semibold text-amber-700'}>{a.isDewormed ? tr('Deworming hui') : tr('Deworming baqi')}</p>
+              {nextDue && <p className="mt-1 inline-flex items-center gap-1 text-[0.8125rem] text-slate-700"><CalendarClock className="h-3.5 w-3.5" />{tr('Agli baar {{nextDue}}', { nextDue: shortDate(nextDue) })}</p>}
             </Info>
-            <Info icon={Home} title="Dukaan me">
-              <p className="text-slate-800">{a.currentCage ? `Cage ${a.currentCage}` : 'Cage nahi likha'}</p>
-              {a.feedingSchedule && <p className="text-[0.8125rem] text-slate-600">Khana: {a.feedingSchedule}</p>}
+            <Info icon={Home} title={tr('Dukaan me')}>
+              <p className="text-slate-800">{a.currentCage ? tr('Cage {{currentCage}}', { currentCage: a.currentCage }) : tr('Cage nahi likha')}</p>
+              {a.feedingSchedule && <p className="text-[0.8125rem] text-slate-600">{tr('Khana: {{feedingSchedule}}', { feedingSchedule: a.feedingSchedule })}</p>}
               {a.specialNeeds && <p className="text-[0.8125rem] text-slate-600">{a.specialNeeds}</p>}
               {(a.sourceType || a.sourceName) && <p className="text-[0.8125rem] text-slate-500">{[a.sourceType, a.sourceName].filter(Boolean).join(' · ')} · {shortDate(a.acquiredDate)}</p>}
             </Info>
           </div>
 
-          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Stethoscope className="h-4 w-4 text-brand-600" />Sehat record</span>}
-            actions={canEdit && a.status !== 'DECEASED' ? <Button size="sm" variant="secondary" onClick={() => setDialog('record')}><Plus className="h-4 w-4" />Record likhein</Button> : undefined}>
-            {history.length === 0 ? <p className="text-[0.875rem] text-slate-500">Abhi koi record nahi. Vaccine, deworming ya doctor visit yahan likhein.</p> : (
+          <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Stethoscope className="h-4 w-4 text-brand-600" />{tr('Sehat record')}</span>}
+            actions={canEdit && a.status !== 'DECEASED' ? <Button size="sm" variant="secondary" onClick={() => setDialog('record')}><Plus className="h-4 w-4" />{tr('Record likhein')}</Button> : undefined}>
+            {history.length === 0 ? <p className="text-[0.875rem] text-slate-500">{tr('Abhi koi record nahi. Vaccine, deworming ya doctor visit yahan likhein.')}</p> : (
               <ul className="divide-y divide-slate-100">
                 {history.map((h, i) => (
                   <li key={i} className="flex items-start justify-between gap-3 py-2.5">
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-900">{typeLabel(h.type)} <span className="font-normal text-slate-500">· {shortDate(h.at)}</span></p>
                       <p className="text-[0.8125rem] text-slate-600">{h.description}{h.vetName ? ` · ${h.vetName}` : ''}</p>
-                      {h.nextDueDate && <p className="text-[0.75rem] text-slate-500">Agli baar: {shortDate(h.nextDueDate)}</p>}
+                      {h.nextDueDate && <p className="text-[0.75rem] text-slate-500">{tr('Agli baar: {{nextDueDate}}', { nextDueDate: shortDate(h.nextDueDate) })}</p>}
                     </div>
                     {!!h.cost && <span className="shrink-0 text-[0.8125rem] tabular-nums text-slate-700">{costMoney(h.cost)}</span>}
                   </li>
@@ -165,8 +166,8 @@ export default function LiveAnimalDetailPage() {
 
           {canEdit && onSale && (
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setDialog('RETURNED')}><Undo2 className="h-4 w-4" />Wapas gaya</Button>
-              <Button variant="secondary" size="sm" onClick={() => setDialog('DECEASED')}><Skull className="h-4 w-4" />Mar gaya</Button>
+              <Button variant="secondary" size="sm" onClick={() => setDialog('RETURNED')}><Undo2 className="h-4 w-4" />{tr('Wapas gaya')}</Button>
+              <Button variant="secondary" size="sm" onClick={() => setDialog('DECEASED')}><Skull className="h-4 w-4" />{tr('Mar gaya')}</Button>
             </div>
           )}
         </div>
@@ -203,32 +204,32 @@ function RecordModal({ animal, onClose, onSaved }: { animal: PetLiveAnimal; onCl
   const [touched, setTouched] = useState(false);
   const fee = numIn(cost);
   const errors: string[] = [];
-  if (!description.trim()) errors.push('Kya kiya — likhein');
-  if (cost && !(fee !== null && fee >= 0)) errors.push('Fees sahi likhein');
-  if (nextDueDate && nextDueDate < dayKey()) errors.push('Agli date aage ki ho');
+  if (!description.trim()) errors.push(tr('Kya kiya — likhein'));
+  if (cost && !(fee !== null && fee >= 0)) errors.push(tr('Fees sahi likhein'));
+  if (nextDueDate && nextDueDate < dayKey()) errors.push(tr('Agli date aage ki ho'));
   const save = useMutation({
     mutationFn: () => liveAnimalsApi.addMedicalRecord(animal.id, {
       type, description: description.trim(), vetName: vetName.trim() || undefined, cost: fee ?? undefined, nextDueDate: nextDueDate || undefined,
       ...(paidNow && fee && fee > 0 && { paidNow: true, paymentMethod: method }),
     }),
-    onSuccess: () => { toast.success(paidNow && fee ? 'Record likha — fees kharche me gayi' : 'Record likh diya'); onSaved(); },
-    onError: (e) => toast.error(errorText(e, 'Record save nahi hua')),
+    onSuccess: () => { toast.success(paidNow && fee ? tr('Record likha — fees kharche me gayi') : tr('Record likh diya')); onSaved(); },
+    onError: (e) => toast.error(errorText(e, tr('Record save nahi hua'))),
   });
   const submit = () => { setTouched(true); if (errors.length) { toast.error(errors[0]); return; } if (!save.isPending) save.mutate(); };
   useSaveKey(submit);
   return (
-    <Modal open onClose={onClose} size="md" title="Sehat record" description={`${animal.name || animal.breed || ''} ${animal.animalNumber}`}
-      footer={<>{touched && errors[0] && <p className="mr-auto text-[0.8125rem] text-amber-800">{errors[0]}</p>}<Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} onClick={submit}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Sehat record')} description={`${animal.name || animal.breed || ''} ${animal.animalNumber}`}
+      footer={<>{touched && errors[0] && <p className="me-auto text-[0.8125rem] text-amber-800">{errors[0]}</p>}<Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button loading={save.isPending} onClick={submit}>{tr('Save karein')}</Button></>}>
       <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Select label="Kya hua" value={type} onChange={(e) => setType(e.target.value)} options={RECORD_TYPES} />
-        <Input label="Doctor (marzi)" value={vetName} onChange={(e) => setVetName(e.target.value)} />
-        <div className="sm:col-span-2"><Input label="Tafseel" required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="DHPP pehli dose, Ivermectin…" /></div>
-        <Input label="Fees (Rs, marzi)" inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} />
-        <Input label="Agli dose kab (marzi)" type="date" min={dayKey()} value={nextDueDate} onChange={(e) => setNextDueDate(e.target.value)} hint="Yaad dilane ke liye" />
+        <Select label={tr('Kya hua')} value={type} onChange={(e) => setType(e.target.value)} options={RECORD_TYPES} />
+        <Input label={tr('Doctor (marzi)')} value={vetName} onChange={(e) => setVetName(e.target.value)} />
+        <div className="sm:col-span-2"><Input label={tr('Tafseel')} required value={description} onChange={(e) => setDescription(e.target.value)} placeholder={tr('DHPP pehli dose, Ivermectin…')} /></div>
+        <Input label={tr('Fees (Rs, marzi)')} inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} />
+        <Input label={tr('Agli dose kab (marzi)')} type="date" min={dayKey()} value={nextDueDate} onChange={(e) => setNextDueDate(e.target.value)} hint={tr('Yaad dilane ke liye')} />
         {!!fee && fee > 0 && canExpense && (
           <div className="space-y-2 sm:col-span-2">
-            <Switch label="Fees abhi di (kharche me likhein)" checked={paidNow} onChange={(e) => setPaidNow(e.target.checked)} />
-            {paidNow && <Select label="Kahan se di" value={method} onChange={(e) => setMethod(e.target.value)} options={PAY_METHODS} hint={method === 'CASH' ? 'Drawer ke cash se' : 'Us account se'} />}
+            <Switch label={tr('Fees abhi di (kharche me likhein)')} checked={paidNow} onChange={(e) => setPaidNow(e.target.checked)} />
+            {paidNow && <Select label={tr('Kahan se di')} value={method} onChange={(e) => setMethod(e.target.value)} options={PAY_METHODS} hint={method === 'CASH' ? tr('Drawer ke cash se') : tr('Us account se')} />}
           </div>
         )}
       </form>
@@ -239,10 +240,10 @@ function RecordModal({ animal, onClose, onSaved }: { animal: PetLiveAnimal; onCl
 function ReserveModal({ busy, onSubmit, onClose }: { busy: boolean; onSubmit: (name?: string) => void; onClose: () => void }) {
   const [name, setName] = useState('');
   return (
-    <Modal open onClose={onClose} size="sm" title="Kisi ke liye rok lein" description="Counter par card par 'Rok liya' aata hai"
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={busy} onClick={() => onSubmit(name.trim() || undefined)}>Rok lein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Kisi ke liye rok lein')} description={tr('Counter par card par \'Rok liya\' aata hai')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button loading={busy} onClick={() => onSubmit(name.trim() || undefined)}>{tr('Rok lein')}</Button></>}>
       <form onSubmit={(e) => { e.preventDefault(); onSubmit(name.trim() || undefined); }}>
-        <Input label="Kis ke liye (marzi)" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Customer ka naam aur phone" hint="Advance lena ho to customer ke Khata me jama karein" />
+        <Input label={tr('Kis ke liye (marzi)')} autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Customer ka naam aur phone')} hint={tr('Advance lena ho to customer ke Khata me jama karein')} />
       </form>
     </Modal>
   );
@@ -254,11 +255,11 @@ function CloseModal({ kind, cost, money, busy, onSubmit, onClose }: {
   const [reason, setReason] = useState('');
   const dead = kind === 'DECEASED';
   return (
-    <ConfirmModal title={dead ? 'Janwar mar gaya?' : 'Janwar wapas gaya?'} cta={dead ? 'Haan, likhein' : 'Haan, wapas'} danger busy={busy} onClose={onClose}
+    <ConfirmModal title={dead ? tr('Janwar mar gaya?') : tr('Janwar wapas gaya?')} cta={dead ? tr('Haan, likhein') : tr('Haan, wapas')} danger busy={busy} onClose={onClose}
       onConfirm={() => onSubmit(reason.trim() || undefined)}
       text={<div className="space-y-3">
-        <p>{dead ? `Counter se hat jayega${cost !== null ? ` aur ${money(cost)} cost loss me jayegi` : ' aur cost loss me jayegi'}.` : 'Counter se hat jayega (breeder ko wapas ya kisi aur wajah se). Record rehta hai.'}</p>
-        <Textarea label="Wajah (marzi)" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <p>{dead ? tr('Counter se hat jayega{{value}}.', { value: cost !== null ? tr(' aur {{cost}} cost loss me jayegi', { cost: money(cost) }) : tr(' aur cost loss me jayegi') }) : tr('Counter se hat jayega (breeder ko wapas ya kisi aur wajah se). Record rehta hai.')}</p>
+        <Textarea label={tr('Wajah (marzi)')} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
       </div>} />
   );
 }

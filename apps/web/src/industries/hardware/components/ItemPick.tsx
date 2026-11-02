@@ -9,8 +9,9 @@ import { formatPKR } from '@core/lib/format';
 import { useProductCatalog, type PosItem } from '@modules/pos/engine';
 import { factLine, useHardwareFacts } from '../hooks/useHardwareFacts';
 import { qty } from '../lib/meta';
+import { t } from '@core/i18n';
 
-export function ItemPick({ onPick, onCustom, placeholder = 'Item ka naam, size ya code likhein…' }: {
+export function ItemPick({ onPick, onCustom, placeholder = t('Item ka naam, size ya code likhein…') }: {
   onPick: (item: PosItem, facts: string | undefined) => void;
   /** Adds a line that is not in the catalog (quotations only). */
   onCustom?: (name: string) => void;
@@ -32,18 +33,18 @@ export function ItemPick({ onPick, onCustom, placeholder = 'Item ka naam, size y
 
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder}
         onKeyDown={(e) => {
           if (e.key !== 'Enter') return;
           e.preventDefault();
           if (matches[0]) pick(matches[0]); else if (onCustom && q.trim()) { onCustom(q.trim()); setQ(''); }
         }}
-        className="h-11 w-full rounded-xl border-0 bg-slate-100 pl-10 pr-3 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
+        className="h-11 w-full rounded-xl border-0 bg-slate-100 ps-10 pe-3 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
       {term && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
           {matches.map((i) => (
-            <button key={i.id} type="button" onClick={() => pick(i)} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-brand-50">
+            <button key={i.id} type="button" onClick={() => pick(i)} className="flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-brand-50">
               <Package className="h-4 w-4 shrink-0 text-slate-400" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.875rem] font-medium text-slate-900">{i.name}</span>
@@ -53,11 +54,11 @@ export function ItemPick({ onPick, onCustom, placeholder = 'Item ka naam, size y
             </button>
           ))}
           {onCustom && (
-            <button type="button" onClick={() => { onCustom(q.trim()); setQ(''); }} className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2 text-left text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
-              <Plus className="h-4 w-4" />"{q.trim()}" catalog ke bagair line jorein
+            <button type="button" onClick={() => { onCustom(q.trim()); setQ(''); }} className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2 text-start text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
+              <Plus className="h-4 w-4" />{t('"{{value}}" catalog ke bagair line jorein', { value: q.trim() })}
             </button>
           )}
-          {!matches.length && !onCustom && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">Koi item nahi mila</p>}
+          {!matches.length && !onCustom && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">{t('Koi item nahi mila')}</p>}
         </div>
       )}
     </div>

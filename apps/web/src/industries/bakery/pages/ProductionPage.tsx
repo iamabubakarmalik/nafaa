@@ -27,6 +27,7 @@ import { ProductionAnalytics } from '../components/production/ProductionAnalytic
 import { SuggestPanel } from '../components/production/SuggestPanel';
 import { LoadFailed } from '../components/charts';
 import { PRODUCTION_KEY, dayOnly, fmtQty, flavorLabel, sizeLabel, timeOnly } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'plan' | 'suggest' | 'record' | 'analytics';
 
@@ -68,7 +69,7 @@ export default function ProductionPage() {
   const t = search.trim().toLowerCase();
   const shownPlans = t ? plans.filter((p) => p.planNumber.toLowerCase().includes(t) || p.items.some((i) => i.productName.toLowerCase().includes(t))) : plans;
   const isToday = date === today;
-  const dateTitle = isToday ? 'Aaj' : date === dayKey(1) ? 'Kal' : dayOnly(`${date}T12:00:00`);
+  const dateTitle = isToday ? tr('Aaj') : date === dayKey(1) ? tr('Kal') : dayOnly(`${date}T12:00:00`);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -85,78 +86,78 @@ export default function ProductionPage() {
   }, [canManage]);
 
   const printDoc = (): PrintDoc => ({
-    title: `Baking plan — ${dateTitle}`,
+    title: tr('Baking plan — {{dateTitle}}', { dateTitle }),
     subtitle: dayOnly(`${date}T12:00:00`),
-    meta: [['Plans', String(plans.length)], ['Banana hai', fmtQty(stats.planned)]],
+    meta: [[tr('Plans'), String(plans.length)], [tr('Banana hai'), fmtQty(stats.planned)]],
     sections: [
       ...plans.map((p) => ({
         kind: 'table' as const,
-        title: `${p.planNumber}${p.shift ? ` · ${p.shift}` : ''}`,
-        columns: [{ label: 'Cheez' }, { label: 'Kitne', align: 'right' as const }, { label: 'Oven', wideOnly: true }, { label: 'Baker', wideOnly: true }, { label: 'Bane', align: 'right' as const }, { label: 'Kharab', align: 'right' as const }],
+        title: `${p.planNumber}${p.shift ? ` · ${tr(p.shift)}` : ''}`,
+        columns: [{ label: tr('Item') }, { label: tr('Kitne'), align: 'right' as const }, { label: tr('Oven'), wideOnly: true }, { label: tr('Baker'), wideOnly: true }, { label: tr('Bane'), align: 'right' as const }, { label: tr('Kharab'), align: 'right' as const }],
         rows: p.items.map((i) => [i.productName, fmtQty(i.plannedQty), i.ovenNumber ?? '____', i.bakerName ?? '______', i.status === 'COMPLETED' ? fmtQty(i.producedQty) : '____', i.status === 'COMPLETED' ? fmtQty(i.failedQty) : '____']),
       })),
       ...(s?.customCakes.length ? [{
-        kind: 'table' as const, title: 'Us din ke cake order',
-        columns: [{ label: 'Waqt' }, { label: 'Customer' }, { label: 'Cake' }, { label: 'Likhna', wideOnly: true }],
+        kind: 'table' as const, title: tr('Us din ke cake order'),
+        columns: [{ label: tr('Waqt') }, { label: tr('Customer') }, { label: tr('Cake') }, { label: tr('Likhna'), wideOnly: true }],
         rows: s.customCakes.map((c) => [timeOnly(c.neededBy), c.customerName, `${sizeLabel(c.size)} ${flavorLabel(c.flavor)}`, c.messageOnCake ?? '']),
       }] : []),
     ],
-    footer: plans.length ? undefined : 'Is din ka koi plan nahi bana',
+    footer: plans.length ? undefined : tr('Is din ka koi plan nahi bana'),
   });
 
   return (
     <PageShell>
       <PageHero
-        title="Baking"
+        title={tr('Baking')}
         chip={<><CalendarDays /> {dateTitle}</>}
-        meta="Kya banana hai, oven me kya hai, kitna bana aur kitna kharab"
+        meta={tr('Kya banana hai, oven me kya hai, kitna bana aur kitna kharab')}
         busy={dayQ.isFetching && !dayQ.isLoading}
         loading={dayQ.isLoading}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Kitchen sheet" disabled={!plans.length && !s?.customCakes.length} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setBuilder({})} title="Naya plan (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya plan</button>}
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Kitchen sheet')} disabled={!plans.length && !s?.customCakes.length} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setBuilder({})} title={tr('Naya plan (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya plan')}</button>}
         </>}
         stats={[
-          { label: 'Banana baqi', value: fmtQty(stats.toMake), hint: stats.openLines ? `${stats.openLines} cheezein` : undefined },
-          { label: 'Ban gaya', value: `${stats.donePct}%`, hint: `${fmtQty(stats.produced)} / ${fmtQty(stats.planned)}` },
-          { label: 'Order us din', value: s ? s.totals.orders : '—' },
+          { label: tr('Banana baqi'), value: fmtQty(stats.toMake), hint: stats.openLines ? tr('{{openLines}} cheezein', { openLines: stats.openLines }) : undefined },
+          { label: tr('Ban gaya'), value: `${stats.donePct}%`, hint: `${fmtQty(stats.produced)} / ${fmtQty(stats.planned)}` },
+          { label: tr('Order us din'), value: s ? s.totals.orders : '—' },
         ]}
       />
 
       <KpiRow cols={5}>
         {dayQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Layers} color="#d97706" label="Banana baqi" value={fmtQty(stats.toMake)} hint={`${stats.openLines} cheezein`} onClick={() => setTab('plan')} active={tab === 'plan'} />
-          <KpiCard icon={Flame} color="#ea580c" label="Oven me" value={stats.inOven} hint="Abhi bake ho raha" onClick={() => setTab('plan')} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Ban gaya" value={fmtQty(stats.produced)} hint={`${stats.donePct}% poora`} onClick={() => setTab('plan')} />
-          <KpiCard icon={Timer} color={stats.failRate > 5 ? '#e11d48' : '#64748b'} label="Kharab" value={fmtQty(stats.failed)} hint={`${stats.failRate}% nuqsaan`} onClick={() => setTab('analytics')} active={tab === 'analytics'} />
-          <KpiCard icon={Sparkles} color="#7c3aed" label="Andaza" value={s ? fmtQty(s.totals.suggested) : '—'} hint={s ? `${s.rows.filter((r) => r.suggested > 0).length} cheezein banani chahiye` : 'Ban raha hai…'} onClick={() => setTab('suggest')} active={tab === 'suggest'} />
+          <KpiCard icon={Layers} color="#d97706" label={tr('Banana baqi')} value={fmtQty(stats.toMake)} hint={tr('{{openLines}} cheezein', { openLines: stats.openLines })} onClick={() => setTab('plan')} active={tab === 'plan'} />
+          <KpiCard icon={Flame} color="#ea580c" label={tr('Oven me')} value={stats.inOven} hint={tr('Abhi bake ho raha')} onClick={() => setTab('plan')} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Ban gaya')} value={fmtQty(stats.produced)} hint={tr('{{donePct}}% poora', { donePct: stats.donePct })} onClick={() => setTab('plan')} />
+          <KpiCard icon={Timer} color={stats.failRate > 5 ? '#e11d48' : '#64748b'} label={tr('Kharab')} value={fmtQty(stats.failed)} hint={tr('{{failRate}}% nuqsaan', { failRate: stats.failRate })} onClick={() => setTab('analytics')} active={tab === 'analytics'} />
+          <KpiCard icon={Sparkles} color="#7c3aed" label={tr('Andaza')} value={s ? fmtQty(s.totals.suggested) : '—'} hint={s ? tr('{{count}} cheezein banani chahiye', { count: s.rows.filter((r) => r.suggested > 0).length }) : tr('Ban raha hai…')} onClick={() => setTab('suggest')} active={tab === 'suggest'} />
         </>}
       </KpiRow>
 
       {tab === 'record' || tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'record' ? 'Is period ke saare plan' : 'Is period ka hisaab — plan ki date se'}</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'record' ? tr('Is period ke saare plan') : tr('Is period ka hisaab — plan ki date se')}</p>}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         </FilterBar>
       ) : (
-        <FilterBar search={tab === 'plan' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya plan number…" label="Search" /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Kis din ke liye banana hai — kal ka plan aaj shaam bana lein</p>}>
+        <FilterBar search={tab === 'plan' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Cheez ya plan number…')} label={tr('Search')} /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tr('Kis din ke liye banana hai — kal ka plan aaj shaam bana lein')}</p>}>
           <div className="flex flex-wrap items-center gap-1.5">
             {[0, 1, 2].map((o) => {
               const k = dayKey(o);
-              return <button key={o} type="button" onClick={() => setDate(k)} className={cn('h-10 rounded-full px-3.5 text-[0.8125rem] font-semibold ring-1 transition', date === k ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{o === 0 ? 'Aaj' : o === 1 ? 'Kal' : 'Parson'}</button>;
+              return <button key={o} type="button" onClick={() => setDate(k)} className={cn('h-10 rounded-full px-3.5 text-[0.8125rem] font-semibold ring-1 transition', date === k ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{o === 0 ? tr('Aaj') : o === 1 ? tr('Kal') : tr('Parson')}</button>;
             })}
-            <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label="Din chunein" className="h-10 rounded-full border border-slate-200 bg-white px-3 text-[0.8125rem] text-slate-700" />
+            <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} aria-label={tr('Din chunein')} className="h-10 rounded-full border border-slate-200 bg-white px-3 text-[0.8125rem] text-slate-700" />
           </div>
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya plan · </>}<Kbd>1</Kbd>-<Kbd>4</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('naya plan ·')}{' '} </>}<Kbd>1</Kbd>-<Kbd>4</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'plan', label: `${dateTitle} ka kaam`, icon: ChefHat, count: plans.length || null },
-          { id: 'suggest', label: 'Kya banana hai', icon: Sparkles },
-          { id: 'record', label: 'Record', icon: ListChecks },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'plan', label: tr('{{dateTitle}} ka kaam', { dateTitle }), icon: ChefHat, count: plans.length || null },
+          { id: 'suggest', label: tr('Kya banana hai'), icon: Sparkles },
+          { id: 'record', label: tr('Record'), icon: ListChecks },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? (
@@ -164,22 +165,22 @@ export default function ProductionPage() {
       ) : tab === 'suggest' ? (
         <SuggestPanel date={date} canManage={canManage} onPlan={(lines) => setBuilder({ lines })} />
       ) : tab === 'record' ? (
-        recordQ.isError && !recordQ.data ? <LoadFailed what="Plans" retry={() => recordQ.refetch()} />
+        recordQ.isError && !recordQ.data ? <LoadFailed what={tr('Plans')} retry={() => recordQ.refetch()} />
           : !recordQ.data ? <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
             : <PlanRecord plans={recordQ.data} periodText={period ? rangeLabel(period.from, period.to) : ''} onOpen={(p) => { setDate(businessDayKey(new Date(p.planDate), startHour)); setTab('plan'); }} />
       ) : dayQ.isError && !dayQ.data ? (
-        <LoadFailed what="Plan" retry={() => dayQ.refetch()} />
+        <LoadFailed what={tr('Plan')} retry={() => dayQ.refetch()} />
       ) : dayQ.isLoading ? (
         <Skeleton className="h-64 rounded-3xl" />
       ) : !shownPlans.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <ChefHat className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{t ? 'Kuch nahi mila' : `${dateTitle} ka koi plan nahi`}</p>
-          <p className="mt-1 text-sm text-slate-500">"Kya banana hai" se orders aur sale ka andaza dekh kar ek click me plan banayein.</p>
+          <p className="mt-3 font-semibold text-slate-900">{t ? tr('Kuch nahi mila') : tr('{{dateTitle}} ka koi plan nahi', { dateTitle })}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('"Kya banana hai" se orders aur sale ka andaza dekh kar ek click me plan banayein.')}</p>
           {canManage && !t && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Button onClick={() => setTab('suggest')} leftIcon={<Sparkles className="h-4 w-4" />}>Kya banana hai</Button>
-              <Button variant="secondary" onClick={() => setBuilder({})} leftIcon={<Plus className="h-4 w-4" />}>Khud plan banayein</Button>
+              <Button onClick={() => setTab('suggest')} leftIcon={<Sparkles className="h-4 w-4" />}>{tr('Kya banana hai')}</Button>
+              <Button variant="secondary" onClick={() => setBuilder({})} leftIcon={<Plus className="h-4 w-4" />}>{tr('Khud plan banayein')}</Button>
             </div>
           )}
         </div>
@@ -190,21 +191,21 @@ export default function ProductionPage() {
       {builder && <PlanBuilder date={date} plan={builder.plan} initial={builder.lines} onClose={() => setBuilder(null)} onDone={() => { setBuilder(null); setTab('plan'); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Baking — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Baking — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Sparkles, color: '#7c3aed', title: 'Kya banana hai', text: 'Us din ke cake aur bare order, aur pichle 4 hafton me usi din ki sale dekh kar har cheez ki ginti khud aati hai. Ginti badlein aur plan banayein.' },
-            { icon: Plus, color: '#d97706', title: 'Plan', text: 'Subah (ya raat ko agle din ka) plan banayein: kya, kitna aur kaunsi shift. Kal ka plan "Kal" chun kar banayein.' },
-            { icon: Flame, color: '#ea580c', title: 'Oven me daala', text: 'Temperature aur oven number likhein — baad me pata chalta hai kahan kharabi zyada hoti hai.' },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Ban gaya', text: 'Kitne theek bane aur kitne kharab. Chahein to maal stock me, recipe ka saamaan kachche maal se, aur freshness ka batch — sab ek saath.' },
-            { icon: Wheat, color: '#a16207', title: 'Recipe ka saamaan', text: 'Product me recipe bani ho to "Recipe ka saamaan ghatayein" se maida, cheeni waghera khud kam hote hain aur cost likhi jati hai.' },
-            { icon: Printer, color: '#0891b2', title: 'Kitchen sheet', text: 'Upar se din ka plan print karein — baker khaali jagah me oven, naam aur ginti likh sakta hai.' },
+            { icon: Sparkles, color: '#7c3aed', title: tr('Kya banana hai'), text: tr('Us din ke cake aur bare order, aur pichle 4 hafton me usi din ki sale dekh kar har cheez ki ginti khud aati hai. Ginti badlein aur plan banayein.') },
+            { icon: Plus, color: '#d97706', title: tr('Plan'), text: tr('Subah (ya raat ko agle din ka) plan banayein: kya, kitna aur kaunsi shift. Kal ka plan "Kal" chun kar banayein.') },
+            { icon: Flame, color: '#ea580c', title: tr('Oven me daala'), text: tr('Temperature aur oven number likhein — baad me pata chalta hai kahan kharabi zyada hoti hai.') },
+            { icon: CheckCircle2, color: '#16a34a', title: tr('Ban gaya'), text: tr('Kitne theek bane aur kitne kharab. Chahein to maal stock me, recipe ka saamaan kachche maal se, aur freshness ka batch — sab ek saath.') },
+            { icon: Wheat, color: '#a16207', title: tr('Recipe ka saamaan'), text: tr('Product me recipe bani ho to "Recipe ka saamaan ghatayein" se maida, cheeni waghera khud kam hote hain aur cost likhi jati hai.') },
+            { icon: Printer, color: '#0891b2', title: tr('Kitchen sheet'), text: tr('Upar se din ka plan print karein — baker khaali jagah me oven, naam aur ginti likh sakta hai.') },
           ]}
           tips={[
-            'Kharab hone wali cheez ki wajah zaroor likhein — Freshness aur waste ke record me jati hai.',
-            '"Stock me daalein" tabhi on karein agar aap bana hua maal kahin aur se stock me nahi daalte — warna do dafa ginega.',
-            'Plan likhne aur badalne ke liye "Bakery production sambhalna" ki permission chahiye.',
+            tr('Kharab hone wali cheez ki wajah zaroor likhein — Freshness aur waste ke record me jati hai.'),
+            tr('"Stock me daalein" tabhi on karein agar aap bana hua maal kahin aur se stock me nahi daalte — warna do dafa ginega.'),
+            tr('Plan likhne aur badalne ke liye "Bakery production sambhalna" ki permission chahiye.'),
           ]}
-          shortcuts={[['N', 'naya plan'], ['1', 'aaj ka kaam'], ['2', 'kya banana hai'], ['3', 'record'], ['4', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['N', tr('naya plan')], ['1', tr('aaj ka kaam')], ['2', tr('kya banana hai')], ['3', 'record'], ['4', 'analytics'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -212,14 +213,14 @@ export default function ProductionPage() {
 }
 
 function PlanRecord({ plans, periodText, onOpen }: { plans: ProductionPlan[]; periodText: string; onOpen: (p: ProductionPlan) => void }) {
-  if (!plans.length) return <div className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{periodText} me koi plan nahi</div>;
+  if (!plans.length) return <div className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">{tr('{{periodText}} me koi plan nahi', { periodText })}</div>;
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <Table minWidth="40rem" className="text-[0.8125rem] [&_table]:text-[0.8125rem]">
           <THead>
-            <Tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <Th className="px-4 py-2.5">Din</Th><Th className="px-2 py-2.5">Plan</Th><Th className="px-2 py-2.5">Halat</Th>
-              <Th className="px-2 py-2.5 text-right">Socha</Th><Th className="px-2 py-2.5 text-right">Bana</Th><Th className="px-4 py-2.5 text-right">Kharab</Th>
+            <Tr className="bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+              <Th className="px-4 py-2.5">{tr('Din')}</Th><Th className="px-2 py-2.5">{tr('Plan')}</Th><Th className="px-2 py-2.5">{tr('Halat')}</Th>
+              <Th className="px-2 py-2.5 text-end">{tr('Socha')}</Th><Th className="px-2 py-2.5 text-end">{tr('Bane')}</Th><Th className="px-4 py-2.5 text-end">{tr('Kharab')}</Th>
             </Tr>
           </THead>
           <TBody>
@@ -231,11 +232,11 @@ function PlanRecord({ plans, periodText, onOpen }: { plans: ProductionPlan[]; pe
               return (
                 <Tr key={p.id} onClick={() => onOpen(p)} className="cursor-pointer hover:bg-slate-50">
                   <Td className="px-4 py-2.5 text-slate-700">{dayOnly(p.planDate)}</Td>
-                  <Td className="px-2 py-2.5"><span className="font-medium text-slate-900">{p.planNumber}</span>{p.shift ? <span className="text-slate-500"> · {p.shift}</span> : null}<span className="block text-[0.6875rem] text-slate-500">{p.items.length} cheezein</span></Td>
+                  <Td className="px-2 py-2.5"><span className="font-medium text-slate-900">{p.planNumber}</span>{p.shift ? <span className="text-slate-500"> · {tr(p.shift)}</span> : null}<span className="block text-[0.6875rem] text-slate-500">{tr('{{count}} cheezein', { count: p.items.length })}</span></Td>
                   <Td className="px-2 py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}>{st.label}</span></Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums">{fmtQty(planned)}</Td>
-                  <Td className="px-2 py-2.5 text-right tabular-nums text-success-700">{fmtQty(made)}</Td>
-                  <Td className={cn('px-4 py-2.5 text-right tabular-nums', failed ? 'text-rose-700' : 'text-slate-400')}>{fmtQty(failed)}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums">{fmtQty(planned)}</Td>
+                  <Td className="px-2 py-2.5 text-end tabular-nums text-success-700">{fmtQty(made)}</Td>
+                  <Td className={cn('px-4 py-2.5 text-end tabular-nums', failed ? 'text-rose-700' : 'text-slate-400')}>{fmtQty(failed)}</Td>
                 </Tr>
               );
             })}

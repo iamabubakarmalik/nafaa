@@ -15,6 +15,7 @@ import { encountersApi } from '../api/encounters.api';
 import { prescriptionsApi, type Prescription, type PrescriptionItem } from '../api/prescriptions.api';
 import { useDebounced } from '../hooks/usePageKeys';
 import { apiError } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const FREQ = ['1+0+1', '1+1+1', '1+0+0', '0+0+1', '1+1+1+1', 'SOS', 'Hafte me 1'];
 const FORMS = ['Tab', 'Cap', 'Syp', 'Inj', 'Drops', 'Cream', 'Sachet', 'Inhaler'];
@@ -30,14 +31,14 @@ function DrugName({ value, onChange, onPick }: { value: string; onChange: (v: st
   const items = (data?.items ?? []).filter((p) => (p.unit ?? '').toLowerCase() !== 'service');
   return (
     <div className="relative">
-      <Input aria-label="Dawai" value={value} placeholder="Dawai ka naam" onChange={(e) => { onChange(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
+      <Input aria-label={t('Dawai')} value={value} placeholder={t('Dawai ka naam')} onChange={(e) => { onChange(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
       {open && items.length > 0 && (
         <div className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
           {items.map((p) => (
             <button key={p.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(p.id, p.name); setOpen(false); }}
-              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[0.8125rem] hover:bg-brand-50">
+              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-[0.8125rem] hover:bg-brand-50">
               <span className="truncate font-medium">{p.name}</span>
-              <span className={cn('shrink-0 text-[0.6875rem]', Number(p.stock) > 0 ? 'text-emerald-700' : 'text-rose-600')}>{Number(p.stock) > 0 ? `${Number(p.stock)} stock` : 'stock nahi'}</span>
+              <span className={cn('shrink-0 text-[0.6875rem]', Number(p.stock) > 0 ? 'text-emerald-700' : 'text-rose-600')}>{Number(p.stock) > 0 ? t('{{stock}} stock', { stock: Number(p.stock) }) : t('stock nahi')}</span>
             </button>
           ))}
         </div>
@@ -58,8 +59,8 @@ export function RxBuilder({ appointmentId, encounterId, onClose, onSaved }: {
   const set = (i: number, patch: Partial<Line>) => setLines((x) => x.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
   const filled = lines.filter((l) => l.drugName.trim());
-  const error = !filled.length ? 'Kam se kam ek dawai likhein'
-    : filled.some((l) => l.durationDays && !(Number(l.durationDays) > 0 && Number(l.durationDays) <= 365)) ? 'Din 1 se 365 tak' : null;
+  const error = !filled.length ? t('Kam se kam ek dawai likhein')
+    : filled.some((l) => l.durationDays && !(Number(l.durationDays) > 0 && Number(l.durationDays) <= 365)) ? t('Din 1 se 365 tak') : null;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -71,17 +72,17 @@ export function RxBuilder({ appointmentId, encounterId, onClose, onSaved }: {
       }));
       return prescriptionsApi.create({ encounterId: encId, generalInstructions: general.trim() || undefined, items });
     },
-    onSuccess: (rx) => { toast.success(`Nuskha ${rx.prescriptionNumber} save`); onSaved(rx); },
+    onSuccess: (rx) => { toast.success(t('Nuskha {{prescriptionNumber}} save', { prescriptionNumber: rx.prescriptionNumber })); onSaved(rx); },
     onError: (e) => toast.error(apiError(e)),
   });
   const submit = () => { setTried(true); if (!error) save.mutate(); };
 
   const chip = (on: boolean) => cn('h-7 rounded-full px-2.5 text-[0.75rem] font-semibold ring-1', on ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50');
   return (
-    <Modal open onClose={onClose} size="xl" title="Nuskha likhein" description="Dawai, khuraak, kitni dafa aur kitne din — save ke baad print"
+    <Modal open onClose={onClose} size="xl" title={t('Nuskha likhein')} description={t('Dawai, khuraak, kitni dafa aur kitne din — save ke baad print')}
       footer={<div className="flex items-center justify-between gap-2">
-        <Button variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setLines((x) => [...x, empty()])}>Aur dawai</Button>
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Wapas</Button><Button loading={save.isPending} leftIcon={<Printer className="h-4 w-4" />} onClick={submit}>Save aur print</Button></div>
+        <Button variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setLines((x) => [...x, empty()])}>{t('Aur dawai')}</Button>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button><Button loading={save.isPending} leftIcon={<Printer className="h-4 w-4" />} onClick={submit}>{t('Save aur print')}</Button></div>
       </div>}>
       <div className="space-y-3" onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
         {lines.map((l, i) => (
@@ -89,28 +90,28 @@ export function RxBuilder({ appointmentId, encounterId, onClose, onSaved }: {
             <div className="flex items-start gap-2">
               <Pill className="mt-2.5 h-4 w-4 shrink-0 text-brand-600" />
               <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[6rem_minmax(0,1fr)_7rem]">
-                <Select aria-label="Shakal" value={l.form} onChange={(e) => set(i, { form: e.target.value })} options={FORMS.map((f) => ({ value: f, label: f }))} />
+                <Select aria-label={t('Shakal')} value={l.form} onChange={(e) => set(i, { form: e.target.value })} options={FORMS.map((f) => ({ value: f, label: f }))} />
                 <DrugName value={l.drugName} onChange={(v) => set(i, { drugName: v, drugId: undefined })} onPick={(id, name) => set(i, { drugId: id, drugName: name })} />
-                <Input aria-label="Strength" value={l.strength} onChange={(e) => set(i, { strength: e.target.value })} placeholder="500mg" />
+                <Input aria-label={t('Strength')} value={l.strength} onChange={(e) => set(i, { strength: e.target.value })} placeholder={t('500mg')} />
               </div>
-              {lines.length > 1 && <button type="button" aria-label="Hatayein" onClick={() => setLines((x) => x.filter((_, j) => j !== i))} className="flex h-10 w-10 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
+              {lines.length > 1 && <button type="button" aria-label={t('Hatayein')} onClick={() => setLines((x) => x.filter((_, j) => j !== i))} className="flex h-10 w-10 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 pl-6">
-              <Input aria-label="Khuraak" size="sm" value={l.dose} onChange={(e) => set(i, { dose: e.target.value })} placeholder="1 goli / 5ml" wrapperClassName="w-28" />
+            <div className="flex flex-wrap items-center gap-1.5 ps-6">
+              <Input aria-label={t('Khuraak')} size="sm" value={l.dose} onChange={(e) => set(i, { dose: e.target.value })} placeholder={t('1 goli / 5ml')} wrapperClassName="w-28" />
               {FREQ.map((f) => <button key={f} type="button" onClick={() => set(i, { frequency: f })} className={chip(l.frequency === f)}>{f}</button>)}
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 pl-6">
-              {DAYS.map((d) => <button key={d} type="button" onClick={() => set(i, { durationDays: String(d) })} className={chip(l.durationDays === String(d))}>{d} din</button>)}
-              <Input aria-label="Din" size="sm" inputMode="numeric" value={l.durationDays} onChange={(e) => set(i, { durationDays: e.target.value })} wrapperClassName="w-20" />
+            <div className="flex flex-wrap items-center gap-1.5 ps-6">
+              {DAYS.map((d) => <button key={d} type="button" onClick={() => set(i, { durationDays: String(d) })} className={chip(l.durationDays === String(d))}>{t('{{d}} din', { d })}</button>)}
+              <Input aria-label={t('Din')} size="sm" inputMode="numeric" value={l.durationDays} onChange={(e) => set(i, { durationDays: e.target.value })} wrapperClassName="w-20" />
               <span className="mx-1 h-5 w-px bg-slate-200" />
-              <button type="button" onClick={() => set(i, { afterMeal: !l.afterMeal, beforeMeal: false })} className={chip(l.afterMeal)}>Khane ke baad</button>
-              <button type="button" onClick={() => set(i, { beforeMeal: !l.beforeMeal, afterMeal: false })} className={chip(l.beforeMeal)}>Khane se pehle</button>
-              <button type="button" onClick={() => set(i, { atBedtime: !l.atBedtime })} className={chip(l.atBedtime)}>Sone se pehle</button>
+              <button type="button" onClick={() => set(i, { afterMeal: !l.afterMeal, beforeMeal: false })} className={chip(l.afterMeal)}>{t('Khane ke baad')}</button>
+              <button type="button" onClick={() => set(i, { beforeMeal: !l.beforeMeal, afterMeal: false })} className={chip(l.beforeMeal)}>{t('Khane se pehle')}</button>
+              <button type="button" onClick={() => set(i, { atBedtime: !l.atBedtime })} className={chip(l.atBedtime)}>{t('Sone se pehle')}</button>
             </div>
-            <Input aria-label="Hidayat" size="sm" value={l.instructions} onChange={(e) => set(i, { instructions: e.target.value })} placeholder="Hidayat (marzi)" wrapperClassName="pl-6" />
+            <Input aria-label={t('Hidayat')} size="sm" value={l.instructions} onChange={(e) => set(i, { instructions: e.target.value })} placeholder={t('Hidayat (marzi)')} wrapperClassName="ps-6" />
           </div>
         ))}
-        <Textarea label="Aam hidayat" rows={2} value={general} onChange={(e) => setGeneral(e.target.value)} placeholder="Dawai poora course karein" />
+        <Textarea label={t('Aam hidayat')} rows={2} value={general} onChange={(e) => setGeneral(e.target.value)} placeholder={t('Dawai poora course karein')} />
         {tried && error && <p className="text-[0.8125rem] font-medium text-rose-600">{error}</p>}
       </div>
     </Modal>

@@ -19,6 +19,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { deliveriesApi, type ApplianceDelivery, type DeliveryDetail } from '../api/deliveries.api';
 import { CustomerFields, PayModal, Pill, ReasonModal, SlotChips, emptyParty, partyErrors, type PartyDraft } from './ui';
 import { DELIVERY_KEY, DELIVERY_OPEN, INSTALL_KEY, MONEY_KEYS, apiError, cnicOk, dateTime, dayOnly, deliveryStatusOf, digits, money, slotLabel, todayKey, waLink } from './meta';
+import { t } from '@core/i18n';
 
 const refresh = (qc: ReturnType<typeof useQueryClient>) => [DELIVERY_KEY, INSTALL_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
@@ -59,41 +60,41 @@ export function NewDeliveryModal({ onClose, onCreated }: { onClose: () => void; 
       deliveryCharge: Number(charge) || 0, loadingCharge: Number(loading) || 0, unloadingCharge: Number(unloading) || 0, floorCharge: Number(floorCharge) || 0,
       requiresInstallation: install, notes: notes.trim() || undefined,
     }),
-    onSuccess: (d) => { toast.success(`Delivery ${d.deliveryNumber} book`); refresh(qc); onCreated(d); },
-    onError: (e) => toast.error(apiError(e, 'Delivery book nahi hui')),
+    onSuccess: (d) => { toast.success(t('Delivery {{deliveryNumber}} book', { deliveryNumber: d.deliveryNumber })); refresh(qc); onCreated(d); },
+    onError: (e) => toast.error(apiError(e, t('Delivery book nahi hui'))),
   });
   const submit = () => { setTried(true); if (!bad && !save.isPending) save.mutate(); };
 
   return (
-    <Modal open onClose={onClose} size="lg" title="Nayi delivery" description="Bill ke saath delivery POS par bhi book hoti hai — yahan alag trip likhein"
+    <Modal open onClose={onClose} size="lg" title={t('Nayi delivery')} description={t('Bill ke saath delivery POS par bhi book hoti hai — yahan alag trip likhein')}
       footer={<>
-        <span className="mr-auto text-[0.8125rem] text-slate-600">Charges: <strong className="tabular-nums">{formatPKR(total)}</strong></span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} leftIcon={<Truck className="h-4 w-4" />}>Book karein</Button>
+        <span className="me-auto text-[0.8125rem] text-slate-600">{t('Charges:')}{' '} <strong className="tabular-nums">{formatPKR(total)}</strong></span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} leftIcon={<Truck className="h-4 w-4" />}>{t('Book karein')}</Button>
       </>}>
       <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
         <CustomerFields value={party} onChange={setParty} errors={tried ? pErr : {}} />
         <div className="grid gap-4 sm:grid-cols-3">
-          <Input label="Manzil (floor)" inputMode="numeric" value={floor} onChange={(e) => setFloor(digits(e.target.value))} placeholder="0 = ground" />
-          <Switch className="sm:col-span-2 sm:mt-6" checked={lift} onChange={(e) => setLift(e.target.checked)} label="Lift hai" description="Na ho to helper zyada lagenge" />
+          <Input label={t('Manzil (floor)')} inputMode="numeric" value={floor} onChange={(e) => setFloor(digits(e.target.value))} placeholder={t('0 = ground')} />
+          <Switch className="sm:col-span-2 sm:mt-6" checked={lift} onChange={(e) => setLift(e.target.checked)} label={t('Lift hai')} description={t('Na ho to helper zyada lagenge')} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} error={dateBad ? 'Guzri hui date nahi' : undefined} />
+          <Input label={t('Date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} error={dateBad ? t('Guzri hui date nahi') : undefined} />
           <SlotChips value={slot} onChange={setSlot} />
         </div>
         <div className="rounded-xl p-3 ring-1 ring-slate-200">
-          <p className="text-[0.8125rem] font-semibold text-slate-800">Charges</p>
-          <p className="text-[0.75rem] text-slate-500">Free delivery ho to khali chhorein. Delivery hone par in ka bill banta hai.</p>
+          <p className="text-[0.8125rem] font-semibold text-slate-800">{t('Charges')}</p>
+          <p className="text-[0.75rem] text-slate-500">{t('Free delivery ho to khali chhorein. Delivery hone par in ka bill banta hai.')}</p>
           <div className="mt-2 grid gap-3 sm:grid-cols-4">
-            <Input label="Gaari" inputMode="decimal" value={charge} onChange={(e) => setCharge(money(e.target.value))} placeholder="1500" />
-            <Input label="Load" inputMode="decimal" value={loading} onChange={(e) => setLoading(money(e.target.value))} placeholder="0" />
-            <Input label="Utarna" inputMode="decimal" value={unloading} onChange={(e) => setUnloading(money(e.target.value))} placeholder="0" />
-            <Input label="Manzil" inputMode="decimal" value={floorCharge} onChange={(e) => setFloorCharge(money(e.target.value))} placeholder="0" />
+            <Input label={t('Gaari')} inputMode="decimal" value={charge} onChange={(e) => setCharge(money(e.target.value))} placeholder="1500" />
+            <Input label={t('Load')} inputMode="decimal" value={loading} onChange={(e) => setLoading(money(e.target.value))} placeholder="0" />
+            <Input label={t('Utarna')} inputMode="decimal" value={unloading} onChange={(e) => setUnloading(money(e.target.value))} placeholder="0" />
+            <Input label={t('Manzil')} inputMode="decimal" value={floorCharge} onChange={(e) => setFloorCharge(money(e.target.value))} placeholder="0" />
           </div>
         </div>
-        <Switch checked={install} onChange={(e) => setInstall(e.target.checked)} label="Installation bhi karni hai" description="Saman pohanchne ke baad Installations me booking yaad dilayi jayegi" />
-        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Gali tang hai, chhoti gaari bhejein" hint="Driver ke liye" />
+        <Switch checked={install} onChange={(e) => setInstall(e.target.checked)} label={t('Installation bhi karni hai')} description={t('Saman pohanchne ke baad Installations me booking yaad dilayi jayegi')} />
+        <Textarea label={t('Note')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('Gali tang hai, chhoti gaari bhejein')} hint={t('Driver ke liye')} />
       </form>
     </Modal>
   );
@@ -108,16 +109,16 @@ function VehicleModal({ d, pending, onConfirm, onClose }: { d: ApplianceDelivery
   const [slot, setSlot] = useState(d.scheduledSlot ?? '');
   const ok = vehicle.trim().length >= 3 && driver.trim().length >= 2 && !(date && date < todayKey());
   return (
-    <Modal open onClose={onClose} size="sm" title="Gaari aur driver"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} loading={pending} onClick={() => onConfirm({ vehicleNumber: vehicle.trim().toUpperCase(), driverName: driver.trim(), driverPhone: phone.trim() || undefined, helperCount: Number(helpers) || undefined, scheduledDate: date || undefined, scheduledSlot: slot || undefined })}>Laga dein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Gaari aur driver')}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button disabled={!ok} loading={pending} onClick={() => onConfirm({ vehicleNumber: vehicle.trim().toUpperCase(), driverName: driver.trim(), driverPhone: phone.trim() || undefined, helperCount: Number(helpers) || undefined, scheduledDate: date || undefined, scheduledSlot: slot || undefined })}>{t('Laga dein')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Gaari ka number" value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder="LES-1234" autoFocus />
+        <Input label={t('Gaari ka number')} value={vehicle} onChange={(e) => setVehicle(e.target.value)} placeholder={t('LES-1234')} autoFocus />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Driver" value={driver} onChange={(e) => setDriver(e.target.value)} placeholder="Aslam" />
-          <Input label="Driver ka phone" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" />
+          <Input label={t('Driver')} value={driver} onChange={(e) => setDriver(e.target.value)} placeholder={t('Aslam')} />
+          <Input label={t('Driver ka phone')} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" />
         </div>
-        <Input label="Helper kitne" inputMode="numeric" value={helpers} onChange={(e) => setHelpers(digits(e.target.value))} placeholder="2" />
-        <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Input label={t('Helper kitne')} inputMode="numeric" value={helpers} onChange={(e) => setHelpers(digits(e.target.value))} placeholder="2" />
+        <Input label={t('Date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         <SlotChips value={slot} onChange={setSlot} />
       </div>
     </Modal>
@@ -135,18 +136,18 @@ function ConfirmModal({ d, onClose }: { d: DeliveryDetail; onClose: () => void }
   const tooMuch = n > due + 0.01;
   const save = useMutation({
     mutationFn: () => deliveriesApi.confirm(d.id, { receivedByName: name.trim(), receivedByCnic: cnic.trim() || undefined, paidAmount: n || undefined, paymentMethod: method }),
-    onSuccess: () => { toast.success(`${d.deliveryNumber} de diya`); refresh(qc); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Confirm nahi hua')),
+    onSuccess: () => { toast.success(t('{{deliveryNumber}} de diya', { deliveryNumber: d.deliveryNumber })); refresh(qc); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Confirm nahi hua'))),
   });
   const ok = name.trim().length >= 2 && cnicOk(cnic) && !tooMuch;
   return (
-    <Modal open onClose={onClose} size="sm" title={`Saman de diya — ${d.deliveryNumber}`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} loading={save.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => save.mutate()}>Confirm karein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Saman de diya — {{deliveryNumber}}', { deliveryNumber: d.deliveryNumber })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button disabled={!ok} loading={save.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => save.mutate()}>{t('Confirm karein')}</Button></>}>
       <div className="space-y-3">
-        <Input label="Kis ne liya" value={name} onChange={(e) => setName(e.target.value)} />
-        <Input label="Us ka CNIC" value={cnic} onChange={(e) => setCnic(e.target.value)} placeholder="35202-1234567-1" error={!cnicOk(cnic) ? '13 hindse likhein' : undefined} hint="Marzi hai — mehnga saman ho to zaroor likhein" />
-        {d.chargedAtCounter ? <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">Delivery charges counter ke bill me le liye gaye.</p> : due > 0 ? <>
-          <Input label="Driver ne kitna liya" inputMode="decimal" value={amount} onChange={(e) => setAmount(money(e.target.value))} error={tooMuch ? `Sirf ${formatPKR(due)} baqi` : undefined} hint={`Charges baqi ${formatPKR(due)} — jo na mile khata me jayega`} />
+        <Input label={t('Kis ne liya')} value={name} onChange={(e) => setName(e.target.value)} />
+        <Input label={t('Us ka CNIC')} value={cnic} onChange={(e) => setCnic(e.target.value)} placeholder="35202-1234567-1" error={!cnicOk(cnic) ? t('13 hindse likhein') : undefined} hint={t('Marzi hai — mehnga saman ho to zaroor likhein')} />
+        {d.chargedAtCounter ? <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">{t('Delivery charges counter ke bill me le liye gaye.')}</p> : due > 0 ? <>
+          <Input label={t('Driver ne kitna liya')} inputMode="decimal" value={amount} onChange={(e) => setAmount(money(e.target.value))} error={tooMuch ? t('Sirf {{due}} baqi', { due: formatPKR(due) }) : undefined} hint={t('Charges baqi {{due}} — jo na mile khata me jayega', { due: formatPKR(due) })} />
           {n > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
         </> : null}
       </div>
@@ -161,10 +162,10 @@ export function DeliveryCard({ id, shopName, canManage, onClose }: { id: string;
   const q = useQuery({ queryKey: [DELIVERY_KEY, 'one', id], queryFn: () => deliveriesApi.getOne(id) });
   const [dialog, setDialog] = useState<Dialog>(null);
   const done = (msg: string) => { toast.success(msg); refresh(qc); setDialog(null); };
-  const fail = (e: unknown) => toast.error(apiError(e, 'Nahi hua'));
-  const vehicle = useMutation({ mutationFn: (v: Parameters<typeof deliveriesApi.assignVehicle>[1]) => deliveriesApi.assignVehicle(id, v), onSuccess: () => done('Gaari lag gayi'), onError: fail });
-  const status = useMutation({ mutationFn: (v: { status: string; notes?: string }) => deliveriesApi.updateStatus(id, v), onSuccess: () => done('Halat badal gayi'), onError: fail });
-  const pay = useMutation({ mutationFn: (v: { amount: number; paymentMethod: string; note?: string }) => deliveriesApi.addPayment(id, v), onSuccess: () => done('Paisa mil gaya'), onError: fail });
+  const fail = (e: unknown) => toast.error(apiError(e, t('Nahi hua')));
+  const vehicle = useMutation({ mutationFn: (v: Parameters<typeof deliveriesApi.assignVehicle>[1]) => deliveriesApi.assignVehicle(id, v), onSuccess: () => done(t('Gaari lag gayi')), onError: fail });
+  const status = useMutation({ mutationFn: (v: { status: string; notes?: string }) => deliveriesApi.updateStatus(id, v), onSuccess: () => done(t('Halat badal gayi')), onError: fail });
+  const pay = useMutation({ mutationFn: (v: { amount: number; paymentMethod: string; note?: string }) => deliveriesApi.addPayment(id, v), onSuccess: () => done(t('Paisa mil gaya')), onError: fail });
   const d = q.data;
   const open = !!d && DELIVERY_OPEN.includes(d.status);
   const due = d?.dueAmount ?? 0;
@@ -172,43 +173,43 @@ export function DeliveryCard({ id, shopName, canManage, onClose }: { id: string;
   const map = d ? `https://www.google.com/maps/search/${encodeURIComponent([d.deliveryAddress, d.area, d.city].filter(Boolean).join(', '))}` : '';
 
   return (
-    <Modal open onClose={onClose} size="lg" title={d ? `${d.deliveryNumber} — ${d.customerName}` : 'Delivery'} description={d ? `${d.customerPhone} · ${[d.deliveryAddress, d.area].filter(Boolean).join(', ')}` : undefined}
+    <Modal open onClose={onClose} size="lg" title={d ? `${d.deliveryNumber} — ${d.customerName}` : t('Delivery')} description={d ? `${d.customerPhone} · ${[d.deliveryAddress, d.area].filter(Boolean).join(', ')}` : undefined}
       footer={d && <>
-        <a href={map} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><MapPin className="h-4 w-4" />Map</a>
-        {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+        <a href={map} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><MapPin className="h-4 w-4" />{t('Map')}</a>
+        {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />{t('WhatsApp')}</a>}
         <span className="flex-1" />
-        {canManage && due > 0 && d.status === 'DELIVERED' && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setDialog('pay')}>Baqi lein</Button>}
-        {canManage && (d.status === 'PENDING' || d.status === 'SCHEDULED') && <Button variant="secondary" leftIcon={<Truck className="h-4 w-4" />} onClick={() => setDialog('vehicle')}>{d.vehicleNumber ? 'Gaari badlein' : 'Gaari lagayein'}</Button>}
-        {canManage && d.status === 'SCHEDULED' && <Button leftIcon={<Navigation className="h-4 w-4" />} loading={status.isPending} onClick={() => status.mutate({ status: 'DISPATCHED' })}>Nikal gaya</Button>}
-        {canManage && d.status === 'DISPATCHED' && <Button loading={status.isPending} onClick={() => status.mutate({ status: 'ARRIVED' })}>Pohanch gaya</Button>}
-        {canManage && (d.status === 'ARRIVED' || d.status === 'DISPATCHED') && <Button leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => setDialog('confirm')}>De diya</Button>}
+        {canManage && due > 0 && d.status === 'DELIVERED' && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setDialog('pay')}>{t('Baqi lein')}</Button>}
+        {canManage && (d.status === 'PENDING' || d.status === 'SCHEDULED') && <Button variant="secondary" leftIcon={<Truck className="h-4 w-4" />} onClick={() => setDialog('vehicle')}>{d.vehicleNumber ? t('Gaari badlein') : t('Gaari lagayein')}</Button>}
+        {canManage && d.status === 'SCHEDULED' && <Button leftIcon={<Navigation className="h-4 w-4" />} loading={status.isPending} onClick={() => status.mutate({ status: 'DISPATCHED' })}>{t('Nikal gaya')}</Button>}
+        {canManage && d.status === 'DISPATCHED' && <Button loading={status.isPending} onClick={() => status.mutate({ status: 'ARRIVED' })}>{t('Pohanch gaya')}</Button>}
+        {canManage && (d.status === 'ARRIVED' || d.status === 'DISPATCHED') && <Button leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => setDialog('confirm')}>{t('De diya')}</Button>}
       </>}>
       {!d ? <Skeleton className="h-52 rounded-2xl" /> : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <Pill meta={deliveryStatusOf(d.status)} />
-            {d.requiresInstallation && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.6875rem] text-blue-700 ring-1 ring-blue-200">Installation bhi</span>}
-            {d.sale && <Link to={`/sales/${d.sale.id}`} className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] text-slate-700 hover:underline">Bill {d.sale.saleNumber}</Link>}
+            {d.requiresInstallation && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.6875rem] text-blue-700 ring-1 ring-blue-200">{t('Installation bhi')}</span>}
+            {d.sale && <Link to={`/sales/${d.sale.id}`} className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] text-slate-700 hover:underline">{t('Bill {{saleNumber}}', { saleNumber: d.sale.saleNumber })}</Link>}
           </div>
           <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
-            <Row k="Date" v={d.scheduledDate ? `${dayOnly(d.scheduledDate)} ${slotLabel(d.scheduledSlot)}` : 'Abhi tay nahi'} />
-            <Row k="Manzil" v={d.floorNumber != null ? `${d.floorNumber}${d.hasLift ? ' · lift hai' : ' · lift nahi'}` : undefined} />
-            <Row k="Gaari" v={d.vehicleNumber ? `${d.vehicleNumber} · ${d.driverName ?? ''}${d.driverPhone ? ` (${d.driverPhone})` : ''}${d.helperCount ? ` · ${d.helperCount} helper` : ''}` : 'Abhi nahi lagi'} />
-            {d.dispatchedAt && <Row k="Nikla" v={dateTime(d.dispatchedAt)} />}
-            {d.deliveredAt && <Row k="Diya" v={`${dateTime(d.deliveredAt)}${d.receivedByName ? ` · ${d.receivedByName}` : ''}`} />}
-            {d.serials?.length ? <Row k="Serial" v={d.serials.map((s) => s.serialNumber).join(', ')} /> : null}
-            {d.installation && <Row k="Installation" v={`${d.installation.installationNumber} · ${d.installation.status}`} />}
+            <Row k={t('Date')} v={d.scheduledDate ? `${dayOnly(d.scheduledDate)} ${slotLabel(d.scheduledSlot)}` : t('Abhi tay nahi')} />
+            <Row k={t('Manzil')} v={d.floorNumber != null ? `${d.floorNumber}${d.hasLift ? t(' · lift hai') : t(' · lift nahi')}` : undefined} />
+            <Row k={t('Gaari')} v={d.vehicleNumber ? `${d.vehicleNumber} · ${d.driverName ?? ''}${d.driverPhone ? ` (${d.driverPhone})` : ''}${d.helperCount ? ` · ${d.helperCount} helper` : ''}` : t('Abhi nahi lagi')} />
+            {d.dispatchedAt && <Row k={t('Nikla')} v={dateTime(d.dispatchedAt)} />}
+            {d.deliveredAt && <Row k={t('Diya')} v={`${dateTime(d.deliveredAt)}${d.receivedByName ? ` · ${d.receivedByName}` : ''}`} />}
+            {d.serials?.length ? <Row k={t('Serial')} v={d.serials.map((s) => s.serialNumber).join(', ')} /> : null}
+            {d.installation && <Row k={t('Installation')} v={`${d.installation.installationNumber} · ${d.installation.status}`} />}
           </dl>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Money k="Gaari" v={d.deliveryCharge} /><Money k="Load / utarna" v={Number(d.loadingCharge) + Number(d.unloadingCharge)} /><Money k="Manzil" v={d.floorCharge} />
-            <Money k={due > 0 ? 'Baqi' : 'Kul'} v={due > 0 ? due : d.totalCharge} tone={due > 0 ? 'text-amber-700' : 'text-slate-900'} />
+            <Money k={t('Gaari')} v={d.deliveryCharge} /><Money k={t('Load / utarna')} v={Number(d.loadingCharge) + Number(d.unloadingCharge)} /><Money k={t('Manzil')} v={d.floorCharge} />
+            <Money k={due > 0 ? t('Baqi') : t('Kul')} v={due > 0 ? due : d.totalCharge} tone={due > 0 ? 'text-amber-700' : 'text-slate-900'} />
           </dl>
-          {d.chargedAtCounter && <p className="text-[0.8125rem] text-slate-600">Delivery charges counter ke bill me liye gaye — alag bill nahi banega.</p>}
-          {d.requiresInstallation && d.status === 'DELIVERED' && !d.installation && <p className="rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-800 ring-1 ring-blue-200">Installation abhi book nahi hui. <Link className="font-semibold underline" to="/appliances/installations?new=1">Book karein</Link></p>}
+          {d.chargedAtCounter && <p className="text-[0.8125rem] text-slate-600">{t('Delivery charges counter ke bill me liye gaye — alag bill nahi banega.')}</p>}
+          {d.requiresInstallation && d.status === 'DELIVERED' && !d.installation && <p className="rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-800 ring-1 ring-blue-200">{t('Installation abhi book nahi hui.')}{' '} <Link className="font-semibold underline" to="/appliances/installations?new=1">{t('Book karein')}</Link></p>}
           {canManage && open && (
             <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-              {d.status !== 'PENDING' && d.status !== 'SCHEDULED' && <Button size="sm" variant="ghost" onClick={() => setDialog('fail')}>Nahi de sake</Button>}
-              <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setDialog('cancel')}>Cancel</Button>
+              {d.status !== 'PENDING' && d.status !== 'SCHEDULED' && <Button size="sm" variant="ghost" onClick={() => setDialog('fail')}>{t('Nahi de sake')}</Button>}
+              <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setDialog('cancel')}>{t('Cancel')}</Button>
             </div>
           )}
           {d.notes && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] text-slate-600">{d.notes}</pre>}
@@ -216,9 +217,9 @@ export function DeliveryCard({ id, shopName, canManage, onClose }: { id: string;
       )}
       {d && dialog === 'vehicle' && <VehicleModal d={d} pending={vehicle.isPending} onConfirm={(v) => vehicle.mutate(v)} onClose={() => setDialog(null)} />}
       {d && dialog === 'confirm' && <ConfirmModal d={d} onClose={() => setDialog(null)} />}
-      {d && dialog === 'pay' && <PayModal title={`Delivery charges — ${d.deliveryNumber}`} due={due} pending={pay.isPending} onConfirm={(v) => pay.mutate(v)} onClose={() => setDialog(null)} />}
-      {d && dialog === 'cancel' && <ReasonModal title="Delivery cancel" confirm="Cancel karein" pending={status.isPending} presets={['Customer khud le gaya', 'Bill wapas hua', 'Customer ne mana kar diya']} onConfirm={(x) => status.mutate({ status: 'CANCELLED', notes: x })} onClose={() => setDialog(null)} />}
-      {d && dialog === 'fail' && <ReasonModal title="Nahi de sake" confirm="Darj karein" pending={status.isPending} presets={['Customer ghar par nahi', 'Pata ghalat', 'Saman upar nahi ja saka']} onConfirm={(x) => status.mutate({ status: 'FAILED', notes: x })} onClose={() => setDialog(null)} />}
+      {d && dialog === 'pay' && <PayModal title={t('Delivery charges — {{deliveryNumber}}', { deliveryNumber: d.deliveryNumber })} due={due} pending={pay.isPending} onConfirm={(v) => pay.mutate(v)} onClose={() => setDialog(null)} />}
+      {d && dialog === 'cancel' && <ReasonModal title={t('Delivery cancel')} confirm={t('Cancel karein')} pending={status.isPending} presets={['Customer khud le gaya', 'Bill wapas hua', 'Customer ne mana kar diya']} onConfirm={(x) => status.mutate({ status: 'CANCELLED', notes: x })} onClose={() => setDialog(null)} />}
+      {d && dialog === 'fail' && <ReasonModal title={t('Nahi de sake')} confirm={t('Darj karein')} pending={status.isPending} presets={['Customer ghar par nahi', 'Pata ghalat', 'Saman upar nahi ja saka']} onConfirm={(x) => status.mutate({ status: 'FAILED', notes: x })} onClose={() => setDialog(null)} />}
     </Modal>
   );
 }

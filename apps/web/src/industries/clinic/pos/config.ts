@@ -11,6 +11,7 @@ import { FlaskConical, Pill, Stethoscope } from 'lucide-react';
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { SERVICE_CATEGORIES } from '../api/constants';
 import { clinicServicesApi, type ClinicService } from '../api/services.api';
+import { t } from '@core/i18n';
 
 const LAB = ['LAB_TEST', 'IMAGING', 'DIAGNOSTIC'];
 /** Services carry no stock; the counter must never stop them for it. */
@@ -27,8 +28,8 @@ function useClinicCatalog() {
     return {
       ...it,
       stock: isService ? SERVICE_STOCK : it.stock,
-      badges: isService ? [{ label: cat?.label ?? 'Service', tone: 'info' as const, icon: LAB.includes(svc?.category ?? '') ? FlaskConical : Stethoscope }] : it.badges,
-      subline: svc?.durationMin ? `${svc.durationMin} min${svc.requiresFasting ? ' · tayyari zaroori' : ''}` : it.subline,
+      badges: isService ? [{ label: cat?.label ?? t('Service'), tone: 'info' as const, icon: LAB.includes(svc?.category ?? '') ? FlaskConical : Stethoscope }] : it.badges,
+      subline: svc?.durationMin ? t('{{durationMin}} min{{value}}', { durationMin: svc.durationMin, value: svc.requiresFasting ? t(' · tayyari zaroori') : '' }) : it.subline,
       searchText: [it.searchText, svc?.serviceCode, cat?.label].filter(Boolean).join(' '),
       rank: isService ? 0 : 1,
       meta: { service: isService, category: svc?.category ?? null },
@@ -40,19 +41,19 @@ function useClinicCatalog() {
 }
 
 const filters: PosFilter[] = [
-  { id: 'services', label: 'Services', icon: Stethoscope, match: (i) => !!i.meta?.service && !LAB.includes(String(i.meta?.category ?? '')) },
-  { id: 'lab', label: 'Lab / X-ray', icon: FlaskConical, match: (i) => LAB.includes(String(i.meta?.category ?? '')) },
-  { id: 'medicine', label: 'Dawai', icon: Pill, match: (i) => !i.meta?.service },
+  { id: 'services', label: t('Services'), icon: Stethoscope, match: (i) => !!i.meta?.service && !LAB.includes(String(i.meta?.category ?? '')) },
+  { id: 'lab', label: t('Lab / X-ray'), icon: FlaskConical, match: (i) => LAB.includes(String(i.meta?.category ?? '')) },
+  { id: 'medicine', label: t('Dawai'), icon: Pill, match: (i) => !i.meta?.service },
 ];
 
 export const clinicPos: PosIndustryConfig = {
   id: 'clinic',
-  label: 'Clinic',
+  label: t('Clinic'),
   useCatalog: useClinicCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Service, test ya dawai ka naam / barcode',
+  searchHint: t('Service, test ya dawai ka naam / barcode'),
   receiptFooter: 'Dawai doctor ki hidayat ke mutabiq lein. Agli visit par ye bill saath laayein.',
   voiceAliases: { checkup: 'consultation', fees: 'consultation', goli: 'tablet', sharbat: 'syrup' },
 };

@@ -21,6 +21,7 @@ import { amcContractsApi, type ApplianceAmcType } from '../api/amc-contracts.api
 import { SerialLookup } from '../components/jobDialogs';
 import { CustomerFields, emptyParty, partyErrors, type PartyDraft } from '../components/ui';
 import { AMC_KEY, AMC_PLANS, MONEY_KEYS, addMonths, apiError, digits, money, todayKey } from '../components/meta';
+import { t } from '@core/i18n';
 
 const PRESETS: Record<ApplianceAmcType, { visits: number; labor: boolean; parts: boolean; gas: boolean }> = {
   BASIC: { visits: 2, labor: false, parts: false, gas: false },
@@ -73,10 +74,10 @@ export default function AmcContractFormPage() {
   const pErr = partyErrors(party, false);
   const problems = [
     ...Object.values(pErr),
-    product.trim().length < 2 ? 'Kis cheez ka AMC — product likhein' : '',
-    !(value > 0) ? 'Contract ki qeemat likhein' : '',
-    taken > value + 0.01 ? 'Mila hua paisa qeemat se zyada nahi' : '',
-    !(Number(visits) >= 0) ? 'Free visits likhein' : '',
+    product.trim().length < 2 ? t('Kis cheez ka AMC — product likhein') : '',
+    !(value > 0) ? t('Contract ki qeemat likhein') : '',
+    taken > value + 0.01 ? t('Mila hua paisa qeemat se zyada nahi') : '',
+    !(Number(visits) >= 0) ? t('Free visits likhein') : '',
   ].filter(Boolean) as string[];
   const due = Math.max(value - taken, 0);
 
@@ -91,11 +92,11 @@ export default function AmcContractFormPage() {
       return editing ? amcContractsApi.update(id!, body) : amcContractsApi.create({ ...body, paymentMethod: method });
     },
     onSuccess: (x) => {
-      toast.success(editing ? 'Contract update' : `AMC ${x.contractNumber} ban gaya — bill bhi`);
+      toast.success(editing ? t('Contract update') : t('AMC {{contractNumber}} ban gaya — bill bhi', { contractNumber: x.contractNumber }));
       [AMC_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       navigate(`/appliances/amc-contracts?id=${x.id}`);
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
   });
   const submit = () => { setTried(true); if (!problems.length && !save.isPending) save.mutate(); };
 
@@ -109,81 +110,81 @@ export default function AmcContractFormPage() {
   });
 
   if (editing && existing.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><Skeleton className="h-96 rounded-2xl" /></PageShell>;
-  if (editing && !c) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Contract nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/appliances/amc-contracts')}>Wapas</Button></div></PageShell>;
+  if (editing && !c) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{t('Contract nahi mila')}</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/appliances/amc-contracts')}>{t('Wapas')}</Button></div></PageShell>;
   // A saved contract already carries its bill; money changes go through payments.
   const billed = editing;
 
   return (
     <PageShell>
       <PageHero
-        title={editing ? `${c?.contractNumber} — badlein` : 'Naya AMC contract'}
-        subtitle="Saal bhar ki service — free visits, mazdoori, gas aur parts jo cover hon"
+        title={editing ? t('{{contractNumber}} — badlein', { contractNumber: c?.contractNumber }) : t('Naya AMC contract')}
+        subtitle={t('Saal bhar ki service — free visits, mazdoori, gas aur parts jo cover hon')}
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        backLabel={t('Wapas (Esc)')}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save')}</span>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer aur unit</T>}>
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{t('Customer aur unit')}</T>}>
             <div className="space-y-4">
               <SerialLookup value={serial} onChange={(v) => { setSerial(v); setSerialId(undefined); }} onFound={(r) => {
                 const s = r.serial!;
                 setSerialId(s.id); setProductId(s.productId); setProduct(s.product?.name ?? product);
                 if (s.customerName && !party.name) setParty({ ...party, customerId: s.soldToCustomerId ?? undefined, name: s.customerName, phone: s.customerPhone ?? '', address: s.deliveryAddress ?? '' });
               }} />
-              <Input label="Product" required value={product} onChange={(e) => { setProduct(e.target.value); setProductId(undefined); }} placeholder="Gree 1.5 ton inverter AC" error={tried && product.trim().length < 2 ? 'Product likhein' : undefined} />
+              <Input label={t('Product')} required value={product} onChange={(e) => { setProduct(e.target.value); setProductId(undefined); }} placeholder={t('Gree 1.5 ton inverter AC')} error={tried && product.trim().length < 2 ? t('Product likhein') : undefined} />
               <CustomerFields value={party} onChange={setParty} errors={tried ? pErr : {}} needAddress />
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<T icon={ShieldCheck}>Plan</T>} description="Plan chunein — visits aur cover khud lag jate hain, phir badal sakte hain">
+          <Card className="rounded-2xl" title={<T icon={ShieldCheck}>{t('Plan')}</T>} description={t('Plan chunein — visits aur cover khud lag jate hain, phir badal sakte hain')}>
             <div className="grid gap-2 sm:grid-cols-4">
               {(Object.keys(AMC_PLANS) as ApplianceAmcType[]).map((p) => (
                 <button key={p} type="button" onClick={() => choosePlan(p)} aria-pressed={plan === p}
-                  className={cn('rounded-xl p-3 text-left ring-1', plan === p ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-800 ring-slate-200 hover:bg-slate-50')}>
+                  className={cn('rounded-xl p-3 text-start ring-1', plan === p ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-800 ring-slate-200 hover:bg-slate-50')}>
                   <span className="block text-[0.875rem] font-semibold">{AMC_PLANS[p].label}</span>
                   <span className={cn('block text-[0.75rem]', plan === p ? 'text-white/75' : 'text-slate-500')}>{AMC_PLANS[p].hint}</span>
                 </button>
               ))}
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <Input label="Shuru" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              <Input label={t('Shuru')} type="date" value={start} onChange={(e) => setStart(e.target.value)} />
               <div>
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Muddat</span>
-                <div className="flex gap-1.5">{MONTHS.map((m) => <button key={m} type="button" onClick={() => setMonths(m)} className={cn('h-10 flex-1 rounded-lg text-[0.8125rem] font-medium ring-1', months === m ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{m} mahine</button>)}</div>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Muddat')}</span>
+                <div className="flex gap-1.5">{MONTHS.map((m) => <button key={m} type="button" onClick={() => setMonths(m)} className={cn('h-10 flex-1 rounded-lg text-[0.8125rem] font-medium ring-1', months === m ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200')}>{t('{{m}} mahine', { m })}</button>)}</div>
               </div>
-              <Input label="Free visits" inputMode="numeric" value={visits} onChange={(e) => setVisits(digits(e.target.value))} hint={`Khatam: ${addMonths(start || todayKey(), months)}`} />
+              <Input label={t('Free visits')} inputMode="numeric" value={visits} onChange={(e) => setVisits(digits(e.target.value))} hint={t('Khatam: {{addMonths}}', { addMonths: addMonths(start || todayKey(), months) })} />
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <Switch checked={labor} onChange={(e) => setLabor(e.target.checked)} label="Mazdoori free" />
-              <Switch checked={gas} onChange={(e) => setGas(e.target.checked)} label="Gas refill free" />
-              <Switch checked={parts} onChange={(e) => setParts(e.target.checked)} label="Parts free" />
-              <Switch checked={autoRenew} onChange={(e) => setAutoRenew(e.target.checked)} label="Khatam par renew yaad dilayein" />
+              <Switch checked={labor} onChange={(e) => setLabor(e.target.checked)} label={t('Mazdoori free')} />
+              <Switch checked={gas} onChange={(e) => setGas(e.target.checked)} label={t('Gas refill free')} />
+              <Switch checked={parts} onChange={(e) => setParts(e.target.checked)} label={t('Parts free')} />
+              <Switch checked={autoRenew} onChange={(e) => setAutoRenew(e.target.checked)} label={t('Khatam par renew yaad dilayein')} />
             </div>
-            <Textarea wrapperClassName="mt-3" label="Kya cover nahi" rows={2} value={exclusions} onChange={(e) => setExclusions(e.target.value)} placeholder="Compressor, PCB, tootna, paani ka nuqsan" />
+            <Textarea wrapperClassName="mt-3" label={t('Kya cover nahi')} rows={2} value={exclusions} onChange={(e) => setExclusions(e.target.value)} placeholder={t('Compressor, PCB, tootna, paani ka nuqsan')} />
           </Card>
         </div>
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Paisa</T>} description={billed ? 'Bill ban chuka — baqi paisa contract khol kar "Paisa lein" se' : 'Save par bill banega; jo na mile wo khata me'}>
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{t('Paisa')}</T>} description={billed ? t('Bill ban chuka — baqi paisa contract khol kar "Paisa lein" se') : t('Save par bill banega; jo na mile wo khata me')}>
             <div className="space-y-3">
-              <Input label="Contract ki qeemat" required inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} placeholder="8000" disabled={billed} error={tried && !(value > 0) ? 'Qeemat likhein' : undefined} />
-              <Input label="Abhi kitna mila" inputMode="decimal" value={paid} onChange={(e) => setPaid(money(e.target.value))} disabled={billed} error={taken > value + 0.01 ? 'Qeemat se zyada nahi' : undefined} />
+              <Input label={t('Contract ki qeemat')} required inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} placeholder="8000" disabled={billed} error={tried && !(value > 0) ? t('Qeemat likhein') : undefined} />
+              <Input label={t('Abhi kitna mila')} inputMode="decimal" value={paid} onChange={(e) => setPaid(money(e.target.value))} disabled={billed} error={taken > value + 0.01 ? t('Qeemat se zyada nahi') : undefined} />
               {!billed && taken > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
-              {!billed && due > 0 && <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{formatPKR(due)} customer ke khata me udhaar.</p>}
+              {!billed && due > 0 && <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('{{due}} customer ke khata me udhaar.', { due: formatPKR(due) })}</p>}
             </div>
           </Card>
-          <Card className="rounded-2xl" title={<T icon={FileSignature}>Note</T>}>
-            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sirf dukaan ke liye" />
+          <Card className="rounded-2xl" title={<T icon={FileSignature}>{t('Note')}</T>}>
+            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('Sirf dukaan ke liye')} />
           </Card>
         </div>
       </div>
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {tried && problems.length > 0
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{AMC_PLANS[plan].label} · {months} mahine · {visits || 0} visits · {formatPKR(value)}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending}>{editing ? 'Save karein' : 'Contract banayein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{t('{{label}} · {{months}} mahine · {{value}} visits · {{formatPKR}}', { label: AMC_PLANS[plan].label, months, value: visits || 0, formatPKR: formatPKR(value) })}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending}>{editing ? t('Save karein') : t('Contract banayein')}</Button>
       </div>
     </PageShell>
   );

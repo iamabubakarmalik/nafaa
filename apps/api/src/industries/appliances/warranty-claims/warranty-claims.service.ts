@@ -8,6 +8,7 @@ import { dayRange, nextInSequence, r2, stamp, yearPrefix } from '../common/appli
 import {
   BrandResponseDto, CreateClaimDto, SettleClaimDto, SubmitClaimDto, UpdateClaimDto,
 } from './dto/upsert-claim.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Jin halaton me claim abhi chal raha hai — paisa aana baqi hai */
 const OPEN_STATES: ApplianceClaimStatus[] = [
@@ -41,7 +42,7 @@ export class ApplianceWarrantyClaimsService {
         select: { claimNumber: true },
       });
       if (dup) {
-        throw new BadRequestException(`Is repair par claim ${dup.claimNumber} pehle se bana hua hai`);
+        throw new BadRequestException(apiMessage('Is repair par claim {{claimNumber}} pehle se bana hua hai', { claimNumber: dup.claimNumber }));
       }
     }
 
@@ -81,7 +82,7 @@ export class ApplianceWarrantyClaimsService {
       where: { tenantId: user.tenantId, serviceRequestId },
       select: { id: true, claimNumber: true },
     });
-    if (dup) throw new BadRequestException(`Claim ${dup.claimNumber} pehle se bana hua hai`);
+    if (dup) throw new BadRequestException(apiMessage('Claim {{claimNumber}} pehle se bana hua hai', { claimNumber: dup.claimNumber }));
 
     // Serial se brand aur kharidne ki tareekh nikal lete hain
     let serial: any = null;

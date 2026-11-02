@@ -34,19 +34,20 @@ import { BookingPrintModal } from '../components/BookingPrintModal';
 import { BookingsAnalytics } from '../components/BookingsAnalytics';
 import { BOOKINGS_KEY, PICKUP, STATUS, bookingWaLink, daysFromPickup, dayText, isOpen, itemLabel, itemsSummary, pickupState, qtyText, when } from '../components/meta';
 import { bookingsDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'upcoming' | 'all' | 'calendar' | 'analytics';
 type Action = 'pay' | 'convert' | 'cancel' | 'date' | 'print';
 
 const OPEN_FILTERS: Array<FilterOption<BookingStatusFilter>> = [
-  { value: 'ACTIVE', label: 'Sab khuli' },
-  { value: 'OVERDUE', label: 'Late', hint: 'Pickup ka din guzar gaya', icon: AlarmClock, color: '#e11d48' },
+  { value: 'ACTIVE', label: tr('Sab khuli') },
+  { value: 'OVERDUE', label: tr('Late'), hint: tr('Pickup ka din guzar gaya'), icon: AlarmClock, color: '#e11d48' },
   ...(['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'] as const).map((k) => ({ value: k, label: STATUS[k].label, hint: STATUS[k].hint, icon: STATUS[k].icon, color: STATUS[k].color })),
 ];
 const ALL_FILTERS: Array<FilterOption<BookingStatusFilter | 'all'>> = [
-  { value: 'all', label: 'Sab' },
-  { value: 'ACTIVE', label: 'Khuli', hint: 'Abhi sale ya cancel nahi hui' },
-  { value: 'OVERDUE', label: 'Late', icon: AlarmClock, color: '#e11d48' },
+  { value: 'all', label: tr('Sab') },
+  { value: 'ACTIVE', label: tr('Khuli'), hint: tr('Abhi sale ya cancel nahi hui') },
+  { value: 'OVERDUE', label: tr('Late'), icon: AlarmClock, color: '#e11d48' },
   ...(Object.keys(STATUS) as Array<keyof typeof STATUS>).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color })),
 ];
 
@@ -54,7 +55,7 @@ export default function BookingsListPage() {
   const navigate = useNavigate();
   const startHour = useBusinessDayStart();
   const { sales: money } = useMasked();
-  const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const shopName = useAuthStore((s) => s.tenant?.name) ?? tr('Hamari dukaan');
   const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
   const [tab, setTab] = useState<Tab>('upcoming');
   const [openStatus, setOpenStatus] = useState<BookingStatusFilter>('ACTIVE');
@@ -94,8 +95,8 @@ export default function BookingsListPage() {
   const filterText = [statusOn && statusLabel, staffName, query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => bookingsDoc(
     await bookingsApi.records({ ...filters, page: 1, limit: 300 }),
-    tab === 'upcoming' ? 'Khuli bookings (pickup ke hisaab se)' : 'Bookings',
-    tab === 'upcoming' || !period ? 'Sab tareekhen' : `${period.from} — ${period.to}`, filterText,
+    tab === 'upcoming' ? tr('Khuli bookings (pickup ke hisaab se)') : tr('Bookings'),
+    tab === 'upcoming' || !period ? tr('Sab tareekhen') : `${period.from} — ${period.to}`, filterText,
   );
 
   useEffect(() => {
@@ -114,66 +115,66 @@ export default function BookingsListPage() {
 
   const clear = () => { setStatus('all'); setOpenStatus('ACTIVE'); setStaffId(''); setSearch(''); };
   const showUpcoming = (s: BookingStatusFilter) => { setTab('upcoming'); setOpenStatus(s); };
-  const staffOptions: Array<FilterOption<string>> = useMemo(() => [{ value: '', label: 'Sab staff' }, ...team.map((t) => ({ value: t.id, label: t.fullName }))], [team]);
+  const staffOptions: Array<FilterOption<string>> = useMemo(() => [{ value: '', label: tr('Sab staff') }, ...team.map((t) => ({ value: t.id, label: t.fullName }))], [team]);
 
   return (
     <PageShell>
       <PageHero
-        title="Bookings"
-        chip={<><BookmarkPlus /> Advance aur reserve</>}
-        meta="Advance lein, maal rakhein, pickup par bill banayein"
+        title={tr('Bookings')}
+        chip={<><BookmarkPlus /> {' '}{tr('Advance aur reserve')}</>}
+        meta={tr('Advance lein, maal rakhein, pickup par bill banayein')}
         busy={(listQ.isFetching && !listQ.isLoading) || overQ.isFetching}
         loading={overQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!(tab === 'upcoming' || tab === 'all') || !rows.length} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <Link to="/bookings/new" title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi booking</Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/bookings/new" title={tr('Nayi booking (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi booking')}</Link>
         </>}
         stats={o ? [
-          { label: 'Khuli bookings ki amount', value: money(o.active.value), hint: `${o.active.count} booking` },
-          { label: 'Advance hath me', value: money(o.active.held) },
-          { label: 'Baqi wasooli', value: money(o.active.balance) },
-          { label: 'Agle 7 din pickup', value: o.upcoming },
-        ] : [{ label: 'Khuli bookings ki amount', value: '—' }]}
+          { label: tr('Khuli bookings ki amount'), value: money(o.active.value), hint: tr('{{count}} booking', { count: o.active.count }) },
+          { label: tr('Advance hath me'), value: money(o.active.held) },
+          { label: tr('Baqi wasooli'), value: money(o.active.balance) },
+          { label: tr('Agle 7 din pickup'), value: o.upcoming },
+        ] : [{ label: tr('Khuli bookings ki amount'), value: '—' }]}
       />
 
       <KpiRow cols={5}>
         {!o ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={BookmarkPlus} color="#2563eb" label="Aaj ki bookings" value={o.today.count} hint={o.today.count ? money(o.today.value) : 'Abhi koi nahi'}
+          <KpiCard icon={BookmarkPlus} color="#2563eb" label={tr('Aaj ki bookings')} value={o.today.count} hint={o.today.count ? money(o.today.value) : tr('Abhi koi nahi')}
             onClick={() => { setTab('all'); setStatus('all'); setRange({ preset: 'today', custom: { from: '', to: '' } }); }} />
-          <KpiCard icon={CalendarClock} color="#d97706" label="Pickup baqi" value={o.active.count}
-            hint={o.pickupToday ? `${o.pickupToday} aaj · ${money(o.active.balance)} baqi` : `${money(o.active.balance)} baqi`}
+          <KpiCard icon={CalendarClock} color="#d97706" label={tr('Pickup baqi')} value={o.active.count}
+            hint={o.pickupToday ? tr('{{pickupToday}} aaj · {{balance}} baqi', { pickupToday: o.pickupToday, balance: money(o.active.balance) }) : tr('{{balance}} baqi', { balance: money(o.active.balance) })}
             onClick={() => showUpcoming('ACTIVE')} active={tab === 'upcoming' && openStatus === 'ACTIVE'} />
-          <KpiCard icon={Wallet} color="#16a34a" label="Advance mila" value={money(o.collected.net)}
-            hint={o.collected.refunded ? `${money(o.collected.refunded)} wapas diye` : `${o.collected.payments} payment · ${period ? 'is period' : 'aaj'}`} />
-          <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={o.overdue.count} hint={o.overdue.count ? `${money(o.overdue.balance)} baqi · yaad dilayein` : 'Sab waqt par'}
+          <KpiCard icon={Wallet} color="#16a34a" label={tr('Advance mila')} value={money(o.collected.net)}
+            hint={o.collected.refunded ? tr('{{refunded}} wapas diye', { refunded: money(o.collected.refunded) }) : tr('{{payments}} payment · {{value}}', { payments: o.collected.payments, value: period ? tr('is period') : tr('aaj') })} />
+          <KpiCard icon={AlarmClock} color="#e11d48" label={tr('Late')} value={o.overdue.count} hint={o.overdue.count ? tr('{{balance}} baqi · yaad dilayein', { balance: money(o.overdue.balance) }) : tr('Sab waqt par')}
             onClick={() => showUpcoming('OVERDUE')} active={tab === 'upcoming' && openStatus === 'OVERDUE'} />
-          <KpiCard icon={PackageCheck} color="#7c3aed" label="Tayyar, lene nahi aaye" value={o.ready.count} hint={o.ready.count ? `${money(o.ready.balance)} baqi` : 'Koi intezar me nahi'}
+          <KpiCard icon={PackageCheck} color="#7c3aed" label={tr('Tayyar, lene nahi aaye')} value={o.ready.count} hint={o.ready.count ? tr('{{balance}} baqi', { balance: money(o.ready.balance) }) : tr('Koi intezar me nahi')}
             onClick={() => showUpcoming('READY_FOR_PICKUP')} active={tab === 'upcoming' && openStatus === 'READY_FOR_PICKUP'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking number, customer, phone ya note…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Booking number, customer, phone ya note…')} label={tr('Search')} />}
         chips={filtered ? <>
           {statusOn && <FilterChip onRemove={() => (tab === 'upcoming' ? setOpenStatus('ACTIVE') : setStatus('all'))}>{statusLabel}</FilterChip>}
-          {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffName ?? 'Staff'}</FilterChip>}
+          {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffName ?? tr('Staff')}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" label="Booking ki period" />
-        {tab === 'upcoming' && <FilterMenu icon={Filter} label="Haal" value={openStatus} active={openStatus !== 'ACTIVE'} onChange={setOpenStatus} options={OPEN_FILTERS} />}
-        {tab === 'all' && <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'all'} onChange={setStatus} options={ALL_FILTERS} />}
-        {team.length > 1 && <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId} align="right" options={staffOptions} />}
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" label={tr('Booking ki period')} />
+        {tab === 'upcoming' && <FilterMenu icon={Filter} label={tr('Haal')} value={openStatus} active={openStatus !== 'ACTIVE'} onChange={setOpenStatus} options={OPEN_FILTERS} />}
+        {tab === 'all' && <FilterMenu icon={Filter} label={tr('Haal')} value={status} active={status !== 'all'} onChange={setStatus} options={ALL_FILTERS} />}
+        {team.length > 1 && <FilterMenu icon={UserRound} label={tr('Staff')} value={staffId} active={!!staffId} onChange={setStaffId} align="right" options={staffOptions} />}
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={tab === 'upcoming' ? <>Period ka filter yahan nahi lagta — har khuli booking pickup ke din se</> : <><Kbd>N</Kbd> nayi · <Kbd>U</Kbd> upcoming · <Kbd>C</Kbd> calendar · <Kbd>A</Kbd> analytics</>}
+        hint={tab === 'upcoming' ? <>{tr('Period ka filter yahan nahi lagta — har khuli booking pickup ke din se')}</> : <><Kbd>N</Kbd> {' '}{tr('nayi ·')}{' '} <Kbd>U</Kbd> {' '}{tr('upcoming ·')}{' '} <Kbd>C</Kbd> {' '}{tr('calendar ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics')}</>}
         tabs={[
-          { id: 'upcoming', label: 'Upcoming', icon: CalendarClock, count: o?.active.count ?? null },
-          { id: 'all', label: 'Sab record', icon: ListChecks },
-          { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'upcoming', label: tr('Upcoming'), icon: CalendarClock, count: o?.active.count ?? null },
+          { id: 'all', label: tr('Sab record'), icon: ListChecks },
+          { id: 'calendar', label: tr('Calendar'), icon: CalendarDays },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <BookingsAnalytics filters={periodFilters} money={money} />
@@ -181,10 +182,10 @@ export default function BookingsListPage() {
           : (<>
             {data && rows.length > 0 && (
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
-                <span className="text-slate-500">{data.total} booking</span>
-                <span>Kul <b className="tabular-nums text-slate-900">{money(data.totals.value)}</b></span>
-                <span>Mil chuka <b className="tabular-nums text-emerald-700">{money(data.totals.paid)}</b></span>
-                <span>Baqi <b className="tabular-nums text-amber-700">{money(data.totals.balance)}</b></span>
+                <span className="text-slate-500">{tr('{{total}} booking', { total: data.total })}</span>
+                <span>{tr('Kul')}{' '} <b className="tabular-nums text-slate-900">{money(data.totals.value)}</b></span>
+                <span>{tr('Mil chuka')}{' '} <b className="tabular-nums text-emerald-700">{money(data.totals.paid)}</b></span>
+                <span>{tr('Baqi')}{' '} <b className="tabular-nums text-amber-700">{money(data.totals.balance)}</b></span>
               </div>
             )}
 
@@ -194,12 +195,12 @@ export default function BookingsListPage() {
               <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
                 {tab === 'upcoming' && !filtered ? <PackageCheck className="mx-auto h-10 w-10 text-emerald-400" /> : <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />}
                 <p className="mt-3 font-semibold text-slate-900">
-                  {filtered ? 'Is filter me koi booking nahi' : tab === 'upcoming' ? 'Koi khuli booking nahi' : 'Is period me koi booking nahi'}
+                  {filtered ? tr('Is filter me koi booking nahi') : tab === 'upcoming' ? tr('Koi khuli booking nahi') : tr('Is period me koi booking nahi')}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">Customer ne advance diya ya maal rakhwana hai? Booking banayein, pickup par ek click me bill ban jayega.</p>
+                <p className="mt-1 text-sm text-slate-500">{tr('Customer ne advance diya ya maal rakhwana hai? Booking banayein, pickup par ek click me bill ban jayega.')}</p>
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  <Button onClick={() => navigate('/bookings/new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi booking</Button>
-                  {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+                  <Button onClick={() => navigate('/bookings/new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Nayi booking')}</Button>
+                  {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
                 </div>
               </div>
             ) : (
@@ -214,9 +215,9 @@ export default function BookingsListPage() {
 
             {data && data.pages > 1 && (
               <div className="flex items-center justify-center gap-2">
-                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-                <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
-                <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+                <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: data.pages })}</span>
+                <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
               </div>
             )}
           </>)}
@@ -228,22 +229,22 @@ export default function BookingsListPage() {
       {action?.kind === 'print' && <PrintLoader id={action.b.id} onClose={() => setAction(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Bookings — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Bookings — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: BookmarkPlus, color: '#2563eb', title: 'Booking banayein', text: '"Nayi booking" dabayein, customer chunein, cheezen dalein, pickup ki date aur advance likhein. IMEI ya carpet piece ho to woh reserve ho jata hai.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance aur baqi', text: 'Advance customer ke khate me jama hota hai. Baad me aur paise aayein to "Payment" dabayein. Poora paisa aate hi booking "Tayyar" ho jati hai.' },
-            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp yaad dihani', text: 'Har booking par WhatsApp ka button hai: tayyar ho to "le jayein", pickup qareeb ho to yaad dihani, late ho to narmi se yaad.' },
-            { icon: ShoppingCart, color: '#7c3aed', title: 'Pickup par sale', text: '"Sale" dabayein: bill banta hai, stock is branch se nikalta hai, advance bill me lag jata hai aur baqi chahein to udhaar me.' },
-            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Cancel par advance wapas de sakte hain ya khate me rehne de sakte hain. Return par malik ka PIN mang sakta hai (Settings).' },
-            { icon: Store, color: '#0891b2', title: 'Branch', text: 'Har booking apni branch ki hoti hai. Staff sirf apni branch ki booking badal sakta hai.' },
+            { icon: BookmarkPlus, color: '#2563eb', title: tr('Booking banayein'), text: tr('"Nayi booking" dabayein, customer chunein, cheezen dalein, pickup ki date aur advance likhein. IMEI ya carpet piece ho to woh reserve ho jata hai.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance aur baqi'), text: tr('Advance customer ke khate me jama hota hai. Baad me aur paise aayein to "Payment" dabayein. Poora paisa aate hi booking "Tayyar" ho jati hai.') },
+            { icon: MessageCircle, color: '#22c55e', title: tr('WhatsApp yaad dihani'), text: tr('Har booking par WhatsApp ka button hai: tayyar ho to "le jayein", pickup qareeb ho to yaad dihani, late ho to narmi se yaad.') },
+            { icon: ShoppingCart, color: '#7c3aed', title: tr('Pickup par sale'), text: tr('"Sale" dabayein: bill banta hai, stock is branch se nikalta hai, advance bill me lag jata hai aur baqi chahein to udhaar me.') },
+            { icon: XCircle, color: '#e11d48', title: tr('Cancel'), text: tr('Cancel par advance wapas de sakte hain ya khate me rehne de sakte hain. Return par malik ka PIN mang sakta hai (Settings).') },
+            { icon: Store, color: '#0891b2', title: tr('Branch'), text: tr('Har booking apni branch ki hoti hai. Staff sirf apni branch ki booking badal sakta hai.') },
           ]}
           tips={[
-            'Upcoming tab me late bookings sab se upar hoti hain — roz subah ek nazar dalein.',
-            'Calendar me har din ke pickup aur baqi amount dikhti hai.',
-            'Booking slip 80mm ya A4 par print hoti hai; do copies: ek customer ki, ek dukaan ki.',
-            'Booking ke waqt stock nahi ghatta; sale par ghatta hai.',
+            tr('Upcoming tab me late bookings sab se upar hoti hain — roz subah ek nazar dalein.'),
+            tr('Calendar me har din ke pickup aur baqi amount dikhti hai.'),
+            tr('Booking slip 80mm ya A4 par print hoti hai; do copies: ek customer ki, ek dukaan ki.'),
+            tr('Booking ke waqt stock nahi ghatta; sale par ghatta hai.'),
           ]}
-          shortcuts={[['N', 'nayi booking'], ['U', 'upcoming'], ['C', 'calendar'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
+          shortcuts={[['N', tr('nayi booking')], ['U', tr('upcoming')], ['C', tr('calendar')], ['A', tr('analytics')], ['/', tr('dhoondein')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -253,7 +254,7 @@ export default function BookingsListPage() {
 /** The list row has no payments; the slip needs the full booking. */
 function PrintLoader({ id, onClose }: { id: string; onClose: () => void }) {
   const q = useQuery({ queryKey: [BOOKINGS_KEY, 'one', id], queryFn: () => bookingsApi.getOne(id) });
-  useEffect(() => { if (q.isError) { toast.error('Booking load nahi hui'); onClose(); } }, [q.isError, onClose]);
+  useEffect(() => { if (q.isError) { toast.error(tr('Booking load nahi hui')); onClose(); } }, [q.isError, onClose]);
   return q.data ? <BookingPrintModal booking={q.data} onClose={onClose} /> : null;
 }
 
@@ -276,37 +277,37 @@ function Row({ b, money, startHour, shop, onAction, onReady, readyBusy }: {
         </span>
         <Link to={`/bookings/${b.id}`} className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-semibold text-slate-900">{b.customer?.name ?? 'Customer'}</span>
+            <span className="truncate font-semibold text-slate-900">{b.customer?.name ?? tr('Customer')}</span>
             <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}><s.icon className="h-3 w-3" />{s.label}</span>
             {ps !== 'none' && (
               <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', PICKUP[ps].tone)}>
-                <CalendarClock className="h-3 w-3" />{ps === 'overdue' ? `${late} din late` : ps === 'soon' || ps === 'later' ? dayText(b.expectedPickupAt) : PICKUP[ps].label}
+                <CalendarClock className="h-3 w-3" />{ps === 'overdue' ? tr('{{late}} din late', { late }) : ps === 'soon' || ps === 'later' ? dayText(b.expectedPickupAt) : PICKUP[ps].label}
               </span>
             )}
           </span>
-          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{itemsSummary(b) || 'Koi cheez nahi'}</span>
+          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{itemsSummary(b) || tr('Koi cheez nahi')}</span>
           <span className="block truncate text-[0.6875rem] text-slate-400">{meta}</span>
         </Link>
-        <div className="ml-auto text-right">
+        <div className="ms-auto text-end">
           <p className="font-bold tabular-nums text-slate-900">{money(b.total)}</p>
           <p className={cn('text-[0.75rem] tabular-nums', b.balanceDue > 0 && active ? 'text-amber-700' : 'text-slate-500')}>
-            {active ? (b.balanceDue > 0 ? `Baqi ${money(b.balanceDue)}` : 'Poora mila') : b.sale ? b.sale.saleNumber : s.label}
+            {active ? (b.balanceDue > 0 ? tr('Baqi {{balanceDue}}', { balanceDue: money(b.balanceDue) }) : tr('Poora mila')) : b.sale ? b.sale.saleNumber : s.label}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           {wa && active && (
-            <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp yaad dihani" aria-label="WhatsApp"
+            <a href={wa} target="_blank" rel="noreferrer" title={tr('WhatsApp yaad dihani')} aria-label={tr('WhatsApp')}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 ring-1 ring-slate-200 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" /></a>
           )}
-          {active && b.balanceDue > 0 && <Button size="sm" variant="secondary" onClick={() => onAction('pay')} leftIcon={<Wallet className="h-4 w-4" />}><span className="hidden sm:inline">Payment</span></Button>}
-          {active && <Button size="sm" onClick={() => onAction('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Sale</Button>}
+          {active && b.balanceDue > 0 && <Button size="sm" variant="secondary" onClick={() => onAction('pay')} leftIcon={<Wallet className="h-4 w-4" />}><span className="hidden sm:inline">{tr('Payment')}</span></Button>}
+          {active && <Button size="sm" onClick={() => onAction('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>{tr('Sale')}</Button>}
         </div>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur" aria-expanded={open} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label={tr('Aur')} aria-expanded={open} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
           <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
         </button>
       </div>
       {open && (
-        <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:pl-[4.25rem]">
+        <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:ps-[4.25rem]">
           <ul className="space-y-1">
             {(b.items ?? []).map((i) => (
               <li key={i.id} className="flex justify-between gap-3">
@@ -316,20 +317,20 @@ function Row({ b, money, startHour, shop, onAction, onReady, readyBusy }: {
             ))}
           </ul>
           <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-3">
-            <Fact k="Diya" v={money(b.totalPaid - b.totalRefunded)} />
-            {b.expectedPickupAt && <Fact k="Pickup" v={dayText(b.expectedPickupAt)} />}
-            {b.expiresAt && <Fact k="Aakhri din" v={dayText(b.expiresAt)} />}
-            {b.customer?.phone && <Fact k="Phone" v={b.customer.phone} />}
-            {b.cancelReason && <Fact k="Cancel ki wajah" v={b.cancelReason} />}
+            <Fact k={tr('Diya')} v={money(b.totalPaid - b.totalRefunded)} />
+            {b.expectedPickupAt && <Fact k={tr('Pickup')} v={dayText(b.expectedPickupAt)} />}
+            {b.expiresAt && <Fact k={tr('Aakhri din')} v={dayText(b.expiresAt)} />}
+            {b.customer?.phone && <Fact k={tr('Phone')} v={b.customer.phone} />}
+            {b.cancelReason && <Fact k={tr('Cancel ki wajah')} v={tr(b.cancelReason)} />}
           </dl>
           {b.notes && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{b.notes}</p>}
           <div className="flex flex-wrap gap-2">
-            {active && b.status !== 'READY_FOR_PICKUP' && <Button size="sm" variant="secondary" loading={readyBusy} onClick={() => onReady(true)} leftIcon={<PackageCheck className="h-4 w-4" />}>Tayyar hai</Button>}
-            {b.status === 'READY_FOR_PICKUP' && <Button size="sm" variant="ghost" loading={readyBusy} onClick={() => onReady(false)} leftIcon={<Undo2 className="h-4 w-4" />}>Abhi tayyar nahi</Button>}
-            {active && <Button size="sm" variant="secondary" onClick={() => onAction('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>Date badlein</Button>}
-            <Button size="sm" variant="secondary" onClick={() => onAction('print')} leftIcon={<Printer className="h-4 w-4" />}>Slip</Button>
-            <Link to={`/bookings/${b.id}`} className="inline-flex h-8 items-center rounded-lg px-3 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Poori details</Link>
-            {active && <Button size="sm" variant="ghost" className="ml-auto text-rose-700" onClick={() => onAction('cancel')} leftIcon={<XCircle className="h-4 w-4" />}>Cancel</Button>}
+            {active && b.status !== 'READY_FOR_PICKUP' && <Button size="sm" variant="secondary" loading={readyBusy} onClick={() => onReady(true)} leftIcon={<PackageCheck className="h-4 w-4" />}>{tr('Tayyar hai')}</Button>}
+            {b.status === 'READY_FOR_PICKUP' && <Button size="sm" variant="ghost" loading={readyBusy} onClick={() => onReady(false)} leftIcon={<Undo2 className="h-4 w-4" />}>{tr('Abhi tayyar nahi')}</Button>}
+            {active && <Button size="sm" variant="secondary" onClick={() => onAction('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>{tr('Date badlein')}</Button>}
+            <Button size="sm" variant="secondary" onClick={() => onAction('print')} leftIcon={<Printer className="h-4 w-4" />}>{tr('Slip')}</Button>
+            <Link to={`/bookings/${b.id}`} className="inline-flex h-8 items-center rounded-lg px-3 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">{tr('Poori details')}</Link>
+            {active && <Button size="sm" variant="ghost" className="ms-auto text-rose-700" onClick={() => onAction('cancel')} leftIcon={<XCircle className="h-4 w-4" />}>{tr('Cancel')}</Button>}
           </div>
         </div>
       )}

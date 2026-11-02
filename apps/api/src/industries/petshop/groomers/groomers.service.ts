@@ -9,6 +9,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpdateGroomerDto, UpsertGroomerDto } from './dto/upsert-groomer.dto';
 import { cleanInput, dayEnd, dayKey, dayRange, dayStart, weekdayInTz } from '../petshop-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -18,7 +19,7 @@ export class GroomersService {
 
   private async codeFree(tenantId: string, code: string, notId?: string) {
     const dup = await this.prisma.petGroomer.findFirst({ where: { tenantId, employeeCode: code, ...(notId && { id: { not: notId } }) }, select: { id: true } });
-    if (dup) throw new BadRequestException(`Code "${code}" pehle se kisi aur groomer ka hai`);
+    if (dup) throw new BadRequestException(apiMessage('Code "{{code}}" pehle se kisi aur groomer ka hai', { code }));
   }
 
   private checkHours(start?: string, end?: string) {

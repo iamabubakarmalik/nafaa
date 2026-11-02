@@ -14,12 +14,13 @@ import { AlertTriangle, Barcode } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
 import { serialTrackingApi, type SalesSerials, type SerialStatus } from '../api/serial-tracking.api';
+import { t as tr } from '@core/i18n';
 
 const CHUNK = 50;
 
 /** Shown after the number when the unit is no longer with the customer. */
 const STATUS_NOTE: Partial<Record<SerialStatus, string>> = {
-  IN_STOCK: 'wapas aaya', RETURNED: 'wapas aaya', DEFECTIVE: 'kharab', IN_REPAIR: 'repair mein', LOST: 'gum',
+  IN_STOCK: tr('wapas aaya'), RETURNED: tr('wapas aaya'), DEFECTIVE: 'kharab', IN_REPAIR: tr('repair mein'), LOST: 'gum',
 };
 
 /** Stable, so the combined list keeps its identity while nothing changes. */
@@ -62,7 +63,7 @@ function useSerialExtras(sales: HistorySale[]) {
     return createElement('div', { className: 'mt-1.5 flex flex-wrap gap-1' },
       ...serials.map((s) => createElement('span', { key: s.id, className: 'inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-600' },
         createElement(Barcode, { className: 'h-3 w-3' }),
-        s.imei ? `IMEI ${s.imei}` : `S/N ${s.serialNumber}`,
+        s.imei ? tr('IMEI {{imei}}', { imei: s.imei }) : tr('S/N {{serialNumber}}', { serialNumber: s.serialNumber }),
         STATUS_NOTE[s.status] ? createElement('span', { className: 'font-sans text-slate-400' }, `· ${STATUS_NOTE[s.status]}`) : null)),
       gap > 0 ? createElement('span', { key: 'gap', className: 'inline-flex items-center gap-1 rounded-md bg-rose-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-rose-700' },
         createElement(AlertTriangle, { className: 'h-3 w-3' }), `${gap} serial ke bagair — warranty saboot nahi`) : null,
@@ -70,7 +71,7 @@ function useSerialExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Electronics', useBillExtras: useSerialExtras };
+const config: SalesHistoryConfig = { label: tr('Electronics'), useBillExtras: useSerialExtras };
 
 export default function ElectronicsSales() {
   return <SalesHistoryPage config={config} />;

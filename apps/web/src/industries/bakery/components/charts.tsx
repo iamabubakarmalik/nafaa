@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function CardTitle({ icon: I, children }: { icon: LucideIcon; children: ReactNode }) {
   return <span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{children}</span>;
@@ -37,7 +38,7 @@ export function StatTile({ icon: I, label, value, sub, tone = 'brand' }: { icon:
 
 interface RankedRow { key: string; label: ReactNode; value: number; display: ReactNode; sub?: ReactNode; color?: string }
 
-export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
+export function RankedBars({ rows, empty = t('Is period me kuch nahi'), limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
   if (!rows.length) return <EmptyChart text={empty} />;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
@@ -57,7 +58,7 @@ export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, 
         );
         return (
           <li key={r.key}>
-            {onPick ? <button type="button" onClick={() => onPick(r.key)} className="w-full rounded-lg px-1 py-0.5 text-left hover:bg-slate-50">{body}</button> : body}
+            {onPick ? <button type="button" onClick={() => onPick(r.key)} className="w-full rounded-lg px-1 py-0.5 text-start hover:bg-slate-50">{body}</button> : body}
           </li>
         );
       })}
@@ -65,7 +66,7 @@ export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, 
   );
 }
 
-export function EmptyChart({ text = 'Is period me kuch nahi' }: { text?: string }) {
+export function EmptyChart({ text = t('Is period me kuch nahi') }: { text?: string }) {
   return <p className="py-10 text-center text-[0.875rem] text-slate-500">{text}</p>;
 }
 
@@ -81,9 +82,9 @@ export function AnalyticsSkeleton() {
 export function LoadFailed({ what, retry }: { what: string; retry: () => void }) {
   return (
     <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-      <p className="font-semibold text-slate-900">{what} load nahi hue</p>
-      <p className="mt-1 text-sm text-slate-500">Internet check karein aur dobara koshish karein.</p>
-      <button type="button" onClick={retry} className="mt-3 inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">Dobara koshish</button>
+      <p className="font-semibold text-slate-900">{t('{{what}} load nahi hue', { what })}</p>
+      <p className="mt-1 text-sm text-slate-500">{t('Internet check karein aur dobara koshish karein.')}</p>
+      <button type="button" onClick={retry} className="mt-3 inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">{t('Dobara koshish')}</button>
     </div>
   );
 }

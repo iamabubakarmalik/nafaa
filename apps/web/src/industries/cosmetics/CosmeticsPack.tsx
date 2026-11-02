@@ -8,6 +8,7 @@ import CosmeticsProductWizardPage from './pages/CosmeticsProductWizardPage';
 import CosmeticsProductDetailPage from './pages/CosmeticsProductDetailPage';
 import CosmeticsExpiryPage from './pages/CosmeticsExpiryPage';
 import CosmeticsTestersPage from './pages/CosmeticsTestersPage';
+import { t } from '@core/i18n';
 
 /* Old cosmetics addresses now open the shared pages that replaced them. */
 const ToProducts = () => <Navigate to="/products" replace />;
@@ -25,10 +26,10 @@ const ToLoyalty = () => <Navigate to="/loyalty" replace />;
 export const CosmeticsPack: IndustryPack = {
   id: 'cosmetics',
   name: 'Cosmetics & Beauty',
-  shortName: 'Cosmetics',
+  shortName: t('Cosmetics'),
   emoji: '💄',
   priority: 46,
-  description: 'Makeup, skincare, fragrance and haircare: brands, shades, batch expiry, testers, deals and loyalty.',
+  description: t('Makeup, skincare, fragrance and haircare: brands, shades, batch expiry, testers, deals and loyalty.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -42,18 +43,18 @@ export const CosmeticsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Cosmetics',
+      label: t('Cosmetics'),
       icon: Sparkles,
       emoji: '💄',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/cosmetics/dashboard', label: 'Cosmetics dashboard', icon: LayoutDashboard },
-        { to: '/cosmetics/expiry', label: 'Expiry', icon: CalendarClock, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/cosmetics/testers', label: 'Testers', icon: TestTube2, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/brands', label: 'Brands', icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
-        { to: '/combos', label: 'Deals / gift sets', icon: Gift, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/loyalty', label: 'Loyalty', icon: Heart, permission: PERMISSIONS.LOYALTY_VIEW },
+        { to: '/cosmetics/dashboard', label: t('Cosmetics dashboard'), icon: LayoutDashboard },
+        { to: '/cosmetics/expiry', label: t('Expiry'), icon: CalendarClock, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/cosmetics/testers', label: t('Testers'), icon: TestTube2, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/brands', label: t('Brands'), icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
+        { to: '/combos', label: t('Deals / gift sets'), icon: Gift, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/loyalty', label: t('Loyalty'), icon: Heart, permission: PERMISSIONS.LOYALTY_VIEW },
       ],
     },
   ],
@@ -85,16 +86,16 @@ export const CosmeticsPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Piece', hint: '💄', group: 'Count' },
-      { value: 'ml', label: 'ml', hint: '💧', group: 'Volume' },
-      { value: 'g', label: 'Gram', hint: '⚖️', group: 'Weight' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Piece'), hint: '💄', group: t('Count') },
+      { value: 'ml', label: 'ml', hint: '💧', group: t('Volume') },
+      { value: 'g', label: t('Gram'), hint: '⚖️', group: t('Weight') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'cosmeticsBatchTracking', label: 'Batch aur expiry', defaultEnabled: true },
-    { key: 'cosmeticsTesters', label: 'Testers', defaultEnabled: true },
+    { key: 'cosmeticsBatchTracking', label: t('Batch aur expiry'), defaultEnabled: true },
+    { key: 'cosmeticsTesters', label: t('Testers'), defaultEnabled: true },
   ],
 };

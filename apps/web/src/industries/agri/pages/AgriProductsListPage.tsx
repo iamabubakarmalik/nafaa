@@ -16,12 +16,13 @@ import { factLine, useAgriFacts } from '../hooks/useAgriFacts';
 import { deriveAgriKind, needsGovtReg, prettyAgriKind, type AgriKind } from '../lib/agriCategory';
 import { certStatus } from '../lib/agriUnits';
 import { seasonLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/agri/seasonal-plans" className={heroButton}><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">Fasal calendar</span></Link>
-      <Link to="/agri/farmers" className={heroButton}><Tractor className="h-4 w-4" /><span className="hidden sm:inline">Farmers</span></Link>
+      <Link to="/agri/seasonal-plans" className={heroButton}><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">{t('Fasal calendar')}</span></Link>
+      <Link to="/agri/farmers" className={heroButton}><Tractor className="h-4 w-4" /><span className="hidden sm:inline">{t('Farmers')}</span></Link>
     </>
   );
 }
@@ -32,7 +33,7 @@ export default function AgriProductsListPage() {
   const facts = useAgriFacts();
   const expired = useMemo(() => [...facts.values()].filter((f) => needsGovtReg(f.category as AgriKind) && certStatus(f.govtRegExpiry).state === 'expired').length, [facts]);
   const config = useMemo<ProductsPageConfig>(() => ({
-    label: 'Agri',
+    label: t('Agri'),
     noun: 'maal',
     paths: {
       detail: (id) => `/agri-products/${id}`,
@@ -47,14 +48,14 @@ export default function AgriProductsListPage() {
         {expired > 0 && (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 ring-1 ring-rose-200/70">
             <ShieldAlert className="h-4 w-4 text-rose-600" />
-            <span className="text-[0.8125rem] font-semibold text-rose-900">{expired} cheezon ki sarkari registration khatam — POS par nahi bikengi jab tak nayi date na likhein</span>
+            <span className="text-[0.8125rem] font-semibold text-rose-900">{t('{{expired}} cheezon ki sarkari registration khatam — POS par nahi bikengi jab tak nayi date na likhein', { expired })}</span>
           </div>
         )}
         {data.stats.expiring > 0 && (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200/70">
             <CalendarX className="h-4 w-4 text-amber-600" />
-            <span className="text-[0.8125rem] font-semibold text-amber-900">{data.stats.expiring} cheezon ka batch {data.stats.expiryDays} din me expire hoga</span>
-            <button type="button" onClick={() => setFilter('stock', 'expiring')} className="ml-auto text-[0.75rem] font-semibold text-amber-900 hover:underline">Dikhayein →</button>
+            <span className="text-[0.8125rem] font-semibold text-amber-900">{t('{{expiring}} cheezon ka batch {{expiryDays}} din me expire hoga', { expiring: data.stats.expiring, expiryDays: data.stats.expiryDays })}</span>
+            <button type="button" onClick={() => setFilter('stock', 'expiring')} className="ms-auto text-[0.75rem] font-semibold text-amber-900 hover:underline">{t('Dikhayein →')}</button>
           </div>
         )}
       </div>
@@ -67,9 +68,9 @@ export default function AgriProductsListPage() {
         line: factLine(f),
         badges: (
           <>
-            {cert?.state === 'expired' && <span className={cn(pill, 'bg-rose-600 text-white')}><ShieldAlert className="h-3 w-3" />Reg khatam</span>}
-            {cert?.state === 'soon' && <span className={cn(pill, 'bg-amber-500 text-white')}><ShieldAlert className="h-3 w-3" />Reg {cert.days} din</span>}
-            {Number(f?.bulkDiscountThreshold) > 0 && Number(f?.bulkDiscountPct) > 0 && <span className={cn(pill, 'bg-emerald-600 text-white')}><Tags className="h-3 w-3" />Bulk</span>}
+            {cert?.state === 'expired' && <span className={cn(pill, 'bg-rose-600 text-white')}><ShieldAlert className="h-3 w-3" />{t('Reg khatam')}</span>}
+            {cert?.state === 'soon' && <span className={cn(pill, 'bg-amber-500 text-white')}><ShieldAlert className="h-3 w-3" />{t('Reg {{days}} din', { days: cert.days })}</span>}
+            {Number(f?.bulkDiscountThreshold) > 0 && Number(f?.bulkDiscountPct) > 0 && <span className={cn(pill, 'bg-emerald-600 text-white')}><Tags className="h-3 w-3" />{t('Bulk')}</span>}
           </>
         ),
         chips: kind !== 'OTHER' || f?.season ? (
@@ -81,21 +82,21 @@ export default function AgriProductsListPage() {
       };
     },
     columns: [
-      { id: 'kind', label: 'Type', cell: (i) => { const f = facts.get(i.id); const k = (f?.category as AgriKind | undefined) ?? deriveAgriKind(i.category?.name, i.name); return k === 'OTHER' ? <span className="text-slate-400">—</span> : prettyAgriKind(k); } },
-      { id: 'pack', label: 'Pack / formula', cell: (i) => factLine(facts.get(i.id)) ?? <span className="text-slate-400">—</span> },
+      { id: 'kind', label: t('Type'), cell: (i) => { const f = facts.get(i.id); const k = (f?.category as AgriKind | undefined) ?? deriveAgriKind(i.category?.name, i.name); return k === 'OTHER' ? <span className="text-slate-400">—</span> : prettyAgriKind(k); } },
+      { id: 'pack', label: t('Pack / formula'), cell: (i) => factLine(facts.get(i.id)) ?? <span className="text-slate-400">—</span> },
       {
-        id: 'reg', label: 'Registration', cell: (i) => {
+        id: 'reg', label: t('Registration'), cell: (i) => {
           const f = facts.get(i.id);
           if (!f?.govtRegExpiry) return <span className="text-slate-400">—</span>;
           const c = certStatus(f.govtRegExpiry);
-          return <span className={cn('text-[0.75rem] font-medium', c.state === 'expired' ? 'text-rose-600' : c.state === 'soon' ? 'text-amber-700' : 'text-emerald-700')}>{c.state === 'expired' ? 'Khatam' : `${c.days} din`}</span>;
+          return <span className={cn('text-[0.75rem] font-medium', c.state === 'expired' ? 'text-rose-600' : c.state === 'soon' ? 'text-amber-700' : 'text-emerald-700')}>{c.state === 'expired' ? t('Khatam') : t('{{days}} din', { days: c.days })}</span>;
         },
       },
     ],
     guide: [
-      { icon: Sprout, color: '#65a30d', title: 'Bori aur kilo', text: 'Base unit bori rakhein aur pack me "50 kg" likhein. Khula kilo bechna ho to Price step me "Kilo" pack jorein — stock bori ke hisaab se ghatta hai.' },
-      { icon: ShieldAlert, color: '#e11d48', title: 'Sarkari registration', text: 'Beej, khaad aur spray ki registration ki aakhri date likhein. Date guzar jaye to POS par nahi bikti.' },
-      { icon: CalendarX, color: '#d97706', title: 'Spray ka batch', text: 'Company se maal lete waqt Purchase me batch aur expiry likhein. POS pehle jaldi expire hone wala batch bechta hai.' },
+      { icon: Sprout, color: '#65a30d', title: t('Bori aur kilo'), text: t('Base unit bori rakhein aur pack me "50 kg" likhein. Khula kilo bechna ho to Price step me "Kilo" pack jorein — stock bori ke hisaab se ghatta hai.') },
+      { icon: ShieldAlert, color: '#e11d48', title: t('Sarkari registration'), text: t('Beej, khaad aur spray ki registration ki aakhri date likhein. Date guzar jaye to POS par nahi bikti.') },
+      { icon: CalendarX, color: '#d97706', title: t('Spray ka batch'), text: t('Company se maal lete waqt Purchase me batch aur expiry likhein. POS pehle jaldi expire hone wala batch bechta hai.') },
     ],
   }), [facts, expired]);
   return <ProductsPage config={config} />;

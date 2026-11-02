@@ -20,6 +20,7 @@ import { useMetalRates } from '../hooks/useJewelryFacts';
 import {
   CATEGORY_LABEL, COMMON_PURITIES, KEYS, MAIN_CATEGORIES, PURITY_LABEL, TOLA, categoryLabel, grams, metalOf, piecePrice, purityLabel, r3, rateFor,
 } from '../lib/meta';
+import { Trans, t } from '@core/i18n';
 
 interface Stone { type: GemstoneType; count: number; caret: number; totalValue: number }
 
@@ -44,13 +45,13 @@ const initial: JewelryExtra = {
 };
 
 const STYLES: Array<[JewelryStyle, string]> = [
-  ['TRADITIONAL', 'Desi / traditional'], ['MODERN', 'Modern'], ['BRIDAL', 'Bridal'], ['DAILY_WEAR', 'Roz pehnne wala'], ['PARTY_WEAR', 'Party'],
-  ['KUNDAN', 'Kundan'], ['POLKI', 'Polki'], ['MEENAKARI', 'Meenakari'], ['JADAU', 'Jadau'], ['ANTIQUE', 'Antique'], ['TURKISH', 'Turkish'],
-  ['ITALIAN', 'Italian'], ['DUBAI', 'Dubai'], ['HANDMADE', 'Haath ka bana'], ['MACHINE_MADE', 'Machine ka bana'], ['OTHER', 'Doosra'],
+  ['TRADITIONAL', t('Desi / traditional')], ['MODERN', t('Modern')], ['BRIDAL', t('Bridal')], ['DAILY_WEAR', t('Roz pehnne wala')], ['PARTY_WEAR', t('Party')],
+  ['KUNDAN', t('Kundan')], ['POLKI', t('Polki')], ['MEENAKARI', t('Meenakari')], ['JADAU', t('Jadau')], ['ANTIQUE', t('Antique')], ['TURKISH', t('Turkish')],
+  ['ITALIAN', t('Italian')], ['DUBAI', t('Dubai')], ['HANDMADE', t('Haath ka bana')], ['MACHINE_MADE', t('Machine ka bana')], ['OTHER', t('Doosra')],
 ];
 const STONES: Array<[GemstoneType, string]> = [
-  ['CZ', 'Zircon / CZ'], ['DIAMOND', 'Heera'], ['RUBY', 'Yaqoot (ruby)'], ['EMERALD', 'Zamurrad'], ['SAPPHIRE', 'Neelam'], ['PEARL', 'Moti'],
-  ['KUNDAN_STONE', 'Kundan'], ['TURQUOISE', 'Feroza'], ['CORAL', 'Marjan'], ['OTHER', 'Doosra'],
+  ['CZ', t('Zircon / CZ')], ['DIAMOND', t('Heera')], ['RUBY', t('Yaqoot (ruby)')], ['EMERALD', t('Zamurrad')], ['SAPPHIRE', t('Neelam')], ['PEARL', t('Moti')],
+  ['KUNDAN_STONE', t('Kundan')], ['TURQUOISE', t('Feroza')], ['CORAL', t('Marjan')], ['OTHER', t('Doosra')],
 ];
 const opt = (s: string) => s.trim() || undefined;
 const stonesTotal = (x: JewelryExtra) => x.stones.reduce((s, g) => s + (Number(g.totalValue) || 0), 0);
@@ -61,29 +62,29 @@ function Identity({ ctx }: { ctx: StepContext<JewelryExtra> }) {
   return (
     <div className="space-y-4">
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Zewar ki type</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Zewar ki type')}</span>
         <div className="flex flex-wrap gap-1.5">
           {MAIN_CATEGORIES.map((c) => <Chip key={c} on={x.category === c} onClick={() => ctx.setExtra({ category: c })}>{CATEGORY_LABEL[c]}</Chip>)}
         </div>
       </div>
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Karat / metal</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Karat / metal')}</span>
         <div className="flex flex-wrap gap-1.5">
           {COMMON_PURITIES.map((p) => (
             <Chip key={p} on={x.purity === p} onClick={() => ctx.setExtra({ purity: p, metalType: metalOf(p) })}>{PURITY_LABEL[p]}</Chip>
           ))}
         </div>
-        <span className="mt-1 block text-[0.75rem] text-slate-500">Qeemat isi karat ke aaj ke rate se lagti hai</span>
+        <span className="mt-1 block text-[0.75rem] text-slate-500">{t('Qeemat isi karat ke aaj ke rate se lagti hai')}</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="block">
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Design</span>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Design')}</span>
           <select value={x.style} onChange={(e) => ctx.setExtra({ style: e.target.value as JewelryStyle })} className={inputClass}>
             {STYLES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </label>
-        <TextField label="Design number" value={x.designNumber} onChange={(v) => ctx.setExtra({ designNumber: v })} placeholder="D-1042" hint="Search me milta hai" />
-        <TextField label="Size" value={x.size} onChange={(v) => ctx.setExtra({ size: v })} placeholder="Angoothi 16, choori 2.6" />
+        <TextField label={t('Design number')} value={x.designNumber} onChange={(v) => ctx.setExtra({ designNumber: v })} placeholder={t('D-1042')} hint={t('Search me milta hai')} />
+        <TextField label={t('Size')} value={x.size} onChange={(v) => ctx.setExtra({ size: v })} placeholder={t('Angoothi 16, choori 2.6')} />
       </div>
     </div>
   );
@@ -107,46 +108,46 @@ function Weights({ ctx }: { ctx: StepContext<JewelryExtra> }) {
 
   return (
     <div className="space-y-4">
-      <Section icon={Scale} title="Wazan" hint="Kaante par tol kar likhein — nag ka wazan alag">
+      <Section icon={Scale} title={t('Wazan')} hint={t('Kaante par tol kar likhein — nag ka wazan alag')}>
         <div className="grid gap-3 sm:grid-cols-3">
-          <NumberField label="Kul wazan" suffix="g" value={x.grossWeight} onChange={(v) => setWeight({ grossWeight: v ?? 0 })} required
-            error={ctx.errors.grossWeight} hint={x.grossWeight ? `${(x.grossWeight / TOLA).toFixed(3)} tola` : 'Nag samait'} />
-          <NumberField label="Nag / moti ka wazan" suffix="g" value={x.stoneWeight} onChange={(v) => setWeight({ stoneWeight: v ?? 0 })} allowEmpty hint="Sone me nahi gina jata" />
-          <NumberField label="Asal (net) wazan" suffix="g" value={x.netWeight} onChange={(v) => ctx.setExtra({ netWeight: v ?? 0 })} required
-            error={ctx.errors.netWeight} hint="Isi par rate lagta hai" />
+          <NumberField label={t('Kul wazan')} suffix="g" value={x.grossWeight} onChange={(v) => setWeight({ grossWeight: v ?? 0 })} required
+            error={ctx.errors.grossWeight} hint={x.grossWeight ? t('{{value}} tola', { value: (x.grossWeight / TOLA).toFixed(3) }) : t('Nag samait')} />
+          <NumberField label={t('Nag / moti ka wazan')} suffix="g" value={x.stoneWeight} onChange={(v) => setWeight({ stoneWeight: v ?? 0 })} allowEmpty hint={t('Sone me nahi gina jata')} />
+          <NumberField label={t('Asal (net) wazan')} suffix="g" value={x.netWeight} onChange={(v) => ctx.setExtra({ netWeight: v ?? 0 })} required
+            error={ctx.errors.netWeight} hint={t('Isi par rate lagta hai')} />
         </div>
       </Section>
 
-      <Section icon={Gem} title="Banwai aur kaat" hint="Jo dukaan leti hai — ek ya zyada tareeqe">
+      <Section icon={Gem} title={t('Banwai aur kaat')} hint={t('Jo dukaan leti hai — ek ya zyada tareeqe')}>
         <div className="grid gap-3 sm:grid-cols-3">
-          <NumberField label="Banwai per gram" prefix="Rs" value={x.makingChargePerGram} onChange={(v) => ctx.setExtra({ makingChargePerGram: v ?? 0 })} allowEmpty />
-          <NumberField label="Banwai fixed" prefix="Rs" value={x.makingChargeFixed} onChange={(v) => ctx.setExtra({ makingChargeFixed: v ?? 0 })} allowEmpty />
-          <NumberField label="Banwai %" suffix="%" value={x.makingChargePct} onChange={(v) => ctx.setExtra({ makingChargePct: v ?? 0 })} allowEmpty hint="Sone ki qeemat ka" />
-          <NumberField label="Kaat / wastage %" suffix="%" value={x.wastagePct} onChange={(v) => ctx.setExtra({ wastagePct: v ?? 0 })} allowEmpty error={ctx.errors.wastagePct} />
-          <NumberField label="Kaat grams me" suffix="g" value={x.wastageGrams} onChange={(v) => ctx.setExtra({ wastageGrams: v ?? 0 })} allowEmpty hint="Aaj ke rate par" />
-          <NumberField label="Polish" prefix="Rs" value={x.polishCharge} onChange={(v) => ctx.setExtra({ polishCharge: v ?? 0 })} allowEmpty />
-          <NumberField label="Hallmark" prefix="Rs" value={x.hallmarkCharge} onChange={(v) => ctx.setExtra({ hallmarkCharge: v ?? 0 })} allowEmpty />
-          <NumberField label="Doosre charges" prefix="Rs" value={x.otherCharges} onChange={(v) => ctx.setExtra({ otherCharges: v ?? 0 })} allowEmpty />
+          <NumberField label={t('Banwai per gram')} prefix="Rs" value={x.makingChargePerGram} onChange={(v) => ctx.setExtra({ makingChargePerGram: v ?? 0 })} allowEmpty />
+          <NumberField label={t('Banwai fixed')} prefix="Rs" value={x.makingChargeFixed} onChange={(v) => ctx.setExtra({ makingChargeFixed: v ?? 0 })} allowEmpty />
+          <NumberField label={t('Banwai %')} suffix="%" value={x.makingChargePct} onChange={(v) => ctx.setExtra({ makingChargePct: v ?? 0 })} allowEmpty hint={t('Sone ki qeemat ka')} />
+          <NumberField label={t('Kaat / wastage %')} suffix="%" value={x.wastagePct} onChange={(v) => ctx.setExtra({ wastagePct: v ?? 0 })} allowEmpty error={ctx.errors.wastagePct} />
+          <NumberField label={t('Kaat grams me')} suffix="g" value={x.wastageGrams} onChange={(v) => ctx.setExtra({ wastageGrams: v ?? 0 })} allowEmpty hint={t('Aaj ke rate par')} />
+          <NumberField label={t('Polish')} prefix="Rs" value={x.polishCharge} onChange={(v) => ctx.setExtra({ polishCharge: v ?? 0 })} allowEmpty />
+          <NumberField label={t('Hallmark')} prefix="Rs" value={x.hallmarkCharge} onChange={(v) => ctx.setExtra({ hallmarkCharge: v ?? 0 })} allowEmpty />
+          <NumberField label={t('Doosre charges')} prefix="Rs" value={x.otherCharges} onChange={(v) => ctx.setExtra({ otherCharges: v ?? 0 })} allowEmpty />
         </div>
       </Section>
 
-      <Section icon={Gem} title="Nag (stones)" hint="Har nag ki qeemat bill me alag aati hai"
+      <Section icon={Gem} title={t('Nag (stones)')} hint={t('Har nag ki qeemat bill me alag aati hai')}
         actions={<button type="button" onClick={() => ctx.setExtra({ stones: [...x.stones, { type: 'CZ', count: 1, caret: 0, totalValue: 0 }] })}
-          className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />Nag</button>}>
-        {x.stones.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Koi nag nahi</p> : (
+          className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50"><Plus className="h-4 w-4" />{t('Nag')}</button>}>
+        {x.stones.length === 0 ? <p className="text-[0.8125rem] text-slate-500">{t('Koi nag nahi')}</p> : (
           <div className="space-y-2">
             {x.stones.map((s, i) => (
               <div key={i} className="grid grid-cols-2 items-end gap-2 rounded-xl bg-slate-50 p-2 ring-1 ring-slate-200 sm:grid-cols-[1.4fr_0.7fr_0.8fr_1fr_auto]">
                 <label className="block">
-                  <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">Nag</span>
+                  <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">{t('Nag')}</span>
                   <select value={s.type} onChange={(e) => setStone(i, { type: e.target.value as GemstoneType })} className={cn(inputClass, 'h-9')}>
                     {STONES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </label>
-                <NumberField label="Ginti" value={s.count} onChange={(v) => setStone(i, { count: Math.max(Math.round(v ?? 1), 1) })} />
-                <NumberField label="Carat" value={s.caret} onChange={(v) => setStone(i, { caret: v ?? 0 })} allowEmpty />
-                <NumberField label="Qeemat" prefix="Rs" value={s.totalValue} onChange={(v) => setStone(i, { totalValue: v ?? 0 })} allowEmpty />
-                <button type="button" aria-label="Nag hatayein" onClick={() => ctx.setExtra({ stones: x.stones.filter((_, j) => j !== i) })}
+                <NumberField label={t('Ginti')} value={s.count} onChange={(v) => setStone(i, { count: Math.max(Math.round(v ?? 1), 1) })} />
+                <NumberField label={t('Carat')} value={s.caret} onChange={(v) => setStone(i, { caret: v ?? 0 })} allowEmpty />
+                <NumberField label={t('Qeemat')} prefix="Rs" value={s.totalValue} onChange={(v) => setStone(i, { totalValue: v ?? 0 })} allowEmpty />
+                <button type="button" aria-label={t('Nag hatayein')} onClick={() => ctx.setExtra({ stones: x.stones.filter((_, j) => j !== i) })}
                   className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
               </div>
             ))}
@@ -157,25 +158,25 @@ function Weights({ ctx }: { ctx: StepContext<JewelryExtra> }) {
       <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
         <div className="flex flex-wrap items-center gap-2">
           <TrendingUp className="h-4 w-4 text-amber-700" />
-          <span className="text-[0.875rem] font-semibold text-amber-900">Aaj ki qeemat</span>
-          {rate && <span className="text-[0.75rem] text-amber-800">{purityLabel(x.purity)} @ {formatPKR(rate.ratePerGram)}/g</span>}
+          <span className="text-[0.875rem] font-semibold text-amber-900">{t('Aaj ki qeemat')}</span>
+          {rate && <span className="text-[0.75rem] text-amber-800">{t('{{purity}} @ {{ratePerGram}}/g', { purity: purityLabel(x.purity), ratePerGram: formatPKR(rate.ratePerGram) })}</span>}
         </div>
-        {isLoading ? <p className="mt-2 text-[0.8125rem] text-amber-800">Rate load ho raha hai…</p> : !price ? (
-          <p className="mt-2 text-[0.8125rem] text-amber-900">{purityLabel(x.purity)} ka aaj ka rate set nahi. <Link to="/jewelry/metal-rates" className="font-semibold underline">Rate likhein</Link> — tab tak qeemat khud likhein.</p>
+        {isLoading ? <p className="mt-2 text-[0.8125rem] text-amber-800">{t('Rate load ho raha hai…')}</p> : !price ? (
+          <p className="mt-2 text-[0.8125rem] text-amber-900"><Trans text="{{purity}} ka aaj ka rate set nahi. {{link}} — tab tak qeemat khud likhein." values={{ purity: purityLabel(x.purity), link: <Link to="/jewelry/metal-rates" className="font-semibold underline">{t('Rate likhein')}</Link> }} /></p>
         ) : (
           <>
             <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[0.8125rem] sm:grid-cols-5">
-              <div><dt className="text-amber-800">Sona</dt><dd className="font-semibold tabular-nums">{formatPKR(price.metal)}</dd></div>
-              <div><dt className="text-amber-800">Banwai</dt><dd className="font-semibold tabular-nums">{formatPKR(price.making)}</dd></div>
-              <div><dt className="text-amber-800">Kaat</dt><dd className="font-semibold tabular-nums">{formatPKR(price.wastage)}</dd></div>
-              <div><dt className="text-amber-800">Nag + charges</dt><dd className="font-semibold tabular-nums">{formatPKR(price.stones + price.other)}</dd></div>
-              <div><dt className="text-amber-800">Kul</dt><dd className="text-[1rem] font-bold tabular-nums text-amber-950">{formatPKR(price.total)}</dd></div>
+              <div><dt className="text-amber-800">{t('Sona')}</dt><dd className="font-semibold tabular-nums">{formatPKR(price.metal)}</dd></div>
+              <div><dt className="text-amber-800">{t('Banwai')}</dt><dd className="font-semibold tabular-nums">{formatPKR(price.making)}</dd></div>
+              <div><dt className="text-amber-800">{t('Kaat')}</dt><dd className="font-semibold tabular-nums">{formatPKR(price.wastage)}</dd></div>
+              <div><dt className="text-amber-800">{t('Nag + charges')}</dt><dd className="font-semibold tabular-nums">{formatPKR(price.stones + price.other)}</dd></div>
+              <div><dt className="text-amber-800">{t('Kul')}</dt><dd className="text-[1rem] font-bold tabular-nums text-amber-950">{formatPKR(price.total)}</dd></div>
             </dl>
             <button type="button" onClick={() => ctx.setCore({ price: Math.round(price.total) })} disabled={Math.round(price.total) === Math.round(ctx.draft.core.price)}
               className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-xl bg-amber-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
-              {Math.round(price.total) === Math.round(ctx.draft.core.price) ? 'Sale price yehi hai' : `Sale price ${formatPKR(Math.round(price.total))} lagayein`}
+              {Math.round(price.total) === Math.round(ctx.draft.core.price) ? t('Sale price yehi hai') : t('Sale price {{formatPKR}} lagayein', { formatPKR: formatPKR(Math.round(price.total)) })}
             </button>
-            <p className="mt-1.5 text-[0.75rem] text-amber-800">POS par qeemat hamesha aaj ke rate se dobara banti hai — yahan ki price sirf list aur reports ke liye hai.</p>
+            <p className="mt-1.5 text-[0.75rem] text-amber-800">{t('POS par qeemat hamesha aaj ke rate se dobara banti hai — yahan ki price sirf list aur reports ke liye hai.')}</p>
           </>
         )}
       </div>
@@ -184,49 +185,49 @@ function Weights({ ctx }: { ctx: StepContext<JewelryExtra> }) {
 }
 
 const weightsStep: StepDef<JewelryExtra> = {
-  id: 'weight', title: 'Wazan aur banwai', hint: 'Grams, banwai, kaat, nag', icon: Scale,
+  id: 'weight', title: t('Wazan aur banwai'), hint: t('Grams, banwai, kaat, nag'), icon: Scale,
   validate: (d) => {
     const e: Errors = {};
     const x = d.extra;
     if (!['IMITATION', 'OTHER'].includes(x.metalType)) {
-      if (!(x.grossWeight > 0)) e.grossWeight = 'Kul wazan likhein';
-      if (!(x.netWeight > 0)) e.netWeight = 'Asal wazan likhein';
+      if (!(x.grossWeight > 0)) e.grossWeight = t('Kul wazan likhein');
+      if (!(x.netWeight > 0)) e.netWeight = t('Asal wazan likhein');
     }
-    if (x.netWeight > x.grossWeight + 0.0005) e.netWeight = 'Asal wazan kul wazan se zyada nahi ho sakta';
-    if (x.wastagePct > 30) e.wastagePct = 'Kaat 30% se zyada? Check karein';
+    if (x.netWeight > x.grossWeight + 0.0005) e.netWeight = t('Asal wazan kul wazan se zyada nahi ho sakta');
+    if (x.wastagePct > 30) e.wastagePct = t('Kaat 30% se zyada? Check karein');
     return e;
   },
   render: (ctx) => <Weights ctx={ctx} />,
 };
 
 const termsStep: StepDef<JewelryExtra> = {
-  id: 'terms', title: 'Hallmark aur wapsi', hint: 'Hallmark, buy-back, karigar', icon: ShieldCheck,
+  id: 'terms', title: t('Hallmark aur wapsi'), hint: t('Hallmark, buy-back, karigar'), icon: ShieldCheck,
   render: (ctx) => {
     const x = ctx.draft.extra;
     return (
       <div className="space-y-4">
-        <Section icon={Award} title="Hallmark aur certificate">
+        <Section icon={Award} title={t('Hallmark aur certificate')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextField label="Hallmark number" value={x.hallmarkNumber} onChange={(v) => ctx.setExtra({ hallmarkNumber: v })} placeholder="PSQCA / lab number" hint="Bill par chhapta hai" />
-            <TextField label="Certificate number" value={x.certificateNumber} onChange={(v) => ctx.setExtra({ certificateNumber: v, isCertified: !!v.trim() || x.isCertified })} />
+            <TextField label={t('Hallmark number')} value={x.hallmarkNumber} onChange={(v) => ctx.setExtra({ hallmarkNumber: v })} placeholder={t('PSQCA / lab number')} hint={t('Bill par chhapta hai')} />
+            <TextField label={t('Certificate number')} value={x.certificateNumber} onChange={(v) => ctx.setExtra({ certificateNumber: v, isCertified: !!v.trim() || x.isCertified })} />
           </div>
         </Section>
-        <Section icon={ShieldCheck} title="Wapsi aur buy-back" hint="Customer ko bill par yahi likha milta hai">
+        <Section icon={ShieldCheck} title={t('Wapsi aur buy-back')} hint={t('Customer ko bill par yahi likha milta hai')}>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Toggle on={x.isBuyBackEligible} onChange={(v) => ctx.setExtra({ isBuyBackEligible: v })} title="Buy-back hota hai" hint="Dukaan wapas khareedti hai" />
-            <Toggle on={x.isReturnable} onChange={(v) => ctx.setExtra({ isReturnable: v })} title="Wapsi ho sakti hai" hint="Bill ke saath, tay dinon me" />
+            <Toggle on={x.isBuyBackEligible} onChange={(v) => ctx.setExtra({ isBuyBackEligible: v })} title={t('Buy-back hota hai')} hint={t('Dukaan wapas khareedti hai')} />
+            <Toggle on={x.isReturnable} onChange={(v) => ctx.setExtra({ isReturnable: v })} title={t('Wapsi ho sakti hai')} hint={t('Bill ke saath, tay dinon me')} />
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {x.isBuyBackEligible && <NumberField label="Buy-back kitne % par" suffix="%" value={x.buyBackPct} onChange={(v) => ctx.setExtra({ buyBackPct: Math.min(v ?? 0, 100) })} hint="Sone ki aaj ki qeemat ka" />}
-            {x.isReturnable && <NumberField label="Wapsi kitne din me" suffix="din" value={x.returnDays} onChange={(v) => ctx.setExtra({ returnDays: Math.round(v ?? 0) })} />}
+            {x.isBuyBackEligible && <NumberField label={t('Buy-back kitne % par')} suffix="%" value={x.buyBackPct} onChange={(v) => ctx.setExtra({ buyBackPct: Math.min(v ?? 0, 100) })} hint={t('Sone ki aaj ki qeemat ka')} />}
+            {x.isReturnable && <NumberField label={t('Wapsi kitne din me')} suffix="din" value={x.returnDays} onChange={(v) => ctx.setExtra({ returnDays: Math.round(v ?? 0) })} />}
           </div>
         </Section>
-        <Section icon={Gem} title="Aur">
+        <Section icon={Gem} title={t('Aur')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextField label="Karigar" value={x.karigarName} onChange={(v) => ctx.setExtra({ karigarName: v })} placeholder="Kis ne banaya" />
-            <TextField label="Item code" value={x.itemCode} onChange={(v) => ctx.setExtra({ itemCode: v })} placeholder="Dukaan ka andar ka code" />
+            <TextField label={t('Karigar')} value={x.karigarName} onChange={(v) => ctx.setExtra({ karigarName: v })} placeholder={t('Kis ne banaya')} />
+            <TextField label={t('Item code')} value={x.itemCode} onChange={(v) => ctx.setExtra({ itemCode: v })} placeholder={t('Dukaan ka andar ka code')} />
           </div>
-          <div className="mt-3"><Toggle on={x.isBridalCollection} onChange={(v) => ctx.setExtra({ isBridalCollection: v })} title="Bridal collection" hint="Shaadi ke set — POS par alag filter" /></div>
+          <div className="mt-3"><Toggle on={x.isBridalCollection} onChange={(v) => ctx.setExtra({ isBridalCollection: v })} title={t('Bridal collection')} hint={t('Shaadi ke set — POS par alag filter')} /></div>
         </Section>
       </div>
     );
@@ -234,14 +235,14 @@ const termsStep: StepDef<JewelryExtra> = {
 };
 
 const core: CoreOptions = {
-  units: [{ value: 'pcs', label: 'Piece' }, { value: 'set', label: 'Set' }, { value: 'pair', label: 'Jora' }],
+  units: [{ value: 'pcs', label: t('Piece') }, { value: 'set', label: t('Set') }, { value: 'pair', label: t('Jora') }],
   skuPrefix: 'JW',
   packs: false,
   variants: false,
 };
 
 const config: EditorConfig<JewelryExtra> = {
-  label: 'Jewelry',
+  label: t('Jewelry'),
   draftKey: 'nafaa.product-editor.jewelry',
   paths: { list: '/jewelry/products', detail: (id) => `/jewelry-items/${id}`, create: '/jewelry-items/new' },
   core,
@@ -281,7 +282,7 @@ const config: EditorConfig<JewelryExtra> = {
     },
   },
   steps: [
-    basicStep<JewelryExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: 'Jaise: 22K Turkish choori jora', categorySuggestions: ['Sona', 'Chandi', 'Bridal', 'Roz pehnne wala'] }),
+    basicStep<JewelryExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: t('Jaise: 22K Turkish choori jora'), categorySuggestions: ['Sona', 'Chandi', 'Bridal', 'Roz pehnne wala'] }),
     weightsStep,
     priceStep<JewelryExtra>(core),
     stockStep<JewelryExtra>(core, { quick: [1, 2, 3, 5] }),
@@ -290,15 +291,15 @@ const config: EditorConfig<JewelryExtra> = {
   summary: (d) => (
     <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
       <p className="text-slate-600">{[categoryLabel(d.extra.category), purityLabel(d.extra.purity)].join(' · ')}</p>
-      {d.extra.netWeight > 0 && <p className="font-semibold text-amber-800">{grams(d.extra.netWeight)} · {(d.extra.netWeight / TOLA).toFixed(3)} tola</p>}
-      {d.extra.stones.length > 0 && <p className="text-violet-700">{d.extra.stones.reduce((s, g) => s + g.count, 0)} nag · {formatPKR(stonesTotal(d.extra))}</p>}
-      {d.extra.hallmarkNumber && <p className="text-emerald-700">Hallmark {d.extra.hallmarkNumber}</p>}
+      {d.extra.netWeight > 0 && <p className="font-semibold text-amber-800">{t('{{netWeight}} · {{value}} tola', { netWeight: grams(d.extra.netWeight), value: (d.extra.netWeight / TOLA).toFixed(3) })}</p>}
+      {d.extra.stones.length > 0 && <p className="text-violet-700">{t('{{value}} nag · {{formatPKR}}', { value: d.extra.stones.reduce((s, g) => s + g.count, 0), formatPKR: formatPKR(stonesTotal(d.extra)) })}</p>}
+      {d.extra.hallmarkNumber && <p className="text-emerald-700">{t('Hallmark {{hallmarkNumber}}', { hallmarkNumber: d.extra.hallmarkNumber })}</p>}
     </div>
   ),
   refresh: [KEYS.profiles],
   guide: [
-    { icon: Scale, color: '#d97706', title: 'Wazan', text: 'Kul wazan aur nag ka wazan likhein — asal wazan khud ban jata hai. Rate asal wazan par lagta hai.' },
-    { icon: TrendingUp, color: '#16a34a', title: 'Aaj ki qeemat', text: 'Wazan step me aaj ke rate se poori qeemat dikhti hai. POS par har roz naye rate se khud banti hai.' },
+    { icon: Scale, color: '#d97706', title: t('Wazan'), text: t('Kul wazan aur nag ka wazan likhein — asal wazan khud ban jata hai. Rate asal wazan par lagta hai.') },
+    { icon: TrendingUp, color: '#16a34a', title: t('Aaj ki qeemat'), text: t('Wazan step me aaj ke rate se poori qeemat dikhti hai. POS par har roz naye rate se khud banti hai.') },
   ],
 };
 

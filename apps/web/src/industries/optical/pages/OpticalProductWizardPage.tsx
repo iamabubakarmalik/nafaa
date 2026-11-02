@@ -14,6 +14,7 @@ import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@m
 import { opticalProductsApi, type OpticalCategoryType, type OpticalFrameMaterial, type OpticalFrameShape, type OpticalGender } from '../api/products.api';
 import { FACTS_KEY, KINDS, kindOf, typeLabel, type OpticalKind } from '../hooks/useOpticalFacts';
 import { COATINGS, LENS_INDEX, LENS_MATERIAL } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface OpticalExtra {
   categoryType: OpticalCategoryType | '';
@@ -50,7 +51,7 @@ function Kind({ ctx }: { ctx: StepContext<OpticalExtra> }) {
   const kind = kindOf(x.categoryType || null);
   return (
     <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      <span className="block text-[0.8125rem] font-medium text-slate-700">{tr('Ye kya hai')}</span>
       <div className="flex flex-wrap gap-1.5">
         {KINDS.map((k) => <Chip key={k.value} on={kind === k.value} onClick={() => ctx.setExtra({ categoryType: k.types[0] })}>{k.label}</Chip>)}
       </div>
@@ -60,7 +61,7 @@ function Kind({ ctx }: { ctx: StepContext<OpticalExtra> }) {
         </div>
       )}
       {ctx.errors.kind && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.kind}</p>}
-      <p className="text-[0.75rem] text-slate-500">Isi se agla step frame ka size, lens ki coating ya contact lens ka fit poochta hai.</p>
+      <p className="text-[0.75rem] text-slate-500">{tr('Isi se agla step frame ka size, lens ki coating ya contact lens ka fit poochta hai.')}</p>
     </div>
   );
 }
@@ -74,82 +75,82 @@ function Specs({ ctx }: { ctx: StepContext<OpticalExtra> }) {
   const contact = kind === 'contact';
   return (
     <div className="space-y-4">
-      <Section icon={Sparkles} title="Brand aur model" hint="Counter aur bill par naam ke neeche dikhta hai">
+      <Section icon={Sparkles} title={tr('Brand aur model')} hint={tr('Counter aur bill par naam ke neeche dikhta hai')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Brand" value={x.brand} onChange={(brand) => set({ brand })} placeholder="Ray-Ban, Titan, Acuvue" />
-          <TextField label="Model number" value={x.modelNumber} onChange={(modelNumber) => set({ modelNumber })} placeholder="RB2140" />
+          <TextField label={tr('Brand')} value={x.brand} onChange={(brand) => set({ brand })} placeholder={tr('Ray-Ban, Titan, Acuvue')} />
+          <TextField label={tr('Model number')} value={x.modelNumber} onChange={(modelNumber) => set({ modelNumber })} placeholder={tr('RB2140')} />
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5">{BRANDS.map((b) => <Chip key={b} on={x.brand === b} onClick={() => set({ brand: x.brand === b ? '' : b })}>{b}</Chip>)}</div>
         {frame && (
           <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_8rem]">
-            <TextField label="Rang" value={x.colorName} onChange={(colorName) => set({ colorName })} placeholder="Black, Gold" hint="Har rang ka stock alag ho to Stock step me rang ko variant banayein" />
-            <label className="block"><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Rang (nishan)</span>
+            <TextField label={tr('Rang')} value={x.colorName} onChange={(colorName) => set({ colorName })} placeholder={tr('Black, Gold')} hint={tr('Har rang ka stock alag ho to Stock step me rang ko variant banayein')} />
+            <label className="block"><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Rang (nishan)')}</span>
               <input type="color" value={x.colorHex || '#000000'} onChange={(e) => set({ colorHex: e.target.value })} className="h-11 w-full rounded-xl border border-slate-300 bg-white p-1" /></label>
           </div>
         )}
       </Section>
 
       {frame && (
-        <Section icon={Ruler} title="Frame" hint="Size frame ki dandi par likha hota hai: 52□18-145">
+        <Section icon={Ruler} title={tr('Frame')} hint={tr('Size frame ki dandi par likha hota hai: 52□18-145')}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <NumberField label="Lens width" allowEmpty value={x.frameSizeMm} onChange={(v) => set({ frameSizeMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="52" />
-            <NumberField label="Bridge" allowEmpty value={x.bridgeSizeMm} onChange={(v) => set({ bridgeSizeMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="18" />
-            <NumberField label="Dandi (temple)" allowEmpty value={x.templeLengthMm} onChange={(v) => set({ templeLengthMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="145" />
+            <NumberField label={tr('Lens width')} allowEmpty value={x.frameSizeMm} onChange={(v) => set({ frameSizeMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="52" />
+            <NumberField label={tr('Bridge')} allowEmpty value={x.bridgeSizeMm} onChange={(v) => set({ bridgeSizeMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="18" />
+            <NumberField label={tr('Dandi (temple)')} allowEmpty value={x.templeLengthMm} onChange={(v) => set({ templeLengthMm: v == null ? null : Math.round(v) })} suffix="mm" placeholder="145" />
           </div>
           {ctx.errors.size && <p className="mt-1 text-[0.8125rem] font-medium text-rose-600">{ctx.errors.size}</p>}
-          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Shape</span>
+          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Shape')}</span>
           <div className="flex flex-wrap gap-1.5">{SHAPES.map(([v, l]) => <Chip key={v} on={x.frameShape === v} onClick={() => set({ frameShape: x.frameShape === v ? '' : v })}>{l}</Chip>)}</div>
-          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Material</span>
+          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Material')}</span>
           <div className="flex flex-wrap gap-1.5">{MATERIALS.map(([v, l]) => <Chip key={v} on={x.frameMaterial === v} onClick={() => set({ frameMaterial: x.frameMaterial === v ? '' : v })}>{l}</Chip>)}</div>
-          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Kis ke liye</span>
+          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Kis ke liye')}</span>
           <div className="flex flex-wrap gap-1.5">{GENDERS.map(([v, l]) => <Chip key={v} on={x.gender === v} onClick={() => set({ gender: x.gender === v ? '' : v })}>{l}</Chip>)}</div>
         </Section>
       )}
 
       {lens && (
-        <Section icon={Glasses} title="Lens" hint="Index jitna zyada, lens utna patla">
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Index</span>
+        <Section icon={Glasses} title={tr('Lens')} hint={tr('Index jitna zyada, lens utna patla')}>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Index')}</span>
           <div className="flex flex-wrap gap-1.5">{LENS_INDEX.map((v) => <Chip key={v} on={x.lensIndex === v} onClick={() => set({ lensIndex: x.lensIndex === v ? '' : v })}>{v}</Chip>)}</div>
-          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Material</span>
+          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Material')}</span>
           <div className="flex flex-wrap gap-1.5">{LENS_MATERIAL.map((v) => <Chip key={v} on={x.lensMaterial === v} onClick={() => set({ lensMaterial: x.lensMaterial === v ? '' : v })}>{v}</Chip>)}</div>
-          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Coating</span>
+          <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Coating')}</span>
           <div className="flex flex-wrap gap-1.5">{COATINGS.map((v) => <Chip key={v} on={x.lensCoatings.includes(v)} onClick={() => set({ lensCoatings: x.lensCoatings.includes(v) ? x.lensCoatings.filter((c) => c !== v) : [...x.lensCoatings, v] })}>{v}</Chip>)}</div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Toggle on={x.hasBlueCut} onChange={(hasBlueCut) => set({ hasBlueCut })} title="Blue cut" hint="Computer / mobile ke liye" />
-            <Toggle on={x.isPhotochromic} onChange={(isPhotochromic) => set({ isPhotochromic })} title="Photochromic" hint="Dhoop me kala" />
-            <Toggle on={x.isPolarized} onChange={(isPolarized) => set({ isPolarized })} title="Polarized" hint="Chamak kam" />
-            <Toggle on={x.hasUvProtection} onChange={(hasUvProtection) => set({ hasUvProtection })} title="UV 400" />
+            <Toggle on={x.hasBlueCut} onChange={(hasBlueCut) => set({ hasBlueCut })} title={tr('Blue cut')} hint={tr('Computer / mobile ke liye')} />
+            <Toggle on={x.isPhotochromic} onChange={(isPhotochromic) => set({ isPhotochromic })} title={tr('Photochromic')} hint={tr('Dhoop me kala')} />
+            <Toggle on={x.isPolarized} onChange={(isPolarized) => set({ isPolarized })} title={tr('Polarized')} hint={tr('Chamak kam')} />
+            <Toggle on={x.hasUvProtection} onChange={(hasUvProtection) => set({ hasUvProtection })} title={tr('UV 400')} />
           </div>
           {kind === 'lens' && (
             <>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <NumberField label="Kam se kam SPH" allowEmpty value={x.supportsMinSph} onChange={(supportsMinSph) => set({ supportsMinSph })} placeholder="-6.00" />
-                <NumberField label="Zyada se zyada SPH" allowEmpty value={x.supportsMaxSph} onChange={(supportsMaxSph) => set({ supportsMaxSph })} placeholder="+4.00" />
-                <NumberField label="Zyada se zyada CYL" allowEmpty value={x.supportsMaxCyl} onChange={(supportsMaxCyl) => set({ supportsMaxCyl })} placeholder="-2.00" />
+                <NumberField label={tr('Kam se kam SPH')} allowEmpty value={x.supportsMinSph} onChange={(supportsMinSph) => set({ supportsMinSph })} placeholder="-6.00" />
+                <NumberField label={tr('Zyada se zyada SPH')} allowEmpty value={x.supportsMaxSph} onChange={(supportsMaxSph) => set({ supportsMaxSph })} placeholder="+4.00" />
+                <NumberField label={tr('Zyada se zyada CYL')} allowEmpty value={x.supportsMaxCyl} onChange={(supportsMaxCyl) => set({ supportsMaxCyl })} placeholder="-2.00" />
               </div>
               {ctx.errors.range && <p className="mt-1 text-[0.8125rem] font-medium text-rose-600">{ctx.errors.range}</p>}
-              <div className="mt-2"><Toggle on={x.supportsProgressive} onChange={(supportsProgressive) => set({ supportsProgressive })} title="Progressive ban sakta hai" /></div>
+              <div className="mt-2"><Toggle on={x.supportsProgressive} onChange={(supportsProgressive) => set({ supportsProgressive })} title={tr('Progressive ban sakta hai')} /></div>
             </>
           )}
         </Section>
       )}
 
       {contact && (
-        <Section icon={Eye} title="Contact lens" hint="Dabbe par likha fit — customer ke nuskhe se milayein">
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitne din chalta hai</span>
+        <Section icon={Eye} title={tr('Contact lens')} hint={tr('Dabbe par likha fit — customer ke nuskhe se milayein')}>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitne din chalta hai')}</span>
           <div className="flex flex-wrap gap-1.5">{CL_DURATION.map((v) => <Chip key={v} on={x.clDuration === v} onClick={() => set({ clDuration: x.clDuration === v ? '' : v })}>{v}</Chip>)}</div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <TextField label="Base curve (BC)" value={x.clBaseCurve} onChange={(clBaseCurve) => set({ clBaseCurve })} placeholder="8.6" />
-            <TextField label="Diameter (DIA)" value={x.clDiameter} onChange={(clDiameter) => set({ clDiameter })} placeholder="14.2" />
-            <TextField label="Pani (water %)" value={x.clWaterContent} onChange={(clWaterContent) => set({ clWaterContent })} placeholder="38%" />
+            <TextField label={tr('Base curve (BC)')} value={x.clBaseCurve} onChange={(clBaseCurve) => set({ clBaseCurve })} placeholder="8.6" />
+            <TextField label={tr('Diameter (DIA)')} value={x.clDiameter} onChange={(clDiameter) => set({ clDiameter })} placeholder="14.2" />
+            <TextField label={tr('Pani (water %)')} value={x.clWaterContent} onChange={(clWaterContent) => set({ clWaterContent })} placeholder="38%" />
           </div>
-          <div className="mt-3"><Toggle on={x.clForAstigmatism} onChange={(clForAstigmatism) => set({ clForAstigmatism })} title="Toric (cylinder wale ke liye)" /></div>
-          <p className="mt-2 text-[0.75rem] text-slate-500">Expiry ke liye Stock step me batch aur expiry date likhein — counter pehle purani expiry wala bechta hai.</p>
+          <div className="mt-3"><Toggle on={x.clForAstigmatism} onChange={(clForAstigmatism) => set({ clForAstigmatism })} title={tr('Toric (cylinder wale ke liye)')} /></div>
+          <p className="mt-2 text-[0.75rem] text-slate-500">{tr('Expiry ke liye Stock step me batch aur expiry date likhein — counter pehle purani expiry wala bechta hai.')}</p>
         </Section>
       )}
 
-      <Section icon={ShieldCheck} title="Warranty">
-        <NumberField label="Warranty" allowEmpty value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: v == null ? null : Math.round(v) })} suffix="mahine" hint="0 = koi warranty nahi" />
+      <Section icon={ShieldCheck} title={tr('Warranty')}>
+        <NumberField label={tr('Warranty')} allowEmpty value={x.warrantyMonths} onChange={(v) => set({ warrantyMonths: v == null ? null : Math.round(v) })} suffix="mahine" hint={tr('0 = koi warranty nahi')} />
       </Section>
     </div>
   );
@@ -158,28 +159,28 @@ function Specs({ ctx }: { ctx: StepContext<OpticalExtra> }) {
 function specErrors(x: OpticalExtra): Errors {
   const e: Errors = {};
   const bad = (v: number | null, lo: number, hi: number) => v != null && (v < lo || v > hi);
-  if (bad(x.frameSizeMm, 30, 80) || bad(x.bridgeSizeMm, 10, 30) || bad(x.templeLengthMm, 100, 160)) e.size = 'Size sahi likhein: lens 30-80, bridge 10-30, dandi 100-160 mm';
-  if (x.supportsMinSph != null && x.supportsMaxSph != null && x.supportsMinSph > x.supportsMaxSph) e.range = 'Kam se kam SPH zyada wale se bara hai';
-  if (x.warrantyMonths != null && (x.warrantyMonths < 0 || x.warrantyMonths > 60)) e.size = 'Warranty 0 se 60 mahine';
+  if (bad(x.frameSizeMm, 30, 80) || bad(x.bridgeSizeMm, 10, 30) || bad(x.templeLengthMm, 100, 160)) e.size = tr('Size sahi likhein: lens 30-80, bridge 10-30, dandi 100-160 mm');
+  if (x.supportsMinSph != null && x.supportsMaxSph != null && x.supportsMinSph > x.supportsMaxSph) e.range = tr('Kam se kam SPH zyada wale se bara hai');
+  if (x.warrantyMonths != null && (x.warrantyMonths < 0 || x.warrantyMonths > 60)) e.size = tr('Warranty 0 se 60 mahine');
   return e;
 }
 
 const core: CoreOptions = {
-  units: [{ value: 'pcs', label: 'Piece' }, { value: 'pair', label: 'Pair' }, { value: 'box', label: 'Box' }, { value: 'pack', label: 'Pack' }, { value: 'bottle', label: 'Bottle' }],
+  units: [{ value: 'pcs', label: tr('Piece') }, { value: 'pair', label: tr('Pair') }, { value: 'box', label: tr('Box') }, { value: 'pack', label: tr('Pack') }, { value: 'bottle', label: tr('Bottle') }],
   skuPrefix: 'OPT',
   packs: true,
-  variants: { presets: [{ group: 'Rang', values: COLOURS }, { group: 'Contact lens power', values: ['-1.00', '-1.50', '-2.00', '-2.50', '-3.00', '-4.00'] }] },
+  variants: { presets: [{ group: tr('Rang'), values: COLOURS }, { group: tr('Contact lens power'), values: ['-1.00', '-1.50', '-2.00', '-2.50', '-3.00', '-4.00'] }] },
   batches: true,
   markups: [30, 50, 80, 100],
 };
 
 const specsStep: StepDef<OpticalExtra> = {
-  id: 'specs', title: 'Tafseel', hint: 'Brand, size, lens', icon: Glasses, render: (ctx) => <Specs ctx={ctx} />,
+  id: 'specs', title: tr('Tafseel'), hint: tr('Brand, size, lens'), icon: Glasses, render: (ctx) => <Specs ctx={ctx} />,
   validate: (d) => specErrors(d.extra),
 };
 
 const config: EditorConfig<OpticalExtra> = {
-  label: 'Optical',
+  label: tr('Optical'),
   draftKey: 'nafaa.product-editor.optical',
   paths: { list: '/products', detail: (id) => `/optical-products/${id}`, create: '/optical-products/new' },
   core,
@@ -217,7 +218,7 @@ const config: EditorConfig<OpticalExtra> = {
   steps: [
     { ...basicStep<OpticalExtra>(core, {
       extra: (ctx) => <Kind ctx={ctx} />,
-      namePlaceholder: 'Jaise: Ray-Ban RB2140 Black ya Acuvue Oasys',
+      namePlaceholder: tr('Jaise: Ray-Ban RB2140 Black ya Acuvue Oasys'),
       categorySuggestions: ['Frames', 'Sunglasses', 'Lens', 'Contact lens', 'Solution', 'Accessories'],
     }) },
     specsStep,
@@ -231,8 +232,8 @@ const config: EditorConfig<OpticalExtra> = {
   },
   refresh: [FACTS_KEY, 'optical-product-detail'],
   guide: [
-    { icon: Glasses, color: '#0891b2', title: 'Frame', text: 'Brand, model, rang aur size (52-18-145). Har rang ka stock alag ho to rang ko variant banayein.' },
-    { icon: Eye, color: '#7c3aed', title: 'Contact lens', text: 'BC, DIA aur din — Stock step me batch aur expiry likhein; counter pehle purani expiry bechta hai.' },
+    { icon: Glasses, color: '#0891b2', title: tr('Frame'), text: tr('Brand, model, rang aur size (52-18-145). Har rang ka stock alag ho to rang ko variant banayein.') },
+    { icon: Eye, color: '#7c3aed', title: tr('Contact lens'), text: tr('BC, DIA aur din — Stock step me batch aur expiry likhein; counter pehle purani expiry bechta hai.') },
   ],
 };
 

@@ -12,6 +12,7 @@ import { Segmented } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { LandedCostPayload, LandedKind, LandedMethod } from '../api/purchases.api';
+import { t } from '@core/i18n';
 
 export interface LandedDraft {
   key: string;
@@ -28,16 +29,16 @@ export interface LandedDraft {
 export interface LandedLine { id: string; name: string; value: number; qty: number; unit: string; weightKg: number | null }
 
 export const LANDED_KINDS: Array<{ id: LandedKind; label: string }> = [
-  { id: 'FREIGHT', label: 'Freight (shipping / cargo)' },
-  { id: 'CUSTOMS', label: 'Customs / duty' },
-  { id: 'CLEARING', label: 'Clearing agent' },
-  { id: 'TRANSPORT', label: 'Local transport' },
-  { id: 'OTHER', label: 'Doosra' },
+  { id: 'FREIGHT', label: t('Freight (shipping / cargo)') },
+  { id: 'CUSTOMS', label: t('Customs / duty') },
+  { id: 'CLEARING', label: t('Clearing agent') },
+  { id: 'TRANSPORT', label: t('Local transport') },
+  { id: 'OTHER', label: t('Doosra') },
 ];
 export const kindLabel = (k: LandedKind) => LANDED_KINDS.find((x) => x.id === k)?.label ?? k;
 const CURRENCIES = ['PKR', 'USD', 'CNY', 'AED', 'EUR', 'GBP'];
 export const METHODS: Array<{ value: LandedMethod; label: string }> = [
-  { value: 'VALUE', label: 'Value se' }, { value: 'QTY', label: 'Quantity se' }, { value: 'WEIGHT', label: 'Wazan se' },
+  { value: 'VALUE', label: t('Value se') }, { value: 'QTY', label: t('Quantity se') }, { value: 'WEIGHT', label: t('Wazan se') },
 ];
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -81,43 +82,43 @@ export function LandedCostEditor({ costs, onCosts, method, onMethod, lines, onWe
         {costs.map((c) => (
           <li key={c.key} className="rounded-xl bg-slate-50 p-2.5 ring-1 ring-slate-200">
             <div className="flex gap-2">
-              <select value={c.kind} onChange={(e) => patch(c.key, { kind: e.target.value as LandedKind })} aria-label="Cost ki type" className={cn(field, 'min-w-0 flex-1')}>
+              <select value={c.kind} onChange={(e) => patch(c.key, { kind: e.target.value as LandedKind })} aria-label={t('Cost ki type')} className={cn(field, 'min-w-0 flex-1')}>
                 {LANDED_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
               </select>
-              <button type="button" onClick={() => onCosts(costs.filter((x) => x.key !== c.key))} aria-label="Hatayein"
+              <button type="button" onClick={() => onCosts(costs.filter((x) => x.key !== c.key))} aria-label={t('Hatayein')}
                 className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </div>
             <div className="mt-2 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
-              <select value={c.currency} onChange={(e) => patch(c.key, { currency: e.target.value })} aria-label="Currency" className={field}>
+              <select value={c.currency} onChange={(e) => patch(c.key, { currency: e.target.value })} aria-label={t('Currency')} className={field}>
                 {CURRENCIES.map((x) => <option key={x} value={x}>{x === 'PKR' ? 'Rs' : x}</option>)}
               </select>
-              <input inputMode="decimal" value={c.amount || ''} placeholder="Amount" aria-label="Amount"
-                onChange={(e) => patch(c.key, { amount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className={cn(field, 'text-right tabular-nums')} />
+              <input inputMode="decimal" value={c.amount || ''} placeholder={t('Amount')} aria-label={t('Amount')}
+                onChange={(e) => patch(c.key, { amount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className={cn(field, 'text-end tabular-nums')} />
             </div>
             {c.currency !== 'PKR' && (
               <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.75rem] text-slate-600">
                 <span>1 {c.currency} =</span>
-                <input inputMode="decimal" value={c.rate || ''} placeholder="Rate" aria-label={`${c.currency} ka rate`}
-                  onChange={(e) => patch(c.key, { rate: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className={cn(field, 'w-24 text-right tabular-nums')} />
+                <input inputMode="decimal" value={c.rate || ''} placeholder={t('Rate')} aria-label={t('{{currency}} ka rate', { currency: c.currency })}
+                  onChange={(e) => patch(c.key, { rate: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} className={cn(field, 'w-24 text-end tabular-nums')} />
                 <span>Rs</span>
-                <span className="ml-auto font-semibold text-slate-900">{c.rate > 0 ? formatPKR(landedRs(c)) : 'Rate likhein'}</span>
+                <span className="ms-auto font-semibold text-slate-900">{c.rate > 0 ? formatPKR(landedRs(c)) : t('Rate likhein')}</span>
               </div>
             )}
-            <input value={c.label} onChange={(e) => patch(c.key, { label: e.target.value })} maxLength={80} placeholder="Note (agar ho) — maslan GD number, agent ka naam"
+            <input value={c.label} onChange={(e) => patch(c.key, { label: e.target.value })} maxLength={80} placeholder={t('Note (agar ho) — maslan GD number, agent ka naam')}
               className={cn(field, 'mt-2')} />
           </li>
         ))}
       </ul>
       <button type="button" onClick={() => onCosts([...costs, newLanded()])}
         className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
-        <Plus className="h-4 w-4" /> Aur cost jorein
+        <Plus className="h-4 w-4" /> {' '}{t('Aur cost jorein')}
       </button>
 
       {total > 0 && lines.length > 0 && (
         <div className="rounded-xl ring-1 ring-slate-200">
           <div className="space-y-2 border-b border-slate-100 px-3 py-2">
-            <span className="block text-[0.8125rem] font-semibold text-slate-900">{formatPKR(total)} kaise baantein</span>
-            <Segmented label="Baantne ka tareeqa" value={method} onChange={onMethod} items={METHODS} className="w-full [&>button]:flex-1 [&>button]:px-1.5" />
+            <span className="block text-[0.8125rem] font-semibold text-slate-900">{t('{{total}} kaise baantein', { total: formatPKR(total) })}</span>
+            <Segmented label={t('Baantne ka tareeqa')} value={method} onChange={onMethod} items={METHODS} className="w-full [&>button]:flex-1 [&>button]:px-1.5" />
           </div>
           <ul className="divide-y divide-slate-100 text-[0.8125rem]">
             {lines.map((l) => {
@@ -127,22 +128,22 @@ export function LandedCostEditor({ costs, onCosts, method, onMethod, lines, onWe
                   <span className="w-full truncate font-medium text-slate-800">{l.name}</span>
                   {method === 'WEIGHT' && (
                     <label className="flex items-center gap-1 text-[0.75rem] text-slate-500">
-                      <input inputMode="decimal" value={l.weightKg ?? ''} placeholder="kg" aria-label={`${l.name} ka wazan`}
+                      <input inputMode="decimal" value={l.weightKg ?? ''} placeholder="kg" aria-label={t('{{name}} ka wazan', { name: l.name })}
                         onChange={(e) => onWeight(l.id, e.target.value === '' ? null : Number(e.target.value.replace(/[^\d.]/g, '')) || 0)}
-                        className={cn(field, 'h-8 w-20 text-right tabular-nums', !(Number(l.weightKg) > 0) && 'border-amber-400')} /> kg
+                        className={cn(field, 'h-8 w-20 text-end tabular-nums', !(Number(l.weightKg) > 0) && 'border-amber-400')} /> {' '}{t('kg')}
                     </label>
                   )}
-                  <span className="ml-auto tabular-nums text-slate-600">{formatPKR(share)}</span>
-                  <span className="text-right text-[0.75rem] font-semibold tabular-nums text-brand-700">{l.qty > 0 ? `+${formatPKR(share / l.qty)} / ${l.unit}` : '—'}</span>
+                  <span className="ms-auto tabular-nums text-slate-600">{formatPKR(share)}</span>
+                  <span className="text-end text-[0.75rem] font-semibold tabular-nums text-brand-700">{l.qty > 0 ? `+${formatPKR(share / l.qty)} / ${l.unit}` : '—'}</span>
                 </li>
               );
             })}
           </ul>
-          {noWeight && <p className="border-t border-slate-100 px-3 py-2 text-[0.75rem] text-amber-700">Jin lines ka wazan nahi, un par is tareeqe se kuch nahi lagega.</p>}
+          {noWeight && <p className="border-t border-slate-100 px-3 py-2 text-[0.75rem] text-amber-700">{t('Jin lines ka wazan nahi, un par is tareeqe se kuch nahi lagega.')}</p>}
         </div>
       )}
       <p className="text-[0.75rem] leading-snug text-slate-500">
-        Ye costs supplier ke bill ya khate me nahi jati, aur Expenses me bhi nahi. Ye maal ki Cost me jur jati hain, is liye bikne par Profit me khud aa jati hain.
+        {t('Ye costs supplier ke bill ya khate me nahi jati, aur Expenses me bhi nahi. Ye maal ki Cost me jur jati hain, is liye bikne par Profit me khud aa jati hain.')}
       </p>
     </div>
   );

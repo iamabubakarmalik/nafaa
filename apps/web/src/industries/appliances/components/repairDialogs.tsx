@@ -26,6 +26,7 @@ import {
   AMC_KEY, CLAIM_KEY, MONEY_KEYS, PRIORITIES, REPAIR_TYPES, SERIAL_KEY, SERVICE_KEY, SERVICE_NEXT, SERVICE_OPEN, TECH_KEY, apiError, dateTime,
   dayOnly, issuesFor, money, priorityOf, serviceStatusOf, serviceTypeOf, slotLabel, todayKey, waLink,
 } from './meta';
+import { t as tr, Trans } from '@core/i18n';
 
 const refresh = (qc: ReturnType<typeof useQueryClient>) => [SERVICE_KEY, TECH_KEY, SERIAL_KEY, AMC_KEY, CLAIM_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 export const repairDue = (r: ServiceRequest) => r.dueAmount ?? (r.coveredUnderAmc || r.coveredUnderWarranty ? 0 : Math.max(Number(r.totalCharge) - Number(r.paidAmount), 0));
@@ -62,8 +63,8 @@ export function NewRepairModal({ onClose, onCreated }: { onClose: () => void; on
   const [tried, setTried] = useState(false);
   const pErr = partyErrors(party);
   const errors = {
-    ...pErr, product: product.trim().length < 2 ? 'Product ka naam likhein' : undefined,
-    issue: issue.trim().length < 3 ? 'Kharabi likhein' : undefined, date: date && date < todayKey() ? 'Guzri hui date nahi' : undefined,
+    ...pErr, product: product.trim().length < 2 ? tr('Product ka naam likhein') : undefined,
+    issue: issue.trim().length < 3 ? tr('Kharabi likhein') : undefined, date: date && date < todayKey() ? tr('Guzri hui date nahi') : undefined,
   };
   const bad = Object.values(errors).some(Boolean);
 
@@ -75,17 +76,17 @@ export function NewRepairModal({ onClose, onCreated }: { onClose: () => void; on
       technicianId: tech || undefined, visitCharge: warranty || amc ? 0 : Number(visit) || 0, coveredUnderWarranty: warranty,
       coveredUnderAmc: !!amc, amcContractNumber: amc ?? undefined, internalNotes: notes.trim() || undefined,
     }),
-    onSuccess: (r) => { toast.success(`Shikayat ${r.requestNumber} darj`); refresh(qc); onCreated(r); },
-    onError: (e) => toast.error(apiError(e, 'Shikayat darj nahi hui')),
+    onSuccess: (r) => { toast.success(tr('Shikayat {{requestNumber}} darj', { requestNumber: r.requestNumber })); refresh(qc); onCreated(r); },
+    onError: (e) => toast.error(apiError(e, tr('Shikayat darj nahi hui'))),
   });
   const submit = () => { setTried(true); if (!bad && !save.isPending) save.mutate(); };
 
   return (
-    <Modal open onClose={onClose} size="lg" title="Nayi shikayat / repair" description="Serial likhein — warranty aur AMC khud check ho jati hai"
+    <Modal open onClose={onClose} size="lg" title={tr('Nayi shikayat / repair')} description={tr('Serial likhein — warranty aur AMC khud check ho jati hai')}
       footer={<>
-        {tried && bad && <span className="mr-auto text-[0.8125rem] text-rose-700">Laal khane theek karein</span>}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} leftIcon={<Wrench className="h-4 w-4" />}>Darj karein</Button>
+        {tried && bad && <span className="me-auto text-[0.8125rem] text-rose-700">{tr('Laal khane theek karein')}</span>}
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} leftIcon={<Wrench className="h-4 w-4" />}>{tr('Darj karein')}</Button>
       </>}>
       <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
@@ -96,29 +97,29 @@ export function NewRepairModal({ onClose, onCreated }: { onClose: () => void; on
           if (r.amc && r.amc.visitsLeft > 0) setAmc(r.amc.contractNumber);
           if (s.customerName && !party.name) setParty({ ...party, customerId: s.soldToCustomerId ?? undefined, name: s.customerName, phone: s.customerPhone ?? party.phone, address: s.deliveryAddress ?? party.address });
         }} />
-        <Input label="Product" required value={product} onChange={(e) => { setProduct(e.target.value); setProductId(undefined); }} placeholder="Dawlance fridge 9175" error={tried ? errors.product : undefined} />
+        <Input label={tr('Product')} required value={product} onChange={(e) => { setProduct(e.target.value); setProductId(undefined); }} placeholder={tr('Dawlance fridge 9175')} error={tried ? errors.product : undefined} />
         <div>
-          <Textarea label="Kya kharabi hai" required rows={2} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Cooling nahi kar raha" error={tried ? errors.issue : undefined} />
+          <Textarea label={tr('Kya kharabi hai')} required rows={2} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder={tr('Cooling nahi kar raha')} error={tried ? errors.issue : undefined} />
           <div className="mt-1.5 flex flex-wrap gap-1">
             {issuesFor(category).map((x) => <button key={x} type="button" onClick={() => setIssue(x)} className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] text-slate-700 hover:bg-slate-200">{x}</button>)}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaam</span><Chips options={REPAIR_TYPES.slice(0, 5).map((t) => ({ value: t, label: serviceTypeOf(t) }))} value={type} onChange={setType} /></div>
-          <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kitni jaldi</span><Chips options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} value={priority} onChange={setPriority} /></div>
+          <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kaam')}</span><Chips options={REPAIR_TYPES.slice(0, 5).map((t) => ({ value: t, label: serviceTypeOf(t) }))} value={type} onChange={setType} /></div>
+          <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitni jaldi')}</span><Chips options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} value={priority} onChange={setPriority} /></div>
         </div>
         <CustomerFields value={party} onChange={setParty} errors={tried ? pErr : {}} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Visit ki date" type="date" value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
+          <Input label={tr('Visit ki date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} error={errors.date} />
           <TechSelect value={tech} onChange={setTech} />
         </div>
         <SlotChips value={slot} onChange={setSlot} />
         <div className="space-y-3 rounded-xl p-3 ring-1 ring-slate-200">
-          <Switch checked={warranty} onChange={(e) => setWarranty(e.target.checked)} label="Warranty me hai" description="Customer se paisa nahi; baad me company se claim karein" />
-          {amc && <p className="flex items-center gap-1.5 text-[0.8125rem] text-violet-700"><ShieldCheck className="h-4 w-4" />AMC {amc} ki free visit lagegi. <button type="button" className="underline" onClick={() => setAmc(null)}>AMC na lagayein</button></p>}
-          {!warranty && !amc && <Input label="Visit charge" inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} placeholder="1000" hint="Mazdoori aur parts kaam ke baad likhein" />}
+          <Switch checked={warranty} onChange={(e) => setWarranty(e.target.checked)} label={tr('Warranty me hai')} description={tr('Customer se paisa nahi; baad me company se claim karein')} />
+          {amc && <p className="flex items-center gap-1.5 text-[0.8125rem] text-violet-700"><ShieldCheck className="h-4 w-4" />{tr('AMC {{amc}} ki free visit lagegi.', { amc })}{' '} <button type="button" className="underline" onClick={() => setAmc(null)}>{tr('AMC na lagayein')}</button></p>}
+          {!warranty && !amc && <Input label={tr('Visit charge')} inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} placeholder="1000" hint={tr('Mazdoori aur parts kaam ke baad likhein')} />}
         </div>
-        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Gate code, customer sirf sham ko ghar" hint="Sirf dukaan ke liye" />
+        <Textarea label={tr('Note')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tr('Gate code, customer sirf sham ko ghar')} hint={tr('Sirf dukaan ke liye')} />
       </form>
     </Modal>
   );
@@ -152,41 +153,41 @@ function CompleteModal({ job, onClose }: { job: ServiceRequest; onClose: () => v
       coveredUnderWarranty: warranty, paidAmount: advance + taken, paymentMethod: method,
       requiresFollowUp: !!follow, followUpDate: follow || undefined, customerRating: rating || undefined,
     }),
-    onSuccess: () => { toast.success(`${job.requestNumber} theek ho gaya — bill ban gaya`); refresh(qc); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Band nahi hua')),
+    onSuccess: () => { toast.success(tr('{{requestNumber}} theek ho gaya — bill ban gaya', { requestNumber: job.requestNumber })); refresh(qc); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Band nahi hua'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title={`Kaam mukammal — ${job.requestNumber}`} description={`${job.productName} · ${job.reportedIssue}`}
+    <Modal open onClose={onClose} size="md" title={tr('Kaam mukammal — {{requestNumber}}', { requestNumber: job.requestNumber })} description={`${job.productName} · ${job.reportedIssue}`}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
         <Button onClick={() => !tooMuch && !noWork && save.mutate()} disabled={tooMuch || noWork} loading={save.isPending} leftIcon={<Receipt className="h-4 w-4" />}>
-          {left > 0 ? `Mukammal — ${formatPKR(left)} khata me` : 'Mukammal karein'}
+          {left > 0 ? tr('Mukammal — {{left}} khata me', { left: formatPKR(left) }) : tr('Mukammal karein')}
         </Button>
       </>}>
       <div className="space-y-4">
-        <Input label="Asal kharabi" value={diag} onChange={(e) => setDiag(e.target.value)} placeholder="Capacitor jal gaya tha" />
-        <Textarea label="Kya kaam kiya" required rows={2} value={work} onChange={(e) => setWork(e.target.value)} placeholder="Capacitor badla, gas check ki" error={work && noWork ? 'Kaam likhein' : undefined} />
+        <Input label={tr('Asal kharabi')} value={diag} onChange={(e) => setDiag(e.target.value)} placeholder={tr('Capacitor jal gaya tha')} />
+        <Textarea label={tr('Kya kaam kiya')} required rows={2} value={work} onChange={(e) => setWork(e.target.value)} placeholder={tr('Capacitor badla, gas check ki')} error={work && noWork ? tr('Kaam likhein') : undefined} />
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Visit" inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} />
-          <Input label="Mazdoori" inputMode="decimal" value={labor} onChange={(e) => setLabor(money(e.target.value))} />
-          <Input label="Parts" inputMode="decimal" value={parts} onChange={(e) => setParts(money(e.target.value))} hint="Parts ki qeemat" />
+          <Input label={tr('Visit')} inputMode="decimal" value={visit} onChange={(e) => setVisit(money(e.target.value))} />
+          <Input label={tr('Mazdoori')} inputMode="decimal" value={labor} onChange={(e) => setLabor(money(e.target.value))} />
+          <Input label={tr('Parts')} inputMode="decimal" value={parts} onChange={(e) => setParts(money(e.target.value))} hint={tr('Parts ki qeemat')} />
         </div>
-        {!job.coveredUnderAmc && <Switch checked={warranty} onChange={(e) => setWarranty(e.target.checked)} label="Warranty me" description="Customer se kuch nahi; parts ka kharcha company se claim karein" />}
-        {job.coveredUnderAmc && <p className="rounded-xl bg-violet-50 px-3 py-2 text-[0.8125rem] text-violet-800 ring-1 ring-violet-200">AMC {job.amcContractNumber} me — customer se kuch nahi, ek free visit kam hogi.</p>}
+        {!job.coveredUnderAmc && <Switch checked={warranty} onChange={(e) => setWarranty(e.target.checked)} label={tr('Warranty me')} description={tr('Customer se kuch nahi; parts ka kharcha company se claim karein')} />}
+        {job.coveredUnderAmc && <p className="rounded-xl bg-violet-50 px-3 py-2 text-[0.8125rem] text-violet-800 ring-1 ring-violet-200">{tr('AMC {{amcContractNumber}} me — customer se kuch nahi, ek free visit kam hogi.', { amcContractNumber: job.amcContractNumber })}</p>}
         <dl className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.875rem]">
-          <div className="flex justify-between"><dt className="text-slate-500">Kul kaam</dt><dd className="font-semibold tabular-nums">{formatPKR(total)}</dd></div>
-          {advance > 0 && <div className="flex justify-between"><dt className="text-slate-500">Pehle mila</dt><dd className="tabular-nums">{formatPKR(advance)}</dd></div>}
-          <div className="flex justify-between border-t border-slate-200 pt-1"><dt className="font-medium text-slate-700">Customer se lena</dt><dd className="text-lg font-bold tabular-nums">{formatPKR(owed)}</dd></div>
+          <div className="flex justify-between"><dt className="text-slate-500">{tr('Kul kaam')}</dt><dd className="font-semibold tabular-nums">{formatPKR(total)}</dd></div>
+          {advance > 0 && <div className="flex justify-between"><dt className="text-slate-500">{tr('Pehle mila')}</dt><dd className="tabular-nums">{formatPKR(advance)}</dd></div>}
+          <div className="flex justify-between border-t border-slate-200 pt-1"><dt className="font-medium text-slate-700">{tr('Customer se lena')}</dt><dd className="text-lg font-bold tabular-nums">{formatPKR(owed)}</dd></div>
         </dl>
         {!covered && <>
-          <Input label="Abhi kitna liya" inputMode="decimal" value={now} onChange={(e) => setNow(money(e.target.value))} error={tooMuch ? 'Kul kaam se zyada nahi' : undefined} />
+          <Input label={tr('Abhi kitna liya')} inputMode="decimal" value={now} onChange={(e) => setNow(money(e.target.value))} error={tooMuch ? tr('Kul kaam se zyada nahi') : undefined} />
           {taken > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
-          {left > 0 && <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{formatPKR(left)} {job.customerName} ke khata me udhaar.</p>}
+          {left > 0 && <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{tr('{{left}} {{customerName}} ke khata me udhaar.', { left: formatPKR(left), customerName: job.customerName })}</p>}
         </>}
-        <Input label="Dobara dekhna hai (follow-up)" type="date" value={follow} onChange={(e) => setFollow(e.target.value)} hint="Khali chhorein agar zaroorat nahi" />
-        <div className="flex items-center gap-2"><span className="text-[0.8125rem] font-medium text-slate-700">Rating</span>
-          {[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" aria-label={`${n} star`} onClick={() => setRating(rating === n ? 0 : n)}><Star className={cn('h-5 w-5', n <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} /></button>)}
+        <Input label={tr('Dobara dekhna hai (follow-up)')} type="date" value={follow} onChange={(e) => setFollow(e.target.value)} hint={tr('Khali chhorein agar zaroorat nahi')} />
+        <div className="flex items-center gap-2"><span className="text-[0.8125rem] font-medium text-slate-700">{tr('Rating')}</span>
+          {[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" aria-label={tr('{{n}} star', { n })} onClick={() => setRating(rating === n ? 0 : n)}><Star className={cn('h-5 w-5', n <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} /></button>)}
         </div>
       </div>
     </Modal>
@@ -201,12 +202,12 @@ export function RepairCard({ id, shopName, canManage, onClose }: { id: string; s
   const q = useQuery({ queryKey: [SERVICE_KEY, 'one', id], queryFn: () => serviceRequestsApi.getOne(id) });
   const [dialog, setDialog] = useState<Dialog>(null);
   const done = (msg: string) => { toast.success(msg); refresh(qc); setDialog(null); };
-  const fail = (e: unknown) => toast.error(apiError(e, 'Nahi hua'));
-  const assign = useMutation({ mutationFn: (v: { technicianId: string; scheduledDate?: string; scheduledTimeSlot?: string }) => serviceRequestsApi.assignTechnician(id, v), onSuccess: () => done('Technician lag gaya'), onError: fail });
-  const status = useMutation({ mutationFn: (v: { status: string; notes?: string }) => serviceRequestsApi.updateStatus(id, { status: v.status as ApplianceServiceStatus, notes: v.notes }), onSuccess: () => done('Halat badal gayi'), onError: fail });
-  const cancel = useMutation({ mutationFn: (reason: string) => serviceRequestsApi.cancel(id, { reason }), onSuccess: () => done('Shikayat cancel'), onError: fail });
-  const pay = useMutation({ mutationFn: (v: { amount: number; paymentMethod: string; note?: string }) => serviceRequestsApi.addPayment(id, v), onSuccess: () => done('Paisa mil gaya'), onError: fail });
-  const claim = useMutation({ mutationFn: () => warrantyClaimsApi.fromService(id), onSuccess: (c) => done(`Claim ${c.claimNumber} ban gaya — Warranty claims me bhejein`), onError: fail });
+  const fail = (e: unknown) => toast.error(apiError(e, tr('Nahi hua')));
+  const assign = useMutation({ mutationFn: (v: { technicianId: string; scheduledDate?: string; scheduledTimeSlot?: string }) => serviceRequestsApi.assignTechnician(id, v), onSuccess: () => done(tr('Technician lag gaya')), onError: fail });
+  const status = useMutation({ mutationFn: (v: { status: string; notes?: string }) => serviceRequestsApi.updateStatus(id, { status: v.status as ApplianceServiceStatus, notes: v.notes }), onSuccess: () => done(tr('Halat badal gayi')), onError: fail });
+  const cancel = useMutation({ mutationFn: (reason: string) => serviceRequestsApi.cancel(id, { reason }), onSuccess: () => done(tr('Shikayat cancel')), onError: fail });
+  const pay = useMutation({ mutationFn: (v: { amount: number; paymentMethod: string; note?: string }) => serviceRequestsApi.addPayment(id, v), onSuccess: () => done(tr('Paisa mil gaya')), onError: fail });
+  const claim = useMutation({ mutationFn: () => warrantyClaimsApi.fromService(id), onSuccess: (c) => done(tr('Claim {{claimNumber}} ban gaya — Warranty claims me bhejein', { claimNumber: c.claimNumber })), onError: fail });
 
   const r = q.data as ServiceRequestDetail | undefined;
   const open = !!r && SERVICE_OPEN.includes(r.status);
@@ -214,14 +215,14 @@ export function RepairCard({ id, shopName, canManage, onClose }: { id: string; s
   const wa = r ? waLink(r.customerPhone, repairMessage(r, shopName)) : undefined;
 
   return (
-    <Modal open onClose={onClose} size="lg" title={r ? `${r.requestNumber} — ${r.productName}` : 'Shikayat'} description={r ? `${r.customerName} · ${r.customerPhone}` : undefined}
+    <Modal open onClose={onClose} size="lg" title={r ? `${r.requestNumber} — ${r.productName}` : tr('Shikayat')} description={r ? `${r.customerName} · ${r.customerPhone}` : undefined}
       footer={r && <>
-        <Button variant="ghost" leftIcon={<Printer className="h-4 w-4" />} onClick={() => printRepairJob(r, shopName)}>Parchi</Button>
-        {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+        <Button variant="ghost" leftIcon={<Printer className="h-4 w-4" />} onClick={() => printRepairJob(r, shopName)}>{tr('Parchi')}</Button>
+        {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-emerald-700 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" />{tr('WhatsApp')}</a>}
         <span className="flex-1" />
-        {canManage && due > 0 && r.status !== 'CANCELLED' && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setDialog('pay')}>{r.status === 'COMPLETED' ? 'Baqi lein' : 'Advance lein'}</Button>}
-        {canManage && r.status === 'COMPLETED' && r.coveredUnderWarranty && !r.warrantyClaimNumber && <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} loading={claim.isPending} onClick={() => claim.mutate()}>Company se claim</Button>}
-        {canManage && open && <Button leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => setDialog('complete')}>Mukammal</Button>}
+        {canManage && due > 0 && r.status !== 'CANCELLED' && <Button variant="secondary" leftIcon={<Wallet className="h-4 w-4" />} onClick={() => setDialog('pay')}>{r.status === 'COMPLETED' ? tr('Baqi lein') : tr('Advance lein')}</Button>}
+        {canManage && r.status === 'COMPLETED' && r.coveredUnderWarranty && !r.warrantyClaimNumber && <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} loading={claim.isPending} onClick={() => claim.mutate()}>{tr('Company se claim')}</Button>}
+        {canManage && open && <Button leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => setDialog('complete')}>{tr('Mukammal')}</Button>}
       </>}>
       {!r ? <Skeleton className="h-60 rounded-2xl" /> : (
         <div className="space-y-4">
@@ -229,42 +230,42 @@ export function RepairCard({ id, shopName, canManage, onClose }: { id: string; s
             <Pill meta={serviceStatusOf(r.status)} />
             {r.priority !== 'NORMAL' && <Pill meta={priorityOf(r.priority)} />}
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] text-slate-600">{serviceTypeOf(r.serviceType)}</span>
-            {r.coveredUnderWarranty && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200"><ShieldCheck className="h-3 w-3" />Warranty</span>}
-            {r.coveredUnderAmc && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[0.6875rem] font-medium text-violet-700 ring-1 ring-violet-200">AMC {r.amcContractNumber}</span>}
-            {r.warrantyClaimNumber && <Link to="/appliances/warranty-claims" className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.6875rem] font-medium text-blue-700 ring-1 ring-blue-200">Claim {r.warrantyClaimNumber}</Link>}
+            {r.coveredUnderWarranty && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200"><ShieldCheck className="h-3 w-3" />{tr('Warranty')}</span>}
+            {r.coveredUnderAmc && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[0.6875rem] font-medium text-violet-700 ring-1 ring-violet-200">{tr('AMC {{amcContractNumber}}', { amcContractNumber: r.amcContractNumber })}</span>}
+            {r.warrantyClaimNumber && <Link to="/appliances/warranty-claims" className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.6875rem] font-medium text-blue-700 ring-1 ring-blue-200">{tr('Claim {{warrantyClaimNumber}}', { warrantyClaimNumber: r.warrantyClaimNumber })}</Link>}
           </div>
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200"><strong>Shikayat:</strong> {r.reportedIssue}</p>
+          <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200"><strong>{tr('Shikayat:')}</strong> {r.reportedIssue}</p>
           <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
-            <Row k="Pata" v={[r.customerAddress, r.area, r.city].filter(Boolean).join(', ')} />
-            <Row k="Serial" v={r.serialNumber} />
-            <Row k="Darj" v={dateTime(r.requestedAt)} />
-            <Row k="Visit" v={r.scheduledDate ? `${dayOnly(r.scheduledDate)} ${slotLabel(r.scheduledTimeSlot)}` : 'Abhi tay nahi'} />
-            <Row k="Technician" v={r.technicianName ? `${r.technicianName}${r.technicianPhone ? ` · ${r.technicianPhone}` : ''}` : 'Abhi nahi laga'} />
-            {r.diagnosedIssue && <Row k="Asal kharabi" v={r.diagnosedIssue} />}
-            {r.workDone && <Row k="Kya kiya" v={r.workDone} />}
-            {r.completedAt && <Row k="Mukammal" v={dateTime(r.completedAt)} />}
-            {r.followUpDate && <Row k="Follow-up" v={dayOnly(r.followUpDate)} />}
+            <Row k={tr('Pata')} v={[r.customerAddress, r.area, r.city].filter(Boolean).join(', ')} />
+            <Row k={tr('Serial')} v={r.serialNumber} />
+            <Row k={tr('Darj')} v={dateTime(r.requestedAt)} />
+            <Row k={tr('Visit')} v={r.scheduledDate ? `${dayOnly(r.scheduledDate)} ${slotLabel(r.scheduledTimeSlot)}` : tr('Abhi tay nahi')} />
+            <Row k={tr('Technician')} v={r.technicianName ? `${r.technicianName}${r.technicianPhone ? ` · ${r.technicianPhone}` : ''}` : tr('Abhi nahi laga')} />
+            {r.diagnosedIssue && <Row k={tr('Asal kharabi')} v={r.diagnosedIssue} />}
+            {r.workDone && <Row k={tr('Kya kiya')} v={r.workDone} />}
+            {r.completedAt && <Row k={tr('Mukammal')} v={dateTime(r.completedAt)} />}
+            {r.followUpDate && <Row k={tr('Follow-up')} v={dayOnly(r.followUpDate)} />}
           </dl>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Money k="Visit" v={r.visitCharge} /><Money k="Mazdoori" v={r.laborCharge} /><Money k="Parts" v={r.partsCharge} />
-            <Money k={due > 0 ? 'Baqi' : 'Mila'} v={due > 0 ? due : r.paidAmount} tone={due > 0 ? 'text-amber-700' : 'text-emerald-700'} />
+            <Money k={tr('Visit')} v={r.visitCharge} /><Money k={tr('Mazdoori')} v={r.laborCharge} /><Money k={tr('Parts')} v={r.partsCharge} />
+            <Money k={due > 0 ? tr('Baqi') : tr('Mila')} v={due > 0 ? due : r.paidAmount} tone={due > 0 ? 'text-amber-700' : 'text-emerald-700'} />
           </dl>
-          {r.amc && <p className="text-[0.8125rem] text-violet-700">AMC {r.amc.contractNumber}: {Math.max(r.amc.freeVisitsAllowed - r.amc.freeVisitsUsed, 0)} free visit baqi · {dayOnly(r.amc.expiryDate)} tak</p>}
-          {r.status === 'COMPLETED' && <p className="text-[0.8125rem] text-slate-600">Bill <Link className="font-semibold text-brand-700 hover:underline" to={`/sales?search=${encodeURIComponent(r.requestNumber)}`}>{r.requestNumber}</Link> Sales, galla aur khata me hai. Galat ho to Sales se void karein — kaam dobara khul jayega.</p>}
+          {r.amc && <p className="text-[0.8125rem] text-violet-700">{tr('AMC {{contractNumber}}: {{value}} free visit baqi · {{expiryDate}} tak', { contractNumber: r.amc.contractNumber, value: Math.max(r.amc.freeVisitsAllowed - r.amc.freeVisitsUsed, 0), expiryDate: dayOnly(r.amc.expiryDate) })}</p>}
+          {r.status === 'COMPLETED' && <p className="text-[0.8125rem] text-slate-600"><Trans text="Bill {{bill}} Sales, galla aur khata me hai. Galat ho to Sales se void karein — kaam dobara khul jayega." values={{ bill: <Link className="font-semibold text-brand-700 hover:underline" to={`/sales?search=${encodeURIComponent(r.requestNumber)}`}>{r.requestNumber}</Link> }} /></p>}
           {canManage && open && (
             <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-              <Button size="sm" variant="secondary" leftIcon={<CalendarClock className="h-4 w-4" />} onClick={() => setDialog('assign')}>{r.technicianId ? 'Technician / date badlein' : 'Technician lagayein'}</Button>
+              <Button size="sm" variant="secondary" leftIcon={<CalendarClock className="h-4 w-4" />} onClick={() => setDialog('assign')}>{r.technicianId ? tr('Technician / date badlein') : tr('Technician lagayein')}</Button>
               {(SERVICE_NEXT[r.status] ?? []).filter((s) => s !== 'UNRESOLVED').map((s) => (
                 <Button key={s} size="sm" variant="secondary" loading={status.isPending && status.variables?.status === s} onClick={() => status.mutate({ status: s })}>{serviceStatusOf(s).label}</Button>
               ))}
-              {(SERVICE_NEXT[r.status] ?? []).includes('UNRESOLVED') && <Button size="sm" variant="ghost" onClick={() => setDialog('unresolved')}>Theek nahi hua</Button>}
-              <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setDialog('cancel')}>Cancel</Button>
+              {(SERVICE_NEXT[r.status] ?? []).includes('UNRESOLVED') && <Button size="sm" variant="ghost" onClick={() => setDialog('unresolved')}>{tr('Theek nahi hua')}</Button>}
+              <Button size="sm" variant="ghost" leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setDialog('cancel')}>{tr('Cancel')}</Button>
             </div>
           )}
           {r.internalNotes && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] text-slate-600">{r.internalNotes}</pre>}
           {r.history?.length > 0 && (
             <div>
-              <p className="text-[0.8125rem] font-semibold text-slate-800">Is customer / unit ki pichli shikayatein</p>
+              <p className="text-[0.8125rem] font-semibold text-slate-800">{tr('Is customer / unit ki pichli shikayatein')}</p>
               <ul className="mt-1 divide-y divide-slate-100 text-[0.8125rem]">
                 {r.history.slice(0, 5).map((h) => <li key={h.id} className="flex justify-between gap-2 py-1.5"><span className="truncate">{h.requestNumber} · {h.reportedIssue}</span><span className="shrink-0 text-slate-500">{serviceStatusOf(h.status).label} · {dayOnly(h.completedAt ?? h.requestedAt)}</span></li>)}
               </ul>
@@ -272,10 +273,10 @@ export function RepairCard({ id, shopName, canManage, onClose }: { id: string; s
           )}
         </div>
       )}
-      {r && dialog === 'assign' && <AssignModal title="Technician aur date" initial={{ technicianId: r.technicianId, date: r.scheduledDate, slot: r.scheduledTimeSlot }} pending={assign.isPending} onConfirm={(v) => assign.mutate(v)} onClose={() => setDialog(null)} />}
-      {r && dialog === 'cancel' && <ReasonModal title="Shikayat cancel" confirm="Cancel karein" pending={cancel.isPending} presets={['Customer ne mana kar diya', 'Khud theek ho gaya', 'Dobara darj ho gayi']} onConfirm={(x) => cancel.mutate(x)} onClose={() => setDialog(null)} />}
-      {r && dialog === 'unresolved' && <ReasonModal title="Theek nahi hua" confirm="Darj karein" pending={status.isPending} presets={['Part nahi mila', 'Company service center bhejna hai', 'Customer ne repair nahi karwaya']} onConfirm={(x) => status.mutate({ status: 'UNRESOLVED', notes: x })} onClose={() => setDialog(null)} />}
-      {r && dialog === 'pay' && <PayModal title={`Paisa lein — ${r.requestNumber}`} description={r.status === 'COMPLETED' ? 'Bill ka udhaar kam hoga' : 'Advance khata me jama, bill banne par lag jayega'} due={due} pending={pay.isPending} onConfirm={(v) => pay.mutate(v)} onClose={() => setDialog(null)} />}
+      {r && dialog === 'assign' && <AssignModal title={tr('Technician aur date')} initial={{ technicianId: r.technicianId, date: r.scheduledDate, slot: r.scheduledTimeSlot }} pending={assign.isPending} onConfirm={(v) => assign.mutate(v)} onClose={() => setDialog(null)} />}
+      {r && dialog === 'cancel' && <ReasonModal title={tr('Shikayat cancel')} confirm={tr('Cancel karein')} pending={cancel.isPending} presets={['Customer ne mana kar diya', 'Khud theek ho gaya', 'Dobara darj ho gayi']} onConfirm={(x) => cancel.mutate(x)} onClose={() => setDialog(null)} />}
+      {r && dialog === 'unresolved' && <ReasonModal title={tr('Theek nahi hua')} confirm={tr('Darj karein')} pending={status.isPending} presets={['Part nahi mila', 'Company service center bhejna hai', 'Customer ne repair nahi karwaya']} onConfirm={(x) => status.mutate({ status: 'UNRESOLVED', notes: x })} onClose={() => setDialog(null)} />}
+      {r && dialog === 'pay' && <PayModal title={tr('Paisa lein — {{requestNumber}}', { requestNumber: r.requestNumber })} description={r.status === 'COMPLETED' ? tr('Bill ka udhaar kam hoga') : tr('Advance khata me jama, bill banne par lag jayega')} due={due} pending={pay.isPending} onConfirm={(v) => pay.mutate(v)} onClose={() => setDialog(null)} />}
       {r && dialog === 'complete' && <CompleteModal job={r} onClose={() => setDialog(null)} />}
     </Modal>
   );

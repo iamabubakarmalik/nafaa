@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { apiMessage } from '../../common/i18n/api-message';
 
 /**
  * Website se aane wala order teen shakal me aa sakta hai:
@@ -352,11 +353,11 @@ export function normalizeOrder(body: any, platform: OrderPlatform): NormalizedOr
     throw new BadRequestException('items khali hain — kam az kam ek item bhejein');
   }
   if (order.items.length > MAX_ITEMS) {
-    throw new BadRequestException(`Ek order me ${MAX_ITEMS} se zyada items nahi ho sakte`);
+    throw new BadRequestException(apiMessage('Ek order me {{mAXITEMS}} se zyada items nahi ho sakte', { mAXITEMS: MAX_ITEMS }));
   }
   for (const it of order.items) {
-    if (!(it.quantity > 0)) throw new BadRequestException(`${it.name}: quantity 0 se zyada honi chahiye`);
-    if (it.price < 0) throw new BadRequestException(`${it.name}: price ghalat hai`);
+    if (!(it.quantity > 0)) throw new BadRequestException(apiMessage('{{itName}}: quantity 0 se zyada honi chahiye', { itName: it.name }));
+    if (it.price < 0) throw new BadRequestException(apiMessage('{{itName}}: price ghalat hai', { itName: it.name }));
   }
   if (order.total < 0) throw new BadRequestException('total ghalat hai');
 

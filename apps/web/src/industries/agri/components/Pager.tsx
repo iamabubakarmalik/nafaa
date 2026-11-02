@@ -1,6 +1,7 @@
 /** Previous / next for server-paged lists, with the row range shown. */
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { t } from '@core/i18n';
 
 export function Pager({ page, limit, total, onPage }: { page: number; limit: number; total: number; onPage: (p: number) => void }) {
   const pages = Math.max(Math.ceil(total / limit), 1);
@@ -12,8 +13,8 @@ export function Pager({ page, limit, total, onPage }: { page: number; limit: num
     <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3">
       <span className="text-[0.75rem] text-slate-500 tabular-nums">{from}–{to} / {total}</span>
       <div className="flex gap-1.5">
-        <button type="button" className={btn} disabled={page <= 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4" />Pichla</button>
-        <button type="button" className={btn} disabled={page >= pages} onClick={() => onPage(page + 1)}>Agla<ChevronRight className="h-4 w-4" /></button>
+        <button type="button" className={btn} disabled={page <= 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4 rtl-flip" />{t('Pichla')}</button>
+        <button type="button" className={btn} disabled={page >= pages} onClick={() => onPage(page + 1)}>{t('Agla')}<ChevronRight className="h-4 w-4 rtl-flip" /></button>
       </div>
     </div>
   );

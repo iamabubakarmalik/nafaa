@@ -13,17 +13,18 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
 import { SERIAL_KEY, dayOnly, installStatusOf } from '../components/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem]';
 
 /** Job behind a job bill, from its number (INST-2026-0001, SR-…, AMC-…, APDL-…, WC-…, ATI-… for an old unit sold on; "-2" after a void). */
 const JOBS: Array<{ re: RegExp; label: string; to: (n: string) => string; icon: typeof Wrench; cls: string }> = [
-  { re: /^INST-\d{4}-\d+/, label: 'Installation', to: (n) => `/appliances/installations?q=${n}&view=all`, icon: HardHat, cls: 'bg-blue-50 text-blue-700' },
-  { re: /^SR-\d{4}-\d+/, label: 'Repair', to: (n) => `/appliances/service-requests?q=${n}&view=all`, icon: Wrench, cls: 'bg-violet-50 text-violet-700' },
-  { re: /^AMC-\d{4}-\d+/, label: 'AMC', to: () => '/appliances/amc-contracts?view=all', icon: FileSignature, cls: 'bg-emerald-50 text-emerald-700' },
-  { re: /^APDL-\d{4}-\d+/, label: 'Delivery', to: (n) => `/appliances/deliveries?q=${n}&view=all`, icon: Truck, cls: 'bg-amber-50 text-amber-800' },
-  { re: /^WC-\d{4}-\d+/, label: 'Warranty claim', to: () => '/appliances/warranty-claims', icon: Shield, cls: 'bg-sky-50 text-sky-700' },
-  { re: /^ATI-\d{4}-\d+/, label: 'Purana saman', to: (n) => `/appliances/trade-ins?q=${n}`, icon: Recycle, cls: 'bg-amber-50 text-amber-800' },
+  { re: /^INST-\d{4}-\d+/, label: t('Installation'), to: (n) => `/appliances/installations?q=${n}&view=all`, icon: HardHat, cls: 'bg-blue-50 text-blue-700' },
+  { re: /^SR-\d{4}-\d+/, label: t('Repair'), to: (n) => `/appliances/service-requests?q=${n}&view=all`, icon: Wrench, cls: 'bg-violet-50 text-violet-700' },
+  { re: /^AMC-\d{4}-\d+/, label: t('AMC'), to: () => '/appliances/amc-contracts?view=all', icon: FileSignature, cls: 'bg-emerald-50 text-emerald-700' },
+  { re: /^APDL-\d{4}-\d+/, label: t('Delivery'), to: (n) => `/appliances/deliveries?q=${n}&view=all`, icon: Truck, cls: 'bg-amber-50 text-amber-800' },
+  { re: /^WC-\d{4}-\d+/, label: t('Warranty claim'), to: () => '/appliances/warranty-claims', icon: Shield, cls: 'bg-sky-50 text-sky-700' },
+  { re: /^ATI-\d{4}-\d+/, label: t('Purana saman'), to: (n) => `/appliances/trade-ins?q=${n}`, icon: Recycle, cls: 'bg-amber-50 text-amber-800' },
 ];
 
 function useApplianceExtras(sales: HistorySale[]) {
@@ -51,7 +52,7 @@ function useApplianceExtras(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Appliances', useBillExtras: useApplianceExtras };
+const config: SalesHistoryConfig = { label: t('Appliances'), useBillExtras: useApplianceExtras };
 
 export default function AppliancesSalesPage() {
   return <SalesHistoryPage config={config} />;

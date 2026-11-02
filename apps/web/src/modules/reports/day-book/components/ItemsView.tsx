@@ -15,6 +15,7 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { DayBook } from '../api';
 import { qty, type Money } from '../print';
 import { Empty, Panel, Tag, TableWrap, td, tdR, th, thR } from './parts';
+import { t } from '@core/i18n';
 
 type Sort = 'revenue' | 'qty' | 'profit' | 'name';
 
@@ -31,18 +32,18 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
   const sum = items.reduce((a, i) => ({ qty: a.qty + i.qty, revenue: a.revenue + i.revenue, profit: a.profit + (i.profit ?? 0) }), { qty: 0, revenue: 0, profit: 0 });
   const chart = d.categories.slice(0, 10).map((c) => ({ name: c.name, value: c.revenue, color: c.color ?? theme.primary, id: c.id }));
 
-  if (!d.items.length) return <Panel icon={Package} title="Kya bika"><Empty icon={Package} text="Is din kuch nahi bika" /></Panel>;
+  if (!d.items.length) return <Panel icon={Package} title={t('Kya bika')}><Empty icon={Package} text={t('Is din kuch nahi bika')} /></Panel>;
 
   return (
     <div className="space-y-4">
-      <Panel icon={Layers} title="Category war sale" hint="Bar par dabayein: sirf us category ka maal">
+      <Panel icon={Layers} title={t('Category war sale')} hint={t('Bar par dabayein: sirf us category ka maal')}>
         <div style={{ height: Math.max(chart.length * 34, 120) }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chart} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={theme.grid} horizontal={false} />
               <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
               <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={120} />
-              <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Sale']} />
+              <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), t('Sale')]} />
               <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16} cursor="pointer"
                 onClick={(e) => { const id = (e as { payload?: { id: string | null } }).payload?.id; if (id !== undefined) setCat(id === cat ? 'all' : id); }}>
                 {chart.map((c) => <Cell key={c.name} fill={c.color} fillOpacity={cat === 'all' || cat === c.id ? 1 : 0.35} />)}
@@ -52,23 +53,23 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
         </div>
       </Panel>
 
-      <Panel icon={Package} title="Item war hisaab" flush
-        hint={`${items.length} item · ${qty(sum.qty)} cheezein · ${m.sales(sum.revenue)}${m.costHidden ? '' : ` · profit ${m.cost(sum.profit)}`}. Amount bill ke discount ke baad, return nikal kar.`}
-        actions={<Segmented label="Sort" value={sort} onChange={setSort} items={[
-          { value: 'revenue', label: 'Amount' }, { value: 'qty', label: 'Qty' }, ...(m.costHidden ? [] : [{ value: 'profit' as const, label: 'Profit' }]), { value: 'name', label: 'Naam' },
+      <Panel icon={Package} title={t('Item war hisaab')} flush
+        hint={t('{{count}} item · {{qty}} cheezein · {{revenue}}{{value}}. Amount bill ke discount ke baad, return nikal kar.', { count: items.length, qty: qty(sum.qty), revenue: m.sales(sum.revenue), value: m.costHidden ? '' : t(' · profit {{profit}}', { profit: m.cost(sum.profit) }) })}
+        actions={<Segmented label={t('Sort')} value={sort} onChange={setSort} items={[
+          { value: 'revenue', label: t('Amount') }, { value: 'qty', label: t('Qty') }, ...(m.costHidden ? [] : [{ value: 'profit' as const, label: t('Profit') }]), { value: 'name', label: t('Naam') },
         ]} />}>
         <div className="flex flex-wrap gap-1.5 px-4 pb-3 sm:px-5">
-          <Chip active={cat === 'all'} onClick={() => setCat('all')}>Sab</Chip>
+          <Chip active={cat === 'all'} onClick={() => setCat('all')}>{t('Sab')}</Chip>
           {d.categories.map((c) => (
             <Chip key={c.id ?? 'none'} active={cat === c.id} onClick={() => setCat(c.id)} color={c.color}>{c.name} · {qty(c.qty)}</Chip>
           ))}
         </div>
         <div className="px-4 pb-4 sm:px-5">
-          {!items.length ? <Empty icon={Package} text="Koi item nahi mila" hint="Search ya category badlein" /> : (
+          {!items.length ? <Empty icon={Package} text={t('Koi item nahi mila')} hint={t('Search ya category badlein')} /> : (
             <TableWrap minWidth="40rem">
               <thead><tr>
-                <th className={th}>Cheez</th><th className={thR}>Bika</th><th className={thR}>Wapas</th><th className={thR}>Net qty</th><th className={thR}>Bill</th><th className={thR}>Amount</th>
-                {!m.costHidden && <><th className={thR}>Cost</th><th className={thR}>Profit</th></>}
+                <th className={th}>{t('Cheez')}</th><th className={thR}>{t('Bika')}</th><th className={thR}>{t('Wapas')}</th><th className={thR}>{t('Net qty')}</th><th className={thR}>{t('Bill')}</th><th className={thR}>{t('Amount')}</th>
+                {!m.costHidden && <><th className={thR}>{t('Cost')}</th><th className={thR}>{t('Profit')}</th></>}
               </tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((i) => {
@@ -93,7 +94,7 @@ export function ItemsView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
                 })}
               </tbody>
               <tfoot><tr className="border-t border-slate-200 font-semibold text-slate-900">
-                <td className={td}>Kul</td><td className={tdR} /><td className={tdR} /><td className={tdR}>{qty(sum.qty)}</td><td className={tdR} />
+                <td className={td}>{t('Kul')}</td><td className={tdR} /><td className={tdR} /><td className={tdR}>{qty(sum.qty)}</td><td className={tdR} />
                 <td className={tdR}>{m.sales(sum.revenue)}</td>
                 {!m.costHidden && <><td className={tdR} /><td className={tdR}>{m.cost(sum.profit)}</td></>}
               </tr></tfoot>

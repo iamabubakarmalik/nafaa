@@ -29,6 +29,7 @@ import { STATUS } from '../../purchases/pages/PurchasesListPage';
 import { suppliersApi } from '../api/suppliers.api';
 import { entryDelta, ledgerMeta, supplierLedgerApi } from '../api/supplier-ledger.api';
 import { SupplierMoneyModal, type MoneyKind } from '../components/SupplierMoneyModal';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'khata' | 'bills' | 'rates' | 'analytics' | 'info';
 const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
@@ -47,7 +48,7 @@ export default function SupplierDetailPage() {
   const s = q.data;
 
   if (q.isLoading) return <div className="flex justify-center py-24"><div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" /></div>;
-  if (!s) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">Supplier nahi mila</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/suppliers')}>Wapas</Button></div>;
+  if (!s) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">{tr('Supplier nahi mila')}</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/suppliers')}>{tr('Wapas')}</Button></div>;
 
   const phone = (s.phone ?? '').replace(/\D/g, '').replace(/^0/, '92');
   const since = s.ledger.daysSincePayment;
@@ -56,31 +57,31 @@ export default function SupplierDetailPage() {
     <PageShell>
       <PageHero
         back="/suppliers"
-        backLabel="Suppliers par wapas"
+        backLabel={tr('Suppliers par wapas')}
         title={<span className="inline-flex min-w-0 items-center gap-2.5"><Avatar name={s.name} url={s.logoUrl ?? undefined} size={36} className="shrink-0 ring-2 ring-white/40" /><span className="truncate">{s.name}</span></span>}
-        chip={!s.isActive ? 'Band' : undefined}
-        subtitle={<>{[s.contactPerson, s.phone, s.city].filter(Boolean).join(' · ') || 'Rabta darj nahi'}{s.paymentTerms && <span className="text-white/60"> · Shart: {s.paymentTerms}</span>}</>}
+        chip={!s.isActive ? tr('Band') : undefined}
+        subtitle={<>{[s.contactPerson, s.phone, s.city].filter(Boolean).join(' · ') || tr('Rabta darj nahi')}{s.paymentTerms && <span className="text-white/60"> {' '}{tr('· Shart: {{paymentTerms}}', { paymentTerms: s.paymentTerms })}</span>}</>}
         actions={<>
-          {canEdit && <button type="button" onClick={() => setMoney('payment')} className={heroPrimaryButton}><Banknote className="h-4 w-4" /> Payment</button>}
-          {canBuy && <button type="button" onClick={() => navigate(`/purchases/new?supplier=${s.id}`)} className={heroButton}><ShoppingCart className="h-4 w-4" /> Purchase</button>}
-          {canBuy && <button type="button" onClick={() => navigate(`/purchases/new?order=1&supplier=${s.id}`)} className={heroButton}><ClipboardList className="h-4 w-4" /> Order</button>}
-          {s.phone && <a href={`tel:${s.phone}`} className={heroButton}><Phone className="h-4 w-4" /> Call</a>}
-          {s.phone && <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
-          {canEdit && <button type="button" onClick={() => setMoney('due')} className={heroButton}><BookOpen className="h-4 w-4" /> Khata entry</button>}
-          {canEdit && <Link to={`/suppliers/${s.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" /> Badlein</Link>}
-          <button type="button" onClick={guide.open} title="Guide" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setMoney('payment')} className={heroPrimaryButton}><Banknote className="h-4 w-4" /> {' '}{tr('Payment')}</button>}
+          {canBuy && <button type="button" onClick={() => navigate(`/purchases/new?supplier=${s.id}`)} className={heroButton}><ShoppingCart className="h-4 w-4" /> {' '}{tr('Purchase')}</button>}
+          {canBuy && <button type="button" onClick={() => navigate(`/purchases/new?order=1&supplier=${s.id}`)} className={heroButton}><ClipboardList className="h-4 w-4" /> {' '}{tr('Order')}</button>}
+          {s.phone && <a href={`tel:${s.phone}`} className={heroButton}><Phone className="h-4 w-4" /> {' '}{tr('Call')}</a>}
+          {s.phone && <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /> {' '}{tr('WhatsApp')}</a>}
+          {canEdit && <button type="button" onClick={() => setMoney('due')} className={heroButton}><BookOpen className="h-4 w-4" /> {' '}{tr('Khata entry')}</button>}
+          {canEdit && <Link to={`/suppliers/${s.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" /> {' '}{tr('Badlein')}</Link>}
+          <button type="button" onClick={guide.open} title={tr('Guide')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Dena hai', value: formatPKR(s.outstandingDue), hint: s.outstandingDue > 0 && since != null ? <span className={since > 60 ? 'text-amber-200' : undefined}>aakhri payment {since} din pehle</span> : undefined },
-          { label: 'Kul purchase', value: formatPKR(s.stats.totalAmount), hint: `${s.stats.totalPurchases} bill` },
-          { label: 'Kul diye', value: formatPKR(s.ledger.paymentsMade + s.stats.totalPaid) },
-          { label: 'Aksar bill', value: formatPKR(s.stats.averagePurchase) },
-          { label: 'Aakhri maal', value: s.stats.daysSinceLastPurchase == null ? '—' : `${s.stats.daysSinceLastPurchase} din pehle` },
+          { label: tr('Dena hai'), value: formatPKR(s.outstandingDue), hint: s.outstandingDue > 0 && since != null ? <span className={since > 60 ? 'text-amber-200' : undefined}>{tr('aakhri payment {{since}} din pehle', { since })}</span> : undefined },
+          { label: tr('Kul purchase'), value: formatPKR(s.stats.totalAmount), hint: tr('{{totalPurchases}} bill', { totalPurchases: s.stats.totalPurchases }) },
+          { label: tr('Kul diye'), value: formatPKR(s.ledger.paymentsMade + s.stats.totalPaid) },
+          { label: tr('Aksar bill'), value: formatPKR(s.stats.averagePurchase) },
+          { label: tr('Aakhri maal'), value: s.stats.daysSinceLastPurchase == null ? '—' : tr('{{daysSinceLastPurchase}} din pehle', { daysSinceLastPurchase: s.stats.daysSinceLastPurchase }) },
         ]}
       />
 
-      <Tabs value={tab} onChange={setTab} label="Supplier"
-        items={[{ value: 'khata', label: 'Khata' }, { value: 'bills', label: 'Purchase', count: s._count.purchases }, { value: 'rates', label: 'Rates' }, { value: 'analytics', label: 'Analytics' }, { value: 'info', label: 'Details' }]} />
+      <Tabs value={tab} onChange={setTab} label={tr('Supplier')}
+        items={[{ value: 'khata', label: tr('Khata') }, { value: 'bills', label: tr('Purchase'), count: s._count.purchases }, { value: 'rates', label: tr('Rates') }, { value: 'analytics', label: tr('Analytics') }, { value: 'info', label: tr('Details') }]} />
 
       {tab === 'khata' && <Khata supplierId={s.id} name={s.name} canEdit={canEdit} />}
       {tab === 'bills' && <Bills supplierId={s.id} />}
@@ -88,33 +89,33 @@ export default function SupplierDetailPage() {
       {tab === 'analytics' && <Analytics s={s} />}
       {tab === 'info' && (
         <div className="grid gap-3 md:grid-cols-2">
-          <Card title="Rabta">
-            <KV k="Rabta" v={s.contactPerson} /><KV k="Phone" v={s.phone} /><KV k="Doosra phone" v={s.altPhone} /><KV k="Email" v={s.email} />
-            <KV k="Pata" v={[s.address, s.area, s.city].filter(Boolean).join(', ')} /><KV k="CNIC" v={s.cnic} /><KV k="NTN" v={s.ntn} />
+          <Card title={tr('Rabta')}>
+            <KV k={tr('Rabta')} v={s.contactPerson} /><KV k={tr('Phone')} v={s.phone} /><KV k={tr('Doosra phone')} v={s.altPhone} /><KV k={tr('Email')} v={s.email} />
+            <KV k={tr('Pata')} v={[s.address, s.area, s.city].filter(Boolean).join(', ')} /><KV k={tr('CNIC')} v={s.cnic} /><KV k={tr('NTN')} v={s.ntn} />
           </Card>
-          <Card title="Bank" icon={<Landmark className="h-4 w-4" />}>
-            <KV k="Bank" v={s.bankName} /><KV k="Account #" v={s.accountNumber} mono /><KV k="IBAN" v={s.iban} mono />
-            <KV k="Shart" v={s.paymentTerms} />
+          <Card title={tr('Bank')} icon={<Landmark className="h-4 w-4" />}>
+            <KV k={tr('Bank')} v={s.bankName} /><KV k={tr('Account #')} v={s.accountNumber} mono /><KV k={tr('IBAN')} v={s.iban} mono />
+            <KV k={tr('Shart')} v={s.paymentTerms} />
             {s.notes && <p className="mt-2 border-t border-slate-100 pt-2 text-[0.8125rem] text-slate-600">{s.notes}</p>}
           </Card>
           {canEdit && (
             <div className="md:col-span-2">
-              <Button variant="secondary" onClick={() => setDeleting(true)} leftIcon={<Trash2 className="h-4 w-4 text-rose-600" />}>Supplier mitayein</Button>
+              <Button variant="secondary" onClick={() => setDeleting(true)} leftIcon={<Trash2 className="h-4 w-4 text-rose-600" />}>{tr('Supplier mitayein')}</Button>
             </div>
           )}
         </div>
       )}
 
       {guide.isOpen && (
-        <PageGuide title={`${s.name} — kya kya hota hai`} onClose={guide.close}
+        <PageGuide title={tr('{{name}} — kya kya hota hai', { name: s.name })} onClose={guide.close}
           steps={[
-            { icon: Banknote, color: '#16a34a', title: 'Payment', text: '"Payment" se supplier ko diya paisa darj karein — cash, bank ya JazzCash. Dena utna kam ho jata hai aur cash register me bhi aata hai.' },
-            { icon: BookOpen, color: '#2563eb', title: 'Khata', text: 'Har entry date ke saath: maal liya, paisa diya, maal wapas, correction. "Baqi" khane me har entry ke baad ka hisaab.' },
-            { icon: ShoppingCart, color: '#d97706', title: 'Purchase aur order', text: 'Yahin se is supplier ka naya bill ya order — supplier pehle se chuna hota hai.' },
-            { icon: TrendingUp, color: '#db2777', title: 'Rates', text: 'Har cheez ki qeemat har dafa kitni thi — mehngi ho rahi ho to laal nishan.' },
+            { icon: Banknote, color: '#16a34a', title: tr('Payment'), text: tr('"Payment" se supplier ko diya paisa darj karein — cash, bank ya JazzCash. Dena utna kam ho jata hai aur cash register me bhi aata hai.') },
+            { icon: BookOpen, color: '#2563eb', title: tr('Khata'), text: tr('Har entry date ke saath: maal liya, paisa diya, maal wapas, correction. "Baqi" khane me har entry ke baad ka hisaab.') },
+            { icon: ShoppingCart, color: '#d97706', title: tr('Purchase aur order'), text: tr('Yahin se is supplier ka naya bill ya order — supplier pehle se chuna hota hai.') },
+            { icon: TrendingUp, color: '#db2777', title: tr('Rates'), text: tr('Har cheez ki qeemat har dafa kitni thi — mehngi ho rahi ho to laal nishan.') },
           ]}
-          tips={['Haath se ki gayi entry ghalat ho to khate me us ke aage 🗑 se hata sakte hain; bill wali entries bill se hi badalti hain.', '"Khata entry" se purana hisaab, bagair bill ka udhaar ya correction bhi darj hoti hai.', 'Statement print se A4, PDF ya thermal — supplier ko WhatsApp par bhej kar hisaab milayein.']}
-          shortcuts={[['G', 'guide']]}
+          tips={[tr('Haath se ki gayi entry ghalat ho to khate me us ke aage 🗑 se hata sakte hain; bill wali entries bill se hi badalti hain.'), tr('"Khata entry" se purana hisaab, bagair bill ka udhaar ya correction bhi darj hoti hai.'), tr('Statement print se A4, PDF ya thermal — supplier ko WhatsApp par bhej kar hisaab milayein.')]}
+          shortcuts={[['G', tr('guide')]]}
         />
       )}
       {money && <SupplierMoneyModal supplier={s} initial={money} onClose={() => setMoney(null)} />}
@@ -127,7 +128,7 @@ function Card({ title, icon, children }: { title: string; icon?: React.ReactNode
   return <DsCard className="rounded-2xl" title={<span className="flex items-center gap-1.5">{icon}{title}</span>}>{children}</DsCard>;
 }
 function KV({ k, v, mono }: { k: string; v?: string | null; mono?: boolean }) {
-  return <div className="flex justify-between gap-3 border-t border-slate-50 py-1.5 text-sm first:border-0"><span className="text-slate-500">{k}</span><span className={cn('text-right text-slate-900', mono && 'font-mono')}>{v || '—'}</span></div>;
+  return <div className="flex justify-between gap-3 border-t border-slate-50 py-1.5 text-sm first:border-0"><span className="text-slate-500">{k}</span><span className={cn('text-end text-slate-900', mono && 'font-mono')}>{v || '—'}</span></div>;
 }
 
 function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string; canEdit: boolean }) {
@@ -140,29 +141,29 @@ function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string
   const rows = useMemo(() => [...(st?.entries ?? [])].sort((a, b) => b.entryDate.localeCompare(a.entryDate) || b.createdAt.localeCompare(a.createdAt)), [st]);
   const remove = useMutation({
     mutationFn: (entryId: string) => supplierLedgerApi.removeEntry(supplierId, entryId),
-    onSuccess: () => { toast.success('Entry hata di'); ['supplier', 'supplier-statement', 'suppliers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hata'),
+    onSuccess: () => { toast.success(tr('Entry hata di')); ['supplier', 'supplier-statement', 'suppliers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || tr('Nahi hata')),
   });
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="all" />
-        <PrintButton size="sm" label="Statement" disabled={!st} doc={() => statementDoc(st!, period ? `${period.from} — ${period.to}` : 'Shuru se aaj tak')} />
+        <PrintButton size="sm" label={tr('Statement')} disabled={!st} doc={() => statementDoc(st!, period ? `${period.from} — ${period.to}` : tr('Shuru se aaj tak'))} />
         {st && (
-          <div className="ml-auto flex flex-wrap gap-x-4 text-sm">
-            <span>Barha <b className="tabular-nums text-amber-700">{formatPKR(st.totals.added)}</b></span>
-            <span>Diye <b className="tabular-nums text-success-700">{formatPKR(st.totals.paid)}</b></span>
+          <div className="ms-auto flex flex-wrap gap-x-4 text-sm">
+            <span>{tr('Barha')}{' '} <b className="tabular-nums text-amber-700">{formatPKR(st.totals.added)}</b></span>
+            <span>{tr('Diye')}{' '} <b className="tabular-nums text-success-700">{formatPKR(st.totals.paid)}</b></span>
           </div>
         )}
       </div>
       {q.isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-slate-100" /> : !rows.length ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Is period me koi entry nahi</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">{tr('Is period me koi entry nahi')}</div>
       ) : (
         <DsCard flush className="overflow-hidden rounded-2xl">
           <Table minWidth="40rem">
             <THead>
-              <Tr><Th className="px-3 py-2">Date</Th><Th className="px-3 py-2">Details</Th><Th align="right" className="px-3 py-2">Dena barha</Th><Th align="right" className="px-3 py-2">Diye / kam</Th><Th align="right" className="px-3 py-2">Baqi</Th><Th className="w-8 px-0" /></Tr>
+              <Tr><Th className="px-3 py-2">{tr('Date')}</Th><Th className="px-3 py-2">{tr('Details')}</Th><Th align="right" className="px-3 py-2">{tr('Dena barha')}</Th><Th align="right" className="px-3 py-2">{tr('Diye / kam')}</Th><Th align="right" className="px-3 py-2">{tr('Baqi')}</Th><Th className="w-8 px-0" /></Tr>
             </THead>
             <TBody>
               {rows.map((e) => {
@@ -172,12 +173,12 @@ function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string
                 return (
                   <Tr key={e.id}>
                     <Td className="whitespace-nowrap px-3 py-2 text-slate-600">{day(e.entryDate)}</Td>
-                    <Td className="px-3 py-2"><span className="font-medium text-slate-900">{m.emoji} {m.label}</span>{e.reference && <span className="ml-1 text-slate-500">· {e.reference}</span>}{e.note && <p className="text-[0.75rem] text-slate-500">{e.note}</p>}</Td>
+                    <Td className="px-3 py-2"><span className="font-medium text-slate-900">{m.emoji} {m.label}</span>{e.reference && <span className="ms-1 text-slate-500">· {e.reference}</span>}{e.note && <p className="text-[0.75rem] text-slate-500">{tr(e.note)}</p>}</Td>
                     <Td align="right" className="px-3 py-2 text-amber-700">{dlt > 0 ? formatPKR(dlt) : ''}</Td>
                     <Td align="right" className="px-3 py-2 text-success-700">{dlt < 0 ? formatPKR(-dlt) : ''}</Td>
                     <Td align="right" className="px-3 py-2 font-semibold text-slate-900">{formatPKR(e.balanceAfter)}</Td>
                     <Td className="px-1">{canEdit && manual && (
-                      <button type="button" aria-label="Entry hatayein" onClick={async () => { if ((await confirmDialog({ title: 'Yeh entry hata dein?', danger: true }))) remove.mutate(e.id); }} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label={tr('Entry hatayein')} onClick={async () => { if ((await confirmDialog({ title: tr('Yeh entry hata dein?'), danger: true }))) remove.mutate(e.id); }} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
                     )}</Td>
                   </Tr>
                 );
@@ -195,7 +196,7 @@ function Bills({ supplierId }: { supplierId: string }) {
   const q = useQuery({ queryKey: ['purchase-list', { supplierId, page }], queryFn: () => purchasesApi.page({ supplierId, page, limit: 20, status: 'all' }) });
   const d = q.data;
   if (q.isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />;
-  if (!d?.items.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Is supplier se abhi koi purchase nahi</div>;
+  if (!d?.items.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">{tr('Is supplier se abhi koi purchase nahi')}</div>;
   return (
     <div className="space-y-2">
       {d.items.map((p) => (
@@ -209,9 +210,9 @@ function Bills({ supplierId }: { supplierId: string }) {
       ))}
       {d.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
           <span className="text-sm text-slate-600">{page} / {d.pages}</span>
-          <Button variant="secondary" size="sm" disabled={page >= d.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+          <Button variant="secondary" size="sm" disabled={page >= d.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
         </div>
       )}
     </div>
@@ -219,7 +220,7 @@ function Bills({ supplierId }: { supplierId: string }) {
 }
 
 function Rates({ history }: { history: Array<{ productId: string; productName: string; unit: string; points: Array<{ date: string; costPrice: number; quantity: number }>; firstCost: number; lastCost: number; changePct: number }> }) {
-  if (!history?.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Rates ka record abhi nahi</div>;
+  if (!history?.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">{tr('Rates ka record abhi nahi')}</div>;
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {history.map((h) => {
@@ -230,7 +231,7 @@ function Rates({ history }: { history: Array<{ productId: string; productName: s
         return (
           <div key={h.productId} className="rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0"><p className="truncate font-medium text-slate-900">{h.productName}</p><p className="text-[0.75rem] text-slate-500">{h.points.length} dafa · fi {h.unit}</p></div>
+              <div className="min-w-0"><p className="truncate font-medium text-slate-900">{h.productName}</p><p className="text-[0.75rem] text-slate-500">{tr('{{count}} dafa · fi {{unit}}', { count: h.points.length, unit: h.unit })}</p></div>
               <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold', up ? 'bg-rose-50 text-rose-700' : down ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-600')}>
                 {up ? <TrendingUp className="h-3 w-3" /> : down ? <TrendingDown className="h-3 w-3" /> : null}{h.changePct > 0 ? '+' : ''}{h.changePct.toFixed(0)}%
               </span>
@@ -240,7 +241,7 @@ function Rates({ history }: { history: Array<{ productId: string; productName: s
                 <div key={i} title={`${p.date}: ${formatPKR(p.costPrice)}`} className="flex-1 rounded-t bg-brand-500/70" style={{ height: `${Math.max(((p.costPrice - min * 0.9) / (max - min * 0.9 || 1)) * 100, 8)}%` }} />
               ))}
             </div>
-            <div className="mt-2 flex justify-between text-[0.75rem] text-slate-500"><span>Pehli {formatPKR(h.firstCost)}</span><span>Ab {formatPKR(h.lastCost)}</span></div>
+            <div className="mt-2 flex justify-between text-[0.75rem] text-slate-500"><span>{tr('Pehli {{firstCost}}', { firstCost: formatPKR(h.firstCost) })}</span><span>{tr('Ab {{lastCost}}', { lastCost: formatPKR(h.lastCost) })}</span></div>
           </div>
         );
       })}
@@ -251,13 +252,13 @@ function Rates({ history }: { history: Array<{ productId: string; productName: s
 function DeleteModal({ id, name, onClose, onDone }: { id: string; name: string; onClose: () => void; onDone: () => void }) {
   const mut = useMutation({
     mutationFn: () => suppliersApi.remove(id),
-    onSuccess: () => { toast.success('Supplier mit gaya'); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi mita'),
+    onSuccess: () => { toast.success(tr('Supplier mit gaya')); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || tr('Nahi mita')),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title={`${name} mitayein?`} description="Jis supplier se purchase ho chuki ya baqi ho, woh nahi mitta — use 'Badlein' se band kar dein."
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()}>Mitayein</Button></>}>
-      <p className="text-sm text-slate-600">Yeh wapas nahi hota.</p>
+    <Modal open onClose={onClose} size="sm" title={tr('{{name}} mitayein?', { name })} description={tr('Jis supplier se purchase ho chuki ya baqi ho, woh nahi mitta — use \'Badlein\' se band kar dein.')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()}>{tr('Mitayein')}</Button></>}>
+      <p className="text-sm text-slate-600">{tr('Yeh wapas nahi hota.')}</p>
     </Modal>
   );
 }
@@ -268,7 +269,7 @@ function Analytics({ s }: { s: SupplierDetail }) {
   const top = (s.topProducts ?? []) as Array<{ productId: string; product?: { name: string; unit: string }; quantity: number; total: number; orderCount: number }>;
   return (
     <div className="space-y-4">
-      <DsCard className="rounded-2xl" title="12 mahine — purchase aur payment">
+      <DsCard className="rounded-2xl" title={tr('12 mahine — purchase aur payment')}>
         <div className="h-[16.25rem]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={s.months12} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -284,7 +285,7 @@ function Analytics({ s }: { s: SupplierDetail }) {
         </div>
       </DsCard>
       <div className="grid gap-4 lg:grid-cols-3">
-        <DsCard className="rounded-2xl lg:col-span-2" title="Pichle 30 din">
+        <DsCard className="rounded-2xl lg:col-span-2" title={tr('Pichle 30 din')}>
           <div className="h-[13.75rem]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={s.trend30Days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -292,14 +293,14 @@ function Analytics({ s }: { s: SupplierDetail }) {
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="date" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={16} tickFormatter={(v: string) => v.slice(5)} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Purchase']} {...tip} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Purchase')]} {...tip} />
                 <Area type="monotone" dataKey="total" stroke={theme.primary} strokeWidth={2.25} fill="url(#sup-30)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </DsCard>
-        <DsCard className="rounded-2xl" title="Payment kaise ki">
-          {!s.paymentBreakdown.length ? <p className="py-10 text-center text-sm text-slate-500">Abhi koi payment nahi</p> : (
+        <DsCard className="rounded-2xl" title={tr('Payment kaise ki')}>
+          {!s.paymentBreakdown.length ? <p className="py-10 text-center text-sm text-slate-500">{tr('Abhi koi payment nahi')}</p> : (
             <>
               <div className="h-[9.375rem]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -320,12 +321,12 @@ function Analytics({ s }: { s: SupplierDetail }) {
           )}
         </DsCard>
       </div>
-      <DsCard className="rounded-2xl" title="Is supplier se sab se zyada liya">
-        {!top.length ? <p className="py-10 text-center text-sm text-slate-500">Abhi koi purchase nahi</p> : (
+      <DsCard className="rounded-2xl" title={tr('Is supplier se sab se zyada liya')}>
+        {!top.length ? <p className="py-10 text-center text-sm text-slate-500">{tr('Abhi koi purchase nahi')}</p> : (
           <ul className="divide-y divide-slate-100">
             {top.map((t) => (
               <li key={t.productId} className="flex justify-between gap-2 py-2 text-sm">
-                <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{t.product?.name ?? '—'}</span><span className="text-[0.75rem] text-slate-500">{Number(t.quantity.toFixed(2))} {t.product?.unit ?? ''} · {t.orderCount} bill</span></span>
+                <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{t.product?.name ?? '—'}</span><span className="text-[0.75rem] text-slate-500">{tr('{{value}} {{value2}} · {{orderCount}} bill', { value: Number(t.quantity.toFixed(2)), value2: t.product?.unit ?? '', orderCount: t.orderCount })}</span></span>
                 <span className="shrink-0 font-semibold tabular-nums">{formatPKR(t.total)}</span>
               </li>
             ))}

@@ -20,6 +20,7 @@ import { LoginSlipModal } from '@modules/hr/staff/components/LoginSlipModal';
 import type { LoginSlip } from '@modules/hr/staff/components/print';
 import { shopsApi, type CreateShopPayload, type ShopType } from '../api/shops.api';
 import { SHOP_KEYS, SHOP_TYPES, apiError } from '../components/meta';
+import { t as tr, Trans } from '@core/i18n';
 
 interface Form {
   type: ShopType;
@@ -68,10 +69,10 @@ export default function ShopFormPage() {
 
   const mPhoneErr = m.on && m.phone.trim() ? pakistanPhoneError(m.phone.trim()) : null;
   const problems = [
-    !f.name.trim() && 'Branch ka naam likhein',
-    m.on && !m.name.trim() && 'Manager ka naam likhein',
-    m.on && !/^\S+@\S+\.\S+$/.test(m.email.trim()) && 'Manager ka sahi email likhein',
-    m.on && m.password.length < 8 && 'Password kam se kam 8 harf ka ho',
+    !f.name.trim() && tr('Branch ka naam likhein'),
+    m.on && !m.name.trim() && tr('Manager ka naam likhein'),
+    m.on && !/^\S+@\S+\.\S+$/.test(m.email.trim()) && tr('Manager ka sahi email likhein'),
+    m.on && m.password.length < 8 && tr('Password kam se kam 8 harf ka ho'),
   ].filter(Boolean) as string[];
   const switchingOffMain = editing && shop?.isMain && !f.isActive;
 
@@ -96,14 +97,14 @@ export default function ShopFormPage() {
       SHOP_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       qc.invalidateQueries({ queryKey: ['team'] });
       qc.invalidateQueries({ queryKey: ['staff-people'] });
-      toast.success(editing ? 'Branch save ho gayi' : `${res.name} ban gayi`);
+      toast.success(editing ? tr('Branch save ho gayi') : tr('{{name}} ban gayi', { name: res.name }));
       if (!editing && m.on) {
         setSlip({ slip: { name: m.name.trim(), email: m.email.trim().toLowerCase(), password: m.password, role: 'Manager', branch: res.name }, phone: m.phone.trim() || null });
         return;
       }
       navigate('/shops');
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, tr('Save nahi hua'))),
   });
 
   const submit = () => {
@@ -122,84 +123,84 @@ export default function ShopFormPage() {
   });
 
   if (!canManage) {
-    return <PageShell><Card><EmptyState title={'Branch banane ya badalne ke liye "Branches sambhalna" ki permission chahiye'} action={<Button variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button>} /></Card></PageShell>;
+    return <PageShell><Card><EmptyState title={tr('Branch banane ya badalne ke liye "Branches sambhalna" ki permission chahiye')} action={<Button variant="secondary" onClick={() => navigate('/shops')}>{tr('Branches par wapas')}</Button>} /></Card></PageShell>;
   }
   if (editing && shopQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div></PageShell>;
-  if (editing && !shop) return <PageShell><Card><EmptyState title="Yeh branch nahi mili" action={<Button variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button>} /></Card></PageShell>;
+  if (editing && !shop) return <PageShell><Card><EmptyState title={tr('Yeh branch nahi mili')} action={<Button variant="secondary" onClick={() => navigate('/shops')}>{tr('Branches par wapas')}</Button>} /></Card></PageShell>;
 
   return (
     <PageShell>
       <PageHero
         back={() => navigate(-1)}
-        backLabel="Wapas (Esc)"
-        title={editing ? `${shop?.name} — badlein` : 'Nayi branch'}
-        subtitle={editing ? 'Jo badalna hai badlein — stock aur hisaab waise hi rahega' : 'Dukaan, warehouse ya godown. Manager ka login bhi yahin de sakte hain.'}
-        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        backLabel={tr('Wapas (Esc)')}
+        title={editing ? tr('{{name}} — badlein', { name: shop?.name }) : tr('Nayi branch')}
+        subtitle={editing ? tr('Jo badalna hai badlein — stock aur hisaab waise hi rahega') : tr('Dukaan, warehouse ya godown. Manager ka login bhi yahin de sakte hain.')}
+        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Building2}>Branch ki type</T>} description="Type se tay hota hai ke is branch me kya chalega">
-            <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Branch ki type">
+          <Card className="rounded-2xl" title={<T icon={Building2}>{tr('Branch ki type')}</T>} description={tr('Type se tay hota hai ke is branch me kya chalega')}>
+            <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={tr('Branch ki type')}>
               {(Object.entries(SHOP_TYPES) as Array<[ShopType, (typeof SHOP_TYPES)[ShopType]]>).map(([key, t]) => (
                 <button key={key} type="button" role="radio" aria-checked={f.type === key} onClick={() => set('type', key)}
-                  className={cn('flex items-start gap-3 rounded-2xl p-3 text-left ring-1 transition', f.type === key ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
+                  className={cn('flex items-start gap-3 rounded-2xl p-3 text-start ring-1 transition', f.type === key ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${t.color}17`, color: t.color }}><t.icon className="h-4 w-4" /></span>
                   <span className="min-w-0"><span className="block text-[0.875rem] font-semibold text-slate-900">{t.label}</span><span className="block text-[0.75rem] text-slate-500">{t.hint}</span></span>
                 </button>
               ))}
             </div>
             {editing && shop && shop.type !== f.type && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Type badalne se purani sale aur stock nahi badlenge. Store me POS aur drawer nahi chalte.</p>
+              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{tr('Type badalne se purani sale aur stock nahi badlenge. Store me POS aur drawer nahi chalte.')}</p>
             )}
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={MapPin}>Details</T>}>
+          <Card className="rounded-2xl" title={<T icon={MapPin}>{tr('Details')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Branch ka naam" required value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={100} autoFocus={!editing}
-                placeholder={f.type === 'SHOP' ? 'Ali Store — Saddar' : 'Bara godown'} wrapperClassName="sm:col-span-2"
-                hint="Bill, report aur branch chunne ki list me yahi naam aata hai. Do branches ka ek naam nahi ho sakta." />
-              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} maxLength={20} placeholder="03001234567"
-                leftIcon={<Phone className="h-4 w-4" />} hint="Marzi hai — bill par chhapta hai. Mobile number ho to card se WhatsApp bhi khulta hai." />
-              <Input label="Pata" value={f.address} onChange={(e) => set('address', e.target.value)} maxLength={255} placeholder="Shop 12, Main Bazar, Lahore"
-                hint="Marzi hai — bill aur parchi par chhapta hai" />
+              <Input label={tr('Branch ka naam')} required value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={100} autoFocus={!editing}
+                placeholder={f.type === 'SHOP' ? tr('Ali Store — Saddar') : tr('Bara godown')} wrapperClassName="sm:col-span-2"
+                hint={tr('Bill, report aur branch chunne ki list me yahi naam aata hai. Do branches ka ek naam nahi ho sakta.')} />
+              <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} maxLength={20} placeholder="03001234567"
+                leftIcon={<Phone className="h-4 w-4" />} hint={tr('Marzi hai — bill par chhapta hai. Mobile number ho to card se WhatsApp bhi khulta hai.')} />
+              <Input label={tr('Pata')} value={f.address} onChange={(e) => set('address', e.target.value)} maxLength={255} placeholder={tr('Shop 12, Main Bazar, Lahore')}
+                hint={tr('Marzi hai — bill aur parchi par chhapta hai')} />
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Star}>Main aur chalu</T>}>
+          <Card className="rounded-2xl" title={<T icon={Star}>{tr('Main aur chalu')}</T>}>
             <div className="space-y-4">
-              <Switch checked={f.isMain} disabled={editing && shop?.isMain} onChange={(e) => set('isMain', e.target.checked)} label="Main branch"
-                description={editing && shop?.isMain ? 'Yeh main branch hai. Main badalne ke liye doosri branch me yeh on karein.' : 'Naye staff aur "Sab branches" wale kaam pehle yahan jaate hain. Ek waqt me ek hi main hoti hai.'} />
+              <Switch checked={f.isMain} disabled={editing && shop?.isMain} onChange={(e) => set('isMain', e.target.checked)} label={tr('Main branch')}
+                description={editing && shop?.isMain ? tr('Yeh main branch hai. Main badalne ke liye doosri branch me yeh on karein.') : tr('Naye staff aur "Sab branches" wale kaam pehle yahan jaate hain. Ek waqt me ek hi main hoti hai.')} />
               {editing && (
-                <Switch checked={f.isActive} disabled={shop?.isMain} onChange={(e) => set('isActive', e.target.checked)} label="Branch chalu hai"
-                  description={shop?.isMain ? 'Main branch band nahi hoti.' : 'Band branch me sale nahi hoti; purana hisaab waise hi rehta hai.'} />
+                <Switch checked={f.isActive} disabled={shop?.isMain} onChange={(e) => set('isActive', e.target.checked)} label={tr('Branch chalu hai')}
+                  description={shop?.isMain ? tr('Main branch band nahi hoti.') : tr('Band branch me sale nahi hoti; purana hisaab waise hi rehta hai.')} />
               )}
-              {switchingOffMain && <p className="text-[0.75rem] text-rose-600">Main branch band nahi ho sakti.</p>}
+              {switchingOffMain && <p className="text-[0.75rem] text-rose-600">{tr('Main branch band nahi ho sakti.')}</p>}
             </div>
           </Card>
 
           {!editing && (
-            <Card className="rounded-2xl" title={<T icon={UserPlus}>Manager ka login</T>}>
+            <Card className="rounded-2xl" title={<T icon={UserPlus}>{tr('Manager ka login')}</T>}>
               {!canTeam ? (
-                <p className="text-sm text-slate-500">Login dene ke liye "Team sambhalna" ki permission chahiye. Branch ban jaye to Staff ke page se login dein.</p>
+                <p className="text-sm text-slate-500">{tr('Login dene ke liye "Team sambhalna" ki permission chahiye. Branch ban jaye to Staff ke page se login dein.')}</p>
               ) : (
                 <div className="space-y-4">
-                  <Switch checked={m.on} onChange={(e) => setM((x) => ({ ...x, on: e.target.checked, password: x.password || makePassword() }))} label="Is branch ka manager banayein"
-                    description="Manager sirf isi branch ka data dekhega: sale, maal, expenses aur reports. Permissions baad me Staff → profile se badal sakte hain." />
+                  <Switch checked={m.on} onChange={(e) => setM((x) => ({ ...x, on: e.target.checked, password: x.password || makePassword() }))} label={tr('Is branch ka manager banayein')}
+                    description={tr('Manager sirf isi branch ka data dekhega: sale, maal, expenses aur reports. Permissions baad me Staff → profile se badal sakte hain.')} />
                   {m.on && (
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <Input label="Naam" required value={m.name} onChange={(e) => setM((x) => ({ ...x, name: e.target.value }))} maxLength={100} placeholder="Bilal Ahmad" wrapperClassName="sm:col-span-2" hint="Bill aur report par yahi naam aata hai" />
-                      <Input label="Login email" required type="email" value={m.email} onChange={(e) => setM((x) => ({ ...x, email: e.target.value }))} placeholder="bilal@gmail.com" hint="Isi se login karega. Har login ka alag email." />
-                      <Input label="Phone" inputMode="tel" value={m.phone} onChange={(e) => setM((x) => ({ ...x, phone: e.target.value }))} maxLength={20} placeholder="03001234567" error={mPhoneErr ?? undefined} hint="Marzi hai — login parchi WhatsApp par bhejne ke liye" />
-                      <Input label="Password" required type={showPass ? 'text' : 'password'} value={m.password} onChange={(e) => setM((x) => ({ ...x, password: e.target.value }))} maxLength={64}
-                        leftIcon={<KeyRound className="h-4 w-4" />} wrapperClassName="sm:col-span-2" className="pr-16 font-mono"
+                      <Input label={tr('Naam')} required value={m.name} onChange={(e) => setM((x) => ({ ...x, name: e.target.value }))} maxLength={100} placeholder={tr('Bilal Ahmad')} wrapperClassName="sm:col-span-2" hint={tr('Bill aur report par yahi naam aata hai')} />
+                      <Input label={tr('Login email')} required type="email" value={m.email} onChange={(e) => setM((x) => ({ ...x, email: e.target.value }))} placeholder="bilal@gmail.com" hint={tr('Isi se login karega. Har login ka alag email.')} />
+                      <Input label={tr('Phone')} inputMode="tel" value={m.phone} onChange={(e) => setM((x) => ({ ...x, phone: e.target.value }))} maxLength={20} placeholder="03001234567" error={mPhoneErr ?? undefined} hint={tr('Marzi hai — login parchi WhatsApp par bhejne ke liye')} />
+                      <Input label={tr('Password')} required type={showPass ? 'text' : 'password'} value={m.password} onChange={(e) => setM((x) => ({ ...x, password: e.target.value }))} maxLength={64}
+                        leftIcon={<KeyRound className="h-4 w-4" />} wrapperClassName="sm:col-span-2" className="pe-16 font-mono"
                         rightIcon={<span className="flex gap-1">
-                          <button type="button" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? 'Chhupayein' : 'Dikhayein'} className="text-slate-400 hover:text-slate-700">{showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
-                          <button type="button" onClick={() => { setM((x) => ({ ...x, password: makePassword() })); setShowPass(true); }} aria-label="Naya password" title="Naya password" className="text-slate-400 hover:text-slate-700"><RefreshCw className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? tr('Chhupayein') : tr('Dikhayein')} className="text-slate-400 hover:text-slate-700">{showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+                          <button type="button" onClick={() => { setM((x) => ({ ...x, password: makePassword() })); setShowPass(true); }} aria-label={tr('Naya password')} title={tr('Naya password')} className="text-slate-400 hover:text-slate-700"><RefreshCw className="h-4 w-4" /></button>
                         </span>}
-                        hint="Kam se kam 8 harf. Save ke baad ek dafa parchi par dikhega — manager pehli dafa login karke badal le." />
+                        hint={tr('Kam se kam 8 harf. Save ke baad ek dafa parchi par dikhega — manager pehli dafa login karke badal le.')} />
                     </div>
                   )}
                 </div>
@@ -209,7 +210,7 @@ export default function ShopFormPage() {
 
           {editing && (
             <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">
-              Is branch ka staff aur logins <Link to="/staff" className="font-semibold text-brand-700 hover:underline">Staff</Link> ke page se badlein. Maal bhejne ke liye <Link to="/transfers" className="font-semibold text-brand-700 hover:underline">Transfers</Link>.
+              <Trans text="Is branch ka staff aur logins {{staff}} ke page se badlein. Maal bhejne ke liye {{transfers}}." values={{ staff: <Link to="/staff" className="font-semibold text-brand-700 hover:underline">{tr('Staff')}</Link>, transfers: <Link to="/transfers" className="font-semibold text-brand-700 hover:underline">{tr('Transfers')}</Link> }} />
             </p>
           )}
         </div>
@@ -217,13 +218,13 @@ export default function ShopFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (f.name || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{editing ? 'Save karein' : m.on ? 'Branch aur manager ka login dono banenge' : `Nayi ${SHOP_TYPES[f.type].label.toLowerCase()} khali stock ke saath banegi`}</p>}
-        <Button variant="secondary" onClick={() => navigate(-1)}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} disabled={!!switchingOffMain}>{editing ? 'Save karein' : m.on ? 'Branch aur login banayein' : 'Branch banayein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{editing ? tr('Save karein') : m.on ? tr('Branch aur manager ka login dono banenge') : tr('Nayi {{value}} khali stock ke saath banegi', { value: SHOP_TYPES[f.type].label.toLowerCase() })}</p>}
+        <Button variant="secondary" onClick={() => navigate(-1)}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} disabled={!!switchingOffMain}>{editing ? tr('Save karein') : m.on ? tr('Branch aur login banayein') : tr('Branch banayein')}</Button>
       </div>
 
-      {slip && <LoginSlipModal slip={slip.slip} phone={slip.phone} title="Manager ka login ban gaya" onClose={() => navigate('/shops')} />}
+      {slip && <LoginSlipModal slip={slip.slip} phone={slip.phone} title={tr('Manager ka login ban gaya')} onClose={() => navigate('/shops')} />}
     </PageShell>
   );
 }

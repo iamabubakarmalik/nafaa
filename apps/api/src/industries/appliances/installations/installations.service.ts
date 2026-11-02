@@ -12,6 +12,7 @@ import {
   CreateInstallationDto,
   UpdateInstallationStatusDto,
 } from './dto/create-installation.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Jin halaton me installation abhi baqi hai */
 const OPEN_STATES: ApplianceInstallationStatus[] = ['PENDING', 'SCHEDULED', 'ASSIGNED', 'IN_PROGRESS', 'RESCHEDULED'];
@@ -293,7 +294,7 @@ export class InstallationsService {
     }
     // `paidByCustomer` is everything paid on the job, so it cannot be below the advance already taken.
     if (paidByCustomer + 0.005 < r2(i.paidByCustomer)) {
-      throw new BadRequestException(`Is kaam par Rs ${r2(i.paidByCustomer)} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Is kaam par Rs {{paidByCustomer}} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta', { paidByCustomer: r2(i.paidByCustomer) }));
     }
 
     const now = new Date();
@@ -398,7 +399,7 @@ export class InstallationsService {
     const due = dueOf(i);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
     if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
-    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf ${r2(due)} baqi hai`);
+    if (dto.amount > due + 0.005) throw new BadRequestException(apiMessage('Sirf {{due}} baqi hai', { due: r2(due) }));
     if (i.status === 'CANCELLED' || i.status === 'FAILED') throw new BadRequestException('Cancel hui installation par paisa nahi liya ja sakta');
     return this.prisma.$transaction(async (tx) => {
       // Before the bill this is an advance; after it, it pays the bill's udhaar on khata.

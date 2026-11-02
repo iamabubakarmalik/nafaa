@@ -10,14 +10,15 @@ import { BrandLogo, brandForChannel, brandLabel, type BrandName } from '@/assets
 import { cn } from '@core/lib/cn';
 import { channelMeta, channelPath, useSalesChannels } from '../hooks/useSalesChannels';
 import { timeAgo } from '../lib/labels';
+import { t } from '@core/i18n';
 
 const ADD: Array<{ brand: BrandName; name: string; desc: string; to: string; tag?: string }> = [
-  { brand: 'shopify', name: 'Shopify', desc: 'Install dabayein — orders, stock aur tracking khud', to: '/online-store/connect?platform=shopify', tag: 'Automatic' },
-  { brand: 'woocommerce', name: 'WooCommerce', desc: 'WordPress website — Approve dabayein, baaqi Nafaa khud', to: '/online-store/connect?platform=woocommerce', tag: 'Automatic' },
-  { brand: 'daraz', name: 'Daraz', desc: 'Seller account se Allow — orders, stock, label', to: '/online-store/connect?platform=daraz', tag: 'Automatic' },
-  { brand: 'foodpanda', name: 'foodpanda', desc: 'Restaurant orders seedha counter par', to: '/online-store/foodpanda' },
-  { brand: 'indolj', name: 'Indolj', desc: 'Indolj par bani website — "Apni website" banayein, phir Setup me Indolj chunein', to: '/online-store/connect?platform=custom' },
-  { brand: 'website', name: 'Apni banayi website', desc: 'Developer ke liye tayyar code aur key', to: '/online-store/connect?platform=custom' },
+  { brand: 'shopify', name: 'Shopify', desc: t('Install dabayein — orders, stock aur tracking khud'), to: '/online-store/connect?platform=shopify', tag: t('Automatic') },
+  { brand: 'woocommerce', name: 'WooCommerce', desc: t('WordPress website — Approve dabayein, baaqi Nafaa khud'), to: '/online-store/connect?platform=woocommerce', tag: t('Automatic') },
+  { brand: 'daraz', name: 'Daraz', desc: t('Seller account se Allow — orders, stock, label'), to: '/online-store/connect?platform=daraz', tag: t('Automatic') },
+  { brand: 'foodpanda', name: 'foodpanda', desc: t('Restaurant orders seedha counter par'), to: '/online-store/foodpanda' },
+  { brand: 'indolj', name: 'Indolj', desc: t('Indolj par bani website — "Apni website" banayein, phir Setup me Indolj chunein'), to: '/online-store/connect?platform=custom' },
+  { brand: 'website', name: 'Apni banayi website', desc: t('Developer ke liye tayyar code aur key'), to: '/online-store/connect?platform=custom' },
 ];
 
 export default function ChannelsListPage() {
@@ -29,15 +30,15 @@ export default function ChannelsListPage() {
   return (
     <PageShell>
       <PageHero
-        title="Sales channels"
-        chip={<><Globe /> {channels.length} channel</>}
-        meta="Jahan jahan aap bechte hain — har channel ke orders Online orders me, aur stock sab ka ek"
+        title={t('Sales channels')}
+        chip={<><Globe /> {' '}{t('{{count}} channel', { count: channels.length })}</>}
+        meta={t('Jahan jahan aap bechte hain — har channel ke orders Online orders me, aur stock sab ka ek')}
         busy={isFetching && !isLoading}
         loading={isLoading}
-        actions={<Link to="/online-store/connect" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Channel jorein</Link>}
+        actions={<Link to="/online-store/connect" className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Channel jorein')}</Link>}
         stats={channels.length ? [
-          { label: 'Live', value: live, hint: channels.length - live ? `${channels.length - live} band` : undefined },
-          { label: 'Naye orders', value: pending, hint: pending ? 'accept karne' : undefined },
+          { label: t('Live'), value: live, hint: channels.length - live ? t('{{value}} band', { value: channels.length - live }) : undefined },
+          { label: t('Naye orders'), value: pending, hint: pending ? t('accept karne') : undefined },
         ] : undefined}
       />
 
@@ -47,9 +48,9 @@ export default function ChannelsListPage() {
         ) : channels.length === 0 ? (
           <div className="px-6 py-14 text-center">
             <div className="mx-auto flex w-fit -space-x-2">{(['shopify', 'woocommerce', 'daraz'] as BrandName[]).map((b) => <BrandLogo key={b} name={b} size={40} className="ring-2 ring-white" />)}</div>
-            <p className="mt-4 font-semibold text-slate-900">Abhi koi channel nahi jura</p>
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Apna store jorein — orders khud Nafaa me aayenge, ghanti bajegi, aur stock dono jagah ek rahega.</p>
-            <Link to="/online-store/connect"><Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />}>Pehla channel jorein</Button></Link>
+            <p className="mt-4 font-semibold text-slate-900">{t('Abhi koi channel nahi jura')}</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">{t('Apna store jorein — orders khud Nafaa me aayenge, ghanti bajegi, aur stock dono jagah ek rahega.')}</p>
+            <Link to="/online-store/connect"><Button className="mt-4" leftIcon={<Plus className="h-4 w-4" />}>{t('Pehla channel jorein')}</Button></Link>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
@@ -63,17 +64,17 @@ export default function ChannelsListPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-[0.9375rem] font-semibold text-slate-900">{c.displayName}</span>
-                        <Badge size="xs" variant={c.live ? 'success' : 'default'} dot>{c.live ? 'Live' : 'Band'}</Badge>
-                        {c.oneClick && <Badge size="xs" variant="info">Automatic</Badge>}
+                        <Badge size="xs" variant={c.live ? 'success' : 'default'} dot>{c.live ? t('Live') : t('Band')}</Badge>
+                        {c.oneClick && <Badge size="xs" variant="info">{t('Automatic')}</Badge>}
                       </div>
                       <p className="truncate text-[0.78125rem] text-slate-500">
-                        {label}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''} · {c.lastOrderAt ? `aakhri order ${timeAgo(c.lastOrderAt)}` : 'abhi koi order nahi'}
+                        {label}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''} · {c.lastOrderAt ? t('aakhri order {{lastOrderAt}}', { lastOrderAt: timeAgo(c.lastOrderAt) }) : t('abhi koi order nahi')}
                       </p>
                     </div>
                     {c.pendingOrders > 0 && (
-                      <span className="hidden rounded-full bg-amber-50 px-2.5 py-1 text-[0.75rem] font-semibold text-amber-800 ring-1 ring-inset ring-amber-200 sm:inline">{c.pendingOrders} naye</span>
+                      <span className="hidden rounded-full bg-amber-50 px-2.5 py-1 text-[0.75rem] font-semibold text-amber-800 ring-1 ring-inset ring-amber-200 sm:inline">{t('{{pendingOrders}} naye', { pendingOrders: c.pendingOrders })}</span>
                     )}
-                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 rtl-flip" />
                   </Link>
                 </li>
               );
@@ -83,8 +84,8 @@ export default function ChannelsListPage() {
       </section>
 
       <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-        <h2 className="text-[0.9375rem] font-semibold text-slate-900">Naya channel jorein</h2>
-        <p className="text-[0.75rem] text-slate-500">Har channel ki apni setup guide hai — har qadam par kahan click karna hai</p>
+        <h2 className="text-[0.9375rem] font-semibold text-slate-900">{t('Naya channel jorein')}</h2>
+        <p className="text-[0.75rem] text-slate-500">{t('Har channel ki apni setup guide hai — har qadam par kahan click karna hai')}</p>
         <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           {ADD.map((a) => (
             <Link key={a.name} to={a.to}
@@ -97,7 +98,7 @@ export default function ChannelsListPage() {
                 </span>
                 <span className="mt-0.5 block text-[0.75rem] leading-snug text-slate-500">{a.desc}</span>
               </span>
-              <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-brand-600" />
+              <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-brand-600 rtl-flip" />
             </Link>
           ))}
         </div>

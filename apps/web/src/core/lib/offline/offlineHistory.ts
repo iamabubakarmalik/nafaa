@@ -1,4 +1,5 @@
 import { db } from './db';
+import { t as tr } from '@core/i18n';
 
 export type HistoryEventType =
   | 'PRODUCT_CREATED' | 'PRODUCT_UPDATED' | 'PRODUCT_DELETED'
@@ -23,24 +24,24 @@ export interface HistoryEvent {
 }
 
 const typeMap: Record<string, { cat: HistoryEvent['category']; label: string }> = {
-  CREATE_PRODUCT: { cat: 'product', label: 'Product banaya' },
-  UPDATE_PRODUCT: { cat: 'product', label: 'Product update kiya' },
-  DELETE_PRODUCT: { cat: 'product', label: 'Product delete kiya' },
-  TOGGLE_PRODUCT_ACTIVE: { cat: 'product', label: 'Product active toggle' },
-  TOGGLE_PRODUCT_FEATURED: { cat: 'product', label: 'Product featured toggle' },
-  CREATE_CUSTOMER: { cat: 'customer', label: 'Customer banaya' },
-  UPDATE_CUSTOMER: { cat: 'customer', label: 'Customer update kiya' },
-  DELETE_CUSTOMER: { cat: 'customer', label: 'Customer delete kiya' },
-  PAYMENT_CUSTOMER: { cat: 'customer', label: 'Customer payment (khata)' },
-  CREATE_INSTALLATION: { cat: 'other', label: 'Installation book ki' },
-  CREATE_SERVICE_REQUEST: { cat: 'other', label: 'Service request banayi' },
-  UPDATE_APPLIANCE_SERIAL: { cat: 'other', label: 'Serial ka record badla' },
-  CREATE_EXPENSE: { cat: 'expense', label: 'Expense banaya' },
-  UPDATE_EXPENSE: { cat: 'expense', label: 'Expense edit kiya' },
-  DELETE_EXPENSE: { cat: 'expense', label: 'Expense delete kiya' },
-  UPDATE_PRODUCT_STOCK: { cat: 'product', label: 'Stock adjust' },
-  CREATE_LEDGER: { cat: 'customer', label: 'Ledger entry' },
-  OTHER: { cat: 'other', label: 'Other change' },
+  CREATE_PRODUCT: { cat: 'product', label: tr('Product banaya') },
+  UPDATE_PRODUCT: { cat: 'product', label: tr('Product update kiya') },
+  DELETE_PRODUCT: { cat: 'product', label: tr('Product delete kiya') },
+  TOGGLE_PRODUCT_ACTIVE: { cat: 'product', label: tr('Product active toggle') },
+  TOGGLE_PRODUCT_FEATURED: { cat: 'product', label: tr('Product featured toggle') },
+  CREATE_CUSTOMER: { cat: 'customer', label: tr('Customer banaya') },
+  UPDATE_CUSTOMER: { cat: 'customer', label: tr('Customer update kiya') },
+  DELETE_CUSTOMER: { cat: 'customer', label: tr('Customer delete kiya') },
+  PAYMENT_CUSTOMER: { cat: 'customer', label: tr('Customer payment (khata)') },
+  CREATE_INSTALLATION: { cat: 'other', label: tr('Installation book ki') },
+  CREATE_SERVICE_REQUEST: { cat: 'other', label: tr('Service request banayi') },
+  UPDATE_APPLIANCE_SERIAL: { cat: 'other', label: tr('Serial ka record badla') },
+  CREATE_EXPENSE: { cat: 'expense', label: tr('Expense banaya') },
+  UPDATE_EXPENSE: { cat: 'expense', label: tr('Expense edit kiya') },
+  DELETE_EXPENSE: { cat: 'expense', label: tr('Expense delete kiya') },
+  UPDATE_PRODUCT_STOCK: { cat: 'product', label: tr('Stock adjust') },
+  CREATE_LEDGER: { cat: 'customer', label: tr('Ledger entry') },
+  OTHER: { cat: 'other', label: tr('Other change') },
 };
 
 function mapType(t: string): HistoryEventType {
@@ -73,7 +74,7 @@ export async function loadFullHistory(): Promise<HistoryEvent[]> {
       type: s.status === 'synced' ? 'SALE_SYNCED' : s.status === 'failed' ? 'SALE_FAILED' : 'SALE_OFFLINE',
       category: 'sale',
       title: s.serverSaleNumber || s.saleNumber,
-      description: `${s.itemsSnapshot.length} items • ${s.paymentMethod}${customerLabel}`,
+      description: tr('{{count}} items • {{paymentMethod}}{{customerLabel}}', { count: s.itemsSnapshot.length, paymentMethod: s.paymentMethod, customerLabel }),
       amount: s.total,
       status: s.status,
       // Synced hai to error hide karo — sirf failed/pending pe dikhao

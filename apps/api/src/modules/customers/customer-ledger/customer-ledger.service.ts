@@ -14,6 +14,7 @@ import {
   CreatePaymentDto,
   OpeningBalanceDto,
 } from './dto/create-payment.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * ════════════════════════════════════════════════════════════════
@@ -127,7 +128,7 @@ export class CustomerLedgerService {
         const c = await tx.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { balance: true } });
         if (!c) throw new NotFoundException('Customer not found');
         if (c.balance <= 0) throw new BadRequestException('Customer ka koi balance nahi hai');
-        throw new BadRequestException(`Customer ka balance sirf ${c.balance} hai`);
+        throw new BadRequestException(apiMessage('Customer ka balance sirf {{balance}} hai', { balance: c.balance }));
       }
       const updated = await tx.customer.findUniqueOrThrow({ where: { id: customerId } });
 

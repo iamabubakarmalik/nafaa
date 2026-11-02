@@ -4,6 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { OPEN_ORDER } from '../orders/order-tokens';
 import { ReserveTableDto, UpdateTableDto, UpsertTableDto } from './dto/upsert-table.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const RESERVATION_CLEAR = { reservedAt: null, reservedFor: null, reservedByName: null, reservedByPhone: null, reservationNote: null };
 
@@ -33,7 +34,7 @@ export class TablesV2Service {
     const { status: _status, ...rest } = dto;
     // Table numbers are unique per business (schema), deleted tables included.
     const dup = await this.prisma.restaurantTableV2.findFirst({ where: { tenantId: user.tenantId, tableNumber } });
-    if (dup?.isActive) throw new BadRequestException(`Table "${tableNumber}" pehle se hai`);
+    if (dup?.isActive) throw new BadRequestException(apiMessage('Table "{{tableNumber}}" pehle se hai', { tableNumber }));
     if (dup) {
       // A deleted table with this number comes back instead of failing on the unique key.
       return this.prisma.restaurantTableV2.update({
@@ -136,7 +137,9 @@ export class TablesV2Service {
     const tableNumber = rest.tableNumber?.trim();
     if (tableNumber && tableNumber !== t.tableNumber) {
       const dup = await this.prisma.restaurantTableV2.findFirst({ where: { tenantId: user.tenantId, tableNumber, NOT: { id } } });
-      if (dup) throw new BadRequestException(`Table "${tableNumber}" pehle se hai${dup.isActive ? '' : ' (hataayi hui)'}`);
+      if (dup) throw new BadRequestException(dup.isActive
+        ? apiMessage('Table "{{tableNumber}}" pehle se hai', { tableNumber })
+        : apiMessage('Table "{{tableNumber}}" pehle se hai (hataayi hui)', { tableNumber }));
     }
     if (rest.shopId !== undefined) await this.checkShop(user.tenantId, rest.shopId);
     await this.prisma.restaurantTableV2.update({ where: { id }, data: { ...rest, ...(tableNumber && { tableNumber }) } });
@@ -149,7 +152,7 @@ export class TablesV2Service {
     const t = await this.prisma.restaurantTableV2.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!t) throw new NotFoundException('Table nahi mili');
     const open = await this.openOrderOn(user.tenantId, id);
-    if (open) throw new BadRequestException(`Table par order ${open.orderNumber} chal raha hai — pehle bill band karein`);
+    if (open) throw new BadRequestException(apiMessage('Table par order {{orderNumber}} chal raha hai — pehle bill band karein', { orderNumber: open.orderNumber }));
     return this.prisma.restaurantTableV2.update({ where: { id }, data: { isActive: false, status: 'AVAILABLE', currentOrderId: null } });
   }
 
@@ -162,7 +165,7 @@ export class TablesV2Service {
     if (!t) throw new NotFoundException('Table nahi mili');
     const open = await this.openOrderOn(user.tenantId, id);
     if (open && status !== 'OCCUPIED') {
-      throw new BadRequestException(`Table par order ${open.orderNumber} chal raha hai — bill band karein ya order doosri table par le jayein`);
+      throw new BadRequestException(apiMessage('Table par order {{orderNumber}} chal raha hai — bill band karein ya order doosri table par le jayein', { orderNumber: open.orderNumber }));
     }
     const patch: Prisma.RestaurantTableV2UpdateInput = { status };
     if (status === 'OCCUPIED') patch.occupiedAt = t.occupiedAt ?? new Date();

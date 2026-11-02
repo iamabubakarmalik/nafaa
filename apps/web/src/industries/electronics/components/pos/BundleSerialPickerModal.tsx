@@ -13,6 +13,7 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { PosComboSerial } from '@modules/pos/engine';
 import { serialTrackingApi, type SerialWithProduct } from '../../api/serial-tracking.api';
+import { t } from '@core/i18n';
 
 export interface BundleSerialNeed {
   productId: string;
@@ -58,12 +59,12 @@ export function BundleSerialPickerModal({ bundleName, needs, taken, onConfirm, o
     for (const [i, n] of needs.entries()) {
       const s = units[i].find((u) => [u.serialNumber, u.imei, u.imei2, u.macAddress].some((v) => (v ?? '').toLowerCase() === c));
       if (!s) continue;
-      if ((picked[n.productId] ?? []).includes(s.id)) { toast.info('Ye unit pehle se chuna hua hai'); return; }
-      if ((picked[n.productId] ?? []).length >= n.count && n.count > 1) { toast.error(`${n.name} ke ${n.count} unit pehle hi chune ja chuke`); return; }
+      if ((picked[n.productId] ?? []).includes(s.id)) { toast.info(t('Ye unit pehle se chuna hua hai')); return; }
+      if ((picked[n.productId] ?? []).length >= n.count && n.count > 1) { toast.error(t('{{name}} ke {{count}} unit pehle hi chune ja chuke', { name: n.name, count: n.count })); return; }
       toggle(n, s);
       return;
     }
-    toast.error('Ye serial is bundle ki kisi stock wali cheez ka nahi');
+    toast.error(t('Ye serial is bundle ki kisi stock wali cheez ka nahi'));
   };
 
   const missing = needs.reduce((a, n) => a + Math.max(n.count - (picked[n.productId]?.length ?? 0), 0), 0);
@@ -82,19 +83,19 @@ export function BundleSerialPickerModal({ bundleName, needs, taken, onConfirm, o
 
   return (
     <Modal open onClose={onClose} size="lg"
-      title={<span className="inline-flex items-center gap-2"><Barcode className="h-5 w-5 text-brand-600" />Bundle ke serial chunein</span>}
-      description={`${bundleName} — har serial wali cheez ka asli unit chunein, taake warranty usi par lage`}
+      title={<span className="inline-flex items-center gap-2"><Barcode className="h-5 w-5 text-brand-600" />{t('Bundle ke serial chunein')}</span>}
+      description={t('{{bundleName}} — har serial wali cheez ka asli unit chunein, taake warranty usi par lage', { bundleName })}
       footer={<>
-        <p className={cn('mr-auto text-[0.8125rem]', short ? 'font-medium text-rose-600' : 'text-slate-500')}>
-          {short ? `${short.name} ke stock mein ${short.count} unit nahi` : missing ? `${missing} unit aur chunein` : 'Sab unit chun liye'}
+        <p className={cn('me-auto text-[0.8125rem]', short ? 'font-medium text-rose-600' : 'text-slate-500')}>
+          {short ? t('{{name}} ke stock mein {{count}} unit nahi', { name: short.name, count: short.count }) : missing ? t('{{missing}} unit aur chunein', { missing }) : t('Sab unit chun liye')}
         </p>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={confirm} disabled={loading || missing > 0}>Bill mein daalein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={confirm} disabled={loading || missing > 0}>{t('Bill mein daalein')}</Button>
       </>}>
       <div className="space-y-4">
         <Input data-autofocus value={code} onChange={(e) => setCode(e.target.value)} leftIcon={<ScanLine className="h-4 w-4" />}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); scan(); } }}
-          placeholder="Serial ya IMEI scan karein" hint="Scan karte hi unit apni cheez ke neeche chun liya jata hai" />
+          placeholder={t('Serial ya IMEI scan karein')} hint={t('Scan karte hi unit apni cheez ke neeche chun liya jata hai')} />
         {needs.map((n, i) => {
           const mine = picked[n.productId] ?? [];
           return (
@@ -104,20 +105,20 @@ export function BundleSerialPickerModal({ bundleName, needs, taken, onConfirm, o
                 <span className={cn('shrink-0 tabular-nums', mine.length === n.count ? 'text-emerald-700' : 'text-slate-500')}>{mine.length} / {n.count}</span>
               </p>
               {loading ? (
-                <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">Aa rahe hain…</p>
+                <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">{t('Aa rahe hain…')}</p>
               ) : units[i].length === 0 ? (
-                <p className="rounded-xl bg-rose-50 px-3 py-4 text-center text-[0.8125rem] text-rose-700">Is branch mein koi unit stock mein nahi</p>
+                <p className="rounded-xl bg-rose-50 px-3 py-4 text-center text-[0.8125rem] text-rose-700">{t('Is branch mein koi unit stock mein nahi')}</p>
               ) : (
                 <div className="grid max-h-56 gap-1.5 overflow-y-auto sm:grid-cols-2">
                   {units[i].map((s) => {
                     const on = mine.includes(s.id);
                     return (
                       <button key={s.id} type="button" onClick={() => toggle(n, s)} aria-pressed={on}
-                        className={cn('flex items-center gap-2 rounded-xl px-3 py-2 text-left ring-1 transition',
+                        className={cn('flex items-center gap-2 rounded-xl px-3 py-2 text-start ring-1 transition',
                           on ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-mono text-[0.8125rem] font-semibold text-slate-900">{s.serialNumber}</span>
-                          {s.imei && <span className="block truncate font-mono text-[0.6875rem] text-slate-500">IMEI {s.imei}</span>}
+                          {s.imei && <span className="block truncate font-mono text-[0.6875rem] text-slate-500">{t('IMEI {{imei}}', { imei: s.imei })}</span>}
                         </span>
                         {on && <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-600" />}
                       </button>

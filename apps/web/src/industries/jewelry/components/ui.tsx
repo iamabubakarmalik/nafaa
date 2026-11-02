@@ -5,13 +5,14 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { orderStatus, purityLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export function LoadFailed({ what, retry }: { what: string; retry: () => void }) {
   return (
     <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-      <p className="font-semibold text-slate-900">{what} load nahi hue</p>
-      <p className="mt-1 text-sm text-slate-500">Internet check karein aur dobara koshish karein.</p>
-      <Button className="mt-3" variant="secondary" onClick={retry}>Dobara koshish</Button>
+      <p className="font-semibold text-slate-900">{t('{{what}} load nahi hue', { what })}</p>
+      <p className="mt-1 text-sm text-slate-500">{t('Internet check karein aur dobara koshish karein.')}</p>
+      <Button className="mt-3" variant="secondary" onClick={retry}>{t('Dobara koshish')}</Button>
     </div>
   );
 }
@@ -31,9 +32,9 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>Pichla</Button>
-      <span className="text-sm text-slate-600">Safha {page} / {pages}</span>
-      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>Agla</Button>
+      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>{t('Pichla')}</Button>
+      <span className="text-sm text-slate-600">{t('Safha {{page}} / {{pages}}', { page, pages })}</span>
+      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>{t('Agla')}</Button>
     </div>
   );
 }

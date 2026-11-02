@@ -12,6 +12,7 @@ import { useMeatProfiles } from '../hooks/useMeatProfiles';
 import { KEYS, animalOf, cutLabel } from '../lib/meta';
 import { CounterRate } from './CounterRate';
 import { saleListener } from './rateMode';
+import { t } from '@core/i18n';
 
 const OFFAL = ['LIVER', 'KIDNEY', 'HEART', 'BRAIN', 'TONGUE', 'TROTTERS', 'HEAD', 'OFFAL', 'TAIL'];
 
@@ -35,21 +36,21 @@ function useMeatCatalog() {
 const isAnimal = (...a: string[]) => (i: PosItem) => a.includes(String(i.meta?.animal ?? ''));
 
 const filters: PosFilter[] = [
-  { id: 'chicken', label: 'Murgi', icon: Bird, match: isAnimal('CHICKEN', 'DUCK', 'TURKEY', 'QUAIL') },
-  { id: 'mutton', label: 'Mutton', icon: Beef, match: isAnimal('MUTTON', 'GOAT', 'LAMB') },
-  { id: 'beef', label: 'Beef', icon: Beef, match: isAnimal('BEEF', 'BUFFALO', 'CAMEL') },
-  { id: 'fish', label: 'Machhli', icon: Fish, match: isAnimal('FISH', 'PRAWN') },
-  { id: 'offal', label: 'Kaleji / paaye', icon: Heart, match: (i) => OFFAL.includes(String(i.meta?.cut ?? '')) },
-  { id: 'mince', label: 'Qeema / boneless', icon: Scissors, match: (i) => ['MINCE', 'BONELESS'].includes(String(i.meta?.cut ?? '')) },
+  { id: 'chicken', label: t('Murgi'), icon: Bird, match: isAnimal('CHICKEN', 'DUCK', 'TURKEY', 'QUAIL') },
+  { id: 'mutton', label: t('Mutton'), icon: Beef, match: isAnimal('MUTTON', 'GOAT', 'LAMB') },
+  { id: 'beef', label: t('Beef'), icon: Beef, match: isAnimal('BEEF', 'BUFFALO', 'CAMEL') },
+  { id: 'fish', label: t('Machhli'), icon: Fish, match: isAnimal('FISH', 'PRAWN') },
+  { id: 'offal', label: t('Kaleji / paaye'), icon: Heart, match: (i) => OFFAL.includes(String(i.meta?.cut ?? '')) },
+  { id: 'mince', label: t('Qeema / boneless'), icon: Scissors, match: (i) => ['MINCE', 'BONELESS'].includes(String(i.meta?.cut ?? '')) },
 ];
 
 export const meatPos: PosIndustryConfig = {
   id: 'meat',
-  label: 'Meat',
+  label: t('Meat'),
   useCatalog: useMeatCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, cut (qeema, boneless) ya barcode…',
+  searchHint: t('Naam, cut (qeema, boneless) ya barcode…'),
   CartExtra: CounterRate,
   onSale: (sale) => saleListener.current?.(sale),
   voiceAliases: {

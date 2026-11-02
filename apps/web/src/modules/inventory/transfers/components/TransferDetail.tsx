@@ -12,6 +12,7 @@ import { Button, Modal, Table, TBody, THead, Td, Th, Tr, controlClass } from '@/
 import { cn } from '@core/lib/cn';
 import { transfersApi, type StockTransfer } from '../api/transfers.api';
 import { StatusBadge, dayTime, duration, lineName, lineRef, lineUnit, qty, shortValue } from './transferMeta';
+import { t as tr } from '@core/i18n';
 
 export function TransferDetail({ row, money, canReceive, canCancel, onReceive, onPrint, onClose, onChanged }: {
   row: StockTransfer;
@@ -32,35 +33,35 @@ export function TransferDetail({ row, money, canReceive, canCancel, onReceive, o
   return (
     <Modal open onClose={onClose} size="lg"
       title={<span className="flex flex-wrap items-center gap-2">{t.transferNumber}<StatusBadge status={t.status} /></span>}
-      description={<span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-slate-700">{t.fromShop.name}<ArrowRight className="h-3.5 w-3.5 text-slate-400" />{t.toShop.name}</span>}
+      description={<span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-slate-700">{t.fromShop.name}<ArrowRight className="h-3.5 w-3.5 text-slate-400 rtl-flip" />{t.toShop.name}</span>}
       footer={<>
-        <Button variant="secondary" className="mr-auto" onClick={() => onPrint(t)} leftIcon={<Printer className="h-4 w-4" />}>Print slip</Button>
-        {canCancel(t) && <Button variant="secondary" onClick={() => setCancelling(true)} leftIcon={<Ban className="h-4 w-4 text-rose-600" />}>Cancel</Button>}
-        {canReceive(t) && <Button onClick={() => onReceive(t)} leftIcon={<PackageCheck className="h-4 w-4" />}>Receive karein</Button>}
+        <Button variant="secondary" className="me-auto" onClick={() => onPrint(t)} leftIcon={<Printer className="h-4 w-4" />}>{tr('Print slip')}</Button>
+        {canCancel(t) && <Button variant="secondary" onClick={() => setCancelling(true)} leftIcon={<Ban className="h-4 w-4 text-rose-600" />}>{tr('Cancel')}</Button>}
+        {canReceive(t) && <Button onClick={() => onReceive(t)} leftIcon={<PackageCheck className="h-4 w-4" />}>{tr('Receive karein')}</Button>}
       </>}>
       <div className="space-y-4">
-        <ol className="relative space-y-3 border-l-2 border-slate-200 pl-5">
-          <Step icon={Send} tone="bg-blue-50 text-blue-700 ring-blue-200" title="Bheja" text={`${dayTime(sentAt)}${t.createdBy ? ` · ${t.createdBy.fullName}` : ''}`} sub={`${t.fromShop.name} ke stock se nikla`} />
-          {t.status === 'IN_TRANSIT' && <Step icon={Truck} tone="bg-amber-50 text-amber-700 ring-amber-200" title="Raste me" text={`${duration(sentAt)} se`} sub={`${t.toShop.name} me receive hone ka intezar`} />}
+        <ol className="relative space-y-3 border-s-2 border-slate-200 ps-5">
+          <Step icon={Send} tone="bg-blue-50 text-blue-700 ring-blue-200" title={tr('Bheja')} text={`${dayTime(sentAt)}${t.createdBy ? ` · ${t.createdBy.fullName}` : ''}`} sub={tr('{{name}} ke stock se nikla', { name: t.fromShop.name })} />
+          {t.status === 'IN_TRANSIT' && <Step icon={Truck} tone="bg-amber-50 text-amber-700 ring-amber-200" title={tr('Raste me')} text={tr('{{sentAt}} se', { sentAt: duration(sentAt) })} sub={tr('{{name}} me receive hone ka intezar', { name: t.toShop.name })} />}
           {t.status === 'RECEIVED' && (
-            <Step icon={CheckCircle2} tone="bg-success-50 text-success-700 ring-success-200" title="Receive" text={`${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}`}
-              sub={`${duration(sentAt, t.receivedAt)} laga · ${t.toShop.name} ke stock me gaya`} />
+            <Step icon={CheckCircle2} tone="bg-success-50 text-success-700 ring-success-200" title={tr('Receive')} text={`${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}`}
+              sub={tr('{{sentAt}} laga · {{name}} ke stock me gaya', { sentAt: duration(sentAt, t.receivedAt), name: t.toShop.name })} />
           )}
           {t.status === 'CANCELLED' && (
-            <Step icon={Ban} tone="bg-slate-100 text-slate-600 ring-slate-200" title="Cancel" text={`${dayTime(t.cancelledAt)}${t.cancelledBy ? ` · ${t.cancelledBy.fullName}` : ''}`}
-              sub={`${t.cancelReason ? `Wajah: ${t.cancelReason} · ` : ''}maal ${t.fromShop.name} ke stock me wapas`} />
+            <Step icon={Ban} tone="bg-slate-100 text-slate-600 ring-slate-200" title={tr('Cancel')} text={`${dayTime(t.cancelledAt)}${t.cancelledBy ? ` · ${t.cancelledBy.fullName}` : ''}`}
+              sub={tr('{{value}}maal {{name}} ke stock me wapas', { value: t.cancelReason ? tr('Wajah: {{cancelReason}} · ', { cancelReason: t.cancelReason }) : '', name: t.fromShop.name })} />
           )}
         </ol>
 
         {short > 0 && (
           <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {money(short)} ka maal kam aaya — neeche laal lines dekhein
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {' '}{tr('{{short}} ka maal kam aaya — neeche laal lines dekhein', { short: money(short) })}
           </p>
         )}
 
         <Table minWidth="30rem" className="rounded-xl border border-slate-200">
             <THead>
-              <Tr><Th className="px-3 py-2">Cheez</Th><Th align="right" className="px-3 py-2">Bheja</Th><Th align="right" className="px-3 py-2">Aaya</Th><Th align="right" className="px-3 py-2">Qeemat</Th></Tr>
+              <Tr><Th className="px-3 py-2">{tr('Cheez')}</Th><Th align="right" className="px-3 py-2">{tr('Bheja')}</Th><Th align="right" className="px-3 py-2">{tr('Aaya')}</Th><Th align="right" className="px-3 py-2">{tr('Qeemat')}</Th></Tr>
             </THead>
             <TBody>
               {t.items.map((i) => {
@@ -73,7 +74,7 @@ export function TransferDetail({ row, money, canReceive, canCancel, onReceive, o
                     </Td>
                     <Td align="right" className="px-3 py-2">{qty(i.quantity)} <span className="text-[0.75rem] text-slate-500">{lineUnit(i)}</span></Td>
                     <Td align="right" className={cn('px-3 py-2', less ? 'font-semibold text-rose-700' : 'text-slate-600')}>
-                      {t.status === 'RECEIVED' ? qty(i.receivedQty) : t.status === 'CANCELLED' ? '—' : 'Raste me'}
+                      {t.status === 'RECEIVED' ? qty(i.receivedQty) : t.status === 'CANCELLED' ? '—' : tr('Raste me')}
                     </Td>
                     <Td align="right" className="px-3 py-2">{money(i.quantity * i.unitCost)}<span className="block text-[0.6875rem] text-slate-400">{money(i.unitCost)}/{lineUnit(i)}</span></Td>
                   </Tr>
@@ -81,7 +82,7 @@ export function TransferDetail({ row, money, canReceive, canCancel, onReceive, o
               })}
             </TBody>
             <tfoot>
-              <Tr className="border-t border-slate-200 font-semibold"><Td className="px-3 py-2 text-slate-900" colSpan={3}>Kul qeemat (cost par)</Td><Td align="right" className="px-3 py-2 text-slate-900">{money(t.value)}</Td></Tr>
+              <Tr className="border-t border-slate-200 font-semibold"><Td className="px-3 py-2 text-slate-900" colSpan={3}>{tr('Kul qeemat (cost par)')}</Td><Td align="right" className="px-3 py-2 text-slate-900">{money(t.value)}</Td></Tr>
             </tfoot>
         </Table>
 
@@ -96,7 +97,7 @@ export function TransferDetail({ row, money, canReceive, canCancel, onReceive, o
 function Step({ icon: I, tone, title, text, sub }: { icon: typeof Send; tone: string; title: string; text: string; sub?: string }) {
   return (
     <li className="relative">
-      <span className="absolute -left-[2.2rem] -top-1 rounded-full bg-white p-1"><span className={cn('flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-inset', tone)}><I className="h-3.5 w-3.5" /></span></span>
+      <span className="absolute -start-[2.2rem] -top-1 rounded-full bg-white p-1"><span className={cn('flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-inset', tone)}><I className="h-3.5 w-3.5" /></span></span>
       <p className="text-sm font-semibold text-slate-900">{title} <span className="font-normal text-slate-600">· {text}</span></p>
       {sub && <p className="text-[0.75rem] text-slate-500">{sub}</p>}
     </li>
@@ -107,21 +108,21 @@ function CancelModal({ t, onClose, onDone }: { t: StockTransfer; onClose: () => 
   const [reason, setReason] = useState('');
   const mut = useMutation({
     mutationFn: () => transfersApi.cancel(t.id, reason),
-    onSuccess: () => { toast.success(`Transfer cancel — maal ${t.fromShop.name} ke stock me wapas`); onDone(); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Cancel nahi hua'),
+    onSuccess: () => { toast.success(tr('Transfer cancel — maal {{name}} ke stock me wapas', { name: t.fromShop.name })); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || tr('Cancel nahi hua')),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Transfer cancel karein?"
-      description={`Saara maal ${t.fromShop.name} ke stock me wapas aa jayega. Receive ho chuka transfer cancel nahi hota.`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>Cancel karein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Transfer cancel karein?')}
+      description={tr('Saara maal {{name}} ke stock me wapas aa jayega. Receive ho chuka transfer cancel nahi hota.', { name: t.fromShop.name })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>{tr('Cancel karein')}</Button></>}>
       <div className="mb-2 flex flex-wrap gap-1.5">
-        {['Ghalat branch chuni', 'Ghalat maal chuna', 'Gaari nahi gayi', 'Wahan zaroorat nahi rahi'].map((r) => (
+        {[tr('Ghalat branch chuni'), tr('Ghalat maal chuna'), tr('Gaari nahi gayi'), tr('Wahan zaroorat nahi rahi')].map((r) => (
           <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-rose-50 font-semibold text-rose-700 ring-rose-300' : 'text-slate-600 ring-slate-200 hover:bg-slate-50')}>{r}</button>
         ))}
       </div>
-      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} placeholder="Wajah likhein" aria-label="Wajah"
+      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} placeholder={tr('Wajah likhein')} aria-label={tr('Wajah')}
         className={cn(controlClass(), 'h-10 px-3 text-sm')} />
-      <p className="mt-1 text-[0.6875rem] text-slate-400">Wajah list aur print par dikhegi</p>
+      <p className="mt-1 text-[0.6875rem] text-slate-400">{tr('Wajah list aur print par dikhegi')}</p>
     </Modal>
   );
 }

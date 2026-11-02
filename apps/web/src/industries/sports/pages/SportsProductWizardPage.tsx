@@ -13,6 +13,7 @@ import { Chip, Section, Toggle, inputClass } from '@modules/inventory/products/e
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { sportsProductsApi } from '../api/products.api';
 import { AGE_GROUPS, APPAREL_SIZES, BAT_SIZES, KIDS_SIZES, META_KEY, SPORTS, SPORT_TYPES, isApparel, isBat, opt, typeLabel } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 export interface SportsExtra {
   sport: string; categoryType: string; ageGroup: string;
@@ -51,21 +52,21 @@ function Identity({ ctx }: { ctx: StepContext<SportsExtra> }) {
   return (
     <div className="space-y-4">
       <div>
-        {label('Sport')}
+        {label(tr('Sport'))}
         <div className="flex flex-wrap gap-1.5">
-          {SPORTS.map((s) => <Chip key={s} on={x.sport === s} onClick={() => ctx.setExtra({ sport: s, categoryType: SPORT_TYPES.find((t) => t.sport === s)?.value ?? 'OTHER' })}>{s}</Chip>)}
+          {SPORTS.map((s) => <Chip key={s} on={x.sport === s} onClick={() => ctx.setExtra({ sport: s, categoryType: SPORT_TYPES.find((t) => t.sport === s)?.value ?? 'OTHER' })}>{tr(s)}</Chip>)}
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          {label('Item ki type')}
+          {label(tr('Item ki type'))}
           <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value })} className={inputClass}>
             {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
-          <span className="mt-1 block text-[0.75rem] text-slate-500">Bat, ball ya kit ki tafseel isi se khulti hai</span>
+          <span className="mt-1 block text-[0.75rem] text-slate-500">{tr('Bat, ball ya kit ki tafseel isi se khulti hai')}</span>
         </label>
         <div>
-          {label('Kis ke liye')}
+          {label(tr('Kis ke liye'))}
           <div className="flex flex-wrap gap-1.5">{AGE_GROUPS.map((a) => <Chip key={a.value} on={x.ageGroup === a.value} onClick={() => ctx.setExtra({ ageGroup: a.value })}>{a.label}</Chip>)}</div>
         </div>
       </div>
@@ -79,16 +80,16 @@ function TeamRate({ ctx }: { ctx: StepContext<SportsExtra> }) {
   const money = (k: 'mrp' | 'teamPrice') => (e: React.ChangeEvent<HTMLInputElement>) => { const v = num(e.target.value); ctx.setExtra({ [k]: v ? Number(v) : null } as Partial<SportsExtra>); };
   return (
     <div className="space-y-4">
-      <Section icon={BadgePercent} title="MRP" hint="MRP se kam rate ho to Sale ka nishan lagta hai">
+      <Section icon={BadgePercent} title={tr('MRP')} hint={tr('MRP se kam rate ho to Sale ka nishan lagta hai')}>
         <input inputMode="decimal" value={x.mrp ?? ''} onChange={money('mrp')} placeholder="0" className={`${inputClass} w-40 tabular-nums`} />
       </Section>
-      <Section icon={Users} title="Team / school order" hint="Bulk order me yahi rate khud lagta hai">
-        <Toggle on={x.isTeamOrderable} onChange={(v) => ctx.setExtra({ isTeamOrderable: v })} title="Team order me bikta hai" hint="Kit, ball, bat — team ke liye" />
+      <Section icon={Users} title={tr('Team / school order')} hint={tr('Bulk order me yahi rate khud lagta hai')}>
+        <Toggle on={x.isTeamOrderable} onChange={(v) => ctx.setExtra({ isTeamOrderable: v })} title={tr('Team order me bikta hai')} hint={tr('Kit, ball, bat — team ke liye')} />
         {x.isTeamOrderable && (
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <label className="block">{label('Team rate (har piece)')}<input inputMode="decimal" value={x.teamPrice ?? ''} onChange={money('teamPrice')} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
-            <label className="block">{label('Kam se kam piece')}<input inputMode="numeric" value={x.minTeamOrder} onChange={(e) => ctx.setExtra({ minTeamOrder: e.target.value.replace(/\D/g, '') })} placeholder="11" className={`${inputClass} tabular-nums`} /></label>
-            <label className="block">{label('Team discount %')}<input inputMode="decimal" value={x.bulkDiscountPct} onChange={(e) => ctx.setExtra({ bulkDiscountPct: num(e.target.value) })} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
+            <label className="block">{label(tr('Team rate (har piece)'))}<input inputMode="decimal" value={x.teamPrice ?? ''} onChange={money('teamPrice')} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
+            <label className="block">{label(tr('Kam se kam piece'))}<input inputMode="numeric" value={x.minTeamOrder} onChange={(e) => ctx.setExtra({ minTeamOrder: e.target.value.replace(/\D/g, '') })} placeholder="11" className={`${inputClass} tabular-nums`} /></label>
+            <label className="block">{label(tr('Team discount %'))}<input inputMode="decimal" value={x.bulkDiscountPct} onChange={(e) => ctx.setExtra({ bulkDiscountPct: num(e.target.value) })} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
           </div>
         )}
       </Section>
@@ -97,19 +98,19 @@ function TeamRate({ ctx }: { ctx: StepContext<SportsExtra> }) {
 }
 
 const core: CoreOptions = {
-  units: [{ value: 'pcs', label: 'Piece' }, { value: 'pair', label: 'Jora' }, { value: 'set', label: 'Set' }, { value: 'box', label: 'Dabba' }, { value: 'kg', label: 'Kg' }],
+  units: [{ value: 'pcs', label: tr('Piece') }, { value: 'pair', label: tr('Jora') }, { value: 'set', label: tr('Set') }, { value: 'box', label: tr('Dabba') }, { value: 'kg', label: tr('Kg') }],
   skuPrefix: 'SP',
   packs: true,
-  variants: { presets: [{ group: 'Kit size', values: APPAREL_SIZES }, { group: 'Bachon ki kit', values: KIDS_SIZES }, { group: 'Bat size', values: BAT_SIZES }] },
+  variants: { presets: [{ group: tr('Kit size'), values: APPAREL_SIZES }, { group: tr('Bachon ki kit'), values: KIDS_SIZES }, { group: tr('Bat size'), values: BAT_SIZES }] },
   markups: [20, 30, 40, 50, 80, 100],
 };
 
 const specs: StepDef<SportsExtra> = {
-  id: 'sports', title: 'Tafseel', hint: 'Bat, ball, kit, warranty', icon: Trophy,
+  id: 'sports', title: tr('Tafseel'), hint: tr('Bat, ball, kit, warranty'), icon: Trophy,
   validate: (d) => {
     const e: Record<string, string> = {};
-    if (Number(d.extra.bulkDiscountPct) > 100) e.bulkDiscountPct = 'Discount 100% se zyada nahi';
-    if (d.extra.warrantyMonths < 0 || d.extra.warrantyMonths > 60) e.warrantyMonths = 'Warranty 0 se 60 mahine';
+    if (Number(d.extra.bulkDiscountPct) > 100) e.bulkDiscountPct = tr('Discount 100% se zyada nahi');
+    if (d.extra.warrantyMonths < 0 || d.extra.warrantyMonths > 60) e.warrantyMonths = tr('Warranty 0 se 60 mahine');
     return e;
   },
   render: (ctx) => {
@@ -117,48 +118,48 @@ const specs: StepDef<SportsExtra> = {
     return (
       <div className="space-y-4">
         {isBat(x.categoryType) && (
-          <Section icon={Trophy} title="Bat">
+          <Section icon={Trophy} title={tr('Bat')}>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field ctx={ctx} k="batWood" title="Lakri" ph="English willow, Kashmir willow" />
-              <Field ctx={ctx} k="batGrade" title="Grade" ph="1, 2, Players" max={20} />
-              <Field ctx={ctx} k="batSize" title="Size" ph="SH, LH, Size 6" max={20} />
-              <label className="block">{label('Wazan (gram)')}<input inputMode="numeric" value={x.batWeightGrams} onChange={(e) => ctx.setExtra({ batWeightGrams: e.target.value.replace(/\D/g, '') })} placeholder="1180" className={`${inputClass} tabular-nums`} /></label>
-              <Field ctx={ctx} k="handleType" title="Handle" ph="Round, oval" max={30} />
+              <Field ctx={ctx} k="batWood" title={tr('Lakri')} ph={tr('English willow, Kashmir willow')} />
+              <Field ctx={ctx} k="batGrade" title={tr('Grade')} ph={tr('1, 2, Players')} max={20} />
+              <Field ctx={ctx} k="batSize" title={tr('Size')} ph={tr('SH, LH, Size 6')} max={20} />
+              <label className="block">{label(tr('Wazan (gram)'))}<input inputMode="numeric" value={x.batWeightGrams} onChange={(e) => ctx.setExtra({ batWeightGrams: e.target.value.replace(/\D/g, '') })} placeholder="1180" className={`${inputClass} tabular-nums`} /></label>
+              <Field ctx={ctx} k="handleType" title={tr('Handle')} ph={tr('Round, oval')} max={30} />
             </div>
           </Section>
         )}
         {/BALL|SHUTTLE/.test(x.categoryType) && x.categoryType !== 'FOOTBALL_SHOES' && (
-          <Section icon={Trophy} title="Ball">
+          <Section icon={Trophy} title={tr('Ball')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field ctx={ctx} k="ballType" title="Type" ph="Hard, tape, tennis, size 5" />
-              <Field ctx={ctx} k="ballWeight" title="Wazan" ph="156 g" max={20} />
+              <Field ctx={ctx} k="ballType" title={tr('Type')} ph={tr('Hard, tape, tennis, size 5')} />
+              <Field ctx={ctx} k="ballWeight" title={tr('Wazan')} ph={tr('156 g')} max={20} />
             </div>
           </Section>
         )}
         {isApparel(x.categoryType) && (
-          <Section icon={Shirt} title="Kit / jersey" hint="Sizes Stock step me variant bana kar daalein">
+          <Section icon={Shirt} title={tr('Kit / jersey')} hint={tr('Sizes Stock step me variant bana kar daalein')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field ctx={ctx} k="material" title="Kapra" ph="Dri-fit, polyester" />
-              <Field ctx={ctx} k="fit" title="Fitting" ph="Regular, slim" max={30} />
+              <Field ctx={ctx} k="material" title={tr('Kapra')} ph={tr('Dri-fit, polyester')} />
+              <Field ctx={ctx} k="fit" title={tr('Fitting')} ph={tr('Regular, slim')} max={30} />
             </div>
-            <div className="mt-3"><Toggle on={x.hasCustomization} onChange={(v) => ctx.setExtra({ hasCustomization: v })} title="Naam / number print hota hai" hint="Team order me printing ka rate alag lagta hai" /></div>
+            <div className="mt-3"><Toggle on={x.hasCustomization} onChange={(v) => ctx.setExtra({ hasCustomization: v })} title={tr('Naam / number print hota hai')} hint={tr('Team order me printing ka rate alag lagta hai')} /></div>
           </Section>
         )}
-        <Section icon={Award} title="Warranty aur nishan">
+        <Section icon={Award} title={tr('Warranty aur nishan')}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Field ctx={ctx} k="weight" title="Wazan / size" ph="5 kg, 20 inch" max={30} />
+            <Field ctx={ctx} k="weight" title={tr('Wazan / size')} ph={tr('5 kg, 20 inch')} max={30} />
             <label className="block">
-              {label('Warranty (mahine)')}
+              {label(tr('Warranty (mahine)'))}
               <input inputMode="numeric" value={x.warrantyMonths || ''} onChange={(e) => ctx.setExtra({ warrantyMonths: Number(e.target.value.replace(/\D/g, '')) || 0 })} placeholder="0" className={`${inputClass} tabular-nums`} />
               {ctx.errors.warrantyMonths && <span className="mt-1 block text-[0.75rem] text-rose-600">{ctx.errors.warrantyMonths}</span>}
             </label>
-            <Field ctx={ctx} k="warrantyType" title="Warranty kis cheez ki" ph="Handle crack, silai" />
+            <Field ctx={ctx} k="warrantyType" title={tr('Warranty kis cheez ki')} ph={tr('Handle crack, silai')} />
           </div>
-          <div className="mt-3"><Field ctx={ctx} k="careInstructions" title="Dekh bhaal" ph="Naye bat ko oil aur knocking karein" max={200} /></div>
+          <div className="mt-3"><Field ctx={ctx} k="careInstructions" title={tr('Dekh bhaal')} ph={tr('Naye bat ko oil aur knocking karein')} max={200} /></div>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <Chip on={x.isNewArrival} onClick={() => ctx.setExtra({ isNewArrival: !x.isNewArrival })}>Naya maal</Chip>
-            <Chip on={x.isBestSeller} onClick={() => ctx.setExtra({ isBestSeller: !x.isBestSeller })}>Best seller</Chip>
-            <Chip on={x.isProfessional} onClick={() => ctx.setExtra({ isProfessional: !x.isProfessional })}>Pro / match ka</Chip>
+            <Chip on={x.isNewArrival} onClick={() => ctx.setExtra({ isNewArrival: !x.isNewArrival })}>{tr('Naya maal')}</Chip>
+            <Chip on={x.isBestSeller} onClick={() => ctx.setExtra({ isBestSeller: !x.isBestSeller })}>{tr('Best seller')}</Chip>
+            <Chip on={x.isProfessional} onClick={() => ctx.setExtra({ isProfessional: !x.isProfessional })}>{tr('Pro / match ka')}</Chip>
           </div>
         </Section>
       </div>
@@ -169,7 +170,7 @@ const specs: StepDef<SportsExtra> = {
 const s = (v?: string | null) => v ?? '';
 
 const config: EditorConfig<SportsExtra> = {
-  label: 'Sports',
+  label: tr('Sports'),
   draftKey: 'nafaa.product-editor.sports',
   paths: { list: '/sports-products', detail: (id) => `/sports-products/${id}`, create: '/sports-products/new' },
   core,
@@ -202,22 +203,22 @@ const config: EditorConfig<SportsExtra> = {
     },
   },
   steps: [
-    basicStep<SportsExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: 'Jaise: CA Plus 15000 English Willow Bat', categorySuggestions: ['Cricket', 'Football', 'Badminton', 'Gym', 'Kits', 'Trophies'] }),
+    basicStep<SportsExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: tr('Jaise: CA Plus 15000 English Willow Bat'), categorySuggestions: ['Cricket', 'Football', 'Badminton', 'Gym', 'Kits', 'Trophies'] }),
     priceStep<SportsExtra>(core, { extra: (ctx) => <TeamRate ctx={ctx} /> }),
     stockStep<SportsExtra>(core, { quick: [1, 6, 12, 24, 50] }),
     specs,
   ],
   summary: (d) => (
     <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
-      <p className="text-slate-600">{[d.extra.sport, typeLabel(d.extra.categoryType)].filter(Boolean).join(' · ')}</p>
-      {d.extra.isTeamOrderable && d.extra.teamPrice ? <p className="text-teal-700">Team rate Rs {d.extra.teamPrice}</p> : null}
-      {d.core.variants.length > 0 && <p className="text-violet-700">{d.core.variants.length} size</p>}
+      <p className="text-slate-600">{[d.extra.sport && tr(d.extra.sport), typeLabel(d.extra.categoryType)].filter(Boolean).join(' · ')}</p>
+      {d.extra.isTeamOrderable && d.extra.teamPrice ? <p className="text-teal-700">{tr('Team rate Rs {{teamPrice}}', { teamPrice: d.extra.teamPrice })}</p> : null}
+      {d.core.variants.length > 0 && <p className="text-violet-700">{tr('{{count}} size', { count: d.core.variants.length })}</p>}
     </div>
   ),
   refresh: [META_KEY],
   guide: [
-    { icon: Users, color: '#0d9488', title: 'Team rate', text: 'Price step me "Team order me bikta hai" lagayein aur team rate likhein — team order banate waqt khud aata hai.' },
-    { icon: Shirt, color: '#7c3aed', title: 'Kit ke sizes', text: 'Stock step me "Variants" se S, M, L… banayein; har size ka apna barcode aur stock.' },
+    { icon: Users, color: '#0d9488', title: tr('Team rate'), text: tr('Price step me "Team order me bikta hai" lagayein aur team rate likhein — team order banate waqt khud aata hai.') },
+    { icon: Shirt, color: '#7c3aed', title: tr('Kit ke sizes'), text: tr('Stock step me "Variants" se S, M, L… banayein; har size ka apna barcode aur stock.') },
   ],
 };
 

@@ -11,6 +11,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
 import { DIST_KEY } from '../api/distribution.api';
+import { t as tr } from '@core/i18n';
 
 export type RosterCustomer = Customer;
 
@@ -18,8 +19,8 @@ export const PRICE_LISTS_KEY = [DIST_KEY, 'price-lists'] as const;
 export const ROUTES_KEY = [DIST_KEY, 'routes'] as const;
 export const SCHEMES_KEY = [DIST_KEY, 'schemes'] as const;
 
-export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-export const WEEKDAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const WEEKDAYS = [tr('Sunday'), tr('Monday'), tr('Tuesday'), tr('Wednesday'), tr('Thursday'), tr('Friday'), tr('Saturday')];
+export const WEEKDAYS_SHORT = [tr('Sun'), tr('Mon'), tr('Tue'), tr('Wed'), tr('Thu'), tr('Fri'), tr('Sat')];
 
 export function useDebounced<T>(value: T, ms = 300): T {
   const [v, setV] = useState(value);
@@ -47,12 +48,12 @@ export function useCustomerRoster(enabled = true) {
 }
 
 /** Toggle chips; nothing picked reads as "any". */
-export function PickChips({ label, items, picked, onChange, anyText = 'koi bhi' }: {
+export function PickChips({ label, items, picked, onChange, anyText = tr('koi bhi') }: {
   label: string; items: Array<{ value: string; label: string }>; picked: string[]; onChange: (v: string[]) => void; anyText?: string;
 }) {
   return (
     <div>
-      <div className="mb-1 text-[0.75rem] font-semibold text-slate-600">{label} <span className="font-normal text-slate-400">{picked.length ? `· ${picked.length} chune` : `· ${anyText}`}</span></div>
+      <div className="mb-1 text-[0.75rem] font-semibold text-slate-600">{label} <span className="font-normal text-slate-400">{picked.length ? tr('· {{count}} chune', { count: picked.length }) : `· ${anyText}`}</span></div>
       <div className="flex flex-wrap gap-1.5">
         {items.map((x) => {
           const on = picked.includes(x.value);

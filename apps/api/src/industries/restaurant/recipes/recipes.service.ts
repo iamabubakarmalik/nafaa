@@ -9,6 +9,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { convertQty, round2, round3, unitsCompatible, withWastage } from './recipe-units';
 import { stockOf } from './branch-stock';
 import { menuBranch, offAtBranch } from '../menu-items/branch-availability';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** One order line to cook. */
 export interface CookLine {
@@ -66,10 +67,10 @@ export class RecipesService {
     let total = 0;
     const enriched = ingredients.map((ing, idx) => {
       const product = byId.get(ing.ingredientProductId)!;
-      if (!(ing.quantity > 0)) throw new BadRequestException(`${product.name}: quantity 0 se zyada likhein`);
+      if (!(ing.quantity > 0)) throw new BadRequestException(apiMessage('{{productName}}: quantity 0 se zyada likhein', { productName: product.name }));
       const unit = ing.unit?.trim() || product.unit;
       if (!unitsCompatible(unit, product.unit)) {
-        throw new BadRequestException(`${product.name} ka stock "${product.unit}" me hai — recipe me "${unit}" nahi chalega. ${product.unit} ya us ka hissa (g/kg, ml/litre, pcs/dozen) likhein.`);
+        throw new BadRequestException(apiMessage('{{productName}} ka stock "{{unit}}" me hai — recipe me "{{unit2}}" nahi chalega. {{unit}} ya us ka hissa (g/kg, ml/litre, pcs/dozen) likhein.', { productName: product.name, unit: product.unit, unit2: unit }));
       }
       // Cost is per unit of the stocked ingredient at today's rate; a typed
       // rate is used only while the ingredient has no cost of its own.

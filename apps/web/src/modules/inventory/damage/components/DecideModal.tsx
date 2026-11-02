@@ -13,8 +13,9 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { STOCK_KEYS } from '@modules/inventory/stock-adjustments/components/meta';
 import { damageApi, type DamageLog } from '../api/damage.api';
 import { DAMAGE_KEY, apiError, itemLabel, qtyLabel } from './meta';
+import { t } from '@core/i18n';
 
-const REJECT_CHIPS = ['Maal theek hai', 'Ghalat quantity', 'Photo saaf nahi', 'Dobara report karein'];
+const REJECT_CHIPS = [t('Maal theek hai'), t('Ghalat quantity'), t('Photo saaf nahi'), t('Dobara report karein')];
 
 export function DecideModal({ mode, rows, onClose, onDone }: {
   mode: 'approve' | 'reject';
@@ -39,30 +40,30 @@ export function DecideModal({ mode, rows, onClose, onDone }: {
       let ok = 0;
       const failed: string[] = [];
       for (const r of rows) {
-        try { await damageApi.reject(r.id, n); ok++; } catch (e) { failed.push(apiError(e, 'Rad nahi hua')); }
+        try { await damageApi.reject(r.id, n); ok++; } catch (e) { failed.push(apiError(e, t('Rad nahi hua'))); }
       }
       return { ok, failed };
     },
     onSuccess: ({ ok, failed }) => {
-      if (ok) toast.success(approve ? `${ok} report approve — stock se nikal gaya` : `${ok} report rad`);
-      if (failed.length) toast.error(`${failed.length} nahi hue: ${failed[0]}`);
+      if (ok) toast.success(approve ? t('{{ok}} report approve — stock se nikal gaya', { ok }) : t('{{ok}} report rad', { ok }));
+      if (failed.length) toast.error(t('{{count}} nahi hue: {{value}}', { count: failed.length, value: failed[0] }));
       qc.invalidateQueries({ queryKey: [DAMAGE_KEY] });
       if (approve && ok) STOCK_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onDone?.();
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, approve ? 'Approve nahi hua' : 'Rad nahi hua')),
+    onError: (e) => toast.error(apiError(e, approve ? t('Approve nahi hua') : t('Rad nahi hua'))),
   });
 
   return (
     <Modal open onClose={onClose} size="md"
-      title={approve ? (rows.length > 1 ? `${rows.length} report approve karein` : 'Report approve karein') : (rows.length > 1 ? `${rows.length} report rad karein` : 'Report rad karein')}
-      description={approve ? 'Approval par maal branch ke stock se nikal jayega aur Stock adjustments me "Kharab" ya "Gum" ban kar dikhega.' : 'Rad karne se stock nahi badalta. Report record me "Rad" likhi rahegi.'}
+      title={approve ? (rows.length > 1 ? t('{{count}} report approve karein', { count: rows.length }) : t('Report approve karein')) : (rows.length > 1 ? t('{{count}} report rad karein', { count: rows.length }) : t('Report rad karein'))}
+      description={approve ? t('Approval par maal branch ke stock se nikal jayega aur Stock adjustments me "Kharab" ya "Gum" ban kar dikhega.') : t('Rad karne se stock nahi badalta. Report record me "Rad" likhi rahegi.')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button variant={approve ? 'primary' : 'danger'} loading={run.isPending} onClick={() => run.mutate()}
           leftIcon={approve ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}>
-          {approve ? 'Approve karein' : 'Rad karein'}
+          {approve ? t('Approve karein') : t('Rad karein')}
         </Button>
       </>}>
       <div className="space-y-3">
@@ -79,13 +80,13 @@ export function DecideModal({ mode, rows, onClose, onDone }: {
         </ul>
         {approve && rows.length > 1 && (
           <p className="flex justify-between rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
-            <span>Kul nuqsan</span><b className="tabular-nums">−{money(total)}</b>
+            <span>{t('Kul nuqsan')}</span><b className="tabular-nums">−{money(total)}</b>
           </p>
         )}
         <div>
-          <label htmlFor="decide-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{approve ? 'Note' : 'Rad karne ki wajah'}</label>
+          <label htmlFor="decide-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{approve ? t('Note') : t('Rad karne ki wajah')}</label>
           <textarea id="decide-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} data-autofocus
-            placeholder={approve ? 'Marzi hai — maslan: Supplier ko wapas bhejna hai' : 'Staff ko pata chale kyun rad hua'}
+            placeholder={approve ? t('Marzi hai — maslan: Supplier ko wapas bhejna hai') : t('Staff ko pata chale kyun rad hua')}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
           {!approve && (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -95,7 +96,7 @@ export function DecideModal({ mode, rows, onClose, onDone }: {
               ))}
             </div>
           )}
-          <p className="mt-1 text-[0.6875rem] text-slate-500">{approve ? 'Report ke sath save hota hai.' : 'Report karne wala record me yeh wajah dekhega.'}</p>
+          <p className="mt-1 text-[0.6875rem] text-slate-500">{approve ? t('Report ke sath save hota hai.') : t('Report karne wala record me yeh wajah dekhega.')}</p>
         </div>
       </div>
     </Modal>

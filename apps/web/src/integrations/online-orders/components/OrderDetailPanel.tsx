@@ -27,6 +27,7 @@ import { OrderProfitCard } from './orders/OrderProfitCard';
 import { RiskAdvice } from './orders/RiskAdvice';
 import { CancelOrderModal } from './orders/CancelOrderModal';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const qc = useQueryClient();
@@ -57,7 +58,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
     onSuccess: (res) => {
       setMatchOpen(false);
       refresh();
-      toast.success(`Bill ban gaya — ${res.sale.saleNumber}`, { description: 'Stock inventory se kam ho gaya' });
+      toast.success(t('Bill ban gaya — {{saleNumber}}', { saleNumber: res.sale.saleNumber }), { description: t('Stock inventory se kam ho gaya') });
       if (res.autoPrint) navigate(`/sales/${res.sale.id}/receipt?auto=1`);
     },
     onError: async (err: any) => {
@@ -70,7 +71,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           return;
         }
       }
-      toast.error(apiErrorMessage(err, 'Accept nahi hua'));
+      toast.error(apiErrorMessage(err, t('Accept nahi hua')));
     },
   });
 
@@ -79,7 +80,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
     onSuccess: (r) => {
       refresh();
       setDispatchOpen(false);
-      toast.success(STATUS_LABEL[r.orderStatus]?.label ?? 'Update ho gaya');
+      toast.success(STATUS_LABEL[r.orderStatus]?.label ?? t('Update ho gaya'));
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
@@ -89,7 +90,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
     onSuccess: () => {
       refresh();
       setCancelOpen(false);
-      toast.success(o?.nafaaSaleId ? 'Order cancel — bill void, stock wapas aa gaya' : 'Order cancel ho gaya');
+      toast.success(o?.nafaaSaleId ? t('Order cancel — bill void, stock wapas aa gaya') : t('Order cancel ho gaya'));
     },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
@@ -97,13 +98,13 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
   const [rtoOpen, setRtoOpen] = useState(false);
   const returned = useMutation({
     mutationFn: (reason: string) => onlineOrdersApi.markReturned(orderId, reason),
-    onSuccess: () => { refresh(); setRtoOpen(false); toast.success('Parcel wapas — bill void, stock wapas aa gaya'); },
+    onSuccess: () => { refresh(); setRtoOpen(false); toast.success(t('Parcel wapas — bill void, stock wapas aa gaya')); },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
   const paid = useMutation({
     mutationFn: () => onlineOrdersApi.paymentReceived(orderId),
-    onSuccess: () => { refresh(); toast.success('Paisa mil gaya — mark ho gaya'); },
+    onSuccess: () => { refresh(); toast.success(t('Paisa mil gaya — mark ho gaya')); },
     onError: (err) => toast.error(apiErrorMessage(err)),
   });
 
@@ -117,9 +118,9 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
   if (error || !o) {
     return (
       <div className="p-8 text-center">
-        <div className="font-bold text-slate-800">Order nahi khula</div>
+        <div className="font-bold text-slate-800">{t('Order nahi khula')}</div>
         <p className="mt-1 text-sm text-slate-500">{apiErrorMessage(error)}</p>
-        <Button className="mt-4" variant="outline" onClick={onClose}>Band karein</Button>
+        <Button className="mt-4" variant="outline" onClick={onClose}>{t('Band karein')}</Button>
       </div>
     );
   }
@@ -131,7 +132,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
   const isClosed = ['CANCELLED', 'REJECTED', 'RETURNED'].includes(o.orderStatus);
   const canRto = !!o.nafaaSaleId && !!o.dispatchedAt && !isClosed && !o.codSettledAt;
   const track = () => {
-    if (o.trackingNumber) navigator.clipboard?.writeText(o.trackingNumber).then(() => toast.success(`CN ${o.trackingNumber} copy — courier ke safhe par paste karein`));
+    if (o.trackingNumber) navigator.clipboard?.writeText(o.trackingNumber).then(() => toast.success(t('CN {{trackingNumber}} copy — courier ke safhe par paste karein', { trackingNumber: o.trackingNumber })));
     if (o.courierSite) window.open(o.courierSite, '_blank', 'noopener');
   };
   const unmatched = o.lines.filter((l) => !l.match).length;
@@ -141,6 +142,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
     ? `https://www.google.com/maps?q=${o.customerLat},${o.customerLng}`
     : o.customerAddress ? `https://www.google.com/maps/search/${encodeURIComponent(`${o.customerAddress} ${o.customerCity ?? ''}`)}` : null;
 
+  // Messages to customers stay untranslated until they follow the shop language.
   const waText = encodeURIComponent(
     isPending || o.orderStatus === 'CONFIRMED'
       ? `Assalam o Alaikum ${o.customerName}! Aap ka order #${num} confirm ho gaya hai. Total ${rs(o.total)}. Shukriya 🙏`
@@ -151,7 +153,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
   const copyAddress = () => {
     const text = [o.customerName, o.customerPhone, o.customerAddress, o.customerCity].filter(Boolean).join('\n');
-    navigator.clipboard?.writeText(text).then(() => toast.success('Address copy ho gaya'));
+    navigator.clipboard?.writeText(text).then(() => toast.success(t('Address copy ho gaya')));
   };
 
   return (
@@ -162,14 +164,14 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-mono text-xl font-bold text-slate-900">#{num}</h2>
             <span className={cn('rounded-lg px-2 py-0.5 text-xs font-bold', st.tone)}>{st.label}</span>
-            {o.isTest && <span className="rounded-lg bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">TEST</span>}
+            {o.isTest && <span className="rounded-lg bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">{t('TEST')}</span>}
           </div>
           <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
             <BrandLogo name={src.brand} size={18} title={src.label} />
             <span className="truncate">{o.integration?.displayName ?? src.label} · {whenText(o.receivedAt)}</span>
           </div>
         </div>
-        <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Band karein">
+        <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label={t('Band karein')}>
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -178,28 +180,28 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
         {/* ─── Warnings ─── */}
         {o.metadata?.cancelRequested && !isClosed && (
           <Warn tone="rose" icon={<Ban className="h-4 w-4" />}>
-            Customer ne website par ye order cancel kar diya hai. Bill ban chuka hai — neeche "Cancel" dabayein taake bill void ho aur stock wapas aaye.
+            {t('Customer ne website par ye order cancel kar diya hai. Bill ban chuka hai — neeche "Cancel" dabayein taake bill void ho aur stock wapas aaye.')}
           </Warn>
         )}
         {o.metadata?.autoAcceptError && isPending && (
           <Warn tone="amber" icon={<AlertTriangle className="h-4 w-4" />}>
-            Khud accept nahi ho saka: {o.metadata.autoAcceptError}
+            {t('Khud accept nahi ho saka: {{autoAcceptError}}', { autoAcceptError: o.metadata.autoAcceptError })}
           </Warn>
         )}
         {isPending && unmatched > 0 && (
           <Warn tone="amber" icon={<Link2 className="h-4 w-4" />}>
-            {unmatched} item ka Nafaa product nahi mila. Accept dabayein — jodne ka safha khul jayega (sirf ek dafa).
+            {t('{{unmatched}} item ka Nafaa product nahi mila. Accept dabayein — jodne ka safha khul jayega (sirf ek dafa).', { unmatched })}
           </Warn>
         )}
         {lowStock.length > 0 && (
           <Warn tone="rose" icon={<Package className="h-4 w-4" />}>
-            Stock kam hai: {lowStock.map((l) => `${l.match!.name} (${l.match!.stock > 0 ? `${l.match!.stock} hai` : 'khatam'}, ${l.quantity} chahiye)`).join(', ')}
+            {t('Stock kam hai: {{value}}', { value: lowStock.map((l) => `${l.match!.name} (${l.match!.stock > 0 ? `${l.match!.stock} hai` : 'khatam'}, ${l.quantity} chahiye)`).join(', ') })}
           </Warn>
         )}
 
         {o.autoBookError && !o.courierBooked && (
           <Warn tone="amber" icon={<Truck className="h-4 w-4" />}>
-            Courier par khud booking nahi hui: {o.autoBookError}
+            {t('Courier par khud booking nahi hui: {{autoBookError}}', { autoBookError: o.autoBookError })}
           </Warn>
         )}
 
@@ -209,7 +211,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Customer ─── */}
         <section className="rounded-2xl bg-white ring-1 ring-slate-200/80 p-4">
-          <div className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">Customer</div>
+          <div className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{t('Customer')}</div>
           <div className="text-base font-bold text-slate-900">{o.customerName}</div>
           {o.customerPhone && <div className="text-sm font-semibold text-slate-600">{o.customerPhone}</div>}
           {o.customerEmail && <div className="text-xs text-slate-500">{o.customerEmail}</div>}
@@ -223,22 +225,22 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           <RiskAdvice order={o} onChanged={refresh} />
           {o.notes && (
             <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              <span className="font-semibold">Note:</span> {o.notes}
+              <span className="font-semibold">{t('Note:')}</span> {o.notes}
             </div>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
             {o.customerPhone && (
-              <a href={`tel:${o.customerPhone}`} className={chip}><Phone className="h-3.5 w-3.5" /> Call</a>
+              <a href={`tel:${o.customerPhone}`} className={chip}><Phone className="h-3.5 w-3.5" /> {' '}{t('Call')}</a>
             )}
             {wa && (
               <a href={`https://wa.me/${wa}?text=${waText}`} target="_blank" rel="noreferrer" className={cn(chip, 'text-success-700')}>
-                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                <MessageCircle className="h-3.5 w-3.5" /> {' '}{'WhatsApp'}
               </a>
             )}
             {mapsUrl && (
-              <a href={mapsUrl} target="_blank" rel="noreferrer" className={chip}><MapPin className="h-3.5 w-3.5" /> Map</a>
+              <a href={mapsUrl} target="_blank" rel="noreferrer" className={chip}><MapPin className="h-3.5 w-3.5" /> {' '}{t('Map')}</a>
             )}
-            <button onClick={copyAddress} className={chip}><Copy className="h-3.5 w-3.5" /> Address copy</button>
+            <button onClick={copyAddress} className={chip}><Copy className="h-3.5 w-3.5" /> {' '}{t('Address copy')}</button>
           </div>
         </section>
 
@@ -247,7 +249,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
         {/* ─── Items ─── */}
         <section className="rounded-2xl bg-white ring-1 ring-slate-200/80">
           <div className="border-b border-slate-100 px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">
-            Items ({o.lines.length})
+            {t('Items ({{count}})', { count: o.lines.length })}
           </div>
           <ul className="divide-y divide-slate-100">
             {o.lines.map((l) => (
@@ -269,7 +271,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                       <CheckCircle2 className="h-3 w-3 shrink-0" /><span className="truncate">{l.match.name}{isPending ? ` · ${stockText(l.match.stock)}` : ''}</span>
                     </div>
                   ) : (
-                    <div className="mt-0.5 flex items-center gap-1 text-[0.6875rem] font-semibold text-amber-700"><Link2 className="h-3 w-3" /> Nafaa product se jodna hai</div>
+                    <div className="mt-0.5 flex items-center gap-1 text-[0.6875rem] font-semibold text-amber-700"><Link2 className="h-3 w-3" /> {' '}{t('Nafaa product se jodna hai')}</div>
                   )}
                 </div>
                 <div className="text-sm font-bold text-slate-800">{rs(l.lineTotal)}</div>
@@ -277,11 +279,11 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             ))}
           </ul>
           <div className="space-y-1 border-t border-slate-100 px-4 py-3 text-sm">
-            <Row label="Items" value={rs(o.subtotal)} />
-            {o.discount > 0 && <Row label="Discount" value={`− ${rs(o.discount)}`} />}
-            <Row label={`Delivery${o.metadata?.shippingMethod ? ` (${o.metadata.shippingMethod})` : ''}`} value={o.deliveryFee > 0 ? rs(o.deliveryFee) : 'Free'} />
+            <Row label={t('Items')} value={rs(o.subtotal)} />
+            {o.discount > 0 && <Row label={t('Discount')} value={`− ${rs(o.discount)}`} />}
+            <Row label={t('Delivery{{value}}', { value: o.metadata?.shippingMethod ? ` (${o.metadata.shippingMethod})` : '' })} value={o.deliveryFee > 0 ? rs(o.deliveryFee) : t('Free')} />
             <div className="flex items-center justify-between pt-1 text-base font-bold text-slate-900">
-              <span>Total</span><span>{rs(o.total)}</span>
+              <span>{t('Total')}</span><span>{rs(o.total)}</span>
             </div>
           </div>
         </section>
@@ -298,18 +300,18 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           <section className="flex items-center gap-3 rounded-2xl bg-success-50/70 p-4 ring-1 ring-success-200">
             <Receipt className="h-5 w-5 text-success-600" />
             <div className="flex-1">
-              <div className="text-sm font-bold text-slate-900">Bill {o.sale.saleNumber}</div>
+              <div className="text-sm font-bold text-slate-900">{t('Bill {{saleNumber}}', { saleNumber: o.sale.saleNumber })}</div>
               <div className="text-xs text-slate-500">
-                {o.sale.status === 'VOIDED' ? 'Void ho gaya — stock wapas aa gaya' : `${rs(o.sale.total)}${o.sale.shop ? ` · ${o.sale.shop.name}` : ''}`}
+                {o.sale.status === 'VOIDED' ? t('Void ho gaya — stock wapas aa gaya') : `${rs(o.sale.total)}${o.sale.shop ? ` · ${o.sale.shop.name}` : ''}`}
               </div>
             </div>
             {o.sale.status !== 'VOIDED' && (
               <div className="flex gap-1.5">
                 <Button size="xs" variant="outline" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => window.open(`/online-orders/print?auto=1&ids=${o.id}`, '_blank')}>
-                  Invoice
+                  {t('Invoice')}
                 </Button>
                 <Button size="xs" variant="outline" leftIcon={<Printer className="h-3.5 w-3.5" />} onClick={() => navigate(`/sales/${o.sale!.id}/receipt`)}>
-                  Receipt
+                  {t('Receipt')}
                 </Button>
               </div>
             )}
@@ -318,21 +320,21 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Timeline ─── */}
         <section className="rounded-2xl bg-white ring-1 ring-slate-200/80 p-4">
-          <div className="mb-3 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">Order ka safar</div>
+          <div className="mb-3 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{t('Order ka safar')}</div>
           <ol className="space-y-2.5">
-            <Step done at={o.receivedAt} label="Order aaya" icon={<Clock className="h-3.5 w-3.5" />} />
-            <Step done={!!o.acceptedAt} at={o.acceptedAt} label="Accept — bill bana, stock kam hua" icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
+            <Step done at={o.receivedAt} label={t('Order aaya')} icon={<Clock className="h-3.5 w-3.5" />} />
+            <Step done={!!o.acceptedAt} at={o.acceptedAt} label={t('Accept — bill bana, stock kam hua')} icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
             <Step
               done={!!o.dispatchedAt}
               at={o.dispatchedAt}
-              label={`Rider/courier ko diya${o.courierLabel ?? o.courierName ? ` (${o.courierLabel ?? o.courierName})` : ''}${o.trackingNumber ? ` · CN ${o.trackingNumber}` : ''}`}
+              label={t('Rider/courier ko diya{{value}}{{value2}}', { value: o.courierLabel ?? o.courierName ? ` (${o.courierLabel ?? o.courierName})` : '', value2: o.trackingNumber ? t(' · CN {{trackingNumber}}', { trackingNumber: o.trackingNumber }) : '' })}
               icon={<Truck className="h-3.5 w-3.5" />}
             />
             {o.orderStatus === 'RETURNED'
-              ? <Step done bad at={o.returnedAt} label={`Parcel wapas aaya (RTO)${o.returnReason ? ` — ${o.returnReason}` : ''}`} icon={<Ban className="h-3.5 w-3.5" />} />
+              ? <Step done bad at={o.returnedAt} label={t('Parcel wapas aaya (RTO){{value}}', { value: o.returnReason ? ` — ${o.returnReason}` : '' })} icon={<Ban className="h-3.5 w-3.5" />} />
               : isClosed
-              ? <Step done bad at={o.cancelledAt} label={`Cancel${o.cancelReason ? ` — ${o.cancelReason}` : ''}`} icon={<Ban className="h-3.5 w-3.5" />} />
-              : <Step done={!!o.deliveredAt} at={o.deliveredAt} label="Customer ko mil gaya" icon={<Package className="h-3.5 w-3.5" />} />}
+              ? <Step done bad at={o.cancelledAt} label={t('Cancel{{value}}', { value: o.cancelReason ? ` — ${o.cancelReason}` : '' })} icon={<Ban className="h-3.5 w-3.5" />} />
+              : <Step done={!!o.deliveredAt} at={o.deliveredAt} label={t('Customer ko mil gaya')} icon={<Package className="h-3.5 w-3.5" />} />}
           </ol>
         </section>
         {o.integration?.type === 'DARAZ'
@@ -342,10 +344,10 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
           <section className="flex items-center gap-3 rounded-2xl bg-white ring-1 ring-slate-200/80 p-4">
             <Truck className="h-5 w-5 text-slate-400" />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-slate-900">{o.courierLabel ?? o.courierName ?? 'Courier'} · CN {o.trackingNumber}</div>
-              <div className="text-xs text-slate-500">Track dabane se CN copy hota hai aur courier ka safha khulta hai</div>
+              <div className="text-sm font-bold text-slate-900">{t('{{value}} · CN {{trackingNumber}}', { value: o.courierLabel ?? o.courierName ?? 'Courier', trackingNumber: o.trackingNumber })}</div>
+              <div className="text-xs text-slate-500">{t('Track dabane se CN copy hota hai aur courier ka safha khulta hai')}</div>
             </div>
-            <Button size="xs" variant="outline" onClick={track} leftIcon={<ExternalLink className="h-3.5 w-3.5" />}>Track</Button>
+            <Button size="xs" variant="outline" onClick={track} leftIcon={<ExternalLink className="h-3.5 w-3.5" />}>{t('Track')}</Button>
           </section>
         )}
       </div>
@@ -362,13 +364,13 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                 onClick={() => (unmatched > 0 ? setMatchOpen(true) : accept.mutate(undefined))}
                 leftIcon={<CheckCircle2 className="h-5 w-5" />}
               >
-                Accept + Bill banao
+                {t('Accept + Bill banao')}
               </Button>
-              <Button size="lg" variant="outline" onClick={() => setCancelOpen(true)}>Reject</Button>
+              <Button size="lg" variant="outline" onClick={() => setCancelOpen(true)}>{t('Reject')}</Button>
             </div>
           ) : o.orderStatus === 'ACCEPTING' ? (
             <div className="flex items-center justify-center gap-2 p-2 text-sm font-bold text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Bill ban raha hai…
+              <Loader2 className="h-4 w-4 animate-spin" /> {' '}{t('Bill ban raha hai…')}
             </div>
           ) : (
             <div className="flex flex-wrap gap-2 [&>*:first-child]:flex-1">
@@ -377,20 +379,20 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                   size="lg"
                   variant="primary"
                   loading={setStatus.isPending}
-                  rightIcon={<ArrowRight className="h-4 w-4" />}
+                  rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}
                   onClick={() =>
                     // Courier par book hai to CN/courier pehle se — seedha "raste me"
                     o.nextStatus === 'OUT_FOR_DELIVERY' && !o.courierBooked ? setDispatchOpen(true) : setStatus.mutate({ status: o.nextStatus! })
                   }
                 >
-                  {NEXT_ACTION[o.orderStatus] ?? 'Aage'}
+                  {NEXT_ACTION[o.orderStatus] ?? t('Aage')}
                 </Button>
               )}
               {canRto && (
-                <Button size="lg" variant="outline" onClick={() => setRtoOpen(true)}>Wapas aaya (RTO)</Button>
+                <Button size="lg" variant="outline" onClick={() => setRtoOpen(true)}>{t('Wapas aaya (RTO)')}</Button>
               )}
               {o.orderStatus !== 'DELIVERED' && !o.dispatchedAt && (
-                <Button size="lg" variant="ghost" className="text-rose-600" onClick={() => setCancelOpen(true)}>Cancel</Button>
+                <Button size="lg" variant="ghost" className="text-rose-600" onClick={() => setCancelOpen(true)}>{t('Cancel')}</Button>
               )}
             </div>
           )}
@@ -427,7 +429,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 }
 
 /** Stock for a matched line; never shows a raw negative number. */
-const stockText = (n: number) => (n > 0 ? `stock ${n}` : n === 0 ? 'stock khatam' : `stock khatam (${Math.abs(n)} zyada bik chuke)`);
+const stockText = (n: number) => (n > 0 ? t('stock {{n}}', { n }) : n === 0 ? t('stock khatam') : t('stock khatam ({{n}} zyada bik chuke)', { n: Math.abs(n) }));
 
 const chip =
   'inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50';
@@ -484,14 +486,14 @@ function DispatchModal({ open, order, loading, onClose, onConfirm }: {
       open={open}
       onClose={onClose}
       size="sm"
-      title="Rider / courier ko de diya"
-      description="Courier chunein aur CN daalein — tracking aur COD ka hisaab courier-wise banega."
+      title={t('Rider / courier ko de diya')}
+      description={t('Courier chunein aur CN daalein — tracking aur COD ka hisaab courier-wise banega.')}
       footer={
         <div className="flex w-full justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>Wapas</Button>
+          <Button variant="ghost" onClick={onClose}>{t('Wapas')}</Button>
           <Button loading={loading} disabled={!code} leftIcon={<Truck className="h-4 w-4" />}
             onClick={() => onConfirm(code || undefined, code === 'OTHER' ? other.trim() || undefined : undefined, tracking.trim() || undefined)}>
-            Raste me hai
+            {t('Raste me hai')}
           </Button>
         </div>
       }
@@ -499,7 +501,7 @@ function DispatchModal({ open, order, loading, onClose, onConfirm }: {
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
         {COURIER_OPTIONS.map((c) => (
           <button key={c.code} type="button" onClick={() => setCode(c.code)} aria-pressed={code === c.code}
-            className={cn('flex min-w-0 items-center gap-1.5 rounded-xl border px-2 py-1.5 text-left text-xs font-semibold transition', code === c.code
+            className={cn('flex min-w-0 items-center gap-1.5 rounded-xl border px-2 py-1.5 text-start text-xs font-semibold transition', code === c.code
               ? 'border-brand-500 bg-brand-50 text-brand-800 ring-1 ring-brand-500'
               : 'border-slate-200 text-slate-700 hover:bg-slate-50')}>
             <BrandLogo name={brandForCourier(c.code)} size={22} />
@@ -509,17 +511,17 @@ function DispatchModal({ open, order, loading, onClose, onConfirm }: {
       </div>
       <div className="mt-3"><CourierHint orderId={order.id} current={code} pickable={COURIER_OPTIONS.map((c) => c.code)} onPick={setCode} /></div>
       {code === 'OTHER' && (
-        <input value={other} onChange={(e) => setOther(e.target.value)} placeholder="Courier ka naam"
+        <input value={other} onChange={(e) => setOther(e.target.value)} placeholder={t('Courier ka naam')}
           className={cn(controlClass(), 'mt-3 h-10 px-3 text-sm')} />
       )}
       {!isRider && (
-        <input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder="CN / tracking number"
+        <input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder={t('CN / tracking number')}
           className={cn(controlClass(), 'mt-3 h-10 px-3 font-mono text-sm')} />
       )}
       {order.isCod && moneyOf(order).codDue > 0 && (
         <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
           <Wallet className="h-3.5 w-3.5" />
-          {isRider ? `Rider ko ${rs(moneyOf(order).codDue)} wasool karne hain` : `COD ${rs(moneyOf(order).codDue)} — deliver ke baad courier ke paas, settlement par aap ko milega`}
+          {isRider ? t('Rider ko {{codDue}} wasool karne hain', { codDue: rs(moneyOf(order).codDue) }) : t('COD {{codDue}} — deliver ke baad courier ke paas, settlement par aap ko milega', { codDue: rs(moneyOf(order).codDue) })}
         </p>
       )}
     </Modal>
@@ -528,14 +530,14 @@ function DispatchModal({ open, order, loading, onClose, onConfirm }: {
 
 function RtoModal({ open, loading, onClose, onConfirm }: { open: boolean; loading: boolean; onClose: () => void; onConfirm: (reason: string) => void }) {
   const [reason, setReason] = useState('');
-  const reasons = ['Customer ne parcel nahi liya', 'Phone band / nahi utha', 'Address ghalat', 'Customer ne mana kar diya', 'Fake order'];
+  const reasons = [t('Customer ne parcel nahi liya'), t('Phone band / nahi utha'), t('Address ghalat'), t('Customer ne mana kar diya'), t('Fake order')];
   return (
-    <Modal open={open} onClose={onClose} size="sm" title="Parcel wapas aaya (RTO)?"
-      description="Bill void ho jayega aur saara stock wapas inventory me. COD ka paisa nahi aayega."
+    <Modal open={open} onClose={onClose} size="sm" title={t('Parcel wapas aaya (RTO)?')}
+      description={t('Bill void ho jayega aur saara stock wapas inventory me. COD ka paisa nahi aayega.')}
       footer={
         <div className="flex w-full justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>Nahi</Button>
-          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>Haan, wapas aaya</Button>
+          <Button variant="ghost" onClick={onClose}>{t('Nahi')}</Button>
+          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>{t('Haan, wapas aaya')}</Button>
         </div>
       }>
       <div className="flex flex-wrap gap-1.5">
@@ -546,7 +548,7 @@ function RtoModal({ open, loading, onClose, onConfirm }: { open: boolean; loadin
               : 'border-slate-200 text-slate-700 hover:bg-slate-50')}>{r}</button>
         ))}
       </div>
-      <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder="Wajah…"
+      <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={t('Wajah…')}
         className={cn(controlClass(), 'mt-3 p-3 text-sm')} />
     </Modal>
   );

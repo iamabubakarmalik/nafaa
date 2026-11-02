@@ -21,13 +21,14 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { kotApi, type Kot, type KotStatus } from '../api/kot.api';
 import { MODE_META, ORDER_KEYS, apiError, minutesSince } from '../lib/orderMeta';
 import { printKot } from '../lib/slips';
+import { t as tr, Trans } from '@core/i18n';
 
 type Lane = 'new' | 'cooking' | 'ready';
 const LANE_OF: Partial<Record<KotStatus, Lane>> = { PENDING: 'new', PRINTED: 'new', ACKNOWLEDGED: 'new', COOKING: 'cooking', READY: 'ready' };
 const LANES: Array<{ id: Lane; label: string; color: string }> = [
-  { id: 'new', label: 'Naye', color: '#2563eb' },
-  { id: 'cooking', label: 'Ban rahe', color: '#ea580c' },
-  { id: 'ready', label: 'Tayyar', color: '#16a34a' },
+  { id: 'new', label: tr('Naye'), color: '#2563eb' },
+  { id: 'cooking', label: tr('Ban rahe'), color: '#ea580c' },
+  { id: 'ready', label: tr('Tayyar'), color: '#16a34a' },
 ];
 const NONE = '-';
 const SOUND_KEY = 'nafaa.restaurant.kotSound';
@@ -51,7 +52,7 @@ function beep() {
 
 export default function KotDisplayPage() {
   const qc = useQueryClient();
-  const shopName = useAuthStore((s) => s.tenant?.name) || 'Restaurant';
+  const shopName = useAuthStore((s) => s.tenant?.name) || tr('Restaurant');
   const canCook = usePermission(PERMISSIONS.RESTAURANT_KITCHEN_MANAGE);
   const [station, setStation] = useState<string>('all');
   const [guide, setGuide] = useState(false);
@@ -116,43 +117,43 @@ export default function KotDisplayPage() {
   return (
     <PageShell>
       {guide && (
-        <Modal open onClose={() => setGuide(false)} size="md" title="Kitchen screen — aasaan tareeqa">
+        <Modal open onClose={() => setGuide(false)} size="md" title={tr('Kitchen screen — aasaan tareeqa')}>
           <ul className="space-y-2 text-[0.875rem] text-slate-700">
-            <li><b>Naye</b>: ticket aate hi yahan. "Shuru" dabayein — saamaan stock se nikal jata hai (recipe ho to).</li>
-            <li><b>Ban rahe</b>: tayyar ho to "Tayyar". Waiter ko floor par hara nishan dikhta hai.</li>
-            <li><b>Tayyar</b>: plate nikal gayi to "De diya".</li>
-            <li><b>Laal ticket</b>: dish cancel hui — mat banayein. 30 minute baad khud hat jata hai.</li>
-            <li>Waqt: 10 minute ke baad peela, 20 ke baad laal. <Kbd>1</Kbd>–<Kbd>9</Kbd> station, <Kbd>M</Kbd> awaaz.</li>
+            <li><b>{tr('Naye')}</b>{tr(': ticket aate hi yahan. "Shuru" dabayein — saamaan stock se nikal jata hai (recipe ho to).')}</li>
+            <li><b>{tr('Ban rahe')}</b>{tr(': tayyar ho to "Tayyar". Waiter ko floor par hara nishan dikhta hai.')}</li>
+            <li><Trans text={'{{label}}: plate nikal gayi to "De diya".'} values={{ label: <b>{tr('Tayyar')}</b> }} /></li>
+            <li><Trans text="{{label}}: dish cancel hui — mat banayein. 30 minute baad khud hat jata hai." values={{ label: <b>{tr('Laal ticket')}</b> }} /></li>
+            <li><Trans text="Waqt: 10 minute ke baad peela, 20 ke baad laal. {{keys}} station, {{m}} awaaz." values={{ keys: <><Kbd>1</Kbd>–<Kbd>9</Kbd></>, m: <Kbd>M</Kbd> }} /></li>
           </ul>
         </Modal>
       )}
       <PageHero
-        title="Kitchen"
-        chip={<><ChefHat />{station === 'all' ? 'Sab stations' : station === NONE ? 'Bina station' : station}</>}
+        title={tr('Kitchen')}
+        chip={<><ChefHat />{station === 'all' ? tr('Sab stations') : station === NONE ? tr('Bina station') : station}</>}
         busy={q.isFetching && !q.isLoading}
-        meta="Har 8 second taaza"
+        meta={tr('Har 8 second taaza')}
         loading={q.isLoading}
         actions={<>
-          <button type="button" onClick={toggleSound} className={heroButton} title="Awaaz (M)">{sound ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}{sound ? 'Awaaz on' : 'Awaaz off'}</button>
-          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={toggleSound} className={heroButton} title={tr('Awaaz (M)')}>{sound ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}{sound ? tr('Awaaz on') : tr('Awaaz off')}</button>
+          <button type="button" onClick={() => setGuide(true)} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Naye', value: String(lane('new').length) },
-          { label: 'Ban rahe', value: String(lane('cooking').length) },
-          { label: 'Tayyar', value: String(lane('ready').length) },
-          { label: '20 min se zyada', value: String(late), hint: late ? 'jaldi karein' : undefined },
+          { label: tr('Naye'), value: String(lane('new').length) },
+          { label: tr('Ban rahe'), value: String(lane('cooking').length) },
+          { label: tr('Tayyar'), value: String(lane('ready').length) },
+          { label: tr('20 min se zyada'), value: String(late), hint: late ? tr('jaldi karein') : undefined },
         ]}
       />
 
       {stations.length > 1 && (
         <ViewTabs value={station} onChange={setStation}
-          tabs={[{ id: 'all', label: 'Sab', count: kots.filter((k) => k.status !== 'CANCELLED').length }, ...stations.map(([s, n]) => ({ id: s, label: s === NONE ? 'Bina station' : s, count: n }))]} />
+          tabs={[{ id: 'all', label: tr('Sab'), count: kots.filter((k) => k.status !== 'CANCELLED').length }, ...stations.map(([s, n]) => ({ id: s, label: s === NONE ? tr('Bina station') : s, count: n }))]} />
       )}
 
       {readyTokens.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
           <HandPlatter className="h-5 w-5 text-emerald-700" />
-          <span className="text-[0.875rem] font-semibold text-emerald-900">Counter par bulayein:</span>
+          <span className="text-[0.875rem] font-semibold text-emerald-900">{tr('Counter par bulayein:')}</span>
           {readyTokens.map((t) => <span key={t} className="rounded-xl bg-emerald-600 px-3 py-1 text-[1rem] font-bold text-white">{t}</span>)}
         </div>
       )}
@@ -175,7 +176,7 @@ export default function KotDisplayPage() {
                   <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: l.color }} />{l.label}</span>
                   <span className="rounded-full bg-white px-2 text-[0.75rem] tabular-nums text-slate-600">{list.length}</span>
                 </h2>
-                {!list.length ? <p className="m-auto text-[0.8125rem] text-slate-400">Khaali</p> : (
+                {!list.length ? <p className="m-auto text-[0.8125rem] text-slate-400">{tr('Khaali')}</p> : (
                   <div className="space-y-3">
                     {list.map((k) => (
                       <Ticket key={k.id} k={k} busy={move.isPending && move.variables?.id === k.id} canCook={canCook}
@@ -189,7 +190,7 @@ export default function KotDisplayPage() {
           })}
         </div>
       )}
-      {!q.isLoading && !kots.length && <p className="text-center text-[0.875rem] text-slate-500">Kitchen me koi ticket nahi. Naya order "Kitchen bhejein" se yahan aata hai.</p>}
+      {!q.isLoading && !kots.length && <p className="text-center text-[0.875rem] text-slate-500">{tr('Kitchen me koi ticket nahi. Naya order "Kitchen bhejein" se yahan aata hai.')}</p>}
     </PageShell>
   );
 }
@@ -203,36 +204,36 @@ function Ticket({ k, cancel, busy, canCook, onPrint, onNext }: {
   const table = snap.table ?? o?.table;
   const mode = o?.mode ? MODE_META[o.mode as keyof typeof MODE_META] : null;
   const token = o?.token ?? snap.token;
-  const title = table ? `Table ${table.tableNumber}` : token ? `Token #${token}` : o?.customerName || o?.orderNumber || k.kotNumber;
+  const title = table ? tr('Table {{tableNumber}}', { tableNumber: table.tableNumber }) : token ? tr('Token #{{token}}', { token }) : o?.customerName || o?.orderNumber || k.kotNumber;
   const timeTone = cancel ? 'bg-rose-600 text-white' : age >= 20 ? 'bg-rose-100 text-rose-800' : age >= 10 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700';
   const lane = LANE_OF[k.status];
   return (
     <article className={cn('overflow-hidden rounded-2xl bg-white shadow-sm ring-1', cancel ? 'ring-2 ring-rose-400' : age >= 20 && lane !== 'ready' ? 'ring-2 ring-rose-300' : 'ring-slate-200')}>
       <header className={cn('flex items-start justify-between gap-2 px-3 py-2', cancel ? 'bg-rose-50' : 'bg-slate-50')}>
         <div className="min-w-0">
-          <p className="truncate text-[1rem] font-bold text-slate-900">{cancel && <XCircle className="mr-1 inline h-4 w-4 text-rose-600" />}{title}</p>
-          <p className="truncate text-[0.6875rem] text-slate-500">{k.kotNumber}{k.station ? ` · ${k.station}` : ''}{mode ? ` · ${mode.label}` : ''}{o?.numberOfGuests ? ` · ${o.numberOfGuests} log` : ''}</p>
+          <p className="truncate text-[1rem] font-bold text-slate-900">{cancel && <XCircle className="me-1 inline h-4 w-4 text-rose-600" />}{title}</p>
+          <p className="truncate text-[0.6875rem] text-slate-500">{k.kotNumber}{k.station ? ` · ${k.station}` : ''}{mode ? ` · ${mode.label}` : ''}{o?.numberOfGuests ? tr(' · {{numberOfGuests}} log', { numberOfGuests: o.numberOfGuests }) : ''}</p>
         </div>
-        <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-[0.75rem] font-bold tabular-nums', timeTone)}><Clock className="h-3.5 w-3.5" />{cancel ? 'CANCEL' : `${age}m`}</span>
+        <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-[0.75rem] font-bold tabular-nums', timeTone)}><Clock className="h-3.5 w-3.5" />{cancel ? tr('CANCEL') : tr('{{age}}m', { age })}</span>
       </header>
       <ul className="divide-y divide-slate-100 px-3">
         {(snap.items ?? []).map((it, i) => (
           <li key={it.id ?? i} className="py-1.5">
-            <p className={cn('text-[0.9375rem] font-semibold text-slate-900', cancel && 'line-through decoration-rose-500')}><span className="mr-1.5 tabular-nums">{it.quantity}×</span>{it.name}</p>
+            <p className={cn('text-[0.9375rem] font-semibold text-slate-900', cancel && 'line-through decoration-rose-500')}><span className="me-1.5 tabular-nums">{it.quantity}×</span>{it.name}</p>
             {(it.modifiers?.length ?? 0) > 0 && <p className="text-[0.8125rem] text-slate-600">{it.modifiers!.join(', ')}</p>}
-            {it.spiceLevel && it.spiceLevel !== 'NONE' && <p className="text-[0.75rem] font-semibold text-rose-600"><Flame className="mr-0.5 inline h-3 w-3" />{it.spiceLevel}</p>}
+            {it.spiceLevel && it.spiceLevel !== 'NONE' && <p className="text-[0.75rem] font-semibold text-rose-600"><Flame className="me-0.5 inline h-3 w-3" />{it.spiceLevel}</p>}
             {(it.specialInstructions || it.cookingNote) && <p className="text-[0.8125rem] font-medium italic text-amber-700">“{[it.cookingNote, it.specialInstructions].filter(Boolean).join(' · ')}”</p>}
           </li>
         ))}
       </ul>
       {(snap.specialRequests || k.notes) && <p className="mx-3 mb-2 rounded-lg bg-amber-50 px-2 py-1 text-[0.75rem] text-amber-900">{[snap.specialRequests, k.notes].filter(Boolean).join(' · ')}</p>}
       <footer className="flex items-center gap-2 border-t border-slate-100 px-3 py-2">
-        <button type="button" onClick={onPrint} title="Print" className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
+        <button type="button" onClick={onPrint} title={tr('Print')} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><Printer className="h-4 w-4" /></button>
         {!cancel && canCook && onNext && (
-          <div className="ml-auto flex gap-2">
-            {lane === 'new' && <Button size="sm" loading={busy} onClick={() => onNext('COOKING')}><Flame className="h-4 w-4" />Shuru</Button>}
-            {lane === 'cooking' && <Button size="sm" variant="success" loading={busy} onClick={() => onNext('READY')}><CheckCheck className="h-4 w-4" />Tayyar</Button>}
-            {lane === 'ready' && <Button size="sm" variant="secondary" loading={busy} onClick={() => onNext('SERVED')}><HandPlatter className="h-4 w-4" />De diya</Button>}
+          <div className="ms-auto flex gap-2">
+            {lane === 'new' && <Button size="sm" loading={busy} onClick={() => onNext('COOKING')}><Flame className="h-4 w-4" />{tr('Shuru')}</Button>}
+            {lane === 'cooking' && <Button size="sm" variant="success" loading={busy} onClick={() => onNext('READY')}><CheckCheck className="h-4 w-4" />{tr('Tayyar')}</Button>}
+            {lane === 'ready' && <Button size="sm" variant="secondary" loading={busy} onClick={() => onNext('SERVED')}><HandPlatter className="h-4 w-4" />{tr('De diya')}</Button>}
           </div>
         )}
       </footer>

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertDoctorDto } from './dto/upsert-doctor.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class DoctorsService {
@@ -13,7 +14,7 @@ export class DoctorsService {
       where: { tenantId, registrationNumber: { equals: reg, mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { name: true },
     });
-    if (dup) throw new BadRequestException(`PMDC ${reg} pehle se ${dup.name} ke naam par hai`);
+    if (dup) throw new BadRequestException(apiMessage('PMDC {{reg}} pehle se {{dupName}} ke naam par hai', { reg, dupName: dup.name }));
   }
 
   /** Names are kept without a "Dr." prefix; screens add it. */

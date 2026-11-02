@@ -10,13 +10,14 @@ import { ClipboardList, Truck } from 'lucide-react';
 import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/history/SalesHistoryPage';
 import type { HistorySale } from '@modules/sales/history/api';
 import { BILL_PREFIX } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold hover:underline';
 const stop = (e: MouseEvent) => e.stopPropagation();
 
 const MARKS = [
-  { prefix: BILL_PREFIX.order, to: '/furniture/custom-orders', icon: ClipboardList, label: 'Custom order', tone: 'bg-amber-50 text-amber-800' },
-  { prefix: BILL_PREFIX.delivery, to: '/furniture/deliveries', icon: Truck, label: 'Delivery charges', tone: 'bg-sky-50 text-sky-700' },
+  { prefix: BILL_PREFIX.order, to: '/furniture/custom-orders', icon: ClipboardList, label: t('Custom order'), tone: 'bg-amber-50 text-amber-800' },
+  { prefix: BILL_PREFIX.delivery, to: '/furniture/deliveries', icon: Truck, label: t('Delivery charges'), tone: 'bg-sky-50 text-sky-700' },
 ];
 
 function useFurnitureExtras() {
@@ -32,7 +33,7 @@ function useFurnitureExtras() {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Furniture', useBillExtras: useFurnitureExtras };
+const config: SalesHistoryConfig = { label: t('Furniture'), useBillExtras: useFurnitureExtras };
 
 export default function FurnitureSalesPage() {
   return <SalesHistoryPage config={config} />;

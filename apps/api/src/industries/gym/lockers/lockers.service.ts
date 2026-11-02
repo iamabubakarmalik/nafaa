@@ -14,6 +14,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { DAY_MS, LOCKER_SALE, assertCan, gymClock, lockerRef, nextNumber, opt, r2, type GymClock } from '../common/gym-common';
 import { AssignLockerDto, CreateLockerDto, LockerRentDto, ReleaseLockerDto, UpdateLockerDto } from './dto/locker.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 type Db = Prisma.TransactionClient;
@@ -93,7 +94,7 @@ export class LockersService {
     if (count > 1 && !/^\d+$/.test(first)) throw new BadRequestException('Kai lockers ek saath banane ke liye number sirf hindsa ho (jaise 1)');
     const numbers = count > 1 ? Array.from({ length: count }, (_, i) => String(Number(first) + i)) : [first];
     const taken = await this.prisma.gymLocker.findMany({ where: { tenantId, number: { in: numbers } }, select: { number: true } });
-    if (taken.length) throw new BadRequestException(`Locker ${taken.map((t) => t.number).join(', ')} pehle se hai`);
+    if (taken.length) throw new BadRequestException(apiMessage('Locker {{map}} pehle se hai', { map: taken.map((t) => t.number).join(', ') }));
     const shopId = await resolveIndustryShopId(this.prisma as unknown as Db, user, null);
     await this.prisma.gymLocker.createMany({
       data: numbers.map((number) => ({ tenantId, shopId, number, monthlyRent: r2(dto.monthlyRent), notes: opt(dto.notes) })),
@@ -126,8 +127,8 @@ export class LockersService {
     return this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "GymLocker" WHERE id = ${id} FOR UPDATE`;
       const row = await this.find(tx, tenantId, id);
-      if (row.status === 'OCCUPIED') throw new BadRequestException(`Locker ${row.number} pehle se kisi ke paas hai`);
-      if (row.status === 'MAINTENANCE') throw new BadRequestException(`Locker ${row.number} repair me hai`);
+      if (row.status === 'OCCUPIED') throw new BadRequestException(apiMessage('Locker {{rowNumber}} pehle se kisi ke paas hai', { rowNumber: row.number }));
+      if (row.status === 'MAINTENANCE') throw new BadRequestException(apiMessage('Locker {{rowNumber}} repair me hai', { rowNumber: row.number }));
       const rent = dto.monthlyRent !== undefined ? r2(dto.monthlyRent) : row.monthlyRent;
       await this.bill(tx, user, clock, { ...row, monthlyRent: rent }, member, start, dto);
       return tx.gymLocker.update({
@@ -148,7 +149,7 @@ export class LockersService {
     const tenantId = user.tenantId;
     await tx.$queryRaw`SELECT id FROM "GymLocker" WHERE id = ${id} FOR UPDATE`;
     const row = await this.find(tx, tenantId, id);
-    if (row.status !== 'OCCUPIED' || !row.memberId) throw new BadRequestException(`Locker ${row.number} kisi member ke paas nahi`);
+    if (row.status !== 'OCCUPIED' || !row.memberId) throw new BadRequestException(apiMessage('Locker {{rowNumber}} kisi member ke paas nahi', { rowNumber: row.number }));
     const member = await tx.gymMember.findFirst({ where: { id: row.memberId, tenantId } });
     if (!member) throw new NotFoundException('Member nahi mila');
     // Unpaid months stay owed: the next period starts right after "paid until".
@@ -197,7 +198,7 @@ export class LockersService {
     const amount = r2(locker.monthlyRent * dto.months);
     if (amount <= 0) return null;
     const paid = r2(Math.max(Number(dto.paidAmount) || 0, 0));
-    if (paid > amount + 0.01) throw new BadRequestException(`Rent sirf Rs ${amount} hai`);
+    if (paid > amount + 0.01) throw new BadRequestException(apiMessage('Rent sirf Rs {{amount}} hai', { amount }));
     const prefix = `${LOCKER_SALE}${clock.year()}-`;
     const saleNumber = await nextNumber(tx, user.tenantId, prefix, async () => (await tx.sale.findFirst({
       where: { tenantId: user.tenantId, saleNumber: { startsWith: prefix } }, orderBy: { saleNumber: 'desc' }, select: { saleNumber: true },

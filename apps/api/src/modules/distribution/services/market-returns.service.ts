@@ -36,6 +36,7 @@ import { listPrice } from '../helpers/pricing';
 import { loadCatalog, pricingFor, readSettings } from '../helpers/pricing-loader';
 import { customerCards, dayRange, nextNumber, parseWhen, r2, r4, routeNames, shopNames, userNames } from '../distribution.support';
 import { principalOfProducts } from './principals.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const EPS = 0.0001;
 
@@ -144,9 +145,9 @@ export class MarketReturnsService {
       const product = catalog.products.get(it.productId) ?? null;
       if (!product) throw new BadRequestException('Item nahi mila ya band hai');
       const variant = it.variantId ? catalog.variants.get(it.variantId) ?? null : null;
-      if (it.variantId && (!variant || variant.productId !== product.id)) throw new BadRequestException(`${product.name}: size/variant nahi mila`);
+      if (it.variantId && (!variant || variant.productId !== product.id)) throw new BadRequestException(apiMessage('{{productName}}: size/variant nahi mila', { productName: product.name }));
       const unit = it.unitId ? catalog.units.get(it.unitId) ?? null : null;
-      if (it.unitId && (!unit || unit.productId !== product.id)) throw new BadRequestException(`${product.name}: pack nahi mila`);
+      if (it.unitId && (!unit || unit.productId !== product.id)) throw new BadRequestException(apiMessage('{{productName}}: pack nahi mila', { productName: product.name }));
       const rate = unit ? Number(unit.conversionRate) || 1 : 1;
       const baseQty = r4(it.qty * rate);
       const last = lastLines.find((l) => l.productId === product.id && (l.variantLink?.variantId ?? null) === (variant?.id ?? null) && l.quantity > 0);

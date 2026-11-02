@@ -16,13 +16,14 @@ import { axisMoney, hourLabel, hourTick } from '@modules/dashboard/engine/parts'
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { BranchComparison, BranchFigures, ShopAnalytics } from '../api/shops.api';
 import { SHOP_TYPES, dayShort } from './meta';
+import { t as tr, Trans } from '@core/i18n';
 
 export type Metric = 'net' | 'netProfit' | 'bills';
 
 export const METRICS: Record<Metric, { label: string; money: boolean }> = {
-  net: { label: 'Sale', money: true },
-  netProfit: { label: 'Net profit', money: true },
-  bills: { label: 'Bill', money: false },
+  net: { label: tr('Sale'), money: true },
+  netProfit: { label: tr('Net profit'), money: true },
+  bills: { label: tr('Bill'), money: false },
 };
 
 interface Fmt {
@@ -47,8 +48,8 @@ export function CompareView({ data, metric, hue, fmt, live }: {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl" title={`${METRICS[metric].label} — branch war`} description={`Is period ka pichhli barabar period (${dayShort(data.previous.from)} — ${dayShort(data.previous.to)}) se muqabla`}>
-        {hidden ? <Note text='Profit dekhne ke liye "Cost dekhna" ki permission chahiye.' /> : (
+      <Card className="rounded-2xl" title={tr('{{label}} — branch war', { label: METRICS[metric].label })} description={tr('Is period ka pichhli barabar period ({{from}} — {{dayShort}}) se muqabla', { from: dayShort(data.previous.from), dayShort: dayShort(data.previous.to) })}>
+        {hidden ? <Note text={tr('Profit dekhne ke liye "Cost dekhna" ki permission chahiye.')} /> : (
           <div className="overflow-x-auto">
             <div style={{ minWidth: Math.max(rows.length * 120, 480), height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -56,7 +57,7 @@ export function CompareView({ data, metric, hue, fmt, live }: {
                   <CartesianGrid vertical={false} stroke={theme.grid} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} />
                   <YAxis tickFormatter={metric === 'bills' ? undefined : axisMoney} allowDecimals={false} width={48} tick={theme.axis} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v, n) => [show(Number(v)), n === 'now' ? 'Is period' : 'Pichhli period']} {...theme.tooltip} />
+                  <Tooltip formatter={(v, n) => [show(Number(v)), n === 'now' ? tr('Is period') : tr('Pichhli period')]} {...theme.tooltip} />
                   <Bar dataKey="before" name="before" fill={theme.isDark ? '#334155' : '#cbd5e1'} radius={[4, 4, 0, 0]} maxBarSize={28} />
                   <Bar dataKey="now" name="now" radius={[4, 4, 0, 0]} maxBarSize={28}>
                     {rows.map((r) => <Cell key={r.id} fill={hue(r.id)} />)}
@@ -68,20 +69,20 @@ export function CompareView({ data, metric, hue, fmt, live }: {
           </div>
         )}
         <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[0.75rem] text-slate-500">
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand-600" />Is period (branch ka rang)</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" />Pichhli period</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand-600" />{tr('Is period (branch ka rang)')}</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-300" />{tr('Pichhli period')}</span>
         </div>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Card className="rounded-2xl" title="Sale me hissa" description="Total sale me har branch kitna la rahi hai">
-          {!share.some((s) => s.net) ? <Note text="Is period me koi sale nahi" /> : (
+        <Card className="rounded-2xl" title={tr('Sale me hissa')} description={tr('Total sale me har branch kitna la rahi hai')}>
+          {!share.some((s) => s.net) ? <Note text={tr('Is period me koi sale nahi')} /> : (
             <div style={{ height: Math.max(share.length * 40 + 20, 120) }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={share} layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }}>
                   <XAxis type="number" domain={[0, 100]} hide />
                   <YAxis type="category" dataKey="name" width={110} tick={theme.axis} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(_v, _n, item) => [`${(item?.payload as { share: number }).share}% · ${fmt.money((item?.payload as { net: number }).net)}`, 'Hissa']} {...theme.tooltip} />
+                  <Tooltip formatter={(_v, _n, item) => [`${(item?.payload as { share: number }).share}% · ${fmt.money((item?.payload as { net: number }).net)}`, tr('Hissa')]} {...theme.tooltip} />
                   <Bar dataKey="share" radius={[0, 6, 6, 0]} maxBarSize={22}>
                     {share.map((s) => <Cell key={s.id} fill={hue(s.id)} />)}
                     <LabelList dataKey="share" position="right" formatter={(v: unknown) => `${v}%`} style={{ fontSize: 11, fontWeight: 600, fill: theme.axis.fill }} />
@@ -95,18 +96,18 @@ export function CompareView({ data, metric, hue, fmt, live }: {
         <div className="space-y-4">
           {best && best.net > 0 && (
             <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white p-4 ring-1 ring-amber-200">
-              <p className="flex items-center gap-2 text-[0.75rem] font-semibold text-amber-800"><Crown className="h-4 w-4" />Sab se aage</p>
+              <p className="flex items-center gap-2 text-[0.75rem] font-semibold text-amber-800"><Crown className="h-4 w-4" />{tr('Sab se aage')}</p>
               <p className="mt-1 truncate text-lg font-bold text-slate-900">{best.name}</p>
               <dl className="mt-2 grid grid-cols-3 gap-2 text-[0.75rem]">
-                <div><dt className="text-slate-500">Sale</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.money(best.net)}</dd></div>
-                <div><dt className="text-slate-500">Hissa</dt><dd className="font-semibold tabular-nums text-slate-900">{best.share.toFixed(0)}%</dd></div>
-                <div><dt className="text-slate-500">Net profit</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.cost(best.netProfit)}</dd></div>
+                <div><dt className="text-slate-500">{tr('Sale')}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.money(best.net)}</dd></div>
+                <div><dt className="text-slate-500">{tr('Hissa')}</dt><dd className="font-semibold tabular-nums text-slate-900">{best.share.toFixed(0)}%</dd></div>
+                <div><dt className="text-slate-500">{tr('Net profit')}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmt.cost(best.netProfit)}</dd></div>
               </dl>
             </div>
           )}
           {live && (
-            <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" />Aaj tawajjo chahiye</span>}>
-              {live.needsAttention.length === 0 ? <p className="text-[0.8125rem] text-success-700">Sab branches theek chal rahi hain.</p> : (
+            <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" />{tr('Aaj tawajjo chahiye')}</span>}>
+              {live.needsAttention.length === 0 ? <p className="text-[0.8125rem] text-success-700">{tr('Sab branches theek chal rahi hain.')}</p> : (
                 <ul className="space-y-2">
                   {live.needsAttention.map((n) => (
                     <li key={n.shopId} className="flex items-start gap-2">
@@ -128,8 +129,8 @@ export function TrendView({ data, hue, fmt }: { data: BranchComparison; hue: (id
   const theme = useChartTheme();
   const rows = data.trend.map((r) => ({ ...r, label: dayShort(String(r.day)) }));
   return (
-    <Card className="rounded-2xl" title="Roz ki sale — har branch" description="Return ghata kar, karobari din ke hisaab se">
-      {data.range.days < 2 ? <Note text="Trend ke liye kam se kam 2 din chunein" /> : (
+    <Card className="rounded-2xl" title={tr('Roz ki sale — har branch')} description={tr('Return ghata kar, karobari din ke hisaab se')}>
+      {data.range.days < 2 ? <Note text={tr('Trend ke liye kam se kam 2 din chunein')} /> : (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -156,7 +157,7 @@ export function HoursView({ data, hue }: { data: BranchComparison; hue: (id: str
   });
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl" title="Rush time" description="Kis ghante kitne bill bane — branches milakar, rang branch ka">
+      <Card className="rounded-2xl" title={tr('Rush time')} description={tr('Kis ghante kitne bill bane — branches milakar, rang branch ka')}>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -175,7 +176,7 @@ export function HoursView({ data, hue }: { data: BranchComparison; hue: (id: str
           <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-200/80">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: hue(p.id) }} />
             <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-medium text-slate-800">{p.name}</span>
-            <span className="text-[0.8125rem] text-slate-500">{p.hour == null ? 'Koi bill nahi' : <>Rush <b className="text-slate-900">{hourLabel(p.hour)}</b></>}</span>
+            <span className="text-[0.8125rem] text-slate-500">{p.hour == null ? tr('Koi bill nahi') : <>{tr('Rush')}{' '} <b className="text-slate-900">{hourLabel(p.hour)}</b></>}</span>
           </li>
         ))}
       </ul>
@@ -185,19 +186,19 @@ export function HoursView({ data, hue }: { data: BranchComparison; hue: (id: str
 
 export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: (id: string) => string; fmt: Fmt }) {
   const t = data.totals;
-  const head = ['Branch', 'Bill', 'Sale', 'Return', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Profit', 'Expenses', 'Nuqsan', 'Net profit', 'Hissa', 'Pichhli se'];
+  const head = [tr('Branch'), tr('Bill'), tr('Sale'), tr('Return'), tr('Discount'), tr('Haath aaya'), tr('Udhaar'), tr('Ausat bill'), tr('Profit'), tr('Expenses'), tr('Nuqsan'), tr('Net profit'), tr('Hissa'), tr('Pichhli se')];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <Table minWidth="64rem" className="[&_table]:text-[0.8125rem]">
         <THead>
-          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</Th>)}</Tr>
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-3 py-2.5', i === 0 ? 'ps-5 text-start' : 'text-end')}>{h}</Th>)}</Tr>
         </THead>
         <TBody>
           {data.shops.map((s) => {
             const T = SHOP_TYPES[s.type];
             return (
               <Tr key={s.id} className="hover:bg-slate-50/60">
-                <Td className="py-2.5 pl-5 pr-3">
+                <Td className="py-2.5 ps-5 pe-3">
                   <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-900">
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: hue(s.id) }} />
                     <T.icon className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{s.name}</span>
@@ -214,7 +215,7 @@ export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: 
         </TBody>
         <tfoot className="border-t-2 border-slate-200 bg-slate-50/70 font-semibold text-slate-900">
           <Tr>
-            <Td className="py-2.5 pl-5 pr-3 text-slate-900">Kul</Td>
+            <Td className="py-2.5 ps-5 pe-3 text-slate-900">{tr('Kul')}</Td>
             <N>{t.bills}</N><N strong>{fmt.money(t.net)}</N><N>{fmt.money(t.refunds)}</N><N>{fmt.money(t.discount)}</N>
             <N>{fmt.money(t.cashIn)}</N><N>{fmt.money(t.credit)}</N><N>{fmt.money(t.bills ? t.net / t.bills : 0)}</N>
             <N>{fmt.cost(t.grossProfit)}</N><N>{fmt.money(t.expenses)}</N><N>{fmt.cost(t.writeOff)}</N><N strong>{fmt.cost(t.netProfit)}</N>
@@ -223,14 +224,14 @@ export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: 
         </tfoot>
       </Table>
       <p className="border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500">
-        Sale = bill − return. Net profit = sale − cost − expenses − nuqsan (kharab/gum maal). Wohi hisaab jo <Link to="/reports" className="font-semibold text-brand-700 hover:underline">Reports</Link> me hai.
+        <Trans text="Sale = bill − return. Net profit = sale − cost − expenses − nuqsan (kharab/gum maal). Wohi hisaab jo {{reports}} me hai." values={{ reports: <Link to="/reports" className="font-semibold text-brand-700 hover:underline">{tr('Reports')}</Link> }} />
       </p>
     </div>
   );
 }
 
 function N({ children, strong }: { children: ReactNode; strong?: boolean }) {
-  return <Td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</Td>;
+  return <Td className={cn('whitespace-nowrap px-3 py-2.5 text-end tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</Td>;
 }
 
 export function Growth({ v }: { v: number }) {

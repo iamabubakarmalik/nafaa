@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { businessConfigApi, type BusinessConfig, type BusinessFeatures } from '@modules/organization/settings/api/business-config.api';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 const DEFAULT_FEATURES: BusinessFeatures = {
   // Core
@@ -231,38 +232,38 @@ function normalizeType(type?: string | null): string {
 }
 
 const TEMPLATE_META: Record<string, { label: string; emoji: string; description: string; quickUnits: string[] }> = {
-  CARPET: { label: 'Carpets / Flooring', emoji: '🏪', description: 'Carpet shop', quickUnits: ['sqft', 'sqm', 'meter'] },
-  MOBILE: { label: 'Mobile / Electronics', emoji: '📱', description: 'Mobile shop', quickUnits: ['pcs', 'set'] },
-  GROCERY: { label: 'Grocery / Kiryana', emoji: '🛒', description: 'Kiryana store', quickUnits: ['kg', 'gram', 'liter', 'pcs'] },
-  PHARMACY: { label: 'Pharmacy', emoji: '💊', description: 'Medical store', quickUnits: ['strip', 'tablet', 'bottle'] },
-  RESTAURANT: { label: 'Restaurant', emoji: '🍽️', description: 'Restaurant/Cafe', quickUnits: ['plate', 'cup', 'glass'] },
-  SALON: { label: 'Salon / Beauty', emoji: '💇', description: 'Beauty parlour', quickUnits: ['service', 'session'] },
-  CLOTHING: { label: 'Clothing / Garments', emoji: '👕', description: 'Clothing store', quickUnits: ['pcs', 'meter', 'gaj'] },
-  HARDWARE: { label: 'Hardware', emoji: '🔧', description: 'Hardware store', quickUnits: ['pcs', 'kg', 'meter', 'bag'] },
-  STATIONERY: { label: 'Stationery', emoji: '📚', description: 'Stationery', quickUnits: ['pcs', 'pack', 'box'] },
-  COSMETICS: { label: 'Cosmetics', emoji: '💄', description: 'Cosmetics shop', quickUnits: ['pcs', 'ml', 'gram'] },
-  BAKERY: { label: 'Bakery', emoji: '🍰', description: 'Bakery/Cake shop', quickUnits: ['pcs', 'kg', 'dozen'] },
-  AUTO_PARTS: { label: 'Auto Parts', emoji: '🔩', description: 'Auto parts', quickUnits: ['pcs', 'set', 'liter'] },
-  MEAT: { label: 'Meat / Butchery', emoji: '🥩', description: 'Meat shop', quickUnits: ['kg', 'gram', 'piece'] },
-  DAIRY: { label: 'Dairy', emoji: '🥛', description: 'Milk shop', quickUnits: ['liter', 'kg', 'packet'] },
-  AGRI: { label: 'Agri', emoji: '🌾', description: 'Agri store', quickUnits: ['kg', 'bag', 'liter'] },
-  JEWELRY: { label: 'Jewelry', emoji: '💎', description: 'Sunar shop', quickUnits: ['gram', 'tola', 'piece'] },
-  HOTEL: { label: 'Hotel', emoji: '🏨', description: 'Hotel/Guest house', quickUnits: ['night', 'day', 'hour'] },
-  GYM: { label: 'Gym', emoji: '💪', description: 'Gym/Fitness', quickUnits: ['session', 'month', 'class'] },
-  CLINIC: { label: 'Clinic', emoji: '⚕️', description: 'Clinic/Doctor', quickUnits: ['consultation', 'session'] },
-  BOOKSTORE: { label: 'Bookstore', emoji: '📚', description: 'Bookstore', quickUnits: ['pcs', 'pack', 'box'] },
-  SERVICE: { label: 'Service Business', emoji: '🔧', description: 'Service business', quickUnits: ['job', 'hour', 'visit'] },
-  APPLIANCES: { label: 'Home Appliances', emoji: '🏠', description: 'Appliances showroom', quickUnits: ['pcs', 'set'] },
-  ELECTRONICS: { label: 'Electronics', emoji: '🔌', description: 'Electronics store', quickUnits: ['pcs', 'pack', 'set'] },
-  FLORIST: { label: 'Florist', emoji: '🌸', description: 'Flower shop', quickUnits: ['pcs', 'bouquet', 'bunch'] },
-  FURNITURE: { label: 'Furniture', emoji: '🪑', description: 'Furniture store', quickUnits: ['pcs', 'set', 'sqft'] },
-  GAMING: { label: 'Gaming Shop', emoji: '🎮', description: 'Gaming/Cyber cafe', quickUnits: ['pcs', 'hour', 'session'] },
-  OPTICAL: { label: 'Optical', emoji: '👓', description: 'Optical store', quickUnits: ['pcs', 'pair', 'box'] },
-  PETSHOP: { label: 'Pet Shop', emoji: '🐾', description: 'Pet shop/Vet', quickUnits: ['pcs', 'kg', 'pack'] },
-  SHOE: { label: 'Shoe Store', emoji: '👟', description: 'Footwear', quickUnits: ['pair', 'pcs', 'box'] },
-  TOYSTORE: { label: 'Toy Store', emoji: '🧸', description: 'Toy shop', quickUnits: ['pcs', 'pack', 'set'] },
-  SPORTS: { label: 'Sports Shop', emoji: '🏏', description: 'Sports store', quickUnits: ['pcs', 'pair', 'set'] },
-  GENERAL: { label: 'General Retail', emoji: '🏬', description: 'General store', quickUnits: ['pcs', 'kg', 'meter'] },
+  CARPET: { label: t('Carpets / Flooring'), emoji: '🏪', description: t('Carpet shop'), quickUnits: ['sqft', 'sqm', 'meter'] },
+  MOBILE: { label: t('Mobile / Electronics'), emoji: '📱', description: t('Mobile shop'), quickUnits: ['pcs', 'set'] },
+  GROCERY: { label: t('Grocery / Kiryana'), emoji: '🛒', description: t('Kiryana store'), quickUnits: ['kg', 'gram', 'liter', 'pcs'] },
+  PHARMACY: { label: t('Pharmacy'), emoji: '💊', description: t('Medical store'), quickUnits: ['strip', 'tablet', 'bottle'] },
+  RESTAURANT: { label: t('Restaurant'), emoji: '🍽️', description: t('Restaurant/Cafe'), quickUnits: ['plate', 'cup', 'glass'] },
+  SALON: { label: t('Salon / Beauty'), emoji: '💇', description: t('Beauty parlour'), quickUnits: ['service', 'session'] },
+  CLOTHING: { label: t('Clothing / Garments'), emoji: '👕', description: t('Clothing store'), quickUnits: ['pcs', 'meter', 'gaj'] },
+  HARDWARE: { label: t('Hardware'), emoji: '🔧', description: t('Hardware store'), quickUnits: ['pcs', 'kg', 'meter', 'bag'] },
+  STATIONERY: { label: t('Stationery'), emoji: '📚', description: t('Stationery'), quickUnits: ['pcs', 'pack', 'box'] },
+  COSMETICS: { label: t('Cosmetics'), emoji: '💄', description: t('Cosmetics shop'), quickUnits: ['pcs', 'ml', 'gram'] },
+  BAKERY: { label: t('Bakery'), emoji: '🍰', description: t('Bakery/Cake shop'), quickUnits: ['pcs', 'kg', 'dozen'] },
+  AUTO_PARTS: { label: t('Auto Parts'), emoji: '🔩', description: t('Auto parts'), quickUnits: ['pcs', 'set', 'liter'] },
+  MEAT: { label: t('Meat / Butchery'), emoji: '🥩', description: t('Meat shop'), quickUnits: ['kg', 'gram', 'piece'] },
+  DAIRY: { label: t('Dairy'), emoji: '🥛', description: t('Milk shop'), quickUnits: ['liter', 'kg', 'packet'] },
+  AGRI: { label: t('Agri'), emoji: '🌾', description: t('Agri store'), quickUnits: ['kg', 'bag', 'liter'] },
+  JEWELRY: { label: t('Jewelry'), emoji: '💎', description: t('Sunar shop'), quickUnits: ['gram', 'tola', 'piece'] },
+  HOTEL: { label: t('Hotel'), emoji: '🏨', description: t('Hotel/Guest house'), quickUnits: ['night', 'day', 'hour'] },
+  GYM: { label: t('Gym'), emoji: '💪', description: t('Gym/Fitness'), quickUnits: ['session', 'month', 'class'] },
+  CLINIC: { label: t('Clinic'), emoji: '⚕️', description: t('Clinic/Doctor'), quickUnits: ['consultation', 'session'] },
+  BOOKSTORE: { label: t('Bookstore'), emoji: '📚', description: t('Bookstore'), quickUnits: ['pcs', 'pack', 'box'] },
+  SERVICE: { label: t('Service Business'), emoji: '🔧', description: t('Service business'), quickUnits: ['job', 'hour', 'visit'] },
+  APPLIANCES: { label: t('Home Appliances'), emoji: '🏠', description: t('Appliances showroom'), quickUnits: ['pcs', 'set'] },
+  ELECTRONICS: { label: t('Electronics'), emoji: '🔌', description: t('Electronics store'), quickUnits: ['pcs', 'pack', 'set'] },
+  FLORIST: { label: t('Florist'), emoji: '🌸', description: t('Flower shop'), quickUnits: ['pcs', 'bouquet', 'bunch'] },
+  FURNITURE: { label: t('Furniture'), emoji: '🪑', description: t('Furniture store'), quickUnits: ['pcs', 'set', 'sqft'] },
+  GAMING: { label: t('Gaming Shop'), emoji: '🎮', description: t('Gaming/Cyber cafe'), quickUnits: ['pcs', 'hour', 'session'] },
+  OPTICAL: { label: t('Optical'), emoji: '👓', description: t('Optical store'), quickUnits: ['pcs', 'pair', 'box'] },
+  PETSHOP: { label: t('Pet Shop'), emoji: '🐾', description: t('Pet shop/Vet'), quickUnits: ['pcs', 'kg', 'pack'] },
+  SHOE: { label: t('Shoe Store'), emoji: '👟', description: t('Footwear'), quickUnits: ['pair', 'pcs', 'box'] },
+  TOYSTORE: { label: t('Toy Store'), emoji: '🧸', description: t('Toy shop'), quickUnits: ['pcs', 'pack', 'set'] },
+  SPORTS: { label: t('Sports Shop'), emoji: '🏏', description: t('Sports store'), quickUnits: ['pcs', 'pair', 'set'] },
+  GENERAL: { label: t('General Retail'), emoji: '🏬', description: t('General store'), quickUnits: ['pcs', 'kg', 'meter'] },
 };
 
 function buildFallbackConfig(tenant: any): BusinessConfig {

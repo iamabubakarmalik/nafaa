@@ -6,6 +6,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { endOfDayTz, startOfDayTz, tzParts } from '../../../common/helpers/business-time.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -63,6 +64,6 @@ export async function checkLinks(db: Db, tenantId: string, ids: {
 export async function activeTechnician(db: Db, tenantId: string, id: string) {
   const tech = await db.applianceTechnician.findFirst({ where: { id, tenantId }, select: { id: true, name: true, phone: true, isActive: true } });
   if (!tech) throw new NotFoundException('Technician nahi mila');
-  if (!tech.isActive) throw new BadRequestException(`${tech.name} abhi active nahi hai`);
+  if (!tech.isActive) throw new BadRequestException(apiMessage('{{techName}} abhi active nahi hai', { techName: tech.name }));
   return tech;
 }

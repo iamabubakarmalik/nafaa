@@ -9,6 +9,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PAKISTAN_CATALOG, CATEGORY_META, type SeedProduct } from './seed-catalog/pakistan-grocery-catalog';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 function toSlug(name: string) {
   return name.toLowerCase().trim()
@@ -955,7 +956,7 @@ export class ProductsService {
     await this.healMissingShopStock(user.tenantId);
 
     return {
-      message: `${productsCreated} products import ho gaye! 🎉`,
+      ...apiMessage('{{productsCreated}} products import ho gaye! 🎉', { productsCreated }),
       imported: productsCreated,
       skipped: productsSkipped,
       brandsCreated,

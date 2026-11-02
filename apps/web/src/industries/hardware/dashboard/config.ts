@@ -14,6 +14,7 @@ import { useHardwareOps } from './useHardwareOps';
 import {
   HardwareCredit, HardwareDeliveries, HardwareProjects, HardwareQuotes, hardwareKpis, useHardwareAttention,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/hardware-products/${id}`;
 
@@ -23,42 +24,42 @@ function useHardwareActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
-    { to: '/hardware/quotations/new', icon: FileText, label: 'Nayi quotation', hint: 'Bare order ka rate' },
-    { to: '/hardware/quotations', icon: FileText, label: 'Quotations', hint: quotations.pending ? `${quotations.pending} jawab baqi` : 'Sab dekhein' },
-    { to: '/hardware/deliveries', icon: Truck, label: 'Challan', hint: delivery.today ? `${delivery.today} aaj` : `${delivery.open} baqi` },
-    { to: '/hardware/projects', icon: Building2, label: 'Sites', hint: `${projects.active} chal rahe` },
-    { to: '/hardware/credit-accounts', icon: CreditCard, label: 'Thekedar khata', hint: cost(credit.outstanding) },
-    { to: '/hardware/reorder-rules', icon: RefreshCw, label: 'Reorder', hint: reorder ? `${reorder} mangwana` : 'Sab theek' },
-    { to: '/hardware-products/new', icon: Plus, label: 'Naya product', hint: 'Maal me daalein' },
-    { to: '/hardware/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} items` },
-    { to: '/hardware/brands', icon: Award, label: 'Brands', hint: 'Company wise' },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('Counter'), hint: t('Sale karein') },
+    { to: '/hardware/quotations/new', icon: FileText, label: t('Nayi quotation'), hint: t('Bare order ka rate') },
+    { to: '/hardware/quotations', icon: FileText, label: t('Quotations'), hint: quotations.pending ? t('{{pending}} jawab baqi', { pending: quotations.pending }) : t('Sab dekhein') },
+    { to: '/hardware/deliveries', icon: Truck, label: t('Challan'), hint: delivery.today ? t('{{today}} aaj', { today: delivery.today }) : t('{{open}} baqi', { open: delivery.open }) },
+    { to: '/hardware/projects', icon: Building2, label: t('Sites'), hint: t('{{active}} chal rahe', { active: projects.active }) },
+    { to: '/hardware/credit-accounts', icon: CreditCard, label: t('Thekedar khata'), hint: cost(credit.outstanding) },
+    { to: '/hardware/reorder-rules', icon: RefreshCw, label: t('Reorder'), hint: reorder ? t('{{reorder}} mangwana', { reorder }) : t('Sab theek') },
+    { to: '/hardware-products/new', icon: Plus, label: t('Naya product'), hint: t('Maal me daalein') },
+    { to: '/hardware/products', icon: Package, label: t('Maal'), hint: t('{{value}} items', { value: s?.totalProducts ?? 0 }) },
+    { to: '/hardware/brands', icon: Award, label: t('Brands'), hint: t('Company wise') },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const hardwareDashboard = createDashboard({
-  label: 'Hardware',
+  label: t('Hardware'),
   productPath,
   openFrom: 8,
   kpis: hardwareKpis,
   defaultKpis: ['hardware-deliveries', 'hardware-credit', 'hardware-quotes', 'profit', 'cash', 'month'],
   useAttention: useHardwareAttention,
   widgets: [
-    { id: 'hardware-credit', title: 'Contractor udhaar', description: 'Sab se zyada udhaar wale contractor aur purana balance', size: 'third', sizes: ANY_SIZE, sensitive: true, Component: HardwareCredit },
-    { id: 'hardware-deliveries', title: 'Aane wali delivery', description: 'Site par jane wala maal, date se', size: 'third', sizes: ANY_SIZE, Component: HardwareDeliveries },
-    { id: 'hardware-projects', title: 'Chalte projects', description: 'Construction sites aur kitna maal pahuncha', size: 'third', sizes: ANY_SIZE, Component: HardwareProjects },
+    { id: 'hardware-credit', title: t('Contractor udhaar'), description: t('Sab se zyada udhaar wale contractor aur purana balance'), size: 'third', sizes: ANY_SIZE, sensitive: true, Component: HardwareCredit },
+    { id: 'hardware-deliveries', title: t('Aane wali delivery'), description: t('Site par jane wala maal, date se'), size: 'third', sizes: ANY_SIZE, Component: HardwareDeliveries },
+    { id: 'hardware-projects', title: t('Chalte projects'), description: t('Construction sites aur kitna maal pahuncha'), size: 'third', sizes: ANY_SIZE, Component: HardwareProjects },
   ],
   lateWidgets: [
-    { id: 'hardware-quotes', title: 'Quotations', description: 'Jawab baqi, mani gayin aur expire', size: 'third', sizes: ['third', 'half'], Component: HardwareQuotes },
+    { id: 'hardware-quotes', title: t('Quotations'), description: t('Jawab baqi, mani gayin aur expire'), size: 'third', sizes: ['third', 'half'], Component: HardwareQuotes },
   ],
   useQuickActions: useHardwareActions,
   moneyMap: { productsPath: '/hardware/products' },
   guide: [
-    { icon: CreditCard, title: 'Contractor ka udhaar', text: 'Hardware me sab se zyada paisa contractor ke paas atakta hai. Overdue aur 90 din purana udhaar "Aaj ka kaam" me sab se upar aata hai.' },
-    { icon: Truck, title: 'Delivery aur projects', text: 'Aaj kaunsi gaari kahan jayegi, kis site par kitna maal pahunch chuka, aur kis quotation ka jawab baqi hai — sab ek jagah.' },
+    { icon: CreditCard, title: t('Contractor ka udhaar'), text: t('Hardware me sab se zyada paisa contractor ke paas atakta hai. Overdue aur 90 din purana udhaar "Aaj ka kaam" me sab se upar aata hai.') },
+    { icon: Truck, title: t('Delivery aur projects'), text: t('Aaj kaunsi gaari kahan jayegi, kis site par kitna maal pahunch chuka, aur kis quotation ka jawab baqi hai — sab ek jagah.') },
   ],
 });

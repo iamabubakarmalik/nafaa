@@ -12,6 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateFloristOrderDto, DeliveryConfirmDto, OrderFromSaleDto, UpdateOrderStatusDto } from './dto/create-order.dto';
 import { cleanInput, dayEnd, dayKey, dayRange, dayStart, parseDay } from '../florist-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 /** Text on an order that ties it to its counter bill. */
@@ -276,7 +277,7 @@ export class FloristOrdersService {
 
     if (o.status === dto.status) return o;
     if (dto.status === 'DELIVERED') throw new BadRequestException('Delivery "Pohancha diya" button se likhein');
-    if (!(NEXT[o.status] ?? []).includes(dto.status)) throw new BadRequestException(`${o.status} se ${dto.status} nahi ho sakta`);
+    if (!(NEXT[o.status] ?? []).includes(dto.status)) throw new BadRequestException(apiMessage('{{oStatus}} se {{dtoStatus}} nahi ho sakta', { oStatus: o.status, dtoStatus: dto.status }));
 
     const patch: Prisma.FloristOrderUpdateInput = { status: dto.status };
     const now = new Date();

@@ -888,7 +888,7 @@ export class SalesService {
       tenantId: user.tenantId,
       type: 'NEW_SALE' as any,
       title: '💰 Sale Complete',
-      message: `${saleNumber} · Rs ${(result as any).total ?? total} · ${dto.items.length} items`,
+      message: apiMessage('{{saleNumber}} · Rs {{total}} · {{count}} items', { saleNumber, total: (result as any).total ?? total, count: dto.items.length }),
       link: `/sales/${(result as any).id}/receipt`,
       metadata: { saleId: (result as any).id, total, itemCount: dto.items.length },
     }).catch(() => null);
@@ -1325,7 +1325,7 @@ export class SalesService {
       const percent = base > 0 ? (given / base) * 100 : 100;
       const what = bill.manualDiscount > 0 ? 'Discount' : 'Kam price';
       if (!trusted && percent > s.maxDiscountPercent + 0.01) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada discount`, true, PIN_NEEDS.discount);
+        await requireManagerPin(this.prisma, user, dto.managerPin, apiMessage('{{percent}}% se zyada discount', { percent: s.maxDiscountPercent }), true, PIN_NEEDS.discount);
       } else if (!trusted && s.requirePinForDiscount) {
         await requireManagerPin(this.prisma, user, dto.managerPin, what, false, PIN_NEEDS.discount);
       }
@@ -1341,7 +1341,7 @@ export class SalesService {
         throw new BadRequestException('Is dukaan me udhaar band hai (Settings)');
       }
       if (c && c.creditLimit > 0 && c.balance + bill.creditAmount > c.creditLimit + 0.01) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, `Credit limit (Rs ${c.creditLimit}) se zyada udhaar`, true, PIN_NEEDS.credit);
+        await requireManagerPin(this.prisma, user, dto.managerPin, apiMessage('Credit limit (Rs {{limit}}) se zyada udhaar', { limit: c.creditLimit }), true, PIN_NEEDS.credit);
       }
     }
   }

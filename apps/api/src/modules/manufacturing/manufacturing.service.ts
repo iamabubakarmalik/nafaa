@@ -19,6 +19,7 @@ import { LIVE_SALE, reportRange, within } from '../reports/reports/report-range'
 import { lineUnitOk, marginPct, r2, r4 } from './manufacturing-cost';
 import { badUnitLines, costOf, loadRecipes, produceInTx, reverseInTx, type LoadedRecipe } from './production-engine';
 import { ListRecipesDto, ListRunsDto, ProduceDto, ReportQueryDto, ReverseRunDto, SaveRecipeDto } from './dto/manufacturing.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 
@@ -135,18 +136,18 @@ export class ManufacturingService {
       this.prisma.productionRecipe.findMany({ where: { tenantId: user.tenantId, productId: { in: rawIds }, lines: { some: { productId } } }, select: { product: { select: { name: true } } } }),
     ]);
     if (raws.length !== rawIds.length) throw new NotFoundException('Ek raw item nahi mila');
-    if (loops.length) throw new BadRequestException(`${loops[0].product.name} khud is product se banta hai — ulta chakkar nahi ban sakta`);
+    if (loops.length) throw new BadRequestException(apiMessage('{{productName}} khud is product se banta hai — ulta chakkar nahi ban sakta', { productName: loops[0].product.name }));
     const R = new Map(raws.map((x) => [x.id, x]));
     const U = new Map(units.map((x) => [x.id, x]));
 
     const lines = dto.lines.map((l, i) => {
       const raw = R.get(l.productId)!;
-      if (raw.hasVariants) throw new BadRequestException(`${raw.name} ke variants hain — Recipe me bina variant wala raw item lein`);
+      if (raw.hasVariants) throw new BadRequestException(apiMessage('{{rawName}} ke variants hain — Recipe me bina variant wala raw item lein', { rawName: raw.name }));
       const unit = l.unitId ? U.get(l.unitId) : null;
-      if (l.unitId && (!unit || unit.productId !== raw.id)) throw new BadRequestException(`${raw.name}: yeh packing is item ki nahi`);
+      if (l.unitId && (!unit || unit.productId !== raw.id)) throw new BadRequestException(apiMessage('{{rawName}}: yeh packing is item ki nahi', { rawName: raw.name }));
       const unitName = unit?.unitName ?? (l.unitName?.trim() || raw.unit);
       if (!lineUnitOk({ unitName, packRate: unit ? Number(unit.conversionRate) || 1 : null, stockUnit: raw.unit })) {
-        throw new BadRequestException(`${raw.name}: "${unitName}" se "${raw.unit}" nahi ban sakta — ${raw.unit} ya us jaisi unit lein`);
+        throw new BadRequestException(apiMessage('{{rawName}}: "{{unitName}}" se "{{unit}}" nahi ban sakta — {{unit}} ya us jaisi unit lein', { rawName: raw.name, unitName, unit: raw.unit }));
       }
       return { productId: raw.id, quantity: r4(l.quantity), unitName, unitId: unit?.id ?? null, sortOrder: i, notes: l.notes?.trim() || null };
     });
@@ -204,9 +205,9 @@ export class ManufacturingService {
     return items.map((it) => {
       const l = byProduct.get(it.productId);
       if (!l) throw new BadRequestException('Is product ki Recipe nahi bani — pehle Recipe banayein');
-      if (!l.recipe.isActive) throw new BadRequestException(`${l.recipe.product.name} ki Recipe band hai`);
+      if (!l.recipe.isActive) throw new BadRequestException(apiMessage('{{productName}} ki Recipe band hai', { productName: l.recipe.product.name }));
       const quantity = it.quantity ?? (it.batches ? it.batches * l.recipe.yieldQty : 0);
-      if (!(quantity > 0)) throw new BadRequestException(`${l.recipe.product.name}: kitna banana hai likhein`);
+      if (!(quantity > 0)) throw new BadRequestException(apiMessage('{{productName}}: kitna banana hai likhein', { productName: l.recipe.product.name }));
       return { item: it, loaded: l, quantity: r4(quantity) };
     });
   }

@@ -10,6 +10,7 @@
 import { apiClient } from '@core/api/client';
 import { SHOP_HEADER } from '@core/lib/shopScope';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 export type AiMode = 'fast' | 'smart';
 
@@ -209,7 +210,7 @@ export interface MorningSummary {
 }
 
 /** The one message shop users see when an answer fails for a technical reason. */
-export const AI_UNAVAILABLE = 'Nafaa AI abhi jawab nahi de pa raha. Thori der baad dobara poochein.';
+export const AI_UNAVAILABLE = t('Nafaa AI abhi jawab nahi de pa raha. Thori der baad dobara poochein.');
 
 const unwrap = <T,>(res: { data: unknown }): T => (res.data as { data: T }).data;
 
@@ -265,7 +266,7 @@ export async function streamChat(body: AiChatRequest, onEvent: (e: AiStreamEvent
       if (Array.isArray(message)) message = message.join(', ');
     } catch { /* not JSON */ }
     const code = codeForStatus(res.status);
-    if (res.status === 403) message = message || 'Is kaam ki permission aap ke paas nahi';
+    if (res.status === 403) message = message || t('Is kaam ki permission aap ke paas nahi');
     // Server-side and setup failures get the product message, never technical text.
     const technical = code === 'NOT_CONFIGURED' || code === 'PROVIDER' || res.status >= 500;
     throw new AiHttpError(code, technical ? AI_UNAVAILABLE : message || AI_UNAVAILABLE);

@@ -15,6 +15,7 @@ import ExchangePage from './pages/ExchangePage';
 import SizeChartsPage from './pages/SizeChartsPage';
 import GarmentProductWizardPage from './pages/GarmentProductWizardPage';
 import GarmentProductDetailPage from './pages/GarmentProductDetailPage';
+import { t } from '@core/i18n';
 
 /**
  * Garments / Boutique / Fashion industry pack: products with size × colour
@@ -24,11 +25,11 @@ import GarmentProductDetailPage from './pages/GarmentProductDetailPage';
 export const GarmentsPack: IndustryPack = {
   id: 'garments',
   name: 'Garments / Boutique / Fashion',
-  shortName: 'Garments',
+  shortName: t('Garments'),
   emoji: '👗',
   priority: 65,
   description:
-    'Ready-made & custom stitching. Size × color variants, measurements, alterations, tailoring, layaway.',
+    t('Ready-made & custom stitching. Size × color variants, measurements, alterations, tailoring, layaway.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -45,20 +46,20 @@ export const GarmentsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Garments extras',
+      label: t('Garments extras'),
       icon: Shirt,
       emoji: '👗',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/garments/tailoring', label: 'Tailoring orders', icon: Scissors },
-        { to: '/garments/alterations', label: 'Alterations', icon: Ruler },
-        { to: '/garments/measurements', label: 'Measurements', icon: Ruler },
-        { to: '/garments/reservations', label: 'Holds', icon: Bookmark },
-        { to: '/garments/layaway', label: 'Instalment plan', icon: CreditCard },
-        { to: '/garments/exchange', label: 'Exchange', icon: ArrowLeftRight, permission: 'returns.create' },
-        { to: '/garments/collections', label: 'Collections', icon: Palette },
-        { to: '/garments/size-charts', label: 'Size charts', icon: Package },
+        { to: '/garments/tailoring', label: t('Tailoring orders'), icon: Scissors },
+        { to: '/garments/alterations', label: t('Alterations'), icon: Ruler },
+        { to: '/garments/measurements', label: t('Measurements'), icon: Ruler },
+        { to: '/garments/reservations', label: t('Holds'), icon: Bookmark },
+        { to: '/garments/layaway', label: t('Instalment plan'), icon: CreditCard },
+        { to: '/garments/exchange', label: t('Exchange'), icon: ArrowLeftRight, permission: 'returns.create' },
+        { to: '/garments/collections', label: t('Collections'), icon: Palette },
+        { to: '/garments/size-charts', label: t('Size charts'), icon: Package },
       ],
     },
   ],
@@ -89,20 +90,20 @@ export const GarmentsPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '👗', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🧥', group: 'Count' },
-      { value: 'pair', label: 'Pair', hint: '👞', group: 'Count' },
-      { value: 'meter', label: 'Meter', hint: '📏', group: 'Fabric' },
-      { value: 'yard', label: 'Yard', hint: '📏', group: 'Fabric' },
+      { value: 'pcs', label: t('Pieces'), hint: '👗', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🧥', group: t('Count') },
+      { value: 'pair', label: t('Pair'), hint: '👞', group: t('Count') },
+      { value: 'meter', label: t('Meter'), hint: '📏', group: t('Fabric') },
+      { value: 'yard', label: t('Yard'), hint: '📏', group: t('Fabric') },
     ],
   },
 
   featureFlags: [
-    { key: 'garmentCollections', label: 'Seasonal Collections', defaultEnabled: true },
-    { key: 'garmentMeasurements', label: 'Body Measurements', defaultEnabled: true },
-    { key: 'garmentTailoring', label: 'Custom Tailoring', defaultEnabled: true },
-    { key: 'garmentAlterations', label: 'Alteration Service', defaultEnabled: true },
-    { key: 'garmentReservations', label: 'Reservations', defaultEnabled: true },
-    { key: 'garmentLayaway', label: 'Layaway/Installments', defaultEnabled: false },
+    { key: 'garmentCollections', label: t('Seasonal Collections'), defaultEnabled: true },
+    { key: 'garmentMeasurements', label: t('Body Measurements'), defaultEnabled: true },
+    { key: 'garmentTailoring', label: t('Custom Tailoring'), defaultEnabled: true },
+    { key: 'garmentAlterations', label: t('Alteration Service'), defaultEnabled: true },
+    { key: 'garmentReservations', label: t('Reservations'), defaultEnabled: true },
+    { key: 'garmentLayaway', label: t('Layaway/Installments'), defaultEnabled: false },
   ],
 };

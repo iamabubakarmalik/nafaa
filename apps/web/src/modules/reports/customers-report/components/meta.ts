@@ -2,6 +2,7 @@
 
 import { Crown, Heart, Hourglass, Moon, Sparkles, TriangleAlert, UserX, type LucideIcon } from 'lucide-react';
 import type { AgeKey, SegmentKey } from '../api';
+import { t } from '@core/i18n';
 
 interface SegmentMeta {
   label: string;
@@ -17,45 +18,45 @@ interface SegmentMeta {
 
 export const SEGMENT_META: Record<SegmentKey, SegmentMeta> = {
   champions: {
-    label: 'Behtareen', color: '#16a34a', icon: Crown,
-    rule: 'Pichle 30 din me aaye, aur saal me 6 ya zyada din khareeda',
-    action: 'Shukriya kahein, VIP banayein, naya maal sab se pehle inhein dikhayein',
+    label: t('Behtareen'), color: '#16a34a', icon: Crown,
+    rule: t('Pichle 30 din me aaye, aur saal me 6 ya zyada din khareeda'),
+    action: t('Shukriya kahein, VIP banayein, naya maal sab se pehle inhein dikhayein'),
     message: 'Assalam-o-Alaikum {name}! {shop} ki taraf se dil se shukriya — aap hamare sab se ache customers me se hain. Agli dafa aayein to aap ke liye khaas discount hai. 🙏',
   },
   loyal: {
-    label: 'Wafadar', color: '#2563eb', icon: Heart,
-    rule: 'Pichle 60 din me aaye, aur saal me 3 ya zyada din khareeda',
-    action: 'Inhein Behtareen banayein: loyalty points, bundle offer',
+    label: t('Wafadar'), color: '#2563eb', icon: Heart,
+    rule: t('Pichle 60 din me aaye, aur saal me 3 ya zyada din khareeda'),
+    action: t('Inhein Behtareen banayein: loyalty points, bundle offer'),
     message: 'Assalam-o-Alaikum {name}! {shop} par aap ka hamesha intezar rehta hai. Is hafte aap ke liye khaas offer hai — zaroor tashreef layein. 😊',
   },
   promising: {
-    label: 'Naye / umeed wale', color: '#0891b2', icon: Sparkles,
-    rule: 'Pichle 30 din me aaye, magar saal me sirf 1–2 din',
-    action: 'Doosri dafa bulayein — pehli khareedari ke baad ka shukriya kaam karta hai',
+    label: t('Naye / umeed wale'), color: '#0891b2', icon: Sparkles,
+    rule: t('Pichle 30 din me aaye, magar saal me sirf 1–2 din'),
+    action: t('Doosri dafa bulayein — pehli khareedari ke baad ka shukriya kaam karta hai'),
     message: 'Assalam-o-Alaikum {name}! {shop} se khareedari ka shukriya. Dobara aayein to aap ke liye chhota sa discount rakha hai. 🙏',
   },
   attention: {
-    label: 'Dhyan chahiye', color: '#d97706', icon: Hourglass,
-    rule: '31–60 din pehle aakhri dafa aaye, saal me 1–2 din',
-    action: 'Yaad dilayein, naya maal ya offer bhejein — warna kho jayenge',
+    label: t('Dhyan chahiye'), color: '#d97706', icon: Hourglass,
+    rule: t('31–60 din pehle aakhri dafa aaye, saal me 1–2 din'),
+    action: t('Yaad dilayein, naya maal ya offer bhejein — warna kho jayenge'),
     message: 'Assalam-o-Alaikum {name}! Kaafi din ho gaye {shop} par aap ko dekhe. Naya maal aa gaya hai — waqt mile to zaroor chakkar lagayein. 😊',
   },
   atRisk: {
-    label: 'Khatre me', color: '#ea580c', icon: TriangleAlert,
-    rule: '60 din se zyada se nahi aaye, magar pehle saal me 3+ din aate thay',
-    action: 'Abhi rabta karein: phone, WhatsApp, khaas discount — yeh ache customer thay',
+    label: t('Khatre me'), color: '#ea580c', icon: TriangleAlert,
+    rule: t('60 din se zyada se nahi aaye, magar pehle saal me 3+ din aate thay'),
+    action: t('Abhi rabta karein: phone, WhatsApp, khaas discount — yeh ache customer thay'),
     message: 'Assalam-o-Alaikum {name}! {shop} ko aap ki kami mehsoos ho rahi hai. Aap ke liye khaas wapsi offer hai — is hafte tashreef layein. 🙏',
   },
   lost: {
-    label: 'Kho gaye', color: '#e11d48', icon: Moon,
-    rule: '60 din se zyada se nahi aaye, aur saal me sirf 1–2 din',
-    action: 'Ek dafa bara offer bhej kar dekhein; jawab na aaye to rehne dein',
+    label: t('Kho gaye'), color: '#e11d48', icon: Moon,
+    rule: t('60 din se zyada se nahi aaye, aur saal me sirf 1–2 din'),
+    action: t('Ek dafa bara offer bhej kar dekhein; jawab na aaye to rehne dein'),
     message: 'Assalam-o-Alaikum {name}! Bohat din ho gaye. {shop} me ab bohat kuch naya hai — aap ke liye wapsi par khaas discount hai. 😊',
   },
   never: {
-    label: 'Kabhi nahi khareeda', color: '#64748b', icon: UserX,
-    rule: 'Naam likha gaya magar koi bill nahi bana',
-    action: 'Pehli khareedari par discount de kar bulayein',
+    label: t('Kabhi nahi khareeda'), color: '#64748b', icon: UserX,
+    rule: t('Naam likha gaya magar koi bill nahi bana'),
+    action: t('Pehli khareedari par discount de kar bulayein'),
     message: 'Assalam-o-Alaikum {name}! {shop} me khush-aamdeed. Pehli khareedari par aap ke liye khaas discount hai — zaroor aayein. 🙏',
   },
 };

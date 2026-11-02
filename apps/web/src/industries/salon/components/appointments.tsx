@@ -18,6 +18,7 @@ import { TakePaymentModal } from '@modules/pos/components';
 import { appointmentsApi, type Appointment, type AppointmentStatus } from '../api/appointments.api';
 import { CancelModal } from './fields';
 import { SALON_KEYS, SOURCE_LABEL, STATUS, apiError, dayKey, serviceLine, shortDate, timeOf, toIso, waLink } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const OPEN: AppointmentStatus[] = ['CONFIRMED', 'RESCHEDULED', 'ARRIVED', 'IN_PROGRESS', 'DRAFT'];
 export const isOpen = (a: Appointment) => !a.saleId && OPEN.includes(a.status);
@@ -26,8 +27,8 @@ export const lateBy = (a: Appointment) => ((a.status === 'CONFIRMED' || a.status
 
 export function StatusBadge({ a }: { a: Appointment }) {
   const late = lateBy(a);
-  if (late > 15) return <Badge size="sm" variant="danger" dot>Late {late < 120 ? `${late} min` : ''}</Badge>;
-  if (a.status === 'IN_PROGRESS' && !a.saleId && (a.internalNotes ?? '').includes('void')) return <Badge size="sm" variant="warning" dot>Bill dobara</Badge>;
+  if (late > 15) return <Badge size="sm" variant="danger" dot>{t('Late {{value}}', { value: late < 120 ? t('{{late}} min', { late }) : '' })}</Badge>;
+  if (a.status === 'IN_PROGRESS' && !a.saleId && (a.internalNotes ?? '').includes('void')) return <Badge size="sm" variant="warning" dot>{t('Bill dobara')}</Badge>;
   const st = STATUS[a.status];
   return <Badge size="sm" variant={st.variant} dot>{st.label}</Badge>;
 }
@@ -45,16 +46,16 @@ export function useAppointmentActions() {
   const status = useMutation({
     mutationFn: ({ a, to, reason }: { a: Appointment; to: AppointmentStatus; reason?: string }) => appointmentsApi.updateStatus(a.id, to, reason),
     onSuccess: (_r, v) => { toast.success(`${v.a.appointmentNumber}: ${STATUS[v.to].label}`); refresh(); },
-    onError: (e) => toast.error(apiError(e, 'Status nahi badla')),
+    onError: (e) => toast.error(apiError(e, t('Status nahi badla'))),
   });
   const pay = useMutation({
     mutationFn: ({ a, amount, method }: { a: Appointment; amount: number; method: string }) => appointmentsApi.addPayment(a.id, { amount, paymentMethod: method }),
-    onSuccess: () => { toast.success('Advance khate me jama ho gaya'); setDialog(null); refresh(); qc.invalidateQueries({ queryKey: ['customers'] }); },
-    onError: (e) => toast.error(apiError(e, 'Payment nahi hui')),
+    onSuccess: () => { toast.success(t('Advance khate me jama ho gaya')); setDialog(null); refresh(); qc.invalidateQueries({ queryKey: ['customers'] }); },
+    onError: (e) => toast.error(apiError(e, t('Payment nahi hui'))),
   });
 
   const remind = (a: Appointment) => {
-    const text = `Assalam o Alaikum ${a.customerName ?? ''}! ${shopName} me aap ka appointment ${shortDate(a.scheduledStart)} ${timeOf(a.scheduledStart)} par hai (${serviceLine(a.services)}).${dueOf(a) > 0 && a.paidAmount > 0 ? ` Advance ${formatPKR(a.paidAmount)} mil chuka.` : ''} Shukriya!`;
+    const text = `Assalam o Alaikum ${a.customerName ?? ''}! ${shopName} me aap ka appointment ${shortDate(a.scheduledStart)} ${timeOf(a.scheduledStart)} par hai (${serviceLine(a.services)}).${dueOf(a) > 0 && a.paidAmount > 0 ? ` Advance ${formatPKR(a.paidAmount)} mil chuka.` : ''} Shukriya!`; // i18n-ignore
     window.open(waLink(a.customerPhone, text), '_blank', 'noopener');
   };
 
@@ -72,9 +73,9 @@ export function useAppointmentActions() {
 
   const modals = dialog && (
     dialog.kind === 'pay' ? (
-      <TakePaymentModal title={`Advance — ${dialog.a.appointmentNumber}`} description={`${dialog.a.customerName ?? 'Customer'} · bill ${formatPKR(dialog.a.total)}`}
-        amount={dueOf(dialog.a)} max={dueOf(dialog.a)} loading={pay.isPending} confirmLabel="Advance lein"
-        hint="Customer ke khate me advance jama hota hai aur bill me khud kat jata hai"
+      <TakePaymentModal title={t('Advance — {{appointmentNumber}}', { appointmentNumber: dialog.a.appointmentNumber })} description={t('{{value}} · bill {{total}}', { value: dialog.a.customerName ?? 'Customer', total: formatPKR(dialog.a.total) })}
+        amount={dueOf(dialog.a)} max={dueOf(dialog.a)} loading={pay.isPending} confirmLabel={t('Advance lein')}
+        hint={t('Customer ke khate me advance jama hota hai aur bill me khud kat jata hai')}
         onConfirm={(amount, method) => pay.mutate({ a: dialog.a, amount, method })} onClose={() => setDialog(null)} />
     ) : dialog.kind === 'cancel' ? (
       <CancelModal title={`${dialog.a.appointmentNumber} · ${dialog.a.customerName ?? ''}`} paid={Number(dialog.a.paidAmount)}
@@ -101,18 +102,18 @@ function MoveModal({ a, onDone, onClose }: { a: Appointment; onDone: () => void;
       const from = toIso(date, time);
       return appointmentsApi.reschedule(a.id, { scheduledStart: from, scheduledEnd: new Date(new Date(from).getTime() + length * 60_000).toISOString(), reason: reason.trim() || undefined });
     },
-    onSuccess: () => { toast.success('Naya waqt lag gaya'); onDone(); },
-    onError: (e) => toast.error(apiError(e, 'Waqt nahi badla')),
+    onSuccess: () => { toast.success(t('Naya waqt lag gaya')); onDone(); },
+    onError: (e) => toast.error(apiError(e, t('Waqt nahi badla'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Waqt badlein" description={`${a.appointmentNumber} · ${a.customerName ?? ''} · ${length} min`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={run.isPending} disabled={!date || !time} onClick={() => run.mutate()}>Naya waqt lagayein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={t('Waqt badlein')} description={t('{{appointmentNumber}} · {{value}} · {{length}} min', { appointmentNumber: a.appointmentNumber, value: a.customerName ?? '', length })}
+      footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={run.isPending} disabled={!date || !time} onClick={() => run.mutate()}>{t('Naya waqt lagayein')}</Button></>}>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Date" type="date" value={date} min={dayKey(new Date())} onChange={(e) => setDate(e.target.value)} />
-          <Input label="Waqt" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          <Input label={t('Date')} type="date" value={date} min={dayKey(new Date())} onChange={(e) => setDate(e.target.value)} />
+          <Input label={t('Waqt')} type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </div>
-        <Textarea label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder="Customer ne kaha, stylist chhutti par…" hint="Marzi hai" />
+        <Textarea label={t('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder={t('Customer ne kaha, stylist chhutti par…')} hint={t('Marzi hai')} />
       </div>
     </Modal>
   );
@@ -132,31 +133,31 @@ export function AppointmentRow({ a, act, canBook, canBill }: { a: Appointment; a
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-[0.9375rem] font-semibold text-slate-900">{a.customerName || 'Walk-in'}</span>
+            <span className="truncate text-[0.9375rem] font-semibold text-slate-900">{a.customerName || t('Walk-in')}</span>
             <StatusBadge a={a} />
             {a.source !== 'BOOKED' && <Badge size="xs" variant="outline">{SOURCE_LABEL[a.source]}</Badge>}
           </span>
           <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{serviceLine(a.services)}{people ? ` · ${people}` : ''}</span>
           <span className="mt-0.5 block text-[0.75rem] text-slate-500">
             {a.appointmentNumber} · {formatPKR(a.total)}
-            {Number(a.paidAmount) > 0 && <span className="text-success-700"> · advance {formatPKR(a.paidAmount)}</span>}
-            {a.saleId && <span className="text-success-700"> · bill ban gaya</span>}
+            {Number(a.paidAmount) > 0 && <span className="text-success-700"> {' '}{t('· advance {{paidAmount}}', { paidAmount: formatPKR(a.paidAmount) })}</span>}
+            {a.saleId && <span className="text-success-700"> {' '}{t('· bill ban gaya')}</span>}
           </span>
         </span>
       </Link>
       {open && (
         <div className="flex flex-wrap gap-1.5 sm:justify-end">
-          {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button size="sm" variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>Aa gaye</Button>}
-          {canBook && a.status === 'ARRIVED' && <Button size="sm" variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>Chair par</Button>}
-          {canBill && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>Bill</Button>}
-          {canBill && due > 0 && <IconBtn title="Advance lein" onClick={() => act.pay(a)}><Wallet className="h-4 w-4" /></IconBtn>}
-          {a.customerPhone && <IconBtn title="WhatsApp yaad dihani" onClick={() => act.remind(a)}><MessageCircle className="h-4 w-4" /></IconBtn>}
-          {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <IconBtn title="Waqt badlein" onClick={() => act.move(a)}><CalendarClock className="h-4 w-4" /></IconBtn>}
-          {canBook && lateBy(a) > 15 && <IconBtn title="Nahi aaye (no-show)" onClick={() => act.noShow(a)}><UserX className="h-4 w-4" /></IconBtn>}
-          {canBook && <IconBtn title="Cancel" onClick={() => act.cancel(a)}><X className="h-4 w-4" /></IconBtn>}
+          {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <Button size="sm" variant="secondary" leftIcon={<UserCheck className="h-4 w-4" />} onClick={() => act.arrived(a)} disabled={act.busy}>{t('Aa gaye')}</Button>}
+          {canBook && a.status === 'ARRIVED' && <Button size="sm" variant="secondary" leftIcon={<Armchair className="h-4 w-4" />} onClick={() => act.start(a)} disabled={act.busy}>{t('Chair par')}</Button>}
+          {canBill && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => act.bill(a)}>{t('Bill')}</Button>}
+          {canBill && due > 0 && <IconBtn title={t('Advance lein')} onClick={() => act.pay(a)}><Wallet className="h-4 w-4" /></IconBtn>}
+          {a.customerPhone && <IconBtn title={t('WhatsApp yaad dihani')} onClick={() => act.remind(a)}><MessageCircle className="h-4 w-4" /></IconBtn>}
+          {canBook && (a.status === 'CONFIRMED' || a.status === 'RESCHEDULED') && <IconBtn title={t('Waqt badlein')} onClick={() => act.move(a)}><CalendarClock className="h-4 w-4" /></IconBtn>}
+          {canBook && lateBy(a) > 15 && <IconBtn title={t('Nahi aaye (no-show)')} onClick={() => act.noShow(a)}><UserX className="h-4 w-4" /></IconBtn>}
+          {canBook && <IconBtn title={t('Cancel')} onClick={() => act.cancel(a)}><X className="h-4 w-4" /></IconBtn>}
         </div>
       )}
-      {!open && a.saleId && <span className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-success-700"><CheckCircle2 className="h-4 w-4" /> Paid {formatPKR(a.paidAmount)}</span>}
+      {!open && a.saleId && <span className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-success-700"><CheckCircle2 className="h-4 w-4" /> {' '}{t('Paid {{paidAmount}}', { paidAmount: formatPKR(a.paidAmount) })}</span>}
     </li>
   );
 }

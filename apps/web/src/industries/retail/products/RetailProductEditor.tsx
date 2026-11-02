@@ -5,11 +5,12 @@ import { basicStep, priceStep, stockStep } from '@modules/inventory/products/edi
 import { RETAIL_UNITS, VARIANT_PRESETS } from '@modules/inventory/products/editor/units';
 import { Boxes } from 'lucide-react';
 import type { CoreOptions, EditorConfig } from '@modules/inventory/products/editor/types';
+import { t } from '@core/i18n';
 
 const core: CoreOptions = { units: RETAIL_UNITS, skuPrefix: 'RTL', packs: true, variants: { presets: VARIANT_PRESETS }, batches: true };
 
 const config: EditorConfig<Record<string, never>> = {
-  label: 'Retail',
+  label: t('Retail'),
   draftKey: 'nafaa.product-editor.retail',
   paths: { list: '/products', detail: (id) => `/retail-products/${id}`, create: '/retail-products/new' },
   core,
@@ -20,7 +21,7 @@ const config: EditorConfig<Record<string, never>> = {
     stockStep(core),
   ],
   refresh: ['retail-products'],
-  guide: [{ icon: Boxes, color: '#0891b2', title: 'Packing', text: 'Cheez darjan, dabba ya carton mein bhi bikti ho to Qeemat step mein Packing jorein — har packing ka apna rate aur barcode.' }],
+  guide: [{ icon: Boxes, color: '#0891b2', title: t('Packing'), text: t('Cheez darjan, dabba ya carton mein bhi bikti ho to Qeemat step mein Packing jorein — har packing ka apna rate aur barcode.') }],
 };
 
 export default function RetailProductEditor() {

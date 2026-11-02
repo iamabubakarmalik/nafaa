@@ -12,6 +12,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { PIECES_KEY, ROLLS_KEY, readCarpetNote } from '../lib/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 
@@ -27,9 +28,9 @@ function useCarpetLines(sales: HistorySale[]) {
   const settle = async (saleId: string) => {
     const res = await carpetRollsApi.settleBill(saleId).catch(() => null);
     const bad = res ? res.lines.filter((l) => !l.ok) : [];
-    if (!res) toast.error('Stock se nahi kata — internet check karein');
+    if (!res) toast.error(t('Stock se nahi kata — internet check karein'));
     else if (bad.length) toast.error(bad.map((b) => b.message).join(' • '));
-    else toast.success(`Bill ${res.saleNumber} ka carpet stock se kat gaya`);
+    else toast.success(t('Bill {{saleNumber}} ka carpet stock se kat gaya', { saleNumber: res.saleNumber }));
     for (const key of ['carpet-bill-lines', 'carpet-unsettled', ROLLS_KEY, PIECES_KEY]) void qc.invalidateQueries({ queryKey: [key] });
   };
   return (sale: HistorySale) => {
@@ -53,7 +54,7 @@ function useCarpetLines(sales: HistorySale[]) {
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Carpet', useBillExtras: useCarpetLines };
+const config: SalesHistoryConfig = { label: t('Carpet'), useBillExtras: useCarpetLines };
 
 export default function CarpetSales() {
   return <SalesHistoryPage config={config} />;

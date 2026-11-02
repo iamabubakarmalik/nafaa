@@ -17,6 +17,7 @@ import { CHANNELS, PART_COLORS, change, pctText, type PnlLine } from '../meta';
 import { lineText, statementNotes } from '../print';
 import { Empty, type Fmt } from './parts';
 import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
+import { t } from '@core/i18n';
 
 export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
   report: PnlReport;
@@ -30,7 +31,7 @@ export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
     <div className="space-y-4">
       {!report.costVisible && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] font-medium text-amber-900 ring-1 ring-amber-100">
-          <AlertTriangle className="h-4 w-4 shrink-0" /> Aap ko cost dekhne ki permission nahi, is liye profit aur stock nuksan khali hain. Malik se "Cost dekhna" ki permission lein.
+          <AlertTriangle className="h-4 w-4 shrink-0" /> {' '}{t('Aap ko cost dekhne ki permission nahi, is liye profit aur stock nuksan khali hain. Malik se "Cost dekhna" ki permission lein.')}
         </p>
       )}
 
@@ -41,10 +42,10 @@ export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
           {report.costVisible && !fmt.costHidden && <ProfitSplitCard split={report.current.profitSplit} money={fmt.cost} />}
           {notes.length > 0 && (
             <div className="rounded-2xl bg-amber-50 p-4 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
-              <p className="mb-1.5 flex items-center gap-1.5 font-semibold"><AlertTriangle className="h-4 w-4" /> Dhyan dein</p>
+              <p className="mb-1.5 flex items-center gap-1.5 font-semibold"><AlertTriangle className="h-4 w-4" /> {' '}{t('Dhyan dein')}</p>
               <ul className="space-y-1.5 leading-relaxed">{notes.map((x) => <li key={x}>• {x}</li>)}</ul>
               {report.current.cogs && report.current.cogs.unknownLines > 0 && (
-                <Link to="/products" className="mt-2 inline-flex items-center gap-1 font-semibold text-amber-900 underline">Products par cost likhein <ChevronRight className="h-3.5 w-3.5" /></Link>
+                <Link to="/products" className="mt-2 inline-flex items-center gap-1 font-semibold text-amber-900 underline">{t('Products par cost likhein')}{' '} <ChevronRight className="h-3.5 w-3.5 rtl-flip" /></Link>
               )}
             </div>
           )}
@@ -71,11 +72,11 @@ function StatementTable({ report, lines, fmt, prevLabel, onDrill }: { report: Pn
       <Table className="[&_table]:text-[0.875rem]">
         <THead>
           <Tr>
-            <Th className="px-4 py-2.5 text-left sm:px-5">Details</Th>
-            <Th className="px-3 py-2.5 text-right">Is period</Th>
-            <Th className="hidden px-3 py-2.5 text-right md:table-cell" title="Net sale ka kitna hissa">% sale</Th>
-            <Th className="hidden px-3 py-2.5 text-right sm:table-cell">{prevLabel}</Th>
-            <Th className="px-3 py-2.5 text-right sm:pr-5">Farq</Th>
+            <Th className="px-4 py-2.5 text-start sm:px-5">{t('Details')}</Th>
+            <Th className="px-3 py-2.5 text-end">{t('Is period')}</Th>
+            <Th className="hidden px-3 py-2.5 text-end md:table-cell" title={t('Net sale ka kitna hissa')}>{t('% sale')}</Th>
+            <Th className="hidden px-3 py-2.5 text-end sm:table-cell">{prevLabel}</Th>
+            <Th className="px-3 py-2.5 text-end sm:pe-5">{t('Farq')}</Th>
           </Tr>
         </THead>
         <TBody className="divide-y-0">
@@ -98,19 +99,19 @@ function StatementTable({ report, lines, fmt, prevLabel, onDrill }: { report: Pn
                 l.kind === 'sub' && 'text-[0.8125rem] text-slate-500',
                 clickable && 'cursor-pointer hover:bg-slate-50',
               )} onClick={clickable ? () => onDrill(l) : undefined}>
-                <Td className={cn('px-4 py-2 text-inherit sm:px-5', l.kind === 'sub' && 'pl-8 sm:pl-10')}>
+                <Td className={cn('px-4 py-2 text-inherit sm:px-5', l.kind === 'sub' && 'ps-8 sm:ps-10')}>
                   <span className="inline-flex items-center gap-1.5">
                     {l.minus && <span className="text-slate-400">−</span>}
                     <span className={cn(l.kind === 'ratio' && 'italic text-slate-600')}>{l.label}</span>
-                    {clickable && <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-brand-600" />}
-                    {l.to && <Link to={l.to} onClick={(e) => e.stopPropagation()} title="Page kholein" className="text-slate-300 hover:text-brand-600"><ExternalLink className="h-3.5 w-3.5" /></Link>}
+                    {clickable && <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-brand-600 rtl-flip" />}
+                    {l.to && <Link to={l.to} onClick={(e) => e.stopPropagation()} title={t('Page kholein')} className="text-slate-300 hover:text-brand-600"><ExternalLink className="h-3.5 w-3.5" /></Link>}
                   </span>
                   {l.hint && l.kind !== 'sub' && <span className="block text-[0.6875rem] font-normal text-slate-400">{l.hint}</span>}
                 </Td>
-                <Td className={cn('whitespace-nowrap px-3 py-2 text-right tabular-nums', negative ? 'text-rose-700' : 'text-slate-900')}>{show(l, report.current)}</Td>
-                <Td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-500 md:table-cell">{share}</Td>
-                <Td className="hidden whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-500 sm:table-cell">{show(l, report.previous)}</Td>
-                <Td className="whitespace-nowrap px-3 py-2 text-right sm:pr-5">
+                <Td className={cn('whitespace-nowrap px-3 py-2 text-end tabular-nums', negative ? 'text-rose-700' : 'text-slate-900')}>{show(l, report.current)}</Td>
+                <Td className="hidden whitespace-nowrap px-3 py-2 text-end tabular-nums text-slate-500 md:table-cell">{share}</Td>
+                <Td className="hidden whitespace-nowrap px-3 py-2 text-end tabular-nums text-slate-500 sm:table-cell">{show(l, report.previous)}</Td>
+                <Td className="whitespace-nowrap px-3 py-2 text-end sm:pe-5">
                   {ch != null && Math.abs(ch) >= 0.05 && (
                     <span className={cn('inline-flex items-center gap-0.5 text-[0.75rem] font-semibold tabular-nums',
                       good == null ? 'text-slate-500' : good ? 'text-success-600' : 'text-rose-600')}>
@@ -153,14 +154,14 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
   const chart = below ? data.map((d) => ({ ...d, base: 0, value: d.raw })) : data;
 
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Waypoints className="h-4 w-4 text-brand-600" />Sale se profit tak</span>} description="Har 100 rupay ki sale me se kahan kitna gaya">
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Waypoints className="h-4 w-4 text-brand-600" />{t('Sale se profit tak')}</span>} description={t('Har 100 rupay ki sale me se kahan kitna gaya')}>
       <div className="h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chart} margin={{ top: 8, right: 4, left: -12, bottom: 0 }}>
             <CartesianGrid stroke={theme.grid} vertical={false} />
             <XAxis dataKey="name" tick={{ ...theme.axis, fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
             <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-            <Tooltip formatter={(_v, _n, p) => [formatPKR((p as { payload?: { raw?: number } }).payload?.raw ?? 0), 'Amount']} {...theme.tooltip} />
+            <Tooltip formatter={(_v, _n, p) => [formatPKR((p as { payload?: { raw?: number } }).payload?.raw ?? 0), t('Amount')]} {...theme.tooltip} />
             {!below && <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />}
             <Bar dataKey="value" stackId={below ? undefined : 'w'} radius={[4, 4, 0, 0]} barSize={30}>
               {chart.map((d) => <Cell key={d.name} fill={d.color} />)}
@@ -177,7 +178,7 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
             </li>
           ))}
           <li className="flex items-center justify-between gap-2 font-semibold">
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: net >= 0 ? PART_COLORS.profit : PART_COLORS.loss }} />Bacha</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: net >= 0 ? PART_COLORS.profit : PART_COLORS.loss }} />{t('Bacha')}</span>
             <span className="tabular-nums text-slate-900">{pctText(s.netMargin)}</span>
           </li>
         </ul>
@@ -189,8 +190,8 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
 function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
   const total = report.channels.reduce((a, c) => a + c.net, 0);
   return (
-    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />Sale ke raaste</span>} description="Counter, website, Daraz, Foodpanda… har raaste ki kamai aur profit">
-      {!report.channels.length ? <Empty text="Is period me koi sale nahi" /> : (
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-brand-600" />{t('Sale ke raaste')}</span>} description={t('Counter, website, Daraz, Foodpanda… har raaste ki kamai aur profit')}>
+      {!report.channels.length ? <Empty text={t('Is period me koi sale nahi')} /> : (
         <ul className="space-y-3">
           {report.channels.map((c) => {
             const meta = CHANNELS[c.source] ?? { label: c.source, color: '#64748b' };
@@ -198,12 +199,12 @@ function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
             return (
               <li key={c.source}>
                 <div className="flex justify-between gap-2 text-[0.8125rem]">
-                  <span className="font-medium text-slate-800">{meta.label} <span className="font-normal text-slate-400">· {c.bills} bill</span></span>
+                  <span className="font-medium text-slate-800">{meta.label} <span className="font-normal text-slate-400">{t('· {{bills}} bill', { bills: c.bills })}</span></span>
                   <span className="tabular-nums text-slate-900">{fmt.sales(c.net)} <span className="text-slate-400">· {share.toFixed(0)}%</span></span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${Math.max(share, 1)}%`, background: meta.color }} /></div>
                 <p className="mt-0.5 text-[0.6875rem] text-slate-500">
-                  {c.returns > 0 && `Return ${fmt.sales(c.returns)} · `}Profit {c.profit == null ? '—' : fmt.cost(c.profit)}{c.margin != null && !fmt.costHidden && ` (${pctText(c.margin)})`}
+                  {t('{{value}}Profit {{value2}}{{value3}}', { value: c.returns > 0 ? t('Return {{returns}} · ', { returns: fmt.sales(c.returns) }) : '', value2: c.profit == null ? '—' : fmt.cost(c.profit), value3: c.margin != null && !fmt.costHidden ? ` (${pctText(c.margin)})` : '' })}
                 </p>
               </li>
             );
@@ -217,21 +218,21 @@ function Channels({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
 function Categories({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
   const top = report.categories.slice(0, 10);
   return (
-    <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war profit</span>}
-      description="Item ki sale (bill discount ke baad) minus return">
-      {!top.length ? <div className="px-5 pb-5"><Empty text="Is period me koi sale nahi" /></div> : (
+    <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />{t('Category war profit')}</span>}
+      description={t('Item ki sale (bill discount ke baad) minus return')}>
+      {!top.length ? <div className="px-5 pb-5"><Empty text={t('Is period me koi sale nahi')} /></div> : (
         <div className="px-4 pb-4 sm:px-5">
           <Table minWidth="26rem" className="[&_table]:text-[0.8125rem]">
             <THead>
-              <Tr><Th className="py-2">Category</Th><Th className="py-2 text-right">Net sale</Th><Th className="py-2 text-right">Profit</Th><Th className="py-2 text-right">Margin</Th></Tr>
+              <Tr><Th className="py-2">{t('Category')}</Th><Th className="py-2 text-end">{t('Net sale')}</Th><Th className="py-2 text-end">{t('Profit')}</Th><Th className="py-2 text-end">{t('Margin')}</Th></Tr>
             </THead>
             <TBody>
               {top.map((c) => (
                 <Tr key={c.id}>
                   <Td className="py-2"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c.color }} /><span className="truncate font-medium text-slate-800">{c.name}</span></span></Td>
-                  <Td className="py-2 text-right tabular-nums">{fmt.sales(c.net)}</Td>
-                  <Td className={cn('py-2 text-right tabular-nums', (c.profit ?? 0) < 0 && 'text-rose-600')}>{c.profit == null ? '—' : fmt.cost(c.profit)}</Td>
-                  <Td className="py-2 text-right">
+                  <Td className="py-2 text-end tabular-nums">{fmt.sales(c.net)}</Td>
+                  <Td className={cn('py-2 text-end tabular-nums', (c.profit ?? 0) < 0 && 'text-rose-600')}>{c.profit == null ? '—' : fmt.cost(c.profit)}</Td>
+                  <Td className="py-2 text-end">
                     {c.margin == null || fmt.costHidden ? '—' : (
                       <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold',
                         c.margin < 10 ? 'bg-rose-50 text-rose-700' : c.margin < 25 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{pctText(c.margin)}</span>
@@ -241,7 +242,7 @@ function Categories({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
               ))}
             </TBody>
           </Table>
-          {report.categories.length > 10 && <p className="mt-2 text-[0.75rem] text-slate-500">+{report.categories.length - 10} aur categories — poori list print ya CSV me</p>}
+          {report.categories.length > 10 && <p className="mt-2 text-[0.75rem] text-slate-500">{t('+{{value}} aur categories — poori list print ya CSV me', { value: report.categories.length - 10 })}</p>}
         </div>
       )}
     </Card>

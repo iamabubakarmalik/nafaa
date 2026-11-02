@@ -17,6 +17,7 @@ import { moneyApi, type MoneyAccountList, type MoneyAccountRow } from '../api/mo
 import type { EntryKind } from './AccountEntryModal';
 import { ACCOUNTS, KINDS, MONEY_KEY, STATEMENT_KINDS, apiError, maskNumber, when } from './meta';
 import { accountStatementDoc } from './print';
+import { t } from '@core/i18n';
 
 export function MoneyAccountsPanel({
   list, money, period, periodText, showInactive, setShowInactive, canSetup, canMove, onNew, onEdit, onMove, onEntry,
@@ -41,34 +42,34 @@ export function MoneyAccountsPanel({
   const importQ = useMutation({
     mutationFn: moneyApi.importReceiptAccounts,
     onSuccess: (r) => {
-      toast.success(r.created ? `${r.created} account ban gaye${r.skipped ? ` · ${r.skipped} pehle se the` : ''}` : 'Sab accounts pehle se bane hue hain');
+      toast.success(r.created ? t('{{created}} account ban gaye{{value}}', { created: r.created, value: r.skipped ? t(' · {{skipped}} pehle se the', { skipped: r.skipped }) : '' }) : t('Sab accounts pehle se bane hue hain'));
       qc.invalidateQueries({ queryKey: [MONEY_KEY] });
     },
-    onError: (e) => toast.error(apiError(e, 'Accounts nahi bane')),
+    onError: (e) => toast.error(apiError(e, t('Accounts nahi bane'))),
   });
 
   const reactivate = useMutation({
     mutationFn: (a: MoneyAccountRow) => moneyApi.updateAccount(a.id, { isActive: true }),
-    onSuccess: () => { toast.success('Account dobara chalu ho gaya'); qc.invalidateQueries({ queryKey: [MONEY_KEY] }); },
-    onError: (e) => toast.error(apiError(e, 'Chalu nahi hua')),
+    onSuccess: () => { toast.success(t('Account dobara chalu ho gaya')); qc.invalidateQueries({ queryKey: [MONEY_KEY] }); },
+    onError: (e) => toast.error(apiError(e, t('Chalu nahi hua'))),
   });
 
   const accounts = list?.accounts ?? [];
 
   return (
     <Card className="rounded-2xl"
-      title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Tijori, bank aur wallets</span>}
-      description="Asal balance — shuru ki amount + khud judne wali sale/payment + haath ki entries"
+      title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />{t('Tijori, bank aur wallets')}</span>}
+      description={t('Asal balance — shuru ki amount + khud judne wali sale/payment + haath ki entries')}
       actions={
         <span className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="ghost" onClick={() => setShowInactive(!showInactive)}
             leftIcon={showInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}>
-            {showInactive ? 'Band chhupayein' : 'Band bhi dikhayein'}
+            {showInactive ? t('Band chhupayein') : t('Band bhi dikhayein')}
           </Button>
           {canMove && accounts.some((a) => a.isActive) && (
-            <Button size="sm" variant="secondary" onClick={() => onMove()} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Paisa bhejein</Button>
+            <Button size="sm" variant="secondary" onClick={() => onMove()} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>{t('Paisa bhejein')}</Button>
           )}
-          {canSetup && <Button size="sm" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>Naya account</Button>}
+          {canSetup && <Button size="sm" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>{t('Naya account')}</Button>}
         </span>
       }>
       {!list ? (
@@ -76,13 +77,13 @@ export function MoneyAccountsPanel({
       ) : !accounts.length ? (
         <div className="py-8 text-center">
           <Wallet className="mx-auto h-9 w-9 text-slate-300" />
-          <p className="mt-2 font-semibold text-slate-900">Abhi koi account nahi</p>
-          <p className="mt-1 text-sm text-slate-500">Bank ya JazzCash account banayein — phir us ka asal balance yahan dikhega.</p>
+          <p className="mt-2 font-semibold text-slate-900">{t('Abhi koi account nahi')}</p>
+          <p className="mt-1 text-sm text-slate-500">{t('Bank ya JazzCash account banayein — phir us ka asal balance yahan dikhega.')}</p>
           {canSetup && (
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Button size="sm" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>Naya account</Button>
+              <Button size="sm" onClick={onNew} leftIcon={<Plus className="h-4 w-4" />}>{t('Naya account')}</Button>
               <Button size="sm" variant="secondary" loading={importQ.isPending} onClick={() => importQ.mutate()} leftIcon={<Download className="h-4 w-4" />}>
-                Raseed wale accounts layein
+                {t('Raseed wale accounts layein')}
               </Button>
             </div>
           )}
@@ -99,7 +100,7 @@ export function MoneyAccountsPanel({
           {canSetup && (
             <button type="button" disabled={importQ.isPending} onClick={() => importQ.mutate()}
               className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline disabled:opacity-60">
-              <Download className="h-4 w-4" />Settings → Raseed me likhe accounts yahan layein
+              <Download className="h-4 w-4" />{t('Settings → Raseed me likhe accounts yahan layein')}
             </button>
           )}
         </>
@@ -127,7 +128,7 @@ function AccountCard({ a, money, canSetup, canMove, onStatement, onEdit, onMove,
             {[a.bankName, number, a.shop?.name ?? 'Poora karobar'].filter(Boolean).join(' · ')}
           </span>
         </span>
-        {!a.isActive && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium text-slate-600">Band</span>}
+        {!a.isActive && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium text-slate-600">{t('Band')}</span>}
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -136,31 +137,31 @@ function AccountCard({ a, money, canSetup, canMove, onStatement, onEdit, onMove,
         )}
         {a.auto && (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700"
-            title="Is tareeqe ki sale, return, kharch aur payment khud is account me judti hai">
-            <Sparkles className="h-3 w-3" />Khud judta hai
+            title={t('Is tareeqe ki sale, return, kharch aur payment khud is account me judti hai')}>
+            <Sparkles className="h-3 w-3" />{t('Khud judta hai')}
           </span>
         )}
       </div>
 
-      <span className="mt-3 text-[0.75rem] text-slate-500">Balance</span>
+      <span className="mt-3 text-[0.75rem] text-slate-500">{t('Balance')}</span>
       <span className={cn('text-xl font-bold tabular-nums', a.balance < 0 ? 'text-rose-700' : 'text-slate-900')}>{money(a.balance)}</span>
-      <span className="mt-1 text-[0.6875rem] text-slate-500">Aaj: <span className="text-emerald-700">+{money(a.todayIn)}</span> · <span className="text-rose-700">−{money(a.todayOut)}</span></span>
+      <span className="mt-1 text-[0.6875rem] text-slate-500">{t('Aaj:')}{' '} <span className="text-emerald-700">+{money(a.todayIn)}</span> · <span className="text-rose-700">−{money(a.todayOut)}</span></span>
 
       <div className="mt-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
-        <Button size="sm" variant="ghost" onClick={onStatement} leftIcon={<FileText className="h-4 w-4" />}>Statement</Button>
+        <Button size="sm" variant="ghost" onClick={onStatement} leftIcon={<FileText className="h-4 w-4" />}>{t('Statement')}</Button>
         {a.isActive ? <>
           {canMove && <>
-            <Button size="sm" variant="ghost" onClick={onMove} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Bhejein</Button>
-            <Button size="sm" variant="ghost" onClick={() => onEntry('DEPOSIT')}>Jama</Button>
-            <Button size="sm" variant="ghost" onClick={() => onEntry('WITHDRAW')}>Nikala</Button>
-            <Button size="sm" variant="ghost" onClick={() => onEntry('ADJUSTMENT')}>Correction</Button>
+            <Button size="sm" variant="ghost" onClick={onMove} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>{t('Bhejein')}</Button>
+            <Button size="sm" variant="ghost" onClick={() => onEntry('DEPOSIT')}>{t('Jama')}</Button>
+            <Button size="sm" variant="ghost" onClick={() => onEntry('WITHDRAW')}>{t('Nikala')}</Button>
+            <Button size="sm" variant="ghost" onClick={() => onEntry('ADJUSTMENT')}>{t('Correction')}</Button>
           </>}
           {canSetup && <>
-            <Button size="sm" variant="ghost" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>
-            <Button size="sm" variant="ghost" onClick={onClose} leftIcon={<Power className="h-4 w-4" />}>Band</Button>
+            <Button size="sm" variant="ghost" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>{t('Badlein')}</Button>
+            <Button size="sm" variant="ghost" onClick={onClose} leftIcon={<Power className="h-4 w-4" />}>{t('Band')}</Button>
           </>}
         </> : canSetup && (
-          <Button size="sm" variant="ghost" onClick={onReactivate} leftIcon={<RotateCcw className="h-4 w-4" />}>Chalu karein</Button>
+          <Button size="sm" variant="ghost" onClick={onReactivate} leftIcon={<RotateCcw className="h-4 w-4" />}>{t('Chalu karein')}</Button>
         )}
       </div>
     </div>
@@ -175,28 +176,28 @@ function CloseAccountModal({ account, money, onClose, onMove }: {
   const remove = useMutation({
     mutationFn: () => moneyApi.removeAccount(account.id),
     onSuccess: (r) => {
-      toast.success(r.removed ? 'Account mita diya' : 'Account band ho gaya');
+      toast.success(r.removed ? t('Account mita diya') : t('Account band ho gaya'));
       qc.invalidateQueries({ queryKey: [MONEY_KEY] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Band nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Band nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title={`${account.name} band karein?`}
+    <Modal open onClose={onClose} size="sm" title={t('{{name}} band karein?', { name: account.name })}
       footer={hasMoney ? <>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={onMove} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Pehle paisa bhejein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={onMove} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>{t('Pehle paisa bhejein')}</Button>
       </> : <>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate()}>Band karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate()}>{t('Band karein')}</Button>
       </>}>
       <p className="text-[0.875rem] text-slate-700">
         {hasMoney
-          ? `Is account me abhi ${money(account.balance)} hain. Band karne se pehle ye paisa golak ya doosre account me bhejein.`
+          ? t('Is account me abhi {{balance}} hain. Band karne se pehle ye paisa golak ya doosre account me bhejein.', { balance: money(account.balance) })
           : account.entryCount
-            ? 'Account band ho jayega aur list se chhup jayega. Purani entries mehfooz rahengi; "Band bhi dikhayein" se dobara chalu kar sakte hain.'
-            : 'Is account par koi entry nahi, is liye ye poori tarah mit jayega.'}
-        {account.auto && !hasMoney && ' Is ke tareeqe ki sale phir kisi account me khud nahi judegi jab tak naya default na banayein.'}
+            ? t('Account band ho jayega aur list se chhup jayega. Purani entries mehfooz rahengi; "Band bhi dikhayein" se dobara chalu kar sakte hain.')
+            : t('Is account par koi entry nahi, is liye ye poori tarah mit jayega.')}
+        {account.auto && !hasMoney && t(' Is ke tareeqe ki sale phir kisi account me khud nahi judegi jab tak naya default na banayein.')}
       </p>
     </Modal>
   );
@@ -212,19 +213,19 @@ function StatementModal({ account, money, period, periodText, onClose }: {
   });
   const s = q.data;
   return (
-    <Modal open onClose={onClose} size="xl" title={`${account.name} — statement`} description={periodText}
+    <Modal open onClose={onClose} size="xl" title={t('{{name}} — statement', { name: account.name })} description={periodText}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Band karein</Button>
-        <PrintButton doc={() => accountStatementDoc(s!, periodText)} disabled={!s} label="Print" />
+        <Button variant="secondary" onClick={onClose}>{t('Band karein')}</Button>
+        <PrintButton doc={() => accountStatementDoc(s!, periodText)} disabled={!s} label={t('Print')} />
       </>}>
       {q.isError ? (
-        <p className="py-10 text-center text-[0.875rem] text-rose-700">{apiError(q.error, 'Statement load nahi hui')}</p>
+        <p className="py-10 text-center text-[0.875rem] text-rose-700">{apiError(q.error, t('Statement load nahi hui'))}</p>
       ) : !s ? (
         <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div>
       ) : (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2 text-[0.8125rem] sm:grid-cols-4">
-            {([['Shuru', s.opening, ''], ['Aaya', s.in, 'text-emerald-700'], ['Gaya', s.out, 'text-rose-700'], ['Aakhir', s.closing, '']] as const).map(([l, v, c]) => (
+            {([[t('Shuru'), s.opening, ''], [t('Aaya'), s.in, 'text-emerald-700'], [t('Gaya'), s.out, 'text-rose-700'], [t('Aakhir'), s.closing, '']] as const).map(([l, v, c]) => (
               <div key={l} className="rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
                 <span className="block text-[0.75rem] text-slate-500">{l}</span>
                 <b className={cn('tabular-nums', c || 'text-slate-900')}>{money(v)}</b>
@@ -232,7 +233,7 @@ function StatementModal({ account, money, period, periodText, onClose }: {
             ))}
           </div>
           {!s.lines.length ? (
-            <p className="py-8 text-center text-[0.875rem] text-slate-500">Is period me koi entry nahi</p>
+            <p className="py-8 text-center text-[0.875rem] text-slate-500">{t('Is period me koi entry nahi')}</p>
           ) : (
             <ul className="max-h-[50vh] divide-y divide-slate-100 overflow-y-auto rounded-xl ring-1 ring-slate-200">
               {s.lines.map((l) => {
@@ -245,7 +246,7 @@ function StatementModal({ account, money, period, periodText, onClose }: {
                       <span className="block truncate text-[0.875rem] font-medium text-slate-900">{l.party || m.label}</span>
                       <span className="block truncate text-[0.75rem] text-slate-500">{[when(l.at), m.label, l.reference, l.note, l.by].filter(Boolean).join(' · ')}</span>
                     </span>
-                    <span className="shrink-0 text-right">
+                    <span className="shrink-0 text-end">
                       <span className={cn('block font-semibold tabular-nums', inflow ? 'text-emerald-700' : 'text-rose-700')}>{inflow ? '+' : '−'}{money(l.amount)}</span>
                       <span className="block text-[0.6875rem] tabular-nums text-slate-500">{money(l.balance)}</span>
                     </span>

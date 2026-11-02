@@ -11,6 +11,7 @@ import { cn } from '@core/lib/cn';
 import { DIST_KEY, distributionApi, type BootProduct } from '../api/distribution.api';
 import { useCustomerRoster } from '../setup/shared';
 import { rs } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface PickedCustomer { id: string; name: string; sub: string; balance?: number | null }
 
@@ -32,11 +33,11 @@ export function CustomerSearch({ value, onPick, autoFocus }: { value: PickedCust
   };
   return (
     <div className="relative">
-      <label className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Customer</label>
+      <label className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{tr('Customer')}</label>
       <div className="relative">
-        <UserRound className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+        <UserRound className="pointer-events-none absolute start-2.5 top-2.5 h-4 w-4 text-slate-400" />
         <input autoFocus={autoFocus} value={open ? q : value ? `${value.name}${value.sub ? ` · ${value.sub}` : ''}` : ''}
-          placeholder={roster.isLoading ? 'Customers aa rahe hain…' : 'Naam, dukaan, phone ya area'}
+          placeholder={roster.isLoading ? tr('Customers aa rahe hain…') : tr('Naam, dukaan, phone ya area')}
           onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, found.length - 1)); }
@@ -44,14 +45,14 @@ export function CustomerSearch({ value, onPick, autoFocus }: { value: PickedCust
             else if (e.key === 'Enter' && found[hi]) { e.preventDefault(); pick(found[hi]); }
             else if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); }
           }}
-          className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-[0.875rem] font-semibold text-slate-900 outline-none focus:border-brand-500" />
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-2 text-[0.875rem] font-semibold text-slate-900 outline-none focus:border-brand-500" />
       </div>
       {open && (
-        <ul className="absolute left-0 right-0 z-30 mt-1 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
-          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">Koi customer nahi mila</li> : found.map((c, i) => (
+        <ul className="absolute start-0 end-0 z-30 mt-1 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
+          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Koi customer nahi mila')}</li> : found.map((c, i) => (
             <li key={c.id}>
               <button type="button" onMouseDown={(e) => { e.preventDefault(); pick(c); }} onMouseEnter={() => setHi(i)}
-                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left', i === hi && 'bg-brand-50')}>
+                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-start', i === hi && 'bg-brand-50')}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{c.businessName || c.name}</span>
                   <span className="block truncate text-[0.6875rem] text-slate-500">{[c.businessName ? c.name : '', c.area, c.phone].filter(Boolean).join(' · ')}</span>
@@ -90,7 +91,7 @@ export function defaultPack(p: BootProduct, variantId: string | null) {
   return (units.find((u) => u.isDefault) ?? [...units].sort((a, b) => b.conversionRate - a.conversionRate)[0])?.id ?? '';
 }
 
-export function ItemSearch({ options, loading, onPick, placeholder = 'Item dhoondein…' }: {
+export function ItemSearch({ options, loading, onPick, placeholder = tr('Item dhoondein…') }: {
   options: ItemOption[]; loading?: boolean; onPick: (o: ItemOption) => void; placeholder?: string;
 }) {
   const [q, setQ] = useState('');
@@ -105,8 +106,8 @@ export function ItemSearch({ options, loading, onPick, placeholder = 'Item dhoon
   const pick = (o: ItemOption) => { onPick(o); setQ(''); setOpen(false); };
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-      <input value={q} placeholder={loading ? 'Items aa rahe hain…' : placeholder} aria-label={placeholder}
+      <Search className="pointer-events-none absolute start-2.5 top-2.5 h-4 w-4 text-slate-400" />
+      <input value={q} placeholder={loading ? tr('Items aa rahe hain…') : placeholder} aria-label={placeholder}
         onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onChange={(e) => { setQ(e.target.value); setOpen(true); }}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, found.length - 1)); }
@@ -114,13 +115,13 @@ export function ItemSearch({ options, loading, onPick, placeholder = 'Item dhoon
           else if (e.key === 'Enter' && found[hi]) { e.preventDefault(); pick(found[hi]); }
           else if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); }
         }}
-        className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-[0.875rem] outline-none focus:border-brand-500" />
+        className="h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-2 text-[0.875rem] outline-none focus:border-brand-500" />
       {open && q.trim() && (
-        <ul className="absolute left-0 right-0 z-30 mt-1 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
-          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">Koi item nahi mila</li> : found.map((o, i) => (
+        <ul className="absolute start-0 end-0 z-30 mt-1 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
+          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Koi item nahi mila')}</li> : found.map((o, i) => (
             <li key={`${o.productId}-${o.variantId}`}>
               <button type="button" onMouseDown={(e) => { e.preventDefault(); pick(o); }} onMouseEnter={() => setHi(i)}
-                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left', i === hi && 'bg-brand-50')}>
+                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-start', i === hi && 'bg-brand-50')}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{o.label}</span>
                   {o.sub && <span className="block truncate text-[0.6875rem] text-slate-500">{o.sub}</span>}
@@ -141,7 +142,7 @@ export const newKey = () => Math.random().toString(36).slice(2, 10);
 export function PackSelect({ product, variantId, value, onChange }: { product: BootProduct | undefined; variantId: string | null; value: string; onChange: (v: string) => void }) {
   const packs = packsOf(product, variantId);
   return (
-    <select value={value} aria-label="Pack" onChange={(e) => onChange(e.target.value)}
+    <select value={value} aria-label={tr('Pack')} onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500">
       {packs.map((p) => <option key={p.id} value={p.id}>{p.name}{p.rate > 1 ? ` (${p.rate})` : ''}</option>)}
     </select>

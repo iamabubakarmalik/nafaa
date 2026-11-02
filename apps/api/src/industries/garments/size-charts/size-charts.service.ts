@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { duplicateName } from '../common/garments-common';
 import { UpsertSizeChartDto } from './dto/upsert-size-chart.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Rows keep a size name and numbers only; empty rows are dropped. */
 function cleanRows(rows: unknown[]): Prisma.InputJsonValue {
@@ -43,7 +44,7 @@ export class SizeChartsService {
     return this.prisma.$transaction(async (tx) => {
       if (dto.isDefault) await this.clearDefault(tx, user.tenantId, dto.categoryType ?? null);
       return tx.garmentSizeChart.create({ data: { tenantId: user.tenantId, ...dto, name, rows } });
-    }).catch((e) => duplicateName(e, `"${name}" naam ka chart pehle se hai`));
+    }).catch((e) => duplicateName(e, apiMessage('"{{name}}" naam ka chart pehle se hai', { name })));
   }
 
   /** Only one default chart per garment type. */
@@ -84,7 +85,7 @@ export class SizeChartsService {
     return this.prisma.$transaction(async (tx) => {
       if (dto.isDefault) await this.clearDefault(tx, user.tenantId, dto.categoryType ?? chart.categoryType ?? null, id);
       return tx.garmentSizeChart.update({ where: { id }, data: { ...dto, name, ...(rows && { rows }) } });
-    }).catch((e) => duplicateName(e, `"${name}" naam ka chart pehle se hai`));
+    }).catch((e) => duplicateName(e, apiMessage('"{{name}}" naam ka chart pehle se hai', { name })));
   }
 
   /** Switched off, never deleted: products keep their link. */

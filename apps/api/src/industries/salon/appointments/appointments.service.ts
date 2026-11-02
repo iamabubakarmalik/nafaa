@@ -18,6 +18,7 @@ import { SalonBillsService, lineCommission } from '../bills/salon-bills.service'
 import {
   AddPaymentDto, AppointmentPageQuery, AppointmentView, CheckoutAppointmentDto, CreateAppointmentDto, RescheduleDto, UpdateAppointmentStatusDto,
 } from './dto/create-appointment.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Statuses that keep a stylist busy for the booked slot. */
 const BUSY = ['CONFIRMED', 'ARRIVED', 'IN_PROGRESS', 'RESCHEDULED'] as const;
@@ -446,7 +447,7 @@ export class AppointmentsService {
     const remaining = r2(apt.total - apt.paidAmount);
     if (remaining <= 0) throw new BadRequestException('Is appointment ka koi baqi nahi');
     const amount = r2(dto.amount);
-    if (amount > remaining + 0.01) throw new BadRequestException(`Baqi sirf Rs ${remaining} hai`);
+    if (amount > remaining + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{remaining}} hai', { remaining }));
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, apt.shopId);
@@ -493,7 +494,7 @@ export class AppointmentsService {
     });
     if (clash) {
       throw new BadRequestException(
-        `${clash.staffName || 'Ye staff'} is waqt ${clash.appointment.appointmentNumber} me busy hai — doosra waqt ya staff chunein`,
+        apiMessage('{{staffName}} is waqt {{appointmentNumber}} me busy hai — doosra waqt ya staff chunein', { staffName: clash.staffName || 'Ye staff', appointmentNumber: clash.appointment.appointmentNumber }),
       );
     }
   }

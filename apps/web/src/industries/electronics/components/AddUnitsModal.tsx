@@ -17,6 +17,7 @@ import type { Product } from '@modules/inventory/products/api/products.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { ProductPick } from './pickers';
 import { apiError } from './meta';
+import { t } from '@core/i18n';
 
 export const SERIAL_KEYS = ['electronics-serials', 'electronics-serials-all', 'electronics-pos-catalog', 'serials-for-pos', 'electronics-stock-report', 'products-catalog'];
 
@@ -64,53 +65,53 @@ export function AddUnitsModal({ product: fixed, expected, costPrice, supplierRef
       supplierRef: ref.trim() || undefined,
     }),
     onSuccess: (r) => {
-      toast.success(`${r.created} unit darj ho gaye${r.skipped ? ` · ${r.skipped} pehle se the` : ''}`);
+      toast.success(t('{{created}} unit darj ho gaye{{value}}', { created: r.created, value: r.skipped ? t(' · {{skipped}} pehle se the', { skipped: r.skipped }) : '' }));
       SERIAL_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Serial darj nahi hue')),
+    onError: (e) => toast.error(apiError(e, t('Serial darj nahi hue'))),
   });
-  const problem = !product ? 'Product chunein' : !entries.length ? 'Kam az kam ek serial likhein' : null;
+  const problem = !product ? t('Product chunein') : !entries.length ? t('Kam az kam ek serial likhein') : null;
 
   return (
-    <Modal open onClose={onClose} size="md" title={<span className="inline-flex items-center gap-2"><Barcode className="h-5 w-5 text-brand-600" />Serial units jorein</span>}
-      description={product ? product.name : 'Har unit ka serial (aur IMEI ho to) — ek line par ek'}
+    <Modal open onClose={onClose} size="md" title={<span className="inline-flex items-center gap-2"><Barcode className="h-5 w-5 text-brand-600" />{t('Serial units jorein')}</span>}
+      description={product ? product.name : t('Har unit ka serial (aur IMEI ho to) — ek line par ek')}
       footer={<>
-        <p className="mr-auto text-[0.8125rem] text-slate-500">{problem ?? `${entries.length} unit darj honge`}</p>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!!problem}>Darj karein</Button>
+        <p className="me-auto text-[0.8125rem] text-slate-500">{problem ?? t('{{count}} unit darj honge', { count: entries.length })}</p>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!!problem}>{t('Darj karein')}</Button>
       </>}>
       <div className="space-y-4">
-        {!fixed && <ProductPick value={picked} onChange={setPicked} hint="Sirf wohi product jis ka har piece alag ginta hai (TV, laptop, camera)" />}
+        {!fixed && <ProductPick value={picked} onChange={setPicked} hint={t('Sirf wohi product jis ka har piece alag ginta hai (TV, laptop, camera)')} />}
         {expected != null && (
           <div className="grid grid-cols-3 gap-2 text-center">
-            <Stat label="Bill mein" value={expected} />
-            <Stat label="Pehle darj" value={alreadyHave ?? 0} />
-            <Stat label="Baqi" value={Math.max(left ?? 0, 0)} warn={(left ?? 0) < 0} />
+            <Stat label={t('Bill mein')} value={expected} />
+            <Stat label={t('Pehle darj')} value={alreadyHave ?? 0} />
+            <Stat label={t('Baqi')} value={Math.max(left ?? 0, 0)} warn={(left ?? 0) < 0} />
           </div>
         )}
-        <Textarea label="Serial numbers" rows={7} value={text} onChange={(e) => setText(e.target.value)} data-autofocus
-          placeholder={'SN123456789\nSN987654321, 356938035643809'} className="font-mono text-[0.8125rem]"
-          hint="Scanner se ek ke baad ek scan karein — har scan nayi line. IMEI ho to comma laga kar: serial, IMEI" />
+        <Textarea label={t('Serial numbers')} rows={7} value={text} onChange={(e) => setText(e.target.value)} data-autofocus
+          placeholder={t('SN123456789\nSN987654321, 356938035643809')} className="font-mono text-[0.8125rem]"
+          hint={t('Scanner se ek ke baad ek scan karein — har scan nayi line. IMEI ho to comma laga kar: serial, IMEI')} />
         {(entries.length > 0 || repeated > 0) && (
           <div className="flex flex-wrap gap-1.5 text-[0.75rem] font-medium">
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 ring-1 ring-emerald-200">{entries.length} tayyar</span>
-            {repeated > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-rose-700 ring-1 ring-rose-200"><Copy className="h-3 w-3" />{repeated} do dafa likhe — ek hi rakha</span>}
-            {left != null && left < 0 && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-amber-800 ring-1 ring-amber-200"><AlertTriangle className="h-3 w-3" />Bill se {-left} zyada</span>}
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 ring-1 ring-emerald-200">{t('{{count}} tayyar', { count: entries.length })}</span>
+            {repeated > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-rose-700 ring-1 ring-rose-200"><Copy className="h-3 w-3" />{t('{{repeated}} do dafa likhe — ek hi rakha', { repeated })}</span>}
+            {left != null && left < 0 && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-amber-800 ring-1 ring-amber-200"><AlertTriangle className="h-3 w-3" />{t('Bill se {{value}} zyada', { value: -left })}</span>}
           </div>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Cost (1 unit)" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))}
-            hint={Number(price) > 0 ? `Har unit par ${cost(Number(price))}` : 'Khali chhorein to product ki cost'} className="text-right tabular-nums" />
-          <Input label="Bill / supplier ref" value={ref} onChange={(e) => setRef(e.target.value)} maxLength={80} placeholder="PO-…"
-            hint="Kis bill se aaya — baad mein dhoondne ke kaam aata hai" />
+          <Input label={t('Cost (1 unit)')} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))}
+            hint={Number(price) > 0 ? t('Har unit par {{cost}}', { cost: cost(Number(price)) }) : t('Khali chhorein to product ki cost')} className="text-end tabular-nums" />
+          <Input label={t('Bill / supplier ref')} value={ref} onChange={(e) => setRef(e.target.value)} maxLength={80} placeholder={t('PO-…')}
+            hint={t('Kis bill se aaya — baad mein dhoondne ke kaam aata hai')} />
         </div>
         {!fixed && (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-            Serial sirf unit ka naam hai — stock Purchase se barhta hai. Naya maal aaya hai to pehle Purchase banayein, phir bill ki line se serial daalein.
+            {t('Serial sirf unit ka naam hai — stock Purchase se barhta hai. Naya maal aaya hai to pehle Purchase banayein, phir bill ki line se serial daalein.')}
           </p>
         )}
-        {picked?.price ? <p className="text-[0.75rem] text-slate-500">Bechne ka rate: {formatPKR(picked.price)}</p> : null}
+        {picked?.price ? <p className="text-[0.75rem] text-slate-500">{t('Bechne ka rate: {{price}}', { price: formatPKR(picked.price) })}</p> : null}
       </div>
     </Modal>
   );

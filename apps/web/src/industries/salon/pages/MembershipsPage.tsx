@@ -26,6 +26,7 @@ import { CancelModal, CustomerField, emptyCustomer, type CustomerValue } from '.
 import { EmptyList, HeroPrint, ListSkeleton, LoadFailed } from '../components/ui';
 import { SALON_KEYS, TIERS, apiError, dateOf, tierOf } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'members' | 'plans';
 type Status = 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | '';
@@ -68,12 +69,12 @@ export default function MembershipsPage() {
   });
 
   const printDoc = (): PrintDoc => ({
-    title: 'Memberships',
-    subtitle: status ? STATUS_LABEL[status] : 'Sab',
-    meta: [['Members', String(rows.length)]],
+    title: tr('Memberships'),
+    subtitle: status ? STATUS_LABEL[status] : tr('Sab'),
+    meta: [[tr('Members'), String(rows.length)]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Number', wideOnly: true }, { label: 'Customer' }, { label: 'Plan' }, { label: 'Khatam' }, { label: 'Bachat', align: 'right' }],
+      columns: [{ label: tr('Number'), wideOnly: true }, { label: tr('Customer') }, { label: tr('Plan') }, { label: tr('Khatam') }, { label: tr('Bachat'), align: 'right' }],
       rows: rows.map((m) => [m.membershipNumber, `${m.customer?.name ?? ''} ${m.customer?.phone ?? ''}`.trim(), m.plan?.name ?? '', dateOf(m.expiryDate), formatPKR(m.totalSaved)]),
     }],
   });
@@ -81,58 +82,58 @@ export default function MembershipsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Memberships"
-        chip={<><Crown /> Salon</>}
-        meta="Plan bechein, discount counter par khud lagta hai"
+        title={tr('Memberships')}
+        chip={<><Crown /> {' '}{tr('Salon')}</>}
+        meta={tr('Plan bechein, discount counter par khud lagta hai')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={activeQ.isLoading}
         actions={<>
           <HeroPrint doc={printDoc} disabled={tab !== 'members' || !rows.length} />
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {can.bill && <button type="button" onClick={() => setSelling(true)} title="Membership bechein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Membership bechein</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.bill && <button type="button" onClick={() => setSelling(true)} title={tr('Membership bechein (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Membership bechein')}</button>}
         </>}
         stats={[
-          { label: 'Chalti memberships', value: active.length },
-          { label: '15 din me khatam', value: ending.length },
-          { label: 'Members ki bachat', value: formatPKR(active.reduce((s, m) => s + m.totalSaved, 0)) },
+          { label: tr('Chalti memberships'), value: active.length },
+          { label: tr('15 din me khatam'), value: ending.length },
+          { label: tr('Members ki bachat'), value: formatPKR(active.reduce((s, m) => s + m.totalSaved, 0)) },
         ]}
       />
 
       <KpiRow cols={4}>
         {activeQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Users} color="#db2777" label="Chalti" value={active.length} hint="Discount lag raha hai" onClick={() => { setTab('members'); setStatus('ACTIVE'); }} active={tab === 'members' && status === 'ACTIVE'} />
-          <KpiCard icon={AlarmClock} color={ending.length ? '#d97706' : '#64748b'} label="Jald khatam" value={ending.length} hint="Renew ke liye call karein" />
-          <KpiCard icon={Ban} color="#64748b" label="Khatam / cancel" value="Dekhein" hint="Purani memberships" onClick={() => { setTab('members'); setStatus('EXPIRED'); }} active={tab === 'members' && status === 'EXPIRED'} />
-          <KpiCard icon={Sparkles} color="#ca8a04" label="Plans" value={plans.filter((p) => p.isActive).length} hint={`${plans.length - plans.filter((p) => p.isActive).length} band`} onClick={() => setTab('plans')} active={tab === 'plans'} />
+          <KpiCard icon={Users} color="#db2777" label={tr('Chalti')} value={active.length} hint={tr('Discount lag raha hai')} onClick={() => { setTab('members'); setStatus('ACTIVE'); }} active={tab === 'members' && status === 'ACTIVE'} />
+          <KpiCard icon={AlarmClock} color={ending.length ? '#d97706' : '#64748b'} label={tr('Jald khatam')} value={ending.length} hint={tr('Renew ke liye call karein')} />
+          <KpiCard icon={Ban} color="#64748b" label={tr('Khatam / cancel')} value="Dekhein" hint={tr('Purani memberships')} onClick={() => { setTab('members'); setStatus('EXPIRED'); }} active={tab === 'members' && status === 'EXPIRED'} />
+          <KpiCard icon={Sparkles} color="#ca8a04" label={tr('Plans')} value={plans.filter((p) => p.isActive).length} hint={tr('{{value}} band', { value: plans.length - plans.filter((p) => p.isActive).length })} onClick={() => setTab('plans')} active={tab === 'plans'} />
         </>}
       </KpiRow>
 
       {tab === 'members' && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer ka naam, phone ya MEM number…" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer ka naam, phone ya MEM number…')} />}
           chips={query || status !== 'ACTIVE' ? <>
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
-            {status !== 'ACTIVE' && <FilterChip onRemove={() => setStatus('ACTIVE')}>{status ? STATUS_LABEL[status] : 'Sab'}</FilterChip>}
+            {status !== 'ACTIVE' && <FilterChip onRemove={() => setStatus('ACTIVE')}>{status ? STATUS_LABEL[status] : tr('Sab')}</FilterChip>}
           </> : undefined}
           onClear={() => { setSearch(''); setStatus('ACTIVE'); }}>
-          <FilterMenu icon={Filter} label={status ? STATUS_LABEL[status] : 'Sab'} value={status} active={status !== 'ACTIVE'} onChange={setStatus}
-            options={[{ value: 'ACTIVE', label: 'Chalti' }, { value: 'EXPIRED', label: 'Khatam' }, { value: 'CANCELLED', label: 'Cancel' }, { value: '', label: 'Sab' }]} />
+          <FilterMenu icon={Filter} label={status ? STATUS_LABEL[status] : tr('Sab')} value={status} active={status !== 'ACTIVE'} onChange={setStatus}
+            options={[{ value: 'ACTIVE', label: tr('Chalti') }, { value: 'EXPIRED', label: tr('Khatam') }, { value: 'CANCELLED', label: tr('Cancel') }, { value: '', label: tr('Sab') }]} />
         </FilterBar>
       )}
 
-      <ViewTabs value={tab} onChange={setTab} hint={<>{can.bill && <><Kbd>N</Kbd> bechein · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
-        tabs={[{ id: 'members', label: 'Members', icon: ListChecks, count: rows.length }, { id: 'plans', label: 'Plans', icon: Crown, count: plans.length }]} />
+      <ViewTabs value={tab} onChange={setTab} hint={<>{can.bill && <><Kbd>N</Kbd> {' '}{tr('bechein ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
+        tabs={[{ id: 'members', label: tr('Members'), icon: ListChecks, count: rows.length }, { id: 'plans', label: tr('Plans'), icon: Crown, count: plans.length }]} />
 
       {tab === 'members' ? (
-        listQ.isLoading ? <ListSkeleton /> : listQ.isError ? <LoadFailed what="Memberships" retry={() => listQ.refetch()} /> : !rows.length ? (
-          <EmptyList icon={Crown} title={query ? 'Is search me koi nahi' : 'Koi membership nahi'} text="Plan banayein (jaise Gold — 10% discount, 1 saal) aur customer ko bechein. Discount counter par khud lagta hai.">
-            {can.bill && plans.length > 0 && <Button onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>Membership bechein</Button>}
-            {can.catalog && !plans.length && <Button onClick={() => setPlan('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla plan banayein</Button>}
+        listQ.isLoading ? <ListSkeleton /> : listQ.isError ? <LoadFailed what={tr('Memberships')} retry={() => listQ.refetch()} /> : !rows.length ? (
+          <EmptyList icon={Crown} title={query ? tr('Is search me koi nahi') : tr('Koi membership nahi')} text={tr('Plan banayein (jaise Gold — 10% discount, 1 saal) aur customer ko bechein. Discount counter par khud lagta hai.')}>
+            {can.bill && plans.length > 0 && <Button onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Membership bechein')}</Button>}
+            {can.catalog && !plans.length && <Button onClick={() => setPlan('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Pehla plan banayein')}</Button>}
           </EmptyList>
         ) : (
           <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             <Table minWidth="44rem">
-              <THead><Tr><Th>Customer</Th><Th>Plan</Th><Th>Khatam</Th><Th align="right">Paid</Th><Th align="right">Services / bachat</Th><Th /></Tr></THead>
+              <THead><Tr><Th>{tr('Customer')}</Th><Th>{tr('Plan')}</Th><Th>{tr('Khatam')}</Th><Th align="right">{tr('Paid')}</Th><Th align="right">{tr('Services / bachat')}</Th><Th /></Tr></THead>
               <TBody>
                 {rows.map((m) => {
                   const left = daysLeft(m);
@@ -140,15 +141,15 @@ export default function MembershipsPage() {
                   return (
                     <Tr key={m.id}>
                       <Td><p className="font-medium text-slate-900">{m.customer?.name ?? '—'}</p><p className="text-[0.75rem] text-slate-500">{m.customer?.phone ?? ''} · {m.membershipNumber}</p></Td>
-                      <Td><span className="inline-flex items-center gap-1.5"><Crown className="h-4 w-4" style={{ color: tier.color }} />{m.plan?.name}</span><p className="text-[0.75rem] text-slate-500">{m.plan?.discountPct}% discount</p></Td>
+                      <Td><span className="inline-flex items-center gap-1.5"><Crown className="h-4 w-4" style={{ color: tier.color }} />{m.plan?.name}</span><p className="text-[0.75rem] text-slate-500">{tr('{{discountPct}}% discount', { discountPct: m.plan?.discountPct })}</p></Td>
                       <Td>
                         {dateOf(m.expiryDate)}
-                        <div>{m.status === 'ACTIVE' ? <Badge size="xs" variant={left <= 15 ? 'warning' : 'success'}>{left} din baqi</Badge> : <Badge size="xs" variant="default">{STATUS_LABEL[m.status as keyof typeof STATUS_LABEL] ?? m.status}</Badge>}</div>
+                        <div>{m.status === 'ACTIVE' ? <Badge size="xs" variant={left <= 15 ? 'warning' : 'success'}>{tr('{{left}} din baqi', { left })}</Badge> : <Badge size="xs" variant="default">{STATUS_LABEL[m.status as keyof typeof STATUS_LABEL] ?? m.status}</Badge>}</div>
                         {m.cancellationReason && <p className="text-[0.6875rem] text-slate-500">{m.cancellationReason}</p>}
                       </Td>
-                      <Td align="right" className="tabular-nums">{formatPKR(m.amountPaid)}{m.plan && m.amountPaid < m.plan.price && <p className="text-[0.6875rem] text-amber-700">baqi khate me</p>}</Td>
+                      <Td align="right" className="tabular-nums">{formatPKR(m.amountPaid)}{m.plan && m.amountPaid < m.plan.price && <p className="text-[0.6875rem] text-amber-700">{tr('baqi khate me')}</p>}</Td>
                       <Td align="right" className="tabular-nums">{m.usedServices} · {formatPKR(m.totalSaved)}</Td>
-                      <Td align="right">{can.bill && m.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={() => setCancel(m)}>Cancel</Button>}</Td>
+                      <Td align="right">{can.bill && m.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={() => setCancel(m)}>{tr('Cancel')}</Button>}</Td>
                     </Tr>
                   );
                 })}
@@ -165,21 +166,21 @@ export default function MembershipsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="flex items-center gap-1.5 font-semibold text-slate-900"><Crown className="h-4 w-4" style={{ color: tier.color }} />{p.name}</p>
-                    <p className="text-[0.8125rem] text-slate-500">{tier.label} · {p.durationDays} din</p>
+                    <p className="text-[0.8125rem] text-slate-500">{tr('{{label}} · {{durationDays}} din', { label: tier.label, durationDays: p.durationDays })}</p>
                   </div>
-                  {!p.isActive && <Badge size="xs">Band</Badge>}
+                  {!p.isActive && <Badge size="xs">{tr('Band')}</Badge>}
                 </div>
                 <p className="mt-3 text-2xl font-bold tabular-nums text-slate-900">{formatPKR(p.price)}</p>
-                <p className="text-[0.8125rem] font-semibold text-success-700">{p.discountPct}% discount har service par</p>
+                <p className="text-[0.8125rem] font-semibold text-success-700">{tr('{{discountPct}}% discount har service par', { discountPct: p.discountPct })}</p>
                 {!!p.benefits.length && <ul className="mt-2 list-inside list-disc text-[0.8125rem] text-slate-600">{p.benefits.slice(0, 4).map((b) => <li key={b}>{b}</li>)}</ul>}
-                <p className="mt-2 text-[0.75rem] text-slate-500">{p.totalSubscribers} dafa bika</p>
-                {can.catalog && <Button className="mt-3" size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setPlan(p)}>Badlein</Button>}
+                <p className="mt-2 text-[0.75rem] text-slate-500">{tr('{{totalSubscribers}} dafa bika', { totalSubscribers: p.totalSubscribers })}</p>
+                {can.catalog && <Button className="mt-3" size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setPlan(p)}>{tr('Badlein')}</Button>}
               </div>
             );
           })}
           {can.catalog && (
             <button type="button" onClick={() => setPlan('new')} className="flex min-h-[12rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-700">
-              <Plus className="h-6 w-6" /> Naya plan
+              <Plus className="h-6 w-6" /> {' '}{tr('Naya plan')}
             </button>
           )}
         </div>
@@ -194,12 +195,12 @@ export default function MembershipsPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Memberships — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Memberships — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Sparkles, color: '#ca8a04', title: 'Plan', text: 'Plan banayein: qeemat, kitne din aur services par kitna % discount. Jaise Gold — Rs 5,000, 365 din, 10%.' },
-            { icon: Plus, color: '#db2777', title: 'Bechna', text: 'Customer chunein, plan chunein aur jo paisa mila likhein. Baqi customer ke khate me udhaar jata hai. Bill Sales me aata hai.' },
-            { icon: Percent, color: '#16a34a', title: 'Discount', text: 'Counter par member customer chunte hi "Membership" ka nishan aata hai — lagate hi services par discount.' },
-            { icon: Receipt, color: '#e11d48', title: 'Wapas paisa', text: 'Cancel sirf membership band karta hai. Paisa wapas karna ho to Sales me us ka bill void karein — membership khud cancel ho jati hai.' },
+            { icon: Sparkles, color: '#ca8a04', title: tr('Plan'), text: tr('Plan banayein: qeemat, kitne din aur services par kitna % discount. Jaise Gold — Rs 5,000, 365 din, 10%.') },
+            { icon: Plus, color: '#db2777', title: tr('Bechna'), text: tr('Customer chunein, plan chunein aur jo paisa mila likhein. Baqi customer ke khate me udhaar jata hai. Bill Sales me aata hai.') },
+            { icon: Percent, color: '#16a34a', title: tr('Discount'), text: tr('Counter par member customer chunte hi "Membership" ka nishan aata hai — lagate hi services par discount.') },
+            { icon: Receipt, color: '#e11d48', title: tr('Wapas paisa'), text: tr('Cancel sirf membership band karta hai. Paisa wapas karna ho to Sales me us ka bill void karein — membership khud cancel ho jati hai.') },
           ]}
           shortcuts={[['N', 'bechein'], ['/', 'dhoondein'], ['1', 'members'], ['2', 'plans'], ['G', 'guide']]}
         />
@@ -208,7 +209,7 @@ export default function MembershipsPage() {
   );
 }
 
-const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { ACTIVE: 'Chalti', EXPIRED: 'Khatam', CANCELLED: 'Cancel' };
+const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { ACTIVE: tr('Chalti'), EXPIRED: tr('Khatam'), CANCELLED: tr('Cancel') };
 
 function SellModal({ plans, onClose }: { plans: MembershipPlan[]; onClose: () => void }) {
   const qc = useQueryClient();
@@ -219,22 +220,22 @@ function SellModal({ plans, onClose }: { plans: MembershipPlan[]; onClose: () =>
   const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [notes, setNotes] = useState('');
   const amount = paid === '' ? p?.price ?? 0 : Number(paid) || 0;
-  const error = !customer.customerId ? 'Customer chunein (membership customer ke naam hoti hai)' : !p ? 'Plan chunein' : amount < 0 || amount > p.price ? `Zyada se zyada ${formatPKR(p.price)}` : undefined;
+  const error = !customer.customerId ? tr('Customer chunein (membership customer ke naam hoti hai)') : !p ? tr('Plan chunein') : amount < 0 || amount > p.price ? tr('Zyada se zyada {{price}}', { price: formatPKR(p.price) }) : undefined;
   const save = useMutation({
     mutationFn: () => membershipsApi.subscribe({ planId, customerId: customer.customerId, amountPaid: amount, paymentMethod: method, notes: notes.trim() || undefined }),
-    onSuccess: (m) => { toast.success(`${m.membershipNumber} ban gayi`); [SALON_KEYS.memberships, 'customers', 'salon-perks'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Membership nahi bani')),
+    onSuccess: (m) => { toast.success(tr('{{membershipNumber}} ban gayi', { membershipNumber: m.membershipNumber })); [SALON_KEYS.memberships, 'customers', 'salon-perks'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Membership nahi bani'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Membership bechein" description="Bill Sales me aata hai; jo paisa abhi na mile woh khate me udhaar"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>Bechein {formatPKR(amount)}</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Membership bechein')} description={tr('Bill Sales me aata hai; jo paisa abhi na mile woh khate me udhaar')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>{tr('Bechein {{amount}}', { amount: formatPKR(amount) })}</Button></>}>
       <div className="space-y-3">
         <CustomerField value={customer} onChange={setCustomer} compact />
-        <Select label="Plan" value={planId} onChange={(e) => setPlanId(e.target.value)} options={plans.map((x) => ({ value: x.id, label: `${x.name} · ${formatPKR(x.price)} · ${x.durationDays} din · ${x.discountPct}%` }))} />
-        <Input label="Abhi kitna mila" inputMode="decimal" value={paid} placeholder={String(p?.price ?? 0)} onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
-          hint={p && amount < p.price ? `${formatPKR(p.price - amount)} khate me udhaar` : 'Poora paisa'} />
+        <Select label={tr('Plan')} value={planId} onChange={(e) => setPlanId(e.target.value)} options={plans.map((x) => ({ value: x.id, label: tr('{{name}} · {{price}} · {{durationDays}} din · {{discountPct}}%', { name: x.name, price: formatPKR(x.price), durationDays: x.durationDays, discountPct: x.discountPct }) }))} />
+        <Input label={tr('Abhi kitna mila')} inputMode="decimal" value={paid} placeholder={String(p?.price ?? 0)} onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
+          hint={p && amount < p.price ? tr('{{formatPKR}} khate me udhaar', { formatPKR: formatPKR(p.price - amount) }) : tr('Poora paisa')} />
         {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
-        <Textarea label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} hint="Marzi hai" />
+        <Textarea label={tr('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} hint={tr('Marzi hai')} />
         {error && customer.customerId && <p className="text-[0.8125rem] text-rose-600">{error}</p>}
       </div>
     </Modal>
@@ -250,26 +251,26 @@ function PlanModal({ plan, onClose }: { plan: MembershipPlan | null; onClose: ()
   const [pct, setPct] = useState(String(plan?.discountPct ?? 10));
   const [benefits, setBenefits] = useState((plan?.benefits ?? []).join('\n'));
   const [active, setActive] = useState(plan?.isActive ?? true);
-  const error = name.trim().length < 2 ? 'Plan ka naam likhein' : !(Number(price) >= 0) || price === '' ? 'Qeemat likhein' : !(Number(days) >= 1) ? 'Din likhein' : !(Number(pct) >= 0 && Number(pct) <= 100) ? 'Discount 0 se 100%' : undefined;
+  const error = name.trim().length < 2 ? tr('Plan ka naam likhein') : !(Number(price) >= 0) || price === '' ? tr('Qeemat likhein') : !(Number(days) >= 1) ? tr('Din likhein') : !(Number(pct) >= 0 && Number(pct) <= 100) ? tr('Discount 0 se 100%') : undefined;
   const save = useMutation({
     mutationFn: () => {
       const body = { name: name.trim(), tier, price: Number(price), durationDays: Number(days), discountPct: Number(pct), priorityBooking: false, benefits: benefits.split('\n').map((b) => b.trim()).filter(Boolean), isActive: active };
       return plan ? membershipsApi.updatePlan(plan.id, body) : membershipsApi.createPlan(body);
     },
-    onSuccess: () => { toast.success('Plan save ho gaya'); qc.invalidateQueries({ queryKey: [SALON_KEYS.memberships] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Plan save nahi hua')),
+    onSuccess: () => { toast.success(tr('Plan save ho gaya')); qc.invalidateQueries({ queryKey: [SALON_KEYS.memberships] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Plan save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title={plan ? `${plan.name} — badlein` : 'Naya plan'}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Save</Button></>}>
+    <Modal open onClose={onClose} size="md" title={plan ? tr('{{name}} — badlein', { name: plan.name }) : tr('Naya plan')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>{tr('Save')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Gold" maxLength={80} />
-        <Select label="Tier" value={tier} onChange={(e) => setTier(e.target.value as MembershipTier)} options={TIERS.map((t) => ({ value: t.value, label: t.label }))} />
-        <Input label="Qeemat" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="5000" />
-        <Input label="Kitne din" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} hint="365 = ek saal" />
-        <Input label="Services par discount %" inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value.replace(/[^\d.]/g, ''))} hint="Counter par khud lagta hai" />
-        <div className="flex items-end"><Switch label="Chalu" description="Band plan bikta nahi" checked={active} onChange={(e) => setActive(e.target.checked)} /></div>
-        <Textarea wrapperClassName="sm:col-span-2" label="Faide (har line ek)" value={benefits} onChange={(e) => setBenefits(e.target.value)} rows={3} placeholder={'Birthday par free facial\nBooking me pehli bari'} />
+        <Input label={tr('Naam')} value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Gold')} maxLength={80} />
+        <Select label={tr('Tier')} value={tier} onChange={(e) => setTier(e.target.value as MembershipTier)} options={TIERS.map((t) => ({ value: t.value, label: t.label }))} />
+        <Input label={tr('Qeemat')} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="5000" />
+        <Input label={tr('Kitne din')} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} hint={tr('365 = ek saal')} />
+        <Input label={tr('Services par discount %')} inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value.replace(/[^\d.]/g, ''))} hint={tr('Counter par khud lagta hai')} />
+        <div className="flex items-end"><Switch label={tr('Chalu')} description={tr('Band plan bikta nahi')} checked={active} onChange={(e) => setActive(e.target.checked)} /></div>
+        <Textarea wrapperClassName="sm:col-span-2" label={tr('Faide (har line ek)')} value={benefits} onChange={(e) => setBenefits(e.target.value)} rows={3} placeholder={tr('Birthday par free facial\nBooking me pehli bari')} />
         {error && <p className="text-[0.8125rem] text-rose-600 sm:col-span-2">{error}</p>}
       </div>
     </Modal>

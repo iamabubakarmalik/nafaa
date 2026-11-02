@@ -6,15 +6,16 @@ import { IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from
 import type { AttentionItem, MoneyTileProps } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { usePetshopOps } from './usePetshopOps';
+import { t } from '@core/i18n';
 
 const STATUS: Record<string, { label: string; variant: 'default' | 'info' | 'warning' | 'success' | 'danger' }> = {
-  SCHEDULED: { label: 'Booked', variant: 'default' },
-  CONFIRMED: { label: 'Pakka', variant: 'info' },
-  IN_PROGRESS: { label: 'Chal raha', variant: 'warning' },
-  READY_FOR_PICKUP: { label: 'Tayyar', variant: 'success' },
-  COMPLETED: { label: 'Mukammal', variant: 'success' },
-  CANCELLED: { label: 'Cancel', variant: 'danger' },
-  NO_SHOW: { label: 'Nahi aaya', variant: 'danger' },
+  SCHEDULED: { label: t('Booked'), variant: 'default' },
+  CONFIRMED: { label: t('Pakka'), variant: 'info' },
+  IN_PROGRESS: { label: t('Chal raha'), variant: 'warning' },
+  READY_FOR_PICKUP: { label: t('Tayyar'), variant: 'success' },
+  COMPLETED: { label: t('Mukammal'), variant: 'success' },
+  CANCELLED: { label: t('Cancel'), variant: 'danger' },
+  NO_SHOW: { label: t('Nahi aaya'), variant: 'danger' },
 };
 
 const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
@@ -22,54 +23,54 @@ const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('en-PK', { hour
 /** Pet-shop headline numbers, offered next to the common ones. */
 export const petshopKpis: KpiDef[] = [
   {
-    id: 'petshop-grooming', label: 'Aaj grooming', icon: Scissors, tone: 'brand',
+    id: 'petshop-grooming', label: t('Aaj grooming'), icon: Scissors, tone: 'brand',
     useValue: () => {
       const { grooming: g, loading } = usePetshopOps();
-      return { loading, to: '/petshop/grooming', value: g.today, hint: g.inProgress ? `${g.inProgress} chal raha` : `${g.waiting} intezar me` };
+      return { loading, to: '/petshop/grooming', value: g.today, hint: g.inProgress ? t('{{inProgress}} chal raha', { inProgress: g.inProgress }) : t('{{waiting}} intezar me', { waiting: g.waiting }) };
     },
   },
   {
-    id: 'petshop-pickup', label: 'Pet lene aana hai', icon: CheckCircle2, tone: 'success',
+    id: 'petshop-pickup', label: t('Pet lene aana hai'), icon: CheckCircle2, tone: 'success',
     useValue: () => {
       const { grooming: g, loading } = usePetshopOps();
       const { sales } = useMasked();
       return {
         loading, to: '/petshop/grooming', value: g.pickupCount, alert: g.pickupCount > 0,
-        hint: g.pickupDue > 0 ? `${sales(g.pickupDue)} lena baqi` : 'grooming tayyar',
+        hint: g.pickupDue > 0 ? t('{{pickupDue}} lena baqi', { pickupDue: sales(g.pickupDue) }) : t('grooming tayyar'),
       };
     },
   },
   {
-    id: 'petshop-animals', label: 'Bikne wale janwar', icon: PawPrint, tone: 'info',
+    id: 'petshop-animals', label: t('Bikne wale janwar'), icon: PawPrint, tone: 'info',
     useValue: () => {
       const { animals: a, loading } = usePetshopOps();
       const { sales } = useMasked();
-      return { loading, to: '/petshop/live-animals', value: a.available, hint: a.reserved ? `${a.reserved} reserve · ${sales(a.value)}` : sales(a.value) };
+      return { loading, to: '/petshop/live-animals', value: a.available, hint: a.reserved ? t('{{reserved}} reserve · {{sales}}', { reserved: a.reserved, sales: sales(a.value) }) : sales(a.value) };
     },
   },
   {
-    id: 'petshop-health', label: 'Vaccine baqi', icon: Activity, tone: 'warning',
+    id: 'petshop-health', label: t('Vaccine baqi'), icon: Activity, tone: 'warning',
     useValue: () => {
       const { animals: a, loading } = usePetshopOps();
-      return { loading, to: '/petshop/live-animals', value: a.health.length, alert: a.health.length > 0, hint: 'vaccine ya deworm' };
+      return { loading, to: '/petshop/live-animals', value: a.health.length, alert: a.health.length > 0, hint: t('vaccine ya deworm') };
     },
   },
   {
-    id: 'petshop-expiry', label: 'Dawai expiry', icon: Pill, tone: 'danger',
+    id: 'petshop-expiry', label: t('Dawai expiry'), icon: Pill, tone: 'danger',
     useValue: () => {
       const { medicines: m, loading } = usePetshopOps();
       return {
         loading, to: '/petshop-products?filter=expiring', value: m.expiring, alert: m.expired > 0,
-        hint: m.expired ? `${m.expired} expire ho chuki` : '90 din ke andar',
+        hint: m.expired ? t('{{expired}} expire ho chuki', { expired: m.expired }) : t('90 din ke andar'),
       };
     },
   },
   {
-    id: 'petshop-animal-profit', label: 'Janwaron ka profit', icon: TrendingUp, tone: 'success', sensitive: true,
+    id: 'petshop-animal-profit', label: t('Janwaron ka profit'), icon: TrendingUp, tone: 'success', sensitive: true,
     useValue: () => {
       const { animals: a, loading } = usePetshopOps();
       const { cost } = useMasked();
-      return { loading, to: '/petshop/live-animals', value: cost(a.monthProfit), hint: `is mahine ${a.monthSold} bike` };
+      return { loading, to: '/petshop/live-animals', value: cost(a.monthProfit), hint: t('is mahine {{monthSold}} bike', { monthSold: a.monthSold }) };
     },
   },
 ];
@@ -79,11 +80,11 @@ export function usePetshopAttention(): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (loading) return items;
 
-  if (medicines.expired) items.push({ icon: Pill, level: 'danger', text: `${medicines.expired} dawai expire ho chuki — shelf se foran hatayein`, to: '/petshop-products?filter=expired', cta: 'Dawai dekhein' });
-  if (grooming.pickupCount) items.push({ icon: CheckCircle2, level: 'warning', text: `${grooming.pickupCount} pet tayyar hain — maalik ko call karein`, to: '/petshop/grooming?status=READY_FOR_PICKUP', cta: 'List dekhein' });
-  if (animals.health.length) items.push({ icon: Activity, level: 'warning', text: `${animals.health.length} janwar ki vaccine ya deworming baqi hai`, to: '/petshop/live-animals', cta: 'Janwar dekhein' });
-  if (medicines.within30) items.push({ icon: Clock, level: 'info', text: `${medicines.within30} dawai 30 din me expire hogi — discount ya wapas karein`, to: '/petshop-products?filter=expiring', cta: 'Dekhein' });
-  if (grooming.waiting) items.push({ icon: Scissors, level: 'info', text: `Aaj ${grooming.waiting} grooming appointment baqi hain`, to: '/petshop/grooming', cta: 'Schedule dekhein' });
+  if (medicines.expired) items.push({ icon: Pill, level: 'danger', text: t('{{expired}} dawai expire ho chuki — shelf se foran hatayein', { expired: medicines.expired }), to: '/petshop-products?filter=expired', cta: t('Dawai dekhein') });
+  if (grooming.pickupCount) items.push({ icon: CheckCircle2, level: 'warning', text: t('{{pickupCount}} pet tayyar hain — maalik ko call karein', { pickupCount: grooming.pickupCount }), to: '/petshop/grooming?status=READY_FOR_PICKUP', cta: t('List dekhein') });
+  if (animals.health.length) items.push({ icon: Activity, level: 'warning', text: t('{{count}} janwar ki vaccine ya deworming baqi hai', { count: animals.health.length }), to: '/petshop/live-animals', cta: t('Janwar dekhein') });
+  if (medicines.within30) items.push({ icon: Clock, level: 'info', text: t('{{within30}} dawai 30 din me expire hogi — discount ya wapas karein', { within30: medicines.within30 }), to: '/petshop-products?filter=expiring', cta: t('Dekhein') });
+  if (grooming.waiting) items.push({ icon: Scissors, level: 'info', text: t('Aaj {{waiting}} grooming appointment baqi hain', { waiting: grooming.waiting }), to: '/petshop/grooming', cta: t('Schedule dekhein') });
   return items;
 }
 
@@ -92,13 +93,13 @@ export function PetshopGrooming() {
   const { sales } = useMasked();
   return (
     <WidgetCard
-      title="Aaj ki grooming"
+      title={t('Aaj ki grooming')}
       icon={Scissors}
-      description={g.today ? `${g.today} appointment · ${g.doneToday} mukammal · ${sales(g.revenueToday)}` : 'Aaj koi appointment nahi'}
+      description={g.today ? t('{{today}} appointment · {{doneToday}} mukammal · {{revenueToday}}', { today: g.today, doneToday: g.doneToday, revenueToday: sales(g.revenueToday) }) : t('Aaj koi appointment nahi')}
       to="/petshop/grooming"
       flush
     >
-      <RowList empty="Aaj koi grooming book nahi" emptyIcon={CalendarCheck}>
+      <RowList empty={t('Aaj koi grooming book nahi')} emptyIcon={CalendarCheck}>
         {g.schedule.slice(0, 6).map((a) => {
           const st = STATUS[a.status] ?? STATUS.SCHEDULED;
           return (
@@ -123,13 +124,13 @@ export function PetshopPickup() {
   const { sales } = useMasked();
   return (
     <WidgetCard
-      title="Pet lene aana hai"
+      title={t('Pet lene aana hai')}
       icon={CheckCircle2}
-      description={g.pickupCount ? `${g.pickupCount} tayyar${g.pickupDue > 0 ? ` · ${sales(g.pickupDue)} baqi` : ''}` : 'Koi pet intezar me nahi'}
+      description={g.pickupCount ? t('{{pickupCount}} tayyar{{value}}', { pickupCount: g.pickupCount, value: g.pickupDue > 0 ? t(' · {{pickupDue}} baqi', { pickupDue: sales(g.pickupDue) }) : '' }) : t('Koi pet intezar me nahi')}
       to="/petshop/grooming?status=READY_FOR_PICKUP"
       flush
     >
-      <RowList empty="Koi pet pickup ke liye nahi" emptyIcon={CheckCircle2}>
+      <RowList empty={t('Koi pet pickup ke liye nahi')} emptyIcon={CheckCircle2}>
         {g.pickup.slice(0, 6).map((a) => (
           <ListRow
             key={a.id}
@@ -138,7 +139,7 @@ export function PetshopPickup() {
             title={a.petName}
             meta={`${a.customerName}${a.customerPhone ? ` · ${a.customerPhone}` : ''}`}
             value={sales(a.totalFee)}
-            valueHint={a.balance > 0 ? <span className="font-medium text-rose-700">baqi {sales(a.balance)}</span> : undefined}
+            valueHint={a.balance > 0 ? <span className="font-medium text-rose-700">{t('baqi {{balance}}', { balance: sales(a.balance) })}</span> : undefined}
           />
         ))}
       </RowList>
@@ -150,13 +151,13 @@ export function PetshopHealth() {
   const { animals: a } = usePetshopOps();
   return (
     <WidgetCard
-      title="Janwaron ki sehat"
+      title={t('Janwaron ki sehat')}
       icon={Heart}
-      description={a.health.length ? `${a.health.length} ki vaccine ya deworming baqi` : `${a.available} janwar · sab theek`}
+      description={a.health.length ? t('{{count}} ki vaccine ya deworming baqi', { count: a.health.length }) : t('{{available}} janwar · sab theek', { available: a.available })}
       to="/petshop/live-animals"
       flush
     >
-      <RowList empty="Sab janwaron ki vaccine aur deworming mukammal" emptyIcon={Heart}>
+      <RowList empty={t('Sab janwaron ki vaccine aur deworming mukammal')} emptyIcon={Heart}>
         {a.health.slice(0, 6).map((x) => {
           const missing = [!x.isVaccinated && 'Vaccine', !x.isDewormed && 'Deworm'].filter(Boolean).join(' + ');
           return (
@@ -166,7 +167,7 @@ export function PetshopHealth() {
               leading={<IconBubble icon={Activity} tone="warning" />}
               title={x.name || `${x.species.toLowerCase()} #${x.animalNumber}`}
               meta={[x.breed, x.status === 'RESERVED' ? 'reserve' : undefined].filter(Boolean).join(' · ') || undefined}
-              value={<Badge variant="warning" size="xs">{missing || 'Check'}</Badge>}
+              value={<Badge variant="warning" size="xs">{missing || t('Check')}</Badge>}
             />
           );
         })}
@@ -179,13 +180,13 @@ export function PetshopMedicines() {
   const { medicines: m } = usePetshopOps();
   return (
     <WidgetCard
-      title="Dawai ki expiry"
+      title={t('Dawai ki expiry')}
       icon={Pill}
-      description={m.expired ? `${m.expired} expire ho chuki · ${m.expiring} 90 din me` : `${m.expiring} cheezein 90 din me`}
+      description={m.expired ? t('{{expired}} expire ho chuki · {{expiring}} 90 din me', { expired: m.expired, expiring: m.expiring }) : t('{{expiring}} cheezein 90 din me', { expiring: m.expiring })}
       to="/petshop-products?filter=expiring"
       flush
     >
-      <RowList empty="Koi dawai jald expire nahi ho rahi" emptyIcon={Pill}>
+      <RowList empty={t('Koi dawai jald expire nahi ho rahi')} emptyIcon={Pill}>
         {m.list.slice(0, 6).map((p) => {
           const urgent = p.days !== null && p.days < 30;
           return (
@@ -193,9 +194,9 @@ export function PetshopMedicines() {
               key={p.id}
               to={p.productId ? `/petshop-products/${p.productId}` : '/petshop-products'}
               leading={<IconBubble icon={Pill} tone={urgent ? 'danger' : 'warning'} />}
-              title={p.product?.name || p.brand || 'Dawai'}
-              meta={p.batchNumber ? `Batch ${p.batchNumber}` : undefined}
-              value={<Badge variant={urgent ? 'danger' : 'warning'} size="xs">{p.days === null ? '—' : `${p.days} din`}</Badge>}
+              title={p.product?.name || p.brand || t('Dawai')}
+              meta={p.batchNumber ? t('Batch {{batchNumber}}', { batchNumber: p.batchNumber }) : undefined}
+              value={<Badge variant={urgent ? 'danger' : 'warning'} size="xs">{p.days === null ? '—' : t('{{days}} din', { days: p.days })}</Badge>}
             />
           );
         })}
@@ -208,7 +209,7 @@ export function PetshopMedicines() {
 export function usePetshopMoneyTiles(): MoneyTileProps[] {
   const { animals: a } = usePetshopOps();
   return [{
-    key: 'petshop-animals', icon: PawPrint, tone: 'info', to: '/petshop/live-animals', label: 'Bikne wale janwar',
-    value: formatPKR(a.value), hint: `${a.available} janwar${a.reserved ? ` · ${a.reserved} reserve` : ''}`,
+    key: 'petshop-animals', icon: PawPrint, tone: 'info', to: '/petshop/live-animals', label: t('Bikne wale janwar'),
+    value: formatPKR(a.value), hint: t('{{available}} janwar{{value}}', { available: a.available, value: a.reserved ? t(' · {{reserved}} reserve', { reserved: a.reserved }) : '' }),
   }];
 }

@@ -14,15 +14,16 @@ import GamingTopupsPage from './pages/GamingTopupsPage';
 import GamingStationsPage from './pages/GamingStationsPage';
 import GamingCafeLivePage from './pages/GamingCafeLivePage';
 import GamingTournamentsPage from './pages/GamingTournamentsPage';
+import { t } from '@core/i18n';
 
 export const GamingPack: IndustryPack = {
   id: 'gaming',
   name: 'Gaming Shop & Cyber Cafe',
-  shortName: 'Gaming',
+  shortName: t('Gaming'),
   emoji: '🎮',
   priority: 78,
   description:
-    'Consoles, games, PC parts, console rentals, PSN/Xbox/PUBG top-ups, LAN cafe live billing, tournaments.',
+    t('Consoles, games, PC parts, console rentals, PSN/Xbox/PUBG top-ups, LAN cafe live billing, tournaments.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -35,18 +36,18 @@ export const GamingPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Gaming',
+      label: t('Gaming'),
       icon: Gamepad2,
       emoji: '🎮',
       color: '#7c3aed',
       order: 20,
       items: [
-        { to: '/gaming/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/gaming/cafe', label: 'Cafe live', icon: Timer, badge: 'LIVE' },
-        { to: '/gaming/stations', label: 'Stations', icon: Monitor },
-        { to: '/gaming/rentals', label: 'Rentals', icon: PackageOpen },
-        { to: '/gaming/topups', label: 'Digital top-ups', icon: CreditCard },
-        { to: '/gaming/tournaments', label: 'Tournaments', icon: Trophy },
+        { to: '/gaming/dashboard', label: t('Dashboard'), icon: LayoutDashboard },
+        { to: '/gaming/cafe', label: t('Cafe live'), icon: Timer, badge: t('LIVE') },
+        { to: '/gaming/stations', label: t('Stations'), icon: Monitor },
+        { to: '/gaming/rentals', label: t('Rentals'), icon: PackageOpen },
+        { to: '/gaming/topups', label: t('Digital top-ups'), icon: CreditCard },
+        { to: '/gaming/tournaments', label: t('Tournaments'), icon: Trophy },
       ],
     },
   ],
@@ -74,18 +75,18 @@ export const GamingPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🎮', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
-      { value: 'box', label: 'Box', hint: '📦', group: 'Count' },
-      { value: 'hour', label: 'Hour', hint: '⏱️', group: 'Time' },
+      { value: 'pcs', label: t('Pieces'), hint: '🎮', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
+      { value: 'box', label: t('Box'), hint: '📦', group: t('Count') },
+      { value: 'hour', label: t('Hour'), hint: '⏱️', group: t('Time') },
     ],
   },
 
   featureFlags: [
-    { key: 'gamingCafe', label: 'LAN / Cyber Cafe Billing', defaultEnabled: true },
-    { key: 'gamingRentals', label: 'Console Rentals', defaultEnabled: true },
-    { key: 'gamingTopups', label: 'Digital Top-ups (PSN/UC/Robux)', defaultEnabled: true },
-    { key: 'gamingTournaments', label: 'Tournaments', defaultEnabled: true },
-    { key: 'gamingTradeIn', label: 'Pre-owned Trade-in', defaultEnabled: true },
+    { key: 'gamingCafe', label: t('LAN / Cyber Cafe Billing'), defaultEnabled: true },
+    { key: 'gamingRentals', label: t('Console Rentals'), defaultEnabled: true },
+    { key: 'gamingTopups', label: t('Digital Top-ups (PSN/UC/Robux)'), defaultEnabled: true },
+    { key: 'gamingTournaments', label: t('Tournaments'), defaultEnabled: true },
+    { key: 'gamingTradeIn', label: t('Pre-owned Trade-in'), defaultEnabled: true },
   ],
 };

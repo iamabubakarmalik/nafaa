@@ -16,6 +16,7 @@ import { getReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import type { StockTransfer } from '../api/transfers.api';
 import { STATUS, dayTime, duration, lineName, lineRef, lineUnit, qty, shortValue } from './transferMeta';
+import { t as tr } from '@core/i18n';
 
 type Kind = 'challan' | 'received';
 interface Opts {
@@ -29,6 +30,7 @@ interface Opts {
 }
 
 const STORE = 'nafaa-transfer-print';
+// i18n-ignore: printed/sent in the shop's language
 const TITLES: Record<Kind, string> = { challan: 'DELIVERY CHALLAN', received: 'STOCK RECEIVED' };
 const rs = (n: number) => `Rs ${Math.round(n).toLocaleString('en-PK')}`;
 
@@ -75,6 +77,7 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
     return {
       saleNumber: t.transferNumber,
       date: new Date(t.transferredAt ?? t.createdAt),
+      // i18n-ignore: printed/sent in the shop's language
       partyLabel: 'Maal kis branch ko',
       signLabels: ['Bhejne wala', 'Lene wala'],
       customerName: t.toShop.name,
@@ -85,22 +88,31 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
       branchPhone: t.fromShop.phone,
       cashierName: t.createdBy?.fullName,
       infoRows: [
+        // i18n-ignore: printed/sent in the shop's language
         { label: 'Kahan se', value: t.fromShop.name, bold: true },
+        // i18n-ignore: printed/sent in the shop's language
         { label: 'Kahan', value: t.toShop.name, bold: true },
+        // i18n-ignore: printed/sent in the shop's language
         { label: 'Halat', value: STATUS[t.status].label },
+        // i18n-ignore: printed/sent in the shop's language
         ...(t.receivedAt ? [{ label: 'Receive', value: `${dayTime(t.receivedAt)}${t.receivedBy ? ` · ${t.receivedBy.fullName}` : ''}` }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...(t.receivedAt ? [{ label: 'Waqt laga', value: duration(t.transferredAt ?? t.createdAt, t.receivedAt) }] : []),
+        // i18n-ignore: printed/sent in the shop's language
         ...(t.cancelledAt ? [{ label: 'Cancel', value: `${dayTime(t.cancelledAt)}${t.cancelReason ? ` · ${t.cancelReason}` : ''}` }] : []),
       ],
       lines,
       subtotal: total,
       discount: 0,
+      // i18n-ignore: printed/sent in the shop's language
       extraRows: got && short > 0 ? [{ label: 'Kam aaya (qeemat)', value: rs(short), bold: true }] : [],
       total,
       paid: total,
+      // i18n-ignore: printed/sent in the shop's language
       paymentLabel: got ? 'Receive maal ki qeemat' : 'Bheje maal ki qeemat',
       hidePrices: !o.prices,
       footerNote: o.notes && t.notes ? t.notes : undefined,
+      // i18n-ignore: printed/sent in the shop's language
       stamp: t.status === 'CANCELLED' ? 'CANCEL' : undefined,
     };
   }, [t, o]);
@@ -115,42 +127,42 @@ export function TransferPrintModal({ t, onClose }: { t: StockTransfer; onClose: 
   );
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Transfer print" description="Chunein aur saath preview dekhein; pasand is device par yaad rahegi"
+    <Modal open onClose={onClose} size="xl" title={tr('Transfer print')} description={tr('Chunein aur saath preview dekhein; pasand is device par yaad rahegi')}
       footer={<>
-        <span className="mr-auto text-[0.75rem] text-slate-500">PDF chahiye to print me "Save as PDF" chunein</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>Print{o.copies > 1 ? ` (${o.copies})` : ''}</Button>
+        <span className="me-auto text-[0.75rem] text-slate-500">{tr('PDF chahiye to print me "Save as PDF" chunein')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>{tr('Print{{value}}', { value: o.copies > 1 ? ` (${o.copies})` : '' })}</Button>
       </>}>
       <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <div className="space-y-4">
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kya hai</p>
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{tr('Kya hai')}</p>
             <div className="grid grid-cols-2 gap-1">
-              {([['challan', 'Delivery challan'], ['received', 'Receiving slip']] as const).map(([k, l]) => (
+              {([['challan', tr('Delivery challan')], ['received', tr('Receiving slip')]] as const).map(([k, l]) => (
                 <button key={k} type="button" disabled={k === 'received' && !received} onClick={() => set('kind', k)} aria-pressed={o.kind === k}
                   className={cn('rounded-lg px-2 py-2 text-[0.8125rem] font-medium ring-1 transition disabled:opacity-40', o.kind === k ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-700 ring-slate-200')}>{l}</button>
               ))}
             </div>
             <p className="mt-1 text-[0.6875rem] text-slate-500">
-              {o.kind === 'challan' ? 'Maal ke saath bhejein — lene wala gin kar dastkhat kare' : 'Jo maal asal me aaya, kami ke saath'}
-              {!received && ' · Receiving slip maal aane ke baad'}
+              {o.kind === 'challan' ? tr('Maal ke saath bhejein — lene wala gin kar dastkhat kare') : tr('Jo maal asal me aaya, kami ke saath')}
+              {!received && tr(' · Receiving slip maal aane ke baad')}
             </p>
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kaghaz</p>
-            <Segmented label="Kaghaz" value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: 'A4' }, { value: '80', label: '80mm' }, { value: '58', label: '58mm' }]} />
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{tr('Kaghaz')}</p>
+            <Segmented label={tr('Kaghaz')} value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: 'A4', label: tr('A4') }, { value: '80', label: tr('80mm') }, { value: '58', label: tr('58mm') }]} />
           </div>
           <div>
-            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Slip par</p>
-            <Toggle k="prices" label="Rates aur qeemat dikhayein" hint="Driver ya rider ke haath bhejna ho to chhupa dein" />
-            <Toggle k="signature" label="Dastkhat ki jagah (A4)" hint="Bhejne wala aur lene wala" />
-            <Toggle k="notes" label="Transfer ka note" />
-            <Toggle k="logo" label="Logo" />
+            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{tr('Slip par')}</p>
+            <Toggle k="prices" label={tr('Rates aur qeemat dikhayein')} hint={tr('Driver ya rider ke haath bhejna ho to chhupa dein')} />
+            <Toggle k="signature" label={tr('Dastkhat ki jagah (A4)')} hint={tr('Bhejne wala aur lene wala')} />
+            <Toggle k="notes" label={tr('Transfer ka note')} />
+            <Toggle k="logo" label={tr('Logo')} />
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Copies</p>
-            <Segmented label="Copies" value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
-            <p className="mt-1 text-[0.6875rem] text-slate-500">2 copies: ek bhejne wali branch, ek lene wali ke liye</p>
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{tr('Copies')}</p>
+            <Segmented label={tr('Copies')} value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('2 copies: ek bhejne wali branch, ek lene wali ke liye')}</p>
           </div>
         </div>
         <div className="max-h-[70vh] overflow-auto rounded-2xl bg-slate-100 p-3">

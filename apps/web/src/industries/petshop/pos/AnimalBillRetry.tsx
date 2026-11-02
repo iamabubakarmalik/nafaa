@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RotateCw, X } from 'lucide-react';
 import { failedStore, markAnimalsSold, useFailedAnimalBill } from './animalBill';
+import { t } from '@core/i18n';
 
 export function AnimalBillRetry() {
   const failed = useFailedAnimalBill();
@@ -10,10 +11,10 @@ export function AnimalBillRetry() {
   if (!failed) return null;
   return (
     <div className="flex items-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">
-      <span className="min-w-0 flex-1">Bill {failed.saleNumber}: janwar "bik gaya" nahi likha</span>
+      <span className="min-w-0 flex-1">{t('Bill {{saleNumber}}: janwar "bik gaya" nahi likha', { saleNumber: failed.saleNumber })}</span>
       <button type="button" disabled={busy} onClick={() => { setBusy(true); void markAnimalsSold(failed.saleId, failed.saleNumber).finally(() => setBusy(false)); }}
-        className="inline-flex items-center gap-1 font-semibold hover:underline disabled:opacity-50"><RotateCw className="h-3.5 w-3.5" />Dobara</button>
-      <button type="button" onClick={() => failedStore.set(null)} aria-label="Chhor dein"><X className="h-4 w-4" /></button>
+        className="inline-flex items-center gap-1 font-semibold hover:underline disabled:opacity-50"><RotateCw className="h-3.5 w-3.5" />{t('Dobara')}</button>
+      <button type="button" onClick={() => failedStore.set(null)} aria-label={t('Chhor dein')}><X className="h-4 w-4" /></button>
     </div>
   );
 }

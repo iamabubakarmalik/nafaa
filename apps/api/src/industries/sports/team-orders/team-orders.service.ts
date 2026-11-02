@@ -19,6 +19,7 @@ import {
 import { nextRunningNumber } from '../common/service-sale.helper';
 import { checkRefundPin, khataCustomerOf, paging, r2, refundAdvance, refundedOnKhata, text } from '../common/sports-common';
 import { CreateTeamOrderDto, RecordPaymentDto, UpdateTeamOrderDto, UpdateTeamOrderStatusDto } from './dto/create-team-order.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type TeamItem = CreateTeamOrderDto['items'][number];
 
@@ -288,7 +289,9 @@ export class TeamOrdersService {
     const o = await this.prisma.sportsTeamOrder.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!o) throw new NotFoundException('Team order not found');
     if ((o.status === 'DELIVERED' || o.status === 'CANCELLED') && dto.status !== o.status) {
-      throw new BadRequestException(`${o.orderNumber} pehle hi ${o.status === 'DELIVERED' ? 'deliver' : 'cancel'} ho chuka hai`);
+      throw new BadRequestException(o.status === 'DELIVERED'
+        ? apiMessage('{{orderNumber}} pehle hi deliver ho chuka hai', { orderNumber: o.orderNumber })
+        : apiMessage('{{orderNumber}} pehle hi cancel ho chuka hai', { orderNumber: o.orderNumber }));
     }
     if (o.status === dto.status) return o;
 
@@ -359,12 +362,12 @@ export class TeamOrdersService {
     const byId = new Map(products.map((p) => [p.id, p]));
     return items.map((it) => {
       const p = byId.get(it.productId);
-      if (!p) throw new BadRequestException(`${it.productName || 'Item'}: product ab maujood nahi`);
+      if (!p) throw new BadRequestException(apiMessage('{{productName}}: product ab maujood nahi', { productName: it.productName || 'Item' }));
       let variantId = it.variantId;
       if (!variantId && p.hasVariants && p.variants.length) {
         const size = String(it.size ?? '').trim().toLowerCase();
         const match = size && p.variants.find((v) => (v.size ?? '').toLowerCase() === size || v.name.toLowerCase() === size);
-        if (!match) throw new BadRequestException(`${p.name}: size likhein (${p.variants.map((v) => v.size || v.name).join(', ')})`);
+        if (!match) throw new BadRequestException(apiMessage('{{pName}}: size likhein ({{map}})', { pName: p.name, map: p.variants.map((v) => v.size || v.name).join(', ') }));
         variantId = match.id;
       }
       const printing = r2(Number(it.printingPrice) || 0);
@@ -406,7 +409,7 @@ export class TeamOrdersService {
     }
     const t = orderTotals(items, dto.discountPct ?? o.discountPct, dto.taxAmount ?? o.taxAmount, dto.shippingCharge ?? o.shippingCharge);
     if (r2(o.advancePaid) > t.totalAmount + 0.01) {
-      throw new BadRequestException(`Rs ${r2(o.advancePaid)} advance mil chuka hai — order is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Rs {{advancePaid}} advance mil chuka hai — order is se kam nahi ho sakta', { advancePaid: r2(o.advancePaid) }));
     }
     Object.assign(patch, {
       items: t.items as any,
@@ -429,7 +432,7 @@ export class TeamOrdersService {
         : 'Cancel shuda order par payment nahi li ja sakti');
     }
     const due = r2(Number(o.totalAmount || 0) - Number(o.advancePaid || 0));
-    if (dto.amount > due + 0.01) throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori amount mil chuki hai');
+    if (dto.amount > due + 0.01) throw new BadRequestException(due > 0 ? apiMessage('Baqi sirf Rs {{due}} hai', { due }) : 'Poori amount mil chuki hai');
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);

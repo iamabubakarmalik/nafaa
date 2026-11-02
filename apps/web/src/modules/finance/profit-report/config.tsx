@@ -10,6 +10,7 @@ import { Barcode, ChefHat, Croissant, Leaf, Smartphone, Soup, Wheat, type Lucide
 import type { GuideStep } from '@core/components/PageGuide';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import type { ProfitFilters } from './api';
+import { t } from '@core/i18n';
 
 export interface ProfitFmt { money: (n: number) => string; cost: (n: number) => string; costHidden: boolean }
 export interface ProfitPanelProps { filters: ProfitFilters; fmt: ProfitFmt }
@@ -32,40 +33,40 @@ const AgriPanel = lazy(() => import('./components/panels/AgriPanel').then((m) =>
 
 const CONFIGS: Record<string, ProfitReportConfig> = {
   retail: {
-    label: 'Retail',
-    tips: ['Grocery me margin kam hota hai — "Nuqsan wali" aur "Discount wali" list har hafte dekhein.'],
+    label: t('Retail'),
+    tips: [t('Grocery me margin kam hota hai — "Nuqsan wali" aur "Discount wali" list har hafte dekhein.')],
   },
   mobile: {
-    label: 'Mobile',
-    itemWord: 'Model',
-    extraTab: { id: 'imei', label: 'IMEI war profit', icon: Smartphone, Component: MobilePanel },
-    guide: [{ icon: Smartphone, color: '#2563eb', title: 'Har phone ka profit', text: '"IMEI war profit" tab me har bika hua phone (naya ya used) us ki apni cost ke saath. Upar naye phone, used phone, accessories aur repair ki kamai alag alag.' }],
+    label: t('Mobile'),
+    itemWord: t('Model'),
+    extraTab: { id: 'imei', label: t('IMEI war profit'), icon: Smartphone, Component: MobilePanel },
+    guide: [{ icon: Smartphone, color: '#2563eb', title: t('Har phone ka profit'), text: t('"IMEI war profit" tab me har bika hua phone (naya ya used) us ki apni cost ke saath. Upar naye phone, used phone, accessories aur repair ki kamai alag alag.') }],
   },
   electronics: {
-    label: 'Electronics',
-    extraTab: { id: 'serial', label: 'Type aur serial', icon: Barcode, Component: ElectronicsPanel },
-    guide: [{ icon: Barcode, color: '#7c3aed', title: 'Serial wale maal', text: '"Type aur serial" tab me laptop, camera jaise serial wale har unit ka profit, aur type (charger, speaker…) aur halat (naya, open box, used) ke hisaab se kamai.' }],
+    label: t('Electronics'),
+    extraTab: { id: 'serial', label: t('Type aur serial'), icon: Barcode, Component: ElectronicsPanel },
+    guide: [{ icon: Barcode, color: '#7c3aed', title: t('Serial wale maal'), text: t('"Type aur serial" tab me laptop, camera jaise serial wale har unit ka profit, aur type (charger, speaker…) aur halat (naya, open box, used) ke hisaab se kamai.') }],
   },
   bakery: {
-    label: 'Bakery',
-    extraTab: { id: 'recipe', label: 'Recipe cost', icon: Croissant, Component: BakeryPanel },
-    guide: [{ icon: Wheat, color: '#d97706', title: 'Recipe se milan', text: 'Jo cheez dukaan me banti hai us ki asal cost recipe se nikalti hai. "Recipe cost" tab batata hai kahan bill wali cost aur recipe ki cost me farq hai — aksar maida ya makkhan mehnga ho gaya aur rate purana hai.' }],
-    tips: ['Recipe me saamaan ka rate taaza rakhein, warna profit ghalat aayega.'],
+    label: t('Bakery'),
+    extraTab: { id: 'recipe', label: t('Recipe cost'), icon: Croissant, Component: BakeryPanel },
+    guide: [{ icon: Wheat, color: '#d97706', title: t('Recipe se milan'), text: t('Jo cheez dukaan me banti hai us ki asal cost recipe se nikalti hai. "Recipe cost" tab batata hai kahan bill wali cost aur recipe ki cost me farq hai — aksar maida ya makkhan mehnga ho gaya aur rate purana hai.') }],
+    tips: [t('Recipe me saamaan ka rate taaza rakhein, warna profit ghalat aayega.')],
   },
   restaurant: {
-    label: 'Restaurant',
-    itemWord: 'Dish',
-    extraTab: { id: 'dishes', label: 'Dish food cost', icon: ChefHat, Component: RestaurantPanel },
-    guide: [{ icon: Soup, color: '#ea580c', title: 'Food cost %', text: 'Rate ka kitna hissa saamaan me gaya. 30–35% aam hai, 45% se upar ho to rate kam hai ya portion bara. Jo dish sab se zyada bikti hai zaroori nahi sab se zyada kamaye — "Dish food cost" tab dekhein.' }],
+    label: t('Restaurant'),
+    itemWord: t('Dish'),
+    extraTab: { id: 'dishes', label: t('Dish food cost'), icon: ChefHat, Component: RestaurantPanel },
+    guide: [{ icon: Soup, color: '#ea580c', title: t('Food cost %'), text: t('Rate ka kitna hissa saamaan me gaya. 30–35% aam hai, 45% se upar ho to rate kam hai ya portion bara. Jo dish sab se zyada bikti hai zaroori nahi sab se zyada kamaye — "Dish food cost" tab dekhein.') }],
   },
   agri: {
-    label: 'Agri',
-    extraTab: { id: 'agri', label: 'Type, bori aur mausam', icon: Leaf, Component: AgriPanel },
-    guide: [{ icon: Leaf, color: '#16a34a', title: 'Bori aur thok', text: 'Bori ka profit per kilo bhi dekhein, aur thok rate par kitna bachta hai. Rabi aur Kharif ka profit alag dikhta hai.' }],
+    label: t('Agri'),
+    extraTab: { id: 'agri', label: t('Type, bori aur mausam'), icon: Leaf, Component: AgriPanel },
+    guide: [{ icon: Leaf, color: '#16a34a', title: t('Bori aur thok'), text: t('Bori ka profit per kilo bhi dekhein, aur thok rate par kitna bachta hai. Rabi aur Kharif ka profit alag dikhta hai.') }],
   },
 };
 
 export function useProfitConfig(): ProfitReportConfig {
   const industry = useCurrentIndustry();
-  return (industry?.id && CONFIGS[industry.id]) || { label: industry?.name ?? 'Dukaan' };
+  return (industry?.id && CONFIGS[industry.id]) || { label: industry?.name ?? t('Dukaan') };
 }

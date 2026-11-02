@@ -22,6 +22,7 @@ import {
   ART_CATEGORIES, BINDINGS, BOARDS, BOOK_CATEGORIES, CONDITIONS, GRADES, KEYS, KINDS, LANGUAGES, STATIONERY_CATEGORIES, SUBJECTS,
   apiError, type ItemKind,
 } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface BookExtra {
   kind: ItemKind;
@@ -62,17 +63,17 @@ function Kind({ ctx }: { ctx: StepContext<BookExtra> }) {
   const x = ctx.draft.extra;
   return (
     <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Ye kya hai?</span>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Ye kya hai?')}</span>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {KINDS.map((k) => (
           <button key={k.value} type="button" aria-pressed={x.kind === k.value} onClick={() => ctx.setExtra({ kind: k.value, typeCategory: '' })}
-            className={`rounded-xl px-3 py-2 text-left ring-1 transition ${x.kind === k.value ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>
+            className={`rounded-xl px-3 py-2 text-start ring-1 transition ${x.kind === k.value ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>
             <span className="block text-[0.875rem] font-semibold">{k.label}</span>
             <span className={`block text-[0.6875rem] ${x.kind === k.value ? 'text-white/80' : 'text-slate-500'}`}>{k.hint}</span>
           </button>
         ))}
       </div>
-      <p className="mt-1.5 text-[0.75rem] text-slate-500">Isi se agla step ISBN aur author poochta hai, ya stationery ka type aur brand.</p>
+      <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Isi se agla step ISBN aur author poochta hai, ya stationery ka type aur brand.')}</p>
     </div>
   );
 }
@@ -83,27 +84,27 @@ function Details({ ctx }: { ctx: StepContext<BookExtra> }) {
   if (x.kind === 'BOOK') return <BookDetails ctx={ctx} />;
   if (x.kind === 'OTHER') {
     return (
-      <Section icon={Pencil} title="Aur maal" hint="Uniform, bag, gift item — size ya rang alag ho to Stock step me variant banayein">
+      <Section icon={Pencil} title={tr('Aur maal')} hint={tr('Uniform, bag, gift item — size ya rang alag ho to Stock step me variant banayein')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Brand / banane wala" value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder="Jaise: school ka naam" />
+          <TextField label={tr('Brand / banane wala')} value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder={tr('Jaise: school ka naam')} />
         </div>
       </Section>
     );
   }
   const list = x.kind === 'STATIONERY' ? STATIONERY_CATEGORIES : ART_CATEGORIES;
   return (
-    <Section icon={x.kind === 'ART' ? Palette : Pencil} title={x.kind === 'ART' ? 'Art ka saman' : 'Stationery'} hint="Type aur brand se products page aur POS par dhoondna aasaan hai">
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Type</span>
+    <Section icon={x.kind === 'ART' ? Palette : Pencil} title={x.kind === 'ART' ? tr('Art ka saman') : tr('Stationery')} hint={tr('Type aur brand se products page aur POS par dhoondna aasaan hai')}>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Type')}</span>
       <div className="flex flex-wrap gap-1.5">
         {list.map(([v, l]) => <Chip key={v} on={x.typeCategory === v} onClick={() => ctx.setExtra({ typeCategory: x.typeCategory === v ? '' : v })}>{l}</Chip>)}
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
-        <TextField label="Brand" value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder={x.kind === 'ART' ? 'Pelikan, Faber-Castell' : 'Dollar, Piano, Oxford'} />
-        <TextField label="Rang" value={x.color} onChange={(color) => ctx.setExtra({ color })} placeholder="Blue, Black" />
-        <TextField label="Size" value={x.size} onChange={(size) => ctx.setExtra({ size })} placeholder="A4, 200 pages, 12 colors" />
+        <TextField label={tr('Brand')} value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder={x.kind === 'ART' ? tr('Pelikan, Faber-Castell') : tr('Dollar, Piano, Oxford')} />
+        <TextField label={tr('Rang')} value={x.color} onChange={(color) => ctx.setExtra({ color })} placeholder={tr('Blue, Black')} />
+        <TextField label={tr('Size')} value={x.size} onChange={(size) => ctx.setExtra({ size })} placeholder={tr('A4, 200 pages, 12 colors')} />
       </div>
       {x.kind === 'STATIONERY' && (
-        <div className="mt-3"><Toggle on={x.isSchoolItem} onChange={(isSchoolItem) => ctx.setExtra({ isSchoolItem })} icon={GraduationCap} title="School ka saman" hint="School list banate waqt upar aata hai" /></div>
+        <div className="mt-3"><Toggle on={x.isSchoolItem} onChange={(isSchoolItem) => ctx.setExtra({ isSchoolItem })} icon={GraduationCap} title={tr('School ka saman')} hint={tr('School list banate waqt upar aata hai')} /></div>
       )}
     </Section>
   );
@@ -130,7 +131,7 @@ function BookDetails({ ctx }: { ctx: StepContext<BookExtra> }) {
       await qc.invalidateQueries({ queryKey: [KEYS.authors] });
       set({ authorIds: [...x.authorIds, a.id] });
       setAuthorQ('');
-    } catch (e) { toast.error(apiError(e, 'Author nahi bana')); } finally { setAdding(null); }
+    } catch (e) { toast.error(apiError(e, tr('Author nahi bana'))); } finally { setAdding(null); }
   };
   const [pubName, setPubName] = useState('');
   const addPublisher = async () => {
@@ -142,26 +143,26 @@ function BookDetails({ ctx }: { ctx: StepContext<BookExtra> }) {
       await qc.invalidateQueries({ queryKey: [KEYS.publishers] });
       set({ publisherId: p.id });
       setPubName('');
-    } catch (e) { toast.error(apiError(e, 'Publisher nahi bana')); } finally { setAdding(null); }
+    } catch (e) { toast.error(apiError(e, tr('Publisher nahi bana'))); } finally { setAdding(null); }
   };
 
   return (
     <div className="space-y-4">
-      <Section icon={ScanLine} title="ISBN" hint="Kitab ki pusht par barcode ke neeche likha number — scan karne se yahi kitab milti hai">
+      <Section icon={ScanLine} title={tr('ISBN')} hint={tr('Kitab ki pusht par barcode ke neeche likha number — scan karne se yahi kitab milti hai')}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="ISBN-13" value={x.isbn13} onChange={(v) => set({ isbn13: isbnDigits(v).slice(0, 13) })} onBlur={() => ctx.touch('isbn')} error={ctx.errors.isbn} placeholder="978…" />
-          <TextField label="ISBN-10 (purani kitab)" value={x.isbn10} onChange={(v) => set({ isbn10: isbnDigits(v).slice(0, 10) })} onBlur={() => ctx.touch('isbn')} placeholder="Marzi hai" />
+          <TextField label={tr('ISBN-13')} value={x.isbn13} onChange={(v) => set({ isbn13: isbnDigits(v).slice(0, 13) })} onBlur={() => ctx.touch('isbn')} error={ctx.errors.isbn} placeholder="978…" />
+          <TextField label={tr('ISBN-10 (purani kitab)')} value={x.isbn10} onChange={(v) => set({ isbn10: isbnDigits(v).slice(0, 10) })} onBlur={() => ctx.touch('isbn')} placeholder={tr('Marzi hai')} />
         </div>
       </Section>
 
-      <Section icon={Users} title="Author aur publisher" hint="Customer aksar author ya publisher ke naam se maangta hai">
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Author</span>
+      <Section icon={Users} title={tr('Author aur publisher')} hint={tr('Customer aksar author ya publisher ke naam se maangta hai')}>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Author')}</span>
         <div className="flex gap-2">
-          <input value={authorQ} onChange={(e) => setAuthorQ(e.target.value)} placeholder="Naam likh kar chunein ya naya banayein" className={inputClass}
+          <input value={authorQ} onChange={(e) => setAuthorQ(e.target.value)} placeholder={tr('Naam likh kar chunein ya naya banayein')} className={inputClass}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!exact) void addAuthor(); } }} />
           {authorQ.trim() && !exact && (
             <button type="button" onClick={() => void addAuthor()} disabled={adding === 'author'} className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl px-3 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
-              <Plus className="h-4 w-4" />Naya
+              <Plus className="h-4 w-4" />{tr('Naya')}
             </button>
           )}
         </div>
@@ -169,35 +170,35 @@ function BookDetails({ ctx }: { ctx: StepContext<BookExtra> }) {
           {shown.map((a) => (
             <Chip key={a.id} on={x.authorIds.includes(a.id)} onClick={() => set({ authorIds: x.authorIds.includes(a.id) ? x.authorIds.filter((i) => i !== a.id) : [...x.authorIds, a.id] })}>{a.name}</Chip>
           ))}
-          {!shown.length && <span className="text-[0.75rem] text-slate-500">{authors.length ? 'Naam likhein — milte-julte author yahan aayenge' : 'Abhi koi author nahi — naam likh kar "Naya" dabayein'}</span>}
+          {!shown.length && <span className="text-[0.75rem] text-slate-500">{authors.length ? tr('Naam likhein — milte-julte author yahan aayenge') : tr('Abhi koi author nahi — naam likh kar "Naya" dabayein')}</span>}
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
           <label className="block">
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Publisher</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Publisher')}</span>
             <select value={x.publisherId} onChange={(e) => set({ publisherId: e.target.value })} className={inputClass}>
-              <option value="">{pubsQ.isLoading ? 'Load ho raha…' : 'Chunein'}</option>
+              <option value="">{pubsQ.isLoading ? tr('Load ho raha…') : tr('Chunein')}</option>
               {(pubsQ.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}{p.city ? ` — ${p.city}` : ''}</option>)}
             </select>
           </label>
           <div className="flex items-end gap-2">
-            <input value={pubName} onChange={(e) => setPubName(e.target.value)} placeholder="Naya publisher" className={`${inputClass} sm:w-48`} />
-            <button type="button" onClick={() => void addPublisher()} disabled={!pubName.trim() || adding === 'publisher'} aria-label="Publisher banayein"
+            <input value={pubName} onChange={(e) => setPubName(e.target.value)} placeholder={tr('Naya publisher')} className={`${inputClass} sm:w-48`} />
+            <button type="button" onClick={() => void addPublisher()} disabled={!pubName.trim() || adding === 'publisher'} aria-label={tr('Publisher banayein')}
               className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50 disabled:opacity-40"><Building2 className="h-4 w-4" /></button>
           </div>
         </div>
       </Section>
 
-      <Section icon={BookOpen} title="Edition aur zubaan" hint="Naya edition aaye to purana alag item rakhein — rate aur stock alag rehta hai">
+      <Section icon={BookOpen} title={tr('Edition aur zubaan')} hint={tr('Naya edition aaye to purana alag item rakhein — rate aur stock alag rehta hai')}>
         <div className="grid gap-3 sm:grid-cols-3">
-          <TextField label="Edition" value={x.edition} onChange={(edition) => set({ edition })} placeholder="3rd, 2026" />
-          <NumberField label="Saal" allowEmpty value={x.publishYear} onChange={(publishYear) => set({ publishYear: publishYear == null ? null : Math.round(publishYear) })} placeholder="2026" error={ctx.errors.year} />
+          <TextField label={tr('Edition')} value={x.edition} onChange={(edition) => set({ edition })} placeholder={tr('3rd, 2026')} />
+          <NumberField label={tr('Saal')} allowEmpty value={x.publishYear} onChange={(publishYear) => set({ publishYear: publishYear == null ? null : Math.round(publishYear) })} placeholder="2026" error={ctx.errors.year} />
           <label className="block">
-            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Zubaan</span>
+            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Zubaan')}</span>
             <select value={x.language} onChange={(e) => set({ language: e.target.value })} className={inputClass}>{LANGUAGES.map((l) => <option key={l}>{l}</option>)}</select>
           </label>
         </div>
-        <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">Kitab ki type</span>
+        <span className="mb-1.5 mt-3 block text-[0.8125rem] font-medium text-slate-700">{tr('Kitab ki type')}</span>
         <div className="flex flex-wrap gap-1.5">
           {BOOK_CATEGORIES.map(([v, l]) => <Chip key={v} on={x.category === v} onClick={() => set({ category: v, isTextbook: ['TEXTBOOK', 'GUIDE', 'WORKBOOK', 'EXAM_PREP'].includes(v) ? true : x.isTextbook })}>{l}</Chip>)}
         </div>
@@ -208,14 +209,14 @@ function BookDetails({ ctx }: { ctx: StepContext<BookExtra> }) {
         </div>
       </Section>
 
-      <Section icon={GraduationCap} title="School ki kitab" hint="Class aur subject se School list me khud milti hai">
-        <Toggle on={x.isTextbook} onChange={(isTextbook) => set({ isTextbook })} icon={GraduationCap} title="Ye school / college ki kitab hai" hint="Textbook, guide, workbook" />
+      <Section icon={GraduationCap} title={tr('School ki kitab')} hint={tr('Class aur subject se School list me khud milti hai')}>
+        <Toggle on={x.isTextbook} onChange={(isTextbook) => set({ isTextbook })} icon={GraduationCap} title={tr('Ye school / college ki kitab hai')} hint={tr('Textbook, guide, workbook')} />
         {x.isTextbook && (
           <div className="mt-3 space-y-3">
             <div className="grid gap-3 sm:grid-cols-3">
-              <TextField label="Class" value={x.grade} onChange={(grade) => set({ grade })} placeholder="Class 5" error={ctx.errors.grade} />
-              <TextField label="Subject" value={x.subject} onChange={(subject) => set({ subject })} placeholder="English" />
-              <TextField label="Board" value={x.board} onChange={(board) => set({ board })} placeholder="Punjab Board" />
+              <TextField label={tr('Class')} value={x.grade} onChange={(grade) => set({ grade })} placeholder={tr('Class 5')} error={ctx.errors.grade} />
+              <TextField label={tr('Subject')} value={x.subject} onChange={(subject) => set({ subject })} placeholder={tr('English')} />
+              <TextField label={tr('Board')} value={x.board} onChange={(board) => set({ board })} placeholder={tr('Punjab Board')} />
             </div>
             <div className="flex flex-wrap gap-1.5">{GRADES.map((g) => <Chip key={g} on={x.grade === g} onClick={() => set({ grade: x.grade === g ? '' : g })}>{g}</Chip>)}</div>
             <div className="flex flex-wrap gap-1.5">{SUBJECTS.map((g) => <Chip key={g} on={x.subject === g} onClick={() => set({ subject: x.subject === g ? '' : g })}>{g}</Chip>)}</div>
@@ -232,12 +233,12 @@ function Rental({ ctx }: { ctx: StepContext<BookExtra> }) {
   const x = ctx.draft.extra;
   if (x.kind !== 'BOOK') return null;
   return (
-    <Section icon={Timer} title="Kiraye par" hint="Novel aur reference kitab kiraye par dene wali dukaan ke liye">
-      <Toggle on={x.isRentable} onChange={(isRentable) => ctx.setExtra({ isRentable })} icon={Timer} title="Ye kitab kiraye par bhi di jati hai" />
+    <Section icon={Timer} title={tr('Kiraye par')} hint={tr('Novel aur reference kitab kiraye par dene wali dukaan ke liye')}>
+      <Toggle on={x.isRentable} onChange={(isRentable) => ctx.setExtra({ isRentable })} icon={Timer} title={tr('Ye kitab kiraye par bhi di jati hai')} />
       {x.isRentable && (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <NumberField label="Kiraya (ek hafta)" prefix="Rs" allowEmpty value={x.rentalPricePerWeek} onChange={(rentalPricePerWeek) => ctx.setExtra({ rentalPricePerWeek })} error={ctx.errors.rental} />
-          <NumberField label="Deposit (wapas hota hai)" prefix="Rs" allowEmpty value={x.rentalDeposit} onChange={(rentalDeposit) => ctx.setExtra({ rentalDeposit })} hint="Kitab wapas aane par lauta diya jata hai" />
+          <NumberField label={tr('Kiraya (ek hafta)')} prefix="Rs" allowEmpty value={x.rentalPricePerWeek} onChange={(rentalPricePerWeek) => ctx.setExtra({ rentalPricePerWeek })} error={ctx.errors.rental} />
+          <NumberField label={tr('Deposit (wapas hota hai)')} prefix="Rs" allowEmpty value={x.rentalDeposit} onChange={(rentalDeposit) => ctx.setExtra({ rentalDeposit })} hint={tr('Kitab wapas aane par lauta diya jata hai')} />
         </div>
       )}
     </Section>
@@ -246,37 +247,37 @@ function Rental({ ctx }: { ctx: StepContext<BookExtra> }) {
 
 const core: CoreOptions = {
   units: [
-    { value: 'pcs', label: 'Piece / kitab' }, { value: 'set', label: 'Set' }, { value: 'pack', label: 'Pack' },
-    { value: 'dozen', label: 'Dozen' }, { value: 'box', label: 'Box' }, { value: 'ream', label: 'Ream' },
+    { value: 'pcs', label: tr('Piece / kitab') }, { value: 'set', label: tr('Set') }, { value: 'pack', label: tr('Pack') },
+    { value: 'dozen', label: tr('Dozen') }, { value: 'box', label: tr('Box') }, { value: 'ream', label: tr('Ream') },
   ],
   skuPrefix: 'BK',
   packs: true,
   variants: { presets: [
-    { group: 'Uniform size', values: ['20', '22', '24', '26', '28', '30', '32', '34', 'S', 'M', 'L', 'XL'] },
-    { group: 'Rang', values: ['Blue', 'Black', 'Red', 'Green'] },
-    { group: 'Pages', values: ['80 pages', '100 pages', '200 pages', '300 pages'] },
+    { group: tr('Uniform size'), values: ['20', '22', '24', '26', '28', '30', '32', '34', 'S', 'M', 'L', 'XL'] },
+    { group: tr('Rang'), values: ['Blue', 'Black', 'Red', 'Green'] },
+    { group: tr('Pages'), values: ['80 pages', '100 pages', '200 pages', '300 pages'] },
   ] },
   batches: false,
   markups: [10, 15, 20, 25],
 };
 
 const detailsStep: StepDef<BookExtra> = {
-  id: 'details', title: 'Tafseel', hint: 'ISBN, author, class', icon: BookOpen,
+  id: 'details', title: tr('Tafseel'), hint: tr('ISBN, author, class'), icon: BookOpen,
   render: (ctx) => <Details ctx={ctx} />,
   validate: (d) => {
     const x = d.extra;
     const e: Errors = {};
     if (x.kind !== 'BOOK') return e;
-    if (x.isbn13 && !isbnValid(x.isbn13)) e.isbn = 'ISBN-13 ke 13 number sahi nahi — dobara dekhein';
-    else if (x.isbn10 && !isbnValid(x.isbn10)) e.isbn = 'ISBN-10 sahi nahi';
-    if (x.publishYear != null && (x.publishYear < 1800 || x.publishYear > new Date().getFullYear() + 1)) e.year = 'Saal sahi likhein';
-    if (x.isTextbook && !x.grade.trim()) e.grade = 'Class likhein (jaise Class 5)';
+    if (x.isbn13 && !isbnValid(x.isbn13)) e.isbn = tr('ISBN-13 ke 13 number sahi nahi — dobara dekhein');
+    else if (x.isbn10 && !isbnValid(x.isbn10)) e.isbn = tr('ISBN-10 sahi nahi');
+    if (x.publishYear != null && (x.publishYear < 1800 || x.publishYear > new Date().getFullYear() + 1)) e.year = tr('Saal sahi likhein');
+    if (x.isTextbook && !x.grade.trim()) e.grade = tr('Class likhein (jaise Class 5)');
     return e;
   },
 };
 
 const config: EditorConfig<BookExtra> = {
-  label: 'Bookstore',
+  label: tr('Bookstore'),
   draftKey: 'nafaa.product-editor.bookstore',
   paths: { list: '/products', detail: (id) => `/bookstore-products/${id}`, create: '/bookstore-products/new' },
   core,
@@ -323,7 +324,7 @@ const config: EditorConfig<BookExtra> = {
   steps: [
     basicStep<BookExtra>(core, {
       extra: (ctx) => <Kind ctx={ctx} />,
-      namePlaceholder: 'Jaise: Oxford English Class 5 ya Dollar Ball Pen',
+      namePlaceholder: tr('Jaise: Oxford English Class 5 ya Dollar Ball Pen'),
       categorySuggestions: ['Textbooks', 'Guides', 'Novels', 'Islamic', 'Stationery', 'Copies', 'Art', 'Uniform', 'Bags'],
     }),
     detailsStep,
@@ -333,22 +334,22 @@ const config: EditorConfig<BookExtra> = {
   summary: (d) => {
     const x = d.extra;
     const facts = x.kind === 'BOOK'
-      ? [x.isbn13 || x.isbn10, x.edition && `${x.edition} ed`, x.isTextbook && [x.grade, x.subject].filter(Boolean).join(' '), x.isRentable && 'Kiraye par']
+      ? [x.isbn13 || x.isbn10, x.edition && `${x.edition} ed`, x.isTextbook && [x.grade, x.subject].filter(Boolean).join(' '), x.isRentable && tr('Kiraye par')]
       : [KINDS.find((k) => k.value === x.kind)?.label, x.brand, x.size];
     const line = facts.filter(Boolean).join(' · ');
     return line ? <p className="mt-3 border-t border-slate-100 pt-3 text-[0.8125rem] text-slate-700">{line}</p> : null;
   },
   refresh: [KEYS.facts, KEYS.books, 'bookstore-product-detail'],
   guide: [
-    { icon: ScanLine, color: '#0891b2', title: 'ISBN', text: 'ISBN likhein ya scan karein. Kitab ka apna barcode na ho to ISBN hi barcode ban jata hai.' },
-    { icon: GraduationCap, color: '#7c3aed', title: 'Class aur subject', text: 'Textbook par class aur subject likhein — School list me kitab dhoondna aur set banana aasaan hota hai.' },
-    { icon: Pencil, color: '#16a34a', title: 'Dozen aur pack', text: 'Copy aur pencil piece me rakhein; Price step me Dozen (12) ya Pack jorein. Stock piece me ginta hai.' },
+    { icon: ScanLine, color: '#0891b2', title: tr('ISBN'), text: tr('ISBN likhein ya scan karein. Kitab ka apna barcode na ho to ISBN hi barcode ban jata hai.') },
+    { icon: GraduationCap, color: '#7c3aed', title: tr('Class aur subject'), text: tr('Textbook par class aur subject likhein — School list me kitab dhoondna aur set banana aasaan hota hai.') },
+    { icon: Pencil, color: '#16a34a', title: tr('Dozen aur pack'), text: tr('Copy aur pencil piece me rakhein; Price step me Dozen (12) ya Pack jorein. Stock piece me ginta hai.') },
   ],
 };
 
 function rentalErrors(x: BookExtra): Errors {
   if (x.kind !== 'BOOK' || !x.isRentable) return {};
-  if (!(Number(x.rentalPricePerWeek) > 0)) return { rental: 'Hafte ka kiraya likhein' };
+  if (!(Number(x.rentalPricePerWeek) > 0)) return { rental: tr('Hafte ka kiraya likhein') };
   return {};
 }
 

@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@core/api/client';
+import { translateStoredText } from '@core/i18n/serverMessage';
 
 export type NotificationType =
   | 'INFO'
@@ -67,6 +68,16 @@ export interface NotificationFeed {
   counts: { all: number; unread: number; groups: Record<NotificationGroup, number> };
 }
 
+/**
+ * Title and message are stored as finished text; texts with values also keep
+ * their template in `metadata.i18n`, so they show in the viewer's language.
+ */
+function localize(n: Notification): Notification {
+  if (!n || typeof n !== 'object') return n;
+  const i18n = n.metadata?.i18n;
+  return { ...n, title: translateStoredText(n.title, i18n?.title), message: translateStoredText(n.message, i18n?.message) };
+}
+
 function unwrapList(res: any): NotificationListResponse {
   const body = res?.data;
   if (body?.data?.items) return body.data;
@@ -94,7 +105,7 @@ function unwrapOne<T>(res: any): T {
 
 export const notificationsApi = {
   list: (params?: { limit?: number; page?: number; unreadOnly?: boolean }): Promise<NotificationListResponse> =>
-    apiClient.get('/notifications', { params }).then(unwrapList),
+    apiClient.get('/notifications', { params }).then(unwrapList).then((r) => ({ ...r, items: r.items.map(localize) })),
 
   unreadCount: (): Promise<number> =>
     apiClient.get('/notifications/unread-count').then((r) => {
@@ -110,7 +121,10 @@ export const notificationsApi = {
     apiClient.patch(`/notifications/${id}/read`).then((r) => unwrapOne<Notification>(r)),
 
   feed: (f: NotificationFeedFilters, cursor?: string, limit = 50): Promise<NotificationFeed> =>
-    apiClient.get('/notifications/feed', { params: { ...f, ...(cursor && { cursor }), limit } }).then((r) => unwrapOne<NotificationFeed>(r)),
+    apiClient
+      .get('/notifications/feed', { params: { ...f, ...(cursor && { cursor }), limit } })
+      .then((r) => unwrapOne<NotificationFeed>(r))
+      .then((feed) => ({ ...feed, items: (feed?.items ?? []).map(localize) })),
 
   markUnread: (id: string) =>
     apiClient.patch(`/notifications/${id}/unread`).then((r) => unwrapOne<{ count: number }>(r)),

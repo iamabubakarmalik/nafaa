@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { commissionApi, type RulePayload } from '../api/commission.api';
 import { COMMISSION_KEY, apiError } from '../components/meta';
+import { t } from '@core/i18n';
 
 /** The current business month, "2026-10". */
 export function useThisPeriod() {
@@ -41,29 +42,29 @@ export function useCommission(period: string) {
 
   const saveRule = useMutation({
     mutationFn: ({ id, data }: { id?: string; data: RulePayload }) => (id ? commissionApi.updateRule(id, data) : commissionApi.createRule(data)),
-    onSuccess: (_d, { id }) => done(id ? 'Rule badal gaya' : 'Rule ban gaya'),
-    onError: failed('Rule save nahi hua'),
+    onSuccess: (_d, { id }) => done(id ? t('Rule badal gaya') : t('Rule ban gaya')),
+    onError: failed(t('Rule save nahi hua')),
   });
   const removeRule = useMutation({
     mutationFn: (id: string) => commissionApi.removeRule(id),
-    onSuccess: () => done('Rule hata diya'),
-    onError: failed('Rule nahi hata'),
+    onSuccess: () => done(t('Rule hata diya')),
+    onError: failed(t('Rule nahi hata')),
   });
   const enroll = useMutation({
     mutationFn: (a: { userId: string; on: boolean; staffId?: string | null }) =>
       commissionApi.enroll({ userId: a.userId, isActive: a.on, staffId: a.staffId ?? undefined }),
-    onSuccess: (_d, a) => done(a.on ? 'Commission chaalu ho gayi' : 'Commission band kar di'),
-    onError: failed('Nahi hua'),
+    onSuccess: (_d, a) => done(a.on ? t('Commission chaalu ho gayi') : t('Commission band kar di')),
+    onError: failed(t('Nahi hua')),
   });
   const pay = useMutation({
     mutationFn: (a: { userId: string; amount: number; expectedPaid: number; note?: string }) => commissionApi.pay({ ...a, period }),
-    onSuccess: () => done('Payment likh di'),
-    onError: failed('Payment nahi likhi gayi'),
+    onSuccess: () => done(t('Payment likh di')),
+    onError: failed(t('Payment nahi likhi gayi')),
   });
   const undoPay = useMutation({
     mutationFn: (userId: string) => commissionApi.undoPay(userId, period),
-    onSuccess: () => done('Payment wapas le li'),
-    onError: failed('Nahi hua'),
+    onSuccess: () => done(t('Payment wapas le li')),
+    onError: failed(t('Nahi hua')),
   });
 
   return {

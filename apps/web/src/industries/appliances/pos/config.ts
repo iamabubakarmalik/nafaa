@@ -26,6 +26,7 @@ import { applianceSerialApi, type CounterUnit } from '../api/serial-tracking.api
 import { CATEGORY_GROUPS, PROFILE_KEY, SERIAL_KEY, TRADE_IN_KEY, catMeta } from '../components/meta';
 import { SerialPicker } from './SerialPicker';
 import { TradeInTake, useApplianceTradeIns } from './TradeInTake';
+import { t } from '@core/i18n';
 
 /** A unit picked for the bill; marked sold once the bill is saved. */
 export interface PickedUnit { productId: string; serialId: string; serialNumber: string }
@@ -63,11 +64,11 @@ function decorate(profiles: Map<string, ApplianceProductProfile>, shelf: Map<str
       rank: m.heavy ? 0 : 1,
       searchText: [it.searchText, p.modelNumber, p.brand?.name, p.capacity, p.acTonnage, m.label].filter(Boolean).join(' '),
       badges: [
-        ...(units ? [{ label: `${units} serial`, tone: 'neutral' as const, icon: Barcode }] : []),
-        ...(p.requiresInstallation ? [{ label: 'Fitting', tone: 'info' as const, icon: HardHat }] : []),
-        ...(p.isBestSeller ? [{ label: 'Best seller', tone: 'brand' as const, icon: Award }] : []),
-        ...(p.isNewArrival ? [{ label: 'Naya', tone: 'success' as const, icon: Sparkles }] : []),
-        ...(p.freeDelivery ? [{ label: 'Free delivery', tone: 'success' as const, icon: Truck }] : []),
+        ...(units ? [{ label: t('{{units}} serial', { units }), tone: 'neutral' as const, icon: Barcode }] : []),
+        ...(p.requiresInstallation ? [{ label: t('Fitting'), tone: 'info' as const, icon: HardHat }] : []),
+        ...(p.isBestSeller ? [{ label: t('Best seller'), tone: 'brand' as const, icon: Award }] : []),
+        ...(p.isNewArrival ? [{ label: t('Naya'), tone: 'success' as const, icon: Sparkles }] : []),
+        ...(p.freeDelivery ? [{ label: t('Free delivery'), tone: 'success' as const, icon: Truck }] : []),
       ],
       subline: [p.brand?.name, p.modelNumber, p.acTonnage ? `${p.acTonnage} ton` : p.capacity, p.warrantyMonths ? `${p.warrantyMonths}m warranty` : '', p.shopWarrantyMonths ? `+${p.shopWarrantyMonths}m dukaan` : ''].filter(Boolean).join(' · ') || undefined,
       meta: { ...it.meta, group: m.group, units, warrantyMonths: p.warrantyMonths || undefined, profile: p },
@@ -90,7 +91,7 @@ function useApplianceCatalog() {
 /** Puts one exact unit on the bill and remembers it for marking sold. */
 function addUnit(item: PosItem, u: Pick<CounterUnit, 'id' | 'serialNumber'>, api: PosEngineApi) {
   if (!api.cart.length) counter.picked = [];
-  if (counter.picked.some((p) => p.serialId === u.id)) { toast.info('Ye unit pehle se bill me hai'); return; }
+  if (counter.picked.some((p) => p.serialId === u.id)) { toast.info(t('Ye unit pehle se bill me hai')); return; }
   counter.picked.push({ productId: item.id, serialId: u.id, serialNumber: u.serialNumber });
   api.addItem(item, { confirmed: ['serial'], note: lineNote(item, u.serialNumber), warrantyMonths: item.meta?.warrantyMonths as number | undefined });
 }
@@ -109,28 +110,28 @@ function trimPicked(cart: PosCartLine[]) {
   counter.lines = cart.filter((l) => l.productId).map((l) => ({ productId: l.productId!, name: l.name, qty: l.baseQuantity }));
 }
 
-const filters: PosFilter[] = CATEGORY_GROUPS.filter((g) => g !== 'Kuch aur').map((g) => ({ id: g, label: g, match: (i) => i.meta?.group === g }));
+const filters: PosFilter[] = CATEGORY_GROUPS.filter((g) => g !== 'Kuch aur').map((g) => ({ id: g, label: t(g), match: (i) => i.meta?.group === g }));
 
 export const appliancesPos: PosIndustryConfig = {
   id: 'appliances',
-  label: 'Appliances',
+  label: t('Appliances'),
   useCatalog: useApplianceCatalog,
-  filters: [{ id: 'accessories', label: 'Accessories', match: (i) => !i.meta?.profile }, ...filters],
+  filters: [{ id: 'accessories', label: t('Accessories'), match: (i) => !i.meta?.profile }, ...filters],
   quickKeys: true,
   CartExtra: TradeInTake,
   useTradeIns: useApplianceTradeIns,
-  searchHint: 'Model, brand, ton, liter — ya barcode / serial scan karein',
+  searchHint: t('Model, brand, ton, liter — ya barcode / serial scan karein'),
   receiptFooter: 'Warranty ke liye ye bill aur warranty card sambhaal kar rakhein. Bijli ke utaar charhao, paani ya tootne ka nuqsan warranty me nahi.',
   beforeCheckout: (cart) => {
     trimPicked(cart);
-    return !navigator.onLine && counter.picked.length ? 'Internet nahi — serial wala bill online hi banta hai' : null;
+    return !navigator.onLine && counter.picked.length ? t('Internet nahi — serial wala bill online hi banta hai') : null;
   },
   onSale: (sale) => {
     const units = counter.picked;
     counter.picked = [];
     if (units.length) {
       void applianceSerialApi.assignSale(sale.id, units.map((u) => u.serialId))
-        .catch(() => toast.error(`Serial ${units.map((u) => u.serialNumber).join(', ')} bill par nahi lage — Serial register se dobara lagayein`));
+        .catch(() => toast.error(t('Serial {{value}} bill par nahi lage — Serial register se dobara lagayein', { value: units.map((u) => u.serialNumber).join(', ') })));
     }
     applianceSaleListener.current?.(sale, units);
   },
@@ -154,10 +155,10 @@ export const appliancesPos: PosIndustryConfig = {
     try {
       const s = await applianceSerialApi.counterLookup(code.trim());
       if (!s) return false;
-      if (s.status !== 'IN_STOCK') { toast.error(`Serial ${s.serialNumber} — ${s.status === 'SOLD' ? `pehle bik chuka (${s.invoiceNumber ?? ''})` : 'stock me nahi'}`); return true; }
-      if (s.otherBranch) { toast.error(`Serial ${s.serialNumber} ${s.otherBranch} me hai — pehle Transfer karein`); return true; }
+      if (s.status !== 'IN_STOCK') { toast.error(t('Serial {{serialNumber}} — {{value}}', { serialNumber: s.serialNumber, value: s.status === 'SOLD' ? t('pehle bik chuka ({{value}})', { value: s.invoiceNumber ?? '' }) : t('stock me nahi') })); return true; }
+      if (s.otherBranch) { toast.error(t('Serial {{serialNumber}} {{otherBranch}} me hai — pehle Transfer karein', { serialNumber: s.serialNumber, otherBranch: s.otherBranch })); return true; }
       const item = api.itemById(s.productId);
-      if (!item) { toast.error('Is serial ka product counter par nahi'); return true; }
+      if (!item) { toast.error(t('Is serial ka product counter par nahi')); return true; }
       addUnit(item, s, api);
       return true;
     } catch {

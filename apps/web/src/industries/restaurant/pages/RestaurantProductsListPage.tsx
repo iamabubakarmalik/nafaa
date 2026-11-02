@@ -8,9 +8,10 @@ import { ChefHat } from 'lucide-react';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import RestaurantMenuBoard, { MENU_GUIDE } from '../products/RestaurantMenuBoard';
+import { t } from '@core/i18n';
 
 const config: ProductsPageConfig = {
-  label: 'Restaurant',
+  label: t('Restaurant'),
   paths: {
     detail: (id) => `/restaurant-menu-items/${id}`,
     edit: (id) => `/restaurant-menu-items/${id}/edit`,
@@ -18,7 +19,7 @@ const config: ProductsPageConfig = {
     bulkImport: '/products/bulk-import',
   },
   filters: ['tags'],
-  extraTab: { id: 'menu', label: 'Menu', icon: ChefHat, Component: RestaurantMenuBoard, initial: true, standalone: true },
+  extraTab: { id: 'menu', label: t('Menu'), icon: ChefHat, Component: RestaurantMenuBoard, initial: true, standalone: true },
   guide: MENU_GUIDE,
 };
 

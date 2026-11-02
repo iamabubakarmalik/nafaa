@@ -180,7 +180,7 @@ function SettingsOverview() {
                           </span>
                           {i.external
                             ? <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-brand-600" />
-                            : <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600 rtl-flip" />}
+                            : <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 group-hover:text-brand-600 rtl-flip" />}
                         </Link>
                       </li>
                     ))}

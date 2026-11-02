@@ -23,14 +23,15 @@ import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { openingStock } from './save';
 import { useProductEditor } from './useProductEditor';
 import type { EditorConfig } from './types';
+import { t, Trans } from '@core/i18n';
 
 const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
 
 const GUIDE: GuideStep[] = [
-  { icon: Tag, color: '#2563eb', title: 'Pehchaan', text: 'Naam wohi likhein jo grahak bolta hai. Barcode scan karein taake POS par scanner se cheez aaye.' },
-  { icon: Wallet, color: '#16a34a', title: 'Qeemat', text: 'Cost aur bechne ki qeemat likhein — profit khud nikal aata hai. Darjan, dabba ya carton bhi bikta ho to Packing jorein.' },
-  { icon: Layers, color: '#d97706', title: 'Stock', text: 'Naye product ka shuru ka stock yahin likhein. Baad mein stock sirf Adjustment ya Purchase se badalta hai, taake har badlao ka record rahe.' },
-  { icon: Save, color: '#7c3aed', title: 'Save', text: 'Ctrl+S se kisi bhi step par save. Naya product adhoora reh jaye to agli dafa wahin se shuru kar sakte hain.' },
+  { icon: Tag, color: '#2563eb', title: t('Pehchaan'), text: t('Naam wohi likhein jo grahak bolta hai. Barcode scan karein taake POS par scanner se cheez aaye.') },
+  { icon: Wallet, color: '#16a34a', title: t('Qeemat'), text: t('Cost aur bechne ki qeemat likhein — profit khud nikal aata hai. Darjan, dabba ya carton bhi bikta ho to Packing jorein.') },
+  { icon: Layers, color: '#d97706', title: t('Stock'), text: t('Naye product ka shuru ka stock yahin likhein. Baad mein stock sirf Adjustment ya Purchase se badalta hai, taake har badlao ka record rahe.') },
+  { icon: Save, color: '#7c3aed', title: t('Save'), text: t('Ctrl+S se kisi bhi step par save. Naya product adhoora reh jaye to agli dafa wahin se shuru kar sakte hain.') },
 ];
 
 export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
@@ -48,9 +49,9 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
     setBusy(true);
     try {
       const id = await e.save();
-      if (e.isEdit) { toast.success('Save ho gaya'); navigate(config.paths.detail(id)); }
+      if (e.isEdit) { toast.success(t('Save ho gaya')); navigate(config.paths.detail(id)); }
     } catch (err) {
-      toast.error((err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error).message || 'Save nahi hua');
+      toast.error((err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error).message || t('Save nahi hua'));
     } finally { setBusy(false); }
   };
 
@@ -71,9 +72,9 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       <PageShell>
         <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
           <AlertCircle className="mx-auto h-8 w-8 text-rose-500" />
-          <p className="mt-3 font-semibold text-slate-900">Product nahi khul saka</p>
+          <p className="mt-3 font-semibold text-slate-900">{t('Product nahi khul saka')}</p>
           <p className="mt-1 text-[0.875rem] text-slate-500">{e.loadError.message}</p>
-          <Button className="mt-4" onClick={() => navigate(config.paths.list)}>Products ki list</Button>
+          <Button className="mt-4" onClick={() => navigate(config.paths.list)}>{t('Products ki list')}</Button>
         </div>
       </PageShell>
     );
@@ -86,17 +87,17 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
     return (
       <PageShell><div className="mx-auto max-w-xl rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-50 text-success-600"><CheckCircle2 className="h-9 w-9" /></span>
-        <h2 className="mt-4 text-xl font-bold text-slate-900">"{c.name}" ban gayi</h2>
-        <p className="mt-1 text-[0.875rem] text-slate-500">Ab POS par bik sakti hai.</p>
+        <h2 className="mt-4 text-xl font-bold text-slate-900">{t('"{{name}}" ban gayi', { name: c.name })}</h2>
+        <p className="mt-1 text-[0.875rem] text-slate-500">{t('Ab POS par bik sakti hai.')}</p>
         <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-          {[['Rate', formatPKR(c.price)], ['Stock', `${fmt(openingStock(c))} ${c.unit}`], ['Variants', String(c.variants.length)]].map(([l, v]) => (
+          {[[t('Rate'), formatPKR(c.price)], [t('Stock'), `${fmt(openingStock(c))} ${c.unit}`], [t('Variants'), String(c.variants.length)]].map(([l, v]) => (
             <div key={l} className="rounded-xl bg-slate-50 p-3"><p className="text-[0.6875rem] text-slate-500">{l}</p><p className="truncate font-bold tabular-nums text-slate-900">{v}</p></div>
           ))}
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={e.reset}>Aur banayein</Button>
-          <Button variant="secondary" leftIcon={<Eye className="h-4 w-4" />} onClick={() => navigate(config.paths.detail(e.savedId!))}>Dekhein</Button>
-          <Button variant="ghost" leftIcon={<List className="h-4 w-4" />} onClick={() => navigate(config.paths.list)}>Products ki list</Button>
+          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={e.reset}>{t('Aur banayein')}</Button>
+          <Button variant="secondary" leftIcon={<Eye className="h-4 w-4" />} onClick={() => navigate(config.paths.detail(e.savedId!))}>{t('Dekhein')}</Button>
+          <Button variant="ghost" leftIcon={<List className="h-4 w-4" />} onClick={() => navigate(config.paths.list)}>{t('Products ki list')}</Button>
         </div>
       </div></PageShell>
     );
@@ -106,12 +107,12 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
   const isLast = e.stepIndex === e.steps.length - 1;
   const margin = c.price > 0 && c.costPrice > 0 ? ((c.price - c.costPrice) / c.price) * 100 : null;
   const checklist = [
-    { ok: !!c.name.trim(), label: 'Naam' },
-    { ok: c.price > 0, label: 'Bechne ki qeemat' },
-    { ok: c.costPrice > 0, label: 'Cost (profit ke liye)' },
-    { ok: !!c.categoryId, label: 'Category' },
-    { ok: !!(c.barcode || c.sku), label: 'Barcode ya SKU' },
-    { ok: c.images.length > 0, label: 'Tasveer' },
+    { ok: !!c.name.trim(), label: t('Naam') },
+    { ok: c.price > 0, label: t('Bechne ki qeemat') },
+    { ok: c.costPrice > 0, label: t('Cost (profit ke liye)') },
+    { ok: !!c.categoryId, label: t('Category') },
+    { ok: !!(c.barcode || c.sku), label: t('Barcode ya SKU') },
+    { ok: c.images.length > 0, label: t('Tasveer') },
   ];
 
   return (
@@ -122,26 +123,26 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
         </div>
       )}
       {guide.isOpen && (
-        <PageGuide title={e.isEdit ? 'Product badlein' : 'Naya product'} onClose={guide.close} steps={[...GUIDE, ...(config.guide ?? [])]}
-          tips={['Har khane ke neeche likha hai ke woh kahan kaam aata hai.', 'Save hui packing aur variants mitte nahi — band hote hain, taake purane bill theek rahein.']}
-          shortcuts={[['Ctrl+S', 'save'], ['Alt+→', 'agla step'], ['Alt+←', 'pichla step'], ['G', 'guide']]} />
+        <PageGuide title={e.isEdit ? t('Product badlein') : t('Naya product')} onClose={guide.close} steps={[...GUIDE, ...(config.guide ?? [])]}
+          tips={[t('Har khane ke neeche likha hai ke woh kahan kaam aata hai.'), t('Save hui packing aur variants mitte nahi — band hote hain, taake purane bill theek rahein.')]}
+          shortcuts={[['Ctrl+S', t('save')], ['Alt+→', t('agla step')], ['Alt+←', t('pichla step')], ['G', t('guide')]]} />
       )}
 
       <PageHero
         back={e.isEdit && e.id ? config.paths.detail(e.id) : config.paths.list}
-        backLabel={e.isEdit ? 'Product par wapas' : 'Products par wapas'}
-        title={e.isEdit ? `${c.name || '…'} — badlein` : `Naya product · ${config.label}`}
-        subtitle={e.isEdit ? 'Naam, qeemat aur details badlein — stock yahan se nahi badalta' : `Naam, qeemat aur shuru ka stock — ${e.steps.length} step mein tayyar`}
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Alt</Kbd>+<Kbd>→</Kbd> agla</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={e.isEdit ? t('Product par wapas') : t('Products par wapas')}
+        title={e.isEdit ? t('{{value}} — badlein', { value: c.name || '…' }) : t('Naya product · {{label}}', { label: config.label })}
+        subtitle={e.isEdit ? t('Naam, qeemat aur details badlein — stock yahan se nahi badalta') : t('Naam, qeemat aur shuru ka stock — {{count}} step mein tayyar', { count: e.steps.length })}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{t('save ·')}{' '} <Kbd>Alt</Kbd>+<Kbd>→</Kbd> {' '}{t('agla')}</span>}
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} aria-label={t('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       {e.stored && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-sky-50 px-4 py-3 ring-1 ring-sky-200">
           <History className="h-5 w-5 text-sky-600" />
-          <p className="flex-1 text-[0.875rem] text-sky-900">Pichli dafa <strong>"{e.stored.core.name}"</strong> adhoori reh gayi thi.</p>
-          <Button size="sm" onClick={e.restore}>Wahin se shuru</Button>
-          <Button size="sm" variant="ghost" onClick={e.discardStored}>Naye sire se</Button>
+          <p className="flex-1 text-[0.875rem] text-sky-900"><Trans text="Pichli dafa {{name}} adhoori reh gayi thi." values={{ name: <strong>"{e.stored.core.name}"</strong> }} /></p>
+          <Button size="sm" onClick={e.restore}>{t('Wahin se shuru')}</Button>
+          <Button size="sm" variant="ghost" onClick={e.discardStored}>{t('Naye sire se')}</Button>
         </div>
       )}
 
@@ -159,7 +160,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       {/* The preview column needs about 1400px, or the form between it and the steps gets too narrow to use. */}
       <div className="grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] min-[1400px]:grid-cols-[15rem_minmax(0,1fr)_19rem]">
         {/* Desktop stepper */}
-        <nav className="hidden lg:block" aria-label="Steps">
+        <nav className="hidden lg:block" aria-label={t('Steps')}>
           <ol className="sticky top-24 space-y-1">
             {e.steps.map((s, i) => {
               const on = i === e.stepIndex;
@@ -167,7 +168,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
               return (
                 <li key={s.id}>
                   <button type="button" onClick={() => e.goTo(i)}
-                    className={cn('flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition', on ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-white/70')}>
+                    className={cn('flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-start transition', on ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-white/70')}>
                     <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', on ? 'bg-brand-600 text-white' : done ? 'bg-success-50 text-success-600' : 'bg-slate-100 text-slate-500')}>
                       {done ? <Check className="h-4 w-4" /> : <s.icon className="h-4 w-4" />}
                     </span>
@@ -192,21 +193,21 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <div className="aspect-[4/3] bg-slate-100"><ProductThumb name={c.name || 'Naya'} url={c.images[0]?.url} size="full" /></div>
               <div className="p-4">
-                <p className="line-clamp-2 font-semibold text-slate-900">{c.name || 'Naam likhein…'}</p>
+                <p className="line-clamp-2 font-semibold text-slate-900">{c.name || t('Naam likhein…')}</p>
                 <p className="mt-1 text-[1.25rem] font-bold tabular-nums text-slate-900">{formatPKR(c.price)}<span className="text-[0.75rem] font-medium text-slate-500"> /{c.unit}</span></p>
                 <dl className="mt-3 space-y-1.5 text-[0.8125rem]">
-                  <div className="flex justify-between"><dt className="text-slate-500">Cost</dt><dd className="tabular-nums">{c.costPrice ? formatPKR(c.costPrice) : '—'}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500">Profit</dt><dd className={cn('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-rose-600' : 'text-success-700')}>{margin === null ? '—' : `${formatPKR(c.price - c.costPrice)} · ${margin.toFixed(0)}%`}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500">Stock</dt><dd className="tabular-nums">{fmt(e.isEdit ? c.stock : openingStock(c))} {c.unit}</dd></div>
-                  {c.variants.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">Variants</dt><dd>{c.variants.length}</dd></div>}
-                  {c.units.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">Packing</dt><dd>{c.units.length}</dd></div>}
-                  {c.batches.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">Batches</dt><dd>{c.batches.length}</dd></div>}
+                  <div className="flex justify-between"><dt className="text-slate-500">{t('Cost')}</dt><dd className="tabular-nums">{c.costPrice ? formatPKR(c.costPrice) : '—'}</dd></div>
+                  <div className="flex justify-between"><dt className="text-slate-500">{t('Profit')}</dt><dd className={cn('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-rose-600' : 'text-success-700')}>{margin === null ? '—' : `${formatPKR(c.price - c.costPrice)} · ${margin.toFixed(0)}%`}</dd></div>
+                  <div className="flex justify-between"><dt className="text-slate-500">{t('Stock')}</dt><dd className="tabular-nums">{fmt(e.isEdit ? c.stock : openingStock(c))} {c.unit}</dd></div>
+                  {c.variants.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Variants')}</dt><dd>{c.variants.length}</dd></div>}
+                  {c.units.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Packing')}</dt><dd>{c.units.length}</dd></div>}
+                  {c.batches.length > 0 && <div className="flex justify-between"><dt className="text-slate-500">{t('Batches')}</dt><dd>{c.batches.length}</dd></div>}
                 </dl>
                 {config.summary?.(e.draft)}
               </div>
             </div>
             <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
-              <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Mukammal</p>
+              <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Mukammal')}</p>
               <ul className="space-y-1.5 text-[0.8125rem]">
                 {checklist.map((x) => (
                   <li key={x.label} className={cn('flex items-center gap-2', x.ok ? 'text-slate-700' : 'text-slate-400')}>
@@ -223,11 +224,11 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       {e.isEdit && e.id && manufacturing && canRecipe && !c.variants.length && (
         <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <button type="button" onClick={() => setRecipeOpen((v) => !v)} aria-expanded={recipeOpen}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5">
+            className="flex w-full items-center gap-3 px-4 py-3 text-start sm:px-5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><Factory className="h-4 w-4" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[0.9375rem] font-semibold text-slate-900">Recipe — banaya jata hai?</span>
-              <span className="block text-[0.75rem] text-slate-500">Raw maal, batch aur Cost. Recipe alag save hoti hai.</span>
+              <span className="block text-[0.9375rem] font-semibold text-slate-900">{t('Recipe — banaya jata hai?')}</span>
+              <span className="block text-[0.75rem] text-slate-500">{t('Raw maal, batch aur Cost. Recipe alag save hoti hai.')}</span>
             </span>
             <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', recipeOpen && 'rotate-180')} />
           </button>
@@ -241,14 +242,14 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
 
       {/* Action bar */}
       <div className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
-        <Button variant="secondary" onClick={e.back} disabled={e.stepIndex === 0} leftIcon={<ArrowLeft className="h-4 w-4" />}>Peeche</Button>
+        <Button variant="secondary" onClick={e.back} disabled={e.stepIndex === 0} leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />}>{t('Peeche')}</Button>
         <p className="hidden flex-1 text-center text-[0.8125rem] text-slate-500 sm:block">
-          Step {e.stepIndex + 1} / {e.steps.length} · {e.step.title}
-          {!e.valid && <span className="ml-2 font-medium text-rose-600">· kuch khane baqi</span>}
+          {t('Step {{value}} / {{count}} · {{title}}', { value: e.stepIndex + 1, count: e.steps.length, title: e.step.title })}
+          {!e.valid && <span className="ms-2 font-medium text-rose-600">{t('· kuch khane baqi')}</span>}
         </p>
         <span className="flex-1 sm:hidden" />
-        {!isLast && <Button variant={e.isEdit ? 'secondary' : 'primary'} onClick={() => e.next()} rightIcon={<ArrowRight className="h-4 w-4" />}>Aage</Button>}
-        {(e.isEdit || isLast) && <Button onClick={() => void doSave()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{e.isEdit ? 'Save karein' : 'Bana dein'}</Button>}
+        {!isLast && <Button variant={e.isEdit ? 'secondary' : 'primary'} onClick={() => e.next()} rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{t('Aage')}</Button>}
+        {(e.isEdit || isLast) && <Button onClick={() => void doSave()} loading={busy} leftIcon={<Save className="h-4 w-4" />}>{e.isEdit ? t('Save karein') : t('Bana dein')}</Button>}
       </div>
     </PageShell>
   );

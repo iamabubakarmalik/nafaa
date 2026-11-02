@@ -5,14 +5,15 @@
 
 import { AlertTriangle, CalendarClock, Clock, Leaf, PackageX, ShieldAlert, type LucideIcon } from 'lucide-react';
 import type { LowRow, LowSettings, LowStatus } from '../api';
+import { t } from '@core/i18n';
 
 export const STATUS: Record<LowStatus, { label: string; short: string; icon: LucideIcon; color: string; tone: string }> = {
-  out: { label: 'Khatam', short: 'Khatam', icon: PackageX, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  low: { label: 'Kam', short: 'Kam', icon: AlertTriangle, color: '#d97706', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  soon: { label: 'Jaldi khatam hoga', short: 'Jaldi khatam', icon: Clock, color: '#ea580c', tone: 'bg-orange-50 text-orange-700 ring-orange-200' },
-  expiry: { label: 'Expiry qareeb', short: 'Expiry', icon: CalendarClock, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  registration: { label: 'Registration', short: 'Registration', icon: ShieldAlert, color: '#be123c', tone: 'bg-rose-50 text-rose-800 ring-rose-200' },
-  season: { label: 'Mausam ka maal', short: 'Mausam', icon: Leaf, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  out: { label: t('Khatam'), short: t('Khatam'), icon: PackageX, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  low: { label: t('Kam'), short: t('Kam'), icon: AlertTriangle, color: '#d97706', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  soon: { label: t('Jaldi khatam hoga'), short: t('Jaldi khatam'), icon: Clock, color: '#ea580c', tone: 'bg-orange-50 text-orange-700 ring-orange-200' },
+  expiry: { label: t('Expiry qareeb'), short: t('Expiry'), icon: CalendarClock, color: '#7c3aed', tone: 'bg-violet-50 text-violet-700 ring-violet-200' },
+  registration: { label: t('Registration'), short: t('Registration'), icon: ShieldAlert, color: '#be123c', tone: 'bg-rose-50 text-rose-800 ring-rose-200' },
+  season: { label: t('Mausam ka maal'), short: t('Mausam'), icon: Leaf, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
 };
 
 export const DEFAULT_SETTINGS: LowSettings = { days: 30, targetDays: 30, soonDays: 7, expiryDays: 30 };
@@ -24,7 +25,7 @@ export const qty = (v: number) => Number(v.toFixed(2)).toLocaleString('en-PK');
 export function daysText(d: number | null) {
   if (d === null) return '—';
   if (d < 1) return 'aaj';
-  return `${Math.round(d)} din`;
+  return t('{{d}} din', { d: Math.round(d) });
 }
 
 export const dateText = (iso: string) => new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -70,6 +71,7 @@ export function itemMessage(r: LowRow, shop: string) {
   return [
     `Assalam-o-Alaikum${r.supplier ? ` ${r.supplier.name}` : ''},`,
     '',
+    // i18n-ignore: printed/sent in the shop's language
     `${r.name} ${r.stock <= 0 ? 'khatam ho gaya hai' : `sirf ${qty(r.stock)} ${r.unit} bacha hai`}.`,
     `${qty(need)} ${r.unit} bhej dein.`,
     '',

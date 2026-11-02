@@ -6,6 +6,7 @@
 
 import type { MetalRate, MetalType, Purity } from '../api/metal-rates.api';
 import type { JewelryCategory, JewelryProductProfile } from '../api/products.api';
+import { t as tr } from '@core/i18n';
 
 export const TOLA = 11.664;
 
@@ -29,8 +30,8 @@ export const tola = (g: number | null | undefined) => `${((Number(g) || 0) / TOL
 
 export const PURITY_LABEL: Record<string, string> = {
   KARAT_24: '24K', KARAT_22: '22K', KARAT_21: '21K', KARAT_18: '18K', KARAT_14: '14K', KARAT_10: '10K', KARAT_9: '9K',
-  STERLING_925: 'Sterling 925', SILVER_999: 'Chandi 999', SILVER_925: 'Chandi 925', SILVER_800: 'Chandi 800',
-  PLATINUM_950: 'Platinum 950', PLATINUM_900: 'Platinum 900', OTHER: 'Doosra',
+  STERLING_925: tr('Sterling 925'), SILVER_999: tr('Chandi 999'), SILVER_925: tr('Chandi 925'), SILVER_800: tr('Chandi 800'),
+  PLATINUM_950: tr('Platinum 950'), PLATINUM_900: tr('Platinum 900'), OTHER: tr('Doosra'),
 };
 export const purityLabel = (p?: string | null) => (p ? PURITY_LABEL[p] ?? p : '—');
 
@@ -54,17 +55,17 @@ export function metalOf(purity?: string | null): MetalType {
 }
 
 export const METAL_LABEL: Record<string, string> = {
-  GOLD: 'Sona', SILVER: 'Chandi', PLATINUM: 'Platinum', PALLADIUM: 'Palladium', ROSE_GOLD: 'Rose gold',
-  WHITE_GOLD: 'White gold', IMITATION: 'Artificial', MIXED: 'Mix', OTHER: 'Doosra',
+  GOLD: tr('Sona'), SILVER: tr('Chandi'), PLATINUM: tr('Platinum'), PALLADIUM: tr('Palladium'), ROSE_GOLD: tr('Rose gold'),
+  WHITE_GOLD: tr('White gold'), IMITATION: tr('Artificial'), MIXED: tr('Mix'), OTHER: tr('Doosra'),
 };
 export const metalLabel = (m?: string | null) => (m ? METAL_LABEL[m] ?? m : '—');
 
 export const CATEGORY_LABEL: Record<JewelryCategory, string> = {
-  RING: 'Angoothi', NECKLACE: 'Necklace', EARRINGS: 'Bundey / earrings', BANGLE: 'Choori', BRACELET: 'Bracelet', ANKLET: 'Payal (anklet)',
-  PENDANT: 'Pendant', CHAIN: 'Chain', NOSE_PIN: 'Nath / koka', NOSE_RING: 'Nath', MAANG_TIKKA: 'Teeka', JHUMKA: 'Jhumka', CHOKER: 'Choker',
-  MANGALSUTRA: 'Mangalsutra', HAAR: 'Haar', KUNDAN_SET: 'Kundan set', BRIDAL_SET: 'Bridal set', KADA: 'Kara', PAYAL: 'Payal', TOE_RING: 'Bichhua',
-  BROOCH: 'Brooch', CUFFLINK: 'Cufflink', TIE_PIN: 'Tie pin', WATCH: 'Ghari', COIN: 'Sikka', BAR: 'Biscuit / bar', BULLION: 'Bullion',
-  BUTTON: 'Button', RAKHI: 'Rakhi', OTHER: 'Doosra',
+  RING: tr('Angoothi'), NECKLACE: tr('Necklace'), EARRINGS: tr('Bundey / earrings'), BANGLE: tr('Choori'), BRACELET: tr('Bracelet'), ANKLET: tr('Payal (anklet)'),
+  PENDANT: tr('Pendant'), CHAIN: tr('Chain'), NOSE_PIN: tr('Nath / koka'), NOSE_RING: tr('Nath'), MAANG_TIKKA: tr('Teeka'), JHUMKA: tr('Jhumka'), CHOKER: tr('Choker'),
+  MANGALSUTRA: tr('Mangalsutra'), HAAR: tr('Haar'), KUNDAN_SET: tr('Kundan set'), BRIDAL_SET: tr('Bridal set'), KADA: tr('Kara'), PAYAL: tr('Payal'), TOE_RING: tr('Bichhua'),
+  BROOCH: tr('Brooch'), CUFFLINK: tr('Cufflink'), TIE_PIN: tr('Tie pin'), WATCH: tr('Ghari'), COIN: tr('Sikka'), BAR: tr('Biscuit / bar'), BULLION: tr('Bullion'),
+  BUTTON: tr('Button'), RAKHI: tr('Rakhi'), OTHER: tr('Doosra'),
 };
 export const categoryLabel = (c?: string | null) => (c ? CATEGORY_LABEL[c as JewelryCategory] ?? c : '—');
 /** Categories shown first in pickers. */
@@ -134,19 +135,19 @@ export function oldGoldValue(gramsIn: number, purity: string, rates: Map<string,
 }
 
 export const ORDER_STATUS: Record<string, { label: string; tone: string }> = {
-  DRAFT: { label: 'Draft', tone: 'bg-slate-100 text-slate-700' },
-  QUOTED: { label: 'Qeemat batayi', tone: 'bg-slate-100 text-slate-700' },
-  CONFIRMED: { label: 'Pakka', tone: 'bg-sky-50 text-sky-700' },
-  DESIGNING: { label: 'Design', tone: 'bg-violet-50 text-violet-700' },
-  METAL_ISSUED: { label: 'Karigar ko sona diya', tone: 'bg-amber-50 text-amber-800' },
-  IN_PRODUCTION: { label: 'Ban raha hai', tone: 'bg-amber-50 text-amber-800' },
-  POLISHING: { label: 'Polish', tone: 'bg-amber-50 text-amber-800' },
-  QUALITY_CHECK: { label: 'Check', tone: 'bg-indigo-50 text-indigo-700' },
-  HALLMARKING: { label: 'Hallmark', tone: 'bg-indigo-50 text-indigo-700' },
-  READY: { label: 'Tayyar', tone: 'bg-emerald-50 text-emerald-700' },
-  DELIVERED: { label: 'De diya', tone: 'bg-emerald-600 text-white' },
-  CANCELLED: { label: 'Cancel', tone: 'bg-rose-50 text-rose-700' },
-  ON_HOLD: { label: 'Ruka hua', tone: 'bg-slate-100 text-slate-600' },
+  DRAFT: { label: tr('Draft'), tone: 'bg-slate-100 text-slate-700' },
+  QUOTED: { label: tr('Qeemat batayi'), tone: 'bg-slate-100 text-slate-700' },
+  CONFIRMED: { label: tr('Pakka'), tone: 'bg-sky-50 text-sky-700' },
+  DESIGNING: { label: tr('Design'), tone: 'bg-violet-50 text-violet-700' },
+  METAL_ISSUED: { label: tr('Karigar ko sona diya'), tone: 'bg-amber-50 text-amber-800' },
+  IN_PRODUCTION: { label: tr('Ban raha hai'), tone: 'bg-amber-50 text-amber-800' },
+  POLISHING: { label: tr('Polish'), tone: 'bg-amber-50 text-amber-800' },
+  QUALITY_CHECK: { label: tr('Check'), tone: 'bg-indigo-50 text-indigo-700' },
+  HALLMARKING: { label: tr('Hallmark'), tone: 'bg-indigo-50 text-indigo-700' },
+  READY: { label: tr('Tayyar'), tone: 'bg-emerald-50 text-emerald-700' },
+  DELIVERED: { label: tr('De diya'), tone: 'bg-emerald-600 text-white' },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-rose-50 text-rose-700' },
+  ON_HOLD: { label: tr('Ruka hua'), tone: 'bg-slate-100 text-slate-600' },
 };
 export const orderStatus = (s: string) => ORDER_STATUS[s] ?? { label: s, tone: 'bg-slate-100 text-slate-700' };
 /** Next step for an open order. */
@@ -156,15 +157,15 @@ export const NEXT_STATUS: Record<string, string | undefined> = {
 };
 
 export const ENTRY_LABEL: Record<string, { label: string; in: boolean }> = {
-  PURCHASE: { label: 'Khareed', in: true }, OPENING: { label: 'Shuru ka stock', in: true }, RETURN: { label: 'Wapsi', in: true },
-  RECEIVE: { label: 'Karigar se wapas', in: true }, EXCHANGE_IN: { label: 'Purana sona aaya', in: true },
-  ISSUE: { label: 'Karigar ko diya', in: false }, ADJUSTMENT: { label: 'Kami / wapas diya', in: false }, SALE: { label: 'Becha', in: false },
+  PURCHASE: { label: tr('Khareed'), in: true }, OPENING: { label: tr('Shuru ka stock'), in: true }, RETURN: { label: tr('Wapsi'), in: true },
+  RECEIVE: { label: tr('Karigar se wapas'), in: true }, EXCHANGE_IN: { label: tr('Purana sona aaya'), in: true },
+  ISSUE: { label: tr('Karigar ko diya'), in: false }, ADJUSTMENT: { label: tr('Kami / wapas diya'), in: false }, SALE: { label: tr('Becha'), in: false },
 };
 export const entryLabel = (t: string) => ENTRY_LABEL[t] ?? { label: t, in: false };
 
 export const EXCHANGE_LABEL: Record<string, string> = {
-  OLD_GOLD_EXCHANGE: 'Purana sona', OLD_SILVER_EXCHANGE: 'Purani chandi', BROKEN_JEWELRY: 'Toota zewar', PURE_METAL_DEPOSIT: 'Khalis sona',
-  COIN_EXCHANGE: 'Sikka / biscuit', MELT_AND_REMAKE: 'Galane ke liye', REPAIR: 'Repair', RESIZING: 'Size theek', RENOVATION: 'Polish / naya jaisa',
+  OLD_GOLD_EXCHANGE: tr('Purana sona'), OLD_SILVER_EXCHANGE: tr('Purani chandi'), BROKEN_JEWELRY: tr('Toota zewar'), PURE_METAL_DEPOSIT: tr('Khalis sona'),
+  COIN_EXCHANGE: tr('Sikka / biscuit'), MELT_AND_REMAKE: tr('Galane ke liye'), REPAIR: tr('Repair'), RESIZING: tr('Size theek'), RENOVATION: tr('Polish / naya jaisa'),
 };
 export const exchangeLabel = (t: string) => EXCHANGE_LABEL[t] ?? t;
 

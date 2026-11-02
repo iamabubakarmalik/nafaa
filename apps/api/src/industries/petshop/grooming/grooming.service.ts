@@ -18,6 +18,7 @@ import {
   ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, resolveIndustryShopId,
 } from '../../_shared/industry-sale.helper';
 import { dayEnd, dayKey, dayRange, dayStart, parseDay, weekdayInTz } from '../petshop-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -66,7 +67,7 @@ export class GroomingService {
           status: { in: ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] },
         },
       });
-      if (clash) throw new BadRequestException(`Slot ${dto.scheduledSlot} already booked for this groomer`);
+      if (clash) throw new BadRequestException(apiMessage('Slot {{scheduledSlot}} already booked for this groomer', { scheduledSlot: dto.scheduledSlot }));
     }
 
     const additionalCharges = dto.additionalCharges ?? 0;
@@ -159,7 +160,7 @@ export class GroomingService {
   async checkIn(user: AuthenticatedUser, id: string, dto: CheckInDto) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
-    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException(`Ye appointment ${a.status} hai`);
+    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException(apiMessage('Ye appointment {{aStatus}} hai', { aStatus: a.status }));
 
     return this.prisma.petGroomingAppointment.update({
       where: { id },
@@ -175,7 +176,7 @@ export class GroomingService {
   async start(user: AuthenticatedUser, id: string) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
-    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException(`Ye appointment ${a.status} hai, shuru nahi ho sakti`);
+    if (!['SCHEDULED', 'CONFIRMED'].includes(a.status)) throw new BadRequestException(apiMessage('Ye appointment {{aStatus}} hai, shuru nahi ho sakti', { aStatus: a.status }));
 
     return this.prisma.petGroomingAppointment.update({
       where: { id },
@@ -210,7 +211,7 @@ export class GroomingService {
     const additionalCharges = dto.additionalCharges ?? a.additionalCharges;
     const discount = dto.discount ?? a.discount;
     const totalFee = Math.max(serviceFee + additionalCharges - discount, 0);
-    if (totalFee < a.paidAmount - 0.01) throw new BadRequestException(`Rs ${a.paidAmount} pehle mil chuke hain — fee us se kam nahi ho sakti`);
+    if (totalFee < a.paidAmount - 0.01) throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke hain — fee us se kam nahi ho sakti', { paidAmount: a.paidAmount }));
 
     return this.prisma.petGroomingAppointment.update({
       where: { id },
@@ -234,7 +235,7 @@ export class GroomingService {
     const additionalCharges = dto.additionalCharges ?? a.additionalCharges;
     const discount = dto.discount ?? a.discount;
     const totalFee = Math.max(a.serviceFee + additionalCharges - discount, 0);
-    if (totalFee < a.paidAmount - 0.01) throw new BadRequestException(`Rs ${a.paidAmount} pehle mil chuke hain — fee us se kam nahi ho sakti`);
+    if (totalFee < a.paidAmount - 0.01) throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke hain — fee us se kam nahi ho sakti', { paidAmount: a.paidAmount }));
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.petGroomingAppointment.update({
@@ -402,7 +403,7 @@ export class GroomingService {
     const allowed: PetGroomingStatus[] = ['SCHEDULED', 'CONFIRMED', 'CANCELLED', 'NO_SHOW'];
     if (!allowed.includes(dto.status)) throw new BadRequestException('Kaam shuru, Ready aur Pickup apne buttons se hote hain');
     if (!['SCHEDULED', 'CONFIRMED', 'NO_SHOW'].includes(a.status) && !(a.status === 'CANCELLED' && dto.status === 'SCHEDULED')) {
-      throw new BadRequestException(`Ye appointment ${a.status} hai — ab badli nahi ja sakti`);
+      throw new BadRequestException(apiMessage('Ye appointment {{aStatus}} hai — ab badli nahi ja sakti', { aStatus: a.status }));
     }
 
     const patch: Prisma.PetGroomingAppointmentUpdateInput = { status: dto.status };

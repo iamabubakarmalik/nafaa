@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { paidOnKhata, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 export const DAY_MS = 86_400_000;
@@ -71,7 +72,7 @@ export async function refundAdvance(
     // The advance can be used up by older udhaar on the same khata.
     const owes = customer ? r2(Math.max(Number(customer.balance), 0)) : 0;
     throw new BadRequestException(paid - refunded > 0.009 && owes > 0
-      ? `Advance customer ke purane udhaar me lag chuka hai (khata par abhi Rs ${owes} baqi) — wapas karne ko kuch nahi`
+      ? apiMessage('Advance customer ke purane udhaar me lag chuka hai (khata par abhi Rs {{owes}} baqi) — wapas karne ko kuch nahi', { owes })
       : 'Is ka koi advance khata par baqi nahi — wapas karne ko kuch nahi');
   }
 

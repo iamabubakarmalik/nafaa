@@ -13,6 +13,7 @@ import { ShopScope } from '../../../common/shop-scope';
 import { recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { khataBalances, linkKhata, monthRange, nextNumbered, r2, r3, settleBills, shopYear, tzParts, withLiveBalance } from '../dairy-common';
 import { BillPaymentDto, GenerateBillDto } from './dto/monthly-bill.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class MonthlyBillsService {
@@ -44,7 +45,7 @@ export class MonthlyBillsService {
       select: { deliveredQty: true, totalAmount: true },
     });
     // An empty bill only clutters the list and the customer's WhatsApp.
-    if (deliveries.length === 0) throw new BadRequestException(`${month}/${year} me ${customer.name} ki koi delivery nahi`);
+    if (deliveries.length === 0) throw new BadRequestException(apiMessage('{{month}}/{{year}} me {{customerName}} ki koi delivery nahi', { month, year, customerName: customer.name }));
     const totalAmount = r2(deliveries.reduce((s, d) => s + d.totalAmount, 0));
 
     // Balances at the month edges from the khata ledger when linked; else today's balance minus later deliveries.
@@ -181,7 +182,7 @@ export class MonthlyBillsService {
     const amount = r2(Number(dto?.amount));
     if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Amount sahi likhein');
     if (amount > b.remainingAmount + 0.01) {
-      throw new BadRequestException(`Is bill par sirf Rs ${Math.round(b.remainingAmount)} baqi hain — zyada amount customer ke khate me "Payment" se lein`);
+      throw new BadRequestException(apiMessage('Is bill par sirf Rs {{remainingAmount}} baqi hain — zyada amount customer ke khate me "Payment" se lein', { remainingAmount: Math.round(b.remainingAmount) }));
     }
 
     const c = await this.prisma.dairyCustomer.findUniqueOrThrow({ where: { id: b.dairyCustomerId }, include: { route: { select: { shopId: true } } } });

@@ -1,5 +1,6 @@
 /** Shoe labels, size sets, query keys and small helpers used across the shoe pages. */
 
+import { t as tr } from '@core/i18n';
 export const META_KEY = 'shoe-meta';
 export const REQUEST_KEY = 'shoe-try-on';
 export const CHART_KEY = 'shoe-size-charts';
@@ -7,54 +8,54 @@ export const CHART_KEY = 'shoe-size-charts';
 export const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 export const opt = (v?: string | null) => (v && v.trim() ? v.trim() : undefined);
 
-export function apiError(e: unknown, fallback = 'Kuch ghalat ho gaya') {
+export function apiError(e: unknown, fallback = tr('Kuch ghalat ho gaya')) {
   const m = (e as { response?: { data?: { message?: unknown } } })?.response?.data?.message;
   return Array.isArray(m) ? String(m[0]) : typeof m === 'string' ? m : fallback;
 }
 
 export const GENDERS = [
-  { value: 'MEN', label: 'Gents' },
-  { value: 'WOMEN', label: 'Ladies' },
-  { value: 'BOYS', label: 'Larke' },
-  { value: 'GIRLS', label: 'Larkiyan' },
-  { value: 'BABY', label: 'Chhote bachay' },
-  { value: 'UNISEX', label: 'Sab ke liye' },
+  { value: 'MEN', label: tr('Gents') },
+  { value: 'WOMEN', label: tr('Ladies') },
+  { value: 'BOYS', label: tr('Larke') },
+  { value: 'GIRLS', label: tr('Larkiyan') },
+  { value: 'BABY', label: tr('Chhote bachay') },
+  { value: 'UNISEX', label: tr('Sab ke liye') },
 ] as const;
 export const genderLabel = (g?: string | null) => GENDERS.find((x) => x.value === g)?.label ?? '—';
 export const KIDS = ['BOYS', 'GIRLS', 'BABY'];
 
 export const SHOE_TYPES: Array<{ value: string; label: string; group: string }> = [
-  { value: 'MENS_FORMAL', label: 'Formal', group: 'Gents' },
-  { value: 'MENS_SNEAKERS', label: 'Joggers / sneakers', group: 'Gents' },
-  { value: 'MENS_LOAFERS', label: 'Loafers', group: 'Gents' },
-  { value: 'MENS_SANDALS', label: 'Chappal / sandal', group: 'Gents' },
-  { value: 'MENS_PESHAWARI', label: 'Peshawari', group: 'Gents' },
-  { value: 'MENS_KHUSSA', label: 'Khussa', group: 'Gents' },
-  { value: 'MENS_BOOTS', label: 'Boots', group: 'Gents' },
-  { value: 'MENS_SLIPPERS', label: 'Slippers', group: 'Gents' },
-  { value: 'WOMENS_HEELS', label: 'Heels', group: 'Ladies' },
-  { value: 'WOMENS_FLATS', label: 'Flats / pumps', group: 'Ladies' },
-  { value: 'WOMENS_SANDALS', label: 'Sandal / chappal', group: 'Ladies' },
-  { value: 'WOMENS_KHUSSA', label: 'Khussa', group: 'Ladies' },
-  { value: 'WOMENS_SNEAKERS', label: 'Joggers', group: 'Ladies' },
-  { value: 'WOMENS_WEDGES', label: 'Wedges', group: 'Ladies' },
-  { value: 'BRIDAL_SHOES', label: 'Bridal', group: 'Ladies' },
-  { value: 'KIDS_SCHOOL', label: 'School shoes', group: 'Bachay' },
-  { value: 'KIDS_SNEAKERS', label: 'Joggers', group: 'Bachay' },
-  { value: 'KIDS_SANDALS', label: 'Sandal', group: 'Bachay' },
-  { value: 'KIDS_CASUAL', label: 'Casual', group: 'Bachay' },
-  { value: 'BABY_SHOES', label: 'Baby shoes', group: 'Bachay' },
-  { value: 'RUNNING_SHOES', label: 'Running', group: 'Sports' },
-  { value: 'FOOTBALL_STUDS', label: 'Football studs', group: 'Sports' },
-  { value: 'CRICKET_SPIKES', label: 'Cricket spikes', group: 'Sports' },
-  { value: 'TRAINING_SHOES', label: 'Gym / training', group: 'Sports' },
-  { value: 'SAFETY_SHOES', label: 'Safety shoes', group: 'Kaam' },
-  { value: 'RAIN_BOOTS', label: 'Barish ke boots', group: 'Kaam' },
-  { value: 'SOCK', label: 'Jurabain', group: 'Saman' },
-  { value: 'SHOE_POLISH', label: 'Polish / cream', group: 'Saman' },
-  { value: 'SHOE_LACE', label: 'Tasme', group: 'Saman' },
-  { value: 'SHOE_INSOLE', label: 'Insole', group: 'Saman' },
-  { value: 'OTHER', label: 'Doosra', group: 'Saman' },
+  { value: 'MENS_FORMAL', label: tr('Formal'), group: tr('Gents') },
+  { value: 'MENS_SNEAKERS', label: tr('Joggers / sneakers'), group: tr('Gents') },
+  { value: 'MENS_LOAFERS', label: tr('Loafers'), group: tr('Gents') },
+  { value: 'MENS_SANDALS', label: tr('Chappal / sandal'), group: tr('Gents') },
+  { value: 'MENS_PESHAWARI', label: tr('Peshawari'), group: tr('Gents') },
+  { value: 'MENS_KHUSSA', label: tr('Khussa'), group: tr('Gents') },
+  { value: 'MENS_BOOTS', label: tr('Boots'), group: tr('Gents') },
+  { value: 'MENS_SLIPPERS', label: tr('Slippers'), group: tr('Gents') },
+  { value: 'WOMENS_HEELS', label: tr('Heels'), group: tr('Ladies') },
+  { value: 'WOMENS_FLATS', label: tr('Flats / pumps'), group: tr('Ladies') },
+  { value: 'WOMENS_SANDALS', label: tr('Sandal / chappal'), group: tr('Ladies') },
+  { value: 'WOMENS_KHUSSA', label: tr('Khussa'), group: tr('Ladies') },
+  { value: 'WOMENS_SNEAKERS', label: tr('Joggers'), group: tr('Ladies') },
+  { value: 'WOMENS_WEDGES', label: tr('Wedges'), group: tr('Ladies') },
+  { value: 'BRIDAL_SHOES', label: tr('Bridal'), group: tr('Ladies') },
+  { value: 'KIDS_SCHOOL', label: tr('School shoes'), group: tr('Bachay') },
+  { value: 'KIDS_SNEAKERS', label: tr('Joggers'), group: tr('Bachay') },
+  { value: 'KIDS_SANDALS', label: tr('Sandal'), group: tr('Bachay') },
+  { value: 'KIDS_CASUAL', label: tr('Casual'), group: tr('Bachay') },
+  { value: 'BABY_SHOES', label: tr('Baby shoes'), group: tr('Bachay') },
+  { value: 'RUNNING_SHOES', label: tr('Running'), group: tr('Sports') },
+  { value: 'FOOTBALL_STUDS', label: tr('Football studs'), group: tr('Sports') },
+  { value: 'CRICKET_SPIKES', label: tr('Cricket spikes'), group: tr('Sports') },
+  { value: 'TRAINING_SHOES', label: tr('Gym / training'), group: tr('Sports') },
+  { value: 'SAFETY_SHOES', label: tr('Safety shoes'), group: tr('Kaam') },
+  { value: 'RAIN_BOOTS', label: tr('Barish ke boots'), group: tr('Kaam') },
+  { value: 'SOCK', label: tr('Jurabain'), group: tr('Saman') },
+  { value: 'SHOE_POLISH', label: tr('Polish / cream'), group: tr('Saman') },
+  { value: 'SHOE_LACE', label: tr('Tasme'), group: tr('Saman') },
+  { value: 'SHOE_INSOLE', label: tr('Insole'), group: tr('Saman') },
+  { value: 'OTHER', label: tr('Doosra'), group: tr('Saman') },
 ];
 export const typeLabel = (t?: string | null) => SHOE_TYPES.find((x) => x.value === t)?.label ?? (t ? t.replace(/_/g, ' ').toLowerCase() : '—');
 /** Accessories are sold by piece and have no size. */
@@ -64,10 +65,10 @@ export const SEASONS = ['Summer', 'Winter', 'Eid', 'Shaadi', 'School', 'All seas
 
 /** Size sets shops use in Pakistan: PK/UK numbers for adults, EU on branded boxes, kids sizes. */
 export const SIZE_SYSTEMS = [
-  { value: 'UK', label: 'PK / UK', sizes: ['5', '6', '7', '8', '9', '10', '11', '12'] },
-  { value: 'EU', label: 'EU', sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'] },
-  { value: 'KIDS', label: 'Bachay', sizes: ['C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', '1', '2', '3', '4'] },
-  { value: 'US', label: 'US', sizes: ['6', '7', '8', '9', '10', '11', '12', '13'] },
+  { value: 'UK', label: tr('PK / UK'), sizes: ['5', '6', '7', '8', '9', '10', '11', '12'] },
+  { value: 'EU', label: tr('EU'), sizes: ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'] },
+  { value: 'KIDS', label: tr('Bachay'), sizes: ['C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', '1', '2', '3', '4'] },
+  { value: 'US', label: tr('US'), sizes: ['6', '7', '8', '9', '10', '11', '12', '13'] },
 ] as const;
 export type SizeSystem = typeof SIZE_SYSTEMS[number]['value'];
 export const systemLabel = (s?: string | null) => SIZE_SYSTEMS.find((x) => x.value === s)?.label ?? s ?? '';

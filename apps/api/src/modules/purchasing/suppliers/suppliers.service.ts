@@ -6,6 +6,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { QuerySuppliersDto } from './dto/query-suppliers.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class SuppliersService {
@@ -370,16 +371,13 @@ export class SuppliersService {
     // jis se maal aa chuka hai wo record kharidari ki tareekh hai.
     if (supplier._count.purchases > 0) {
       throw new BadRequestException(
-        `"${supplier.name}" ki ${supplier._count.purchases} purchase record me hain — ` +
-        'mitaya nahi ja sakta. Iske bajaye ise "band" kar dein: ' +
-        'record mehfooz rahega aur naye bill me nazar nahi aayega.',
+        apiMessage('"{{supplierName}}" ki {{purchasesCount}} purchase record me hain — mitaya nahi ja sakta. Iske bajaye ise "band" kar dein: record mehfooz rahega aur naye bill me nazar nahi aayega.', { supplierName: supplier.name, purchasesCount: supplier._count.purchases }),
       );
     }
 
     if (Number(supplier.outstandingDue ?? 0) > 0) {
       throw new BadRequestException(
-        `"${supplier.name}" ka ${Math.round(Number(supplier.outstandingDue))} baqi hai — ` +
-        'pehle khata saaf karein ya "band" kar dein.',
+        apiMessage('"{{supplierName}}" ka {{outstandingDue}} baqi hai — pehle khata saaf karein ya "band" kar dein.', { supplierName: supplier.name, outstandingDue: Math.round(Number(supplier.outstandingDue)) }),
       );
     }
 

@@ -10,6 +10,7 @@ import { Link2, Search, UserCheck, X } from 'lucide-react';
 import { Input } from '@/design-system/components';
 import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
 import { digits, formatCnic } from './meta';
+import { t as tr } from '@core/i18n';
 
 export interface Person { customerId: string; name: string; phone: string; cnic: string; address: string }
 export const EMPTY_PERSON: Person = { customerId: '', name: '', phone: '', cnic: '', address: '' };
@@ -48,38 +49,38 @@ export function PersonFields({ value, onChange, cnicRequired, withAddress, error
     <div className="space-y-3">
       {value.customerId ? (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-900 ring-1 ring-emerald-200">
-          <UserCheck className="h-4 w-4" />Khata wale customer se jura hai
-          <button type="button" onClick={() => set({ customerId: '' })} className="ml-auto inline-flex items-center gap-1 font-semibold hover:underline"><X className="h-3.5 w-3.5" />Alag karein</button>
+          <UserCheck className="h-4 w-4" />{tr('Khata wale customer se jura hai')}
+          <button type="button" onClick={() => set({ customerId: '' })} className="ms-auto inline-flex items-center gap-1 font-semibold hover:underline"><X className="h-3.5 w-3.5" />{tr('Alag karein')}</button>
         </div>
       ) : (
         <div className="relative">
           <button type="button" onClick={() => setOpen((v) => !v)} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-            <Search className="h-3.5 w-3.5" />Purane customer me se chunein
+            <Search className="h-3.5 w-3.5" />{tr('Purane customer me se chunein')}
           </button>
           {open && (
             <div className="mt-2 rounded-xl bg-white p-2 ring-1 ring-slate-200">
-              <Input autoFocus size="sm" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Naam ya phone…" leftIcon={<Search className="h-4 w-4" />} />
+              <Input autoFocus size="sm" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={tr('Naam ya phone…')} leftIcon={<Search className="h-4 w-4" />} />
               <ul className="mt-1 max-h-48 overflow-y-auto">
                 {(found.data?.items ?? []).map((c) => (
                   <li key={c.id}>
-                    <button type="button" onClick={() => pickCustomer(c)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[0.8125rem] hover:bg-slate-50">
+                    <button type="button" onClick={() => pickCustomer(c)} className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-start text-[0.8125rem] hover:bg-slate-50">
                       <span className="font-medium text-slate-900">{c.name}</span><span className="text-slate-500">{c.phone}</span>
                     </button>
                   </li>
                 ))}
-                {q.length >= 2 && found.data && !found.data.items.length && <li className="px-2 py-1.5 text-[0.8125rem] text-slate-500">Koi nahi mila — neeche naya likhein</li>}
+                {q.length >= 2 && found.data && !found.data.items.length && <li className="px-2 py-1.5 text-[0.8125rem] text-slate-500">{tr('Koi nahi mila — neeche naya likhein')}</li>}
               </ul>
             </div>
           )}
         </div>
       )}
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input label="Naam" required value={value.name} onChange={(e) => set({ name: e.target.value })} placeholder="Ahmed Khan" error={errors.name} />
-        <Input label="Phone" required inputMode="tel" value={value.phone} onChange={(e) => set({ phone: e.target.value.replace(/[^\d+\-\s]/g, '') })} placeholder="03001234567" error={errors.phone}
-          hint={match && !value.customerId ? <button type="button" onClick={() => pickCustomer(match)} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Link2 className="h-3 w-3" />{match.name} ka khata — jorein</button> : 'WhatsApp isi par'} />
-        <Input label="CNIC" required={cnicRequired} inputMode="numeric" value={value.cnic} onChange={(e) => set({ cnic: formatCnic(e.target.value) })} placeholder="35202-1234567-1" error={errors.cnic}
-          hint={cnicRequired ? 'Chori ke phone se bachne ke liye zaroori' : 'Marzi hai'} />
-        {withAddress && <Input label="Pata" value={value.address} onChange={(e) => set({ address: e.target.value })} hint="Marzi hai" />}
+        <Input label={tr('Naam')} required value={value.name} onChange={(e) => set({ name: e.target.value })} placeholder={tr('Ahmed Khan')} error={errors.name} />
+        <Input label={tr('Phone')} required inputMode="tel" value={value.phone} onChange={(e) => set({ phone: e.target.value.replace(/[^\d+\-\s]/g, '') })} placeholder="03001234567" error={errors.phone}
+          hint={match && !value.customerId ? <button type="button" onClick={() => pickCustomer(match)} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Link2 className="h-3 w-3" />{tr('{{name}} ka khata — jorein', { name: match.name })}</button> : tr('WhatsApp isi par')} />
+        <Input label={tr('CNIC')} required={cnicRequired} inputMode="numeric" value={value.cnic} onChange={(e) => set({ cnic: formatCnic(e.target.value) })} placeholder="35202-1234567-1" error={errors.cnic}
+          hint={cnicRequired ? tr('Chori ke phone se bachne ke liye zaroori') : tr('Marzi hai')} />
+        {withAddress && <Input label={tr('Pata')} value={value.address} onChange={(e) => set({ address: e.target.value })} hint={tr('Marzi hai')} />}
       </div>
     </div>
   );
@@ -88,11 +89,11 @@ export function PersonFields({ value, onChange, cnicRequired, withAddress, error
 /** Roman Urdu problems with a person, for form validation. */
 export function personErrors(p: Person, cnicRequired = false): Partial<Record<keyof Person, string>> {
   const e: Partial<Record<keyof Person, string>> = {};
-  if (!p.name.trim()) e.name = 'Naam likhein';
+  if (!p.name.trim()) e.name = tr('Naam likhein');
   const d = digits(p.phone);
-  if (d.length < 10 || d.length > 13) e.phone = 'Poora phone number likhein (03XX XXXXXXX)';
+  if (d.length < 10 || d.length > 13) e.phone = tr('Poora phone number likhein (03XX XXXXXXX)');
   const c = digits(p.cnic);
-  if (cnicRequired && !c) e.cnic = 'CNIC likhein';
-  else if (c && c.length !== 13) e.cnic = 'CNIC me 13 number hote hain';
+  if (cnicRequired && !c) e.cnic = tr('CNIC likhein');
+  else if (c && c.length !== 13) e.cnic = tr('CNIC me 13 number hote hain');
   return e;
 }

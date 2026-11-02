@@ -6,6 +6,7 @@ import { integrationsApi } from '../api/integrations.api';
 import { apiClient } from '@core/api/client';
 import { Button, Input, SkeletonCard, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function ProductMappingsPanel({ integrationId }: { integrationId: string }) {
   const queryClient = useQueryClient();
@@ -35,7 +36,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
         externalSku: externalSku || selectedProduct.sku,
       }),
     onSuccess: () => {
-      toast.success('Mapping save ho gaya');
+      toast.success(t('Mapping save ho gaya'));
       queryClient.invalidateQueries({ queryKey: ['product-mappings', integrationId] });
       setShowAdd(false);
       setSelectedProduct(null);
@@ -47,7 +48,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
   const deleteMutation = useMutation({
     mutationFn: (mid: string) => integrationsApi.deleteProductMapping(integrationId, mid),
     onSuccess: () => {
-      toast.success('Deleted');
+      toast.success(t('Deleted'));
       queryClient.invalidateQueries({ queryKey: ['product-mappings', integrationId] });
     },
   });
@@ -60,9 +61,8 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
         <div className="flex items-start gap-2">
           <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
           <div className="text-xs text-amber-800 dark:text-amber-300">
-            <div className="font-black mb-1">Product Mapping kya hai?</div>
-            Website pe "Chicken Karahi" → Nafaa mein "Chicken Handi" hai? Yahan map karo.
-            Order aane pe smart matching hogi.
+            <div className="font-black mb-1">{t('Product Mapping kya hai?')}</div>
+            {t('Website pe "Chicken Karahi" → Nafaa mein "Chicken Handi" hai? Yahan map karo. Order aane pe smart matching hogi.')}
           </div>
         </div>
       </div>
@@ -77,21 +77,21 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
           onClick={() => setShowAdd(!showAdd)}
           leftIcon={<Plus className="h-3.5 w-3.5" />}
         >
-          {showAdd ? 'Cancel' : 'Add Mapping'}
+          {showAdd ? t('Cancel') : t('Add Mapping')}
         </Button>
       </div>
 
       {showAdd && (
         <div className="p-3 rounded-xl border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-3">
           <Input
-            label="External SKU (website ka SKU)"
-            placeholder="e.g. WEB-001"
+            label={t('External SKU (website ka SKU)')}
+            placeholder={t('e.g. WEB-001')}
             value={externalSku}
             onChange={(e) => setExternalSku(e.target.value)}
           />
           <Input
-            label="Nafaa Product Search"
-            placeholder="Product name likho..."
+            label={t('Nafaa Product Search')}
+            placeholder={t('Product name likho...')}
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
           />
@@ -102,7 +102,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
                   key={p.id}
                   onClick={() => setSelectedProduct(p)}
                   className={cn(
-                    'w-full p-2 rounded-lg text-left text-xs transition',
+                    'w-full p-2 rounded-lg text-start text-xs transition',
                     selectedProduct?.id === p.id
                       ? 'bg-emerald-500 text-white'
                       : 'bg-white dark:bg-ink-800 hover:bg-slate-100',
@@ -110,7 +110,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
                 >
                   <div className="font-bold">{p.name}</div>
                   <div className="text-[0.6875rem] opacity-70">
-                    SKU: {p.sku} · Rs {Number(p.price).toFixed(0)}
+                    {t('SKU: {{sku}} · Rs {{value}}', { sku: p.sku, value: Number(p.price).toFixed(0) })}
                   </div>
                 </button>
               ))}
@@ -124,7 +124,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
               onClick={() => upsertMutation.mutate()}
               leftIcon={<Link2 className="h-4 w-4" />}
             >
-              Map: {externalSku || selectedProduct.sku} → {selectedProduct.name}
+              {t('Map: {{value}} → {{name}}', { value: externalSku || selectedProduct.sku, name: selectedProduct.name })}
             </Button>
           )}
         </div>
@@ -133,8 +133,8 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
       {(mappings ?? []).length === 0 ? (
         <div className="text-center py-8 text-sm text-slate-500">
           <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <div className="font-bold">Koi mapping nahi</div>
-          <div className="text-[0.6875rem] mt-1">Auto-match SKU ya name se hoga</div>
+          <div className="font-bold">{t('Koi mapping nahi')}</div>
+          <div className="text-[0.6875rem] mt-1">{t('Auto-match SKU ya name se hoga')}</div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -148,13 +148,13 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
               </div>
               <div className="flex-1 min-w-0 grid grid-cols-2 gap-2 items-center">
                 <div>
-                  <div className="text-[0.625rem] font-black uppercase text-slate-500">External SKU</div>
+                  <div className="text-[0.625rem] font-black uppercase text-slate-500">{t('External SKU')}</div>
                   <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate font-mono">
                     {m.externalSku ?? m.externalProductId ?? '—'}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[0.625rem] font-black uppercase text-slate-500">Nafaa Product</div>
+                  <div className="text-[0.625rem] font-black uppercase text-slate-500">{t('Nafaa Product')}</div>
                   <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate">
                     {m.product?.name ?? m.productId}
                   </div>
@@ -162,7 +162,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
               </div>
               <button
                 onClick={async () => {
-                  if (await confirmDialog({ title: 'Ye jor hatayein?', danger: true })) deleteMutation.mutate(m.id);
+                  if (await confirmDialog({ title: t('Ye jor hatayein?'), danger: true })) deleteMutation.mutate(m.id);
                 }}
                 className="h-8 w-8 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950 flex items-center justify-center shrink-0"
               >

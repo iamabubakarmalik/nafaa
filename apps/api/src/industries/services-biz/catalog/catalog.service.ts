@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertCatalogDto } from './dto/upsert-catalog.dto';
 import { ensureServiceProduct, serviceProductIds } from './service-product';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class CatalogService {
@@ -34,7 +35,7 @@ export class CatalogService {
   async create(user: AuthenticatedUser, dto: UpsertCatalogDto) {
     const data = this.clean(dto);
     const dup = await this.prisma.serviceCatalog.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`"${data.name}" naam ki service pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('"{{dataName}}" naam ki service pehle se hai', { dataName: data.name }));
     return this.prisma.$transaction(async (tx) => {
       const svc = await tx.serviceCatalog.create({ data: { tenantId: user.tenantId, ...data } });
       const productId = await ensureServiceProduct(tx, user.tenantId, svc);
@@ -100,7 +101,7 @@ export class CatalogService {
     const data = this.clean(dto);
     if (data.name.toLowerCase() !== s.name.toLowerCase()) {
       const dup = await this.prisma.serviceCatalog.findFirst({ where: { tenantId: user.tenantId, name: { equals: data.name, mode: 'insensitive' }, id: { not: id } } });
-      if (dup) throw new BadRequestException(`"${data.name}" naam ki service pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('"{{dataName}}" naam ki service pehle se hai', { dataName: data.name }));
     }
     return this.prisma.$transaction(async (tx) => {
       const svc = await tx.serviceCatalog.update({ where: { id }, data });

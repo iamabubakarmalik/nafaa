@@ -18,6 +18,7 @@ import {
   ALL_PERMISSIONS,
   DEFAULT_ROLE_PERMISSIONS,
 } from '../../../common/constants/permissions.constants';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class TeamService {
@@ -74,7 +75,7 @@ export class TeamService {
 
     if (needsShop && !(dto as any).shopId) {
       throw new BadRequestException(
-        `${dto.role} ke liye shop select karna zaroori hai`,
+        apiMessage('{{role}} ke liye shop select karna zaroori hai', { role: dto.role }),
       );
     }
 
@@ -221,7 +222,7 @@ export class TeamService {
       !shopId
     ) {
       throw new BadRequestException(
-        `${member.role} ko shop se unassign nahi kar sakte. Naya shop de dein.`,
+        apiMessage('{{role}} ko shop se unassign nahi kar sakte. Naya shop de dein.', { role: member.role }),
       );
     }
 
@@ -422,7 +423,7 @@ export class TeamService {
       throw new BadRequestException('Owner role manually nahi bana sakte');
     }
     if ((role === UserRole.MANAGER || role === UserRole.CASHIER) && !shopId) {
-      throw new BadRequestException(`${role} ke liye shop select karna zaroori hai`);
+      throw new BadRequestException(apiMessage('{{role}} ke liye shop select karna zaroori hai', { role }));
     }
     if (!shopId) return null;
     const shop = await this.prisma.shop.findFirst({ where: { id: shopId, tenantId: user.tenantId }, select: { id: true, name: true, isActive: true } });

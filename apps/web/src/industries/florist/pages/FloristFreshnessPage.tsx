@@ -26,12 +26,13 @@ import { floristProductsApi, type FreshnessRow } from '../api/products.api';
 import { ConfirmModal, Empty, ListCard, ListLoading, Pill, actionBtn } from '../components/ui';
 import { usePageKeys, useSaveKey } from '../hooks/usePageKeys';
 import { FLORIST_KEYS, categoryLabel, dayKey, daysFromToday, errorText, longDate, numIn, shortDate } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'today' | 'soon' | 'later';
 const TABS: Record<Tab, { label: string; hint: string; tone: string }> = {
-  today: { label: 'Murjha gaye', hint: 'Fresh ki date guzar gayi', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  soon: { label: '1–2 din', hint: 'Jaldi bechein', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  later: { label: '3–5 din', hint: 'Nazar rakhein', tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
+  today: { label: tr('Murjha gaye'), hint: tr('Fresh ki date guzar gayi'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  soon: { label: tr('1–2 din'), hint: tr('Jaldi bechein'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  later: { label: tr('3–5 din'), hint: tr('Nazar rakhein'), tone: 'bg-sky-50 text-sky-700 ring-sky-200' },
 };
 
 export default function FloristFreshnessPage() {
@@ -59,8 +60,8 @@ export default function FloristFreshnessPage() {
   const refresh = () => [FLORIST_KEYS.freshness, FLORIST_KEYS.profiles, 'products', 'florist-dashboard-overview'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const markArrived = useMutation({
     mutationFn: (r: FreshnessRow) => floristProductsApi.upsert({ productId: r.productId, arrivalDate: dayKey() }),
-    onSuccess: () => { refresh(); setArrived(null); toast.success('Naya maal likh diya — fresh ki date aaj se'); },
-    onError: (e) => toast.error(errorText(e, 'Save nahi hua')),
+    onSuccess: () => { refresh(); setArrived(null); toast.success(tr('Naya maal likh diya — fresh ki date aaj se')); },
+    onError: (e) => toast.error(errorText(e, tr('Save nahi hua'))),
   });
 
   const printList = (): PrintDoc => ({
@@ -76,38 +77,38 @@ export default function FloristFreshnessPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Phoolon ki taazgi" onClose={guide.close}
+        <PageGuide title={tr('Phoolon ki taazgi')} onClose={guide.close}
           steps={[
-            { icon: Leaf, color: '#16a34a', title: 'Kitne din', text: 'Har phool par "kitne din fresh" likhein. Maal aane ki date se fresh ki aakhri date khud banti hai.' },
-            { icon: PackagePlus, color: '#0284c7', title: 'Naya maal', text: 'Mandi se naya maal aaye to "Naya maal aaya" dabayein — date aaj se dobara ginti hai.' },
-            { icon: Trash2, color: '#e11d48', title: 'Wastage', text: 'Din ke aakhir me murjhaye phool "Wastage" se likhein. Manager Damage page par manzoor kare to stock kam hota hai aur loss report me aata hai.' },
-            { icon: Tag, color: '#d97706', title: 'Sasta', text: '1–2 din wale phool bouquet me lagayein ya rate kam kar ke bechein.' },
+            { icon: Leaf, color: '#16a34a', title: tr('Kitne din'), text: tr('Har phool par "kitne din fresh" likhein. Maal aane ki date se fresh ki aakhri date khud banti hai.') },
+            { icon: PackagePlus, color: '#0284c7', title: tr('Naya maal'), text: tr('Mandi se naya maal aaye to "Naya maal aaya" dabayein — date aaj se dobara ginti hai.') },
+            { icon: Trash2, color: '#e11d48', title: tr('Wastage'), text: tr('Din ke aakhir me murjhaye phool "Wastage" se likhein. Manager Damage page par manzoor kare to stock kam hota hai aur loss report me aata hai.') },
+            { icon: Tag, color: '#d97706', title: tr('Sasta'), text: tr('1–2 din wale phool bouquet me lagayein ya rate kam kar ke bechein.') },
           ]}
           shortcuts={[['/', 'search'], ['R', 'refresh'], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Freshness" busy={q.isFetching && !q.isLoading} loading={q.isLoading} meta="Murjhane wale phool — bechein, wastage likhein ya naya maal"
+      <PageHero title={tr('Freshness')} busy={q.isFetching && !q.isLoading} loading={q.isLoading} meta={tr('Murjhane wale phool — bechein, wastage likhein ya naya maal')}
         actions={<>
-          <button type="button" onClick={() => q.refetch()} className={heroButton}><RefreshCw className="h-4 w-4" />Refresh</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label="Print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => q.refetch()} className={heroButton}><RefreshCw className="h-4 w-4" />{tr('Refresh')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printList} label={tr('Print')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Murjha gaye', value: String(lists.today.length) },
-          { label: '1–2 din', value: String(lists.soon.length) },
-          { label: 'Murjhaye stock ki cost', value: money(wiltedValue) },
+          { label: tr('Murjha gaye'), value: String(lists.today.length) },
+          { label: tr('1–2 din'), value: String(lists.soon.length) },
+          { label: tr('Murjhaye stock ki cost'), value: money(wiltedValue) },
         ]} />
 
       <KpiRow cols={4}>
         {q.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
-          <KpiCard icon={AlertTriangle} color="#e11d48" label="Murjha gaye" value={lists.today.length} hint="Wastage likhein" active={tab === 'today'} onClick={() => setTab('today')} />
-          <KpiCard icon={Clock} color="#d97706" label="1–2 din" value={lists.soon.length} hint="Pehle bechein" active={tab === 'soon'} onClick={() => setTab('soon')} />
-          <KpiCard icon={TrendingDown} color="#0284c7" label="3–5 din" value={lists.later.length} active={tab === 'later'} onClick={() => setTab('later')} />
-          <KpiCard icon={Trash2} color="#64748b" label="Murjhaye stock ki cost" value={money(wiltedValue)} hint="Agar sab wastage ho" />
+          <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Murjha gaye')} value={lists.today.length} hint={tr('Wastage likhein')} active={tab === 'today'} onClick={() => setTab('today')} />
+          <KpiCard icon={Clock} color="#d97706" label={tr('1–2 din')} value={lists.soon.length} hint={tr('Pehle bechein')} active={tab === 'soon'} onClick={() => setTab('soon')} />
+          <KpiCard icon={TrendingDown} color="#0284c7" label={tr('3–5 din')} value={lists.later.length} active={tab === 'later'} onClick={() => setTab('later')} />
+          <KpiCard icon={Trash2} color="#64748b" label={tr('Murjhaye stock ki cost')} value={money(wiltedValue)} hint={tr('Agar sab wastage ho')} />
         </>)}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Phool, rang ya naam…" />}
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Phool, rang ya naam…')} />}
         chips={search.trim() ? <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip> : undefined} onClear={() => setSearch('')} />
 
       <ViewTabs value={tab} onChange={setTab} hint={TABS[tab].hint}
@@ -115,7 +116,7 @@ export default function FloristFreshnessPage() {
 
       <ListCard>
         {q.isLoading ? <ListLoading /> : rows.length === 0 ? (
-          <Empty icon={Flower2} title={tab === 'today' ? 'Koi murjhaya phool nahi' : 'Is list me kuch nahi'} text="Phool ki taazgi uske product me likhi hoti hai — maal aane ki date aur kitne din fresh rehta hai." />
+          <Empty icon={Flower2} title={tab === 'today' ? tr('Koi murjhaya phool nahi') : tr('Is list me kuch nahi')} text={tr('Phool ki taazgi uske product me likhi hoti hai — maal aane ki date aur kitne din fresh rehta hai.')} />
         ) : (
           <ul className="divide-y divide-slate-100">
             {rows.map((r) => {
@@ -124,17 +125,17 @@ export default function FloristFreshnessPage() {
               return (
                 <li key={r.id} className="grid gap-2 px-4 py-3 sm:px-5 lg:grid-cols-[minmax(0,1.6fr)_8rem_9rem_auto] lg:items-center">
                   <div className="min-w-0">
-                    <Link to={`/florist-products/${r.productId}`} className="truncate font-semibold text-slate-900 hover:underline">{r.product?.name ?? r.flowerType ?? 'Phool'}</Link>
-                    <p className="truncate text-[0.75rem] text-slate-500">{[categoryLabel(r.categoryType), r.flowerType, r.color, r.daysToWither ? `${r.daysToWither} din fresh` : null].filter(Boolean).join(' · ')}</p>
+                    <Link to={`/florist-products/${r.productId}`} className="truncate font-semibold text-slate-900 hover:underline">{r.product?.name ?? r.flowerType ?? tr('Phool')}</Link>
+                    <p className="truncate text-[0.75rem] text-slate-500">{[categoryLabel(r.categoryType), r.flowerType, r.color, r.daysToWither ? tr('{{daysToWither}} din fresh', { daysToWither: r.daysToWither }) : null].filter(Boolean).join(' · ')}</p>
                   </div>
                   <p className="text-[0.8125rem] text-slate-700">{shortDate(r.freshUntil)}
-                    <span className="block text-[0.75rem] text-slate-500">{left === null ? '' : left < 0 ? `${-left} din pehle` : left === 0 ? 'Aaj tak' : `${left} din`}</span></p>
-                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{stock} {r.product?.unit ?? ''}<span className="block text-[0.75rem] font-normal text-slate-500">{money(stockValue(r))} cost</span></p>
+                    <span className="block text-[0.75rem] text-slate-500">{left === null ? '' : left < 0 ? tr('{{value}} din pehle', { value: -left }) : left === 0 ? tr('Aaj tak') : tr('{{left}} din', { left })}</span></p>
+                  <p className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{stock} {r.product?.unit ?? ''}<span className="block text-[0.75rem] font-normal text-slate-500">{tr('{{value}} cost', { value: money(stockValue(r)) })}</span></p>
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
                     <Pill tone={TABS[tab].tone}>{TABS[tab].label}</Pill>
-                    {canEdit && <button type="button" onClick={() => setArrived(r)} className={actionBtn}><PackagePlus className="h-4 w-4" />Naya maal aaya</button>}
-                    {stock > 0 && <button type="button" onClick={() => setWaste(r)} className={actionBtn}><Trash2 className="h-4 w-4" />Wastage</button>}
-                    {canEdit && <Link to={`/florist-products/${r.productId}/edit`} className={actionBtn}><Tag className="h-4 w-4" />Rate</Link>}
+                    {canEdit && <button type="button" onClick={() => setArrived(r)} className={actionBtn}><PackagePlus className="h-4 w-4" />{tr('Naya maal aaya')}</button>}
+                    {stock > 0 && <button type="button" onClick={() => setWaste(r)} className={actionBtn}><Trash2 className="h-4 w-4" />{tr('Wastage')}</button>}
+                    {canEdit && <Link to={`/florist-products/${r.productId}/edit`} className={actionBtn}><Tag className="h-4 w-4" />{tr('Rate')}</Link>}
                   </div>
                 </li>
               );
@@ -143,8 +144,8 @@ export default function FloristFreshnessPage() {
         )}
       </ListCard>
 
-      {arrived && <ConfirmModal title="Naya maal aaya?" cta="Haan, aaj aaya" busy={markArrived.isPending} onConfirm={() => markArrived.mutate(arrived)} onClose={() => setArrived(null)}
-        text={<>{arrived.product?.name ?? 'Is phool'} ki fresh ki date aaj se {arrived.daysToWither ? `${arrived.daysToWither} din` : ''} ginti hogi. Maal ki quantity Purchase se stock me dalein.</>} />}
+      {arrived && <ConfirmModal title={tr('Naya maal aaya?')} cta={tr('Haan, aaj aaya')} busy={markArrived.isPending} onConfirm={() => markArrived.mutate(arrived)} onClose={() => setArrived(null)}
+        text={<>{tr('{{value}} ki fresh ki date aaj se {{value2}} ginti hogi. Maal ki quantity Purchase se stock me dalein.', { value: arrived.product?.name ?? 'Is phool', value2: arrived.daysToWither ? tr('{{daysToWither}} din', { daysToWither: arrived.daysToWither }) : '' })}</>} />}
       {waste && <WastageModal row={waste} money={money} onClose={() => setWaste(null)} onDone={() => { refresh(); setWaste(null); }} />}
     </PageShell>
   );
@@ -158,24 +159,24 @@ function WastageModal({ row, money, onClose, onDone }: { row: FreshnessRow; mone
   const n = numIn(qty) ?? 0;
   const save = useMutation({
     mutationFn: () => damageApi.create({ productId: row.productId, quantity: n, reasonCode: 'SPOILAGE', reason: 'Phool murjha gaye', notes: note.trim() || undefined }),
-    onSuccess: (d) => { toast.success(`Wastage ${d.damageNumber} likh di — manager ki manzoori ke baad stock kam hoga`); onDone(); },
-    onError: (e) => toast.error(errorText(e, 'Wastage save nahi hui')),
+    onSuccess: (d) => { toast.success(tr('Wastage {{damageNumber}} likh di — manager ki manzoori ke baad stock kam hoga', { damageNumber: d.damageNumber })); onDone(); },
+    onError: (e) => toast.error(errorText(e, tr('Wastage save nahi hui'))),
   });
   const submit = () => {
-    if (!(n > 0)) { setError('Kitne phool — likhein'); return; }
-    if (n > stock) { setError(`Stock sirf ${stock} hai`); return; }
+    if (!(n > 0)) { setError(tr('Kitne phool — likhein')); return; }
+    if (n > stock) { setError(tr('Stock sirf {{stock}} hai', { stock })); return; }
     setError('');
     if (!save.isPending) save.mutate();
   };
   useSaveKey(submit);
   return (
-    <Modal open onClose={onClose} size="sm" title="Wastage likhein" description={row.product?.name ?? undefined}
-      footer={<><Button variant="secondary" onClick={onClose}>Wapas</Button><Button variant="danger" loading={save.isPending} onClick={submit}>Wastage likhein</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={tr('Wastage likhein')} description={row.product?.name ?? undefined}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button><Button variant="danger" loading={save.isPending} onClick={submit}>{tr('Wastage likhein')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <Input label={`Kitne (${row.product?.unit ?? 'pcs'})`} inputMode="decimal" autoFocus value={qty} onChange={(e) => setQty(e.target.value)} error={error}
-          hint={`Stock ${stock} · loss ${money(n * (row.product?.costPrice ?? 0))} (cost par)`} />
-        <Textarea label="Note (marzi)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Garmi se murjha gaye…" />
-        <p className="text-[0.75rem] text-slate-500">Damage page par manager manzoor kare to stock kam hota hai aur loss report me aata hai.</p>
+        <Input label={tr('Kitne ({{value}})', { value: row.product?.unit ?? 'pcs' })} inputMode="decimal" autoFocus value={qty} onChange={(e) => setQty(e.target.value)} error={error}
+          hint={tr('Stock {{stock}} · loss {{value}} (cost par)', { stock, value: money(n * (row.product?.costPrice ?? 0)) })} />
+        <Textarea label={tr('Note (marzi)')} rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr('Garmi se murjha gaye…')} />
+        <p className="text-[0.75rem] text-slate-500">{tr('Damage page par manager manzoor kare to stock kam hota hai aur loss report me aata hai.')}</p>
       </form>
     </Modal>
   );

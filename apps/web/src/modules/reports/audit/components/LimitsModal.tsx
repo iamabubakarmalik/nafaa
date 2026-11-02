@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Input, Modal } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export interface Limits { discountPct?: number; big?: number; open?: string; close?: string }
 
@@ -35,19 +36,19 @@ export function LimitsModal({ value, defaults, onSave, onClose }: {
   };
 
   return (
-    <Modal open onClose={onClose} title="Nigrani ki hadd" description="Kab koi kaam 'aam se hat kar' gina jaye. Ye is device par yaad rehti hain."
+    <Modal open onClose={onClose} title={t('Nigrani ki hadd')} description={t('Kab koi kaam \'aam se hat kar\' gina jaye. Ye is device par yaad rehti hain.')}
       footer={<>
-        <Button variant="ghost" onClick={() => onSave({})}>Default par wapas</Button>
-        <Button onClick={save}>Lagayein</Button>
+        <Button variant="ghost" onClick={() => onSave({})}>{t('Default par wapas')}</Button>
+        <Button onClick={save}>{t('Lagayein')}</Button>
       </>}>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input label="Bari discount (% bill ka)" hint={`Is se zyada haath ki discount list hogi. Abhi ${defaults?.discountPct ?? 10}%`} type="number" min={1} max={100} inputMode="decimal" placeholder={String(defaults?.discountPct ?? 10)} value={d.discountPct} onChange={(e) => setD({ ...d, discountPct: e.target.value })} />
-        <Input label="Bari amount (Rs)" hint={`Void, return, nikala gaya cash is se upar ho to "zaroor dekhein". Abhi ${defaults?.big ?? 5000}`} type="number" min={100} inputMode="numeric" placeholder={String(defaults?.big ?? 5000)} value={d.big} onChange={(e) => setD({ ...d, big: e.target.value })} />
-        <Input label="Dukaan khulti hai" hint={`Khali chhorein to Settings wala waqt (${dOpen})`} type="time" value={d.open} onChange={(e) => setD({ ...d, open: e.target.value })} />
-        <Input label="Dukaan band hoti hai" hint={`Khali chhorein to Settings wala waqt (${dClose})`} type="time" value={d.close} onChange={(e) => setD({ ...d, close: e.target.value })} />
+        <Input label={t('Bari discount (% bill ka)')} hint={t('Is se zyada haath ki discount list hogi. Abhi {{value}}%', { value: defaults?.discountPct ?? 10 })} type="number" min={1} max={100} inputMode="decimal" placeholder={String(defaults?.discountPct ?? 10)} value={d.discountPct} onChange={(e) => setD({ ...d, discountPct: e.target.value })} />
+        <Input label={t('Bari amount (Rs)')} hint={t('Void, return, nikala gaya cash is se upar ho to "zaroor dekhein". Abhi {{value}}', { value: defaults?.big ?? 5000 })} type="number" min={100} inputMode="numeric" placeholder={String(defaults?.big ?? 5000)} value={d.big} onChange={(e) => setD({ ...d, big: e.target.value })} />
+        <Input label={t('Dukaan khulti hai')} hint={t('Khali chhorein to Settings wala waqt ({{dOpen}})', { dOpen })} type="time" value={d.open} onChange={(e) => setD({ ...d, open: e.target.value })} />
+        <Input label={t('Dukaan band hoti hai')} hint={t('Khali chhorein to Settings wala waqt ({{dClose}})', { dClose })} type="time" value={d.close} onChange={(e) => setD({ ...d, close: e.target.value })} />
       </div>
       <p className="mt-4 rounded-xl bg-slate-50 p-3 text-[0.8125rem] leading-relaxed text-slate-600 ring-1 ring-slate-100">
-        Dukaan ka waqt sab ke liye Settings → Zubaan aur waqt me badlein. Yahan ki hadd sirf aap ki screen ke liye hai — kisi bande ka record nahi badalta.
+        {t('Dukaan ka waqt sab ke liye Settings → Zubaan aur waqt me badlein. Yahan ki hadd sirf aap ki screen ke liye hai — kisi bande ka record nahi badalta.')}
       </p>
     </Modal>
   );

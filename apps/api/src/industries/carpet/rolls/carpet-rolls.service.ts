@@ -19,6 +19,7 @@ import { BulkImportApplyRow, BulkImportRollRow } from './dto/bulk-import.dto';
 import { nextCode } from '../common/next-code';
 import { ROLL_UNITS, calcSqft, codeYear, r2, realFt, splitFt, syncCarpetStock } from '../common/carpet-stock';
 import { cutRoll } from '../common/roll-cut';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const MAX_IMPORT_ROWS = 1000;
 
@@ -47,7 +48,7 @@ export class CarpetRollsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product nahi mila');
     if (!ROLL_UNITS.includes(product.unit.toLowerCase())) {
-      throw new BadRequestException(`${product.name} ${product.unit} me bikta hai — roll sirf sqft, sq meter, sq gaz ya running ft / meter wale product ka banta hai`);
+      throw new BadRequestException(apiMessage('{{productName}} {{unit}} me bikta hai — roll sirf sqft, sq meter, sq gaz ya running ft / meter wale product ka banta hai', { productName: product.name, unit: product.unit }));
     }
     if (dto.variantId) {
       const variant = await this.prisma.productVariant.findFirst({ where: { id: dto.variantId, productId: dto.productId } });
@@ -61,7 +62,7 @@ export class CarpetRollsService {
     let rollNumber = dto.rollNumber?.trim();
     if (rollNumber) {
       const exists = await this.prisma.carpetRoll.findFirst({ where: { tenantId: user.tenantId, rollNumber } });
-      if (exists) throw new ConflictException(`Roll number "${rollNumber}" pehle se hai`);
+      if (exists) throw new ConflictException(apiMessage('Roll number "{{rollNumber}}" pehle se hai', { rollNumber }));
     } else {
       rollNumber = await this.generateRollNumber(user.tenantId);
     }
@@ -430,7 +431,7 @@ export class CarpetRollsService {
   async markFinished(user: AuthenticatedUser, id: string, reason?: string) {
     const roll = await this.findOne(user, id);
     if (roll.status === CarpetRollStatus.FINISHED || roll.status === CarpetRollStatus.TRANSFERRED) {
-      throw new BadRequestException(`Roll pehle se ${roll.status === 'FINISHED' ? 'khatam' : 'transfer'} hai`);
+      throw new BadRequestException(roll.status === 'FINISHED' ? 'Roll pehle se khatam hai' : 'Roll pehle se transfer hai');
     }
     return this.prisma.$transaction(async (tx) => {
       const left = realFt(roll.remainingLengthFt, roll.remainingLengthInch);
@@ -482,7 +483,7 @@ export class CarpetRollsService {
 
   /** Checks import rows against products, variants and existing roll numbers. */
   async bulkImportPreview(user: AuthenticatedUser, rows: BulkImportRollRow[], shopId?: string) {
-    if (rows.length > MAX_IMPORT_ROWS) throw new BadRequestException(`Ek dafa me ${MAX_IMPORT_ROWS} rolls tak`);
+    if (rows.length > MAX_IMPORT_ROWS) throw new BadRequestException(apiMessage('Ek dafa me {{mAXIMPORTROWS}} rolls tak', { mAXIMPORTROWS: MAX_IMPORT_ROWS }));
     const products = await this.prisma.product.findMany({
       where: { tenantId: user.tenantId, isActive: true, unit: { in: ROLL_UNITS } },
       include: { variants: { where: { isActive: true } } },
@@ -554,7 +555,7 @@ export class CarpetRollsService {
 
   /** Creates opening rolls for checked rows; each row succeeds or fails on its own. */
   async bulkImportApply(user: AuthenticatedUser, rows: BulkImportApplyRow[], shopId?: string) {
-    if (rows.length > MAX_IMPORT_ROWS) throw new BadRequestException(`Ek dafa me ${MAX_IMPORT_ROWS} rolls tak`);
+    if (rows.length > MAX_IMPORT_ROWS) throw new BadRequestException(apiMessage('Ek dafa me {{mAXIMPORTROWS}} rolls tak', { mAXIMPORTROWS: MAX_IMPORT_ROWS }));
     const results: Array<{ index: number; success: boolean; rollNumber?: string; error?: string }> = [];
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];

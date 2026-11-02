@@ -6,6 +6,7 @@ import { IndustryRegistry } from './IndustryRegistry';
 import { useCurrentIndustry } from './useCurrentIndustry';
 import type { IndustryRoute } from '../types/industry-pack';
 import type { ReactElement } from 'react';
+import { t } from '@core/i18n';
 
 /**
  * Emits <Route> elements for every route contributed by every registered
@@ -45,7 +46,7 @@ export function industryRoutes(): ReactElement[] {
 
       let node: ReactElement = <Component />;
       if (needsOneShop) {
-        node = <RequireShop action="POS use karne">{node}</RequireShop>;
+        node = <RequireShop action={t('POS use karne')}>{node}</RequireShop>;
       }
       if (permission) {
         node = <PermissionRoute permission={permission}>{node}</PermissionRoute>;

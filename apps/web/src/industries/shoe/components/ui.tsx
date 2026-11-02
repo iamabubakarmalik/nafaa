@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, EmptyState } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { t as tr } from '@core/i18n';
 
 export function StatusPill({ tone, children }: { tone: string; children: ReactNode }) {
   return <span className={cn('inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold', tone)}>{children}</span>;
@@ -18,8 +19,8 @@ export function Pager({ page, limit, total, onPage }: { page: number; limit: num
     <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
       <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} / {total}</span>
       <div className="flex gap-2">
-        <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} leftIcon={<ChevronLeft className="h-4 w-4" />}>Pichla</Button>
-        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)} rightIcon={<ChevronRight className="h-4 w-4" />}>Agla</Button>
+        <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} leftIcon={<ChevronLeft className="h-4 w-4 rtl-flip" />}>{tr('Pichla')}</Button>
+        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)} rightIcon={<ChevronRight className="h-4 w-4 rtl-flip" />}>{tr('Agla')}</Button>
       </div>
     </footer>
   );

@@ -17,6 +17,7 @@ import { safeDayStart, tzParts, zonedToUtc } from '../../../common/helpers/busin
 import { PERMISSIONS, hasPermission, type PermissionKey } from '../../../common/constants/permissions.constants';
 import { EXPORT_ACTION } from '../../backup/backup.service';
 import { ExportQueryDto } from './dto/export-query.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export const EXPORT_KINDS = ['sales', 'products', 'customers', 'suppliers', 'expenses', 'purchases', 'ledger', 'stock-movements'] as const;
 export type ExportKind = (typeof EXPORT_KINDS)[number];
@@ -444,7 +445,7 @@ export class ExportsService {
 
   private assertCanExport(user: AuthenticatedUser, kind: ExportKind) {
     if (!hasPermission(user.role, user.permissions, KIND_PERMISSION[kind])) {
-      throw new ForbiddenException(`${KIND_LABEL[kind]} dekhne ki permission nahi — is ki file bhi nahi ban sakti`);
+      throw new ForbiddenException(apiMessage('{{kINDLABEL}} dekhne ki permission nahi — is ki file bhi nahi ban sakti', { kINDLABEL: KIND_LABEL[kind] }));
     }
   }
 

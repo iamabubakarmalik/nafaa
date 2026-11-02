@@ -10,6 +10,7 @@ import { Button, Input, Modal, confirmDialog } from '@/design-system/components'
 import { formatPKR } from '@core/lib/format';
 import type { CommissionRow } from '../api/commission.api';
 import { periodLabel, signed } from './meta';
+import { t } from '@core/i18n';
 
 export function PayModal({ row, period, saving, onClose, onPay }: {
   row: CommissionRow;
@@ -23,34 +24,34 @@ export function PayModal({ row, period, saving, onClose, onPay }: {
   const [note, setNote] = useState('');
   const amount = Number(now || 0);
   const after = paid + amount;
-  const error = !(amount > 0) ? 'Kitne diye, likhein' : '';
+  const error = !(amount > 0) ? t('Kitne diye, likhein') : '';
   const [tried, setTried] = useState(false);
 
   const submit = async () => {
     setTried(true);
     if (error) return;
-    if (after > row.earned + 0.5 && !(await confirmDialog({ title: 'Banti se zyada amount?', text: `Banti ${formatPKR(row.earned)} hai, aap kul ${formatPKR(after)} likh rahe hain. Zyada amount advance ki tarah likhi jayegi.` }))) return;
+    if (after > row.earned + 0.5 && !(await confirmDialog({ title: t('Banti se zyada amount?'), text: t('Banti {{earned}} hai, aap kul {{after}} likh rahe hain. Zyada amount advance ki tarah likhi jayegi.', { earned: formatPKR(row.earned), after: formatPKR(after) }) }))) return;
     onPay({ amount: Math.round(after * 100) / 100, expectedPaid: paid, note: note.trim() || undefined });
   };
 
   return (
-    <Modal open onClose={onClose} size="sm" title={`${row.name} ko commission`} description={periodLabel(period)}
+    <Modal open onClose={onClose} size="sm" title={t('{{name}} ko commission', { name: row.name })} description={periodLabel(period)}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={submit} loading={saving} leftIcon={<HandCoins className="h-4 w-4" />}>Ada likhein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={submit} loading={saving} leftIcon={<HandCoins className="h-4 w-4" />}>{t('Ada likhein')}</Button>
       </>}>
       <div className="space-y-4">
         <dl className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
-          <div><dt className="text-[0.6875rem] text-slate-500">Banti hai</dt><dd className="font-bold tabular-nums text-slate-900">{signed(row.earned)}</dd></div>
-          <div><dt className="text-[0.6875rem] text-slate-500">Pehle diye</dt><dd className="font-bold tabular-nums text-slate-900">{formatPKR(paid)}</dd></div>
-          <div><dt className="text-[0.6875rem] text-slate-500">Baqi</dt><dd className="font-bold tabular-nums text-amber-700">{formatPKR(row.due)}</dd></div>
+          <div><dt className="text-[0.6875rem] text-slate-500">{t('Banti hai')}</dt><dd className="font-bold tabular-nums text-slate-900">{signed(row.earned)}</dd></div>
+          <div><dt className="text-[0.6875rem] text-slate-500">{t('Pehle diye')}</dt><dd className="font-bold tabular-nums text-slate-900">{formatPKR(paid)}</dd></div>
+          <div><dt className="text-[0.6875rem] text-slate-500">{t('Baqi')}</dt><dd className="font-bold tabular-nums text-amber-700">{formatPKR(row.due)}</dd></div>
         </dl>
-        <Input label="Abhi kitne diye (Rs)" type="number" inputMode="decimal" min={0} value={now} onChange={(e) => setNow(e.target.value)} autoFocus
-          error={tried ? error : undefined} hint={amount > 0 ? `Is mahine ki kul payment ${formatPKR(after)} ho jayegi` : 'Poori ya kuch amount — baqi baad me de sakte hain'} />
-        <Input label="Note (marzi se)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} hint='Maslan "cash diya" ya "JazzCash se bheja"' />
+        <Input label={t('Abhi kitne diye (Rs)')} type="number" inputMode="decimal" min={0} value={now} onChange={(e) => setNow(e.target.value)} autoFocus
+          error={tried ? error : undefined} hint={amount > 0 ? t('Is mahine ki kul payment {{after}} ho jayegi', { after: formatPKR(after) }) : t('Poori ya kuch amount — baqi baad me de sakte hain')} />
+        <Input label={t('Note (marzi se)')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} hint={t('Maslan "cash diya" ya "JazzCash se bheja"')} />
         <p className="flex items-start gap-2 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-900 ring-1 ring-sky-200">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Ye sirf payment ka record hai — galle ka cash nahi ghatta. Jis mahine ki commission yahan ada likhi ho, Payroll use tankhwah me dobara nahi jorta.
+          {t('Ye sirf payment ka record hai — galle ka cash nahi ghatta. Jis mahine ki commission yahan ada likhi ho, Payroll use tankhwah me dobara nahi jorta.')}
         </p>
       </div>
     </Modal>

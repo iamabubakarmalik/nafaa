@@ -9,6 +9,7 @@ import { dayKey, parseDay } from '../meat-common';
 import {
   checkRefundPin, mustChange, payMethod, r2, recordMoney, refundAdvance, str, takeAdvance, withNextNumber,
 } from '../meat-money';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies here are untyped
 type Body = any;
@@ -103,7 +104,7 @@ export class QurbaniService implements OnModuleInit {
     if (dto?.customerPhone !== undefined) data.customerPhone = str(dto.customerPhone, 30) ?? b.customerPhone;
     if (dto?.finalPrice !== undefined) {
       const price = Number(dto.finalPrice) > 0 ? r2(Number(dto.finalPrice)) : null;
-      if (price !== null && price + 0.005 < b.paidAmount) throw new BadRequestException(`${b.paidAmount} mil chuka hai — qeemat is se kam nahi ho sakti`);
+      if (price !== null && price + 0.005 < b.paidAmount) throw new BadRequestException(apiMessage('{{paidAmount}} mil chuka hai — qeemat is se kam nahi ho sakti', { paidAmount: b.paidAmount }));
       data.finalPrice = price;
       data.paymentStatus = this.payStatus(b.paidAmount, price);
     }
@@ -119,7 +120,7 @@ export class QurbaniService implements OnModuleInit {
     const b = await this.mustFind(user, id);
     if (b.status === 'COMPLETED' || b.status === 'CANCELLED') throw new BadRequestException(b.status === 'COMPLETED' ? 'Booking mukammal — baqi paisa khate se lein' : 'Cancel booking par paisa nahi liya ja sakta');
     const paid = r2(b.paidAmount + amount);
-    if (b.finalPrice && paid > b.finalPrice + 0.005) throw new BadRequestException(`Baqi sirf ${r2(b.finalPrice - b.paidAmount)} hai`);
+    if (b.finalPrice && paid > b.finalPrice + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{finalPrice}} hai', { finalPrice: r2(b.finalPrice - b.paidAmount) }));
     const method = payMethod(body?.paymentMethod);
     await this.prisma.$transaction(async (tx) => {
       const done = await tx.meatQurbaniBooking.updateMany({ where: { id, tenantId: user.tenantId, paidAmount: b.paidAmount }, data: { paidAmount: paid, paymentStatus: this.payStatus(paid, b.finalPrice) } });
@@ -160,7 +161,7 @@ export class QurbaniService implements OnModuleInit {
     const method = paidNow > 0 ? payMethod(body?.paymentMethod) : 'CASH';
     const { khataPaid, legacyPaid } = await recordMoney(this.prisma, user.tenantId, b.bookingNumber, b.paidAmount);
     const due = r2(b.finalPrice - khataPaid - legacyPaid);
-    if (paidNow > due + 0.005) throw new BadRequestException(`Baqi sirf ${Math.max(due, 0)} hai`);
+    if (paidNow > due + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{due}} hai', { due: Math.max(due, 0) }));
     if (r2(due - paidNow) > 0.005 && !b.customerId) throw new BadRequestException('Baqi paisa udhaar ke liye customer ka khata chahiye — pehle advance lein ya poora paisa lein');
     const animal = b.liveAnimalId ? await this.prisma.meatLiveAnimal.findFirst({ where: { id: b.liveAnimalId, tenantId: user.tenantId }, select: { tagNumber: true, purchasePrice: true, animalType: true } }) : null;
     const cost = animal ? r2((animal.purchasePrice * b.shareCount) / (SHARED.includes(animal.animalType) ? 7 : 1)) : 0;

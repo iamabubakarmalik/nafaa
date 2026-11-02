@@ -10,10 +10,11 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { Table, TBody, THead, Td, Th, Tr } from '@/design-system/components';
 import type { AiChart } from '../api';
+import { t } from '@core/i18n';
 
 /** Compact table styling for the narrow chat column. */
 export const COMPACT_HEAD = 'border-slate-200 bg-transparent text-[0.75rem] font-medium normal-case tracking-normal';
-export const COMPACT_CELL = 'px-0 py-1 pr-2 text-[0.75rem] last:pr-0';
+export const COMPACT_CELL = 'px-0 py-1 pe-2 text-[0.75rem] last:pe-0';
 
 const EXTRA = ['#2563eb', '#ea580c', '#7c3aed', '#0891b2', '#e11d48'];
 
@@ -36,7 +37,7 @@ export function AiChartView({ chart }: { chart: AiChart }) {
     <figure className="rounded-xl border border-slate-200 bg-white p-3">
       <figcaption className="mb-2 text-[0.8125rem] font-semibold text-slate-800">{chart.title}</figcaption>
       {chart.data.length > 0 && (
-        <div className="h-44 w-full" role="img" aria-label={`${chart.title} chart`}>
+        <div className="h-44 w-full" role="img" aria-label={t('{{title}} chart', { title: chart.title })}>
           <ResponsiveContainer width="100%" height="100%">
             {chart.type === 'line' ? (
               <LineChart data={chart.data} margin={{ top: 4, right: 6, left: -14, bottom: 0 }}>

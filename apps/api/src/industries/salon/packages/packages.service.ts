@@ -13,6 +13,7 @@ import { postIndustrySale } from '../../_shared/industry-sale.helper';
 import { DAY_MS, r2, withNextNumber } from '../common/salon-common';
 import { SalonBillsService, packageServiceIds } from '../bills/salon-bills.service';
 import { CreatePackageDto, PurchaseDto, UpdatePackageDto } from './dto/package.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class PackagesService {
@@ -26,7 +27,7 @@ export class PackagesService {
       const dup = await this.prisma.salonPackage.findFirst({
         where: { tenantId, name: { equals: dto.name.trim(), mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) }, select: { id: true },
       });
-      if (dup) throw new BadRequestException(`"${dto.name.trim()}" naam ka package pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('"{{dtoName}}" naam ka package pehle se hai', { dtoName: dto.name.trim() }));
     }
     if (dto.services?.length) {
       const ids = [...new Set(dto.services)];
@@ -74,7 +75,7 @@ export class PackagesService {
     const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
     if (!customer) throw new NotFoundException('Customer nahi mila');
     const amountPaid = r2(dto.amountPaid);
-    if (amountPaid > pkg.price + 0.01) throw new BadRequestException(`Package ki qeemat sirf Rs ${pkg.price} hai`);
+    if (amountPaid > pkg.price + 0.01) throw new BadRequestException(apiMessage('Package ki qeemat sirf Rs {{price}} hai', { price: pkg.price }));
 
     const expiryDate = new Date(Date.now() + pkg.validityDays * DAY_MS);
     return withNextNumber(

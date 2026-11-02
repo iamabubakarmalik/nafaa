@@ -12,6 +12,7 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { PRICE_CALC_KEY, priceCalcApi } from '../api/growth.api';
 import { CalcInputs, ResultCards, useQuote } from './PriceCalculator';
 import { initialState, num, type CalcState } from './meta';
+import { t } from '@core/i18n';
 
 export function PriceCalculatorModal({ productId, name, cost, onUse, onClose }: {
   productId?: string; name?: string; cost: number; onUse: (price: number) => void; onClose: () => void;
@@ -27,10 +28,10 @@ export function PriceCalculatorModal({ productId, name, cost, onUse, onClose }: 
 
   return (
     <Modal open onClose={onClose} size="full"
-      title={<span className="inline-flex items-center gap-2"><Calculator className="h-5 w-5 text-brand-600" /> Price nikalein{name ? ` · ${name}` : ''}</span>}
-      description="Cost, courier, COD, channel fees, ads aur RTO ke baad har channel par kitne me bechein">
+      title={<span className="inline-flex items-center gap-2"><Calculator className="h-5 w-5 text-brand-600" /> {' '}{t('Price nikalein{{value}}', { value: name ? ` · ${name}` : '' })}</span>}
+      description={t('Cost, courier, COD, channel fees, ads aur RTO ke baad har channel par kitne me bechein')}>
       {costHidden ? (
-        <Alert tone="warning">Cost aur Profit abhi chhupe hain (privacy lock). Unlock karke calculator chalayein.</Alert>
+        <Alert tone="warning">{t('Cost aur Profit abhi chhupe hain (privacy lock). Unlock karke calculator chalayein.')}</Alert>
       ) : !ctx || !state ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,24rem)_1fr]"><Skeleton className="h-[30rem] rounded-2xl" /><Skeleton className="h-72 rounded-2xl" /></div>
       ) : (

@@ -13,6 +13,7 @@ import { CATALOG_KEY } from '../list/useCatalog';
 import { freshDraft, loadCore } from './draft';
 import { saveProduct } from './save';
 import type { CoreDraft, EditorConfig, EditorDraft, Errors } from './types';
+import { t as tr } from '@core/i18n';
 
 const readStored = <X,>(key: string): EditorDraft<X> | null => {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; }
@@ -95,8 +96,8 @@ export function useProductEditor<X>(config: EditorConfig<X>) {
   const [saving, setSaving] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
   const save = async () => {
-    if (!valid) { setStepIndex(firstInvalid); setShowAll(true); throw new Error('Kuch khane adhoore hain'); }
-    setSaving('Shuru');
+    if (!valid) { setStepIndex(firstInvalid); setShowAll(true); throw new Error(tr('Kuch khane adhoore hain')); }
+    setSaving(tr('Shuru'));
     try {
       const pid = await saveProduct(config, draft, { existingId: id, original: original.current, shopId, onStep: setSaving });
       ['products', 'product', 'products-for-pos', CATALOG_KEY, 'product-units', 'product-variants', 'product-batches', 'product-images', 'product-insights', ...(config.refresh ?? [])]

@@ -12,32 +12,33 @@ import { cn } from '@core/lib/cn';
 import type { OrderMode, OrderStatus } from '../api/orders.api';
 import type { TableStatus } from '../api/tables.api';
 import { useRestaurantOps } from './useRestaurantOps';
+import { t as tr } from '@core/i18n';
 
 const MODES: Record<OrderMode, { label: string; icon: LucideIcon }> = {
-  DINE_IN: { label: 'Dine-in', icon: Utensils },
-  TAKEAWAY: { label: 'Takeaway', icon: ShoppingBag },
-  DELIVERY: { label: 'Delivery', icon: Bike },
-  DRIVE_THRU: { label: 'Drive-thru', icon: Car },
-  ROOM_SERVICE: { label: 'Room service', icon: Home },
-  PICKUP: { label: 'Pickup', icon: Package },
+  DINE_IN: { label: tr('Dine-in'), icon: Utensils },
+  TAKEAWAY: { label: tr('Takeaway'), icon: ShoppingBag },
+  DELIVERY: { label: tr('Delivery'), icon: Bike },
+  DRIVE_THRU: { label: tr('Drive-thru'), icon: Car },
+  ROOM_SERVICE: { label: tr('Room service'), icon: Home },
+  PICKUP: { label: tr('Pickup'), icon: Package },
 };
 
 const STATUS: Partial<Record<OrderStatus, { label: string; variant: 'default' | 'info' | 'warning' | 'success' | 'brand' }>> = {
-  PLACED: { label: 'Naya', variant: 'info' },
-  CONFIRMED: { label: 'Confirm', variant: 'info' },
-  COOKING: { label: 'Ban raha', variant: 'warning' },
-  READY: { label: 'Tayyar', variant: 'success' },
-  SERVED: { label: 'Serve ho gaya', variant: 'default' },
-  OUT_FOR_DELIVERY: { label: 'Raste me', variant: 'brand' },
-  ON_HOLD: { label: 'Ruka hua', variant: 'default' },
+  PLACED: { label: tr('Naya'), variant: 'info' },
+  CONFIRMED: { label: tr('Confirm'), variant: 'info' },
+  COOKING: { label: tr('Ban raha'), variant: 'warning' },
+  READY: { label: tr('Tayyar'), variant: 'success' },
+  SERVED: { label: tr('Serve ho gaya'), variant: 'default' },
+  OUT_FOR_DELIVERY: { label: tr('Raste me'), variant: 'brand' },
+  ON_HOLD: { label: tr('Ruka hua'), variant: 'default' },
 };
 
 const TABLE: Record<TableStatus, { label: string; dot: string; tile: string }> = {
-  AVAILABLE: { label: 'Khaali', dot: 'bg-success-500', tile: 'border-success-200 bg-success-50/50' },
-  OCCUPIED: { label: 'Bhari', dot: 'bg-rose-500', tile: 'border-rose-200 bg-rose-50/60' },
-  RESERVED: { label: 'Reserved', dot: 'bg-amber-500', tile: 'border-amber-200 bg-amber-50/60' },
-  CLEANING: { label: 'Safai', dot: 'bg-sky-500', tile: 'border-sky-200 bg-sky-50/60' },
-  OUT_OF_SERVICE: { label: 'Band', dot: 'bg-slate-400', tile: 'border-slate-200 bg-slate-50' },
+  AVAILABLE: { label: tr('Khaali'), dot: 'bg-success-500', tile: 'border-success-200 bg-success-50/50' },
+  OCCUPIED: { label: tr('Bhari'), dot: 'bg-rose-500', tile: 'border-rose-200 bg-rose-50/60' },
+  RESERVED: { label: tr('Reserved'), dot: 'bg-amber-500', tile: 'border-amber-200 bg-amber-50/60' },
+  CLEANING: { label: tr('Safai'), dot: 'bg-sky-500', tile: 'border-sky-200 bg-sky-50/60' },
+  OUT_OF_SERVICE: { label: tr('Band'), dot: 'bg-slate-400', tile: 'border-slate-200 bg-slate-50' },
 };
 
 const mins = (m: number) => (m < 60 ? `${Math.round(m)} min` : `${Math.floor(m / 60)}h ${Math.round(m % 60)}m`);
@@ -45,49 +46,49 @@ const mins = (m: number) => (m < 60 ? `${Math.round(m)} min` : `${Math.floor(m /
 /** Restaurant headline numbers, offered next to the common ones. */
 export const restaurantKpis: KpiDef[] = [
   {
-    id: 'restaurant-live', label: 'Chaalu orders', icon: ChefHat, tone: 'warning',
+    id: 'restaurant-live', label: tr('Chaalu orders'), icon: ChefHat, tone: 'warning',
     useValue: () => {
       const { orders, loading } = useRestaurantOps();
       return {
         loading, to: '/restaurant/orders', value: orders.open.length, alert: orders.late.length > 0,
-        hint: orders.late.length ? `${orders.late.length} late!` : `${orders.cooking} ban rahe · ${orders.ready.length} tayyar`,
+        hint: orders.late.length ? tr('{{count}} late!', { count: orders.late.length }) : tr('{{cooking}} ban rahe · {{count}} tayyar', { cooking: orders.cooking, count: orders.ready.length }),
       };
     },
   },
   {
-    id: 'restaurant-tables', label: 'Tables bhari', icon: Utensils, tone: 'neutral',
+    id: 'restaurant-tables', label: tr('Tables bhari'), icon: Utensils, tone: 'neutral',
     useValue: () => {
       const { tables, loading } = useRestaurantOps();
       return {
         loading, to: '/restaurant/tables',
         value: tables.total ? `${tables.occupied}/${tables.total}` : '—',
-        hint: tables.total ? `${tables.available} khaali · ${tables.reserved} reserved` : 'Tables nahi banaye',
+        hint: tables.total ? tr('{{available}} khaali · {{reserved}} reserved', { available: tables.available, reserved: tables.reserved }) : tr('Tables nahi banaye'),
       };
     },
   },
   {
-    id: 'restaurant-kitchen', label: 'Kitchen queue', icon: Timer, tone: 'warning',
+    id: 'restaurant-kitchen', label: tr('Kitchen queue'), icon: Timer, tone: 'warning',
     useValue: () => {
       const { kitchen, loading } = useRestaurantOps();
       return {
         loading, to: '/restaurant/kot', value: kitchen.active,
-        hint: kitchen.avgPrep > 0 ? `Ausat ${kitchen.avgPrep.toFixed(0)} min` : `${kitchen.cooking} ban rahe`,
+        hint: kitchen.avgPrep > 0 ? tr('Ausat {{value}} min', { value: kitchen.avgPrep.toFixed(0) }) : tr('{{cooking}} ban rahe', { cooking: kitchen.cooking }),
       };
     },
   },
   {
-    id: 'restaurant-tips', label: 'Aaj ki tips', icon: Sparkles, tone: 'success',
+    id: 'restaurant-tips', label: tr('Aaj ki tips'), icon: Sparkles, tone: 'success',
     useValue: () => {
       const { tips, loading } = useRestaurantOps();
       const { sales } = useMasked();
-      return { loading, value: sales(tips), hint: 'Staff ke liye' };
+      return { loading, value: sales(tips), hint: tr('Staff ke liye') };
     },
   },
   {
-    id: 'restaurant-deliveries', label: 'Delivery raste me', icon: Bike, tone: 'info',
+    id: 'restaurant-deliveries', label: tr('Delivery raste me'), icon: Bike, tone: 'info',
     useValue: () => {
       const { deliveries, loading } = useRestaurantOps();
-      return { loading, to: '/restaurant/delivery', value: deliveries, hint: 'Riders ke paas' };
+      return { loading, to: '/restaurant/delivery', value: deliveries, hint: tr('Riders ke paas') };
     },
   },
 ];
@@ -96,12 +97,12 @@ export function useRestaurantAttention(): AttentionItem[] {
   const { orders, tables, kitchen } = useRestaurantOps();
   const items: AttentionItem[] = [];
 
-  if (orders.late.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${orders.late.length} order ka waqt guzar gaya — kitchen se poochein`, to: '/restaurant/kot', cta: 'Kitchen dekhein' });
-  if (orders.ready.length) items.push({ icon: BellRing, level: 'warning', text: `${orders.ready.length} order tayyar pada hai — thanda hone se pehle serve karein`, to: '/restaurant/orders', cta: 'Orders dekhein' });
-  if (tables.reservedSoon.length) items.push({ icon: CalendarClock, level: 'info', text: `${tables.reservedSoon.length} reservation agle ghante me — table tayyar rakhein`, to: '/restaurant/tables', cta: 'Tables dekhein' });
-  if (tables.cleaning) items.push({ icon: Sparkles, level: 'info', text: `${tables.cleaning} table safai ke intezar me — saaf ho to naye customer baith sakte hain`, to: '/restaurant/tables', cta: 'Tables dekhein' });
-  if (kitchen.active >= 10) items.push({ icon: ChefHat, level: 'warning', text: `Kitchen me ${kitchen.active} KOT chal rahe hain — rush hai`, to: '/restaurant/kot', cta: 'KOT dekhein' });
-  if (tables.total > 0 && tables.available === 0) items.push({ icon: Users, level: 'neutral', text: 'Sab tables bhari hain — aane walon ko intezar ka waqt batayein', to: '/restaurant/tables', cta: 'Tables' });
+  if (orders.late.length) items.push({ icon: AlertTriangle, level: 'danger', text: tr('{{count}} order ka waqt guzar gaya — kitchen se poochein', { count: orders.late.length }), to: '/restaurant/kot', cta: tr('Kitchen dekhein') });
+  if (orders.ready.length) items.push({ icon: BellRing, level: 'warning', text: tr('{{count}} order tayyar pada hai — thanda hone se pehle serve karein', { count: orders.ready.length }), to: '/restaurant/orders', cta: tr('Orders dekhein') });
+  if (tables.reservedSoon.length) items.push({ icon: CalendarClock, level: 'info', text: tr('{{count}} reservation agle ghante me — table tayyar rakhein', { count: tables.reservedSoon.length }), to: '/restaurant/tables', cta: tr('Tables dekhein') });
+  if (tables.cleaning) items.push({ icon: Sparkles, level: 'info', text: tr('{{cleaning}} table safai ke intezar me — saaf ho to naye customer baith sakte hain', { cleaning: tables.cleaning }), to: '/restaurant/tables', cta: tr('Tables dekhein') });
+  if (kitchen.active >= 10) items.push({ icon: ChefHat, level: 'warning', text: tr('Kitchen me {{active}} KOT chal rahe hain — rush hai', { active: kitchen.active }), to: '/restaurant/kot', cta: tr('KOT dekhein') });
+  if (tables.total > 0 && tables.available === 0) items.push({ icon: Users, level: 'neutral', text: tr('Sab tables bhari hain — aane walon ko intezar ka waqt batayein'), to: '/restaurant/tables', cta: tr('Tables') });
   return items;
 }
 
@@ -109,14 +110,14 @@ export function RestaurantFloor() {
   const { tables } = useRestaurantOps();
   return (
     <WidgetCard
-      title="Table floor"
+      title={tr('Table floor')}
       icon={Utensils}
-      description={tables.total ? `${tables.occupied} bhari · ${tables.available} khaali · ${tables.seats} log baithe` : 'Abhi koi table nahi'}
+      description={tables.total ? tr('{{occupied}} bhari · {{available}} khaali · {{seats}} log baithe', { occupied: tables.occupied, available: tables.available, seats: tables.seats }) : tr('Abhi koi table nahi')}
       to="/restaurant/tables"
-      linkLabel="Tables"
+      linkLabel={tr('Tables')}
     >
       {tables.total === 0 ? (
-        <EmptyHint icon={Utensils} text="Tables bana lein — kaunsi bhari hai, kaunsi khaali, sab yahan nazar aayega." />
+        <EmptyHint icon={Utensils} text={tr('Tables bana lein — kaunsi bhari hai, kaunsi khaali, sab yahan nazar aayega.')} />
       ) : (
         <>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-2">
@@ -129,7 +130,7 @@ export function RestaurantFloor() {
                   title={`${t.tableName || t.tableNumber} · ${s.label}`}
                   className={cn('relative rounded-lg border px-1 py-2 text-center transition hover:border-slate-400', s.tile)}
                 >
-                  <span className={cn('absolute right-1 top-1 h-1.5 w-1.5 rounded-full', s.dot)} />
+                  <span className={cn('absolute end-1 top-1 h-1.5 w-1.5 rounded-full', s.dot)} />
                   <span className="block text-[0.875rem] font-bold tabular-nums text-slate-900">{t.tableNumber}</span>
                   <span className="mt-0.5 inline-flex items-center gap-0.5 text-[0.6875rem] text-slate-500"><Users className="h-2.5 w-2.5" />{t.capacity}</span>
                 </Link>
@@ -154,13 +155,13 @@ export function RestaurantLiveOrders() {
   const { sales, salesHidden } = useMasked();
   return (
     <WidgetCard
-      title="Chaalu orders"
+      title={tr('Chaalu orders')}
       icon={ChefHat}
-      description={orders.open.length ? `${orders.open.length} khule${salesHidden ? '' : ` · ${sales(orders.value)}`}` : 'Koi order khula nahi'}
+      description={orders.open.length ? tr('{{count}} khule{{value}}', { count: orders.open.length, value: salesHidden ? '' : ` · ${sales(orders.value)}` }) : tr('Koi order khula nahi')}
       to="/restaurant/orders"
       flush
     >
-      <RowList empty="Koi order khula nahi — POS se naya order banayein" emptyIcon={ChefHat}>
+      <RowList empty={tr('Koi order khula nahi — POS se naya order banayein')} emptyIcon={ChefHat}>
         {orders.list.map((o) => {
           const mode = MODES[o.mode] ?? MODES.DINE_IN;
           const st = STATUS[o.status];
@@ -170,10 +171,10 @@ export function RestaurantLiveOrders() {
               key={o.id}
               to={`/restaurant/orders/${o.id}`}
               leading={<IconBubble icon={mode.icon} tone={o.late ? 'danger' : o.status === 'READY' ? 'success' : 'neutral'} />}
-              title={<>{o.customerName || (table ? `Table ${table}` : mode.label)} <span className="font-mono text-[0.75rem] font-normal text-slate-500">{o.orderNumber}</span></>}
-              meta={`${mode.label}${table ? ` · T-${table}` : ''} · ${o.items?.length ?? 0} items · ${mins(o.age)} pehle`}
+              title={<>{o.customerName || (table ? tr('Table {{table}}', { table }) : mode.label)} <span className="font-mono text-[0.75rem] font-normal text-slate-500">{o.orderNumber}</span></>}
+              meta={tr('{{label}}{{value}} · {{value2}} items · {{age}} pehle', { label: mode.label, value: table ? tr(' · T-{{table}}', { table }) : '', value2: o.items?.length ?? 0, age: mins(o.age) })}
               value={sales(o.total)}
-              valueHint={o.late ? <Badge variant="danger" size="xs">Late</Badge> : st && <Badge variant={st.variant} size="xs">{st.label}</Badge>}
+              valueHint={o.late ? <Badge variant="danger" size="xs">{tr('Late')}</Badge> : st && <Badge variant={st.variant} size="xs">{st.label}</Badge>}
             />
           );
         })}
@@ -185,9 +186,9 @@ export function RestaurantLiveOrders() {
 export function RestaurantKitchen() {
   const { kitchen, orders } = useRestaurantOps();
   return (
-    <WidgetCard title="Kitchen" icon={Timer} description="Aaj ki raftaar aur abhi ki queue" to="/restaurant/kot" linkLabel="KOT">
+    <WidgetCard title={tr('Kitchen')} icon={Timer} description={tr('Aaj ki raftaar aur abhi ki queue')} to="/restaurant/kot" linkLabel={tr('KOT')}>
       <dl className="grid grid-cols-3 gap-2 text-center">
-        {[['Queue me', kitchen.active, 'text-slate-900'], ['Ban rahe', kitchen.cooking, 'text-amber-700'], ['Tayyar', kitchen.ready, 'text-success-700']].map(([label, n, color]) => (
+        {[[tr('Queue me'), kitchen.active, 'text-slate-900'], [tr('Ban rahe'), kitchen.cooking, 'text-amber-700'], [tr('Tayyar'), kitchen.ready, 'text-success-700']].map(([label, n, color]) => (
           <div key={label as string} className="rounded-lg bg-slate-50 py-2.5">
             <dd className={cn('text-xl font-bold tabular-nums', color as string)}>{n}</dd>
             <dt className="text-[0.75rem] text-slate-500">{label}</dt>
@@ -195,12 +196,12 @@ export function RestaurantKitchen() {
         ))}
       </dl>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <MetricTile icon={ChefHat} tone="warning" label="Banane ka ausat" value={kitchen.avgPrep > 0 ? `${kitchen.avgPrep.toFixed(1)} min` : '—'} hint="Cooking se tayyar tak" />
-        <MetricTile icon={BellRing} tone="success" label="Serve ka ausat" value={kitchen.avgServe > 0 ? `${kitchen.avgServe.toFixed(1)} min` : '—'} hint={`Aaj ${kitchen.completed} mukammal`} />
+        <MetricTile icon={ChefHat} tone="warning" label={tr('Banane ka ausat')} value={kitchen.avgPrep > 0 ? `${kitchen.avgPrep.toFixed(1)} min` : '—'} hint={tr('Cooking se tayyar tak')} />
+        <MetricTile icon={BellRing} tone="success" label={tr('Serve ka ausat')} value={kitchen.avgServe > 0 ? `${kitchen.avgServe.toFixed(1)} min` : '—'} hint={tr('Aaj {{completed}} mukammal', { completed: kitchen.completed })} />
       </div>
       {orders.late.length > 0 && (
         <p className="mt-3 flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-700">
-          <AlertTriangle className="h-4 w-4 shrink-0" /> {orders.late.length} order apne waqt se late hain
+          <AlertTriangle className="h-4 w-4 shrink-0" /> {' '}{tr('{{count}} order apne waqt se late hain', { count: orders.late.length })}
         </p>
       )}
     </WidgetCard>
@@ -212,9 +213,9 @@ export function RestaurantModes() {
   const { sales } = useMasked();
   const max = Math.max(1, ...orders.modes.map((m) => m.count));
   return (
-    <WidgetCard title="Order type" icon={ShoppingBag} description="Khule orders — dine-in, takeaway, delivery">
+    <WidgetCard title={tr('Order type')} icon={ShoppingBag} description={tr('Khule orders — dine-in, takeaway, delivery')}>
       {orders.modes.length === 0 ? (
-        <EmptyHint icon={ShoppingBag} text="Abhi koi order khula nahi" />
+        <EmptyHint icon={ShoppingBag} text={tr('Abhi koi order khula nahi')} />
       ) : (
         <ul className="space-y-3">
           {orders.modes.map((m) => {

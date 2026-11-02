@@ -13,13 +13,14 @@ import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { floristProductsApi, type FloristProductProfile } from '../api/products.api';
 import { FLORIST_KEYS, categoryLabel, daysFromToday } from '../lib/meta';
+import { t } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/florist/freshness" className={heroButton}><Leaf className="h-4 w-4" /><span className="hidden sm:inline">Freshness</span></Link>
-      <Link to="/combos" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">Bouquet recipe</span></Link>
-      <Link to="/florist/orders" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">Orders</span></Link>
+      <Link to="/florist/freshness" className={heroButton}><Leaf className="h-4 w-4" /><span className="hidden sm:inline">{t('Freshness')}</span></Link>
+      <Link to="/combos" className={heroButton}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{t('Bouquet recipe')}</span></Link>
+      <Link to="/florist/orders" className={heroButton}><Truck className="h-4 w-4" /><span className="hidden sm:inline">{t('Orders')}</span></Link>
     </>
   );
 }
@@ -34,7 +35,7 @@ function useFloristProfiles() {
 export default function FloristProductsPage() {
   const profiles = useFloristProfiles();
   const config = useMemo<ProductsPageConfig>(() => ({
-    label: 'Florist',
+    label: t('Florist'),
     noun: 'cheez',
     paths: { detail: (id) => `/florist-products/${id}`, edit: (id) => `/florist-products/${id}/edit`, create: '/florist-products/new' },
     HeroExtra: HeroLinks,
@@ -45,24 +46,24 @@ export default function FloristProductsPage() {
       const left = daysFromToday(p?.freshUntil);
       return {
         line: line(p) || undefined,
-        ribbon: left === null ? undefined : left < 0 ? { text: 'Murjha gaya', tone: 'red' } : left <= 1 ? { text: left === 0 ? 'Aaj tak fresh' : 'Kal tak fresh', tone: 'amber' } : undefined,
-        badges: p?.isPreArranged ? <Badge size="xs" variant="brand" className="gap-1 shadow-sm"><Flower2 className="h-3 w-3" />Tayyar</Badge> : undefined,
+        ribbon: left === null ? undefined : left < 0 ? { text: t('Murjha gaya'), tone: 'red' } : left <= 1 ? { text: left === 0 ? t('Aaj tak fresh') : t('Kal tak fresh'), tone: 'amber' } : undefined,
+        badges: p?.isPreArranged ? <Badge size="xs" variant="brand" className="gap-1 shadow-sm"><Flower2 className="h-3 w-3" />{t('Tayyar')}</Badge> : undefined,
         chips: p?.categoryType ? <span className="rounded-md bg-pink-50 px-1.5 py-0.5 text-[0.6875rem] text-pink-700">{categoryLabel(p.categoryType)}</span> : undefined,
       };
     },
     columns: [
-      { id: 'flower', label: 'Phool', cell: (i) => line(profiles.get(i.id)) || <span className="text-slate-400">—</span> },
-      { id: 'fresh', label: 'Fresh tak', cell: (i) => {
+      { id: 'flower', label: t('Phool'), cell: (i) => line(profiles.get(i.id)) || <span className="text-slate-400">—</span> },
+      { id: 'fresh', label: t('Fresh tak'), cell: (i) => {
         const p = profiles.get(i.id);
         const left = daysFromToday(p?.freshUntil);
         if (left === null) return <span className="text-slate-400">—</span>;
-        return <span className={left < 0 ? 'font-semibold text-rose-700' : left <= 1 ? 'font-semibold text-amber-700' : 'text-slate-700'}>{left < 0 ? `${-left} din pehle` : left === 0 ? 'Aaj' : `${left} din`}</span>;
+        return <span className={left < 0 ? 'font-semibold text-rose-700' : left <= 1 ? 'font-semibold text-amber-700' : 'text-slate-700'}>{left < 0 ? t('{{value}} din pehle', { value: -left }) : left === 0 ? t('Aaj') : t('{{left}} din', { left })}</span>;
       } },
     ],
     guide: [
-      { icon: Leaf, color: '#16a34a', title: 'Taazgi', text: 'Phool ki "kitne din chalta hai" likhein; naya maal aaye to Freshness page par "Naya maal aaya" dabayein — murjhane wale khud upar aate hain.' },
-      { icon: Layers, color: '#db2777', title: 'Bouquet recipe', text: 'Bouquet ko Combo banayein (12 gulab + 1 wrapping). Counter par bouquet bikte hi har phool stock se nikal jata hai.' },
-      { icon: Truck, color: '#0891b2', title: 'Delivery', text: 'Counter par bill ke saath "Delivery / order" bharein — Orders page par tayyari se delivery tak chalta hai.' },
+      { icon: Leaf, color: '#16a34a', title: t('Taazgi'), text: t('Phool ki "kitne din chalta hai" likhein; naya maal aaye to Freshness page par "Naya maal aaya" dabayein — murjhane wale khud upar aate hain.') },
+      { icon: Layers, color: '#db2777', title: t('Bouquet recipe'), text: t('Bouquet ko Combo banayein (12 gulab + 1 wrapping). Counter par bouquet bikte hi har phool stock se nikal jata hai.') },
+      { icon: Truck, color: '#0891b2', title: t('Delivery'), text: t('Counter par bill ke saath "Delivery / order" bharein — Orders page par tayyari se delivery tak chalta hai.') },
     ],
   }), [profiles]);
   return <ProductsPage config={config} />;

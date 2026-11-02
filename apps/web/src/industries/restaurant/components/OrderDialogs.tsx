@@ -14,8 +14,9 @@ import { cn } from '@core/lib/cn';
 import { teamApi } from '@modules/organization/team/api/team.api';
 import { ordersApi, type OrderCharges, type OrderItem, type RestaurantOrder } from '../api/orders.api';
 import { itemName, lineExtras, orderTitle } from '../lib/orderMeta';
+import { t } from '@core/i18n';
 
-const VOID_REASONS = ['Customer ne mana kar diya', 'Ghalat order likha', 'Der ho gayi', 'Khana kharab tha', 'Item khatam'];
+const VOID_REASONS = [t('Customer ne mana kar diya'), t('Ghalat order likha'), t('Bohat der ho gayi'), t('Khana kharab tha'), t('Item khatam')];
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -28,8 +29,8 @@ function ReasonPicker({ value, onChange, reasons }: { value: string; onChange: (
             className={cn('rounded-full px-2.5 py-1 text-[0.75rem] font-medium', value === r ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{r}</button>
         ))}
       </div>
-      <Input data-autofocus value={value} onChange={(e) => onChange(e.target.value.slice(0, 200))} placeholder="Wajah likhein" aria-label="Wajah"
-        error={value.trim().length > 0 && value.trim().length < 3 ? 'Wajah thori aur wazeh likhein' : undefined} />
+      <Input data-autofocus value={value} onChange={(e) => onChange(e.target.value.slice(0, 200))} placeholder={t('Wajah likhein')} aria-label={t('Wajah')}
+        error={value.trim().length > 0 && value.trim().length < 3 ? t('Wajah thori aur wazeh likhein') : undefined} />
     </div>
   );
 }
@@ -40,27 +41,27 @@ export function VoidItemDialog({ item, saving, onConfirm, onClose }: {
   onConfirm: (d: { quantity: number; reason: string }) => void; onClose: () => void;
 }) {
   const [qty, setQty] = useState(item.quantity);
-  const [reason, setReason] = useState(item.sentToKitchenAt ? '' : 'Kitchen se pehle hataya');
+  const [reason, setReason] = useState(item.sentToKitchenAt ? '' : t('Kitchen se pehle hataya'));
   const sent = !!item.sentToKitchenAt;
   const unit = (item.basePrice ?? 0) + (item.modifierTotal ?? 0);
   const ok = reason.trim().length >= 3 && qty > 0;
   return (
-    <Modal open onClose={onClose} size="md" title={`${item.product?.name ?? 'Item'} hatayein`}
-      description={sent ? 'Ye dish kitchen ja chuki hai — void hogi, record me rahegi aur kitchen ko cancel ticket jayega.' : 'Abhi kitchen nahi gayi — seedha hat jayegi.'}
-      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={saving} disabled={!ok} onClick={() => onConfirm({ quantity: qty, reason: reason.trim() })}>{sent ? 'Void karein' : 'Hatayein'} · {formatPKR(unit * qty)}</Button></div>}>
+    <Modal open onClose={onClose} size="md" title={t('{{value}} hatayein', { value: item.product?.name ?? 'Item' })}
+      description={sent ? t('Ye dish kitchen ja chuki hai — void hogi, record me rahegi aur kitchen ko cancel ticket jayega.') : t('Abhi kitchen nahi gayi — seedha hat jayegi.')}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" loading={saving} disabled={!ok} onClick={() => onConfirm({ quantity: qty, reason: reason.trim() })}>{sent ? t('Void karein') : t('Hatayein')} · {formatPKR(unit * qty)}</Button></div>}>
       <div className="space-y-4">
         {item.quantity > 1 && (
           <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2">
-            <span className="text-[0.875rem] text-slate-700">Kitne hatane hain?</span>
+            <span className="text-[0.875rem] text-slate-700">{t('Kitne hatane hain?')}</span>
             <div className="inline-flex items-center rounded-xl bg-white p-1 ring-1 ring-slate-200">
-              <button type="button" aria-label="Kam" onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100"><Minus className="h-4 w-4" /></button>
+              <button type="button" aria-label={t('Kam')} onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100"><Minus className="h-4 w-4" /></button>
               <span className="w-12 text-center font-bold tabular-nums">{qty} / {item.quantity}</span>
-              <button type="button" aria-label="Zyada" onClick={() => setQty((q) => Math.min(item.quantity, q + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100"><Plus className="h-4 w-4" /></button>
+              <button type="button" aria-label={t('Zyada')} onClick={() => setQty((q) => Math.min(item.quantity, q + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100"><Plus className="h-4 w-4" /></button>
             </div>
           </div>
         )}
-        {sent && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Is ke liye "Bill void" ki ijazat ya malik/manager ka PIN chahiye.</p>}
+        {sent && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Is ke liye "Bill void" ki ijazat ya malik/manager ka PIN chahiye.')}</p>}
         <ReasonPicker value={reason} onChange={setReason} reasons={VOID_REASONS} />
       </div>
     </Modal>
@@ -74,14 +75,14 @@ export function CancelOrderDialog({ order, saving, onConfirm, onClose }: {
   const [reason, setReason] = useState('');
   const sent = order.items.some((it) => !it.isReturned && it.sentToKitchenAt);
   return (
-    <Modal open onClose={onClose} size="md" title={`${orderTitle(order)} ka order cancel`}
-      description={`${formatPKR(order.total)} ka bill nahi banega. Order record me "Cancel" dikhega.`}
-      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" loading={saving} disabled={reason.trim().length < 3} onClick={() => onConfirm(reason.trim())}>Order cancel karein</Button></div>}>
+    <Modal open onClose={onClose} size="md" title={t('{{order}} ka order cancel', { order: orderTitle(order) })}
+      description={t('{{total}} ka bill nahi banega. Order record me "Cancel" dikhega.', { total: formatPKR(order.total) })}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" loading={saving} disabled={reason.trim().length < 3} onClick={() => onConfirm(reason.trim())}>{t('Order cancel karein')}</Button></div>}>
       <div className="space-y-4">
-        {sent && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Kuch dishes kitchen ja chuki hain — "Bill void" ki ijazat ya PIN chahiye, aur kitchen ko cancel ticket jayega.</p>}
-        {order.paidAmount > 0 && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">Is order par {formatPKR(order.paidAmount)} pehle mil chuke hain — customer ko wapas karna hoga.</p>}
-        <ReasonPicker value={reason} onChange={setReason} reasons={['Customer chala gaya', 'Ghalat order', 'Duplicate order', 'Kitchen nahi bana saka']} />
+        {sent && <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Kuch dishes kitchen ja chuki hain — "Bill void" ki ijazat ya PIN chahiye, aur kitchen ko cancel ticket jayega.')}</p>}
+        {order.paidAmount > 0 && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800">{t('Is order par {{paidAmount}} pehle mil chuke hain — customer ko wapas karna hoga.', { paidAmount: formatPKR(order.paidAmount) })}</p>}
+        <ReasonPicker value={reason} onChange={setReason} reasons={[t('Customer chala gaya'), t('Ghalat order'), t('Duplicate order'), t('Kitchen nahi bana saka')]} />
       </div>
     </Modal>
   );
@@ -105,43 +106,43 @@ export function ChargesDialog({ order, saving, onSave, onClose }: {
   const tax = r2((order.subtotal + service) * n(f.taxPct) / 100);
   const delivery = order.mode === 'DELIVERY' ? n(f.deliveryFee) : 0;
   const total = r2(Math.max(order.subtotal + service + tax + delivery + n(f.packagingFee) + n(f.tip) - n(f.discount), 0));
-  const problem = n(f.serviceChargePct) > 100 || n(f.taxPct) > 100 ? 'Percent 100 se zyada nahi'
-    : n(f.discount) > order.subtotal + service + tax + delivery + n(f.packagingFee) ? 'Discount bill se zyada hai'
-      : total < order.paidAmount - 0.01 ? `${formatPKR(order.paidAmount)} pehle mil chuke — bill is se kam nahi ho sakta` : null;
+  const problem = n(f.serviceChargePct) > 100 || n(f.taxPct) > 100 ? t('Percent 100 se zyada nahi')
+    : n(f.discount) > order.subtotal + service + tax + delivery + n(f.packagingFee) ? t('Discount bill se zyada hai')
+      : total < order.paidAmount - 0.01 ? t('{{paidAmount}} pehle mil chuke — bill is se kam nahi ho sakta', { paidAmount: formatPKR(order.paidAmount) }) : null;
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
   const num = (k: keyof typeof f, label: string, hint?: string) => (
     <Input label={label} hint={hint} value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value.replace(/[^\d.]/g, '').slice(0, 9) }))} inputMode="decimal" placeholder="0"
       className="tabular-nums" />
   );
   return (
-    <Modal open onClose={onClose} size="lg" title="Bill ke charges" description="Service, tax aur discount badlein — naya total neeche dikhta hai"
+    <Modal open onClose={onClose} size="lg" title={t('Bill ke charges')} description={t('Service, tax aur discount badlein — naya total neeche dikhta hai')}
       footer={<div className="flex w-full items-center justify-between gap-3">
-        <span className="text-[0.875rem] text-slate-600">Naya total <b className="text-[1.125rem] tabular-nums text-slate-900">{formatPKR(total)}</b></span>
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <span className="text-[0.875rem] text-slate-600">{t('Naya total')}{' '} <b className="text-[1.125rem] tabular-nums text-slate-900">{formatPKR(total)}</b></span>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
           <Button loading={saving} disabled={!!problem} onClick={() => onSave({
             serviceChargePct: n(f.serviceChargePct), taxPct: n(f.taxPct), discount: n(f.discount), packagingFee: n(f.packagingFee), tip: n(f.tip),
             ...(order.mode === 'DELIVERY' && { deliveryFee: n(f.deliveryFee) }),
             ...(n(f.numberOfGuests) > 0 && { numberOfGuests: Math.round(n(f.numberOfGuests)) }),
             waiterId: f.waiterId, customerName: f.customerName, customerPhone: f.customerPhone, specialRequests: f.specialRequests,
-          })}>Save karein</Button></div></div>}>
+          })}>{t('Save karein')}</Button></div></div>}>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {num('serviceChargePct', 'Service charge %')}
-          {num('taxPct', 'Tax %')}
-          {num('discount', 'Discount (Rs)', 'Had se zyada ho to payment par PIN')}
-          {num('packagingFee', 'Packing (Rs)')}
-          {order.mode === 'DELIVERY' && num('deliveryFee', 'Delivery charge (Rs)')}
-          {num('tip', 'Tip (Rs)')}
-          {order.mode === 'DINE_IN' && num('numberOfGuests', 'Mehman')}
+          {num('serviceChargePct', t('Service charge %'))}
+          {num('taxPct', t('Tax %'))}
+          {num('discount', t('Discount (Rs)'), t('Had se zyada ho to payment par PIN'))}
+          {num('packagingFee', t('Packing (Rs)'))}
+          {order.mode === 'DELIVERY' && num('deliveryFee', t('Delivery charge (Rs)'))}
+          {num('tip', t('Tip (Rs)'))}
+          {order.mode === 'DINE_IN' && num('numberOfGuests', t('Mehman'))}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Select label="Waiter" value={f.waiterId} onChange={set('waiterId')}>
+          <Select label={t('Waiter')} value={f.waiterId} onChange={set('waiterId')}>
             <option value="">—</option>
             {team.filter((m) => m.isActive || m.id === f.waiterId).map((m) => <option key={m.id} value={m.id}>{m.fullName}</option>)}
           </Select>
-          <Input label="Customer ka naam" value={f.customerName} onChange={set('customerName')} maxLength={120} />
-          <Input label="Phone" value={f.customerPhone} onChange={(e) => setF((x) => ({ ...x, customerPhone: e.target.value.replace(/[^\d+\s-]/g, '').slice(0, 30) }))} inputMode="tel" />
-          <Input label="Order note" value={f.specialRequests} onChange={set('specialRequests')} maxLength={500} />
+          <Input label={t('Customer ka naam')} value={f.customerName} onChange={set('customerName')} maxLength={120} />
+          <Input label={t('Phone')} value={f.customerPhone} onChange={(e) => setF((x) => ({ ...x, customerPhone: e.target.value.replace(/[^\d+\s-]/g, '').slice(0, 30) }))} inputMode="tel" />
+          <Input label={t('Order note')} value={f.specialRequests} onChange={set('specialRequests')} maxLength={500} />
         </div>
         {problem && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{problem}</p>}
       </div>
@@ -158,20 +159,20 @@ export function MergeDialog({ order, saving, onConfirm, onClose }: {
   const [pick, setPick] = useState('');
   const chosen = others.find((o) => o.id === pick);
   return (
-    <Modal open onClose={onClose} size="md" title={`${orderTitle(order)} me doosra order milayein`}
-      description="Doosre order ki dishes, kitchen tickets aur payment is bill me aa jayengi; us ki table khaali ho jayegi."
-      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={saving} disabled={!chosen} onClick={() => chosen && onConfirm(chosen.id)}>{chosen ? `${orderTitle(chosen)} milayein` : 'Order chunein'}</Button></div>}>
-      {isLoading ? <p className="py-6 text-center text-[0.875rem] text-slate-500">Orders aa rahe hain…</p> : !others.length ? (
-        <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">Koi aur khula order nahi</p>
+    <Modal open onClose={onClose} size="md" title={t('{{order}} me doosra order milayein', { order: orderTitle(order) })}
+      description={t('Doosre order ki dishes, kitchen tickets aur payment is bill me aa jayengi; us ki table khaali ho jayegi.')}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={saving} disabled={!chosen} onClick={() => chosen && onConfirm(chosen.id)}>{chosen ? t('{{chosen}} milayein', { chosen: orderTitle(chosen) }) : t('Order chunein')}</Button></div>}>
+      {isLoading ? <p className="py-6 text-center text-[0.875rem] text-slate-500">{t('Orders aa rahe hain…')}</p> : !others.length ? (
+        <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-[0.875rem] text-slate-600">{t('Koi aur khula order nahi')}</p>
       ) : (
         <ul className="max-h-80 space-y-1.5 overflow-y-auto">
           {others.map((o) => (
             <li key={o.id}>
               <button type="button" onClick={() => setPick(o.id)}
-                className={cn('flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left ring-1', pick === o.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
+                className={cn('flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-start ring-1', pick === o.id ? 'bg-brand-50 ring-2 ring-brand-500' : 'ring-slate-200 hover:bg-slate-50')}>
                 <span className="min-w-0"><span className="block text-[0.875rem] font-semibold text-slate-900">{orderTitle(o)}</span>
-                  <span className="block truncate text-[0.75rem] text-slate-500">{o.orderNumber} · {o.items.length} item</span></span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{t('{{orderNumber}} · {{count}} item', { orderNumber: o.orderNumber, count: o.items.length })}</span></span>
                 <span className="text-[0.875rem] font-bold tabular-nums">{formatPKR(o.total)}</span>
               </button>
             </li>
@@ -192,12 +193,12 @@ export function SplitItemsDialog({ order, saving, onConfirm, onClose }: {
   const amount = useMemo(() => r2(picked.reduce((s, it) => s + ((it.total ?? 0) / it.quantity) * qty[it.id!], 0)), [picked, qty]);
   const all = live.every((it) => (qty[it.id!] ?? 0) >= it.quantity);
   return (
-    <Modal open onClose={onClose} size="lg" title="Bill alag karein (dishes se)" description="Jo dishes alag bill par jani hain un ki tadaad chunein. Service aur tax ka % saath jata hai."
+    <Modal open onClose={onClose} size="lg" title={t('Bill alag karein (dishes se)')} description={t('Jo dishes alag bill par jani hain un ki tadaad chunein. Service aur tax ka % saath jata hai.')}
       footer={<div className="flex w-full items-center justify-between gap-3">
-        <span className="text-[0.875rem] text-slate-600">Naya bill ~ <b className="tabular-nums text-slate-900">{formatPKR(amount)}</b></span>
-        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <span className="text-[0.875rem] text-slate-600">{t('Naya bill ~')}{' '} <b className="tabular-nums text-slate-900">{formatPKR(amount)}</b></span>
+        <div className="flex gap-2"><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
           <Button loading={saving} disabled={!picked.length || all} onClick={() => onConfirm(picked.map((it) => ({ itemId: it.id!, quantity: qty[it.id!] })))}>
-            {all ? 'Kuch dishes pehle bill par rehni chahiye' : 'Alag bill banayein'}</Button></div></div>}>
+            {all ? t('Kuch dishes pehle bill par rehni chahiye') : t('Alag bill banayein')}</Button></div></div>}>
       <ul className="divide-y divide-slate-100">
         {live.map((it) => {
           const q = qty[it.id!] ?? 0;
@@ -208,9 +209,9 @@ export function SplitItemsDialog({ order, saving, onConfirm, onClose }: {
                 {lineExtras(it) && <p className="truncate text-[0.75rem] text-slate-500">{lineExtras(it)}</p>}
               </div>
               <div className="inline-flex items-center rounded-xl bg-slate-100 p-0.5">
-                <button type="button" aria-label="Kam" onClick={() => setQty((x) => ({ ...x, [it.id!]: Math.max(0, q - 1) }))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white"><Minus className="h-4 w-4" /></button>
+                <button type="button" aria-label={t('Kam')} onClick={() => setQty((x) => ({ ...x, [it.id!]: Math.max(0, q - 1) }))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white"><Minus className="h-4 w-4" /></button>
                 <span className="w-8 text-center font-bold tabular-nums">{q}</span>
-                <button type="button" aria-label="Zyada" onClick={() => setQty((x) => ({ ...x, [it.id!]: Math.min(it.quantity, q + 1) }))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white"><Plus className="h-4 w-4" /></button>
+                <button type="button" aria-label={t('Zyada')} onClick={() => setQty((x) => ({ ...x, [it.id!]: Math.min(it.quantity, q + 1) }))} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white"><Plus className="h-4 w-4" /></button>
               </div>
             </li>
           );

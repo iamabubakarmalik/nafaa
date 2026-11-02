@@ -11,6 +11,7 @@ import { MFG_KEY, manufacturingApi } from '../api';
 import { useManufacturingSwitch } from '../hooks';
 import { MfgNav, MfgOff } from '../components/MfgNav';
 import { ProductRecipePanel } from '../components/ProductRecipePanel';
+import { t } from '@core/i18n';
 
 export default function RecipeEditPage() {
   const { productId = '' } = useParams<{ productId: string }>();
@@ -23,13 +24,13 @@ export default function RecipeEditPage() {
   if (!enabled) return <PageShell><MfgOff /></PageShell>;
   return (
     <PageShell>
-      <PageHero back="/manufacturing/recipes" backLabel="Recipes" loading={q.isLoading}
-        title={p ? `${p.name} — Recipe` : 'Recipe'}
-        subtitle={q.data?.recipe ? 'Raw maal ya quantity badlein — Cost foran nayi dikhti hai' : 'Is product me kya lagta hai aur 1 batch se kitna banta hai'}
-        actions={p ? <Link to={`/products/${p.id}`} className={heroButton}><Eye className="h-4 w-4" />Product</Link> : undefined} />
+      <PageHero back="/manufacturing/recipes" backLabel={t('Recipes')} loading={q.isLoading}
+        title={p ? t('{{name}} — Recipe', { name: p.name }) : t('Recipe')}
+        subtitle={q.data?.recipe ? t('Raw maal ya quantity badlein — Cost foran nayi dikhti hai') : t('Is product me kya lagta hai aur 1 batch se kitna banta hai')}
+        actions={p ? <Link to={`/products/${p.id}`} className={heroButton}><Eye className="h-4 w-4" />{t('Product')}</Link> : undefined} />
       <MfgNav />
       {q.isLoading ? <Skeleton className="h-96 rounded-2xl" />
-        : q.isError || !p ? <p className="rounded-2xl bg-white p-6 text-center text-slate-500 ring-1 ring-slate-200">Product nahi mila</p>
+        : q.isError || !p ? <p className="rounded-2xl bg-white p-6 text-center text-slate-500 ring-1 ring-slate-200">{t('Product nahi mila')}</p>
           : <ProductRecipePanel product={p} />}
     </PageShell>
   );

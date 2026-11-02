@@ -39,6 +39,7 @@ import { ShiftDetailModal } from '../components/ShiftDetailModal';
 import { ClosedTill, TillCard, type TillActions } from '../components/TillCard';
 import { CASH_KEY, DIFF, STATUS_FILTERS, diffKind, duration, signed, when } from '../components/meta';
 import { shiftsDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'today' | 'shifts' | 'analytics';
 
@@ -93,7 +94,7 @@ export default function CashRegisterPage() {
   const pt = periodQ.data?.totals;
 
   // A till slot for every branch on the owner's all-branches view, else for the branch in view.
-  const shopName = (tillShops.find((s) => s.id === shopId) ?? assigned)?.name ?? live[0]?.shop?.name ?? 'Branch';
+  const shopName = (tillShops.find((s) => s.id === shopId) ?? assigned)?.name ?? live[0]?.shop?.name ?? tr('Branch');
   const slotOf = (x: CashRegister) => ({ shop: { id: x.shopId ?? x.id, name: x.shop?.name ?? x.registerNumber }, r: x as CashRegister | undefined });
   const slots: Array<{ shop: { id: string; name: string }; r?: CashRegister }> = allShops
     ? [
@@ -118,7 +119,7 @@ export default function CashRegisterPage() {
   const branchLabel = tillShops.find((s) => s.id === branch)?.name;
   const staffLabel = staffOptions.find((s) => s.id === staff)?.fullName;
   const statusMeta = STATUS_FILTERS.find((s) => s.value === status);
-  const periodText = period ? `${period.from} — ${period.to}` : 'Sab tareekhen';
+  const periodText = period ? `${period.from} — ${period.to}` : tr('Sab tareekhen');
   const filterText = [branchLabel, staffLabel, statusMeta?.label, query && `"${query}"`].filter(Boolean).join(' · ');
   const printDoc = async () => shiftsDoc(await cashRegisterApi.shifts({ ...base, status: status || undefined, page: 1, limit: 200 }), periodText, filterText);
   const clear = () => { setBranch(''); setStaff(''); setStatus(''); setSearch(''); };
@@ -138,7 +139,7 @@ export default function CashRegisterPage() {
       e.preventDefault();
       setTab('today');
       if (k === 'o') { if (shut && mayOpen) setOpening(shut); return; }
-      if (!one) { toast.info('Pehle upar se ek branch chunein'); return; }
+      if (!one) { toast.info(tr('Pehle upar se ek branch chunein')); return; }
       if ((k === 'i' || k === 'u') && mayOpen) setMove({ r: one, kind: k === 'i' ? 'CASH_IN' : 'CASH_OUT' });
       if (k === 'c' && mayClose) setClosing(one);
     };
@@ -149,78 +150,78 @@ export default function CashRegisterPage() {
   return (
     <PageShell>
       <PageHero
-        title="Cash register"
-        chip={<><Wallet /> Galla</>}
-        meta="Shift kholein, cash in/out likhein, band karte waqt gin kar milayein"
+        title={tr('Cash register')}
+        chip={<><Wallet /> {' '}{tr('Galla')}</>}
+        meta={tr('Shift kholein, cash in/out likhein, band karte waqt gin kar milayein')}
         busy={liveQ.isFetching && !liveQ.isLoading}
         loading={liveQ.isLoading}
         actions={<>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!periodQ.data?.total} label="Shifts" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!periodQ.data?.total} label={tr('Shifts')} /></span>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {single && canClose
-            ? <button type="button" onClick={() => setClosing(single)} title="Shift band (C)" className={heroPrimaryButton}><StopCircle className="h-4 w-4" /> Shift band karein</button>
-            : closedSlot && canOpen && <button type="button" onClick={() => setOpening(closedSlot)} title="Shift kholein (O)" className={heroPrimaryButton}><PlayCircle className="h-4 w-4" /> Shift kholein</button>}
+            ? <button type="button" onClick={() => setClosing(single)} title={tr('Shift band (C)')} className={heroPrimaryButton}><StopCircle className="h-4 w-4" /> {' '}{tr('Shift band karein')}</button>
+            : closedSlot && canOpen && <button type="button" onClick={() => setOpening(closedSlot)} title={tr('Shift kholein (O)')} className={heroPrimaryButton}><PlayCircle className="h-4 w-4" /> {' '}{tr('Shift kholein')}</button>}
         </>}
         stats={[
-          { label: 'Galle me abhi hona chahiye', value: money(inDrawer), hint: live.length ? `${live.length} khuli shift` : 'Koi shift khuli nahi' },
-          { label: 'Khuli shift ki cash sale', value: money(liveSales) },
-          { label: 'Is period kam nikle', value: pt ? money(pt.shortAmount) : '—', hint: pt?.short ? `${pt.short} shift` : undefined },
-          { label: 'Zyada nikle', value: pt ? money(pt.overAmount) : '—', hint: pt?.over ? `${pt.over} shift` : undefined },
+          { label: tr('Galle me abhi hona chahiye'), value: money(inDrawer), hint: live.length ? tr('{{count}} khuli shift', { count: live.length }) : tr('Koi shift khuli nahi') },
+          { label: tr('Khuli shift ki cash sale'), value: money(liveSales) },
+          { label: tr('Is period kam nikle'), value: pt ? money(pt.shortAmount) : '—', hint: pt?.short ? tr('{{short}} shift', { short: pt.short }) : undefined },
+          { label: tr('Zyada nikle'), value: pt ? money(pt.overAmount) : '—', hint: pt?.over ? tr('{{over}} shift', { over: pt.over }) : undefined },
         ]}
       />
 
       <KpiRow cols={5}>
         {!pt || liveQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Wallet} color="#16a34a" label="Galle me abhi" value={money(inDrawer)}
-            hint={live.length ? `${live.length} khuli shift` : 'Shift kholein'} onClick={() => setTab('today')} active={tab === 'today'} />
-          <KpiCard icon={ArrowDownToLine} color="#0d9488" label="Cash sale (khuli shift)" value={money(liveSales)}
-            hint={`${live.reduce((s, r) => s + (r.live?.cashSalesCount ?? 0), 0)} bill`} onClick={() => setTab('today')} />
-          <KpiCard icon={AlertTriangle} color="#e11d48" label="Paise kam nikle" value={money(pt.shortAmount)} hint={`${pt.short} shift · is period`}
+          <KpiCard icon={Wallet} color="#16a34a" label={tr('Galle me abhi')} value={money(inDrawer)}
+            hint={live.length ? tr('{{count}} khuli shift', { count: live.length }) : tr('Shift kholein')} onClick={() => setTab('today')} active={tab === 'today'} />
+          <KpiCard icon={ArrowDownToLine} color="#0d9488" label={tr('Cash sale (khuli shift)')} value={money(liveSales)}
+            hint={tr('{{value}} bill', { value: live.reduce((s, r) => s + (r.live?.cashSalesCount ?? 0), 0) })} onClick={() => setTab('today')} />
+          <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Paise kam nikle')} value={money(pt.shortAmount)} hint={tr('{{short}} shift · is period', { short: pt.short })}
             onClick={() => show('SHORT')} active={tab === 'shifts' && status === 'SHORT'} />
-          <KpiCard icon={TrendingUp} color="#0284c7" label="Paise zyada nikle" value={money(pt.overAmount)} hint={`${pt.over} shift · is period`}
+          <KpiCard icon={TrendingUp} color="#0284c7" label={tr('Paise zyada nikle')} value={money(pt.overAmount)} hint={tr('{{over}} shift · is period', { over: pt.over })}
             onClick={() => show('OVER')} active={tab === 'shifts' && status === 'OVER'} />
-          <KpiCard icon={Calculator} color="#475569" label="Ausat opening float" value={money(pt.avgFloat)} hint={`${pt.shifts} shift · ${pt.matched} barabar`}
+          <KpiCard icon={Calculator} color="#475569" label={tr('Ausat opening float')} value={money(pt.avgFloat)} hint={tr('{{shifts}} shift · {{matched}} barabar', { shifts: pt.shifts, matched: pt.matched })}
             onClick={() => show('')} active={tab === 'shifts' && !status} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v) setTab((t) => (t === 'today' ? 'shifts' : t)); }} placeholder="Register number, staff ka naam ya note…" label="Shift search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v) setTab((t) => (t === 'today' ? 'shifts' : t)); }} placeholder={tr('Register number, staff ka naam ya note…')} label={tr('Shift search')} />}
         chips={filtered ? <>
           {branch && <FilterChip onRemove={() => setBranch('')}>{branchLabel}</FilterChip>}
-          {staff && <FilterChip onRemove={() => setStaff('')}>{staffLabel ?? 'Staff'}</FilterChip>}
+          {staff && <FilterChip onRemove={() => setStaff('')}>{staffLabel ?? tr('Staff')}</FilterChip>}
           {status && <FilterChip onRemove={() => setStatus('')}>{statusMeta?.label}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
         {allShops && tillShops.length > 1 && (
-          <FilterMenu icon={Store} label={branchLabel ?? 'Branch'} value={branch} active={!!branch} onChange={setBranch}
-            options={[{ value: '', label: 'Sab branches' }, ...tillShops.map((s) => ({ value: s.id, label: s.name }))]} />
+          <FilterMenu icon={Store} label={branchLabel ?? tr('Branch')} value={branch} active={!!branch} onChange={setBranch}
+            options={[{ value: '', label: tr('Sab branches') }, ...tillShops.map((s) => ({ value: s.id, label: s.name }))]} />
         )}
-        <FilterMenu icon={UserRound} label={staffLabel ?? 'Staff'} value={staff} active={!!staff} onChange={setStaff}
-          options={[{ value: '', label: 'Sab staff' }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: `${s.shifts} shift` }))]} />
-        <FilterMenu icon={Filter} label={statusMeta?.label ?? 'Haal'} value={status} active={!!status} align="right"
+        <FilterMenu icon={UserRound} label={staffLabel ?? tr('Staff')} value={staff} active={!!staff} onChange={setStaff}
+          options={[{ value: '', label: tr('Sab staff') }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: tr('{{shifts}} shift', { shifts: s.shifts }) }))]} />
+        <FilterMenu icon={Filter} label={statusMeta?.label ?? tr('Haal')} value={status} active={!!status} align="right"
           onChange={(v) => show(v)}
-          options={[{ value: '' as '' | ShiftStatus, label: 'Sab shifts' }, ...STATUS_FILTERS.map((s) => ({ value: s.value as '' | ShiftStatus, label: s.label, hint: s.hint, icon: s.icon, color: s.color }))]} />
+          options={[{ value: '' as '' | ShiftStatus, label: tr('Sab shifts') }, ...STATUS_FILTERS.map((s) => ({ value: s.value as '' | ShiftStatus, label: s.label, hint: s.hint, icon: s.icon, color: s.color }))]} />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
         hint={tab === 'today'
-          ? <>Period ka filter yahan nahi lagta · <Kbd>I</Kbd> cash in · <Kbd>U</Kbd> cash out · <Kbd>C</Kbd> band</>
-          : <><Kbd>/</Kbd> search · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+          ? <>{tr('Period ka filter yahan nahi lagta ·')}{' '} <Kbd>I</Kbd> {' '}{tr('cash in ·')}{' '} <Kbd>U</Kbd> {' '}{tr('cash out ·')}{' '} <Kbd>C</Kbd> {' '}{tr('band')}</>
+          : <><Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>A</Kbd> {' '}{tr('analytics ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</>}
         tabs={[
-          { id: 'today', label: 'Aaj ka galla', icon: Wallet, count: live.length || null },
-          { id: 'shifts', label: 'Shifts record', icon: ListChecks, count: periodQ.data?.total ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'today', label: tr('Aaj ka galla'), icon: Wallet, count: live.length || null },
+          { id: 'shifts', label: tr('Shifts record'), icon: ListChecks, count: periodQ.data?.total ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <CashAnalytics filters={base} money={money} /> : tab === 'today' ? (
         liveQ.isLoading ? <Skeleton className="h-72 rounded-3xl" /> : !slots.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <Store className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">Koi khuli shift nahi</p>
-            <p className="mt-1 text-sm text-slate-500">Shift kholne ke liye upar se ek branch chunein.</p>
+            <p className="mt-3 font-semibold text-slate-900">{tr('Koi khuli shift nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Shift kholne ke liye upar se ek branch chunein.')}</p>
           </div>
         ) : (
           <div className={cn('grid gap-4', allShops && slots.length > 1 && 'xl:grid-cols-2')}>
@@ -235,9 +236,9 @@ export default function CashRegisterPage() {
         ) : !listQ.data?.items.length ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />
-            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi shift nahi' : 'Is period me koi shift nahi'}</p>
-            <p className="mt-1 text-sm text-slate-500">Har shift kholne aur band karne par yahan record banta hai — kis ne kholi, kitna gina aur kitna farak aaya.</p>
-            {filtered && <Button className="mt-4" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi shift nahi') : tr('Is period me koi shift nahi')}</p>
+            <p className="mt-1 text-sm text-slate-500">{tr('Har shift kholne aur band karne par yahan record banta hai — kis ne kholi, kitna gina aur kitna farak aaya.')}</p>
+            {filtered && <Button className="mt-4" variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
           </div>
         ) : (
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -246,9 +247,9 @@ export default function CashRegisterPage() {
         )}
         {listQ.data && listQ.data.pages > 1 && (
           <div className="flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
-            <span className="text-sm text-slate-600">Safha {page} / {listQ.data.pages}</span>
-            <Button variant="secondary" size="sm" disabled={page >= listQ.data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>{tr('Pichla')}</Button>
+            <span className="text-sm text-slate-600">{tr('Safha {{page}} / {{pages}}', { page, pages: listQ.data.pages })}</span>
+            <Button variant="secondary" size="sm" disabled={page >= listQ.data.pages} onClick={() => setPage((x) => x + 1)}>{tr('Agla')}</Button>
           </div>
         )}
       </>)}
@@ -259,21 +260,21 @@ export default function CashRegisterPage() {
       {report && <ShiftDetailModal id={report} onClose={() => setReport(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Cash register — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Cash register — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: PlayCircle, color: '#16a34a', title: 'Shift kholein', text: 'Din ya shift ke shuru me galla ginein — kul amount likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.' },
-            { icon: Wallet, color: '#0d9488', title: 'Hisaab khud chalta hai', text: 'Cash sale, booking ki cash amount aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi amount ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.' },
-            { icon: ArrowDownToLine, color: '#2563eb', title: 'Cash in / out', text: 'Khula paisa daala, malik ne paise liye ya bank me jama karwaye? Wajah ke saath likhein taake shift ke aakhir me farak na aaye.' },
-            { icon: StopCircle, color: '#e11d48', title: 'Band karein aur milayein', text: 'Shift ke aakhir me galla note gin kar likhein. Paise kam ya zyada hon to wajah likhna zaroori hai. Band hote hi Z-report print ho sakti hai.' },
-            { icon: Printer, color: '#7c3aed', title: 'X / Z-report', text: 'Khuli shift ka X-report aur band shift ka Z-report — A4, PDF ya thermal par. Shifts record me kisi bhi shift par click karein.' },
-            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis staff ki shift me paise kam nikalte hain, roz ki cash sale aur ausat opening float — karobari din ke hisaab se.' },
+            { icon: PlayCircle, color: '#16a34a', title: tr('Shift kholein'), text: tr('Din ya shift ke shuru me galla ginein — kul amount likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.') },
+            { icon: Wallet, color: '#0d9488', title: tr('Hisaab khud chalta hai'), text: tr('Cash sale, booking ki cash amount aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi amount ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.') },
+            { icon: ArrowDownToLine, color: '#2563eb', title: tr('Cash in / out'), text: tr('Khula paisa daala, malik ne paise liye ya bank me jama karwaye? Wajah ke saath likhein taake shift ke aakhir me farak na aaye.') },
+            { icon: StopCircle, color: '#e11d48', title: tr('Band karein aur milayein'), text: tr('Shift ke aakhir me galla note gin kar likhein. Paise kam ya zyada hon to wajah likhna zaroori hai. Band hote hi Z-report print ho sakti hai.') },
+            { icon: Printer, color: '#7c3aed', title: tr('X / Z-report'), text: tr('Khuli shift ka X-report aur band shift ka Z-report — A4, PDF ya thermal par. Shifts record me kisi bhi shift par click karein.') },
+            { icon: BarChart3, color: '#d97706', title: tr('Analytics'), text: tr('Kis staff ki shift me paise kam nikalte hain, roz ki cash sale aur ausat opening float — karobari din ke hisaab se.') },
           ]}
           tips={[
-            'Khata receiving aur supplier ki payment khud hisaab me judti hain — inhein dobara "Cash in / out" se mat likhein.',
-            'Shift band karne ke liye "Cash register band" ki permission chahiye — Team settings me de sakte hain.',
-            'Sab branches wale view me har branch ka galla alag dikhta hai; wahin se khol aur band kar sakte hain.',
+            tr('Khata receiving aur supplier ki payment khud hisaab me judti hain — inhein dobara "Cash in / out" se mat likhein.'),
+            tr('Shift band karne ke liye "Cash register band" ki permission chahiye — Team settings me de sakte hain.'),
+            tr('Sab branches wale view me har branch ka galla alag dikhta hai; wahin se khol aur band kar sakte hain.'),
           ]}
-          shortcuts={[['O', 'shift kholein'], ['I', 'cash in'], ['U', 'cash out'], ['C', 'shift band'], ['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
+          shortcuts={[['O', tr('shift kholein')], ['I', tr('cash in')], ['U', tr('cash out')], ['C', tr('shift band')], ['/', tr('dhoondein')], ['A', tr('analytics')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -286,7 +287,7 @@ function ShiftLine({ r, money, showShop, onOpen }: { r: ShiftRow; money: (n: num
   const D = DIFF[kind];
   return (
     <li>
-      <button type="button" onClick={onOpen} className="flex w-full flex-wrap items-center gap-3 px-3 py-2.5 text-left transition hover:bg-slate-50 sm:flex-nowrap sm:px-4">
+      <button type="button" onClick={onOpen} className="flex w-full flex-wrap items-center gap-3 px-3 py-2.5 text-start transition hover:bg-slate-50 sm:flex-nowrap sm:px-4">
         <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', open ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500')}>
           {open ? <CircleDot className="h-4 w-4 animate-pulse" /> : <Wallet className="h-4 w-4" />}
         </span>
@@ -294,7 +295,7 @@ function ShiftLine({ r, money, showShop, onOpen }: { r: ShiftRow; money: (n: num
           <span className="flex flex-wrap items-center gap-2">
             <span className="truncate font-semibold text-slate-900">{when(r.openedAt)}{r.closedAt ? ` — ${new Date(r.closedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })}` : ''}</span>
             {open
-              ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">Khuli</span>
+              ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">{tr('Khuli')}</span>
               : <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', D.tone)}><D.icon className="h-3 w-3" />{D.label}</span>}
           </span>
           <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400">
@@ -304,17 +305,17 @@ function ShiftLine({ r, money, showShop, onOpen }: { r: ShiftRow; money: (n: num
             {r.notes ? ` · ${r.notes}` : ''}
           </span>
         </span>
-        <span className="hidden text-right sm:block">
-          <span className="block text-[0.6875rem] text-slate-400">Opening · cash sale</span>
+        <span className="hidden text-end sm:block">
+          <span className="block text-[0.6875rem] text-slate-400">{tr('Opening · cash sale')}</span>
           <span className="block text-[0.8125rem] tabular-nums text-slate-700">{money(r.openingBalance)} · {money(r.totalSales)}</span>
         </span>
-        <span className="ml-auto text-right">
-          <span className="block text-[0.6875rem] text-slate-400">{open ? 'Hona chahiye' : `Gina · hona chahiye ${money(r.expectedBalance)}`}</span>
+        <span className="ms-auto text-end">
+          <span className="block text-[0.6875rem] text-slate-400">{open ? tr('Hona chahiye') : tr('Gina · hona chahiye {{expectedBalance}}', { expectedBalance: money(r.expectedBalance) })}</span>
           <span className="block text-base font-bold tabular-nums text-slate-900">{open ? money(r.expectedBalance) : money(r.closingBalance)}</span>
         </span>
         {!open && (
-          <span className={cn('w-24 text-right text-[0.875rem] font-semibold tabular-nums', kind === 'short' ? 'text-rose-700' : kind === 'over' ? 'text-sky-700' : 'text-emerald-700')}>
-            {kind === 'match' ? 'Barabar' : signed(r.difference)}
+          <span className={cn('w-24 text-end text-[0.875rem] font-semibold tabular-nums', kind === 'short' ? 'text-rose-700' : kind === 'over' ? 'text-sky-700' : 'text-emerald-700')}>
+            {kind === 'match' ? tr('Barabar') : signed(r.difference)}
           </span>
         )}
       </button>

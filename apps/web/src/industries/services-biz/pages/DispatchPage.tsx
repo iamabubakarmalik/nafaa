@@ -23,6 +23,7 @@ import { jobsApi, type ServiceJob } from '../api/jobs.api';
 import { techniciansApi } from '../api/technicians.api';
 import { AssignModal } from '../components/AssignModal';
 import { BOOKED, JOB_KEY, TECH_KEY, WORKING, apiError, dateTime, itemName, placeOf, priorityOf, statusOf, techStatusOf } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'board' | 'field';
 const URGENT = ['URGENT', 'EMERGENCY'];
@@ -54,8 +55,8 @@ export default function DispatchPage() {
 
   const assign = useMutation({
     mutationFn: (v: { id: string; primary: string; helpers: string[] }) => jobsApi.assign(v.id, v.primary, v.helpers),
-    onSuccess: (j) => { toast.success(`${j.jobNumber} — ${j.technicianName ?? 'technician'} ko de di`); [JOB_KEY, TECH_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setAssigning(null); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hua')),
+    onSuccess: (j) => { toast.success(tr('{{jobNumber}} — {{value}} ko de di', { jobNumber: j.jobNumber, value: j.technicianName ?? 'technician' })); [JOB_KEY, TECH_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setAssigning(null); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hua'))),
   });
 
   useEffect(() => {
@@ -74,52 +75,52 @@ export default function DispatchPage() {
   return (
     <PageShell>
       <PageHero
-        title="Dispatch"
-        chip={<><Truck /> Kaam baantein</>}
-        meta="Kis job ko kaun jayega — urgent pehle, phir jo pehle waqt ki hai"
+        title={tr('Dispatch')}
+        chip={<><Truck /> {' '}{tr('Kaam baantein')}</>}
+        meta={tr('Kis job ko kaun jayega — urgent pehle, phir jo pehle waqt ki hai')}
         busy={jobsQ.isFetching && !jobsQ.isLoading}
         loading={jobsQ.isLoading}
         actions={<>
-          <button type="button" onClick={() => { void jobsQ.refetch(); void techQ.refetch(); }} title="Refresh (R)" className={heroButton}><RefreshCw className="h-4 w-4" /><span className="hidden sm:inline">Refresh</span></button>
-          <Link to="/services-biz/technicians" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">Technicians</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => { void jobsQ.refetch(); void techQ.refetch(); }} title={tr('Refresh (R)')} className={heroButton}><RefreshCw className="h-4 w-4" /><span className="hidden sm:inline">{tr('Refresh')}</span></button>
+          <Link to="/services-biz/technicians" className={heroButton}><Users className="h-4 w-4" /><span className="hidden sm:inline">{tr('Technicians')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
-          { label: 'Technician baqi', value: waiting.length },
-          { label: 'Free technician', value: `${free}/${techs.length}` },
-          { label: 'Field me', value: field.length },
+          { label: tr('Technician baqi'), value: waiting.length },
+          { label: tr('Free technician'), value: `${free}/${techs.length}` },
+          { label: tr('Field me'), value: field.length },
         ]}
       />
 
       <KpiRow cols={4}>
         {jobsQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={CalendarClock} color={waiting.length ? '#0284c7' : '#64748b'} label="Banda lagana hai" value={waiting.length} hint={`${waiting.filter((j) => URGENT.includes(j.priority)).length} urgent`} onClick={() => setTab('board')} active={tab === 'board'} />
-          <KpiCard icon={Car} color="#7c3aed" label="Raste me / site par" value={field.length} onClick={() => setTab('field')} active={tab === 'field'} />
-          <KpiCard icon={Users} color="#16a34a" label="Free" value={free} hint="Abhi kaam de sakte hain" />
-          <KpiCard icon={AlertTriangle} color={late ? '#e11d48' : '#64748b'} label="Late" value={late} hint="Waqt guzar gaya" />
+          <KpiCard icon={CalendarClock} color={waiting.length ? '#0284c7' : '#64748b'} label={tr('Banda lagana hai')} value={waiting.length} hint={tr('{{count}} urgent', { count: waiting.filter((j) => URGENT.includes(j.priority)).length })} onClick={() => setTab('board')} active={tab === 'board'} />
+          <KpiCard icon={Car} color="#7c3aed" label={tr('Raste me / site par')} value={field.length} onClick={() => setTab('field')} active={tab === 'field'} />
+          <KpiCard icon={Users} color="#16a34a" label={tr('Free')} value={free} hint={tr('Abhi kaam de sakte hain')} />
+          <KpiCard icon={AlertTriangle} color={late ? '#e11d48' : '#64748b'} label={tr('Late')} value={late} hint={tr('Waqt guzar gaya')} />
         </>}
       </KpiRow>
 
-      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Job #, customer, area…" label="Search" />} />
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>/</Kbd> search · <Kbd>R</Kbd> refresh</>}
-        tabs={[{ id: 'board', label: 'Board', icon: UserCheck, count: waiting.length }, { id: 'field', label: 'Field me', icon: Car, count: field.length }]} />
+      <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Job #, customer, area…')} label={tr('Search')} />} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>R</Kbd> {' '}{tr('refresh')}</>}
+        tabs={[{ id: 'board', label: tr('Board'), icon: UserCheck, count: waiting.length }, { id: 'field', label: tr('Field me'), icon: Car, count: field.length }]} />
 
       {tab === 'board' ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <section className="space-y-2">
-            <h3 className="px-1 text-[0.8125rem] font-semibold text-slate-700">Technician ka intezar</h3>
+            <h3 className="px-1 text-[0.8125rem] font-semibold text-slate-700">{tr('Technician ka intezar')}</h3>
             {jobsQ.isLoading ? <Skeleton className="h-48 rounded-3xl" /> : !waiting.length ? (
-              <div className="rounded-3xl bg-white px-6 py-10 text-center ring-1 ring-slate-200/80"><UserCheck className="mx-auto h-8 w-8 text-emerald-400" /><p className="mt-2 font-semibold text-slate-900">Har job par banda laga hai</p></div>
+              <div className="rounded-3xl bg-white px-6 py-10 text-center ring-1 ring-slate-200/80"><UserCheck className="mx-auto h-8 w-8 text-emerald-400" /><p className="mt-2 font-semibold text-slate-900">{tr('Har job par banda laga hai')}</p></div>
             ) : (
               <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-                {waiting.map((j) => <JobLine key={j.id} j={j} action={canManage ? <Button size="sm" onClick={() => setAssigning(j)} leftIcon={<UserCheck className="h-3.5 w-3.5" />}>Lagayein</Button> : undefined} />)}
+                {waiting.map((j) => <JobLine key={j.id} j={j} action={canManage ? <Button size="sm" onClick={() => setAssigning(j)} leftIcon={<UserCheck className="h-3.5 w-3.5" />}>{tr('Lagayein')}</Button> : undefined} />)}
               </ul>
             )}
           </section>
           <section className="space-y-2">
-            <h3 className="px-1 text-[0.8125rem] font-semibold text-slate-700">Team aaj</h3>
+            <h3 className="px-1 text-[0.8125rem] font-semibold text-slate-700">{tr('Team aaj')}</h3>
             {techQ.isLoading ? <Skeleton className="h-48 rounded-3xl" /> : !techs.length ? (
-              <div className="rounded-3xl bg-white px-6 py-10 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Koi technician nahi</p><Link to="/services-biz/technicians" className="mt-2 inline-block text-sm font-semibold text-brand-700 hover:underline">Technician banayein →</Link></div>
+              <div className="rounded-3xl bg-white px-6 py-10 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">{tr('Koi technician nahi')}</p><Link to="/services-biz/technicians" className="mt-2 inline-block text-sm font-semibold text-brand-700 hover:underline">{tr('Technician banayein →')}</Link></div>
             ) : (
               <ul className="space-y-2">
                 {techs.map((t) => {
@@ -128,8 +129,8 @@ export default function DispatchPage() {
                   return (
                     <li key={t.id} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
                       <div className="flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate font-semibold text-slate-900">{t.staff?.fullName ?? 'Technician'}</span>
-                        <span className="text-[0.75rem] text-slate-500">{mine.length} jobs</span>
+                        <span className="min-w-0 flex-1 truncate font-semibold text-slate-900">{t.staff?.fullName ?? tr('Technician')}</span>
+                        <span className="text-[0.75rem] text-slate-500">{tr('{{count}} jobs', { count: mine.length })}</span>
                         <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}>{s.label}</span>
                       </div>
                       {mine.length > 0 && (
@@ -151,7 +152,7 @@ export default function DispatchPage() {
           </section>
         </div>
       ) : !field.length ? (
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><Car className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">Abhi koi field me nahi</p></div>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><Car className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-semibold text-slate-900">{tr('Abhi koi field me nahi')}</p></div>
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           {field.map((j) => <JobLine key={j.id} j={j} />)}
@@ -161,12 +162,12 @@ export default function DispatchPage() {
       {assigning && <AssignModal jobId={assigning.id} jobNumber={assigning.jobNumber} pending={assign.isPending} onAssign={(primary, helpers) => assign.mutate({ id: assigning.id, primary, helpers })} onClose={() => setAssigning(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Dispatch — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Dispatch — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CalendarClock, color: '#0284c7', title: 'Bayen taraf', text: 'Wo jobs jin par abhi koi technician nahi — urgent aur jaldi waqt wali upar.' },
-            { icon: UserCheck, color: '#16a34a', title: 'Lagayein', text: '"Lagayein" dabayein — duty par, sahi hunar aur area wale technician upar aate hain, saath helper bhi chun sakte hain.' },
-            { icon: Users, color: '#7c3aed', title: 'Dayen taraf', text: 'Har technician ke haath me aaj kya hai. Zyada kaam wale ko nayi job na dein.' },
-            { icon: MapPin, color: '#ea580c', title: 'Field me', text: 'Raste me, pohanch gaye ya kaam chal raha — job khol kar halat badalte jayein.' },
+            { icon: CalendarClock, color: '#0284c7', title: tr('Bayen taraf'), text: tr('Wo jobs jin par abhi koi technician nahi — urgent aur jaldi waqt wali upar.') },
+            { icon: UserCheck, color: '#16a34a', title: tr('Lagayein'), text: tr('"Lagayein" dabayein — duty par, sahi hunar aur area wale technician upar aate hain, saath helper bhi chun sakte hain.') },
+            { icon: Users, color: '#7c3aed', title: tr('Dayen taraf'), text: tr('Har technician ke haath me aaj kya hai. Zyada kaam wale ko nayi job na dein.') },
+            { icon: MapPin, color: '#ea580c', title: tr('Field me'), text: tr('Raste me, pohanch gaye ya kaam chal raha — job khol kar halat badalte jayein.') },
           ]}
           shortcuts={[['/', 'dhoondein'], ['R', 'refresh'], ['G', 'guide']]}
         />
@@ -190,7 +191,7 @@ function JobLine({ j, action }: { j: ServiceJob; action?: ReactNode }) {
           <span className="font-mono text-[0.6875rem] text-slate-400">{j.jobNumber}</span>
         </div>
         <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">{[j.customerName, itemName(j)].filter(Boolean).join(' · ')} — {placeOf(j)}</p>
-        <p className={cn('mt-0.5 inline-flex items-center gap-1 text-[0.75rem]', j.isLate ? 'font-semibold text-rose-700' : 'text-slate-500')}><Clock className="h-3 w-3" />{j.scheduledStart ? dateTime(j.scheduledStart) : 'Waqt tay nahi'}{j.technicianName ? ` · ${j.technicianName}` : ''}</p>
+        <p className={cn('mt-0.5 inline-flex items-center gap-1 text-[0.75rem]', j.isLate ? 'font-semibold text-rose-700' : 'text-slate-500')}><Clock className="h-3 w-3" />{j.scheduledStart ? dateTime(j.scheduledStart) : tr('Waqt tay nahi')}{j.technicianName ? ` · ${j.technicianName}` : ''}</p>
       </Link>
       {action}
     </li>

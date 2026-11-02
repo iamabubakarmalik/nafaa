@@ -24,6 +24,7 @@ import { Empty, Pill } from '../../components/parts';
 import { useMoney } from '../../hooks/useDistribution';
 import { dayKeyLabel, typingInField } from '../../lib/meta';
 import { useTeam } from '../../setup/routes/useTeam';
+import { t } from '@core/i18n';
 
 export const VANS_KEY = [DIST_KEY, 'vans'] as const;
 
@@ -43,13 +44,13 @@ function Vans() {
   const save = useMutation({
     mutationFn: (body: SaveVan) => (editing && editing !== 'new' ? phase2Api.updateVan(editing.id, body) : phase2Api.createVan(body)),
     onSuccess: (v) => {
-      toast.success(editing === 'new' ? `${v.name} ban gayi` : 'Save ho gaya');
+      toast.success(editing === 'new' ? t('{{name}} ban gayi', { name: v.name }) : t('Save ho gaya'));
       qc.invalidateQueries({ queryKey: VANS_KEY });
       const wasNew = editing === 'new';
       setEditing(null);
       if (wasNew) navigate(`/distribution/vans/${v.id}`);
     },
-    onError: (e) => toast.error(distError(e, 'Van save nahi hui')),
+    onError: (e) => toast.error(distError(e, t('Van save nahi hui'))),
   });
 
   useEffect(() => {
@@ -71,41 +72,41 @@ function Vans() {
   return (
     <PageShell>
       <PageHero
-        back="/distribution" backLabel="Distribution"
-        title="Vans"
-        chip={<><Truck /> Van sales</>}
-        meta="Van par maal load karein, route par spot Invoice, shaam ko ginti aur maal wapas godown"
+        back="/distribution" backLabel={t('Distribution')}
+        title={t('Vans')}
+        chip={<><Truck /> {' '}{t('Van sales')}</>}
+        meta={t('Van par maal load karein, route par spot Invoice, shaam ko ginti aur maal wapas godown')}
         busy={q.isFetching && !q.isLoading}
         loading={q.isLoading}
         actions={<>
-          <button type="button" onClick={() => void q.refetch()} title="Refresh" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
-          <button type="button" onClick={() => setEditing('new')} title="New van (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">New van</span></button>
+          <button type="button" onClick={() => void q.refetch()} title={t('Refresh')} aria-label={t('Taaza karein')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', q.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={() => setEditing('new')} title={t('New van (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /><span className="hidden sm:inline">{t('New van')}</span></button>
         </>}
         stats={[
-          { label: 'Vans', value: q.data ? String(vans.filter((v) => v.isActive).length) : '—' },
-          { label: 'Aaj route par', value: q.data ? String(out.length) : '—' },
-          { label: 'Aaj ki sale', value: q.data ? money(salesToday) : '—' },
-          { label: 'Vans par maal', value: q.data ? money(stockValue) : '—', hint: 'cost par' },
+          { label: t('Vans'), value: q.data ? String(vans.filter((v) => v.isActive).length) : '—' },
+          { label: t('Aaj route par'), value: q.data ? String(out.length) : '—' },
+          { label: t('Aaj ki sale'), value: q.data ? money(salesToday) : '—' },
+          { label: t('Vans par maal'), value: q.data ? money(stockValue) : '—', hint: t('cost par') },
         ]}
       />
 
-      <div className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:flex"><Kbd>N</Kbd> nayi van · <Kbd>↑</Kbd><Kbd>↓</Kbd> chunein · <Kbd>Enter</Kbd> kholein</div>
+      <div className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 lg:flex"><Kbd>N</Kbd> {' '}{t('nayi van ·')}{' '} <Kbd>↑</Kbd><Kbd>↓</Kbd> {' '}{t('chunein ·')}{' '} <Kbd>Enter</Kbd> {' '}{t('kholein')}</div>
 
       <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {q.isLoading ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-          : !vans.length ? <Empty icon={<Truck className="h-5 w-5" />} text="Abhi koi van nahi. Van banayein — us ka apna stock (warehouse) ban jata hai, godown se load hota hai."
-            action={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditing('new')}>New van</Button>} />
+          : !vans.length ? <Empty icon={<Truck className="h-5 w-5" />} text={t('Abhi koi van nahi. Van banayein — us ka apna stock (warehouse) ban jata hai, godown se load hota hai.')}
+            action={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setEditing('new')}>{t('New van')}</Button>} />
             : <>
               <div className="hidden overflow-x-auto md:block">
                 <Table minWidth="52rem" className="[&_table]:text-[0.8125rem]">
-                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
                     <Tr>
-                      <Th className="px-4 py-2 sm:px-5">Van</Th>
-                      <Th className="px-3 py-2">Salesman · Route</Th>
-                      <Th className="px-3 py-2">Godown</Th>
-                      <Th className="px-3 py-2">Aaj</Th>
-                      <Th className="px-3 py-2 text-right">Aaj ki sale</Th>
-                      <Th className="px-3 py-2 text-right">Van par maal</Th>
+                      <Th className="px-4 py-2 sm:px-5">{t('Van')}</Th>
+                      <Th className="px-3 py-2">{t('Salesman · Route')}</Th>
+                      <Th className="px-3 py-2">{t('Godown')}</Th>
+                      <Th className="px-3 py-2">{t('Aaj')}</Th>
+                      <Th className="px-3 py-2 text-end">{t('Aaj ki sale')}</Th>
+                      <Th className="px-3 py-2 text-end">{t('Van par maal')}</Th>
                       <Th className="px-4 py-2 sm:px-5" />
                     </Tr>
                   </THead>
@@ -118,25 +119,25 @@ function Vans() {
                           <div className="text-[0.75rem] text-slate-500">{v.vehicleNo ?? '—'}</div>
                         </Td>
                         <Td className="px-3 py-2.5">
-                          <div className="text-slate-800">{v.salesmanName ?? <span className="text-slate-400">Salesman nahi</span>}</div>
-                          <div className="text-[0.75rem] text-slate-500">{v.routeName ?? 'Koi route nahi'}</div>
+                          <div className="text-slate-800">{v.salesmanName ?? <span className="text-slate-400">{t('Salesman nahi')}</span>}</div>
+                          <div className="text-[0.75rem] text-slate-500">{v.routeName ?? t('Koi route nahi')}</div>
                         </Td>
-                        <Td className="px-3 py-2.5 text-slate-700">{v.homeShopName ?? <span className="text-amber-700">Godown set karein</span>}</Td>
+                        <Td className="px-3 py-2.5 text-slate-700">{v.homeShopName ?? <span className="text-amber-700">{t('Godown set karein')}</span>}</Td>
                         <Td className="px-3 py-2.5">
-                          {!v.isActive ? <Pill tone="slate">Band</Pill>
-                            : v.session ? <Pill tone="orange">Route par · {dayKeyLabel(v.session.dayKey)}</Pill> : <Pill tone="slate">Khadi hai</Pill>}
+                          {!v.isActive ? <Pill tone="slate">{t('Band')}</Pill>
+                            : v.session ? <Pill tone="orange">{t('Route par · {{dayKey}}', { dayKey: dayKeyLabel(v.session.dayKey) })}</Pill> : <Pill tone="slate">{t('Khadi hai')}</Pill>}
                         </Td>
-                        <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
-                          {v.session ? <><div className="font-semibold text-slate-900">{money(v.session.salesValue)}</div><div className="text-[0.6875rem] text-slate-500">{v.session.sales} invoices</div></> : <span className="text-slate-400">—</span>}
+                        <Td className="whitespace-nowrap px-3 py-2.5 text-end tabular-nums">
+                          {v.session ? <><div className="font-semibold text-slate-900">{money(v.session.salesValue)}</div><div className="text-[0.6875rem] text-slate-500">{t('{{sales}} invoices', { sales: v.session.sales })}</div></> : <span className="text-slate-400">—</span>}
                         </Td>
-                        <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
+                        <Td className="whitespace-nowrap px-3 py-2.5 text-end tabular-nums">
                           <div className="text-slate-900">{money(v.stock.value)}</div>
-                          <div className="text-[0.6875rem] text-slate-500">{v.stock.lines} items</div>
+                          <div className="text-[0.6875rem] text-slate-500">{t('{{lines}} items', { lines: v.stock.lines })}</div>
                         </Td>
-                        <Td className="px-4 py-2.5 text-right sm:px-5" onClick={(e) => e.stopPropagation()}>
+                        <Td className="px-4 py-2.5 text-end sm:px-5" onClick={(e) => e.stopPropagation()}>
                           <span className="inline-flex items-center gap-2">
-                            <Button size="sm" variant="secondary" onClick={() => setEditing(v)}>Edit</Button>
-                            <ArrowRight className="h-4 w-4 text-slate-300" />
+                            <Button size="sm" variant="secondary" onClick={() => setEditing(v)}>{t('Edit')}</Button>
+                            <ArrowRight className="h-4 w-4 text-slate-300 rtl-flip" />
                           </span>
                         </Td>
                       </Tr>
@@ -147,15 +148,15 @@ function Vans() {
               <ul className="divide-y divide-slate-100 md:hidden">
                 {vans.map((v) => (
                   <li key={v.id}>
-                    <button type="button" onClick={() => navigate(`/distribution/vans/${v.id}`)} className="block w-full px-4 py-3 text-left">
+                    <button type="button" onClick={() => navigate(`/distribution/vans/${v.id}`)} className="block w-full px-4 py-3 text-start">
                       <span className="flex items-center justify-between gap-2">
                         <span className="text-[0.875rem] font-semibold text-slate-900">{v.name} <span className="font-normal text-slate-500">· {v.vehicleNo ?? '—'}</span></span>
-                        {v.session ? <Pill tone="orange">Route par</Pill> : <Pill tone="slate">{v.isActive ? 'Khadi hai' : 'Band'}</Pill>}
+                        {v.session ? <Pill tone="orange">{t('Route par')}</Pill> : <Pill tone="slate">{v.isActive ? t('Khadi hai') : t('Band')}</Pill>}
                       </span>
                       <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{[v.salesmanName, v.routeName, v.homeShopName].filter(Boolean).join(' · ')}</span>
                       <span className="mt-1 flex items-center justify-between text-[0.8125rem]">
-                        <span className="tabular-nums text-slate-900">Maal {money(v.stock.value)}</span>
-                        {v.session && <span className="font-semibold tabular-nums text-slate-900">Sale {money(v.session.salesValue)}</span>}
+                        <span className="tabular-nums text-slate-900">{t('Maal {{value}}', { value: money(v.stock.value) })}</span>
+                        {v.session && <span className="font-semibold tabular-nums text-slate-900">{t('Sale {{salesValue}}', { salesValue: money(v.session.salesValue) })}</span>}
                       </span>
                     </button>
                   </li>
@@ -195,26 +196,26 @@ export function VanFormModal({ van, saving, onClose, onSave }: {
   };
 
   return (
-    <Modal open onClose={onClose} size="md" title={van ? `${van.name} — Edit` : 'New van'}
-      description="Van ka apna stock hota hai. Godown se load hoti hai aur shaam ko bacha maal wapas wahi jata hai."
+    <Modal open onClose={onClose} size="md" title={van ? t('{{name}} — Edit', { name: van.name }) : t('New van')}
+      description={t('Van ka apna stock hota hai. Godown se load hoti hai aur shaam ko bacha maal wapas wahi jata hai.')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button data-save-action loading={saving} disabled={!name.trim()} onClick={submit}>{van ? 'Save' : 'Create van'}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Cancel')}</Button>
+        <Button data-save-action loading={saving} disabled={!name.trim()} onClick={submit}>{van ? t('Save') : t('Create van')}</Button>
       </>}>
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
-          <Input label="Naam" required autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Van 1 - Shadman" />
-          <Input label="Gaari no." value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} maxLength={30} placeholder="LES-1234" />
+          <Input label={t('Naam')} required autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder={t('Van 1 - Shadman')} />
+          <Input label={t('Gaari no.')} value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value.toUpperCase())} maxLength={30} placeholder={t('LES-1234')} />
         </div>
-        <Select label="Godown (load / unload)" value={homeShopId} onChange={(e) => setHomeShopId(e.target.value)}
-          options={[{ value: '', label: 'Chunein' }, ...shops.map((s) => ({ value: s.id, label: `${s.name}${s.type !== 'SHOP' ? ' · godown' : ''}` }))]} />
-        <Select label="Salesman" value={salesmanId} onChange={(e) => setSalesmanId(e.target.value)}
-          hint="Is login se phone par van ki sale hoti hai (Van Salesman preset)"
-          options={[{ value: '', label: 'Baad me' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]} />
-        <Select label="Route" value={routeId} onChange={(e) => setRouteId(e.target.value)}
-          options={[{ value: '', label: 'Koi nahi' }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
-        <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Zaroori nahi" />
-        {van && <Switch label="Van chal rahi hai" description="Band van par load ya sale nahi hoti" checked={isActive} onChange={(e) => setActive(e.target.checked)} />}
+        <Select label={t('Godown (load / unload)')} value={homeShopId} onChange={(e) => setHomeShopId(e.target.value)}
+          options={[{ value: '', label: t('Chunein') }, ...shops.map((s) => ({ value: s.id, label: `${s.name}${s.type !== 'SHOP' ? ' · godown' : ''}` }))]} />
+        <Select label={t('Salesman')} value={salesmanId} onChange={(e) => setSalesmanId(e.target.value)}
+          hint={t('Is login se phone par van ki sale hoti hai (Van Salesman preset)')}
+          options={[{ value: '', label: t('Baad me') }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]} />
+        <Select label={t('Route')} value={routeId} onChange={(e) => setRouteId(e.target.value)}
+          options={[{ value: '', label: t('Koi nahi') }, ...(routesQ.data ?? []).map((r) => ({ value: r.id, label: r.name }))]} />
+        <Input label={t('Note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={t('Zaroori nahi')} />
+        {van && <Switch label={t('Van chal rahi hai')} description={t('Band van par load ya sale nahi hoti')} checked={isActive} onChange={(e) => setActive(e.target.checked)} />}
       </div>
     </Modal>
   );

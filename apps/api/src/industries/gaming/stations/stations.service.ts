@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertStationDto } from './dto/upsert-station.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class StationsService {
@@ -20,7 +21,7 @@ export class StationsService {
   async create(user: AuthenticatedUser, input: UpsertStationDto) {
     const dto = this.clean(input);
     const dup = await this.prisma.gamingStation.findFirst({ where: { tenantId: user.tenantId, stationNumber: dto.stationNumber } });
-    if (dup) throw new BadRequestException(`Station ${dto.stationNumber} pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Station {{stationNumber}} pehle se hai', { stationNumber: dto.stationNumber }));
     return this.prisma.gamingStation.create({ data: { tenantId: user.tenantId, ...dto } });
   }
 
@@ -68,7 +69,7 @@ export class StationsService {
     const dto = this.clean(input);
     if (dto.stationNumber !== s.stationNumber) {
       const dup = await this.prisma.gamingStation.findFirst({ where: { tenantId: user.tenantId, stationNumber: dto.stationNumber, id: { not: id } } });
-      if (dup) throw new BadRequestException(`Station ${dto.stationNumber} pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('Station {{stationNumber}} pehle se hai', { stationNumber: dto.stationNumber }));
     }
     return this.prisma.gamingStation.update({ where: { id }, data: dto });
   }

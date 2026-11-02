@@ -42,6 +42,7 @@ import { ImeiPickerModal } from '@industries/mobile/components/ImeiPickerModal';
 import { bookingsApi, type CreateBookingItem } from '../api/bookings.api';
 import { useRefreshBookings } from '../components/ActionModals';
 import { apiError, qtyText } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
 const MOBILE_WORDS = ['mobile', 'phone', 'smartphone', 'iphone', 'samsung', 'oppo', 'vivo', 'realme', 'xiaomi', 'tecno', 'infinix'];
@@ -67,7 +68,7 @@ const toLocal = (d: Date) => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 const inputCls = 'h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
-const cellCls = 'h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-right text-sm tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
+const cellCls = 'h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-end text-sm tabular-nums text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
 
 export default function BookingFormPage() {
   const navigate = useNavigate();
@@ -121,18 +122,18 @@ export default function BookingFormPage() {
   const profit = total - svc - cost;
 
   const issues: string[] = [];
-  if (!customer) issues.push('Customer chunein');
-  if (!lines.length) issues.push('Kam se kam ek cheez dalein');
-  if (adv > total + 0.01) issues.push('Advance kul se zyada nahi ho sakta');
-  if (billOff > subtotal - lineOff + 0.01) issues.push('Discount kul se zyada hai');
-  if (lines.some((l) => !(l.quantity > 0))) issues.push('Har cheez ki quantity likhein');
-  if (pickup && expires && new Date(expires) < new Date(pickup)) issues.push('Aakhri din pickup se pehle nahi ho sakta');
+  if (!customer) issues.push(tr('Customer chunein'));
+  if (!lines.length) issues.push(tr('Kam se kam ek cheez dalein'));
+  if (adv > total + 0.01) issues.push(tr('Advance kul se zyada nahi ho sakta'));
+  if (billOff > subtotal - lineOff + 0.01) issues.push(tr('Discount kul se zyada hai'));
+  if (lines.some((l) => !(l.quantity > 0))) issues.push(tr('Har cheez ki quantity likhein'));
+  if (pickup && expires && new Date(expires) < new Date(pickup)) issues.push(tr('Aakhri din pickup se pehle nahi ho sakta'));
   const warnings: string[] = [];
-  if (pickup && new Date(pickup).getTime() < Date.now()) warnings.push('Pickup ki date guzar chuki hai');
-  if (lines.length && !adv && !pickup) warnings.push('Advance ya pickup ki date me se ek zaroor rakhein');
-  if (!costHidden && cost > 0 && profit < 0) warnings.push(`Ghaate ki booking: cost ${formatPKR(cost)} hai`);
+  if (pickup && new Date(pickup).getTime() < Date.now()) warnings.push(tr('Pickup ki date guzar chuki hai'));
+  if (lines.length && !adv && !pickup) warnings.push(tr('Advance ya pickup ki date me se ek zaroor rakhein'));
+  if (!costHidden && cost > 0 && profit < 0) warnings.push(tr('Ghaate ki booking: cost {{cost}} hai', { cost: formatPKR(cost) }));
   const short = lines.filter((l) => l.stock !== undefined && !l.locked && l.quantity > l.stock);
-  if (short.length) warnings.push(`${short.map((l) => l.name).join(', ')}: stock kam hai — sale se pehle maal mangwayein`);
+  if (short.length) warnings.push(tr('{{value}}: stock kam hai — sale se pehle maal mangwayein', { value: short.map((l) => l.name).join(', ') }));
 
   /* ── adding items ── */
   const addLine = (l: Omit<Line, 'key'>) => setLines((prev) => [...prev, { ...l, key: lineKey() }]);
@@ -150,17 +151,17 @@ export default function BookingFormPage() {
       quantity: rate, price: v?.price ?? p.price, costPrice: v?.costPrice ?? p.costPrice ?? 0, lineDiscount: 0,
       stock: v?.stock ?? p.stock, tag: rate !== 1 ? `1 ${unit?.name} = ${qtyText(rate)} ${p.unit}` : undefined,
     });
-    toast.success(`${p.name} add ho gaya`);
+    toast.success(tr('{{name}} add ho gaya', { name: p.name }));
   };
 
   const route = async (p: Product, unit?: UnitChoice) => {
-    if (isCarpetProduct(p) && !((carpetSqft.get(p.id) ?? 0) > 0)) { toast.error(`${p.name}: koi chalu roll nahi`); return; }
+    if (isCarpetProduct(p) && !((carpetSqft.get(p.id) ?? 0) > 0)) { toast.error(tr('{{name}}: koi chalu roll nahi', { name: p.name })); return; }
     if (p.hasVariants) {
       try {
         const variants = (await productVariantsApi.list(p.id)).filter((v) => v.isActive);
-        if (!variants.length) { toast.error('Is product ki koi chalu type nahi'); return; }
+        if (!variants.length) { toast.error(tr('Is product ki koi chalu type nahi')); return; }
         setVariantPicker({ product: p, variants });
-      } catch { toast.error('Variants load nahi hue'); }
+      } catch { toast.error(tr('Variants load nahi hue')); }
       return;
     }
     if (isCarpetProduct(p)) { setRollPicker({ product: p }); return; }
@@ -170,7 +171,7 @@ export default function BookingFormPage() {
 
   const onPick = (s: Source, unit: UnitChoice) => {
     const p = productMap.get(s.id);
-    if (!p) { toast.error('Product load nahi hua, dobara koshish karein'); return; }
+    if (!p) { toast.error(tr('Product load nahi hua, dobara koshish karein')); return; }
     void route(p, unit);
   };
 
@@ -193,7 +194,7 @@ export default function BookingFormPage() {
       quantity: d.qty, price: d.rate, costPrice: costPerUnit, lineDiscount: 0, locked: true,
       cutWidthFt: d.customerWidthFt, cutLengthFt: d.lengthFt, cutLengthInch: d.lengthInch, cutSqft: d.cutSqft,
       note: d.note,
-      tag: `Roll ${d.roll.rollNumber}`,
+      tag: tr('Roll {{rollNumber}}', { rollNumber: d.roll.rollNumber }),
     });
     setRollPicker(null);
   };
@@ -204,7 +205,7 @@ export default function BookingFormPage() {
     addLine({
       productId: product.id, variantId: variant?.id, cutPieceId: piece.id, name: product.name, unit: product.unit,
       quantity: piece.totalSqft, price: piece.salePrice / Math.max(piece.totalSqft, 0.01), costPrice: 0, lineDiscount: 0, locked: true,
-      note: `Cut piece ${piece.pieceCode} • ${piece.widthFt}ft × ${piece.lengthFt}ft`, tag: `Piece ${piece.pieceCode}`,
+      note: `Cut piece ${piece.pieceCode} • ${piece.widthFt}ft × ${piece.lengthFt}ft`, tag: tr('Piece {{pieceCode}}', { pieceCode: piece.pieceCode }),
     });
     setPiecePicker(null);
   };
@@ -216,7 +217,7 @@ export default function BookingFormPage() {
       productId: product.id, variantId: variant?.id, imeiId: imei.id, name: variant ? `${product.name} (${variant.name})` : product.name,
       unit: variant?.unit ?? product.unit, quantity: 1, price: variant?.price ?? product.price,
       costPrice: imei.costPrice ?? variant?.costPrice ?? product.costPrice ?? 0, lineDiscount: 0, locked: true,
-      note: `IMEI: ${imei.imei1}`, tag: `IMEI ${imei.imei1}`,
+      note: `IMEI: ${imei.imei1}`, tag: tr('IMEI {{imei1}}', { imei1: imei.imei1 }),
     });
     setImeiPicker(null);
   };
@@ -239,12 +240,12 @@ export default function BookingFormPage() {
       internalNotes: internalNotes.trim() || undefined,
       items: lines.map(({ key: _k, name: _n, unit: _u, tag: _t, locked: _l, stock: _s, ...item }) => item),
     }),
-    onSuccess: (b) => { toast.success(`Booking ${b.bookingNumber} ban gayi`); refresh(); navigate(`/bookings/${b.id}`); },
-    onError: (e) => toast.error(apiError(e, 'Booking nahi bani')),
+    onSuccess: (b) => { toast.success(tr('Booking {{bookingNumber}} ban gayi', { bookingNumber: b.bookingNumber })); refresh(); navigate(`/bookings/${b.id}`); },
+    onError: (e) => toast.error(apiError(e, tr('Booking nahi bani'))),
   });
   const submit = () => {
     if (save.isPending) return;
-    if (!shopId) { toast.error('Pehle branch chunein'); return; }
+    if (!shopId) { toast.error(tr('Pehle branch chunein')); return; }
     if (issues.length) { toast.error(issues[0]); return; }
     save.mutate();
   };
@@ -265,42 +266,42 @@ export default function BookingFormPage() {
 
   return (
     <PageShell>
-      <Link to="/bookings" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand-700"><ArrowLeft className="h-4 w-4" />Bookings</Link>
+      <Link to="/bookings" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand-700"><ArrowLeft className="h-4 w-4 rtl-flip" />{tr('Bookings')}</Link>
 
       <PageHero
-        title="Nayi booking"
-        chip={<><BookmarkPlus /> Advance aur reserve</>}
-        meta="Customer advance de, maal rakha jaye, pickup par bill bane"
+        title={tr('Nayi booking')}
+        chip={<><BookmarkPlus /> {' '}{tr('Advance aur reserve')}</>}
+        meta={tr('Customer advance de, maal rakha jaye, pickup par bill bane')}
         actions={<>
           {isCarpet && carpetProducts.length > 0 && (
-            <button type="button" onClick={() => setPiecePicker({ product: carpetProducts[0] })} className={heroButton}><Scissors className="h-4 w-4" />Cut pieces</button>
+            <button type="button" onClick={() => setPiecePicker({ product: carpetProducts[0] })} className={heroButton}><Scissors className="h-4 w-4" />{tr('Cut pieces')}</button>
           )}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={submit} disabled={save.isPending} title="Save (Ctrl+Enter)" className={heroPrimaryButton}><BookmarkPlus className="h-4 w-4" />{save.isPending ? 'Ban rahi hai…' : 'Booking banayein'}</button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={submit} disabled={save.isPending} title={tr('Save (Ctrl+Enter)')} className={heroPrimaryButton}><BookmarkPlus className="h-4 w-4" />{save.isPending ? tr('Ban rahi hai…') : tr('Booking banayein')}</button>
         </>}
         stats={[
-          { label: 'Kul', value: formatPKR(total), hint: `${lines.length} cheez` },
-          { label: 'Advance', value: formatPKR(adv), hint: total > 0 ? `${Math.round((adv / total) * 100)}%` : undefined },
-          { label: 'Baqi', value: formatPKR(balance) },
+          { label: tr('Kul'), value: formatPKR(total), hint: tr('{{count}} cheez', { count: lines.length }) },
+          { label: tr('Advance'), value: formatPKR(adv), hint: total > 0 ? `${Math.round((adv / total) * 100)}%` : undefined },
+          { label: tr('Baqi'), value: formatPKR(balance) },
         ]}
       />
 
-      {allShops && !shopId ? <BranchPicker what="Booking" /> : (
+      {allShops && !shopId ? <BranchPicker what={tr('Booking')} /> : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
-            <Card className="rounded-3xl" title={<Step n={1} icon={UserRound}>Customer</Step>} description="Booking hamesha kisi customer ke naam hoti hai — advance us ke khate me jama hota hai">
+            <Card className="rounded-3xl" title={<Step n={1} icon={UserRound}>{tr('Customer')}</Step>} description={tr('Booking hamesha kisi customer ke naam hoti hai — advance us ke khate me jama hota hai')}>
               <CustomerField value={customer} onChange={setCustomer} />
             </Card>
 
-            <Card className="rounded-3xl" title={<Step n={2} icon={Package}>Cheezen</Step>}
-              description={isCarpet ? 'Carpet ka roll ya cut piece chunein; baqi maal naam, SKU ya barcode se' : imeiOn ? 'Mobile chunne par IMEI chunein — woh is booking ke liye reserve ho jata hai' : 'Naam, SKU ya barcode likhein ya scan karein; Enter pehli cheez chun leta hai'}>
+            <Card className="rounded-3xl" title={<Step n={2} icon={Package}>{tr('Cheezen')}</Step>}
+              description={isCarpet ? tr('Carpet ka roll ya cut piece chunein; baqi maal naam, SKU ya barcode se') : imeiOn ? tr('Mobile chunne par IMEI chunein — woh is booking ke liye reserve ho jata hai') : tr('Naam, SKU ya barcode likhein ya scan karein; Enter pehli cheez chun leta hai')}>
               <div ref={itemsRef}><ProductSearch sources={sellable} byCode={byCode} loading={loading} onPick={onPick} /></div>
-              <p className="mt-1 text-[0.6875rem] text-slate-500"><Kbd>/</Kbd> se yahan aayein. Stock booking par nahi ghatta, sale par ghatta hai.</p>
+              <p className="mt-1 text-[0.6875rem] text-slate-500"><Kbd>/</Kbd> {' '}{tr('se yahan aayein. Stock booking par nahi ghatta, sale par ghatta hai.')}</p>
 
               {!lines.length ? (
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center">
                   <ShoppingCart className="mx-auto h-8 w-8 text-slate-300" />
-                  <p className="mt-2 text-sm text-slate-500">Abhi koi cheez nahi — upar se search</p>
+                  <p className="mt-2 text-sm text-slate-500">{tr('Abhi koi cheez nahi — upar se search')}</p>
                 </div>
               ) : (
                 <ul className="mt-4 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -310,25 +311,25 @@ export default function BookingFormPage() {
                         <p className="truncate font-medium text-slate-900">{l.name}</p>
                         <p className="flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-slate-500">
                           {l.tag && <span className="inline-flex items-center gap-1">{l.imeiId ? <Smartphone className="h-3 w-3" /> : <Layers className="h-3 w-3" />}{l.tag}</span>}
-                          {l.stock !== undefined && !l.locked && <span className={cn(l.quantity > l.stock && 'font-medium text-amber-700')}>Stock {qtyText(l.stock)} {l.unit}</span>}
+                          {l.stock !== undefined && !l.locked && <span className={cn(l.quantity > l.stock && 'font-medium text-amber-700')}>{tr('Stock {{stock}} {{unit}}', { stock: qtyText(l.stock), unit: l.unit })}</span>}
                         </p>
-                        <input value={l.note ?? ''} onChange={(e) => patch(l.key, { note: e.target.value || undefined })} placeholder="Note (slip par chhapta hai) — maslan: size, rang"
-                          aria-label="Line note" className="mt-1 h-8 w-full rounded-lg border border-transparent bg-slate-50 px-2 text-[0.75rem] text-slate-700 outline-none focus:border-brand-500 focus:bg-white" />
+                        <input value={l.note ?? ''} onChange={(e) => patch(l.key, { note: e.target.value || undefined })} placeholder={tr('Note (slip par chhapta hai) — maslan: size, rang')}
+                          aria-label={tr('Line note')} className="mt-1 h-8 w-full rounded-lg border border-transparent bg-slate-50 px-2 text-[0.75rem] text-slate-700 outline-none focus:border-brand-500 focus:bg-white" />
                       </div>
-                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Quantity
-                        <input type="number" inputMode="decimal" min={0} step="any" value={l.quantity} disabled={l.locked} aria-label="Quantity"
+                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">{tr('Quantity')}
+                        <input type="number" inputMode="decimal" min={0} step="any" value={l.quantity} disabled={l.locked} aria-label={tr('Quantity')}
                           onChange={(e) => patch(l.key, { quantity: Number(e.target.value) })} className={cn(cellCls, l.locked && 'bg-slate-50 text-slate-500')} />
                       </label>
-                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Rate
-                        <input type="number" inputMode="decimal" min={0} step="any" value={l.price} aria-label="Rate"
+                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">{tr('Rate')}
+                        <input type="number" inputMode="decimal" min={0} step="any" value={l.price} aria-label={tr('Rate')}
                           onChange={(e) => patch(l.key, { price: Number(e.target.value) })} className={cellCls} />
                       </label>
-                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">Discount
-                        <input type="number" inputMode="decimal" min={0} step="any" value={l.lineDiscount || ''} placeholder="0" aria-label="Line discount"
+                      <label className="text-[0.6875rem] text-slate-500 sm:text-transparent">{tr('Discount')}
+                        <input type="number" inputMode="decimal" min={0} step="any" value={l.lineDiscount || ''} placeholder="0" aria-label={tr('Line discount')}
                           onChange={(e) => patch(l.key, { lineDiscount: Number(e.target.value) || 0 })} className={cellCls} />
                       </label>
-                      <p className="self-end text-right font-semibold tabular-nums text-slate-900 sm:self-center">{formatPKR(l.price * l.quantity - (l.lineDiscount ?? 0))}</p>
-                      <button type="button" onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} aria-label="Hatayein"
+                      <p className="self-end text-end font-semibold tabular-nums text-slate-900 sm:self-center">{formatPKR(l.price * l.quantity - (l.lineDiscount ?? 0))}</p>
+                      <button type="button" onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} aria-label={tr('Hatayein')}
                         className="justify-self-end rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                     </li>
                   ))}
@@ -337,53 +338,53 @@ export default function BookingFormPage() {
             </Card>
 
             {isCarpet && (
-              <Card className="rounded-3xl" title="Service charges" description="Fitting, delivery, cutting — kul me jud jate hain">
+              <Card className="rounded-3xl" title={tr('Service charges')} description={tr('Fitting, delivery, cutting — kul me jud jate hain')}>
                 <ServiceChargesPanel charges={charges} onChange={setCharges} />
               </Card>
             )}
           </div>
 
           <div className="space-y-4">
-            <Card className="rounded-3xl" title={<Step n={3} icon={CalendarClock}>Pickup</Step>}>
+            <Card className="rounded-3xl" title={<Step n={3} icon={CalendarClock}>{tr('Pickup')}</Step>}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="bk-pickup" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Customer kab lega</label>
+                  <label htmlFor="bk-pickup" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Customer kab lega')}</label>
                   <input id="bk-pickup" type="datetime-local" value={pickup} onChange={(e) => setPickup(e.target.value)} className={inputCls} />
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {[['Aaj', 0], ['Kal', 1], ['3 din', 3], ['1 hafta', 7], ['2 hafte', 14]].map(([l, d]) => (
+                    {[[tr('Aaj'), 0], [tr('Kal'), 1], ['3 din', 3], ['1 hafta', 7], ['2 hafte', 14]].map(([l, d]) => (
                       <Chip key={l} onClick={() => pickupIn(Number(d))}>{l}</Chip>
                     ))}
                   </div>
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Upcoming list, calendar aur WhatsApp yaad dihani isi se chalti hai.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Upcoming list, calendar aur WhatsApp yaad dihani isi se chalti hai.')}</p>
                 </div>
                 <div>
-                  <label htmlFor="bk-expires" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Aakhri din (marzi)</label>
+                  <label htmlFor="bk-expires" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Aakhri din (marzi)')}</label>
                   <input id="bk-expires" type="datetime-local" value={expires} onChange={(e) => setExpires(e.target.value)} className={inputCls} />
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Is ke baad booking par laal nishan aata hai; khud cancel nahi hoti.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Is ke baad booking par laal nishan aata hai; khud cancel nahi hoti.')}</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="rounded-3xl" title={<Step n={4} icon={Wallet}>Paise</Step>}>
+            <Card className="rounded-3xl" title={<Step n={4} icon={Wallet}>{tr('Paise')}</Step>}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="bk-discount" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Bill par discount</label>
+                  <label htmlFor="bk-discount" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Bill par discount')}</label>
                   <input id="bk-discount" type="number" inputMode="decimal" min={0} step="any" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="0" className={inputCls} />
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Rupay me. Har line ki alag discount upar likhein.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Rupay me. Har line ki alag discount upar likhein.')}</p>
                 </div>
                 <div>
-                  <label htmlFor="bk-advance" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Advance abhi</label>
+                  <label htmlFor="bk-advance" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Advance abhi')}</label>
                   <input id="bk-advance" type="number" inputMode="decimal" min={0} step="any" value={advance} onChange={(e) => setAdvance(e.target.value)} placeholder="0"
                     className={cn(inputCls, 'h-12 text-lg font-semibold tabular-nums')} />
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {[0.1, 0.25, 0.5, 1].map((f) => <Chip key={f} disabled={!total} onClick={() => setAdvance(String(Math.round(total * f)))}>{f === 1 ? 'Poora' : `${f * 100}%`}</Chip>)}
+                    {[0.1, 0.25, 0.5, 1].map((f) => <Chip key={f} disabled={!total} onClick={() => setAdvance(String(Math.round(total * f)))}>{f === 1 ? tr('Poora') : `${f * 100}%`}</Chip>)}
                   </div>
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Customer ke khate me jama hota hai; sale par bill me lag jata hai.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Customer ke khate me jama hota hai; sale par bill me lag jata hai.')}</p>
                 </div>
                 {adv > 0 && (
                   <div>
-                    <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Advance kaise diya</p>
-                    <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Kaise diya">
+                    <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{tr('Advance kaise diya')}</p>
+                    <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={tr('Kaise diya')}>
                       {POS_PAYMENT_METHODS.map((m) => (
                         <button key={m.id} type="button" role="radio" aria-checked={method === m.id} onClick={() => setMethod(m.id as PaymentMethod)}
                           className={cn('inline-flex h-9 items-center justify-center gap-1 rounded-xl text-[0.75rem] font-medium ring-1 transition',
@@ -395,30 +396,30 @@ export default function BookingFormPage() {
                   </div>
                 )}
                 <dl className="space-y-1 rounded-2xl bg-slate-50 p-3 text-[0.8125rem] ring-1 ring-slate-200">
-                  <Row k="Cheezon ka jor" v={formatPKR(subtotal)} />
-                  {lineOff + billOff > 0 && <Row k="Discount" v={`−${formatPKR(lineOff + billOff)}`} />}
-                  {svc > 0 && <Row k="Service charges" v={`+${formatPKR(svc)}`} />}
-                  <Row k="Kul" v={formatPKR(total)} strong />
-                  <Row k="Advance" v={formatPKR(adv)} />
-                  <Row k="Baqi (pickup par)" v={formatPKR(balance)} />
-                  {cost > 0 && <Row k="Andaazan profit" v={costHidden ? costText(profit) : formatPKR(profit)} />}
+                  <Row k={tr('Cheezon ka jor')} v={formatPKR(subtotal)} />
+                  {lineOff + billOff > 0 && <Row k={tr('Discount')} v={`−${formatPKR(lineOff + billOff)}`} />}
+                  {svc > 0 && <Row k={tr('Service charges')} v={`+${formatPKR(svc)}`} />}
+                  <Row k={tr('Kul')} v={formatPKR(total)} strong />
+                  <Row k={tr('Advance')} v={formatPKR(adv)} />
+                  <Row k={tr('Baqi (pickup par)')} v={formatPKR(balance)} />
+                  {cost > 0 && <Row k={tr('Andaazan profit')} v={costHidden ? costText(profit) : formatPKR(profit)} />}
                 </dl>
               </div>
             </Card>
 
-            <Card className="rounded-3xl" title={<span className="inline-flex items-center gap-2"><StickyNote className="h-4 w-4 text-amber-500" />Notes</span>}>
+            <Card className="rounded-3xl" title={<span className="inline-flex items-center gap-2"><StickyNote className="h-4 w-4 text-amber-500" />{tr('Notes')}</span>}>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="bk-notes" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Customer ke liye</label>
-                  <textarea id="bk-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={2000} placeholder="Maslan: naap, rang, design"
+                  <label htmlFor="bk-notes" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Customer ke liye')}</label>
+                  <textarea id="bk-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={2000} placeholder={tr('Maslan: naap, rang, design')}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Booking slip par chhapta hai.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Booking slip par chhapta hai.')}</p>
                 </div>
                 <div>
-                  <label htmlFor="bk-internal" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Team ke liye</label>
-                  <textarea id="bk-internal" value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} rows={2} maxLength={2000} placeholder="Maslan: supplier se mangwana hai"
+                  <label htmlFor="bk-internal" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Team ke liye')}</label>
+                  <textarea id="bk-internal" value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} rows={2} maxLength={2000} placeholder={tr('Maslan: supplier se mangwana hai')}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-                  <p className="mt-1 text-[0.6875rem] text-slate-500">Sirf staff ko dikhta hai, slip par nahi.</p>
+                  <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Sirf staff ko dikhta hai, slip par nahi.')}</p>
                 </div>
               </div>
             </Card>
@@ -431,9 +432,9 @@ export default function BookingFormPage() {
             )}
 
             <Button size="lg" fullWidth loading={save.isPending} disabled={issues.length > 0} onClick={submit} leftIcon={<BookmarkPlus className="h-4 w-4" />}>
-              Booking banayein {adv > 0 ? `· ${formatPKR(adv)} advance` : ''}
+              {tr('Booking banayein {{value}}', { value: adv > 0 ? tr('· {{adv}} advance', { adv: formatPKR(adv) }) : '' })}
             </Button>
-            <p className="text-center text-[0.6875rem] text-slate-500"><Kbd>Ctrl</Kbd> + <Kbd>Enter</Kbd> se bhi save</p>
+            <p className="text-center text-[0.6875rem] text-slate-500"><Kbd>Ctrl</Kbd> + <Kbd>Enter</Kbd> {' '}{tr('se bhi save')}</p>
           </div>
         </div>
       )}
@@ -450,19 +451,19 @@ export default function BookingFormPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Nayi booking — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Nayi booking — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#2563eb', title: '1. Customer', text: 'Naam ya phone likh kar chunein. Naya ho to "Naya customer" se wahin bana lein.' },
-            { icon: Package, color: '#7c3aed', title: '2. Cheezen', text: 'Naam, SKU ya barcode likhein ya scan karein. Type (size/rang), IMEI aur carpet roll ke liye picker khud khulta hai.' },
-            { icon: CalendarClock, color: '#d97706', title: '3. Pickup', text: 'Customer kab lega — Aaj, Kal, 3 din, hafta. Isi se yaad dihani aur calendar chalte hain.' },
-            { icon: Wallet, color: '#16a34a', title: '4. Advance', text: 'Jitna advance mila likhein (10%, 25%, 50% ke buttons). Baqi pickup par.' },
+            { icon: UserRound, color: '#2563eb', title: tr('1. Customer'), text: tr('Naam ya phone likh kar chunein. Naya ho to "Naya customer" se wahin bana lein.') },
+            { icon: Package, color: '#7c3aed', title: tr('2. Cheezen'), text: tr('Naam, SKU ya barcode likhein ya scan karein. Type (size/rang), IMEI aur carpet roll ke liye picker khud khulta hai.') },
+            { icon: CalendarClock, color: '#d97706', title: tr('3. Pickup'), text: tr('Customer kab lega — Aaj, Kal, 3 din, hafta. Isi se yaad dihani aur calendar chalte hain.') },
+            { icon: Wallet, color: '#16a34a', title: tr('4. Advance'), text: tr('Jitna advance mila likhein (10%, 25%, 50% ke buttons). Baqi pickup par.') },
           ]}
           tips={[
-            'Booking par stock nahi ghatta — sale par ghatta hai. Stock kam ho to peela nishan aata hai.',
-            'IMEI aur cut piece booking ke liye reserve ho jate hain; counter par nahi bikte.',
-            'Line ka note slip par chhapta hai; team note sirf staff ke liye.',
+            tr('Booking par stock nahi ghatta — sale par ghatta hai. Stock kam ho to peela nishan aata hai.'),
+            tr('IMEI aur cut piece booking ke liye reserve ho jate hain; counter par nahi bikte.'),
+            tr('Line ka note slip par chhapta hai; team note sirf staff ke liye.'),
           ]}
-          shortcuts={[['/', 'cheez search'], ['Ctrl+Enter', 'save'], ['G', 'guide']]}
+          shortcuts={[['/', tr('cheez search')], ['Ctrl+Enter', tr('save')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -519,11 +520,11 @@ function CustomerField({ value, onChange }: { value: PickedCustomer | null; onCh
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-slate-900">{value.name}</p>
           <p className="text-[0.75rem] text-slate-600">
-            {value.phone || 'Phone nahi'}
-            {value.balance ? <> · Khata: <b className={value.balance > 0 ? 'text-rose-700' : 'text-emerald-700'}>{value.balance > 0 ? `${formatPKR(value.balance)} dena` : `${formatPKR(-value.balance)} jama`}</b></> : null}
+            {value.phone || tr('Phone nahi')}
+            {value.balance ? <> {' '}{tr('· Khata:')}{' '} <b className={value.balance > 0 ? 'text-rose-700' : 'text-emerald-700'}>{value.balance > 0 ? tr('{{balance}} dena', { balance: formatPKR(value.balance) }) : tr('{{formatPKR}} jama', { formatPKR: formatPKR(-value.balance) })}</b></> : null}
           </p>
         </div>
-        <Button size="sm" variant="ghost" onClick={() => onChange(null)}>Badlein</Button>
+        <Button size="sm" variant="ghost" onClick={() => onChange(null)}>{tr('Badlein')}</Button>
       </div>
     );
   }
@@ -532,30 +533,30 @@ function CustomerField({ value, onChange }: { value: PickedCustomer | null; onCh
     <div className="relative">
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={text} autoFocus aria-label="Customer search" placeholder="Naam ya phone…"
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input value={text} autoFocus aria-label={tr('Customer search')} placeholder={tr('Naam ya phone…')}
             onChange={(e) => { setText(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 150)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, rows.length - 1)); }
               else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(h - 1, 0)); }
               else if (e.key === 'Enter' && rows[hi]) { e.preventDefault(); pick(rows[hi]); }
             }}
-            className={cn(inputCls, 'pl-9')} />
+            className={cn(inputCls, 'ps-9')} />
         </div>
-        <Button variant="secondary" className="h-11" onClick={() => setAdding(true)} leftIcon={<UserPlus className="h-4 w-4" />}><span className="hidden sm:inline">Naya customer</span></Button>
+        <Button variant="secondary" className="h-11" onClick={() => setAdding(true)} leftIcon={<UserPlus className="h-4 w-4" />}><span className="hidden sm:inline">{tr('Naya customer')}</span></Button>
       </div>
-      <p className="mt-1 text-[0.6875rem] text-slate-500">↑ ↓ se chunein, Enter se pakka karein. Har branch ke customer milte hain.</p>
+      <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('↑ ↓ se chunein, Enter se pakka karein. Har branch ke customer milte hain.')}</p>
       {open && (
         <div className="absolute inset-x-0 top-12 z-30 max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
-          {q.isLoading ? <p className="p-4 text-center text-sm text-slate-500">Dhoond rahe hain…</p>
+          {q.isLoading ? <p className="p-4 text-center text-sm text-slate-500">{tr('Dhoond rahe hain…')}</p>
             : !rows.length ? (
               <div className="p-4 text-center text-sm text-slate-500">
-                Koi customer nahi mila.{' '}
-                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setAdding(true)} className="font-medium text-brand-700 underline">Naya banayein</button>
+                {tr('Koi customer nahi mila.')}{' '}
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setAdding(true)} className="font-medium text-brand-700 underline">{tr('Naya banayein')}</button>
               </div>
             ) : rows.map((c, i) => (
               <button key={c.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(c)} onMouseEnter={() => setHi(i)}
-                className={cn('flex w-full items-center justify-between gap-3 border-b border-slate-100 px-3 py-2 text-left last:border-0', i === hi && 'bg-slate-50')}>
+                className={cn('flex w-full items-center justify-between gap-3 border-b border-slate-100 px-3 py-2 text-start last:border-0', i === hi && 'bg-slate-50')}>
                 <span className="min-w-0"><span className="block truncate text-sm font-medium text-slate-900">{c.name}</span><span className="block text-[0.75rem] text-slate-500">{c.phone || '—'}</span></span>
                 {!!c.balance && <span className={cn('shrink-0 text-[0.75rem] tabular-nums', c.balance > 0 ? 'text-rose-700' : 'text-emerald-700')}>{formatPKR(Math.abs(c.balance))} {c.balance > 0 ? 'dena' : 'jama'}</span>}
               </button>
@@ -574,28 +575,28 @@ function AddCustomer({ initial, onClose, onDone }: { initial: string; onClose: (
   const add = useMutation({
     mutationFn: () => customersApi.create({ name: name.trim(), phone: phone.trim() || undefined }),
     onSuccess: (c) => {
-      if (isTempId(c.id)) { toast.error('Internet nahi — naya customer booking ke liye online banana zaroori hai'); return; }
-      toast.success(`${c.name} ban gaya`);
+      if (isTempId(c.id)) { toast.error(tr('Internet nahi — naya customer booking ke liye online banana zaroori hai')); return; }
+      toast.success(tr('{{name}} ban gaya', { name: c.name }));
       onDone(c);
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Customer nahi bana')),
+    onError: (e) => toast.error(apiError(e, tr('Customer nahi bana'))),
   });
   return (
-    <Modal open onClose={onClose} size="sm" title="Naya customer" description="Sirf naam zaroori hai; phone ho to WhatsApp yaad dihani ja sakti hai"
+    <Modal open onClose={onClose} size="sm" title={tr('Naya customer')} description={tr('Sirf naam zaroori hai; phone ho to WhatsApp yaad dihani ja sakti hai')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={add.isPending} disabled={!name.trim()} onClick={() => add.mutate()} leftIcon={<UserPlus className="h-4 w-4" />}>Banayein</Button>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={add.isPending} disabled={!name.trim()} onClick={() => add.mutate()} leftIcon={<UserPlus className="h-4 w-4" />}>{tr('Banayein')}</Button>
       </>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (name.trim() && !add.isPending) add.mutate(); }}>
         <div>
-          <label htmlFor="nc-name" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Naam</label>
-          <input id="nc-name" value={name} onChange={(e) => setName(e.target.value)} data-autofocus className={inputCls} placeholder="Customer ka naam" />
+          <label htmlFor="nc-name" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Naam')}</label>
+          <input id="nc-name" value={name} onChange={(e) => setName(e.target.value)} data-autofocus className={inputCls} placeholder={tr('Customer ka naam')} />
         </div>
         <div>
-          <label htmlFor="nc-phone" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Phone</label>
-          <input id="nc-phone" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputCls} placeholder="03XX XXXXXXX" />
-          <p className="mt-1 text-[0.6875rem] text-slate-500">Marzi hai, magar is ke bagair WhatsApp nahi ja sakta.</p>
+          <label htmlFor="nc-phone" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Phone')}</label>
+          <input id="nc-phone" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputCls} placeholder={tr('03XX XXXXXXX')} />
+          <p className="mt-1 text-[0.6875rem] text-slate-500">{tr('Marzi hai, magar is ke bagair WhatsApp nahi ja sakta.')}</p>
         </div>
         <button type="submit" hidden />
       </form>

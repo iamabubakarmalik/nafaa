@@ -15,6 +15,7 @@ import { splitPacks } from '../helpers/logistics';
 import {
   assertUser, customerCards, dayRange, dayStart, nextNumber, parseWhen, r2, r4, routeNames, shopNames, todayKey, userNames,
 } from '../distribution.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class LoadSheetsService {
@@ -92,7 +93,7 @@ export class LoadSheetsService {
   async update(user: AuthenticatedUser, id: string, dto: UpdateLoadSheetDto) {
     const tenantId = user.tenantId;
     const sheet = await this.sheet(tenantId, id);
-    if (sheet.status === 'SETTLED' || sheet.status === 'CANCELLED') throw new BadRequestException(`${sheet.status} load sheet badli nahi ja sakti`);
+    if (sheet.status === 'SETTLED' || sheet.status === 'CANCELLED') throw new BadRequestException(apiMessage('{{sheetStatus}} load sheet badli nahi ja sakti', { sheetStatus: sheet.status }));
     if (dto.deliveryUserId) await assertUser(this.prisma, tenantId, dto.deliveryUserId, 'Delivery user');
     await this.prisma.loadSheet.update({
       where: { id },
@@ -136,7 +137,7 @@ export class LoadSheetsService {
 
   async dispatch(user: AuthenticatedUser, id: string) {
     const sheet = await this.sheet(user.tenantId, id);
-    if (sheet.status !== 'OPEN') throw new BadRequestException(`${sheet.status} load sheet dispatch nahi ho sakti`);
+    if (sheet.status !== 'OPEN') throw new BadRequestException(apiMessage('{{sheetStatus}} load sheet dispatch nahi ho sakti', { sheetStatus: sheet.status }));
     if (!sheet.invoiceCount) throw new BadRequestException('Load sheet khali hai');
     await this.prisma.loadSheet.update({ where: { id }, data: { status: 'DISPATCHED', dispatchedAt: new Date() } });
     return this.get(user, id);
@@ -271,7 +272,7 @@ export class LoadSheetsService {
     });
     if (orders.length !== unique.length) throw new BadRequestException('Kuch Orders nahi mile');
     const bad = orders.find((o) => o.status !== 'INVOICED' || o.loadSheetId);
-    if (bad) throw new BadRequestException(`Order ${bad.orderNumber} (${bad.status}) load nahi ho sakta — sirf INVOICED Orders jo kisi sheet par na hon`);
+    if (bad) throw new BadRequestException(apiMessage('Order {{orderNumber}} ({{badStatus}}) load nahi ho sakta — sirf INVOICED Orders jo kisi sheet par na hon', { orderNumber: bad.orderNumber, badStatus: bad.status }));
     if (shopId && orders.some((o) => o.shopId !== shopId)) throw new BadRequestException('Is load sheet ke godown ke Orders hi jor sakte hain');
     return orders;
   }

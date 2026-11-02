@@ -5,6 +5,7 @@ import { InitiateEasypaisaDto } from './dto/initiate-easypaisa.dto';
 import { VerifyEasypaisaDto } from './dto/verify-easypaisa.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Easypaisa Payment Gateway integration (Telenor Microfinance Bank)
@@ -101,7 +102,7 @@ export class EasypaisaService {
       return { success: isSuccess, orderRefNum, ...data };
     } catch (e: any) {
       this.logger.error(`Easypaisa MA failed: ${e.message}`);
-      throw new BadRequestException('Payment error: ' + e.message);
+      throw new BadRequestException(apiMessage('Payment error: {{eMessage}}', { eMessage: e.message }));
     }
   }
 
@@ -136,7 +137,7 @@ export class EasypaisaService {
       };
     } catch (e: any) {
       this.logger.error(`Easypaisa OTC failed: ${e.message}`);
-      throw new BadRequestException('Payment error: ' + e.message);
+      throw new BadRequestException(apiMessage('Payment error: {{eMessage}}', { eMessage: e.message }));
     }
   }
 
@@ -161,7 +162,7 @@ export class EasypaisaService {
       return { success: data.responseCode === '0000', ...data };
     } catch (e: any) {
       this.logger.error(`Easypaisa verify failed: ${e.message}`);
-      throw new BadRequestException('Verify failed: ' + e.message);
+      throw new BadRequestException(apiMessage('Verify failed: {{eMessage}}', { eMessage: e.message }));
     }
   }
 

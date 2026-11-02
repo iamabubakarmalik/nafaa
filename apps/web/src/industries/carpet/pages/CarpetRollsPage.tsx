@@ -29,18 +29,19 @@ import { useDebounced, usePageKeys } from '../hooks/usePageKeys';
 import { RollFormModal } from '../components/RollFormModal';
 import { settleAll, useUnsettledBills } from '../pos/PendingCuts';
 import { PIECES_KEY, ROLLS_KEY, ROLL_STATUS, SUMMARY_KEY, ftIn, r2, realFt } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'stock' | 'low' | 'reserved' | 'finished' | 'damaged' | 'all';
 const LIMIT = 25;
 const LOW_FT = 10;
 
 const TABS: Array<{ id: Tab; label: string; icon: typeof Layers }> = [
-  { id: 'stock', label: 'Chalu', icon: Layers },
-  { id: 'low', label: `Kam bache (${LOW_FT}ft)`, icon: AlertTriangle },
-  { id: 'reserved', label: 'Reserved', icon: Lock },
-  { id: 'finished', label: 'Khatam', icon: CheckCircle2 },
-  { id: 'damaged', label: 'Damage', icon: Ban },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'stock', label: tr('Chalu'), icon: Layers },
+  { id: 'low', label: tr('Kam bache ({{LOW_FT}}ft)', { LOW_FT }), icon: AlertTriangle },
+  { id: 'reserved', label: tr('Reserved'), icon: Lock },
+  { id: 'finished', label: tr('Khatam'), icon: CheckCircle2 },
+  { id: 'damaged', label: tr('Damage'), icon: Ban },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 
 const tabParams = (t: Tab): Partial<CarpetRollsListParams> =>
@@ -97,8 +98,8 @@ export default function CarpetRollsPage() {
     const failed = await settleAll(unsettled.map((b) => b.saleId));
     setSettling(false);
     refresh();
-    if (failed) toast.error(`${failed} line nahi kati — roll number ya lambai check karein (bill khol kar dekhein)`);
-    else toast.success('Sab bills ka carpet stock se kat gaya');
+    if (failed) toast.error(tr('{{failed}} line nahi kati — roll number ya lambai check karein (bill khol kar dekhein)', { failed }));
+    else toast.success(tr('Sab bills ka carpet stock se kat gaya'));
   };
 
   const row = (r: CarpetRoll) => [r.rollNumber, r.product?.name ?? '', r.variant?.name ?? '', ftIn(r.widthFt, r.widthInch), ftIn(r.originalLengthFt, r.originalLengthInch),
@@ -107,10 +108,10 @@ export default function CarpetRollsPage() {
     setExporting(true);
     try {
       const rows = await fetchAll(query);
-      if (!rows.length) { toast.error('Is filter me koi roll nahi'); return; }
+      if (!rows.length) { toast.error(tr('Is filter me koi roll nahi')); return; }
       downloadCsv('carpet-rolls.csv', [['Roll', 'Carpet', 'Design', 'Chaurai', 'Asal lambai', 'Bachi lambai', 'Sqft bacha', 'Cost/sqft', 'Rate/sqft', 'Rack', 'Status'], ...rows.map(row)]);
-      toast.success(`${rows.length} roll CSV me`);
-    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+      toast.success(tr('{{count}} roll CSV me', { count: rows.length }));
+    } catch { toast.error(tr('Export nahi hua')); } finally { setExporting(false); }
   };
   const printDoc = async (): Promise<PrintDoc> => {
     const rows = await fetchAll(query);
@@ -134,64 +135,64 @@ export default function CarpetRollsPage() {
   return (
     <PageShell>
       {guide.isOpen && (
-        <PageGuide title="Carpet rolls — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Carpet rolls — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Layers, color: '#059669', title: 'Roll kahan se aata hai', text: 'Supplier se aaya roll Purchase se daalein (payment bhi likhi jati hai). Dukaan me pehle se para roll "Naya roll" ya Import se.' },
-            { icon: Scissors, color: '#7c3aed', title: 'Counter par kaatna', text: 'POS par carpet chunein, roll aur naap likhein. Bill ke baad roll khud kat jata hai aur bachi patti tukra ban jati hai.' },
-            { icon: Ruler, color: '#0891b2', title: 'Naap galat ho', text: 'Roll kholein → Adjust. Har kami / zyadti ki wajah likhi jati hai. Roll khatam ho to "Khatam" — bacha hissa waste me jata hai.' },
-            { icon: AlertTriangle, color: '#d97706', title: 'Kaatna baqi', text: 'Internet ke bagair ya booking se bana bill upar peeli patti me aata hai — "Ab kaatein" dabayein.' },
+            { icon: Layers, color: '#059669', title: tr('Roll kahan se aata hai'), text: tr('Supplier se aaya roll Purchase se daalein (payment bhi likhi jati hai). Dukaan me pehle se para roll "Naya roll" ya Import se.') },
+            { icon: Scissors, color: '#7c3aed', title: tr('Counter par kaatna'), text: tr('POS par carpet chunein, roll aur naap likhein. Bill ke baad roll khud kat jata hai aur bachi patti tukra ban jati hai.') },
+            { icon: Ruler, color: '#0891b2', title: tr('Naap galat ho'), text: tr('Roll kholein → Adjust. Har kami / zyadti ki wajah likhi jati hai. Roll khatam ho to "Khatam" — bacha hissa waste me jata hai.') },
+            { icon: AlertTriangle, color: '#d97706', title: tr('Kaatna baqi'), text: tr('Internet ke bagair ya booking se bana bill upar peeli patti me aata hai — "Ab kaatein" dabayein.') },
           ]}
-          shortcuts={[['/', 'search'], ['N', 'naya roll'], ['I', 'import'], ['G', 'guide']]} />
+          shortcuts={[['/', 'search'], ['N', tr('naya roll')], ['I', 'import'], ['G', 'guide']]} />
       )}
 
-      <PageHero title="Carpet rolls" chip={<><Layers />{TABS.find((t) => t.id === tab)?.label}</>} busy={isFetching && !isLoading} loading={!stats}
-        meta="Har roll ki bachi lambai, sqft, rate aur jagah"
+      <PageHero title={tr('Carpet rolls')} chip={<><Layers />{TABS.find((t) => t.id === tab)?.label}</>} busy={isFetching && !isLoading} loading={!stats}
+        meta={tr('Har roll ki bachi lambai, sqft, rate aur jagah')}
         actions={<>
-          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <Link to="/carpet-cut-pieces" className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">Tukre</span></Link>
-          {canAdd && <Link to="/carpet-bulk-import" className={heroButton}><Upload className="h-4 w-4" /><span className="hidden sm:inline">Import</span></Link>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canAdd && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya roll</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
+          <Link to="/carpet-cut-pieces" className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">{tr('Tukre')}</span></Link>
+          {canAdd && <Link to="/carpet-bulk-import" className={heroButton}><Upload className="h-4 w-4" /><span className="hidden sm:inline">{tr('Import')}</span></Link>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canAdd && <button type="button" onClick={() => setAdding(true)} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya roll')}</button>}
         </>}
         stats={[
-          { label: 'Chalu rolls', value: String(stats?.inStockRolls ?? 0) },
-          { label: 'Sqft rolls me', value: Math.round(stats?.sqft ?? 0).toLocaleString('en-PK') },
-          { label: 'Stock ki cost', value: cost(stats?.costValue ?? 0) },
+          { label: tr('Chalu rolls'), value: String(stats?.inStockRolls ?? 0) },
+          { label: tr('Sqft rolls me'), value: Math.round(stats?.sqft ?? 0).toLocaleString('en-PK') },
+          { label: tr('Stock ki cost'), value: cost(stats?.costValue ?? 0) },
         ]} />
 
       {unsettled.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <div className="min-w-0 flex-1 text-[0.875rem]">
-            <p className="font-semibold">{unsettled.length} bill ka carpet abhi stock se nahi kata</p>
+            <p className="font-semibold">{tr('{{count}} bill ka carpet abhi stock se nahi kata', { count: unsettled.length })}</p>
             <p className="truncate text-[0.8125rem]">{unsettled.slice(0, 4).map((b) => `${b.saleNumber}${b.customerName ? ` (${b.customerName})` : ''}`).join(', ')}{unsettled.length > 4 ? '…' : ''}</p>
           </div>
-          <button type="button" disabled={settling} onClick={() => void settle()} className="h-9 rounded-xl bg-amber-600 px-4 text-[0.875rem] font-semibold text-white disabled:opacity-50">{settling ? 'Kat raha…' : 'Ab kaatein'}</button>
+          <button type="button" disabled={settling} onClick={() => void settle()} className="h-9 rounded-xl bg-amber-600 px-4 text-[0.875rem] font-semibold text-white disabled:opacity-50">{settling ? tr('Kat raha…') : tr('Ab kaatein')}</button>
         </div>
       )}
 
       <KpiRow cols={5}>
         {!stats ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={Layers} color="#059669" label="Chalu rolls" value={stats.inStockRolls} hint={`${Math.round(stats.lengthFt)} ft lambai`} onClick={() => go('stock')} active={tab === 'stock'} />
-            <KpiCard icon={AlertTriangle} color="#d97706" label="Kam bache" value={stats.counts.low} hint={`${LOW_FT}ft ya kam`} onClick={() => go('low')} active={tab === 'low'} />
-            <KpiCard icon={Ruler} color="#0891b2" label="Bechne par" value={money(stats.saleValue)} hint="Chalu rolls, roll ke rate par" />
-            <KpiCard icon={Scissors} color="#7c3aed" label="Tukre" value={stats.pieces.count} hint={`${Math.round(stats.pieces.sqft)} sqft`} onClick={() => navigate('/carpet-cut-pieces')} />
-            <KpiCard icon={Ban} color="#e11d48" label="Damage" value={stats.counts.damaged} onClick={() => go('damaged')} active={tab === 'damaged'} />
+            <KpiCard icon={Layers} color="#059669" label={tr('Chalu rolls')} value={stats.inStockRolls} hint={tr('{{lengthFt}} ft lambai', { lengthFt: Math.round(stats.lengthFt) })} onClick={() => go('stock')} active={tab === 'stock'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label={tr('Kam bache')} value={stats.counts.low} hint={tr('{{LOW_FT}}ft ya kam', { LOW_FT })} onClick={() => go('low')} active={tab === 'low'} />
+            <KpiCard icon={Ruler} color="#0891b2" label={tr('Bechne par')} value={money(stats.saleValue)} hint={tr('Chalu rolls, roll ke rate par')} />
+            <KpiCard icon={Scissors} color="#7c3aed" label={tr('Tukre')} value={stats.pieces.count} hint={tr('{{sqft}} sqft', { sqft: Math.round(stats.pieces.sqft) })} onClick={() => navigate('/carpet-cut-pieces')} />
+            <KpiCard icon={Ban} color="#e11d48" label={tr('Damage')} value={stats.counts.damaged} onClick={() => go('damaged')} active={tab === 'damaged'} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Roll number, carpet, design, rack…" />}
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder={tr('Roll number, carpet, design, rack…')} />}
         chips={search.trim() || productId ? <>
-          {productId && <FilterChip onRemove={() => { params.delete('productId'); setParams(params); }}>Ek carpet{items[0]?.product?.name ? `: ${items[0].product.name}` : ''}</FilterChip>}
+          {productId && <FilterChip onRemove={() => { params.delete('productId'); setParams(params); }}>{tr('Ek carpet{{value}}', { value: items[0]?.product?.name ? `: ${items[0].product.name}` : '' })}</FilterChip>}
           {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); if (productId) { params.delete('productId'); setParams(params); } }} />
 
-      <ViewTabs value={tab} onChange={go} hint="Roll par click kar ke kholein" tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: counts[t.id] }))} />
+      <ViewTabs value={tab} onChange={go} hint={tr('Roll par click kar ke kholein')} tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, count: counts[t.id] }))} />
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {isLoading ? (
@@ -199,11 +200,11 @@ export default function CarpetRollsPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Layers className="h-7 w-7" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'stock' || productId ? 'Is filter me koi roll nahi' : 'Abhi koi roll nahi'}</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">Supplier se roll Purchase se daalein, ya dukaan ka para roll "Naya roll" se.</p>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{search || tab !== 'stock' || productId ? tr('Is filter me koi roll nahi') : tr('Abhi koi roll nahi')}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Supplier se roll Purchase se daalein, ya dukaan ka para roll "Naya roll" se.')}</p>
             <div className="mt-4 flex gap-2">
-              <Link to="/purchases/new" className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200">Purchase</Link>
-              {canAdd && <button type="button" onClick={() => setAdding(true)} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />Naya roll</button>}
+              <Link to="/purchases/new" className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold text-slate-700 ring-1 ring-slate-200">{tr('Purchase')}</Link>
+              {canAdd && <button type="button" onClick={() => setAdding(true)} className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-brand-fg"><Plus className="h-4 w-4" />{tr('Naya roll')}</button>}
             </div>
           </div>
         ) : (
@@ -216,17 +217,17 @@ export default function CarpetRollsPage() {
                   <Link to={`/carpet-rolls/${r.id}`} className="grid gap-2 px-4 py-3 hover:bg-slate-50 sm:px-5 lg:grid-cols-[10rem_minmax(0,1.3fr)_minmax(0,1.4fr)_8rem_8rem] lg:items-center">
                     <div>
                       <p className="font-mono text-[0.8125rem] font-semibold text-slate-900">{r.rollNumber}</p>
-                      <p className="text-[0.75rem] text-slate-500">{r.rackNumber ? `Rack ${r.rackNumber}` : 'Rack nahi likha'}</p>
+                      <p className="text-[0.75rem] text-slate-500">{r.rackNumber ? tr('Rack {{rackNumber}}', { rackNumber: r.rackNumber }) : tr('Rack nahi likha')}</p>
                     </div>
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-slate-900">{r.product?.name}</p>
                       <p className="flex items-center gap-1.5 truncate text-[0.75rem] text-slate-500">{r.variant?.colorHex && <span className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10" style={{ background: r.variant.colorHex }} />}{[r.variant?.name, r.designCode, r.quality].filter(Boolean).join(' · ') || '—'}</p>
                     </div>
                     <div className="min-w-0 text-[0.8125rem]">
-                      <p className="tabular-nums text-slate-700">{ftIn(r.widthFt, r.widthInch)} × <b>{ftIn(r.remainingLengthFt, r.remainingLengthInch)}</b> bacha · {r2(r.remainingSqft)} sqft</p>
+                      <p className="tabular-nums text-slate-700">{ftIn(r.widthFt, r.widthInch)} × <b>{ftIn(r.remainingLengthFt, r.remainingLengthInch)}</b> {' '}{tr('bacha · {{remainingSqft}} sqft', { remainingSqft: r2(r.remainingSqft) })}</p>
                       <div className="mt-1 h-1.5 w-full max-w-[16rem] overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', pct > 90 ? 'bg-rose-500' : pct > 60 ? 'bg-amber-500' : 'bg-emerald-500')} style={{ width: `${pct}%` }} /></div>
                     </div>
-                    <p className="text-[0.8125rem] tabular-nums text-slate-700 lg:text-right">{money(r.salePricePerSqft)}<span className="text-slate-400">/sqft</span></p>
+                    <p className="text-[0.8125rem] tabular-nums text-slate-700 lg:text-end">{money(r.salePricePerSqft)}<span className="text-slate-400">/sqft</span></p>
                     <span className={cn('w-fit rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 lg:justify-self-end', st.tone)}>{st.label}</span>
                   </Link>
                 </li>
@@ -238,8 +239,8 @@ export default function CarpetRollsPage() {
           <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
             <span>{(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} / {total}</span>
             <div className="flex gap-2">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
-              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Pichla')}</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">{tr('Agla')}</button>
             </div>
           </footer>
         )}

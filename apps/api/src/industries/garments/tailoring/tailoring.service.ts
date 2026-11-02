@@ -20,6 +20,7 @@ import {
   DAY_MS, findBill, garmentClock, ownCustomer, ownProduct, opt, paging, parseDay, payStatus, personNames, r2, withNextNumber,
 } from '../common/garments-common';
 import { AddPaymentDto, CreateTailoringOrderDto, UpdateOrderStatusDto, UpdateTailoringOrderDto } from './dto/create-tailoring-order.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 type ItemInput = CreateTailoringOrderDto['items'][number];
@@ -81,7 +82,7 @@ export class TailoringService {
       if (!it.garmentName?.trim()) throw new BadRequestException('Har kapre ka naam likhein');
       if (opt(it.fabricProductId)) {
         await ownProduct(this.prisma as unknown as Db, user, it.fabricProductId!, opt(it.fabricVariantId));
-        if (!(Number(it.fabricMeters) > 0)) throw new BadRequestException(`"${it.garmentName}" — dukaan ka kapra kitne meter lagega, likhein`);
+        if (!(Number(it.fabricMeters) > 0)) throw new BadRequestException(apiMessage('"{{garmentName}}" — dukaan ka kapra kitne meter lagega, likhein', { garmentName: it.garmentName }));
       }
     }
     return { customer, snapshot };
@@ -98,7 +99,7 @@ export class TailoringService {
     if (discount > totals.subtotal + tax) throw new BadRequestException('Discount kul amount se zyada nahi ho sakta');
     const total = r2(Math.max(totals.subtotal + tax - discount, 0));
     const advance = r2(dto.advanceAmount ?? 0);
-    if (advance > total + 0.01) throw new BadRequestException(`Advance kul amount (Rs ${total}) se zyada nahi ho sakta`);
+    if (advance > total + 0.01) throw new BadRequestException(apiMessage('Advance kul amount (Rs {{total}}) se zyada nahi ho sakta', { total }));
     const promisedDate = parseDay(clock, dto.promisedDate);
     const shopId = await resolveIndustryShopId(this.prisma as unknown as Db, user, dto.shopId || activeShopId);
 
@@ -303,7 +304,7 @@ export class TailoringService {
   async update(user: AuthenticatedUser, id: string, dto: UpdateTailoringOrderDto) {
     const order = await this.prisma.garmentTailoringOrder.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!order) throw new NotFoundException('Order nahi mila');
-    if (CLOSED.includes(order.orderStatus)) throw new BadRequestException(`Order ${order.orderNumber} band ho chuka — badla nahi ja sakta`);
+    if (CLOSED.includes(order.orderStatus)) throw new BadRequestException(apiMessage('Order {{orderNumber}} band ho chuka — badla nahi ja sakta', { orderNumber: order.orderNumber }));
     const clock = await garmentClock(this.tz, user.tenantId);
     const customerId = dto.customerId !== undefined ? opt(dto.customerId) ?? null : order.customerId;
     if (order.customerId && customerId !== order.customerId && Number(order.paidAmount) > 0) {
@@ -346,7 +347,7 @@ export class TailoringService {
         if (discount > totals.subtotal + tax) throw new BadRequestException('Discount kul amount se zyada nahi ho sakta');
         const total = r2(Math.max(totals.subtotal + tax - discount, 0));
         if (total + 0.01 < Number(order.paidAmount)) {
-          throw new BadRequestException(`Rs ${r2(order.paidAmount)} pehle mil chuke — kul amount is se kam nahi ho sakti`);
+          throw new BadRequestException(apiMessage('Rs {{paidAmount}} pehle mil chuke — kul amount is se kam nahi ho sakti', { paidAmount: r2(order.paidAmount) }));
         }
         if (dto.items) {
           // Lines of an open order are a draft of the bill; they are rewritten as a whole.
@@ -373,7 +374,9 @@ export class TailoringService {
     });
     if (!order) throw new NotFoundException('Order nahi mila');
     if (CLOSED.includes(order.orderStatus) && dto.status !== order.orderStatus) {
-      throw new BadRequestException(`Order ${order.orderNumber} pehle hi ${order.orderStatus === 'DELIVERED' ? 'deliver' : 'cancel'} ho chuka hai`);
+      throw new BadRequestException(order.orderStatus === 'DELIVERED'
+        ? apiMessage('Order {{orderNumber}} pehle hi deliver ho chuka hai', { orderNumber: order.orderNumber })
+        : apiMessage('Order {{orderNumber}} pehle hi cancel ho chuka hai', { orderNumber: order.orderNumber }));
     }
     if (order.orderStatus === dto.status) return this.getOne(user, id);
 
@@ -400,7 +403,7 @@ export class TailoringService {
     const advance = r2(order.paidAmount);
     const balance = r2(Math.max(total - advance, 0));
     const paidNow = r2(Math.max(dto.paidNow ?? balance, 0));
-    if (paidNow > balance + 0.01) throw new BadRequestException(balance > 0 ? `Baqi sirf Rs ${balance} hai` : 'Is order ki poori amount mil chuki hai');
+    if (paidNow > balance + 0.01) throw new BadRequestException(balance > 0 ? apiMessage('Baqi sirf Rs {{balance}} hai', { balance }) : 'Is order ki poori amount mil chuki hai');
     const stillOwed = r2(balance - paidNow);
     const method = dto.paymentMethod ?? order.payments[0]?.paymentMethod ?? 'CASH';
 
@@ -410,7 +413,7 @@ export class TailoringService {
     const onKhata = r2(advance - legacyPaid);
     if (!customerId && (stillOwed > 0 || onKhata > 0)) {
       if (!order.customerName?.trim()) {
-        throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein`);
+        throw new BadRequestException(apiMessage('Rs {{stillOwed}} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein', { stillOwed }));
       }
       customerId = await ensureCustomer(this.prisma as unknown as Db, user, { name: order.customerName, phone: order.customerPhone, shopId });
     }
@@ -495,7 +498,7 @@ export class TailoringService {
     }
     const left = due(order);
     if (dto.amount > left + 0.01) {
-      throw new BadRequestException(left > 0 ? `Baqi sirf Rs ${left} hai` : 'Is order ki poori amount mil chuki hai');
+      throw new BadRequestException(left > 0 ? apiMessage('Baqi sirf Rs {{left}} hai', { left }) : 'Is order ki poori amount mil chuki hai');
     }
     await this.prisma.$transaction((tx) => this.takePayment(tx, user, order, {
       amount: r2(dto.amount), paymentMethod: dto.paymentMethod, reference: dto.reference, notes: dto.notes,

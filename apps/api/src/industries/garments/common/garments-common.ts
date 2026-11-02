@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, safeDayStart, startOfBusinessDayTz, tzParts, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { MessageText } from '../../../common/i18n/api-message';
 
 type Db = Prisma.TransactionClient;
 
@@ -124,7 +125,7 @@ export const payStatus = (paid: number, total: number) =>
   (paid >= total - 0.01 ? 'PAID' : paid > 0 ? 'PARTIALLY_PAID' : 'UNPAID') as 'PAID' | 'PARTIALLY_PAID' | 'UNPAID';
 
 /** Maps unique-index errors to a readable message. */
-export function duplicateName(e: unknown, message: string): never {
+export function duplicateName(e: unknown, message: MessageText): never {
   if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new BadRequestException(message);
   throw e;
 }

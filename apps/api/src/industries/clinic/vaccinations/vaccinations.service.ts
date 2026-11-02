@@ -3,13 +3,14 @@ import { ClinicVaccineStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const STATUSES = Object.values(ClinicVaccineStatus);
 const str = (v: unknown, max = 200) => (v === undefined || v === null || String(v).trim() === '' ? undefined : String(v).trim().slice(0, max));
 
 function date(v: unknown, label: string) {
   const d = new Date(String(v ?? ''));
-  if (!v || Number.isNaN(d.getTime())) throw new BadRequestException(`${label} sahi likhein`);
+  if (!v || Number.isNaN(d.getTime())) throw new BadRequestException(apiMessage('{{label}} sahi likhein', { label }));
   return d;
 }
 

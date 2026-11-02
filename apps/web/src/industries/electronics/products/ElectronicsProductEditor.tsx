@@ -22,6 +22,7 @@ import {
   BOX_CONTENT_OPTIONS, CATEGORY_GROUPS, CATEGORY_META, CONDITION_META, CONDITION_TYPES, SERIAL_SUGGESTED,
   categoryTypeFromName, type CategoryType, type ConditionType,
 } from '../constants';
+import { t as tr, Trans } from '@core/i18n';
 
 interface Serial { serialNumber: string; imei: string; imei2: string; macAddress: string }
 
@@ -80,8 +81,8 @@ const RESOLUTIONS = ['HD (1280x720)', 'FHD (1920x1080)', '2K (2560x1440)', '4K (
 const COLORS = [['Black', '#000000'], ['White', '#ffffff'], ['Silver', '#c0c0c0'], ['Gold', '#d4af37'], ['Rose Gold', '#b76e79'], ['Blue', '#3b82f6'], ['Red', '#ef4444'], ['Green', '#10b981'], ['Purple', '#8b5cf6'], ['Graphite', '#374151']];
 const WARRANTY_MONTHS = [0, 1, 3, 6, 12, 24, 36];
 const WARRANTY_TYPES = [
-  ['Manufacturer', 'Company khud degi'], ['Local Dealer', 'Pakistan ka dealer dega'], ['Shop Warranty', 'Aap ki dukaan ki zimmedari'],
-  ['Extended', 'Alag se khareedi hui'], ['International', 'Duniya bhar mein'],
+  ['Manufacturer', tr('Company khud degi')], ['Local Dealer', tr('Pakistan ka dealer dega')], ['Shop Warranty', tr('Aap ki dukaan ki zimmedari')],
+  ['Extended', tr('Alag se khareedi hui')], ['International', tr('Duniya bhar mein')],
 ];
 
 const addMonths = (iso: string, months: number) => {
@@ -113,11 +114,11 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
-        <TextField label="Model number" value={x.model} onChange={(model) => ctx.setExtra({ model })} placeholder="SM-A155F" />
-        <TextField label="Part number" value={x.partNumber} onChange={(partNumber) => ctx.setExtra({ partNumber })} />
+        <TextField label={tr('Model number')} value={x.model} onChange={(model) => ctx.setExtra({ model })} placeholder={tr('SM-A155F')} />
+        <TextField label={tr('Part number')} value={x.partNumber} onChange={(partNumber) => ctx.setExtra({ partNumber })} />
       </div>
       <label className="block">
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Product type</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Product type')}</span>
         <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value as CategoryType })} className={inputClass}>
           {CATEGORY_GROUPS.map((g) => (
             <optgroup key={g.label} label={`${g.emoji} ${g.label}`}>
@@ -125,16 +126,16 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
             </optgroup>
           ))}
         </select>
-        <span className="mt-1 block text-[0.75rem] text-slate-500">POS ke filter, specs aur reports isi type se bante hain.</span>
-        {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="mt-1 block text-[0.75rem] text-violet-700">Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step mein chalu karein.</span>}
+        <span className="mt-1 block text-[0.75rem] text-slate-500">{tr('POS ke filter, specs aur reports isi type se bante hain.')}</span>
+        {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="mt-1 block text-[0.75rem] text-violet-700">{tr('Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step mein chalu karein.')}</span>}
       </label>
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Halat</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Halat')}</span>
         <Tiles value={x.condition} onChange={(condition) => ctx.setExtra({ condition })} columns="grid-cols-2 sm:grid-cols-3"
           options={CONDITION_TYPES.map((c) => ({ value: c, label: CONDITION_META[c].label, hint: CONDITION_META[c].hint, icon: CONDITION_META[c].emoji }))} />
       </div>
       <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Rang</span>
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Rang')}</span>
         <div className="flex flex-wrap items-center gap-1.5">
           {COLORS.map(([n, hex]) => (
             <button key={n} type="button" onClick={() => ctx.setExtra(x.colorName === n ? { colorName: '', colorHex: '' } : { colorName: n, colorHex: hex })}
@@ -142,7 +143,7 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
               <span className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10" style={{ backgroundColor: hex }} />{n}
             </button>
           ))}
-          <input value={x.colorName} onChange={(e) => ctx.setExtra({ colorName: e.target.value })} placeholder="Apna rang" className="h-8 w-28 rounded-full border border-dashed border-slate-300 bg-transparent px-3 text-[0.8125rem] outline-none" />
+          <input value={x.colorName} onChange={(e) => ctx.setExtra({ colorName: e.target.value })} placeholder={tr('Apna rang')} className="h-8 w-28 rounded-full border border-dashed border-slate-300 bg-transparent px-3 text-[0.8125rem] outline-none" />
         </div>
       </div>
     </div>
@@ -162,60 +163,60 @@ function Specs({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   return (
     <div className="space-y-4">
       <p className="text-[0.8125rem] text-slate-500">
-        {CATEGORY_META[x.categoryType].emoji} {CATEGORY_META[x.categoryType].label} ke liye zaroori specs dikh rahe hain. Sab khaali chhor sakte hain.
-        {relevant.length < ALL.length && <button type="button" onClick={() => setShowAll((v) => !v)} className="ml-2 font-semibold text-brand-700 hover:underline">{showAll ? 'Kam dikhayein' : 'Sab dikhayein'}</button>}
+        {tr('{{emoji}} {{label}} ke liye zaroori specs dikh rahe hain. Sab khaali chhor sakte hain.', { emoji: CATEGORY_META[x.categoryType].emoji, label: CATEGORY_META[x.categoryType].label })}
+        {relevant.length < ALL.length && <button type="button" onClick={() => setShowAll((v) => !v)} className="ms-2 font-semibold text-brand-700 hover:underline">{showAll ? tr('Kam dikhayein') : tr('Sab dikhayein')}</button>}
       </p>
       {shown.includes('battery') && (
-        <Section title="Battery aur power">
+        <Section title={tr('Battery aur power')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><TextField label="Battery" value={x.batteryCapacity} onChange={(batteryCapacity) => set({ batteryCapacity })} placeholder="5000 mAh" />{pick(BATTERY, x.batteryCapacity, (batteryCapacity) => set({ batteryCapacity }))}</div>
-            <div><TextField label="Power / charging" value={x.powerRating} onChange={(powerRating) => set({ powerRating })} placeholder="20W" />{pick(POWER, x.powerRating, (powerRating) => set({ powerRating }))}</div>
-            <NumberField label="Battery kitne ghante" suffix="ghante" allowEmpty value={x.batteryLifeHours} onChange={(batteryLifeHours) => set({ batteryLifeHours })} />
-            <NumberField label="Charge hone ka waqt" suffix="minute" allowEmpty value={x.chargingTimeMinutes} onChange={(chargingTimeMinutes) => set({ chargingTimeMinutes })} />
+            <div><TextField label={tr('Battery')} value={x.batteryCapacity} onChange={(batteryCapacity) => set({ batteryCapacity })} placeholder={tr('5000 mAh')} />{pick(BATTERY, x.batteryCapacity, (batteryCapacity) => set({ batteryCapacity }))}</div>
+            <div><TextField label={tr('Power / charging')} value={x.powerRating} onChange={(powerRating) => set({ powerRating })} placeholder="20W" />{pick(POWER, x.powerRating, (powerRating) => set({ powerRating }))}</div>
+            <NumberField label={tr('Battery kitne ghante')} suffix="ghante" allowEmpty value={x.batteryLifeHours} onChange={(batteryLifeHours) => set({ batteryLifeHours })} />
+            <NumberField label={tr('Charge hone ka waqt')} suffix="minute" allowEmpty value={x.chargingTimeMinutes} onChange={(chargingTimeMinutes) => set({ chargingTimeMinutes })} />
           </div>
         </Section>
       )}
       {shown.includes('connectivity') && (
-        <Section title="Connectivity">
+        <Section title={tr('Connectivity')}>
           <div className="flex flex-wrap gap-1.5">{CONNECTIVITY.map((c) => <Chip key={c} on={x.connectivity.includes(c)} onClick={() => set({ connectivity: toggle(x.connectivity, c) })}>{c}</Chip>)}</div>
         </Section>
       )}
       {shown.includes('display') && (
-        <Section title="Screen">
+        <Section title={tr('Screen')}>
           <div className="grid gap-4 sm:grid-cols-3">
-            <TextField label="Size" value={x.screenSize} onChange={(screenSize) => set({ screenSize })} placeholder='6.5"' />
-            <div><TextField label="Resolution" value={x.resolution} onChange={(resolution) => set({ resolution })} />{pick(RESOLUTIONS, x.resolution, (resolution) => set({ resolution }))}</div>
-            <div><TextField label="Refresh rate" value={x.refreshRate} onChange={(refreshRate) => set({ refreshRate })} />{pick(REFRESH, x.refreshRate, (refreshRate) => set({ refreshRate }))}</div>
+            <TextField label={tr('Size')} value={x.screenSize} onChange={(screenSize) => set({ screenSize })} placeholder='6.5"' />
+            <div><TextField label={tr('Resolution')} value={x.resolution} onChange={(resolution) => set({ resolution })} />{pick(RESOLUTIONS, x.resolution, (resolution) => set({ resolution }))}</div>
+            <div><TextField label={tr('Refresh rate')} value={x.refreshRate} onChange={(refreshRate) => set({ refreshRate })} />{pick(REFRESH, x.refreshRate, (refreshRate) => set({ refreshRate }))}</div>
           </div>
         </Section>
       )}
       {shown.includes('compat') && (
-        <Section title="Kis ke saath chalta hai">
+        <Section title={tr('Kis ke saath chalta hai')}>
           <div className="space-y-3">
             <div className="flex flex-wrap gap-1.5">{OS.map((c) => <Chip key={c} on={x.compatibleOS.includes(c)} onClick={() => set({ compatibleOS: toggle(x.compatibleOS, c) })}>{c}</Chip>)}</div>
             <div className="flex flex-wrap items-center gap-1.5">
               {[...COMPAT, ...x.compatibleWith.filter((c) => !COMPAT.includes(c))].map((c) => <Chip key={c} on={x.compatibleWith.includes(c)} onClick={() => set({ compatibleWith: toggle(x.compatibleWith, c) })}>{c}</Chip>)}
-              <input placeholder="+ aur (Enter)" onKeyDown={(e) => { const v = e.currentTarget.value.trim(); if (e.key === 'Enter' && v) { e.preventDefault(); set({ compatibleWith: [...x.compatibleWith, v] }); e.currentTarget.value = ''; } }}
+              <input placeholder={tr('+ aur (Enter)')} onKeyDown={(e) => { const v = e.currentTarget.value.trim(); if (e.key === 'Enter' && v) { e.preventDefault(); set({ compatibleWith: [...x.compatibleWith, v] }); e.currentTarget.value = ''; } }}
                 className="h-8 w-28 rounded-full border border-dashed border-slate-300 bg-transparent px-3 text-[0.8125rem] outline-none" />
             </div>
           </div>
         </Section>
       )}
       {shown.includes('durability') && (
-        <Section title="Mazbooti">
+        <Section title={tr('Mazbooti')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><TextField label="Paani se hifazat" value={x.waterResistance} onChange={(waterResistance) => set({ waterResistance })} />{pick(WATER, x.waterResistance, (waterResistance) => set({ waterResistance }))}</div>
-            <TextField label="Range" value={x.operatingRange} onChange={(operatingRange) => set({ operatingRange })} placeholder="10 meter" />
+            <div><TextField label={tr('Paani se hifazat')} value={x.waterResistance} onChange={(waterResistance) => set({ waterResistance })} />{pick(WATER, x.waterResistance, (waterResistance) => set({ waterResistance }))}</div>
+            <TextField label={tr('Range')} value={x.operatingRange} onChange={(operatingRange) => set({ operatingRange })} placeholder={tr('10 meter')} />
           </div>
         </Section>
       )}
       {shown.includes('size') && (
-        <Section title="Wazan aur naap">
+        <Section title={tr('Wazan aur naap')}>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <NumberField label="Wazan" suffix="g" allowEmpty value={x.weightGrams} onChange={(weightGrams) => set({ weightGrams })} />
-            <NumberField label="Lambai" suffix="mm" allowEmpty value={x.lengthMm} onChange={(lengthMm) => set({ lengthMm })} />
-            <NumberField label="Chaurai" suffix="mm" allowEmpty value={x.widthMm} onChange={(widthMm) => set({ widthMm })} />
-            <NumberField label="Unchai" suffix="mm" allowEmpty value={x.heightMm} onChange={(heightMm) => set({ heightMm })} />
+            <NumberField label={tr('Wazan')} suffix="g" allowEmpty value={x.weightGrams} onChange={(weightGrams) => set({ weightGrams })} />
+            <NumberField label={tr('Lambai')} suffix="mm" allowEmpty value={x.lengthMm} onChange={(lengthMm) => set({ lengthMm })} />
+            <NumberField label={tr('Chaurai')} suffix="mm" allowEmpty value={x.widthMm} onChange={(widthMm) => set({ widthMm })} />
+            <NumberField label={tr('Unchai')} suffix="mm" allowEmpty value={x.heightMm} onChange={(heightMm) => set({ heightMm })} />
           </div>
         </Section>
       )}
@@ -230,11 +231,11 @@ function Warranty({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   const end = addMonths(x.warrantyStart, x.warrantyMonths);
   return (
     <div className="space-y-4">
-      <Section icon={ShieldCheck} title="Warranty" hint="Bill par yahi likha jayega">
+      <Section icon={ShieldCheck} title={tr('Warranty')} hint={tr('Bill par yahi likha jayega')}>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-1.5">
-            {WARRANTY_MONTHS.map((m) => <Chip key={m} on={x.warrantyMonths === m} onClick={() => set({ warrantyMonths: m })}>{m === 0 ? 'Koi nahi' : m < 12 ? `${m} mahine` : `${m / 12} saal`}</Chip>)}
-            <input inputMode="numeric" value={WARRANTY_MONTHS.includes(x.warrantyMonths) ? '' : x.warrantyMonths || ''} placeholder="Apne mahine"
+            {WARRANTY_MONTHS.map((m) => <Chip key={m} on={x.warrantyMonths === m} onClick={() => set({ warrantyMonths: m })}>{m === 0 ? tr('Koi nahi') : m < 12 ? tr('{{m}} mahine', { m }) : tr('{{value}} saal', { value: m / 12 })}</Chip>)}
+            <input inputMode="numeric" value={WARRANTY_MONTHS.includes(x.warrantyMonths) ? '' : x.warrantyMonths || ''} placeholder={tr('Apne mahine')}
               onChange={(e) => set({ warrantyMonths: Number(e.target.value.replace(/\D/g, '')) || 0 })}
               className="h-8 w-28 rounded-full border border-dashed border-slate-300 bg-transparent px-3 text-[0.8125rem] outline-none" />
           </div>
@@ -243,29 +244,29 @@ function Warranty({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
               <Tiles value={x.warrantyType} onChange={(warrantyType) => set({ warrantyType })} columns="grid-cols-2 sm:grid-cols-5"
                 options={WARRANTY_TYPES.map(([v, hint]) => ({ value: v, label: v, hint }))} />
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-[0.8125rem] font-medium text-slate-700">Shuru
+                <label className="text-[0.8125rem] font-medium text-slate-700">{tr('Shuru')}
                   <input type="date" value={x.warrantyStart} onChange={(e) => set({ warrantyStart: e.target.value })} className={cn(inputClass, 'mt-1.5')} />
                 </label>
                 <div className="rounded-xl bg-success-50 p-3 text-[0.8125rem] text-success-800">
-                  <p className="font-medium">Khatam</p>
+                  <p className="font-medium">{tr('Khatam')}</p>
                   <p className="text-[1.0625rem] font-bold">{end ? new Date(end).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</p>
                 </div>
               </div>
-              <Toggle on={x.international} onChange={(international) => set({ international })} title="International warranty" hint="Bahar ke mulk mein bhi chalegi" />
+              <Toggle on={x.international} onChange={(international) => set({ international })} title={tr('International warranty')} hint={tr('Bahar ke mulk mein bhi chalegi')} />
             </>
           )}
         </div>
       </Section>
-      <Section icon={Package} title="Dabbe mein kya hai">
+      <Section icon={Package} title={tr('Dabbe mein kya hai')}>
         <div className="space-y-3">
           <div className="flex flex-wrap gap-1.5">
             {[...BOX_CONTENT_OPTIONS, ...x.boxContents.filter((b) => !BOX_CONTENT_OPTIONS.includes(b))].map((b) => <Chip key={b} on={x.boxContents.includes(b)} onClick={() => set({ boxContents: toggle(x.boxContents, b) })}>{b}</Chip>)}
-            <input placeholder="+ aur (Enter)" onKeyDown={(e) => { const v = e.currentTarget.value.trim(); if (e.key === 'Enter' && v) { e.preventDefault(); set({ boxContents: [...x.boxContents, v] }); e.currentTarget.value = ''; } }}
+            <input placeholder={tr('+ aur (Enter)')} onKeyDown={(e) => { const v = e.currentTarget.value.trim(); if (e.key === 'Enter' && v) { e.preventDefault(); set({ boxContents: [...x.boxContents, v] }); e.currentTarget.value = ''; } }}
               className="h-8 w-28 rounded-full border border-dashed border-slate-300 bg-transparent px-3 text-[0.8125rem] outline-none" />
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Toggle on={x.hasManual} onChange={(hasManual) => set({ hasManual })} title="Manual saath hai" />
-            <Toggle on={x.hasWarrantyCard} onChange={(hasWarrantyCard) => set({ hasWarrantyCard })} title="Warranty card saath hai" />
+            <Toggle on={x.hasManual} onChange={(hasManual) => set({ hasManual })} title={tr('Manual saath hai')} />
+            <Toggle on={x.hasWarrantyCard} onChange={(hasWarrantyCard) => set({ hasWarrantyCard })} title={tr('Warranty card saath hai')} />
           </div>
         </div>
       </Section>
@@ -289,33 +290,33 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   const parsed = paste.split('\n').map((l) => l.split(/[,\t]/).map((p) => p.trim())).filter((p) => p[0]);
   const update = (i: number, patch: Partial<Serial>) => ctx.setExtra({ serials: x.serials.map((s, j) => (j === i ? { ...s, ...patch } : s)) });
   return (
-    <Section icon={Barcode} title="Serial / IMEI" hint="Har piece ka apna number — warranty aur chori ke waqt kaam aata hai">
+    <Section icon={Barcode} title={tr('Serial / IMEI')} hint={tr('Har piece ka apna number — warranty aur chori ke waqt kaam aata hai')}>
       {scan && <BarcodeScanner onDetected={(c: string) => { addOne(c); }} onClose={() => setScan(false)} />}
-      <Toggle on={x.tracked} onChange={(tracked) => ctx.setExtra({ tracked })} icon={Barcode} title="Har piece ka serial rakhein"
-        hint={x.tracked ? 'Stock = jitne serial shelf par hain' : 'Band ho to sirf ginti hoti hai'} />
+      <Toggle on={x.tracked} onChange={(tracked) => ctx.setExtra({ tracked })} icon={Barcode} title={tr('Har piece ka serial rakhein')}
+        hint={x.tracked ? tr('Stock = jitne serial shelf par hain') : tr('Band ho to sirf ginti hoti hai')} />
       {x.tracked && (
         <div className="mt-4 space-y-3">
-          {ctx.isEdit && <p className="text-[0.8125rem] text-slate-600">Abhi shelf par <strong>{x.serialsOnShelf}</strong> serial hain. Yahan sirf <strong>naye</strong> daalein — purane Serials page par hain.</p>}
-          <Toggle on={x.hasImei} onChange={(hasImei) => ctx.setExtra({ hasImei })} title="IMEI wala device (phone, tablet)" />
+          {ctx.isEdit && <p className="text-[0.8125rem] text-slate-600"><Trans text="Abhi shelf par {{count}} serial hain. Yahan sirf {{new}} daalein — purane Serials page par hain." values={{ count: <strong>{x.serialsOnShelf}</strong>, new: <strong>{tr('naye')}</strong> }} /></p>}
+          <Toggle on={x.hasImei} onChange={(hasImei) => ctx.setExtra({ hasImei })} title={tr('IMEI wala device (phone, tablet)')} />
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setScan(true)} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 text-[0.8125rem] font-semibold text-white"><ScanLine className="h-4 w-4" />Lagataar scan</button>
-            <button type="button" onClick={() => ctx.setExtra({ serials: [...x.serials, { serialNumber: '', imei: '', imei2: '', macAddress: '' }] })} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 text-[0.8125rem] font-semibold text-slate-700"><Plus className="h-4 w-4" />Haath se</button>
+            <button type="button" onClick={() => setScan(true)} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 text-[0.8125rem] font-semibold text-white"><ScanLine className="h-4 w-4" />{tr('Lagataar scan')}</button>
+            <button type="button" onClick={() => ctx.setExtra({ serials: [...x.serials, { serialNumber: '', imei: '', imei2: '', macAddress: '' }] })} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 text-[0.8125rem] font-semibold text-slate-700"><Plus className="h-4 w-4" />{tr('Haath se')}</button>
           </div>
           <details className="rounded-xl bg-slate-50 p-3">
-            <summary className="flex cursor-pointer items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-700"><ClipboardPaste className="h-4 w-4" />Excel se paste (serial, imei, imei2, mac)</summary>
-            <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={4} placeholder={'SN001, 356789012345678\nSN002, 356789012345679'} className={cn(inputClass, 'mt-2 h-auto py-2 font-mono text-[0.8125rem]')} />
+            <summary className="flex cursor-pointer items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-700"><ClipboardPaste className="h-4 w-4" />{tr('Excel se paste (serial, imei, imei2, mac)')}</summary>
+            <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={4} placeholder={tr('SN001, 356789012345678\nSN002, 356789012345679')} className={cn(inputClass, 'mt-2 h-auto py-2 font-mono text-[0.8125rem]')} />
             {parsed.length > 0 && (
               <button type="button" onClick={() => {
                 const add = parsed.filter((p) => !known.has(p[0])).map((p) => ({ serialNumber: p[0], imei: p[1] ?? '', imei2: p[2] ?? '', macAddress: p[3] ?? '' }));
                 ctx.setExtra({ serials: [...x.serials, ...add], hasImei: x.hasImei || add.some((a) => a.imei) });
                 setPaste('');
-              }} className="mt-2 h-9 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white">{parsed.filter((p) => !known.has(p[0])).length} naye jorein{parsed.some((p) => known.has(p[0])) ? ` · ${parsed.filter((p) => known.has(p[0])).length} pehle se hain` : ''}</button>
+              }} className="mt-2 h-9 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white">{tr('{{count}} naye jorein{{value}}', { count: parsed.filter((p) => !known.has(p[0])).length, value: parsed.some((p) => known.has(p[0])) ? tr(' · {{count}} pehle se hain', { count: parsed.filter((p) => known.has(p[0])).length }) : '' })}</button>
             )}
           </details>
           {x.serials.length > 0 && (
             <div className="overflow-hidden rounded-xl ring-1 ring-slate-200">
               <Table minWidth="36rem">
-                <THead><Tr><Th className="px-3 py-2">Serial</Th>{x.hasImei && <><Th className="px-2 py-2">IMEI</Th><Th className="px-2 py-2">IMEI 2</Th></>}<Th className="px-2 py-2">MAC</Th><Th /></Tr></THead>
+                <THead><Tr><Th className="px-3 py-2">{tr('Serial')}</Th>{x.hasImei && <><Th className="px-2 py-2">{tr('IMEI')}</Th><Th className="px-2 py-2">{tr('IMEI 2')}</Th></>}<Th className="px-2 py-2">{tr('MAC')}</Th><Th /></Tr></THead>
                 <TBody>
                   {x.serials.map((s, i) => (
                     <Tr key={i}>
@@ -325,7 +326,7 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
                         <Td className="px-2 py-1.5"><input value={s.imei2} onChange={(e) => update(i, { imei2: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
                       </>}
                       <Td className="px-2 py-1.5"><input value={s.macAddress} onChange={(e) => update(i, { macAddress: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
-                      <Td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ serials: x.serials.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></Td>
+                      <Td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ serials: x.serials.filter((_, j) => j !== i) })} aria-label={tr('Hatayein')} className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></Td>
                     </Tr>
                   ))}
                 </TBody>
@@ -340,16 +341,16 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
 }
 
 const core: CoreOptions = {
-  units: [{ value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'pair', label: 'Joda' }, { value: 'box', label: 'Dabba' }, { value: 'meter', label: 'Meter' }],
+  units: [{ value: 'pcs', label: tr('Adad (pcs)') }, { value: 'set', label: tr('Set') }, { value: 'pair', label: tr('Joda') }, { value: 'box', label: tr('Dabba') }, { value: 'meter', label: tr('Meter') }],
   skuPrefix: 'ELEC',
-  variants: { presets: [{ group: 'Storage', values: ['64GB', '128GB', '256GB', '512GB'] }, { group: 'RAM', values: ['4GB', '6GB', '8GB', '12GB'] }, { group: 'Rang', values: ['Black', 'White', 'Blue', 'Silver'] }] },
+  variants: { presets: [{ group: tr('Storage'), values: ['64GB', '128GB', '256GB', '512GB'] }, { group: tr('RAM'), values: ['4GB', '6GB', '8GB', '12GB'] }, { group: tr('Rang'), values: ['Black', 'White', 'Blue', 'Silver'] }] },
   markups: [10, 15, 20, 25, 30, 40],
 };
 
-const specsStep: StepDef<ElectronicsExtra> = { id: 'specs', title: 'Specs', hint: 'Battery, screen, connectivity', icon: Cpu, render: (ctx) => <Specs ctx={ctx} /> };
+const specsStep: StepDef<ElectronicsExtra> = { id: 'specs', title: tr('Specs'), hint: tr('Battery, screen, connectivity'), icon: Cpu, render: (ctx) => <Specs ctx={ctx} /> };
 const warrantyStep: StepDef<ElectronicsExtra> = {
-  id: 'warranty', title: 'Warranty', hint: 'Mahine, type, dabba', icon: ShieldCheck, render: (ctx) => <Warranty ctx={ctx} />,
-  validate: (d): Record<string, string> => (d.extra.warrantyMonths < 0 ? { warranty: 'Mahine ulte nahi ho sakte' } : {}),
+  id: 'warranty', title: tr('Warranty'), hint: tr('Mahine, type, dabba'), icon: ShieldCheck, render: (ctx) => <Warranty ctx={ctx} />,
+  validate: (d): Record<string, string> => (d.extra.warrantyMonths < 0 ? { warranty: tr('Mahine ulte nahi ho sakte') } : {}),
 };
 const stock = stockStep<ElectronicsExtra>(core, { extra: (ctx) => <Serials ctx={ctx} />, quick: [1, 5, 10, 25, 50, 100] });
 const stockWithSerials: StepDef<ElectronicsExtra> = {
@@ -357,18 +358,18 @@ const stockWithSerials: StepDef<ElectronicsExtra> = {
   validate: (d, isEdit) => {
     const e = stock.validate?.(d, isEdit) ?? {};
     const s = d.extra;
-    if (s.tracked && !isEdit && !d.core.variants.length && s.serials.length === 0) e.serials = 'Kam az kam ek serial daalein, ya serial band karein';
+    if (s.tracked && !isEdit && !d.core.variants.length && s.serials.length === 0) e.serials = tr('Kam az kam ek serial daalein, ya serial band karein');
     const nums = s.serials.map((x) => x.serialNumber.trim());
-    if (nums.some((n) => !n)) e.serials = 'Har line mein serial likhein';
-    else if (new Set(nums).size !== nums.length) e.serials = 'Ek serial do dafa likha hai';
+    if (nums.some((n) => !n)) e.serials = tr('Har line mein serial likhein');
+    else if (new Set(nums).size !== nums.length) e.serials = tr('Ek serial do dafa likha hai');
     const imeis = s.serials.map((x) => x.imei.trim()).filter(Boolean);
-    if (new Set(imeis).size !== imeis.length) e.serials = 'Ek IMEI do dafa likha hai';
+    if (new Set(imeis).size !== imeis.length) e.serials = tr('Ek IMEI do dafa likha hai');
     return e;
   },
 };
 
 const config: EditorConfig<ElectronicsExtra> = {
-  label: 'Electronics',
+  label: tr('Electronics'),
   draftKey: 'nafaa.product-editor.electronics',
   paths: { list: '/products', detail: (id) => `/electronics-products/${id}`, create: '/electronics-products/new' },
   core,
@@ -407,7 +408,7 @@ const config: EditorConfig<ElectronicsExtra> = {
         operatingRange: opt(x.operatingRange), waterResistance: opt(x.waterResistance), screenSize: opt(x.screenSize),
         resolution: opt(x.resolution), refreshRate: opt(x.refreshRate), compatibleWith: x.compatibleWith, compatibleOS: x.compatibleOS,
         weightGrams: x.weightGrams ?? undefined, lengthMm: x.lengthMm ?? undefined, widthMm: x.widthMm ?? undefined, heightMm: x.heightMm ?? undefined,
-        warrantyMonths: x.warrantyMonths, warrantyType: x.warrantyMonths ? x.warrantyType : 'No Warranty', hasInternationalWarranty: x.international,
+        warrantyMonths: x.warrantyMonths, warrantyType: x.warrantyMonths ? x.warrantyType : tr('No Warranty'), hasInternationalWarranty: x.international,
         requiresSerial: x.tracked, hasImei: x.hasImei, boxContents: x.boxContents, hasManual: x.hasManual, hasWarrantyCard: x.hasWarrantyCard,
         mrp: x.mrp ?? undefined, costPrice: c.costPrice, wholesalePrice: c.wholesalePrice ?? undefined, retailPrice: c.price,
         isFeatured: c.isFeatured, isBestSeller: x.isBestSeller, isNewArrival: x.isNewArrival, isTrending: x.isTrending,
@@ -429,16 +430,16 @@ const config: EditorConfig<ElectronicsExtra> = {
     },
   },
   steps: [
-    basicStep<ElectronicsExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: 'Jaise: Samsung Galaxy A15 128GB' }),
+    basicStep<ElectronicsExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: tr('Jaise: Samsung Galaxy A15 128GB') }),
     priceStep<ElectronicsExtra>(core, {
       extra: (ctx) => (
         <div className="space-y-3">
-          <NumberField label="MRP (dabbe par likhi qeemat)" prefix="Rs" allowEmpty value={ctx.draft.extra.mrp} onChange={(mrp) => ctx.setExtra({ mrp })}
-            hint={ctx.draft.extra.mrp && ctx.draft.core.price > ctx.draft.extra.mrp ? 'Rate MRP se zyada hai' : undefined} />
+          <NumberField label={tr('MRP (dabbe par likhi qeemat)')} prefix="Rs" allowEmpty value={ctx.draft.extra.mrp} onChange={(mrp) => ctx.setExtra({ mrp })}
+            hint={ctx.draft.extra.mrp && ctx.draft.core.price > ctx.draft.extra.mrp ? tr('Rate MRP se zyada hai') : undefined} />
           <div className="flex flex-wrap gap-1.5">
-            <Chip on={ctx.draft.extra.isNewArrival} onClick={() => ctx.setExtra({ isNewArrival: !ctx.draft.extra.isNewArrival })}>Naya aaya</Chip>
-            <Chip on={ctx.draft.extra.isBestSeller} onClick={() => ctx.setExtra({ isBestSeller: !ctx.draft.extra.isBestSeller })}>Best seller</Chip>
-            <Chip on={ctx.draft.extra.isTrending} onClick={() => ctx.setExtra({ isTrending: !ctx.draft.extra.isTrending })}>Trending</Chip>
+            <Chip on={ctx.draft.extra.isNewArrival} onClick={() => ctx.setExtra({ isNewArrival: !ctx.draft.extra.isNewArrival })}>{tr('Naya aaya')}</Chip>
+            <Chip on={ctx.draft.extra.isBestSeller} onClick={() => ctx.setExtra({ isBestSeller: !ctx.draft.extra.isBestSeller })}>{tr('Best seller')}</Chip>
+            <Chip on={ctx.draft.extra.isTrending} onClick={() => ctx.setExtra({ isTrending: !ctx.draft.extra.isTrending })}>{tr('Trending')}</Chip>
           </div>
         </div>
       ),
@@ -450,8 +451,8 @@ const config: EditorConfig<ElectronicsExtra> = {
   summary: (d) => (
     <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
       <p className="text-slate-600">{CATEGORY_META[d.extra.categoryType].emoji} {CATEGORY_META[d.extra.categoryType].label} · {CONDITION_META[d.extra.condition].label}</p>
-      {d.extra.warrantyMonths > 0 && <p className="text-success-700">Warranty {d.extra.warrantyMonths} mahine</p>}
-      {d.extra.tracked && <p className="text-violet-700">{d.extra.serials.length} naye serial</p>}
+      {d.extra.warrantyMonths > 0 && <p className="text-success-700">{tr('Warranty {{warrantyMonths}} mahine', { warrantyMonths: d.extra.warrantyMonths })}</p>}
+      {d.extra.tracked && <p className="text-violet-700">{tr('{{count}} naye serial', { count: d.extra.serials.length })}</p>}
     </div>
   ),
   refresh: ['electronics-products-list', 'electronics-profiles-all', 'electronics-profile', 'electronics-product-detail-extra', 'product-serials'],

@@ -9,6 +9,7 @@ import { CreatePurchaseDto } from '../../../modules/purchasing/purchases/dto/cre
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { parseDay } from '../meat-common';
 import { r2, r3, r4, str } from '../meat-money';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const ANIMALS = ['BEEF', 'MUTTON', 'GOAT', 'LAMB', 'CHICKEN', 'DUCK', 'TURKEY', 'QUAIL', 'CAMEL', 'BUFFALO', 'FISH', 'PRAWN', 'OTHER'];
 
@@ -74,19 +75,19 @@ export class LiveAnimalsService {
       for (const [i, a] of animals.entries()) {
         const weightKg = r3(Number(a?.weightKg));
         const price = r2(Number(a?.price));
-        if (!(weightKg > 0)) throw new BadRequestException(`Janwar ${i + 1}: wazan (kg) likhein — andaza bhi chalega`);
-        if (!(price > 0)) throw new BadRequestException(`Janwar ${i + 1}: qeemat likhein`);
+        if (!(weightKg > 0)) throw new BadRequestException(apiMessage('Janwar {{i}}: wazan (kg) likhein — andaza bhi chalega', { i: i + 1 }));
+        if (!(price > 0)) throw new BadRequestException(apiMessage('Janwar {{i}}: qeemat likhein', { i: i + 1 }));
         const animalType = ANIMALS.includes(a?.animalType) ? a.animalType : null;
-        if (!animalType) throw new BadRequestException(`Janwar ${i + 1}: type chunein`);
+        if (!animalType) throw new BadRequestException(apiMessage('Janwar {{i}}: type chunein', { i: i + 1 }));
         let tag = str(a?.tagNumber, 40);
         if (!tag) { next += 1; tag = `ANM-${String(next).padStart(5, '0')}`; }
-        if (tags.has(tag)) throw new BadRequestException(`Tag ${tag} do baar likha hai`);
+        if (tags.has(tag)) throw new BadRequestException(apiMessage('Tag {{tag}} do baar likha hai', { tag }));
         tags.add(tag);
         rows.push({ tagNumber: tag, animalType, breed: str(a?.breed, 80), color: str(a?.color, 40), sex: str(a?.sex, 20), ageMonths: Number(a?.ageMonths) > 0 ? Math.round(Number(a.ageMonths)) : null, weightKg, price });
         items.push({ productId: product.id, quantity: weightKg, costPrice: r4(price / weightKg) } as CreatePurchaseDto['items'][number]);
       }
       const dup = await this.prisma.meatLiveAnimal.findMany({ where: { tenantId: user.tenantId, tagNumber: { in: [...tags] } }, select: { tagNumber: true } });
-      if (dup.length) throw new BadRequestException(`Ye tag pehle se hai: ${dup.map((d) => d.tagNumber).join(', ')}`);
+      if (dup.length) throw new BadRequestException(apiMessage('Ye tag pehle se hai: {{map}}', { map: dup.map((d) => d.tagNumber).join(', ') }));
     } else {
       const kg = r3(Number(dto?.kg));
       const rate = r2(Number(dto?.ratePerKg));

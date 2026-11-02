@@ -6,6 +6,7 @@ import { AmcPaymentDto, RenewAmcDto, UpdateAmcStatusDto, UpsertAmcDto } from './
 import { billJob, billOf, receiveJobMoney } from '../common/books';
 import { checkLinks, nextInSequence, optDate, r2, stamp, yearPrefix } from '../common/appliance-common';
 import { addDaysTz, startOfDayTz, startOfMonthTz } from '../../../common/helpers/business-time.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** An AMC contract is sold like any other item: one bill for its value, paid now or on khata. */
 const amcParty = (c: { contractNumber: string; customerId: string | null; customerName: string; customerPhone: string }) => ({
@@ -235,7 +236,7 @@ export class AmcContractsService {
     if (c.status === 'CANCELLED') throw new BadRequestException('Cancel hue contract par paisa nahi liya ja sakta');
     const due = r2(Number(c.contractValue) - Number(c.paidAmount));
     if (due <= 0) throw new BadRequestException('Is contract ka poora paisa mil chuka hai');
-    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf Rs ${due} baqi hai`);
+    if (dto.amount > due + 0.005) throw new BadRequestException(apiMessage('Sirf Rs {{due}} baqi hai', { due }));
     return this.prisma.$transaction(async (tx) => {
       const customerId = await receiveJobMoney(tx, user, amcParty(c), dto.amount, `AMC ${c.contractNumber} wusooli`, dto.paymentMethod);
       return tx.applianceAmcContract.update({

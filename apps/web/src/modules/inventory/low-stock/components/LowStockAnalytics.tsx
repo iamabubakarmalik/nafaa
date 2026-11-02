@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { LowAnalytics as Data } from '../api';
 import { STATUS, daysText, qty } from './meta';
+import { t as tr } from '@core/i18n';
 
 const COVER_COLORS: Record<string, string> = { out: '#e11d48', d3: '#ea580c', d7: '#d97706', d14: '#ca8a04', d15: '#16a34a', none: '#94a3b8' };
 
@@ -34,16 +35,16 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={TrendingDown} tone="rose" label="Ruki hui sale (andaza)" value={money(t.lostSales)} sub={`Roz ${money(t.lostPerDay)} — khatam maal ki wajah se`} />
-        <Kpi icon={ShoppingCart} tone="brand" label="Order ka expense" value={cost(t.orderValue)} sub={`${t.lines} lines me se`} />
-        <Kpi icon={Truck} tone="sky" label="Order me hai" value={cost(t.onOrderValue)} sub="Supplier se aana baqi" />
-        <Kpi icon={CalendarClock} tone="violet" label="Expiry ka maal" value={cost(t.expiryValue)} sub={`${data.settings.expiryDays} din me — cost par`} />
+        <Kpi icon={TrendingDown} tone="rose" label={tr('Ruki hui sale (andaza)')} value={money(t.lostSales)} sub={tr('Roz {{lostPerDay}} — khatam maal ki wajah se', { lostPerDay: money(t.lostPerDay) })} />
+        <Kpi icon={ShoppingCart} tone="brand" label={tr('Order ka expense')} value={cost(t.orderValue)} sub={tr('{{lines}} lines me se', { lines: t.lines })} />
+        <Kpi icon={Truck} tone="sky" label={tr('Order me hai')} value={cost(t.onOrderValue)} sub={tr('Supplier se aana baqi')} />
+        <Kpi icon={CalendarClock} tone="violet" label={tr('Expiry ka maal')} value={cost(t.expiryValue)} sub={tr('{{expiryDays}} din me — cost par', { expiryDays: data.settings.expiryDays })} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-brand-600" />Shelf kitni dafa khaali hui</span>}
-          description={`Pichhle ${data.settings.days} din — har din kitni cheezein zero par pohanchin (kul ${t.stockouts})`}>
-          {!trend.some((d) => d.count > 0) ? <Empty text="Is period me koi shelf khaali nahi hui" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><PackageX className="h-4 w-4 text-brand-600" />{tr('Shelf kitni dafa khaali hui')}</span>}
+          description={tr('Pichhle {{days}} din — har din kitni cheezein zero par pohanchin (kul {{stockouts}})', { days: data.settings.days, stockouts: t.stockouts })}>
+          {!trend.some((d) => d.count > 0) ? <Empty text={tr('Is period me koi shelf khaali nahi hui')} /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -55,7 +56,7 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={14} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={36} />
-                  <Tooltip formatter={(v) => [String(v), 'Cheezein khatam hui']} {...tip} />
+                  <Tooltip formatter={(v) => [String(v), tr('Cheezein khatam hui')]} {...tip} />
                   <Area type="monotone" dataKey="count" stroke="#e11d48" strokeWidth={2.25} fill="url(#ls-trend)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -63,8 +64,8 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />Halat</span>} description="Ek cheez do jagah bhi aa sakti hai">
-          {!status.length ? <Empty text="Sab theek hai" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PieIcon className="h-4 w-4 text-brand-600" />{tr('Halat')}</span>} description={tr('Ek cheez do jagah bhi aa sakti hai')}>
+          {!status.length ? <Empty text={tr('Sab theek hai')} /> : (
             <>
               <div className="h-[160px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -90,28 +91,28 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand-600" />Kitne din ka maal bacha</span>} description="Roz ki sale ke hisaab se">
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand-600" />{tr('Kitne din ka maal bacha')}</span>} description={tr('Roz ki sale ke hisaab se')}>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.cover} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={36} />
-                <Tooltip formatter={(v) => [String(v), 'Cheezein']} {...tip} />
+                <Tooltip formatter={(v) => [String(v), tr('Cheezein')]} {...tip} />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>{data.cover.map((c) => <Cell key={c.key} fill={COVER_COLORS[c.key] ?? theme.primary} />)}</Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><HandCoins className="h-4 w-4 text-brand-600" />Supplier war order</span>} description="Kis supplier ko kitne ka order jayega">
-          {!data.bySupplier.length || costHidden ? <Empty text={costHidden ? 'Cost chhupi hui hai' : 'Koi order nahi'} /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><HandCoins className="h-4 w-4 text-brand-600" />{tr('Supplier war order')}</span>} description={tr('Kis supplier ko kitne ka order jayega')}>
+          {!data.bySupplier.length || costHidden ? <Empty text={costHidden ? tr('Cost chhupi hui hai') : tr('Koi order nahi')} /> : (
             <ul className="space-y-2.5">
               {data.bySupplier.map((s) => (
                 <li key={s.key}>
                   <div className="flex justify-between gap-2 text-[0.8125rem]"><span className="truncate font-medium text-slate-800">{s.name}</span><span className="shrink-0 tabular-nums text-slate-900">{cost(s.value)}</span></div>
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full" style={{ width: `${(s.value / supplierMax) * 100}%`, background: theme.primary }} /></div>
-                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{s.count} cheezein</p>
+                  <p className="mt-0.5 text-[0.6875rem] text-slate-500">{tr('{{count}} cheezein', { count: s.count })}</p>
                 </li>
               ))}
             </ul>
@@ -120,16 +121,16 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title="Sab se zyada ruki sale" description="Khatam maal × roz ki sale × rate — andaza">
-          {!data.topLost.length ? <Empty text="Koi bikta hua maal khatam nahi" /> : (
-            <RankTable head={['Cheez', 'Kab se', 'Roz', 'Ruki sale']} rows={data.topLost.map((r) => [
+        <Card className="rounded-2xl" title={tr('Sab se zyada ruki sale')} description={tr('Khatam maal × roz ki sale × rate — andaza')}>
+          {!data.topLost.length ? <Empty text={tr('Koi bikta hua maal khatam nahi')} /> : (
+            <RankTable head={[tr('Cheez'), tr('Kab se'), tr('Roz'), tr('Ruki sale')]} rows={data.topLost.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, r.outDays !== null ? `${r.outDays} din` : '—', money(r.lostPerDay), <b key="v">{money(r.lostSales)}</b>,
             ])} />
           )}
         </Card>
-        <Card className="rounded-2xl" title="Jaldi khatam hone wale" description="Jo abhi hai, kitne din chalega">
-          {!data.runningOut.length ? <Empty text="Kuch jaldi khatam nahi ho raha" /> : (
-            <RankTable head={['Cheez', 'Abhi', 'Roz sale', 'Chalega']} rows={data.runningOut.map((r) => [
+        <Card className="rounded-2xl" title={tr('Jaldi khatam hone wale')} description={tr('Jo abhi hai, kitne din chalega')}>
+          {!data.runningOut.length ? <Empty text={tr('Kuch jaldi khatam nahi ho raha')} /> : (
+            <RankTable head={[tr('Cheez'), tr('Abhi'), tr('Roz sale'), tr('Chalega')]} rows={data.runningOut.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, `${qty(r.stock)} ${r.unit}`, qty(r.perDay),
               <b key="d" className={cn((r.daysLeft ?? 99) <= 3 && 'text-rose-700')}>{daysText(r.daysLeft)}</b>,
             ])} />
@@ -138,15 +139,15 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       </div>
 
       {data.byCategory.length > 0 && (
-        <Card className="rounded-2xl" title="Category war" description="Kis category me sab se zyada kami"
-          actions={!costHidden && <Segmented label="Kya dikhayein" value={metric} onChange={setMetric} items={[{ value: 'count', label: 'Cheezein' }, { value: 'value', label: 'Order' }]} />}>
+        <Card className="rounded-2xl" title={tr('Category war')} description={tr('Kis category me sab se zyada kami')}
+          actions={!costHidden && <Segmented label={tr('Kya dikhayein')} value={metric} onChange={setMetric} items={[{ value: 'count', label: tr('Cheezein') }, { value: 'value', label: tr('Order') }]} />}>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.byCategory} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} horizontal={false} />
                 <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} tickFormatter={metric === 'value' ? axisMoney : undefined} />
                 <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={110} />
-                <Tooltip formatter={(v) => [metric === 'value' ? cost(Number(v)) : String(v), metric === 'value' ? 'Order' : 'Cheezein']} {...tip} />
+                <Tooltip formatter={(v) => [metric === 'value' ? cost(Number(v)) : String(v), metric === 'value' ? tr('Order') : tr('Cheezein')]} {...tip} />
                 <Bar dataKey={metric === 'value' && !costHidden ? 'value' : 'count'} fill={theme.primary} radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -172,11 +173,11 @@ function RankTable({ head, rows }: { head: string[]; rows: React.ReactNode[][] }
   return (
     <div className="overflow-x-auto">
       <Table minWidth="22rem" className="[&>table]:text-sm">
-        <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-0', 'py-2', i > 0 && 'text-right')}>{h}</Th>)}</Tr>
+        <THead className="text-start text-[0.75rem] uppercase tracking-wide text-slate-500">
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-0', 'py-2', i > 0 && 'text-end')}>{h}</Th>)}</Tr>
         </THead>
         <TBody className="divide-y divide-slate-100">
-          {rows.map((r, i) => <Tr key={i}>{r.map((c, j) => <Td key={j} className={cn('px-0 text-inherit', 'py-2 tabular-nums', j > 0 && 'text-right')}>{c}</Td>)}</Tr>)}
+          {rows.map((r, i) => <Tr key={i}>{r.map((c, j) => <Td key={j} className={cn('px-0 text-inherit', 'py-2 tabular-nums', j > 0 && 'text-end')}>{c}</Td>)}</Tr>)}
         </TBody>
       </Table>
     </div>

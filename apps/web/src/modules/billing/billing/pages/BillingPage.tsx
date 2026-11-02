@@ -30,6 +30,7 @@ import { PlanCompare } from '../components/PlanCompare';
 import { PlanSummary } from '../components/PlanSummary';
 import { UsageMeters, usedPercent } from '../components/UsageMeters';
 import { billingDoc } from '../components/print';
+import { t as tr } from '@core/i18n';
 
 export type BillingTab = 'overview' | 'usage' | 'invoices' | 'payments' | 'plans';
 const ORDER: BillingTab[] = ['overview', 'usage', 'invoices', 'payments', 'plans'];
@@ -38,12 +39,12 @@ type InvoiceFilter = 'all' | 'open' | InvoiceStatus;
 type PaymentFilter = 'all' | PaymentStatus;
 
 const INVOICE_FILTERS: Array<FilterOption<InvoiceFilter>> = [
-  { value: 'all', label: 'Sab bill' },
-  { value: 'open', label: 'Khule bill', hint: 'Baqi + der wale', icon: Clock, color: '#d97706' },
+  { value: 'all', label: tr('Sab bill') },
+  { value: 'open', label: tr('Khule bill'), hint: tr('Baqi + der wale'), icon: Clock, color: '#d97706' },
   ...(['PAID', 'OVERDUE', 'PENDING', 'CANCELLED', 'REFUNDED'] as const).map((s) => ({ value: s, label: INVOICE_STATUS[s].label, icon: INVOICE_STATUS[s].icon, color: INVOICE_STATUS[s].color })),
 ];
 const PAYMENT_FILTERS: Array<FilterOption<PaymentFilter>> = [
-  { value: 'all', label: 'Sab payments' },
+  { value: 'all', label: tr('Sab payments') },
   ...(['PENDING', 'APPROVED', 'REJECTED', 'REFUNDED'] as const).map((s) => ({ value: s, label: PAYMENT_STATUS[s].label, icon: PAYMENT_STATUS[s].icon, color: PAYMENT_STATUS[s].color })),
 ];
 
@@ -98,11 +99,11 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
   const products = b.usage ? b.usage.usage.products : null;
   const productPct = products ? usedPercent(products.current, products.limit, 999_999) : null;
   const tabs: ViewTab<BillingTab>[] = ([
-    { id: 'overview', label: 'Mera plan', icon: Layers },
-    { id: 'usage', label: 'Istemaal', icon: Gauge },
-    { id: 'invoices', label: 'Bill', icon: Receipt, count: b.invoices.length || null },
-    { id: 'payments', label: 'Payments', icon: Wallet, count: b.payments.length || null },
-    { id: 'plans', label: 'Plans', icon: Sparkles },
+    { id: 'overview', label: tr('Mera plan'), icon: Layers },
+    { id: 'usage', label: tr('Istemaal'), icon: Gauge },
+    { id: 'invoices', label: tr('Bill'), icon: Receipt, count: b.invoices.length || null },
+    { id: 'payments', label: tr('Payments'), icon: Wallet, count: b.payments.length || null },
+    { id: 'plans', label: tr('Plans'), icon: Sparkles },
   ] as ViewTab<BillingTab>[]).filter((t) => allowed.includes(t.id));
 
   const listTab = tab === 'invoices' || tab === 'payments';
@@ -115,27 +116,27 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
       {guide.isOpen && <BillingGuide onClose={guide.close} />}
 
       <PageHero
-        title="Billing aur plan"
-        chip={st ? <><st.icon />{st.label}</> : <><Layers />Nafaa subscription</>}
-        meta="Nafaa ka bill, payment aur plan ki had"
+        title={tr('Billing aur plan')}
+        chip={st ? <><st.icon />{st.label}</> : <><Layers />{tr('Nafaa subscription')}</>}
+        meta={tr('Nafaa ka bill, payment aur plan ki had')}
         busy={b.fetching && !b.loading.sub}
         loading={b.loading.sub && b.can.billing}
         actions={<>
-          <button type="button" onClick={b.refresh} title="Taaza karein (R)" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className="h-4 w-4" /></button>
+          <button type="button" onClick={b.refresh} title={tr('Taaza karein (R)')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className="h-4 w-4" /></button>
           {b.can.billing && (
             <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
-              <PrintButton doc={() => billingDoc(b.invoices, b.payments, b.totals, sub?.plan?.name)} disabled={!b.invoices.length} label="Record" />
+              <PrintButton doc={() => billingDoc(b.invoices, b.payments, b.totals, sub?.plan?.name)} disabled={!b.invoices.length} label={tr('Record')} />
             </span>
           )}
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {b.can.plans && tab !== 'plans' && <button type="button" onClick={goPlans} className={heroPrimaryButton}><Sparkles className="h-4 w-4" />{sub?.status === 'TRIAL' ? 'Plan lein' : b.needsRenewal ? 'Renew' : 'Plans'}</button>}
-          {tab === 'plans' && b.can.billing && <button type="button" onClick={() => setTab('overview')} className={heroButton}><Layers className="h-4 w-4" />Mera plan</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {b.can.plans && tab !== 'plans' && <button type="button" onClick={goPlans} className={heroPrimaryButton}><Sparkles className="h-4 w-4" />{sub?.status === 'TRIAL' ? tr('Plan lein') : b.needsRenewal ? tr('Renew') : tr('Plans')}</button>}
+          {tab === 'plans' && b.can.billing && <button type="button" onClick={() => setTab('overview')} className={heroButton}><Layers className="h-4 w-4" />{tr('Mera plan')}</button>}
         </>}
         stats={b.can.billing ? [
-          { label: 'Aap ka plan', value: sub?.plan?.name ?? '—', hint: sub?.amount ? formatPKR(sub.amount) : undefined },
-          { label: sub?.status === 'TRIAL' ? 'Trial khatam' : 'Plan khatam', value: formatDate(b.endsAt), hint: b.daysLeft != null ? daysText(b.daysLeft) : undefined },
-          { label: 'Dena hai', value: formatPKR(b.totals.due), hint: b.totals.open.length ? `${b.totals.open.length} bill` : 'kuch nahi' },
-          { label: 'Ab tak ada kiya', value: formatPKR(b.totals.paidTotal) },
+          { label: tr('Aap ka plan'), value: sub?.plan?.name ?? '—', hint: sub?.amount ? formatPKR(sub.amount) : undefined },
+          { label: sub?.status === 'TRIAL' ? tr('Trial khatam') : tr('Plan khatam'), value: formatDate(b.endsAt), hint: b.daysLeft != null ? daysText(b.daysLeft) : undefined },
+          { label: tr('Dena hai'), value: formatPKR(b.totals.due), hint: b.totals.open.length ? tr('{{count}} bill', { count: b.totals.open.length }) : tr('kuch nahi') },
+          { label: tr('Ab tak ada kiya'), value: formatPKR(b.totals.paidTotal) },
         ] : undefined}
       />
 
@@ -143,25 +144,25 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
         <KpiRow>
           {b.loading.invoices ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
             <>
-              <KpiCard icon={Clock} color="#d97706" label="Khule bill" value={formatPKR(b.totals.due)} hint={b.totals.overdue ? `${b.totals.overdue} der wale · dabayein` : `${b.totals.open.length} bill · dabayein`}
+              <KpiCard icon={Clock} color="#d97706" label={tr('Khule bill')} value={formatPKR(b.totals.due)} hint={b.totals.overdue ? tr('{{overdue}} der wale · dabayein', { overdue: b.totals.overdue }) : tr('{{count}} bill · dabayein', { count: b.totals.open.length })}
                 onClick={() => { setInvoiceFilter('open'); setTab('invoices'); }} active={tab === 'invoices' && invoiceFilter === 'open'} />
-              <KpiCard icon={FileText} color="#7c3aed" label="Check ho rahi" value={String(b.totals.reviewing)} hint="Payments · 24 ghante me"
+              <KpiCard icon={FileText} color="#7c3aed" label={tr('Check ho rahi')} value={String(b.totals.reviewing)} hint={tr('Payments · 24 ghante me')}
                 onClick={() => { setPaymentFilter('PENDING'); setTab('payments'); }} active={tab === 'payments' && paymentFilter === 'PENDING'} />
-              <KpiCard icon={CheckCircle2} color="#16a34a" label="Ada kiya" value={formatPKR(b.totals.paidTotal)} hint={`${b.totals.paidCount} bill`} />
-              <KpiCard icon={BarChart3} color="#2563eb" label="Products" value={products ? products.current.toLocaleString('en-PK') : '—'}
-                hint={productPct != null ? `${productPct}% had istemaal` : products ? 'Koi had nahi' : undefined}
+              <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Ada kiya')} value={formatPKR(b.totals.paidTotal)} hint={tr('{{paidCount}} bill', { paidCount: b.totals.paidCount })} />
+              <KpiCard icon={BarChart3} color="#2563eb" label={tr('Products')} value={products ? products.current.toLocaleString('en-PK') : '—'}
+                hint={productPct != null ? tr('{{productPct}}% had istemaal', { productPct }) : products ? tr('Koi had nahi') : undefined}
                 onClick={b.can.usage ? () => setTab('usage') : undefined} active={tab === 'usage'} />
-              <KpiCard icon={CalendarClock} color={b.needsRenewal ? '#e11d48' : '#0891b2'} label="Renew" value={b.daysLeft != null ? daysText(b.daysLeft) : '—'} hint={formatDate(b.endsAt)} />
+              <KpiCard icon={CalendarClock} color={b.needsRenewal ? '#e11d48' : '#0891b2'} label={tr('Renew')} value={b.daysLeft != null ? daysText(b.daysLeft) : '—'} hint={formatDate(b.endsAt)} />
             </>
           )}
         </KpiRow>
       )}
 
-      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> se badlein</>} />
+      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> {' '}{tr('se badlein')}</>} />
 
       {listTab && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'invoices' ? 'Bill number ya plan…' : 'Ref / TID, bill number ya naam…'} label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'invoices' ? tr('Bill number ya plan…') : tr('Ref / TID, bill number ya naam…')} label={tr('Search')} />}
           chips={filterActive || q ? <>
             {tab === 'invoices' && invoiceFilter !== 'all' && <FilterChip onRemove={() => setInvoiceFilter('all')}>{INVOICE_FILTERS.find((f) => f.value === invoiceFilter)?.label}</FilterChip>}
             {tab === 'payments' && paymentFilter !== 'all' && <FilterChip onRemove={() => setPaymentFilter('all')}>{PAYMENT_FILTERS.find((f) => f.value === paymentFilter)?.label}</FilterChip>}
@@ -169,8 +170,8 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
           </> : undefined}
           onClear={() => { setSearch(''); setInvoiceFilter('all'); setPaymentFilter('all'); }}>
           {tab === 'invoices'
-            ? <FilterMenu icon={ListFilter} label="Haal" value={invoiceFilter} active={invoiceFilter !== 'all'} options={INVOICE_FILTERS} onChange={setInvoiceFilter} />
-            : <FilterMenu icon={ListFilter} label="Haal" value={paymentFilter} active={paymentFilter !== 'all'} options={PAYMENT_FILTERS} onChange={setPaymentFilter} />}
+            ? <FilterMenu icon={ListFilter} label={tr('Haal')} value={invoiceFilter} active={invoiceFilter !== 'all'} options={INVOICE_FILTERS} onChange={setInvoiceFilter} />
+            : <FilterMenu icon={ListFilter} label={tr('Haal')} value={paymentFilter} active={paymentFilter !== 'all'} options={PAYMENT_FILTERS} onChange={setPaymentFilter} />}
         </FilterBar>
       )}
 
@@ -181,8 +182,8 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
           {b.invoices.length > 0 && (
             <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <header className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 sm:px-5">
-                <h2 className="text-[0.875rem] font-semibold text-slate-900">Naye bill</h2>
-                <button type="button" onClick={() => setTab('invoices')} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab dekhein</button>
+                <h2 className="text-[0.875rem] font-semibold text-slate-900">{tr('Naye bill')}</h2>
+                <button type="button" onClick={() => setTab('invoices')} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Sab dekhein')}</button>
               </header>
               <InvoiceList invoices={b.invoices.slice(0, 4)} onOpen={setOpenInvoice} />
             </section>
@@ -194,18 +195,18 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
 
       {tab === 'invoices' && (
         <ListBox loading={b.loading.invoices} empty={!invoices.length}
-          emptyTitle={b.invoices.length ? 'Is filter me koi bill nahi' : 'Abhi koi bill nahi'}
-          emptyText={b.invoices.length ? 'Filter badal kar dekhein' : 'Plan lene par yahan bill aayenge'}
-          action={b.invoices.length ? <Button variant="secondary" onClick={() => { setInvoiceFilter('all'); setSearch(''); }}>Filter hatayein</Button> : b.can.plans ? <Button onClick={goPlans}>Plans dekhein</Button> : null}>
+          emptyTitle={b.invoices.length ? tr('Is filter me koi bill nahi') : tr('Abhi koi bill nahi')}
+          emptyText={b.invoices.length ? tr('Filter badal kar dekhein') : tr('Plan lene par yahan bill aayenge')}
+          action={b.invoices.length ? <Button variant="secondary" onClick={() => { setInvoiceFilter('all'); setSearch(''); }}>{tr('Filter hatayein')}</Button> : b.can.plans ? <Button onClick={goPlans}>{tr('Plans dekhein')}</Button> : null}>
           <InvoiceList invoices={invoices} onOpen={setOpenInvoice} />
         </ListBox>
       )}
 
       {tab === 'payments' && (
         <ListBox loading={b.loading.payments} empty={!payments.length}
-          emptyTitle={b.payments.length ? 'Is filter me koi payment nahi' : 'Abhi koi payment nahi bheji'}
-          emptyText={b.payments.length ? 'Filter badal kar dekhein' : 'Bill kholein aur "Payment karein" dabayein'}
-          action={b.payments.length ? <Button variant="secondary" onClick={() => { setPaymentFilter('all'); setSearch(''); }}>Filter hatayein</Button> : null}>
+          emptyTitle={b.payments.length ? tr('Is filter me koi payment nahi') : tr('Abhi koi payment nahi bheji')}
+          emptyText={b.payments.length ? tr('Filter badal kar dekhein') : tr('Bill kholein aur "Payment karein" dabayein')}
+          action={b.payments.length ? <Button variant="secondary" onClick={() => { setPaymentFilter('all'); setSearch(''); }}>{tr('Filter hatayein')}</Button> : null}>
           <PaymentList payments={payments} onOpen={setOpenPayment} />
         </ListBox>
       )}
@@ -225,22 +226,22 @@ function ListBox({ loading, empty, emptyTitle, emptyText, action, children }: {
 
 function BillingGuide({ onClose }: { onClose: () => void }) {
   return (
-    <PageGuide title="Billing — aasaan tareeqa" onClose={onClose}
+    <PageGuide title={tr('Billing — aasaan tareeqa')} onClose={onClose}
       steps={[
-        { icon: Layers, color: '#2563eb', title: 'Mera plan', text: 'Kaunsa plan chal raha hai, kab khatam hoga aur kitne ka hai. Plan band ya wapas chalu bhi yahin se.' },
-        { icon: Gauge, color: '#7c3aed', title: 'Istemaal', text: 'Products, team, branches aur is mahine ke bill — plan ki had ke muqable me. 75% par peela, 90% par laal.' },
-        { icon: Sparkles, color: '#db2777', title: 'Plan chunein', text: 'Plans tab me mahana, 3 mahine ya saalana qeemat dekhein. Lambi period me bachat hai.' },
-        { icon: Receipt, color: '#d97706', title: 'Bill ada karein', text: 'Khula bill kholein, "Payment karein" dabayein, bank ya wallet se bhej kar screenshot upload karein.' },
-        { icon: Wallet, color: '#16a34a', title: 'Payment ka haal', text: 'Payments tab me dekhein: check ho rahi, approve ya wapas. Wapas hui ho to wajah parh kar dobara bhejein.' },
-        { icon: CreditCard, color: '#0891b2', title: 'Print', text: 'Har bill ka A4 ya PDF print — apne record ya accountant ke liye.' },
+        { icon: Layers, color: '#2563eb', title: tr('Mera plan'), text: tr('Kaunsa plan chal raha hai, kab khatam hoga aur kitne ka hai. Plan band ya wapas chalu bhi yahin se.') },
+        { icon: Gauge, color: '#7c3aed', title: tr('Istemaal'), text: tr('Products, team, branches aur is mahine ke bill — plan ki had ke muqable me. 75% par peela, 90% par laal.') },
+        { icon: Sparkles, color: '#db2777', title: tr('Plan chunein'), text: tr('Plans tab me mahana, 3 mahine ya saalana qeemat dekhein. Lambi period me bachat hai.') },
+        { icon: Receipt, color: '#d97706', title: tr('Bill ada karein'), text: tr('Khula bill kholein, "Payment karein" dabayein, bank ya wallet se bhej kar screenshot upload karein.') },
+        { icon: Wallet, color: '#16a34a', title: tr('Payment ka haal'), text: tr('Payments tab me dekhein: check ho rahi, approve ya wapas. Wapas hui ho to wajah parh kar dobara bhejein.') },
+        { icon: CreditCard, color: '#0891b2', title: tr('Print'), text: tr('Har bill ka A4 ya PDF print — apne record ya accountant ke liye.') },
       ]}
       tips={[
-        'Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din naye period me jud jate hain.',
-        'Plan lena, badalna ya band karna sirf malik ya billing ki permission wala kar sakta hai.',
-        'Ek hi bill rakhein — doosra plan chunne par wohi khula bill update ho jata hai.',
+        tr('Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din naye period me jud jate hain.'),
+        tr('Plan lena, badalna ya band karna sirf malik ya billing ki permission wala kar sakta hai.'),
+        tr('Ek hi bill rakhein — doosra plan chunne par wohi khula bill update ho jata hai.'),
       ]}
-      shortcuts={[['1-5', 'tabs'], ['/', 'bill search'], ['M Q Y', 'muddat'], ['R', 'taaza'], ['G', 'guide']]}
-      footer={<Link to="/help" onClick={onClose} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Madad chahiye? →</Link>}
+      shortcuts={[['1-5', tr('tabs')], ['/', tr('bill search')], ['M Q Y', tr('muddat')], ['R', tr('taaza')], ['G', tr('guide')]]}
+      footer={<Link to="/help" onClick={onClose} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Madad chahiye? →')}</Link>}
     />
   );
 }

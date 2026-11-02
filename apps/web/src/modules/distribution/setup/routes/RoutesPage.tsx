@@ -20,6 +20,7 @@ import { RouteFormModal } from './RouteFormModal';
 import { RouteDetail } from './RouteDetail';
 import { RouteDayView } from './RouteDayView';
 import { UnroutedView } from './UnroutedView';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'routes' | 'day' | 'unrouted';
 
@@ -47,36 +48,36 @@ function RoutesBody() {
   const refresh = () => { qc.invalidateQueries({ queryKey: ROUTES_KEY }); qc.invalidateQueries({ queryKey: [DIST_KEY, 'route'] }); qc.invalidateQueries({ queryKey: [DIST_KEY, 'roster'] }); };
   const create = useMutation({
     mutationFn: (b: SaveRoute) => distSetupApi.createRoute(b),
-    onSuccess: (r) => { refresh(); setForm(null); pick(r.id); toast.success(`${r.name} ban gaya`); },
-    onError: (e) => toast.error(distError(e, 'Route nahi bana')),
+    onSuccess: (r) => { refresh(); setForm(null); pick(r.id); toast.success(tr('{{name}} ban gaya', { name: r.name })); },
+    onError: (e) => toast.error(distError(e, tr('Route nahi bana'))),
   });
   const update = useMutation({
     mutationFn: (v: { id: string; body: Partial<SaveRoute> }) => distSetupApi.updateRoute(v.id, v.body),
-    onSuccess: () => { refresh(); setForm(null); toast.success('Save ho gaya'); },
-    onError: (e) => toast.error(distError(e, 'Save nahi hua')),
+    onSuccess: () => { refresh(); setForm(null); toast.success(tr('Save ho gaya')); },
+    onError: (e) => toast.error(distError(e, tr('Save nahi hua'))),
   });
 
   return (
     <>
       <PageHero
-        title="Routes"
-        chip={<><MapPin />Beat plan</>}
-        meta="Kaun sa ilaqa kis din, kaun booker, kaun delivery — aur dukaanon ki tarteeb"
+        title={tr('Routes')}
+        chip={<><MapPin />{tr('Beat plan')}</>}
+        meta={tr('Kaun sa ilaqa kis din, kaun booker, kaun delivery — aur dukaanon ki tarteeb')}
         loading={routesQ.isLoading}
         stats={[
-          { label: 'Routes', value: String(routes.filter((r) => r.isActive).length) },
-          { label: 'Customers route par', value: String(routes.reduce((s, r) => s + (r.customerCount ?? 0), 0)) },
-          { label: 'Bina route', value: rosterQ.data ? String(unrouted.length) : '—' },
-          { label: 'Aaj ke routes', value: String(todays.length), hint: todays.map((r) => r.name).join(', ') || 'koi nahi' },
+          { label: tr('Routes'), value: String(routes.filter((r) => r.isActive).length) },
+          { label: tr('Customers route par'), value: String(routes.reduce((s, r) => s + (r.customerCount ?? 0), 0)) },
+          { label: tr('Bina route'), value: rosterQ.data ? String(unrouted.length) : '—' },
+          { label: tr('Aaj ke routes'), value: String(todays.length), hint: todays.map((r) => r.name).join(', ') || tr('koi nahi') },
         ]}
-        actions={<button type="button" className={heroPrimaryButton} onClick={() => setForm('new')}><Plus className="h-4 w-4" />Naya route</button>}
+        actions={<button type="button" className={heroPrimaryButton} onClick={() => setForm('new')}><Plus className="h-4 w-4" />{tr('Naya route')}</button>}
       />
 
       <ViewTabs value={tab} onChange={setTab}
         tabs={[
-          { id: 'routes', label: 'Routes', icon: RouteIcon, count: routes.length },
-          { id: 'day', label: 'Din ka plan', icon: CalendarDays },
-          { id: 'unrouted', label: 'Bina route', icon: UserX, count: rosterQ.data ? unrouted.length : null },
+          { id: 'routes', label: tr('Routes'), icon: RouteIcon, count: routes.length },
+          { id: 'day', label: tr('Din ka plan'), icon: CalendarDays },
+          { id: 'unrouted', label: tr('Bina route'), icon: UserX, count: rosterQ.data ? unrouted.length : null },
         ]} />
 
       {tab === 'day' ? <RouteDayView /> : tab === 'unrouted' ? <UnroutedView routes={routes} customers={unrouted} loading={rosterQ.isLoading} error={rosterQ.error} /> : (
@@ -84,22 +85,22 @@ function RoutesBody() {
           <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-[28rem] rounded-2xl" /></div>
         ) : !routes.length ? (
           <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-            <EmptyState icon={<MapPin className="h-6 w-6" />} title="Abhi koi route nahi"
-              description="Misal: 'Shadman - Ichhra' — Peer aur Jumeraat, booker Imran, delivery Akram. Phir us ilaqe ki dukaanein tarteeb se lagayein."
-              action={<button type="button" onClick={() => setForm('new')} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" />Pehla route</button>} />
+            <EmptyState icon={<MapPin className="h-6 w-6" />} title={tr('Abhi koi route nahi')}
+              description={tr('Misal: \'Shadman - Ichhra\' — Peer aur Jumeraat, booker Imran, delivery Akram. Phir us ilaqe ki dukaanein tarteeb se lagayein.')}
+              action={<button type="button" onClick={() => setForm('new')} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" />{tr('Pehla route')}</button>} />
           </div>
         ) : (
           <div className="grid items-start gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <nav aria-label="Routes" className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+            <nav aria-label={tr('Routes')} className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {routes.map((r) => (
                 <button key={r.id} type="button" onClick={() => pick(r.id)} aria-current={r.id === selected?.id}
-                  className={cn('min-w-[14rem] shrink-0 rounded-2xl bg-white p-3 text-left shadow-sm ring-1 transition lg:min-w-0',
+                  className={cn('min-w-[14rem] shrink-0 rounded-2xl bg-white p-3 text-start shadow-sm ring-1 transition lg:min-w-0',
                     r.id === selected?.id ? 'ring-2 ring-brand-500' : 'ring-slate-200/80 hover:ring-slate-300', !r.isActive && 'opacity-60')}>
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-[0.9375rem] font-semibold text-slate-900">{r.name}</span>
                     {r.code && <span className="shrink-0 rounded bg-slate-100 px-1.5 text-[0.6875rem] font-semibold text-slate-600">{r.code}</span>}
                   </div>
-                  <p className="mt-0.5 truncate text-[0.75rem] text-slate-500">{r.bookerName ?? 'Booker nahi'} · {r.customerCount ?? 0} dukaanein</p>
+                  <p className="mt-0.5 truncate text-[0.75rem] text-slate-500">{tr('{{value}} · {{value2}} dukaanein', { value: r.bookerName ?? 'Booker nahi', value2: r.customerCount ?? 0 })}</p>
                   <div className="mt-2 flex gap-0.5">
                     {WEEKDAYS_SHORT.map((d, i) => (
                       <span key={d} className={cn('flex h-5 min-w-[1.75rem] items-center justify-center rounded px-0.5 text-[0.625rem] font-bold',

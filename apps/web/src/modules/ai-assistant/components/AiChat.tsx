@@ -28,6 +28,7 @@ import { pageContext, pageInfo } from '../suggestions';
 import { AiHistory } from './AiHistory';
 import { AiMessageItem } from './AiMessageItem';
 import { NafaaAiMark } from './NafaaAiMark';
+import { t as tr, Trans } from '@core/i18n';
 
 export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
   const navigate = useNavigate();
@@ -181,38 +182,38 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
 
   const header = (
     <div className="flex h-14 shrink-0 items-center gap-1 border-b border-slate-200 px-2.5">
-      <IconButton label="Purani chats" onClick={() => setHistoryOpen((v) => !v)} aria-pressed={historyOpen}
+      <IconButton label={tr('Purani chats')} onClick={() => setHistoryOpen((v) => !v)} aria-pressed={historyOpen}
         className={cn('h-8 w-8', variant === 'page' && 'lg:hidden', historyOpen && 'bg-slate-100 text-slate-900')}>
         <History className="h-4 w-4" />
       </IconButton>
       <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
         <NafaaAiMark size="sm" state={s.streaming ? 'thinking' : 'idle'} />
         <div className="min-w-0">
-          <div className="truncate text-[0.875rem] font-semibold text-slate-900">{s.title || 'Nafaa AI'}</div>
+          <div className="truncate text-[0.875rem] font-semibold text-slate-900">{s.title || tr('Nafaa AI')}</div>
           {s.remaining != null && (
-            <div className="text-[0.6875rem] text-slate-500">Aaj {s.remaining} sawal baqi</div>
+            <div className="text-[0.6875rem] text-slate-500">{tr('Aaj {{remaining}} sawal baqi', { remaining: s.remaining })}</div>
           )}
         </div>
       </div>
-      <IconButton label="Nayi chat" onClick={() => { s.newChat(); setEditing(false); setText(''); inputRef.current?.focus(); }} className="h-8 w-8">
+      <IconButton label={tr('Nayi chat')} onClick={() => { s.newChat(); setEditing(false); setText(''); inputRef.current?.focus(); }} className="h-8 w-8">
         <SquarePen className="h-4 w-4" />
       </IconButton>
       {variant === 'drawer' ? (
         <>
           <IconButton
-            label={s.pushPinned ? 'Page ke upar kholein (unpin)' : 'Page ke saath rakhein (pin)'}
+            label={s.pushPinned ? tr('Page ke upar kholein (unpin)') : tr('Page ke saath rakhein (pin)')}
             onClick={() => s.setPushPinned(!s.pushPinned)}
             aria-pressed={s.pushPinned}
             className="hidden h-8 w-8 min-[1600px]:inline-flex"
           >
-            {s.pushPinned ? <PanelRight className="h-4 w-4" /> : <PanelRightDashed className="h-4 w-4" />}
+            {s.pushPinned ? <PanelRight className="h-4 w-4 rtl-flip" /> : <PanelRightDashed className="h-4 w-4" />}
           </IconButton>
-          <IconButton label="Poore page par kholein" onClick={expand} className="hidden h-8 w-8 sm:inline-flex"><Maximize2 className="h-4 w-4" /></IconButton>
-          <IconButton label="Chhota karein (chat rahegi)" onClick={closeDrawer} className="h-8 w-8"><Minus className="h-4 w-4" /></IconButton>
-          <IconButton label="Band karein (Esc)" onClick={() => { s.stop(); s.newChat(); closeDrawer(); }} className="h-8 w-8"><X className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Poore page par kholein')} onClick={expand} className="hidden h-8 w-8 sm:inline-flex"><Maximize2 className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Chhota karein (chat rahegi)')} onClick={closeDrawer} className="h-8 w-8"><Minus className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Band karein (Esc)')} onClick={() => { s.stop(); s.newChat(); closeDrawer(); }} className="h-8 w-8"><X className="h-4 w-4" /></IconButton>
         </>
       ) : (
-        <IconButton label="Side panel me wapas" onClick={collapse} className="h-8 w-8"><Minimize2 className="h-4 w-4" /></IconButton>
+        <IconButton label={tr('Side panel me wapas')} onClick={collapse} className="h-8 w-8"><Minimize2 className="h-4 w-4" /></IconButton>
       )}
     </div>
   );
@@ -220,14 +221,14 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
   const greeting = (
     <div className="flex flex-col items-center px-4 pb-4 pt-8 text-center">
       <NafaaAiMark size="lg" />
-      <h2 className="mt-3 text-[1rem] font-semibold text-slate-900">Assalam-o-Alaikum! Main Nafaa AI hoon.</h2>
+      <h2 className="mt-3 text-[1rem] font-semibold text-slate-900">{tr('Assalam-o-Alaikum! Main Nafaa AI hoon.')}</h2>
       <p className="mt-1 max-w-sm text-[0.8125rem] text-slate-500">
-        Apni dukaan ke baare mein kuch bhi poochein — Sale, Profit, stock, udhaar, expenses. Jawab aap ke asal data se aata hai.
+        {tr('Apni dukaan ke baare mein kuch bhi poochein — Sale, Profit, stock, udhaar, expenses. Jawab aap ke asal data se aata hai.')}
       </p>
       <div className="mt-5 flex w-full max-w-md flex-col gap-1.5">
         {info.questions.map((q) => (
           <button key={q} type="button" onClick={() => ask(q)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-[0.8125rem] text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-start text-[0.8125rem] text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
             {q}
           </button>
         ))}
@@ -250,7 +251,7 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
         className="min-h-0 flex-1 overflow-y-auto"
         onScroll={(e) => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}
       >
-        {s.loadingConversation && <p className="p-4 text-[0.8125rem] text-slate-500">Chat khul rahi hai…</p>}
+        {s.loadingConversation && <p className="p-4 text-[0.8125rem] text-slate-500">{tr('Chat khul rahi hai…')}</p>}
         {empty ? greeting : (
           <div className={cn('space-y-5 px-3 py-4 sm:px-4', variant === 'page' && 'mx-auto max-w-3xl')}>
             {s.messages.map((m, i) => (
@@ -262,7 +263,7 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
                 canEdit={i === lastUserIndex && !s.streaming}
                 onRegenerate={() => { stick.current = true; void s.regenerate(context); }}
                 onEdit={startEdit}
-                onFeedback={(v) => { s.setFeedback(m.id, v).catch(() => toast.error('Feedback save nahi hua')); }}
+                onFeedback={(v) => { s.setFeedback(m.id, v).catch(() => toast.error(tr('Feedback save nahi hua'))); }}
                 streaming={s.streaming}
                 onRetry={() => { stick.current = true; void s.retry(context); }}
                 onAsk={ask}
@@ -275,35 +276,35 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
       <div className={cn('shrink-0 border-t border-slate-200 bg-white p-2.5', variant === 'page' && 'sm:px-4')}>
         <div className={cn(variant === 'page' && 'mx-auto max-w-3xl')}>
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <div className="inline-flex rounded-lg bg-slate-100 p-0.5" role="radiogroup" aria-label="Jawab ka tareeqa">
+            <div className="inline-flex rounded-lg bg-slate-100 p-0.5" role="radiogroup" aria-label={tr('Jawab ka tareeqa')}>
               <button type="button" role="radio" aria-checked={!smart} onClick={() => s.setMode('fast')}
                 className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[0.75rem] font-medium transition', !smart ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
-                <Zap className="h-3 w-3" /> Fast
+                <Zap className="h-3 w-3" /> {' '}{tr('Fast')}
               </button>
               <button type="button" role="radio" aria-checked={smart} onClick={() => s.setMode('smart')}
-                title="Gehra jaiza — 3 message ke barabar"
+                title={tr('Gehra jaiza — 3 message ke barabar')}
                 className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-[0.75rem] font-medium transition', smart ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
-                <Brain className="h-3 w-3" /> Smart
+                <Brain className="h-3 w-3" /> {' '}{tr('Smart')}
               </button>
             </div>
-            {smart && <span className="text-[0.6875rem] text-slate-500">3 message ke barabar</span>}
+            {smart && <span className="text-[0.6875rem] text-slate-500">{tr('3 message ke barabar')}</span>}
             {voice.supported && (
-              <div className="inline-flex rounded-lg bg-slate-100 p-0.5" role="radiogroup" aria-label="Awaaz ki zaban">
+              <div className="inline-flex rounded-lg bg-slate-100 p-0.5" role="radiogroup" aria-label={tr('Awaaz ki zaban')}>
                 {(['ur-PK', 'en-PK'] as const).map((l) => (
                   <button key={l} type="button" role="radio" aria-checked={lang === l} onClick={() => setLang(l)} disabled={voice.listening}
                     className={cn('rounded-md px-2 py-1 text-[0.75rem] font-medium transition', lang === l ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
-                    {l === 'ur-PK' ? <span className="font-urdu">اردو</span> : 'English'}
+                    {l === 'ur-PK' ? <span className="font-urdu">{tr('اردو')}</span> : tr('English')}
                   </button>
                 ))}
               </div>
             )}
             {ctxPathname && (
               <button type="button" onClick={() => s.setWithContext(!s.withContext)} aria-pressed={s.withContext}
-                title="Sawal ke saath ye page bhi bhejein"
-                className={cn('ml-auto inline-flex max-w-[60%] items-center gap-1 truncate rounded-full border px-2 py-0.5 text-[0.6875rem] font-medium transition',
+                title={tr('Sawal ke saath ye page bhi bhejein')}
+                className={cn('ms-auto inline-flex max-w-[60%] items-center gap-1 truncate rounded-full border px-2 py-0.5 text-[0.6875rem] font-medium transition',
                   s.withContext ? 'border-brand-200 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50')}>
                 <MapPin className="h-3 w-3 shrink-0" />
-                <span className="truncate">Is page ke baare mein{info.title ? `: ${info.title}` : ''}</span>
+                <span className="truncate">{tr('Is page ke baare mein{{value}}', { value: info.title ? `: ${info.title}` : '' })}</span>
               </button>
             )}
           </div>
@@ -314,16 +315,16 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
                   <span key={i} className="w-0.5 rounded-full bg-rose-500 motion-safe:animate-pulse" style={{ height: `${[6, 12, 8, 11, 5][i]}px`, animationDelay: `${i * 120}ms` }} />
                 ))}
               </span>
-              Sun raha hoon… ({lang === 'ur-PK' ? 'اردو' : 'English'}) · chup hone par khud bhej dunga
+              {tr('Sun raha hoon… ({{value}}) · chup hone par khud bhej dunga', { value: lang === 'ur-PK' ? tr('اردو') : tr('English') })}
             </div>
           )}
           {editing && (
             <div className="mb-1 flex items-center gap-2 text-[0.6875rem] text-brand-700">
-              Pichhla sawal badal rahe hain <Kbd>Esc</Kbd> chhorein
+              <Trans text="Pichhla sawal badal rahe hain {{key}} chhorein" values={{ key: <Kbd>Esc</Kbd> }} />
             </div>
           )}
           <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/15">
-            <label htmlFor={`ai-input-${variant}`} className="sr-only">Nafaa AI se poochein</label>
+            <label htmlFor={`ai-input-${variant}`} className="sr-only">{tr('Nafaa AI se poochein')}</label>
             <textarea
               id={`ai-input-${variant}`}
               ref={inputRef}
@@ -332,7 +333,7 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
               maxLength={2000}
               onChange={(e) => { if (voice.listening) typedDuringVoice.current = true; setText(e.target.value); }}
               onKeyDown={onInputKey}
-              placeholder='Kuch bhi poochein… jaise "Aaj ki sale?"'
+              placeholder={tr('Kuch bhi poochein… jaise "Aaj ki sale?"')}
               className="max-h-40 min-h-[1.75rem] flex-1 resize-none bg-transparent py-1 text-[0.875rem] text-slate-900 outline-none placeholder:text-slate-400"
             />
             <button
@@ -340,8 +341,8 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
               onClick={toggleMic}
               disabled={!voice.supported || (s.streaming && !voice.listening)}
               aria-pressed={voice.listening}
-              aria-label={!voice.supported ? 'Awaaz wala sawal Chrome / Edge me chalta hai' : voice.listening ? 'Sunna band karein (Alt+V)' : 'Bol kar poochein (Alt+V)'}
-              title={!voice.supported ? 'Awaaz wala sawal Chrome / Edge me chalta hai' : voice.listening ? 'Sunna band karein (Alt+V)' : 'Bol kar poochein (Alt+V)'}
+              aria-label={!voice.supported ? tr('Awaaz wala sawal Chrome / Edge me chalta hai') : voice.listening ? tr('Sunna band karein (Alt+V)') : tr('Bol kar poochein (Alt+V)')}
+              title={!voice.supported ? tr('Awaaz wala sawal Chrome / Edge me chalta hai') : voice.listening ? tr('Sunna band karein (Alt+V)') : tr('Bol kar poochein (Alt+V)')}
               className={cn(
                 'relative mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-40',
                 voice.listening ? 'bg-rose-600 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800',
@@ -351,19 +352,19 @@ export function AiChat({ variant }: { variant: 'drawer' | 'page' }) {
               {voice.supported ? <Mic className="relative h-4 w-4" /> : <MicOff className="h-4 w-4" />}
             </button>
             {s.streaming ? (
-              <button type="button" onClick={s.stop} aria-label="Rokein"
+              <button type="button" onClick={s.stop} aria-label={tr('Rokein')}
                 className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-slate-200 dark:text-slate-900">
                 <Square className="h-3.5 w-3.5" fill="currentColor" />
               </button>
             ) : (
-              <button type="button" onClick={() => submit(fromVoice.current ? 'voice' : 'text')} disabled={!text.trim()} aria-label="Bhejein (Enter)"
+              <button type="button" onClick={() => submit(fromVoice.current ? 'voice' : 'text')} disabled={!text.trim()} aria-label={tr('Bhejein (Enter)')}
                 className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-brand-fg transition hover:bg-brand-700 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                 <Send className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
           <p className="mt-1 hidden text-[0.6875rem] text-slate-400 sm:block">
-            <Kbd>Enter</Kbd> bhejein · <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> nayi line · <Kbd>↑</Kbd> pichhla sawal badlein · <Kbd>Alt</Kbd>+<Kbd>V</Kbd> mic · Nafaa AI ghalti kar sakta hai, zaroori number report me dekh lein.
+            <Kbd>Enter</Kbd> {' '}{tr('bhejein ·')}{' '} <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('nayi line ·')}{' '} <Kbd>↑</Kbd> {' '}{tr('pichhla sawal badlein ·')}{' '} <Kbd>Alt</Kbd>+<Kbd>V</Kbd> {' '}{tr('mic · Nafaa AI ghalti kar sakta hai, zaroori number report me dekh lein.')}
           </p>
         </div>
       </div>

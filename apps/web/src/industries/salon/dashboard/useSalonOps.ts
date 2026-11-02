@@ -11,6 +11,7 @@ import { appointmentsApi, type Appointment, type AppointmentStatus } from '../ap
 import { staffProfilesApi, type StaffProfile } from '../api/staff-profiles.api';
 import { membershipsApi, type Membership } from '../api/memberships.api';
 import { packagesApi, type PackagePurchase } from '../api/packages.api';
+import { t } from '@core/i18n';
 
 const SECOND = 1_000;
 const MINUTE = 60 * SECOND;
@@ -27,7 +28,7 @@ export type SalonAppointment = Appointment & { startsIn: number };
 
 export const staffName = (s?: StaffProfile) => {
   const p = s?.staff as { fullName?: string; firstName?: string; lastName?: string; name?: string } | undefined;
-  return `${(p?.fullName || p?.firstName) ?? ''} ${p?.lastName ?? ''}`.trim() || p?.name || 'Staff';
+  return `${(p?.fullName || p?.firstName) ?? ''} ${p?.lastName ?? ''}`.trim() || p?.name || t('Staff');
 };
 
 export function useSalonOps() {

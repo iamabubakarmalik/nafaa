@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { payrollApi, type RunEdit, type RunResult, type SalaryRecord, type Sources } from '../api/payroll.api';
 import { TOUCHED_KEYS, apiError, requestKey } from './meta';
 import { SourcePicker, defaultSource, sourceReady, type SourceValue } from './SourcePicker';
+import { t } from '@core/i18n';
 
 const refreshAll = (qc: ReturnType<typeof useQueryClient>) => TOUCHED_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
@@ -37,26 +38,26 @@ export function RunPayModal({ month, monthLabel, shopId, lines, sources, onDone,
       rows: lines.map((l) => ({ staffId: l.staffId, ...(l.edit ?? {}) })),
     }),
     onSuccess: (r) => {
-      if (r.duplicate) toast.info('Ye payment pehle hi ho chuki thi');
-      else if (!r.created.length) toast.info(r.skipped.map((s) => `${s.name}: ${s.reason}`).join(' · ') || 'Kuch nahi bana');
+      if (r.duplicate) toast.info(t('Ye payment pehle hi ho chuki thi'));
+      else if (!r.created.length) toast.info(r.skipped.map((s) => `${s.name}: ${s.reason}`).join(' · ') || t('Kuch nahi bana'));
       else {
-        toast.success(`${r.created.length} tankhwah ban gayi${r.paid ? ` · ${formatPKR(r.paid)} ada (${r.source})` : ' · abhi ada nahi'}`);
+        toast.success(t('{{count}} tankhwah ban gayi{{value}}', { count: r.created.length, value: r.paid ? t(' · {{paid}} ada ({{source}})', { paid: formatPKR(r.paid), source: r.source }) : t(' · abhi ada nahi') }));
         r.skipped.forEach((s) => toast.warning(`${s.name}: ${s.reason}`));
       }
       refreshAll(qc);
       onDone(r);
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Tankhwah nahi bani')),
+    onError: (e) => toast.error(apiError(e, t('Tankhwah nahi bani'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`${monthLabel} ki tankhwah — ${lines.length} staff`}
-      description={`Banti kul ${formatPKR(net)}${total !== net ? ` · abhi dena ${formatPKR(total)}` : ''}`}
+    <Modal open onClose={onClose} size="lg" title={t('{{monthLabel}} ki tankhwah — {{count}} staff', { monthLabel, count: lines.length })}
+      description={t('Banti kul {{net}}{{value}}', { net: formatPKR(net), value: total !== net ? t(' · abhi dena {{total}}', { total: formatPKR(total) }) : '' })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button onClick={() => m.mutate()} loading={m.isPending} disabled={!ready || !lines.length} leftIcon={<HandCoins className="h-4 w-4" />}>
-          {src.source === 'NONE' ? 'Tankhwah banayein' : `${formatPKR(total)} ada karein`}
+          {src.source === 'NONE' ? t('Tankhwah banayein') : t('{{total}} ada karein', { total: formatPKR(total) })}
         </Button>
       </>}>
       <div className="space-y-4">
@@ -68,15 +69,15 @@ export function RunPayModal({ month, monthLabel, shopId, lines, sources, onDone,
                 <span className="block truncate text-sm font-medium text-slate-900">{l.name}</span>
                 <span className="block truncate text-[0.75rem] text-slate-500">{l.designation}</span>
               </span>
-              <span className="text-right">
+              <span className="text-end">
                 <span className="block text-sm font-semibold tabular-nums text-slate-900">{formatPKR(src.source === 'NONE' ? l.net : l.payNow)}</span>
-                {src.source !== 'NONE' && l.payNow < l.net && <span className="block text-[0.6875rem] text-amber-700">baqi {formatPKR(l.net - l.payNow)}</span>}
+                {src.source !== 'NONE' && l.payNow < l.net && <span className="block text-[0.6875rem] text-amber-700">{t('baqi {{formatPKR}}', { formatPKR: formatPKR(l.net - l.payNow) })}</span>}
               </span>
             </li>
           ))}
         </ul>
         <SourcePicker sources={sources} value={src} onChange={setSrc} total={paying} allowLater />
-        <p className="text-[0.75rem] text-slate-500">Ek bande ki ek mahine ki tankhwah ek hi dafa banti hai. Ghalti ho to record khol kar "Cancel" karein — diya hua paisa wapas hisaab me aa jata hai.</p>
+        <p className="text-[0.75rem] text-slate-500">{t('Ek bande ki ek mahine ki tankhwah ek hi dafa banti hai. Ghalti ho to record khol kar "Cancel" karein — diya hua paisa wapas hisaab me aa jata hai.')}</p>
       </div>
     </Modal>
   );
@@ -99,24 +100,24 @@ export function PayBalanceModal({ record, sources, shopId, onClose }: { record: 
       amount: value, source: src.source, accountId: src.accountId, allowNegative: src.allowNegative || undefined, requestId: key, shopId,
     }),
     onSuccess: (r) => {
-      toast.success(r.duplicate ? 'Ye payment pehle hi ho chuki thi' : `${formatPKR(value)} ada — ${record.staff.fullName}`);
+      toast.success(r.duplicate ? t('Ye payment pehle hi ho chuki thi') : t('{{formatPKR}} ada — {{fullName}}', { formatPKR: formatPKR(value), fullName: record.staff.fullName }));
       refreshAll(qc);
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Payment nahi hui')),
+    onError: (e) => toast.error(apiError(e, t('Payment nahi hui'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="md" title={`Baqi tankhwah — ${record.staff.fullName}`}
-      description={`${record.paymentNumber} · ${record.monthLabel} · baqi ${formatPKR(record.balanceAmount)}`}
+    <Modal open onClose={onClose} size="md" title={t('Baqi tankhwah — {{fullName}}', { fullName: record.staff.fullName })}
+      description={t('{{paymentNumber}} · {{monthLabel}} · baqi {{balanceAmount}}', { paymentNumber: record.paymentNumber, monthLabel: record.monthLabel, balanceAmount: formatPKR(record.balanceAmount) })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={() => m.mutate()} loading={m.isPending} disabled={!ready} leftIcon={<Banknote className="h-4 w-4" />}>Ada karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={() => m.mutate()} loading={m.isPending} disabled={!ready} leftIcon={<Banknote className="h-4 w-4" />}>{t('Ada karein')}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (ready && !m.isPending) m.mutate(); }}>
-        <Input data-autofocus label="Amount" type="number" inputMode="numeric" min={1} size="lg" value={amount} onChange={(e) => setAmount(e.target.value)}
-          error={amount && !valid ? `1 se ${formatPKR(record.balanceAmount)} tak likhein` : undefined}
-          hint="Poori baqi ya us ka kuch hissa — jo reh jaye baad me de sakte hain" />
+        <Input data-autofocus label={t('Amount')} type="number" inputMode="numeric" min={1} size="lg" value={amount} onChange={(e) => setAmount(e.target.value)}
+          error={amount && !valid ? t('1 se {{balanceAmount}} tak likhein', { balanceAmount: formatPKR(record.balanceAmount) }) : undefined}
+          hint={t('Poori baqi ya us ka kuch hissa — jo reh jaye baad me de sakte hain')} />
         <SourcePicker sources={sources} value={src} onChange={setSrc} total={valid ? value : 0} />
         <button type="submit" hidden aria-hidden />
       </form>
@@ -134,24 +135,24 @@ export function CancelModal({ record, shopId, onClose }: { record: CancelTarget;
   const advance = record.kind === 'advance';
   const m = useMutation({
     mutationFn: () => payrollApi.cancel(record.id, { reason: reason.trim(), requestId: key, shopId }),
-    onSuccess: (r) => { toast.success(`${r.number} cancel ho gaya`); refreshAll(qc); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Cancel nahi hua')),
+    onSuccess: (r) => { toast.success(t('{{number}} cancel ho gaya', { number: r.number })); refreshAll(qc); onClose(); },
+    onError: (e) => toast.error(apiError(e, t('Cancel nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title={`${advance ? 'Advance' : 'Tankhwah'} cancel karein`} description={`${record.paymentNumber} · ${record.staffName}`}
+    <Modal open onClose={onClose} size="md" title={t('{{value}} cancel karein', { value: advance ? t('Advance') : t('Tankhwah') })} description={`${record.paymentNumber} · ${record.staffName}`}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button variant="danger" onClick={() => m.mutate()} loading={m.isPending} disabled={!reason.trim()} leftIcon={<CircleSlash className="h-4 w-4" />}>Cancel karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button variant="danger" onClick={() => m.mutate()} loading={m.isPending} disabled={!reason.trim()} leftIcon={<CircleSlash className="h-4 w-4" />}>{t('Cancel karein')}</Button>
       </>}>
       <div className="space-y-3">
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           {record.paidAmount > 0
-            ? `Diya hua paisa wapas usi jagah likha jayega jahan se gaya tha (galle se gaya to is branch ke khule galle me). Paisa staff se wapas le lein.`
-            : 'Abhi kuch ada nahi hua — sirf record cancel hoga.'}
-          {advance ? ' Advance ki saari qisten cancel hongi.' : ' Is mahine ki tankhwah dobara bana sakte hain.'}
+            ? t('Diya hua paisa wapas usi jagah likha jayega jahan se gaya tha (galle se gaya to is branch ke khule galle me). Paisa staff se wapas le lein.')
+            : t('Abhi kuch ada nahi hua — sirf record cancel hoga.')}
+          {advance ? t(' Advance ki saari qisten cancel hongi.') : t(' Is mahine ki tankhwah dobara bana sakte hain.')}
         </p>
-        <Textarea data-autofocus label="Wajah" required rows={2} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)}
-          placeholder="Masalan: ghalat amount likhi thi" hint="Record aur activity log me rehti hai" />
+        <Textarea data-autofocus label={t('Wajah')} required rows={2} maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)}
+          placeholder={t('Masalan: ghalat amount likhi thi')} hint={t('Record aur activity log me rehti hai')} />
       </div>
     </Modal>
   );

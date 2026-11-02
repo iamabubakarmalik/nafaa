@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { getElectron, isElectron } from './electron';
+import { t } from '@core/i18n';
 
 /**
  * Listen for memory-critical events from main process.
@@ -13,11 +14,11 @@ export function useDesktopMemory() {
     if (!electron?.onMemoryCritical) return;
 
     return electron.onMemoryCritical((data: { rss: number; heap: number }) => {
-      toast.warning('⚠️ App memory usage zyada hai', {
-        description: `${data.rss} MB — bahetar performance ke liye restart karein`,
+      toast.warning(t('⚠️ App memory usage zyada hai'), {
+        description: t('{{rss}} MB — bahetar performance ke liye restart karein', { rss: data.rss }),
         duration: 12000,
         action: {
-          label: 'Restart',
+          label: t('Restart'),
           onClick: () => electron.relaunch?.(),
         },
       });
@@ -48,7 +49,7 @@ export function useDesktopPower() {
 
     if (electron?.onPowerResume) {
       cleanups.push(electron.onPowerResume(() => {
-        toast.info('💤 System wake-up — sync trigger karte hain');
+        toast.info(t('💤 System wake-up — sync trigger karte hain'));
         // Trigger sync
         import('@core/lib/offline/syncEngine').then(({ fullSync }) => {
           fullSync(true, true).catch(() => {});

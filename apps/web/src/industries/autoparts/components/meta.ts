@@ -7,6 +7,7 @@
 import type { JobPriority, JobStatus, JobType } from '../api/workshop-jobs.api';
 import type { PartCategory, PartCondition } from '../api/part-profiles.api';
 import type { VehicleType } from '../api/vehicle-models.api';
+import { t as tr } from '@core/i18n';
 
 /** Query roots; every workshop screen refreshes these after a change. */
 export const JOB_KEY = 'workshop-jobs';
@@ -39,18 +40,18 @@ const pick = <K extends string>(map: Record<K, Meta>, k?: string | null): Meta =
 
 /* ── Job status ── */
 const STATUS: Record<JobStatus, Meta> = {
-  DRAFT: { label: 'Gaari aayi', tone: tone.sky, color: '#0ea5e9' },
-  QUOTED: { label: 'Andaza diya', tone: tone.blue, color: '#3b82f6' },
-  WAITING_APPROVAL: { label: 'Customer ki haan baqi', tone: tone.amber, color: '#f59e0b' },
-  APPROVED: { label: 'Haan ho gayi', tone: tone.blue, color: '#2563eb' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: tone.violet, color: '#8b5cf6' },
-  WAITING_PARTS: { label: 'Parts ka intezar', tone: tone.orange, color: '#f97316' },
-  ON_HOLD: { label: 'Ruka hua', tone: tone.slate, color: '#64748b' },
-  READY_FOR_TEST: { label: 'Test drive', tone: tone.teal, color: '#14b8a6' },
-  QUALITY_CHECK: { label: 'Check ho raha', tone: tone.teal, color: '#0d9488' },
-  COMPLETED: { label: 'Tayyar — deni hai', tone: tone.green, color: '#16a34a' },
-  DELIVERED: { label: 'Gaari de di', tone: tone.slate, color: '#475569' },
-  CANCELLED: { label: 'Cancel', tone: tone.rose, color: '#e11d48' },
+  DRAFT: { label: tr('Gaari aayi'), tone: tone.sky, color: '#0ea5e9' },
+  QUOTED: { label: tr('Andaza diya'), tone: tone.blue, color: '#3b82f6' },
+  WAITING_APPROVAL: { label: tr('Customer ki haan baqi'), tone: tone.amber, color: '#f59e0b' },
+  APPROVED: { label: tr('Haan ho gayi'), tone: tone.blue, color: '#2563eb' },
+  IN_PROGRESS: { label: tr('Kaam chal raha'), tone: tone.violet, color: '#8b5cf6' },
+  WAITING_PARTS: { label: tr('Parts ka intezar'), tone: tone.orange, color: '#f97316' },
+  ON_HOLD: { label: tr('Ruka hua'), tone: tone.slate, color: '#64748b' },
+  READY_FOR_TEST: { label: tr('Test drive'), tone: tone.teal, color: '#14b8a6' },
+  QUALITY_CHECK: { label: tr('Check ho raha'), tone: tone.teal, color: '#0d9488' },
+  COMPLETED: { label: tr('Tayyar — deni hai'), tone: tone.green, color: '#16a34a' },
+  DELIVERED: { label: tr('Gaari de di'), tone: tone.slate, color: '#475569' },
+  CANCELLED: { label: tr('Cancel'), tone: tone.rose, color: '#e11d48' },
 };
 export const statusOf = (s?: string | null) => pick(STATUS, s);
 /** The usual path of a job, for the step bar and "next step" button. */
@@ -62,22 +63,22 @@ export const isClosed = (s: JobStatus) => s === 'DELIVERED' || s === 'CANCELLED'
 
 /* ── Priority ── */
 const PRIORITY: Record<JobPriority, Meta> = {
-  LOW: { label: 'Aram se', tone: tone.slate, color: '#94a3b8' },
-  NORMAL: { label: 'Normal', tone: tone.slate, color: '#64748b' },
-  HIGH: { label: 'Jaldi', tone: tone.amber, color: '#f59e0b' },
-  URGENT: { label: 'Foran', tone: tone.orange, color: '#f97316' },
-  EMERGENCY: { label: 'Emergency', tone: tone.rose, color: '#e11d48' },
+  LOW: { label: tr('Aram se'), tone: tone.slate, color: '#94a3b8' },
+  NORMAL: { label: tr('Normal'), tone: tone.slate, color: '#64748b' },
+  HIGH: { label: tr('Jaldi'), tone: tone.amber, color: '#f59e0b' },
+  URGENT: { label: tr('Foran'), tone: tone.orange, color: '#f97316' },
+  EMERGENCY: { label: tr('Emergency'), tone: tone.rose, color: '#e11d48' },
 };
 export const priorityOf = (p?: string | null) => pick(PRIORITY, p);
 export const PRIORITIES = Object.keys(PRIORITY) as JobPriority[];
 
 /* ── Job type ── */
 const JOB_TYPE: Record<JobType, string> = {
-  GENERAL_SERVICE: 'General service', OIL_CHANGE: 'Oil change', TUNE_UP: 'Tuning', MAJOR_SERVICE: 'Bari service', MINOR_SERVICE: 'Chhoti service',
-  REPAIR: 'Repair', DIAGNOSTIC: 'Check-up', BODY_WORK: 'Body ka kaam', PAINT: 'Paint', ELECTRICAL: 'Bijli ka kaam', AC_SERVICE: 'AC service',
-  TIRE_CHANGE: 'Tyre', BATTERY_CHANGE: 'Battery', BRAKE_SERVICE: 'Brake', ENGINE_REBUILD: 'Engine overhaul', TRANSMISSION_REPAIR: 'Gear box',
-  DENTING_PAINTING: 'Denting painting', WHEEL_ALIGNMENT: 'Alignment / balancing', ACCIDENT_REPAIR: 'Accident repair', INSPECTION: 'Inspection',
-  MODIFICATION: 'Modification', DETAILING: 'Detailing', WASHING: 'Washing', OTHER: 'Kuch aur',
+  GENERAL_SERVICE: tr('General service'), OIL_CHANGE: tr('Oil change'), TUNE_UP: tr('Tuning'), MAJOR_SERVICE: tr('Bari service'), MINOR_SERVICE: tr('Chhoti service'),
+  REPAIR: tr('Repair'), DIAGNOSTIC: tr('Check-up'), BODY_WORK: tr('Body ka kaam'), PAINT: tr('Paint'), ELECTRICAL: tr('Bijli ka kaam'), AC_SERVICE: tr('AC service'),
+  TIRE_CHANGE: tr('Tyre'), BATTERY_CHANGE: tr('Battery'), BRAKE_SERVICE: tr('Brake'), ENGINE_REBUILD: tr('Engine overhaul'), TRANSMISSION_REPAIR: tr('Gear box'),
+  DENTING_PAINTING: tr('Denting painting'), WHEEL_ALIGNMENT: tr('Alignment / balancing'), ACCIDENT_REPAIR: tr('Accident repair'), INSPECTION: tr('Inspection'),
+  MODIFICATION: tr('Modification'), DETAILING: tr('Detailing'), WASHING: tr('Washing'), OTHER: tr('Kuch aur'),
 };
 export const jobTypeOf = (t?: string | null) => JOB_TYPE[t as JobType] ?? nice(t);
 /** Most common first; the form shows these as chips. */
@@ -86,37 +87,37 @@ export const JOB_TYPES: JobType[] = ['GENERAL_SERVICE', 'OIL_CHANGE', 'TUNE_UP',
 
 /* ── Parts ── */
 const CATEGORY: Record<PartCategory, string> = {
-  ENGINE: 'Engine', TRANSMISSION: 'Gear box', BRAKES: 'Brake', SUSPENSION: 'Suspension', ELECTRICAL: 'Bijli', BATTERY: 'Battery', COOLING: 'Radiator / cooling',
-  EXHAUST: 'Silencer', FUEL_SYSTEM: 'Fuel system', BODY: 'Body', INTERIOR: 'Andar ka saman', LIGHTING: 'Lights', TIRES_WHEELS: 'Tyre / rim',
-  FILTERS: 'Filter', OILS_FLUIDS: 'Oil / fluids', BELTS_HOSES: 'Belt / pipe', IGNITION: 'Plug / ignition', AC_HEATING: 'AC / heater', STEERING: 'Steering',
-  DRIVETRAIN: 'Axle / drive', BEARINGS: 'Bearing', GASKETS: 'Gasket / seal', SENSORS: 'Sensor', ACCESSORIES: 'Accessories', TOOLS: 'Auzaar',
-  CONSUMABLES: 'Rozana ka saman', OTHER: 'Kuch aur',
+  ENGINE: tr('Engine'), TRANSMISSION: tr('Gear box'), BRAKES: tr('Brake'), SUSPENSION: tr('Suspension'), ELECTRICAL: tr('Bijli'), BATTERY: tr('Battery'), COOLING: tr('Radiator / cooling'),
+  EXHAUST: tr('Silencer'), FUEL_SYSTEM: tr('Fuel system'), BODY: tr('Body'), INTERIOR: tr('Andar ka saman'), LIGHTING: tr('Lights'), TIRES_WHEELS: tr('Tyre / rim'),
+  FILTERS: tr('Filter'), OILS_FLUIDS: tr('Oil / fluids'), BELTS_HOSES: tr('Belt / pipe'), IGNITION: tr('Plug / ignition'), AC_HEATING: tr('AC / heater'), STEERING: tr('Steering'),
+  DRIVETRAIN: tr('Axle / drive'), BEARINGS: tr('Bearing'), GASKETS: tr('Gasket / seal'), SENSORS: tr('Sensor'), ACCESSORIES: tr('Accessories'), TOOLS: tr('Auzaar'),
+  CONSUMABLES: tr('Rozana ka saman'), OTHER: tr('Kuch aur'),
 };
 export const categoryOf = (c?: string | null) => CATEGORY[c as PartCategory] ?? nice(c);
 export const CATEGORIES = Object.keys(CATEGORY) as PartCategory[];
 
 const CONDITION: Record<PartCondition, Meta & { hint: string }> = {
-  GENUINE: { label: 'Genuine', hint: 'Company ka asli part', tone: tone.green, color: '#16a34a' },
-  OEM: { label: 'OEM', hint: 'Company ke supplier ka bana', tone: tone.teal, color: '#0d9488' },
-  NEW: { label: 'Naya', hint: 'Naya part', tone: tone.blue, color: '#2563eb' },
-  AFTERMARKET: { label: 'Aftermarket', hint: 'Doosri company ka', tone: tone.violet, color: '#7c3aed' },
-  LOCAL: { label: 'Local', hint: 'Pakistan me bana', tone: tone.amber, color: '#d97706' },
-  REFURBISHED: { label: 'Repair shuda', hint: 'Theek kiya hua', tone: tone.orange, color: '#ea580c' },
-  USED: { label: 'Used / kabari', hint: 'Purana part', tone: tone.slate, color: '#64748b' },
+  GENUINE: { label: tr('Genuine'), hint: tr('Company ka asli part'), tone: tone.green, color: '#16a34a' },
+  OEM: { label: tr('OEM'), hint: tr('Company ke supplier ka bana'), tone: tone.teal, color: '#0d9488' },
+  NEW: { label: tr('Naya'), hint: tr('Naya part'), tone: tone.blue, color: '#2563eb' },
+  AFTERMARKET: { label: tr('Aftermarket'), hint: tr('Doosri company ka'), tone: tone.violet, color: '#7c3aed' },
+  LOCAL: { label: tr('Local'), hint: tr('Pakistan me bana'), tone: tone.amber, color: '#d97706' },
+  REFURBISHED: { label: tr('Repair shuda'), hint: tr('Theek kiya hua'), tone: tone.orange, color: '#ea580c' },
+  USED: { label: tr('Used / kabari'), hint: tr('Purana part'), tone: tone.slate, color: '#64748b' },
 };
 export const conditionOf = (c?: string | null) => CONDITION[c as PartCondition] ?? { label: nice(c), hint: '', tone: tone.slate, color: '#94a3b8' };
 export const CONDITIONS = Object.keys(CONDITION) as PartCondition[];
 
 /* ── Vehicles ── */
 const VEHICLE_TYPE: Record<VehicleType, string> = {
-  CAR: 'Car', SUV: 'Jeep / SUV', VAN: 'Van', PICKUP: 'Pickup', TRUCK: 'Truck', BUS: 'Bus', MOTORCYCLE: 'Motorcycle', SCOOTER: 'Scooty',
-  RICKSHAW: 'Rickshaw', TRACTOR: 'Tractor', BICYCLE: 'Cycle', ATV: 'ATV', BOAT: 'Kashti', OTHER: 'Kuch aur',
+  CAR: tr('Car'), SUV: tr('Jeep / SUV'), VAN: tr('Van'), PICKUP: tr('Pickup'), TRUCK: tr('Truck'), BUS: tr('Bus'), MOTORCYCLE: tr('Motorcycle'), SCOOTER: tr('Scooty'),
+  RICKSHAW: tr('Rickshaw'), TRACTOR: tr('Tractor'), BICYCLE: tr('Cycle'), ATV: 'ATV', BOAT: tr('Kashti'), OTHER: tr('Kuch aur'),
 };
 export const vehicleTypeOf = (t?: string | null) => VEHICLE_TYPE[t as VehicleType] ?? nice(t);
 export const VEHICLE_TYPES: VehicleType[] = ['CAR', 'MOTORCYCLE', 'SUV', 'VAN', 'PICKUP', 'RICKSHAW', 'TRUCK', 'BUS', 'SCOOTER', 'TRACTOR', 'OTHER'];
 export const FUEL: Array<{ value: string; label: string }> = [
-  { value: 'PETROL', label: 'Petrol' }, { value: 'DIESEL', label: 'Diesel' }, { value: 'CNG', label: 'CNG' }, { value: 'HYBRID', label: 'Hybrid' },
-  { value: 'ELECTRIC', label: 'Electric' }, { value: 'LPG', label: 'LPG' },
+  { value: 'PETROL', label: tr('Petrol') }, { value: 'DIESEL', label: tr('Diesel') }, { value: 'CNG', label: tr('CNG') }, { value: 'HYBRID', label: tr('Hybrid') },
+  { value: 'ELECTRIC', label: tr('Electric') }, { value: 'LPG', label: tr('LPG') },
 ];
 
 /** "LEA 1234" / "ABC-123", what is written on the number plate. */
@@ -126,9 +127,9 @@ export const vehicleName = (v: { makeName?: string | null; modelName?: string | 
 
 /* ── Reminders ── */
 export const REMINDER_TYPES: Array<{ value: string; label: string }> = [
-  { value: 'OIL_CHANGE', label: 'Oil change' }, { value: 'GENERAL', label: 'Service' }, { value: 'FILTER', label: 'Filter' },
-  { value: 'TIMING_BELT', label: 'Timing belt' }, { value: 'INSURANCE', label: 'Insurance' }, { value: 'TOKEN_TAX', label: 'Token tax' },
-  { value: 'FITNESS', label: 'Fitness' },
+  { value: 'OIL_CHANGE', label: tr('Oil change') }, { value: 'GENERAL', label: tr('Service') }, { value: 'FILTER', label: tr('Filter') },
+  { value: 'TIMING_BELT', label: tr('Timing belt') }, { value: 'INSURANCE', label: tr('Insurance') }, { value: 'TOKEN_TAX', label: tr('Token tax') },
+  { value: 'FITNESS', label: tr('Fitness') },
 ];
 export const reminderTypeOf = (t?: string | null) => REMINDER_TYPES.find((x) => x.value === t)?.label ?? nice(t);
 

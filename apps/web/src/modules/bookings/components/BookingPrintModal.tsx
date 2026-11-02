@@ -15,6 +15,7 @@ import type { ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import type { Booking } from '../api/bookings.api';
 import { STATUS, dayText, itemLabel } from './meta';
+import { t } from '@core/i18n';
 
 interface Opts {
   paper: ReceiptPaper;
@@ -42,18 +43,18 @@ function bookingReceipt(b: Booking, o: Pick<Opts, 'prices' | 'payments' | 'notes
   return {
     saleNumber: b.bookingNumber,
     date: new Date(b.createdAt),
-    stamp: b.status === 'CANCELLED' || b.status === 'EXPIRED' ? 'CANCEL' : 'BOOKING',
+    stamp: b.status === 'CANCELLED' || b.status === 'EXPIRED' ? t('CANCEL') : 'BOOKING',
     branchName: b.shop?.name,
     customerName: b.customer?.name,
     customerPhone: b.customer?.phone ?? undefined,
     cashierName: b.createdBy?.fullName,
-    partyLabel: 'Customer',
-    signLabels: ['Customer ke dastkhat', 'Dukaan ki mohar / dastkhat'],
+    partyLabel: t('Customer'),
+    signLabels: [t('Customer ke dastkhat'), t('Dukaan ki mohar / dastkhat')],
     infoRows: [
-      { label: 'Haal', value: STATUS[b.status].label },
-      ...(b.expectedPickupAt ? [{ label: 'Pickup', value: dayText(b.expectedPickupAt), bold: true }] : []),
-      ...(b.expiresAt ? [{ label: 'Aakhri din', value: dayText(b.expiresAt) }] : []),
-      ...(b.sale ? [{ label: 'Bill', value: b.sale.saleNumber }] : []),
+      { label: t('Haal'), value: STATUS[b.status].label },
+      ...(b.expectedPickupAt ? [{ label: t('Pickup'), value: dayText(b.expectedPickupAt), bold: true }] : []),
+      ...(b.expiresAt ? [{ label: t('Aakhri din'), value: dayText(b.expiresAt) }] : []),
+      ...(b.sale ? [{ label: t('Bill'), value: b.sale.saleNumber }] : []),
     ],
     lines: (b.items ?? []).map((i) => ({
       name: itemLabel(i),
@@ -63,21 +64,21 @@ function bookingReceipt(b: Booking, o: Pick<Opts, 'prices' | 'payments' | 'notes
       total: i.total,
       discount: i.lineDiscount || undefined,
       note: i.note ?? undefined,
-      details: [i.imei ? `IMEI ${i.imei.imei1}` : '', i.cutPiece ? `Piece ${i.cutPiece.pieceCode}` : '', i.roll ? `Roll ${i.roll.rollNumber}` : ''].filter(Boolean),
+      details: [i.imei ? t('IMEI {{imei1}}', { imei1: i.imei.imei1 }) : '', i.cutPiece ? t('Piece {{pieceCode}}', { pieceCode: i.cutPiece.pieceCode }) : '', i.roll ? t('Roll {{rollNumber}}', { rollNumber: i.roll.rollNumber }) : ''].filter(Boolean),
     })),
     subtotal: b.subtotal,
     discount: b.discount,
     extraRows: [
       ...(b.serviceChargesBreakdown ?? []).map((c) => ({ label: c.label, value: `+${money(Number(c.amount))}` })),
-      ...(b.totalRefunded > 0 ? [{ label: 'Wapas diya', value: `−${money(b.totalRefunded)}` }] : []),
+      ...(b.totalRefunded > 0 ? [{ label: t('Wapas diya'), value: `−${money(b.totalRefunded)}` }] : []),
     ],
     total: b.total,
     paid,
-    paymentLabel: b.status === 'CONVERTED' ? `Diya (${method(b.paymentMethod)})` : 'Advance diya',
+    paymentLabel: b.status === 'CONVERTED' ? t('Diya ({{paymentMethod}})', { paymentMethod: method(b.paymentMethod) }) : t('Advance diya'),
     hidePrices: !o.prices,
     footerNote: o.notes && b.notes ? b.notes : undefined,
     boxes: o.payments && pays.length
-      ? [{ title: 'Payments', lines: pays.map((p) => `${new Date(p.paidAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · ${p.type === 'REFUND' ? 'Return' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed'} · ${method(p.paymentMethod)} · ${p.type === 'REFUND' ? '−' : ''}${money(p.amount)}`) }]
+      ? [{ title: t('Payments'), lines: pays.map((p) => `${new Date(p.paidAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · ${p.type === 'REFUND' ? t('Return') : p.type === 'ADVANCE' ? t('Advance') : t('Mazeed')} · ${method(p.paymentMethod)} · ${p.type === 'REFUND' ? '−' : ''}${money(p.amount)}`) }]
       : undefined,
   };
 }
@@ -92,7 +93,7 @@ export function BookingPrintModal({ booking, onClose }: { booking: Booking; onCl
     shop: base.shop,
     design: {
       ...base.design,
-      a4Title: 'BOOKING SLIP', showStatus: false, showSignature: o.signature, showKhata: false, showSavings: false,
+      a4Title: t('BOOKING SLIP'), showStatus: false, showSignature: o.signature, showKhata: false, showSavings: false,
       showReviewQr: false, showBarcode: true, terms: o.terms ? base.design.terms : '', backPrint: 'none' as const,
       showCustomer: true, showAmountInWords: false,
     },
@@ -109,30 +110,30 @@ export function BookingPrintModal({ booking, onClose }: { booking: Booking; onCl
   );
 
   return (
-    <Modal open onClose={onClose} size="xl" title="Booking slip print" description="Customer ko slip dein; pasand is device par yaad rahegi"
+    <Modal open onClose={onClose} size="xl" title={t('Booking slip print')} description={t('Customer ko slip dein; pasand is device par yaad rahegi')}
       footer={<>
-        <span className="mr-auto text-[0.75rem] text-slate-500">PDF chahiye to print me "Save as PDF" chunein</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>Print{o.copies > 1 ? ` (${o.copies})` : ''}</Button>
+        <span className="me-auto text-[0.75rem] text-slate-500">{t('PDF chahiye to print me "Save as PDF" chunein')}</span>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={go} leftIcon={<Printer className="h-4 w-4" />}>{t('Print{{value}}', { value: o.copies > 1 ? ` (${o.copies})` : '' })}</Button>
       </>}>
       <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <div className="space-y-4">
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Kaghaz</p>
-            <Segmented label="Kaghaz" value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: '80', label: '80mm' }, { value: '58', label: '58mm' }, { value: 'A4', label: 'A4' }]} />
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Kaghaz')}</p>
+            <Segmented label={t('Kaghaz')} value={o.paper} onChange={(v) => set('paper', v as ReceiptPaper)} items={[{ value: '80', label: t('80mm') }, { value: '58', label: t('58mm') }, { value: 'A4', label: t('A4') }]} />
           </div>
           <div>
-            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Slip par</p>
-            <Toggle k="prices" label="Rates aur amount" hint="Karigar ki copy me chhupa sakte hain" />
-            <Toggle k="payments" label="Payments ki list" hint="Kab kitna advance aaya" />
-            <Toggle k="notes" label="Customer ka note" />
-            <Toggle k="terms" label="Shartein (Settings se)" />
-            <Toggle k="signature" label="Dastkhat ki jagah (A4)" />
+            <p className="mb-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Slip par')}</p>
+            <Toggle k="prices" label={t('Rates aur amount')} hint={t('Karigar ki copy me chhupa sakte hain')} />
+            <Toggle k="payments" label={t('Payments ki list')} hint={t('Kab kitna advance aaya')} />
+            <Toggle k="notes" label={t('Customer ka note')} />
+            <Toggle k="terms" label={t('Shartein (Settings se)')} />
+            <Toggle k="signature" label={t('Dastkhat ki jagah (A4)')} />
           </div>
           <div>
-            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Copies</p>
-            <Segmented label="Copies" value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
-            <p className="mt-1 text-[0.6875rem] text-slate-500">2 copies: ek customer ki, ek dukaan ki</p>
+            <p className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Copies')}</p>
+            <Segmented label={t('Copies')} value={String(o.copies)} onChange={(v) => set('copies', Number(v))} items={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
+            <p className="mt-1 text-[0.6875rem] text-slate-500">{t('2 copies: ek customer ki, ek dukaan ki')}</p>
           </div>
         </div>
         <div className="max-h-[70vh] overflow-auto rounded-2xl bg-slate-100 p-3">

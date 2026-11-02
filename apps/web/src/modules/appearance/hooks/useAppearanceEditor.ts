@@ -18,6 +18,7 @@ import {
   appearanceApi, APPEARANCE_QUERY_KEY, DEFAULT_APPEARANCE, resolveAppearance, useAppearanceStore,
   type Appearance, type AppearanceLayer, type StoredAppearance,
 } from '@/design-system';
+import { t } from '@core/i18n';
 
 export type Scope = 'personal' | 'business';
 export type ValueSource = 'personal' | 'business' | 'platform' | 'default';
@@ -62,7 +63,7 @@ export function useAppearanceEditor(scope: Scope) {
         const saved = await appearanceApi.saveBusiness(next);
         qc.setQueryData<StoredAppearance>(APPEARANCE_QUERY_KEY, (prev) => (prev ? { ...prev, business: saved } : prev));
       } catch {
-        toast.error('Business look save nahi hua — dobara koshish karein');
+        toast.error(t('Business look save nahi hua — dobara koshish karein'));
       } finally {
         setSaving(false);
       }

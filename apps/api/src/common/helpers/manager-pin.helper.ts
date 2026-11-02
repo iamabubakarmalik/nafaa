@@ -14,6 +14,7 @@ import { ForbiddenException } from '@nestjs/common';
 import type { PrismaService } from '../../prisma/prisma.service';
 import { comparePassword } from '../utils/password.util';
 import { hasPermission } from '../constants/permissions.constants';
+import { apiMessage, MessageText, messageText } from '../i18n/api-message';
 
 type Db = Pick<PrismaService, 'tenantSettings' | 'activityLog' | 'user'>;
 
@@ -53,16 +54,16 @@ export async function requireManagerPin(
   prisma: Db,
   user: { tenantId: string; id: string },
   pin: string | undefined | null,
-  action: string,
+  action: MessageText,
   strict = false,
   approverNeeds?: string,
 ): Promise<PinApproval> {
   const row = await prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { managerPin: true } });
   if (!row?.managerPin) {
-    if (strict) throw new ForbiddenException(`${action} ki permission nahi (Settings)`);
+    if (strict) throw new ForbiddenException(apiMessage('{{action}} ki permission nahi (Settings)', { action }));
     return { by: 'none', approverId: null };
   }
-  if (!pin) throw new ForbiddenException(`${action} ke liye malik ya manager ka PIN chahiye`);
+  if (!pin) throw new ForbiddenException(apiMessage('{{action}} ke liye malik ya manager ka PIN chahiye', { action }));
 
   if (await comparePassword(pin, row.managerPin)) return { by: 'owner', approverId: null };
 
@@ -70,12 +71,12 @@ export async function requireManagerPin(
     const s = await matchStaffPin(prisma, user.tenantId, pin);
     if (s) {
       if (!hasPermission(s.role, s.permissions, approverNeeds as never)) {
-        throw new ForbiddenException(`${s.fullName} ka PIN "${action}" approve nahi kar sakta — un ke paas is kaam ki permission nahi`);
+        throw new ForbiddenException(apiMessage('{{fullName}} ka PIN "{{action}}" approve nahi kar sakta — un ke paas is kaam ki permission nahi', { fullName: s.fullName, action }));
       }
       await prisma.activityLog.create({
         data: {
           tenantId: user.tenantId, userId: user.id, action: 'STAFF_PIN_APPROVED',
-          description: `${action} — ${s.fullName} ke PIN se manzoor`, metadata: { approverId: s.id, approverName: s.fullName, action },
+          description: `${messageText(action)} — ${s.fullName} ke PIN se manzoor`, metadata: { approverId: s.id, approverName: s.fullName, action: messageText(action) },
         },
       });
       return { by: 'staff', approverId: s.id };
@@ -83,7 +84,7 @@ export async function requireManagerPin(
   }
 
   await prisma.activityLog.create({
-    data: { tenantId: user.tenantId, userId: user.id, action: 'PIN_VERIFY_FAILED', description: `Ghalat PIN: ${action}` },
+    data: { tenantId: user.tenantId, userId: user.id, action: 'PIN_VERIFY_FAILED', description: `Ghalat PIN: ${messageText(action)}` },
   });
   throw new ForbiddenException('Ghalat PIN');
 }

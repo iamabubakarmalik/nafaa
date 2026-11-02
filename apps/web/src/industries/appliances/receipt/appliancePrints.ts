@@ -6,6 +6,7 @@
  */
 
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 import { formatPKR } from '@core/lib/format';
 import { printReceipt } from '@core/receipt/print';
 import { getReceiptSetup, printPaper } from '@core/receipt/setup';
@@ -30,8 +31,8 @@ const saleDate = (s: SaleLike) => new Date(s.soldAt ?? s.createdAt ?? Date.now()
 /** One card per serial on the bill: model, serial, bill date, company warranty ends and the shop's own warranty. */
 export async function printWarrantyCards(sale: SaleLike, setup: ReceiptSetup) {
   let units: Awaited<ReturnType<typeof applianceSerialApi.forSale>> = [];
-  try { units = await applianceSerialApi.forSale(sale.id); } catch { toast.error('Serial load nahi hue — internet check karein'); return; }
-  if (!units.length) { toast.error('Is bill par koi serial nahi laga — Serial register se lagayein'); return; }
+  try { units = await applianceSerialApi.forSale(sale.id); } catch { toast.error(t('Serial load nahi hue — internet check karein')); return; }
+  if (!units.length) { toast.error(t('Is bill par koi serial nahi laga — Serial register se lagayein')); return; }
   const nameOf = (productId: string) => sale.items?.find((i) => i.productId === productId)?.product?.name ?? sale.items?.find((i) => i.productId === productId)?.name ?? 'Product';
   for (const u of units) {
     const doc: ReceiptDoc = {

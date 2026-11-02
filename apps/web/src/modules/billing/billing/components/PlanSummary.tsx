@@ -11,6 +11,7 @@ import { Alert, Badge, Button, Card, Modal, Skeleton } from '@/design-system/com
 import { formatPKR } from '@core/lib/format';
 import type { BillingData } from '../hooks/useBilling';
 import { INTERVAL, SUBSCRIPTION_STATUS, daysText, formatDate } from './helpers';
+import { t } from '@core/i18n';
 
 export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => void }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -22,9 +23,9 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
       <Card className="rounded-3xl">
         <div className="flex flex-col items-center py-8 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Sparkles className="h-6 w-6" /></span>
-          <h3 className="mt-3 text-[0.9375rem] font-semibold text-slate-900">Abhi koi plan nahi</h3>
-          <p className="mt-1 text-[0.8125rem] text-slate-500">Plan chunein — payment ke baad sab kuch khul jayega.</p>
-          <Button className="mt-4" onClick={onPlans}>Plans dekhein <ArrowRight className="h-4 w-4" /></Button>
+          <h3 className="mt-3 text-[0.9375rem] font-semibold text-slate-900">{t('Abhi koi plan nahi')}</h3>
+          <p className="mt-1 text-[0.8125rem] text-slate-500">{t('Plan chunein — payment ke baad sab kuch khul jayega.')}</p>
+          <Button className="mt-4" onClick={onPlans}>{t('Plans dekhein')}{' '} <ArrowRight className="h-4 w-4 rtl-flip" /></Button>
         </div>
       </Card>
     );
@@ -33,18 +34,18 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
   const st = SUBSCRIPTION_STATUS[sub.status];
   const trial = sub.status === 'TRIAL';
   const canStop = b.can.manage && (sub.status === 'ACTIVE' || trial);
-  const cta = trial ? 'Plan lein' : needsRenewal ? 'Renew karein' : 'Plan badlein';
+  const cta = trial ? t('Plan lein') : needsRenewal ? t('Renew karein') : t('Plan badlein');
 
   return (
     <div className="space-y-3">
       {confirmCancel && (
-        <Modal open onClose={() => setConfirmCancel(false)} title="Plan band karein?" size="sm"
-          description="Plan isi period ke aakhir tak chalta rahega. Data mehfooz rahega, kabhi bhi wapas chalu kar sakte hain."
+        <Modal open onClose={() => setConfirmCancel(false)} title={t('Plan band karein?')} size="sm"
+          description={t('Plan isi period ke aakhir tak chalta rahega. Data mehfooz rahega, kabhi bhi wapas chalu kar sakte hain.')}
           footer={<>
-            <Button variant="secondary" onClick={() => setConfirmCancel(false)}>Nahi</Button>
-            <Button variant="danger" loading={b.cancel.isPending} onClick={() => b.cancel.mutate(undefined, { onSuccess: () => setConfirmCancel(false) })}>Haan, band karein</Button>
+            <Button variant="secondary" onClick={() => setConfirmCancel(false)}>{t('Nahi')}</Button>
+            <Button variant="danger" loading={b.cancel.isPending} onClick={() => b.cancel.mutate(undefined, { onSuccess: () => setConfirmCancel(false) })}>{t('Haan, band karein')}</Button>
           </>}>
-          <p className="text-[0.875rem] text-slate-700">Band hone ki date: <b>{formatDate(sub.currentPeriodEnd)}</b></p>
+          <p className="text-[0.875rem] text-slate-700">{t('Band hone ki date:')}{' '} <b>{formatDate(sub.currentPeriodEnd)}</b></p>
         </Modal>
       )}
 
@@ -53,7 +54,7 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
           <div className="flex min-w-0 items-start gap-3">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ backgroundColor: `${st.color}17`, color: st.color }}><Layers className="h-6 w-6" /></span>
             <div className="min-w-0">
-              <p className="text-[0.75rem] font-medium text-slate-500">Aap ka plan</p>
+              <p className="text-[0.75rem] font-medium text-slate-500">{t('Aap ka plan')}</p>
               <h2 className="flex flex-wrap items-center gap-2 text-xl font-bold text-slate-900">
                 {sub.plan.name}
                 <Badge variant={st.badge} dot>{st.label}</Badge>
@@ -63,47 +64,47 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
               </p>
             </div>
           </div>
-          <Button variant={needsRenewal || trial ? 'primary' : 'secondary'} onClick={onPlans}>{cta} <ArrowRight className="h-4 w-4" /></Button>
+          <Button variant={needsRenewal || trial ? 'primary' : 'secondary'} onClick={onPlans}>{cta} <ArrowRight className="h-4 w-4 rtl-flip" /></Button>
         </div>
 
         <dl className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Tile icon={CalendarDays} label="Period shuru" value={formatDate(sub.currentPeriodStart)} />
-          <Tile icon={CalendarClock} label={trial ? 'Trial khatam' : 'Plan khatam'} value={formatDate(b.endsAt)}
+          <Tile icon={CalendarDays} label={t('Period shuru')} value={formatDate(sub.currentPeriodStart)} />
+          <Tile icon={CalendarClock} label={trial ? t('Trial khatam') : t('Plan khatam')} value={formatDate(b.endsAt)}
             hint={daysLeft != null ? daysText(daysLeft) : undefined} tone={daysLeft != null && daysLeft <= 7 ? 'warn' : undefined} />
-          <Tile icon={RefreshCw} label="Renew" value={INTERVAL[sub.interval]?.label ?? sub.interval}
-            hint={sub.cancelAtPeriodEnd ? 'Period ke aakhir par band hoga' : sub.autoRenew ? 'Khud renew hota hai' : 'Khud renew karna hoga'} />
+          <Tile icon={RefreshCw} label={t('Renew')} value={INTERVAL[sub.interval]?.label ?? sub.interval}
+            hint={sub.cancelAtPeriodEnd ? t('Period ke aakhir par band hoga') : sub.autoRenew ? t('Khud renew hota hai') : t('Khud renew karna hoga')} />
         </dl>
 
         {canStop && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
             <p className="text-[0.8125rem] text-slate-500">
-              {sub.cancelAtPeriodEnd ? `Ye plan ${formatDate(sub.currentPeriodEnd)} ko band ho jayega — data mehfooz rahega.` : 'Kabhi bhi band kar sakte hain — period ke aakhir tak sab chalta rahega.'}
+              {sub.cancelAtPeriodEnd ? t('Ye plan {{currentPeriodEnd}} ko band ho jayega — data mehfooz rahega.', { currentPeriodEnd: formatDate(sub.currentPeriodEnd) }) : t('Kabhi bhi band kar sakte hain — period ke aakhir tak sab chalta rahega.')}
             </p>
             {sub.cancelAtPeriodEnd
-              ? <Button size="sm" variant="secondary" loading={b.reactivate.isPending} onClick={() => b.reactivate.mutate()}><RefreshCw className="h-4 w-4" /> Wapas chalu karein</Button>
-              : <Button size="sm" variant="critical" onClick={() => setConfirmCancel(true)}><XCircle className="h-4 w-4" /> Plan band karein</Button>}
+              ? <Button size="sm" variant="secondary" loading={b.reactivate.isPending} onClick={() => b.reactivate.mutate()}><RefreshCw className="h-4 w-4" /> {' '}{t('Wapas chalu karein')}</Button>
+              : <Button size="sm" variant="critical" onClick={() => setConfirmCancel(true)}><XCircle className="h-4 w-4" /> {' '}{t('Plan band karein')}</Button>}
           </div>
         )}
       </Card>
 
       {pending && (
-        <Alert tone="warning" title={`${pending.subscription.plan.name} · ${INTERVAL[pending.subscription.interval]?.label ?? ''} — payment baqi`}
-          action={<Link to={`/billing/invoice/${pending.invoice.id}/pay`}><Button size="sm"><CreditCard className="h-4 w-4" /> {formatPKR(pending.invoice.amountDue)} ada karein</Button></Link>}>
-          Bill {pending.invoice.invoiceNumber}. Payment approve hote hi naya plan chalu ho jayega — tab tak {trial ? 'trial' : 'purana plan'} chalta rahega.
+        <Alert tone="warning" title={t('{{name}} · {{value}} — payment baqi', { name: pending.subscription.plan.name, value: INTERVAL[pending.subscription.interval]?.label ?? '' })}
+          action={<Link to={`/billing/invoice/${pending.invoice.id}/pay`}><Button size="sm"><CreditCard className="h-4 w-4" /> {' '}{t('{{amountDue}} ada karein', { amountDue: formatPKR(pending.invoice.amountDue) })}</Button></Link>}>
+          {t('Bill {{invoiceNumber}}. Payment approve hote hi naya plan chalu ho jayega — tab tak {{value}} chalta rahega.', { invoiceNumber: pending.invoice.invoiceNumber, value: trial ? t('trial') : t('purana plan') })}
         </Alert>
       )}
 
       {needsRenewal && !trial && !pending && (
-        <Alert tone="danger" title={sub.status === 'ACTIVE' ? `Renew ${daysLeft && daysLeft > 0 ? `${daysLeft} din me` : 'aaj'} karna hai` : 'Plan renew karna zaroori hai'}
-          action={<Button size="sm" onClick={onPlans}><RefreshCw className="h-4 w-4" /> Renew</Button>}>
-          Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din waste nahi honge, naye period me jud jayenge.
+        <Alert tone="danger" title={sub.status === 'ACTIVE' ? t('Renew {{value}} karna hai', { value: daysLeft && daysLeft > 0 ? t('{{daysLeft}} din me', { daysLeft }) : t('aaj') }) : t('Plan renew karna zaroori hai')}
+          action={<Button size="sm" onClick={onPlans}><RefreshCw className="h-4 w-4" /> {' '}{t('Renew')}</Button>}>
+          {t('Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din waste nahi honge, naye period me jud jayenge.')}
         </Alert>
       )}
 
       {totals.open.length > 1 && b.can.manage && (
-        <Alert tone="info" title={`${totals.open.length} bill khule hain`}
-          action={<Button size="sm" variant="secondary" loading={b.cleanup.isPending} onClick={() => b.cleanup.mutate()}><Wrench className="h-4 w-4" /> Faltu band karein</Button>}>
-          Ek bill rakha jayega, baqi faltu khule bill band ho jayenge. Jis bill ki payment check ho rahi ho, wo kabhi band nahi hota.
+        <Alert tone="info" title={t('{{count}} bill khule hain', { count: totals.open.length })}
+          action={<Button size="sm" variant="secondary" loading={b.cleanup.isPending} onClick={() => b.cleanup.mutate()}><Wrench className="h-4 w-4" /> {' '}{t('Faltu band karein')}</Button>}>
+          {t('Ek bill rakha jayega, baqi faltu khule bill band ho jayenge. Jis bill ki payment check ho rahi ho, wo kabhi band nahi hota.')}
         </Alert>
       )}
     </div>

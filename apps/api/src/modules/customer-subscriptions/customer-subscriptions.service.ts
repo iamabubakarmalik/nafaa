@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CustomerSubscriptionStatus, SubscriptionFrequency, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 function computeNextDelivery(from: Date, freq: SubscriptionFrequency, customDays?: number | null) {
   const d = new Date(from);
@@ -40,7 +41,7 @@ export class CustomerSubscriptionsService {
         items: {
           create: dto.items.map((i) => {
             const p = productMap.get(i.productId);
-            if (!p) throw new BadRequestException(`Product ${i.productId} not available`);
+            if (!p) throw new BadRequestException(apiMessage('Product {{productId}} not available', { productId: i.productId }));
             return {
               productId: i.productId, variantId: i.variantId,
               productName: p.publicName, imageUrl: p.publicImages?.[0],

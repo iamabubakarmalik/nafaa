@@ -15,6 +15,7 @@ import {
   FurnitureCarpenters, FurnitureDeliveries, FurnitureLateOrders, FurniturePipeline, furnitureKpis,
   useFurnitureAttention, useFurnitureMoneyTiles,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/furniture-products/${id}`;
 
@@ -24,39 +25,39 @@ function useFurnitureActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
-    { to: '/furniture/custom-orders/new', icon: ClipboardList, label: 'Custom order', hint: 'Naya order' },
-    { to: '/furniture/custom-orders', icon: ClipboardList, label: 'Orders', hint: `${f.activeOrders} chaalu` },
-    { to: '/furniture/deliveries', icon: Truck, label: 'Deliveries', hint: f.todayDeliveries ? `${f.todayDeliveries} aaj` : `${f.pendingDeliveries} baqi` },
-    { to: '/furniture/carpenters', icon: Hammer, label: 'Karigar', hint: `${f.activeCarpenters} kaam par` },
-    { to: '/furniture-products/new', icon: Plus, label: 'Naya furniture', hint: 'Maal me daalein' },
-    { to: '/furniture-products', icon: Sofa, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('POS'), hint: t('Sale karein') },
+    { to: '/furniture/custom-orders/new', icon: ClipboardList, label: t('Custom order'), hint: t('Naya order') },
+    { to: '/furniture/custom-orders', icon: ClipboardList, label: t('Orders'), hint: t('{{activeOrders}} chaalu', { activeOrders: f.activeOrders }) },
+    { to: '/furniture/deliveries', icon: Truck, label: t('Deliveries'), hint: f.todayDeliveries ? t('{{todayDeliveries}} aaj', { todayDeliveries: f.todayDeliveries }) : t('{{pendingDeliveries}} baqi', { pendingDeliveries: f.pendingDeliveries }) },
+    { to: '/furniture/carpenters', icon: Hammer, label: t('Karigar'), hint: t('{{activeCarpenters}} kaam par', { activeCarpenters: f.activeCarpenters }) },
+    { to: '/furniture-products/new', icon: Plus, label: t('Naya furniture'), hint: t('Maal me daalein') },
+    { to: '/furniture-products', icon: Sofa, label: t('Maal'), hint: t('{{value}} cheezein', { value: s?.totalProducts ?? 0 }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const furnitureDashboard = createDashboard({
-  label: 'Furniture',
+  label: t('Furniture'),
   productPath,
   openFrom: 10,
   kpis: furnitureKpis,
   defaultKpis: ['furniture-orders', 'furniture-late', 'furniture-deliveries', 'profit', 'cash', 'month'],
   useAttention: useFurnitureAttention,
   widgets: [
-    { id: 'furniture-pipeline', title: 'Custom orders', description: 'Quotation se tayyar tak, aur baqi amount', size: 'third', sizes: ['third', 'half', 'wide'], Component: FurniturePipeline },
-    { id: 'furniture-late', title: 'Late orders', description: 'Jin ki delivery ki date guzar gayi', size: 'third', sizes: ANY_SIZE, Component: FurnitureLateOrders },
-    { id: 'furniture-deliveries', title: 'Aaj ki deliveries', description: 'Aaj kahan aur kis waqt maal jana hai', size: 'third', sizes: ANY_SIZE, Component: FurnitureDeliveries },
+    { id: 'furniture-pipeline', title: t('Custom orders'), description: t('Quotation se tayyar tak, aur baqi amount'), size: 'third', sizes: ['third', 'half', 'wide'], Component: FurniturePipeline },
+    { id: 'furniture-late', title: t('Late orders'), description: t('Jin ki delivery ki date guzar gayi'), size: 'third', sizes: ANY_SIZE, Component: FurnitureLateOrders },
+    { id: 'furniture-deliveries', title: t('Aaj ki deliveries'), description: t('Aaj kahan aur kis waqt maal jana hai'), size: 'third', sizes: ANY_SIZE, Component: FurnitureDeliveries },
   ],
   lateWidgets: [
-    { id: 'furniture-carpenters', title: 'Karigar', description: 'Sab se zyada kaam karne wale karigar', size: 'third', sizes: ANY_SIZE, Component: FurnitureCarpenters },
+    { id: 'furniture-carpenters', title: t('Karigar'), description: t('Sab se zyada kaam karne wale karigar'), size: 'third', sizes: ANY_SIZE, Component: FurnitureCarpenters },
   ],
   useQuickActions: useFurnitureActions,
   moneyMap: { useExtraTiles: useFurnitureMoneyTiles, productsPath: '/furniture-products' },
   guide: [
-    { icon: ClipboardList, title: 'Custom orders', text: 'Har order quotation → advance → ban raha → tayyar se guzarta hai. Late orders upar laal me aate hain taa ke customer ko pehle hi bata sakein.' },
-    { icon: Truck, title: 'Delivery aur karigar', text: 'Aaj ki deliveries waqt ke saath, aur kaunsa karigar kitna kaam kar raha hai — sab ek jagah.' },
+    { icon: ClipboardList, title: t('Custom orders'), text: t('Har order quotation → advance → ban raha → tayyar se guzarta hai. Late orders upar laal me aate hain taa ke customer ko pehle hi bata sakein.') },
+    { icon: Truck, title: t('Delivery aur karigar'), text: t('Aaj ki deliveries waqt ke saath, aur kaunsa karigar kitna kaam kar raha hai — sab ek jagah.') },
   ],
 });

@@ -12,6 +12,7 @@ import { queryClient } from '@core/lib/queryClient';
 import type { FurnitureProductProfile } from '../api/products.api';
 import { useFurnitureProfiles } from '../hooks/useFurnitureProfiles';
 import { CONDITIONS, FURNITURE_KEYS, categoryGroup, categoryLabel, sizeText } from '../lib/meta';
+import { t } from '@core/i18n';
 
 /** Receives each saved bill that carried furniture; FurniturePosPage sets it while the counter is open. */
 export const furnitureSaleListener: { current: ((sale: PosSavedSale) => void) | null } = { current: null };
@@ -26,7 +27,7 @@ function decorate(profiles: Map<string, FurnitureProductProfile>) {
       rank: p.isFeatured ? 0 : 1,
       badges: [
         ...(cond ? [{ label: cond.label, tone: 'warning' as const, icon: BadgeCheck }] : []),
-        ...(p.requiresAssembly ? [{ label: 'Fitting', tone: 'info' as const, icon: Hammer }] : []),
+        ...(p.requiresAssembly ? [{ label: t('Fitting'), tone: 'info' as const, icon: Hammer }] : []),
       ],
       subline: [p.woodType || null, p.polishType || p.colorName || null, sizeText(p) || null].filter(Boolean).join(' · ') || (p.categoryType ? categoryLabel(p.categoryType) : undefined),
       searchText: [it.searchText, p.woodType, p.polishType, p.colorName, p.upholsteryFabric, p.categoryType ? categoryLabel(p.categoryType) : null, p.modelNumber].filter(Boolean).join(' '),
@@ -42,21 +43,21 @@ function useFurnitureCatalog() {
 }
 
 const filters: PosFilter[] = [
-  { id: 'sofa', label: 'Sofa', icon: Sofa, match: (i) => i.meta?.group === 'sofa' },
-  { id: 'bed', label: 'Bed room', icon: BedDouble, match: (i) => i.meta?.group === 'bed' },
-  { id: 'dining', label: 'Dining', icon: UtensilsCrossed, match: (i) => i.meta?.group === 'dining' },
-  { id: 'living', label: 'Living', match: (i) => i.meta?.group === 'living' },
-  { id: 'office', label: 'Office', icon: LampDesk, match: (i) => i.meta?.group === 'office' },
-  { id: 'display', label: 'Display piece', icon: BadgeCheck, match: (i) => !!i.meta?.used },
+  { id: 'sofa', label: t('Sofa'), icon: Sofa, match: (i) => i.meta?.group === 'sofa' },
+  { id: 'bed', label: t('Bed room'), icon: BedDouble, match: (i) => i.meta?.group === 'bed' },
+  { id: 'dining', label: t('Dining'), icon: UtensilsCrossed, match: (i) => i.meta?.group === 'dining' },
+  { id: 'living', label: t('Living'), match: (i) => i.meta?.group === 'living' },
+  { id: 'office', label: t('Office'), icon: LampDesk, match: (i) => i.meta?.group === 'office' },
+  { id: 'display', label: t('Display piece'), icon: BadgeCheck, match: (i) => !!i.meta?.used },
 ];
 
 export const furniturePos: PosIndustryConfig = {
   id: 'furniture',
-  label: 'Furniture',
+  label: t('Furniture'),
   useCatalog: useFurnitureCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, lakri, rang ya barcode',
+  searchHint: t('Naam, lakri, rang ya barcode'),
   receiptFooter: 'Delivery aur fitting ke charges alag bill par. Furniture le jane ke baad wapsi dukaan ki shart par.',
   onSale: (sale) => {
     queryClient.invalidateQueries({ queryKey: [FURNITURE_KEYS.profiles] });

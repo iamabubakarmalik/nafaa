@@ -9,6 +9,7 @@ import type { LucideIcon } from 'lucide-react';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { Button, Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export function CardTitle({ icon: I, children }: { icon: LucideIcon; children: ReactNode }) {
   return <span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{children}</span>;
@@ -38,7 +39,7 @@ export function StatTile({ icon: I, label, value, sub, tone = 'brand' }: { icon:
 
 export interface RankedRow { key: string; label: ReactNode; value: number; display: ReactNode; color?: string }
 
-export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
+export function RankedBars({ rows, empty = t('Is period me kuch nahi'), limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
   if (!rows.length) return <p className="py-10 text-center text-[0.875rem] text-slate-500">{empty}</p>;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
@@ -55,14 +56,14 @@ export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, 
             </div>
           </>
         );
-        return <li key={r.key}>{onPick ? <button type="button" onClick={() => onPick(r.key)} className="w-full rounded-lg px-1 py-0.5 text-left hover:bg-slate-50">{body}</button> : body}</li>;
+        return <li key={r.key}>{onPick ? <button type="button" onClick={() => onPick(r.key)} className="w-full rounded-lg px-1 py-0.5 text-start hover:bg-slate-50">{body}</button> : body}</li>;
       })}
     </ul>
   );
 }
 
 /** Columns for a small series (bookings by hour or weekday). */
-export function Columns({ items, empty = 'Abhi data nahi' }: { items: Array<{ key: string; label: string; value: number; title?: string }>; empty?: string }) {
+export function Columns({ items, empty = t('Abhi data nahi') }: { items: Array<{ key: string; label: string; value: number; title?: string }>; empty?: string }) {
   const max = Math.max(0, ...items.map((i) => i.value));
   if (!max) return <p className="py-10 text-center text-[0.875rem] text-slate-500">{empty}</p>;
   return (
@@ -86,9 +87,9 @@ export function ListSkeleton({ rows = 4 }: { rows?: number }) {
 export function LoadFailed({ what, retry }: { what: string; retry: () => void }) {
   return (
     <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-      <p className="font-semibold text-slate-900">{what} load nahi hue</p>
-      <p className="mt-1 text-sm text-slate-500">Internet check karein aur dobara koshish karein.</p>
-      <Button className="mt-3" variant="secondary" onClick={retry}>Dobara koshish</Button>
+      <p className="font-semibold text-slate-900">{t('{{what}} load nahi hue', { what })}</p>
+      <p className="mt-1 text-sm text-slate-500">{t('Internet check karein aur dobara koshish karein.')}</p>
+      <Button className="mt-3" variant="secondary" onClick={retry}>{t('Dobara koshish')}</Button>
     </div>
   );
 }
@@ -110,9 +111,9 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
   if (pages <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>Pichla</Button>
-      <span className="text-sm text-slate-600">Safha {page} / {pages}</span>
-      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>Agla</Button>
+      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>{t('Pichla')}</Button>
+      <span className="text-sm text-slate-600">{t('Safha {{page}} / {{pages}}', { page, pages })}</span>
+      <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>{t('Agla')}</Button>
     </div>
   );
 }

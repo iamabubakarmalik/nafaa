@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertShoeBrandDto } from './dto/upsert-brand.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ShoeBrandsService {
@@ -11,7 +12,7 @@ export class ShoeBrandsService {
     const dup = await this.prisma.shoeBrand.findFirst({
       where: { tenantId: user.tenantId, name: dto.name },
     });
-    if (dup) throw new BadRequestException(`Brand "${dto.name}" already exists`);
+    if (dup) throw new BadRequestException(apiMessage('Brand "{{dtoName}}" already exists', { dtoName: dto.name }));
     return this.prisma.shoeBrand.create({ data: { tenantId: user.tenantId, ...dto } });
   }
 

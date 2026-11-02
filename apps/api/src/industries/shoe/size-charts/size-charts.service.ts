@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { CreateSizeChartDto, UpdateSizeChartDto } from './dto/create-chart.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Size rows keep only short text cells (pk, uk, eu, us, cm…). */
 function cleanRows(rows: Array<Record<string, unknown>>) {
@@ -17,7 +18,7 @@ export class ShoeSizeChartsService {
     const dup = await this.prisma.shoeSizeChart.findFirst({
       where: { tenantId: user.tenantId, name: dto.name },
     });
-    if (dup) throw new BadRequestException(`"${dto.name}" naam ka chart pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('"{{dtoName}}" naam ka chart pehle se hai', { dtoName: dto.name }));
     const mappings = cleanRows(dto.mappings);
     if (!mappings.length) throw new BadRequestException('Kam az kam ek size likhein');
     return this.prisma.shoeSizeChart.create({
@@ -53,7 +54,7 @@ export class ShoeSizeChartsService {
     const c = await this.prisma.shoeSizeChart.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Size chart not found');
     if (dto.name && dto.name !== c.name && await this.prisma.shoeSizeChart.count({ where: { tenantId: user.tenantId, name: dto.name } })) {
-      throw new BadRequestException(`"${dto.name}" naam ka chart pehle se hai`);
+      throw new BadRequestException(apiMessage('"{{dtoName}}" naam ka chart pehle se hai', { dtoName: dto.name }));
     }
     const mappings = dto.mappings ? cleanRows(dto.mappings) : undefined;
     if (mappings && !mappings.length) throw new BadRequestException('Kam az kam ek size likhein');

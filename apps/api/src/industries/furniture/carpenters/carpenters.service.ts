@@ -13,6 +13,7 @@ import { endOfDayTz, startOfDayTz, startOfMonthTz } from '../../../common/helper
 import { ExpensesService } from '../../../modules/finance/expenses/expenses.service';
 import { toPaymentMethod } from '../../_shared/industry-sale.helper';
 import { PayCarpenterDto, UpsertCarpenterDto } from './dto/upsert-carpenter.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const PAY_CATEGORY = { name: 'Karigar payment', icon: '🪚', color: '#a16207' };
 /** Karigar expenses carry his code in the title. */
@@ -30,7 +31,7 @@ export class CarpentersService {
     const dup = await this.prisma.furnitureCarpenter.findFirst({
       where: { tenantId: user.tenantId, employeeCode: dto.employeeCode },
     });
-    if (dup) throw new BadRequestException(`Code "${dto.employeeCode}" pehle se kisi aur karigar ka hai`);
+    if (dup) throw new BadRequestException(apiMessage('Code "{{employeeCode}}" pehle se kisi aur karigar ka hai', { employeeCode: dto.employeeCode }));
     return this.prisma.furnitureCarpenter.create({ data: { tenantId: user.tenantId, ...dto, name: dto.name.trim(), employeeCode: dto.employeeCode.trim() } });
   }
 

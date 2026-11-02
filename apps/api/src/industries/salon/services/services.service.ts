@@ -11,6 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ensureServiceProduct, linkServiceProducts, r2, serviceSku } from '../common/salon-common';
 import { UpdateServiceDto, UpsertServiceDto } from './dto/upsert-service.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ServicesService {
@@ -29,7 +30,7 @@ export class ServicesService {
       where: { tenantId, name: { equals: name, mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { id: true },
     });
-    if (dup) throw new BadRequestException(`"${name}" naam ki service pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('"{{name}}" naam ki service pehle se hai', { name }));
   }
 
   async create(user: AuthenticatedUser, dto: UpsertServiceDto) {

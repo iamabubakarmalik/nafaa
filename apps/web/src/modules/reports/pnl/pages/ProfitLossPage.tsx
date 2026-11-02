@@ -39,6 +39,7 @@ import { DetailModal } from '../components/DetailModal';
 import { MonthlyView } from '../components/MonthlyView';
 import { StatementView } from '../components/StatementView';
 import { ChangeChip, ChartSkeleton, type Fmt } from '../components/parts';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'statement' | 'monthly' | 'branches' | 'cash' | 'analytics';
 
@@ -103,17 +104,17 @@ export default function ProfitLossPage() {
   const branchLines = useMemo(() => (branchesQ.data ? buildLines(cfg, unionCategories([branchesQ.data.total]), branchesQ.data.staffIncluded, [branchesQ.data.total, ...branchesQ.data.branches.map((b) => b.statement)]) : []), [branchesQ.data, cfg]);
 
   const label = rangeLabel(period.from, period.to);
-  const prevShort = compare === 'year' ? 'Pichla saal' : 'Pichli period';
+  const prevShort = compare === 'year' ? tr('Pichla saal') : tr('Pichli period');
   const prevLabel = r ? `${prevShort}: ${rangeLabel(r.period.prevFrom, r.period.prevTo)}` : prevShort;
-  const branchName = r?.branch?.name ?? (allShops ? 'Sab branches' : assigned?.name ?? '');
+  const branchName = r?.branch?.name ?? (allShops ? tr('Sab branches') : assigned?.name ?? '');
   const metaLine = `${cfg.label} · ${branchName || tenantName || ''}`;
 
   const tabs = useMemo<Array<ViewTab<Tab>>>(() => [
-    { id: 'statement', label: 'Bayan', icon: FileText },
-    { id: 'monthly', label: 'Mahine war', icon: CalendarRange },
-    ...(showBranches ? [{ id: 'branches' as const, label: 'Branch war', icon: Store }] : []),
-    { id: 'cash', label: 'Paisa aaya/gaya', icon: Wallet },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'statement', label: tr('Bayan'), icon: FileText },
+    { id: 'monthly', label: tr('Mahine war'), icon: CalendarRange },
+    ...(showBranches ? [{ id: 'branches' as const, label: tr('Branch war'), icon: Store }] : []),
+    { id: 'cash', label: tr('Paisa aaya/gaya'), icon: Wallet },
+    { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
   ], [showBranches]);
   useEffect(() => { if (tab === 'branches' && !showBranches) setTab('statement'); }, [tab, showBranches]);
 
@@ -131,12 +132,12 @@ export default function ProfitLossPage() {
   const pickBranch = (id: string) => { if (id !== '-') { setBranch(id); setTab('statement'); } };
 
   /* ── print and CSV follow the open view ── */
-  const header = [`Profit-loss (P&L) — ${tenantName ?? ''}`, `Period: ${label}`, `Branch: ${branchName}`];
+  const header = [tr('Profit-loss (P&L) — {{value}}', { value: tenantName ?? '' }), tr('Period: {{label}}', { label }), tr('Branch: {{branchName}}', { branchName })];
   const printDoc = () => {
     if (tab === 'monthly' && monthlyQ.data) return monthlyDoc(monthlyQ.data, { costHidden, branch: branchName });
     if (tab === 'branches' && branchesQ.data) return branchesDoc(branchesQ.data, { costHidden, period: label });
     if (tab === 'cash' && cashQ.data && s) return cashDoc(cashQ.data, { period: label, netProfit: s.netProfit == null ? '—' : cost(s.netProfit) });
-    if (!r) throw new Error('Report not loaded');
+    if (!r) throw new Error(tr('Report not loaded'));
     return statementDoc(r, lines, { costHidden, period: label, prevPeriod: prevLabel, branch: branchName, label: cfg.label });
   };
   const exportCsv = () => {
@@ -146,18 +147,18 @@ export default function ProfitLossPage() {
     }
     if (tab === 'branches' && branchesQ.data) {
       const b = branchesQ.data;
-      return linesCsv('pnl-branches', header, branchLines, costHidden, [...b.branches.map((x) => ({ label: x.name, s: x.statement })), { label: 'Kul', s: b.total }]);
+      return linesCsv('pnl-branches', header, branchLines, costHidden, [...b.branches.map((x) => ({ label: x.name, s: x.statement })), { label: tr('Kul'), s: b.total }]);
     }
     if (tab === 'cash' && cashQ.data) {
       const c = cashQ.data;
       return downloadCsv('paisa-aaya-gaya', header, [
-        ['Kahan se / kahan', 'Entries', 'Aaya', 'Gaya'],
+        [tr('Kahan se / kahan'), tr('Entries'), tr('Aaya'), tr('Gaya')],
         ...c.bySource.map((x) => [SOURCES[x.source]?.label ?? x.source, x.count, x.direction === 'in' ? x.amount.toFixed(2) : '', x.direction === 'out' ? x.amount.toFixed(2) : '']),
-        [''], [c.grouping === 'month' ? 'Mahina' : 'Din', 'Aaya', 'Gaya', 'Bacha'],
+        [''], [c.grouping === 'month' ? tr('Mahina') : tr('Din'), tr('Aaya'), tr('Gaya'), tr('Bacha')],
         ...c.trend.map((t) => [t.key, t.in.toFixed(2), t.out.toFixed(2), t.net.toFixed(2)]),
       ]);
     }
-    if (r) linesCsv('pnl', [...header, prevLabel], lines, costHidden, [{ label: 'Is period', s: r.current }, { label: prevShort, s: r.previous }]);
+    if (r) linesCsv('pnl', [...header, prevLabel], lines, costHidden, [{ label: tr('Is period'), s: r.current }, { label: prevShort, s: r.previous }]);
   };
   const exportReady = tab === 'monthly' ? !!monthlyQ.data : tab === 'branches' ? !!branchesQ.data : tab === 'cash' ? !!cashQ.data : !!r;
 
@@ -168,96 +169,96 @@ export default function ProfitLossPage() {
   return (
     <PageShell>
       <PageHero
-        title="Profit-loss (P&L)"
+        title={tr('Profit-loss (P&L)')}
         chip={<><CalendarRange />{label}</>}
         meta={metaLine}
         busy={reportQ.isFetching && !reportQ.isLoading}
         loading={loading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={exportCsv} disabled={!exportReady} className={heroButton}><Download className="h-4 w-4" /> CSV</button>
+          <button type="button" onClick={exportCsv} disabled={!exportReady} className={heroButton}><Download className="h-4 w-4" /> {' '}{tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!exportReady} /></span>
-          <Link to="/profit-report" title="Har product ka profit" className={heroButton}><Package className="h-4 w-4" /> <span className="hidden sm:inline">Product war</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/profit-report" title={tr('Har product ka profit')} className={heroButton}><Package className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Product war')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={s && p ? [
-          { label: 'Net profit', value: s.netProfit == null ? '—' : cost(s.netProfit), hint: s.netMargin == null || costHidden ? undefined : `${pctText(s.netMargin)} margin` },
-          { label: 'Net sale', value: sales(s.revenue.net), hint: `${s.revenue.bills} bill` },
-          { label: 'Gross margin', value: s.grossMargin == null || costHidden ? cost(null) : pctText(s.grossMargin) },
-          { label: 'Kharchay', value: sales(s.expenses.total), hint: s.revenue.net > 0 ? `sale ka ${pctText((s.expenses.total / s.revenue.net) * 100)}` : undefined },
-        ] : [{ label: 'Net profit', value: '' }, { label: 'Net sale', value: '' }, { label: 'Gross margin', value: '' }, { label: 'Kharchay', value: '' }]}
+          { label: tr('Net profit'), value: s.netProfit == null ? '—' : cost(s.netProfit), hint: s.netMargin == null || costHidden ? undefined : tr('{{netMargin}} margin', { netMargin: pctText(s.netMargin) }) },
+          { label: tr('Net sale'), value: sales(s.revenue.net), hint: tr('{{bills}} bill', { bills: s.revenue.bills }) },
+          { label: tr('Gross margin'), value: s.grossMargin == null || costHidden ? cost(null) : pctText(s.grossMargin) },
+          { label: tr('Kharchay'), value: sales(s.expenses.total), hint: s.revenue.net > 0 ? tr('sale ka {{pctText}}', { pctText: pctText((s.expenses.total / s.revenue.net) * 100) }) : undefined },
+        ] : [{ label: tr('Net profit'), value: '' }, { label: tr('Net sale'), value: '' }, { label: tr('Gross margin'), value: '' }, { label: tr('Kharchay'), value: '' }]}
       />
 
       <KpiRow>
         {loading || !s || !p ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <KpiCard icon={TrendingUp} color="#2563eb" label="Net sale" value={sales(s.revenue.net)}
+            <KpiCard icon={TrendingUp} color="#2563eb" label={tr('Net sale')} value={sales(s.revenue.net)}
               hint={<ChangeChip value={change(s.revenue.net, p.revenue.net)} suffix={prevShort.toLowerCase()} />} />
-            <KpiCard icon={Scale} color="#16a34a" label="Gross profit" value={s.grossProfit == null ? '—' : cost(s.grossProfit)}
-              hint={costHidden || s.grossProfit == null ? 'Cost chhupi' : <ChangeChip value={change(s.grossProfit, p.grossProfit)} suffix={prevShort.toLowerCase()} />} />
-            <KpiCard icon={Receipt} color="#d97706" label="Kharchay" value={sales(s.expenses.total)} onClick={() => setTab('analytics')}
+            <KpiCard icon={Scale} color="#16a34a" label={tr('Gross profit')} value={s.grossProfit == null ? '—' : cost(s.grossProfit)}
+              hint={costHidden || s.grossProfit == null ? tr('Cost chhupi') : <ChangeChip value={change(s.grossProfit, p.grossProfit)} suffix={prevShort.toLowerCase()} />} />
+            <KpiCard icon={Receipt} color="#d97706" label={tr('Kharchay')} value={sales(s.expenses.total)} onClick={() => setTab('analytics')}
               hint={<ChangeChip value={change(s.expenses.total, p.expenses.total)} upIsGood={false} suffix="· analytics" />} />
-            <KpiCard icon={AlertTriangle} color="#e11d48" label="Stock nuqsan" value={s.writeOffs == null ? '—' : cost(s.writeOffs.net)}
-              hint={s.writeOffs ? `${s.writeOffs.count} entries · dabayein` : 'Cost ki permission nahi'}
+            <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Stock nuqsan')} value={s.writeOffs == null ? '—' : cost(s.writeOffs.net)}
+              hint={s.writeOffs ? tr('{{count}} entries · dabayein', { count: s.writeOffs.count }) : tr('Cost ki permission nahi')}
               onClick={s.writeOffs ? () => setDrill(lines.find((l) => l.id === 'w-damage') ?? null) : undefined} />
-            <KpiCard icon={Wallet} color="#7c3aed" label="Udhaar par biki" value={sales(s.revenue.credit)} onClick={() => setTab('cash')}
-              hint="Paisa abhi aana hai · cash dekhein" />
+            <KpiCard icon={Wallet} color="#7c3aed" label={tr('Udhaar par biki')} value={sales(s.revenue.credit)} onClick={() => setTab('cash')}
+              hint={tr('Paisa abhi aana hai · cash dekhein')} />
           </>
         )}
       </KpiRow>
 
       <FilterBar
         search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">
-          {tab === 'monthly' ? 'Pichle mahine, karobari din ke hisaab se — date yahan nahi lagti'
-            : tab === 'analytics' ? 'Kharchay is muddat ke; rujhan aur break-even mahine war'
-              : tab === 'cash' ? 'Shop accounts ke len den se — bill, return, purchase, kharchay'
-                : `Muqabla: ${prevLabel}`}
+          {tab === 'monthly' ? tr('Pichle mahine, karobari din ke hisaab se — date yahan nahi lagti')
+            : tab === 'analytics' ? tr('Kharchay is muddat ke; rujhan aur break-even mahine war')
+              : tab === 'cash' ? tr('Shop accounts ke len den se — bill, return, purchase, kharchay')
+                : tr('Muqabla: {{prevLabel}}', { prevLabel })}
         </p>}
         chips={filtered ? <>
-          {branch && <FilterChip onRemove={() => setBranch('')}>{shops.find((x) => x.id === branch)?.name ?? 'Branch'}</FilterChip>}
-          {!staff && <FilterChip onRemove={() => setStaff(true)}>Tankhwah shamil nahi</FilterChip>}
+          {branch && <FilterChip onRemove={() => setBranch('')}>{shops.find((x) => x.id === branch)?.name ?? tr('Branch')}</FilterChip>}
+          {!staff && <FilterChip onRemove={() => setStaff(true)}>{tr('Tankhwah shamil nahi')}</FilterChip>}
         </> : undefined}
         onClear={() => { setBranch(''); setStaff(true); }}>
         {tab !== 'monthly' && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />}
         {(tab === 'monthly' || tab === 'analytics') && (
-          <FilterMenu icon={CalendarRange} label="Mahine" value={String(months)} active={months !== 12} width="w-56"
-            options={[{ value: '6', label: '6 mahine' }, { value: '12', label: '12 mahine' }, { value: '24', label: '24 mahine' }]}
+          <FilterMenu icon={CalendarRange} label={tr('Mahine')} value={String(months)} active={months !== 12} width="w-56"
+            options={[{ value: '6', label: tr('6 mahine') }, { value: '12', label: tr('12 mahine') }, { value: '24', label: tr('24 mahine') }]}
             onChange={(v) => setMonths(Number(v))} />
         )}
         {(tab === 'statement') && (
-          <FilterMenu icon={GitCompareArrows} label="Muqabla" value={compare} active={compare !== 'prev'} width="w-64"
-            options={[{ value: 'prev', label: 'Pichli period', hint: 'Itne hi din, is se pehle' }, { value: 'year', label: 'Pichla saal', hint: 'Yahi tareekhen, ek saal pehle' }]}
+          <FilterMenu icon={GitCompareArrows} label={tr('Muqabla')} value={compare} active={compare !== 'prev'} width="w-64"
+            options={[{ value: 'prev', label: tr('Pichli period'), hint: tr('Itne hi din, is se pehle') }, { value: 'year', label: tr('Pichla saal'), hint: tr('Yahi tareekhen, ek saal pehle') }]}
             onChange={setCompare} />
         )}
         {canPickBranch && (
-          <FilterMenu icon={Store} label="Branch" value={branch} active={!!branch} width="w-64"
-            options={[{ value: '', label: 'Sab branches' }, ...shops.map((x) => ({ value: x.id, label: x.name, hint: x.isMain ? 'Main' : undefined }))]}
+          <FilterMenu icon={Store} label={tr('Branch')} value={branch} active={!!branch} width="w-64"
+            options={[{ value: '', label: tr('Sab branches') }, ...shops.map((x) => ({ value: x.id, label: x.name, hint: x.isMain ? tr('Main') : undefined }))]}
             onChange={setBranch} />
         )}
-        <FilterMenu icon={Users} label="Tankhwah" value={staff ? 'yes' : 'no'} active={!staff} align="right" width="w-72"
+        <FilterMenu icon={Users} label={tr('Tankhwah')} value={staff ? 'yes' : 'no'} active={!staff} align="right" width="w-72"
           options={[
-            { value: 'yes', label: 'Kharchay me shamil', hint: 'Tankhwah aur commission jo staff page se diye' },
-            { value: 'no', label: 'Shamil nahi', hint: 'Jab tankhwah pehle hi Kharchay me likhte hain' },
+            { value: 'yes', label: tr('Kharchay me shamil'), hint: tr('Tankhwah aur commission jo staff page se diye') },
+            { value: 'no', label: tr('Shamil nahi'), hint: tr('Jab tankhwah pehle hi Kharchay me likhte hain') },
           ]}
           onChange={(v) => setStaff(v === 'yes')} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{tabs.length}</Kbd> se badlein · <Kbd>G</Kbd> guide</>} />
+      <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{tabs.length}</Kbd> {' '}{tr('se badlein ·')}{' '} <Kbd>G</Kbd> {' '}{tr('guide')}</>} />
 
       {reportQ.isError ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <AlertTriangle className="mx-auto h-10 w-10 text-rose-400" />
-          <p className="mt-3 font-semibold text-slate-900">Hisaab nahi aa saka</p>
-          <p className="mt-1 text-sm text-slate-500">Internet check karein ya period chhoti karein</p>
-          <Button className="mt-4" variant="secondary" onClick={() => void reportQ.refetch()}>Dobara koshish</Button>
+          <p className="mt-3 font-semibold text-slate-900">{tr('Hisaab nahi aa saka')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Internet check karein ya period chhoti karein')}</p>
+          <Button className="mt-4" variant="secondary" onClick={() => void reportQ.refetch()}>{tr('Dobara koshish')}</Button>
         </div>
       ) : tab === 'statement' ? (
         loading || !r ? <StatementSkeleton /> : nothing ? (
           <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
             <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><PiggyBank className="h-7 w-7" /></span>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">Is period me koi len den nahi</h3>
-            <p className="mt-1 text-[0.875rem] text-slate-500">Period badlein, ya "Mahine war" me pichle mahine dekhein</p>
-            <div className="mt-4"><Button variant="secondary" onClick={() => setTab('monthly')}>Mahine war dekhein</Button></div>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">{tr('Is period me koi len den nahi')}</h3>
+            <p className="mt-1 text-[0.875rem] text-slate-500">{tr('Period badlein, ya "Mahine war" me pichle mahine dekhein')}</p>
+            <div className="mt-4"><Button variant="secondary" onClick={() => setTab('monthly')}>{tr('Mahine war dekhein')}</Button></div>
           </div>
         ) : <StatementView report={r} lines={lines} fmt={fmt} prevLabel={prevShort} onDrill={setDrill} />
       ) : tab === 'monthly' ? (
@@ -266,7 +267,7 @@ export default function ProfitLossPage() {
         !branchesQ.data ? <ChartSkeleton /> : <BranchView data={branchesQ.data} lines={branchLines} fmt={fmt} onPickBranch={pickBranch} />
       ) : tab === 'cash' ? (
         days > 366 ? (
-          <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-100">Paisa aaya/gaya ek saal tak ki period ke liye hai — period chhoti karein.</p>
+          <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-100">{tr('Paisa aaya/gaya ek saal tak ki period ke liye hai — period chhoti karein.')}</p>
         ) : !cashQ.data || !r ? <ChartSkeleton /> : <CashFlowView cash={cashQ.data} report={r} fmt={fmt} />
       ) : (
         !monthlyQ.data || !r ? <ChartSkeleton /> : <AnalyticsView report={r} monthly={monthlyQ.data} fmt={fmt} />
@@ -274,28 +275,28 @@ export default function ProfitLossPage() {
 
       {drill?.drill && (
         <DetailModal query={query} kind={drill.drill.kind} categoryId={drill.drill.categoryId} fmt={fmt} onClose={() => setDrill(null)}
-          title={drill.drill.kind === 'writeoff' ? 'Stock nuqsan' : drill.drill.kind === 'staff' ? 'Tankhwah aur commission' : drill.label} period={label} />
+          title={drill.drill.kind === 'writeoff' ? tr('Stock nuqsan') : drill.drill.kind === 'staff' ? tr('Tankhwah aur commission') : drill.label} period={label} />
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Profit-loss — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Profit-loss — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: CalendarRange, color: '#2563eb', title: 'Period chunein', text: 'Is mahine, pichhla mahina, saal ya apni date. "Muqabla" se pichli itni hi period ya pichle saal ki yahi tareekhen saath dikhti hain.' },
-            { icon: FileText, color: '#16a34a', title: 'Bayan parhein', text: 'Upar sale, phir maal ki cost, gross profit, kharchay, stock ka nuqsan — aakhir me Net profit. Har line ke neeche likha hai ke wo kya hai.' },
-            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal sale = bill − wapsi (void bill nahi gine jate). Cost = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net profit = profit − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Profit report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Yahan tankhwah aur commission bhi alag line me nikalte hain, aur cancel booking ka rakha hua advance aamdani me judta hai.' },
-            { icon: MousePointerClick, color: '#d97706', title: 'Line par click', text: 'Expenses ki type, tankhwah, stock nuqsan ya booking par click karein — us ke saare record khul jate hain.' },
-            { icon: CalendarRange, color: '#7c3aed', title: 'Mahine war', text: 'Pichle 6, 12 ya 24 mahine ek saath. Kisi mahine par click karein to us ka poora bayan khulta hai.' },
-            { icon: Landmark, color: '#0891b2', title: 'Profit ya cash?', text: '"Paisa aaya/gaya" batata hai jeb me kitna aaya, aur profit se farq kyun hai — udhaar, purchase, khata.' },
-            { icon: Target, color: '#db2777', title: 'Break-even', text: 'Analytics me dekhein ke har mahine kitni sale par saare fixed expenses poore hote hain, aur is mahine kitna baqi hai.' },
+            { icon: CalendarRange, color: '#2563eb', title: tr('Period chunein'), text: tr('Is mahine, pichhla mahina, saal ya apni date. "Muqabla" se pichli itni hi period ya pichle saal ki yahi tareekhen saath dikhti hain.') },
+            { icon: FileText, color: '#16a34a', title: tr('Bayan parhein'), text: tr('Upar sale, phir maal ki cost, gross profit, kharchay, stock ka nuqsan — aakhir me Net profit. Har line ke neeche likha hai ke wo kya hai.') },
+            { icon: Calculator, color: '#0f766e', title: tr('Hisaab kaise'), text: tr('Asal sale = bill − wapsi (void bill nahi gine jate). Cost = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net profit = profit − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Profit report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Yahan tankhwah aur commission bhi alag line me nikalte hain, aur cancel booking ka rakha hua advance aamdani me judta hai.') },
+            { icon: MousePointerClick, color: '#d97706', title: tr('Line par click'), text: tr('Expenses ki type, tankhwah, stock nuqsan ya booking par click karein — us ke saare record khul jate hain.') },
+            { icon: CalendarRange, color: '#7c3aed', title: tr('Mahine war'), text: tr('Pichle 6, 12 ya 24 mahine ek saath. Kisi mahine par click karein to us ka poora bayan khulta hai.') },
+            { icon: Landmark, color: '#0891b2', title: tr('Profit ya cash?'), text: tr('"Paisa aaya/gaya" batata hai jeb me kitna aaya, aur profit se farq kyun hai — udhaar, purchase, khata.') },
+            { icon: Target, color: '#db2777', title: tr('Break-even'), text: tr('Analytics me dekhein ke har mahine kitni sale par saare fixed expenses poore hote hain, aur is mahine kitna baqi hai.') },
           ]}
           tips={[
-            'Return us bill ki period me gini jati hai jis ka maal tha, chahe return baad me hui ho. Din ka hisaab me return usi din dikhti hai jis din hui.',
-            'Jis cheez ki cost nahi likhi, us ki cost product ki aaj ki cost se andaza lagti hai. Note me batata hai kitni lines aisi hain.',
-            'Agar tankhwah aap Kharchay me bhi likhte hain to "Tankhwah" filter band karein, warna do dafa gini jayegi.',
+            tr('Return us bill ki period me gini jati hai jis ka maal tha, chahe return baad me hui ho. Din ka hisaab me return usi din dikhti hai jis din hui.'),
+            tr('Jis cheez ki cost nahi likhi, us ki cost product ki aaj ki cost se andaza lagti hai. Note me batata hai kitni lines aisi hain.'),
+            tr('Agar tankhwah aap Kharchay me bhi likhte hain to "Tankhwah" filter band karein, warna do dafa gini jayegi.'),
             ...(cfg.tips ?? []),
           ]}
-          shortcuts={[['1–5', 'view badlein'], ['G', 'guide']]}
-          footer={<Link to="/returns" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline"><RotateCcw className="mr-1 inline h-4 w-4" />Return ka record →</Link>}
+          shortcuts={[['1–5', tr('view badlein')], ['G', tr('guide')]]}
+          footer={<Link to="/returns" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline"><RotateCcw className="me-1 inline h-4 w-4" />{tr('Return ka record →')}</Link>}
         />
       )}
     </PageShell>

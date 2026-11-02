@@ -14,6 +14,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { returnsApi, type ReturnBucket, type ReturnQuery } from '../api/returns.api';
 import { RETURNS_KEY, methodColor, methodLabel, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
@@ -32,21 +33,21 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={RotateCcw} label="Kul wapas" value={money(t.refunded)} sub={`${t.count} return · ${t.bills} bill`} tone="rose" />
-        <Kpi icon={Percent} label="Return ki sharah" value={`${t.rate}%`} sub={`Sale ${money(t.salesTotal)} me se · ${t.billRate}% bill`} tone="amber" />
-        <Kpi icon={Package} label="Stock me wapas" value={qtyText(t.restockedQty)} sub={t.writtenOffQty ? `${qtyText(t.writtenOffQty)} kharab — stock me nahi` : 'Sab dobara bikne layak'} tone="success" />
-        <Kpi icon={BookOpen} label="Khate se kam" value={money(t.khata)} sub={`Haath me diye ${money(t.payout)}`} />
+        <Kpi icon={RotateCcw} label={tr('Kul wapas')} value={money(t.refunded)} sub={tr('{{count}} return · {{bills}} bill', { count: t.count, bills: t.bills })} tone="rose" />
+        <Kpi icon={Percent} label={tr('Return ki sharah')} value={`${t.rate}%`} sub={tr('Sale {{salesTotal}} me se · {{billRate}}% bill', { salesTotal: money(t.salesTotal), billRate: t.billRate })} tone="amber" />
+        <Kpi icon={Package} label={tr('Stock me wapas')} value={qtyText(t.restockedQty)} sub={t.writtenOffQty ? tr('{{writtenOffQty}} kharab — stock me nahi', { writtenOffQty: qtyText(t.writtenOffQty) }) : tr('Sab dobara bikne layak')} tone="success" />
+        <Kpi icon={BookOpen} label={tr('Khate se kam')} value={money(t.khata)} sub={tr('Haath me diye {{payout}}', { payout: money(t.payout) })} />
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki return</span>} description="Har karobari din kitna paisa wapas gaya">
-        {!trend.some((x) => x.count) ? <Empty text="Is period me koi return nahi" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ki return')}</span>} description={tr('Har karobari din kitna paisa wapas gaya')}>
+        {!trend.some((x) => x.count) ? <Empty text={tr('Is period me koi return nahi')} /> : (
           <div className="h-[16.25rem]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Wapas']} labelFormatter={(l, p) => `${l} · ${p?.[0]?.payload?.count ?? 0} return`} {...theme.tooltip} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Wapas')]} labelFormatter={(l, p) => `${l} · ${p?.[0]?.payload?.count ?? 0} return`} {...theme.tooltip} />
                 <Bar dataKey="refunded" name="Wapas" fill="#ea580c" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -55,16 +56,16 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Ranked icon={MessageSquareText} title="Wajah" description="Maal kyun wapas aa raha hai" rows={d.byReason} money={money} sub={(r) => `${r.count} return · ${qtyText(r.qty)} cheezein`} />
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Paisa kaise wapas gaya</span>} description="Cash, wallet, bank ya card">
-          {!methods.length ? <Empty text="Koi return nahi" /> : (
+        <Ranked icon={MessageSquareText} title={tr('Wajah')} description={tr('Maal kyun wapas aa raha hai')} rows={d.byReason} money={money} sub={(r) => tr('{{count}} return · {{qty}} cheezein', { count: r.count, qty: qtyText(r.qty) })} />
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />{tr('Paisa kaise wapas gaya')}</span>} description={tr('Cash, wallet, bank ya card')}>
+          {!methods.length ? <Empty text={tr('Koi return nahi')} /> : (
             <div className="h-[13.75rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={methods} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
                   <XAxis type="number" tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} />
                   <YAxis type="category" dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} width={84} />
-                  <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Wapas']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [formatPKR(Number(v)), tr('Wapas')]} {...theme.tooltip} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {methods.map((m) => <Cell key={m.key} fill={m.color} />)}
                   </Bar>
@@ -73,16 +74,16 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
             </div>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />Sab se zyada wapas aane wala maal</span>} description="Sharah = is period me jitna bika us me se kitna wapas aaya">
-          {!d.byProduct.length ? <Empty text="Koi return nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-brand-600" />{tr('Sab se zyada wapas aane wala maal')}</span>} description={tr('Sharah = is period me jitna bika us me se kitna wapas aaya')}>
+          {!d.byProduct.length ? <Empty text={tr('Koi return nahi')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.byProduct.map((p) => (
                 <li key={p.key} className="flex items-center gap-3 py-2 text-[0.8125rem]">
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium text-slate-900">{p.label}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{qtyText(p.qty)} {p.unit} wapas · {qtyText(p.soldQty)} bika · {p.count} dafa</span>
+                    <span className="block text-[0.6875rem] text-slate-500">{tr('{{qty}} {{unit}} wapas · {{soldQty}} bika · {{count}} dafa', { qty: qtyText(p.qty), unit: p.unit, soldQty: qtyText(p.soldQty), count: p.count })}</span>
                   </span>
-                  <span className="shrink-0 text-right">
+                  <span className="shrink-0 text-end">
                     <span className="block font-semibold tabular-nums text-slate-900">{money(p.value)}</span>
                     {p.rate != null && (
                       <span className={cn('inline-block rounded-full px-1.5 text-[0.6875rem] font-semibold tabular-nums', p.rate >= 10 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600')}>{p.rate}%</span>
@@ -93,7 +94,7 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
             </ul>
           )}
         </Card>
-        <Ranked icon={Users} title="Staff" description="Kis ne kitni return ki" rows={d.byStaff} money={money} sub={(r) => `${r.count} return`} />
+        <Ranked icon={Users} title={tr('Staff')} description={tr('Kis ne kitni return ki')} rows={d.byStaff} money={money} sub={(r) => `${r.count} return`} />
       </div>
     </div>
   );
@@ -105,7 +106,7 @@ function Ranked({ icon: I, title, description, rows, money, sub }: {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><I className="h-4 w-4 text-brand-600" />{title}</span>} description={description}>
-      {!rows.length ? <Empty text="Koi return nahi" /> : (
+      {!rows.length ? <Empty text={tr('Koi return nahi')} /> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.key}>

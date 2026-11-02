@@ -11,15 +11,16 @@ import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge
 import type { HistorySale } from '../api';
 import { receiptLink } from '../receiptPrefs';
 import { BillTierBadge } from './PriceTierBadge';
+import { t } from '@core/i18n';
 
 const time = (v: string) => new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit' }).format(new Date(v));
 export const qtyText = (n: number) => String(Number(Number(n).toFixed(2)));
 
 export function StatusBadge({ sale }: { sale: HistorySale }) {
-  if (sale.pending) return <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-sky-700"><CloudOff className="h-3 w-3" />Offline</span>;
-  if (sale.status === 'VOIDED') return <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700">Wapas li gayi</span>;
-  if (sale.status === 'FULLY_RETURNED') return <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">Poora wapas</span>;
-  if (sale.status === 'PARTIALLY_RETURNED') return <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-orange-700">Kuch wapas</span>;
+  if (sale.pending) return <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-sky-700"><CloudOff className="h-3 w-3" />{t('Offline')}</span>;
+  if (sale.status === 'VOIDED') return <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-rose-700">{t('Wapas li gayi')}</span>;
+  if (sale.status === 'FULLY_RETURNED') return <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{t('Poora wapas')}</span>;
+  if (sale.status === 'PARTIALLY_RETURNED') return <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-orange-700">{t('Kuch wapas')}</span>;
   return null;
 }
 
@@ -32,12 +33,12 @@ function Actions({ sale, waLink, onReturn, always }: { sale: HistorySale; waLink
   return (
     <div className={cn('relative flex justify-end gap-1 transition', !always && 'sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100')}>
       {waLink && (
-        <a href={waLink} target="_blank" rel="noreferrer" title="WhatsApp par bill"
+        <a href={waLink} target="_blank" rel="noreferrer" title={t('WhatsApp par bill')}
           className="flex h-8 w-8 items-center justify-center rounded-lg text-success-700 hover:bg-success-50"><MessageCircle className="h-4 w-4" /></a>
       )}
-      <Link to={receiptLink(sale.id, true)} title="Print" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Printer className="h-4 w-4" /></Link>
+      <Link to={receiptLink(sale.id, true)} title={t('Print')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Printer className="h-4 w-4" /></Link>
       {onReturn && !voided && sale.status !== 'FULLY_RETURNED' && (
-        <button type="button" onClick={onReturn} title="Maal wapas" className="flex h-8 w-8 items-center justify-center rounded-lg text-amber-700 hover:bg-amber-50"><RotateCcw className="h-4 w-4" /></button>
+        <button type="button" onClick={onReturn} title={t('Maal wapas')} className="flex h-8 w-8 items-center justify-center rounded-lg text-amber-700 hover:bg-amber-50"><RotateCcw className="h-4 w-4" /></button>
       )}
     </div>
   );
@@ -49,7 +50,7 @@ function Badges({ sale }: { sale: HistorySale }) {
       <SaleSourceBadge sale={sale as never} />
       <BillTierBadge tier={sale.priceTier} />
       <StatusBadge sale={sale} />
-      {sale.creditAmount > 0 && sale.status !== 'VOIDED' && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><BookOpen className="h-3 w-3" />Udhaar</span>}
+      {sale.creditAmount > 0 && sale.status !== 'VOIDED' && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><BookOpen className="h-3 w-3" />{t('Udhaar')}</span>}
     </>
   );
 }
@@ -84,14 +85,14 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
   const amount = (
     <>
       <span className={cn('text-[1.0625rem] font-bold tabular-nums', voided ? 'text-slate-400 line-through' : 'text-slate-900')}>{money(sale.total)}</span>
-      {sale.creditAmount > 0 && !voided && <span className="text-[0.75rem] font-medium tabular-nums text-amber-700">udhaar {money(sale.creditAmount)}</span>}
-      {sale.changeAmount > 0 && !voided && <span className="text-[0.75rem] tabular-nums text-success-700">return {money(sale.changeAmount)}</span>}
+      {sale.creditAmount > 0 && !voided && <span className="text-[0.75rem] font-medium tabular-nums text-amber-700">{t('udhaar {{creditAmount}}', { creditAmount: money(sale.creditAmount) })}</span>}
+      {sale.changeAmount > 0 && !voided && <span className="text-[0.75rem] tabular-nums text-success-700">{t('return {{changeAmount}}', { changeAmount: money(sale.changeAmount) })}</span>}
     </>
   );
 
   return (
     <li data-nav-row className={cn('group relative px-4 py-3 transition hover:bg-slate-50/80 sm:px-5', voided && 'opacity-60')}>
-      <button type="button" data-nav-open onClick={onOpen} className="absolute inset-0" aria-label={`Bill ${sale.saleNumber} kholein`} />
+      <button type="button" data-nav-open onClick={onOpen} className="absolute inset-0" aria-label={t('Bill {{saleNumber}} kholein', { saleNumber: sale.saleNumber })} />
 
       {/* Phones and tablets: one compact card. */}
       <div className="flex gap-3 lg:hidden">
@@ -103,8 +104,8 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.75rem] text-slate-500">
             <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{time(sale.soldAt)}</span>
-            <span className="inline-flex min-w-0 items-center gap-1"><User className="h-3 w-3" /><span className="max-w-[10rem] truncate">{sale.customer?.name ?? 'Walk-in'}</span></span>
-            <span>{sale.items.length} cheezein · {qtyText(qty)} qty</span>
+            <span className="inline-flex min-w-0 items-center gap-1"><User className="h-3 w-3" /><span className="max-w-[10rem] truncate">{sale.customer?.name ?? t('Walk-in')}</span></span>
+            <span>{t('{{count}} cheezein · {{qty}} qty', { count: sale.items.length, qty: qtyText(qty) })}</span>
             {sale.staff && <span className="hidden sm:inline">· {sale.staff}</span>}
           </div>
           <div className="mt-1.5">{chips(4)}</div>
@@ -134,12 +135,12 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
                 {sale.customer.phone && <div className="truncate text-[0.6875rem] text-slate-500">{sale.customer.phone}</div>}
               </div>
             </>
-          ) : <span className="text-[0.8125rem] text-slate-400">Walk-in</span>}
+          ) : <span className="text-[0.8125rem] text-slate-400">{t('Walk-in')}</span>}
         </div>
         <div className="relative min-w-0 pointer-events-none">
           {chips(3)}
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.6875rem] text-slate-500">
-            <span>{sale.items.length} cheezein · {qtyText(qty)} qty</span>
+            <span>{t('{{count}} cheezein · {{qty}} qty', { count: sale.items.length, qty: qtyText(qty) })}</span>
             <Badges sale={sale} />
           </div>
           {extra}

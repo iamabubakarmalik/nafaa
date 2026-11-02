@@ -14,6 +14,7 @@ import { useCarpetOps } from './useCarpetOps';
 import {
   CarpetRecentRolls, CarpetShortRolls, CarpetStock, carpetKpis, useCarpetAttention, useCarpetMoneyTiles,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/carpet-products/${id}`;
 
@@ -23,37 +24,37 @@ function useCarpetActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
-    { to: '/carpet-products/new', icon: Plus, label: 'Naya carpet', hint: 'Maal me daalein' },
-    { to: '/carpet-rolls', icon: Layers, label: 'Rolls', hint: `${c.rolls} chaalu` },
-    { to: '/carpet-cut-pieces', icon: Scissors, label: 'Cut pieces', hint: `${c.pieces} pieces` },
-    { to: '/reports', icon: BarChart3, label: 'Carpet reports', hint: 'Sqft ka hisaab' },
-    { to: '/carpet-bulk-import', icon: Download, label: 'Bulk import', hint: 'Excel / CSV' },
-    { to: '/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
+    { to: '/pos', icon: ShoppingCart, label: t('POS'), hint: t('Sale karein') },
+    { to: '/carpet-products/new', icon: Plus, label: t('Naya carpet'), hint: t('Maal me daalein') },
+    { to: '/carpet-rolls', icon: Layers, label: t('Rolls'), hint: t('{{rolls}} chaalu', { rolls: c.rolls }) },
+    { to: '/carpet-cut-pieces', icon: Scissors, label: t('Cut pieces'), hint: t('{{pieces}} pieces', { pieces: c.pieces }) },
+    { to: '/reports', icon: BarChart3, label: t('Carpet reports'), hint: t('Sqft ka hisaab') },
+    { to: '/carpet-bulk-import', icon: Download, label: t('Bulk import'), hint: t('Excel / CSV') },
+    { to: '/products', icon: Package, label: t('Maal'), hint: t('{{value}} cheezein', { value: s?.totalProducts ?? 0 }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
   ];
 }
 
 export const carpetDashboard = createDashboard({
-  label: 'Carpet',
+  label: t('Carpet'),
   productPath,
   openFrom: 9,
   kpis: carpetKpis,
   defaultKpis: ['carpet-sqft', 'carpet-rolls', 'carpet-short-rolls', 'profit', 'cash', 'month'],
   useAttention: useCarpetAttention,
   widgets: [
-    { id: 'carpet-stock', title: 'Rolls ka stock', description: 'Rolls, lambai, sqft aur cut pieces', size: 'wide', sizes: ['half', 'wide', 'full'], Component: CarpetStock },
-    { id: 'carpet-short-rolls', title: 'Chhote rolls', description: '10 ft se kam lambai wale rolls', size: 'third', sizes: ANY_SIZE, Component: CarpetShortRolls },
+    { id: 'carpet-stock', title: t('Rolls ka stock'), description: t('Rolls, lambai, sqft aur cut pieces'), size: 'wide', sizes: ['half', 'wide', 'full'], Component: CarpetStock },
+    { id: 'carpet-short-rolls', title: t('Chhote rolls'), description: t('10 ft se kam lambai wale rolls'), size: 'third', sizes: ANY_SIZE, Component: CarpetShortRolls },
   ],
   lateWidgets: [
-    { id: 'carpet-recent-rolls', title: 'Naye rolls', description: 'Haal hi me aaye rolls aur un ka rate', size: 'third', sizes: ANY_SIZE, Component: CarpetRecentRolls },
+    { id: 'carpet-recent-rolls', title: t('Naye rolls'), description: t('Haal hi me aaye rolls aur un ka rate'), size: 'third', sizes: ANY_SIZE, Component: CarpetRecentRolls },
   ],
   useQuickActions: useCarpetActions,
   moneyMap: { useExtraTiles: useCarpetMoneyTiles },
   guide: [
-    { icon: Ruler, title: 'Rolls aur sqft', text: 'Har roll ki baqi lambai aur sqft yahan jama hoti hai. "Rolls theek" ka matlab hai kitne rolls me abhi 10 ft se zyada maal hai.' },
-    { icon: Scissors, title: 'Cut pieces', text: 'Roll se bacha tukda cut piece ban jata hai. Chhote order par pehle ye dikhayein — paisa phansa nahi rehta.' },
+    { icon: Ruler, title: t('Rolls aur sqft'), text: t('Har roll ki baqi lambai aur sqft yahan jama hoti hai. "Rolls theek" ka matlab hai kitne rolls me abhi 10 ft se zyada maal hai.') },
+    { icon: Scissors, title: t('Cut pieces'), text: t('Roll se bacha tukda cut piece ban jata hai. Chhote order par pehle ye dikhayein — paisa phansa nahi rehta.') },
   ],
 });

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { AssignSaltItemDto, UpsertSaltDto } from './dto/upsert-salt.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class SaltsService {
@@ -12,7 +13,7 @@ export class SaltsService {
       where: { tenantId, name: { equals: name, mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { id: true },
     });
-    if (dup) throw new BadRequestException(`Salt "${name}" pehle se mojood hai`);
+    if (dup) throw new BadRequestException(apiMessage('Salt "{{name}}" pehle se mojood hai', { name }));
   }
 
   async create(user: AuthenticatedUser, dto: UpsertSaltDto) {

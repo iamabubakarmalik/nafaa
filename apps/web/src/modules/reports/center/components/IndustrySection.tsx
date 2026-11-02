@@ -5,6 +5,7 @@ import { KpiCard, KpiRow } from '@/design-system/components';
 import type { IndustryReport } from '../api';
 import type { ReportsConfig } from '../config';
 import { Bars, DataTable, Donut, Empty, Panel, PALETTE, type Formatter } from './parts';
+import { t as tr } from '@core/i18n';
 
 export function IndustrySection({ data: d, f, config }: { data: IndustryReport; f: Formatter; config: ReportsConfig }) {
   const Icon = config.industry?.icon ?? BarChart3;
@@ -16,13 +17,13 @@ export function IndustrySection({ data: d, f, config }: { data: IndustryReport; 
           {d.kpis.map((k, i) => <KpiCard key={k.label} icon={Icon} color={PALETTE[i % PALETTE.length]} label={k.label} value={f.fmt(k.value, k.fmt)} hint={k.hint} />)}
         </KpiRow>
       )}
-      {!hasData && <Panel icon={Icon} title={config.industry?.title ?? 'Karobar'}><Empty text="Is period me is karobar ka koi record nahi" /></Panel>}
+      {!hasData && <Panel icon={Icon} title={config.industry?.title ?? tr('Karobar')}><Empty text={tr('Is period me is karobar ka koi record nahi')} /></Panel>}
 
       {d.charts.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
           {d.charts.map((c) => (
             <Panel key={c.title} icon={c.kind === 'pie' ? PieIcon : BarChart3} title={c.title}>
-              {!c.data.length ? <Empty text="Kuch nahi" /> : c.kind === 'pie'
+              {!c.data.length ? <Empty text={tr('Kuch nahi')} /> : c.kind === 'pie'
                 ? <Donut f={f} fmt={c.fmt} data={c.data} />
                 : <Bars f={f} fmt={c.fmt} data={c.data} tick={(v) => (v.length > 10 ? `${v.slice(0, 9)}…` : v)} />}
             </Panel>
@@ -33,7 +34,7 @@ export function IndustrySection({ data: d, f, config }: { data: IndustryReport; 
       <div className="grid gap-4 xl:grid-cols-2">
         {d.tables.map((t) => (
           <Panel key={t.title} icon={Table2} title={t.title} hint={t.hint}>
-            <DataTable rows={t.rows} rowKey={(_r, i) => String(i)} empty="Kuch nahi" columns={t.columns.map((c, ci) => ({
+            <DataTable rows={t.rows} rowKey={(_r, i) => String(i)} empty={tr('Kuch nahi')} columns={t.columns.map((c, ci) => ({
               label: c.label,
               align: c.fmt === 'text' || c.fmt === 'date' ? undefined : 'right' as const,
               render: (row: Array<string | number | null>) => <span className={ci === 0 ? 'font-medium text-slate-900' : undefined}>{f.fmt(row[ci], c.fmt)}</span>,

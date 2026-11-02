@@ -15,6 +15,7 @@ import RepairTicketDetailPage from './pages/RepairTicketDetailPage';
 import MobileProductWizardPage from './pages/MobileProductWizardPage';
 import MobileProductDetailPage from './pages/MobileProductDetailPage';
 import MobileDashboard from './dashboard/MobileDashboard';
+import { t } from '@core/i18n';
 
 const IMEI_VIEW = 'mobile.imei.view';
 const IMEI_MANAGE = 'mobile.imei.manage';
@@ -31,11 +32,11 @@ const KHATA_VIEW = 'khata.view';
 export const MobilePack: IndustryPack = {
   id: 'mobile',
   name: 'Mobile Shop',
-  shortName: 'Mobile',
+  shortName: t('Mobile'),
   emoji: '📱',
   priority: 80,
   description:
-    'IMEI stock, PTA, used phone khareed aur trade-in, repair job cards, qist plans.',
+    t('IMEI stock, PTA, used phone khareed aur trade-in, repair job cards, qist plans.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -72,16 +73,16 @@ export const MobilePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Mobile extras',
+      label: t('Mobile extras'),
       icon: Smartphone,
       emoji: '📱',
       color: '#2563eb',
       order: 20,
       items: [
-        { to: '/imei-inventory', label: 'IMEI stock', icon: Smartphone, permission: IMEI_VIEW },
-        { to: '/used-phones', label: 'Used phones', icon: RefreshCw, permission: IMEI_VIEW },
-        { to: '/repair-tickets', label: 'Repairs', icon: Wrench, permission: REPAIRS_VIEW },
-        { to: '/emi-plans', label: 'Instalment plans', icon: CreditCard, permission: KHATA_VIEW },
+        { to: '/imei-inventory', label: t('IMEI stock'), icon: Smartphone, permission: IMEI_VIEW },
+        { to: '/used-phones', label: t('Used phones'), icon: RefreshCw, permission: IMEI_VIEW },
+        { to: '/repair-tickets', label: t('Repairs'), icon: Wrench, permission: REPAIRS_VIEW },
+        { to: '/emi-plans', label: t('Instalment plans'), icon: CreditCard, permission: KHATA_VIEW },
       ],
     },
   ],
@@ -115,17 +116,17 @@ export const MobilePack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🔢', group: 'Count' },
-      { value: 'unit', label: 'Units', hint: '📦', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '📦', group: 'Count' },
+      { value: 'pcs', label: t('Pieces'), hint: '🔢', group: t('Count') },
+      { value: 'unit', label: t('Units'), hint: '📦', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '📦', group: t('Count') },
     ],
   },
 
   featureFlags: [
-    { key: 'imei', label: 'IMEI Tracking', description: 'Track each phone by IMEI', defaultEnabled: true },
-    { key: 'ptaCompliance', label: 'PTA Compliance', description: 'Track PTA status per IMEI', defaultEnabled: true },
-    { key: 'usedPhones', label: 'Used Phones', description: 'Trade-in & resale workflow', defaultEnabled: true },
-    { key: 'repairs', label: 'Repair Tickets', description: 'Service jobs with parts & payments', defaultEnabled: true },
-    { key: 'emi', label: 'EMI Plans', description: 'Installment sales', defaultEnabled: true },
+    { key: 'imei', label: t('IMEI Tracking'), description: t('Track each phone by IMEI'), defaultEnabled: true },
+    { key: 'ptaCompliance', label: t('PTA Compliance'), description: t('Track PTA status per IMEI'), defaultEnabled: true },
+    { key: 'usedPhones', label: t('Used Phones'), description: t('Trade-in & resale workflow'), defaultEnabled: true },
+    { key: 'repairs', label: t('Repair Tickets'), description: t('Service jobs with parts & payments'), defaultEnabled: true },
+    { key: 'emi', label: t('EMI Plans'), description: t('Installment sales'), defaultEnabled: true },
   ],
 };

@@ -22,6 +22,7 @@ import { REASONS, classify, effectOfType, type ReasonCode } from './reason-codes
 import {
   BatchAdjustmentDto, CreateAdjustmentDto, ListAdjustmentsDto, StockCountDto, type AdjustmentType,
 } from './dto/create-adjustment.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 /** Types that add stock. */
@@ -65,7 +66,7 @@ export class StockAdjustmentsService {
   private async assertNotImeiDriven(db: Prisma.TransactionClient, tenantId: string, productId: string, name?: string) {
     const phone = await db.productImei.findFirst({ where: { tenantId, productId }, select: { id: true } });
     if (phone) {
-      throw new BadRequestException(`${name ? `${name}: ` : ''}is phone ka stock IMEI se chalta hai — IMEI chun kar badlein (IMEI stock page)`);
+      throw new BadRequestException(apiMessage('{{value}}is phone ka stock IMEI se chalta hai — IMEI chun kar badlein (IMEI stock page)', { value: name ? `${name}: ` : '' }));
     }
   }
 
@@ -108,7 +109,9 @@ export class StockAdjustmentsService {
     // The reason code fixes the stock type and the profit effect (reason-codes.ts).
     const cls = classify(l.type, l.reasonCode);
     if (isIn(cls.type) !== isIn(l.type)) {
-      throw new BadRequestException(`"${cls.label}" se stock ${isIn(cls.type) ? 'barhta' : 'ghatta'} hai — sahi reason chunein`);
+      throw new BadRequestException(isIn(cls.type)
+        ? apiMessage('"{{clsLabel}}" se stock barhta hai — sahi reason chunein', { clsLabel: cls.label })
+        : apiMessage('"{{clsLabel}}" se stock ghatta hai — sahi reason chunein', { clsLabel: cls.label }));
     }
     l = { ...l, type: cls.type, reason: l.reason?.trim() || cls.label || l.reason };
     const effect = l.effect ?? cls.effect;
@@ -249,7 +252,7 @@ export class StockAdjustmentsService {
         const lengthFt = (dto.lengthFt ?? dto.quantity ?? 0) + (dto.lengthInch ?? 0) / 12;
         const changeFt = isIn(dto.type) ? lengthFt : -lengthFt;
         const remFt = roll.remainingLengthFt + roll.remainingLengthInch / 12 + changeFt;
-        if (remFt < 0) throw new BadRequestException(`${lengthFt.toFixed(2)}ft nahi nikal sakte — roll me ${roll.remainingLengthFt}ft ${roll.remainingLengthInch}in baqi hai`);
+        if (remFt < 0) throw new BadRequestException(apiMessage('{{lengthFt}}ft nahi nikal sakte — roll me {{remainingLengthFt}}ft {{remainingLengthInch}}in baqi hai', { lengthFt: lengthFt.toFixed(2), remainingLengthFt: roll.remainingLengthFt, remainingLengthInch: roll.remainingLengthInch }));
         const width = Number(roll.widthFt) + Number(roll.widthInch || 0) / 12;
         const sqft = remFt * width;
         change = sqft - roll.remainingSqft;
@@ -305,7 +308,7 @@ export class StockAdjustmentsService {
     return this.prisma.$transaction(async (tx) => {
       // Re-read inside the transaction: it may have been sold a moment ago.
       const now = await tx.productImei.findUniqueOrThrow({ where: { id: imei.id } });
-      if (now.status === 'SOLD') throw new BadRequestException(`IMEI ${now.imei1} bik chuka hai`);
+      if (now.status === 'SOLD') throw new BadRequestException(apiMessage('IMEI {{imei1}} bik chuka hai', { imei1: now.imei1 }));
       let status: 'IN_STOCK' | 'DAMAGED' | 'LOST' = now.status as 'IN_STOCK';
       let change = 0;
       if (dto.type === 'DAMAGE') { if (now.status === 'IN_STOCK') change = -1; status = 'DAMAGED'; }

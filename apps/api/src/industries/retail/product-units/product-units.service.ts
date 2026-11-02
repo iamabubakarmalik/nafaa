@@ -18,6 +18,7 @@ import { KEPT_QTY, LINE_REVENUE, billMathCte, liveSaleSql } from '../../../commo
 import { assertCodeFree, findCodeClash } from './code-clash.helper';
 import { BulkAddUnitDto, CreateProductUnitDto, UnitsAnalyticsDto, UnitsOverviewDto } from './dto/create-product-unit.dto';
 import { UpdateProductUnitDto } from './dto/update-product-unit.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const DAY = 86_400_000;
@@ -65,7 +66,7 @@ export class ProductUnitsService {
       where: { productId, variantId, unitName: { equals: unitName.trim(), mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { id: true },
     });
-    if (dup) throw new ConflictException(`"${unitName.trim()}" is product me pehle se hai`);
+    if (dup) throw new ConflictException(apiMessage('"{{unitName}}" is product me pehle se hai', { unitName: unitName.trim() }));
   }
 
   async create(user: AuthenticatedUser, dto: CreateProductUnitDto) {
@@ -150,7 +151,7 @@ export class ProductUnitsService {
         variant: true,
       },
     });
-    if (!unit) throw new NotFoundException(`Barcode ${code} kisi pack par nahi laga`);
+    if (!unit) throw new NotFoundException(apiMessage('Barcode {{code}} kisi pack par nahi laga', { code }));
     return unit;
   }
 
@@ -214,7 +215,7 @@ export class ProductUnitsService {
     if (existing.isBase) throw new BadRequestException('Asal (base) unit nahi mit sakta');
     // A combo part on this pack would silently turn into one loose piece.
     const inCombo = await this.prisma.productComboItem.findFirst({ where: { unitId: id }, select: { combo: { select: { name: true } } } });
-    if (inCombo) throw new BadRequestException(`Ye pack combo "${inCombo.combo.name}" me laga hai — pehle combo se hatayein ya pack band kar dein`);
+    if (inCombo) throw new BadRequestException(apiMessage('Ye pack combo "{{comboName}}" me laga hai — pehle combo se hatayein ya pack band kar dein', { comboName: inCombo.combo.name }));
     await this.prisma.productUnit.delete({ where: { id } });
     return { id };
   }

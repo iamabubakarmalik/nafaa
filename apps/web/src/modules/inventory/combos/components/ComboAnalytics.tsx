@@ -15,9 +15,10 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { combosApi } from '../api/combos.api';
 import { COMBO_KEY, qtyText } from './meta';
+import { t as tr } from '@core/i18n';
 
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
-const WEEKDAYS = ['Itwaar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const WEEKDAYS = [tr('Itwaar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 
 export function ComboAnalytics({ range, money, cost }: {
   range: { from?: string; to?: string };
@@ -43,15 +44,15 @@ export function ComboAnalytics({ range, money, cost }: {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={ShoppingBag} label="Combos bike" value={qtyText(t.sold)} sub={`${t.bills} bill · ${d.days} din`} />
-        <Kpi icon={Wallet} label="Combo se kamai" value={money(t.revenue)} sub={t.sold > 0 ? `ek combo ausat ${money(t.revenue / t.sold)}` : 'Abhi koi sale nahi'} tone="emerald" />
-        <Kpi icon={TrendingUp} label="Profit" value={cost(t.profit)} sub={`Cost ${cost(t.cost)}`} tone={t.profit < 0 ? 'rose' : 'emerald'} />
-        <Kpi icon={Percent} label="Margin" value={t.revenue > 0 ? `${Math.round(t.margin)}%` : '—'} sub={t.savingsGiven > 0 ? `Customers ko bachat ${money(t.savingsGiven)}` : 'Sale par profit'} />
+        <Kpi icon={ShoppingBag} label={tr('Combos bike')} value={qtyText(t.sold)} sub={tr('{{bills}} bill · {{days}} din', { bills: t.bills, days: d.days })} />
+        <Kpi icon={Wallet} label={tr('Combo se kamai')} value={money(t.revenue)} sub={t.sold > 0 ? tr('ek combo ausat {{value}}', { value: money(t.revenue / t.sold) }) : tr('Abhi koi sale nahi')} tone="emerald" />
+        <Kpi icon={TrendingUp} label={tr('Profit')} value={cost(t.profit)} sub={tr('Cost {{cost}}', { cost: cost(t.cost) })} tone={t.profit < 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={Percent} label={tr('Margin')} value={t.revenue > 0 ? `${Math.round(t.margin)}%` : '—'} sub={t.savingsGiven > 0 ? tr('Customers ko bachat {{savingsGiven}}', { savingsGiven: money(t.savingsGiven) }) : tr('Sale par profit')} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki sale</span>} description="Har din kitne combo bike aur kitni kamai hui">
-          {!trend.length ? <Empty text="Is period me koi combo nahi bika" /> : (
+        <Card className="rounded-2xl lg:col-span-2" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />{tr('Roz ki sale')}</span>} description={tr('Har din kitne combo bike aur kitni kamai hui')}>
+          {!trend.length ? <Empty text={tr('Is period me koi combo nahi bika')} /> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -68,15 +69,15 @@ export function ComboAnalytics({ range, money, cost }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand-600" />Hafte ke din</span>} description={best && best.count > 0 ? `${WEEKDAYS[best.day]} ko sab se zyada` : 'Kis din zyada bikte hain'}>
-          {!trend.length ? <Empty text="Abhi data nahi" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand-600" />{tr('Hafte ke din')}</span>} description={best && best.count > 0 ? tr('{{value}} ko sab se zyada', { value: WEEKDAYS[best.day] }) : tr('Kis din zyada bikte hain')}>
+          {!trend.length ? <Empty text={tr('Abhi data nahi')} /> : (
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={week} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={32} />
-                  <Tooltip formatter={(v) => [qtyText(Number(v)), 'Combos']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [qtyText(Number(v)), tr('Combos')]} {...theme.tooltip} />
                   <Bar dataKey="count" name="Combos" fill={theme.primarySoft} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -85,8 +86,8 @@ export function ComboAnalytics({ range, money, cost }: {
         </Card>
       </div>
 
-      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" />Sab se zyada bikne wale</span>} description="Kamai ke hisaab se — profit aur margin ke sath">
-        {!top.length ? <Empty text="Is period me koi combo nahi bika" /> : (
+      <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" />{tr('Sab se zyada bikne wale')}</span>} description={tr('Kamai ke hisaab se — profit aur margin ke sath')}>
+        {!top.length ? <Empty text={tr('Is period me koi combo nahi bika')} /> : (
           <ul className="space-y-3">
             {top.map((x, i) => (
               <li key={x.id ?? x.name}>
@@ -94,12 +95,12 @@ export function ComboAnalytics({ range, money, cost }: {
                   <span className="flex min-w-0 items-center gap-2">
                     <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold', i === 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600')}>{i + 1}</span>
                     {x.id ? <Link to={`/combos/${x.id}/edit`} className="truncate font-medium text-slate-800 hover:text-brand-700 hover:underline">{x.name}</Link>
-                      : <span className="truncate font-medium text-slate-800" title="Ye combo ab nahi hai ya naam badal gaya">{x.name} <span className="text-slate-400">(purana)</span></span>}
+                      : <span className="truncate font-medium text-slate-800" title={tr('Ye combo ab nahi hai ya naam badal gaya')}>{x.name} <span className="text-slate-400">{tr('(purana)')}</span></span>}
                   </span>
                   <span className="flex shrink-0 items-center gap-4 tabular-nums">
-                    <span className="hidden text-slate-500 sm:inline">{qtyText(x.count)} bike</span>
-                    <span className={cn('hidden w-20 text-right sm:inline', x.profit < 0 ? 'text-rose-700' : 'text-emerald-700')}>{cost(x.profit)}</span>
-                    <span className="w-24 text-right font-semibold text-slate-900">{money(x.revenue)}</span>
+                    <span className="hidden text-slate-500 sm:inline">{tr('{{count}} bike', { count: qtyText(x.count) })}</span>
+                    <span className={cn('hidden w-20 text-end sm:inline', x.profit < 0 ? 'text-rose-700' : 'text-emerald-700')}>{cost(x.profit)}</span>
+                    <span className="w-24 text-end font-semibold text-slate-900">{money(x.revenue)}</span>
                   </span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -112,15 +113,15 @@ export function ComboAnalytics({ range, money, cost }: {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-500" />Khatam hone wale</span>} description="Kisi cheez ka stock kam hai — 3 ya kam combo ban sakte hain">
-          {!d.runningLow.length ? <Empty text="Sab combos ke liye maal kaafi hai" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-500" />{tr('Khatam hone wale')}</span>} description={tr('Kisi cheez ka stock kam hai — 3 ya kam combo ban sakte hain')}>
+          {!d.runningLow.length ? <Empty text={tr('Sab combos ke liye maal kaafi hai')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.runningLow.map((x) => (
                 <li key={x.id} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
                   <Link to={`/combos/${x.id}/edit`} className="min-w-0 truncate font-medium text-slate-800 hover:text-brand-700">{x.name}</Link>
-                  <span className="shrink-0 text-right">
-                    <span className={cn('font-semibold tabular-nums', x.available === 0 ? 'text-rose-700' : 'text-amber-700')}>{x.available === 0 ? 'Nahi ban sakta' : `${x.available} ban sakte`}</span>
-                    {x.limitedBy && <span className="block text-[0.6875rem] text-slate-500">{x.limitedBy === 'limit' ? 'Apni had poori' : `${x.limitedBy} kam hai`}</span>}
+                  <span className="shrink-0 text-end">
+                    <span className={cn('font-semibold tabular-nums', x.available === 0 ? 'text-rose-700' : 'text-amber-700')}>{x.available === 0 ? tr('Nahi ban sakta') : tr('{{available}} ban sakte', { available: x.available })}</span>
+                    {x.limitedBy && <span className="block text-[0.6875rem] text-slate-500">{x.limitedBy === 'limit' ? tr('Apni had poori') : tr('{{limitedBy}} kam hai', { limitedBy: x.limitedBy })}</span>}
                   </span>
                 </li>
               ))}
@@ -128,8 +129,8 @@ export function ComboAnalytics({ range, money, cost }: {
           )}
         </Card>
 
-        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Moon className="h-4 w-4 text-slate-500" />Nahi bike</span>} description="Chalu combos jo is period me ek bhi nahi bike">
-          {!d.notSold.length ? <Empty text="Har chalu combo bika — zabardast" /> : (
+        <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Moon className="h-4 w-4 text-slate-500" />{tr('Nahi bike')}</span>} description={tr('Chalu combos jo is period me ek bhi nahi bike')}>
+          {!d.notSold.length ? <Empty text={tr('Har chalu combo bika — zabardast')} /> : (
             <ul className="divide-y divide-slate-100">
               {d.notSold.slice(0, 10).map((x) => (
                 <li key={x.id} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
@@ -137,12 +138,12 @@ export function ComboAnalytics({ range, money, cost }: {
                   <span className="shrink-0 tabular-nums text-slate-600">{formatPKR(x.comboPrice)}</span>
                 </li>
               ))}
-              {d.notSold.length > 10 && <li className="py-2 text-[0.75rem] text-slate-500">aur {d.notSold.length - 10}…</li>}
+              {d.notSold.length > 10 && <li className="py-2 text-[0.75rem] text-slate-500">{tr('aur {{value}}…', { value: d.notSold.length - 10 })}</li>}
             </ul>
           )}
         </Card>
       </div>
-      <p className="text-[0.75rem] text-slate-500">Hisaab POS ke combo bills se banta hai. Wapas hua maal kamai aur cost se nikal diya jata hai.</p>
+      <p className="text-[0.75rem] text-slate-500">{tr('Hisaab POS ke combo bills se banta hai. Wapas hua maal kamai aur cost se nikal diya jata hai.')}</p>
     </div>
   );
 }

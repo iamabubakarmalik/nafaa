@@ -5,17 +5,18 @@
 
 import type { OnlineOrder, OnlineOrderStatus } from '../api/online-orders.api';
 import { STATUS_LABEL } from './labels';
+import { t as tr } from '@core/i18n';
 
 export type OrderTab = 'PENDING' | 'ACTIVE' | 'DELIVERED' | 'COD_DUE' | 'CLOSED' | 'ALL';
 
 /** Status pipeline tabs. Queue tabs (new, in progress, COD due) ignore the date filter so nothing old hides. */
 export const ORDER_TABS: Array<{ id: OrderTab; label: string; hint: string; queue: boolean }> = [
-  { id: 'PENDING', label: 'Naye', hint: 'Accept karne hain', queue: true },
-  { id: 'ACTIVE', label: 'Chal rahe', hint: 'Pack ya raste me', queue: true },
-  { id: 'DELIVERED', label: 'Delivered', hint: 'Mil gaye', queue: false },
-  { id: 'COD_DUE', label: 'COD baqi', hint: 'Paisa aana hai', queue: true },
-  { id: 'CLOSED', label: 'Cancel / wapas', hint: 'Cancel, reject, RTO', queue: false },
-  { id: 'ALL', label: 'Sab', hint: 'Har order', queue: false },
+  { id: 'PENDING', label: tr('Naye'), hint: tr('Accept karne hain'), queue: true },
+  { id: 'ACTIVE', label: tr('Chal rahe'), hint: tr('Pack ya raste me'), queue: true },
+  { id: 'DELIVERED', label: tr('Delivered'), hint: tr('Mil gaye'), queue: false },
+  { id: 'COD_DUE', label: tr('COD baqi'), hint: tr('Paisa aana hai'), queue: true },
+  { id: 'CLOSED', label: tr('Cancel / wapas'), hint: tr('Cancel, reject, RTO'), queue: false },
+  { id: 'ALL', label: tr('Sab'), hint: tr('Har order'), queue: false },
 ];
 
 export const ACTIVE_STATUSES: OnlineOrderStatus[] = ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'];

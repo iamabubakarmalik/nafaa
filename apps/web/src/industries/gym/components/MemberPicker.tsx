@@ -9,12 +9,13 @@ import { Search, X } from 'lucide-react';
 import { Avatar, Badge, Input } from '@/design-system/components';
 import { gymMembersApi, type GymMember } from '../api/members.api';
 import { GYM_KEYS, MEMBER_STATE } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 export interface PickedMember { id: string; name: string; phone?: string | null; memberNumber: string }
 
 export const toPicked = (m: GymMember): PickedMember => ({ id: m.id, name: m.customer?.name ?? m.memberNumber, phone: m.customer?.phone, memberNumber: m.memberNumber });
 
-export function MemberPicker({ value, onChange, label = 'Member', hint, autoFocus }: {
+export function MemberPicker({ value, onChange, label = tr('Member'), hint, autoFocus }: {
   value: PickedMember | null;
   onChange: (m: PickedMember | null) => void;
   label?: string;
@@ -41,7 +42,7 @@ export function MemberPicker({ value, onChange, label = 'Member', hint, autoFocu
             <p className="truncate font-medium text-slate-900">{value.name}</p>
             <p className="truncate text-[0.75rem] text-slate-500">{value.memberNumber}{value.phone ? ` · ${value.phone}` : ''}</p>
           </div>
-          <button type="button" onClick={() => onChange(null)} aria-label="Member badlein" className="rounded-lg p-1 text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={() => onChange(null)} aria-label={tr('Member badlein')} className="rounded-lg p-1 text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>
         </div>
       </div>
     );
@@ -51,15 +52,15 @@ export function MemberPicker({ value, onChange, label = 'Member', hint, autoFocu
   return (
     <div>
       <Input label={label} value={text} onChange={(e) => setText(e.target.value)} autoFocus={autoFocus} leftIcon={<Search className="h-4 w-4" />}
-        placeholder="Naam, phone ya MEM number…" hint={hint ?? 'Kam se kam 2 harf likhein'} />
+        placeholder={tr('Naam, phone ya MEM number…')} hint={hint ?? tr('Kam se kam 2 harf likhein')} />
       {q.length >= 2 && (
         <div className="mt-1.5 max-h-60 overflow-y-auto rounded-xl ring-1 ring-slate-200">
-          {listQ.isLoading ? <p className="px-3 py-3 text-[0.8125rem] text-slate-500">Dhoond rahe hain…</p>
-            : !rows.length ? <p className="px-3 py-3 text-[0.8125rem] text-slate-500">Koi member nahi mila</p>
+          {listQ.isLoading ? <p className="px-3 py-3 text-[0.8125rem] text-slate-500">{tr('Dhoond rahe hain…')}</p>
+            : !rows.length ? <p className="px-3 py-3 text-[0.8125rem] text-slate-500">{tr('Koi member nahi mila')}</p>
               : rows.slice(0, 20).map((m) => {
                 const st = MEMBER_STATE[m.state ?? 'NONE'];
                 return (
-                  <button key={m.id} type="button" onClick={() => onChange(toPicked(m))} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-slate-50">
+                  <button key={m.id} type="button" onClick={() => onChange(toPicked(m))} className="flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-slate-50">
                     <Avatar name={m.customer?.name ?? m.memberNumber} url={m.photoUrl} size={32} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium text-slate-900">{m.customer?.name ?? '—'}</span>

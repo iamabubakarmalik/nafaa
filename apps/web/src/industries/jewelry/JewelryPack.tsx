@@ -17,6 +17,7 @@ import MetalRatesPage from './pages/MetalRatesPage';
 import MetalStockPage from './pages/MetalStockPage';
 import JewelryItemWizardPage from './pages/JewelryItemWizardPage';
 import JewelryItemDetailPage from './pages/JewelryItemDetailPage';
+import { t } from '@core/i18n';
 
 /**
  * Jewelry / sonar pack: pieces by weight and karat on the shared product
@@ -27,11 +28,11 @@ import JewelryItemDetailPage from './pages/JewelryItemDetailPage';
 export const JewelryPack: IndustryPack = {
   id: 'jewelry',
   name: 'Jewelry / Sonar',
-  shortName: 'Jewelry',
+  shortName: t('Jewelry'),
   emoji: '💎',
   priority: 65,
   description:
-    'Gold/silver/platinum, live metal rates, hallmark, gemstones, karigar tracking, custom orders, exchanges.',
+    t('Gold/silver/platinum, live metal rates, hallmark, gemstones, karigar tracking, custom orders, exchanges.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -48,23 +49,23 @@ export const JewelryPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Jewellery',
+      label: t('Jewellery'),
       icon: Gem,
       emoji: '💎',
       color: '#d97706',
       order: 20,
       items: [
-        { to: '/pos', label: 'Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/metal-rates', label: 'Today\'s rates', icon: TrendingUp },
-        { to: '/jewelry-items/new', label: 'New jewellery', icon: Sparkles, permission: PERMISSIONS.PRODUCTS_CREATE },
-        { to: '/jewelry/products', label: 'Jewellery', icon: Gem, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/jewelry/sales', label: 'Sales', icon: ShoppingBag, permission: PERMISSIONS.SALES_VIEW },
-        { to: '/jewelry/custom-orders', label: 'Custom orders', icon: Palette, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/exchanges', label: 'Old gold', icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
-        { to: '/jewelry/repairs', label: 'Repair', icon: Wrench, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/karigars', label: 'Craftsmen', icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
-        { to: '/jewelry/metal-stock', label: 'Metal stock', icon: Coins, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
-        { to: '/jewelry/dashboard', label: 'Jewelry dashboard', icon: LayoutDashboard },
+        { to: '/pos', label: t('Counter'), icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/metal-rates', label: t('Today\'s rates'), icon: TrendingUp },
+        { to: '/jewelry-items/new', label: t('New jewellery'), icon: Sparkles, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/jewelry/products', label: t('Jewellery'), icon: Gem, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/jewelry/sales', label: t('Sales'), icon: ShoppingBag, permission: PERMISSIONS.SALES_VIEW },
+        { to: '/jewelry/custom-orders', label: t('Custom orders'), icon: Palette, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/exchanges', label: t('Old gold'), icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
+        { to: '/jewelry/repairs', label: t('Repair'), icon: Wrench, permission: PERMISSIONS.POS_USE },
+        { to: '/jewelry/karigars', label: t('Craftsmen'), icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
+        { to: '/jewelry/metal-stock', label: t('Metal stock'), icon: Coins, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
+        { to: '/jewelry/dashboard', label: t('Jewelry dashboard'), icon: LayoutDashboard },
       ],
     },
   ],
@@ -91,22 +92,22 @@ export const JewelryPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '💎', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '👑', group: 'Count' },
-      { value: 'pair', label: 'Pair', hint: '👂', group: 'Count' },
-      { value: 'gram', label: 'Grams', hint: '⚖️', group: 'Weight' },
-      { value: 'tola', label: 'Tola', hint: '⚖️', group: 'Weight' },
-      { value: 'carat', label: 'Carat', hint: '💎', group: 'Weight' },
+      { value: 'pcs', label: t('Pieces'), hint: '💎', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '👑', group: t('Count') },
+      { value: 'pair', label: t('Pair'), hint: '👂', group: t('Count') },
+      { value: 'gram', label: t('Grams'), hint: '⚖️', group: t('Weight') },
+      { value: 'tola', label: t('Tola'), hint: '⚖️', group: t('Weight') },
+      { value: 'carat', label: t('Carat'), hint: '💎', group: t('Weight') },
     ],
   },
 
   featureFlags: [
-    { key: 'jewelryHallmark', label: 'Hallmark Tracking', defaultEnabled: true },
-    { key: 'jewelryLiveRates', label: 'Live Metal Rates', defaultEnabled: true },
-    { key: 'jewelryKarigars', label: 'Karigar Management', defaultEnabled: true },
-    { key: 'jewelryCustomOrders', label: 'Custom Orders', defaultEnabled: true },
-    { key: 'jewelryExchanges', label: 'Metal Exchanges', defaultEnabled: true },
-    { key: 'jewelryGemstones', label: 'Gemstone Details', defaultEnabled: true },
-    { key: 'jewelryBuyback', label: 'Buyback Policy', defaultEnabled: true },
+    { key: 'jewelryHallmark', label: t('Hallmark Tracking'), defaultEnabled: true },
+    { key: 'jewelryLiveRates', label: t('Live Metal Rates'), defaultEnabled: true },
+    { key: 'jewelryKarigars', label: t('Karigar Management'), defaultEnabled: true },
+    { key: 'jewelryCustomOrders', label: t('Custom Orders'), defaultEnabled: true },
+    { key: 'jewelryExchanges', label: t('Metal Exchanges'), defaultEnabled: true },
+    { key: 'jewelryGemstones', label: t('Gemstone Details'), defaultEnabled: true },
+    { key: 'jewelryBuyback', label: t('Buyback Policy'), defaultEnabled: true },
   ],
 };

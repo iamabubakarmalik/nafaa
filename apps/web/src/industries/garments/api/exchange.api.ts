@@ -1,6 +1,7 @@
 import { apiClient } from '@core/api/client';
 import { withManagerPin } from '@core/security/ManagerPin';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { t } from '@core/i18n';
 
 interface ExchangeLine {
   saleItemId: string;
@@ -57,6 +58,6 @@ const unwrap = <T,>(res: { data: { data: T } }): T => res.data.data;
 export const exchangeApi = {
   preview: (saleId: string) => apiClient.get('/garments/returns/exchange/' + saleId).then(unwrap<ExchangePreview>),
   /** Asks for the owner's or a manager's PIN when the server wants one, then sends again. */
-  create: (data: ExchangeInput) => withManagerPin('Exchange', (managerPin) =>
+  create: (data: ExchangeInput) => withManagerPin(t('Exchange'), (managerPin) =>
     apiClient.post('/garments/returns/exchange', { ...data, managerPin }).then(unwrap<ExchangeResult>), 'refund'),
 };

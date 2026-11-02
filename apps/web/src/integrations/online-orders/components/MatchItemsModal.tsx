@@ -7,6 +7,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import type { OrderLine } from '../api/online-orders.api';
 import { rs } from '../lib/labels';
 import { cn } from '@core/lib/cn';
+import { t as tr } from '@core/i18n';
 
 export type Matches = Record<string, { productId: string; variantId?: string | null; label: string }>;
 
@@ -42,17 +43,17 @@ export function MatchItemsModal({
       open={open}
       onClose={onClose}
       size="lg"
-      title="Items ko apne products se jodein"
-      description="Website ke ye items Nafaa me khud nahi mile. Ek dafa jod dein — agli dafa khud mil jayenge."
+      title={tr('Items ko apne products se jodein')}
+      description={tr('Website ke ye items Nafaa me khud nahi mile. Ek dafa jod dein — agli dafa khud mil jayenge.')}
       footer={
         <div className="flex w-full items-center justify-between gap-2">
           <span className="text-xs font-bold text-slate-500">
-            {Object.keys(matches).length}/{pending.length} jod diye
+            {tr('{{count}}/{{count2}} jod diye', { count: Object.keys(matches).length, count2: pending.length })}
           </span>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>Wapas</Button>
+            <Button variant="ghost" onClick={onClose}>{tr('Wapas')}</Button>
             <Button variant="success" disabled={!done} loading={loading} onClick={() => onConfirm(matches)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
-              Jod kar Accept karein
+              {tr('Jod kar Accept karein')}
             </Button>
           </div>
         </div>
@@ -71,7 +72,7 @@ export function MatchItemsModal({
                   : isActive ? 'border-brand-400' : 'border-slate-200',
               )}
             >
-              <button className="flex w-full items-center gap-3 text-left" onClick={() => setActive(isActive ? null : line.index)}>
+              <button className="flex w-full items-center gap-3 text-start" onClick={() => setActive(isActive ? null : line.index)}>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
                   {line.image ? <img src={line.image} alt="" className="h-full w-full object-cover" /> : <PackageSearch className="h-5 w-5 text-slate-400" />}
                 </div>
@@ -80,7 +81,7 @@ export function MatchItemsModal({
                     {line.name}{line.variant ? ` (${line.variant})` : ''}
                   </div>
                   <div className="truncate text-xs text-slate-500">
-                    {line.quantity} × {rs(line.price)}{line.sku ? ` · SKU ${line.sku}` : ''}
+                    {line.quantity} × {rs(line.price)}{line.sku ? tr(' · SKU {{sku}}', { sku: line.sku }) : ''}
                   </div>
                 </div>
                 {m ? (
@@ -89,7 +90,7 @@ export function MatchItemsModal({
                   </span>
                 ) : (
                   <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
-                    Jodna hai
+                    {tr('Jodna hai')}
                   </span>
                 )}
               </button>
@@ -129,18 +130,18 @@ function ProductPicker({ initial, onPick }: { initial: string; onPick: (p: Produ
   return (
     <div className="mt-3 space-y-2">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Product ka naam, SKU ya barcode…"
-          className="h-10 w-full rounded-xl border-2 border-slate-200 bg-white pl-9 pr-3 text-sm font-semibold outline-none focus:border-brand-500"
+          placeholder={tr('Product ka naam, SKU ya barcode…')}
+          className="h-10 w-full rounded-xl border-2 border-slate-200 bg-white ps-9 pe-3 text-sm font-semibold outline-none focus:border-brand-500"
         />
       </div>
       <div className="max-h-64 space-y-1 overflow-y-auto">
-        {isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">Dhoond rahe hain…</div>}
-        {!isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">Koi product nahi mila — naam badal kar dekhein</div>}
+        {isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">{tr('Dhoond rahe hain…')}</div>}
+        {!isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">{tr('Koi product nahi mila — naam badal kar dekhein')}</div>}
         {items.map((p) =>
           p.hasVariants ? (
             <VariantChoice key={p.id} product={p} onPick={onPick} />
@@ -148,11 +149,11 @@ function ProductPicker({ initial, onPick }: { initial: string; onPick: (p: Produ
             <button
               key={p.id}
               onClick={() => onPick(p, null, p.name)}
-              className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left hover:bg-slate-100"
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start hover:bg-slate-100"
             >
               <div className="min-w-0">
                 <div className="truncate text-sm font-bold text-slate-900">{p.name}</div>
-                <div className={cn('text-[0.6875rem]', p.stock > 0 ? 'text-slate-500' : 'font-bold text-rose-600')}>{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</div>
+                <div className={cn('text-[0.6875rem]', p.stock > 0 ? 'text-slate-500' : 'font-bold text-rose-600')}>{tr('{{value}}Stock {{stock}}', { value: p.sku ? tr('SKU {{sku}} · ', { sku: p.sku }) : '', stock: p.stock })}</div>
               </div>
               <span className="text-sm font-bold text-slate-700">{rs(p.price)}</span>
             </button>
@@ -178,18 +179,18 @@ function VariantChoice({ product, onPick }: { product: Product; onPick: (p: Prod
     <div className="rounded-lg border border-slate-200 p-2">
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <span className="truncate text-sm font-bold text-slate-900">{product.name}</span>
-        <span className="shrink-0 text-[0.6875rem] font-semibold text-slate-500">Size chunein</span>
+        <span className="shrink-0 text-[0.6875rem] font-semibold text-slate-500">{tr('Size chunein')}</span>
       </div>
-      {isLoading && <div className="px-1 py-1 text-xs text-slate-500">Size aa rahe hain…</div>}
+      {isLoading && <div className="px-1 py-1 text-xs text-slate-500">{tr('Size aa rahe hain…')}</div>}
       <div className="flex flex-wrap gap-1.5">
         {variants.map((v) => (
           <button
             key={v.id}
             onClick={() => onPick(product, v.id, `${product.name} (${v.name})`)}
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-left text-xs font-bold hover:border-brand-500 hover:bg-brand-50"
+            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-start text-xs font-bold hover:border-brand-500 hover:bg-brand-50"
           >
             <span className="block text-slate-900">{v.name} · {rs(v.price)}</span>
-            <span className={cn('block text-[0.6875rem] font-semibold', v.stock > 0 ? 'text-slate-500' : 'text-rose-600')}>Stock {v.stock}</span>
+            <span className={cn('block text-[0.6875rem] font-semibold', v.stock > 0 ? 'text-slate-500' : 'text-rose-600')}>{tr('Stock {{stock}}', { stock: v.stock })}</span>
           </button>
         ))}
       </div>

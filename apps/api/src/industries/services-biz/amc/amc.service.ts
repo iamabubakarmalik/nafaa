@@ -19,6 +19,7 @@ import { ensureCustomer, paidOnKhata, postIndustrySale, recordKhataPayment, reso
 import { JobsService } from '../jobs/jobs.service';
 import { amcBillNumber, blank, nextDocNumber, r2 } from '../jobs/job-rules';
 import type { CancelAmcDto, CompleteVisitDto, CreateAmcDto, ListAmcQuery, ScheduleVisitDto, VisitJobDto } from './dto/amc.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const DAY = 86_400_000;
 const TX = { timeout: 30_000 } as const;
@@ -40,7 +41,7 @@ export class AmcService implements OnModuleInit {
   async create(user: AuthenticatedUser, dto: CreateAmcDto) {
     const contractValue = r2(dto.contractValue);
     const amountPaid = r2(dto.amountPaid ?? 0);
-    if (amountPaid > contractValue + 0.01) throw new BadRequestException(`Contract sirf Rs ${contractValue} ka hai`);
+    if (amountPaid > contractValue + 0.01) throw new BadRequestException(apiMessage('Contract sirf Rs {{contractValue}} ka hai', { contractValue }));
     if (!dto.customerId && !blank(dto.customerName)) throw new BadRequestException('Customer ka naam likhein');
     if (!blank(dto.serviceAddress)) throw new BadRequestException('Service ka address likhein');
     const startDate = startOfDayTz(dto.startDate ? new Date(dto.startDate) : new Date());
@@ -135,7 +136,7 @@ export class AmcService implements OnModuleInit {
   async scheduleVisit(user: AuthenticatedUser, amcId: string, dto: ScheduleVisitDto) {
     const amc = await this.find(user, amcId);
     if (amc.status !== 'ACTIVE') throw new BadRequestException('Contract chaalu nahi');
-    if (amc.visits.length >= amc.numberOfVisits) throw new BadRequestException(`Contract me sirf ${amc.numberOfVisits} visits hain`);
+    if (amc.visits.length >= amc.numberOfVisits) throw new BadRequestException(apiMessage('Contract me sirf {{numberOfVisits}} visits hain', { numberOfVisits: amc.numberOfVisits }));
     if (dto.technicianId && !(await this.prisma.staff.findFirst({ where: { id: dto.technicianId, tenantId: user.tenantId }, select: { id: true } }))) {
       throw new NotFoundException('Technician nahi mila');
     }
@@ -188,7 +189,7 @@ export class AmcService implements OnModuleInit {
     const a = await this.getOne(user, id);
     const value = r2(amount);
     if (!a.sale || a.sale.status === 'VOIDED') throw new BadRequestException('Is contract ka koi bill nahi');
-    if (value > a.due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${a.due} hai`);
+    if (value > a.due + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{due}} hai', { due: a.due }));
     if (!a.customerId) throw new BadRequestException('Contract par customer nahi');
     await this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, null);

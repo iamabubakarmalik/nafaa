@@ -23,7 +23,7 @@ import { RegisterDto } from './dto/register.dto';
 import { OtpPurpose } from './dto/send-otp.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { DEFAULT_ROLE_PERMISSIONS } from '../../common/constants/permissions.constants';
-import { apiMessage } from '../../common/i18n/api-message';
+import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_APP_LANGUAGE, isAppLanguage } from '../../common/i18n/app-language';
 
 function makeReferralCode(seed: string): string {
@@ -155,8 +155,7 @@ export class AuthService {
           data: {
             tenantId: referrer.id,
             type: 'REFERRAL_SIGNUP',
-            title: 'New Referral Signup! 🎉',
-            message: `${dto.shopName} ne aap ke code se signup kiya.`,
+            ...notificationText('New Referral Signup! 🎉', apiMessage('{{shopName}} ne aap ke code se signup kiya.', { shopName: dto.shopName })),
             link: '/referrals',
           },
         });

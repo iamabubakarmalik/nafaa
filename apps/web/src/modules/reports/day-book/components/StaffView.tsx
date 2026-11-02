@@ -12,8 +12,9 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { DayBook } from '../api';
 import { clock, diffLabel, type Money } from '../print';
 import { Empty, Panel, Tag, TableWrap, td, tdR, th, thR } from './parts';
+import { t } from '@core/i18n';
 
-const ROLE: Record<string, string> = { OWNER: 'Maalik', MANAGER: 'Manager', CASHIER: 'Cashier', STAFF: 'Staff', SUPER_ADMIN: 'Admin' };
+const ROLE: Record<string, string> = { OWNER: t('Maalik'), MANAGER: t('Manager'), CASHIER: t('Cashier'), STAFF: t('Staff'), SUPER_ADMIN: t('Admin') };
 
 export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: string; onStaff: (id: string, name: string) => void }) {
   const theme = useChartTheme();
@@ -32,14 +33,14 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
   return (
     <div className="space-y-4">
       {d.staff.length > 1 && (
-        <Panel icon={UserRound} title="Sale ka hissa" hint="Har bande ki sale (void ke bagair)">
+        <Panel icon={UserRound} title={t('Sale ka hissa')} hint={t('Har bande ki sale (void ke bagair)')}>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.staff.map((s) => ({ name: s.name, total: s.total }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
                 <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} interval={0} tickFormatter={(v: string) => (v.length > 10 ? `${v.slice(0, 9)}…` : v)} />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), 'Sale']} />
+                <Tooltip {...theme.tooltip} formatter={(v) => [m.sales(Number(v)), t('Sale')]} />
                 <Bar dataKey="total" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
               </BarChart>
             </ResponsiveContainer>
@@ -47,13 +48,13 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
         </Panel>
       )}
 
-      <Panel icon={UserRound} title="Staff war sale" hint="Bill us ke naam jis ne becha; khali ho to jis ne counter par banaya. Row par dabayein: us ke bill." flush>
+      <Panel icon={UserRound} title={t('Staff war sale')} hint={t('Bill us ke naam jis ne becha; khali ho to jis ne counter par banaya. Row par dabayein: us ke bill.')} flush>
         <div className="px-4 pb-4 sm:px-5">
-          {!staff.length ? <Empty icon={UserRound} text={q ? 'Koi naam nahi mila' : 'Is din koi bill nahi bana'} /> : (
+          {!staff.length ? <Empty icon={UserRound} text={q ? t('Koi naam nahi mila') : t('Is din koi bill nahi bana')} /> : (
             <TableWrap minWidth="46rem">
               <thead><tr>
-                <th className={th}>Naam</th><th className={thR}>Bill</th><th className={thR}>Sale</th><th className={thR}>Hissa</th><th className={thR}>Ausat bill</th>
-                <th className={thR}>Discount</th><th className={thR}>Udhaar</th>{!m.costHidden && <th className={thR}>Profit</th>}<th className={thR}>Void</th><th className={thR}>Return</th>
+                <th className={th}>{t('Naam')}</th><th className={thR}>{t('Bill')}</th><th className={thR}>{t('Sale')}</th><th className={thR}>{t('Hissa')}</th><th className={thR}>{t('Ausat bill')}</th>
+                <th className={thR}>{t('Discount')}</th><th className={thR}>{t('Udhaar')}</th>{!m.costHidden && <th className={thR}>{t('Profit')}</th>}<th className={thR}>{t('Void')}</th><th className={thR}>{t('Return')}</th>
               </tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {staff.map((s) => (
@@ -76,19 +77,19 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
         </div>
       </Panel>
 
-      <Panel icon={LockKeyhole} title="Counter (cashier) war" hint="Kis ne register chalaya aur ginti me kitna farq aaya. Farq = gina hua − hona chahiye.">
-        {!counters.size ? <Empty icon={LockKeyhole} text="Is din koi register nahi chala" /> : (
+      <Panel icon={LockKeyhole} title={t('Counter (cashier) war')} hint={t('Kis ne register chalaya aur ginti me kitna farq aaya. Farq = gina hua − hona chahiye.')}>
+        {!counters.size ? <Empty icon={LockKeyhole} text={t('Is din koi register nahi chala')} /> : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[...counters.values()].map((c) => (
               <div key={c.name} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate text-[0.875rem] font-semibold text-slate-900">{c.name}</span>
-                  {c.open ? <Tag tone="amber">{c.open} khula</Tag> : <Tag tone="green">Band</Tag>}
+                  {c.open ? <Tag tone="amber">{t('{{open}} khula', { open: c.open })}</Tag> : <Tag tone="green">{t('Band')}</Tag>}
                 </div>
-                <p className="mt-1 text-[0.75rem] text-slate-500">{c.shifts} shift · hona chahiye {m.sales(c.expected)}</p>
+                <p className="mt-1 text-[0.75rem] text-slate-500">{t('{{shifts}} shift · hona chahiye {{expected}}', { shifts: c.shifts, expected: m.sales(c.expected) })}</p>
                 {c.closed > 0 && (
                   <p className={cn('mt-1 text-[0.8125rem] font-semibold tabular-nums', c.difference === 0 ? 'text-success-700' : c.difference < 0 ? 'text-rose-700' : 'text-amber-700')}>
-                    Farq: {m.sales(c.difference)} · {diffLabel(c.difference)}
+                    {t('Farq: {{difference}} · {{difference2}}', { difference: m.sales(c.difference), difference2: diffLabel(c.difference) })}
                   </p>
                 )}
               </div>
@@ -99,7 +100,7 @@ export function StaffView({ d, m, q, onStaff }: { d: DayBook; m: Money; q: strin
           <ul className="mt-3 divide-y divide-slate-100 text-[0.75rem] text-slate-500">
             {registers.map((r) => (
               <li key={r.id} className="flex flex-wrap justify-between gap-2 py-1.5">
-                <span>{r.number} · khola {r.openedBy} {clock(r.openedAt)}{r.closedBy ? ` · band ${r.closedBy} ${clock(r.closedAt)}` : ''}</span>
+                <span>{t('{{number}} · khola {{openedBy}} {{openedAt}}{{value}}', { number: r.number, openedBy: r.openedBy, openedAt: clock(r.openedAt), value: r.closedBy ? t(' · band {{closedBy}} {{closedAt}}', { closedBy: r.closedBy, closedAt: clock(r.closedAt) }) : '' })}</span>
                 <span className="tabular-nums">{r.difference == null ? 'khula' : m.sales(r.difference)}</span>
               </li>
             ))}

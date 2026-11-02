@@ -10,6 +10,7 @@ import { Scissors } from 'lucide-react';
 import { useShopParam } from '@core/stores/auth.store';
 import { carpetRollsApi } from '../api/carpet-rolls.api';
 import { PIECES_KEY, ROLLS_KEY, SUMMARY_KEY } from '../lib/meta';
+import { t } from '@core/i18n';
 
 export function useUnsettledBills() {
   const shopId = useShopParam();
@@ -41,14 +42,14 @@ export function PendingCuts() {
     const failed = await settleAll(data.map((b) => b.saleId));
     setBusy(false);
     for (const key of ['carpet-unsettled', ROLLS_KEY, PIECES_KEY, SUMMARY_KEY, 'carpet-product-summary-pos']) void qc.invalidateQueries({ queryKey: [key] });
-    if (failed) toast.error(`${failed} line stock se nahi kati — Carpet Rolls page par wajah dekhein`);
-    else toast.success('Sab bills ka stock kat gaya');
+    if (failed) toast.error(t('{{failed}} line stock se nahi kati — Carpet Rolls page par wajah dekhein', { failed }));
+    else toast.success(t('Sab bills ka stock kat gaya'));
   };
   return (
     <div className="mt-2 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
       <Scissors className="h-3.5 w-3.5 shrink-0" />
-      <span className="min-w-0 flex-1">{data.length} bill ka carpet abhi stock se nahi kata</span>
-      <button type="button" disabled={busy} onClick={() => void run()} className="shrink-0 rounded-lg bg-amber-600 px-2 py-1 font-semibold text-white disabled:opacity-50">{busy ? 'Kat raha…' : 'Ab kaatein'}</button>
+      <span className="min-w-0 flex-1">{t('{{count}} bill ka carpet abhi stock se nahi kata', { count: data.length })}</span>
+      <button type="button" disabled={busy} onClick={() => void run()} className="shrink-0 rounded-lg bg-amber-600 px-2 py-1 font-semibold text-white disabled:opacity-50">{busy ? t('Kat raha…') : t('Ab kaatein')}</button>
     </div>
   );
 }

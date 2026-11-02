@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { startOfBusinessMonthTz, businessDayKey } from '../../common/helpers/business-time.helper';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class FeatureGatingService {
@@ -112,7 +113,7 @@ export class FeatureGatingService {
 
     if (map[feature] === false) {
       throw new ForbiddenException(
-        `Aap ka current plan (${plan.name}) is feature ko allow nahi karta. Upgrade karein.`,
+        apiMessage('Aap ka current plan ({{planName}}) is feature ko allow nahi karta. Upgrade karein.', { planName: plan.name }),
       );
     }
 

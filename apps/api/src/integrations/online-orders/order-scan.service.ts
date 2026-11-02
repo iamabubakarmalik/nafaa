@@ -11,6 +11,7 @@ import { orderCosts } from './order-costs';
 import { courierName } from './couriers';
 import { cnKey } from './cod-reconcile';
 import { checkPack } from './order-scan';
+import { apiMessage, apiText } from '../../common/i18n/api-message';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const PACKABLE = ['CONFIRMED', 'PREPARING', 'READY'];
@@ -63,7 +64,7 @@ export class OrderScanService {
       take: 3,
     });
     const order = found.find((o) => !(o.metadata as any)?.test) ?? found[0];
-    if (!order) throw new NotFoundException(`"${term}" ka koi order nahi mila`);
+    if (!order) throw new NotFoundException(apiMessage('"{{term}}" ka koi order nahi mila', { term }));
     return this.view(order);
   }
 
@@ -87,14 +88,14 @@ export class OrderScanService {
       };
     });
     const number = String(order.externalOrderNumber ?? order.externalOrderId).replace(/^#+/, '');
-    const packProblem = !order.nafaaSaleId ? 'Order abhi accept nahi hua — pehle accept karein (bill banega)'
-      : CLOSED.includes(order.orderStatus) ? 'Ye order band hai (cancel ya wapas)'
-        : !PACKABLE.includes(order.orderStatus) ? 'Ye order courier ko ja chuka'
-          : lines.some((l) => !l.codes.length) ? 'Kuch items ka barcode/SKU nahi — un ko haath se gin kar tick karein' : null;
-    const returnProblem = order.orderStatus === 'RETURNED' && meta.rtoReceived ? 'Ye parcel pehle hi wapas receive ho chuka'
-      : !order.dispatchedAt ? 'Ye order kabhi bheja hi nahi gaya — wapas nahi aa sakta'
-        : order.orderStatus === 'CANCELLED' || order.orderStatus === 'REJECTED' ? 'Ye order cancel hai'
-          : order.paymentStatus === 'PAID' && order.codSettledAt ? 'Is order ka paisa settle ho chuka — Returns se return karein'
+    const packProblem = !order.nafaaSaleId ? apiText('Order abhi accept nahi hua — pehle accept karein (bill banega)')
+      : CLOSED.includes(order.orderStatus) ? apiText('Ye order band hai (cancel ya wapas)')
+        : !PACKABLE.includes(order.orderStatus) ? apiText('Ye order courier ko ja chuka')
+          : lines.some((l) => !l.codes.length) ? apiText('Kuch items ka barcode/SKU nahi — un ko haath se gin kar tick karein') : null;
+    const returnProblem = order.orderStatus === 'RETURNED' && meta.rtoReceived ? apiText('Ye parcel pehle hi wapas receive ho chuka')
+      : !order.dispatchedAt ? apiText('Ye order kabhi bheja hi nahi gaya — wapas nahi aa sakta')
+        : order.orderStatus === 'CANCELLED' || order.orderStatus === 'REJECTED' ? apiText('Ye order cancel hai')
+          : order.paymentStatus === 'PAID' && order.codSettledAt ? apiText('Is order ka paisa settle ho chuka — Returns se return karein')
             : null;
     return {
       id: order.id, number, orderStatus: order.orderStatus, paymentStatus: order.paymentStatus,
@@ -117,7 +118,7 @@ export class OrderScanService {
     const v = await this.view(order);
     if (!v.canPack) throw new BadRequestException(v.packProblem ?? 'Ye order pack nahi ho sakta');
     const check = checkPack(v.lines, body?.counts ?? {}, body?.manual ?? []);
-    if (!check.ok) throw new ConflictException(check.message);
+    if (!check.ok) throw new ConflictException({ message: check.message, messageKey: check.messageKey, params: check.params });
     if (order.orderStatus !== 'READY') await this.orders.updateStatus(user, scope, id, { status: 'READY' });
     const fresh = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id }, select: { metadata: true } });
     await this.prisma.channelOrder.update({
@@ -140,7 +141,7 @@ export class OrderScanService {
       .map(([k, q]) => ({ line: v.lines[Number(k)], qty: Math.floor(Number(q)) }))
       .filter((d) => d.line && d.qty > 0);
     for (const d of damaged) {
-      if (d.qty > d.line.quantity) throw new BadRequestException(`${d.line.name}: ${d.line.quantity} se zyada kharab nahi ho sakte`);
+      if (d.qty > d.line.quantity) throw new BadRequestException(apiMessage('{{lineName}}: {{quantity}} se zyada kharab nahi ho sakte', { lineName: d.line.name, quantity: d.line.quantity }));
     }
     if (damaged.length && !hasPermission(user.role, user.permissions, PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE)) {
       throw new ForbiddenException('Kharab maal likhne ke liye stock adjustment ki ijazat chahiye — sab wapas shelf par rakhein ya malik se kahein');

@@ -13,18 +13,19 @@ import type { ProductsPageConfig } from '@modules/inventory/products/list/types'
 import { KaratPill } from '../components/ui';
 import { useJewelryFacts } from '../hooks/useJewelryFacts';
 import { categoryLabel, grams, purityLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 function HeroLinks() {
   return (
     <>
-      <Link to="/jewelry/metal-rates" className={heroButton}><TrendingUp className="h-4 w-4" /><span className="hidden sm:inline">Aaj ka rate</span></Link>
-      <Link to="/jewelry/metal-stock" className={heroButton}><Coins className="h-4 w-4" /><span className="hidden sm:inline">Metal stock</span></Link>
+      <Link to="/jewelry/metal-rates" className={heroButton}><TrendingUp className="h-4 w-4" /><span className="hidden sm:inline">{t('Aaj ka rate')}</span></Link>
+      <Link to="/jewelry/metal-stock" className={heroButton}><Coins className="h-4 w-4" /><span className="hidden sm:inline">{t('Metal stock')}</span></Link>
     </>
   );
 }
 
 const base: Omit<ProductsPageConfig, 'extras' | 'columns' | 'Banners'> = {
-  label: 'Jewelry',
+  label: t('Jewelry'),
   noun: 'zewar',
   paths: {
     detail: (id) => `/jewelry-items/${id}`,
@@ -35,9 +36,9 @@ const base: Omit<ProductsPageConfig, 'extras' | 'columns' | 'Banners'> = {
   filters: ['tags'],
   stockChips: () => [1, 2, 5, 10],
   guide: [
-    { icon: Scale, color: '#d97706', title: 'Wazan aur karat', text: 'Har zewar ka asal (net) wazan aur karat likhein. Card par aaj ke rate se qeemat dikhti hai.' },
-    { icon: TrendingUp, color: '#16a34a', title: 'Aaj ka rate', text: 'Subah "Aaj ka rate" me 24K likhein — baqi karat khud ban jate hain. POS par qeemat usi se lagti hai.' },
-    { icon: Gem, color: '#7c3aed', title: 'Banwai aur nag', text: 'Banwai (per gram ya fixed), kaat/wastage aur nag ki qeemat zewar me likhein — bill par alag alag chhapti hai.' },
+    { icon: Scale, color: '#d97706', title: t('Wazan aur karat'), text: t('Har zewar ka asal (net) wazan aur karat likhein. Card par aaj ke rate se qeemat dikhti hai.') },
+    { icon: TrendingUp, color: '#16a34a', title: t('Aaj ka rate'), text: t('Subah "Aaj ka rate" me 24K likhein — baqi karat khud ban jate hain. POS par qeemat usi se lagti hai.') },
+    { icon: Gem, color: '#7c3aed', title: t('Banwai aur nag'), text: t('Banwai (per gram ya fixed), kaat/wastage aur nag ki qeemat zewar me likhein — bill par alag alag chhapti hai.') },
   ],
 };
 
@@ -51,25 +52,25 @@ export default function JewelryProductsPage() {
       Banners: () => (missing.size ? (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200/70">
           <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-amber-900">
-            <TrendingUp className="h-4 w-4 text-amber-600" />{[...missing].join(', ')} ka aaj ka rate set nahi — in zewar ki qeemat POS par khud likhni paregi
+            <TrendingUp className="h-4 w-4 text-amber-600" />{t('{{value}} ka aaj ka rate set nahi — in zewar ki qeemat POS par khud likhni paregi', { value: [...missing].join(', ') })}
           </span>
-          <Link to="/jewelry/metal-rates" className="ml-auto text-[0.75rem] font-semibold text-amber-900 hover:underline">Rate likhein →</Link>
+          <Link to="/jewelry/metal-rates" className="ms-auto text-[0.75rem] font-semibold text-amber-900 hover:underline">{t('Rate likhein →')}</Link>
         </div>
       ) : null),
       extras: (item, { money }) => {
         const f = byProduct.get(item.id);
         if (!f) return {};
         return {
-          line: [categoryLabel(f.category), grams(f.netWeight), f.price ? `Aaj ${money(f.price.total)}` : null].filter(Boolean).join(' · '),
+          line: [categoryLabel(f.category), grams(f.netWeight), f.price ? t('Aaj {{total}}', { total: money(f.price.total) }) : null].filter(Boolean).join(' · '),
           badges: <KaratPill purity={f.purity} className="bg-white/95" />,
-          chips: f.hallmarkNumber ? <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-emerald-700">Hallmark</span> : undefined,
+          chips: f.hallmarkNumber ? <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-emerald-700">{t('Hallmark')}</span> : undefined,
         };
       },
       columns: [
-        { id: 'karat', label: 'Karat', cell: (i) => { const f = byProduct.get(i.id); return f ? <KaratPill purity={f.purity} /> : <span className="text-slate-400">—</span>; } },
-        { id: 'weight', label: 'Wazan', align: 'right', cell: (i) => { const f = byProduct.get(i.id); return f ? <span className="tabular-nums">{grams(f.netWeight)}</span> : <span className="text-slate-400">—</span>; } },
+        { id: 'karat', label: t('Karat'), cell: (i) => { const f = byProduct.get(i.id); return f ? <KaratPill purity={f.purity} /> : <span className="text-slate-400">—</span>; } },
+        { id: 'weight', label: t('Wazan'), align: 'right', cell: (i) => { const f = byProduct.get(i.id); return f ? <span className="tabular-nums">{grams(f.netWeight)}</span> : <span className="text-slate-400">—</span>; } },
         {
-          id: 'today', label: 'Aaj ki qeemat', align: 'right', cell: (i) => {
+          id: 'today', label: t('Aaj ki qeemat'), align: 'right', cell: (i) => {
             const f = byProduct.get(i.id);
             return f?.price ? <span className="font-semibold tabular-nums">Rs {Math.round(f.price.total).toLocaleString('en-PK')}</span> : <span className="text-slate-400">—</span>;
           },

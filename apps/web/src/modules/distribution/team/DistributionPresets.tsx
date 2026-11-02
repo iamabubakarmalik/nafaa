@@ -13,6 +13,7 @@ import { BOOKER_REQUIRED_PERMISSIONS, hasAnyPermission, PERMISSIONS } from '@cor
 import { cn } from '@core/lib/cn';
 import { DIST_KEY, distSetupApi, type Preset } from '../api/distribution.api';
 import { useDistributionEnabled } from '../hooks/useDistribution';
+import { t } from '@core/i18n';
 
 const ICON: Record<Preset['key'], typeof Truck> = { ORDER_BOOKER: ClipboardList, DELIVERY: Truck, VAN_SALESMAN: Truck, DISTRIBUTION_MANAGER: UserCog };
 
@@ -56,11 +57,11 @@ export function BookerGapWarning({ value, readOnly, onFix, label }: { value: str
     <div className="flex flex-wrap items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
       <div className="min-w-0 flex-1">
-        <p className="font-semibold">Booker app theek se nahi chalegi</p>
-        <p className="text-[0.75rem]">Order book karne ki permission hai magar yeh nahi: {gap.map(label).join(', ')}. In ke baghair booker ko customers ya maal nazar nahi aayega.</p>
+        <p className="font-semibold">{t('Booker app theek se nahi chalegi')}</p>
+        <p className="text-[0.75rem]">{t('Order book karne ki permission hai magar yeh nahi: {{value}}. In ke baghair booker ko customers ya maal nazar nahi aayega.', { value: gap.map(label).join(', ') })}</p>
       </div>
       {!readOnly && (
-        <button type="button" onClick={() => onFix(gap)} className="h-8 rounded-lg bg-amber-600 px-3 text-[0.75rem] font-semibold text-white hover:bg-amber-700">Yeh bhi de dein</button>
+        <button type="button" onClick={() => onFix(gap)} className="h-8 rounded-lg bg-amber-600 px-3 text-[0.75rem] font-semibold text-white hover:bg-amber-700">{t('Yeh bhi de dein')}</button>
       )}
     </div>
   );

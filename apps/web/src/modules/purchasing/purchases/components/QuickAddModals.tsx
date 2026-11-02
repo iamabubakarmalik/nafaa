@@ -14,6 +14,7 @@ import { Alert, Button, IconButton, Input, Modal, Select } from '@/design-system
 import { suppliersApi } from '../../suppliers/api/suppliers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { msg, t, Trans } from '@core/i18n';
 
 const UNITS = ['pcs', 'kg', 'gram', 'litre', 'ml', 'meter', 'foot', 'box', 'pack', 'dozen', 'set', 'unit'];
 
@@ -49,19 +50,19 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
         const { supplierLedgerApi } = await import('../../suppliers/api/supplier-ledger.api');
         await supplierLedgerApi.setOpeningBalance(s.id, {
           amount: open,
-          note: 'Purana hisab — purchase ke waqt darj kiya',
+          note: msg('Purana hisab — purchase ke waqt darj kiya'),
         });
       }
       return s;
     },
     onSuccess: (s: any) => {
-      toast.success(`"${s.name}" ban gaya ✓`);
+      toast.success(t('"{{name}}" ban gaya ✓', { name: s.name }));
       qc.invalidateQueries({ queryKey: ['suppliers'] });
       qc.invalidateQueries({ queryKey: ['suppliers-summary'] });
       qc.invalidateQueries({ queryKey: ['supplier-ledger-summary'] });
       onCreated(s);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Supplier nahi bana'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Supplier nahi bana')),
   });
 
   const ok = !!name.trim();
@@ -70,38 +71,38 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
     <Modal
       open
       size="md"
-      title="Naya Supplier"
-      description="Sirf naam zaroori hai — baqi details baad me"
+      title={t('Naya Supplier')}
+      description={t('Sirf naam zaroori hai — baqi details baad me')}
       onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{t('Cancel')}</Button>
           <Button onClick={() => mut.mutate()} disabled={!ok} loading={mut.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
-            Banao aur chunein
+            {t('Banao aur chunein')}
           </Button>
         </>
       }
     >
       <div className="space-y-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !mut.isPending) { e.preventDefault(); mut.mutate(); } }}>
-        <Input ref={nameRef} data-autofocus label="Supplier ka naam" required size="lg" className="font-semibold" maxLength={120}
-          placeholder="Akbari Mandi Wholesale" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input ref={nameRef} data-autofocus label={t('Supplier ka naam')} required size="lg" className="font-semibold" maxLength={120}
+          placeholder={t('Akbari Mandi Wholesale')} value={name} onChange={(e) => setName(e.target.value)} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Phone" hint="WhatsApp ke liye" className="font-mono" inputMode="tel"
+          <Input label={t('Phone')} hint={t('WhatsApp ke liye')} className="font-mono" inputMode="tel"
             placeholder="0300-1234567" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Input label="Banda (optional)" placeholder="Asif sb"
+          <Input label={t('Banda (optional)')} placeholder={t('Asif sb')}
             value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} />
         </div>
-        <Input label="Sheher (optional)" placeholder="Lahore" value={city} onChange={(e) => setCity(e.target.value)} />
+        <Input label={t('Sheher (optional)')} placeholder={t('Lahore')} value={city} onChange={(e) => setCity(e.target.value)} />
 
         <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
-          <Input type="number" min={0} label="Purana hisab — pehle se kitna dena tha" className="tabular-nums"
+          <Input type="number" min={0} label={t('Purana hisab — pehle se kitna dena tha')} className="tabular-nums"
             hint={Number(opening) > 0
-              ? <strong className="text-slate-700">Khata {formatPKR(Number(opening))} se shuru hoga</strong>
-              : 'Is supplier ka purana baqi hai to abhi daal dein — baad me yaad nahi rehta.'}
+              ? <strong className="text-slate-700">{t('Khata {{formatPKR}} se shuru hoga', { formatPKR: formatPKR(Number(opening)) })}</strong>
+              : t('Is supplier ka purana baqi hai to abhi daal dein — baad me yaad nahi rehta.')}
             placeholder="0" value={opening} onChange={(e) => setOpening(e.target.value)} />
         </div>
 
-        <p className="text-center text-[0.75rem] text-slate-500">Bank details, NTN, payment terms waghera baad me poori form se</p>
+        <p className="text-center text-[0.75rem] text-slate-500">{t('Bank details, NTN, payment terms waghera baad me poori form se')}</p>
       </div>
     </Modal>
   );
@@ -144,7 +145,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
   };
 
   const markup = (pct: number) => {
-    if (!cost) return toast.error('Pehle cost likhein');
+    if (!cost) return toast.error(t('Pehle cost likhein'));
     setPrice(String(Math.round(cost * (1 + pct / 100))));
   };
 
@@ -161,12 +162,12 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
       ...(lowStockAlert ? { lowStockAlert: Number(lowStockAlert) || 0 } : {}),
     } as any),
     onSuccess: (p: any) => {
-      toast.success(`"${p.name}" ban gaya ✓ — ab bill me daal dein`);
+      toast.success(t('"{{name}}" ban gaya ✓ — ab bill me daal dein', { name: p.name }));
       qc.invalidateQueries({ queryKey: ['products'] });
       qc.invalidateQueries({ queryKey: ['purchase-products'] });
       onCreated(p);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Product nahi bana'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Product nahi bana')),
   });
 
   const ok = !!name.trim() && cost >= 0;
@@ -175,44 +176,44 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
     <Modal
       open
       size="md"
-      title="Naya Product"
-      description="Bunyadi details — baqi baad me poori wizard se"
+      title={t('Naya Product')}
+      description={t('Bunyadi details — baqi baad me poori wizard se')}
       onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{t('Cancel')}</Button>
           <Button onClick={() => mut.mutate()} disabled={!ok} loading={mut.isPending} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
-            Banao aur bill me daalo
+            {t('Banao aur bill me daalo')}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
-        <Input ref={nameRef} data-autofocus label="Product ka naam" required size="lg" className="font-semibold" maxLength={160}
-          placeholder="Dalda Cooking Oil 5L" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input ref={nameRef} data-autofocus label={t('Product ka naam')} required size="lg" className="font-semibold" maxLength={160}
+          placeholder={t('Dalda Cooking Oil 5L')} value={name} onChange={(e) => setName(e.target.value)} />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex items-end gap-1.5">
-            <Input label="SKU (optional)" wrapperClassName="min-w-0 flex-1" className="font-mono" placeholder="DAL-1234"
+            <Input label={t('SKU (optional)')} wrapperClassName="min-w-0 flex-1" className="font-mono" placeholder={t('DAL-1234')}
               value={sku} onChange={(e) => setSku(e.target.value)} />
-            <IconButton label="Khud bana dein" variant="secondary" onClick={autoSku}><Sparkles className="h-4 w-4" /></IconButton>
+            <IconButton label={t('Khud bana dein')} variant="secondary" onClick={autoSku}><Sparkles className="h-4 w-4" /></IconButton>
           </div>
-          <Input label="Barcode" hint="Dabbay par jo likha hai" className="font-mono" placeholder="8964000..."
+          <Input label={t('Barcode')} hint={t('Dabbay par jo likha hai')} className="font-mono" placeholder="8964000..."
             value={barcode} onChange={(e) => setBarcode(e.target.value)} />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Select label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} options={UNITS.map((u) => ({ value: u, label: u }))} />
-          <Select label="Category (optional)" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">Koi nahi</option>
+          <Select label={t('Unit')} value={unit} onChange={(e) => setUnit(e.target.value)} options={UNITS.map((u) => ({ value: u, label: u }))} />
+          <Select label={t('Category (optional)')} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <option value="">{t('Koi nahi')}</option>
             {(cats as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </Select>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input type="number" min={0} label="Cost" required hint="Supplier se kitne ka" size="lg" className="font-semibold tabular-nums"
+          <Input type="number" min={0} label={t('Cost')} required hint={t('Supplier se kitne ka')} size="lg" className="font-semibold tabular-nums"
             placeholder="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
-          <Input type="number" min={0} label="Bechne ka rate" hint={loss ? undefined : 'Khali = cost ke barabar'} error={loss ? 'Cost se kam hai' : undefined}
+          <Input type="number" min={0} label={t('Bechne ka rate')} hint={loss ? undefined : t('Khali = cost ke barabar')} error={loss ? t('Cost se kam hai') : undefined}
             size="lg" className="font-semibold tabular-nums" placeholder={costPrice || '0'} value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
 
@@ -227,17 +228,17 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
         {sale > 0 && cost > 0 && (
           <div className={cn('flex items-center justify-between rounded-lg px-3 py-2.5 text-[0.8125rem] font-semibold ring-1 ring-inset',
             loss ? 'bg-rose-50 text-rose-700 ring-rose-200' : 'bg-success-50 text-success-700 ring-success-200')}>
-            <span>{loss ? 'Nuqsan par bech rahe hain' : 'Har unit par profit'}</span>
+            <span>{loss ? t('Nuqsan par bech rahe hain') : t('Har unit par profit')}</span>
             <span className="tabular-nums">{formatPKR(sale - cost)} · {margin.toFixed(0)}%</span>
           </div>
         )}
 
-        <Input type="number" min={0} label="Alert level" hint="Stock is se neeche jaye to alert" className="tabular-nums"
+        <Input type="number" min={0} label={t('Alert level')} hint={t('Stock is se neeche jaye to alert')} className="tabular-nums"
           placeholder="0" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} />
 
         <Alert tone="info">
-          Stock <strong>0</strong> se shuru hoga — is bill se khud barh jayega.
-          {wizardPath && <> Poori details (warranty, specs waghera) baad me <strong>poori form</strong> se bhar lein.</>}
+          <Trans text="Stock {{zero}} se shuru hoga — is bill se khud barh jayega." values={{ zero: <strong>0</strong> }} />
+          {wizardPath && <> <Trans text="Poori details (warranty, specs waghera) baad me {{form}} se bhar lein." values={{ form: <strong>{t('poori form')}</strong> }} /></>}
         </Alert>
       </div>
     </Modal>

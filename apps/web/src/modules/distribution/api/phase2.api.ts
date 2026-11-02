@@ -6,6 +6,7 @@
 
 import { apiClient } from '@core/api/client';
 import type { CustomerCard, ID, OrderDetail, OrderLine, PrintBusiness, PrintInvoice } from './distribution.api';
+import { t } from '@core/i18n';
 
 const unwrap = <T,>(r: any): T => (r?.data?.data !== undefined ? r.data.data : r?.data !== undefined ? r.data : r) as T;
 
@@ -223,6 +224,6 @@ export const phase2Api = {
   printTaxInvoices: (ids: ID[]) => apiClient.get('/distribution/orders/print', { params: { ids: ids.join(','), tax: 1 } }).then(unwrap<TaxInvoicePrint>),
 };
 
-export const RETURN_CONDITION_LABEL: Record<ReturnCondition, string> = { GOOD: 'Theek (shelf par)', DAMAGED: 'Kharab', EXPIRED: 'Expiry' };
-export const CHEQUE_STATUS_LABEL: Record<ChequeStatus, string> = { RECEIVED: 'Mila', DEPOSITED: 'Bank me jama', CLEARED: 'Clear', BOUNCED: 'Bounce', CANCELLED: 'Cancel' };
-export const CLAIM_STATUS_LABEL: Record<ClaimStatus, string> = { DRAFT: 'Draft', SUBMITTED: 'Company ko diya', RECEIVED: 'Paisa mil gaya', CANCELLED: 'Cancel' };
+export const RETURN_CONDITION_LABEL: Record<ReturnCondition, string> = { GOOD: t('Theek (shelf par)'), DAMAGED: t('Kharab'), EXPIRED: t('Expiry') };
+export const CHEQUE_STATUS_LABEL: Record<ChequeStatus, string> = { RECEIVED: t('Mila'), DEPOSITED: t('Bank me jama'), CLEARED: t('Clear'), BOUNCED: t('Bounce'), CANCELLED: t('Cancel') };
+export const CLAIM_STATUS_LABEL: Record<ClaimStatus, string> = { DRAFT: t('Draft'), SUBMITTED: t('Company ko diya'), RECEIVED: t('Paisa mil gaya'), CANCELLED: t('Cancel') };

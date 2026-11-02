@@ -15,6 +15,7 @@ import { ExpensesService } from '../../../modules/finance/expenses/expenses.serv
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { AddMedicalRecordDto, SellAnimalDto, UpdateAnimalStatusDto, UpsertLiveAnimalDto } from './dto/upsert-live-animal.dto';
 import { addDaysTz, cleanInput, dayEnd, dayKey, dayRange, dayStart, parseDay } from '../petshop-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -189,7 +190,7 @@ export class LiveAnimalsService {
   async reserve(user: AuthenticatedUser, id: string, customerName?: string) {
     const a = await this.prisma.petLiveAnimal.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Animal not found');
-    if (a.status !== 'AVAILABLE') throw new BadRequestException(`Animal is ${a.status}, cannot reserve`);
+    if (a.status !== 'AVAILABLE') throw new BadRequestException(apiMessage('Animal is {{aStatus}}, cannot reserve', { aStatus: a.status }));
 
     return this.prisma.petLiveAnimal.update({
       where: { id },

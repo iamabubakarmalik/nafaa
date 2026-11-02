@@ -12,6 +12,7 @@ import { useFloristOps } from './useFloristOps';
 import {
   FloristDeliveries, FloristSubscriptions, FloristWeddings, FloristWilting, floristKpis, useFloristAttention,
 } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/florist-products/${id}`;
 
@@ -21,41 +22,41 @@ function useFloristActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
-    { to: '/florist/orders', icon: Package, label: 'Orders', hint: `${activeOrders} chaalu` },
-    { to: '/florist/deliveries', icon: Truck, label: 'Delivery', hint: deliveries.pending ? `${deliveries.pending} aaj` : 'Aaj ki list' },
-    { to: '/florist/weddings', icon: Heart, label: 'Shadiyan', hint: `${weddings.count} aane wali` },
-    { to: '/florist/subscriptions', icon: Repeat, label: 'Subscriptions', hint: `${subs.active} chaalu` },
-    { to: '/florist/freshness', icon: Leaf, label: 'Freshness', hint: wilting.withered.length ? `${wilting.withered.length} murjha gaye` : 'Sab theek' },
-    { to: '/florist-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
-    { to: '/florist-products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('Counter'), hint: t('Sale karein') },
+    { to: '/florist/orders', icon: Package, label: t('Orders'), hint: t('{{activeOrders}} chaalu', { activeOrders }) },
+    { to: '/florist/deliveries', icon: Truck, label: t('Delivery'), hint: deliveries.pending ? t('{{pending}} aaj', { pending: deliveries.pending }) : t('Aaj ki list') },
+    { to: '/florist/weddings', icon: Heart, label: t('Shadiyan'), hint: t('{{count}} aane wali', { count: weddings.count }) },
+    { to: '/florist/subscriptions', icon: Repeat, label: t('Subscriptions'), hint: t('{{active}} chaalu', { active: subs.active }) },
+    { to: '/florist/freshness', icon: Leaf, label: t('Freshness'), hint: wilting.withered.length ? t('{{count}} murjha gaye', { count: wilting.withered.length }) : t('Sab theek') },
+    { to: '/florist-products/new', icon: Plus, label: t('Nayi cheez'), hint: t('Maal me daalein') },
+    { to: '/florist-products', icon: Package, label: t('Maal'), hint: t('{{value}} cheezein', { value: s?.totalProducts ?? 0 }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const floristDashboard = createDashboard({
-  label: 'Florist',
+  label: t('Florist'),
   productPath,
   openFrom: 8,
-  primaryAction: { to: '/pos', label: 'Counter', icon: ShoppingCart },
+  primaryAction: { to: '/pos', label: t('Counter'), icon: ShoppingCart },
   kpis: floristKpis,
   defaultKpis: ['florist-deliveries', 'florist-weddings', 'florist-wilting', 'sales', 'profit', 'cash', 'month', 'udhaar'],
   useAttention: useFloristAttention,
   widgets: [
-    { id: 'florist-deliveries', title: 'Aaj ki delivery', description: 'Aaj pohnchane wale bouquet, waqt ke hisaab se', size: 'third', sizes: ANY_SIZE, Component: FloristDeliveries },
-    { id: 'florist-weddings', title: 'Aane wali shadiyan', description: 'Agle 30 din ki shadiyan aur baqi paisa', size: 'third', sizes: ANY_SIZE, Component: FloristWeddings },
-    { id: 'florist-wilting', title: 'Murjhane wale phool', description: '3 din me murjhane wala maal', size: 'third', sizes: ANY_SIZE, Component: FloristWilting },
+    { id: 'florist-deliveries', title: t('Aaj ki delivery'), description: t('Aaj pohnchane wale bouquet, waqt ke hisaab se'), size: 'third', sizes: ANY_SIZE, Component: FloristDeliveries },
+    { id: 'florist-weddings', title: t('Aane wali shadiyan'), description: t('Agle 30 din ki shadiyan aur baqi paisa'), size: 'third', sizes: ANY_SIZE, Component: FloristWeddings },
+    { id: 'florist-wilting', title: t('Murjhane wale phool'), description: t('3 din me murjhane wala maal'), size: 'third', sizes: ANY_SIZE, Component: FloristWilting },
   ],
   lateWidgets: [
-    { id: 'florist-subscriptions', title: 'Subscription bouquet', description: 'Is hafte dene wale pakke bouquet', size: 'third', sizes: ANY_SIZE, Component: FloristSubscriptions },
+    { id: 'florist-subscriptions', title: t('Subscription bouquet'), description: t('Is hafte dene wale pakke bouquet'), size: 'third', sizes: ANY_SIZE, Component: FloristSubscriptions },
   ],
   useQuickActions: useFloristActions,
   moneyMap: { productsPath: '/florist-products' },
   guide: [
-    { icon: Leaf, title: 'Taaza phool', text: 'Phool din ginte hain. Jo 3 din me murjhane wale hain wo upar dikhte hain — un par discount laga kar aaj hi nikal dein.' },
-    { icon: Heart, title: 'Delivery aur shadiyan', text: 'Aaj kaunse bouquet kis waqt pohnchane hain, aur agle mahine ki shadiyan kitni hain aur un ka kitna paisa baqi hai — sab ek jagah.' },
+    { icon: Leaf, title: t('Taaza phool'), text: t('Phool din ginte hain. Jo 3 din me murjhane wale hain wo upar dikhte hain — un par discount laga kar aaj hi nikal dein.') },
+    { icon: Heart, title: t('Delivery aur shadiyan'), text: t('Aaj kaunse bouquet kis waqt pohnchane hain, aur agle mahine ki shadiyan kitni hain aur un ka kitna paisa baqi hai — sab ek jagah.') },
   ],
 });

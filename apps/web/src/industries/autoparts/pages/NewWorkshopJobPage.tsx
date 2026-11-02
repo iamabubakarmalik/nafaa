@@ -34,9 +34,10 @@ import {
   JOB_KEY, JOB_TYPES, MAKES_KEY, MECHANIC_KEY, MODELS_KEY, MONEY_KEYS, PRIORITIES, VEHICLE_KEY, apiError, digits, jobTypeOf, km,
   localInput, money, plate, priorityOf, vehicleName,
 } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 const COMPLAINTS = ['Oil change', 'Tuning', 'Brake se awaz', 'AC thanda nahi', 'Start nahi hoti', 'Garam ho jati hai', 'Suspension se awaz', 'Clutch slip',
-  'Battery down', 'Lights / bijli', 'Pick nahi', 'Dhuan', 'Alignment', 'Denting painting'];
+  tr('Battery down'), tr('Lights / bijli'), tr('Pick nahi'), tr('Dhuan'), tr('Alignment'), tr('Denting painting')];
 const FUEL = ['Khali', '1/4', '1/2', '3/4', 'Full'];
 
 interface Labour { description: string; amount: string }
@@ -96,16 +97,16 @@ export default function NewWorkshopJobPage() {
   const labourTotal = f.labour.reduce((s, l) => s + n(l.amount), 0);
   const problems = useMemo(() => {
     const out: Record<string, string> = {};
-    if (!f.reg.trim()) out.reg = 'Gaari ka number likhein';
-    else if (plate(f.reg).length < 3) out.reg = 'Number poora likhein';
-    if (f.year && (n(f.year) < 1950 || n(f.year) > new Date().getFullYear() + 1)) out.year = 'Saal sahi likhein';
-    if (f.odometer && f.vehicleId && lastKm && n(f.odometer) < lastKm) out.odometer = `Pichli dafa ${km(lastKm)} tha — kam nahi ho sakta`;
-    if (f.phone && digits(f.phone).length < 10) out.phone = 'Phone number poora likhein';
-    if (!f.complaint.trim()) out.complaint = 'Kya kaam hai ya kya kharabi hai — likhein';
-    if (f.promisedAt && new Date(f.promisedAt).getTime() < Date.now() - 60_000) out.promisedAt = 'Ye waqt guzar chuka hai';
-    if (f.labour.some((l) => !l.description.trim() && n(l.amount) > 0)) out.labour = 'Mazdoori ki har line ka kaam likhein';
-    if (n(f.advance) > 0 && !f.name.trim() && !f.phone.trim()) out.advance = 'Advance ke liye customer ka naam ya phone likhein';
-    if (n(f.advance) > 0 && labourTotal > 0 && n(f.advance) > labourTotal * 5) out.advance = 'Advance bohat zyada lag raha hai — check karein';
+    if (!f.reg.trim()) out.reg = tr('Gaari ka number likhein');
+    else if (plate(f.reg).length < 3) out.reg = tr('Number poora likhein');
+    if (f.year && (n(f.year) < 1950 || n(f.year) > new Date().getFullYear() + 1)) out.year = tr('Saal sahi likhein');
+    if (f.odometer && f.vehicleId && lastKm && n(f.odometer) < lastKm) out.odometer = tr('Pichli dafa {{km}} tha — kam nahi ho sakta', { km: km(lastKm) });
+    if (f.phone && digits(f.phone).length < 10) out.phone = tr('Phone number poora likhein');
+    if (!f.complaint.trim()) out.complaint = tr('Kya kaam hai ya kya kharabi hai — likhein');
+    if (f.promisedAt && new Date(f.promisedAt).getTime() < Date.now() - 60_000) out.promisedAt = tr('Ye waqt guzar chuka hai');
+    if (f.labour.some((l) => !l.description.trim() && n(l.amount) > 0)) out.labour = tr('Mazdoori ki har line ka kaam likhein');
+    if (n(f.advance) > 0 && !f.name.trim() && !f.phone.trim()) out.advance = tr('Advance ke liye customer ka naam ya phone likhein');
+    if (n(f.advance) > 0 && labourTotal > 0 && n(f.advance) > labourTotal * 5) out.advance = tr('Advance bohat zyada lag raha hai — check karein');
     return out;
   }, [f, labourTotal, lastKm]);
   const err = (k: string) => (touched ? problems[k] : undefined);
@@ -127,11 +128,11 @@ export default function NewWorkshopJobPage() {
     },
     onSuccess: (job) => {
       [JOB_KEY, VEHICLE_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      toast.success(`${job.jobNumber} ban gaya — ${job.registrationNumber}`);
+      toast.success(tr('{{jobNumber}} ban gaya — {{registrationNumber}}', { jobNumber: job.jobNumber, registrationNumber: job.registrationNumber }));
       if (print) printJobCard(job, shopName);
       navigate(`/autoparts/jobs/${job.id}`, { replace: true });
     },
-    onError: (e) => toast.error(apiError(e, 'Job nahi bana')),
+    onError: (e) => toast.error(apiError(e, tr('Job nahi bana'))),
     onSettled: () => { lock.current = false; },
   });
 
@@ -156,35 +157,35 @@ export default function NewWorkshopJobPage() {
   return (
     <PageShell>
       <PageHero
-        title="Naya job card"
-        chip={<><Car /> Gaari receive</>}
-        meta="Gaari ka number, meter, shikayat — parts kaam shuru hone par job me jorein"
+        title={tr('Naya job card')}
+        chip={<><Car /> {' '}{tr('Gaari receive')}</>}
+        meta={tr('Gaari ka number, meter, shikayat — parts kaam shuru hone par job me jorein')}
         actions={<>
-          <button type="button" onClick={() => navigate(-1)} title="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? 'Ban raha…' : 'Job banayein'}</button>
+          <button type="button" onClick={() => navigate(-1)} title={tr('Wapas (Esc)')} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}><ClipboardList className="h-4 w-4" />{save.isPending ? tr('Ban raha…') : tr('Job banayein')}</button>
         </>}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Car}>Gaari</T>} description="Number likhte hi purani gaari mil jati hai — us ki history saath rehti hai">
+          <Card className="rounded-2xl" title={<T icon={Car}>{tr('Gaari')}</T>} description={tr('Number likhte hi purani gaari mil jati hai — us ki history saath rehti hai')}>
             <div className="space-y-3">
               <div className="relative">
-                <Input label="Gaari ka number" required value={f.reg} autoFocus leftIcon={<Search className="h-4 w-4" />} placeholder="LEA-1234 / ABC 123"
+                <Input label={tr('Gaari ka number')} required value={f.reg} autoFocus leftIcon={<Search className="h-4 w-4" />} placeholder={tr('LEA-1234 / ABC 123')}
                   onChange={(e) => { setLastKm(null); set({ reg: e.target.value.toUpperCase(), vehicleId: '' }); }} error={err('reg')}
-                  hint={f.vehicleId ? 'Purani gaari — history is job ke saath judegi' : exact ? 'Ye gaari pehle se darj hai — neeche se chunein' : 'Nayi gaari khud darj ho jayegi'} />
+                  hint={f.vehicleId ? tr('Purani gaari — history is job ke saath judegi') : exact ? tr('Ye gaari pehle se darj hai — neeche se chunein') : tr('Nayi gaari khud darj ho jayegi')} />
                 {matches.length > 0 && (
                   <ul className="absolute inset-x-0 top-[4.75rem] z-20 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
                     {matches.map((v) => (
                       <li key={v.id}>
-                        <button type="button" onClick={() => pickVehicle(v)} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-brand-50">
+                        <button type="button" onClick={() => pickVehicle(v)} className="flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-brand-50">
                           <Car className="h-4 w-4 shrink-0 text-slate-400" />
                           <span className="min-w-0 flex-1">
                             <span className="block font-semibold text-slate-900">{v.registrationNumber} <span className="font-normal text-slate-600">{vehicleName(v)}</span></span>
-                            <span className="block truncate text-[0.75rem] text-slate-500">{[v.ownerName, v.ownerPhone, v.lastServiceAt ? `${v.totalServices} dafa aayi` : null].filter(Boolean).join(' · ')}</span>
+                            <span className="block truncate text-[0.75rem] text-slate-500">{[v.ownerName, v.ownerPhone, v.lastServiceAt ? tr('{{totalServices}} dafa aayi', { totalServices: v.totalServices }) : null].filter(Boolean).join(' · ')}</span>
                           </span>
-                          {v.openJobs > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">Job khuli hai</span>}
+                          {v.openJobs > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{tr('Job khuli hai')}</span>}
                         </button>
                       </li>
                     ))}
@@ -192,38 +193,38 @@ export default function NewWorkshopJobPage() {
                 )}
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Select label="Company" value={f.makeId} disabled={!!f.vehicleId && !!f.makeName && !f.makeId}
+                <Select label={tr('Company')} value={f.makeId} disabled={!!f.vehicleId && !!f.makeName && !f.makeId}
                   onChange={(e) => set({ makeId: e.target.value, makeName: makesQ.data?.find((m) => m.id === e.target.value)?.name ?? '', modelName: '' })}
-                  placeholder={f.vehicleId && f.makeName && !f.makeId ? f.makeName : 'Chunein'} options={(makesQ.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
+                  placeholder={f.vehicleId && f.makeName && !f.makeId ? f.makeName : tr('Chunein')} options={(makesQ.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
                 <div>
-                  <Input label="Model" value={f.modelName} onChange={(e) => set({ modelName: e.target.value })} placeholder="Corolla, CD 70…" list="ap-models" />
+                  <Input label={tr('Model')} value={f.modelName} onChange={(e) => set({ modelName: e.target.value })} placeholder={tr('Corolla, CD 70…')} list="ap-models" />
                   <datalist id="ap-models">{(modelsQ.data ?? []).map((m) => <option key={m.id} value={m.name} />)}</datalist>
                 </div>
-                <Input label="Saal" inputMode="numeric" value={f.year} onChange={(e) => set({ year: digits(e.target.value).slice(0, 4) })} placeholder="2016" error={err('year')} />
+                <Input label={tr('Saal')} inputMode="numeric" value={f.year} onChange={(e) => set({ year: digits(e.target.value).slice(0, 4) })} placeholder="2016" error={err('year')} />
               </div>
-              <Input label="Meter (km)" inputMode="numeric" value={f.odometer} onChange={(e) => set({ odometer: digits(e.target.value) })} placeholder="84500"
-                error={err('odometer')} hint="Abhi meter par kitna hai — agli service ka hisaab isi se" />
+              <Input label={tr('Meter (km)')} inputMode="numeric" value={f.odometer} onChange={(e) => set({ odometer: digits(e.target.value) })} placeholder="84500"
+                error={err('odometer')} hint={tr('Abhi meter par kitna hai — agli service ka hisaab isi se')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wrench}>Kaam</T>}>
+          <Card className="rounded-2xl" title={<T icon={Wrench}>{tr('Kaam')}</T>}>
             <div className="space-y-3">
               <div>
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kya kaam hai</span>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kya kaam hai')}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {JOB_TYPES.slice(0, 10).map((t) => (
                     <button key={t} type="button" onClick={() => set({ jobType: t })} aria-pressed={f.jobType === t}
                       className={cn('h-8 rounded-full px-3 text-[0.8125rem] font-medium ring-1', f.jobType === t ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{jobTypeOf(t)}</button>
                   ))}
-                  <select aria-label="Aur kaam" value={JOB_TYPES.slice(0, 10).includes(f.jobType) ? '' : f.jobType} onChange={(e) => e.target.value && set({ jobType: e.target.value as JobType })}
+                  <select aria-label={tr('Aur kaam')} value={JOB_TYPES.slice(0, 10).includes(f.jobType) ? '' : f.jobType} onChange={(e) => e.target.value && set({ jobType: e.target.value as JobType })}
                     className="h-8 rounded-full bg-white px-3 text-[0.8125rem] ring-1 ring-slate-200">
-                    <option value="">Aur…</option>
+                    <option value="">{tr('Aur…')}</option>
                     {JOB_TYPES.slice(10).map((t) => <option key={t} value={t}>{jobTypeOf(t)}</option>)}
                   </select>
                 </div>
               </div>
-              <Textarea label="Shikayat / kya karna hai" required rows={3} value={f.complaint} onChange={(e) => set({ complaint: e.target.value })}
-                placeholder="Customer ne kya bataya" error={err('complaint')} />
+              <Textarea label={tr('Shikayat / kya karna hai')} required rows={3} value={f.complaint} onChange={(e) => set({ complaint: e.target.value })}
+                placeholder={tr('Customer ne kya bataya')} error={err('complaint')} />
               <div className="flex flex-wrap gap-1">
                 {COMPLAINTS.map((c) => (
                   <button key={c} type="button" onClick={() => set({ complaint: f.complaint.includes(c) ? f.complaint : [f.complaint.trim(), c].filter(Boolean).join(', ') })}
@@ -231,16 +232,16 @@ export default function NewWorkshopJobPage() {
                 ))}
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Select label="Mechanic" value={f.mechanicId} onChange={(e) => set({ mechanicId: e.target.value })} placeholder="Baad me"
+                <Select label={tr('Mechanic')} value={f.mechanicId} onChange={(e) => set({ mechanicId: e.target.value })} placeholder={tr('Baad me')}
                   options={(mechQ.data ?? []).map((m) => ({ value: m.id, label: `${m.staff?.fullName ?? 'Mechanic'}${m.openJobs ? ` (${m.openJobs} chal rahe)` : ''}${m.isAvailable ? '' : ' — chutti'}` }))}
-                  hint={mechQ.data && !mechQ.data.length ? 'Mechanic page par staff ko mechanic banayein' : 'Kis ke zimme hai'} />
-                <Select label="Jaldi" value={f.priority} onChange={(e) => set({ priority: e.target.value as JobPriority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
+                  hint={mechQ.data && !mechQ.data.length ? tr('Mechanic page par staff ko mechanic banayein') : tr('Kis ke zimme hai')} />
+                <Select label={tr('Jaldi')} value={f.priority} onChange={(e) => set({ priority: e.target.value as JobPriority })} options={PRIORITIES.map((p) => ({ value: p, label: priorityOf(p).label }))} />
               </div>
               <div>
-                <Input label="Gaari kab deni hai" type="datetime-local" value={f.promisedAt} onChange={(e) => set({ promisedAt: e.target.value })} error={err('promisedAt')}
-                  hint="Is waqt ke baad job “Late” me aati hai" />
+                <Input label={tr('Gaari kab deni hai')} type="datetime-local" value={f.promisedAt} onChange={(e) => set({ promisedAt: e.target.value })} error={err('promisedAt')}
+                  hint={tr('Is waqt ke baad job “Late” me aati hai')} />
                 <div className="mt-1.5 flex flex-wrap gap-1">
-                  {[['Aaj shaam', atHour(0, 18)], ['Kal dopahar', atHour(1, 13)], ['Kal shaam', atHour(1, 18)], ['Parson', atHour(2, 18)]].map(([label, d]) => (
+                  {[[tr('Aaj shaam'), atHour(0, 18)], [tr('Kal dopahar'), atHour(1, 13)], [tr('Kal shaam'), atHour(1, 18)], [tr('Parson'), atHour(2, 18)]].map(([label, d]) => (
                     <button key={label as string} type="button" onClick={() => set({ promisedAt: localInput(d as Date) })}
                       className="h-7 rounded-lg bg-slate-100 px-2 text-[0.75rem] font-medium text-slate-700 hover:bg-slate-200">{label as string}</button>
                   ))}
@@ -249,10 +250,10 @@ export default function NewWorkshopJobPage() {
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Fuel}>Gaari ki halat</T>} description="Baad ke jhagre se bachne ke liye — parchi par chhapta hai">
+          <Card className="rounded-2xl" title={<T icon={Fuel}>{tr('Gaari ki halat')}</T>} description={tr('Baad ke jhagre se bachne ke liye — parchi par chhapta hai')}>
             <div className="space-y-3">
               <div>
-                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Petrol</span>
+                <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Petrol')}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {FUEL.map((x) => (
                     <button key={x} type="button" onClick={() => set({ fuel: f.fuel === x ? '' : x })} aria-pressed={f.fuel === x}
@@ -261,72 +262,72 @@ export default function NewWorkshopJobPage() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-6">
-                <Switch checked={f.spare} onChange={(e) => set({ spare: e.target.checked })} label="Stepney saath hai" />
-                <Switch checked={f.toolkit} onChange={(e) => set({ toolkit: e.target.checked })} label="Auzaar saath hain" />
+                <Switch checked={f.spare} onChange={(e) => set({ spare: e.target.checked })} label={tr('Stepney saath hai')} />
+                <Switch checked={f.toolkit} onChange={(e) => set({ toolkit: e.target.checked })} label={tr('Auzaar saath hain')} />
               </div>
-              <Input label="Pehle se nuqsan" value={f.damages} onChange={(e) => set({ damages: e.target.value })} placeholder="Peeche bumper par scratch…" hint="Marzi hai" />
+              <Input label={tr('Pehle se nuqsan')} value={f.damages} onChange={(e) => set({ damages: e.target.value })} placeholder={tr('Peeche bumper par scratch…')} hint={tr('Marzi hai')} />
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={UserRound}>Customer</T>} description="Phone se purana customer khud mil jata hai; udhaar aur advance usi ke khata me">
+          <Card className="rounded-2xl" title={<T icon={UserRound}>{tr('Customer')}</T>} description={tr('Phone se purana customer khud mil jata hai; udhaar aur advance usi ke khata me')}>
             <div className="grid gap-3">
-              <Input label="Naam" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder="Bilal Ahmad" hint="Marzi hai — udhaar ke liye zaroori" />
-              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03001234567" error={err('phone')}
-                hint="WhatsApp par gaari tayyar hone ki khabar" />
+              <Input label={tr('Naam')} value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder={tr('Bilal Ahmad')} hint={tr('Marzi hai — udhaar ke liye zaroori')} />
+              <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="03001234567" error={err('phone')}
+                hint={tr('WhatsApp par gaari tayyar hone ki khabar')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wrench}>Mazdoori ka andaza</T>} description="Marzi hai — baad me job par bhi jor sakte hain">
+          <Card className="rounded-2xl" title={<T icon={Wrench}>{tr('Mazdoori ka andaza')}</T>} description={tr('Marzi hai — baad me job par bhi jor sakte hain')}>
             <div className="space-y-2">
               {f.labour.map((l, i) => (
                 <div key={i} className="flex gap-2">
-                  <Input aria-label="Kaam" value={l.description} placeholder="Oil change" wrapperClassName="flex-1"
+                  <Input aria-label={tr('Kaam')} value={l.description} placeholder={tr('Oil change')} wrapperClassName="flex-1"
                     onChange={(e) => set({ labour: f.labour.map((x, j) => (j === i ? { ...x, description: e.target.value } : x)) })} />
-                  <Input aria-label="Amount" inputMode="decimal" value={l.amount} placeholder="Rs" wrapperClassName="w-28" className="text-right tabular-nums"
+                  <Input aria-label={tr('Amount')} inputMode="decimal" value={l.amount} placeholder="Rs" wrapperClassName="w-28" className="text-end tabular-nums"
                     onChange={(e) => set({ labour: f.labour.map((x, j) => (j === i ? { ...x, amount: money(e.target.value) } : x)) })} />
-                  <button type="button" aria-label="Hatayein" onClick={() => set({ labour: f.labour.filter((_, j) => j !== i) })}
+                  <button type="button" aria-label={tr('Hatayein')} onClick={() => set({ labour: f.labour.filter((_, j) => j !== i) })}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
               {err('labour') && <p className="text-[0.8125rem] font-medium text-rose-600">{err('labour')}</p>}
               <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />}
-                onClick={() => set({ labour: [...f.labour, { description: f.labour.length ? '' : jobTypeOf(f.jobType), amount: '' }] })}>Mazdoori jorein</Button>
-              {labourTotal > 0 && <p className="text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">Kul {formatPKR(labourTotal)}</p>}
+                onClick={() => set({ labour: [...f.labour, { description: f.labour.length ? '' : jobTypeOf(f.jobType), amount: '' }] })}>{tr('Mazdoori jorein')}</Button>
+              {labourTotal > 0 && <p className="text-end text-[0.875rem] font-semibold tabular-nums text-slate-900">{tr('Kul {{labourTotal}}', { labourTotal: formatPKR(labourTotal) })}</p>}
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Wallet}>Advance</T>} description="Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai">
+          <Card className="rounded-2xl" title={<T icon={Wallet}>{tr('Advance')}</T>} description={tr('Abhi mila paisa customer ke khata me jama hota hai aur bill me katta hai')}>
             <div className="space-y-3">
-              <Input label="Advance (Rs)" inputMode="decimal" value={f.advance} onChange={(e) => set({ advance: money(e.target.value) })} placeholder="0"
-                error={err('advance')} className="text-right font-semibold tabular-nums" hint={n(f.advance) ? formatPKR(n(f.advance)) : 'Khali chhorein agar kuch nahi mila'} />
+              <Input label={tr('Advance (Rs)')} inputMode="decimal" value={f.advance} onChange={(e) => set({ advance: money(e.target.value) })} placeholder="0"
+                error={err('advance')} className="text-end font-semibold tabular-nums" hint={n(f.advance) ? formatPKR(n(f.advance)) : tr('Khali chhorein agar kuch nahi mila')} />
               {n(f.advance) > 0 && <PaymentMethodPicker value={f.method} onChange={(method) => set({ method })} />}
             </div>
           </Card>
 
           <Card className="rounded-2xl">
             <div className="space-y-3">
-              <Input label="Bay / jagah" value={f.bay} onChange={(e) => set({ bay: e.target.value })} placeholder="Bay 2" hint="Marzi hai" />
-              <Textarea label="Andar ka note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Sirf staff ke liye" hint="Parchi par nahi chhapta" />
-              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label="Save ke baad parchi print karein" />
+              <Input label={tr('Bay / jagah')} value={f.bay} onChange={(e) => set({ bay: e.target.value })} placeholder={tr('Bay 2')} hint={tr('Marzi hai')} />
+              <Textarea label={tr('Andar ka note')} rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} placeholder={tr('Sirf staff ke liye')} hint={tr('Parchi par nahi chhapta')} />
+              <Switch checked={print} onChange={(e) => setPrint(e.target.checked)} label={tr('Save ke baad parchi print karein')} />
             </div>
           </Card>
 
           <div className="flex items-center justify-between gap-3">
-            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save · <Kbd>Esc</Kbd> wapas</span>
-            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>Job banayein</Button>
+            <span className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save ·')}{' '} <Kbd>Esc</Kbd> {' '}{tr('wapas')}</span>
+            <Button onClick={submit} loading={save.isPending} leftIcon={<ClipboardList className="h-4 w-4" />}>{tr('Job banayein')}</Button>
           </div>
         </div>
       </div>
 
       {guide.isOpen && (
-        <PageGuide title="Naya job — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Naya job — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Car, color: '#2563eb', title: 'Gaari ka number', text: 'Number likhte hi purani gaari aa jati hai — company, model aur malik khud bhar jate hain. Nayi gaari khud darj ho jati hai.' },
-            { icon: Wrench, color: '#7c3aed', title: 'Shikayat aur mechanic', text: 'Customer ki baat likhein, mechanic chunein aur gaari dene ka waqt. Late gaariyan jobs list me laal dikhti hain.' },
-            { icon: Wallet, color: '#16a34a', title: 'Advance', text: 'Advance customer ke khata me jama hota hai aur gaari dete waqt bill me khud kat jata hai.' },
-            { icon: ClipboardList, color: '#ea580c', title: 'Parts baad me', text: 'Save ke baad job khulti hai — wahan parts jorein. Stock wala part jorte hi stock se nikalta hai.' },
+            { icon: Car, color: '#2563eb', title: tr('Gaari ka number'), text: tr('Number likhte hi purani gaari aa jati hai — company, model aur malik khud bhar jate hain. Nayi gaari khud darj ho jati hai.') },
+            { icon: Wrench, color: '#7c3aed', title: tr('Shikayat aur mechanic'), text: tr('Customer ki baat likhein, mechanic chunein aur gaari dene ka waqt. Late gaariyan jobs list me laal dikhti hain.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Advance'), text: tr('Advance customer ke khata me jama hota hai aur gaari dete waqt bill me khud kat jata hai.') },
+            { icon: ClipboardList, color: '#ea580c', title: tr('Parts baad me'), text: tr('Save ke baad job khulti hai — wahan parts jorein. Stock wala part jorte hi stock se nikalta hai.') },
           ]}
           shortcuts={[['Ctrl+Enter', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
         />

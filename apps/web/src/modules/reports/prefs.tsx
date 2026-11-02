@@ -16,6 +16,7 @@ import { hasPermission, permissionLabel, type PermissionKey } from '@core/lib/pe
 import { useAuthStore } from '@core/stores/auth.store';
 import { MASK, useMasked } from '@modules/dashboard/engine/useMasked';
 import { EmptyState, PageShell, type DateRangeValue } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export type ReportFigure = 'profit' | 'drawer';
 export type ReportPeriod = 'auto' | 'today' | 'yesterday' | 'week' | 'month' | 'thisMonth' | 'lastMonth' | 'fiscalYear';
@@ -124,8 +125,8 @@ export function RequireAllPermissions({ need, title, children }: { need: Permiss
       <EmptyState
         className="min-h-[50vh]"
         icon={<ShieldAlert className="h-6 w-6" />}
-        title={`${title} dekhne ki permission nahi`}
-        description={`Is report ke liye ye sab permissions chahiye: ${need.map((p) => `"${permissionLabel(p)}"`).join(' aur ')}. Aap ke paas ${missing.map((p) => `"${permissionLabel(p)}"`).join(' aur ')} nahi hai. Malik se kahein ke Team me de dein.`}
+        title={t('{{title}} dekhne ki permission nahi', { title })}
+        description={t('Is report ke liye ye sab permissions chahiye: {{value}}. Aap ke paas {{value2}} nahi hai. Malik se kahein ke Team me de dein.', { value: need.map((p) => `"${permissionLabel(p)}"`).join(' aur '), value2: missing.map((p) => `"${permissionLabel(p)}"`).join(' aur ') })}
       />
     </PageShell>
   );

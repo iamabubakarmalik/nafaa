@@ -34,15 +34,16 @@ import { applianceSerialApi, type ApplianceSerial, type SerialSummary } from '..
 import { SerialLookup } from '../components/jobDialogs';
 import { Bars, Box, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
 import { SERIAL_KEY, SERIAL_STATUSES, apiError, dayOnly, daysPhrase, installStatusOf, money, serialStatusOf, serviceStatusOf, todayKey } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'analytics';
 type View = 'stock' | 'sold' | 'expiring' | 'install' | 'all';
 const VIEWS: Array<{ id: View; label: string; icon: typeof Package }> = [
-  { id: 'stock', label: 'Stock me', icon: Boxes },
-  { id: 'sold', label: 'Bik gaye', icon: CheckCircle2 },
-  { id: 'expiring', label: 'Warranty khatam hone wali', icon: ShieldAlert },
-  { id: 'install', label: 'Installation baqi', icon: HardHat },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'stock', label: tr('Stock me'), icon: Boxes },
+  { id: 'sold', label: tr('Bik gaye'), icon: CheckCircle2 },
+  { id: 'expiring', label: tr('Warranty khatam hone wali'), icon: ShieldAlert },
+  { id: 'install', label: tr('Installation baqi'), icon: HardHat },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const viewLabel = (v: View) => VIEWS.find((x) => x.id === v)?.label ?? v;
 function viewParams(v: View) {
@@ -125,54 +126,54 @@ export default function ApplianceSerialsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Serial register"
-        chip={<><Barcode /> Har unit ka number</>}
-        meta="Stock, bika hua unit, customer, warranty aur service — serial se"
+        title={tr('Serial register')}
+        chip={<><Barcode /> {' '}{tr('Har unit ka number')}</>}
+        meta={tr('Stock, bika hua unit, customer, warranty aur service — serial se')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <button type="button" onClick={() => setChecking(true)} title="Warranty check (W)" className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">Warranty check</span></button>
-          {canManage && <button type="button" onClick={() => setMoving([])} title="Branch badlein (B)" className={heroButton}><ArrowLeftRight className="h-4 w-4" /><span className="hidden sm:inline">Branch</span></button>}
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setAdding(true)} title="Serial jorein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Serial jorein</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <button type="button" onClick={() => setChecking(true)} title={tr('Warranty check (W)')} className={heroButton}><ShieldCheck className="h-4 w-4" /><span className="hidden sm:inline">{tr('Warranty check')}</span></button>
+          {canManage && <button type="button" onClick={() => setMoving([])} title={tr('Branch badlein (B)')} className={heroButton}><ArrowLeftRight className="h-4 w-4" /><span className="hidden sm:inline">{tr('Branch')}</span></button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setAdding(true)} title={tr('Serial jorein (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Serial jorein')}</button>}
         </>}
         stats={s ? [
-          { label: 'Stock me', value: s.inStock.units, hint: cost(s.inStock.value) },
-          { label: 'Bik gaye', value: s.sold.units },
-          { label: 'Warranty khatam hone wali', value: s.warrantyExpiringSoon },
-        ] : [{ label: 'Stock me', value: '—' }]}
+          { label: tr('Stock me'), value: s.inStock.units, hint: cost(s.inStock.value) },
+          { label: tr('Bik gaye'), value: s.sold.units },
+          { label: tr('Warranty khatam hone wali'), value: s.warrantyExpiringSoon },
+        ] : [{ label: tr('Stock me'), value: '—' }]}
       />
 
       <KpiRow cols={4}>
         {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Boxes} color="#2563eb" label="Stock me" value={s.inStock.units} hint={cost(s.inStock.value)} onClick={() => pick('stock')} active={tab === 'list' && view === 'stock'} />
-          <KpiCard icon={CheckCircle2} color="#16a34a" label="Bik gaye" value={s.sold.units} hint={`Profit ${sales(s.sold.profit)}`} onClick={() => pick('sold')} active={tab === 'list' && view === 'sold'} />
-          <KpiCard icon={ShieldAlert} color={s.warrantyExpiringSoon ? '#ea580c' : '#64748b'} label="Warranty khatam hone wali" value={s.warrantyExpiringSoon} hint="AMC bechne ka mauqa" onClick={() => pick('expiring')} active={tab === 'list' && view === 'expiring'} />
-          <KpiCard icon={HardHat} color={s.installation.pending ? '#d97706' : '#64748b'} label="Installation baqi" value={s.installation.pending} hint="Bika, laga nahi" onClick={() => pick('install')} active={tab === 'list' && view === 'install'} />
+          <KpiCard icon={Boxes} color="#2563eb" label={tr('Stock me')} value={s.inStock.units} hint={cost(s.inStock.value)} onClick={() => pick('stock')} active={tab === 'list' && view === 'stock'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Bik gaye')} value={s.sold.units} hint={tr('Profit {{profit}}', { profit: sales(s.sold.profit) })} onClick={() => pick('sold')} active={tab === 'list' && view === 'sold'} />
+          <KpiCard icon={ShieldAlert} color={s.warrantyExpiringSoon ? '#ea580c' : '#64748b'} label={tr('Warranty khatam hone wali')} value={s.warrantyExpiringSoon} hint={tr('AMC bechne ka mauqa')} onClick={() => pick('expiring')} active={tab === 'list' && view === 'expiring'} />
+          <KpiCard icon={HardHat} color={s.installation.pending ? '#d97706' : '#64748b'} label={tr('Installation baqi')} value={s.installation.pending} hint={tr('Bika, laga nahi')} onClick={() => pick('install')} active={tab === 'list' && view === 'install'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Serial, model, customer, phone, bill…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Serial, model, customer, phone, bill…')} label={tr('Search')} />}
         chips={query || status ? <>{query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}{status && <FilterChip onRemove={() => setStatus('')}>{serialStatusOf(status).label}</FilterChip>}</> : undefined}
         onClear={() => { setSearch(''); setStatus(''); }}>
         <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'stock'} onChange={setView} width="w-64" options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
-        {view === 'all' && <FilterMenu icon={Package} label={status ? serialStatusOf(status).label : 'Halat'} value={status} active={!!status} onChange={setStatus}
-          options={[{ value: '', label: 'Sab' }, ...SERIAL_STATUSES.map((x) => ({ value: x, label: serialStatusOf(x).label }))]} />}
+        {view === 'all' && <FilterMenu icon={Package} label={status ? serialStatusOf(status).label : tr('Halat')} value={status} active={!!status} onChange={setStatus}
+          options={[{ value: '', label: tr('Sab') }, ...SERIAL_STATUSES.map((x) => ({ value: x, label: serialStatusOf(x).label }))]} />}
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> jorein · <Kbd>B</Kbd> branch · </>}<Kbd>W</Kbd> warranty · <Kbd>/</Kbd> search</>}
-        tabs={[{ id: 'list', label: 'Units', icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('jorein ·')}{' '} <Kbd>B</Kbd> {' '}{tr('branch ·')}{' '} </>}<Kbd>W</Kbd> {' '}{tr('warranty ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}</>}
+        tabs={[{ id: 'list', label: tr('Units'), icon: ListChecks, count: data?.meta.total ?? null }, { id: 'analytics', label: tr('Analytics'), icon: BarChart3 }]} />
 
       {tab === 'analytics' ? <Analytics s={s} sales={sales} cost={cost} /> : (<>
-        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.meta.total} units</span></Strip>}
+        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{tr('{{total}} units', { total: data.meta.total })}</span></Strip>}
         <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={Barcode}
-          title={query ? 'Ye serial nahi mila' : view === 'stock' ? 'Stock me koi serial nahi' : 'Kuch nahi'}
-          hint="Dealer se maal aaye to Purchase se stock barhayein, phir yahan har unit ka serial scan ya paste karein."
-          actions={canManage ? <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>Serial jorein</Button> : undefined}>
+          title={query ? tr('Ye serial nahi mila') : view === 'stock' ? tr('Stock me koi serial nahi') : tr('Kuch nahi')}
+          hint={tr('Dealer se maal aaye to Purchase se stock barhayein, phir yahan har unit ka serial scan ya paste karein.')}
+          actions={canManage ? <Button onClick={() => setAdding(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Serial jorein')}</Button> : undefined}>
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {rows.map((u) => <UnitRow key={u.id} u={u} onOpen={() => setOpenId(u.id)} />)}
           </ul>
@@ -185,16 +186,16 @@ export default function ApplianceSerialsPage() {
       {openId && <UnitCard id={openId} canManage={canManage} onClose={() => setOpenId(null)} onMove={(id) => { setOpenId(null); setMoving([id]); }} />}
       {moving && <MoveSerialsModal preset={moving} onClose={() => setMoving(null)} />}
       {guide.isOpen && (
-        <PageGuide title="Serial register — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Serial register — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Package, color: '#2563eb', title: 'Naya maal', text: 'Dealer se maal aaye: pehle Purchase banayein (stock aur dealer ka hisaab), phir "Serial jorein" — product chunein aur sab serial scan ya Excel se paste karein.' },
-            { icon: Barcode, color: '#7c3aed', title: 'Bechna', text: 'POS par AC ya fridge tap karein to isi branch ke stock wale serial dikhte hain — jo unit diya wohi chunein. Warranty bill ki date se shuru hoti hai.' },
-            { icon: Store, color: '#0891b2', title: 'Branch', text: 'Har unit kisi branch me hota hai. Maal doosri branch bhejna ho to pehle Stock transfer receive karein, phir "Branch" (B) me wo transfer chun kar serial scan karein.' },
-            { icon: ShieldCheck, color: '#16a34a', title: 'Warranty check', text: 'Customer aaye to "Warranty check" (W) me serial likhein — company warranty, compressor, motor, dukaan ki warranty aur AMC sab ek nazar me.' },
-            { icon: Wrench, color: '#d97706', title: 'Service history', text: 'Unit kholein — us ki installation, har repair aur kharcha. Wapas ya void bill par unit khud stock me aa jata hai.' },
+            { icon: Package, color: '#2563eb', title: tr('Naya maal'), text: tr('Dealer se maal aaye: pehle Purchase banayein (stock aur dealer ka hisaab), phir "Serial jorein" — product chunein aur sab serial scan ya Excel se paste karein.') },
+            { icon: Barcode, color: '#7c3aed', title: tr('Bechna'), text: tr('POS par AC ya fridge tap karein to isi branch ke stock wale serial dikhte hain — jo unit diya wohi chunein. Warranty bill ki date se shuru hoti hai.') },
+            { icon: Store, color: '#0891b2', title: tr('Branch'), text: tr('Har unit kisi branch me hota hai. Maal doosri branch bhejna ho to pehle Stock transfer receive karein, phir "Branch" (B) me wo transfer chun kar serial scan karein.') },
+            { icon: ShieldCheck, color: '#16a34a', title: tr('Warranty check'), text: tr('Customer aaye to "Warranty check" (W) me serial likhein — company warranty, compressor, motor, dukaan ki warranty aur AMC sab ek nazar me.') },
+            { icon: Wrench, color: '#d97706', title: tr('Service history'), text: tr('Unit kholein — us ki installation, har repair aur kharcha. Wapas ya void bill par unit khud stock me aa jata hai.') },
           ]}
-          tips={['"Warranty khatam hone wali" list se customers ko AMC bechein.', 'Serial jorne ke liye "Serials manage" permission chahiye.']}
-          shortcuts={[['N', 'serial jorein'], ['B', 'branch badlein'], ['W', 'warranty check'], ['/', 'dhoondein'], ['G', 'guide']]}
+          tips={[tr('"Warranty khatam hone wali" list se customers ko AMC bechein.'), tr('Serial jorne ke liye "Serials manage" permission chahiye.')]}
+          shortcuts={[['N', tr('serial jorein')], ['B', tr('branch badlein')], ['W', tr('warranty check')], ['/', 'dhoondein'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -205,7 +206,7 @@ function UnitRow({ u, onOpen }: { u: ApplianceSerial; onOpen: () => void }) {
   const w = u.warranty;
   return (
     <li>
-      <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-slate-50 sm:px-4">
+      <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 px-3 py-3 text-start hover:bg-slate-50 sm:px-4">
         <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Barcode className="h-5 w-5" /></span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-1.5">
@@ -214,14 +215,14 @@ function UnitRow({ u, onOpen }: { u: ApplianceSerial; onOpen: () => void }) {
             {u.status === 'SOLD' && u.installationRequired && u.installationStatus !== 'COMPLETED' && <Pill meta={installStatusOf(u.installationStatus)} />}
             {u.shopName && <span className="inline-flex items-center gap-1 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[0.6875rem] text-cyan-800"><Store className="h-3 w-3" />{u.shopName}</span>}
           </span>
-          <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{u.product?.name ?? 'Product'}{u.modelNumber ? ` · ${u.modelNumber}` : ''}</span>
+          <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{u.product?.name ?? tr('Product')}{u.modelNumber ? ` · ${u.modelNumber}` : ''}</span>
           <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
-            {u.status === 'SOLD' ? `${u.customerName ?? 'Customer'} · bill ${u.invoiceNumber ?? '—'} · ${dayOnly(u.soldAt)}` : `Aaya ${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`}
+            {u.status === 'SOLD' ? tr('{{value}} · bill {{value2}} · {{soldAt}}', { value: u.customerName ?? 'Customer', value2: u.invoiceNumber ?? '—', soldAt: dayOnly(u.soldAt) }) : tr('Aaya {{dayOnly}}{{value}}', { dayOnly: dayOnly(u.purchaseDate ?? u.createdAt), value: u.supplierRef ? ` · ${u.supplierRef}` : '' })}
           </span>
         </span>
-        <span className="shrink-0 text-right text-[0.75rem]">
-          {u.status === 'SOLD' && w ? <span className={cn('font-medium', w.isUnderWarranty ? (w.soonestDays ?? 99) <= 30 ? 'text-orange-700' : 'text-emerald-700' : 'text-rose-700')}>{w.isUnderWarranty ? `Warranty ${daysPhrase(w.soonestDays)}` : 'Warranty khatam'}</span> : null}
-          <ArrowRight className="ml-auto mt-1 h-3.5 w-3.5 text-slate-400" />
+        <span className="shrink-0 text-end text-[0.75rem]">
+          {u.status === 'SOLD' && w ? <span className={cn('font-medium', w.isUnderWarranty ? (w.soonestDays ?? 99) <= 30 ? 'text-orange-700' : 'text-emerald-700' : 'text-rose-700')}>{w.isUnderWarranty ? tr('Warranty {{soonestDays}}', { soonestDays: daysPhrase(w.soonestDays) }) : tr('Warranty khatam')}</span> : null}
+          <ArrowRight className="ms-auto mt-1 h-3.5 w-3.5 text-slate-400 rtl-flip" />
         </span>
       </button>
     </li>
@@ -232,13 +233,13 @@ function UnitRow({ u, onOpen }: { u: ApplianceSerial; onOpen: () => void }) {
 function ProductSearch({ value, onPick }: { value: { id: string; name: string } | null; onPick: (p: { id: string; name: string; costPrice: number } | null) => void }) {
   const [term, setTerm] = useState('');
   const q = useQuery({ queryKey: ['appliance-product-search', term], queryFn: () => productsApi.list({ search: term, limit: 8, isActive: true }), enabled: term.trim().length >= 2 });
-  if (value) return <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] ring-1 ring-slate-200"><span className="font-medium text-slate-900">{value.name}</span><button type="button" className="text-[0.8125rem] text-brand-700 hover:underline" onClick={() => onPick(null)}>Badlein</button></div>;
+  if (value) return <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-[0.875rem] ring-1 ring-slate-200"><span className="font-medium text-slate-900">{value.name}</span><button type="button" className="text-[0.8125rem] text-brand-700 hover:underline" onClick={() => onPick(null)}>{tr('Badlein')}</button></div>;
   return (
     <div>
-      <Input label="Product" required value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Model ya naam likhein" leftIcon={<Search className="h-4 w-4" />} autoFocus />
+      <Input label={tr('Product')} required value={term} onChange={(e) => setTerm(e.target.value)} placeholder={tr('Model ya naam likhein')} leftIcon={<Search className="h-4 w-4" />} autoFocus />
       {(q.data?.items ?? []).length > 0 && (
         <ul className="mt-1 divide-y divide-slate-100 overflow-hidden rounded-xl ring-1 ring-slate-200">
-          {q.data!.items.map((p) => <li key={p.id}><button type="button" onClick={() => onPick({ id: p.id, name: p.name, costPrice: Number(p.costPrice) || 0 })} className="flex w-full justify-between px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50"><span>{p.name}</span><span className="text-slate-500">stock {p.stock}</span></button></li>)}
+          {q.data!.items.map((p) => <li key={p.id}><button type="button" onClick={() => onPick({ id: p.id, name: p.name, costPrice: Number(p.costPrice) || 0 })} className="flex w-full justify-between px-3 py-2 text-start text-[0.8125rem] hover:bg-slate-50"><span>{p.name}</span><span className="text-slate-500">{tr('stock {{stock}}', { stock: p.stock })}</span></button></li>)}
         </ul>
       )}
     </div>
@@ -262,26 +263,26 @@ function AddSerialsModal({ onClose }: { onClose: () => void }) {
   const save = useMutation({
     mutationFn: () => applianceSerialApi.bulkCreate({ productId: product!.id, serialNumbers: list, modelNumber: model.trim() || undefined, batchNumber: batch.trim() || undefined,
       purchasePrice: Number(price) || product!.costPrice || undefined, purchaseDate: date || undefined, supplierRef: supplier.trim() || undefined, shopId: shopId || undefined }),
-    onSuccess: (r) => { toast.success(r.message || `${r.created} serial jur gaye`); if (r.skipped) toast.info(`${r.skipped} pehle se the: ${r.skippedSerials.slice(0, 5).join(', ')}`); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Serial nahi jure')),
+    onSuccess: (r) => { toast.success(r.message || tr('{{created}} serial jur gaye', { created: r.created })); if (r.skipped) toast.info(tr('{{skipped}} pehle se the: {{value}}', { skipped: r.skipped, value: r.skippedSerials.slice(0, 5).join(', ') })); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Serial nahi jure'))),
   });
   return (
-    <Modal open onClose={onClose} size="lg" title="Serial jorein" description="Ek product ke saare units ek saath — scanner se ek ke baad ek, ya Excel column paste karein"
-      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">{list.length} serial{dupes > 0 ? ` · ${dupes} do dafa likhe (ek gina)` : ''}</span><Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button disabled={!product || !list.length} loading={save.isPending} leftIcon={<Plus className="h-4 w-4" />} onClick={() => save.mutate()}>{list.length} serial jorein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={tr('Serial jorein')} description={tr('Ek product ke saare units ek saath — scanner se ek ke baad ek, ya Excel column paste karein')}
+      footer={<><span className="me-auto text-[0.8125rem] text-slate-600">{tr('{{count}} serial{{value}}', { count: list.length, value: dupes > 0 ? tr(' · {{dupes}} do dafa likhe (ek gina)', { dupes }) : '' })}</span><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button disabled={!product || !list.length} loading={save.isPending} leftIcon={<Plus className="h-4 w-4" />} onClick={() => save.mutate()}>{tr('{{count}} serial jorein', { count: list.length })}</Button></>}>
       <div className="space-y-4">
         <ProductSearch value={product} onPick={(p) => { setProduct(p); if (p && !price) setPrice(p.costPrice ? String(p.costPrice) : ''); }} />
-        <Textarea label="Serial numbers" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder={'SN12345\nSN12346\nSN12347'} hint="Har line me ek — scanner har scan ke baad khud nayi line deta hai" className="font-mono" />
-        <p className="flex items-start gap-1.5 rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-900 ring-1 ring-blue-200"><ClipboardPaste className="mt-0.5 h-4 w-4 shrink-0" />Ye sirf number likhta hai, stock nahi barhata. Stock Purchase (dealer ka bill) se barhayein.</p>
+        <Textarea label={tr('Serial numbers')} rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder={tr('SN12345\nSN12346\nSN12347')} hint={tr('Har line me ek — scanner har scan ke baad khud nayi line deta hai')} className="font-mono" />
+        <p className="flex items-start gap-1.5 rounded-xl bg-blue-50 px-3 py-2 text-[0.8125rem] text-blue-900 ring-1 ring-blue-200"><ClipboardPaste className="mt-0.5 h-4 w-4 shrink-0" />{tr('Ye sirf number likhta hai, stock nahi barhata. Stock Purchase (dealer ka bill) se barhayein.')}</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Model number" value={model} onChange={(e) => setModel(e.target.value)} placeholder="HSU-18HFCM" />
-          <Input label="Batch / lot" value={batch} onChange={(e) => setBatch(e.target.value)} />
-          <Input label="Khareed qeemat (ek unit)" inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} />
-          <Input label="Kab aaya" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Input label={tr('Model number')} value={model} onChange={(e) => setModel(e.target.value)} placeholder={tr('HSU-18HFCM')} />
+          <Input label={tr('Batch / lot')} value={batch} onChange={(e) => setBatch(e.target.value)} />
+          <Input label={tr('Khareed qeemat (ek unit)')} inputMode="decimal" value={price} onChange={(e) => setPrice(money(e.target.value))} />
+          <Input label={tr('Kab aaya')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
-        <Input label="Dealer / bill number" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Haier distributor · INV-221" />
-        {shops.length > 1 && <Select label="Branch" value={shopId} onChange={(e) => setShopId(e.target.value)} placeholder="Jo branch abhi khuli hai"
-          options={shops.map((x) => ({ value: x.id, label: x.name }))} hint="Jis branch me ye dabbe rakhe hain — POS sirf apni branch ke serial dikhata hai" />}
+        <Input label={tr('Dealer / bill number')} value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder={tr('Haier distributor · INV-221')} />
+        {shops.length > 1 && <Select label={tr('Branch')} value={shopId} onChange={(e) => setShopId(e.target.value)} placeholder={tr('Jo branch abhi khuli hai')}
+          options={shops.map((x) => ({ value: x.id, label: x.name }))} hint={tr('Jis branch me ye dabbe rakhe hain — POS sirf apni branch ke serial dikhata hai')} />}
       </div>
     </Modal>
   );
@@ -291,8 +292,8 @@ function WarrantyCheckModal({ onClose, onOpen }: { onClose: () => void; onOpen: 
   const [code, setCode] = useState('');
   const [found, setFound] = useState<string | null>(null);
   return (
-    <Modal open onClose={onClose} size="md" title="Warranty check" description="Customer ka serial likhein ya scan karein"
-      footer={<><Button variant="secondary" onClick={onClose}>Band karein</Button>{found && <Button onClick={() => onOpen(found)}>Unit kholein</Button>}</>}>
+    <Modal open onClose={onClose} size="md" title={tr('Warranty check')} description={tr('Customer ka serial likhein ya scan karein')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Band karein')}</Button>{found && <Button onClick={() => onOpen(found)}>{tr('Unit kholein')}</Button>}</>}>
       <SerialLookup value={code} onChange={(v) => { setCode(v); setFound(null); }} onFound={(r) => setFound(r.serial?.id ?? null)} />
     </Modal>
   );
@@ -303,45 +304,45 @@ function UnitCard({ id, canManage, onClose, onMove }: { id: string; canManage: b
   const q = useQuery({ queryKey: [SERIAL_KEY, 'one', id], queryFn: () => applianceSerialApi.getOne(id) });
   const remove = useMutation({
     mutationFn: () => applianceSerialApi.remove(id),
-    onSuccess: (r) => { toast.success(r.message || 'Register se hata diya'); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi hata')),
+    onSuccess: (r) => { toast.success(r.message || tr('Register se hata diya')); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi hata'))),
   });
   const [confirm, setConfirm] = useState(false);
   const u = q.data;
   const w = u?.warranty;
   return (
-    <Modal open onClose={onClose} size="lg" title={u ? u.serialNumber : 'Unit'} description={u ? `${u.product?.name ?? ''}${u.modelNumber ? ` · ${u.modelNumber}` : ''}` : undefined}
+    <Modal open onClose={onClose} size="lg" title={u ? u.serialNumber : tr('Unit')} description={u ? `${u.product?.name ?? ''}${u.modelNumber ? ` · ${u.modelNumber}` : ''}` : undefined}
       footer={u && <>
         {canManage && u.status === 'IN_STOCK' && (confirm
-          ? <><span className="text-[0.8125rem] text-rose-700">Galti se likha tha? Register se hatayein — record mehfooz rehta hai.</span><Button variant="danger" size="sm" loading={remove.isPending} onClick={() => remove.mutate()}>Haan, hatayein</Button></>
-          : <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => setConfirm(true)}>Register se hatayein</Button>)}
+          ? <><span className="text-[0.8125rem] text-rose-700">{tr('Galti se likha tha? Register se hatayein — record mehfooz rehta hai.')}</span><Button variant="danger" size="sm" loading={remove.isPending} onClick={() => remove.mutate()}>{tr('Haan, hatayein')}</Button></>
+          : <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => setConfirm(true)}>{tr('Register se hatayein')}</Button>)}
         <span className="flex-1" />
-        {canManage && u.status === 'IN_STOCK' && !confirm && <Button variant="secondary" leftIcon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => onMove(u.id)}>Branch</Button>}
-        {u.status === 'SOLD' && <Link to={`/appliances/service-requests?new=1`} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"><Wrench className="h-4 w-4" />Shikayat darj</Link>}
-        {u.saleId && <Link to={`/sales/${u.saleId}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-sm font-medium text-white hover:bg-brand-700">Bill {u.invoiceNumber}</Link>}
+        {canManage && u.status === 'IN_STOCK' && !confirm && <Button variant="secondary" leftIcon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => onMove(u.id)}>{tr('Branch')}</Button>}
+        {u.status === 'SOLD' && <Link to={`/appliances/service-requests?new=1`} className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"><Wrench className="h-4 w-4" />{tr('Shikayat darj')}</Link>}
+        {u.saleId && <Link to={`/sales/${u.saleId}`} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-sm font-medium text-white hover:bg-brand-700">{tr('Bill {{invoiceNumber}}', { invoiceNumber: u.invoiceNumber })}</Link>}
       </>}>
       {!u ? <Skeleton className="h-52 rounded-2xl" /> : (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2"><Pill meta={serialStatusOf(u.status)} />{u.installationRequired && <Pill meta={installStatusOf(u.installationStatus)} />}</div>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            <Box label="Company warranty" value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
-            {(u.shopWarrantyEndDate || u.product?.shopWarrantyMonths) && <Box label="Dukaan warranty" value={u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : `${u.product?.shopWarrantyMonths} mahine`} tone={w?.shopDaysLeft != null && w.shopDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />}
-            <Box label="Compressor" value={u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '—'} />
-            <Box label="Motor" value={u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '—'} />
-            <Box label="Service kharcha" value={formatPKR(u.serviceCost || 0)} />
+            <Box label={tr('Company warranty')} value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
+            {(u.shopWarrantyEndDate || u.product?.shopWarrantyMonths) && <Box label={tr('Dukaan warranty')} value={u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : `${u.product?.shopWarrantyMonths} mahine`} tone={w?.shopDaysLeft != null && w.shopDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />}
+            <Box label={tr('Compressor')} value={u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '—'} />
+            <Box label={tr('Motor')} value={u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '—'} />
+            <Box label={tr('Service kharcha')} value={formatPKR(u.serviceCost || 0)} />
           </dl>
           <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
-            <Row k="Aaya" v={`${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`} />
-            <Row k="Branch" v={u.shopName ?? 'Abhi kisi branch me nahi'} />
-            {u.status === 'SOLD' && <Row k="Customer" v={[u.customerName, u.customerPhone].filter(Boolean).join(' · ')} />}
-            {u.status === 'SOLD' && <Row k="Bika" v={`${dayOnly(u.soldAt)} · bill ${u.invoiceNumber ?? '—'}`} />}
-            {u.deliveryAddress && <Row k="Pata" v={u.deliveryAddress} />}
-            {u.installedAt && <Row k="Laga" v={dayOnly(u.installedAt)} />}
+            <Row k={tr('Aaya')} v={`${dayOnly(u.purchaseDate ?? u.createdAt)}${u.supplierRef ? ` · ${u.supplierRef}` : ''}`} />
+            <Row k={tr('Branch')} v={u.shopName ?? tr('Abhi kisi branch me nahi')} />
+            {u.status === 'SOLD' && <Row k={tr('Customer')} v={[u.customerName, u.customerPhone].filter(Boolean).join(' · ')} />}
+            {u.status === 'SOLD' && <Row k={tr('Bika')} v={tr('{{value}} · bill {{value2}}', { value: dayOnly(u.soldAt), value2: u.invoiceNumber ?? '—' })} />}
+            {u.deliveryAddress && <Row k={tr('Pata')} v={u.deliveryAddress} />}
+            {u.installedAt && <Row k={tr('Laga')} v={dayOnly(u.installedAt)} />}
           </dl>
-          <Panel title="Installation aur repair">
-            {u.installations.length + u.services.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Abhi koi kaam nahi</p> : (
+          <Panel title={tr('Installation aur repair')}>
+            {u.installations.length + u.services.length === 0 ? <p className="text-[0.8125rem] text-slate-500">{tr('Abhi koi kaam nahi')}</p> : (
               <ul className="divide-y divide-slate-100 text-[0.8125rem]">
-                {u.installations.map((i) => <li key={i.id} className="flex justify-between gap-2 py-1.5"><Link className="truncate hover:underline" to={`/appliances/installations?id=${i.id}`}>{i.installationNumber} · installation</Link><span className="flex shrink-0 items-center gap-2"><Pill meta={installStatusOf(i.status)} />{dayOnly(i.completedAt ?? i.scheduledDate)}</span></li>)}
+                {u.installations.map((i) => <li key={i.id} className="flex justify-between gap-2 py-1.5"><Link className="truncate hover:underline" to={`/appliances/installations?id=${i.id}`}>{tr('{{installationNumber}} · installation', { installationNumber: i.installationNumber })}</Link><span className="flex shrink-0 items-center gap-2"><Pill meta={installStatusOf(i.status)} />{dayOnly(i.completedAt ?? i.scheduledDate)}</span></li>)}
                 {u.services.map((r) => <li key={r.id} className="flex justify-between gap-2 py-1.5"><Link className="truncate hover:underline" to={`/appliances/service-requests?id=${r.id}`}>{r.requestNumber} · {r.reportedIssue}</Link><span className="flex shrink-0 items-center gap-2"><Pill meta={serviceStatusOf(r.status)} />{dayOnly(r.completedAt ?? r.requestedAt)}</span></li>)}
               </ul>
             )}
@@ -371,41 +372,41 @@ function MoveSerialsModal({ preset, onClose }: { preset: string[]; onClose: () =
   const shops = q.data?.shops ?? [];
   const t = transfers.find((x) => x.id === transferId);
   const errors = {
-    target: mode === 'transfer' ? (!transferId ? 'Transfer chunein' : undefined) : (!toShopId ? 'Branch chunein' : undefined),
-    serials: !preset.length && !numbers.length ? 'Serial scan ya paste karein' : undefined,
+    target: mode === 'transfer' ? (!transferId ? tr('Transfer chunein') : undefined) : (!toShopId ? tr('Branch chunein') : undefined),
+    serials: !preset.length && !numbers.length ? tr('Serial scan ya paste karein') : undefined,
   };
   const save = useMutation({
     mutationFn: () => applianceSerialApi.move({
       ...(preset.length ? { serialIds: preset } : { serialNumbers: numbers }),
       ...(mode === 'transfer' ? { transferId } : { toShopId }),
     }),
-    onSuccess: (r) => { toast.success(r.message || `${r.moved} unit badal gaye`); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Branch nahi badli')),
+    onSuccess: (r) => { toast.success(r.message || tr('{{moved}} unit badal gaye', { moved: r.moved })); qc.invalidateQueries({ queryKey: [SERIAL_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Branch nahi badli'))),
   });
   const submit = () => { setTried(true); if (!errors.target && !errors.serials) save.mutate(); };
   return (
-    <Modal open onClose={onClose} size="lg" title="Serial ki branch" description="Stock transfer se aaye units us branch me likhein — POS sirf apni branch ke serial bechta hai"
-      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">{preset.length ? `${preset.length} unit` : `${numbers.length} serial`}</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} onClick={submit} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>Branch badlein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={tr('Serial ki branch')} description={tr('Stock transfer se aaye units us branch me likhein — POS sirf apni branch ke serial bechta hai')}
+      footer={<><span className="me-auto text-[0.8125rem] text-slate-600">{preset.length ? tr('{{count}} unit', { count: preset.length }) : tr('{{count}} serial', { count: numbers.length })}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={save.isPending} onClick={submit} leftIcon={<ArrowLeftRight className="h-4 w-4" />}>{tr('Branch badlein')}</Button></>}>
       {q.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : (
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <div className="flex flex-wrap gap-1.5">
-            <Button size="sm" variant={mode === 'transfer' ? 'primary' : 'secondary'} onClick={() => setMode('transfer')}>Stock transfer se</Button>
-            <Button size="sm" variant={mode === 'place' ? 'primary' : 'secondary'} onClick={() => setMode('place')}>Pehli dafa branch likhein</Button>
+            <Button size="sm" variant={mode === 'transfer' ? 'primary' : 'secondary'} onClick={() => setMode('transfer')}>{tr('Stock transfer se')}</Button>
+            <Button size="sm" variant={mode === 'place' ? 'primary' : 'secondary'} onClick={() => setMode('place')}>{tr('Pehli dafa branch likhein')}</Button>
           </div>
           {mode === 'transfer' ? (<>
-            <Select label="Transfer" required value={transferId} onChange={(e) => setTransferId(e.target.value)} placeholder={transfers.length ? 'Receive hua transfer chunein' : 'Pichle 60 din me koi transfer receive nahi hua'}
+            <Select label={tr('Transfer')} required value={transferId} onChange={(e) => setTransferId(e.target.value)} placeholder={transfers.length ? tr('Receive hua transfer chunein') : tr('Pichle 60 din me koi transfer receive nahi hua')}
               options={transfers.map((x) => ({ value: x.id, label: `${x.transferNumber} · ${x.fromShop.name} → ${x.toShop.name} · ${dayOnly(x.receivedAt)}` }))}
-              error={tried ? errors.target : undefined} hint="Pehle Inventory → Stock transfer se maal bhejein aur receive karein" />
-            {t && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">{t.items.reduce((n, i) => n + Number(i.receivedQty), 0)} unit receive hue — itne hi serial {t.toShop.name} me ja sakte hain.</p>}
+              error={tried ? errors.target : undefined} hint={tr('Pehle Inventory → Stock transfer se maal bhejein aur receive karein')} />
+            {t && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">{tr('{{value}} unit receive hue — itne hi serial {{name}} me ja sakte hain.', { value: t.items.reduce((n, i) => n + Number(i.receivedQty), 0), name: t.toShop.name })}</p>}
           </>) : (
-            <Select label="Branch" required value={toShopId} onChange={(e) => setToShopId(e.target.value)} placeholder="Branch chunein"
+            <Select label={tr('Branch')} required value={toShopId} onChange={(e) => setToShopId(e.target.value)} placeholder={tr('Branch chunein')}
               options={shops.map((x) => ({ value: x.id, label: x.name }))} error={tried ? errors.target : undefined}
-              hint="Sirf un units ke liye jo abhi kisi branch me nahi (purane units)" />
+              hint={tr('Sirf un units ke liye jo abhi kisi branch me nahi (purane units)')} />
           )}
-          {!preset.length && <Textarea label="Serial numbers" required rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={'SN12345\nSN12346'} className="font-mono"
-            hint="Har line me ek — scanner har scan ke baad khud nayi line deta hai" error={tried ? errors.serials : undefined} />}
+          {!preset.length && <Textarea label={tr('Serial numbers')} required rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={tr('SN12345\nSN12346')} className="font-mono"
+            hint={tr('Har line me ek — scanner har scan ke baad khud nayi line deta hai')} error={tried ? errors.serials : undefined} />}
         </form>
       )}
     </Modal>
@@ -420,13 +421,13 @@ function Analytics({ s, sales, cost }: { s?: SerialSummary; sales: (n: number) =
   if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Paisa" hint="Serial wale units ka">
+      <Panel title={tr('Paisa')} hint={tr('Serial wale units ka')}>
         <dl className="grid grid-cols-2 gap-3">
-          <Box label="Stock ki qeemat" value={cost(s.inStock.value)} /><Box label="Sale" value={sales(s.sold.revenue)} />
-          <Box label="Bike units ki cost" value={cost(s.sold.cost)} /><Box label="Profit" value={sales(s.sold.profit)} tone="text-emerald-700" />
+          <Box label={tr('Stock ki qeemat')} value={cost(s.inStock.value)} /><Box label={tr('Sale')} value={sales(s.sold.revenue)} />
+          <Box label={tr('Bike units ki cost')} value={cost(s.sold.cost)} /><Box label={tr('Profit')} value={sales(s.sold.profit)} tone="text-emerald-700" />
         </dl>
       </Panel>
-      <Panel title="Units kis halat me"><Bars rows={Object.entries(s.byStatus).filter(([, n]) => n > 0).map(([k, n]) => ({ key: k, label: serialStatusOf(k).label, value: n, color: serialStatusOf(k).color }))} /></Panel>
+      <Panel title={tr('Units kis halat me')}><Bars rows={Object.entries(s.byStatus).filter(([, n]) => n > 0).map(([k, n]) => ({ key: k, label: serialStatusOf(k).label, value: n, color: serialStatusOf(k).color }))} /></Panel>
     </div>
   );
 }

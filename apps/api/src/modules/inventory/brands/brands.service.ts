@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { cleanName, mergeInto, nameTaken, periodRange, sameName, taxonomyInsights } from '../taxonomy/taxonomy.helper';
 import { UpdateBrandDto, UpsertBrandDto } from './dto/upsert-brand.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export function toSlug(name: string) {
   return name.normalize('NFKC').toLowerCase().trim()
@@ -115,13 +116,13 @@ export class BrandsService {
     if (id === intoId) throw new BadRequestException('Usi brand me nahi mila sakte');
     const [from, into] = await Promise.all([this.getOne(user, id), this.getOne(user, intoId)]);
     const moved = await mergeInto(this.prisma, 'brand', from.id, into.id);
-    return { moved, message: `${moved} products "${into.name}" me chale gaye` };
+    return { moved, ...apiMessage('{{moved}} products "{{intoName}}" me chale gaye', { moved, intoName: into.name }) };
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     const brand = await this.getOne(user, id);
     await this.prisma.brand.delete({ where: { id } });
     const freed = brand._count.products;
-    return { freed, message: freed ? `Brand mit gaya — ${freed} products ab bina brand hain` : 'Brand mit gaya' };
+    return { freed, ...(freed ? apiMessage('Brand mit gaya — {{freed}} products ab bina brand hain', { freed }) : apiMessage('Brand mit gaya')) };
   }
 }

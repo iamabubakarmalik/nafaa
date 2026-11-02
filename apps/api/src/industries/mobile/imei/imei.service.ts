@@ -9,6 +9,7 @@ import { CreateImeiDto } from './dto/create-imei.dto';
 import { BulkCreateImeiDto } from './dto/bulk-create-imei.dto';
 import { UpdateImeiDto } from './dto/update-imei.dto';
 import { addMonthsClamped, daysUntil, isLuhnValid, syncImeiStock } from '../common/mobile-common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Statuses an owner may set by hand. SOLD comes only from a bill; a phone
@@ -115,7 +116,7 @@ export class ImeiService {
     });
     if (taken.length) {
       const hit = list.filter((n) => taken.some((t) => t.imei1 === n || t.imei2 === n));
-      throw new ConflictException(`Ye IMEI pehle se stock record me hai: ${hit.join(', ')}`);
+      throw new ConflictException(apiMessage('Ye IMEI pehle se stock record me hai: {{hit}}', { hit: hit.join(', ') }));
     }
   }
 
@@ -181,7 +182,7 @@ export class ImeiService {
     const product = await this.assertOwnProduct(user, dto.productId, dto.variantId);
     const numbers = dto.imeis.flatMap((i) => [i.imei1, i.imei2 ?? '']).filter(Boolean);
     const dup = numbers.find((x, i) => numbers.indexOf(x) !== i);
-    if (dup) throw new ConflictException(`IMEI ${dup} list me do dafa hai`);
+    if (dup) throw new ConflictException(apiMessage('IMEI {{dup}} list me do dafa hai', { dup }));
     await this.assertFree(user, numbers);
 
     const count = dto.imeis.length;
@@ -216,7 +217,7 @@ export class ImeiService {
     });
 
     const badChecksum = dto.imeis.filter((i) => !isLuhnValid(i.imei1)).map((i) => i.imei1);
-    return { count, message: `${count} IMEIs add ho gaye`, badChecksum };
+    return { count, ...apiMessage('{{count}} IMEIs add ho gaye', { count }), badChecksum };
   }
 
   // ════════════════════════════════════════════════════════

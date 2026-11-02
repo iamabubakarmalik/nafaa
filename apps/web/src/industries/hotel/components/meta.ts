@@ -11,6 +11,7 @@ import type { BookingSource, BookingStatus, MealPlan, PayMethod } from '../api/b
 import type { FolioChargeType } from '../api/folio.api';
 import type { HousekeepingStatus, RoomStatus } from '../api/rooms.api';
 import type { TaskPriority, TaskStatus, TaskType } from '../api/housekeeping.api';
+import { t as tr } from '@core/i18n';
 
 /** React Query key roots; every hotel mutation refreshes the stay, board and lists through these. */
 export const HOTEL_KEYS = {
@@ -31,15 +32,15 @@ export const ALL_HOTEL_KEYS = Object.values(HOTEL_KEYS);
 interface Tone { label: string; tone: string; color: string; icon: LucideIcon }
 
 export const BOOKING_STATUS: Record<BookingStatus, Tone> = {
-  INQUIRY: { label: 'Poochh', tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#64748b', icon: Clock },
-  QUOTED: { label: 'Rate diya', tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#64748b', icon: Clock },
-  TENTATIVE: { label: 'Kachi booking', tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706', icon: CalendarClock },
-  CONFIRMED: { label: 'Pakki booking', tone: 'bg-sky-50 text-sky-800 ring-sky-200', color: '#0284c7', icon: CalendarCheck },
-  CHECKED_IN: { label: 'Andar hai', tone: 'bg-brand-50 text-brand-800 ring-brand-200', color: '#4f46e5', icon: LogIn },
-  EXTENDED: { label: 'Andar hai', tone: 'bg-brand-50 text-brand-800 ring-brand-200', color: '#4f46e5', icon: LogIn },
-  CHECKED_OUT: { label: 'Check-out', tone: 'bg-success-50 text-success-800 ring-success-200', color: '#16a34a', icon: LogOut },
-  NO_SHOW: { label: 'No-show', tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48', icon: UserX },
-  CANCELLED: { label: 'Cancel', tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48', icon: Ban },
+  INQUIRY: { label: tr('Poochh'), tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#64748b', icon: Clock },
+  QUOTED: { label: tr('Rate diya'), tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#64748b', icon: Clock },
+  TENTATIVE: { label: tr('Kachi booking'), tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706', icon: CalendarClock },
+  CONFIRMED: { label: tr('Pakki booking'), tone: 'bg-sky-50 text-sky-800 ring-sky-200', color: '#0284c7', icon: CalendarCheck },
+  CHECKED_IN: { label: tr('Andar hai'), tone: 'bg-brand-50 text-brand-800 ring-brand-200', color: '#4f46e5', icon: LogIn },
+  EXTENDED: { label: tr('Andar hai'), tone: 'bg-brand-50 text-brand-800 ring-brand-200', color: '#4f46e5', icon: LogIn },
+  CHECKED_OUT: { label: tr('Check-out'), tone: 'bg-success-50 text-success-800 ring-success-200', color: '#16a34a', icon: LogOut },
+  NO_SHOW: { label: tr('No-show'), tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48', icon: UserX },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48', icon: Ban },
 };
 export const statusOf = (s?: string | null): Tone => BOOKING_STATUS[(s ?? 'CONFIRMED') as BookingStatus] ?? BOOKING_STATUS.CONFIRMED;
 
@@ -50,13 +51,13 @@ export const isInHouse = (s: BookingStatus) => IN_HOUSE.includes(s);
 export const isClosed = (s: BookingStatus) => s === 'CHECKED_OUT' || s === 'CANCELLED' || s === 'NO_SHOW';
 
 export const ROOM_STATUS: Record<RoomStatus, { label: string; dot: string; tile: string; color: string; icon: LucideIcon }> = {
-  AVAILABLE: { label: 'Khaali', dot: 'bg-success-500', tile: 'bg-success-50/60 ring-success-200', color: '#16a34a', icon: DoorOpen },
-  OCCUPIED: { label: 'Guest hai', dot: 'bg-brand-600', tile: 'bg-brand-50/70 ring-brand-200', color: '#4f46e5', icon: BedDouble },
-  RESERVED: { label: 'Aaj aane wala', dot: 'bg-amber-500', tile: 'bg-amber-50/70 ring-amber-200', color: '#d97706', icon: CalendarCheck },
-  CLEANING: { label: 'Safai', dot: 'bg-sky-500', tile: 'bg-sky-50/70 ring-sky-200', color: '#0284c7', icon: Sparkles },
-  MAINTENANCE: { label: 'Marammat', dot: 'bg-orange-500', tile: 'bg-orange-50/70 ring-orange-200', color: '#ea580c', icon: Wrench },
-  OUT_OF_ORDER: { label: 'Kharab', dot: 'bg-rose-500', tile: 'bg-rose-50/70 ring-rose-200', color: '#e11d48', icon: Wrench },
-  BLOCKED: { label: 'Band', dot: 'bg-slate-400', tile: 'bg-slate-50 ring-slate-200', color: '#64748b', icon: Ban },
+  AVAILABLE: { label: tr('Khaali'), dot: 'bg-success-500', tile: 'bg-success-50/60 ring-success-200', color: '#16a34a', icon: DoorOpen },
+  OCCUPIED: { label: tr('Guest hai'), dot: 'bg-brand-600', tile: 'bg-brand-50/70 ring-brand-200', color: '#4f46e5', icon: BedDouble },
+  RESERVED: { label: tr('Aaj aane wala'), dot: 'bg-amber-500', tile: 'bg-amber-50/70 ring-amber-200', color: '#d97706', icon: CalendarCheck },
+  CLEANING: { label: tr('Safai'), dot: 'bg-sky-500', tile: 'bg-sky-50/70 ring-sky-200', color: '#0284c7', icon: Sparkles },
+  MAINTENANCE: { label: tr('Marammat'), dot: 'bg-orange-500', tile: 'bg-orange-50/70 ring-orange-200', color: '#ea580c', icon: Wrench },
+  OUT_OF_ORDER: { label: tr('Kharab'), dot: 'bg-rose-500', tile: 'bg-rose-50/70 ring-rose-200', color: '#e11d48', icon: Wrench },
+  BLOCKED: { label: tr('Band'), dot: 'bg-slate-400', tile: 'bg-slate-50 ring-slate-200', color: '#64748b', icon: Ban },
 };
 export const roomStatusOf = (s?: string | null) => ROOM_STATUS[(s ?? 'AVAILABLE') as RoomStatus] ?? ROOM_STATUS.AVAILABLE;
 
@@ -64,65 +65,65 @@ export const roomStatusOf = (s?: string | null) => ROOM_STATUS[(s ?? 'AVAILABLE'
 export const MANUAL_ROOM_STATUS: RoomStatus[] = ['AVAILABLE', 'CLEANING', 'MAINTENANCE', 'OUT_OF_ORDER', 'BLOCKED'];
 
 export const HK_STATUS: Record<HousekeepingStatus, { label: string; tone: string }> = {
-  CLEAN: { label: 'Saaf', tone: 'text-success-700' },
-  INSPECTED: { label: 'Check ho gaya', tone: 'text-success-700' },
-  DIRTY: { label: 'Ganda', tone: 'text-amber-700' },
-  MAINTENANCE_REQUIRED: { label: 'Marammat chahiye', tone: 'text-orange-700' },
-  OUT_OF_ORDER: { label: 'Kharab', tone: 'text-rose-700' },
+  CLEAN: { label: tr('Saaf'), tone: 'text-success-700' },
+  INSPECTED: { label: tr('Check ho gaya'), tone: 'text-success-700' },
+  DIRTY: { label: tr('Ganda'), tone: 'text-amber-700' },
+  MAINTENANCE_REQUIRED: { label: tr('Marammat chahiye'), tone: 'text-orange-700' },
+  OUT_OF_ORDER: { label: tr('Kharab'), tone: 'text-rose-700' },
 };
 
 export const SOURCES: Array<{ id: BookingSource; label: string }> = [
-  { id: 'WALK_IN', label: 'Walk-in' }, { id: 'PHONE', label: 'Phone' }, { id: 'DIRECT', label: 'Direct' },
-  { id: 'CORPORATE', label: 'Company' }, { id: 'TRAVEL_AGENT', label: 'Travel agent' }, { id: 'GOVT', label: 'Sarkari' },
-  { id: 'BOOKING_COM', label: 'Booking.com' }, { id: 'AGODA', label: 'Agoda' }, { id: 'AIRBNB', label: 'Airbnb' },
-  { id: 'EXPEDIA', label: 'Expedia' }, { id: 'WEBSITE', label: 'Website' }, { id: 'REFERRAL', label: 'Referral' }, { id: 'OTHER', label: 'Other' },
+  { id: 'WALK_IN', label: tr('Walk-in') }, { id: 'PHONE', label: tr('Phone') }, { id: 'DIRECT', label: tr('Direct') },
+  { id: 'CORPORATE', label: tr('Company') }, { id: 'TRAVEL_AGENT', label: tr('Travel agent') }, { id: 'GOVT', label: tr('Sarkari') },
+  { id: 'BOOKING_COM', label: tr('Booking.com') }, { id: 'AGODA', label: tr('Agoda') }, { id: 'AIRBNB', label: tr('Airbnb') },
+  { id: 'EXPEDIA', label: tr('Expedia') }, { id: 'WEBSITE', label: tr('Website') }, { id: 'REFERRAL', label: tr('Referral') }, { id: 'OTHER', label: tr('Other') },
 ];
 export const sourceLabel = (s?: string | null) => SOURCES.find((x) => x.id === s)?.label ?? s ?? '—';
 
 export const MEAL_PLANS: Array<{ id: MealPlan; label: string }> = [
-  { id: 'ROOM_ONLY', label: 'Sirf room' }, { id: 'BED_BREAKFAST', label: 'Room + nashta' }, { id: 'HALF_BOARD', label: 'Nashta + ek khana' },
-  { id: 'FULL_BOARD', label: 'Teeno waqt khana' }, { id: 'ALL_INCLUSIVE', label: 'Sab shamil' },
+  { id: 'ROOM_ONLY', label: tr('Sirf room') }, { id: 'BED_BREAKFAST', label: tr('Room + nashta') }, { id: 'HALF_BOARD', label: tr('Nashta + ek khana') },
+  { id: 'FULL_BOARD', label: tr('Teeno waqt khana') }, { id: 'ALL_INCLUSIVE', label: tr('Sab shamil') },
 ];
 export const mealLabel = (m?: string | null) => MEAL_PLANS.find((x) => x.id === m)?.label ?? '—';
 
 export const PAY_METHODS: Array<{ id: PayMethod; label: string }> = [
-  { id: 'CASH', label: 'Cash' }, { id: 'CARD', label: 'Card' }, { id: 'JAZZCASH', label: 'JazzCash' },
-  { id: 'EASYPAISA', label: 'EasyPaisa' }, { id: 'BANK_TRANSFER', label: 'Bank' },
+  { id: 'CASH', label: tr('Cash') }, { id: 'CARD', label: tr('Card') }, { id: 'JAZZCASH', label: tr('JazzCash') },
+  { id: 'EASYPAISA', label: tr('EasyPaisa') }, { id: 'BANK_TRANSFER', label: tr('Bank') },
 ];
 export const methodLabel = (m?: string | null) => PAY_METHODS.find((x) => x.id === m)?.label ?? m ?? '—';
 
 export const FOLIO_TYPES: Array<{ id: FolioChargeType; label: string }> = [
-  { id: 'FOOD', label: 'Khana / room service' }, { id: 'BEVERAGE', label: 'Chai / drinks' }, { id: 'MINIBAR', label: 'Minibar' },
-  { id: 'LAUNDRY', label: 'Laundry' }, { id: 'PARKING', label: 'Parking' }, { id: 'TELEPHONE', label: 'Phone' }, { id: 'INTERNET', label: 'Internet' },
-  { id: 'SPA', label: 'Spa / gym' }, { id: 'DAMAGE', label: 'Nuqsan' }, { id: 'SERVICE_CHARGE', label: 'Service charge' }, { id: 'MISCELLANEOUS', label: 'Doosra' },
+  { id: 'FOOD', label: tr('Khana / room service') }, { id: 'BEVERAGE', label: tr('Chai / drinks') }, { id: 'MINIBAR', label: tr('Minibar') },
+  { id: 'LAUNDRY', label: tr('Laundry') }, { id: 'PARKING', label: tr('Parking') }, { id: 'TELEPHONE', label: tr('Phone') }, { id: 'INTERNET', label: tr('Internet') },
+  { id: 'SPA', label: tr('Spa / gym') }, { id: 'DAMAGE', label: tr('Nuqsan') }, { id: 'SERVICE_CHARGE', label: tr('Service charge') }, { id: 'MISCELLANEOUS', label: tr('Doosra') },
 ];
 export const folioLabel = (t?: string | null) => FOLIO_TYPES.find((x) => x.id === t)?.label ?? t ?? '—';
 
 export const ID_TYPES = [
-  { id: 'CNIC', label: 'CNIC' }, { id: 'PASSPORT', label: 'Passport' }, { id: 'DRIVING_LICENSE', label: 'Driving license' }, { id: 'OTHER', label: 'Doosra' },
+  { id: 'CNIC', label: tr('CNIC') }, { id: 'PASSPORT', label: tr('Passport') }, { id: 'DRIVING_LICENSE', label: tr('Driving license') }, { id: 'OTHER', label: tr('Doosra') },
 ];
 
 export const TASK_TYPES: Array<{ id: TaskType; label: string }> = [
-  { id: 'CHECKOUT_CLEAN', label: 'Check-out ki safai' }, { id: 'DAILY_CLEAN', label: 'Rozana safai' }, { id: 'DEEP_CLEAN', label: 'Poori safai' },
-  { id: 'LINEN_CHANGE', label: 'Chadar / towel badlein' }, { id: 'TURNDOWN', label: 'Raat ki tayyari' }, { id: 'INSPECTION', label: 'Check karna' },
-  { id: 'MAINTENANCE', label: 'Marammat' },
+  { id: 'CHECKOUT_CLEAN', label: tr('Check-out ki safai') }, { id: 'DAILY_CLEAN', label: tr('Rozana safai') }, { id: 'DEEP_CLEAN', label: tr('Poori safai') },
+  { id: 'LINEN_CHANGE', label: tr('Chadar / towel badlein') }, { id: 'TURNDOWN', label: tr('Raat ki tayyari') }, { id: 'INSPECTION', label: tr('Check karna') },
+  { id: 'MAINTENANCE', label: tr('Marammat') },
 ];
 export const taskLabel = (t?: string | null) => TASK_TYPES.find((x) => x.id === t)?.label ?? t ?? '—';
 
 export const PRIORITIES: Array<{ id: TaskPriority; label: string; tone: string }> = [
-  { id: 'URGENT', label: 'Foran', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  { id: 'HIGH', label: 'Jaldi', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  { id: 'NORMAL', label: 'Aam', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  { id: 'LOW', label: 'Baad me', tone: 'bg-slate-50 text-slate-500 ring-slate-200' },
+  { id: 'URGENT', label: tr('Foran'), tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  { id: 'HIGH', label: tr('Jaldi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  { id: 'NORMAL', label: tr('Aam'), tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  { id: 'LOW', label: tr('Baad me'), tone: 'bg-slate-50 text-slate-500 ring-slate-200' },
 ];
 export const priorityOf = (p?: string | null) => PRIORITIES.find((x) => x.id === p) ?? PRIORITIES[2];
 
 export const TASK_STATUS: Record<TaskStatus, { label: string; icon: LucideIcon; tone: string }> = {
-  PENDING: { label: 'Kisi ko nahi diya', icon: Clock, tone: 'text-amber-700' },
-  ASSIGNED: { label: 'Diya gaya', icon: CalendarCheck, tone: 'text-sky-700' },
-  IN_PROGRESS: { label: 'Chal raha', icon: Sparkles, tone: 'text-brand-700' },
-  COMPLETED: { label: 'Ho gaya', icon: CheckCircle2, tone: 'text-success-700' },
-  CANCELLED: { label: 'Cancel', icon: Ban, tone: 'text-slate-500' },
+  PENDING: { label: tr('Kisi ko nahi diya'), icon: Clock, tone: 'text-amber-700' },
+  ASSIGNED: { label: tr('Diya gaya'), icon: CalendarCheck, tone: 'text-sky-700' },
+  IN_PROGRESS: { label: tr('Chal raha'), icon: Sparkles, tone: 'text-brand-700' },
+  COMPLETED: { label: tr('Ho gaya'), icon: CheckCircle2, tone: 'text-success-700' },
+  CANCELLED: { label: tr('Cancel'), icon: Ban, tone: 'text-slate-500' },
 };
 
 // ─── Dates ───────────────────────────────────────────────────────────
@@ -137,8 +138,8 @@ export const addDaysKey = (key: string, n: number) => {
 };
 export const nightsBetween = (from: string, to: string) => Math.round((Date.parse(`${to.slice(0, 10)}T00:00:00Z`) - Date.parse(`${from.slice(0, 10)}T00:00:00Z`)) / 86_400_000);
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const MONTHS = [tr('Jan'), tr('Feb'), tr('Mar'), tr('Apr'), tr('May'), tr('Jun'), tr('Jul'), tr('Aug'), tr('Sep'), tr('Oct'), tr('Nov'), tr('Dec')];
+const DAYS = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 /** A stay date ("2026-10-19T00:00Z") as "19 Oct"; with `day`, "Peer 19 Oct". */
 export function stayDay(iso?: string | null, opts: { day?: boolean; year?: boolean } = {}) {
   if (!iso) return '—';

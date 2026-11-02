@@ -20,6 +20,7 @@ import { QtyRateModal } from './QtyRateModal';
 import { saleListener } from './rateMode';
 import { getCounterTier } from '@modules/pos/lib/priceTierStore';
 import { tierPrice } from '@core/lib/priceTiers';
+import { t as tr } from '@core/i18n';
 
 const BULK_NOTE = /Bulk rate (\d+(?:\.\d+)?)\+/;
 
@@ -32,10 +33,10 @@ function useHardwareCatalog() {
     if (!f && !t) return it;
     return {
       ...it,
-      subline: factLine(f) ?? (t?.length ? `${qty(t[0].minQuantity)}+ par kam rate` : undefined),
+      subline: factLine(f) ?? (t?.length ? tr('{{minQuantity}}+ par kam rate', { minQuantity: qty(t[0].minQuantity) }) : undefined),
       badges: [
-        ...(t?.length ? [{ label: 'Bulk', tone: 'success' as const, icon: Tags }] : []),
-        ...(f?.requiresTruck ? [{ label: 'Gaari', tone: 'warning' as const, icon: Truck }] : []),
+        ...(t?.length ? [{ label: tr('Bulk'), tone: 'success' as const, icon: Tags }] : []),
+        ...(f?.requiresTruck ? [{ label: tr('Gaari'), tone: 'warning' as const, icon: Truck }] : []),
       ],
       searchText: [it.searchText, f?.diameter, f?.tileSize, f?.grade, f?.colorName, f?.colorCode, categoryLabel(f?.categoryType)].filter(Boolean).join(' '),
       meta: { ...it.meta, tiers: t, category: f?.categoryType, paint: isPaint(f?.categoryType), truck: !!f?.requiresTruck },
@@ -47,20 +48,20 @@ function useHardwareCatalog() {
 const inCategory = (...c: string[]) => (i: PosItem) => c.includes(String(i.meta?.category ?? ''));
 
 const filters: PosFilter[] = [
-  { id: 'bulk', label: 'Bulk rate', icon: Tags, match: (i) => !!(i.meta?.tiers as Tier[] | undefined)?.length },
-  { id: 'paint', label: 'Paint', icon: Paintbrush, match: inCategory('PAINT', 'PRIMER', 'THINNER') },
-  { id: 'pipe', label: 'Pipe / fitting', icon: Wrench, match: inCategory('PLUMBING_PIPE', 'PLUMBING_FITTING', 'SANITARY_WARE', 'STEEL_PIPE') },
-  { id: 'build', label: 'Cement / sarya', icon: Layers, match: inCategory('CEMENT', 'STEEL_REBAR', 'BRICKS', 'SAND', 'GRAVEL', 'CRUSH') },
-  { id: 'truck', label: 'Gaari wala', icon: Truck, match: (i) => !!i.meta?.truck },
+  { id: 'bulk', label: tr('Bulk rate'), icon: Tags, match: (i) => !!(i.meta?.tiers as Tier[] | undefined)?.length },
+  { id: 'paint', label: tr('Paint'), icon: Paintbrush, match: inCategory('PAINT', 'PRIMER', 'THINNER') },
+  { id: 'pipe', label: tr('Pipe / fitting'), icon: Wrench, match: inCategory('PLUMBING_PIPE', 'PLUMBING_FITTING', 'SANITARY_WARE', 'STEEL_PIPE') },
+  { id: 'build', label: tr('Cement / sarya'), icon: Layers, match: inCategory('CEMENT', 'STEEL_REBAR', 'BRICKS', 'SAND', 'GRAVEL', 'CRUSH') },
+  { id: 'truck', label: tr('Gaari wala'), icon: Truck, match: (i) => !!i.meta?.truck },
 ];
 
 export const hardwarePos: PosIndustryConfig = {
   id: 'hardware',
-  label: 'Hardware',
+  label: tr('Hardware'),
   useCatalog: useHardwareCatalog,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, size (3/4), shade code ya barcode…',
+  searchHint: tr('Naam, size (3/4), shade code ya barcode…'),
   CartExtra: CounterRate,
   beforeAdd: (item, opts, api) => {
     const confirmed = opts.confirmed ?? [];
@@ -76,7 +77,7 @@ export const hardwarePos: PosIndustryConfig = {
 
     api.openPicker(createElement(QtyRateModal, {
       item, tiers, baseRate, paint, startQty: opts.qty ?? 1,
-      rateLabel: wholesale ? 'Thekedar rate' : 'Retail rate',
+      rateLabel: wholesale ? tr('Thekedar rate') : tr('Retail rate'),
       onClose: api.closePicker,
       onConfirm: (r) => {
         api.closePicker();
@@ -96,7 +97,7 @@ export const hardwarePos: PosIndustryConfig = {
     for (const l of cart) {
       const m = l.note?.match(BULK_NOTE);
       if (m && l.quantity < Number(m[1])) {
-        return `${l.name}: bulk rate ${m[1]}+ par hai, bill me ${qty(l.quantity)} hai — line hata kar dobara dalein`;
+        return tr('{{name}}: bulk rate {{value}}+ par hai, bill me {{qty}} hai — line hata kar dobara dalein', { name: l.name, value: m[1], qty: qty(l.quantity) });
       }
     }
     return null;

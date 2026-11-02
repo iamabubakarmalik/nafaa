@@ -11,13 +11,15 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { zonedToUtc } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { MessageText, notificationText, apiMessage } from '../../common/i18n/api-message';
 
 interface CreateNotificationParams {
   tenantId: string;
   userId?: string;
   type: NotificationType;
-  title: string;
-  message: string;
+  /** Plain text, or apiMessage() for a text with values (translated on display). */
+  title: MessageText;
+  message: MessageText;
   link?: string;
   metadata?: any;
 }
@@ -164,7 +166,8 @@ export class NotificationsService {
     }
   }
 
-  async create(params: CreateNotificationParams) {
+  async create(input: CreateNotificationParams) {
+    const params = { ...input, ...notificationText(input.title, input.message, input.metadata) };
     const notification = await this.prisma.notification.create({
       data: {
         tenantId: params.tenantId,
@@ -354,7 +357,7 @@ export class NotificationsService {
           tenantId,
           type: 'LOW_STOCK',
           title: '⚠️ Low Stock Alert',
-          message: `${product.name} ka stock kam ho gaya hai (${product.stock} ${product.unit} bacha)`,
+          message: apiMessage('{{name}} ka stock kam ho gaya hai ({{stock}} {{unit}} bacha)', { name: product.name, stock: product.stock, unit: product.unit }),
           link: '/low-stock',
           metadata: { productId: product.id, stock: product.stock },
         });

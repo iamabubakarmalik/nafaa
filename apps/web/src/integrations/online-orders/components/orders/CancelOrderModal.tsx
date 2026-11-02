@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
-const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
+const CANCEL_REASONS = [t('Stock khatam'), t('Customer ne mana kiya'), t('Address/number ghalat'), t('Fake order'), t('Delivery nahi ho sakti')];
 
-export function CancelOrderModal({ open, hasBill, loading, title = 'Order cancel karein?', onClose, onConfirm }: {
+export function CancelOrderModal({ open, hasBill, loading, title = t('Order cancel karein?'), onClose, onConfirm }: {
   open: boolean; hasBill: boolean; loading: boolean; title?: string; onClose: () => void; onConfirm: (reason: string) => void;
 }) {
   const [reason, setReason] = useState('');
@@ -16,11 +17,11 @@ export function CancelOrderModal({ open, hasBill, loading, title = 'Order cancel
       onClose={onClose}
       size="sm"
       title={title}
-      description={hasBill ? 'Bill void ho jayega aur saara stock wapas inventory me aa jayega.' : 'Order cancel list me chala jayega.'}
+      description={hasBill ? t('Bill void ho jayega aur saara stock wapas inventory me aa jayega.') : t('Order cancel list me chala jayega.')}
       footer={
         <div className="flex w-full justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>Nahi</Button>
-          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>Haan, cancel</Button>
+          <Button variant="ghost" onClick={onClose}>{t('Nahi')}</Button>
+          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>{t('Haan, cancel')}</Button>
         </div>
       }
     >
@@ -39,7 +40,7 @@ export function CancelOrderModal({ open, hasBill, loading, title = 'Order cancel
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        placeholder="Wajah likhein…"
+        placeholder={t('Wajah likhein…')}
         rows={2}
         className="mt-3 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
       />

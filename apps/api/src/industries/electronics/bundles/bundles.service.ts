@@ -13,6 +13,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { BundleItemDto, PatchBundleDto, UpsertBundleDto } from './dto/upsert-bundle.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 const LIVE_SALES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
@@ -126,7 +127,7 @@ export class BundlesService {
       where: { tenantId, name: { equals: name, mode: 'insensitive' }, ...(exceptId && { id: { not: exceptId } }) },
       select: { id: true },
     });
-    if (dup) throw new ConflictException(`"${name}" naam ka bundle pehle se hai`);
+    if (dup) throw new ConflictException(apiMessage('"{{name}}" naam ka bundle pehle se hai', { name }));
   }
 
   /** Items belong to this tenant, appear once, and carry the product price when none is given. */
@@ -136,7 +137,7 @@ export class BundlesService {
     const products = await this.prisma.product.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, price: true, isActive: true, name: true } });
     if (products.length !== ids.length) throw new NotFoundException('Bundle ka koi product nahi mila');
     const inactive = products.find((p) => !p.isActive);
-    if (inactive) throw new BadRequestException(`"${inactive.name}" band hai — bundle me nahi ja sakta`);
+    if (inactive) throw new BadRequestException(apiMessage('"{{inactiveName}}" band hai — bundle me nahi ja sakta', { inactiveName: inactive.name }));
     const byId = new Map(products.map((p) => [p.id, p]));
     const out = items.map((i) => ({
       productId: i.productId,
@@ -153,7 +154,7 @@ export class BundlesService {
     const originalPrice = r2(items.reduce((s, i) => s + i.quantity * i.unitPrice, 0));
     const price = r2(bundlePrice);
     if (!(price > 0)) throw new BadRequestException('Bundle ki qeemat likhein');
-    if (price > originalPrice) throw new BadRequestException(`Bundle ki qeemat (${price}) alag alag qeemat (${originalPrice}) se zyada hai`);
+    if (price > originalPrice) throw new BadRequestException(apiMessage('Bundle ki qeemat ({{price}}) alag alag qeemat ({{originalPrice}}) se zyada hai', { price, originalPrice }));
     const savings = r2(originalPrice - price);
     return { originalPrice, bundlePrice: price, savings, savingsPct: originalPrice > 0 ? r2((savings / originalPrice) * 100) : 0 };
   }

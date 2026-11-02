@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toystoreDashboardApi } from '../api/dashboard.api';
+import { t as tr } from '@core/i18n';
 
 const MINUTE = 60_000;
 
@@ -41,9 +42,9 @@ interface ToystoreOverview {
 }
 
 export const AGE_LABELS: Record<string, string> = {
-  NEWBORN_0_6M: '0-6 mahine', INFANT_6_12M: '6-12 mahine', TODDLER_1_2Y: '1-2 saal',
-  TODDLER_2_3Y: '2-3 saal', PRESCHOOL_3_5Y: '3-5 saal', KIDS_5_8Y: '5-8 saal',
-  KIDS_8_12Y: '8-12 saal', TWEEN_12_14Y: '12-14 saal', TEEN_14_PLUS: '14+ saal', ALL_AGES: 'Har umar',
+  NEWBORN_0_6M: tr('0-6 mahine'), INFANT_6_12M: tr('6-12 mahine'), TODDLER_1_2Y: tr('1-2 saal'),
+  TODDLER_2_3Y: tr('2-3 saal'), PRESCHOOL_3_5Y: tr('3-5 saal'), KIDS_5_8Y: tr('5-8 saal'),
+  KIDS_8_12Y: tr('8-12 saal'), TWEEN_12_14Y: tr('12-14 saal'), TEEN_14_PLUS: tr('14+ saal'), ALL_AGES: tr('Har umar'),
 };
 
 export function useToystoreOps() {

@@ -10,6 +10,7 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { PaySource, Sources } from '../api/payroll.api';
 import { ACCOUNT_ICON, DRAWER_ICON } from './meta';
+import { t } from '@core/i18n';
 
 export interface SourceValue { source: PaySource; accountId?: string; allowNegative: boolean }
 
@@ -26,7 +27,7 @@ export function SourcePicker({ sources, value, onChange, total, allowLater }: {
     active: boolean; onClick: () => void; icon: typeof Clock; title: string; sub: string; disabled?: boolean;
   }) => (
     <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active}
-      className={cn('flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2.5 text-left ring-1 transition disabled:cursor-not-allowed disabled:opacity-50',
+      className={cn('flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2.5 text-start ring-1 transition disabled:cursor-not-allowed disabled:opacity-50',
         active ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
       <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', active ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600')}><Icon className="h-4 w-4" /></span>
       <span className="min-w-0">
@@ -38,12 +39,12 @@ export function SourcePicker({ sources, value, onChange, total, allowLater }: {
 
   return (
     <div className="space-y-2">
-      <p className="text-[0.8125rem] font-medium text-slate-700">Paisa kahan se dena hai?</p>
+      <p className="text-[0.8125rem] font-medium text-slate-700">{t('Paisa kahan se dena hai?')}</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {sources.canDrawer && (
           <Option active={value.source === 'DRAWER'} onClick={() => onChange({ ...value, source: 'DRAWER', accountId: undefined })} icon={DRAWER_ICON}
-            disabled={!drawerOk} title="Galle se (cash)"
-            sub={sources.drawer ? `${sources.drawer.registerNumber} · abhi ${formatPKR(sources.drawer.cash)}` : 'Galla band hai ya branch nahi chuni'} />
+            disabled={!drawerOk} title={t('Galle se (cash)')}
+            sub={sources.drawer ? t('{{registerNumber}} · abhi {{cash}}', { registerNumber: sources.drawer.registerNumber, cash: formatPKR(sources.drawer.cash) }) : t('Galla band hai ya branch nahi chuni')} />
         )}
         {accounts.map((a) => {
           const Icon = ACCOUNT_ICON[a.kind];
@@ -54,21 +55,21 @@ export function SourcePicker({ sources, value, onChange, total, allowLater }: {
         })}
         {allowLater && (
           <Option active={value.source === 'NONE'} onClick={() => onChange({ ...value, source: 'NONE', accountId: undefined })} icon={Clock}
-            title="Abhi nahi — baad me dein" sub="Tankhwah ban jayegi, amount baqi rahegi" />
+            title={t('Abhi nahi — baad me dein')} sub={t('Tankhwah ban jayegi, amount baqi rahegi')} />
         )}
       </div>
       <p className="text-[0.75rem] text-slate-500">
-        Galle se diya cash shift ke hisaab me "Cash out" likha jata hai; account se diya us account ki statement me. Dono ki permission Team settings me alag hai.
+        {t('Galle se diya cash shift ke hisaab me "Cash out" likha jata hai; account se diya us account ki statement me. Dono ki permission Team settings me alag hai.')}
       </p>
       {!sources.canDrawer && !accounts.length && !allowLater && (
-        <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">Aap ko galle ya account se paisa dene ki permission nahi.</p>
+        <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">{t('Aap ko galle ya account se paisa dene ki permission nahi.')}</p>
       )}
       {short && (
         <div className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <p className="flex items-start gap-2"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />Yahan sirf {formatPKR(held)} hain, dena {formatPKR(total)} hai.</p>
+          <p className="flex items-start gap-2"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />{t('Yahan sirf {{held}} hain, dena {{total}} hai.', { held: formatPKR(held), total: formatPKR(total) })}</p>
           <div className="mt-2">
             <Checkbox checked={value.allowNegative} onChange={(e) => onChange({ ...value, allowNegative: e.target.checked })}
-              label="Kam ho to bhi dein" description="Hisaab minus me chala jayega — baad me paisa daal kar barabar karein" />
+              label={t('Kam ho to bhi dein')} description={t('Hisaab minus me chala jayega — baad me paisa daal kar barabar karein')} />
           </div>
         </div>
       )}

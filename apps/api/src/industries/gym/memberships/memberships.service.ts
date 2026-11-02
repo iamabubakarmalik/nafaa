@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { postIndustrySale, recordKhataPayment, resolveIndustryShopId } from '../../_shared/industry-sale.helper';
 import { DAY_MS, GYM_SALE, assertCan, gymClock, nextNumber, opt, paging, r2 } from '../common/gym-common';
 import { CancelMembershipDto, FreezeDto, RenewDto, SubscribeDto } from './dto/membership.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 
@@ -51,7 +52,7 @@ export class MembershipsService {
         where: { tenantId, memberId: member.id, status: { in: ['ACTIVE', 'FROZEN'] }, endDate: { gte: startDate }, startDate: { lte: endDate } },
         select: { membershipNumber: true, endDate: true },
       });
-      if (overlap) throw new BadRequestException(`Membership ${overlap.membershipNumber} ${clock.keyOf(overlap.endDate)} tak chal rahi hai — Renew karein, nayi us ke baad shuru hogi`);
+      if (overlap) throw new BadRequestException(apiMessage('Membership {{membershipNumber}} {{endDate}} tak chal rahi hai — Renew karein, nayi us ke baad shuru hogi', { membershipNumber: overlap.membershipNumber, endDate: clock.keyOf(overlap.endDate) }));
     }
 
     // Admission is taken once: a member who already had a membership pays none.
@@ -61,10 +62,10 @@ export class MembershipsService {
     const deposit = firstTime ? r2(plan.securityDeposit) : 0;
     const listPrice = r2(plan.price + admission + deposit);
     const totalPrice = dto.totalPrice != null ? r2(Number(dto.totalPrice)) : listPrice;
-    if (totalPrice > listPrice + 0.01) throw new BadRequestException(`Plan ki poori qeemat Rs ${listPrice} hai`);
+    if (totalPrice > listPrice + 0.01) throw new BadRequestException(apiMessage('Plan ki poori qeemat Rs {{listPrice}} hai', { listPrice }));
     if (totalPrice < listPrice - 0.01) assertCan(user, [P.POS_DISCOUNT_OVERRIDE, P.DISCOUNTS_MANAGE], 'Discount dene');
     const paidAmount = r2(Math.max(Number(dto.paidAmount) || 0, 0));
-    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(`Kul amount sirf Rs ${totalPrice} hai`);
+    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(apiMessage('Kul amount sirf Rs {{totalPrice}} hai', { totalPrice }));
     const balanceDue = r2(Math.max(totalPrice - paidAmount, 0));
     const paymentStatus = paidAmount >= totalPrice - 0.01 ? 'PAID' : paidAmount > 0 ? 'PARTIALLY_PAID' : 'UNPAID';
 
@@ -235,7 +236,7 @@ export class MembershipsService {
     if (!(value > 0)) throw new BadRequestException('Amount sahi likhein');
     const due = r2(m.totalPrice - m.paidAmount);
     if (due <= 0) throw new BadRequestException('Is membership ka koi baqi nahi');
-    if (value > due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);
+    if (value > due + 0.01) throw new BadRequestException(apiMessage('Baqi sirf Rs {{due}} hai', { due }));
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, m.member.shopId);
@@ -283,7 +284,7 @@ export class MembershipsService {
     if (m.status !== 'ACTIVE' || m.endDate < new Date()) throw new BadRequestException('Sirf chalti membership freeze hoti hai');
     if (!m.plan.allowFreeze) throw new BadRequestException('Is plan me freeze ki ijazat nahi');
     const left = m.plan.maxFreezeDays - m.totalFrozenDays;
-    if (days > left) throw new BadRequestException(left > 0 ? `Sirf ${left} din freeze baqi hain` : 'Is membership ke freeze din khatam ho chuke');
+    if (days > left) throw new BadRequestException(left > 0 ? apiMessage('Sirf {{left}} din freeze baqi hain', { left }) : 'Is membership ke freeze din khatam ho chuke');
 
     const fee = r2(m.plan.freezeFee);
     const paid = r2(Math.min(Math.max(Number(dto.paidAmount) || 0, 0), fee));
@@ -351,7 +352,7 @@ export class MembershipsService {
     if (!m) throw new NotFoundException('Membership nahi mili');
     if (m.status === 'CANCELLED') throw new BadRequestException('Ye membership pehle hi cancel hai');
     if ((Number(dto.refundAmount) || 0) > 0) {
-      throw new BadRequestException(`Paisa wapas karne ke liye Sales me bill ${membershipSaleNumber(m.membershipNumber)} ka Return karein — membership khud cancel ho jayegi`);
+      throw new BadRequestException(apiMessage('Paisa wapas karne ke liye Sales me bill {{membershipNumber}} ka Return karein — membership khud cancel ho jayegi', { membershipNumber: membershipSaleNumber(m.membershipNumber) }));
     }
     return this.prisma.gymMemberMembership.update({
       where: { id },

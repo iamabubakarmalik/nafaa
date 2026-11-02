@@ -19,6 +19,7 @@ import { catalogApi } from '@modules/inventory/products/list/api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import type { Recipe, RecipeInput } from '../api/recipes.api';
 import { convertQty, cookUnit, unitChoices } from '../lib/recipeUnits';
+import { t, Trans } from '@core/i18n';
 
 export interface RecipeLine {
   ingredientProductId: string;
@@ -93,10 +94,10 @@ export function recipeTotals(d: RecipeDraft) {
 export function recipeProblem(d: RecipeDraft): string | null {
   if (!d.lines.length) return null;
   const empty = d.lines.find((l) => !(l.quantity > 0));
-  if (empty) return `${empty.name}: quantity likhein`;
-  if (!(d.yieldQuantity > 0)) return 'Kitni plate banti hain — 0 se zyada likhein';
+  if (empty) return t('{{name}}: quantity likhein', { name: empty.name });
+  if (!(d.yieldQuantity > 0)) return t('Kitni plate banti hain — 0 se zyada likhein');
   const waste = d.lines.find((l) => l.wastagePercent < 0 || l.wastagePercent > 100);
-  if (waste) return `${waste.name}: wastage 0 se 100% ke beech`;
+  if (waste) return t('{{name}}: wastage 0 se 100% ke beech', { name: waste.name });
   return null;
 }
 
@@ -175,31 +176,31 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
           <label className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chicken, chawal, oil, tamatar…" aria-label="Raw material search"
-              className={cn(fieldCls, 'h-10 w-full pl-9')} />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Chicken, chawal, oil, tamatar…')} aria-label={t('Raw material search')}
+              className={cn(fieldCls, 'h-10 w-full ps-9')} />
           </label>
           <button type="button" onClick={() => setAll((v) => !v)} aria-pressed={all}
             className={cn('h-10 rounded-lg px-3 text-[0.8125rem] font-semibold ring-1', all ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-            {all ? 'Sab maal' : 'Sirf raw material'}
+            {all ? t('Sab maal') : t('Sirf raw material')}
           </button>
           <button type="button" onClick={() => setAdding((v) => !v)} className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-amber-50 px-3 text-[0.8125rem] font-semibold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100">
-            <Plus className="h-4 w-4" />Naya raw material
+            <Plus className="h-4 w-4" />{t('Naya raw material')}
           </button>
         </div>
         {adding && <QuickRawMaterial initialName={term} onDone={(p) => { setAdding(false); if (p) add(p); }} />}
         <div className="flex flex-wrap gap-1.5">
-          {search.isLoading && <span className="text-[0.8125rem] text-slate-400">Dhoond rahe hain…</span>}
+          {search.isLoading && <span className="text-[0.8125rem] text-slate-400">{t('Dhoond rahe hain…')}</span>}
           {!search.isLoading && !options.length && (
             <span className="text-[0.8125rem] text-slate-500">
-              {term ? `"${term}" nahi mila — "Naya raw material" se banayein` : 'Koi raw material nahi. Pehle chicken, chawal, oil jaisi cheezein "Raw material" bana kar daalein.'}
+              {term ? t('"{{term}}" nahi mila — "Naya raw material" se banayein', { term }) : t('Koi raw material nahi. Pehle chicken, chawal, oil jaisi cheezein "Raw material" bana kar daalein.')}
             </span>
           )}
           {options.map((i) => (
             <button key={i.id} type="button" onClick={() => add(i)}
               className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-100 px-3 text-[0.8125rem] font-medium text-slate-800 hover:bg-brand-50 hover:text-brand-800">
               <Plus className="h-3.5 w-3.5" />{i.name}
-              <span className="text-slate-500">· {i.costPrice > 0 ? `${formatPKR(i.costPrice)}/${unitLabel(i.unit)}` : 'cost nahi'}</span>
+              <span className="text-slate-500">· {i.costPrice > 0 ? `${formatPKR(i.costPrice)}/${unitLabel(i.unit)}` : t('cost nahi')}</span>
             </button>
           ))}
         </div>
@@ -208,8 +209,8 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes
       {value.lines.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center">
           <Wheat className="mx-auto h-6 w-6 text-amber-600" />
-          <p className="mt-2 text-[0.875rem] font-semibold text-slate-800">Abhi recipe khali hai</p>
-          <p className="mt-0.5 text-[0.8125rem] text-slate-500">Upar se saamaan chunein. Dish bikne par yahi saamaan stock se nikalta hai aur cost isi se banti hai.</p>
+          <p className="mt-2 text-[0.875rem] font-semibold text-slate-800">{t('Abhi recipe khali hai')}</p>
+          <p className="mt-0.5 text-[0.8125rem] text-slate-500">{t('Upar se saamaan chunein. Dish bikne par yahi saamaan stock se nikalta hai aur cost isi se banti hai.')}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -226,38 +227,38 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[0.875rem] font-semibold text-slate-900">{l.name}</p>
                     <p className="text-[0.75rem] text-slate-500">
-                      {l.rate > 0 ? `${formatPKR(l.rate)} fi ${unitLabel(l.stockUnit)}` : <span className="text-amber-700">Cost nahi — purchase se aayegi</span>}
-                      {l.stock != null && <> · stock {fmtQty(l.stock)} {unitLabel(l.stockUnit)}{plates !== null && !l.isOptional ? ` · ${plates} plate` : ''}</>}
+                      {l.rate > 0 ? t('{{rate}} fi {{stockUnit}}', { rate: formatPKR(l.rate), stockUnit: unitLabel(l.stockUnit) }) : <span className="text-amber-700">{t('Cost nahi — purchase se aayegi')}</span>}
+                      {l.stock != null && <> {' '}{t('· stock {{stock}} {{stockUnit}}{{value}}', { stock: fmtQty(l.stock), stockUnit: unitLabel(l.stockUnit), value: plates !== null && !l.isOptional ? t(' · {{plates}} plate', { plates }) : '' })}</>}
                     </p>
                   </div>
-                  <input inputMode="decimal" value={l.quantity || ''} placeholder="Kitna" aria-label={`${l.name} quantity`}
+                  <input inputMode="decimal" value={l.quantity || ''} placeholder={t('Kitna')} aria-label={t('{{name}} quantity', { name: l.name })}
                     onChange={(e) => patch(i, { quantity: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })}
-                    className={cn(fieldCls, 'w-24 text-right tabular-nums')} />
-                  <select value={l.unit} onChange={(e) => patch(i, { unit: e.target.value })} aria-label={`${l.name} unit`} className={cn(fieldCls, 'w-24')}>
-                    {!fits && <option value={l.unit}>{unitLabel(l.unit)} (ghalat)</option>}
+                    className={cn(fieldCls, 'w-24 text-end tabular-nums')} />
+                  <select value={l.unit} onChange={(e) => patch(i, { unit: e.target.value })} aria-label={t('{{name}} unit', { name: l.name })} className={cn(fieldCls, 'w-24')}>
+                    {!fits && <option value={l.unit}>{t('{{unit}} (ghalat)', { unit: unitLabel(l.unit) })}</option>}
                     {units.map((u) => <option key={u} value={u}>{unitLabel(u)}</option>)}
                   </select>
-                  <span className="w-20 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-800">{l.isOptional ? '—' : formatPKR(cost)}</span>
-                  <button type="button" onClick={() => setWasteAt(wasteAt === i ? null : i)} title="Wastage jorein" aria-label="Wastage"
+                  <span className="w-20 text-end text-[0.8125rem] font-semibold tabular-nums text-slate-800">{l.isOptional ? '—' : formatPKR(cost)}</span>
+                  <button type="button" onClick={() => setWasteAt(wasteAt === i ? null : i)} title={t('Wastage jorein')} aria-label={t('Wastage')}
                     className={cn('inline-flex h-9 min-w-9 items-center justify-center gap-0.5 rounded-lg px-1.5 text-[0.75rem] font-semibold ring-1',
                       wasteAt === i || l.wastagePercent > 0 ? 'bg-amber-100 text-amber-800 ring-amber-200' : 'text-slate-500 ring-slate-200 hover:bg-slate-50')}>
                     {l.wastagePercent > 0 ? `${fmtQty(l.wastagePercent)}` : null}<Percent className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => setLines(value.lines.filter((_, j) => j !== i))} aria-label="Hatayein"
+                  <button type="button" onClick={() => setLines(value.lines.filter((_, j) => j !== i))} aria-label={t('Hatayein')}
                     className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.75rem] text-slate-600">
                   <label className="inline-flex items-center gap-1.5">
                     <input type="checkbox" checked={l.isOptional} onChange={(e) => patch(i, { isOptional: e.target.checked })} className="h-4 w-4 rounded border-slate-300" />
-                    Marzi ka (grahak maange to) — stock aur cost me nahi ginta
+                    {t('Marzi ka (grahak maange to) — stock aur cost me nahi ginta')}
                   </label>
-                  <input value={l.notes} onChange={(e) => patch(i, { notes: e.target.value.slice(0, 200) })} placeholder="Note (marzi hai)" aria-label={`${l.name} note`}
+                  <input value={l.notes} onChange={(e) => patch(i, { notes: e.target.value.slice(0, 200) })} placeholder={t('Note (marzi hai)')} aria-label={t('{{name}} note', { name: l.name })}
                     className={cn(fieldCls, 'h-8 min-w-[10rem] flex-1 text-[0.75rem]')} />
                 </div>
-                {!fits && <p className="mt-1.5 text-[0.75rem] font-medium text-rose-700">Stock {unitLabel(l.stockUnit)} me hai — {units.map(unitLabel).join(' ya ')} chunein</p>}
+                {!fits && <p className="mt-1.5 text-[0.75rem] font-medium text-rose-700">{t('Stock {{stockUnit}} me hai — {{value}} chunein', { stockUnit: unitLabel(l.stockUnit), value: units.map(unitLabel).join(' ya ') })}</p>}
                 {wasteAt === i && <WastageRow line={l} onChange={(wastagePercent) => patch(i, { wastagePercent })} onDone={() => setWasteAt(null)} />}
                 {wasteAt !== i && l.wastagePercent > 0 && l.quantity > 0 && (
-                  <p className="mt-1.5 text-[0.75rem] text-amber-800">{fmtQty(l.wastagePercent)}% wastage — stock se {fmtQty(grossQty(l))} {unitLabel(l.unit)} nikalta hai</p>
+                  <p className="mt-1.5 text-[0.75rem] text-amber-800">{t('{{wastagePercent}}% wastage — stock se {{fmtQty}} {{unit}} nikalta hai', { wastagePercent: fmtQty(l.wastagePercent), fmtQty: fmtQty(grossQty(l)), unit: unitLabel(l.unit) })}</p>
                 )}
               </li>
             );
@@ -268,16 +269,16 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes
       {value.lines.length > 0 && (
         <div className="grid gap-3 rounded-2xl bg-slate-50 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
           <label className="block text-[0.8125rem] font-medium text-slate-700">
-            Is saamaan se kitni plate banti hain
+            {t('Is saamaan se kitni plate banti hain')}
             <input inputMode="decimal" value={value.yieldQuantity || ''} onChange={(e) => onChange({ ...value, yieldQuantity: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })}
-              className={cn(fieldCls, 'mt-1.5 w-full text-right font-semibold tabular-nums')} />
-            <span className="mt-1 block text-[0.6875rem] font-normal text-slate-500">Degh ki recipe ho to poori degh ka saamaan likhein aur yahan plate ginein (maslan 40)</span>
+              className={cn(fieldCls, 'mt-1.5 w-full text-end font-semibold tabular-nums')} />
+            <span className="mt-1 block text-[0.6875rem] font-normal text-slate-500">{t('Degh ki recipe ho to poori degh ka saamaan likhein aur yahan plate ginein (maslan 40)')}</span>
           </label>
           <div className="grid grid-cols-3 gap-2 text-[0.8125rem]">
-            <Fact label="Poora saamaan" value={formatPKR(totals.batch)} />
-            <Fact label="Ek plate ki cost" value={formatPKR(totals.perPlate)} strong />
-            <Fact label="Food cost" value={pct === null ? '—' : `${pct.toFixed(1)}%`}
-              hint={pct === null ? 'Rate likhein' : `Profit ${formatPKR((price ?? 0) - totals.perPlate)}`}
+            <Fact label={t('Poora saamaan')} value={formatPKR(totals.batch)} />
+            <Fact label={t('Ek plate ki cost')} value={formatPKR(totals.perPlate)} strong />
+            <Fact label={t('Food cost')} value={pct === null ? '—' : `${pct.toFixed(1)}%`}
+              hint={pct === null ? t('Rate likhein') : t('Profit {{formatPKR}}', { formatPKR: formatPKR((price ?? 0) - totals.perPlate) })}
               tone={pct === null ? undefined : pct > 45 ? 'bad' : pct > 35 ? 'warn' : 'good'} />
           </div>
         </div>
@@ -287,7 +288,7 @@ export function RecipeLinesEditor({ value, onChange, price, dishProductId, sizes
       )}
       {value.lines.some((l) => !(l.rate > 0) && !l.isOptional) && (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Kuch saamaan ki cost nahi likhi — plate ki cost kam dikhegi. Purchase karne par cost khud aa jati hai.
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Kuch saamaan ki cost nahi likhi — plate ki cost kam dikhegi. Purchase karne par cost khud aa jati hai.')}
         </p>
       )}
     </div>
@@ -309,11 +310,11 @@ function Fact({ label, value, hint, strong, tone }: { label: string; value: stri
 function WastageRow({ line, onChange, onDone }: { line: RecipeLine; onChange: (pct: number) => void; onDone: () => void }) {
   return (
     <div className="mt-2 flex flex-wrap items-end gap-2 rounded-lg bg-amber-50 p-2.5 ring-1 ring-amber-200">
-      <label className="text-[0.6875rem] font-semibold text-amber-900">Wastage %
+      <label className="text-[0.6875rem] font-semibold text-amber-900">{t('Wastage %')}
         <input autoFocus inputMode="decimal" value={line.wastagePercent || ''} placeholder="0"
           onChange={(e) => onChange(Math.min(Number(e.target.value.replace(/[^\d.]/g, '')) || 0, 100))}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onDone(); }}
-          className={cn(fieldCls, 'mt-1 block w-20 text-right')} />
+          className={cn(fieldCls, 'mt-1 block w-20 text-end')} />
       </label>
       <div className="flex gap-1 pb-0.5">
         {[5, 10, 15, 20].map((p) => (
@@ -321,9 +322,9 @@ function WastageRow({ line, onChange, onDone }: { line: RecipeLine; onChange: (p
         ))}
       </div>
       <p className="pb-2 text-[0.75rem] text-amber-900">
-        Recipe me {fmtQty(line.quantity)} {unitLabel(line.unit)} · stock se niklega <strong className="tabular-nums">{fmtQty(grossQty(line))} {unitLabel(line.unit)}</strong>
+        {t('Recipe me {{quantity}} {{unit}} · stock se niklega', { quantity: fmtQty(line.quantity), unit: unitLabel(line.unit) })}{' '} <strong className="tabular-nums">{fmtQty(grossQty(line))} {unitLabel(line.unit)}</strong>
       </p>
-      <span className="w-full text-[0.6875rem] text-amber-800">Saaf karne ya pakane me jo zaya hota hai (chhilka, haddi, tel). Quantity saaf maal ki likhein, wastage upar se katega.</span>
+      <span className="w-full text-[0.6875rem] text-amber-800">{t('Saaf karne ya pakane me jo zaya hota hai (chhilka, haddi, tel). Quantity saaf maal ki likhein, wastage upar se katega.')}</span>
     </div>
   );
 }
@@ -339,8 +340,8 @@ function SizeFactors({ sizes, perPlate, value, onChange }: {
   };
   return (
     <div className="rounded-2xl bg-slate-50 p-3.5">
-      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800"><Layers className="h-4 w-4 text-slate-500" />Har size me kitna saamaan</p>
-      <p className="mt-0.5 text-[0.75rem] text-slate-500">Upar wali recipe ek poori plate ki hai. Half plate me aadha lagta hai to 0.5 likhein — bikne par utna hi saamaan katega aur size ki cost bhi isi se banegi. Khali = poori recipe.</p>
+      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800"><Layers className="h-4 w-4 text-slate-500" />{t('Har size me kitna saamaan')}</p>
+      <p className="mt-0.5 text-[0.75rem] text-slate-500">{t('Upar wali recipe ek poori plate ki hai. Half plate me aadha lagta hai to 0.5 likhein — bikne par utna hi saamaan katega aur size ki cost bhi isi se banegi. Khali = poori recipe.')}</p>
       <ul className="mt-2.5 grid gap-2 sm:grid-cols-2">
         {sizes.map((sz) => {
           const f = value[sizeKey(sz.name)];
@@ -350,10 +351,10 @@ function SizeFactors({ sizes, perPlate, value, onChange }: {
             <li key={sz.name} className="rounded-xl bg-white p-2.5 ring-1 ring-slate-200">
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1 truncate text-[0.875rem] font-semibold text-slate-900">{sz.name}</span>
-                <input inputMode="decimal" value={f ?? ''} placeholder="1" aria-label={`${sz.name} ka hissa`}
+                <input inputMode="decimal" value={f ?? ''} placeholder="1" aria-label={t('{{name}} ka hissa', { name: sz.name })}
                   onChange={(e) => set(sz.name, Number(e.target.value.replace(/[^\d.]/g, '')) || null)}
-                  className={cn(fieldCls, 'w-20 text-right tabular-nums')} />
-                <span className="text-[0.75rem] text-slate-500">× recipe</span>
+                  className={cn(fieldCls, 'w-20 text-end tabular-nums')} />
+                <span className="text-[0.75rem] text-slate-500">{t('× recipe')}</span>
               </div>
               <div className="mt-1.5 flex flex-wrap items-center gap-1">
                 {[0.25, 0.5, 0.75, 1, 1.5, 2].map((x) => (
@@ -362,7 +363,7 @@ function SizeFactors({ sizes, perPlate, value, onChange }: {
                 ))}
               </div>
               <p className="mt-1.5 text-[0.75rem] text-slate-600">
-                Cost {formatPKR(cost)}{pct !== null && <> · food cost <span className={cn('font-semibold', pct > 45 ? 'text-rose-700' : pct > 35 ? 'text-amber-700' : 'text-success-700')}>{pct.toFixed(0)}%</span></>}
+                {t('Cost {{cost}}', { cost: formatPKR(cost) })}{pct !== null && <> {' '}{t('· food cost')}{' '} <span className={cn('font-semibold', pct > 45 ? 'text-rose-700' : pct > 35 ? 'text-amber-700' : 'text-success-700')}>{pct.toFixed(0)}%</span></>}
               </p>
             </li>
           );
@@ -373,8 +374,8 @@ function SizeFactors({ sizes, perPlate, value, onChange }: {
 }
 
 const RAW_UNITS = [
-  { value: 'kg', label: 'Kilo' }, { value: 'gram', label: 'Gram' }, { value: 'liter', label: 'Litre' },
-  { value: 'ml', label: 'ML' }, { value: 'pcs', label: 'Adad (pcs)' }, { value: 'dozen', label: 'Darjan' },
+  { value: 'kg', label: t('Kilo') }, { value: 'gram', label: t('Gram') }, { value: 'liter', label: t('Litre') },
+  { value: 'ml', label: t('ML') }, { value: 'pcs', label: t('Adad (pcs)') }, { value: 'dozen', label: t('Darjan') },
 ];
 
 /** Adds a raw material (name, stock unit, cost) without leaving the recipe. */
@@ -387,7 +388,7 @@ function QuickRawMaterial({ initialName, onDone }: {
   const [unit, setUnit] = useState('kg');
   const [rate, setRate] = useState('');
   const [busy, setBusy] = useState(false);
-  const problem = useMemo(() => (!name.trim() ? 'Naam likhein' : null), [name]);
+  const problem = useMemo(() => (!name.trim() ? t('Naam likhein') : null), [name]);
 
   const save = async () => {
     if (problem || busy) return;
@@ -396,32 +397,32 @@ function QuickRawMaterial({ initialName, onDone }: {
       // The shared payload type has no raw-material flag; the API takes it.
       const p = await productsApi.create({ name: name.trim(), unit, price: 0, costPrice: Number(rate) || 0, stock: 0, isRawMaterial: true } as never);
       qc.invalidateQueries({ queryKey: ['restaurant-ingredient-search'] });
-      toast.success(`${p.name} raw material me jur gaya — stock purchase se aayega`);
+      toast.success(t('{{name}} raw material me jur gaya — stock purchase se aayega', { name: p.name }));
       onDone({ id: p.id, name: p.name, unit: p.unit, costPrice: Number(p.costPrice) || 0, stock: 0 });
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Raw material nahi bana');
+      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || t('Raw material nahi bana'));
     } finally { setBusy(false); }
   };
 
   return (
     <div className="flex flex-wrap items-end gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200">
-      <label className="min-w-[10rem] flex-1 text-[0.75rem] font-semibold text-amber-900">Naam
-        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Maslan: Chicken boneless" className={cn(fieldCls, 'mt-1 block w-full')}
+      <label className="min-w-[10rem] flex-1 text-[0.75rem] font-semibold text-amber-900">{t('Naam')}
+        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Maslan: Chicken boneless')} className={cn(fieldCls, 'mt-1 block w-full')}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void save(); } }} />
       </label>
-      <label className="text-[0.75rem] font-semibold text-amber-900">Stock kis me
+      <label className="text-[0.75rem] font-semibold text-amber-900">{t('Stock kis me')}
         <select value={unit} onChange={(e) => setUnit(e.target.value)} className={cn(fieldCls, 'mt-1 block w-28')}>
           {RAW_UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
         </select>
       </label>
-      <label className="text-[0.75rem] font-semibold text-amber-900">Cost fi {unitLabel(unit)}
-        <input inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className={cn(fieldCls, 'mt-1 block w-24 text-right')} />
+      <label className="text-[0.75rem] font-semibold text-amber-900">{t('Cost fi {{unit}}', { unit: unitLabel(unit) })}
+        <input inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0" className={cn(fieldCls, 'mt-1 block w-24 text-end')} />
       </label>
       <button type="button" onClick={() => void save()} disabled={!!problem || busy} className="h-9 rounded-lg bg-amber-600 px-3 text-[0.8125rem] font-semibold text-white disabled:opacity-50">
-        {busy ? 'Ban raha…' : 'Jorein'}
+        {busy ? t('Ban raha…') : t('Jorein')}
       </button>
-      <button type="button" onClick={() => onDone(null)} aria-label="Band" className="flex h-9 w-9 items-center justify-center rounded-lg text-amber-800 hover:bg-amber-100"><X className="h-4 w-4" /></button>
-      <p className="w-full text-[0.6875rem] text-amber-800">Poori details (packing, kam stock ki had) baad me <Link to="/products" className="font-semibold underline">Menu → Raw material</Link> se.</p>
+      <button type="button" onClick={() => onDone(null)} aria-label={t('Band')} className="flex h-9 w-9 items-center justify-center rounded-lg text-amber-800 hover:bg-amber-100"><X className="h-4 w-4" /></button>
+      <p className="w-full text-[0.6875rem] text-amber-800"><Trans text="Poori details (packing, kam stock ki had) baad me {{link}} se." values={{ link: <Link to="/products" className="font-semibold underline">{t('Menu → Raw material')}</Link> }} /></p>
     </div>
   );
 }

@@ -14,8 +14,9 @@ import { vehicleMakesApi } from '../api/vehicle-makes.api';
 import { vehicleModelsApi } from '../api/vehicle-models.api';
 import type { PartFitment } from '../api/part-profiles.api';
 import { MAKES_KEY, MODELS_KEY, digits } from './meta';
+import { t } from '@core/i18n';
 
-const yearText = (f: PartFitment) => (f.yearFrom && f.yearTo ? `${f.yearFrom}–${f.yearTo}` : f.yearFrom ? `${f.yearFrom} se` : f.yearTo ? `${f.yearTo} tak` : 'Har saal');
+const yearText = (f: PartFitment) => (f.yearFrom && f.yearTo ? `${f.yearFrom}–${f.yearTo}` : f.yearFrom ? t('{{yearFrom}} se', { yearFrom: f.yearFrom }) : f.yearTo ? t('{{yearTo}} tak', { yearTo: f.yearTo }) : t('Har saal'));
 
 export function FitmentEditor({ universal, fitments, onChange, error }: {
   universal: boolean;
@@ -45,34 +46,34 @@ export function FitmentEditor({ universal, fitments, onChange, error }: {
   };
 
   return (
-    <Section icon={Car} title="Kis gaari me lagta hai" hint="Counter par gaari ke naam se part milta hai — jaise “corolla brake”">
-      <Toggle on={universal} onChange={(v) => onChange({ universal: v, ...(v && { fitments: [] }) })} title="Har gaari me lagta hai" hint="Bulb, fuse, oil, tape jaisa saman" />
+    <Section icon={Car} title={t('Kis gaari me lagta hai')} hint={t('Counter par gaari ke naam se part milta hai — jaise “corolla brake”')}>
+      <Toggle on={universal} onChange={(v) => onChange({ universal: v, ...(v && { fitments: [] }) })} title={t('Har gaari me lagta hai')} hint={t('Bulb, fuse, oil, tape jaisa saman')} />
       {!universal && (
         <div className="mt-3 space-y-3">
           <div className="grid gap-2 sm:grid-cols-[1fr_1fr_6rem_6rem_auto]">
-            <Select aria-label="Company" value={makeId} onChange={(e) => { setMakeId(e.target.value); setModelId(''); }}
-              placeholder={makes.isLoading ? 'Load ho raha…' : 'Company'} options={(makes.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
-            <Select aria-label="Model" value={modelId} onChange={(e) => setModelId(e.target.value)} disabled={!makeId}
-              placeholder="Sab model" options={(models.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
-            <input value={from} onChange={(e) => setFrom(digits(e.target.value).slice(0, 4))} placeholder="Saal se" inputMode="numeric" aria-label="Saal se" className={inputClass} />
-            <input value={to} onChange={(e) => setTo(digits(e.target.value).slice(0, 4))} placeholder="Saal tak" inputMode="numeric" aria-label="Saal tak" className={cn(inputClass, badYears && 'ring-2 ring-rose-400')} />
+            <Select aria-label={t('Company')} value={makeId} onChange={(e) => { setMakeId(e.target.value); setModelId(''); }}
+              placeholder={makes.isLoading ? t('Load ho raha…') : t('Company')} options={(makes.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
+            <Select aria-label={t('Model')} value={modelId} onChange={(e) => setModelId(e.target.value)} disabled={!makeId}
+              placeholder={t('Sab model')} options={(models.data ?? []).map((m) => ({ value: m.id, label: m.name }))} />
+            <input value={from} onChange={(e) => setFrom(digits(e.target.value).slice(0, 4))} placeholder={t('Saal se')} inputMode="numeric" aria-label={t('Saal se')} className={inputClass} />
+            <input value={to} onChange={(e) => setTo(digits(e.target.value).slice(0, 4))} placeholder={t('Saal tak')} inputMode="numeric" aria-label={t('Saal tak')} className={cn(inputClass, badYears && 'ring-2 ring-rose-400')} />
             <button type="button" onClick={add} disabled={!make || badYears}
               className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-[0.875rem] font-semibold text-white disabled:opacity-40">
-              <Plus className="h-4 w-4" />Jorein
+              <Plus className="h-4 w-4" />{t('Jorein')}
             </button>
           </div>
-          {badYears && <p className="text-[0.8125rem] font-medium text-rose-600">“Saal se” “saal tak” se bara hai</p>}
+          {badYears && <p className="text-[0.8125rem] font-medium text-rose-600">{t('“Saal se” “saal tak” se bara hai')}</p>}
           {!makes.isLoading && !makes.data?.length && (
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900">Abhi koi company nahi. “Gaariyan → Company / Model” me Pakistani companies aur model ek click me daal lein.</p>
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900">{t('Abhi koi company nahi. “Gaariyan → Company / Model” me Pakistani companies aur model ek click me daal lein.')}</p>
           )}
           {fitments.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">Koi gaari nahi likhi — bagair is ke bhi save ho jata hai</p>
+            <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-[0.8125rem] text-slate-500">{t('Koi gaari nahi likhi — bagair is ke bhi save ho jata hai')}</p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {fitments.map((f, i) => (
-                <li key={`${f.makeId}-${f.modelId}-${i}`} className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 py-1 pl-3 pr-1 text-[0.8125rem] font-medium text-brand-900 ring-1 ring-brand-100">
+                <li key={`${f.makeId}-${f.modelId}-${i}`} className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 py-1 ps-3 pe-1 text-[0.8125rem] font-medium text-brand-900 ring-1 ring-brand-100">
                   {[f.makeName, f.modelName ?? 'sab model'].join(' ')} · {yearText(f)}
-                  <button type="button" aria-label="Hatayein" onClick={() => onChange({ fitments: fitments.filter((_, j) => j !== i) })}
+                  <button type="button" aria-label={t('Hatayein')} onClick={() => onChange({ fitments: fitments.filter((_, j) => j !== i) })}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
                 </li>
               ))}

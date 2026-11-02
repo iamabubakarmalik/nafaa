@@ -14,6 +14,7 @@ import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@m
 import { Input } from '@/design-system/components';
 import { gamingProductsApi, type GamingConditionType, type GamingConsolePlatform, type GamingProductProfile } from '../api/products.api';
 import { CATEGORY_GROUPS, CONDITIONS, GAMING_KEYS, PLATFORMS, categoryGroup, categoryLabel } from '../lib/meta';
+import { t } from '@core/i18n';
 
 interface GamingExtra {
   categoryType: string;
@@ -46,7 +47,7 @@ function Kind({ ctx }: { ctx: StepContext<GamingExtra> }) {
   const x = ctx.draft.extra;
   return (
     <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">Ye kya hai</span>
+      <span className="block text-[0.8125rem] font-medium text-slate-700">{t('Ye kya hai')}</span>
       {CATEGORY_GROUPS.map((g) => (
         <div key={g.id}>
           <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
@@ -55,7 +56,7 @@ function Kind({ ctx }: { ctx: StepContext<GamingExtra> }) {
           </div>
         </div>
       ))}
-      <p className="text-[0.75rem] text-slate-500">Isi se counter ke filter (Games, Consoles, Accessories) chalte hain. Top-up card yahan nahi — Top-ups page par daalein.</p>
+      <p className="text-[0.75rem] text-slate-500">{t('Isi se counter ke filter (Games, Consoles, Accessories) chalte hain. Top-up card yahan nahi — Top-ups page par daalein.')}</p>
     </div>
   );
 }
@@ -66,7 +67,7 @@ function Details({ ctx }: { ctx: StepContext<GamingExtra> }) {
   const group = categoryGroup(x.categoryType || null);
   return (
     <div className="space-y-4">
-      <Section icon={Gamepad2} title="Platform aur halat" hint="Counter aur bill par naam ke neeche dikhta hai">
+      <Section icon={Gamepad2} title={t('Platform aur halat')} hint={t('Counter aur bill par naam ke neeche dikhta hai')}>
         <Tiles value={x.platform} onChange={(platform) => set({ platform })} columns="grid-cols-3 sm:grid-cols-6"
           options={(['PS5', 'PS4', 'XBOX_SERIES_X', 'XBOX_ONE', 'NINTENDO_SWITCH', 'PC', 'MOBILE', 'MULTI'] as GamingConsolePlatform[]).map((p) => ({ value: p, label: PLATFORMS[p] }))} />
         <div className="mt-3">
@@ -75,30 +76,30 @@ function Details({ ctx }: { ctx: StepContext<GamingExtra> }) {
         </div>
       </Section>
       {(group === 'game' || !group) && (
-        <Section icon={Disc3} title="Game ki details" hint="Marzi hai — search aur counter par kaam aati hain">
+        <Section icon={Disc3} title={t('Game ki details')} hint={t('Marzi hai — search aur counter par kaam aati hain')}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextField label="Company (publisher)" value={x.publisher} onChange={(publisher) => set({ publisher })} placeholder="EA, Sony, Rockstar" />
-            <TextField label="Kitne player" value={x.playerCount} onChange={(playerCount) => set({ playerCount })} placeholder="1-4" />
+            <TextField label={t('Company (publisher)')} value={x.publisher} onChange={(publisher) => set({ publisher })} placeholder={t('EA, Sony, Rockstar')} />
+            <TextField label={t('Kitne player')} value={x.playerCount} onChange={(playerCount) => set({ playerCount })} placeholder="1-4" />
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">{PUBLISHERS.map((v) => <Chip key={v} on={x.publisher === v} onClick={() => set({ publisher: x.publisher === v ? '' : v })}>{v}</Chip>)}</div>
-          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Genre</p>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">{t('Genre')}</p>
           <div className="flex flex-wrap gap-1.5">{GENRES.map((v) => <Chip key={v} on={x.genre.includes(v)} onClick={() => set({ genre: toggle(x.genre, v) })}>{v}</Chip>)}</div>
-          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Region · umar</p>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">{t('Region · umar')}</p>
           <div className="flex flex-wrap gap-1.5">
             {REGIONS.map((v) => <Chip key={v} on={x.region === v} onClick={() => set({ region: x.region === v ? '' : v })}>{v}</Chip>)}
             {AGES.map((v) => <Chip key={v} on={x.ageRating === v} onClick={() => set({ ageRating: x.ageRating === v ? '' : v })}>{v}</Chip>)}
           </div>
-          <div className="mt-3"><Toggle on={x.onlineMultiplayer} onChange={(onlineMultiplayer) => set({ onlineMultiplayer })} title="Online multiplayer" hint="Internet par doston ke saath" /></div>
+          <div className="mt-3"><Toggle on={x.onlineMultiplayer} onChange={(onlineMultiplayer) => set({ onlineMultiplayer })} title={t('Online multiplayer')} hint={t('Internet par doston ke saath')} /></div>
         </Section>
       )}
       {(group === 'console' || group === 'pc' || group === 'gear') && (
-        <Section icon={Sparkles} title="Hardware" hint="Storage, controller aur dabbe me kya hai">
+        <Section icon={Sparkles} title={t('Hardware')} hint={t('Storage, controller aur dabbe me kya hai')}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <TextField label="Storage" value={x.storageCapacity} onChange={(storageCapacity) => set({ storageCapacity })} placeholder="825GB, 1TB" />
-            <NumberField label="Controller" allowEmpty value={x.numberOfControllers} onChange={(v) => set({ numberOfControllers: v == null ? null : Math.max(0, Math.round(v)) })} />
-            {group === 'pc' && <TextField label="GPU / CPU / RAM" value={x.gpuModel} onChange={(gpuModel) => set({ gpuModel })} placeholder="RTX 4060 · i5 · 16GB" />}
+            <TextField label={t('Storage')} value={x.storageCapacity} onChange={(storageCapacity) => set({ storageCapacity })} placeholder={t('825GB, 1TB')} />
+            <NumberField label={t('Controller')} allowEmpty value={x.numberOfControllers} onChange={(v) => set({ numberOfControllers: v == null ? null : Math.max(0, Math.round(v)) })} />
+            {group === 'pc' && <TextField label={t('GPU / CPU / RAM')} value={x.gpuModel} onChange={(gpuModel) => set({ gpuModel })} placeholder={t('RTX 4060 · i5 · 16GB')} />}
           </div>
-          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">Dabbe me</p>
+          <p className="mb-1 mt-3 text-[0.75rem] font-semibold text-slate-500">{t('Dabbe me')}</p>
           <div className="flex flex-wrap gap-1.5">{IN_BOX.map((v) => <Chip key={v} on={x.includedAccessories.includes(v)} onClick={() => set({ includedAccessories: toggle(x.includedAccessories, v) })}>{v}</Chip>)}</div>
         </Section>
       )}
@@ -111,51 +112,51 @@ function Rental({ ctx }: { ctx: StepContext<GamingExtra> }) {
   const set = ctx.setExtra;
   return (
     <div className="space-y-4">
-      <Toggle on={x.isRentable} onChange={(isRentable) => set({ isRentable })} icon={PackageOpen} title="Kiraye par deta hun" hint="Rentals page par ye cheez aur is ka rate khud aata hai" />
+      <Toggle on={x.isRentable} onChange={(isRentable) => set({ isRentable })} icon={PackageOpen} title={t('Kiraye par deta hun')} hint={t('Rentals page par ye cheez aur is ka rate khud aata hai')} />
       {x.isRentable && (
         <div className="grid gap-3 sm:grid-cols-3">
-          <NumberField label="Rozana kiraya" prefix="Rs" allowEmpty value={x.rentalPricePerDay} onChange={(rentalPricePerDay) => set({ rentalPricePerDay })} error={ctx.errors.rent} />
-          <NumberField label="Ghante ka kiraya" prefix="Rs" allowEmpty value={x.rentalPricePerHour} onChange={(rentalPricePerHour) => set({ rentalPricePerHour })} hint="Marzi hai" />
-          <NumberField label="Security deposit" prefix="Rs" allowEmpty value={x.rentalDeposit} onChange={(rentalDeposit) => set({ rentalDeposit })} hint="Wapsi par lauta dete hain" />
+          <NumberField label={t('Rozana kiraya')} prefix="Rs" allowEmpty value={x.rentalPricePerDay} onChange={(rentalPricePerDay) => set({ rentalPricePerDay })} error={ctx.errors.rent} />
+          <NumberField label={t('Ghante ka kiraya')} prefix="Rs" allowEmpty value={x.rentalPricePerHour} onChange={(rentalPricePerHour) => set({ rentalPricePerHour })} hint={t('Marzi hai')} />
+          <NumberField label={t('Security deposit')} prefix="Rs" allowEmpty value={x.rentalDeposit} onChange={(rentalDeposit) => set({ rentalDeposit })} hint={t('Wapsi par lauta dete hain')} />
         </div>
       )}
-      <Section icon={Star} title="Nishan" hint="Counter aur list par">
+      <Section icon={Star} title={t('Nishan')} hint={t('Counter aur list par')}>
         <div className="grid gap-2 sm:grid-cols-3">
-          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} title="Khaas" hint="Aage dikhayein" />
-          <Toggle on={x.isNewRelease} onChange={(isNewRelease) => set({ isNewRelease })} title="Naya aaya" />
-          <Toggle on={x.isPreOrder} onChange={(isPreOrder) => set({ isPreOrder })} icon={CalendarClock} title="Pre-order" hint="Abhi aaya nahi" />
+          <Toggle on={x.isFeatured} onChange={(isFeatured) => set({ isFeatured })} title={t('Khaas')} hint={t('Aage dikhayein')} />
+          <Toggle on={x.isNewRelease} onChange={(isNewRelease) => set({ isNewRelease })} title={t('Naya aaya')} />
+          <Toggle on={x.isPreOrder} onChange={(isPreOrder) => set({ isPreOrder })} icon={CalendarClock} title={t('Pre-order')} hint={t('Abhi aaya nahi')} />
         </div>
         {x.isPreOrder && (
           <div className="mt-3 max-w-xs">
-            <Input label="Kab aayega" type="date" value={x.preOrderReleaseDate} onChange={(e) => set({ preOrderReleaseDate: e.target.value })} hint="Customer ko bata sakein" />
+            <Input label={t('Kab aayega')} type="date" value={x.preOrderReleaseDate} onChange={(e) => set({ preOrderReleaseDate: e.target.value })} hint={t('Customer ko bata sakein')} />
           </div>
         )}
       </Section>
       <div className="grid gap-3 sm:grid-cols-2">
-        <NumberField label="MRP (company rate)" prefix="Rs" allowEmpty value={x.mrp} onChange={(mrp) => set({ mrp })} hint="Marzi hai — counter par sale ka hisaab" />
-        <NumberField label="Wapas lene ka rate (trade-in)" prefix="Rs" allowEmpty value={x.tradeInValue} onChange={(tradeInValue) => set({ tradeInValue })} hint="Customer purana de to kitne me lenge" />
+        <NumberField label={t('MRP (company rate)')} prefix="Rs" allowEmpty value={x.mrp} onChange={(mrp) => set({ mrp })} hint={t('Marzi hai — counter par sale ka hisaab')} />
+        <NumberField label={t('Wapas lene ka rate (trade-in)')} prefix="Rs" allowEmpty value={x.tradeInValue} onChange={(tradeInValue) => set({ tradeInValue })} hint={t('Customer purana de to kitne me lenge')} />
       </div>
     </div>
   );
 }
 
 const core: CoreOptions = {
-  units: [{ value: 'pcs', label: 'Adad (pcs)' }, { value: 'set', label: 'Set' }, { value: 'box', label: 'Dabba' }],
+  units: [{ value: 'pcs', label: t('Adad (pcs)') }, { value: 'set', label: t('Set') }, { value: 'box', label: t('Dabba') }],
   skuPrefix: 'GM',
   packs: false,
-  variants: { presets: [{ group: 'Edition', values: ['PS5', 'PS4', 'Standard', 'Deluxe'] }, { group: 'Rang', values: ['Black', 'White', 'Blue', 'Red'] }, { group: 'Storage', values: ['825GB', '1TB', '2TB'] }] },
+  variants: { presets: [{ group: t('Edition'), values: ['PS5', 'PS4', 'Standard', 'Deluxe'] }, { group: t('Rang'), values: ['Black', 'White', 'Blue', 'Red'] }, { group: t('Storage'), values: ['825GB', '1TB', '2TB'] }] },
   batches: false,
   markups: [5, 10, 15, 20],
 };
 
-const detailStep: StepDef<GamingExtra> = { id: 'gaming', title: 'Gaming', hint: 'Platform, halat, details', icon: Gamepad2, render: (ctx) => <Details ctx={ctx} /> };
+const detailStep: StepDef<GamingExtra> = { id: 'gaming', title: t('Gaming'), hint: t('Platform, halat, details'), icon: Gamepad2, render: (ctx) => <Details ctx={ctx} /> };
 const rentalStep: StepDef<GamingExtra> = {
-  id: 'rental', title: 'Rental', hint: 'Kiraya, pre-order', icon: PackageOpen, render: (ctx) => <Rental ctx={ctx} />,
-  validate: (d): Errors => (d.extra.isRentable && !(Number(d.extra.rentalPricePerDay) > 0) && !(Number(d.extra.rentalPricePerHour) > 0) ? { rent: 'Kiraye ka rate likhein' } : {}),
+  id: 'rental', title: t('Rental'), hint: t('Kiraya, pre-order'), icon: PackageOpen, render: (ctx) => <Rental ctx={ctx} />,
+  validate: (d): Errors => (d.extra.isRentable && !(Number(d.extra.rentalPricePerDay) > 0) && !(Number(d.extra.rentalPricePerHour) > 0) ? { rent: t('Kiraye ka rate likhein') } : {}),
 };
 
 const config: EditorConfig<GamingExtra> = {
-  label: 'Gaming',
+  label: t('Gaming'),
   draftKey: 'nafaa.product-editor.gaming',
   paths: { list: '/products', detail: (id) => `/gaming-products/${id}`, create: '/gaming-products/new' },
   core,
@@ -188,7 +189,7 @@ const config: EditorConfig<GamingExtra> = {
   },
   steps: [
     basicStep<GamingExtra>(core, {
-      extra: (ctx) => <Kind ctx={ctx} />, namePlaceholder: 'Jaise: FIFA 25 (PS5) ya DualSense controller',
+      extra: (ctx) => <Kind ctx={ctx} />, namePlaceholder: t('Jaise: FIFA 25 (PS5) ya DualSense controller'),
       categorySuggestions: ['Games', 'Consoles', 'Controllers', 'Headsets', 'PC parts', 'Snacks', 'Drinks'],
     }),
     priceStep<GamingExtra>(core),
@@ -202,14 +203,14 @@ const config: EditorConfig<GamingExtra> = {
       <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
         <p className="text-slate-700">{[x.categoryType ? categoryLabel(x.categoryType) : null, PLATFORMS[x.platform], CONDITIONS[x.conditionType]?.label].filter(Boolean).join(' · ')}</p>
         {x.genre.length > 0 && <p className="text-slate-600">{x.genre.join(', ')}</p>}
-        {x.isRentable && <p className="text-sky-700">Kiraye par{x.rentalPricePerDay ? ` · Rs ${x.rentalPricePerDay}/din` : ''}</p>}
+        {x.isRentable && <p className="text-sky-700">{t('Kiraye par{{value}}', { value: x.rentalPricePerDay ? t(' · Rs {{rentalPricePerDay}}/din', { rentalPricePerDay: x.rentalPricePerDay }) : '' })}</p>}
       </div>
     );
   },
   refresh: [GAMING_KEYS.profiles, 'gaming-product-detail'],
   guide: [
-    { icon: Gamepad2, color: '#7c3aed', title: 'Platform aur halat', text: 'PS5/PS4 aur naya/used zaroor chunein — counter par card par dikhta hai.' },
-    { icon: PackageOpen, color: '#0891b2', title: 'Kiraya', text: 'Console kiraye par dete hain to Rental step me rozana rate aur deposit likhein.' },
+    { icon: Gamepad2, color: '#7c3aed', title: t('Platform aur halat'), text: t('PS5/PS4 aur naya/used zaroor chunein — counter par card par dikhta hai.') },
+    { icon: PackageOpen, color: '#0891b2', title: t('Kiraya'), text: t('Console kiraye par dete hain to Rental step me rozana rate aur deposit likhein.') },
   ],
 };
 

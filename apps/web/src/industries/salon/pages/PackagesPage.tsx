@@ -27,10 +27,11 @@ import { CancelModal, CustomerField, emptyCustomer, useServices, type CustomerVa
 import { EmptyList, HeroPrint, ListSkeleton, LoadFailed } from '../components/ui';
 import { SALON_KEYS, apiError, dateOf } from '../lib/meta';
 import { useSalonCan } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'sold' | 'packages';
 type Status = 'ACTIVE' | 'USED' | 'EXPIRED' | 'CANCELLED' | '';
-const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { ACTIVE: 'Chalu', USED: 'Sessions khatam', EXPIRED: 'Muddat khatam', CANCELLED: 'Cancel' };
+const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { ACTIVE: tr('Chalu'), USED: tr('Sessions khatam'), EXPIRED: tr('Muddat khatam'), CANCELLED: tr('Cancel') };
 const DAY = 86_400_000;
 
 export default function PackagesPage() {
@@ -71,12 +72,12 @@ export default function PackagesPage() {
   });
 
   const printDoc = (): PrintDoc => ({
-    title: 'Packages — becha hua',
-    subtitle: status ? STATUS_LABEL[status] : 'Sab',
-    meta: [['Packages', String(rows.length)], ['Sessions baqi', String(rows.reduce((s, p) => s + p.sessionsRemaining, 0))]],
+    title: tr('Packages — becha hua'),
+    subtitle: status ? STATUS_LABEL[status] : tr('Sab'),
+    meta: [[tr('Packages'), String(rows.length)], [tr('Sessions baqi'), String(rows.reduce((s, p) => s + p.sessionsRemaining, 0))]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Number', wideOnly: true }, { label: 'Customer' }, { label: 'Package' }, { label: 'Baqi' }, { label: 'Khatam', wideOnly: true }, { label: 'Paid', align: 'right' }],
+      columns: [{ label: tr('Number'), wideOnly: true }, { label: tr('Customer') }, { label: tr('Package') }, { label: tr('Baqi') }, { label: tr('Khatam'), wideOnly: true }, { label: tr('Paid'), align: 'right' }],
       rows: rows.map((p) => [p.purchaseNumber, `${p.customer?.name ?? ''} ${p.customer?.phone ?? ''}`.trim(), p.package?.name ?? '', `${p.sessionsRemaining}/${p.package?.totalSessions ?? ''}`, dateOf(p.expiryDate), formatPKR(p.amountPaid)]),
     }],
   });
@@ -84,53 +85,53 @@ export default function PackagesPage() {
   return (
     <PageShell>
       <PageHero
-        title="Packages"
-        chip={<><Gift /> Prepaid</>}
-        meta="Pehle paisa, phir sessions — bridal packages advance ke saath"
+        title={tr('Packages')}
+        chip={<><Gift /> {' '}{tr('Prepaid')}</>}
+        meta={tr('Pehle paisa, phir sessions — bridal packages advance ke saath')}
         busy={soldQ.isFetching && !soldQ.isLoading}
         loading={activeQ.isLoading}
         actions={<>
           <HeroPrint doc={printDoc} disabled={tab !== 'sold' || !rows.length} />
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {can.bill && <button type="button" onClick={() => setSelling(true)} title="Package bechein (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Package bechein</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {can.bill && <button type="button" onClick={() => setSelling(true)} title={tr('Package bechein (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Package bechein')}</button>}
         </>}
         stats={[
-          { label: 'Chalu packages', value: active.length },
-          { label: 'Sessions baqi', value: sessions },
-          { label: 'Khate me baqi', value: formatPKR(owed), hint: 'In packages ke bill par' },
+          { label: tr('Chalu packages'), value: active.length },
+          { label: tr('Sessions baqi'), value: sessions },
+          { label: tr('Khate me baqi'), value: formatPKR(owed), hint: tr('In packages ke bill par') },
         ]}
       />
 
       <KpiRow cols={4}>
         {activeQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Gift} color="#16a34a" label="Chalu" value={active.length} hint={`${sessions} sessions dene hain`} onClick={() => { setTab('sold'); setStatus('ACTIVE'); }} active={tab === 'sold' && status === 'ACTIVE'} />
-          <KpiCard icon={AlarmClock} color={ending.length ? '#d97706' : '#64748b'} label="15 din me khatam" value={ending.length} hint="Customer ko yaad dilayein" />
-          <KpiCard icon={Wallet} color={owed ? '#e11d48' : '#64748b'} label="Advance ke baad baqi" value={formatPKR(owed)} hint="Khata se wasool karein" />
-          <KpiCard icon={BookmarkPlus} color="#db2777" label="Packages" value={pkgs.filter((p) => p.isActive).length} hint={`${pkgs.length - pkgs.filter((p) => p.isActive).length} band`} onClick={() => setTab('packages')} active={tab === 'packages'} />
+          <KpiCard icon={Gift} color="#16a34a" label={tr('Chalu')} value={active.length} hint={tr('{{sessions}} sessions dene hain', { sessions })} onClick={() => { setTab('sold'); setStatus('ACTIVE'); }} active={tab === 'sold' && status === 'ACTIVE'} />
+          <KpiCard icon={AlarmClock} color={ending.length ? '#d97706' : '#64748b'} label={tr('15 din me khatam')} value={ending.length} hint={tr('Customer ko yaad dilayein')} />
+          <KpiCard icon={Wallet} color={owed ? '#e11d48' : '#64748b'} label={tr('Advance ke baad baqi')} value={formatPKR(owed)} hint={tr('Khata se wasool karein')} />
+          <KpiCard icon={BookmarkPlus} color="#db2777" label={tr('Packages')} value={pkgs.filter((p) => p.isActive).length} hint={tr('{{value}} band', { value: pkgs.length - pkgs.filter((p) => p.isActive).length })} onClick={() => setTab('packages')} active={tab === 'packages'} />
         </>}
       </KpiRow>
 
       {tab === 'sold' && (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer ka naam, phone ya PKG number…" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Customer ka naam, phone ya PKG number…')} />}
           chips={query || status !== 'ACTIVE' ? <>
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
-            {status !== 'ACTIVE' && <FilterChip onRemove={() => setStatus('ACTIVE')}>{status ? STATUS_LABEL[status] : 'Sab'}</FilterChip>}
+            {status !== 'ACTIVE' && <FilterChip onRemove={() => setStatus('ACTIVE')}>{status ? STATUS_LABEL[status] : tr('Sab')}</FilterChip>}
           </> : undefined}
           onClear={() => { setSearch(''); setStatus('ACTIVE'); }}>
-          <FilterMenu icon={Filter} label={status ? STATUS_LABEL[status] : 'Sab'} value={status} active={status !== 'ACTIVE'} onChange={setStatus}
-            options={[{ value: 'ACTIVE', label: 'Chalu' }, { value: 'USED', label: 'Sessions khatam' }, { value: 'EXPIRED', label: 'Muddat khatam' }, { value: 'CANCELLED', label: 'Cancel' }, { value: '', label: 'Sab' }]} />
+          <FilterMenu icon={Filter} label={status ? STATUS_LABEL[status] : tr('Sab')} value={status} active={status !== 'ACTIVE'} onChange={setStatus}
+            options={[{ value: 'ACTIVE', label: tr('Chalu') }, { value: 'USED', label: tr('Sessions khatam') }, { value: 'EXPIRED', label: tr('Muddat khatam') }, { value: 'CANCELLED', label: tr('Cancel') }, { value: '', label: tr('Sab') }]} />
         </FilterBar>
       )}
 
-      <ViewTabs value={tab} onChange={setTab} hint={<>{can.bill && <><Kbd>N</Kbd> bechein · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
-        tabs={[{ id: 'sold', label: 'Becha hua', icon: ListChecks, count: rows.length }, { id: 'packages', label: 'Packages', icon: Gift, count: pkgs.length }]} />
+      <ViewTabs value={tab} onChange={setTab} hint={<>{can.bill && <><Kbd>N</Kbd> {' '}{tr('bechein ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
+        tabs={[{ id: 'sold', label: tr('Becha hua'), icon: ListChecks, count: rows.length }, { id: 'packages', label: tr('Packages'), icon: Gift, count: pkgs.length }]} />
 
       {tab === 'sold' ? (
-        soldQ.isLoading ? <ListSkeleton /> : soldQ.isError ? <LoadFailed what="Packages" retry={() => soldQ.refetch()} /> : !rows.length ? (
-          <EmptyList icon={Gift} title={query ? 'Is search me koi nahi' : 'Koi package nahi becha'} text="Package banayein (jaise 5 facial Rs 10,000) aur customer ko bechein. Har visit par counter se ek session katta hai.">
-            {can.bill && pkgs.length > 0 && <Button onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>Package bechein</Button>}
-            {can.catalog && !pkgs.length && <Button onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla package banayein</Button>}
+        soldQ.isLoading ? <ListSkeleton /> : soldQ.isError ? <LoadFailed what={tr('Packages')} retry={() => soldQ.refetch()} /> : !rows.length ? (
+          <EmptyList icon={Gift} title={query ? tr('Is search me koi nahi') : tr('Koi package nahi becha')} text={tr('Package banayein (jaise 5 facial Rs 10,000) aur customer ko bechein. Har visit par counter se ek session katta hai.')}>
+            {can.bill && pkgs.length > 0 && <Button onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Package bechein')}</Button>}
+            {can.catalog && !pkgs.length && <Button onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Pehla package banayein')}</Button>}
           </EmptyList>
         ) : (
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -143,22 +144,22 @@ export default function PackagesPage() {
             <div key={p.id} className={cn('rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80', !p.isActive && 'opacity-60')}>
               <div className="flex items-start justify-between gap-2">
                 <p className="font-semibold text-slate-900">{p.name}</p>
-                <div className="flex gap-1">{p.isFeatured && <Badge size="xs" variant="accent">Khaas</Badge>}{!p.isActive && <Badge size="xs">Band</Badge>}</div>
+                <div className="flex gap-1">{p.isFeatured && <Badge size="xs" variant="accent">{tr('Khaas')}</Badge>}{!p.isActive && <Badge size="xs">{tr('Band')}</Badge>}</div>
               </div>
               <p className="mt-2 text-2xl font-bold tabular-nums text-slate-900">{formatPKR(p.price)}</p>
-              {p.originalPrice != null && p.originalPrice > p.price && <p className="text-[0.8125rem] text-success-700">Bachat {formatPKR(p.originalPrice - p.price)} <span className="text-slate-400 line-through">{formatPKR(p.originalPrice)}</span></p>}
-              <p className="mt-1 text-[0.8125rem] text-slate-600">{p.totalSessions} sessions · {p.validityDays} din me</p>
+              {p.originalPrice != null && p.originalPrice > p.price && <p className="text-[0.8125rem] text-success-700">{tr('Bachat {{formatPKR}}', { formatPKR: formatPKR(p.originalPrice - p.price) })}{' '} <span className="text-slate-400 line-through">{formatPKR(p.originalPrice)}</span></p>}
+              <p className="mt-1 text-[0.8125rem] text-slate-600">{tr('{{totalSessions}} sessions · {{validityDays}} din me', { totalSessions: p.totalSessions, validityDays: p.validityDays })}</p>
               {p.description && <p className="mt-1 line-clamp-2 text-[0.75rem] text-slate-500">{p.description}</p>}
-              <p className="mt-1 text-[0.75rem] text-slate-500">{p.totalSold} dafa bika</p>
+              <p className="mt-1 text-[0.75rem] text-slate-500">{tr('{{totalSold}} dafa bika', { totalSold: p.totalSold })}</p>
               <div className="mt-3 flex gap-1.5">
-                {can.bill && p.isActive && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setSelling(p)}>Bechein</Button>}
-                {can.catalog && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEditing(p)}>Badlein</Button>}
+                {can.bill && p.isActive && <Button size="sm" leftIcon={<Receipt className="h-4 w-4" />} onClick={() => setSelling(p)}>{tr('Bechein')}</Button>}
+                {can.catalog && <Button size="sm" variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => setEditing(p)}>{tr('Badlein')}</Button>}
               </div>
             </div>
           ))}
           {can.catalog && (
             <button type="button" onClick={() => setEditing('new')} className="flex min-h-[12rem] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-700">
-              <Plus className="h-6 w-6" /> Naya package
+              <Plus className="h-6 w-6" /> {' '}{tr('Naya package')}
             </button>
           )}
         </div>
@@ -173,14 +174,14 @@ export default function PackagesPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Packages — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Packages — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: BookmarkPlus, color: '#db2777', title: 'Package banayein', text: 'Naam, qeemat, kitne sessions, kitne din me, aur kin services par chalega (khali = har service).' },
-            { icon: Wallet, color: '#0891b2', title: 'Advance ke saath bechein', text: 'Bridal package me advance likhein — baqi customer ke khate me udhaar. Bill Sales me aaj ki tareekh me aata hai.' },
-            { icon: Scissors, color: '#16a34a', title: 'Session lena', text: 'Counter par customer chunein, service par "Package" chunein — session kat jata hai aur bill me paisa nahi lagta. Stylist ki commission banti hai.' },
-            { icon: Receipt, color: '#e11d48', title: 'Wapas', text: 'Package ka bill void ho to package khud cancel. Session wala bill void ho to session wapas mil jata hai.' },
+            { icon: BookmarkPlus, color: '#db2777', title: tr('Package banayein'), text: tr('Naam, qeemat, kitne sessions, kitne din me, aur kin services par chalega (khali = har service).') },
+            { icon: Wallet, color: '#0891b2', title: tr('Advance ke saath bechein'), text: tr('Bridal package me advance likhein — baqi customer ke khate me udhaar. Bill Sales me aaj ki tareekh me aata hai.') },
+            { icon: Scissors, color: '#16a34a', title: tr('Session lena'), text: tr('Counter par customer chunein, service par "Package" chunein — session kat jata hai aur bill me paisa nahi lagta. Stylist ki commission banti hai.') },
+            { icon: Receipt, color: '#e11d48', title: tr('Wapas'), text: tr('Package ka bill void ho to package khud cancel. Session wala bill void ho to session wapas mil jata hai.') },
           ]}
-          shortcuts={[['N', 'bechein'], ['/', 'dhoondein'], ['1', 'becha hua'], ['2', 'packages'], ['G', 'guide']]}
+          shortcuts={[['N', 'bechein'], ['/', 'dhoondein'], ['1', tr('becha hua')], ['2', 'packages'], ['G', 'guide']]}
         />
       )}
     </PageShell>
@@ -199,26 +200,26 @@ function PurchaseRow({ p, canCancel, onCancel }: { p: PackagePurchase; canCancel
           <p className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-900">{p.customer?.name ?? '—'}</span>
             <Badge size="xs" variant={p.status === 'ACTIVE' ? 'success' : p.status === 'CANCELLED' ? 'danger' : 'default'}>{STATUS_LABEL[p.status as Exclude<Status, ''>] ?? p.status}</Badge>
-            {dead && <Badge size="xs" variant="danger">Bill {p.sale!.status === 'VOIDED' ? 'void' : 'wapas'}</Badge>}
+            {dead && <Badge size="xs" variant="danger">{tr('Bill {{value}}', { value: p.sale!.status === 'VOIDED' ? tr('void') : tr('wapas') })}</Badge>}
           </p>
-          <p className="text-[0.8125rem] text-slate-600">{p.package?.name} · {p.purchaseNumber} · {dateOf(p.expiryDate)} tak</p>
+          <p className="text-[0.8125rem] text-slate-600">{tr('{{name}} · {{purchaseNumber}} · {{expiryDate}} tak', { name: p.package?.name, purchaseNumber: p.purchaseNumber, expiryDate: dateOf(p.expiryDate) })}</p>
           <div className="mt-1.5 flex items-center gap-2">
             <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-success-500" style={{ width: `${total ? (p.sessionsUsed / total) * 100 : 0}%` }} /></div>
-            <span className="text-[0.75rem] text-slate-600">{p.sessionsUsed}/{total} istemal · {p.sessionsRemaining} baqi</span>
+            <span className="text-[0.75rem] text-slate-600">{tr('{{sessionsUsed}}/{{total}} istemal · {{sessionsRemaining}} baqi', { sessionsUsed: p.sessionsUsed, total, sessionsRemaining: p.sessionsRemaining })}</span>
           </div>
         </div>
-        <div className="text-right text-[0.8125rem]">
-          <p className="font-semibold tabular-nums">{formatPKR(p.amountPaid)} paid</p>
-          {p.sale && p.sale.creditAmount > 0 && <p className="text-amber-700">{formatPKR(p.sale.creditAmount)} khate me tha</p>}
+        <div className="text-end text-[0.8125rem]">
+          <p className="font-semibold tabular-nums">{tr('{{amountPaid}} paid', { amountPaid: formatPKR(p.amountPaid) })}</p>
+          {p.sale && p.sale.creditAmount > 0 && <p className="text-amber-700">{tr('{{creditAmount}} khate me tha', { creditAmount: formatPKR(p.sale.creditAmount) })}</p>}
         </div>
         <div className="flex gap-1.5">
-          {!!log.length && <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>{open ? 'Band' : 'Visits'}</Button>}
-          {canCancel && p.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>}
+          {!!log.length && <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>{open ? tr('Band') : tr('Visits')}</Button>}
+          {canCancel && p.status === 'ACTIVE' && <Button size="sm" variant="ghost" onClick={onCancel}>{tr('Cancel')}</Button>}
         </div>
       </div>
       {open && (
         <ul className="mt-2 space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
-          {log.map((u, i) => <li key={i} className="flex justify-between gap-2"><span>{u.serviceName ?? 'Session'}{u.staffName ? ` · ${u.staffName}` : ''}</span><span className="text-slate-500">{u.appointmentNumber} · {dateOf(u.usedAt)}</span></li>)}
+          {log.map((u, i) => <li key={i} className="flex justify-between gap-2"><span>{u.serviceName ?? tr('Session')}{u.staffName ? ` · ${u.staffName}` : ''}</span><span className="text-slate-500">{u.appointmentNumber} · {dateOf(u.usedAt)}</span></li>)}
         </ul>
       )}
     </li>
@@ -234,22 +235,22 @@ function SellModal({ packages, initial, onClose }: { packages: Package[]; initia
   const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [notes, setNotes] = useState('');
   const amount = paid === '' ? p?.price ?? 0 : Number(paid) || 0;
-  const error = !customer.customerId ? 'Customer chunein' : !p ? 'Package chunein' : amount < 0 || amount > p.price ? `Zyada se zyada ${formatPKR(p.price)}` : undefined;
+  const error = !customer.customerId ? tr('Customer chunein') : !p ? tr('Package chunein') : amount < 0 || amount > p.price ? tr('Zyada se zyada {{price}}', { price: formatPKR(p.price) }) : undefined;
   const save = useMutation({
     mutationFn: () => packagesApi.purchase({ packageId: pkgId, customerId: customer.customerId, amountPaid: amount, paymentMethod: method, notes: notes.trim() || undefined }),
-    onSuccess: (r) => { toast.success(`${r.purchaseNumber} becha gaya`); [SALON_KEYS.packages, 'customers', 'salon-perks'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Package nahi bika')),
+    onSuccess: (r) => { toast.success(tr('{{purchaseNumber}} becha gaya', { purchaseNumber: r.purchaseNumber })); [SALON_KEYS.packages, 'customers', 'salon-perks'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Package nahi bika'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Package bechein" description="Bill Sales me aata hai; advance ke baad baqi khate me udhaar"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>Bechein {formatPKR(amount)}</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Package bechein')} description={tr('Bill Sales me aata hai; advance ke baad baqi khate me udhaar')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()} leftIcon={<Wallet className="h-4 w-4" />}>{tr('Bechein {{amount}}', { amount: formatPKR(amount) })}</Button></>}>
       <div className="space-y-3">
         <CustomerField value={customer} onChange={setCustomer} compact />
-        <Select label="Package" value={pkgId} onChange={(e) => setPkgId(e.target.value)} options={packages.map((x) => ({ value: x.id, label: `${x.name} · ${formatPKR(x.price)} · ${x.totalSessions} sessions` }))} />
-        <Input label="Abhi kitna mila (advance)" inputMode="decimal" value={paid} placeholder={String(p?.price ?? 0)} onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
-          hint={p && amount < p.price ? `${formatPKR(p.price - amount)} khate me udhaar — baad me Khata se wasool` : 'Poora paisa'} />
+        <Select label={tr('Package')} value={pkgId} onChange={(e) => setPkgId(e.target.value)} options={packages.map((x) => ({ value: x.id, label: tr('{{name}} · {{price}} · {{totalSessions}} sessions', { name: x.name, price: formatPKR(x.price), totalSessions: x.totalSessions }) }))} />
+        <Input label={tr('Abhi kitna mila (advance)')} inputMode="decimal" value={paid} placeholder={String(p?.price ?? 0)} onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
+          hint={p && amount < p.price ? tr('{{formatPKR}} khate me udhaar — baad me Khata se wasool', { formatPKR: formatPKR(p.price - amount) }) : tr('Poora paisa')} />
         {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
-        <Textarea label="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Shaadi 20 Nov, trial 10 Nov" hint="Marzi hai" />
+        <Textarea label={tr('Note')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} placeholder={tr('Shaadi 20 Nov, trial 10 Nov')} hint={tr('Marzi hai')} />
       </div>
     </Modal>
   );
@@ -267,7 +268,7 @@ function PackageModal({ pkg, onClose }: { pkg: Package | null; onClose: () => vo
   const [description, setDescription] = useState(pkg?.description ?? '');
   const [featured, setFeatured] = useState(pkg?.isFeatured ?? false);
   const [active, setActive] = useState(pkg?.isActive ?? true);
-  const error = name.trim().length < 2 ? 'Package ka naam likhein' : price === '' || !(Number(price) >= 0) ? 'Qeemat likhein' : !(Number(sessions) >= 1) ? 'Sessions likhein' : !(Number(days) >= 1) ? 'Din likhein' : undefined;
+  const error = name.trim().length < 2 ? tr('Package ka naam likhein') : price === '' || !(Number(price) >= 0) ? tr('Qeemat likhein') : !(Number(sessions) >= 1) ? tr('Sessions likhein') : !(Number(days) >= 1) ? tr('Din likhein') : undefined;
   const save = useMutation({
     mutationFn: () => {
       const body = {
@@ -276,34 +277,34 @@ function PackageModal({ pkg, onClose }: { pkg: Package | null; onClose: () => vo
       };
       return pkg ? packagesApi.update(pkg.id, body) : packagesApi.create(body);
     },
-    onSuccess: () => { toast.success('Package save ho gaya'); qc.invalidateQueries({ queryKey: [SALON_KEYS.packages] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Package save nahi hua')),
+    onSuccess: () => { toast.success(tr('Package save ho gaya')); qc.invalidateQueries({ queryKey: [SALON_KEYS.packages] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Package save nahi hua'))),
   });
   return (
-    <Modal open onClose={onClose} size="lg" title={pkg ? `${pkg.name} — badlein` : 'Naya package'}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>Save</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={pkg ? tr('{{name}} — badlein', { name: pkg.name }) : tr('Naya package')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button loading={save.isPending} disabled={!!error} onClick={() => save.mutate()}>{tr('Save')}</Button></>}>
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Bridal Gold" maxLength={120} />
-          <Input label="Qeemat" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="50000" />
-          <Input label="Alag alag lene par" inputMode="decimal" value={original} onChange={(e) => setOriginal(e.target.value.replace(/[^\d.]/g, ''))} placeholder="60000" hint="Customer ko bachat dikhti hai" />
+          <Input label={tr('Naam')} value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Bridal Gold')} maxLength={120} />
+          <Input label={tr('Qeemat')} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} placeholder="50000" />
+          <Input label={tr('Alag alag lene par')} inputMode="decimal" value={original} onChange={(e) => setOriginal(e.target.value.replace(/[^\d.]/g, ''))} placeholder="60000" hint={tr('Customer ko bachat dikhti hai')} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Sessions" inputMode="numeric" value={sessions} onChange={(e) => setSessions(e.target.value.replace(/\D/g, ''))} />
-            <Input label="Kitne din me" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} />
+            <Input label={tr('Sessions')} inputMode="numeric" value={sessions} onChange={(e) => setSessions(e.target.value.replace(/\D/g, ''))} />
+            <Input label={tr('Kitne din me')} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} />
           </div>
         </div>
         <div>
-          <p className="mb-1 text-[0.8125rem] font-medium text-slate-700">Kin services par chalega <span className="font-normal text-slate-500">(kuch na chunein = har service)</span></p>
+          <p className="mb-1 text-[0.8125rem] font-medium text-slate-700">{tr('Kin services par chalega')}{' '} <span className="font-normal text-slate-500">{tr('(kuch na chunein = har service)')}</span></p>
           <div className="grid max-h-48 gap-1 overflow-auto rounded-xl p-2 ring-1 ring-slate-200 sm:grid-cols-2">
             {services.map((s) => (
               <Checkbox key={s.id} label={s.name} checked={picked.includes(s.id)} onChange={(e) => setPicked((x) => (e.target.checked ? [...x, s.id] : x.filter((y) => y !== s.id)))} />
             ))}
           </div>
         </div>
-        <Textarea label="Tafseel" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="2 trial + shaadi ka din + walima" />
+        <Textarea label={tr('Tafseel')} value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder={tr('2 trial + shaadi ka din + walima')} />
         <div className="flex flex-wrap gap-6">
-          <Switch label="Khaas" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
-          <Switch label="Chalu" description="Band package bikta nahi" checked={active} onChange={(e) => setActive(e.target.checked)} />
+          <Switch label={tr('Khaas')} checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+          <Switch label={tr('Chalu')} description={tr('Band package bikta nahi')} checked={active} onChange={(e) => setActive(e.target.checked)} />
         </div>
         {error && <p className="text-[0.8125rem] text-rose-600">{error}</p>}
       </div>

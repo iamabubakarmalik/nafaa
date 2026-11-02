@@ -6,6 +6,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, whenText } from '../lib/labels';
 import { Button } from '@/design-system/components';
+import { t as tr } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    INVOICE / PACKING SLIP — parcel ke andar rakhne wala bill.
@@ -36,14 +37,14 @@ export default function PrintInvoicesPage() {
   return (
     <div className="min-h-screen bg-slate-100 py-6 print:bg-white print:py-0">
       <div className="mx-auto mb-4 flex max-w-[50rem] items-center gap-3 px-4 print:hidden">
-        <Link to="/online-orders" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" /> Online orders</Link>
+        <Link to="/online-orders" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4 rtl-flip" /> {' '}{tr('Online orders')}</Link>
         <span className="flex-1" />
-        <span className="text-[0.8125rem] text-slate-500">{orders.length} invoice{failed ? ` · ${failed} nahi khule` : ''}</span>
-        <Button size="sm" onClick={() => window.print()} disabled={loading || !orders.length} leftIcon={<Printer className="h-4 w-4" />}>Print</Button>
+        <span className="text-[0.8125rem] text-slate-500">{tr('{{count}} invoice{{value}}', { count: orders.length, value: failed ? tr(' · {{failed}} nahi khule', { failed }) : '' })}</span>
+        <Button size="sm" onClick={() => window.print()} disabled={loading || !orders.length} leftIcon={<Printer className="h-4 w-4" />}>{tr('Print')}</Button>
       </div>
 
       {!ids.length ? (
-        <p className="text-center text-sm text-slate-500">Koi order nahi chuna.</p>
+        <p className="text-center text-sm text-slate-500">{tr('Koi order nahi chuna.')}</p>
       ) : loading ? (
         <div className="flex justify-center p-10"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>
       ) : (
@@ -69,6 +70,7 @@ export default function PrintInvoicesPage() {
  * document (A4, A5, 4x6 label) and must not grow with the on-screen text-size
  * preference. Colours are fixed ink for the same reason.
  */
+/** The printed invoice goes to the customer, so its text is not translated with the screen language. */
 function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
   const num = o.externalOrderNumber ?? o.externalOrderId;
   const codDue = o.isCod && o.paymentStatus !== 'PAID' ? o.total : 0;
@@ -79,7 +81,7 @@ function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
           <div className="text-xl font-black">{shopName || o.integration?.displayName}</div>
           {o.integration?.displayName && shopName && <div className="text-slate-600">{o.integration.displayName}</div>}
         </div>
-        <div className="text-right">
+        <div className="text-end">
           <div className="text-lg font-black">INVOICE</div>
           <div className="font-mono text-base font-bold">#{num}</div>
           <div className="text-slate-600">{whenText(o.receivedAt)}</div>
@@ -94,7 +96,7 @@ function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
           {o.customerPhone && <div className="font-semibold">{o.customerPhone}</div>}
           <div className="mt-1 whitespace-pre-line">{[o.customerAddress, o.customerCity].filter(Boolean).join(', ')}</div>
         </div>
-        <div className="sm:text-right">
+        <div className="sm:text-end">
           {o.trackingNumber && (
             <>
               <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{o.courierLabel ?? o.courierName ?? 'Courier'}</div>
@@ -109,11 +111,11 @@ function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
 
       <table className="mt-5 w-full border-collapse">
         <thead>
-          <tr className="border-b border-slate-300 text-left text-[11px] uppercase tracking-wide text-slate-500">
+          <tr className="border-b border-slate-300 text-start text-[11px] uppercase tracking-wide text-slate-500">
             <th className="py-1.5">Cheez</th>
             <th className="py-1.5 text-center">Qty</th>
-            <th className="py-1.5 text-right">Qeemat</th>
-            <th className="py-1.5 text-right">Total</th>
+            <th className="py-1.5 text-end">Qeemat</th>
+            <th className="py-1.5 text-end">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -124,14 +126,14 @@ function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
                 {(l.variant || l.sku) && <div className="text-[11.5px] text-slate-500">{[l.variant, l.sku].filter(Boolean).join(' · ')}</div>}
               </td>
               <td className="py-2 text-center tabular-nums">{l.quantity}</td>
-              <td className="py-2 text-right tabular-nums">{rs(l.price)}</td>
-              <td className="py-2 text-right font-semibold tabular-nums">{rs(l.lineTotal)}</td>
+              <td className="py-2 text-end tabular-nums">{rs(l.price)}</td>
+              <td className="py-2 text-end font-semibold tabular-nums">{rs(l.lineTotal)}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div className="mt-3 ml-auto w-full max-w-[260px] space-y-1 tabular-nums">
+      <div className="mt-3 ms-auto w-full max-w-[260px] space-y-1 tabular-nums">
         <Row label="Items" value={rs(o.subtotal)} />
         {o.discount > 0 && <Row label="Discount" value={`− ${rs(o.discount)}`} />}
         {o.deliveryFee > 0 && <Row label="Delivery" value={rs(o.deliveryFee)} />}

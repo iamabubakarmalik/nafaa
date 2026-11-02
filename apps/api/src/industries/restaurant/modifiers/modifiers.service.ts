@@ -4,6 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertModifierGroupDto } from './dto/upsert-modifier-group.dto';
 import { unitsCompatible } from '../recipes/recipe-units';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 type OptionInput = UpsertModifierGroupDto['options'][number];
 type Ingredient = { ingredientProductId: string | null; ingredientQty: number | null; ingredientUnit: string | null };
@@ -28,7 +29,7 @@ export class ModifiersService {
     const max = dto.maxSelections ?? current?.maxSelections ?? 1;
     if (isRequired && min < 1) min = 1;
     if (min > max) throw new BadRequestException('Kam se kam chunne wale, zyada se zyada se barh nahi sakte');
-    if (type !== 'NOTE' && min > live.length) throw new BadRequestException(`Sirf ${live.length} option hain — kam se kam ${min} nahi chune ja sakte`);
+    if (type !== 'NOTE' && min > live.length) throw new BadRequestException(apiMessage('Sirf {{liveCount}} option hain — kam se kam {{min}} nahi chune ja sakte', { liveCount: live.length, min }));
     // A size or spice choice is one of many; extra cheese and raita can be several.
     if ((type === 'VARIATION' || type === 'SPICE_LEVEL') && max > 1) throw new BadRequestException('Size ya teekhapan me ek hi chuna jata hai — "zyada se zyada" 1 rakhein');
     if (dto.options.filter((o) => o.isDefault && o.isActive !== false).length > max) throw new BadRequestException('Pehle se chune hue option zyada se zyada se barh gaye');
@@ -52,10 +53,10 @@ export class ModifiersService {
       if (o.ingredientProductId === undefined) return {};
       const p = o.ingredientProductId ? byId.get(o.ingredientProductId) : undefined;
       if (!p) return { ingredientProductId: null, ingredientQty: null, ingredientUnit: null };
-      if (!(Number(o.ingredientQty) > 0)) throw new BadRequestException(`${o.name.trim()}: ${p.name} kitna lagta hai — 0 se zyada likhein`);
+      if (!(Number(o.ingredientQty) > 0)) throw new BadRequestException(apiMessage('{{oName}}: {{pName}} kitna lagta hai — 0 se zyada likhein', { oName: o.name.trim(), pName: p.name }));
       const unit = o.ingredientUnit?.trim() || p.unit;
       if (!unitsCompatible(unit, p.unit)) {
-        throw new BadRequestException(`${p.name} ka stock "${p.unit}" me hai — add-on me "${unit}" nahi chalega`);
+        throw new BadRequestException(apiMessage('{{pName}} ka stock "{{unit}}" me hai — add-on me "{{unit2}}" nahi chalega', { pName: p.name, unit: p.unit, unit2: unit }));
       }
       return { ingredientProductId: p.id, ingredientQty: Number(o.ingredientQty), ingredientUnit: unit };
     });

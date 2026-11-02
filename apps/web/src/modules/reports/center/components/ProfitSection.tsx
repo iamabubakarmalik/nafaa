@@ -10,6 +10,7 @@ import type { ProfitReport, ProfitSummary } from '../api';
 import { DataTable, Delta, Panel, keyLabel, type Formatter } from './parts';
 import { PriceTierSplit } from './PriceTierSplit';
 import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
+import { t as tr } from '@core/i18n';
 
 /**
  * Statement lines. `part` lines show what an amount above already holds and
@@ -21,21 +22,21 @@ type Key = 'gross' | 'service' | 'refunds' | 'sales' | 'cost' | 'billProfit' | '
   | 'expenses' | 'stockLoss' | 'stockGain' | 'otherIncome' | 'netProfit';
 type Line = { label: string; key: Key; sign?: '-' | '=' | '+'; cost?: boolean; up?: 'good' | 'bad'; part?: boolean; opt?: boolean; paidOnly?: boolean };
 const LINES: Line[] = [
-  { label: 'Total sale', key: 'gross' },
-  { label: 'Is me service charges', key: 'service', part: true, opt: true },
-  { label: 'Maal wapas', key: 'refunds', sign: '-', up: 'bad' },
-  { label: 'Asal sale', key: 'sales', sign: '=' },
-  { label: 'Maal ki cost', key: 'cost', sign: '-', cost: true, up: 'bad' },
-  { label: 'Bill ka profit', key: 'billProfit', sign: '=', cost: true },
-  { label: 'Udhaar mein profit (abhi aana hai)', key: 'pending', sign: '-', cost: true, opt: true, paidOnly: true },
-  { label: 'Udhaar maaf kiya', key: 'writtenOff', sign: '-', cost: true, opt: true, paidOnly: true },
-  { label: 'Pehle ke udhaar se aaya', key: 'fromOlderBills', sign: '+', cost: true, opt: true, paidOnly: true },
-  { label: 'Haath mein aaya profit', key: 'grossProfit', sign: '=', cost: true, paidOnly: true },
-  { label: 'Expenses', key: 'expenses', sign: '-', up: 'bad' },
-  { label: 'Stock nuksan', key: 'stockLoss', sign: '-', cost: true, up: 'bad', opt: true },
-  { label: 'Stock faida', key: 'stockGain', sign: '+', cost: true, opt: true },
-  { label: 'Doosri aamdani', key: 'otherIncome', sign: '+', opt: true },
-  { label: 'Net profit', key: 'netProfit', sign: '=', cost: true },
+  { label: tr('Total sale'), key: 'gross' },
+  { label: tr('Is me service charges'), key: 'service', part: true, opt: true },
+  { label: tr('Maal wapas'), key: 'refunds', sign: '-', up: 'bad' },
+  { label: tr('Asal sale'), key: 'sales', sign: '=' },
+  { label: tr('Maal ki cost'), key: 'cost', sign: '-', cost: true, up: 'bad' },
+  { label: tr('Bill ka profit'), key: 'billProfit', sign: '=', cost: true },
+  { label: tr('Udhaar mein profit (abhi aana hai)'), key: 'pending', sign: '-', cost: true, opt: true, paidOnly: true },
+  { label: tr('Udhaar maaf kiya'), key: 'writtenOff', sign: '-', cost: true, opt: true, paidOnly: true },
+  { label: tr('Pehle ke udhaar se aaya'), key: 'fromOlderBills', sign: '+', cost: true, opt: true, paidOnly: true },
+  { label: tr('Haath mein aaya profit'), key: 'grossProfit', sign: '=', cost: true, paidOnly: true },
+  { label: tr('Expenses'), key: 'expenses', sign: '-', up: 'bad' },
+  { label: tr('Stock nuksan'), key: 'stockLoss', sign: '-', cost: true, up: 'bad', opt: true },
+  { label: tr('Stock faida'), key: 'stockGain', sign: '+', cost: true, opt: true },
+  { label: tr('Doosri aamdani'), key: 'otherIncome', sign: '+', opt: true },
+  { label: tr('Net profit'), key: 'netProfit', sign: '=', cost: true },
 ];
 
 /** Every statement figure of a summary, flat; older responses fall back to the totals they had. */
@@ -62,21 +63,21 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
     <div className="space-y-4">
       {!showCost && (
         <p className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-[0.8125rem] text-slate-700">
-          <Lock className="h-4 w-4" /> Cost aur profit band hai — sirf sale aur expenses dikh rahe hain.
+          <Lock className="h-4 w-4" /> {' '}{tr('Cost aur profit band hai — sirf sale aur expenses dikh rahe hain.')}
         </p>
       )}
       <div className="grid gap-4 lg:grid-cols-5">
-        <Panel icon={Scale} title="Profit-loss" hint="Return ke baad, sale ke waqt ki cost se" className="lg:col-span-2"
-          actions={<Link to="/profit-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cheez war profit →</Link>}>
+        <Panel icon={Scale} title={tr('Profit-loss')} hint={tr('Return ke baad, sale ke waqt ki cost se')} className="lg:col-span-2"
+          actions={<Link to="/profit-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Cheez war profit →')}</Link>}>
           <dl className="divide-y divide-slate-100 text-[0.875rem]">
             {lines.map((l) => {
               const v = now[l.key];
               const p = compare && before ? before[l.key] : null;
               const strong = l.sign === '=';
               return (
-                <div key={l.key} className={cn('flex items-start justify-between gap-3 py-2', strong && 'font-semibold', l.part && 'py-1.5 pl-4 text-[0.8125rem] text-slate-500')}>
+                <div key={l.key} className={cn('flex items-start justify-between gap-3 py-2', strong && 'font-semibold', l.part && 'py-1.5 ps-4 text-[0.8125rem] text-slate-500')}>
                   <dt className={cn('text-slate-600', strong && 'text-slate-900', l.part && 'text-slate-500')}>{l.sign === '-' ? '− ' : l.sign === '+' ? '+ ' : ''}{l.label}</dt>
-                  <dd className="text-right">
+                  <dd className="text-end">
                     <span className={cn('tabular-nums', l.key === 'netProfit' && (v < 0 ? 'text-rose-600' : 'text-emerald-700'))}>{l.cost ? f.cost(v) : f.money(v)}</span>
                     {p != null && <span className="block text-[0.6875rem] font-normal"><Delta now={v} before={p} up={l.up} /></span>}
                   </dd>
@@ -86,12 +87,12 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
           </dl>
           {showCost && (
             <p className="mt-2 text-[0.75rem] text-slate-500">
-              Margin {(t.margin ?? 0).toFixed(1)}% · expenses ke baad {t.netMargin.toFixed(1)}%{t.damageCount ? ` · ${t.damageCount} stock entry` : ''}
+              {tr('Margin {{value}}% · expenses ke baad {{value2}}%{{value3}}', { value: (t.margin ?? 0).toFixed(1), value2: t.netMargin.toFixed(1), value3: t.damageCount ? tr(' · {{damageCount}} stock entry', { damageCount: t.damageCount }) : '' })}
             </p>
           )}
           {showCost && <ProfitSplitCard split={t.split} money={f.cost} className="mt-3" />}
         </Panel>
-        <Panel icon={BarChart3} title={d.grouping === 'month' ? 'Mahine war' : 'Din war'} className="lg:col-span-3">
+        <Panel icon={BarChart3} title={d.grouping === 'month' ? tr('Mahine war') : tr('Din war')} className="lg:col-span-3">
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={d.rows.map((r) => ({ ...r, label: keyLabel(r.key) }))} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -109,17 +110,17 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
         </Panel>
       </div>
       <PriceTierSplit split={d.priceTiers} f={f} showProfit={showCost} />
-      <Panel icon={BarChart3} title="Details">
-        <DataTable rows={[...d.rows].reverse().filter((r) => r.sales || r.expenses)} rowKey={(r) => r.key} empty="Is period me kuch nahi" columns={[
-          { label: d.grouping === 'month' ? 'Mahina' : 'Din', render: (r) => keyLabel(r.key) },
-          { label: 'Sale', align: 'right', render: (r) => f.money(r.sales) },
-          { label: 'Cost', align: 'right', hide: !showCost, render: (r) => f.cost(r.cost) },
-          { label: 'Bill ka profit', align: 'right', hide: !showCost, render: (r) => f.cost(r.billProfit ?? r.grossProfit) },
-          { label: 'Haath mein', align: 'right', hide: !showCost || !paidBasis, render: (r) => f.cost(r.realised) },
-          { label: 'Expenses', align: 'right', render: (r) => f.money(r.expenses) },
-          { label: 'Stock (net)', align: 'right', hide: !showCost, render: (r) => f.cost(r.damage ?? 0) },
-          { label: 'Doosri aamdani', align: 'right', hide: !d.rows.some((r) => r.otherIncome), render: (r) => f.money(r.otherIncome ?? 0) },
-          { label: 'Net profit', align: 'right', hide: !showCost, render: (r) => <span className={cn('font-semibold', (r.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{f.cost(r.netProfit)}</span> },
+      <Panel icon={BarChart3} title={tr('Details')}>
+        <DataTable rows={[...d.rows].reverse().filter((r) => r.sales || r.expenses)} rowKey={(r) => r.key} empty={tr('Is period me kuch nahi')} columns={[
+          { label: d.grouping === 'month' ? tr('Mahina') : tr('Din'), render: (r) => keyLabel(r.key) },
+          { label: tr('Sale'), align: 'right', render: (r) => f.money(r.sales) },
+          { label: tr('Cost'), align: 'right', hide: !showCost, render: (r) => f.cost(r.cost) },
+          { label: tr('Bill ka profit'), align: 'right', hide: !showCost, render: (r) => f.cost(r.billProfit ?? r.grossProfit) },
+          { label: tr('Haath mein'), align: 'right', hide: !showCost || !paidBasis, render: (r) => f.cost(r.realised) },
+          { label: tr('Expenses'), align: 'right', render: (r) => f.money(r.expenses) },
+          { label: tr('Stock (net)'), align: 'right', hide: !showCost, render: (r) => f.cost(r.damage ?? 0) },
+          { label: tr('Doosri aamdani'), align: 'right', hide: !d.rows.some((r) => r.otherIncome), render: (r) => f.money(r.otherIncome ?? 0) },
+          { label: tr('Net profit'), align: 'right', hide: !showCost, render: (r) => <span className={cn('font-semibold', (r.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{f.cost(r.netProfit)}</span> },
         ]} />
       </Panel>
     </div>

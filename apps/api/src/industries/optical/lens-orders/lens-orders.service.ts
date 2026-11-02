@@ -9,6 +9,7 @@ import { ensureCustomer } from '../../_shared/industry-sale.helper';
 import { closeServiceLine, openServiceLine, toPaymentMethod } from '../billing/service-line';
 import { checkEyePower, nextNumber, pageArgs, r2, type PageArgs } from '../common/optical-common';
 import { CreateLensOrderDto, DeliverLensOrderDto, LensOrderPaymentDto, SendToLabDto, UpdateLensOrderStatusDto } from './dto/create-lens-order.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const VALID_STATUSES = ['ORDERED', 'SENT_TO_LAB', 'AT_LAB', 'RECEIVED', 'QC_PASSED', 'FITTED', 'READY', 'DELIVERED', 'CANCELLED'];
 const CLOSED = ['DELIVERED', 'CANCELLED'];
@@ -336,7 +337,7 @@ export class LensOrdersService {
     const amount = r2(Number(dto.amount));
     if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const newPaid = r2(o.paidAmount + amount);
-    if (newPaid > o.totalPrice + 0.009) throw new BadRequestException(`Sirf Rs ${o.remainingAmount} baqi hain`);
+    if (newPaid > o.totalPrice + 0.009) throw new BadRequestException(apiMessage('Sirf Rs {{remainingAmount}} baqi hain', { remainingAmount: o.remainingAmount }));
 
     const booking = await this.bookingFor(user.tenantId, o.orderNumber);
     if (!booking || !BOOKING_OPEN.includes(booking.status)) throw new BadRequestException('Is order ki booking nahi mili — payment counter par bill se lein');
@@ -358,10 +359,10 @@ export class LensOrdersService {
     if (o.status === 'DELIVERED') throw new BadRequestException('Order pehle hi de diya gaya hai');
     if (o.status === 'CANCELLED') throw new BadRequestException('Cancel order deliver nahi ho sakta');
     const pay = r2(Math.max(Number(body.payment) || 0, 0));
-    if (pay > o.remainingAmount + 0.009) throw new BadRequestException(`Sirf Rs ${o.remainingAmount} baqi hain`);
+    if (pay > o.remainingAmount + 0.009) throw new BadRequestException(apiMessage('Sirf Rs {{remainingAmount}} baqi hain', { remainingAmount: o.remainingAmount }));
     const credit = r2(Math.max(o.remainingAmount - pay, 0));
     if (credit > 0 && !body.onKhata) {
-      throw new BadRequestException(`Rs ${credit} baqi hain — poore lein ya "Baqi khata me" chunein`);
+      throw new BadRequestException(apiMessage('Rs {{credit}} baqi hain — poore lein ya "Baqi khata me" chunein', { credit }));
     }
 
     const booking = await this.bookingFor(user.tenantId, o.orderNumber);

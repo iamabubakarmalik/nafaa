@@ -21,6 +21,7 @@ import {
 } from '../api/distribution.api';
 import { packText, rs, trim } from '../lib/meta';
 import { useCustomerRoster, type RosterCustomer } from '../setup/shared';
+import { t as tr } from '@core/i18n';
 
 interface Line { key: string; productId: string | null; variantId: string | null; unitId: string | null; qty: string; price: string }
 interface Option { productId: string; variantId: string | null; label: string; sub: string; product: BootProduct }
@@ -95,21 +96,21 @@ export function OrderEditor({ order, onClose, onSaved }: { order?: OrderDetail |
 
   const save = useMutation({
     mutationFn: () => {
-      if (!customer) throw new Error('Customer chunein');
-      if (!payload.length) throw new Error('Kam se kam ek product aur quantity likhein');
+      if (!customer) throw new Error(tr('Customer chunein'));
+      if (!payload.length) throw new Error(tr('Kam se kam ek product aur quantity likhein'));
       const body = { items: payload, deliveryDate: deliveryDate || undefined, note: note.trim() || undefined };
       return order
         ? distributionApi.updateOrder(order.id, { ...body, deliveryDate: deliveryDate || '' })
         : distributionApi.createOrder({ ...body, clientRef, customerId: customer.id });
     },
     onSuccess: (r) => {
-      toast.success(order ? `${r.order.orderNumber} save ho gaya` : `${r.order.orderNumber} ban gaya`);
+      toast.success(order ? tr('{{orderNumber}} save ho gaya', { orderNumber: r.order.orderNumber }) : tr('{{orderNumber}} ban gaya', { orderNumber: r.order.orderNumber }));
       r.warnings.forEach((w) => toast.warning(w));
       qc.invalidateQueries({ queryKey: [DIST_KEY] });
       onSaved?.(r.order);
       onClose();
     },
-    onError: (e) => toast.error(distError(e, 'Order save nahi hua')),
+    onError: (e) => toast.error(distError(e, tr('Order save nahi hua'))),
   });
 
   useEffect(() => {
@@ -155,31 +156,31 @@ export function OrderEditor({ order, onClose, onSaved }: { order?: OrderDetail |
     <>
       <ProductCell lineKey={l.key} label={label} options={options} loading={productsQ.isLoading} onPick={(o) => pickProduct(l.key, o)} />
       {pr?.schemeNote && <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-medium text-violet-700"><Gift className="h-3 w-3" />{pr.schemeNote}
-        {pr.freeBaseQty > 0 && <> · {packText(pr.freeBaseQty, pr.freeProductId ? null : pack.rate, pack.name, p?.unit)} free</>}</div>}
+        {pr.freeBaseQty > 0 && <> {' '}{tr('· {{freeBaseQty}} free', { freeBaseQty: packText(pr.freeBaseQty, pr.freeProductId ? null : pack.rate, pack.name, p?.unit) })}</>}</div>}
     </>
   );
   const packSelect = ({ l, p, packs }: Row) => (
-    <select value={l.unitId ?? ''} disabled={!p} aria-label="Pack" onChange={(e) => setLine(l.key, { unitId: e.target.value, price: '' })}
+    <select value={l.unitId ?? ''} disabled={!p} aria-label={tr('Pack')} onChange={(e) => setLine(l.key, { unitId: e.target.value, price: '' })}
       className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] outline-none focus:border-brand-500 disabled:opacity-50">
       {packs.map((x) => <option key={x.id} value={x.id}>{x.name}{x.rate > 1 ? ` (${trim(x.rate)})` : ''}</option>)}
     </select>
   );
   const qtyInput = ({ l, p, pack }: Row) => (
     <>
-      <input data-line={l.key} data-field="qty" inputMode="decimal" value={l.qty} disabled={!p} aria-label="Quantity"
+      <input data-line={l.key} data-field="qty" inputMode="decimal" value={l.qty} disabled={!p} aria-label={tr('Quantity')}
         onChange={(e) => setLine(l.key, { qty: e.target.value.replace(/[^\d.]/g, '') })}
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); nextLine(l.key); } }}
-        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-right text-[0.875rem] font-semibold tabular-nums outline-none focus:border-brand-500 disabled:opacity-50" />
-      {p && pack.rate > 1 && Number(l.qty) > 0 && <div className="mt-0.5 text-right text-[0.6875rem] text-slate-500">{trim(Number(l.qty) * pack.rate)} {p.unit}</div>}
+        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-end text-[0.875rem] font-semibold tabular-nums outline-none focus:border-brand-500 disabled:opacity-50" />
+      {p && pack.rate > 1 && Number(l.qty) > 0 && <div className="mt-0.5 text-end text-[0.6875rem] text-slate-500">{trim(Number(l.qty) * pack.rate)} {p.unit}</div>}
     </>
   );
   const rateCell = ({ l, p, pr }: Row) => (
     <>
       {canOverride && p ? (
-        <input inputMode="decimal" value={l.price} aria-label="Rate" placeholder={pr ? String(pr.listPrice) : ''} onChange={(e) => setLine(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
-          className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500" />
+        <input inputMode="decimal" value={l.price} aria-label={tr('Rate')} placeholder={pr ? String(pr.listPrice) : ''} onChange={(e) => setLine(l.key, { price: e.target.value.replace(/[^\d.]/g, '') })}
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-end tabular-nums outline-none focus:border-brand-500" />
       ) : <div className="tabular-nums text-slate-600 sm:pt-2">{pr ? rs(pr.price) : '—'}</div>}
-      {pr?.priceSource === 'OVERRIDE' && <div className="mt-0.5 text-[0.6875rem] text-amber-700">List {rs(pr.listPrice)}</div>}
+      {pr?.priceSource === 'OVERRIDE' && <div className="mt-0.5 text-[0.6875rem] text-amber-700">{tr('List {{listPrice}}', { listPrice: rs(pr.listPrice) })}</div>}
     </>
   );
   const amountCell = ({ isReady, pr }: Row) => (pr ? <>
@@ -187,39 +188,39 @@ export function OrderEditor({ order, onClose, onSaved }: { order?: OrderDetail |
     {pr.schemeDiscount + pr.discount > 0 && <div className="text-[0.6875rem] text-success-700">−{rs(pr.schemeDiscount + pr.discount)}</div>}
   </> : <span className="text-slate-300">{isReady && previewing ? '…' : '—'}</span>);
   const removeBtn = ({ l }: Row) => (l.productId || lines.length > 1) && (
-    <button type="button" onClick={() => removeLine(l.key)} aria-label="Line hatayein" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+    <button type="button" onClick={() => removeLine(l.key)} aria-label={tr('Line hatayein')} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
   );
 
   return (
-    <Modal open onClose={onClose} size="full" title={order ? `${order.orderNumber} badlein` : 'Naya order'}
-      description={order ? 'Sirf Booked order badla ja sakta hai' : 'Customer chunein, phir product, pack aur quantity — Enter se agli line'}
+    <Modal open onClose={onClose} size="full" title={order ? tr('{{orderNumber}} badlein', { orderNumber: order.orderNumber }) : tr('Naya order')}
+      description={order ? tr('Sirf Booked order badla ja sakta hai') : tr('Customer chunein, phir product, pack aur quantity — Enter se agli line')}
       footer={<>
-        <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 md:inline-flex"><Kbd>Enter</Kbd> agla · <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} disabled={!customer || !payload.length} onClick={() => save.mutate()}>{order ? 'Save karein' : 'Order banayein'}</Button>
+        <span className="me-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 md:inline-flex"><Kbd>Enter</Kbd> {' '}{tr('agla ·')}{' '} <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> {' '}{tr('save')}</span>
+        <Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button>
+        <Button loading={save.isPending} disabled={!customer || !payload.length} onClick={() => save.mutate()}>{order ? tr('Save karein') : tr('Order banayein')}</Button>
       </>}>
       <div className="flex h-full flex-col gap-4">
         <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
           {order ? (
             <div className="rounded-xl bg-slate-50 px-3 py-2">
-              <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Customer</div>
+              <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Customer')}</div>
               <div className="truncate text-[0.875rem] font-semibold text-slate-900">{customer?.name}</div>
             </div>
           ) : (
             <CustomerPicker list={customersQ.data ?? []} loading={customersQ.isLoading} value={customer}
               onPick={(c) => { setCustomer(c); focusRef.current = { key: lines[0].key, field: 'product' }; setLines([...lines]); }} />
           )}
-          <Input size="sm" type="date" label="Delivery date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
-          <Input size="sm" label="Note" placeholder="Zaroori nahi" value={note} onChange={(e) => setNote(e.target.value)} />
+          <Input size="sm" type="date" label={tr('Delivery date')} value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
+          <Input size="sm" label={tr('Note')} placeholder={tr('Zaroori nahi')} value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
 
         <div ref={gridRef} className="min-h-0 flex-1 overflow-auto rounded-2xl ring-1 ring-slate-200/80">
           <table className="hidden w-full min-w-[46rem] text-[0.8125rem] sm:table">
-            <thead className="sticky top-0 z-10 bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+            <thead className="sticky top-0 z-10 bg-slate-50 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
               <tr>
-                <th className="w-8 px-3 py-2">#</th><th className="px-2 py-2">Product</th><th className="w-32 px-2 py-2">Pack</th>
-                <th className="w-24 px-2 py-2 text-right">Quantity</th><th className="w-28 px-2 py-2 text-right">Rate</th>
-                <th className="w-32 px-2 py-2 text-right">Amount</th><th className="w-10 px-2 py-2" />
+                <th className="w-8 px-3 py-2">#</th><th className="px-2 py-2">{tr('Product')}</th><th className="w-32 px-2 py-2">{tr('Pack')}</th>
+                <th className="w-24 px-2 py-2 text-end">{tr('Quantity')}</th><th className="w-28 px-2 py-2 text-end">{tr('Rate')}</th>
+                <th className="w-32 px-2 py-2 text-end">{tr('Amount')}</th><th className="w-10 px-2 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -229,8 +230,8 @@ export function OrderEditor({ order, onClose, onSaved }: { order?: OrderDetail |
                   <td className="px-2 py-1.5">{productCell(r)}</td>
                   <td className="px-2 py-1.5">{packSelect(r)}</td>
                   <td className="px-2 py-1.5">{qtyInput(r)}</td>
-                  <td className="px-2 py-1.5 text-right">{rateCell(r)}</td>
-                  <td className="px-2 py-1.5 pt-3 text-right tabular-nums">{amountCell(r)}</td>
+                  <td className="px-2 py-1.5 text-end">{rateCell(r)}</td>
+                  <td className="px-2 py-1.5 pt-3 text-end tabular-nums">{amountCell(r)}</td>
                   <td className="px-2 py-1.5 pt-2.5">{removeBtn(r)}</td>
                 </tr>
               ))}
@@ -244,39 +245,39 @@ export function OrderEditor({ order, onClose, onSaved }: { order?: OrderDetail |
                   <div className="min-w-0 flex-1">{productCell(r)}</div>
                   <div className="pt-1">{removeBtn(r)}</div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 pl-7">
-                  <label className="block"><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Pack</span>{packSelect(r)}</label>
-                  <label className="block"><span className="mb-0.5 block text-right text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Quantity</span>{qtyInput(r)}</label>
+                <div className="grid grid-cols-2 gap-2 ps-7">
+                  <label className="block"><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Pack')}</span>{packSelect(r)}</label>
+                  <label className="block"><span className="mb-0.5 block text-end text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Quantity')}</span>{qtyInput(r)}</label>
                 </div>
                 {r.p && (
-                  <div className="grid grid-cols-2 items-start gap-2 pl-7">
-                    <div><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Rate</span>{rateCell(r)}</div>
-                    <div className="text-right tabular-nums"><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Amount</span>{amountCell(r)}</div>
+                  <div className="grid grid-cols-2 items-start gap-2 ps-7">
+                    <div><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Rate')}</span>{rateCell(r)}</div>
+                    <div className="text-end tabular-nums"><span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Amount')}</span>{amountCell(r)}</div>
                   </div>
                 )}
               </li>
             ))}
           </ul>
           <button type="button" onClick={() => nextLine(lines[lines.length - 1].key)} className="flex w-full items-center gap-1.5 border-t border-slate-100 px-3 py-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-slate-50">
-            <Plus className="h-4 w-4" /> Line
+            <Plus className="h-4 w-4" /> {' '}{tr('Line')}
           </button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="space-y-2">
-            {preview?.credit?.message && <Alert tone="warning" icon={<AlertTriangle className="h-4 w-4" />}>{preview.credit.message} — Invoice par manager ka PIN lagega</Alert>}
+            {preview?.credit?.message && <Alert tone="warning" icon={<AlertTriangle className="h-4 w-4" />}>{tr('{{message}} — Invoice par manager ka PIN lagega', { message: preview.credit.message })}</Alert>}
             {preview?.warnings.map((w) => <Alert key={w} tone="info">{w}</Alert>)}
             {preview?.customer && (
               <p className="text-[0.8125rem] text-slate-500">
-                Khata {rs(preview.customer.balance)}{preview.customer.creditLimit ? ` · had ${rs(preview.customer.creditLimit)}` : ''}{preview.customer.creditDays ? ` · ${preview.customer.creditDays} din` : ''}
+                {tr('Khata {{balance}}{{value}}{{value2}}', { balance: rs(preview.customer.balance), value: preview.customer.creditLimit ? tr(' · had {{creditLimit}}', { creditLimit: rs(preview.customer.creditLimit) }) : '', value2: preview.customer.creditDays ? tr(' · {{creditDays}} din', { creditDays: preview.customer.creditDays }) : '' })}
               </p>
             )}
           </div>
           <div className="space-y-1 rounded-2xl bg-slate-50 px-4 py-3 text-[0.8125rem]">
-            <Sum label="Gross" value={preview ? rs(preview.subtotal) : '—'} />
-            {!!preview?.schemeDiscount && <Sum label="Scheme discount" value={`−${rs(preview.schemeDiscount)}`} />}
-            {!!preview?.discount && <Sum label="Discount" value={`−${rs(preview.discount)}`} />}
-            <div className="flex justify-between border-t border-slate-200 pt-1.5 text-[1rem] font-bold text-slate-900"><span>Total</span><span className="tabular-nums">{preview ? rs(preview.total) : '—'}</span></div>
+            <Sum label={tr('Gross')} value={preview ? rs(preview.subtotal) : '—'} />
+            {!!preview?.schemeDiscount && <Sum label={tr('Scheme discount')} value={`−${rs(preview.schemeDiscount)}`} />}
+            {!!preview?.discount && <Sum label={tr('Discount')} value={`−${rs(preview.discount)}`} />}
+            <div className="flex justify-between border-t border-slate-200 pt-1.5 text-[1rem] font-bold text-slate-900"><span>{tr('Total')}</span><span className="tabular-nums">{preview ? rs(preview.total) : '—'}</span></div>
           </div>
         </div>
       </div>
@@ -311,8 +312,8 @@ function ProductCell({ lineKey, label, options, loading, onPick }: { lineKey: st
   const pick = (o: Option) => { onPick(o); setQ(''); setOpen(false); };
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-      <input data-line={lineKey} data-field="product" value={open ? q : label} placeholder={loading ? 'Products aa rahe hain…' : 'Product dhoondein'}
+      <Search className="pointer-events-none absolute start-2.5 top-2.5 h-4 w-4 text-slate-400" />
+      <input data-line={lineKey} data-field="product" value={open ? q : label} placeholder={loading ? tr('Products aa rahe hain…') : tr('Product dhoondein')}
         onFocus={() => { setOpen(true); setQ(''); }} onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         onChange={(e) => { setQ(e.target.value); setOpen(true); }}
         onKeyDown={(e) => {
@@ -321,13 +322,13 @@ function ProductCell({ lineKey, label, options, loading, onPick }: { lineKey: st
           else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && found[hi]) { e.preventDefault(); pick(found[hi]); }
           else if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); }
         }}
-        className={cn('h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-[0.875rem] outline-none focus:border-brand-500', label && !open && 'font-semibold text-slate-900')} />
+        className={cn('h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-2 text-[0.875rem] outline-none focus:border-brand-500', label && !open && 'font-semibold text-slate-900')} />
       {open && (
-        <ul className="absolute left-0 right-0 top-10 z-30 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
-          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">Koi product nahi mila</li> : found.map((o, i) => (
+        <ul className="absolute start-0 end-0 top-10 z-30 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
+          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Koi product nahi mila')}</li> : found.map((o, i) => (
             <li key={`${o.productId}-${o.variantId}`}>
               <button type="button" onMouseDown={(e) => { e.preventDefault(); pick(o); }} onMouseEnter={() => setHi(i)}
-                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left', i === hi && 'bg-brand-50')}>
+                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-start', i === hi && 'bg-brand-50')}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{o.label}</span>
                   {o.sub && <span className="block truncate text-[0.6875rem] text-slate-500">{o.sub}</span>}
@@ -361,10 +362,10 @@ function CustomerPicker({ list, loading, value, onPick }: {
   };
   return (
     <div className="relative">
-      <label className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Customer</label>
+      <label className="mb-1 block text-[0.8125rem] font-medium text-slate-700">{tr('Customer')}</label>
       <div className="relative">
-        <UserRound className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-        <input autoFocus={!value} value={open ? q : value ? `${value.name}${value.sub ? ` · ${value.sub}` : ''}` : ''} placeholder={loading ? 'Customers aa rahe hain…' : 'Naam, dukaan, phone ya area'}
+        <UserRound className="pointer-events-none absolute start-2.5 top-2.5 h-4 w-4 text-slate-400" />
+        <input autoFocus={!value} value={open ? q : value ? `${value.name}${value.sub ? ` · ${value.sub}` : ''}` : ''} placeholder={loading ? tr('Customers aa rahe hain…') : tr('Naam, dukaan, phone ya area')}
           onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, found.length - 1)); }
@@ -372,14 +373,14 @@ function CustomerPicker({ list, loading, value, onPick }: {
             else if (e.key === 'Enter' && found[hi]) { e.preventDefault(); pick(found[hi]); }
             else if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); }
           }}
-          className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-[0.875rem] font-semibold text-slate-900 outline-none focus:border-brand-500" />
+          className="h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-2 text-[0.875rem] font-semibold text-slate-900 outline-none focus:border-brand-500" />
       </div>
       {open && (
-        <ul className="absolute left-0 right-0 top-[4.25rem] z-30 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
-          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">Koi customer nahi mila</li> : found.map((c, i) => (
+        <ul className="absolute start-0 end-0 top-[4.25rem] z-30 max-h-72 overflow-auto rounded-xl bg-white py-1 shadow-xl ring-1 ring-slate-200">
+          {!found.length ? <li className="px-3 py-2 text-[0.8125rem] text-slate-500">{tr('Koi customer nahi mila')}</li> : found.map((c, i) => (
             <li key={c.id}>
               <button type="button" onMouseDown={(e) => { e.preventDefault(); pick(c); }} onMouseEnter={() => setHi(i)}
-                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left', i === hi && 'bg-brand-50')}>
+                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-start', i === hi && 'bg-brand-50')}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{c.businessName || c.name}</span>
                   <span className="block truncate text-[0.6875rem] text-slate-500">{[c.businessName ? c.name : '', c.area, c.phone].filter(Boolean).join(' · ')}</span>

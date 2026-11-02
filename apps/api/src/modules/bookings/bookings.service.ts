@@ -26,6 +26,7 @@ import { ConvertBookingDto } from './dto/convert-booking.dto';
 import { saveSalePayments } from '../../common/helpers/sale-payments.helper';
 import { ListBookingsDto } from './dto/list-bookings.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
+import { apiMessage } from '../../common/i18n/api-message';
 
 const ACTIVE: BookingStatus[] = ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'];
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -495,7 +496,7 @@ export class BookingsService {
       const imeis = await this.prisma.productImei.findMany({ where: { id: { in: imeiIds }, tenantId: user.tenantId } });
       if (imeis.length !== imeiIds.length) throw new NotFoundException('Koi IMEI nahi mila');
       for (const imei of imeis) {
-        if (imei.status !== 'IN_STOCK') throw new BadRequestException(`IMEI ${imei.imei1} ${imei.status} hai, reserve nahi ho sakta`);
+        if (imei.status !== 'IN_STOCK') throw new BadRequestException(apiMessage('IMEI {{imei1}} {{imeiStatus}} hai, reserve nahi ho sakta', { imei1: imei.imei1, imeiStatus: imei.status }));
       }
       const taken = await this.prisma.bookingItem.count({ where: { imeiId: { in: imeiIds }, booking: openBooking } });
       if (taken) throw new BadRequestException('Koi IMEI pehle se doosri booking me reserve hai');
@@ -505,7 +506,7 @@ export class BookingsService {
       const pieces = await this.prisma.carpetCutPiece.findMany({ where: { id: { in: cutPieceIds }, tenantId: user.tenantId } });
       if (pieces.length !== cutPieceIds.length) throw new NotFoundException('Koi cut piece nahi mila');
       for (const p of pieces) {
-        if (p.status !== 'AVAILABLE') throw new BadRequestException(`Cut piece ${p.pieceCode} ${p.status} hai`);
+        if (p.status !== 'AVAILABLE') throw new BadRequestException(apiMessage('Cut piece {{pieceCode}} {{pStatus}} hai', { pieceCode: p.pieceCode, pStatus: p.status }));
       }
       const taken = await this.prisma.bookingItem.count({ where: { cutPieceId: { in: cutPieceIds }, booking: openBooking } });
       if (taken) throw new BadRequestException('Koi cut piece pehle se reserve hai');
@@ -667,7 +668,7 @@ export class BookingsService {
     if (!ACTIVE.includes(booking.status)) throw new BadRequestException('Band booking par payment nahi li ja sakti');
     const amount = r2(dto.amount);
     if (booking.totalPaid + amount > booking.total + 0.01) {
-      throw new BadRequestException(`Payment baqi se zyada hai. Baqi: ${booking.balanceDue.toFixed(2)}`);
+      throw new BadRequestException(apiMessage('Payment baqi se zyada hai. Baqi: {{balanceDue}}', { balanceDue: booking.balanceDue.toFixed(2) }));
     }
     const twin = await this.prisma.bookingPayment.findFirst({
       where: { bookingId: id, amount, createdById: user.id, type: { not: 'REFUND' }, createdAt: { gte: new Date(Date.now() - DUPLICATE_MS) } },
@@ -772,7 +773,7 @@ export class BookingsService {
 
     const additionalPayment = r2(dto.additionalPayment ?? 0);
     if (additionalPayment > booking.balanceDue + 0.01) {
-      throw new BadRequestException(`Payment baqi se zyada hai. Baqi: ${booking.balanceDue.toFixed(2)}`);
+      throw new BadRequestException(apiMessage('Payment baqi se zyada hai. Baqi: {{balanceDue}}', { balanceDue: booking.balanceDue.toFixed(2) }));
     }
     const totalPaidNow = r2(booking.totalPaid + additionalPayment);
     const creditAmount = r2(Math.max(booking.total - totalPaidNow, 0));

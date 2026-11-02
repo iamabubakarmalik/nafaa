@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button, Input, Modal, Select } from '@/design-system/components';
 import { TRADE_KEY, tradeApi, tradeError, type BusinessCard, type Terms } from '../api/trade.api';
+import { t as tr, Trans } from '@core/i18n';
 
 export function TermsModal({ linkId, mode, buyer, initial, suggested, onClose }: {
   linkId: string; mode: 'approve' | 'terms'; buyer: BusinessCard | null;
@@ -31,29 +32,29 @@ export function TermsModal({ linkId, mode, buyer, initial, suggested, onClose }:
       };
       return mode === 'approve' ? tradeApi.approve(linkId, t) : tradeApi.terms(linkId, t);
     },
-    onSuccess: () => { toast.success(mode === 'approve' ? 'Approve — ab yeh dukaan Order bhej sakti hai' : 'Terms save'); qc.invalidateQueries({ queryKey: [TRADE_KEY] }); onClose(); },
+    onSuccess: () => { toast.success(mode === 'approve' ? tr('Approve — ab yeh dukaan Order bhej sakti hai') : tr('Terms save')); qc.invalidateQueries({ queryKey: [TRADE_KEY] }); onClose(); },
     onError: (e) => toast.error(tradeError(e)),
   });
   const o = opts.data;
   return (
-    <Modal open onClose={onClose} title={mode === 'approve' ? `${buyer?.name ?? 'Dukaan'} ko approve karein` : `${buyer?.name ?? 'Customer'} ke terms`}
-      description={mode === 'approve' ? 'Yeh dukaan aap ke customers me aa jayegi aur aap is ke supplier ban jayenge.' : undefined}
-      footer={<><Button variant="secondary" onClick={onClose}>Close</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{mode === 'approve' ? 'Approve' : 'Save'}</Button></>}>
+    <Modal open onClose={onClose} title={mode === 'approve' ? tr('{{value}} ko approve karein', { value: buyer?.name ?? 'Dukaan' }) : tr('{{value}} ke terms', { value: buyer?.name ?? 'Customer' })}
+      description={mode === 'approve' ? tr('Yeh dukaan aap ke customers me aa jayegi aur aap is ke supplier ban jayenge.') : undefined}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Close')}</Button><Button loading={save.isPending} onClick={() => save.mutate()}>{mode === 'approve' ? tr('Approve') : tr('Save')}</Button></>}>
       <div className="grid gap-3 sm:grid-cols-2">
         {mode === 'approve' && suggested && (
           <label className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80 sm:col-span-2">
             <input type="checkbox" className="mt-1" checked={useExisting} onChange={(e) => setUseExisting(e.target.checked)} />
-            <span className="text-[0.8125rem] text-slate-700">Pehle se customer <b>{suggested.name}</b> hai (khata Rs {Math.round(suggested.balance).toLocaleString('en-PK')}) — isi se jorein, naya na banayein</span>
+            <span className="text-[0.8125rem] text-slate-700"><Trans text="Pehle se customer {{name}} hai (khata Rs {{balance}}) — isi se jorein, naya na banayein" values={{ name: <b>{suggested.name}</b>, balance: Math.round(suggested.balance).toLocaleString('en-PK') }} /></span>
           </label>
         )}
-        <Select label="Price list" value={priceListId} onChange={(e) => setPriceListId(e.target.value)}
-          options={[{ value: '', label: 'Default (settings wali)' }, ...(o?.priceLists ?? []).map((p) => ({ value: p.id, label: p.isDefault ? `${p.name} (default)` : p.name }))]} />
-        <Select label="Route" value={routeId} onChange={(e) => setRouteId(e.target.value)}
-          options={[{ value: '', label: 'Koi route nahi' }, ...(o?.routes ?? []).map((r) => ({ value: r.id, label: r.area ? `${r.name} · ${r.area}` : r.name }))]} />
-        <Input label="Udhaar ki had (Rs)" inputMode="numeric" placeholder="0 = koi had nahi" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^\d.]/g, ''))} />
-        <Input label="Udhaar ke din" inputMode="numeric" placeholder="Misal: 15" value={creditDays} onChange={(e) => setCreditDays(e.target.value.replace(/\D/g, ''))} />
-        <Select label="Order kis ke naam (booker)" wrapperClassName="sm:col-span-2" value={bookedById} onChange={(e) => setBookedById(e.target.value)}
-          options={[{ value: '', label: mode === 'approve' ? 'Main khud' : 'Jo pehle tha' }, ...(o?.staff ?? []).map((s) => ({ value: s.id, label: s.fullName }))]} />
+        <Select label={tr('Price list')} value={priceListId} onChange={(e) => setPriceListId(e.target.value)}
+          options={[{ value: '', label: tr('Default (settings wali)') }, ...(o?.priceLists ?? []).map((p) => ({ value: p.id, label: p.isDefault ? tr('{{name}} (default)', { name: p.name }) : p.name }))]} />
+        <Select label={tr('Route')} value={routeId} onChange={(e) => setRouteId(e.target.value)}
+          options={[{ value: '', label: tr('Koi route nahi') }, ...(o?.routes ?? []).map((r) => ({ value: r.id, label: r.area ? `${r.name} · ${r.area}` : r.name }))]} />
+        <Input label={tr('Udhaar ki had (Rs)')} inputMode="numeric" placeholder={tr('0 = koi had nahi')} value={creditLimit} onChange={(e) => setCreditLimit(e.target.value.replace(/[^\d.]/g, ''))} />
+        <Input label={tr('Udhaar ke din')} inputMode="numeric" placeholder={tr('Misal: 15')} value={creditDays} onChange={(e) => setCreditDays(e.target.value.replace(/\D/g, ''))} />
+        <Select label={tr('Order kis ke naam (booker)')} wrapperClassName="sm:col-span-2" value={bookedById} onChange={(e) => setBookedById(e.target.value)}
+          options={[{ value: '', label: mode === 'approve' ? tr('Main khud') : tr('Jo pehle tha') }, ...(o?.staff ?? []).map((s) => ({ value: s.id, label: s.fullName }))]} />
       </div>
     </Modal>
   );

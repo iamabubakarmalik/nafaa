@@ -6,12 +6,13 @@
 
 import { cn } from '@core/lib/cn';
 import type { StockTransfer, StockTransferItem, TransferStatus } from '../api/transfers.api';
+import { t as tr } from '@core/i18n';
 
 export const STATUS: Record<TransferStatus, { label: string; tone: string; color: string }> = {
-  PENDING: { label: 'Bhejna baqi', tone: 'bg-slate-100 text-slate-600 ring-slate-200', color: '#64748b' },
-  IN_TRANSIT: { label: 'Raste me', tone: 'bg-blue-50 text-blue-700 ring-blue-200', color: '#2563eb' },
-  RECEIVED: { label: 'Receive', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
-  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-500 ring-slate-200', color: '#94a3b8' },
+  PENDING: { label: tr('Bhejna baqi'), tone: 'bg-slate-100 text-slate-600 ring-slate-200', color: '#64748b' },
+  IN_TRANSIT: { label: tr('Raste me'), tone: 'bg-blue-50 text-blue-700 ring-blue-200', color: '#2563eb' },
+  RECEIVED: { label: tr('Receive'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  CANCELLED: { label: tr('Cancel'), tone: 'bg-slate-100 text-slate-500 ring-slate-200', color: '#94a3b8' },
 };
 
 export function StatusBadge({ status, className }: { status: TransferStatus; className?: string }) {
@@ -36,7 +37,7 @@ export function duration(fromIso?: string | null, toIso?: string | null) {
   if (hours < 24) return `${hours} ghante`;
   const days = Math.floor(hours / 24);
   const rest = hours % 24;
-  return rest ? `${days} din ${rest} ghante` : `${days} din`;
+  return rest ? tr('{{days}} din {{rest}} ghante', { days, rest }) : tr('{{days}} din', { days });
 }
 
 /** A device, roll or used phone arrives whole or not at all. */
@@ -44,15 +45,15 @@ export const isUnitLine = (i: StockTransferItem) => !!(i.imeiId || i.serialId ||
 
 export function lineName(i: StockTransferItem) {
   if (i.usedPhone) return `${i.usedPhone.brand} ${i.usedPhone.model}${i.usedPhone.storage ? ` ${i.usedPhone.storage}` : ''}`;
-  return i.product?.name ?? 'Cheez';
+  return i.product?.name ?? tr('Cheez');
 }
 
 /** Roll number, IMEI, serial or used phone code, when the line is one unit. */
 export function lineRef(i: StockTransferItem) {
-  if (i.carpetRoll) return `Roll ${i.carpetRoll.rollNumber} · ${i.carpetRoll.widthFt}ft${i.carpetRoll.widthInch ? ` ${i.carpetRoll.widthInch}in` : ''} × ${qty(i.carpetRoll.remainingLengthFt)}ft`;
-  if (i.imei) return `IMEI ${i.imei.imei1}${i.imei.color ? ` · ${i.imei.color}` : ''}`;
-  if (i.serial) return `Serial ${i.serial.serialNumber}${i.serial.imei ? ` · IMEI ${i.serial.imei}` : ''}`;
-  if (i.usedPhone) return `Used ${i.usedPhone.usedPhoneCode}${i.usedPhone.color ? ` · ${i.usedPhone.color}` : ''}`;
+  if (i.carpetRoll) return tr('Roll {{rollNumber}} · {{widthFt}}ft{{value}} × {{remainingLengthFt}}ft', { rollNumber: i.carpetRoll.rollNumber, widthFt: i.carpetRoll.widthFt, value: i.carpetRoll.widthInch ? tr(' {{widthInch}}in', { widthInch: i.carpetRoll.widthInch }) : '', remainingLengthFt: qty(i.carpetRoll.remainingLengthFt) });
+  if (i.imei) return tr('IMEI {{imei1}}{{value}}', { imei1: i.imei.imei1, value: i.imei.color ? ` · ${i.imei.color}` : '' });
+  if (i.serial) return tr('Serial {{serialNumber}}{{value}}', { serialNumber: i.serial.serialNumber, value: i.serial.imei ? tr(' · IMEI {{imei}}', { imei: i.serial.imei }) : '' });
+  if (i.usedPhone) return tr('Used {{usedPhoneCode}}{{value}}', { usedPhoneCode: i.usedPhone.usedPhoneCode, value: i.usedPhone.color ? ` · ${i.usedPhone.color}` : '' });
   return '';
 }
 

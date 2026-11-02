@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { t as tr } from '@core/i18n';
 
 /** "/" focuses search; single letters run the given actions. Ignored while typing or in a dialog. */
 export function usePageKeys(search: RefObject<HTMLInputElement | null> | null, keys: Record<string, () => void> = {}) {
@@ -61,7 +62,7 @@ export function ConfirmModal({ title, text, confirm, danger, pending, onConfirm,
 }) {
   return (
     <Modal open onClose={onClose} size="sm" title={title}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant={danger ? 'danger' : 'primary'} loading={pending} onClick={onConfirm}>{confirm}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant={danger ? 'danger' : 'primary'} loading={pending} onClick={onConfirm}>{confirm}</Button></>}>
       <div className="text-[0.875rem] text-slate-700">{text}</div>
     </Modal>
   );

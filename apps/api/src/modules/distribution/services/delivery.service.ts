@@ -20,6 +20,7 @@ import { DeliveryRecoveryDto, DeliveryReportDto, DeliverySyncDto } from '../dto/
 import { r2, r4, returnPlan, routeNames, shopNames, todayKey, type ReturnLineInput } from '../distribution.support';
 import { CollectionsService } from './collections.service';
 import type { SyncStatus } from './booker.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 export interface DeliverySyncResult {
   kind: 'report' | 'recovery';
@@ -170,9 +171,9 @@ export class DeliveryService {
     const order = await this.prisma.salesOrder.findFirst({ where: { id: r.orderId, tenantId }, include: { items: true } });
     if (!order) throw new NotFoundException('Invoice nahi mili');
     const sheet = order.loadSheetId ? await this.prisma.loadSheet.findFirst({ where: { id: order.loadSheetId, tenantId } }) : null;
-    if (!sheet || sheet.deliveryUserId !== user.id) throw new ForbiddenException(`${order.orderNumber} aap ki load sheet par nahi`);
-    if (order.deliveryStatus) throw new BadRequestException(`${order.orderNumber}: office ne settle kar diya — report ab nahi badal sakti`);
-    if (sheet.status !== 'DISPATCHED') throw new BadRequestException(`Load sheet ${sheet.number} ${sheet.status} hai`);
+    if (!sheet || sheet.deliveryUserId !== user.id) throw new ForbiddenException(apiMessage('{{orderNumber}} aap ki load sheet par nahi', { orderNumber: order.orderNumber }));
+    if (order.deliveryStatus) throw new BadRequestException(apiMessage('{{orderNumber}}: office ne settle kar diya — report ab nahi badal sakti', { orderNumber: order.orderNumber }));
+    if (sheet.status !== 'DISPATCHED') throw new BadRequestException(apiMessage('Load sheet {{sheetNumber}} {{sheetStatus}} hai', { sheetNumber: sheet.number, sheetStatus: sheet.status }));
 
     const cash = r2(r.cashCollected ?? 0);
     const back = returnPlan(order, r.outcome, cash, r.lines);
@@ -217,7 +218,7 @@ export class DeliveryService {
     if (seen) return { status: 'duplicate', id: seen.id };
     const sheet = await this.prisma.loadSheet.findFirst({ where: { id: c.loadSheetId, tenantId }, select: { deliveryUserId: true, status: true, number: true } });
     if (!sheet || sheet.deliveryUserId !== user.id) throw new ForbiddenException('Ye load sheet aap ki nahi');
-    if (sheet.status !== 'DISPATCHED') throw new BadRequestException(`Load sheet ${sheet.number} ${sheet.status} hai`);
+    if (sheet.status !== 'DISPATCHED') throw new BadRequestException(apiMessage('Load sheet {{sheetNumber}} {{sheetStatus}} hai', { sheetNumber: sheet.number, sheetStatus: sheet.status }));
     const res = await this.collections.create(
       user,
       {

@@ -33,17 +33,18 @@ import { warrantyClaimsApi, type ApplianceClaimStatus, type ClaimSummary, type W
 import { SerialLookup } from '../components/jobDialogs';
 import { Bars, Box, Chips, ListState, Pager, Panel, Pill, Strip } from '../components/ui';
 import { CLAIM_KEY, MONEY_KEYS, SERVICE_KEY, WARRANTY_KIND, apiError, claimStatusOf, dayOnly, money } from '../components/meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'list' | 'missing' | 'analytics';
 type View = 'open' | 'DRAFT' | 'waiting' | 'APPROVED' | 'SETTLED' | 'REJECTED' | 'all';
 const VIEWS: Array<{ id: View; label: string; icon: typeof Shield }> = [
-  { id: 'open', label: 'Khule claims', icon: Shield },
-  { id: 'DRAFT', label: 'Bheje nahi', icon: FileWarning },
-  { id: 'waiting', label: 'Company ke paas', icon: Clock },
-  { id: 'APPROVED', label: 'Approve — paisa baqi', icon: Wallet },
-  { id: 'SETTLED', label: 'Paisa mil gaya', icon: CheckCircle2 },
-  { id: 'REJECTED', label: 'Mana', icon: XCircle },
-  { id: 'all', label: 'Sab', icon: ListChecks },
+  { id: 'open', label: tr('Khule claims'), icon: Shield },
+  { id: 'DRAFT', label: tr('Bheje nahi'), icon: FileWarning },
+  { id: 'waiting', label: tr('Company ke paas'), icon: Clock },
+  { id: 'APPROVED', label: tr('Approve — paisa baqi'), icon: Wallet },
+  { id: 'SETTLED', label: tr('Paisa mil gaya'), icon: CheckCircle2 },
+  { id: 'REJECTED', label: tr('Mana'), icon: XCircle },
+  { id: 'all', label: tr('Sab'), icon: ListChecks },
 ];
 const viewLabel = (v: View) => VIEWS.find((x) => x.id === v)?.label ?? v;
 function viewParams(v: View) {
@@ -84,8 +85,8 @@ export default function ApplianceWarrantyClaimsPage() {
   const missingQ = useQuery({ queryKey: [CLAIM_KEY, 'missing'], queryFn: warrantyClaimsApi.missing, enabled: tab === 'missing' });
   const fromService = useMutation({
     mutationFn: (id: string) => warrantyClaimsApi.fromService(id),
-    onSuccess: (c) => { toast.success(`Claim ${c.claimNumber} ban gaya`); [CLAIM_KEY, SERVICE_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setOpenId(c.id); },
-    onError: (e) => toast.error(apiError(e, 'Claim nahi bana')),
+    onSuccess: (c) => { toast.success(tr('Claim {{claimNumber}} ban gaya', { claimNumber: c.claimNumber })); [CLAIM_KEY, SERVICE_KEY].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setOpenId(c.id); },
+    onError: (e) => toast.error(apiError(e, tr('Claim nahi bana'))),
   });
   const data = listQ.data;
   const rows = data?.items ?? [];
@@ -126,88 +127,88 @@ export default function ApplianceWarrantyClaimsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Warranty claims"
-        chip={<><Shield /> Company se paisa</>}
-        meta="Warranty repair ke parts aur mazdoori company se wapas lein"
+        title={tr('Warranty claims')}
+        chip={<><Shield /> {' '}{tr('Company se paisa')}</>}
+        meta={tr('Warranty repair ke parts aur mazdoori company se wapas lein')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={statsQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'list' || !rows.length} /></span>
-          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">CSV</span></button>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canManage && <button type="button" onClick={() => setCreating(true)} title="Naya claim (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya claim</button>}
+          <button type="button" onClick={() => void exportCsv()} disabled={!rows.length} className={heroButton}><Download className="h-4 w-4" /><span className="hidden sm:inline">{tr('CSV')}</span></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canManage && <button type="button" onClick={() => setCreating(true)} title={tr('Naya claim (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Naya claim')}</button>}
         </>}
         stats={s ? [
-          { label: 'Company se lena', value: sales(s.money.pending) },
-          { label: 'Wapas mila', value: `${Math.round(s.money.recoveryRate)}%` },
-          { label: 'Claim nahi kiye', value: s.missing.count, hint: s.missing.recoverable ? sales(s.missing.recoverable) : undefined },
-        ] : [{ label: 'Company se lena', value: '—' }]}
+          { label: tr('Company se lena'), value: sales(s.money.pending) },
+          { label: tr('Wapas mila'), value: `${Math.round(s.money.recoveryRate)}%` },
+          { label: tr('Claim nahi kiye'), value: s.missing.count, hint: s.missing.recoverable ? sales(s.missing.recoverable) : undefined },
+        ] : [{ label: tr('Company se lena'), value: '—' }]}
       />
 
       <KpiRow cols={4}>
         {!s ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={FileWarning} color={s.draft ? '#ea580c' : '#64748b'} label="Bheje nahi" value={s.draft} hint="Company ko bhejein" onClick={() => pick('DRAFT')} active={tab === 'list' && view === 'DRAFT'} />
-          <KpiCard icon={Clock} color="#2563eb" label="Company ke paas" value={s.submitted + s.reviewing} hint={s.stale ? `${s.stale} purane — yaad dilayein` : 'Jawab ka intezar'} onClick={() => pick('waiting')} active={tab === 'list' && view === 'waiting'} />
-          <KpiCard icon={Wallet} color="#d97706" label="Approve, paisa baqi" value={s.approved} hint={sales(s.money.pending)} onClick={() => pick('APPROVED')} active={tab === 'list' && view === 'APPROVED'} />
-          <KpiCard icon={AlertTriangle} color={s.missing.count ? '#e11d48' : '#64748b'} label="Claim nahi kiye" value={s.missing.count} hint={s.missing.count ? `${sales(s.missing.recoverable)} reh gaye` : 'Sab claim ho gaye'} onClick={() => setTab('missing')} active={tab === 'missing'} />
+          <KpiCard icon={FileWarning} color={s.draft ? '#ea580c' : '#64748b'} label={tr('Bheje nahi')} value={s.draft} hint={tr('Company ko bhejein')} onClick={() => pick('DRAFT')} active={tab === 'list' && view === 'DRAFT'} />
+          <KpiCard icon={Clock} color="#2563eb" label={tr('Company ke paas')} value={s.submitted + s.reviewing} hint={s.stale ? tr('{{stale}} purane — yaad dilayein', { stale: s.stale }) : tr('Jawab ka intezar')} onClick={() => pick('waiting')} active={tab === 'list' && view === 'waiting'} />
+          <KpiCard icon={Wallet} color="#d97706" label={tr('Approve, paisa baqi')} value={s.approved} hint={sales(s.money.pending)} onClick={() => pick('APPROVED')} active={tab === 'list' && view === 'APPROVED'} />
+          <KpiCard icon={AlertTriangle} color={s.missing.count ? '#e11d48' : '#64748b'} label={tr('Claim nahi kiye')} value={s.missing.count} hint={s.missing.count ? tr('{{recoverable}} reh gaye', { recoverable: sales(s.missing.recoverable) }) : tr('Sab claim ho gaye')} onClick={() => setTab('missing')} active={tab === 'missing'} />
         </>}
       </KpiRow>
 
       {tab === 'list' ? (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Claim #, brand, product, serial, customer…" label="Search" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Claim #, brand, product, serial, customer…')} label={tr('Search')} />}
           chips={query ? <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip> : undefined}
           onClear={() => setSearch('')}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'open'} onChange={setView} width="w-60" options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon }))} />
         </FilterBar>
-      ) : <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'missing' ? 'Warranty me theek kiye kaam jin ka claim abhi nahi bana' : 'Brand war claims aur wusooli'}</p>} />}
+      ) : <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'missing' ? tr('Warranty me theek kiye kaam jin ka claim abhi nahi bana') : tr('Brand war claims aur wusooli')}</p>} />}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>2</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> {' '}{tr('naya ·')}{' '} </>}<Kbd>/</Kbd> {' '}{tr('search ·')}{' '} <Kbd>1</Kbd>-<Kbd>2</Kbd> {' '}{tr('tabs')}</>}
         tabs={[
-          { id: 'list', label: 'Claims', icon: ListChecks, count: data?.meta.total ?? null },
-          { id: 'missing', label: 'Claim nahi kiye', icon: AlertTriangle, count: s?.missing.count ?? null },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'list', label: tr('Claims'), icon: ListChecks, count: data?.meta.total ?? null },
+          { id: 'missing', label: tr('Claim nahi kiye'), icon: AlertTriangle, count: s?.missing.count ?? null },
+          { id: 'analytics', label: tr('Analytics'), icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <Analytics s={s} money={sales} /> : tab === 'missing' ? (
         <ListState loading={missingQ.isLoading} error={missingQ.isError} empty={!(missingQ.data?.items.length)} onRetry={() => missingQ.refetch()} icon={ShieldCheck}
-          title="Har warranty kaam ka claim ban chuka" hint="Repair me 'Warranty me' wala kaam mukammal ho to yahan aata hai.">
+          title={tr('Har warranty kaam ka claim ban chuka')} hint={tr('Repair me \'Warranty me\' wala kaam mukammal ho to yahan aata hai.')}>
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {(missingQ.data?.items ?? []).map((m) => (
               <li key={m.id} className="flex items-center gap-3 px-3 py-3 sm:px-4">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-slate-900">{m.productName} <span className="font-mono text-[0.6875rem] text-slate-400">{m.requestNumber}</span></p>
                   <p className="truncate text-[0.8125rem] text-slate-600">{m.customerName} · {m.reportedIssue}{m.serialNumber ? ` · ${m.serialNumber}` : ''}</p>
-                  <p className="text-[0.75rem] text-slate-500">{dayOnly(m.completedAt)} · {m.ageDays} din purana · {m.technicianName ?? ''}</p>
+                  <p className="text-[0.75rem] text-slate-500">{tr('{{completedAt}} · {{ageDays}} din purana · {{value}}', { completedAt: dayOnly(m.completedAt), ageDays: m.ageDays, value: m.technicianName ?? '' })}</p>
                 </div>
-                <div className="shrink-0 text-right">
+                <div className="shrink-0 text-end">
                   <p className="font-semibold tabular-nums text-rose-700">{sales(m.recoverable)}</p>
-                  {canManage && <Button size="sm" className="mt-1" leftIcon={<Plus className="h-3.5 w-3.5" />} loading={fromService.isPending && fromService.variables === m.id} onClick={() => fromService.mutate(m.id)}>Claim banayein</Button>}
+                  {canManage && <Button size="sm" className="mt-1" leftIcon={<Plus className="h-3.5 w-3.5" />} loading={fromService.isPending && fromService.variables === m.id} onClick={() => fromService.mutate(m.id)}>{tr('Claim banayein')}</Button>}
                 </div>
               </li>
             ))}
           </ul>
         </ListState>
       ) : (<>
-        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{data.meta.total} claims</span></Strip>}
+        {data && data.meta.total > 0 && <Strip><span className="text-slate-500">{viewLabel(view)}</span><span className="font-semibold text-slate-900">{tr('{{total}} claims', { total: data.meta.total })}</span></Strip>}
         <ListState loading={listQ.isLoading} error={listQ.isError && !data} empty={!rows.length} onRetry={() => listQ.refetch()} icon={Shield}
-          title={query ? 'Kuch nahi mila' : 'Koi claim nahi'} hint="Warranty repair mukammal karein to 'Company se claim' button aata hai — ya yahan khud likhein."
-          actions={canManage ? <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>Naya claim</Button> : undefined}>
+          title={query ? tr('Kuch nahi mila') : tr('Koi claim nahi')} hint={tr('Warranty repair mukammal karein to \'Company se claim\' button aata hai — ya yahan khud likhein.')}
+          actions={canManage ? <Button onClick={() => setCreating(true)} leftIcon={<Plus className="h-4 w-4" />}>{tr('Naya claim')}</Button> : undefined}>
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             {rows.map((c) => (
               <li key={c.id}>
-                <button type="button" onClick={() => setOpenId(c.id)} className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-slate-50 sm:px-4">
+                <button type="button" onClick={() => setOpenId(c.id)} className="flex w-full items-start gap-3 px-3 py-3 text-start hover:bg-slate-50 sm:px-4">
                   <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Shield className="h-5 w-5" /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-1.5"><span className="truncate font-semibold text-slate-900">{c.brandName ?? 'Brand'} — {c.productName}</span><Pill meta={claimStatusOf(c.status)} /><span className="font-mono text-[0.6875rem] text-slate-400">{c.claimNumber}</span></span>
+                    <span className="flex flex-wrap items-center gap-1.5"><span className="truncate font-semibold text-slate-900">{c.brandName ?? tr('Brand')} — {c.productName}</span><Pill meta={claimStatusOf(c.status)} /><span className="font-mono text-[0.6875rem] text-slate-400">{c.claimNumber}</span></span>
                     <span className="mt-0.5 block truncate text-[0.8125rem] text-slate-600">{c.issue}{c.serialNumber ? ` · ${c.serialNumber}` : ''} · {c.customerName}</span>
-                    <span className="mt-0.5 block text-[0.75rem] text-slate-500">{dayOnly(c.claimDate)}{c.ageDays ? ` · ${c.ageDays} din` : ''}{c.brandRef ? ` · ref ${c.brandRef}` : ''}</span>
+                    <span className="mt-0.5 block text-[0.75rem] text-slate-500">{dayOnly(c.claimDate)}{c.ageDays ? tr(' · {{ageDays}} din', { ageDays: c.ageDays }) : ''}{c.brandRef ? tr(' · ref {{brandRef}}', { brandRef: c.brandRef }) : ''}</span>
                   </span>
-                  <span className="shrink-0 text-right">
+                  <span className="shrink-0 text-end">
                     <span className="block font-semibold tabular-nums text-slate-900">{sales(Number(c.claimedAmount) || 0)}</span>
-                    {pendingOf(c) > 0 && c.status !== 'REJECTED' && c.status !== 'DRAFT' && <span className="block text-[0.75rem] font-medium tabular-nums text-amber-700">baqi {sales(pendingOf(c))}</span>}
-                    <ArrowRight className="ml-auto mt-1 h-3.5 w-3.5 text-slate-400" />
+                    {pendingOf(c) > 0 && c.status !== 'REJECTED' && c.status !== 'DRAFT' && <span className="block text-[0.75rem] font-medium tabular-nums text-amber-700">{tr('baqi {{sales}}', { sales: sales(pendingOf(c)) })}</span>}
+                    <ArrowRight className="ms-auto mt-1 h-3.5 w-3.5 text-slate-400 rtl-flip" />
                   </span>
                 </button>
               </li>
@@ -220,14 +221,14 @@ export default function ApplianceWarrantyClaimsPage() {
       {creating && <NewClaimModal onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); setOpenId(id); }} />}
       {openId && <ClaimCard id={openId} canManage={canManage} onClose={() => setOpenId(null)} />}
       {guide.isOpen && (
-        <PageGuide title="Warranty claims — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Warranty claims — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Claim banayein', text: 'Warranty repair mukammal hone par "Company se claim" dabayein, ya "Claim nahi kiye" tab se. Parts aur mazdoori khud aa jate hain.' },
-            { icon: Send, color: '#7c3aed', title: 'Company ko bhejein', text: 'Claim kholein → "Company ko bheja" — company ka reference number aur contact likhein.' },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Jawab', text: 'Company approve kare to kitna approve hua likhein; mana kare to wajah. Naya unit mile to us ka serial.' },
-            { icon: Wallet, color: '#d97706', title: 'Paisa mila', text: '"Paisa mila" par kitna mila aur kaise (aksar bank) — galla / bank aur Profit me aata hai.' },
+            { icon: Plus, color: '#2563eb', title: tr('Claim banayein'), text: tr('Warranty repair mukammal hone par "Company se claim" dabayein, ya "Claim nahi kiye" tab se. Parts aur mazdoori khud aa jate hain.') },
+            { icon: Send, color: '#7c3aed', title: tr('Company ko bhejein'), text: tr('Claim kholein → "Company ko bheja" — company ka reference number aur contact likhein.') },
+            { icon: CheckCircle2, color: '#16a34a', title: tr('Jawab'), text: tr('Company approve kare to kitna approve hua likhein; mana kare to wajah. Naya unit mile to us ka serial.') },
+            { icon: Wallet, color: '#d97706', title: tr('Paisa mila'), text: tr('"Paisa mila" par kitna mila aur kaise (aksar bank) — galla / bank aur Profit me aata hai.') },
           ]}
-          tips={['"Company ke paas" me purane claims par company ko yaad dilayein.', 'Claim sambhalne ke liye "Warranty manage" permission chahiye.']}
+          tips={[tr('"Company ke paas" me purane claims par company ko yaad dilayein.'), tr('Claim sambhalne ke liye "Warranty manage" permission chahiye.')]}
           shortcuts={[['N', 'naya'], ['/', 'dhoondein'], ['1', 'claims'], ['2', 'analytics'], ['G', 'guide']]}
         />
       )}
@@ -258,13 +259,13 @@ function NewClaimModal({ onClose, onCreated }: { onClose: () => void; onCreated:
       customerName: customer.trim(), customerPhone: phone.trim() || undefined, invoiceNumber: invoice.trim() || undefined, issue: issue.trim(), warrantyKind: kind,
       partsCost: Number(parts) || 0, laborCost: Number(labor) || 0, otherCost: Number(other) || 0,
     }),
-    onSuccess: (c) => { toast.success(`Claim ${c.claimNumber} ban gaya`); qc.invalidateQueries({ queryKey: [CLAIM_KEY] }); onCreated(c.id); },
-    onError: (e) => toast.error(apiError(e, 'Claim nahi bana')),
+    onSuccess: (c) => { toast.success(tr('Claim {{claimNumber}} ban gaya', { claimNumber: c.claimNumber })); qc.invalidateQueries({ queryKey: [CLAIM_KEY] }); onCreated(c.id); },
+    onError: (e) => toast.error(apiError(e, tr('Claim nahi bana'))),
   });
   const total = (Number(parts) || 0) + (Number(labor) || 0) + (Number(other) || 0);
   return (
-    <Modal open onClose={onClose} size="lg" title="Naya warranty claim" description="Jo kharcha dukaan ne warranty kaam par kiya, company se lein"
-      footer={<><span className="mr-auto text-[0.8125rem] text-slate-600">Claim: <strong>{formatPKR(total)}</strong></span><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>Claim banayein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={tr('Naya warranty claim')} description={tr('Jo kharcha dukaan ne warranty kaam par kiya, company se lein')}
+      footer={<><span className="me-auto text-[0.8125rem] text-slate-600">{tr('Claim:')}{' '} <strong>{formatPKR(total)}</strong></span><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!ok} loading={save.isPending} onClick={() => save.mutate()}>{tr('Claim banayein')}</Button></>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (ok) save.mutate(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (ok) save.mutate(); } }}>
         <SerialLookup value={serial} onChange={(v) => { setSerial(v); setSerialId(undefined); }} onFound={(r) => {
@@ -273,21 +274,21 @@ function NewClaimModal({ onClose, onCreated }: { onClose: () => void; onCreated:
           setCustomer(s.customerName ?? customer); setPhone(s.customerPhone ?? phone); setInvoice(s.invoiceNumber ?? invoice);
         }} />
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Product" required value={product} onChange={(e) => setProduct(e.target.value)} />
-          <Input label="Brand / company" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Haier" />
-          <Input label="Model" value={model} onChange={(e) => setModel(e.target.value)} />
+          <Input label={tr('Product')} required value={product} onChange={(e) => setProduct(e.target.value)} />
+          <Input label={tr('Brand / company')} value={brand} onChange={(e) => setBrand(e.target.value)} placeholder={tr('Haier')} />
+          <Input label={tr('Model')} value={model} onChange={(e) => setModel(e.target.value)} />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Customer" required value={customer} onChange={(e) => setCustomer(e.target.value)} />
-          <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Input label="Bill number" value={invoice} onChange={(e) => setInvoice(e.target.value)} />
+          <Input label={tr('Customer')} required value={customer} onChange={(e) => setCustomer(e.target.value)} />
+          <Input label={tr('Phone')} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <Input label={tr('Bill number')} value={invoice} onChange={(e) => setInvoice(e.target.value)} />
         </div>
-        <Textarea label="Kharabi" required rows={2} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Compressor band ho gaya" />
-        <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kaunsi warranty</span><Chips options={Object.entries(WARRANTY_KIND).map(([value, label]) => ({ value, label }))} value={kind} onChange={setKind} /></div>
+        <Textarea label={tr('Kharabi')} required rows={2} value={issue} onChange={(e) => setIssue(e.target.value)} placeholder={tr('Compressor band ho gaya')} />
+        <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kaunsi warranty')}</span><Chips options={Object.entries(WARRANTY_KIND).map(([value, label]) => ({ value, label }))} value={kind} onChange={setKind} /></div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Input label="Parts" inputMode="decimal" value={parts} onChange={(e) => setParts(money(e.target.value))} />
-          <Input label="Mazdoori" inputMode="decimal" value={labor} onChange={(e) => setLabor(money(e.target.value))} />
-          <Input label="Aur kharcha" inputMode="decimal" value={other} onChange={(e) => setOther(money(e.target.value))} hint="Gas, safar" />
+          <Input label={tr('Parts')} inputMode="decimal" value={parts} onChange={(e) => setParts(money(e.target.value))} />
+          <Input label={tr('Mazdoori')} inputMode="decimal" value={labor} onChange={(e) => setLabor(money(e.target.value))} />
+          <Input label={tr('Aur kharcha')} inputMode="decimal" value={other} onChange={(e) => setOther(money(e.target.value))} hint={tr('Gas, safar')} />
         </div>
       </form>
     </Modal>
@@ -310,68 +311,68 @@ function ClaimCard({ id, canManage, onClose }: { id: string; canManage: boolean;
   const [method, setMethod] = useState<PaymentMethod>('BANK_TRANSFER');
   const [confirmDrop, setConfirmDrop] = useState(false);
   const done = (msg: string) => { toast.success(msg); [CLAIM_KEY, ...MONEY_KEYS].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); setDialog(null); };
-  const fail = (e: unknown) => toast.error(apiError(e, 'Nahi hua'));
-  const submit = useMutation({ mutationFn: () => warrantyClaimsApi.submit(id, { brandRef: ref.trim() || undefined, brandContact: contact.trim() || undefined }), onSuccess: () => done('Company ko bhej diya'), onError: fail });
+  const fail = (e: unknown) => toast.error(apiError(e, tr('Nahi hua')));
+  const submit = useMutation({ mutationFn: () => warrantyClaimsApi.submit(id, { brandRef: ref.trim() || undefined, brandContact: contact.trim() || undefined }), onSuccess: () => done(tr('Company ko bhej diya')), onError: fail });
   const respond = useMutation({
     mutationFn: () => warrantyClaimsApi.brandResponse(id, { status: answer, approvedAmount: answer === 'REJECTED' ? undefined : Number(approved) || 0, brandResponse: answer === 'REJECTED' ? undefined : response.trim() || undefined, rejectionReason: answer === 'REJECTED' ? response.trim() : undefined, replacementSerialNumber: replacement.trim() || undefined }),
-    onSuccess: () => done('Jawab darj'), onError: fail,
+    onSuccess: () => done(tr('Jawab darj')), onError: fail,
   });
-  const settle = useMutation({ mutationFn: () => warrantyClaimsApi.settle(id, { receivedAmount: Number(received) || 0, paymentMethod: method }), onSuccess: () => done('Paisa darj — galla / bank me'), onError: fail });
-  const drop = useMutation({ mutationFn: () => warrantyClaimsApi.remove(id), onSuccess: () => { done('Claim hata diya'); onClose(); }, onError: fail });
+  const settle = useMutation({ mutationFn: () => warrantyClaimsApi.settle(id, { receivedAmount: Number(received) || 0, paymentMethod: method }), onSuccess: () => done(tr('Paisa darj — galla / bank me')), onError: fail });
+  const drop = useMutation({ mutationFn: () => warrantyClaimsApi.remove(id), onSuccess: () => { done(tr('Claim hata diya')); onClose(); }, onError: fail });
   const c = q.data;
   const pending = c ? pendingOf(c) : 0;
 
   return (
-    <Modal open onClose={onClose} size="lg" title={c ? `${c.claimNumber} — ${c.brandName ?? ''} ${c.productName}` : 'Claim'} description={c ? `${c.customerName}${c.serialNumber ? ` · ${c.serialNumber}` : ''}` : undefined}
+    <Modal open onClose={onClose} size="lg" title={c ? `${c.claimNumber} — ${c.brandName ?? ''} ${c.productName}` : tr('Claim')} description={c ? `${c.customerName}${c.serialNumber ? ` · ${c.serialNumber}` : ''}` : undefined}
       footer={c && canManage && <>
         {c.status === 'DRAFT' && (confirmDrop
-          ? <Button variant="danger" size="sm" loading={drop.isPending} leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => drop.mutate()}>Haan, hatayein</Button>
-          : <Button variant="ghost" size="sm" onClick={() => setConfirmDrop(true)}>Hatayein</Button>)}
+          ? <Button variant="danger" size="sm" loading={drop.isPending} leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => drop.mutate()}>{tr('Haan, hatayein')}</Button>
+          : <Button variant="ghost" size="sm" onClick={() => setConfirmDrop(true)}>{tr('Hatayein')}</Button>)}
         <span className="flex-1" />
-        {c.status === 'DRAFT' && <Button leftIcon={<Send className="h-4 w-4" />} onClick={() => setDialog('submit')}>Company ko bheja</Button>}
-        {(c.status === 'SUBMITTED' || c.status === 'BRAND_REVIEWING') && <Button onClick={() => { setApproved(String(Number(c.claimedAmount))); setDialog('response'); }}>Company ka jawab</Button>}
-        {(c.status === 'APPROVED' || c.status === 'PARTIALLY_APPROVED') && pending > 0 && <Button leftIcon={<Wallet className="h-4 w-4" />} onClick={() => { setReceived(String(pending)); setDialog('settle'); }}>Paisa mila</Button>}
+        {c.status === 'DRAFT' && <Button leftIcon={<Send className="h-4 w-4" />} onClick={() => setDialog('submit')}>{tr('Company ko bheja')}</Button>}
+        {(c.status === 'SUBMITTED' || c.status === 'BRAND_REVIEWING') && <Button onClick={() => { setApproved(String(Number(c.claimedAmount))); setDialog('response'); }}>{tr('Company ka jawab')}</Button>}
+        {(c.status === 'APPROVED' || c.status === 'PARTIALLY_APPROVED') && pending > 0 && <Button leftIcon={<Wallet className="h-4 w-4" />} onClick={() => { setReceived(String(pending)); setDialog('settle'); }}>{tr('Paisa mila')}</Button>}
       </>}>
       {!c ? <Skeleton className="h-52 rounded-2xl" /> : (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2"><Pill meta={claimStatusOf(c.status)} />{c.warrantyKind && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] text-slate-600">{WARRANTY_KIND[c.warrantyKind] ?? c.warrantyKind}</span>}</div>
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200"><strong>Kharabi:</strong> {c.issue}</p>
+          <p className="rounded-xl bg-amber-50 px-3 py-2 text-[0.875rem] text-amber-900 ring-1 ring-amber-200"><strong>{tr('Kharabi:')}</strong> {c.issue}</p>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Box label="Claim" value={formatPKR(Number(c.claimedAmount))} /><Box label="Approve" value={formatPKR(Number(c.approvedAmount))} />
-            <Box label="Mila" value={formatPKR(Number(c.receivedAmount))} tone="text-emerald-700" /><Box label="Baqi" value={formatPKR(c.status === 'REJECTED' ? 0 : pending)} tone={pending > 0 ? 'text-amber-700' : 'text-slate-900'} />
+            <Box label={tr('Claim')} value={formatPKR(Number(c.claimedAmount))} /><Box label={tr('Approve')} value={formatPKR(Number(c.approvedAmount))} />
+            <Box label={tr('Mila')} value={formatPKR(Number(c.receivedAmount))} tone="text-emerald-700" /><Box label={tr('Baqi')} value={formatPKR(c.status === 'REJECTED' ? 0 : pending)} tone={pending > 0 ? 'text-amber-700' : 'text-slate-900'} />
           </dl>
           <dl className="grid gap-x-6 gap-y-2 text-[0.875rem] sm:grid-cols-2">
-            <Row k="Parts" v={formatPKR(Number(c.partsCost))} /><Row k="Mazdoori" v={formatPKR(Number(c.laborCost))} />
-            {c.brandRef && <Row k="Company ref" v={c.brandRef} />}{c.brandContact && <Row k="Contact" v={c.brandContact} />}
-            {c.submittedAt && <Row k="Bheja" v={dayOnly(c.submittedAt)} />}{c.brandResponse && <Row k="Jawab" v={c.brandResponse} />}
-            {c.rejectionReason && <Row k="Mana ki wajah" v={c.rejectionReason} />}{c.replacementSerialNumber && <Row k="Naya unit" v={c.replacementSerialNumber} />}
-            {c.service && <Row k="Repair" v={`${c.service.requestNumber} · ${c.service.workDone ?? c.service.reportedIssue}`} />}
-            {c.serial?.warrantyEndDate && <Row k="Warranty" v={`${dayOnly(c.serial.warrantyEndDate)} tak`} />}
+            <Row k={tr('Parts')} v={formatPKR(Number(c.partsCost))} /><Row k={tr('Mazdoori')} v={formatPKR(Number(c.laborCost))} />
+            {c.brandRef && <Row k={tr('Company ref')} v={c.brandRef} />}{c.brandContact && <Row k={tr('Contact')} v={c.brandContact} />}
+            {c.submittedAt && <Row k={tr('Bheja')} v={dayOnly(c.submittedAt)} />}{c.brandResponse && <Row k={tr('Jawab')} v={c.brandResponse} />}
+            {c.rejectionReason && <Row k={tr('Mana ki wajah')} v={c.rejectionReason} />}{c.replacementSerialNumber && <Row k={tr('Naya unit')} v={c.replacementSerialNumber} />}
+            {c.service && <Row k={tr('Repair')} v={`${c.service.requestNumber} · ${c.service.workDone ?? c.service.reportedIssue}`} />}
+            {c.serial?.warrantyEndDate && <Row k={tr('Warranty')} v={`${dayOnly(c.serial.warrantyEndDate)} tak`} />}
           </dl>
           {c.notes && <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] text-slate-600">{c.notes}</pre>}
         </div>
       )}
       {dialog === 'submit' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title="Company ko bheja" footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={submit.isPending} onClick={() => submit.mutate()}>Darj karein</Button></>}>
-          <div className="space-y-3"><Input label="Company ka reference / complaint #" value={ref} onChange={(e) => setRef(e.target.value)} autoFocus /><Input label="Kis se baat hui" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Naam / phone" /></div>
+        <Modal open onClose={() => setDialog(null)} size="sm" title={tr('Company ko bheja')} footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{tr('Rehne dein')}</Button><Button loading={submit.isPending} onClick={() => submit.mutate()}>{tr('Darj karein')}</Button></>}>
+          <div className="space-y-3"><Input label={tr('Company ka reference / complaint #')} value={ref} onChange={(e) => setRef(e.target.value)} autoFocus /><Input label={tr('Kis se baat hui')} value={contact} onChange={(e) => setContact(e.target.value)} placeholder={tr('Naam / phone')} /></div>
         </Modal>
       )}
       {dialog === 'response' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title="Company ka jawab"
-          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={respond.isPending} disabled={answer === 'REJECTED' ? response.trim().length < 3 : !(Number(approved) > 0)} onClick={() => respond.mutate()}>Darj karein</Button></>}>
+        <Modal open onClose={() => setDialog(null)} size="sm" title={tr('Company ka jawab')}
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{tr('Rehne dein')}</Button><Button loading={respond.isPending} disabled={answer === 'REJECTED' ? response.trim().length < 3 : !(Number(approved) > 0)} onClick={() => respond.mutate()}>{tr('Darj karein')}</Button></>}>
           <div className="space-y-3">
-            <Chips options={[{ value: 'APPROVED' as ApplianceClaimStatus, label: 'Poora approve' }, { value: 'PARTIALLY_APPROVED' as ApplianceClaimStatus, label: 'Thora approve' }, { value: 'REJECTED' as ApplianceClaimStatus, label: 'Mana' }]} value={answer} onChange={setAnswer} />
-            {answer !== 'REJECTED' && <Input label="Kitna approve hua" inputMode="decimal" value={approved} onChange={(e) => setApproved(money(e.target.value))} />}
-            <Textarea label={answer === 'REJECTED' ? 'Mana ki wajah' : 'Company ne kya kaha'} rows={2} value={response} onChange={(e) => setResponse(e.target.value)} />
-            {answer !== 'REJECTED' && <Input label="Naya unit mila? Us ka serial" value={replacement} onChange={(e) => setReplacement(e.target.value)} hint="Marzi hai" />}
+            <Chips options={[{ value: 'APPROVED' as ApplianceClaimStatus, label: tr('Poora approve') }, { value: 'PARTIALLY_APPROVED' as ApplianceClaimStatus, label: tr('Thora approve') }, { value: 'REJECTED' as ApplianceClaimStatus, label: tr('Mana') }]} value={answer} onChange={setAnswer} />
+            {answer !== 'REJECTED' && <Input label={tr('Kitna approve hua')} inputMode="decimal" value={approved} onChange={(e) => setApproved(money(e.target.value))} />}
+            <Textarea label={answer === 'REJECTED' ? tr('Mana ki wajah') : tr('Company ne kya kaha')} rows={2} value={response} onChange={(e) => setResponse(e.target.value)} />
+            {answer !== 'REJECTED' && <Input label={tr('Naya unit mila? Us ka serial')} value={replacement} onChange={(e) => setReplacement(e.target.value)} hint={tr('Marzi hai')} />}
           </div>
         </Modal>
       )}
       {dialog === 'settle' && (
-        <Modal open onClose={() => setDialog(null)} size="sm" title="Company se paisa mila"
-          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button><Button loading={settle.isPending} disabled={!(Number(received) > 0) || Number(received) > pending + 0.01} onClick={() => settle.mutate()}>Darj karein</Button></>}>
+        <Modal open onClose={() => setDialog(null)} size="sm" title={tr('Company se paisa mila')}
+          footer={<><Button variant="secondary" onClick={() => setDialog(null)}>{tr('Rehne dein')}</Button><Button loading={settle.isPending} disabled={!(Number(received) > 0) || Number(received) > pending + 0.01} onClick={() => settle.mutate()}>{tr('Darj karein')}</Button></>}>
           <div className="space-y-3">
-            <Input label="Kitna mila" inputMode="decimal" value={received} onChange={(e) => setReceived(money(e.target.value))} error={Number(received) > pending + 0.01 ? `Baqi sirf ${formatPKR(pending)}` : undefined} />
+            <Input label={tr('Kitna mila')} inputMode="decimal" value={received} onChange={(e) => setReceived(money(e.target.value))} error={Number(received) > pending + 0.01 ? tr('Baqi sirf {{pending}}', { pending: formatPKR(pending) }) : undefined} />
             <PaymentMethodPicker value={method} onChange={setMethod} />
           </div>
         </Modal>
@@ -388,14 +389,14 @@ function Analytics({ s, money: m }: { s?: ClaimSummary; money: (n: number) => st
   if (!s) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-60 rounded-3xl" /><Skeleton className="h-60 rounded-3xl" /></div>;
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel title="Paisa" hint="Company se aaya paisa galla / bank aur Profit me aata hai">
+      <Panel title={tr('Paisa')} hint={tr('Company se aaya paisa galla / bank aur Profit me aata hai')}>
         <dl className="grid grid-cols-2 gap-3">
-          <Box label="Claim kiya" value={m(s.money.claimed)} /><Box label="Approve" value={m(s.money.approved)} />
-          <Box label="Mila" value={m(s.money.received)} tone="text-emerald-700" /><Box label="Baqi" value={m(s.money.pending)} tone="text-amber-700" />
-          <Box label="Kam mila (nuqsan)" value={m(s.money.shortfall)} tone={s.money.shortfall > 0 ? 'text-rose-700' : 'text-slate-900'} /><Box label="Paisa aane me" value={`${Math.round(s.avgSettleDays)} din`} />
+          <Box label={tr('Claim kiya')} value={m(s.money.claimed)} /><Box label={tr('Approve')} value={m(s.money.approved)} />
+          <Box label={tr('Mila')} value={m(s.money.received)} tone="text-emerald-700" /><Box label={tr('Baqi')} value={m(s.money.pending)} tone="text-amber-700" />
+          <Box label={tr('Kam mila (nuqsan)')} value={m(s.money.shortfall)} tone={s.money.shortfall > 0 ? 'text-rose-700' : 'text-slate-900'} /><Box label={tr('Paisa aane me')} value={`${Math.round(s.avgSettleDays)} din`} />
         </dl>
       </Panel>
-      <Panel title="Brand war wusooli"><Bars rows={s.byBrand.map((b) => ({ key: b.brand, label: b.brand, value: b.claimed, color: '#2563eb', hint: `${m(b.received)} / ${m(b.claimed)} · ${Math.round(b.recoveryRate)}%` }))} /></Panel>
+      <Panel title={tr('Brand war wusooli')}><Bars rows={s.byBrand.map((b) => ({ key: b.brand, label: b.brand, value: b.claimed, color: '#2563eb', hint: `${m(b.received)} / ${m(b.claimed)} · ${Math.round(b.recoveryRate)}%` }))} /></Panel>
     </div>
   );
 }

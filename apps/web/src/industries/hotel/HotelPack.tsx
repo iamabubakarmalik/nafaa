@@ -15,6 +15,7 @@ import HotelRoomTypeWizardPage from './pages/HotelRoomTypeWizardPage';
 import HotelRoomTypeDetailPage from './pages/HotelRoomTypeDetailPage';
 import RatePlansPage from './pages/RatePlansPage';
 import HotelReportsPage from './pages/HotelReportsPage';
+import { t } from '@core/i18n';
 
 /**
  * Hotel / Guest House / Motel / Resort industry pack.
@@ -22,10 +23,10 @@ import HotelReportsPage from './pages/HotelReportsPage';
 export const HotelPack: IndustryPack = {
   id: 'hotel',
   name: 'Hotel / Guest House',
-  shortName: 'Hotel',
+  shortName: t('Hotel'),
   emoji: '🏨',
   description:
-    'Rooms, bookings, guests, housekeeping, folio & rate plans — for hotels, guest houses, motels & resorts.',
+    t('Rooms, bookings, guests, housekeeping, folio & rate plans — for hotels, guest houses, motels & resorts.'),
   priority: 75,
 
   matches: (tenant) => {
@@ -49,21 +50,21 @@ export const HotelPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Hotel',
+      label: t('Hotel'),
       icon: Bed,
       emoji: '🏨',
       color: '#4f46e5',
       order: 20,
       items: [
-        { to: '/hotel/bookings/new', label: 'New booking', icon: CalendarPlus, badge: 'FAST' },
-        { to: '/hotel/dashboard', label: 'Hotel dashboard', icon: LayoutDashboard },
-        { to: '/hotel/rooms', label: 'Room board', icon: Home },
-        { to: '/hotel/bookings', label: 'Bookings', icon: CalendarDays },
-        { to: '/hotel/guests', label: 'Guests', icon: Users },
-        { to: '/hotel/housekeeping', label: 'Housekeeping', icon: Sparkle },
-        { to: '/hotel/room-types', label: 'Room types', icon: Bed },
-        { to: '/hotel/rate-plans', label: 'Season rates', icon: Award },
-        { to: '/hotel/reports', label: 'Night audit', icon: BarChart3 },
+        { to: '/hotel/bookings/new', label: t('New booking'), icon: CalendarPlus, badge: t('FAST') },
+        { to: '/hotel/dashboard', label: t('Hotel dashboard'), icon: LayoutDashboard },
+        { to: '/hotel/rooms', label: t('Room board'), icon: Home },
+        { to: '/hotel/bookings', label: t('Bookings'), icon: CalendarDays },
+        { to: '/hotel/guests', label: t('Guests'), icon: Users },
+        { to: '/hotel/housekeeping', label: t('Housekeeping'), icon: Sparkle },
+        { to: '/hotel/room-types', label: t('Room types'), icon: Bed },
+        { to: '/hotel/rate-plans', label: t('Season rates'), icon: Award },
+        { to: '/hotel/reports', label: t('Night audit'), icon: BarChart3 },
       ],
     },
   ],
@@ -92,20 +93,20 @@ export const HotelPack: IndustryPack = {
   featureFlags: [
     {
       key: 'hotelHousekeeping',
-      label: 'Housekeeping Tasks',
-      description: 'Enable room cleaning & maintenance workflow',
+      label: t('Housekeeping Tasks'),
+      description: t('Enable room cleaning & maintenance workflow'),
       defaultEnabled: true,
     },
     {
       key: 'hotelFolio',
-      label: 'Folio Charges',
-      description: 'Post extra charges to room bills (F&B, laundry, minibar)',
+      label: t('Folio Charges'),
+      description: t('Post extra charges to room bills (F&B, laundry, minibar)'),
       defaultEnabled: true,
     },
     {
       key: 'hotelRatePlans',
-      label: 'Rate Plans',
-      description: 'Seasonal / weekend / peak pricing rules',
+      label: t('Rate Plans'),
+      description: t('Seasonal / weekend / peak pricing rules'),
       defaultEnabled: false,
     },
   ],

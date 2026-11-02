@@ -10,6 +10,7 @@ import { useOverview } from '@modules/dashboard/data/queries';
 import { useMasked } from '@modules/dashboard/engine';
 import { useToystoreOps } from './useToystoreOps';
 import { ToystoreAgeGroups, ToystoreBirthdays, ToystoreGiftPacks, toystoreKpis, useToystoreAttention } from './widgets';
+import { t } from '@core/i18n';
 
 const productPath = (id: string) => `/toystore-products/${id}`;
 
@@ -19,38 +20,38 @@ function useToystoreActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
-    { to: '/toystore/gift-finder', icon: Sparkles, label: 'Gift finder', hint: 'Umar aur budget se' },
-    { to: '/toystore/birthdays', icon: Cake, label: 'Saalgirah', hint: birthdays.week ? `${birthdays.week} is hafte` : `${birthdays.registered} darj` },
-    { to: '/toystore/gift-packs', icon: Gift, label: 'Gift packs', hint: `${giftPacks.active} chaalu` },
-    { to: '/toystore/safety-review', icon: ShieldAlert, label: 'Safety', hint: safetyIssues ? `${safetyIssues} check karein` : 'Sab theek' },
-    { to: '/toystore-products/new', icon: Plus, label: 'Naya khilona', hint: 'Maal me daalein' },
-    { to: '/products', icon: Package, label: 'Khilone', hint: `${totalProducts || s?.totalProducts || 0} items` },
-    { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
-    { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
-    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/pos', icon: ShoppingCart, label: t('POS'), hint: t('Sale karein') },
+    { to: '/toystore/gift-finder', icon: Sparkles, label: t('Gift finder'), hint: t('Umar aur budget se') },
+    { to: '/toystore/birthdays', icon: Cake, label: t('Saalgirah'), hint: birthdays.week ? t('{{week}} is hafte', { week: birthdays.week }) : t('{{registered}} darj', { registered: birthdays.registered }) },
+    { to: '/toystore/gift-packs', icon: Gift, label: t('Gift packs'), hint: t('{{active}} chaalu', { active: giftPacks.active }) },
+    { to: '/toystore/safety-review', icon: ShieldAlert, label: t('Safety'), hint: safetyIssues ? t('{{safetyIssues}} check karein', { safetyIssues }) : t('Sab theek') },
+    { to: '/toystore-products/new', icon: Plus, label: t('Naya khilona'), hint: t('Maal me daalein') },
+    { to: '/products', icon: Package, label: t('Khilone'), hint: t('{{value}} items', { value: totalProducts || s?.totalProducts || 0 }) },
+    { to: '/customers', icon: Users, label: t('Customers'), hint: t('{{value}} log', { value: s?.totalCustomers ?? 0 }) },
+    { to: '/khata', icon: BookOpen, label: t('Khata'), hint: cost(s?.totalUdhaar) },
+    { to: '/sales', icon: Receipt, label: t('Sale record'), hint: t('Purane bill') },
+    { to: '/reports', icon: BarChart3, label: t('Reports'), hint: t('Poora hisaab') },
   ];
 }
 
 export const toystoreDashboard = createDashboard({
-  label: 'Toy store',
+  label: t('Toy store'),
   productPath,
   openFrom: 10,
   kpis: toystoreKpis,
   defaultKpis: ['toystore-birthdays', 'toystore-safety', 'profit', 'month', 'cash', 'low-stock'],
   useAttention: useToystoreAttention,
   widgets: [
-    { id: 'toystore-birthdays', title: 'Aane wali saalgirah', description: 'Agle 30 din me bachon ki saalgirah — parents ko yaad dilayein', size: 'half', sizes: ANY_SIZE, Component: ToystoreBirthdays },
-    { id: 'toystore-age-groups', title: 'Umar ke hisaab se', description: 'Kis umar ke khilone sab se zyada bikte hain', size: 'half', sizes: ['third', 'half', 'wide'], Component: ToystoreAgeGroups },
+    { id: 'toystore-birthdays', title: t('Aane wali saalgirah'), description: t('Agle 30 din me bachon ki saalgirah — parents ko yaad dilayein'), size: 'half', sizes: ANY_SIZE, Component: ToystoreBirthdays },
+    { id: 'toystore-age-groups', title: t('Umar ke hisaab se'), description: t('Kis umar ke khilone sab se zyada bikte hain'), size: 'half', sizes: ['third', 'half', 'wide'], Component: ToystoreAgeGroups },
   ],
   lateWidgets: [
-    { id: 'toystore-gift-packs', title: 'Top gift packs', description: 'Sab se zyada bikne wale gift packs', size: 'third', sizes: ANY_SIZE, Component: ToystoreGiftPacks },
+    { id: 'toystore-gift-packs', title: t('Top gift packs'), description: t('Sab se zyada bikne wale gift packs'), size: 'third', sizes: ANY_SIZE, Component: ToystoreGiftPacks },
   ],
   useQuickActions: useToystoreActions,
   moneyMap: { productsPath: '/products' },
   guide: [
-    { icon: Cake, title: 'Saalgirah se sale', text: 'Bachon ki saalgirah darj karein. Saalgirah se pehle parents ko gift idea bhejein — yeh sab se pakka dobara aane wala customer hai.' },
-    { icon: ShieldAlert, title: 'Safety aur umar', text: 'Jin khilonon par certificate ya choking warning nahi wo "Aaj ka kaam" me aate hain. Umar ke hisaab se sale dekh kar maal mangwayein.' },
+    { icon: Cake, title: t('Saalgirah se sale'), text: t('Bachon ki saalgirah darj karein. Saalgirah se pehle parents ko gift idea bhejein — yeh sab se pakka dobara aane wala customer hai.') },
+    { icon: ShieldAlert, title: t('Safety aur umar'), text: t('Jin khilonon par certificate ya choking warning nahi wo "Aaj ka kaam" me aate hain. Umar ke hisaab se sale dekh kar maal mangwayein.') },
   ],
 });

@@ -22,6 +22,7 @@ import { tidyCustomerBalance } from '../../sales/returns/returns.helpers';
 import { CHEQUE_STATUSES } from '../distribution.constants';
 import { ChequeActionDto, ListChequesDto } from '../dto/phase2.dto';
 import { customerCards, dayRange, dayStart, parseWhen, r2, shiftKey, todayKey, userNames } from '../distribution.support';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class ChequesService {
@@ -99,7 +100,7 @@ export class ChequesService {
   /** Marks the cheque as given to the bank. */
   async deposit(user: AuthenticatedUser, id: string, dto: ChequeActionDto) {
     const c = await this.cheque(user.tenantId, id);
-    if (c.status !== 'RECEIVED') throw new BadRequestException(`Cheque ${c.status} hai — sirf RECEIVED cheque deposit hota hai`);
+    if (c.status !== 'RECEIVED') throw new BadRequestException(apiMessage('Cheque {{cStatus}} hai — sirf RECEIVED cheque deposit hota hai', { cStatus: c.status }));
     if (dto.moneyAccountId) {
       const a = await this.prisma.moneyAccount.findFirst({ where: { id: dto.moneyAccountId, tenantId: user.tenantId }, select: { id: true } });
       if (!a) throw new BadRequestException('Account nahi mila');
@@ -117,7 +118,7 @@ export class ChequesService {
   /** The bank paid. */
   async clear(user: AuthenticatedUser, id: string, dto: ChequeActionDto) {
     const c = await this.cheque(user.tenantId, id);
-    if (c.status !== 'RECEIVED' && c.status !== 'DEPOSITED') throw new BadRequestException(`Cheque ${c.status} hai`);
+    if (c.status !== 'RECEIVED' && c.status !== 'DEPOSITED') throw new BadRequestException(apiMessage('Cheque {{cStatus}} hai', { cStatus: c.status }));
     const col = c.collectionId ? await this.prisma.distCollection.findUnique({ where: { id: c.collectionId }, select: { status: true } }) : null;
     if (col && col.status !== 'VERIFIED') throw new BadRequestException('Pehle is cheque ki collection verify karein (Recoveries) — phir clear');
     const clock = await this.tz.clock(user.tenantId);
@@ -136,7 +137,7 @@ export class ChequesService {
   async bounce(user: AuthenticatedUser, id: string, dto: ChequeActionDto) {
     const tenantId = user.tenantId;
     const c = await this.cheque(tenantId, id);
-    if (c.status !== 'RECEIVED' && c.status !== 'DEPOSITED') throw new BadRequestException(`Cheque ${c.status} hai — bounce nahi ho sakta`);
+    if (c.status !== 'RECEIVED' && c.status !== 'DEPOSITED') throw new BadRequestException(apiMessage('Cheque {{cStatus}} hai — bounce nahi ho sakta', { cStatus: c.status }));
     const reason = dto.reason?.trim() || 'Bank ne wapas kiya';
     const text = `Cheque bounce: #${c.chequeNo} (${c.bankName}) — ${reason}`;
     await this.prisma.$transaction(async (tx) => {

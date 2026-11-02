@@ -9,6 +9,7 @@ import { dayEnd, dayKey, dayRange, dayStart } from '../meat-common';
 import {
   checkRefundPin, findOrderBill, mustChange, orderNote, payMethod, positive, r2, r3, recordMoney, refundAdvance, str, takeAdvance, withNextNumber,
 } from '../meat-money';
+import { apiMessage, MessageText } from '../../../common/i18n/api-message';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- request bodies here are untyped
 type Body = any;
@@ -57,7 +58,7 @@ export class WeightOrdersService {
     if (customerId) await this.mustCustomer(user, customerId);
     if (!customerId && !customerName && !customerPhone) throw new BadRequestException('Customer chunein ya naam / phone likhein');
     const advance = r2(Math.max(Number(dto?.advance) || 0, 0));
-    if (advance > total + 0.005) throw new BadRequestException(`Advance order (${total}) se zyada nahi ho sakta`);
+    if (advance > total + 0.005) throw new BadRequestException(apiMessage('Advance order ({{total}}) se zyada nahi ho sakta', { total }));
     const method = advance > 0 ? payMethod(dto?.paymentMethod) : null;
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope, dto?.shopId);
     const neededBy = this.when(dto?.neededBy, 'Kab chahiye — tareekh theek nahi');
@@ -181,7 +182,7 @@ export class WeightOrdersService {
     const discount = dto?.discount !== undefined ? r2(Math.max(Number(dto.discount) || 0, 0)) : o.discount;
     if (discount > subtotal + deliveryCharges) throw new BadRequestException('Discount order se zyada nahi ho sakta');
     const total = r2(subtotal + deliveryCharges - discount);
-    if (total + 0.005 < o.paidAmount) throw new BadRequestException(`${o.paidAmount} advance mil chuka hai — order is se kam nahi ho sakta`);
+    if (total + 0.005 < o.paidAmount) throw new BadRequestException(apiMessage('{{paidAmount}} advance mil chuka hai — order is se kam nahi ho sakta', { paidAmount: o.paidAmount }));
     Object.assign(data, { subtotal, deliveryCharges, discount, total, paymentStatus: paymentStatusOf(o.paidAmount, total) });
 
     await this.prisma.$transaction(async (tx) => {
@@ -229,7 +230,7 @@ export class WeightOrdersService {
     const lineTotal = (i: (typeof o.items)[number]) => r2((kg.get(i.id) ?? i.actualKg ?? i.requestedKg) * i.pricePerKg);
     const subtotal = r2(o.items.reduce((s, i) => s + lineTotal(i), 0));
     const total = r2(Math.max(subtotal + o.deliveryCharges - o.discount, 0));
-    if (total + 0.005 < o.paidAmount) throw new BadRequestException(`${o.paidAmount} advance mil chuka hai — wazan ke baad order is se kam ban raha hai`);
+    if (total + 0.005 < o.paidAmount) throw new BadRequestException(apiMessage('{{paidAmount}} advance mil chuka hai — wazan ke baad order is se kam ban raha hai', { paidAmount: o.paidAmount }));
     await this.prisma.$transaction(async (tx) => {
       const done = await tx.meatWeightOrder.updateMany({ where: { id, tenantId: user.tenantId, updatedAt: o.updatedAt }, data: { subtotal, total, paymentStatus: paymentStatusOf(o.paidAmount, total) } });
       mustChange(done.count);
@@ -248,7 +249,7 @@ export class WeightOrdersService {
     if (CLOSED.includes(o.status)) throw new BadRequestException(o.status === 'DELIVERED' ? 'Order de diya ja chuka — baqi paisa customer ke khate se lein' : 'Cancel order par paisa nahi liya ja sakta');
     if (body?.expectedPaid !== undefined && Math.abs(Number(body.expectedPaid) - o.paidAmount) > 0.005) throw new BadRequestException('Ye paisa pehle hi darj ho chuka hai — safha taaza karein');
     const paid = r2(o.paidAmount + amount);
-    if (paid > o.total + 0.005) throw new BadRequestException(`Baqi sirf ${r2(o.total - o.paidAmount)} hai`);
+    if (paid > o.total + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{oTotal}} hai', { oTotal: r2(o.total - o.paidAmount) }));
     const method = payMethod(body?.paymentMethod);
     await this.prisma.$transaction(async (tx) => {
       const done = await tx.meatWeightOrder.updateMany({ where: { id, tenantId: user.tenantId, paidAmount: o.paidAmount, status: o.status }, data: { paidAmount: paid, paymentStatus: paymentStatusOf(paid, o.total) } });
@@ -327,7 +328,7 @@ export class WeightOrdersService {
     const paidNow = r2(parts.reduce((s, p) => s + p.amount, 0));
     const { khataPaid, legacyPaid } = await recordMoney(this.prisma, user.tenantId, o.orderNumber, o.paidAmount);
     const due = r2(o.total - khataPaid - legacyPaid);
-    if (paidNow > Math.max(due, 0) + 0.005) throw new BadRequestException(`Baqi sirf ${Math.max(due, 0)} hai`);
+    if (paidNow > Math.max(due, 0) + 0.005) throw new BadRequestException(apiMessage('Baqi sirf {{due}} hai', { due: Math.max(due, 0) }));
     const credit = r2(o.total - paidNow - legacyPaid);
 
     let customerId = o.customerId;
@@ -394,7 +395,7 @@ export class WeightOrdersService {
     }
   }
 
-  private when(v: unknown, message: string): Date | null {
+  private when(v: unknown, message: MessageText): Date | null {
     if (v === undefined || v === null || v === '') return null;
     const s = String(v);
     const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? dayStart(s) : new Date(s);
@@ -417,10 +418,10 @@ export class WeightOrdersService {
     const C = new Map(profiles.map((p) => [p.productId, p.cutCategory]));
     return raw.map((r: Body, i: number) => {
       const p = P.get(String(r.productId));
-      if (!p) throw new NotFoundException(`Line ${i + 1}: item nahi mila ya band hai`);
-      const kg = r3(positive(r.requestedKg, `${p.name}: kitne kg — likhein`));
+      if (!p) throw new NotFoundException(apiMessage('Line {{i}}: item nahi mila ya band hai', { i: i + 1 }));
+      const kg = r3(positive(r.requestedKg, apiMessage('{{name}}: kitne kg — likhein', { name: p.name })));
       const rate = r.pricePerKg === undefined || r.pricePerKg === null || r.pricePerKg === '' ? p.price : Number(r.pricePerKg);
-      if (!(rate > 0)) throw new BadRequestException(`${p.name}: rate likhein`);
+      if (!(rate > 0)) throw new BadRequestException(apiMessage('{{pName}}: rate likhein', { pName: p.name }));
       const actualKg = Number(r.actualKg) > 0 ? r3(Number(r.actualKg)) : null;
       return {
         productId: p.id, productName: p.name, cutCategory: (C.get(p.id) ?? null) as never, requestedKg: kg, actualKg,

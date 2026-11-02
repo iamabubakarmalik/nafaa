@@ -19,13 +19,14 @@ import {
 } from '../../api/online-orders.api';
 import { orderMoneyApi } from '../../api/order-money.api';
 import { PAYMENT_LABEL, rs, whenText } from '../../lib/labels';
+import { t } from '@core/i18n';
 
 const METHODS: Array<{ value: AdvanceMethod; label: string; brand?: BrandName; icon?: typeof Wallet }> = [
   { value: 'JAZZCASH', label: 'JazzCash', brand: 'jazzcash' },
   { value: 'EASYPAISA', label: 'Easypaisa', brand: 'easypaisa' },
-  { value: 'BANK', label: 'Bank', icon: Building2 },
-  { value: 'CASH', label: 'Cash', icon: Banknote },
-  { value: 'OTHER', label: 'Doosra', icon: CircleDollarSign },
+  { value: 'BANK', label: t('Bank'), icon: Building2 },
+  { value: 'CASH', label: t('Cash'), icon: Banknote },
+  { value: 'OTHER', label: t('Doosra'), icon: CircleDollarSign },
 ];
 const methodOf = (m?: string) => METHODS.find((x) => x.value === m) ?? METHODS[4];
 
@@ -52,7 +53,7 @@ function Line({ label, value, hint, strong, tone }: { label: React.ReactNode; va
         <div className={cn('text-[0.8125rem]', strong ? 'font-bold text-slate-900' : 'text-slate-600')}>{label}</div>
         {hint && <div className="text-[0.6875rem] text-slate-500">{hint}</div>}
       </div>
-      <div className={cn('shrink-0 text-right tabular-nums', strong ? 'text-base font-bold text-slate-900' : 'text-[0.8125rem] font-semibold text-slate-700', tone)}>{value}</div>
+      <div className={cn('shrink-0 text-end tabular-nums', strong ? 'text-base font-bold text-slate-900' : 'text-[0.8125rem] font-semibold text-slate-700', tone)}>{value}</div>
     </div>
   );
 }
@@ -66,43 +67,43 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
   const closed = CLOSED.includes(o.orderStatus);
   const links = (((o.metadata as any)?.payments ?? []) as OrderPaymentLink[]).filter((l) => l.status === 'PAID');
   const booked = (o.metadata as any)?.courierBooking as { cod?: number } | undefined;
-  const collectLabel = !o.courierCode ? 'Customer se lena (COD)' : `${o.courierCode === 'RIDER' ? 'Rider' : (o.courierLabel ?? 'Courier')} customer se lega (COD)`;
+  const collectLabel = !o.courierCode ? t('Customer se lena (COD)') : t('{{value}} customer se lega (COD)', { value: o.courierCode === 'RIDER' ? t('Rider') : o.courierLabel ?? 'Courier' });
   const canAdvance = !closed && o.paymentStatus !== 'PAID' && m.codDue > 0;
 
   const remove = useMutation({
     mutationFn: (ref: string) => onlineOrdersApi.removeAdvance(o.id, ref),
-    onSuccess: () => { onChanged(); toast.success('Advance hata diya'); },
+    onSuccess: () => { onChanged(); toast.success(t('Advance hata diya')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
   const delivery = m.deliveryMode === 'RIDER'
-    ? { icon: Bike, label: 'Delivery — rider ki', value: rs(m.deliveryFee), hint: 'Rider khud leta hai — bill aur sale me shamil nahi' }
+    ? { icon: Bike, label: t('Delivery — rider ki'), value: rs(m.deliveryFee), hint: t('Rider khud leta hai — bill aur sale me shamil nahi') }
     : m.deliveryMode === 'FREE'
-      ? { icon: Gift, label: 'Delivery — free', value: 'Rs 0', hint: 'Customer se nahi li — kharcha dukaan ka' }
-      : { icon: Truck, label: 'Delivery — customer se', value: rs(m.deliveryFee), hint: o.metadata?.shippingMethod ?? 'Total me shamil' };
+      ? { icon: Gift, label: t('Delivery — free'), value: 'Rs 0', hint: t('Customer se nahi li — kharcha dukaan ka') }
+      : { icon: Truck, label: t('Delivery — customer se'), value: rs(m.deliveryFee), hint: o.metadata?.shippingMethod ?? t('Total me shamil') };
 
   return (
     <section className="rounded-2xl bg-white p-4 ring-1 ring-slate-200/80">
       <div className="flex flex-wrap items-center gap-3">
         <Wallet className="h-5 w-5 text-slate-400" />
         <div className="min-w-[12rem] flex-1">
-          <div className="text-sm font-bold text-slate-900">{o.metadata?.paymentTitle ?? o.paymentMethod ?? 'Cash on Delivery'}</div>
+          <div className="text-sm font-bold text-slate-900">{o.metadata?.paymentTitle ?? o.paymentMethod ?? t('Cash on Delivery')}</div>
           <div className="text-xs text-slate-500">
             {o.paymentStatus === 'PAID'
-              ? `Paisa mil gaya${o.paymentReceivedAt ? ` · ${whenText(o.paymentReceivedAt)}` : ''}${o.codSettlementRef ? ` · ref ${o.codSettlementRef}` : ''}`
-              : o.paymentStatus === 'COLLECTED' ? `${o.courierLabel ?? 'Courier'} ne customer se le liya — settlement par aap ko milega`
-                : o.paymentStatus === 'NOT_COLLECTED' ? 'Parcel wapas aaya — paisa nahi aayega'
-                  : o.isCod ? 'Delivery par cash (COD)' : 'Payment baqi'}
+              ? t('Paisa mil gaya{{value}}{{value2}}', { value: o.paymentReceivedAt ? ` · ${whenText(o.paymentReceivedAt)}` : '', value2: o.codSettlementRef ? t(' · ref {{codSettlementRef}}', { codSettlementRef: o.codSettlementRef }) : '' })
+              : o.paymentStatus === 'COLLECTED' ? t('{{value}} ne customer se le liya — settlement par aap ko milega', { value: o.courierLabel ?? 'Courier' })
+                : o.paymentStatus === 'NOT_COLLECTED' ? t('Parcel wapas aaya — paisa nahi aayega')
+                  : o.isCod ? t('Delivery par cash (COD)') : t('Payment baqi')}
           </div>
         </div>
         <span className={cn('rounded-lg px-2 py-1 text-xs font-bold', pay.tone)}>{pay.label}</span>
         {o.paymentStatus !== 'PAID' && o.nafaaSaleId && !closed && (
-          <Button size="xs" variant="outline" loading={paying} onClick={onPaid}>Paisa mil gaya</Button>
+          <Button size="xs" variant="outline" loading={paying} onClick={onPaid}>{t('Paisa mil gaya')}</Button>
         )}
       </div>
 
       <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
-        <Line label="Order total" value={rs(o.total)} />
+        <Line label={t('Order total')} value={rs(o.total)} />
         <div className="flex items-start gap-2">
           <delivery.icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
           <div className="min-w-0 flex-1"><Line label={delivery.label} value={delivery.value} hint={delivery.hint} /></div>
@@ -124,8 +125,8 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
                   value={`− ${rs(l.amount)}`} tone="text-success-700" />
               </div>
               {manual && o.paymentStatus !== 'PAID' && (
-                <button type="button" aria-label="Advance hatayein" title="Ghalat likha? Hatayein" disabled={remove.isPending}
-                  onClick={async () => { if (await confirmDialog({ title: `${rs(l.amount)} ka advance hatayein?`, text: 'COD phir utna barh jayega.', danger: true })) remove.mutate(l.ref); }}
+                <button type="button" aria-label={t('Advance hatayein')} title={t('Ghalat likha? Hatayein')} disabled={remove.isPending}
+                  onClick={async () => { if (await confirmDialog({ title: t('{{amount}} ka advance hatayein?', { amount: rs(l.amount) }), text: t('COD phir utna barh jayega.'), danger: true })) remove.mutate(l.ref); }}
                   className="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
               )}
             </div>
@@ -134,19 +135,19 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
 
         <div className="rounded-xl bg-slate-50 px-3 py-2">
           <Line strong
-            label={o.paymentStatus === 'PAID' ? 'Lena baqi' : collectLabel}
-            hint={m.advance > 0 ? `Total ${rs(o.total)} − advance ${rs(m.advance)}` : undefined}
-            value={m.codDue > 0 ? rs(m.codDue) : 'Kuch nahi'} tone={m.codDue > 0 ? undefined : 'text-success-700'} />
+            label={o.paymentStatus === 'PAID' ? t('Lena baqi') : collectLabel}
+            hint={m.advance > 0 ? t('Total {{total}} − advance {{advance}}', { total: rs(o.total), advance: rs(m.advance) }) : undefined}
+            value={m.codDue > 0 ? rs(m.codDue) : t('Kuch nahi')} tone={m.codDue > 0 ? undefined : 'text-success-700'} />
         </div>
         {booked?.cod != null && o.courierBooked && Math.round(Number(booked.cod)) !== Math.round(m.codDue) && o.paymentStatus !== 'PAID' && (
           <p className="text-[0.6875rem] font-semibold text-amber-700">
-            Courier booking par COD {rs(Number(booked.cod))} likha gaya tha — farq ho to courier portal par COD theek karwayein.
+            {t('Courier booking par COD {{rs}} likha gaya tha — farq ho to courier portal par COD theek karwayein.', { rs: rs(Number(booked.cod)) })}
           </p>
         )}
       </div>
 
       {canAdvance && !open && (
-        <Button className="mt-3" size="xs" variant="secondary" onClick={() => setOpen(true)} leftIcon={<Plus className="h-3.5 w-3.5" />}>Advance likhein</Button>
+        <Button className="mt-3" size="xs" variant="secondary" onClick={() => setOpen(true)} leftIcon={<Plus className="h-3.5 w-3.5" />}>{t('Advance likhein')}</Button>
       )}
       {canAdvance && open && <AdvanceForm order={o} due={m.codDue} onDone={() => { setOpen(false); onChanged(); }} onCancel={() => setOpen(false)} />}
     </section>
@@ -154,9 +155,9 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
 }
 
 const DELIVERY_ITEMS: Array<{ value: DeliveryMode; label: string; icon: typeof Truck }> = [
-  { value: 'CUSTOMER', label: 'Customer se', icon: Truck },
-  { value: 'FREE', label: 'Free (dukaan degi)', icon: Gift },
-  { value: 'RIDER', label: 'Rider rakhega', icon: Bike },
+  { value: 'CUSTOMER', label: t('Customer se'), icon: Truck },
+  { value: 'FREE', label: t('Free (dukaan degi)'), icon: Gift },
+  { value: 'RIDER', label: t('Rider rakhega'), icon: Bike },
 ];
 
 /**
@@ -167,20 +168,20 @@ const DELIVERY_ITEMS: Array<{ value: DeliveryMode; label: string; icon: typeof T
 function DeliveryChoice({ order: o, mode, fee, onChanged }: { order: OnlineOrderDetail; mode: DeliveryMode; fee: number; onChanged: () => void }) {
   const set = useMutation({
     mutationFn: (m: DeliveryMode) => orderMoneyApi.setDelivery(o.id, m),
-    onSuccess: (_r, m) => { onChanged(); toast.success(m === 'FREE' ? `Delivery free — total ${rs(fee)} kam` : m === 'RIDER' ? 'Delivery rider rakhega — bill me shamil nahi' : 'Delivery customer se — total me shamil'); },
+    onSuccess: (_r, m) => { onChanged(); toast.success(m === 'FREE' ? t('Delivery free — total {{fee}} kam', { fee: rs(fee) }) : m === 'RIDER' ? t('Delivery rider rakhega — bill me shamil nahi') : t('Delivery customer se — total me shamil')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   if (!(fee > 0) || CLOSED.includes(o.orderStatus) || o.orderStatus === 'DELIVERED' || o.dispatchedAt) return null;
   const locked = !!o.nafaaSaleId || o.orderStatus === 'ACCEPTING' || !!o.courierBooked;
   return (
     <div className="rounded-xl border border-dashed border-slate-200 px-3 py-2">
-      <div className="mb-1.5 text-[0.6875rem] font-semibold text-slate-500">Is order ki delivery ({rs(fee)})</div>
-      <Segmented label="Delivery kaun dega" value={mode} onChange={(m) => { if (m !== mode && !locked) set.mutate(m); }} className="flex-wrap"
+      <div className="mb-1.5 text-[0.6875rem] font-semibold text-slate-500">{t('Is order ki delivery ({{fee}})', { fee: rs(fee) })}</div>
+      <Segmented label={t('Delivery kaun dega')} value={mode} onChange={(m) => { if (m !== mode && !locked) set.mutate(m); }} className="flex-wrap"
         items={DELIVERY_ITEMS.map((x) => ({ value: x.value, disabled: locked || set.isPending, label: <><x.icon className="h-3.5 w-3.5" />{x.label}</> }))} />
       <p className="mt-1.5 text-[0.6875rem] text-slate-500">
         {locked
-          ? 'Bill ban chuka hai — delivery ab yahan se nahi badalti.'
-          : 'Accept se pehle chunein — bill aur COD isi hisaab se banenge.'}
+          ? t('Bill ban chuka hai — delivery ab yahan se nahi badalti.')
+          : t('Accept se pehle chunein — bill aur COD isi hisaab se banenge.')}
       </p>
     </div>
   );
@@ -194,25 +195,25 @@ function AdvanceForm({ order: o, due, onDone, onCancel }: { order: OnlineOrderDe
   const valid = n >= 1 && n <= due;
   const save = useMutation({
     mutationFn: () => onlineOrdersApi.addAdvance(o.id, { amount: n, method, reference: reference.trim() || undefined }),
-    onSuccess: () => { toast.success(`${rs(n)} advance likh diya — COD ab ${rs(Math.max(0, due - n))}`); onDone(); },
+    onSuccess: () => { toast.success(t('{{rs}} advance likh diya — COD ab {{rs2}}', { rs: rs(n), rs2: rs(Math.max(0, due - n)) })); onDone(); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   return (
     <div className="mt-3 space-y-3 rounded-xl border border-slate-200 p-3">
-      <p className="text-[0.75rem] text-slate-500">Customer ne pehle paisa bhej diya? Likhein — courier sirf baqi COD lega.</p>
-      <Segmented label="Kaise aaya" value={method} onChange={setMethod} className="flex-wrap"
+      <p className="text-[0.75rem] text-slate-500">{t('Customer ne pehle paisa bhej diya? Likhein — courier sirf baqi COD lega.')}</p>
+      <Segmented label={t('Kaise aaya')} value={method} onChange={setMethod} className="flex-wrap"
         items={METHODS.map((x) => ({ value: x.value, label: <>{x.brand ? <BrandLogo name={x.brand} size={16} /> : x.icon ? <x.icon className="h-3.5 w-3.5" /> : null}{x.label}</> }))} />
       <div className="grid gap-2 sm:grid-cols-2">
-        <Input size="sm" label="Amount (Rs)" type="number" min={1} max={due} value={amount} onChange={(e) => setAmount(e.target.value)}
-          hint={`Baqi ${rs(due)}`} />
-        <Input size="sm" label="Transaction / slip number (optional)" value={reference} maxLength={80} onChange={(e) => setReference(e.target.value)} placeholder="Jaise TID 1234567" />
+        <Input size="sm" label={t('Amount (Rs)')} type="number" min={1} max={due} value={amount} onChange={(e) => setAmount(e.target.value)}
+          hint={t('Baqi {{due}}', { due: rs(due) })} />
+        <Input size="sm" label={t('Transaction / slip number (optional)')} value={reference} maxLength={80} onChange={(e) => setReference(e.target.value)} placeholder={t('Jaise TID 1234567')} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {o.deliveryFee > 0 && o.deliveryFee < due && <Button size="xs" variant="ghost" onClick={() => setAmount(String(Math.round(o.deliveryFee)))}>Sirf delivery {rs(o.deliveryFee)}</Button>}
-        <Button size="xs" variant="ghost" onClick={() => setAmount(String(due))}>Poora {rs(due)}</Button>
+        {o.deliveryFee > 0 && o.deliveryFee < due && <Button size="xs" variant="ghost" onClick={() => setAmount(String(Math.round(o.deliveryFee)))}>{t('Sirf delivery {{deliveryFee}}', { deliveryFee: rs(o.deliveryFee) })}</Button>}
+        <Button size="xs" variant="ghost" onClick={() => setAmount(String(due))}>{t('Poora {{due}}', { due: rs(due) })}</Button>
         <span className="flex-1" />
-        <Button size="xs" variant="ghost" onClick={onCancel}>Rehne dein</Button>
-        <Button size="xs" variant="primary" loading={save.isPending} disabled={!valid} onClick={() => save.mutate()}>Advance save</Button>
+        <Button size="xs" variant="ghost" onClick={onCancel}>{t('Rehne dein')}</Button>
+        <Button size="xs" variant="primary" loading={save.isPending} disabled={!valid} onClick={() => save.mutate()}>{t('Advance save')}</Button>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import { bakeryProductsApi } from '@industries/bakery/api/products.api';
 import type { ProfitPanelProps } from '../../config';
 import { pct, qty } from '../meta';
 import { usePeriodItems } from './usePeriodItems';
+import { t, Trans } from '@core/i18n';
 
 interface RecipeLine { qty?: number | string; costPerUnit?: number | string }
 
@@ -63,54 +64,54 @@ export function BakeryPanel({ filters, fmt }: ProfitPanelProps) {
   const shown = onlyProblems ? rows.filter((r) => r.noCost || r.gap > 0 || (r.profit ?? 0) < 0) : rows;
 
   if (items.isLoading || profiles.isLoading) return <Skeleton className="h-72 rounded-3xl" />;
-  if (fmt.costHidden) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">Recipe cost dekhne ke liye cost ki permission chahiye</p>;
+  if (fmt.costHidden) return <p className="rounded-3xl bg-white px-6 py-14 text-center text-[0.875rem] text-slate-500 ring-1 ring-slate-200/80">{t('Recipe cost dekhne ke liye cost ki permission chahiye')}</p>;
 
   return (
     <div className="space-y-4">
       {(problems.noCost > 0 || problems.gap > 0 || problems.losing > 0) && (
         <div className="space-y-1 rounded-2xl bg-amber-50 p-4 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <p className="flex items-center gap-2 font-semibold"><AlertTriangle className="h-4 w-4" />Ye hisaab kharab kar rahe hain</p>
-          {problems.noCost > 0 && <p>• {problems.noCost} cheezon ki cost 0 hai — un ka profit poora dikh raha hai, jo sach nahi.</p>}
-          {problems.gap > 0 && <p>• {problems.gap} cheezon me bill wali cost aur recipe ki cost alag hai — is period me lagbhag <b>{fmt.cost(problems.hidden)}</b> ka chhupa nuqsan.</p>}
-          {problems.losing > 0 && <p>• {problems.losing} cheezein nuqsan par bik rahi hain.</p>}
+          <p className="flex items-center gap-2 font-semibold"><AlertTriangle className="h-4 w-4" />{t('Ye hisaab kharab kar rahe hain')}</p>
+          {problems.noCost > 0 && <p>{t('• {{noCost}} cheezon ki cost 0 hai — un ka profit poora dikh raha hai, jo sach nahi.', { noCost: problems.noCost })}</p>}
+          {problems.gap > 0 && <p><Trans text="• {{gap}} cheezon me bill wali cost aur recipe ki cost alag hai — is period me lagbhag {{amount}} ka chhupa nuqsan." values={{ gap: problems.gap, amount: <b>{fmt.cost(problems.hidden)}</b> }} /></p>}
+          {problems.losing > 0 && <p>{t('• {{losing}} cheezein nuqsan par bik rahi hain.', { losing: problems.losing })}</p>}
         </div>
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <SplitTile icon={ChefHat} color="#db2777" label="Dukaan me banaya" n={split.made.n} revenue={fmt.money(split.made.revenue)} profit={fmt.cost(split.made.profit)} />
-        <SplitTile icon={ShoppingBag} color="#2563eb" label="Bahar se laya" n={split.bought.n} revenue={fmt.money(split.bought.revenue)} profit={fmt.cost(split.bought.profit)} />
+        <SplitTile icon={ChefHat} color="#db2777" label={t('Dukaan me banaya')} n={split.made.n} revenue={fmt.money(split.made.revenue)} profit={fmt.cost(split.made.profit)} />
+        <SplitTile icon={ShoppingBag} color="#2563eb" label={t('Bahar se laya')} n={split.bought.n} revenue={fmt.money(split.bought.revenue)} profit={fmt.cost(split.bought.profit)} />
       </div>
 
-      <Card className="rounded-2xl" flush title="Recipe se milan" description="Bill par saved cost aur recipe ki aaj ki cost — ek cheez par"
+      <Card className="rounded-2xl" flush title={t('Recipe se milan')} description={t('Bill par saved cost aur recipe ki aaj ki cost — ek cheez par')}
         actions={(
           <button type="button" onClick={() => setOnlyProblems((v) => !v)}
             className={cn('inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold ring-1', onlyProblems ? 'bg-amber-50 text-amber-800 ring-amber-300' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-            <AlertTriangle className="h-4 w-4" />Sirf masle wali
+            <AlertTriangle className="h-4 w-4" />{t('Sirf masle wali')}
           </button>
         )}>
-        {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi — hisaab saaf hai' : 'Is period me koi sale nahi'}</p> : (
+        {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? t('Koi masla nahi — hisaab saaf hai') : t('Is period me koi sale nahi')}</p> : (
           <div className="overflow-x-auto">
             <Table minWidth="46rem" className="[&>table]:text-[0.8125rem]">
-              <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <Tr><Th className="px-4 py-2">Cheez</Th><Th className="px-3 py-2 text-right">Biki</Th><Th className="px-3 py-2 text-right">Ausat rate</Th><Th className="px-3 py-2 text-right">Bill ki cost</Th><Th className="px-3 py-2 text-right">Recipe ki cost</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-4 py-2 text-right">Recipe se profit</Th></Tr>
+              <THead className="bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">{t('Cheez')}</Th><Th className="px-3 py-2 text-end">{t('Biki')}</Th><Th className="px-3 py-2 text-end">{t('Ausat rate')}</Th><Th className="px-3 py-2 text-end">{t('Bill ki cost')}</Th><Th className="px-3 py-2 text-end">{t('Recipe ki cost')}</Th><Th className="px-3 py-2 text-end">{t('Profit')}</Th><Th className="px-4 py-2 text-end">{t('Recipe se profit')}</Th></Tr>
               </THead>
               <TBody className="divide-y divide-slate-100">
                 {shown.map((r) => (
                   <Tr key={r.key}>
                     <Td className="text-inherit px-4 py-2">
                       <span className="block font-medium text-slate-900">{r.name}</span>
-                      <span className="text-[0.6875rem] text-slate-500">{r.isMade ? 'Dukaan me banta hai' : 'Bahar se aata hai'}{r.noCost ? ' · cost nahi bhari' : ''}</span>
+                      <span className="text-[0.6875rem] text-slate-500">{r.isMade ? t('Dukaan me banta hai') : t('Bahar se aata hai')}{r.noCost ? t(' · cost nahi bhari') : ''}</span>
                     </Td>
-                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}</Td>
-                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.money(r.avgPrice)}</Td>
-                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.cost(r.avgCost ?? 0)}</Td>
-                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">
-                      {r.recipeCost === undefined ? <Link to="/bakery/products" className="text-brand-700 hover:underline">Recipe bharein</Link> : (
+                    <Td className="text-inherit px-3 py-2 text-end tabular-nums">{qty(r.qty)} {r.unit}</Td>
+                    <Td className="text-inherit px-3 py-2 text-end tabular-nums">{fmt.money(r.avgPrice)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-end tabular-nums">{fmt.cost(r.avgCost ?? 0)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-end tabular-nums">
+                      {r.recipeCost === undefined ? <Link to="/bakery/products" className="text-brand-700 hover:underline">{t('Recipe bharein')}</Link> : (
                         <span className={cn(r.gap > 0 && 'font-semibold text-rose-700', r.gap < 0 && 'text-emerald-700')}>{fmt.cost(r.recipeCost)}{r.gap ? ` (${r.gap > 0 ? '+' : ''}${fmt.cost(r.gap)})` : ''}</span>
                       )}
                     </Td>
-                    <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
-                    <Td className={cn('px-4 py-2 text-right font-semibold tabular-nums', r.recipeProfit < 0 && 'text-rose-700')}>{fmt.cost(r.recipeProfit)}</Td>
+                    <Td className={cn('px-3 py-2 text-end font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
+                    <Td className={cn('px-4 py-2 text-end font-semibold tabular-nums', r.recipeProfit < 0 && 'text-rose-700')}>{fmt.cost(r.recipeProfit)}</Td>
                   </Tr>
                 ))}
               </TBody>
@@ -127,8 +128,8 @@ function SplitTile({ icon: Icon, color, label, n, revenue, profit }: { icon: typ
     <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
       <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-5 w-5" /></span>
       <div className="min-w-0">
-        <p className="text-[0.8125rem] font-medium text-slate-500">{label} · {n} cheezein</p>
-        <p className="text-[1.125rem] font-bold tabular-nums text-slate-900">{profit} <span className="text-[0.75rem] font-normal text-slate-500">profit · {revenue} sale</span></p>
+        <p className="text-[0.8125rem] font-medium text-slate-500">{t('{{label}} · {{n}} cheezein', { label, n })}</p>
+        <p className="text-[1.125rem] font-bold tabular-nums text-slate-900">{profit} <span className="text-[0.75rem] font-normal text-slate-500">{t('profit · {{revenue}} sale', { revenue })}</span></p>
       </div>
     </div>
   );

@@ -1,18 +1,19 @@
 /** Date presets shared by every page with a period filter, as business-day keys. */
 
 import { businessDayKey } from '@core/lib/business-day';
+import { t } from '@core/i18n';
 
 export type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | 'thisMonth' | 'lastMonth' | 'year' | 'all' | 'custom';
 
 export const DATE_PRESETS: Array<{ id: DatePreset; label: string }> = [
-  { id: 'today', label: 'Aaj' },
-  { id: 'yesterday', label: 'Kal' },
-  { id: 'week', label: '7 din' },
-  { id: 'month', label: '30 din' },
-  { id: 'thisMonth', label: 'Is mahine' },
-  { id: 'lastMonth', label: 'Pichhla mahina' },
-  { id: 'year', label: 'Is saal' },
-  { id: 'all', label: 'Sab' },
+  { id: 'today', label: t('Aaj') },
+  { id: 'yesterday', label: t('Kal') },
+  { id: 'week', label: t('7 din') },
+  { id: 'month', label: t('30 din') },
+  { id: 'thisMonth', label: t('Is mahine') },
+  { id: 'lastMonth', label: t('Pichhla mahina') },
+  { id: 'year', label: t('Is saal') },
+  { id: 'all', label: t('Sab') },
 ];
 
 const shift = (d: Date, days: number) => { const x = new Date(d); x.setDate(x.getDate() + days); return x; };
@@ -43,6 +44,6 @@ export function presetRange(preset: DatePreset, startHour: number, custom?: { fr
 
 export function rangeLabel(from: string, to: string) {
   const f = (k: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${k}T12:00:00`));
-  if (from === 'all') return `Shuru se ${f(to)} tak`;
+  if (from === 'all') return t('Shuru se {{to}} tak', { to: f(to) });
   return from === to ? f(from) : `${f(from)} — ${f(to)}`;
 }

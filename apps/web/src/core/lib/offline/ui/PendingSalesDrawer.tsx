@@ -9,6 +9,7 @@ import { X, RefreshCw, Trash2, AlertTriangle, Clock, CheckCircle2, Package } fro
 import { db, type PendingSale, type SyncQueueItem } from '@core/lib/offline/db';
 import { uploadPendingChanges } from '@core/lib/offline/syncEngine';
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 
 interface Props {
   open: boolean;
@@ -16,20 +17,20 @@ interface Props {
 }
 
 const typeLabels: Record<string, string> = {
-  CREATE_PRODUCT: 'Product banaya',
-  UPDATE_PRODUCT: 'Product update',
-  DELETE_PRODUCT: 'Product delete',
-  TOGGLE_PRODUCT_ACTIVE: 'Product active toggle',
-  TOGGLE_PRODUCT_FEATURED: 'Product featured toggle',
-  CREATE_CUSTOMER: 'Customer banaya',
-  UPDATE_CUSTOMER: 'Customer update',
-  DELETE_CUSTOMER: 'Customer delete',
-  PAYMENT_CUSTOMER: 'Customer payment',
-  CREATE_EXPENSE: 'Expense banaya',
-  DELETE_EXPENSE: 'Expense delete',
-  UPDATE_PRODUCT_STOCK: 'Stock update',
-  CREATE_LEDGER: 'Ledger entry',
-  OTHER: 'Other change',
+  CREATE_PRODUCT: t('Product banaya'),
+  UPDATE_PRODUCT: t('Product update'),
+  DELETE_PRODUCT: t('Product delete'),
+  TOGGLE_PRODUCT_ACTIVE: t('Product active toggle'),
+  TOGGLE_PRODUCT_FEATURED: t('Product featured toggle'),
+  CREATE_CUSTOMER: t('Customer banaya'),
+  UPDATE_CUSTOMER: t('Customer update'),
+  DELETE_CUSTOMER: t('Customer delete'),
+  PAYMENT_CUSTOMER: t('Customer payment'),
+  CREATE_EXPENSE: t('Expense banaya'),
+  DELETE_EXPENSE: t('Expense delete'),
+  UPDATE_PRODUCT_STOCK: t('Stock update'),
+  CREATE_LEDGER: t('Ledger entry'),
+  OTHER: t('Other change'),
 };
 
 export function PendingSalesDrawer({ open, onClose }: Props) {
@@ -66,31 +67,31 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
 
   const handleRetryAll = async () => {
     if (!navigator.onLine) {
-      toast.error('Pehle online ho jao');
+      toast.error(t('Pehle online ho jao'));
       return;
     }
     setBusy(true);
     try {
       const result = await uploadPendingChanges();
       const total = result.salesSynced + result.queueSynced;
-      if (total > 0) toast.success(`${total} items sync ho gaye`);
-      else if (result.failed > 0) toast.error(`${result.failed} items fail ho rahe hain`);
-      else toast.info('Kuch sync nahi hua');
+      if (total > 0) toast.success(t('{{total}} items sync ho gaye', { total }));
+      else if (result.failed > 0) toast.error(t('{{failed}} items fail ho rahe hain', { failed: result.failed }));
+      else toast.info(t('Kuch sync nahi hua'));
     } finally {
       setBusy(false);
     }
   };
 
   const handleDeleteSale = async (id: string) => {
-    if (!(await confirmDialog({ title: 'Yeh pending sale delete kar dein?', danger: true }))) return;
+    if (!(await confirmDialog({ title: t('Yeh pending sale delete kar dein?'), danger: true }))) return;
     await db.pendingSales.delete(id);
-    toast.success('Sale hataa di gayi');
+    toast.success(t('Sale hataa di gayi'));
   };
 
   const handleDeleteQueueItem = async (id: string) => {
-    if (!(await confirmDialog({ title: 'Yeh pending change delete kar dein?', danger: true }))) return;
+    if (!(await confirmDialog({ title: t('Yeh pending change delete kar dein?'), danger: true }))) return;
     await db.syncQueue.delete(id);
-    toast.success('Change hata diya gaya');
+    toast.success(t('Change hata diya gaya'));
   };
 
   if (!open) return null;
@@ -102,30 +103,30 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
       <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={onClose} />
-      <aside role="dialog" aria-modal="true" aria-label="Pending changes" className="relative flex w-full max-w-md flex-col bg-white shadow-2xl">
+      <aside role="dialog" aria-modal="true" aria-label={t('Pending changes')} className="relative flex w-full max-w-md flex-col bg-white shadow-2xl">
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
           <div className="min-w-0">
-            <h2 className="text-[1.0625rem] font-semibold text-slate-900">Pending Changes</h2>
-            <p className="text-[0.75rem] text-slate-500">{totalCount} items sync ke liye taiyar</p>
+            <h2 className="text-[1.0625rem] font-semibold text-slate-900">{t('Pending Changes')}</h2>
+            <p className="text-[0.75rem] text-slate-500">{t('{{totalCount}} items sync ke liye taiyar', { totalCount })}</p>
           </div>
-          <IconButton label="Band karein" onClick={onClose}><X className="h-5 w-5" /></IconButton>
+          <IconButton label={t('Band karein')} onClick={onClose}><X className="h-5 w-5" /></IconButton>
         </header>
 
         <div className="border-b border-slate-200 bg-slate-50 p-3">
           <Button fullWidth onClick={handleRetryAll} disabled={busy || totalCount === 0 || !navigator.onLine}
             leftIcon={<RefreshCw className={busy ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />}>
-            {busy ? 'Sync ho raha hai…' : 'Sabko Sync Karo'}
+            {busy ? t('Sync ho raha hai…') : t('Sabko Sync Karo')}
           </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {totalCount === 0 ? (
-            <EmptyState className="h-full" icon={<CheckCircle2 className="h-6 w-6 text-success-600" />} title="Sab kuch synced hai" description="Koi pending change nahi" />
+            <EmptyState className="h-full" icon={<CheckCircle2 className="h-6 w-6 text-success-600" />} title={t('Sab kuch synced hai')} description={t('Koi pending change nahi')} />
           ) : (
             <div className="space-y-4 p-3">
               {salesCount > 0 && (
                 <section>
-                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Sales ({salesCount})</h3>
+                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Sales ({{salesCount}})', { salesCount })}</h3>
                   <div className="space-y-2">
                     {pendingSales.map((sale) => (
                       <PendingSaleCard key={sale.id} sale={sale} onDelete={() => handleDeleteSale(sale.id)} />
@@ -135,7 +136,7 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
               )}
               {queueCount > 0 && (
                 <section>
-                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Other Changes ({queueCount})</h3>
+                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Other Changes ({{queueCount}})', { queueCount })}</h3>
                   <div className="space-y-2">
                     {queueItems.map((item) => (
                       <QueueItemCard key={item.id} item={item} onDelete={() => handleDeleteQueueItem(item.id)} />
@@ -174,19 +175,19 @@ function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () =
           </div>
           <p className="mt-0.5 text-[0.75rem] text-slate-500">{new Date(sale.createdAt).toLocaleString()}</p>
         </div>
-        <IconButton label="Delete" size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
+        <IconButton label={t('Delete')} size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
       </div>
 
       <div className="space-y-1 text-[0.75rem] text-slate-700">
         {sale.customerSnapshot && (
           <div className="flex items-center gap-1">
-            <span className="text-slate-500">Customer:</span>
+            <span className="text-slate-500">{t('Customer:')}</span>
             <span className="truncate font-medium">{sale.customerSnapshot.name}</span>
           </div>
         )}
         <div className="flex items-center gap-1">
           <Package className="h-3 w-3 text-slate-400" />
-          <span className="text-slate-500">{sale.itemsSnapshot.length} items</span>
+          <span className="text-slate-500">{t('{{count}} items', { count: sale.itemsSnapshot.length })}</span>
           <span className="mx-1 text-slate-300">•</span>
           <span className="font-semibold text-slate-800">Rs {sale.total.toFixed(0)}</span>
           <span className="text-slate-500">({sale.paymentMethod})</span>
@@ -194,7 +195,7 @@ function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () =
       </div>
 
       {sale.syncError && (
-        <SyncError><strong>Error:</strong> {sale.syncError}{sale.retryCount > 0 && <span className="ml-1">({sale.retryCount} tries)</span>}</SyncError>
+        <SyncError><strong>{t('Error:')}</strong> {sale.syncError}{sale.retryCount > 0 && <span className="ms-1">{t('({{retryCount}} tries)', { retryCount: sale.retryCount })}</span>}</SyncError>
       )}
     </div>
   );
@@ -211,9 +212,9 @@ function QueueItemCard({ item, onDelete }: { item: SyncQueueItem; onDelete: () =
           </div>
           <p className="mt-0.5 truncate font-mono text-[0.6875rem] text-slate-500">{item.method} {item.endpoint}</p>
           <p className="mt-0.5 text-[0.6875rem] text-slate-400">{new Date(item.createdAt).toLocaleString()}</p>
-          {item.syncError && <SyncError>{item.syncError}{item.retryCount > 0 && ` (${item.retryCount} tries)`}</SyncError>}
+          {item.syncError && <SyncError>{item.syncError}{item.retryCount > 0 && t(' ({{retryCount}} tries)', { retryCount: item.retryCount })}</SyncError>}
         </div>
-        <IconButton label="Delete" size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
+        <IconButton label={t('Delete')} size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
       </div>
     </div>
   );

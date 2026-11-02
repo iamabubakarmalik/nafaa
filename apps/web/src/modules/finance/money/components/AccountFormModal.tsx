@@ -11,13 +11,14 @@ import { Button, Input, Modal, Select, Switch } from '@/design-system/components
 import { cn } from '@core/lib/cn';
 import { moneyApi, type MoneyAccount, type MoneyAccountInput, type MoneyAccountKind, type MoneyAccountRow } from '../api/money.api';
 import { ACCOUNTS, KINDS, KIND_IDS, MONEY_KEY, apiError } from './meta';
+import { t } from '@core/i18n';
 
 /** Methods an account can take automatically; cash belongs to the drawer. */
 const METHODS: Array<{ value: MoneyAccount; label: string }> = [
-  { value: 'BANK_TRANSFER', label: 'Bank transfer' },
-  { value: 'CARD', label: 'Card (machine ka paisa)' },
-  { value: 'JAZZCASH', label: 'JazzCash' },
-  { value: 'EASYPAISA', label: 'Easypaisa' },
+  { value: 'BANK_TRANSFER', label: t('Bank transfer') },
+  { value: 'CARD', label: t('Card (machine ka paisa)') },
+  { value: 'JAZZCASH', label: t('JazzCash') },
+  { value: 'EASYPAISA', label: t('Easypaisa') },
 ];
 
 /** Local calendar day as YYYY-MM-DD. */
@@ -48,9 +49,9 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
 
   const cash = kind === 'CASH';
   const errors = {
-    name: name.trim().length < 2 ? 'Naam likhein' : undefined,
-    opening: opening && Number.isNaN(Number(opening)) ? 'Sahi amount likhein' : undefined,
-    date: openingDate > today() ? 'Aage ki date nahi chalti' : undefined,
+    name: name.trim().length < 2 ? t('Naam likhein') : undefined,
+    opening: opening && Number.isNaN(Number(opening)) ? t('Sahi amount likhein') : undefined,
+    date: openingDate > today() ? t('Aage ki date nahi chalti') : undefined,
   };
   const ok = !errors.name && !errors.opening && !errors.date;
 
@@ -75,11 +76,11 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
       ? moneyApi.updateAccount(account.id, body())
       : moneyApi.createAccount({ ...body(), scope: business ? 'BUSINESS' : 'SHOP' })),
     onSuccess: () => {
-      toast.success(editing ? 'Account save ho gaya' : 'Naya account ban gaya');
+      toast.success(editing ? t('Account save ho gaya') : t('Naya account ban gaya'));
       qc.invalidateQueries({ queryKey: [MONEY_KEY] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Save nahi hua')),
+    onError: (e) => toast.error(apiError(e, t('Save nahi hua'))),
   });
 
   const submit = () => {
@@ -87,23 +88,23 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
     if (ok && !save.isPending) save.mutate();
   };
 
-  const placeholder = kind === 'BANK' ? 'Maslan: Meezan Bank' : kind === 'WALLET' ? 'Maslan: JazzCash dukaan' : 'Maslan: Tijori';
+  const placeholder = kind === 'BANK' ? t('Maslan: Meezan Bank') : kind === 'WALLET' ? t('Maslan: JazzCash dukaan') : t('Maslan: Tijori');
 
   return (
     <Modal open onClose={onClose} size="lg"
-      title={editing ? `${account.name} badlein` : 'Naya account'}
-      description="Bank, wallet ya tijori — jahan dukaan ka paisa rakha jata hai."
+      title={editing ? t('{{name}} badlein', { name: account.name }) : t('Naya account')}
+      description={t('Bank, wallet ya tijori — jahan dukaan ka paisa rakha jata hai.')}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button loading={save.isPending} onClick={submit}>{editing ? 'Save karein' : 'Account banayein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button loading={save.isPending} onClick={submit}>{editing ? t('Save karein') : t('Account banayein')}</Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <div role="radiogroup" aria-label="Type" className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label={t('Type')} className="grid grid-cols-3 gap-2">
           {KIND_IDS.map((k) => {
             const m = KINDS[k];
             return (
               <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
-                className={cn('flex flex-col items-start gap-1 rounded-xl p-3 text-left ring-1 transition',
+                className={cn('flex flex-col items-start gap-1 rounded-xl p-3 text-start ring-1 transition',
                   kind === k ? 'bg-brand-50 ring-brand-300' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                 <m.icon className="h-4 w-4" style={{ color: m.color }} />
                 <span className="text-[0.8125rem] font-semibold text-slate-900">{m.label}</span>
@@ -113,46 +114,46 @@ export function AccountFormModal({ account, allShops, isOwner, onClose }: {
           })}
         </div>
 
-        <Input label="Naam" required value={name} onChange={(e) => setName(e.target.value)} maxLength={60} data-autofocus
-          placeholder={placeholder} error={tried ? errors.name : undefined} hint="Isi naam se har jagah dikhega" />
+        <Input label={t('Naam')} required value={name} onChange={(e) => setName(e.target.value)} maxLength={60} data-autofocus
+          placeholder={placeholder} error={tried ? errors.name : undefined} hint={t('Isi naam se har jagah dikhega')} />
 
         {!cash && <>
-          <Select label="Kaunsi payment yahan aati hai?" value={method} onChange={(e) => setMethod(e.target.value as '' | MoneyAccount)}
-            placeholder="Koi nahi (sirf haath ki entries)" options={METHODS}
-            hint={method ? `${ACCOUNTS[method].label} wali sale, kharch aur payment is account me gini ja sakti hai` : 'Sirf transfer aur jama/nikala se chalega'} />
+          <Select label={t('Kaunsi payment yahan aati hai?')} value={method} onChange={(e) => setMethod(e.target.value as '' | MoneyAccount)}
+            placeholder={t('Koi nahi (sirf haath ki entries)')} options={METHODS}
+            hint={method ? t('{{label}} wali sale, kharch aur payment is account me gini ja sakti hai', { label: ACCOUNTS[method].label }) : t('Sirf transfer aur jama/nikala se chalega')} />
           {method && (
             <Switch checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)}
-              label={`${ACCOUNTS[method].label} ka default account`}
-              description="On ho to is tareeqe ki har sale, return, kharch aur payment khud is account me judti hai. Ek branch me ek hi default hota hai." />
+              label={t('{{label}} ka default account', { label: ACCOUNTS[method].label })}
+              description={t('On ho to is tareeqe ki har sale, return, kharch aur payment khud is account me judti hai. Ek branch me ek hi default hota hai.')} />
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input label={kind === 'BANK' ? 'Bank ka naam' : 'Company'} value={bankName} onChange={(e) => setBankName(e.target.value)} maxLength={60}
-              placeholder={kind === 'BANK' ? 'Meezan, HBL, UBL…' : 'JazzCash, Easypaisa…'} />
-            <Input label="Account title" value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} maxLength={80}
-              placeholder="Jis naam par account hai" />
-            <Input label={kind === 'BANK' ? 'Account number' : 'Mobile number'} value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} maxLength={40}
-              inputMode="numeric" hint="Card par sirf aakhri 4 hindse dikhenge" />
+            <Input label={kind === 'BANK' ? t('Bank ka naam') : t('Company')} value={bankName} onChange={(e) => setBankName(e.target.value)} maxLength={60}
+              placeholder={kind === 'BANK' ? t('Meezan, HBL, UBL…') : t('JazzCash, Easypaisa…')} />
+            <Input label={t('Account title')} value={accountTitle} onChange={(e) => setAccountTitle(e.target.value)} maxLength={80}
+              placeholder={t('Jis naam par account hai')} />
+            <Input label={kind === 'BANK' ? t('Account number') : t('Mobile number')} value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} maxLength={40}
+              inputMode="numeric" hint={t('Card par sirf aakhri 4 hindse dikhenge')} />
             {kind === 'BANK' && (
-              <Input label="IBAN" value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} maxLength={40} placeholder="PK00XXXX…" />
+              <Input label={t('IBAN')} value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} maxLength={40} placeholder={t('PK00XXXX…')} />
             )}
           </div>
         </>}
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Shuru ka balance" type="number" inputMode="decimal" step="any" value={opening} onChange={(e) => setOpening(e.target.value)}
-            placeholder="0" error={tried ? errors.opening : undefined} hint="Shuru ki date par account me kitna tha" />
-          <Input label="Shuru ki date" type="date" value={openingDate} max={today()} onChange={(e) => setOpeningDate(e.target.value)}
-            error={tried ? errors.date : undefined} hint="Is din se aage ka hisaab judega" />
+          <Input label={t('Shuru ka balance')} type="number" inputMode="decimal" step="any" value={opening} onChange={(e) => setOpening(e.target.value)}
+            placeholder="0" error={tried ? errors.opening : undefined} hint={t('Shuru ki date par account me kitna tha')} />
+          <Input label={t('Shuru ki date')} type="date" value={openingDate} max={today()} onChange={(e) => setOpeningDate(e.target.value)}
+            error={tried ? errors.date : undefined} hint={t('Is din se aage ka hisaab judega')} />
         </div>
 
         {!editing && isOwner && !allShops && (
           <Switch checked={business} onChange={(e) => setBusiness(e.target.checked)}
-            label="Poore karobar ka account"
-            description="Off ho to sirf is branch ka. On ho to sab branches ka (sirf malik chala sakta hai)." />
+            label={t('Poore karobar ka account')}
+            description={t('Off ho to sirf is branch ka. On ho to sab branches ka (sirf malik chala sakta hai).')} />
         )}
         {!editing && allShops && (
           <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600 ring-1 ring-slate-200">
-            "Sab branches" chuni hai, is liye ye poore karobar ka account banega. Kisi ek branch ka account banane ke liye upar se branch chunein.
+            {t('"Sab branches" chuni hai, is liye ye poore karobar ka account banega. Kisi ek branch ka account banane ke liye upar se branch chunein.')}
           </p>
         )}
       </form>

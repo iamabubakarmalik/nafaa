@@ -15,6 +15,7 @@ import { AssignVehicleDto, BillChargesDto, ConfirmDeliveryDto, CreateFurnitureDe
 import { createWithDocNumber, LATEST_NUMBERS } from '../common/doc-number';
 import { endOfDayTz, startOfDayTz } from '../../../common/helpers/business-time.helper';
 import { BILLED, billCustomOrder, orderSaleNumber, r2 } from '../custom-orders/order-billing';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Bill number of a delivery's charges. */
 export const chargesSaleNumber = (deliveryNumber: string) => `FDV-${deliveryNumber}`;
@@ -64,7 +65,7 @@ export class FurnitureDeliveriesService {
       const o = await this.prisma.furnitureCustomOrder.findFirst({ where: { id: dto.customOrderId, tenantId: t }, select: { id: true, customerId: true, productType: true } });
       if (!o) throw new NotFoundException('Order nahi mila');
       const open = await this.prisma.furnitureDelivery.findFirst({ where: { tenantId: t, customOrderId: o.id, status: { notIn: ['FAILED', 'RETURNED'] } }, select: { deliveryNumber: true } });
-      if (open) throw new BadRequestException(`Is order ki delivery ${open.deliveryNumber} pehle se bani hai`);
+      if (open) throw new BadRequestException(apiMessage('Is order ki delivery {{deliveryNumber}} pehle se bani hai', { deliveryNumber: open.deliveryNumber }));
       dto.customerId = dto.customerId ?? o.customerId ?? undefined;
       if (!dto.productNames?.length) dto.productNames = [o.productType];
     }
@@ -244,7 +245,7 @@ export class FurnitureDeliveriesService {
     if (d.status === 'FAILED') throw new BadRequestException('Cancel delivery ka bill nahi banta');
     const saleNumber = chargesSaleNumber(d.deliveryNumber);
     if (await this.prisma.sale.findFirst({ where: { tenantId: user.tenantId, saleNumber }, select: { id: true } })) {
-      throw new BadRequestException(`Is delivery ka bill ${saleNumber} pehle ban chuka`);
+      throw new BadRequestException(apiMessage('Is delivery ka bill {{saleNumber}} pehle ban chuka', { saleNumber }));
     }
     const lines = [
       { label: 'Delivery / transport', amount: r2(d.deliveryCharge) },

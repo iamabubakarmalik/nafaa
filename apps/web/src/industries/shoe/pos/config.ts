@@ -17,6 +17,7 @@ import { productsApi, type Product } from '@modules/inventory/products/api/produ
 import { useComboBundles, useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem } from '@modules/pos/engine';
 import { shoeProductsApi } from '../api/products.api';
 import { KIDS, META_KEY, genderLabel, typeLabel, type ShoeMeta } from '../components/meta';
+import { t } from '@core/i18n';
 
 function useShoeCatalog() {
   const metaQ = useQuery({ queryKey: [META_KEY], queryFn: shoeProductsApi.meta, staleTime: 5 * 60_000, retry: 1 });
@@ -28,10 +29,10 @@ function useShoeCatalog() {
       ...it,
       badges: [
         ...(it.badges ?? []),
-        ...(m.onSale ? [{ label: `Sale ${m.offPct}%`, tone: 'danger' as const, icon: BadgePercent }] : []),
-        ...(m.isNewArrival ? [{ label: 'Naya', tone: 'info' as const, icon: Sparkles }] : []),
+        ...(m.onSale ? [{ label: t('Sale {{offPct}}%', { offPct: m.offPct }), tone: 'danger' as const, icon: BadgePercent }] : []),
+        ...(m.isNewArrival ? [{ label: t('Naya'), tone: 'info' as const, icon: Sparkles }] : []),
       ],
-      subline: [m.onSale && m.mrp ? `MRP ${formatPKR(m.mrp)}` : null, genderLabel(m.gender) !== '—' ? genderLabel(m.gender) : null, m.categoryType ? typeLabel(m.categoryType) : null].filter(Boolean).join(' · ') || it.subline,
+      subline: [m.onSale && m.mrp ? t('MRP {{mrp}}', { mrp: formatPKR(m.mrp) }) : null, genderLabel(m.gender) !== '—' ? genderLabel(m.gender) : null, m.categoryType ? typeLabel(m.categoryType) : null].filter(Boolean).join(' · ') || it.subline,
       searchText: [it.searchText, m.modelCode, m.season, m.categoryType ? typeLabel(m.categoryType) : null].filter(Boolean).join(' '),
       rank: m.onSale || m.isNewArrival ? 0 : 1,
       meta: { ...(it.meta ?? {}), shoe: m },
@@ -42,12 +43,12 @@ function useShoeCatalog() {
 
 const meta = (i: PosItem) => i.meta?.shoe as ShoeMeta | undefined;
 const filters: PosFilter[] = [
-  { id: 'men', label: 'Gents', match: (i) => meta(i)?.gender === 'MEN' },
-  { id: 'women', label: 'Ladies', match: (i) => meta(i)?.gender === 'WOMEN' },
-  { id: 'kids', label: 'Bachay', match: (i) => KIDS.includes(meta(i)?.gender ?? '') },
-  { id: 'sale', label: 'Sale', icon: BadgePercent, match: (i) => !!meta(i)?.onSale },
-  { id: 'new', label: 'Naya maal', icon: Sparkles, match: (i) => !!meta(i)?.isNewArrival },
-  { id: 'bridal', label: 'Bridal', match: (i) => !!meta(i)?.isBridal },
+  { id: 'men', label: t('Gents'), match: (i) => meta(i)?.gender === 'MEN' },
+  { id: 'women', label: t('Ladies'), match: (i) => meta(i)?.gender === 'WOMEN' },
+  { id: 'kids', label: t('Bachay'), match: (i) => KIDS.includes(meta(i)?.gender ?? '') },
+  { id: 'sale', label: t('Sale'), icon: BadgePercent, match: (i) => !!meta(i)?.onSale },
+  { id: 'new', label: t('Naya maal'), icon: Sparkles, match: (i) => !!meta(i)?.isNewArrival },
+  { id: 'bridal', label: t('Bridal'), match: (i) => !!meta(i)?.isBridal },
 ];
 
 /** Size products checked this session for pairs kept on the product row. */
@@ -55,12 +56,12 @@ const splitChecked = new Set<string>();
 
 export const shoePos: PosIndustryConfig = {
   id: 'shoe',
-  label: 'Shoes',
+  label: t('Shoes'),
   useCatalog: useShoeCatalog,
   useBundles: useComboBundles,
   quickKeys: true,
   filters,
-  searchHint: 'Naam, article number ya joron ka barcode scan karein',
+  searchHint: t('Naam, article number ya joron ka barcode scan karein'),
   receiptFooter: 'Size badalne (exchange) ke liye yeh bill aur dabba saath laayein.',
   beforeAdd: (item, opts, api) => {
     if (!item.hasVariants || opts.variant || splitChecked.has(item.id)) return 'continue';
@@ -77,7 +78,7 @@ export const shoePos: PosIndustryConfig = {
       const hit = await productsApi.byBarcode(code, shopId) as Product & { matchedVariant?: { id: string; name: string; price: number; stock: number } };
       if (!hit.matchedVariant) return false;
       const item = api.itemById(hit.id);
-      if (!item) { toast.error(`${hit.name} is branch ke catalog me nahi`); return true; }
+      if (!item) { toast.error(t('{{name}} is branch ke catalog me nahi', { name: hit.name })); return true; }
       const v = hit.matchedVariant;
       api.addItem(item, { variant: { id: v.id, name: v.name, price: v.price, stock: hit.shopStock ?? v.stock } });
       return true;

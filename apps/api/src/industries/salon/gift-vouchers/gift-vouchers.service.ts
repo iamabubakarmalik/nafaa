@@ -19,6 +19,7 @@ import { postIndustrySale } from '../../_shared/industry-sale.helper';
 import { assertCan, r2, salonClock } from '../common/salon-common';
 import { SellVoucherDto, VoucherListQuery } from './dto/gift-voucher.dto';
 import { normalizeCode, voucherProblem, voucherSaleNumber } from './voucher-rules';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 /** No 0/O or 1/I, so a code read out over the phone is not mistaken. */
@@ -164,7 +165,7 @@ export class GiftVouchersService {
   async lookup(user: AuthenticatedUser, code: string) {
     assertCan(user, [P.POS_USE], 'Gift voucher lagane');
     const v = await this.prisma.salonGiftVoucher.findFirst({ where: { tenantId: user.tenantId, code: normalizeCode(code ?? '') } });
-    if (!v) throw new NotFoundException(`Voucher ${normalizeCode(code ?? '')} nahi mila`);
+    if (!v) throw new NotFoundException(apiMessage('Voucher {{code}} nahi mila', { code: normalizeCode(code ?? '') }));
     const customer = v.customerId
       ? await this.prisma.customer.findFirst({ where: { id: v.customerId, tenantId: user.tenantId }, select: { name: true } })
       : null;

@@ -20,6 +20,7 @@ import { ChannelSettingsModal } from '../online-products/ChannelSettingsModal';
 import { ruleText } from '../online-products/meta';
 import { panel } from './ChannelOverview';
 import type { ChannelFacts } from './meta';
+import { t } from '@core/i18n';
 
 function Section({ title, help, children, danger }: { title: string; help: ReactNode; children: ReactNode; danger?: boolean }) {
   return (
@@ -45,7 +46,7 @@ function Row({ title, help, control }: { title: ReactNode; help?: ReactNode; con
   );
 }
 
-const On = ({ text = 'Chalu' }: { text?: string }) => (
+const On = ({ text = t('Chalu') }: { text?: string }) => (
   <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-success-700"><CheckCircle2 className="h-4 w-4" /> {text}</span>
 );
 
@@ -54,20 +55,20 @@ export function useChannelLifecycle(id: string, onChange: (d: WebsiteOverview) =
   const navigate = useNavigate();
   const toggle = useMutation({
     mutationFn: (active: boolean) => (active ? onlineOrdersApi.resume(id) : onlineOrdersApi.pause(id)),
-    onSuccess: (d) => { onChange(d); toast.success(d.integration?.isActive ? 'Channel chalu' : 'Channel band — naye orders nahi aayenge'); },
+    onSuccess: (d) => { onChange(d); toast.success(d.integration?.isActive ? t('Channel chalu') : t('Channel band — naye orders nahi aayenge')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const remove = useMutation({
     mutationFn: () => onlineOrdersApi.removeChannel(id),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: CHANNELS_KEY });
-      toast.success(r.archived ? 'Channel hata diya — purane orders aur bills mehfooz' : 'Channel hata diya');
+      toast.success(r.archived ? t('Channel hata diya — purane orders aur bills mehfooz') : t('Channel hata diya'));
       navigate('/online-store/channels');
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const askRemove = async (name: string) => {
-    if (await confirmDialog({ title: `"${name}" hata dein?`, text: 'Naye orders aana band ho jayenge. Purane orders aur bills mehfooz rahenge.', danger: true })) remove.mutate();
+    if (await confirmDialog({ title: t('"{{name}}" hata dein?', { name }), text: t('Naye orders aana band ho jayenge. Purane orders aur bills mehfooz rahenge.'), danger: true })) remove.mutate();
   };
   return { toggle, remove, askRemove };
 }
@@ -89,12 +90,12 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
 
   const save = useMutation({
     mutationFn: (patch: Partial<WebsiteConfig> & { displayName?: string }) => onlineOrdersApi.updateChannel(id, patch),
-    onSuccess: (d) => { onChange(d); toast.success('Save ho gaya'); },
+    onSuccess: (d) => { onChange(d); toast.success(t('Save ho gaya')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const testHook = useMutation({
     mutationFn: () => onlineOrdersApi.testStatusWebhook(id),
-    onSuccess: (r) => (r.ok ? toast.success('Website ne jawab diya') : toast.error(r.error ?? 'Jawab nahi aaya')),
+    onSuccess: (r) => (r.ok ? toast.success(t('Website ne jawab diya')) : toast.error(r.error ?? t('Jawab nahi aaya'))),
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
@@ -105,80 +106,80 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
 
   return (
     <div className="space-y-6">
-      <Section title="Order aane par" help="Naya order aate hi Nafaa khud kitna kaam kare.">
-        <Row title="Order khud accept karein"
-          help="Bill aur stock khud. Stock kam ho ya product jura na ho to order 'Naya' me ruk jata hai — aap dekh kar accept karein."
-          control={<Switch size="sm" checked={cfg.autoAccept} disabled={save.isPending} onChange={(e) => save.mutate({ autoAccept: e.target.checked })} aria-label="Order khud accept" />} />
-        <Row title="Accept par receipt kholein" help="Accept dabate hi receipt ka safha khulta hai (POS par auto-print on ho to print bhi)."
-          control={<Switch size="sm" checked={cfg.autoPrint} disabled={save.isPending} onChange={(e) => save.mutate({ autoPrint: e.target.checked })} aria-label="Receipt kholein" />} />
+      <Section title={t('Order aane par')} help={t('Naya order aate hi Nafaa khud kitna kaam kare.')}>
+        <Row title={t('Order khud accept karein')}
+          help={t('Bill aur stock khud. Stock kam ho ya product jura na ho to order \'Naya\' me ruk jata hai — aap dekh kar accept karein.')}
+          control={<Switch size="sm" checked={cfg.autoAccept} disabled={save.isPending} onChange={(e) => save.mutate({ autoAccept: e.target.checked })} aria-label={t('Order khud accept')} />} />
+        <Row title={t('Accept par receipt kholein')} help={t('Accept dabate hi receipt ka safha khulta hai (POS par auto-print on ho to print bhi).')}
+          control={<Switch size="sm" checked={cfg.autoPrint} disabled={save.isPending} onChange={(e) => save.mutate({ autoPrint: e.target.checked })} aria-label={t('Receipt kholein')} />} />
       </Section>
 
-      <Section title="Stock" help={`Kis branch ka maal ${site} par bikta hai, aur stock kaise jata hai.`}>
-        <Row title="Stock kis branch se" help={`Isi branch ka stock kam hoga${facts.productChannel ? ` aur ${facts.name} par isi ka dikhega` : ''}.`}
+      <Section title={t('Stock')} help={t('Kis branch ka maal {{site}} par bikta hai, aur stock kaise jata hai.', { site })}>
+        <Row title={t('Stock kis branch se')} help={t('Isi branch ka stock kam hoga{{value}}.', { value: facts.productChannel ? t(' aur {{name}} par isi ka dikhega', { name: facts.name }) : '' })}
           control={
-            <Select size="sm" aria-label="Stock kis branch se" wrapperClassName="w-full sm:w-64" value={cfg.shopId ?? shopList.find((s) => s.isMain)?.id ?? ''}
+            <Select size="sm" aria-label={t('Stock kis branch se')} wrapperClassName="w-full sm:w-64" value={cfg.shopId ?? shopList.find((s) => s.isMain)?.id ?? ''}
               onChange={(e) => save.mutate({ shopId: e.target.value || null })}>
-              {!shopList.length && <option value="">Main branch</option>}
-              {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}{s.isMain ? ' (main)' : ''}</option>)}
+              {!shopList.length && <option value="">{t('Main branch')}</option>}
+              {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}{s.isMain ? t(' (main)') : ''}</option>)}
             </Select>
           } />
         {facts.productChannel && (
-          <Row title={`Stock ${facts.name} par khud`}
-            help={facts.automatic ? 'POS par sale, purchase ya adjustment → 1 minute me update, aur har 15 minute poori sync.' : `Pehle ${facts.name} ko Setup se automatic jorein.`}
-            control={facts.automatic ? <On /> : <span className="text-[0.8125rem] font-medium text-slate-500">Jorna baqi</span>} />
+          <Row title={t('Stock {{name}} par khud', { name: facts.name })}
+            help={facts.automatic ? t('POS par sale, purchase ya adjustment → 1 minute me update, aur har 15 minute poori sync.') : t('Pehle {{name}} ko Setup se automatic jorein.', { name: facts.name })}
+            control={facts.automatic ? <On /> : <span className="text-[0.8125rem] font-medium text-slate-500">{t('Jorna baqi')}</span>} />
         )}
         {facts.productChannel && (
-          <Row title="Stock buffer" help={`${facts.name} ko asli stock se itne kam batayein — taake POS aur online ek saath bik kar minus na ho.`}
-            control={<span className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{productChannel ? (buffer ? `${buffer} piece` : 'Koi nahi') : '—'}</span>} />
+          <Row title={t('Stock buffer')} help={t('{{name}} ko asli stock se itne kam batayein — taake POS aur online ek saath bik kar minus na ho.', { name: facts.name })}
+            control={<span className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{productChannel ? (buffer ? t('{{buffer}} piece', { buffer }) : t('Koi nahi')) : '—'}</span>} />
         )}
         {facts.kind === 'shopify' && i.shopify?.locationName && (
-          <Row title="Shopify stock location" help="Nafaa stock isi location par likhta hai. Badalni ho to Shopify me pehli location badal kar Setup → Check." control={<span className="text-[0.875rem] font-semibold text-slate-900">{i.shopify.locationName}</span>} />
+          <Row title={t('Shopify stock location')} help={t('Nafaa stock isi location par likhta hai. Badalni ho to Shopify me pehli location badal kar Setup → Check.')} control={<span className="text-[0.875rem] font-semibold text-slate-900">{i.shopify.locationName}</span>} />
         )}
       </Section>
 
-      <Section title="Price" help="Bill me kaun si price lage, aur Nafaa ki price channel par jaye ya nahi.">
-        <Row title="Bill me price" help={`${site} par sale/offer chal raha ho to "${facts.kind === 'custom' ? 'Website' : facts.name} wali" rakhein.`}
+      <Section title={t('Price')} help={t('Bill me kaun si price lage, aur Nafaa ki price channel par jaye ya nahi.')}>
+        <Row title={t('Bill me price')} help={t('{{site}} par sale/offer chal raha ho to "{{value}} wali" rakhein.', { site, value: facts.kind === 'custom' ? t('Website') : facts.name })}
           control={
-            <Select size="sm" aria-label="Bill me price" wrapperClassName="w-full sm:w-64" value={cfg.priceSource} onChange={(e) => save.mutate({ priceSource: e.target.value as WebsiteConfig['priceSource'] })}>
-              <option value="WEBSITE">{facts.kind === 'custom' ? 'Website' : facts.name} wali (jo customer ne di)</option>
-              <option value="NAFAA">Nafaa wali (POS ki price)</option>
+            <Select size="sm" aria-label={t('Bill me price')} wrapperClassName="w-full sm:w-64" value={cfg.priceSource} onChange={(e) => save.mutate({ priceSource: e.target.value as WebsiteConfig['priceSource'] })}>
+              <option value="WEBSITE">{t('{{value}} wali (jo customer ne di)', { value: facts.kind === 'custom' ? t('Website') : facts.name })}</option>
+              <option value="NAFAA">{t('Nafaa wali (POS ki price)')}</option>
             </Select>
           } />
         {facts.productChannel && (
-          <Row title={`${facts.name} par price`}
+          <Row title={t('{{name}} par price', { name: facts.name })}
             help={productChannel
-              ? (productChannel.pushPrice ? `Nafaa bhejta hai: ${ruleText(productChannel.priceRule)}. Kisi product ki apni price Online products me.` : `Nafaa price nahi bhejta — ${facts.name} par jo hai wahi rehti hai.`)
-              : 'Price rule, rounding aur stock buffer yahan se badlein.'}
-            control={<Button size="sm" variant="secondary" disabled={!productChannel} onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>Price aur buffer</Button>} />
+              ? (productChannel.pushPrice ? t('Nafaa bhejta hai: {{priceRule}}. Kisi product ki apni price Online products me.', { priceRule: ruleText(productChannel.priceRule) }) : t('Nafaa price nahi bhejta — {{name}} par jo hai wahi rehti hai.', { name: facts.name }))
+              : t('Price rule, rounding aur stock buffer yahan se badlein.')}
+            control={<Button size="sm" variant="secondary" disabled={!productChannel} onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Price aur buffer')}</Button>} />
         )}
       </Section>
 
-      <Section title="Delivery charges" help="Customer jo delivery charges deta hai, wo kis ke paas jate hain.">
-        <Row title="Delivery charges kis ke paas"
-          help="Apna rider ho to 'Dukaan'. Bahar ka rider (Indolj, Bykea) charges khud le to 'Rider' — bill par likha aata hai, sale aur galle me nahi."
+      <Section title={t('Delivery charges')} help={t('Customer jo delivery charges deta hai, wo kis ke paas jate hain.')}>
+        <Row title={t('Delivery charges kis ke paas')}
+          help={t('Apna rider ho to \'Dukaan\'. Bahar ka rider (Indolj, Bykea) charges khud le to \'Rider\' — bill par likha aata hai, sale aur galle me nahi.')}
           control={
-            <Select size="sm" aria-label="Delivery charges" wrapperClassName="w-full sm:w-64" value={cfg.deliveryFeeMode ?? 'SHOP'} onChange={(e) => save.mutate({ deliveryFeeMode: e.target.value as 'SHOP' | 'RIDER' })}>
-              <option value="SHOP">Dukaan ke — bill aur sale me</option>
-              <option value="RIDER">Rider ke — sirf likha, sale me nahi</option>
+            <Select size="sm" aria-label={t('Delivery charges')} wrapperClassName="w-full sm:w-64" value={cfg.deliveryFeeMode ?? 'SHOP'} onChange={(e) => save.mutate({ deliveryFeeMode: e.target.value as 'SHOP' | 'RIDER' })}>
+              <option value="SHOP">{t('Dukaan ke — bill aur sale me')}</option>
+              <option value="RIDER">{t('Rider ke — sirf likha, sale me nahi')}</option>
             </Select>
           } />
       </Section>
 
       {facts.kind !== 'daraz' && facts.kind !== 'indolj' && (
-        <Section title={`${facts.kind === 'custom' ? 'Website' : facts.name} ko status`} help="Accept, raste me, deliver aur cancel ki khabar wapas.">
+        <Section title={t('{{value}} ko status', { value: facts.kind === 'custom' ? t('Website') : facts.name })} help={t('Accept, raste me, deliver aur cancel ki khabar wapas.')}>
           {twoWay ? (
-            <Row title={<span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-success-600" /> Khud ho raha hai</span>}
+            <Row title={<span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-success-600" /> {' '}{t('Khud ho raha hai')}</span>}
               help={facts.kind === 'shopify'
-                ? 'Accept par tag, raste me par fulfillment + tracking (customer ko Shopify email), deliver par Delivered, cancel par order cancel.'
-                : 'Accept par Processing, deliver par Completed, cancel par Cancelled, aur customer ko "raste me" note.'}
-              control={<Button size="sm" variant="ghost" loading={testHook.isPending} onClick={() => testHook.mutate()}>Check</Button>} />
+                ? t('Accept par tag, raste me par fulfillment + tracking (customer ko Shopify email), deliver par Delivered, cancel par order cancel.')
+                : t('Accept par Processing, deliver par Completed, cancel par Cancelled, aur customer ko "raste me" note.')}
+              control={<Button size="sm" variant="ghost" loading={testHook.isPending} onClick={() => testHook.mutate()}>{t('Check')}</Button>} />
           ) : (
             <div className="py-3.5">
-              <Input size="sm" label="Status URL (Nafaa → website)" value={statusUrl} onChange={(e) => setStatusUrl(e.target.value)} placeholder="https://meri-website.com/nafaa-status"
-                hint="Har status badalne par Nafaa is URL par khabar bhejta hai. Nafaa plugin ise khud lagata hai." />
+              <Input size="sm" label={t('Status URL (Nafaa → website)')} value={statusUrl} onChange={(e) => setStatusUrl(e.target.value)} placeholder="https://meri-website.com/nafaa-status"
+                hint={t('Har status badalne par Nafaa is URL par khabar bhejta hai. Nafaa plugin ise khud lagata hai.')} />
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button size="sm" loading={save.isPending} disabled={(statusUrl.trim() || null) === (cfg.statusWebhookUrl ?? null)} onClick={() => save.mutate({ statusWebhookUrl: statusUrl.trim() || null })}>Save</Button>
-                <Button size="sm" variant="secondary" loading={testHook.isPending} disabled={!cfg.statusWebhookUrl} onClick={() => testHook.mutate()}>Test</Button>
+                <Button size="sm" loading={save.isPending} disabled={(statusUrl.trim() || null) === (cfg.statusWebhookUrl ?? null)} onClick={() => save.mutate({ statusWebhookUrl: statusUrl.trim() || null })}>{t('Save')}</Button>
+                <Button size="sm" variant="secondary" loading={testHook.isPending} disabled={!cfg.statusWebhookUrl} onClick={() => testHook.mutate()}>{t('Test')}</Button>
               </div>
             </div>
           )}
@@ -186,33 +187,33 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
       )}
 
       {signable && (
-        <Section title="Hifazat" help="Sirf asli website ke orders qabool hon.">
-          <Row title="Sirf signed orders" help="Bina signature wala order reject. Nafaa plugin aur automatic connection khud sign karte hain."
-            control={<Switch size="sm" checked={cfg.requireSignature} disabled={save.isPending} onChange={(e) => save.mutate({ requireSignature: e.target.checked })} aria-label="Sirf signed orders" />} />
+        <Section title={t('Hifazat')} help={t('Sirf asli website ke orders qabool hon.')}>
+          <Row title={t('Sirf signed orders')} help={t('Bina signature wala order reject. Nafaa plugin aur automatic connection khud sign karte hain.')}
+            control={<Switch size="sm" checked={cfg.requireSignature} disabled={save.isPending} onChange={(e) => save.mutate({ requireSignature: e.target.checked })} aria-label={t('Sirf signed orders')} />} />
           {facts.platform === 'shopify' && (
             <div className="py-3.5">
-              <Input size="sm" label="Shopify webhook signing key" value={shopifySecret} onChange={(e) => setShopifySecret(e.target.value)} autoComplete="off" className="font-mono"
-                hint="Shopify admin → Settings → Notifications → Webhooks ke neeche wali key." />
-              <Button size="sm" className="mt-2" loading={save.isPending} disabled={shopifySecret === (cfg.shopifySecret ?? '')} onClick={() => save.mutate({ shopifySecret })}>Save</Button>
+              <Input size="sm" label={t('Shopify webhook signing key')} value={shopifySecret} onChange={(e) => setShopifySecret(e.target.value)} autoComplete="off" className="font-mono"
+                hint={t('Shopify admin → Settings → Notifications → Webhooks ke neeche wali key.')} />
+              <Button size="sm" className="mt-2" loading={save.isPending} disabled={shopifySecret === (cfg.shopifySecret ?? '')} onClick={() => save.mutate({ shopifySecret })}>{t('Save')}</Button>
             </div>
           )}
         </Section>
       )}
 
-      <Section title="Naam" help="Sidebar, orders aur receipts par yahi naam.">
+      <Section title={t('Naam')} help={t('Sidebar, orders aur receipts par yahi naam.')}>
         <div className="py-3.5">
-          <Input size="sm" label="Channel ka naam" value={displayName} maxLength={80} onChange={(e) => setDisplayName(e.target.value)} />
-          <Button size="sm" className="mt-2" disabled={!displayName.trim() || displayName === i.displayName} loading={save.isPending} onClick={() => save.mutate({ displayName: displayName.trim() })}>Save</Button>
+          <Input size="sm" label={t('Channel ka naam')} value={displayName} maxLength={80} onChange={(e) => setDisplayName(e.target.value)} />
+          <Button size="sm" className="mt-2" disabled={!displayName.trim() || displayName === i.displayName} loading={save.isPending} onClick={() => save.mutate({ displayName: displayName.trim() })}>{t('Save')}</Button>
         </div>
       </Section>
 
-      <Section title="Channel band ya hatayein" help="Band karne se naye orders rukte hain; hatane se channel list se nikal jata hai. Purane orders aur bills dono soorat me mehfooz." danger>
-        <Row title={i.isActive ? 'Channel band karein' : 'Channel chalu karein'}
-          help={i.isActive ? `${site} par order ho to bhi Nafaa me nahi aayega, jab tak dobara chalu na karein.` : 'Naye orders phir se aane lagenge.'}
+      <Section title={t('Channel band ya hatayein')} help={t('Band karne se naye orders rukte hain; hatane se channel list se nikal jata hai. Purane orders aur bills dono soorat me mehfooz.')} danger>
+        <Row title={i.isActive ? t('Channel band karein') : t('Channel chalu karein')}
+          help={i.isActive ? t('{{site}} par order ho to bhi Nafaa me nahi aayega, jab tak dobara chalu na karein.', { site }) : t('Naye orders phir se aane lagenge.')}
           control={<Button size="sm" variant="secondary" loading={life.toggle.isPending} onClick={() => life.toggle.mutate(!i.isActive)}
-            leftIcon={i.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}>{i.isActive ? 'Band karein' : 'Chalu karein'}</Button>} />
-        <Row title="Channel hatayein" help={facts.kind === 'shopify' ? 'Shopify se app bhi hatana ho to Shopify admin → Settings → Apps se uninstall karein.' : 'Ye wapas nahi hota — dobara jorna padega.'}
-          control={<Button size="sm" variant="critical" loading={life.remove.isPending} onClick={() => life.askRemove(i.displayName)} leftIcon={<Trash2 className="h-4 w-4" />}>Hatayein</Button>} />
+            leftIcon={i.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}>{i.isActive ? t('Band karein') : t('Chalu karein')}</Button>} />
+        <Row title={t('Channel hatayein')} help={facts.kind === 'shopify' ? t('Shopify se app bhi hatana ho to Shopify admin → Settings → Apps se uninstall karein.') : t('Ye wapas nahi hota — dobara jorna padega.')}
+          control={<Button size="sm" variant="critical" loading={life.remove.isPending} onClick={() => life.askRemove(i.displayName)} leftIcon={<Trash2 className="h-4 w-4" />}>{t('Hatayein')}</Button>} />
       </Section>
 
       {priceOpen && productChannel && (

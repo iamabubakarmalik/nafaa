@@ -8,16 +8,17 @@ import { CircleCheck, CircleDashed, CirclePause, CircleX, type LucideIcon } from
 import { useAuthStore } from '@core/stores/auth.store';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import type { ComboStatus } from '../api/combos.api';
+import { t as tr } from '@core/i18n';
 
 /** Every combos query lives under this key; the POS keeps its own copy. */
 export const COMBO_KEY = 'combos';
 export const COMBO_KEYS = [COMBO_KEY, 'pos-combos', 'retail-combos'];
 
 export const STATUS: Record<ComboStatus, { label: string; icon: LucideIcon; color: string; tone: string }> = {
-  ACTIVE: { label: 'Chalu', icon: CircleCheck, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  DRAFT: { label: 'Kacha (draft)', icon: CircleDashed, color: '#64748b', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  INACTIVE: { label: 'Band', icon: CirclePause, color: '#d97706', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  EXPIRED: { label: 'Khatam', icon: CircleX, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  ACTIVE: { label: tr('Chalu'), icon: CircleCheck, color: '#16a34a', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  DRAFT: { label: tr('Kacha (draft)'), icon: CircleDashed, color: '#64748b', tone: 'bg-slate-100 text-slate-700 ring-slate-200' },
+  INACTIVE: { label: tr('Band'), icon: CirclePause, color: '#d97706', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  EXPIRED: { label: tr('Khatam'), icon: CircleX, color: '#e11d48', tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const STATUS_ORDER: ComboStatus[] = ['ACTIVE', 'DRAFT', 'INACTIVE', 'EXPIRED'];
@@ -55,15 +56,15 @@ export function tagIdeas(industryId?: string) {
 /** Example names for the name field, by industry. */
 export function nameExample(industryId?: string) {
   switch (industryId) {
-    case 'restaurant': return 'Misaal: Zinger + fries + drink';
-    case 'bakery': return 'Misaal: Cake + 6 pastry box';
-    case 'pharmacy': return 'Misaal: Fever care kit';
+    case 'restaurant': return tr('Misaal: Zinger + fries + drink');
+    case 'bakery': return tr('Misaal: Cake + 6 pastry box');
+    case 'pharmacy': return tr('Misaal: Fever care kit');
     case 'mobile':
-    case 'electronics': return 'Misaal: Charger + cable + cover';
-    case 'bookstore': return 'Misaal: Class 5 school pack';
-    case 'cosmetics': return 'Misaal: Skin care gift set';
-    case 'hardware': return 'Misaal: Bathroom fitting kit';
-    default: return 'Misaal: Family pack — tel + chawal + cheeni';
+    case 'electronics': return tr('Misaal: Charger + cable + cover');
+    case 'bookstore': return tr('Misaal: Class 5 school pack');
+    case 'cosmetics': return tr('Misaal: Skin care gift set');
+    case 'hardware': return tr('Misaal: Bathroom fitting kit');
+    default: return tr('Misaal: Family pack — tel + chawal + cheeni');
   }
 }
 
@@ -82,6 +83,6 @@ export const dayText = (iso?: string | null) =>
 export function useBranchName() {
   const shopId = useAuthStore((s) => s.currentShopId);
   const q = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000 });
-  if (!shopId || shopId === 'all') return 'Sab branches';
-  return q.data?.find((s) => s.id === shopId)?.name ?? 'Yeh branch';
+  if (!shopId || shopId === 'all') return tr('Sab branches');
+  return q.data?.find((s) => s.id === shopId)?.name ?? tr('Yeh branch');
 }

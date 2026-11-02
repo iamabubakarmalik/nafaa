@@ -12,6 +12,7 @@ import {
   UpdateServiceRequestDto,
   UpdateServiceStatusDto,
 } from './dto/create-service-request.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Jin halaton me kaam abhi chal raha hai — band nahi hua */
 const OPEN_STATES: ApplianceServiceStatus[] = [
@@ -304,7 +305,7 @@ export class ServiceRequestsService {
     }
     // `paidAmount` is everything paid on the job, so it cannot be below the advance already taken.
     if (paidAmount + 0.005 < r2(r.paidAmount)) {
-      throw new BadRequestException(`Is kaam par Rs ${r2(r.paidAmount)} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta`);
+      throw new BadRequestException(apiMessage('Is kaam par Rs {{paidAmount}} advance pehle mil chuka hai — kul mila is se kam nahi ho sakta', { paidAmount: r2(r.paidAmount) }));
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -408,7 +409,7 @@ export class ServiceRequestsService {
     const due = dueOf(r);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
     if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
-    if (dto.amount > due + 0.005) throw new BadRequestException(`Sirf ${r2(due)} baqi hai`);
+    if (dto.amount > due + 0.005) throw new BadRequestException(apiMessage('Sirf {{due}} baqi hai', { due: r2(due) }));
 
     const note = `Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`;
     return this.prisma.$transaction(async (tx) => {

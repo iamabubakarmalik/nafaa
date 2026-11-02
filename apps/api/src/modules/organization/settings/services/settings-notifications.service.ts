@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
+import { apiMessage, notificationText } from '../../../../common/i18n/api-message';
 
 @Injectable()
 export class SettingsNotificationsService {
@@ -37,10 +38,9 @@ export class SettingsNotificationsService {
         tenantId: user.tenantId,
         userId: user.id,
         type: 'INFO',
-        title: '🔔 Test Notification',
-        message: `Ye test ${channel.toUpperCase()} notification hai — agar aap ko mila to setup theek hai.`,
+        ...notificationText('🔔 Test Notification', apiMessage('Ye test {{channel}} notification hai — agar aap ko mila to setup theek hai.', { channel: channel.toUpperCase() })),
       },
     });
-    return { success: true, message: `Test ${channel} bhej diya` };
+    return { success: true, ...apiMessage('Test {{channel}} bhej diya', { channel }) };
   }
 }

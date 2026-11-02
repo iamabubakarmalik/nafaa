@@ -18,6 +18,7 @@ import {
 import { AlertTriangle, Lock } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import type { CellPatch, GridRow } from './useSheetRows';
+import { t } from '@core/i18n';
 
 export interface GridColumn {
   key: string;
@@ -365,21 +366,21 @@ export const SheetGrid = forwardRef<SheetGridHandle, Props>(function SheetGrid({
         <div style={{ width, height: HEAD + rows.length * RH, position: 'relative' }}>
           {/* Header */}
           <div className="sticky top-0 z-20 flex border-b border-slate-200 bg-slate-50 text-[0.75rem] font-semibold text-slate-600" style={{ height: HEAD, width }}>
-            <div className="sticky left-0 z-10 flex items-center justify-center bg-slate-50" style={{ width: FIXED.check }}>
-              <input type="checkbox" aria-label="Sab lines chunein" checked={allSelected} className="h-4 w-4 accent-brand-600"
+            <div className="sticky start-0 z-10 flex items-center justify-center bg-slate-50" style={{ width: FIXED.check }}>
+              <input type="checkbox" aria-label={t('Sab lines chunein')} checked={allSelected} className="h-4 w-4 accent-brand-600"
                 onChange={() => onSelectedChange(allSelected ? new Set() : new Set(rows.map((r) => r.id)))} />
             </div>
-            <div className="sticky z-10 flex items-center bg-slate-50 px-2" style={{ left: FIXED.check, width: FIXED.line }}>Line</div>
-            <div className="sticky z-10 flex items-center border-r border-slate-200 bg-slate-50 px-2" style={{ left: FIXED.check + FIXED.line, width: FIXED.status }}>Haal</div>
+            <div className="sticky z-10 flex items-center bg-slate-50 px-2" style={{ left: FIXED.check, width: FIXED.line }}>{t('Line')}</div>
+            <div className="sticky z-10 flex items-center border-e border-slate-200 bg-slate-50 px-2" style={{ left: FIXED.check + FIXED.line, width: FIXED.status }}>{t('Haal')}</div>
             {columns.map((c, i) => (
               <div key={c.key} title={c.hint} role="columnheader"
-                className={cn('flex items-center truncate border-r border-slate-100 px-2', c.numeric && 'justify-end', i === active.c && 'bg-brand-50/70 text-brand-800')}
+                className={cn('flex items-center truncate border-e border-slate-100 px-2', c.numeric && 'justify-end', i === active.c && 'bg-brand-50/70 text-brand-800')}
                 style={{ width: c.width }}>{c.label}</div>
             ))}
           </div>
 
           {rows.length === 0 && (
-            <div className="absolute inset-x-0 flex items-center justify-center text-slate-500" style={{ top: HEAD + 40 }}>{emptyText ?? 'Koi line nahi'}</div>
+            <div className="absolute inset-x-0 flex items-center justify-center text-slate-500" style={{ top: HEAD + 40 }}>{emptyText ?? t('Koi line nahi')}</div>
           )}
 
           {/* Rows in view */}
@@ -391,14 +392,14 @@ export const SheetGrid = forwardRef<SheetGridHandle, Props>(function SheetGrid({
               const rowBg = isSel ? 'bg-brand-50/60' : r % 2 ? 'bg-slate-50/40' : 'bg-white';
               return (
                 <div key={row.id} role="row" className={cn('flex border-b border-slate-100', rowBg)} style={{ height: RH, width }}>
-                  <div className={cn('sticky left-0 z-10 flex items-center justify-center', rowBg === 'bg-white' ? 'bg-white' : isSel ? 'bg-brand-50' : 'bg-slate-50')} style={{ width: FIXED.check }}>
-                    <input type="checkbox" aria-label={`Line ${row.id} chunein`} checked={isSel} className="h-4 w-4 accent-brand-600"
+                  <div className={cn('sticky start-0 z-10 flex items-center justify-center', rowBg === 'bg-white' ? 'bg-white' : isSel ? 'bg-brand-50' : 'bg-slate-50')} style={{ width: FIXED.check }}>
+                    <input type="checkbox" aria-label={t('Line {{id}} chunein', { id: row.id })} checked={isSel} className="h-4 w-4 accent-brand-600"
                       onChange={() => undefined}
                       onClick={(e) => { e.stopPropagation(); toggleRow(r, e.shiftKey); }} />
                   </div>
                   <div className={cn('sticky z-10 flex items-center px-2 font-mono text-[0.75rem] tabular-nums text-slate-500', isSel ? 'bg-brand-50' : r % 2 ? 'bg-slate-50' : 'bg-white')}
-                    style={{ left: FIXED.check, width: FIXED.line }}>{row.id || <span className="font-sans text-brand-600" title="Yahan likhne se nayi line banti hai">+ nayi</span>}</div>
-                  <div className={cn('sticky z-10 flex items-center border-r border-slate-200 px-1.5', isSel ? 'bg-brand-50' : r % 2 ? 'bg-slate-50' : 'bg-white')}
+                    style={{ left: FIXED.check, width: FIXED.line }}>{row.id || <span className="font-sans text-brand-600" title={t('Yahan likhne se nayi line banti hai')}>{t('+ nayi')}</span>}</div>
+                  <div className={cn('sticky z-10 flex items-center border-e border-slate-200 px-1.5', isSel ? 'bg-brand-50' : r % 2 ? 'bg-slate-50' : 'bg-white')}
                     style={{ left: FIXED.check + FIXED.line, width: FIXED.status }}
                     title={mark?.messages?.join('\n')}>
                     {mark && (
@@ -432,7 +433,7 @@ export const SheetGrid = forwardRef<SheetGridHandle, Props>(function SheetGrid({
                           setActive({ r, c });
                         }}
                         onDoubleClick={() => startEdit({ r, c })}
-                        className={cn('relative flex items-center border-r border-slate-100 px-2',
+                        className={cn('relative flex items-center border-e border-slate-100 px-2',
                           col.numeric && 'justify-end tabular-nums',
                           inRange && !isActive && 'bg-brand-100/50',
                           changed && !err && 'bg-amber-50 font-semibold text-amber-900',
@@ -455,13 +456,13 @@ export const SheetGrid = forwardRef<SheetGridHandle, Props>(function SheetGrid({
                               else if (e.key === 'ArrowDown' && !col.options?.length) { e.preventDefault(); commit({ r: r + 1, c }); }
                               else if (e.key === 'ArrowUp' && !col.options?.length) { e.preventDefault(); commit({ r: r - 1, c }); }
                             }}
-                            className={cn('absolute inset-0 h-full w-full bg-white px-2 text-slate-900 outline outline-2 -outline-offset-2 outline-brand-600', col.numeric && 'text-right')}
+                            className={cn('absolute inset-0 h-full w-full bg-white px-2 text-slate-900 outline outline-2 -outline-offset-2 outline-brand-600', col.numeric && 'text-end')}
                           />
                         ) : (
                           <>
                             <span className={cn('truncate', !value && 'text-slate-300')}>{value || (lock ? '' : col.placeholder ?? '')}</span>
-                            {lock && <Lock className="ml-auto h-3 w-3 shrink-0 text-slate-300" />}
-                            {err && <span aria-hidden className="absolute right-0 top-0 h-0 w-0 border-l-[7px] border-t-[7px] border-l-transparent border-t-rose-500" />}
+                            {lock && <Lock className="ms-auto h-3 w-3 shrink-0 text-slate-300" />}
+                            {err && <span aria-hidden className="absolute end-0 top-0 h-0 w-0 border-s-[7px] border-t-[7px] border-s-transparent border-t-rose-500" />}
                           </>
                         )}
                       </div>
@@ -478,15 +479,15 @@ export const SheetGrid = forwardRef<SheetGridHandle, Props>(function SheetGrid({
       <div className="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 bg-slate-50 px-3 py-1.5 text-[0.75rem]">
         {activeRow && activeCol ? (
           <>
-            <span className="font-semibold text-slate-700">Line {activeRow.id} · {activeCol.label}</span>
+            <span className="font-semibold text-slate-700">{t('Line {{id}} · {{label}}', { id: activeRow.id, label: activeCol.label })}</span>
             {activeError && <span className="font-medium text-rose-700">{activeError}</span>}
             {!activeError && activeLock && <span className="text-slate-500">{activeLock}</span>}
             {!activeError && !activeLock && activeMark?.messages?.[0] && (
               <span className={activeMark.tone === 'red' ? 'text-rose-700' : 'text-slate-600'}>{activeMark.messages[0]}</span>
             )}
           </>
-        ) : <span className="text-slate-500">Cell par click karein</span>}
-        <span className="ml-auto hidden text-slate-400 lg:inline">Enter/F2 edit · Tab aage · Ctrl+Z wapas · Ctrl+V Excel se paste · Shift+arrows block</span>
+        ) : <span className="text-slate-500">{t('Cell par click karein')}</span>}
+        <span className="ms-auto hidden text-slate-400 lg:inline">{t('Enter/F2 edit · Tab aage · Ctrl+Z wapas · Ctrl+V Excel se paste · Shift+arrows block')}</span>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { docsUrl } from '../../lib/docs';
 import { CopyField } from './CopyField';
 import { cn } from '@core/lib/cn';
 import { Button, Card, controlClass } from '@/design-system/components';
+import { t, Trans } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    SETUP KE HISSE — malik ya developer khud jor sake:
@@ -24,7 +25,7 @@ function useActiveShops(): Shop[] {
 }
 
 /** "Poori guide" ka chhota link — nayi tab me */
-export function DocsLink({ anchor, children = 'Poori guide' }: { anchor?: string; children?: ReactNode }) {
+export function DocsLink({ anchor, children = t('Poori guide') }: { anchor?: string; children?: ReactNode }) {
   return (
     <a href={docsUrl(anchor)} target="_blank" rel="noreferrer"
       className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold text-brand-700 hover:underline">
@@ -57,7 +58,7 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
   const multi = shops.length > 1;
   const defaultShop = i.config?.shopId ?? (i as any).shopId ?? shops[0]?.id;
   const rows = (multi ? shops : shops.filter((s) => s.id === defaultShop).slice(0, 1)).map((s) => ({
-    ...s, url: multi ? `${data.urls.base}/orders/branch/${s.id}` : data.urls.orders,
+    ...s, url: multi ? t('{{base}}/orders/branch/{{id}}', { base: data.urls.base, id: s.id }) : data.urls.orders,
   }));
   const menuOk = !!i.indolj?.connected;
   const ordersOk = !!data.stats?.lastOrderAt;
@@ -80,44 +81,44 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
     'Once done, please place one test order per branch and let us know. Thanks!',
   ].filter((l, idx, arr) => !(l === '' && arr[idx - 1] === '')).join('\n');
 
-  const copy = () => navigator.clipboard?.writeText(message).then(() => toast.success('Message copy ho gaya — Indolj group me paste karein'));
+  const copy = () => navigator.clipboard?.writeText(message).then(() => toast.success(t('Message copy ho gaya — Indolj group me paste karein')));
 
   return (
-    <Card title="Indolj se jorna" description="Do hisse: menu (products) aur orders. Orders wali settings aksar Indolj ki team lagati hai — neeche wala message unhein bhej dein."
+    <Card title={t('Indolj se jorna')} description={t('Do hisse: menu (products) aur orders. Orders wali settings aksar Indolj ki team lagati hai — neeche wala message unhein bhej dein.')}
       actions={<DocsLink anchor="indolj" />}>
       <ol className="space-y-5">
-        <Step n={1} done={menuOk} title={<>Menu Nafaa me {menuOk && <span className="font-normal text-success-700">— jura hua ✓</span>}</>}>
-          <p>Indolj se <b>Menu API activation token</b> aur <b>JWT secret</b> lein, phir Products tab me <b>"Indolj se jorein"</b> me paste karein.</p>
-          <Button size="xs" onClick={onOpenProducts}>Products tab kholein</Button>
+        <Step n={1} done={menuOk} title={<>{t('Menu Nafaa me')} {menuOk && <span className="font-normal text-success-700">{t('— jura hua ✓')}</span>}</>}>
+          <p><Trans text="Indolj se {{token}} aur {{secret}} lein, phir Products tab me {{button}} me paste karein." values={{ token: <b>Menu API activation token</b>, secret: <b>JWT secret</b>, button: <b>{t('"Indolj se jorein"')}</b> }} /></p>
+          <Button size="xs" onClick={onOpenProducts}>{t('Products tab kholein')}</Button>
         </Step>
 
-        <Step n={2} done={ordersOk} title={<>Orders — Indolj ki General POS settings {ordersOk && <span className="font-normal text-success-700">— orders aa rahe hain ✓</span>}</>}>
-          <p>{multi ? 'Har branch ki' : 'Branch ki'} General POS settings me ye khaane bharein:</p>
+        <Step n={2} done={ordersOk} title={<>{t('Orders — Indolj ki General POS settings')} {ordersOk && <span className="font-normal text-success-700">{t('— orders aa rahe hain ✓')}</span>}</>}>
+          <p>{t('{{value}} General POS settings me ye khaane bharein:', { value: multi ? t('Har branch ki') : t('Branch ki') })}</p>
           <div className="space-y-3">
             {rows.map((r) => (
               <div key={r.id} className="rounded-xl border border-slate-200 p-3 dark:border-ink-800">
                 {multi && <div className="mb-2 text-[0.78125rem] font-bold uppercase tracking-wide text-slate-500">{r.name}</div>}
                 <div className="grid gap-2 md:grid-cols-2">
-                  <CopyField label="Call Back URL" value={r.url} />
-                  <CopyField label="Cancel Call Back URL" value={r.url} />
-                  <CopyField label="Token" value={i.apiKey} secret />
-                  <CopyField label="POS Code" value={r.id} />
+                  <CopyField label={t('Call Back URL')} value={r.url} />
+                  <CopyField label={t('Cancel Call Back URL')} value={r.url} />
+                  <CopyField label={t('Token')} value={i.apiKey} secret />
+                  <CopyField label={t('POS Code')} value={r.id} />
                 </div>
                 <p className="mt-2 text-[0.75rem] text-slate-500">Status: <b>Active</b> · Send on Order Placement: <b>ON</b></p>
               </div>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-3">
-            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900">Indolj ki team ko English me poora message — har branch ka URL aur Token ke saath.</span>
-            <Button size="xs" variant="primary" onClick={copy} leftIcon={<Copy className="h-3.5 w-3.5" />}>Message copy</Button>
+            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900">{t('Indolj ki team ko English me poora message — har branch ka URL aur Token ke saath.')}</span>
+            <Button size="xs" variant="primary" onClick={copy} leftIcon={<Copy className="h-3.5 w-3.5" />}>{t('Message copy')}</Button>
             <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
-              <Button size="xs" leftIcon={<MessageCircle className="h-3.5 w-3.5" />}>WhatsApp</Button>
+              <Button size="xs" leftIcon={<MessageCircle className="h-3.5 w-3.5" />}>{'WhatsApp'}</Button>
             </a>
           </div>
         </Step>
 
-        <Step n={3} done={ordersOk} title="Test order">
-          <p>Website par {multi ? 'har branch se' : ''} ek order karein — yahan ghanti bajegi{multi ? ' aur order par usi branch ka naam hoga' : ''}. Na aaye to <b>Activity</b> tab dekhein.</p>
+        <Step n={3} done={ordersOk} title={t('Test order')}>
+          <p>{multi ? <Trans text="Website par har branch se ek order karein — yahan ghanti bajegi aur order par usi branch ka naam hoga. Na aaye to {{tab}} tab dekhein." values={{ tab: <b>{t('Activity')}</b> }} /> : <Trans text="Website par ek order karein — yahan ghanti bajegi. Na aaye to {{tab}} tab dekhein." values={{ tab: <b>{t('Activity')}</b> }} />}</p>
         </Step>
       </ol>
     </Card>
@@ -133,7 +134,7 @@ export function BranchSetup({ data }: { data: WebsiteOverview }) {
   if (shops.length <= 1) return null;
   const defaultShop = i.config?.shopId ?? (i as any).shopId ?? null;
   return (
-    <Card title="Kai branches" description="Har branch ka apna orders URL — jo order jis URL par aaye, bill aur stock usi branch ka. Key / Token sab branches ki ek hi."
+    <Card title={t('Kai branches')} description={t('Har branch ka apna orders URL — jo order jis URL par aaye, bill aur stock usi branch ka. Key / Token sab branches ki ek hi.')}
       actions={<DocsLink anchor="branches" />}>
       <div className="space-y-2">
         {shops.map((s) => (
@@ -141,12 +142,11 @@ export function BranchSetup({ data }: { data: WebsiteOverview }) {
         ))}
       </div>
       <p className="mt-3 text-[0.78125rem] text-slate-500">
-        Branch ke baghair wala URL bhi chalta hai — us par aaya order Settings ki "Stock kis branch se" wali branch me jata hai.
-        Ghalat branch me aaya order: order kholein → <b>Branch</b> badlein.
+        <Trans text={'Branch ke baghair wala URL bhi chalta hai — us par aaya order Settings ki "Stock kis branch se" wali branch me jata hai. Ghalat branch me aaya order: order kholein → {{button}} badlein.'} values={{ button: <b>{t('Branch')}</b> }} />
       </p>
       {(i.branchCodes?.length ?? 0) > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-[0.78125rem] font-semibold text-slate-600 dark:text-ink-300">Advanced — website ke code se branch</summary>
+          <summary className="cursor-pointer text-[0.78125rem] font-semibold text-slate-600 dark:text-ink-300">{t('Advanced — website ke code se branch')}</summary>
           <BranchCodeMap channelId={i.id} codes={i.branchCodes ?? []} defaultShopId={defaultShop} shops={shops} />
         </details>
       )}
@@ -171,7 +171,7 @@ function BranchCodeMap({ channelId, codes, defaultShopId, shops }: {
   useEffect(() => { setMap(Object.fromEntries(codes.map((c) => [c.code, c.shopId]))); }, [codesKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const save = useMutation({
     mutationFn: () => onlineOrdersApi.saveBranchMap(channelId, map),
-    onSuccess: () => { toast.success('Mehfooz — ab har order sahi branch me jayega'); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
+    onSuccess: () => { toast.success(t('Mehfooz — ab har order sahi branch me jayega')); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const dirty = codes.some((c) => (map[c.code] ?? null) !== c.shopId);
@@ -180,22 +180,22 @@ function BranchCodeMap({ channelId, codes, defaultShopId, shops }: {
     <div className="mt-2 space-y-2">
       <p className="text-[0.78125rem] text-slate-500">
         {onlyMerchant
-          ? 'Website sab branches ka ek hi code bhejti hai — is se branch pata nahi chalti. Upar wale branch URL istemal karein.'
-          : 'Jo code jis branch ka hai, us ke saamne wahi branch chunein.'}
+          ? t('Website sab branches ka ek hi code bhejti hai — is se branch pata nahi chalti. Upar wale branch URL istemal karein.')
+          : t('Jo code jis branch ka hai, us ke saamne wahi branch chunein.')}
       </p>
       {codes.map((c) => (
         <div key={c.code} className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
           <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.75rem] dark:bg-ink-800">{c.label ?? c.code}</code>
-          {c.sample && <span className="text-[0.75rem] text-slate-500">aakhri order {c.sample}</span>}
+          {c.sample && <span className="text-[0.75rem] text-slate-500">{t('aakhri order {{sample}}', { sample: c.sample })}</span>}
           <span className="flex-1" />
           <select value={map[c.code] ?? fallback}
             onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value === fallback ? null : e.target.value }))}
             className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-64')}>
-            {shops.map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === fallback ? ' (main)' : ''}</option>)}
+            {shops.map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === fallback ? t(' (main)') : ''}</option>)}
           </select>
         </div>
       ))}
-      {dirty && <div className="flex justify-end"><Button size="xs" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>Mehfooz karein</Button></div>}
+      {dirty && <div className="flex justify-end"><Button size="xs" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>{t('Mehfooz karein')}</Button></div>}
     </div>
   );
 }
@@ -207,48 +207,48 @@ type Kind = 'indolj' | 'woocommerce' | 'shopify' | 'custom' | 'daraz';
 export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActivity: () => void }) {
   const items: Array<{ q: string; a: ReactNode; only?: Kind[] }> = [
     {
-      q: 'Website par order hua, Nafaa me nahi aaya',
-      a: <>Pehle <button onClick={onOpenActivity} className="font-semibold text-brand-700 hover:underline">Activity</button> dekhein. <b>401</b> = key / Token ghalat — Setup se dobara copy karein. Activity me kuch nahi = request aayi hi nahi: URL dobara copy karein aur dekhein channel band to nahi.</>,
+      q: t('Website par order hua, Nafaa me nahi aaya'),
+      a: <Trans text="Pehle {{activity}} dekhein. {{code}} = key / Token ghalat — Setup se dobara copy karein. Activity me kuch nahi = request aayi hi nahi: URL dobara copy karein aur dekhein channel band to nahi." values={{ activity: <button onClick={onOpenActivity} className="font-semibold text-brand-700 hover:underline">{t('Activity')}</button>, code: <b>401</b> }} />,
     },
     {
-      q: 'Order ghalat branch me aaya',
-      a: <>Har branch ka URL alag lagayein (upar "Kai branches"). Abhi wala order: order kholein → <b>Branch</b> → sahi branch.</>,
+      q: t('Order ghalat branch me aaya'),
+      a: <Trans text={'Har branch ka URL alag lagayein (upar "Kai branches"). Abhi wala order: order kholein → {{button}} → sahi branch.'} values={{ button: <b>{t('Branch')}</b> }} />,
     },
     {
-      q: 'Accept par "product nahi mila"',
-      a: <>Products tab me us item ko Nafaa product se jorein — ya Accept par khulne wale safhe par ek dafa chun lein, aage se khud.</>,
+      q: t('Accept par "product nahi mila"'),
+      a: <>{t('Products tab me us item ko Nafaa product se jorein — ya Accept par khulne wale safhe par ek dafa chun lein, aage se khud.')}</>,
     },
     {
-      q: 'Website par stock update nahi hota',
-      a: <>Product jura hua hai? Settings → "Stock kis branch se" sahi hai? Connection card par <b>Check</b> dabayein.</>,
+      q: t('Website par stock update nahi hota'),
+      a: <Trans text={'Product jura hua hai? Settings → "Stock kis branch se" sahi hai? Connection card par {{button}} dabayein.'} values={{ button: <b>{t('Check')}</b> }} />,
       only: ['woocommerce', 'shopify', 'custom'],
     },
     {
-      q: 'Website par cancel hua, Nafaa me nahi',
+      q: t('Website par cancel hua, Nafaa me nahi'),
       a: kind === 'indolj'
-        ? <>Indolj me <b>Cancel Call Back URL</b> bhi wahi URL ho jo Call Back URL hai.</>
-        : <>Apni website: <code>POST …/orders/&#123;orderId&#125;/status</code> se <code>{'{"status":"cancelled"}'}</code> bhejein. WooCommerce / Shopify me khud hota hai.</>,
+        ? <Trans text="Indolj me {{field}} bhi wahi URL ho jo Call Back URL hai." values={{ field: <b>Cancel Call Back URL</b> }} />
+        : <Trans text="Apni website: {{call}} se {{body}} bhejein. WooCommerce / Shopify me khud hota hai." values={{ call: <code>POST …/orders/&#123;orderId&#125;/status</code>, body: <code>{'{"status":"cancelled"}'}</code> }} />,
       only: ['indolj', 'custom'],
     },
     {
-      q: 'Rider delivery charges le jata hai, phir bhi sale me aa rahe hain',
-      a: <>Settings → <b>Delivery charges kis ke paas → Rider ke</b>.</>,
+      q: t('Rider delivery charges le jata hai, phir bhi sale me aa rahe hain'),
+      a: <Trans text="Settings → {{option}}." values={{ option: <b>{t('Delivery charges kis ke paas → Rider ke')}</b> }} />,
     },
     {
-      q: 'Key galat haath lag gayi',
-      a: <>Neeche Keys → <b>Nayi key</b>. Purani foran band. {kind === 'indolj' ? 'Phir Indolj ke Token me nayi key daalni hogi.' : kind === 'custom' ? 'Phir website me nayi key daalni hogi.' : ''}</>,
+      q: t('Key galat haath lag gayi'),
+      a: <><Trans text="Neeche Keys → {{button}}. Purani foran band." values={{ button: <b>{t('Nayi key')}</b> }} />{kind === 'indolj' ? <> {t('Phir Indolj ke Token me nayi key daalni hogi.')}</> : kind === 'custom' ? <> {t('Phir website me nayi key daalni hogi.')}</> : null}</>,
     },
   ];
   return (
-    <Card title="Masle aur hal" description="Jo aksar hota hai — aur us ka hal" actions={<DocsLink anchor="masle">Sab masle</DocsLink>}>
+    <Card title={t('Masle aur hal')} description={t('Jo aksar hota hai — aur us ka hal')} actions={<DocsLink anchor="masle">{t('Sab masle')}</DocsLink>}>
       <ul className="divide-y divide-slate-100 dark:divide-ink-800">
         {items.filter((x) => !x.only || x.only.includes(kind)).map((x) => (
           <li key={x.q}>
             <details className="group py-2.5">
               <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.84375rem] font-medium text-slate-900 dark:text-ink-white">
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" /> {x.q}
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90 rtl-flip rtl:group-open:-rotate-90" /> {x.q}
               </summary>
-              <div className="mt-1.5 pl-6 text-[0.8125rem] text-slate-600 dark:text-ink-300">{x.a}</div>
+              <div className="mt-1.5 ps-6 text-[0.8125rem] text-slate-600 dark:text-ink-300">{x.a}</div>
             </details>
           </li>
         ))}
@@ -261,10 +261,10 @@ export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActiv
 
 export function HelpCard() {
   return (
-    <Card title="Madad">
+    <Card title={t('Madad')}>
       <ul className="space-y-2 text-[0.8125rem]">
-        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
-        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><BookOpen className="h-4 w-4" /> {t('Online store ki poori guide')} <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><Circle className="h-4 w-4" /> {t('Masle aur hal')} <ExternalLink className="h-3 w-3" /></a></li>
         <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>
       </ul>
     </Card>

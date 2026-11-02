@@ -11,8 +11,9 @@ import { cn } from '@core/lib/cn';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Sheet } from '../api/attendance.api';
 import { CODE, absentDays, dayLabel, hours, mins } from './meta';
+import { t as tr } from '@core/i18n';
 
-const WEEK = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const WEEK = [tr('Itwar'), tr('Peer'), tr('Mangal'), tr('Budh'), tr('Jumeraat'), tr('Juma'), tr('Hafta')];
 
 export function AttendanceAnalytics({ sheet, rows }: { sheet: Sheet; rows: Sheet['rows'] }) {
   const theme = useChartTheme();
@@ -43,15 +44,15 @@ export function AttendanceAnalytics({ sheet, rows }: { sheet: Sheet; rows: Sheet
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={CalendarCheck} label="Hazri ki sharah" value={`${rate}%`} sub={`${t.worked} din kaam / ${t.expected} hone chahiye the`} tone="emerald" />
-        <Kpi icon={AlarmClock} label="Waqt par aaye" value={`${onTime}%`} sub={`${t.late} dafa late · ${mins(t.lateMinutes)} kul`} tone="amber" />
-        <Kpi icon={UserX} label="Ghair hazir din" value={String(t.absent)} sub="Absent + jin dinon hazri nahi lagi" tone="rose" />
-        <Kpi icon={Timer} label="Overtime" value={hours(Math.round(t.ot * 10) / 10)} sub="Roz ke ghante se zyada kaam" tone="sky" />
+        <Kpi icon={CalendarCheck} label={tr('Hazri ki sharah')} value={`${rate}%`} sub={tr('{{worked}} din kaam / {{expected}} hone chahiye the', { worked: t.worked, expected: t.expected })} tone="emerald" />
+        <Kpi icon={AlarmClock} label={tr('Waqt par aaye')} value={`${onTime}%`} sub={tr('{{late}} dafa late · {{lateMinutes}} kul', { late: t.late, lateMinutes: mins(t.lateMinutes) })} tone="amber" />
+        <Kpi icon={UserX} label={tr('Ghair hazir din')} value={String(t.absent)} sub={tr('Absent + jin dinon hazri nahi lagi')} tone="rose" />
+        <Kpi icon={Timer} label={tr('Overtime')} value={hours(Math.round(t.ot * 10) / 10)} sub={tr('Roz ke ghante se zyada kaam')} tone="sky" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<Title icon={Users} text="Roz kitne aaye" />} description="Har karobari din: waqt par, late, ghair hazir aur chhutti">
-          {!days.length ? <Empty text="Is mahine abhi koi din nahi guzra" /> : (
+        <Card className="rounded-2xl" title={<Title icon={Users} text={tr('Roz kitne aaye')} />} description={tr('Har karobari din: waqt par, late, ghair hazir aur chhutti')}>
+          {!days.length ? <Empty text={tr('Is mahine abhi koi din nahi guzra')} /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
@@ -69,15 +70,15 @@ export function AttendanceAnalytics({ sheet, rows }: { sheet: Sheet; rows: Sheet
             </div>
           )}
         </Card>
-        <Card className="rounded-2xl" title={<Title icon={Clock} text="Hafte ke kis din late" />} description="Har din ke kul late minute — kis din zyada der hoti hai">
-          {!t.lateMinutes ? <Empty text="Is mahine sab waqt par aaye" /> : (
+        <Card className="rounded-2xl" title={<Title icon={Clock} text={tr('Hafte ke kis din late')} />} description={tr('Har din ke kul late minute — kis din zyada der hoti hai')}>
+          {!t.lateMinutes ? <Empty text={tr('Is mahine sab waqt par aaye')} /> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={byWeekday} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} allowDecimals={false} width={44} />
-                  <Tooltip formatter={(v) => [mins(Number(v)), 'Late']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [mins(Number(v)), tr('Late')]} {...theme.tooltip} />
                   <Bar dataKey="lateMinutes" name="Late minute" fill={CODE.L.color} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -87,11 +88,11 @@ export function AttendanceAnalytics({ sheet, rows }: { sheet: Sheet; rows: Sheet
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Ranked icon={AlarmClock} title="Sab se zyada late" color="bg-amber-500"
-          rows={ranked((r) => r.totals.lateMinutes, (r) => `${r.totals.late} dafa · ${mins(r.totals.lateMinutes)}`)} />
-        <Ranked icon={UserX} title="Sab se zyada ghair hazir" color="bg-rose-500"
+        <Ranked icon={AlarmClock} title={tr('Sab se zyada late')} color="bg-amber-500"
+          rows={ranked((r) => r.totals.lateMinutes, (r) => tr('{{late}} dafa · {{lateMinutes}}', { late: r.totals.late, lateMinutes: mins(r.totals.lateMinutes) }))} />
+        <Ranked icon={UserX} title={tr('Sab se zyada ghair hazir')} color="bg-rose-500"
           rows={ranked((r) => absentDays(r.totals), (r) => `${absentDays(r.totals)} din`)} />
-        <Ranked icon={Timer} title="Sab se zyada overtime" color="bg-sky-500"
+        <Ranked icon={Timer} title={tr('Sab se zyada overtime')} color="bg-sky-500"
           rows={ranked((r) => r.totals.overtimeHours, (r) => hours(r.totals.overtimeHours))} />
       </div>
     </div>
@@ -102,7 +103,7 @@ function Ranked({ icon, title, rows, color }: { icon: LucideIcon; title: string;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
     <Card className="rounded-2xl" title={<Title icon={icon} text={title} />}>
-      {!rows.length ? <Empty text="Koi nahi — shabash" /> : (
+      {!rows.length ? <Empty text={tr('Koi nahi — shabash')} /> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
             <li key={r.key}>

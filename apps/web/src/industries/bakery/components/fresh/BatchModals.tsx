@@ -13,10 +13,13 @@ import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProduc
 import { damageApi } from '@modules/inventory/damage/api/damage.api';
 import { freshnessApi, type FreshnessLog } from '../../api/freshness.api';
 import { FRESH_KEY, apiError, byWeight, fmtQty, qtyInput, qtyValue } from '../meta';
+import { msg, t as tr } from '@core/i18n';
 
 export type BatchAction = 'sale' | 'discount' | 'discard';
 
-const REASONS = ['Waqt guzar gaya', 'Bika nahi', 'Jal gaya', 'Toot gaya', 'Fungus / kharab'];
+// Raw reasons are saved so waste analytics group the same way in every language.
+const REASONS: string[] = [msg('Waqt guzar gaya'), msg('Bika nahi'), msg('Jal gaya'), msg('Toot gaya'), msg('Fungus / kharab')];
+const rawReason = (s: string) => REASONS.find((r) => tr(r) === s) ?? s;
 const DAMAGE_PREF = 'nafaa.bakery.discard-damage';
 
 export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mode: BatchAction; onClose: () => void }) {
@@ -29,55 +32,55 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
   const weight = byWeight(log.unit);
   const n = qtyValue(qty, weight);
   const meta = {
-    sale: { title: 'Kitne bik gaye?', btn: 'Sale likhein', icon: CheckCircle2, variant: 'success' as const },
-    discount: { title: 'Kitne sasta becha?', btn: 'Likhein', icon: Tag, variant: 'primary' as const },
-    discard: { title: 'Kitne phenke?', btn: 'Waste likhein', icon: Trash2, variant: 'danger' as const },
+    sale: { title: tr('Kitne bik gaye?'), btn: tr('Sale likhein'), icon: CheckCircle2, variant: 'success' as const },
+    discount: { title: tr('Kitne sasta becha?'), btn: tr('Darj karein'), icon: Tag, variant: 'primary' as const },
+    discard: { title: tr('Kitne phenke?'), btn: tr('Waste likhein'), icon: Trash2, variant: 'danger' as const },
   }[mode];
 
   const save = useMutation({
     mutationFn: async () => {
       if (mode === 'sale') return { log: await freshnessApi.sale(log.id, n) };
       if (mode === 'discount') return { log: await freshnessApi.discount(log.id, n) };
-      const why = reason.trim() || 'Waqt guzar gaya';
+      const why = rawReason(reason.trim()) || REASONS[0];
       const updated = await freshnessApi.discard(log.id, n, why);
       let damaged = false;
       if (damage) {
         try {
-          await damageApi.create({ productId: log.productId, quantity: n, reason: why, reasonCode: /guzar|expire/i.test(why) ? 'EXPIRY' : 'SPOILAGE', notes: `Bakery batch ${log.batchNumber ?? log.id}` });
+          await damageApi.create({ productId: log.productId, quantity: n, reason: why, reasonCode: why === REASONS[0] || /guzar|expire/i.test(why) ? 'EXPIRY' : 'SPOILAGE', notes: tr('Bakery batch {{value}}', { value: log.batchNumber ?? log.id }) });
           damaged = true;
         } catch (e) {
-          toast.warning(`Waste likh diya, magar damage report nahi bani: ${apiError(e, 'masla')}`);
+          toast.warning(tr('Waste likh diya, magar damage report nahi bani: {{apiError}}', { apiError: apiError(e, 'masla') }));
         }
       }
       return { log: updated, damaged };
     },
     onSuccess: (r) => {
-      toast.success(mode === 'discard' ? `${n} waste likh diye${'damaged' in r && r.damaged ? ' — damage report approval ke liye gayi' : ''}` : 'Darj ho gaya');
+      toast.success(mode === 'discard' ? tr('{{n}} waste likh diye{{value}}', { n, value: 'damaged' in r && r.damaged ? tr(' — damage report approval ke liye gayi') : '' }) : tr('Darj ho gaya'));
       qc.invalidateQueries({ queryKey: [FRESH_KEY] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Nahi ho saka')),
+    onError: (e) => toast.error(apiError(e, tr('Nahi ho saka'))),
   });
   const bad = n <= 0 || n > max;
 
   return (
-    <Modal open onClose={onClose} size="sm" title={meta.title} description={`${log.productName}${log.batchNumber ? ` · ${log.batchNumber}` : ''} · ${fmtQty(max)} para hai`}
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant={meta.variant} disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<meta.icon className="h-4 w-4" />}>{meta.btn}</Button></>}>
+    <Modal open onClose={onClose} size="sm" title={meta.title} description={tr('{{productName}}{{value}} · {{max}} para hai', { productName: log.productName, value: log.batchNumber ? ` · ${log.batchNumber}` : '', max: fmtQty(max) })}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant={meta.variant} disabled={bad} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<meta.icon className="h-4 w-4" />}>{meta.btn}</Button></>}>
       <div className="space-y-3">
-        <Input inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} size="lg" className="text-center text-2xl font-bold tabular-nums" data-autofocus error={n > max ? `Sirf ${fmtQty(max)} para hai` : undefined} />
-        <div className="flex flex-wrap gap-1.5">{[max, weight ? Math.round(max * 500) / 1000 : Math.floor(max / 2), 1].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v, i) => <Button key={v} size="sm" variant="secondary" onClick={() => setQty(String(v))}>{i === 0 ? 'Sab' : fmtQty(v)}</Button>)}</div>
+        <Input inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} size="lg" className="text-center text-2xl font-bold tabular-nums" data-autofocus error={n > max ? tr('Sirf {{max}} para hai', { max: fmtQty(max) }) : undefined} />
+        <div className="flex flex-wrap gap-1.5">{[max, weight ? Math.round(max * 500) / 1000 : Math.floor(max / 2), 1].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v, i) => <Button key={v} size="sm" variant="secondary" onClick={() => setQty(String(v))}>{i === 0 ? tr('Sab') : fmtQty(v)}</Button>)}</div>
         {mode === 'discard' && (
           <>
-            <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Waqt guzar gaya, jal gaya…" hint="Waste ke record me isi se pata chalta hai kyun phenkna para" />
-            <div className="flex flex-wrap gap-1.5">{REASONS.map((r) => <Button key={r} size="xs" variant={reason === r ? 'primary' : 'secondary'} onClick={() => setReason(r)}>{r}</Button>)}</div>
+            <Input label={tr('Wajah')} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Waqt guzar gaya, jal gaya…')} hint={tr('Waste ke record me isi se pata chalta hai kyun phenkna para')} />
+            <div className="flex flex-wrap gap-1.5">{REASONS.map((r) => <Button key={r} size="xs" variant={reason === tr(r) ? 'primary' : 'secondary'} onClick={() => setReason(tr(r))}>{tr(r)}</Button>)}</div>
             <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
               <Switch checked={damage} onChange={(e) => { setDamage(e.target.checked); try { localStorage.setItem(DAMAGE_PREF, e.target.checked ? '1' : '0'); } catch { /* storage blocked */ } }}
-                label="Stock se bhi ghatayein" description="Damage report banegi; manager manzoor kare to stock kam hoga aur profit me loss ginega" />
+                label={tr('Stock se bhi ghatayein')} description={tr('Damage report banegi; manager manzoor kare to stock kam hoga aur profit me loss ginega')} />
             </div>
           </>
         )}
-        {mode === 'discount' && <p className="text-[0.75rem] text-slate-500">Sirf ginti hai — rate POS par khud kam karein. Sasta becha maal phenka nahi gaya, is liye yeh bacha hua paisa hai.</p>}
-        {mode === 'sale' && <p className="text-[0.75rem] text-slate-500">POS ki sale batch se khud nahi ghatti — din ke aakhir me yahan ginti theek karein.</p>}
+        {mode === 'discount' && <p className="text-[0.75rem] text-slate-500">{tr('Sirf ginti hai — rate POS par khud kam karein. Sasta becha maal phenka nahi gaya, is liye yeh bacha hua paisa hai.')}</p>}
+        {mode === 'sale' && <p className="text-[0.75rem] text-slate-500">{tr('POS ki sale batch se khud nahi ghatti — din ke aakhir me yahan ginti theek karein.')}</p>}
       </div>
     </Modal>
   );
@@ -103,33 +106,33 @@ export function NewBatchModal({ onClose }: { onClose: () => void }) {
       const best = new Date(now.getTime() + hours * 3_600_000);
       return freshnessApi.create({ productId: product!.id, productName: product!.name, batchNumber: batch.trim() || undefined, productionDate: now.toISOString(), bestBefore: best.toISOString(), expiryDate: best.toISOString(), initialQty: amount, currentQty: amount });
     },
-    onSuccess: () => { toast.success('Batch jur gaya'); qc.invalidateQueries({ queryKey: [FRESH_KEY] }); onClose(); },
-    onError: (e) => toast.error(apiError(e, 'Nahi ho saka')),
+    onSuccess: () => { toast.success(tr('Batch jur gaya')); qc.invalidateQueries({ queryKey: [FRESH_KEY] }); onClose(); },
+    onError: (e) => toast.error(apiError(e, tr('Nahi ho saka'))),
   });
   return (
-    <Modal open onClose={onClose} size="md" title="Naya batch" description="Jo maal bana aur shelf par rakha — kab tak theek rahega"
-      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button disabled={!product || !(amount > 0)} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>Batch jorein</Button></>}>
+    <Modal open onClose={onClose} size="md" title={tr('Naya batch')} description={tr('Jo maal bana aur shelf par rakha — kab tak theek rahega')}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button disabled={!product || !(amount > 0)} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Plus className="h-4 w-4" />}>{tr('Batch jorein')}</Button></>}>
       <div className="space-y-3">
         {product ? (
           <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 ring-1 ring-brand-100">
             <span className="min-w-0 flex-1 truncate text-[0.875rem] font-medium text-slate-900">{product.name}</span>
-            <button type="button" onClick={() => setProduct(null)} aria-label="Badlein" className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setProduct(null)} aria-label={tr('Badlein')} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><X className="h-4 w-4" /></button>
           </div>
         ) : (
           <div>
-            <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Kaunsi cheez…" leftIcon={<Search className="h-4 w-4" />} data-autofocus />
+            <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder={tr('Kaunsi cheez…')} leftIcon={<Search className="h-4 w-4" />} data-autofocus />
             <div className="mt-2 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
               {options.map((p) => <button key={p.id} type="button" onClick={() => setProduct(p)} className="inline-flex h-8 items-center rounded-lg bg-white px-2.5 text-[0.8125rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:ring-brand-400">{p.name}</button>)}
             </div>
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <Input label={weight ? `Kitna banaya (${product?.unit})` : 'Kitne banaye'} inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} />
-          <Input label="Batch / naam" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="Subah wala" hint="Marzi hai" />
+          <Input label={weight ? tr('Kitna banaya ({{unit}})', { unit: product?.unit }) : tr('Kitne banaye')} inputMode={weight ? 'decimal' : 'numeric'} value={qty} onChange={(e) => setQty(qtyInput(e.target.value, weight))} />
+          <Input label={tr('Batch / naam')} value={batch} onChange={(e) => setBatch(e.target.value)} placeholder={tr('Subah wala')} hint={tr('Marzi hai')} />
         </div>
         <div>
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Kab tak theek</span>
-          <div className="flex flex-wrap gap-1.5">{[6, 12, 24, 48, 72, 168].map((h) => <Button key={h} size="sm" variant={hours === h ? 'primary' : 'secondary'} onClick={() => setHours(h)}>{h < 24 ? `${h} ghante` : `${h / 24} din`}</Button>)}</div>
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Kab tak theek')}</span>
+          <div className="flex flex-wrap gap-1.5">{[6, 12, 24, 48, 72, 168].map((h) => <Button key={h} size="sm" variant={hours === h ? 'primary' : 'secondary'} onClick={() => setHours(h)}>{h < 24 ? tr('{{h}} ghante', { h }) : tr('{{value}} din', { value: h / 24 })}</Button>)}</div>
         </div>
       </div>
     </Modal>

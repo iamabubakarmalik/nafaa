@@ -17,6 +17,7 @@ import PTSessionsPage from './pages/PTSessionsPage';
 import EquipmentPage from './pages/EquipmentPage';
 import MemberFormPage from './pages/MemberFormPage';
 import LockersPage from './pages/LockersPage';
+import { t } from '@core/i18n';
 
 /**
  * Gym / fitness industry pack: members and joining, check-in at the desk,
@@ -28,11 +29,11 @@ import LockersPage from './pages/LockersPage';
 export const GymPack: IndustryPack = {
   id: 'gym',
   name: 'Gym / Fitness',
-  shortName: 'Gym',
+  shortName: t('Gym'),
   emoji: '💪',
   priority: 54,
   description:
-    'Members, check-in, memberships aur renewal, PT packages aur trainer commission, classes, lockers, machines.',
+    t('Members, check-in, memberships aur renewal, PT packages aur trainer commission, classes, lockers, machines.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -50,23 +51,23 @@ export const GymPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Gym',
+      label: t('Gym'),
       icon: Dumbbell,
       emoji: '💪',
       color: '#dc2626',
       order: 20,
       items: [
-        { to: '/gym/dashboard', label: 'Gym dashboard', icon: LayoutDashboard },
-        { to: '/gym/attendance', label: 'Check-in', icon: LogIn, badge: 'FAST' },
-        { to: '/gym/members/new', label: 'New member', icon: UserPlus },
-        { to: '/gym/members', label: 'Members', icon: Users },
-        { to: '/gym/memberships', label: 'Memberships', icon: Award },
-        { to: '/gym/plans', label: 'Plans', icon: Target },
-        { to: '/gym/personal-training', label: 'Personal training', icon: Flame },
-        { to: '/gym/trainers', label: 'Trainers', icon: Dumbbell },
-        { to: '/gym/classes', label: 'Group classes', icon: Calendar },
-        { to: '/gym/lockers', label: 'Lockers', icon: KeyRound },
-        { to: '/gym/equipment', label: 'Machines', icon: Activity },
+        { to: '/gym/dashboard', label: t('Gym dashboard'), icon: LayoutDashboard },
+        { to: '/gym/attendance', label: t('Check-in'), icon: LogIn, badge: t('FAST') },
+        { to: '/gym/members/new', label: t('New member'), icon: UserPlus },
+        { to: '/gym/members', label: t('Members'), icon: Users },
+        { to: '/gym/memberships', label: t('Memberships'), icon: Award },
+        { to: '/gym/plans', label: t('Plans'), icon: Target },
+        { to: '/gym/personal-training', label: t('Personal training'), icon: Flame },
+        { to: '/gym/trainers', label: t('Trainers'), icon: Dumbbell },
+        { to: '/gym/classes', label: t('Group classes'), icon: Calendar },
+        { to: '/gym/lockers', label: t('Lockers'), icon: KeyRound },
+        { to: '/gym/equipment', label: t('Machines'), icon: Activity },
       ],
     },
   ],
@@ -94,24 +95,24 @@ export const GymPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Piece (supplement, bottle)', hint: '🔢', group: 'Saman' },
-      { value: 'bottle', label: 'Bottle', hint: '🍶', group: 'Saman' },
-      { value: 'kg', label: 'Kilogram', hint: '⚖️', group: 'Saman' },
-      { value: 'day-pass', label: 'Day pass', hint: '🎟️', group: 'Service' },
-      { value: 'visit', label: 'Ek visit', hint: '🚪', group: 'Service' },
-      { value: 'month', label: 'Mahina (locker rent)', hint: '🔐', group: 'Service' },
-      { value: 'session', label: 'Session', hint: '💪', group: 'Service' },
-      { value: 'class', label: 'Class', hint: '🏋️', group: 'Service' },
-      { value: 'hour', label: 'Ghanta', hint: '⏰', group: 'Service' },
+      { value: 'pcs', label: t('Piece (supplement, bottle)'), hint: '🔢', group: t('Saman') },
+      { value: 'bottle', label: t('Bottle'), hint: '🍶', group: t('Saman') },
+      { value: 'kg', label: t('Kilogram'), hint: '⚖️', group: t('Saman') },
+      { value: 'day-pass', label: t('Day pass'), hint: '🎟️', group: t('Service') },
+      { value: 'visit', label: t('Ek visit'), hint: '🚪', group: t('Service') },
+      { value: 'month', label: t('Mahina (locker rent)'), hint: '🔐', group: t('Service') },
+      { value: 'session', label: t('Session'), hint: '💪', group: t('Service') },
+      { value: 'class', label: t('Class'), hint: '🏋️', group: t('Service') },
+      { value: 'hour', label: t('Ghanta'), hint: '⏰', group: t('Service') },
     ],
   },
 
   featureFlags: [
-    { key: 'gymMembers', label: 'Members', defaultEnabled: true },
-    { key: 'gymAttendance', label: 'Check-in', defaultEnabled: true },
-    { key: 'gymPT', label: 'Personal training', defaultEnabled: true },
-    { key: 'gymClasses', label: 'Group classes', defaultEnabled: true },
-    { key: 'gymEquipment', label: 'Machines', defaultEnabled: false },
-    { key: 'gymDietPlans', label: 'Diet Plans', defaultEnabled: false },
+    { key: 'gymMembers', label: t('Members'), defaultEnabled: true },
+    { key: 'gymAttendance', label: t('Check-in'), defaultEnabled: true },
+    { key: 'gymPT', label: t('Personal training'), defaultEnabled: true },
+    { key: 'gymClasses', label: t('Group classes'), defaultEnabled: true },
+    { key: 'gymEquipment', label: t('Machines'), defaultEnabled: false },
+    { key: 'gymDietPlans', label: t('Diet Plans'), defaultEnabled: false },
   ],
 };

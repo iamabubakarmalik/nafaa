@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { apiMessage } from '../../common/i18n/api-message';
 
 @Injectable()
 export class WhatsappService {
@@ -97,7 +98,7 @@ export class WhatsappService {
       return { success: isSuccess, messageId: msgId, log, rawResponse: data };
     } catch (e: any) {
       this.logger.error(`WhatsApp send failed: ${e.message}`);
-      throw new BadRequestException('Send failed: ' + e.message);
+      throw new BadRequestException(apiMessage('Send failed: {{eMessage}}', { eMessage: e.message }));
     }
   }
 

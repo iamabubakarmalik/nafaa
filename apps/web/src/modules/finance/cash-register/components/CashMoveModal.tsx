@@ -14,6 +14,7 @@ import { formatPKR } from '@core/lib/format';
 import { cashRegisterApi, type CashRegister } from '../api/cash-register.api';
 import { CASH_KEY, REASONS, requestKey, tillName } from './meta';
 import { PayoutWarning } from './PayoutWarning';
+import { t } from '@core/i18n';
 
 type Kind = 'CASH_IN' | 'CASH_OUT';
 
@@ -35,35 +36,35 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
       registerId: register.id, type: kind, amount: value, reason: reason.trim(), note: note.trim() || undefined, requestId: key,
     }),
     onSuccess: () => {
-      toast.success(kind === 'CASH_IN' ? `${formatPKR(value)} galle me daale` : `${formatPKR(value)} galle se nikale`, { description: reason.trim() });
+      toast.success(kind === 'CASH_IN' ? t('{{formatPKR}} galle me daale', { formatPKR: formatPKR(value) }) : t('{{formatPKR}} galle se nikale', { formatPKR: formatPKR(value) }), { description: reason.trim() });
       void qc.invalidateQueries({ queryKey: [CASH_KEY] });
       void qc.invalidateQueries({ queryKey: ['money'] });
       onClose();
     },
-    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? 'Entry nahi hui'),
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? t('Entry nahi hui')),
   });
 
   const Icon = kind === 'CASH_IN' ? ArrowDownToLine : ArrowUpFromLine;
   return (
-    <Modal open onClose={onClose} title={kind === 'CASH_IN' ? 'Galle me cash daalein' : 'Galle se cash nikalein'}
-      description={`${tillName(register)} · abhi galle me ${formatPKR(inDrawer)} hona chahiye`}
+    <Modal open onClose={onClose} title={kind === 'CASH_IN' ? t('Galle me cash daalein') : t('Galle se cash nikalein')}
+      description={t('{{register}} · abhi galle me {{inDrawer}} hona chahiye', { register: tillName(register), inDrawer: formatPKR(inDrawer) })}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
         <Button variant={kind === 'CASH_IN' ? 'success' : 'danger'} onClick={() => m.mutate()} loading={m.isPending} disabled={!valid} leftIcon={<Icon className="h-4 w-4" />}>
-          {kind === 'CASH_IN' ? 'Daal dein' : 'Nikal dein'}
+          {kind === 'CASH_IN' ? t('Daal dein') : t('Nikal dein')}
         </Button>
       </>}>
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (valid && !m.isPending) m.mutate(); }}>
-        <Segmented label="Kya karna hai" value={kind} onChange={(v) => { setKind(v as Kind); setReason(''); }}
-          items={[{ value: 'CASH_IN', label: 'Cash in (daalna)' }, { value: 'CASH_OUT', label: 'Cash out (nikalna)' }]} />
-        <Input data-autofocus label="Amount" type="number" inputMode="decimal" min={0} size="lg" required value={amount}
+        <Segmented label={t('Kya karna hai')} value={kind} onChange={(v) => { setKind(v as Kind); setReason(''); }}
+          items={[{ value: 'CASH_IN', label: t('Cash in (daalna)') }, { value: 'CASH_OUT', label: t('Cash out (nikalna)') }]} />
+        <Input data-autofocus label={t('Amount')} type="number" inputMode="decimal" min={0} size="lg" required value={amount}
           onChange={(e) => setAmount(e.target.value)} placeholder="1000"
-          error={amount && !validAmount ? 'Amount 0 se zyada likhein' : undefined}
-          hint={kind === 'CASH_IN' ? 'Jo cash sale ke ilawa galle me aaya' : 'Jo cash sale ki return ya kharch ke ilawa galle se gaya'} />
+          error={amount && !validAmount ? t('Amount 0 se zyada likhein') : undefined}
+          hint={kind === 'CASH_IN' ? t('Jo cash sale ke ilawa galle me aaya') : t('Jo cash sale ki return ya kharch ke ilawa galle se gaya')} />
         <PayoutWarning kind="cashOut" amount={validAmount ? value : 0} registerId={register.id} enabled={kind === 'CASH_OUT'} />
         <div>
-          <Input label="Wajah" required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200}
-            placeholder="Kis liye?" hint="Neeche se chunein ya apni likhein; shift report me yahi dikhegi" />
+          <Input label={t('Wajah')} required value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200}
+            placeholder={t('Kis liye?')} hint={t('Neeche se chunein ya apni likhein; shift report me yahi dikhegi')} />
           <div className="mt-2 flex flex-wrap gap-1.5">
             {REASONS[kind].map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)} aria-pressed={reason === r}
@@ -72,8 +73,8 @@ export function CashMoveModal({ register, kind: initial, onClose }: { register: 
             ))}
           </div>
         </div>
-        <Textarea label="Details (marzi se)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500}
-          placeholder="Masalan: bank slip number" hint="Sirf record ke liye" />
+        <Textarea label={t('Details (marzi se)')} rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500}
+          placeholder={t('Masalan: bank slip number')} hint={t('Sirf record ke liye')} />
         <button type="submit" hidden aria-hidden />
       </form>
     </Modal>

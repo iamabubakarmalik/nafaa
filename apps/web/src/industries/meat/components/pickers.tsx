@@ -13,10 +13,11 @@ import { useProductCatalog, type PosItem } from '@modules/pos/engine';
 import { customersApi, type Customer } from '@modules/customers/customers/api/customers.api';
 import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { apiError, kg } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
-const box = 'h-11 w-full rounded-xl border-0 bg-slate-100 pl-10 pr-3 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500 aria-[invalid=true]:ring-rose-400';
+const box = 'h-11 w-full rounded-xl border-0 bg-slate-100 ps-10 pe-3 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500 aria-[invalid=true]:ring-rose-400';
 const menu = 'absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl bg-white shadow-lg ring-1 ring-slate-200';
-const row = 'flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-brand-50';
+const row = 'flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-brand-50';
 
 function useDebounced<T>(value: T, ms = 250) {
   const [v, setV] = useState(value);
@@ -31,7 +32,7 @@ export function useMeatItems() {
   return { items: items.filter((i) => !i.hasVariants), byId, loading };
 }
 
-export function ItemPick({ onPick, placeholder = 'Item ka naam ya code…', exclude = [], error, autoFocus }: {
+export function ItemPick({ onPick, placeholder = tr('Item ka naam ya code…'), exclude = [], error, autoFocus }: {
   onPick: (item: PosItem) => void;
   placeholder?: string;
   exclude?: string[];
@@ -49,7 +50,7 @@ export function ItemPick({ onPick, placeholder = 'Item ka naam ya code…', excl
   const pick = (i: PosItem) => { onPick(i); setQ(''); };
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="pointer-events-none absolute start-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-invalid={!!error} autoFocus={autoFocus}
         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (matches[0]) pick(matches[0]); } }} className={box} />
       {error && <p className="mt-1 text-[0.8125rem] font-medium text-rose-600">{error}</p>}
@@ -60,12 +61,12 @@ export function ItemPick({ onPick, placeholder = 'Item ka naam ya code…', excl
               <Package className="h-4 w-4 shrink-0 text-slate-400" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.875rem] font-medium text-slate-900">{i.name}</span>
-                <span className="block truncate text-[0.75rem] text-slate-500">stock {kg(i.stock, i.unit)}</span>
+                <span className="block truncate text-[0.75rem] text-slate-500">{tr('stock {{stock}}', { stock: kg(i.stock, i.unit) })}</span>
               </span>
               <span className="text-[0.875rem] font-semibold tabular-nums text-slate-800">{formatPKR(i.price)}</span>
             </button>
           ))}
-          {!matches.length && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">Koi item nahi mila — pehle Maal me item banayein</p>}
+          {!matches.length && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">{tr('Koi item nahi mila — pehle Maal me item banayein')}</p>}
         </div>
       )}
     </div>
@@ -81,7 +82,7 @@ export function PickedChip({ icon: Icon = Package, title, sub, onClear }: { icon
         <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{title}</span>
         {sub && <span className="block truncate text-[0.75rem] text-slate-500">{sub}</span>}
       </span>
-      {onClear && <button type="button" onClick={onClear} aria-label="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>}
+      {onClear && <button type="button" onClick={onClear} aria-label={tr('Hatayein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>}
     </div>
   );
 }
@@ -110,27 +111,27 @@ export function CustomerPick({ value, onChange, allowCreate = true, error }: {
   if (value) {
     const bal = Number(value.balance) || 0;
     return <PickedChip icon={UserRound} title={value.name} onClear={() => onChange(null)}
-      sub={[value.phone, bal > 0 ? `Udhaar ${formatPKR(bal)}` : bal < 0 ? `Advance ${formatPKR(-bal)}` : 'Khata saaf'].filter(Boolean).join(' · ')} />;
+      sub={[value.phone, bal > 0 ? tr('Udhaar {{bal}}', { bal: formatPKR(bal) }) : bal < 0 ? tr('Advance {{formatPKR}}', { formatPKR: formatPKR(-bal) }) : tr('Khata saaf')].filter(Boolean).join(' · ')} />;
   }
 
   const create = async () => {
     const name = q.trim();
-    if (name.length < 2) { toast.error('Customer ka naam likhein'); return; }
-    if (phone && !/^[0-9+\-\s]{10,15}$/.test(phone.trim())) { toast.error('Phone number theek likhein (03xx-xxxxxxx)'); return; }
+    if (name.length < 2) { toast.error(tr('Customer ka naam likhein')); return; }
+    if (phone && !/^[0-9+\-\s]{10,15}$/.test(phone.trim())) { toast.error(tr('Phone number theek likhein (03xx-xxxxxxx)')); return; }
     setBusy(true);
     try {
       const c = await customersApi.create({ name, phone: phone.trim() || undefined });
       qc.invalidateQueries({ queryKey: ['customers'] });
       onChange(c);
       setQ(''); setPhone('');
-      toast.success(`${c.name} customer ban gaya`);
-    } catch (e) { toast.error(apiError(e, 'Customer nahi bana')); } finally { setBusy(false); }
+      toast.success(tr('{{name}} customer ban gaya', { name: c.name }));
+    } catch (e) { toast.error(apiError(e, tr('Customer nahi bana'))); } finally { setBusy(false); }
   };
 
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Customer ka naam ya phone…" aria-invalid={!!error} className={box} />
+      <Search className="pointer-events-none absolute start-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Customer ka naam ya phone…')} aria-invalid={!!error} className={box} />
       {error && <p className="mt-1 text-[0.8125rem] font-medium text-rose-600">{error}</p>}
       {q.trim().length >= 2 && (
         <div className={menu}>
@@ -139,17 +140,17 @@ export function CustomerPick({ value, onChange, allowCreate = true, error }: {
               <UserRound className="h-4 w-4 shrink-0 text-slate-400" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.name}</span>
-                <span className="block truncate text-[0.75rem] text-slate-500">{c.phone || 'Phone nahi'}</span>
+                <span className="block truncate text-[0.75rem] text-slate-500">{c.phone || tr('Phone nahi')}</span>
               </span>
               {c.balance > 0 && <span className="text-[0.75rem] font-semibold tabular-nums text-amber-700">{formatPKR(c.balance)}</span>}
             </button>
           ))}
           {allowCreate && (
             <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 p-2">
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone (marzi)" inputMode="tel"
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={tr('Phone (marzi)')} inputMode="tel"
                 className="h-9 min-w-0 flex-1 rounded-lg bg-slate-100 px-3 text-[0.8125rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
               <button type="button" disabled={busy} onClick={create} className="inline-flex h-9 items-center gap-1 rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
-                <Plus className="h-4 w-4" />"{q.trim()}" naya customer
+                <Plus className="h-4 w-4" />{tr('"{{value}}" naya customer', { value: q.trim() })}
               </button>
             </div>
           )}
@@ -173,8 +174,8 @@ export function SupplierPick({ value, onChange, error }: { value: PickedSupplier
   if (value) return <PickedChip icon={Truck} title={value.name} sub={value.phone ?? undefined} onClear={() => onChange(null)} />;
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Beopari / mandi wala ka naam…" aria-invalid={!!error} className={box} />
+      <Search className="pointer-events-none absolute start-3.5 top-[1.375rem] h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Beopari / mandi wala ka naam…')} aria-invalid={!!error} className={box} />
       {error && <p className="mt-1 text-[0.8125rem] font-medium text-rose-600">{error}</p>}
       {q.trim().length >= 1 && (
         <div className={menu}>
@@ -185,7 +186,7 @@ export function SupplierPick({ value, onChange, error }: { value: PickedSupplier
               <span className="text-[0.75rem] text-slate-500">{s.phone}</span>
             </button>
           ))}
-          {!list.length && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">Koi supplier nahi mila — Suppliers me naya banayein</p>}
+          {!list.length && <p className="px-3 py-3 text-[0.8125rem] text-slate-500">{tr('Koi supplier nahi mila — Suppliers me naya banayein')}</p>}
         </div>
       )}
     </div>

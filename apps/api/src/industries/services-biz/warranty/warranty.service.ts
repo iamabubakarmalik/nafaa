@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { JobsService } from '../jobs/jobs.service';
 import { blank, nextDocNumber } from '../jobs/job-rules';
 import type { ApproveClaimDto, CreateClaimDto, ListClaimsQuery } from './dto/claim.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class WarrantyService {
@@ -26,13 +27,13 @@ export class WarrantyService {
       ? await this.prisma.serviceJob.findFirst({ where: { id: dto.originalJobId, tenantId: user.tenantId } })
       : null;
     if (dto.originalJobId && !job) throw new NotFoundException('Job nahi mili');
-    if (job && job.status !== 'COMPLETED') throw new BadRequestException(`${job.jobNumber} abhi mukammal nahi — claim sirf mukammal job par banta hai`);
+    if (job && job.status !== 'COMPLETED') throw new BadRequestException(apiMessage('{{jobNumber}} abhi mukammal nahi — claim sirf mukammal job par banta hai', { jobNumber: job.jobNumber }));
     if (job && !dto.allowExpired && (!job.jobWarrantyExpiryDate || job.jobWarrantyExpiryDate.getTime() < Date.now())) {
-      throw new BadRequestException(job.jobWarrantyExpiryDate ? `${job.jobNumber} ki warranty khatam ho chuki` : `${job.jobNumber} par koi warranty nahi thi`);
+      throw new BadRequestException(job.jobWarrantyExpiryDate ? apiMessage('{{jobNumber}} ki warranty khatam ho chuki', { jobNumber: job.jobNumber }) : apiMessage('{{jobNumber}} par koi warranty nahi thi', { jobNumber: job.jobNumber }));
     }
     if (job) {
       const open = await this.prisma.serviceWarrantyClaim.findFirst({ where: { tenantId: user.tenantId, originalJobId: job.id, status: { in: ['SUBMITTED', 'APPROVED', 'IN_PROGRESS'] } }, select: { claimNumber: true } });
-      if (open) throw new BadRequestException(`Is job ka claim ${open.claimNumber} pehle se khula hai`);
+      if (open) throw new BadRequestException(apiMessage('Is job ka claim {{claimNumber}} pehle se khula hai', { claimNumber: open.claimNumber }));
     }
     let customerName = blank(dto.customerName) ?? job?.customerName ?? undefined;
     let customerPhone = blank(dto.customerPhone) ?? job?.customerPhone ?? undefined;
@@ -133,7 +134,9 @@ export class WarrantyService {
   /** Approves the claim and opens its free job card (one step, as the counter does it). */
   async approve(user: AuthenticatedUser, id: string, dto: ApproveClaimDto) {
     const c = await this.find(user, id);
-    if (c.status !== 'SUBMITTED') throw new BadRequestException(`${c.claimNumber} pehle hi ${c.status === 'REJECTED' ? 'reject' : 'approve'} ho chuka`);
+    if (c.status !== 'SUBMITTED') throw new BadRequestException(c.status === 'REJECTED'
+      ? apiMessage('{{claimNumber}} pehle hi reject ho chuka', { claimNumber: c.claimNumber })
+      : apiMessage('{{claimNumber}} pehle hi approve ho chuka', { claimNumber: c.claimNumber }));
     const now = new Date();
     await this.prisma.serviceWarrantyClaim.update({
       where: { id },

@@ -10,6 +10,7 @@ import SportsBrandsPage from './pages/SportsBrandsPage';
 import TeamOrdersPage from './pages/TeamOrdersPage';
 import TeamOrderFormPage from './pages/TeamOrderFormPage';
 import RepairServicesPage from './pages/RepairServicesPage';
+import { t } from '@core/i18n';
 
 /**
  * Sports shop: equipment by sport, kit and shoes in sizes on the shared
@@ -20,10 +21,10 @@ import RepairServicesPage from './pages/RepairServicesPage';
 export const SportsPack: IndustryPack = {
   id: 'sports',
   name: 'Sports Shop',
-  shortName: 'Sports',
+  shortName: t('Sports'),
   emoji: '🏏',
   priority: 76,
-  description: 'Cricket, football, gym saman; team orders with printing and advance; bat / racket repairs.',
+  description: t('Cricket, football, gym saman; team orders with printing and advance; bat / racket repairs.'),
 
   matches: (tenant) => {
     if (!tenant) return false;
@@ -33,17 +34,17 @@ export const SportsPack: IndustryPack = {
   },
 
   navGroups: [{
-    label: 'Sports',
+    label: t('Sports'),
     icon: Dumbbell,
     emoji: '🏏',
     color: '#10b981',
     order: 20,
     items: [
-      { to: '/sports/dashboard', label: 'Sports dashboard', icon: LayoutDashboard },
-      { to: '/sports/team-orders/new', label: 'New team order', icon: Plus, permission: PERMISSIONS.POS_USE },
-      { to: '/sports/team-orders', label: 'Team orders', icon: Users, permission: PERMISSIONS.POS_USE },
-      { to: '/sports/repair-services', label: 'Repairs', icon: Wrench, permission: PERMISSIONS.POS_USE },
-      { to: '/sports/brands', label: 'Brands', icon: Trophy, permission: PERMISSIONS.BRANDS_VIEW },
+      { to: '/sports/dashboard', label: t('Sports dashboard'), icon: LayoutDashboard },
+      { to: '/sports/team-orders/new', label: t('New team order'), icon: Plus, permission: PERMISSIONS.POS_USE },
+      { to: '/sports/team-orders', label: t('Team orders'), icon: Users, permission: PERMISSIONS.POS_USE },
+      { to: '/sports/repair-services', label: t('Repairs'), icon: Wrench, permission: PERMISSIONS.POS_USE },
+      { to: '/sports/brands', label: t('Brands'), icon: Trophy, permission: PERMISSIONS.BRANDS_VIEW },
     ],
   }],
 
@@ -66,16 +67,16 @@ export const SportsPack: IndustryPack = {
   productForm: {
     defaultUnit: 'pcs',
     unitOptions: [
-      { value: 'pcs', label: 'Pieces', hint: '🏏', group: 'Count' },
-      { value: 'pair', label: 'Pair', hint: '👟', group: 'Count' },
-      { value: 'set', label: 'Set', hint: '🎁', group: 'Count' },
-      { value: 'kg', label: 'Kilogram', hint: '🏋️', group: 'Weight' },
+      { value: 'pcs', label: t('Pieces'), hint: '🏏', group: t('Count') },
+      { value: 'pair', label: t('Pair'), hint: '👟', group: t('Count') },
+      { value: 'set', label: t('Set'), hint: '🎁', group: t('Count') },
+      { value: 'kg', label: t('Kilogram'), hint: '🏋️', group: t('Weight') },
     ],
   },
 
   featureFlags: [
-    { key: 'sportsTeamOrders', label: 'Team Orders with Jersey Customization', defaultEnabled: true },
-    { key: 'sportsRepairServices', label: 'Bat / Racket Repair Services', defaultEnabled: true },
-    { key: 'sportsBulkDiscount', label: 'Bulk / Team Discount', defaultEnabled: true },
+    { key: 'sportsTeamOrders', label: t('Team Orders with Jersey Customization'), defaultEnabled: true },
+    { key: 'sportsRepairServices', label: t('Bat / Racket Repair Services'), defaultEnabled: true },
+    { key: 'sportsBulkDiscount', label: t('Bulk / Team Discount'), defaultEnabled: true },
   ],
 };

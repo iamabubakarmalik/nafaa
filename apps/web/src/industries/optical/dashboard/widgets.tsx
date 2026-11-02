@@ -6,12 +6,13 @@ import { IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from
 import type { AttentionItem } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { useOpticalOps } from './useOpticalOps';
+import { t as tr } from '@core/i18n';
 
 const TEST_STATUS: Record<string, { label: string; variant: 'default' | 'info' | 'warning' | 'success' }> = {
-  SCHEDULED: { label: 'Booked', variant: 'default' },
-  CONFIRMED: { label: 'Confirm', variant: 'info' },
-  IN_PROGRESS: { label: 'Test jaari', variant: 'warning' },
-  COMPLETED: { label: 'Ho gaya', variant: 'success' },
+  SCHEDULED: { label: tr('Booked'), variant: 'default' },
+  CONFIRMED: { label: tr('Confirm'), variant: 'info' },
+  IN_PROGRESS: { label: tr('Test jaari'), variant: 'warning' },
+  COMPLETED: { label: tr('Ho gaya'), variant: 'success' },
 };
 
 const slotTime = (t: { scheduledSlot?: string; appointmentDate: string }) =>
@@ -20,42 +21,42 @@ const slotTime = (t: { scheduledSlot?: string; appointmentDate: string }) =>
 /** Optical headline numbers, offered next to the common ones. */
 export const opticalKpis: KpiDef[] = [
   {
-    id: 'optical-tests', label: 'Aaj ke eye test', icon: Eye, tone: 'brand',
+    id: 'optical-tests', label: tr('Aaj ke eye test'), icon: Eye, tone: 'brand',
     useValue: () => {
       const { pending, testsLeft, loading } = useOpticalOps();
-      return { loading, to: '/optical/eye-tests', value: pending.todayAppointments, hint: testsLeft ? `${testsLeft} baqi` : 'sab ho gaye' };
+      return { loading, to: '/optical/eye-tests', value: pending.todayAppointments, hint: testsLeft ? tr('{{testsLeft}} baqi', { testsLeft }) : tr('sab ho gaye') };
     },
   },
   {
-    id: 'optical-lab', label: 'Lab me order', icon: FlaskConical, tone: 'info',
+    id: 'optical-lab', label: tr('Lab me order'), icon: FlaskConical, tone: 'info',
     useValue: () => {
       const { pending, loading } = useOpticalOps();
       return {
         loading, to: '/optical/lens-orders', value: pending.lensOrdersAtLab, alert: pending.overdueLensOrders > 0,
-        hint: pending.overdueLensOrders ? `${pending.overdueLensOrders} late!` : 'waqt par',
+        hint: pending.overdueLensOrders ? tr('{{overdueLensOrders}} late!', { overdueLensOrders: pending.overdueLensOrders }) : tr('waqt par'),
       };
     },
   },
   {
-    id: 'optical-ready', label: 'Chashma tayyar', icon: Glasses, tone: 'success',
+    id: 'optical-ready', label: tr('Chashma tayyar'), icon: Glasses, tone: 'success',
     useValue: () => {
       const { pending, loading } = useOpticalOps();
-      return { loading, to: '/optical/lens-orders', value: pending.lensOrdersReady, hint: 'customer ko bulayein' };
+      return { loading, to: '/optical/lens-orders', value: pending.lensOrdersReady, hint: tr('customer ko bulayein') };
     },
   },
   {
-    id: 'optical-rx-expiring', label: 'Nuskha purana', icon: FileText, tone: 'warning',
+    id: 'optical-rx-expiring', label: tr('Nuskha purana'), icon: FileText, tone: 'warning',
     useValue: () => {
       const { pending, activeRx, loading } = useOpticalOps();
-      return { loading, to: '/optical/prescriptions', value: pending.expiringPrescriptions, hint: `60 din me · ${activeRx} chaalu` };
+      return { loading, to: '/optical/prescriptions', value: pending.expiringPrescriptions, hint: tr('60 din me · {{activeRx}} chaalu', { activeRx }) };
     },
   },
   {
-    id: 'optical-receivable', label: 'Order ka baqi', icon: HandCoins, tone: 'danger', sensitive: true,
+    id: 'optical-receivable', label: tr('Order ka baqi'), icon: HandCoins, tone: 'danger', sensitive: true,
     useValue: () => {
       const { receivable, loading } = useOpticalOps();
       const { cost } = useMasked();
-      return { loading, to: '/optical/lens-orders', value: cost(receivable), hint: 'customers se lena hai' };
+      return { loading, to: '/optical/lens-orders', value: cost(receivable), hint: tr('customers se lena hai') };
     },
   },
 ];
@@ -65,10 +66,10 @@ export function useOpticalAttention(): AttentionItem[] {
   const { cost } = useMasked();
   const items: AttentionItem[] = [];
 
-  if (pending.overdueLensOrders) items.push({ icon: Clock, level: 'danger', text: `${pending.overdueLensOrders} lens order lab se late hai — lab ko call karein`, to: '/optical/lens-orders', cta: 'Orders dekhein' });
-  if (pending.lensOrdersReady) items.push({ icon: PhoneCall, level: 'warning', text: `${pending.lensOrdersReady} chashme tayyar pare hain — customer ko bulayein${readyDue > 0 ? ` (${cost(readyDue)} lena hai)` : ''}`, to: '/optical/lens-orders', cta: 'Call karein' });
-  if (testsLeft) items.push({ icon: Eye, level: 'info', text: `Aaj ${testsLeft} eye test abhi baqi hain`, to: '/optical/eye-tests', cta: 'Schedule' });
-  if (pending.expiringPrescriptions) items.push({ icon: FileText, level: 'info', text: `${pending.expiringPrescriptions} customers ka nuskha 60 din me purana ho jayega — naye test ke liye bulayein`, to: '/optical/prescriptions', cta: 'Nuskhe dekhein' });
+  if (pending.overdueLensOrders) items.push({ icon: Clock, level: 'danger', text: tr('{{overdueLensOrders}} lens order lab se late hai — lab ko call karein', { overdueLensOrders: pending.overdueLensOrders }), to: '/optical/lens-orders', cta: tr('Orders dekhein') });
+  if (pending.lensOrdersReady) items.push({ icon: PhoneCall, level: 'warning', text: tr('{{lensOrdersReady}} chashme tayyar pare hain — customer ko bulayein{{value}}', { lensOrdersReady: pending.lensOrdersReady, value: readyDue > 0 ? tr(' ({{readyDue}} lena hai)', { readyDue: cost(readyDue) }) : '' }), to: '/optical/lens-orders', cta: tr('Call karein') });
+  if (testsLeft) items.push({ icon: Eye, level: 'info', text: tr('Aaj {{testsLeft}} eye test abhi baqi hain', { testsLeft }), to: '/optical/eye-tests', cta: tr('Schedule') });
+  if (pending.expiringPrescriptions) items.push({ icon: FileText, level: 'info', text: tr('{{expiringPrescriptions}} customers ka nuskha 60 din me purana ho jayega — naye test ke liye bulayein', { expiringPrescriptions: pending.expiringPrescriptions }), to: '/optical/prescriptions', cta: tr('Nuskhe dekhein') });
   return items;
 }
 
@@ -76,8 +77,8 @@ export function useOpticalAttention(): AttentionItem[] {
 export function OpticalSchedule() {
   const { schedule, testsLeft, pending } = useOpticalOps();
   return (
-    <WidgetCard title="Aaj ke eye test" icon={Eye} description={pending.todayAppointments ? `${pending.todayAppointments} appointment · ${testsLeft} baqi` : 'Aaj koi appointment nahi'} to="/optical/eye-tests" flush>
-      <RowList empty="Aaj koi eye test booked nahi" emptyIcon={CalendarClock}>
+    <WidgetCard title={tr('Aaj ke eye test')} icon={Eye} description={pending.todayAppointments ? tr('{{todayAppointments}} appointment · {{testsLeft}} baqi', { todayAppointments: pending.todayAppointments, testsLeft }) : tr('Aaj koi appointment nahi')} to="/optical/eye-tests" flush>
+      <RowList empty={tr('Aaj koi eye test booked nahi')} emptyIcon={CalendarClock}>
         {schedule.map((t) => {
           const s = TEST_STATUS[t.status] ?? { label: t.status, variant: 'default' as const };
           return (
@@ -102,13 +103,13 @@ export function OpticalPickup() {
   const { cost, costHidden } = useMasked();
   return (
     <WidgetCard
-      title="Chashma tayyar"
+      title={tr('Chashma tayyar')}
       icon={Glasses}
-      description={readyDue > 0 && !costHidden ? `${formatPKR(readyDue)} lena baqi` : `${pending.lensOrdersReady} customer ko bulana hai`}
+      description={readyDue > 0 && !costHidden ? tr('{{readyDue}} lena baqi', { readyDue: formatPKR(readyDue) }) : tr('{{lensOrdersReady}} customer ko bulana hai', { lensOrdersReady: pending.lensOrdersReady })}
       to="/optical/lens-orders"
       flush
     >
-      <RowList empty="Koi chashma pickup ke liye nahi para" emptyIcon={CheckCircle2}>
+      <RowList empty={tr('Koi chashma pickup ke liye nahi para')} emptyIcon={CheckCircle2}>
         {ready.map((o) => (
           <ListRow
             key={o.id}
@@ -116,7 +117,7 @@ export function OpticalPickup() {
             leading={<IconBubble icon={PhoneCall} tone="success" />}
             title={o.customerName}
             meta={[o.frameName, o.customerPhone].filter(Boolean).join(' · ')}
-            value={o.remainingAmount && o.remainingAmount > 0 ? <span className="text-rose-700">{cost(o.remainingAmount)}</span> : <Badge variant="success" size="xs">Paid</Badge>}
+            value={o.remainingAmount && o.remainingAmount > 0 ? <span className="text-rose-700">{cost(o.remainingAmount)}</span> : <Badge variant="success" size="xs">{tr('Paid')}</Badge>}
           />
         ))}
       </RowList>
@@ -128,16 +129,16 @@ export function OpticalPickup() {
 export function OpticalLabLate() {
   const { overdue, pending } = useOpticalOps();
   return (
-    <WidgetCard title="Lab se late" icon={FlaskConical} description={`${pending.lensOrdersAtLab} lab me · ${pending.overdueLensOrders} late`} to="/optical/lens-orders" flush>
-      <RowList empty="Lab ke saare order waqt par hain" emptyIcon={CheckCircle2}>
+    <WidgetCard title={tr('Lab se late')} icon={FlaskConical} description={tr('{{lensOrdersAtLab}} lab me · {{overdueLensOrders}} late', { lensOrdersAtLab: pending.lensOrdersAtLab, overdueLensOrders: pending.overdueLensOrders })} to="/optical/lens-orders" flush>
+      <RowList empty={tr('Lab ke saare order waqt par hain')} emptyIcon={CheckCircle2}>
         {overdue.map((o) => (
           <ListRow
             key={o.id}
             to={`/optical/lens-orders/${o.id}`}
             leading={<IconBubble icon={Clock} tone="danger" />}
             title={o.customerName}
-            meta={<span><span className="font-mono">{o.orderNumber}</span> · {o.labName || 'Lab nahi likhi'}</span>}
-            value={<Badge variant="danger" size="xs">{o.daysLate} din late</Badge>}
+            meta={<span><span className="font-mono">{o.orderNumber}</span> · {o.labName || tr('Lab nahi likhi')}</span>}
+            value={<Badge variant="danger" size="xs">{tr('{{daysLate}} din late', { daysLate: o.daysLate })}</Badge>}
           />
         ))}
       </RowList>
@@ -149,8 +150,8 @@ export function OpticalLabLate() {
 export function OpticalRxExpiring() {
   const { expiring, pending } = useOpticalOps();
   return (
-    <WidgetCard title="Nuskha purana ho raha" icon={FileText} description={`${pending.expiringPrescriptions} nuskhe 60 din me`} to="/optical/prescriptions" flush>
-      <RowList empty="Koi nuskha jald purana nahi ho raha" emptyIcon={FileText}>
+    <WidgetCard title={tr('Nuskha purana ho raha')} icon={FileText} description={tr('{{expiringPrescriptions}} nuskhe 60 din me', { expiringPrescriptions: pending.expiringPrescriptions })} to="/optical/prescriptions" flush>
+      <RowList empty={tr('Koi nuskha jald purana nahi ho raha')} emptyIcon={FileText}>
         {expiring.map((rx) => (
           <ListRow
             key={rx.id}
@@ -158,7 +159,7 @@ export function OpticalRxExpiring() {
             leading={<IconBubble icon={FileText} tone={rx.daysLeft <= 7 ? 'danger' : 'warning'} />}
             title={rx.customerName}
             meta={<span><span className="font-mono">{rx.prescriptionNumber}</span>{rx.customerPhone ? ` · ${rx.customerPhone}` : ''}</span>}
-            value={<Badge variant={rx.daysLeft <= 7 ? 'danger' : rx.daysLeft <= 30 ? 'warning' : 'default'} size="xs">{rx.daysLeft} din</Badge>}
+            value={<Badge variant={rx.daysLeft <= 7 ? 'danger' : rx.daysLeft <= 30 ? 'warning' : 'default'} size="xs">{tr('{{daysLeft}} din', { daysLeft: rx.daysLeft })}</Badge>}
           />
         ))}
       </RowList>

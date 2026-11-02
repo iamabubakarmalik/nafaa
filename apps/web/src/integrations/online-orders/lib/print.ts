@@ -9,6 +9,7 @@ import type { PrintDoc } from '@core/print';
 import type { CodHistory, CodSummary, CustomersResult, OnlineOrder, OnlineReport } from '../api/online-orders.api';
 import { sourceOf } from './labels';
 import { isClosed, orderNo, statusShort } from './orders';
+import { t as tr } from '@core/i18n';
 
 const day = (iso: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
 const keyDay = (k: string) => new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${k}T12:00:00`));
@@ -17,65 +18,65 @@ export function ordersDoc(orders: OnlineOrder[], list: string, period: string, f
   const live = orders.filter((o) => !isClosed(o));
   const value = live.reduce((a, o) => a + Number(o.total || 0), 0);
   return {
-    title: `Online orders — ${list}`,
+    title: tr('Online orders — {{list}}', { list }),
     subtitle: period,
-    meta: [['Orders', String(total)], ...(filter ? [['Filter', filter] as [string, string]] : []), ['Kul (cancel ke bagair)', formatPKR(value)]],
+    meta: [[tr('Orders'), String(total)], ...(filter ? [[tr('Filter'), filter] as [string, string]] : []), [tr('Kul (cancel ke bagair)'), formatPKR(value)]],
     sections: [{
       kind: 'table',
       columns: [
-        { label: 'Order' }, { label: 'Date', wideOnly: true }, { label: 'Customer' }, { label: 'Shehar', wideOnly: true },
-        { label: 'Channel', wideOnly: true }, { label: 'Halat', wideOnly: true }, { label: 'Amount', align: 'right' },
+        { label: tr('Order') }, { label: tr('Date'), wideOnly: true }, { label: tr('Customer') }, { label: tr('Shehar'), wideOnly: true },
+        { label: tr('Channel'), wideOnly: true }, { label: tr('Halat'), wideOnly: true }, { label: tr('Amount'), align: 'right' },
       ],
       rows: orders.map((o) => [
         `#${orderNo(o)}`, day(o.receivedAt), o.customerName, o.customerCity ?? '', o.integration?.displayName ?? sourceOf(o).label,
         `${statusShort(o.orderStatus)}${o.isCod && o.paymentStatus !== 'PAID' ? ' · COD' : ''}`,
         isClosed(o) ? `(${formatPKR(o.total)})` : formatPKR(o.total),
       ]),
-      footer: ['', '', 'Kul', '', '', '', formatPKR(value)],
+      footer: ['', '', tr('Kul'), '', '', '', formatPKR(value)],
     }],
-    footer: total > orders.length ? `Pehle ${orders.length} orders dikhaye gaye hain (kul ${total})` : undefined,
+    footer: total > orders.length ? tr('Pehle {{count}} orders dikhaye gaye hain (kul {{total}})', { count: orders.length, total }) : undefined,
   };
 }
 
 export function reportDoc(r: OnlineReport, period: string, channel: string): PrintDoc {
   const t = r.totals;
   return {
-    title: 'Online sale report',
+    title: tr('Online sale report'),
     subtitle: period,
-    meta: [['Channel', channel], ['Orders', String(t.orders)], ['Sale (cancel/wapas ke bagair)', formatPKR(t.netValue)]],
+    meta: [[tr('Channel'), channel], [tr('Orders'), String(t.orders)], [tr('Sale (cancel/wapas ke bagair)'), formatPKR(t.netValue)]],
     sections: [
       {
         kind: 'rows',
-        title: 'Khulasa',
+        title: tr('Khulasa'),
         rows: [
-          { label: `Orders aaye (${t.orders})`, value: formatPKR(t.value) },
-          { label: `Cancel / reject (${t.cancelled})`, value: `${t.cancelRate}%` },
-          { label: `Wapas — RTO (${t.returned})`, value: formatPKR(t.returnedValue) },
-          { label: `Deliver hue (${t.delivered})`, value: formatPKR(t.deliveredValue) },
-          { label: 'Ausat order', value: formatPKR(t.avgOrderValue) },
-          { label: 'RTO rate', value: `${t.rtoRate}%` },
-          { label: 'COD baqi (is period)', value: formatPKR(r.payment.cod.pending) },
-          { label: 'Sale', value: formatPKR(t.netValue), strong: true },
+          { label: tr('Orders aaye ({{orders}})', { orders: t.orders }), value: formatPKR(t.value) },
+          { label: tr('Cancel / reject ({{cancelled}})', { cancelled: t.cancelled }), value: `${t.cancelRate}%` },
+          { label: tr('Wapas — RTO ({{returned}})', { returned: t.returned }), value: formatPKR(t.returnedValue) },
+          { label: tr('Deliver hue ({{delivered}})', { delivered: t.delivered }), value: formatPKR(t.deliveredValue) },
+          { label: tr('Ausat order'), value: formatPKR(t.avgOrderValue) },
+          { label: tr('RTO rate'), value: `${t.rtoRate}%` },
+          { label: tr('COD baqi (is period)'), value: formatPKR(r.payment.cod.pending) },
+          { label: tr('Sale'), value: formatPKR(t.netValue), strong: true },
         ],
       },
       {
-        kind: 'table', title: 'Channel',
-        columns: [{ label: 'Channel' }, { label: 'Orders', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'RTO', align: 'right', wideOnly: true }],
+        kind: 'table', title: tr('Channel'),
+        columns: [{ label: tr('Channel') }, { label: tr('Orders'), align: 'right' }, { label: tr('Sale'), align: 'right' }, { label: tr('RTO'), align: 'right', wideOnly: true }],
         rows: r.byChannel.map((c) => [c.name, String(c.orders), formatPKR(c.value), `${c.rtoRate}%`]),
       },
       {
-        kind: 'table', title: 'Shehar',
-        columns: [{ label: 'Shehar' }, { label: 'Orders', align: 'right' }, { label: 'Sale', align: 'right' }, { label: 'RTO', align: 'right', wideOnly: true }],
+        kind: 'table', title: tr('Shehar'),
+        columns: [{ label: tr('Shehar') }, { label: tr('Orders'), align: 'right' }, { label: tr('Sale'), align: 'right' }, { label: tr('RTO'), align: 'right', wideOnly: true }],
         rows: r.byCity.map((c) => [c.city, String(c.orders), formatPKR(c.value), `${c.rtoRate}%`]),
       },
       ...(r.byCourier.length ? [{
-        kind: 'table' as const, title: 'Courier',
-        columns: [{ label: 'Courier' }, { label: 'Bheje', align: 'right' as const }, { label: 'Deliver', align: 'right' as const }, { label: 'RTO', align: 'right' as const }],
+        kind: 'table' as const, title: tr('Courier'),
+        columns: [{ label: tr('Courier') }, { label: tr('Bheje'), align: 'right' as const }, { label: tr('Deliver hue'), align: 'right' as const }, { label: tr('RTO'), align: 'right' as const }],
         rows: r.byCourier.map((c) => [c.name, String(c.dispatched), `${c.deliveryRate}%`, `${c.rtoRate}%`]),
       }] : []),
       {
-        kind: 'table', title: 'Sab se zyada bika',
-        columns: [{ label: 'Cheez' }, { label: 'Qty', align: 'right' }, { label: 'Sale', align: 'right' }],
+        kind: 'table', title: tr('Sab se zyada bika'),
+        columns: [{ label: tr('Cheez') }, { label: tr('Qty'), align: 'right' }, { label: tr('Sale'), align: 'right' }],
         rows: r.topProducts.map((p) => [p.name, String(Number(p.qty.toFixed(2))), formatPKR(p.value)]),
       },
     ],
@@ -84,35 +85,35 @@ export function reportDoc(r: OnlineReport, period: string, channel: string): Pri
 
 export function codDoc(s: CodSummary, h: CodHistory | undefined, period: string): PrintDoc {
   return {
-    title: 'COD & courier hisaab',
+    title: tr('COD & courier hisaab'),
     subtitle: period,
     meta: [
-      ['Courier ke paas', formatPKR(s.totals.withCourierValue)], ['Raste me', formatPKR(s.totals.inTransitValue)],
-      ['Is mahine mila', formatPKR(s.totals.settledMonthValue)], ['RTO (30 din)', `${s.totals.rtoRate}%`],
+      [tr('Courier ke paas'), formatPKR(s.totals.withCourierValue)], [tr('Raste me'), formatPKR(s.totals.inTransitValue)],
+      [tr('Is mahine mila'), formatPKR(s.totals.settledMonthValue)], [tr('RTO (30 din)'), `${s.totals.rtoRate}%`],
     ],
     sections: [
       {
-        kind: 'table', title: 'Courier-wise',
-        columns: [{ label: 'Courier' }, { label: 'Raste me', align: 'right' }, { label: 'Courier ke paas', align: 'right' }, { label: 'Mila', align: 'right', wideOnly: true }, { label: 'RTO', align: 'right' }],
+        kind: 'table', title: tr('Courier-wise'),
+        columns: [{ label: tr('Courier') }, { label: tr('Raste me'), align: 'right' }, { label: tr('Courier ke paas'), align: 'right' }, { label: tr('Mila'), align: 'right', wideOnly: true }, { label: tr('RTO'), align: 'right' }],
         rows: s.couriers.map((c) => [c.name, formatPKR(c.inTransitValue), formatPKR(c.withCourierValue), formatPKR(c.settledMonthValue), `${c.rtoRate}%`]),
       },
       {
-        kind: 'table', title: 'Courier ke paas — settlement ka intezar',
-        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'CN', wideOnly: true }, { label: 'Din', align: 'right', wideOnly: true }, { label: 'Amount', align: 'right' }],
+        kind: 'table', title: tr('Courier ke paas — settlement ka intezar'),
+        columns: [{ label: tr('Order') }, { label: tr('Customer') }, { label: tr('Courier'), wideOnly: true }, { label: tr('CN'), wideOnly: true }, { label: tr('Din'), align: 'right', wideOnly: true }, { label: tr('Amount'), align: 'right' }],
         rows: s.withCourier.map((o) => [`#${o.externalOrderNumber ?? o.externalOrderId}`, o.customerName, o.courier ?? '', o.trackingNumber ?? '', o.daysWaiting == null ? '' : String(o.daysWaiting), formatPKR(o.total)]),
-        footer: ['', 'Kul', '', '', '', formatPKR(s.totals.withCourierValue)],
+        footer: ['', tr('Kul'), '', '', '', formatPKR(s.totals.withCourierValue)],
       },
       ...(h?.settlements.length ? [{
-        kind: 'table' as const, title: 'Settlements (paisa mila)',
-        columns: [{ label: 'Date' }, { label: 'Ref' }, { label: 'Orders', align: 'right' as const }, { label: 'Amount', align: 'right' as const }],
+        kind: 'table' as const, title: tr('Settlements (paisa mila)'),
+        columns: [{ label: tr('Date') }, { label: tr('Ref') }, { label: tr('Orders'), align: 'right' as const }, { label: tr('Amount'), align: 'right' as const }],
         rows: h.settlements.map((b) => [keyDay(b.day), b.ref ?? '—', String(b.count), formatPKR(b.value)]),
-        footer: ['Kul', '', String(h.totals.settled), formatPKR(h.totals.settledValue)],
+        footer: [tr('Kul'), '', String(h.totals.settled), formatPKR(h.totals.settledValue)],
       }] : []),
       ...(h?.returns.length ? [{
-        kind: 'table' as const, title: 'Wapas aaye parcels (RTO)',
-        columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Courier', wideOnly: true }, { label: 'Wajah', wideOnly: true }, { label: 'Amount', align: 'right' as const }],
+        kind: 'table' as const, title: tr('Wapas aaye parcels (RTO)'),
+        columns: [{ label: tr('Order') }, { label: tr('Customer') }, { label: tr('Courier'), wideOnly: true }, { label: tr('Wajah'), wideOnly: true }, { label: tr('Amount'), align: 'right' as const }],
         rows: h.returns.map((r) => [`#${r.number}`, r.customerName, r.courier, r.reason ?? '', formatPKR(r.total)]),
-        footer: ['', 'Kul', '', '', formatPKR(h.totals.returnedValue)],
+        footer: ['', tr('Kul'), '', '', formatPKR(h.totals.returnedValue)],
       }] : []),
     ],
   };
@@ -120,14 +121,14 @@ export function codDoc(s: CodSummary, h: CodHistory | undefined, period: string)
 
 export function customersDoc(c: CustomersResult, segment: string): PrintDoc {
   return {
-    title: 'Online customers',
+    title: tr('Online customers'),
     subtitle: segment,
-    meta: [['Customers', String(c.total)], ['Dobara lene wale', `${c.totals.repeatRate}%`]],
+    meta: [[tr('Customers'), String(c.total)], [tr('Dobara lene wale'), `${c.totals.repeatRate}%`]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Naam' }, { label: 'Phone' }, { label: 'Shehar', wideOnly: true }, { label: 'Orders', align: 'right', wideOnly: true }, { label: 'Kharch', align: 'right' }],
+      columns: [{ label: tr('Naam') }, { label: tr('Phone') }, { label: tr('Shehar'), wideOnly: true }, { label: tr('Orders'), align: 'right', wideOnly: true }, { label: tr('Kul kharch'), align: 'right' }],
       rows: c.rows.map((r) => [r.name, r.phone, r.city ?? '', `${r.delivered}/${r.orders}`, formatPKR(r.spent)]),
     }],
-    footer: c.total > c.rows.length ? `Pehle ${c.rows.length} customers dikhaye gaye hain (kul ${c.total})` : undefined,
+    footer: c.total > c.rows.length ? tr('Pehle {{count}} customers dikhaye gaye hain (kul {{total}})', { count: c.rows.length, total: c.total }) : undefined,
   };
 }

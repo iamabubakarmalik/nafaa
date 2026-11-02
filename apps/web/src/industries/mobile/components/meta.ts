@@ -8,6 +8,7 @@ import type { ImeiStatus, PtaStatus } from '../api/imei.api';
 import type { TradeInSource, UsedPhoneCondition, UsedPhoneStatus } from '../api/used-phones.api';
 import type { RepairPriority, RepairStatus } from '../api/repairs.api';
 import type { EmiInstallmentStatus, EmiPlanStatus } from '../api/emi.api';
+import { t } from '@core/i18n';
 
 /** Query roots; every mobile screen refreshes these after a change. */
 export const IMEI_KEY = 'mobile-imeis';
@@ -41,112 +42,112 @@ const nice = (v?: string | null) => (v ? v.charAt(0) + v.slice(1).toLowerCase().
 
 /* ── New phones (IMEI) ── */
 const IMEI: Record<ImeiStatus, Meta> = {
-  IN_STOCK: { label: 'Stock me', tone: tone.green, color: '#10b981' },
-  SOLD: { label: 'Bik gaya', tone: tone.violet, color: '#8b5cf6' },
-  RESERVED: { label: 'Rakha hua', tone: tone.amber, color: '#f59e0b' },
-  RETURNED: { label: 'Supplier ko wapas', tone: tone.slate, color: '#64748b' },
-  DAMAGED: { label: 'Kharab', tone: tone.rose, color: '#f43f5e' },
-  LOST: { label: 'Gum', tone: tone.rose, color: '#be123c' },
+  IN_STOCK: { label: t('Stock me'), tone: tone.green, color: '#10b981' },
+  SOLD: { label: t('Bik gaya'), tone: tone.violet, color: '#8b5cf6' },
+  RESERVED: { label: t('Rakha hua'), tone: tone.amber, color: '#f59e0b' },
+  RETURNED: { label: t('Supplier ko wapas'), tone: tone.slate, color: '#64748b' },
+  DAMAGED: { label: t('Kharab'), tone: tone.rose, color: '#f43f5e' },
+  LOST: { label: t('Gum'), tone: tone.rose, color: '#be123c' },
 };
 export const imeiStatusOf = (s?: string | null) => pick(IMEI, s);
 export const IMEI_STATUSES = Object.keys(IMEI) as ImeiStatus[];
 
 const PTA: Record<PtaStatus, Meta> = {
-  APPROVED: { label: 'PTA Approved', tone: tone.green, color: '#10b981' },
-  NON_PTA: { label: 'Non-PTA', tone: tone.rose, color: '#f43f5e' },
-  PATCH: { label: 'Patched', tone: tone.amber, color: '#f59e0b' },
-  PENDING: { label: 'PTA baqi', tone: tone.blue, color: '#3b82f6' },
-  EXEMPT: { label: 'Exempt', tone: tone.slate, color: '#64748b' },
+  APPROVED: { label: t('PTA Approved'), tone: tone.green, color: '#10b981' },
+  NON_PTA: { label: t('Non-PTA'), tone: tone.rose, color: '#f43f5e' },
+  PATCH: { label: t('Patched'), tone: tone.amber, color: '#f59e0b' },
+  PENDING: { label: t('PTA baqi'), tone: tone.blue, color: '#3b82f6' },
+  EXEMPT: { label: t('Exempt'), tone: tone.slate, color: '#64748b' },
 };
 export const ptaOf = (s?: string | null) => pick(PTA, s);
 export const PTA_LIST = Object.keys(PTA) as PtaStatus[];
 export const PTA_HINT: Record<PtaStatus, string> = {
-  APPROVED: 'Tax ada, har SIM chalegi',
-  NON_PTA: 'Tax nahi diya — SIM 60 din baad band',
-  PATCH: 'Ghair-sarkari tareeqa — customer ko batayein',
-  PENDING: 'Registration jaari hai',
-  EXEMPT: 'Pakistan me bana — tax lagu nahi',
+  APPROVED: t('Tax ada, har SIM chalegi'),
+  NON_PTA: t('Tax nahi diya — SIM 60 din baad band'),
+  PATCH: t('Ghair-sarkari tareeqa — customer ko batayein'),
+  PENDING: t('Registration jaari hai'),
+  EXEMPT: t('Pakistan me bana — tax lagu nahi'),
 };
 
 /* ── Used phones ── */
 const USED: Record<UsedPhoneStatus, Meta> = {
-  PENDING_INSPECTION: { label: 'Check baqi', tone: tone.amber, color: '#f59e0b' },
-  IN_STOCK: { label: 'Bikne ko tayyar', tone: tone.green, color: '#10b981' },
-  IN_TRANSIT: { label: 'Raaste me', tone: tone.sky, color: '#0ea5e9' },
-  REPAIRING: { label: 'Repair me', tone: tone.orange, color: '#f97316' },
-  SOLD: { label: 'Bik gaya', tone: tone.violet, color: '#8b5cf6' },
-  RETURNED: { label: 'Wapas aaya', tone: tone.blue, color: '#3b82f6' },
-  DISCARDED: { label: 'Hata diya', tone: tone.slate, color: '#64748b' },
+  PENDING_INSPECTION: { label: t('Check baqi'), tone: tone.amber, color: '#f59e0b' },
+  IN_STOCK: { label: t('Bikne ko tayyar'), tone: tone.green, color: '#10b981' },
+  IN_TRANSIT: { label: t('Raaste me'), tone: tone.sky, color: '#0ea5e9' },
+  REPAIRING: { label: t('Repair me'), tone: tone.orange, color: '#f97316' },
+  SOLD: { label: t('Bik gaya'), tone: tone.violet, color: '#8b5cf6' },
+  RETURNED: { label: t('Wapas aaya'), tone: tone.blue, color: '#3b82f6' },
+  DISCARDED: { label: t('Hata diya'), tone: tone.slate, color: '#64748b' },
 };
 export const usedStatusOf = (s?: string | null) => pick(USED, s);
 export const USED_STATUSES = Object.keys(USED) as UsedPhoneStatus[];
 
 const CONDITION: Record<UsedPhoneCondition, Meta & { score: string }> = {
-  EXCELLENT: { label: 'Bilkul naya', score: '10/10', tone: tone.green, color: '#10b981' },
-  VERY_GOOD: { label: 'Bohat acha', score: '9/10', tone: tone.teal, color: '#14b8a6' },
-  GOOD: { label: 'Acha', score: '8/10', tone: tone.blue, color: '#3b82f6' },
-  FAIR: { label: 'Theek', score: '6-7/10', tone: tone.amber, color: '#f59e0b' },
-  POOR: { label: 'Kamzor', score: '6 se kam', tone: tone.rose, color: '#f43f5e' },
+  EXCELLENT: { label: t('Bilkul naya'), score: '10/10', tone: tone.green, color: '#10b981' },
+  VERY_GOOD: { label: t('Bohat acha'), score: '9/10', tone: tone.teal, color: '#14b8a6' },
+  GOOD: { label: t('Acha'), score: '8/10', tone: tone.blue, color: '#3b82f6' },
+  FAIR: { label: t('Theek'), score: '6-7/10', tone: tone.amber, color: '#f59e0b' },
+  POOR: { label: t('Kamzor'), score: t('6 se kam'), tone: tone.rose, color: '#f43f5e' },
 };
 export const conditionOf = (c?: string | null) => (CONDITION[c as UsedPhoneCondition] ?? { label: nice(c), score: '', tone: tone.slate, color: '#94a3b8' });
 export const CONDITIONS = Object.keys(CONDITION) as UsedPhoneCondition[];
 
 const SOURCE: Record<TradeInSource, Meta & { hint: string }> = {
-  CASH_BUYBACK: { label: 'Cash me khareeda', hint: 'Customer ko paise galle se diye', tone: tone.indigo, color: '#6366f1' },
-  EXCHANGE: { label: 'Exchange (trade-in)', hint: 'Naye phone ke bill me qeemat kategi', tone: tone.orange, color: '#f97316' },
-  CONSIGNMENT: { label: 'Customer ki taraf se bechna', hint: 'Bikne par customer ko paise denge', tone: tone.slate, color: '#64748b' },
+  CASH_BUYBACK: { label: t('Cash me khareeda'), hint: t('Customer ko paise galle se diye'), tone: tone.indigo, color: '#6366f1' },
+  EXCHANGE: { label: t('Exchange (trade-in)'), hint: t('Naye phone ke bill me qeemat kategi'), tone: tone.orange, color: '#f97316' },
+  CONSIGNMENT: { label: t('Customer ki taraf se bechna'), hint: t('Bikne par customer ko paise denge'), tone: tone.slate, color: '#64748b' },
 };
 export const sourceOf = (s?: string | null) => (SOURCE[s as TradeInSource] ?? { label: nice(s), hint: '', tone: tone.slate, color: '#94a3b8' });
 export const SOURCES = Object.keys(SOURCE) as TradeInSource[];
 
 /* ── Repairs ── */
 const REPAIR: Record<RepairStatus, Meta & { next?: string }> = {
-  RECEIVED: { label: 'Mila', tone: tone.blue, color: '#3b82f6', next: 'Check kar ke kharabi aur andaza likhein' },
-  DIAGNOSED: { label: 'Check ho gaya', tone: tone.indigo, color: '#6366f1', next: 'Customer ko andaza batayein, haan ho to kaam shuru' },
-  AWAITING_APPROVAL: { label: 'Customer ki haan baqi', tone: tone.amber, color: '#f59e0b', next: 'Customer se andaza pakka karwayein' },
-  AWAITING_PARTS: { label: 'Part ka intezar', tone: tone.orange, color: '#f97316', next: 'Part aate hi kaam shuru karein' },
-  IN_PROGRESS: { label: 'Kaam chal raha', tone: tone.violet, color: '#8b5cf6', next: 'Kaam khatam ho to "Tayyar" karein' },
-  READY: { label: 'Tayyar', tone: tone.green, color: '#10b981', next: 'Customer ko bulayein — baqi paisa le kar wapas dein' },
-  DELIVERED: { label: 'Wapas de diya', tone: tone.slate, color: '#64748b' },
-  CANCELLED: { label: 'Cancel', tone: tone.rose, color: '#f43f5e' },
-  UNREPAIRABLE: { label: 'Theek nahi ho sakta', tone: tone.rose, color: '#be123c', next: 'Phone customer ko wapas dein' },
+  RECEIVED: { label: t('Mila'), tone: tone.blue, color: '#3b82f6', next: t('Check kar ke kharabi aur andaza likhein') },
+  DIAGNOSED: { label: t('Check ho gaya'), tone: tone.indigo, color: '#6366f1', next: t('Customer ko andaza batayein, haan ho to kaam shuru') },
+  AWAITING_APPROVAL: { label: t('Customer ki haan baqi'), tone: tone.amber, color: '#f59e0b', next: t('Customer se andaza pakka karwayein') },
+  AWAITING_PARTS: { label: t('Part ka intezar'), tone: tone.orange, color: '#f97316', next: t('Part aate hi kaam shuru karein') },
+  IN_PROGRESS: { label: t('Kaam chal raha'), tone: tone.violet, color: '#8b5cf6', next: t('Kaam khatam ho to "Tayyar" karein') },
+  READY: { label: t('Tayyar'), tone: tone.green, color: '#10b981', next: t('Customer ko bulayein — baqi paisa le kar wapas dein') },
+  DELIVERED: { label: t('Wapas de diya'), tone: tone.slate, color: '#64748b' },
+  CANCELLED: { label: t('Cancel'), tone: tone.rose, color: '#f43f5e' },
+  UNREPAIRABLE: { label: t('Theek nahi ho sakta'), tone: tone.rose, color: '#be123c', next: t('Phone customer ko wapas dein') },
 };
 export const repairStatusOf = (s?: string | null) => (REPAIR[s as RepairStatus] ?? { label: nice(s), tone: tone.slate, color: '#94a3b8' });
 export const REPAIR_FLOW: RepairStatus[] = ['RECEIVED', 'DIAGNOSED', 'IN_PROGRESS', 'READY', 'DELIVERED'];
 export const REPAIR_CLOSED: RepairStatus[] = ['DELIVERED', 'CANCELLED'];
 
 const PRIORITY: Record<RepairPriority, Meta> = {
-  NORMAL: { label: 'Aam', tone: tone.slate, color: '#64748b' },
-  URGENT: { label: 'Jaldi', tone: tone.orange, color: '#f97316' },
-  EMERGENCY: { label: 'Foran', tone: tone.rose, color: '#f43f5e' },
+  NORMAL: { label: t('Aam'), tone: tone.slate, color: '#64748b' },
+  URGENT: { label: t('Jaldi'), tone: tone.orange, color: '#f97316' },
+  EMERGENCY: { label: t('Foran'), tone: tone.rose, color: '#f43f5e' },
 };
 export const priorityOf = (p?: string | null) => pick(PRIORITY, p);
 export const PRIORITIES = Object.keys(PRIORITY) as RepairPriority[];
 
 /* ── Installments ── */
 const PLAN: Record<EmiPlanStatus, Meta> = {
-  ACTIVE: { label: 'Chal raha', tone: tone.blue, color: '#3b82f6' },
-  COMPLETED: { label: 'Mukammal', tone: tone.green, color: '#10b981' },
-  DEFAULTED: { label: 'Default', tone: tone.rose, color: '#f43f5e' },
-  CANCELLED: { label: 'Cancel', tone: tone.slate, color: '#64748b' },
+  ACTIVE: { label: t('Chal raha'), tone: tone.blue, color: '#3b82f6' },
+  COMPLETED: { label: t('Mukammal'), tone: tone.green, color: '#10b981' },
+  DEFAULTED: { label: t('Default'), tone: tone.rose, color: '#f43f5e' },
+  CANCELLED: { label: t('Cancel'), tone: tone.slate, color: '#64748b' },
 };
 export const planStatusOf = (s?: string | null) => pick(PLAN, s);
 
 const INSTALLMENT: Record<EmiInstallmentStatus, Meta> = {
-  PENDING: { label: 'Baqi', tone: tone.amber, color: '#f59e0b' },
-  OVERDUE: { label: 'Late', tone: tone.rose, color: '#f43f5e' },
-  PAID: { label: 'Mil gayi', tone: tone.green, color: '#10b981' },
-  WAIVED: { label: 'Maaf', tone: tone.slate, color: '#64748b' },
+  PENDING: { label: t('Baqi'), tone: tone.amber, color: '#f59e0b' },
+  OVERDUE: { label: t('Late'), tone: tone.rose, color: '#f43f5e' },
+  PAID: { label: t('Mil gayi'), tone: tone.green, color: '#10b981' },
+  WAIVED: { label: t('Maaf'), tone: tone.slate, color: '#64748b' },
 };
 export const installmentOf = (s?: string | null) => pick(INSTALLMENT, s);
 
 /* ── Payment methods (labels only; the codes come from the API) ── */
 export const METHODS = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'JAZZCASH', label: 'JazzCash' },
-  { value: 'EASYPAISA', label: 'Easypaisa' },
-  { value: 'BANK_TRANSFER', label: 'Bank' },
-  { value: 'CARD', label: 'Card' },
+  { value: 'CASH', label: t('Cash') },
+  { value: 'JAZZCASH', label: t('JazzCash') },
+  { value: 'EASYPAISA', label: t('Easypaisa') },
+  { value: 'BANK_TRANSFER', label: t('Bank') },
+  { value: 'CARD', label: t('Card') },
 ] as const;
 export const methodLabel = (m?: string | null) => METHODS.find((x) => x.value === m)?.label ?? nice(m);
 
@@ -169,7 +170,7 @@ export function addMonths(key: string, months: number) {
 }
 /** Whole days from now to `iso` (negative when past). */
 export const daysTo = (iso?: string | null) => (iso ? Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000) : null);
-export const ageText = (days?: number | null) => (days == null ? '—' : days === 0 ? 'Aaj' : days === 1 ? '1 din' : `${days} din`);
+export const ageText = (days?: number | null) => (days == null ? '—' : days === 0 ? t('Aaj') : days === 1 ? t('1 din') : t('{{days}} din', { days }));
 
 /* ── Numbers and validation ── */
 export const digits = (v: string) => v.replace(/\D/g, '');

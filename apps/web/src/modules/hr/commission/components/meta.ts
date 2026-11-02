@@ -6,6 +6,7 @@
 import { CheckCircle2, CircleDashed, Clock, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { CommissionBasis, CommissionRule, CommissionValueType, PayStatus } from '../api/commission.api';
+import { t } from '@core/i18n';
 
 /** Every query of this page lives under this key. */
 export const COMMISSION_KEY = 'commission';
@@ -29,30 +30,30 @@ export function recentPeriods(upTo: string, n = 24) {
 }
 
 export const BASIS: Record<CommissionBasis, { label: string; hint: string }> = {
-  SALE: { label: 'Sale par', hint: 'Jitna becha us par. Samajhne me sab se aasaan.' },
-  PROFIT: { label: 'Profit par', hint: 'Sale me se cost nikaal kar jo bacha us par. Banda discount kam deta hai.' },
-  PER_BILL: { label: 'Har bill par', hint: 'Har bill ki fixed amount. Chhoti amount, zyada bill.' },
+  SALE: { label: t('Sale par'), hint: t('Jitna becha us par. Samajhne me sab se aasaan.') },
+  PROFIT: { label: t('Profit par'), hint: t('Sale me se cost nikaal kar jo bacha us par. Banda discount kam deta hai.') },
+  PER_BILL: { label: t('Har bill par'), hint: t('Har bill ki fixed amount. Chhoti amount, zyada bill.') },
 };
 
 /** "Bikri par 2.5%", "Har cheez par Rs 20", "Har bill par Rs 10". */
 export function rateText(r: { basis: CommissionBasis; valueType: CommissionValueType; value: number }) {
-  if (r.basis === 'PER_BILL') return `${formatPKR(r.value)} har bill`;
-  if (r.valueType === 'FIXED') return `${formatPKR(r.value)} har cheez`;
+  if (r.basis === 'PER_BILL') return t('{{formatPKR}} har bill', { formatPKR: formatPKR(r.value) });
+  if (r.valueType === 'FIXED') return t('{{formatPKR}} har cheez', { formatPKR: formatPKR(r.value) });
   return `${r.value}% ${r.basis === 'PROFIT' ? 'profit' : 'sale'}`;
 }
 
 export function ruleName(r: Pick<CommissionRule, 'name' | 'basis' | 'valueType'>) {
   if (r.name) return r.name;
-  if (r.basis === 'PER_BILL') return 'Har bill par';
-  if (r.valueType === 'FIXED') return 'Har cheez par';
+  if (r.basis === 'PER_BILL') return t('Har bill par');
+  if (r.valueType === 'FIXED') return t('Har cheez par');
   return BASIS[r.basis].label;
 }
 
 export const PAY: Record<PayStatus, { label: string; icon: LucideIcon; tone: string }> = {
-  none: { label: 'Baqi', icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  partial: { label: 'Kuch ada', icon: CircleDashed, tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
-  full: { label: 'Ada ho gayi', icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  over: { label: 'Zyada ada', icon: TriangleAlert, tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  none: { label: t('Baqi'), icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  partial: { label: t('Kuch ada'), icon: CircleDashed, tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
+  full: { label: t('Ada ho gayi'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  over: { label: t('Zyada ada'), icon: TriangleAlert, tone: 'bg-rose-50 text-rose-700 ring-rose-200' },
 };
 
 export const day = (v?: string | Date | null) =>

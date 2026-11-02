@@ -12,6 +12,7 @@ import { Avatar, Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { attendanceApi, type LeaveRow } from '../api/attendance.api';
 import { ATT_KEY, LEAVE_STATUS, LEAVE_TYPE, dayLabel } from './meta';
+import { t } from '@core/i18n';
 
 type Decision = 'APPROVE' | 'REJECT' | 'CANCEL';
 
@@ -29,7 +30,7 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
     },
     onError: (e: { response?: { data?: { message?: string | string[] } } }) => {
       const msg = e?.response?.data?.message;
-      toast.error(Array.isArray(msg) ? msg[0] : msg ?? 'Nahi hua');
+      toast.error(Array.isArray(msg) ? msg[0] : msg ?? t('Nahi hua'));
     },
   });
 
@@ -51,23 +52,23 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
                 </span>
                 <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400">
                   {l.staff.designation}{showShop && l.staff.shop ? ` · ${l.staff.shop.name}` : ''}{l.reason ? ` · ${l.reason}` : ''}
-                  {l.rejectedReason ? ` · Wajah: ${l.rejectedReason}` : ''}
+                  {l.rejectedReason ? t(' · Wajah: {{rejectedReason}}', { rejectedReason: l.rejectedReason }) : ''}
                 </span>
               </span>
-              <span className="text-right">
-                <span className="block text-[0.6875rem] text-slate-400">{l.days} din</span>
+              <span className="text-end">
+                <span className="block text-[0.6875rem] text-slate-400">{t('{{days}} din', { days: l.days })}</span>
                 <span className="block text-[0.8125rem] font-semibold tabular-nums text-slate-900">
                   {dayLabel(l.startDate.slice(0, 10))}{l.endDate.slice(0, 10) !== l.startDate.slice(0, 10) ? ` — ${dayLabel(l.endDate.slice(0, 10))}` : ''}
                 </span>
               </span>
               {canDecide && (
-                <span className="ml-auto flex shrink-0 gap-1.5">
+                <span className="ms-auto flex shrink-0 gap-1.5">
                   {l.status === 'PENDING' && <>
-                    <Button size="sm" variant="success" loading={busy && m.variables?.decision === 'APPROVE'} disabled={busy} onClick={() => m.mutate({ id: l.id, decision: 'APPROVE' })} leftIcon={<Check className="h-4 w-4" />}>Approve</Button>
-                    <Button size="sm" variant="secondary" disabled={busy} onClick={() => setAsking({ leave: l, decision: 'REJECT' })} leftIcon={<X className="h-4 w-4" />}>Na</Button>
+                    <Button size="sm" variant="success" loading={busy && m.variables?.decision === 'APPROVE'} disabled={busy} onClick={() => m.mutate({ id: l.id, decision: 'APPROVE' })} leftIcon={<Check className="h-4 w-4" />}>{t('Approve')}</Button>
+                    <Button size="sm" variant="secondary" disabled={busy} onClick={() => setAsking({ leave: l, decision: 'REJECT' })} leftIcon={<X className="h-4 w-4" />}>{t('Na')}</Button>
                   </>}
                   {l.status === 'APPROVED' && (
-                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => setAsking({ leave: l, decision: 'CANCEL' })}>Cancel</Button>
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => setAsking({ leave: l, decision: 'CANCEL' })}>{t('Cancel')}</Button>
                   )}
                 </span>
               )}
@@ -77,17 +78,17 @@ export function LeavesList({ leaves, showShop, canDecide, empty }: { leaves: Lea
       </ul>
       {asking && (
         <Modal open onClose={() => setAsking(null)} size="sm"
-          title={asking.decision === 'REJECT' ? 'Chhutti na-approve karein' : 'Approve chhutti cancel karein'}
-          description={`${asking.leave.staff.fullName} · ${asking.leave.days} din`}
+          title={asking.decision === 'REJECT' ? t('Chhutti na-approve karein') : t('Approve chhutti cancel karein')}
+          description={t('{{fullName}} · {{days}} din', { fullName: asking.leave.staff.fullName, days: asking.leave.days })}
           footer={<>
-            <Button variant="secondary" onClick={() => setAsking(null)}>Rehne dein</Button>
+            <Button variant="secondary" onClick={() => setAsking(null)}>{t('Rehne dein')}</Button>
             <Button variant="danger" loading={m.isPending} disabled={asking.decision === 'REJECT' && reason.trim().length < 2}
               onClick={() => m.mutate({ id: asking.leave.id, decision: asking.decision, why: reason.trim() || undefined })} leftIcon={<Palmtree className="h-4 w-4" />}>
-              {asking.decision === 'REJECT' ? 'Na-approve' : 'Cancel karein'}
+              {asking.decision === 'REJECT' ? t('Na-approve') : t('Cancel karein')}
             </Button>
           </>}>
-          <Input data-autofocus label="Wajah" required={asking.decision === 'REJECT'} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300}
-            placeholder="Masalan: us din stock ginti hai" hint="Staff aur activity log me dikhegi" />
+          <Input data-autofocus label={t('Wajah')} required={asking.decision === 'REJECT'} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300}
+            placeholder={t('Masalan: us din stock ginti hai')} hint={t('Staff aur activity log me dikhegi')} />
         </Modal>
       )}
     </>

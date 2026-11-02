@@ -18,6 +18,7 @@ import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { suppliersApi, type UpsertSupplierPayload } from '../api/suppliers.api';
 import { supplierLedgerApi } from '../api/supplier-ledger.api';
+import { msg, t as tr, Trans } from '@core/i18n';
 
 type Form = Required<Omit<UpsertSupplierPayload, 'isActive'>> & { isActive: boolean };
 type TextKey = Exclude<keyof Form, 'isActive'>;
@@ -27,7 +28,7 @@ const EMPTY: Form = {
   logoUrl: '', bankName: '', accountNumber: '', iban: '', paymentTerms: '', notes: '', isActive: true,
 };
 const TEXT_KEYS = Object.keys(EMPTY).filter((k) => k !== 'isActive') as TextKey[];
-const TERMS = ['Cash on delivery', '7 din', '15 din', '30 din', 'Har hafte', 'Mahine ke aakhir'];
+const TERMS = [tr('Cash on delivery'), tr('{{count}} din', { count: 7 }), tr('{{count}} din', { count: 15 }), tr('{{count}} din', { count: 30 }), tr('Har hafte'), tr('Mahine ke aakhir')];
 
 /** 03001234567 → 0300-1234567 */
 const phoneFmt = (raw: string) => {
@@ -87,13 +88,13 @@ export default function SupplierFormPage() {
     const old = JSON.parse(baseline) as Form;
     const typed = (k: TextKey) => !!f[k].trim() && f[k] !== old[k];
     const e: Partial<Record<keyof Form | 'opening', string>> = {};
-    if (!f.name.trim()) e.name = 'Supplier ka naam likhein';
-    if (typed('phone') && !phoneOk(f.phone)) e.phone = 'Number theek nahi — misaal: 0300-1234567 ya 042-35761234';
-    if (typed('altPhone') && !phoneOk(f.altPhone)) e.altPhone = 'Number theek nahi';
-    if (typed('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = 'Email theek nahi — misaal: orders@company.pk';
-    if (typed('cnic') && f.cnic.replace(/\D/g, '').length !== 13) e.cnic = 'CNIC 13 hindsay ka hota hai';
-    if (typed('iban') && !/^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/.test(f.iban.trim())) e.iban = 'IBAN PK se shuru, 24 harf (misaal: PK36MEZN0000…)';
-    if (opening.trim() && !(Number(opening) >= 0)) e.opening = 'Sirf number likhein';
+    if (!f.name.trim()) e.name = tr('Supplier ka naam likhein');
+    if (typed('phone') && !phoneOk(f.phone)) e.phone = tr('Number theek nahi — misaal: 0300-1234567 ya 042-35761234');
+    if (typed('altPhone') && !phoneOk(f.altPhone)) e.altPhone = tr('Number theek nahi');
+    if (typed('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = tr('Email theek nahi — misaal: orders@company.pk');
+    if (typed('cnic') && f.cnic.replace(/\D/g, '').length !== 13) e.cnic = tr('CNIC 13 hindsay ka hota hai');
+    if (typed('iban') && !/^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/.test(f.iban.trim())) e.iban = tr('IBAN PK se shuru, 24 harf (misaal: PK36MEZN0000…)');
+    if (opening.trim() && !(Number(opening) >= 0)) e.opening = tr('Sirf number likhein');
     return e;
   }, [f, opening, baseline]);
   const err = (k: keyof Form | 'opening') => ((tried || blurred[k]) ? errors[k] : undefined);
@@ -113,7 +114,7 @@ export default function SupplierFormPage() {
       let openingFailed = false;
       if (!editing && Number(opening) > 0) {
         try {
-          await supplierLedgerApi.setOpeningBalance(saved.id, { amount: Number(opening), note: 'Purana hisaab — khata shuru hone se pehle ka baqi' });
+          await supplierLedgerApi.setOpeningBalance(saved.id, { amount: Number(opening), note: msg('Purana hisaab — khata shuru hone se pehle ka baqi') });
         } catch { openingFailed = true; }
       }
       return { saved, openingFailed };
@@ -121,14 +122,14 @@ export default function SupplierFormPage() {
     onSuccess: ({ saved, openingFailed }) => {
       setBaseline(JSON.stringify(f));
       setOpening('');
-      toast.success(editing ? 'Save ho gaya' : `${saved.name} jur gaya`);
-      if (openingFailed) toast.error('Purana hisaab save nahi hua — supplier ke khata se dobara daalein');
+      toast.success(editing ? tr('Save ho gaya') : tr('{{name}} jur gaya', { name: saved.name }));
+      if (openingFailed) toast.error(tr('Purana hisaab save nahi hua — supplier ke khata se dobara daalein'));
       ['suppliers', 'supplier', 'supplier-ledger'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       navigate(`/suppliers/${saved.id}`, { replace: true });
     },
     onError: (e: any) => {
       const m = e?.response?.data?.message;
-      toast.error(Array.isArray(m) ? m[0] : m || 'Save nahi hua — dobara koshish karein');
+      toast.error(Array.isArray(m) ? m[0] : m || tr('Save nahi hua — dobara koshish karein'));
     },
     onSettled: () => { lock.current = false; },
   });
@@ -142,7 +143,7 @@ export default function SupplierFormPage() {
   }, [problems, save]);
 
   const goBack = useCallback(async () => {
-    if (dirty && !(await confirmDialog({ title: 'Tabdeeli save nahi hui — phir bhi wapas jayein?' }))) return;
+    if (dirty && !(await confirmDialog({ title: tr('Tabdeeli save nahi hui — phir bhi wapas jayein?') }))) return;
     navigate(editing ? `/suppliers/${id}` : '/suppliers');
   }, [dirty, navigate, editing, id]);
 
@@ -166,8 +167,8 @@ export default function SupplierFormPage() {
     return (
       <PageShell>
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">Yeh supplier nahi mila</p>
-          <Button className="mt-3" variant="secondary" onClick={() => navigate('/suppliers')}>Suppliers par wapas</Button>
+          <p className="font-semibold text-slate-900">{tr('Yeh supplier nahi mila')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => navigate('/suppliers')}>{tr('Suppliers par wapas')}</Button>
         </div>
       </PageShell>
     );
@@ -179,23 +180,23 @@ export default function SupplierFormPage() {
     <PageShell>
       <PageHero
         back={goBack}
-        backLabel="Wapas (Esc)"
-        title={editing ? `${existing.data?.name ?? 'Supplier'} — badlein` : 'Naya supplier'}
-        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone ho to WhatsApp par order aur hisaab bhej sakenge.'}
-        chip={dirty ? 'Save nahi hua' : undefined}
-        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
-        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        backLabel={tr('Wapas (Esc)')}
+        title={editing ? tr('{{value}} — badlein', { value: existing.data?.name ?? 'Supplier' }) : tr('Naya supplier')}
+        subtitle={editing ? tr('Jo badalna hai badlein — baqi waisa hi rahega') : tr('Sirf naam zaroori hai. Phone ho to WhatsApp par order aur hisaab bhej sakenge.')}
+        chip={dirty ? tr('Save nahi hua') : undefined}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save')}</span>}
+        actions={<button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
       />
 
       {guide.isOpen && (
-        <PageGuide title="Supplier kaise jorein" onClose={guide.close}
+        <PageGuide title={tr('Supplier kaise jorein')} onClose={guide.close}
           steps={[
-            { icon: UserRound, color: '#16a34a', title: 'Naam aur phone', text: 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par order aur hisaab bhej sakenge.' },
-            { icon: Landmark, color: '#2563eb', title: 'Bank', text: 'Bank aur IBAN likh dein — payment karte waqt yahin se nikal lein.' },
-            { icon: BookOpen, color: '#d97706', title: 'Purana hisaab', text: 'Nafaa se pehle ka baqi ho to "Purana hisaab" me likhein — khata wahin se shuru hoga.' },
-            { icon: Building2, color: '#7c3aed', title: 'Band karna', text: 'Jis se ab maal nahi lete use mitane ki bajaye "Chalu supplier" band kar dein — purana hisaab mehfooz rehta hai.' },
+            { icon: UserRound, color: '#16a34a', title: tr('Naam aur phone'), text: tr('Sirf naam zaroori hai. Phone daal dein to WhatsApp par order aur hisaab bhej sakenge.') },
+            { icon: Landmark, color: '#2563eb', title: tr('Bank'), text: tr('Bank aur IBAN likh dein — payment karte waqt yahin se nikal lein.') },
+            { icon: BookOpen, color: '#d97706', title: tr('Purana hisaab'), text: tr('Nafaa se pehle ka baqi ho to "Purana hisaab" me likhein — khata wahin se shuru hoga.') },
+            { icon: Building2, color: '#7c3aed', title: tr('Band karna'), text: tr('Jis se ab maal nahi lete use mitane ki bajaye "Chalu supplier" band kar dein — purana hisaab mehfooz rehta hai.') },
           ]}
-          shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]}
+          shortcuts={[['Ctrl+S', tr('save')], [tr('Esc'), tr('wapas')], ['G', tr('guide')]]}
         />
       )}
 
@@ -203,12 +204,12 @@ export default function SupplierFormPage() {
         <div className="space-y-1 rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           {clash.name && (
             <p className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>Is naam ka supplier pehle se hai: <Link to={`/suppliers/${clash.name.id}`} className="font-semibold underline">{clash.name.name}</Link>{clash.name.phone ? ` (${clash.name.phone})` : ''}{!clash.name.isActive ? ' — band hai, wahi chalu kar lein' : ''}. Kahin dobara to nahi bana rahe?</span>
+              <span><Trans text="Is naam ka supplier pehle se hai: {{name}}{{phone}}{{off}}. Kahin dobara to nahi bana rahe?" values={{ name: <Link to={`/suppliers/${clash.name.id}`} className="font-semibold underline">{clash.name.name}</Link>, phone: clash.name.phone ? ` (${clash.name.phone})` : '', off: !clash.name.isActive ? tr(' — band hai, wahi chalu kar lein') : '' }} /></span>
             </p>
           )}
           {clash.phone && clash.phone.id !== clash.name?.id && (
             <p className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>Yeh phone pehle se <Link to={`/suppliers/${clash.phone.id}`} className="font-semibold underline">{clash.phone.name}</Link> ka hai. Ek hi company ho to wahi kholein — hisaab ek jagah rahega.</span>
+              <span><Trans text="Yeh phone pehle se {{name}} ka hai. Ek hi company ho to wahi kholein — hisaab ek jagah rahega." values={{ name: <Link to={`/suppliers/${clash.phone.id}`} className="font-semibold underline">{clash.phone.name}</Link> }} /></span>
             </p>
           )}
         </div>
@@ -216,42 +217,42 @@ export default function SupplierFormPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Truck}>Supplier</T>}>
+          <Card className="rounded-2xl" title={<T icon={Truck}>{tr('Supplier')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input autoFocus={!editing} label="Naam" required value={f.name} onChange={(e) => set('name', e.target.value)} onBlur={blur('name')} maxLength={120}
-                placeholder="Misaal: Al-Madina Traders" size="lg" error={err('name')} wrapperClassName="sm:col-span-2" hint="Dukaan / company ka naam jo parchi par likha hota hai" />
-              <Input label="Rabte wala banda" value={f.contactPerson} onChange={(e) => set('contactPerson', e.target.value)} maxLength={100}
-                leftIcon={<UserRound className="h-4 w-4" />} hint="Jis se aap baat karte hain — salesman ya malik" />
-              <Input label="Email" type="email" value={f.email} onChange={(e) => set('email', e.target.value)} onBlur={blur('email')}
-                leftIcon={<Mail className="h-4 w-4" />} error={err('email')} hint="Marzi hai — purchase order email karne ke liye" />
-              <Input label="Phone" inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={(e) => { set('phone', phoneFmt(e.target.value)); blur('phone')(); }}
-                placeholder="0300-1234567" leftIcon={<Phone className="h-4 w-4" />} error={err('phone')} maxLength={20} hint="WhatsApp wala number behtar — order aur hisaab seedha bhej sakenge" />
-              <Input label="Doosra phone" inputMode="tel" value={f.altPhone} onChange={(e) => set('altPhone', e.target.value)} onBlur={(e) => { set('altPhone', phoneFmt(e.target.value)); blur('altPhone')(); }}
-                leftIcon={<Phone className="h-4 w-4" />} error={err('altPhone')} maxLength={20} hint="Office ya delivery wale ka number (marzi hai)" />
+              <Input autoFocus={!editing} label={tr('Naam')} required value={f.name} onChange={(e) => set('name', e.target.value)} onBlur={blur('name')} maxLength={120}
+                placeholder={tr('Misaal: Al-Madina Traders')} size="lg" error={err('name')} wrapperClassName="sm:col-span-2" hint={tr('Dukaan / company ka naam jo parchi par likha hota hai')} />
+              <Input label={tr('Rabte wala banda')} value={f.contactPerson} onChange={(e) => set('contactPerson', e.target.value)} maxLength={100}
+                leftIcon={<UserRound className="h-4 w-4" />} hint={tr('Jis se aap baat karte hain — salesman ya malik')} />
+              <Input label={tr('Email')} type="email" value={f.email} onChange={(e) => set('email', e.target.value)} onBlur={blur('email')}
+                leftIcon={<Mail className="h-4 w-4" />} error={err('email')} hint={tr('Marzi hai — purchase order email karne ke liye')} />
+              <Input label={tr('Phone')} inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={(e) => { set('phone', phoneFmt(e.target.value)); blur('phone')(); }}
+                placeholder="0300-1234567" leftIcon={<Phone className="h-4 w-4" />} error={err('phone')} maxLength={20} hint={tr('WhatsApp wala number behtar — order aur hisaab seedha bhej sakenge')} />
+              <Input label={tr('Doosra phone')} inputMode="tel" value={f.altPhone} onChange={(e) => set('altPhone', e.target.value)} onBlur={(e) => { set('altPhone', phoneFmt(e.target.value)); blur('altPhone')(); }}
+                leftIcon={<Phone className="h-4 w-4" />} error={err('altPhone')} maxLength={20} hint={tr('Office ya delivery wale ka number (marzi hai)')} />
             </div>
           </Card>
 
-          <Card className="rounded-2xl" title={<T icon={Building2}>Pata aur tax</T>}>
+          <Card className="rounded-2xl" title={<T icon={Building2}>{tr('Pata aur tax')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Pata" value={f.address} onChange={(e) => set('address', e.target.value)} maxLength={255} wrapperClassName="sm:col-span-2" hint="Godown ya dukaan ka pata — maal lene jana ho to kaam aata hai" />
-              <Input label="Shehar" value={f.city} onChange={(e) => set('city', e.target.value)} maxLength={80} hint="Suppliers ko shehar se chhantne ke liye" />
-              <Input label="Ilaqa" value={f.area} onChange={(e) => set('area', e.target.value)} maxLength={80} hint="Misaal: Akbari Mandi, Shah Alam" />
-              <Input label="CNIC" inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', e.target.value)} onBlur={blur('cnic')} maxLength={20}
-                placeholder="35202-1234567-1" className="font-mono" error={err('cnic')} hint="Marzi hai — bare len-den ke liye" />
-              <Input label="NTN" value={f.ntn} onChange={(e) => set('ntn', e.target.value)} maxLength={20} className="font-mono" hint="Tax wala supplier ho to — tax invoice ke liye" />
+              <Input label={tr('Pata')} value={f.address} onChange={(e) => set('address', e.target.value)} maxLength={255} wrapperClassName="sm:col-span-2" hint={tr('Godown ya dukaan ka pata — maal lene jana ho to kaam aata hai')} />
+              <Input label={tr('Shehar')} value={f.city} onChange={(e) => set('city', e.target.value)} maxLength={80} hint={tr('Suppliers ko shehar se chhantne ke liye')} />
+              <Input label={tr('Ilaqa')} value={f.area} onChange={(e) => set('area', e.target.value)} maxLength={80} hint={tr('Misaal: Akbari Mandi, Shah Alam')} />
+              <Input label={tr('CNIC')} inputMode="numeric" value={f.cnic} onChange={(e) => set('cnic', e.target.value)} onBlur={blur('cnic')} maxLength={20}
+                placeholder="35202-1234567-1" className="font-mono" error={err('cnic')} hint={tr('Marzi hai — bare len-den ke liye')} />
+              <Input label={tr('NTN')} value={f.ntn} onChange={(e) => set('ntn', e.target.value)} maxLength={20} className="font-mono" hint={tr('Tax wala supplier ho to — tax invoice ke liye')} />
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl" title={<T icon={Landmark}>Bank aur payment</T>}>
+          <Card className="rounded-2xl" title={<T icon={Landmark}>{tr('Bank aur payment')}</T>}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Bank" value={f.bankName} onChange={(e) => set('bankName', e.target.value)} maxLength={80} placeholder="Meezan, HBL…" hint="Jis bank me aap paisa bhejte hain" />
-              <Input label="Account #" value={f.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} maxLength={40} className="font-mono" hint="Supplier ka account number" />
-              <Input label="IBAN" value={f.iban} onChange={(e) => set('iban', e.target.value.toUpperCase().replace(/\s/g, ''))} onBlur={blur('iban')} maxLength={40}
-                placeholder="PK36MEZN…" className="font-mono" error={err('iban')} wrapperClassName="sm:col-span-2" hint="PK se shuru hone wala 24 harf ka number — online transfer ke liye" />
+              <Input label={tr('Bank')} value={f.bankName} onChange={(e) => set('bankName', e.target.value)} maxLength={80} placeholder={tr('Meezan, HBL…')} hint={tr('Jis bank me aap paisa bhejte hain')} />
+              <Input label={tr('Account #')} value={f.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} maxLength={40} className="font-mono" hint={tr('Supplier ka account number')} />
+              <Input label={tr('IBAN')} value={f.iban} onChange={(e) => set('iban', e.target.value.toUpperCase().replace(/\s/g, ''))} onBlur={blur('iban')} maxLength={40}
+                placeholder={tr('PK36MEZN…')} className="font-mono" error={err('iban')} wrapperClassName="sm:col-span-2" hint={tr('PK se shuru hone wala 24 harf ka number — online transfer ke liye')} />
               <div className="sm:col-span-2">
-                <Input label="Payment ki shart" value={f.paymentTerms} onChange={(e) => set('paymentTerms', e.target.value)} maxLength={60} hint="Kitne din me paisa dena hota hai — neeche se jaldi chunein" />
+                <Input label={tr('Payment ki shart')} value={f.paymentTerms} onChange={(e) => set('paymentTerms', e.target.value)} maxLength={60} hint={tr('Kitne din me paisa dena hota hai — neeche se jaldi chunein')} />
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {TERMS.map((t) => (
                     <button key={t} type="button" onClick={() => set('paymentTerms', t)}
@@ -263,17 +264,17 @@ export default function SupplierFormPage() {
           </Card>
 
           {!editing && (
-            <Card className="rounded-2xl" title={<T icon={BookOpen}>Purana hisaab</T>} description="Sirf naya supplier banate waqt — baad me khata se daalein">
-              <Input label="Is supplier ko pehle se kitna dena hai (Rs)" inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value.replace(/[^\d.]/g, ''))}
-                onBlur={blur('opening')} placeholder="0" className="text-right font-semibold tabular-nums" error={err('opening')}
-                hint={openingAmount > 0 ? `Khata ${formatPKR(openingAmount)} baqi se shuru hoga` : 'Khata shuru hone se pehle ka baqi; nahi to khali chhor dein'} />
+            <Card className="rounded-2xl" title={<T icon={BookOpen}>{tr('Purana hisaab')}</T>} description={tr('Sirf naya supplier banate waqt — baad me khata se daalein')}>
+              <Input label={tr('Is supplier ko pehle se kitna dena hai (Rs)')} inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={blur('opening')} placeholder="0" className="text-end font-semibold tabular-nums" error={err('opening')}
+                hint={openingAmount > 0 ? tr('Khata {{openingAmount}} baqi se shuru hoga', { openingAmount: formatPKR(openingAmount) }) : tr('Khata shuru hone se pehle ka baqi; nahi to khali chhor dein')} />
             </Card>
           )}
 
-          <Card className="rounded-2xl" title="Aur">
+          <Card className="rounded-2xl" title={tr('Aur')}>
             <div className="space-y-3">
-              <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={500} label="Note" hint="Kuch bhi yaad rakhna ho — misaal: har mangal ko maal deta hai" />
-              <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu supplier" description="Band ho to purchase me nahi aata; purana hisaab mehfooz rehta hai" />
+              <Textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} maxLength={500} label={tr('Note')} hint={tr('Kuch bhi yaad rakhna ho — misaal: har mangal ko maal deta hai')} />
+              <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label={tr('Chalu supplier')} description={tr('Band ho to purchase me nahi aata; purana hisaab mehfooz rehta hai')} />
             </div>
           </Card>
         </div>
@@ -281,10 +282,10 @@ export default function SupplierFormPage() {
 
       <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         {problems.length > 0 && (tried || f.name || editing)
-          ? <p className="mr-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{problems[0]}</p>
-          : <p className="mr-auto text-[0.8125rem] text-slate-500">{dirty ? 'Tabdeeli save nahi hui — Ctrl+S dabayein' : editing ? 'Sab save hai' : 'Sirf naam zaroori hai — baqi baad me bhi bhar sakte hain'}</p>}
-        <Button variant="secondary" onClick={goBack}>Rehne dein</Button>
-        <Button onClick={submit} loading={save.isPending} leftIcon={<Save className="h-4 w-4" />}>{editing ? 'Save karein' : 'Supplier jorein'}</Button>
+          ? <p className="me-auto flex items-center gap-1.5 text-[0.8125rem] text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />{problems[0]}</p>
+          : <p className="me-auto text-[0.8125rem] text-slate-500">{dirty ? tr('Tabdeeli save nahi hui — Ctrl+S dabayein') : editing ? tr('Sab save hai') : tr('Sirf naam zaroori hai — baqi baad me bhi bhar sakte hain')}</p>}
+        <Button variant="secondary" onClick={goBack}>{tr('Rehne dein')}</Button>
+        <Button onClick={submit} loading={save.isPending} leftIcon={<Save className="h-4 w-4" />}>{editing ? tr('Save karein') : tr('Supplier jorein')}</Button>
       </div>
     </PageShell>
   );

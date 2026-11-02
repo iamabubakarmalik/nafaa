@@ -3,6 +3,7 @@ import { PERMISSIONS, hasPermission } from '../../../common/constants/permission
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertPublisherDto } from './dto/upsert-publisher.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class PublishersService {
@@ -12,7 +13,7 @@ export class PublishersService {
     const name = dto.name?.trim();
     if (!name) throw new BadRequestException('Publisher ka naam likhein');
     const dup = await this.prisma.publisher.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' } } });
-    if (dup) throw new BadRequestException(`Publisher "${name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Publisher "{{name}}" pehle se hai', { name }));
     if (dto.supplierId) await this.checkSupplier(user, dto.supplierId);
     return this.prisma.publisher.create({ data: { tenantId: user.tenantId, ...dto, name } });
   }
@@ -166,7 +167,7 @@ export class PublishersService {
       const name = dto.name.trim();
       if (!name) throw new BadRequestException('Publisher ka naam likhein');
       const dup = await this.prisma.publisher.findFirst({ where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, NOT: { id } } });
-      if (dup) throw new BadRequestException(`Publisher "${name}" pehle se hai`);
+      if (dup) throw new BadRequestException(apiMessage('Publisher "{{name}}" pehle se hai', { name }));
       dto = { ...dto, name };
     }
     if (dto.supplierId !== undefined && dto.supplierId !== p.supplierId) {

@@ -8,6 +8,7 @@ import { postIndustrySale } from '../../_shared/industry-sale.helper';
 import { DAY_MS, GYM_SALE, assertCan, gymClock, nextNumber, opt, r2 } from '../common/gym-common';
 import { CreatePtDto, PtRateDto, PtStatusDto, PtWorkoutLogDto } from './dto/pt.dto';
 import { PtPackagesService } from './pt-packages.service';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const P = PERMISSIONS;
 type Db = Prisma.TransactionClient;
@@ -67,7 +68,7 @@ export class PersonalTrainingService {
         const ptp = plan ? null : await this.packages.pick(tx, tenantId, member.id, trainer.id, start, dto.packageId);
         if (!plan && !ptp) throw new BadRequestException('Is member ke paas PT sessions baqi nahi — single session book karein ya PT package bechein');
         const left = plan?.left ?? ptp!.left;
-        if (left < weeks) throw new BadRequestException(`Sirf ${left} PT sessions baqi hain`);
+        if (left < weeks) throw new BadRequestException(apiMessage('Sirf {{left}} PT sessions baqi hain', { left }));
         packageSaleId = ptp?.pkg.saleId ?? null;
       }
       const made = [];
@@ -78,7 +79,7 @@ export class PersonalTrainingService {
           where: { tenantId, trainerId: trainer.id, status: { in: ['SCHEDULED', 'IN_PROGRESS'] }, scheduledStart: { lt: e }, scheduledEnd: { gt: s } },
           select: { sessionNumber: true },
         });
-        if (clash) throw new BadRequestException(`Trainer ${clock.keyOf(s)} ko is waqt ${clash.sessionNumber} me masroof hai`);
+        if (clash) throw new BadRequestException(apiMessage('Trainer {{s}} ko is waqt {{sessionNumber}} me masroof hai', { s: clock.keyOf(s), sessionNumber: clash.sessionNumber }));
         const prefix = `PT-${clock.year(s)}-`;
         const sessionNumber = await nextNumber(tx, tenantId, prefix, async () => (await tx.gymPersonalTraining.findFirst({
           where: { tenantId, sessionNumber: { startsWith: prefix } }, orderBy: { sessionNumber: 'desc' }, select: { sessionNumber: true },

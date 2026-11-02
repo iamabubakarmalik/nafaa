@@ -6,51 +6,52 @@ import { Avatar, Badge } from '@/design-system/components';
 import { IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
 import type { AttentionItem } from '@modules/dashboard/widgets';
 import { useGymOps } from './useGymOps';
+import { t } from '@core/i18n';
 
 type NamedMember = { customer?: { name?: string } } | undefined;
-const memberName = (m: unknown, fallback = 'Member') => (m as NamedMember)?.customer?.name || fallback;
+const memberName = (m: unknown, fallback = t('Member')) => (m as NamedMember)?.customer?.name || fallback;
 
 const sinceLabel = (iso: string) => {
   const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
-  return m < 60 ? `${m} min se` : `${Math.floor(m / 60)}h ${m % 60}m se`;
+  return m < 60 ? t('{{m}} min se', { m }) : t('{{value}}h {{value2}}m se', { value: Math.floor(m / 60), value2: m % 60 });
 };
 
 /** Gym headline numbers, offered next to the common ones. */
 export const gymKpis: KpiDef[] = [
   {
-    id: 'gym-inside', label: 'Abhi andar', icon: Activity, tone: 'success',
+    id: 'gym-inside', label: t('Abhi andar'), icon: Activity, tone: 'success',
     useValue: () => {
       const { inside, checkInsToday, loading } = useGymOps();
-      return { loading, to: '/gym/attendance', value: inside.count, hint: `Aaj ${checkInsToday} check-in` };
+      return { loading, to: '/gym/attendance', value: inside.count, hint: t('Aaj {{checkInsToday}} check-in', { checkInsToday }) };
     },
   },
   {
-    id: 'gym-members', label: 'Active members', icon: Users, tone: 'brand',
+    id: 'gym-members', label: t('Active members'), icon: Users, tone: 'brand',
     useValue: () => {
       const { activeMembers, totalMembers, loading } = useGymOps();
-      return { loading, to: '/gym/members', value: activeMembers, hint: totalMembers ? `${totalMembers} kul` : 'Members' };
+      return { loading, to: '/gym/members', value: activeMembers, hint: totalMembers ? t('{{totalMembers}} kul', { totalMembers }) : t('Members') };
     },
   },
   {
-    id: 'gym-expiring', label: 'Renewal baqi', icon: RefreshCw, tone: 'warning',
+    id: 'gym-expiring', label: t('Renewal baqi'), icon: RefreshCw, tone: 'warning',
     useValue: () => {
       const { memberships: m, loading } = useGymOps();
-      return { loading, to: '/gym/members', value: m.expiring, alert: m.expiring > 0, hint: m.expired ? `${m.expired} khatam ho chuki` : '7 din me khatam' };
+      return { loading, to: '/gym/members', value: m.expiring, alert: m.expiring > 0, hint: m.expired ? t('{{expired}} khatam ho chuki', { expired: m.expired }) : t('7 din me khatam') };
     },
   },
   {
-    id: 'gym-classes', label: 'Aaj ki classes', icon: Calendar, tone: 'info',
+    id: 'gym-classes', label: t('Aaj ki classes'), icon: Calendar, tone: 'info',
     useValue: () => {
       const { classes, loading } = useGymOps();
-      return { loading, to: '/gym/classes', value: classes.list.length, hint: classes.live ? `${classes.live} chal rahi` : `${classes.booked}/${classes.seats} booked` };
+      return { loading, to: '/gym/classes', value: classes.list.length, hint: classes.live ? t('{{live}} chal rahi', { live: classes.live }) : t('{{booked}}/{{seats}} booked', { booked: classes.booked, seats: classes.seats }) };
     },
   },
   {
-    id: 'gym-dues', label: 'Fees baqi', icon: Wallet, tone: 'danger', sensitive: true,
+    id: 'gym-dues', label: t('Fees baqi'), icon: Wallet, tone: 'danger', sensitive: true,
     useValue: () => {
       const { memberships: m, loading } = useGymOps();
       const { cost } = useMasked();
-      return { loading, to: '/gym/memberships', value: cost(m.dueTotal), hint: `${m.duesCount} memberships` };
+      return { loading, to: '/gym/memberships', value: cost(m.dueTotal), hint: t('{{duesCount}} memberships', { duesCount: m.duesCount }) };
     },
   },
 ];
@@ -59,30 +60,30 @@ export function useGymAttention(): AttentionItem[] {
   const { memberships: m, classes, equipment } = useGymOps();
   const items: AttentionItem[] = [];
 
-  if (m.expiring) items.push({ icon: RefreshCw, level: 'warning', text: `${m.expiring} members ki membership agle 7 din me khatam — WhatsApp se yaad dilayein`, to: '/gym/members', cta: 'Renew karwayein' });
-  if (m.expired) items.push({ icon: AlertTriangle, level: 'info', text: `${m.expired} members ki membership khatam ho chuki — wapas bulayein`, to: '/gym/members', cta: 'Members' });
-  if (m.duesCount) items.push({ icon: Wallet, level: 'warning', text: `${m.duesCount} memberships ki fee baqi hai`, to: '/gym/memberships', cta: 'Fee lein' });
-  if (equipment.broken) items.push({ icon: Wrench, level: 'warning', text: `${equipment.broken} machine kharab ya marammat me — members ko pareshani hogi`, to: '/gym/equipment', cta: 'Equipment' });
-  if (equipment.service) items.push({ icon: Wrench, level: 'info', text: `${equipment.service} machine ki servicing ka waqt aa gaya`, to: '/gym/equipment', cta: 'Service karein' });
-  if (classes.upcoming) items.push({ icon: Calendar, level: 'info', text: `${classes.upcoming} class aaj abhi honi hai`, to: '/gym/classes', cta: 'Classes' });
+  if (m.expiring) items.push({ icon: RefreshCw, level: 'warning', text: t('{{expiring}} members ki membership agle 7 din me khatam — WhatsApp se yaad dilayein', { expiring: m.expiring }), to: '/gym/members', cta: t('Renew karwayein') });
+  if (m.expired) items.push({ icon: AlertTriangle, level: 'info', text: t('{{expired}} members ki membership khatam ho chuki — wapas bulayein', { expired: m.expired }), to: '/gym/members', cta: t('Members') });
+  if (m.duesCount) items.push({ icon: Wallet, level: 'warning', text: t('{{duesCount}} memberships ki fee baqi hai', { duesCount: m.duesCount }), to: '/gym/memberships', cta: t('Fee lein') });
+  if (equipment.broken) items.push({ icon: Wrench, level: 'warning', text: t('{{broken}} machine kharab ya marammat me — members ko pareshani hogi', { broken: equipment.broken }), to: '/gym/equipment', cta: t('Equipment') });
+  if (equipment.service) items.push({ icon: Wrench, level: 'info', text: t('{{service}} machine ki servicing ka waqt aa gaya', { service: equipment.service }), to: '/gym/equipment', cta: t('Service karein') });
+  if (classes.upcoming) items.push({ icon: Calendar, level: 'info', text: t('{{upcoming}} class aaj abhi honi hai', { upcoming: classes.upcoming }), to: '/gym/classes', cta: t('Classes') });
   return items;
 }
 
 export function GymInside() {
   const { inside, checkInsToday } = useGymOps();
   return (
-    <WidgetCard title="Abhi gym me" icon={Activity} description={`${inside.count} log andar · aaj ${checkInsToday} check-in`} to="/gym/attendance" linkLabel="Check-in" flush>
-      <RowList empty="Abhi koi andar nahi" emptyIcon={LogIn}>
+    <WidgetCard title={t('Abhi gym me')} icon={Activity} description={t('{{count}} log andar · aaj {{checkInsToday}} check-in', { count: inside.count, checkInsToday })} to="/gym/attendance" linkLabel={t('Check-in')} flush>
+      <RowList empty={t('Abhi koi andar nahi')} emptyIcon={LogIn}>
         {inside.list.map((a) => {
-          const name = a.isGuest ? (a.guestName || 'Guest') : memberName(a.member);
+          const name = a.isGuest ? (a.guestName || t('Guest')) : memberName(a.member);
           return (
             <ListRow
               key={a.id}
-              to={a.isGuest ? undefined : `/gym/members/${a.memberId}`}
+              to={a.isGuest ? undefined : `/gym/members/${a.memberId}`} // i18n-ignore
               leading={<Avatar name={name} url={(a.member as { photoUrl?: string } | undefined)?.photoUrl ?? a.photoUrl} size={36} />}
               title={name}
-              meta={`${format(new Date(a.checkInAt), 'h:mm a')} par aaye`}
-              value={a.isGuest ? <Badge variant="info" size="xs">Guest</Badge> : undefined}
+              meta={t('{{value}} par aaye', { value: format(new Date(a.checkInAt), 'h:mm a') })}
+              value={a.isGuest ? <Badge variant="info" size="xs">{t('Guest')}</Badge> : undefined}
               valueHint={<span className="text-slate-500">{sinceLabel(a.checkInAt)}</span>}
             />
           );
@@ -95,8 +96,8 @@ export function GymInside() {
 export function GymClasses() {
   const { classes } = useGymOps();
   return (
-    <WidgetCard title="Aaj ki classes" icon={Calendar} description={classes.list.length ? `${classes.booked}/${classes.seats} seats booked` : 'Aaj koi class nahi'} to="/gym/classes" flush>
-      <RowList empty="Aaj koi class nahi" emptyIcon={Calendar}>
+    <WidgetCard title={t('Aaj ki classes')} icon={Calendar} description={classes.list.length ? t('{{booked}}/{{seats}} seats booked', { booked: classes.booked, seats: classes.seats }) : t('Aaj koi class nahi')} to="/gym/classes" flush>
+      <RowList empty={t('Aaj koi class nahi')} emptyIcon={Calendar}>
         {classes.list.slice(0, 8).map((c) => {
           const full = c.maxParticipants > 0 && c.currentEnrolled >= c.maxParticipants;
           const trainer = (c.trainer as { name?: string; staff?: { fullName?: string; firstName?: string } } | undefined);
@@ -106,12 +107,12 @@ export function GymClasses() {
               key={c.id}
               leading={<span className="flex h-9 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[0.8125rem] font-bold tabular-nums text-slate-800">{format(new Date(c.scheduledStart), 'HH:mm')}</span>}
               title={c.name}
-              meta={`${c.durationMinutes} min${trainerName ? ` · ${trainerName}` : ''}${c.roomName ? ` · ${c.roomName}` : ''}`}
+              meta={t('{{durationMinutes}} min{{value}}{{value2}}', { durationMinutes: c.durationMinutes, value: trainerName ? ` · ${trainerName}` : '', value2: c.roomName ? ` · ${c.roomName}` : '' })}
               value={<span className="text-[0.8125rem]">{c.currentEnrolled}/{c.maxParticipants}</span>}
               valueHint={c.status === 'IN_PROGRESS'
-                ? <Badge variant="warning" size="xs" dot pulse>Chal rahi</Badge>
-                : c.status === 'COMPLETED' ? <Badge size="xs">Ho gayi</Badge>
-                : full ? <Badge variant="danger" size="xs">Full</Badge> : undefined}
+                ? <Badge variant="warning" size="xs" dot pulse>{t('Chal rahi')}</Badge>
+                : c.status === 'COMPLETED' ? <Badge size="xs">{t('Ho gayi')}</Badge>
+                : full ? <Badge variant="danger" size="xs">{t('Full')}</Badge> : undefined}
             />
           );
         })}
@@ -125,13 +126,13 @@ export function GymRenewals() {
   const { cost, costHidden } = useMasked();
   return (
     <WidgetCard
-      title="Renewal aur fees"
+      title={t('Renewal aur fees')}
       icon={RefreshCw}
-      description={m.dueTotal > 0 && !costHidden ? `${cost(m.dueTotal)} fee baqi · ${m.expiring} renewal` : `${m.expiring} renewal baqi`}
+      description={m.dueTotal > 0 && !costHidden ? t('{{dueTotal}} fee baqi · {{expiring}} renewal', { dueTotal: cost(m.dueTotal), expiring: m.expiring }) : t('{{expiring}} renewal baqi', { expiring: m.expiring })}
       to="/gym/members"
       flush
     >
-      <RowList empty="Agle 7 din me koi membership khatam nahi" emptyIcon={Award}>
+      <RowList empty={t('Agle 7 din me koi membership khatam nahi')} emptyIcon={Award}>
         {m.renewals.map((r) => {
           const days = Math.ceil(r.left);
           return (
@@ -141,7 +142,7 @@ export function GymRenewals() {
               leading={<IconBubble icon={RefreshCw} tone="warning" />}
               title={r.name}
               meta={`${r.plan}${r.due > 0 ? ` · baqi ${cost(r.due)}` : ''}`}
-              value={<Badge variant={days <= 2 ? 'warning' : 'default'} size="xs">{days <= 0 ? 'Aaj' : `${days} din`}</Badge>}
+              value={<Badge variant={days <= 2 ? 'warning' : 'default'} size="xs">{days <= 0 ? t('Aaj') : t('{{days}} din', { days })}</Badge>}
             />
           );
         })}
@@ -153,8 +154,8 @@ export function GymRenewals() {
 export function GymStreaks() {
   const { streaks } = useGymOps();
   return (
-    <WidgetCard title="Sab se regular" icon={Flame} description="Lagataar aane wale members — inhein shabaash dein" to="/gym/members" flush>
-      <RowList empty="Abhi kisi ki streak nahi bani" emptyIcon={Flame}>
+    <WidgetCard title={t('Sab se regular')} icon={Flame} description={t('Lagataar aane wale members — inhein shabaash dein')} to="/gym/members" flush>
+      <RowList empty={t('Abhi kisi ki streak nahi bani')} emptyIcon={Flame}>
         {streaks.map((mb) => (
           <ListRow
             key={mb.id}
@@ -162,8 +163,8 @@ export function GymStreaks() {
             leading={<Avatar name={memberName(mb)} url={mb.photoUrl} size={36} />}
             title={memberName(mb)}
             meta={<span className="font-mono">{mb.memberNumber}</span>}
-            value={<span className="inline-flex items-center gap-1 text-amber-700"><Flame className="h-3.5 w-3.5" />{mb.currentStreak} din</span>}
-            valueHint={<span className="text-slate-500">Best {mb.longestStreak}</span>}
+            value={<span className="inline-flex items-center gap-1 text-amber-700"><Flame className="h-3.5 w-3.5" />{t('{{currentStreak}} din', { currentStreak: mb.currentStreak })}</span>}
+            valueHint={<span className="text-slate-500">{t('Best {{longestStreak}}', { longestStreak: mb.longestStreak })}</span>}
           />
         ))}
       </RowList>

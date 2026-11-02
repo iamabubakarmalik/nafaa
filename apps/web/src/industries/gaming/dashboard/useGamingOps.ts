@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gamingDashboardApi } from '../api/dashboard.api';
 import { gamingSessionsApi, type GamingCafeSession } from '../api/sessions.api';
 import type { GamingTournament } from '../api/tournaments.api';
+import { t as tr } from '@core/i18n';
 
 const MINUTE = 60_000;
 
@@ -72,9 +73,9 @@ export function useGamingOps() {
       sessionsToday: Number(t?.sessionsCount ?? 0),
       topupProfitMonth: Number(m?.topupProfit ?? 0),
       list: [
-        row('Cafe sessions', t?.cafeRevenue, m?.cafeRevenue, `${t?.sessionsCount ?? 0} session aaj`),
-        row('Digital top-ups', t?.topupRevenue, m?.topupRevenue, `${t?.topupCount ?? 0} card aaj`),
-        row('Rentals', t?.rentalRevenue, m?.rentalRevenue, `${t?.rentalCount ?? 0} rental aaj`),
+        row(tr('Cafe sessions'), t?.cafeRevenue, m?.cafeRevenue, tr('{{count}} session aaj', { count: t?.sessionsCount ?? 0 })),
+        row(tr('Digital top-ups'), t?.topupRevenue, m?.topupRevenue, tr('{{count}} card aaj', { count: t?.topupCount ?? 0 })),
+        row(tr('Rentals'), t?.rentalRevenue, m?.rentalRevenue, tr('{{count}} rental aaj', { count: t?.rentalCount ?? 0 })),
       ],
     };
   }, [o]);

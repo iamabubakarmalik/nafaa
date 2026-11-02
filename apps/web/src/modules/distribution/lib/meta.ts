@@ -6,6 +6,7 @@
 
 import { formatPKR } from '@core/lib/format';
 import type { CollectionStatus, DeliveryOutcome, LoadSheetStatus, MoneyMethod, OrderStatus } from '../api/distribution.api';
+import { msg, t } from '@core/i18n';
 
 export type Tone = 'slate' | 'blue' | 'amber' | 'violet' | 'green' | 'rose' | 'teal' | 'orange';
 
@@ -21,42 +22,43 @@ export const TONE_CLASS: Record<Tone, string> = {
 };
 
 export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: Tone }> = {
-  BOOKED: { label: 'Booked', tone: 'amber' },
-  APPROVED: { label: 'Approved', tone: 'blue' },
-  INVOICING: { label: 'Invoice ban raha', tone: 'blue' },
-  INVOICED: { label: 'Invoiced', tone: 'violet' },
-  LOADED: { label: 'Gaari par', tone: 'orange' },
-  DELIVERED: { label: 'Delivered', tone: 'green' },
-  PARTIAL: { label: 'Kuch wapas', tone: 'teal' },
-  RETURNED: { label: 'Wapas', tone: 'rose' },
-  CANCELLED: { label: 'Cancel', tone: 'slate' },
+  BOOKED: { label: t('Booked'), tone: 'amber' },
+  APPROVED: { label: t('Approved'), tone: 'blue' },
+  INVOICING: { label: t('Invoice ban raha'), tone: 'blue' },
+  INVOICED: { label: t('Invoiced'), tone: 'violet' },
+  LOADED: { label: t('Gaari par'), tone: 'orange' },
+  DELIVERED: { label: t('Delivered'), tone: 'green' },
+  PARTIAL: { label: t('Kuch wapas'), tone: 'teal' },
+  RETURNED: { label: t('Wapas'), tone: 'rose' },
+  CANCELLED: { label: t('Cancel'), tone: 'slate' },
 };
 
 export const SHEET_STATUS: Record<LoadSheetStatus, { label: string; tone: Tone }> = {
-  OPEN: { label: 'Tayyar ho rahi', tone: 'amber' },
-  DISPATCHED: { label: 'Gaari nikal gayi', tone: 'orange' },
-  SETTLED: { label: 'Settle', tone: 'green' },
-  CANCELLED: { label: 'Cancel', tone: 'slate' },
+  OPEN: { label: t('Tayyar ho rahi'), tone: 'amber' },
+  DISPATCHED: { label: t('Gaari nikal gayi'), tone: 'orange' },
+  SETTLED: { label: t('Settle'), tone: 'green' },
+  CANCELLED: { label: t('Cancel'), tone: 'slate' },
 };
 
 export const OUTCOME: Record<DeliveryOutcome, { label: string; tone: Tone }> = {
-  DELIVERED: { label: 'Poora deliver', tone: 'green' },
-  PARTIAL: { label: 'Kuch wapas', tone: 'teal' },
-  RETURNED: { label: 'Sab wapas', tone: 'rose' },
+  DELIVERED: { label: t('Poora deliver'), tone: 'green' },
+  PARTIAL: { label: t('Kuch wapas'), tone: 'teal' },
+  RETURNED: { label: t('Sab wapas'), tone: 'rose' },
 };
 
 export const COLLECTION_STATUS: Record<CollectionStatus, { label: string; tone: Tone }> = {
-  PENDING: { label: 'Verify baqi', tone: 'amber' },
-  VERIFIED: { label: 'Verified', tone: 'green' },
-  REJECTED: { label: 'Reject', tone: 'rose' },
+  PENDING: { label: t('Verify baqi'), tone: 'amber' },
+  VERIFIED: { label: t('Verified'), tone: 'green' },
+  REJECTED: { label: t('Reject'), tone: 'rose' },
 };
 
 export const METHOD_LABEL: Record<MoneyMethod, string> = {
-  CASH: 'Cash', CARD: 'Card', BANK_TRANSFER: 'Bank', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa',
+  CASH: t('Cash'), CARD: t('Card'), BANK_TRANSFER: t('Bank'), JAZZCASH: t('JazzCash'), EASYPAISA: t('Easypaisa'),
 };
 export const METHODS = Object.keys(METHOD_LABEL) as MoneyMethod[];
 
-export const RETURN_REASONS = ['Dukaan band thi', 'Customer ne inkaar kiya', 'Paise nahi the', 'Maal kharab / toota', 'Ghalat maal gaya', 'Gaari me jagah nahi thi'];
+/** Stored as written; translate with t() where shown. */
+export const RETURN_REASONS: string[] = [msg('Dukaan band thi'), msg('Customer ne inkaar kiya'), msg('Paise nahi the'), msg('Maal kharab / toota'), msg('Ghalat maal gaya'), msg('Gaari me jagah nahi thi')];
 
 /** Whole rupees, "Rs 12,500". */
 export const rs = (n: number | null | undefined) => formatPKR(n ?? 0, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -65,8 +67,8 @@ export const rs = (n: number | null | undefined) => formatPKR(n ?? 0, { minimumF
 export function rsShort(n: number | null | undefined) {
   const v = n ?? 0;
   const a = Math.abs(v);
-  if (a >= 10_000_000) return `Rs ${(v / 10_000_000).toFixed(a >= 100_000_000 ? 0 : 1)} crore`;
-  if (a >= 100_000) return `Rs ${(v / 100_000).toFixed(a >= 10_000_000 ? 0 : 1)} lakh`;
+  if (a >= 10_000_000) return t('Rs {{value}} crore', { value: (v / 10_000_000).toFixed(a >= 100_000_000 ? 0 : 1) });
+  if (a >= 100_000) return t('Rs {{value}} lakh', { value: (v / 100_000).toFixed(a >= 10_000_000 ? 0 : 1) });
   return rs(v);
 }
 

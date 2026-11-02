@@ -29,6 +29,7 @@ import { karigarsApi, type Karigar } from '../api/karigars.api';
 import type { Purity } from '../api/metal-rates.api';
 import { ChipPicker, EmptyList, KaratPill, LoadFailed, StatusPill } from '../components/ui';
 import { COMMON_PURITIES, KEYS, apiError, day, dayTime, entryLabel, grams, purityLabel, r2, r3 } from '../lib/meta';
+import { t as tr } from '@core/i18n';
 
 const labourDue = (k: Karigar) => r2(Math.max(k.totalEarnings - k.paidLabour, 0));
 
@@ -73,11 +74,11 @@ export default function KarigarsPage() {
   }, [canEdit]);
 
   const printDoc = (): PrintDoc => ({
-    title: 'Karigar — sone ka hisaab',
-    meta: [['Karigar', String(rows.length)], ['Un ke paas', grams(holding)]],
+    title: tr('Karigar — sone ka hisaab'),
+    meta: [[tr('Karigar'), String(rows.length)], [tr('Un ke paas'), grams(holding)]],
     sections: [{
       kind: 'table',
-      columns: [{ label: 'Karigar' }, { label: 'Phone', wideOnly: true }, { label: 'Diya', align: 'right' }, { label: 'Wapas', align: 'right' }, { label: 'Wastage', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' }, { label: 'Mazdoori baqi', align: 'right' }],
+      columns: [{ label: tr('Karigar') }, { label: tr('Phone'), wideOnly: true }, { label: tr('Diya'), align: 'right' }, { label: tr('Wapas'), align: 'right' }, { label: tr('Wastage'), align: 'right', wideOnly: true }, { label: tr('Baqi'), align: 'right' }, { label: tr('Mazdoori baqi'), align: 'right' }],
       rows: rows.map((k) => [k.fullName, k.phone, String(r3(k.metalIssuedGrams)), String(r3(k.metalReturnedGrams)), String(r3(k.wastageGrams)), String(r3(k.outstandingGrams)), formatPKR(labourDue(k))]),
     }],
   });
@@ -85,60 +86,60 @@ export default function KarigarsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Karigar"
-        chip={<><Hammer /> Sone ka lena dena</>}
-        meta="Kis karigar ko kitna sona diya, kitna wapas aaya aur kitna baqi hai"
+        title={tr('Karigar')}
+        chip={<><Hammer /> {' '}{tr('Sone ka lena dena')}</>}
+        meta={tr('Kis karigar ko kitna sona diya, kitna wapas aaya aur kitna baqi hai')}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={sumQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!rows.length} /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={() => setForm('new')} title="Naya karigar (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Karigar</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setForm('new')} title={tr('Naya karigar (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Karigar')}</button>}
         </>}
         stats={[
-          { label: 'Chalu karigar', value: sumQ.data?.total ?? '—' },
-          { label: 'Un ke paas sona', value: grams(holding) },
-          { label: 'Mazdoori baqi', value: formatPKR(owed) },
+          { label: tr('Chalu karigar'), value: sumQ.data?.total ?? '—' },
+          { label: tr('Un ke paas sona'), value: grams(holding) },
+          { label: tr('Mazdoori baqi'), value: formatPKR(owed) },
         ]}
       />
 
       <KpiRow cols={5}>
-        <KpiCard icon={Users} color="#7c3aed" label="Dukaan ke andar" value={sumQ.data?.inHouse ?? '—'} onClick={() => setWhere(where === 'in' ? '' : 'in')} active={where === 'in'} />
-        <KpiCard icon={UserRound} color="#0891b2" label="Bahar wale" value={sumQ.data?.external ?? '—'} onClick={() => setWhere(where === 'out' ? '' : 'out')} active={where === 'out'} />
-        <KpiCard icon={Scale} color={holding > 0 ? '#d97706' : '#64748b'} label="Karigaron ke paas" value={grams(holding)} hint="Abhi wapas aana hai" />
-        <KpiCard icon={Hammer} color="#e11d48" label="Wastage di" value={grams(wastage)} hint="In karigaron ko ab tak" />
-        <KpiCard icon={Banknote} color={owed > 0 ? '#0891b2' : '#64748b'} label="Mazdoori baqi" value={formatPKR(owed)} hint="Kaam ho gaya, paise dene hain" />
+        <KpiCard icon={Users} color="#7c3aed" label={tr('Dukaan ke andar')} value={sumQ.data?.inHouse ?? '—'} onClick={() => setWhere(where === 'in' ? '' : 'in')} active={where === 'in'} />
+        <KpiCard icon={UserRound} color="#0891b2" label={tr('Bahar wale')} value={sumQ.data?.external ?? '—'} onClick={() => setWhere(where === 'out' ? '' : 'out')} active={where === 'out'} />
+        <KpiCard icon={Scale} color={holding > 0 ? '#d97706' : '#64748b'} label={tr('Karigaron ke paas')} value={grams(holding)} hint={tr('Abhi wapas aana hai')} />
+        <KpiCard icon={Hammer} color="#e11d48" label={tr('Wastage di')} value={grams(wastage)} hint={tr('In karigaron ko ab tak')} />
+        <KpiCard icon={Banknote} color={owed > 0 ? '#0891b2' : '#64748b'} label={tr('Mazdoori baqi')} value={formatPKR(owed)} hint={tr('Kaam ho gaya, paise dene hain')} />
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone, CNIC, karigar #…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, phone, CNIC, karigar #…')} label={tr('Search')} />}
         chips={filtered ? <>
-          {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{status === 'inactive' ? 'Band' : 'Sab'}</FilterChip>}
-          {where && <FilterChip onRemove={() => setWhere('')}>{where === 'in' ? 'Dukaan ke andar' : 'Bahar wale'}</FilterChip>}
+          {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{status === 'inactive' ? tr('Band') : tr('Sab')}</FilterChip>}
+          {where && <FilterChip onRemove={() => setWhere('')}>{where === 'in' ? tr('Dukaan ke andar') : tr('Bahar wale')}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
         onClear={() => { setSearch(''); setStatus('active'); setWhere(''); }}>
-        <FilterMenu icon={Filter} label={status === 'active' ? 'Chalu' : status === 'inactive' ? 'Band' : 'Sab'} value={status} active={status !== 'active'} onChange={setStatus}
-          options={[{ value: 'active', label: 'Chalu' }, { value: 'inactive', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
+        <FilterMenu icon={Filter} label={status === 'active' ? tr('Chalu') : status === 'inactive' ? tr('Band') : tr('Sab')} value={status} active={status !== 'active'} onChange={setStatus}
+          options={[{ value: 'active', label: tr('Chalu') }, { value: 'inactive', label: tr('Band') }, { value: 'all', label: tr('Sab') }]} />
       </FilterBar>
 
       {listQ.isLoading ? <Skeleton className="h-64 rounded-3xl" />
-        : listQ.isError && !listQ.data ? <LoadFailed what="Karigar" retry={() => listQ.refetch()} />
+        : listQ.isError && !listQ.data ? <LoadFailed what={tr('Karigar')} retry={() => listQ.refetch()} />
           : !rows.length ? (
-            <EmptyList icon={Hammer} title={filtered ? 'Is filter me koi karigar nahi' : 'Abhi koi karigar nahi'} text="Karigar ka naam aur phone likhein — phir sona dein aur zewar wapas lein, hisaab khud banta hai.">
-              {canEdit && <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>Pehla karigar</Button>}
+            <EmptyList icon={Hammer} title={filtered ? tr('Is filter me koi karigar nahi') : tr('Abhi koi karigar nahi')} text={tr('Karigar ka naam aur phone likhein — phir sona dein aur zewar wapas lein, hisaab khud banta hai.')}>
+              {canEdit && <Button onClick={() => setForm('new')} leftIcon={<Plus className="h-4 w-4" />}>{tr('Pehla karigar')}</Button>}
             </EmptyList>
           ) : (
             <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <Table minWidth="64rem">
-                <THead><Tr><Th>Karigar</Th><Th>Rate</Th><Th align="right">Diya</Th><Th align="right">Wapas</Th><Th align="right">Wastage</Th><Th align="right">Baqi</Th><Th align="right">Mazdoori</Th><Th align="right">Kaam</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Karigar')}</Th><Th>{tr('Rate')}</Th><Th align="right">{tr('Diya')}</Th><Th align="right">{tr('Wapas')}</Th><Th align="right">{tr('Wastage')}</Th><Th align="right">{tr('Baqi')}</Th><Th align="right">{tr('Mazdoori')}</Th><Th align="right">{tr('Kaam')}</Th></Tr></THead>
                 <TBody>
                   {rows.map((k) => (
                     <Tr key={k.id} className={k.isActive ? undefined : 'opacity-60'}>
                       <Td>
-                        <button type="button" onClick={() => setLedger(k)} className="text-left">
+                        <button type="button" onClick={() => setLedger(k)} className="text-start">
                           <span className="block font-semibold text-slate-900 hover:underline">{k.fullName}</span>
-                          <span className="block text-[0.75rem] text-slate-500">{k.karigarNumber} · {k.phone}{k.isInHouse ? '' : ' · bahar'}{k.isActive ? '' : ' · band'}</span>
+                          <span className="block text-[0.75rem] text-slate-500">{k.karigarNumber} · {k.phone}{k.isInHouse ? '' : tr(' · bahar')}{k.isActive ? '' : tr(' · band')}</span>
                         </button>
                       </Td>
                       <Td className="text-[0.8125rem]">{[k.perGramRate ? `${formatPKR(k.perGramRate)}/g` : '', k.fixedRatePerPiece ? `${formatPKR(k.fixedRatePerPiece)}/piece` : ''].filter(Boolean).join(' · ') || '—'}</Td>
@@ -148,16 +149,16 @@ export default function KarigarsPage() {
                       <Td align="right" className={k.outstandingGrams > 0 ? 'font-bold text-amber-700' : 'text-slate-500'}>{r3(k.outstandingGrams)}</Td>
                       <Td align="right">
                         <span className={labourDue(k) > 0 ? 'font-bold text-sky-700' : 'text-slate-500'}>{formatPKR(labourDue(k))}</span>
-                        {k.paidLabour > 0 && <span className="block text-[0.6875rem] text-slate-500">diya {formatPKR(k.paidLabour)}</span>}
+                        {k.paidLabour > 0 && <span className="block text-[0.6875rem] text-slate-500">{tr('diya {{paidLabour}}', { paidLabour: formatPKR(k.paidLabour) })}</span>}
                       </Td>
                       <Td align="right">
                         <div className="flex justify-end gap-1.5">
-                          {canMetal && k.isActive && <Button size="sm" variant="secondary" onClick={() => setMetal({ k, mode: 'issue' })} leftIcon={<ArrowUpRight className="h-4 w-4" />}>Sona dein</Button>}
-                          {canMetal && k.outstandingGrams > 0 && <Button size="sm" onClick={() => setMetal({ k, mode: 'receive' })} leftIcon={<ArrowDownLeft className="h-4 w-4" />}>Wapas lein</Button>}
-                          {canPay && labourDue(k) > 0 && <Button size="sm" variant="secondary" onClick={() => setLabour({ k, mode: 'pay' })} leftIcon={<Banknote className="h-4 w-4" />}>Mazdoori dein</Button>}
-                          {canEdit && <Button size="sm" variant="ghost" onClick={() => setLabour({ k, mode: 'earn' })} aria-label="Mazdoori likhein" title="Mazdoori likhein"><NotebookPen className="h-4 w-4" /></Button>}
-                          <Button size="sm" variant="ghost" onClick={() => setLedger(k)} aria-label="Hisaab"><History className="h-4 w-4" /></Button>
-                          {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm(k)} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>}
+                          {canMetal && k.isActive && <Button size="sm" variant="secondary" onClick={() => setMetal({ k, mode: 'issue' })} leftIcon={<ArrowUpRight className="h-4 w-4" />}>{tr('Sona dein')}</Button>}
+                          {canMetal && k.outstandingGrams > 0 && <Button size="sm" onClick={() => setMetal({ k, mode: 'receive' })} leftIcon={<ArrowDownLeft className="h-4 w-4" />}>{tr('Wapas lein')}</Button>}
+                          {canPay && labourDue(k) > 0 && <Button size="sm" variant="secondary" onClick={() => setLabour({ k, mode: 'pay' })} leftIcon={<Banknote className="h-4 w-4" />}>{tr('Mazdoori dein')}</Button>}
+                          {canEdit && <Button size="sm" variant="ghost" onClick={() => setLabour({ k, mode: 'earn' })} aria-label={tr('Mazdoori likhein')} title={tr('Mazdoori likhein')}><NotebookPen className="h-4 w-4" /></Button>}
+                          <Button size="sm" variant="ghost" onClick={() => setLedger(k)} aria-label={tr('Hisaab')}><History className="h-4 w-4" /></Button>
+                          {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm(k)} aria-label={tr('Badlein')}><Pencil className="h-4 w-4" /></Button>}
                         </div>
                       </Td>
                     </Tr>
@@ -173,16 +174,16 @@ export default function KarigarsPage() {
       {labour && <LabourModal k={labour.k} mode={labour.mode} onClose={() => setLabour(null)} onSaved={() => { setLabour(null); refresh(); }} />}
 
       {guide.isOpen && (
-        <PageGuide title="Karigar — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Karigar — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#7c3aed', title: 'Karigar banayein', text: 'Naam, phone aur rate (fi gram ya fi piece) likhein.' },
-            { icon: ArrowUpRight, color: '#d97706', title: 'Sona dein', text: 'Kitna aur kis karat ka sona diya — tijori (metal stock) se nikal kar karigar ke khate me.' },
-            { icon: ArrowDownLeft, color: '#16a34a', title: 'Wapas lein', text: 'Bana hua zewar tol kar likhein, tay wastage aur bacha hua sona. Baqi khud kam hota hai.' },
-            { icon: Banknote, color: '#0891b2', title: 'Mazdoori', text: 'Order ka zewar wapas aane par mazdoori rate ke hisaab se khud judti hai. Doosre kaam ki mazdoori haath se likhein; "Mazdoori dein" se paisa drawer se expense ban kar nikalta hai.' },
-            { icon: History, color: '#64748b', title: 'Hisaab', text: 'Naam par click — sona, orders, repair aur mazdoori ek jagah.' },
+            { icon: Plus, color: '#7c3aed', title: tr('Karigar banayein'), text: tr('Naam, phone aur rate (fi gram ya fi piece) likhein.') },
+            { icon: ArrowUpRight, color: '#d97706', title: tr('Sona dein'), text: tr('Kitna aur kis karat ka sona diya — tijori (metal stock) se nikal kar karigar ke khate me.') },
+            { icon: ArrowDownLeft, color: '#16a34a', title: tr('Wapas lein'), text: tr('Bana hua zewar tol kar likhein, tay wastage aur bacha hua sona. Baqi khud kam hota hai.') },
+            { icon: Banknote, color: '#0891b2', title: tr('Mazdoori'), text: tr('Order ka zewar wapas aane par mazdoori rate ke hisaab se khud judti hai. Doosre kaam ki mazdoori haath se likhein; "Mazdoori dein" se paisa drawer se expense ban kar nikalta hai.') },
+            { icon: History, color: '#64748b', title: tr('Hisaab'), text: tr('Naam par click — sona, orders, repair aur mazdoori ek jagah.') },
           ]}
-          tips={['Wastage % har karigar ke liye dekhein — zyada ho to baat karein.', 'Jis karigar ke paas sona baqi ho use band nahi kar sakte.']}
-          shortcuts={[['N', 'naya karigar'], ['/', 'dhoondein'], ['G', 'guide']]}
+          tips={[tr('Wastage % har karigar ke liye dekhein — zyada ho to baat karein.'), tr('Jis karigar ke paas sona baqi ho use band nahi kar sakte.')]}
+          shortcuts={[['N', tr('naya karigar')], ['/', tr('dhoondein')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>
@@ -207,38 +208,38 @@ function KarigarForm({ karigar, onClose, onSaved }: { karigar: Karigar | null; o
       };
       return karigar ? karigarsApi.update(karigar.id, body) : karigarsApi.create(body);
     },
-    onSuccess: () => { toast.success(karigar ? 'Karigar update ho gaya' : 'Karigar ban gaya'); onSaved(); },
-    onError: (e) => setErrors({ form: apiError(e, 'Save nahi hua') }),
+    onSuccess: () => { toast.success(karigar ? tr('Karigar update ho gaya') : tr('Karigar ban gaya')); onSaved(); },
+    onError: (e) => setErrors({ form: apiError(e, tr('Save nahi hua')) }),
   });
   const submit = () => {
     const e: Record<string, string> = {};
-    if (!f.fullName.trim()) e.fullName = 'Naam likhein';
-    if (!/^[\d+\-\s]{7,20}$/.test(f.phone.trim())) e.phone = 'Sahi phone number likhein';
+    if (!f.fullName.trim()) e.fullName = tr('Naam likhein');
+    if (!/^[\d+\-\s]{7,20}$/.test(f.phone.trim())) e.phone = tr('Sahi phone number likhein');
     setErrors(e);
     if (!Object.keys(e).length) save.mutate();
   };
   return (
-    <Modal open onClose={onClose} size="lg" title={karigar ? `${karigar.fullName} — badlein` : 'Naya karigar'}
-      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>Save karein</Button></>}>
+    <Modal open onClose={onClose} size="lg" title={karigar ? tr('{{fullName}} — badlein', { fullName: karigar.fullName }) : tr('Naya karigar')}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} loading={save.isPending}>{tr('Save karein')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Naam" required autoFocus value={f.fullName} onChange={(e) => set({ fullName: e.target.value })} error={errors.fullName} maxLength={80} />
-          <Input label="Phone" required inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} error={errors.phone} placeholder="03xx xxxxxxx" />
-          <Input label="CNIC" value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} placeholder="35202-xxxxxxx-x" hint="Sona dene se pehle zaroor" />
-          <Input label="Kaam / mahaarat" value={f.skillLevel} onChange={(e) => set({ skillLevel: e.target.value })} placeholder="Kundan, choori, polish…" />
-          <Input label="Mazdoori fi gram (Rs)" inputMode="decimal" value={f.perGramRate} onChange={(e) => set({ perGramRate: e.target.value.replace(/[^\d.]/g, '') })} />
-          <Input label="Mazdoori fi piece (Rs)" inputMode="decimal" value={f.fixedRatePerPiece} onChange={(e) => set({ fixedRatePerPiece: e.target.value.replace(/[^\d.]/g, '') })} />
-          <Input label="Tajurba (saal)" inputMode="numeric" value={f.yearsExperience} onChange={(e) => set({ yearsExperience: e.target.value.replace(/\D/g, '') })} />
-          <Input label="Pata" value={f.address} onChange={(e) => set({ address: e.target.value })} maxLength={200} />
+          <Input label={tr('Naam')} required autoFocus value={f.fullName} onChange={(e) => set({ fullName: e.target.value })} error={errors.fullName} maxLength={80} />
+          <Input label={tr('Phone')} required inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} error={errors.phone} placeholder={tr('03xx xxxxxxx')} />
+          <Input label={tr('CNIC')} value={f.cnic} onChange={(e) => set({ cnic: e.target.value })} placeholder="35202-xxxxxxx-x" hint={tr('Sona dene se pehle zaroor')} />
+          <Input label={tr('Kaam / mahaarat')} value={f.skillLevel} onChange={(e) => set({ skillLevel: e.target.value })} placeholder={tr('Kundan, choori, polish…')} />
+          <Input label={tr('Mazdoori fi gram (Rs)')} inputMode="decimal" value={f.perGramRate} onChange={(e) => set({ perGramRate: e.target.value.replace(/[^\d.]/g, '') })} />
+          <Input label={tr('Mazdoori fi piece (Rs)')} inputMode="decimal" value={f.fixedRatePerPiece} onChange={(e) => set({ fixedRatePerPiece: e.target.value.replace(/[^\d.]/g, '') })} />
+          <Input label={tr('Tajurba (saal)')} inputMode="numeric" value={f.yearsExperience} onChange={(e) => set({ yearsExperience: e.target.value.replace(/\D/g, '') })} />
+          <Input label={tr('Pata')} value={f.address} onChange={(e) => set({ address: e.target.value })} maxLength={200} />
         </div>
         <div className="flex flex-wrap gap-6">
-          <Switch label="Dukaan ke andar kaam karta hai" checked={f.isInHouse} onChange={(e) => set({ isInHouse: e.target.checked })} />
-          {karigar && <Switch label="Chalu" description="Band karne se history rehti hai" checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} />}
+          <Switch label={tr('Dukaan ke andar kaam karta hai')} checked={f.isInHouse} onChange={(e) => set({ isInHouse: e.target.checked })} />
+          {karigar && <Switch label={tr('Chalu')} description={tr('Band karne se history rehti hai')} checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} />}
         </div>
-        <Textarea label="Note" rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} maxLength={300} />
+        <Textarea label={tr('Note')} rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} maxLength={300} />
         {errors.form && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{errors.form}</p>}
-        <p className="text-[0.75rem] text-slate-500">Save: <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd></p>
+        <p className="text-[0.75rem] text-slate-500">{tr('Save:')}{' '} <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd></p>
       </form>
     </Modal>
   );
@@ -256,40 +257,39 @@ function MetalModal({ k, mode, onClose, onSaved }: { k: Karigar; mode: 'issue' |
     mutationFn: () => issue
       ? karigarsApi.issueMetal(k.id, { grams: Number(g.grams), purity, reference: reference.trim() || undefined, notes: notes.trim() || undefined })
       : karigarsApi.receiveMetal(k.id, { receivedGrams: Number(g.piece) || 0, wastageGrams: Number(g.wastage) || 0, returnedGrams: Number(g.back) || 0, purity, reference: reference.trim() || undefined, notes: notes.trim() || undefined }),
-    onSuccess: () => { toast.success(issue ? 'Sona de diya — metal stock se nikla' : 'Wapas le liya'); onSaved(); },
-    onError: (e) => setError(apiError(e, 'Save nahi hua')),
+    onSuccess: () => { toast.success(issue ? tr('Sona de diya — metal stock se nikla') : tr('Wapas le liya')); onSaved(); },
+    onError: (e) => setError(apiError(e, tr('Save nahi hua'))),
   });
   const submit = () => {
-    if (issue && !(Number(g.grams) > 0)) return setError('Kitna sona diya — grams likhein');
-    if (!issue && !(settled > 0)) return setError('Wapas aane wala wazan likhein');
-    if (!issue && settled > k.outstandingGrams + 0.001) return setError(`${k.fullName} ke paas sirf ${grams(k.outstandingGrams)} hai`);
+    if (issue && !(Number(g.grams) > 0)) return setError(tr('Kitna sona diya — grams likhein'));
+    if (!issue && !(settled > 0)) return setError(tr('Wapas aane wala wazan likhein'));
+    if (!issue && settled > k.outstandingGrams + 0.001) return setError(tr('{{fullName}} ke paas sirf {{outstandingGrams}} hai', { fullName: k.fullName, outstandingGrams: grams(k.outstandingGrams) }));
     setError('');
     save.mutate();
   };
   const num = (key: keyof typeof g) => (e: ChangeEvent<HTMLInputElement>) => setG({ ...g, [key]: e.target.value.replace(/[^\d.]/g, '') });
   return (
-    <Modal open onClose={onClose} title={issue ? `${k.fullName} ko sona dein` : `${k.fullName} se wapas lein`}
-      description={`Abhi ${k.fullName} ke paas ${grams(k.outstandingGrams)}`}
-      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>{issue ? 'Sona dein' : 'Wapas lein'}</Button></>}>
+    <Modal open onClose={onClose} title={issue ? tr('{{fullName}} ko sona dein', { fullName: k.fullName }) : tr('{{fullName}} se wapas lein', { fullName: k.fullName })}
+      description={tr('Abhi {{fullName}} ke paas {{outstandingGrams}}', { fullName: k.fullName, outstandingGrams: grams(k.outstandingGrams) })}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} loading={save.isPending}>{issue ? tr('Sona dein') : tr('Wapas lein')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <ChipPicker label="Karat" value={purity} onChange={setPurity} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
+        <ChipPicker label={tr('Karat')} value={purity} onChange={setPurity} options={COMMON_PURITIES.map((p) => ({ value: p, label: purityLabel(p) }))} />
         {issue ? (
-          <Input label="Grams" required autoFocus inputMode="decimal" value={g.grams} onChange={num('grams')} hint="Tijori se nikal kar diya" />
+          <Input label={tr('Grams')} required autoFocus inputMode="decimal" value={g.grams} onChange={num('grams')} hint={tr('Tijori se nikal kar diya')} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">
-            <Input label="Bana zewar (g)" autoFocus inputMode="decimal" value={g.piece} onChange={num('piece')} hint="Tol kar" />
-            <Input label="Wastage (g)" inputMode="decimal" value={g.wastage} onChange={num('wastage')} hint="Jo tay hua" />
-            <Input label="Bacha sona (g)" inputMode="decimal" value={g.back} onChange={num('back')} hint="Tijori me wapas" />
+            <Input label={tr('Bana zewar (g)')} autoFocus inputMode="decimal" value={g.piece} onChange={num('piece')} hint={tr('Tol kar')} />
+            <Input label={tr('Wastage (g)')} inputMode="decimal" value={g.wastage} onChange={num('wastage')} hint={tr('Jo tay hua')} />
+            <Input label={tr('Bacha sona (g)')} inputMode="decimal" value={g.back} onChange={num('back')} hint={tr('Tijori me wapas')} />
           </div>
         )}
         {!issue && settled > 0 && (
           <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700">
-            Kul {grams(settled)} — baad me {k.fullName} ke paas {grams(Math.max(k.outstandingGrams - settled, 0))}
-            {Number(g.wastage) > 0 && settled > 0 ? ` · wastage ${Math.round((Number(g.wastage) / settled) * 1000) / 10}%` : ''}
+            {tr('Kul {{settled}} — baad me {{fullName}} ke paas {{grams}}{{value}}', { settled: grams(settled), fullName: k.fullName, grams: grams(Math.max(k.outstandingGrams - settled, 0)), value: Number(g.wastage) > 0 && settled > 0 ? tr(' · wastage {{value}}%', { value: Math.round((Number(g.wastage) / settled) * 1000) / 10 }) : '' })}
           </p>
         )}
-        <Input label="Reference" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Order # ya parchi" maxLength={60} />
-        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />
+        <Input label={tr('Reference')} value={reference} onChange={(e) => setReference(e.target.value)} placeholder={tr('Order # ya parchi')} maxLength={60} />
+        <Textarea label={tr('Note')} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={300} />
         {error && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{error}</p>}
       </form>
     </Modal>
@@ -300,12 +300,12 @@ function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
   const q = useQuery({ queryKey: [KEYS.karigars, 'ledger', k.id], queryFn: () => karigarsApi.ledger(k.id) });
   const lab = q.data?.labour;
   return (
-    <Modal open onClose={onClose} size="xl" title={`${k.fullName} — hisaab`} description={`Diya ${grams(k.metalIssuedGrams)} · wapas ${grams(k.metalReturnedGrams)} · wastage ${grams(k.wastageGrams)} · baqi ${grams(k.outstandingGrams)}`}>
-      {q.isLoading ? <Skeleton className="h-48 rounded-2xl" /> : q.isError ? <LoadFailed what="Hisaab" retry={() => q.refetch()} /> : (
+    <Modal open onClose={onClose} size="xl" title={tr('{{fullName}} — hisaab', { fullName: k.fullName })} description={tr('Diya {{metalIssuedGrams}} · wapas {{metalReturnedGrams}} · wastage {{wastageGrams}} · baqi {{outstandingGrams}}', { metalIssuedGrams: grams(k.metalIssuedGrams), metalReturnedGrams: grams(k.metalReturnedGrams), wastageGrams: grams(k.wastageGrams), outstandingGrams: grams(k.outstandingGrams) })}>
+      {q.isLoading ? <Skeleton className="h-48 rounded-2xl" /> : q.isError ? <LoadFailed what={tr('Hisaab')} retry={() => q.refetch()} /> : (
         <div className="space-y-4">
           {lab && (
             <section className="grid grid-cols-3 gap-2">
-              {[['Mazdoori bani', lab.earned, 'text-slate-900'], ['Di gayi', lab.paid, 'text-emerald-700'], ['Baqi', lab.due, lab.due > 0 ? 'text-sky-700' : 'text-slate-500']].map(([label, v, tone]) => (
+              {[[tr('Mazdoori bani'), lab.earned, 'text-slate-900'], [tr('Di gayi'), lab.paid, 'text-emerald-700'], [tr('Baqi'), lab.due, lab.due > 0 ? 'text-sky-700' : 'text-slate-500']].map(([label, v, tone]) => (
                 <div key={label as string} className="rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200/70">
                   <span className="block text-[0.75rem] text-slate-500">{label}</span>
                   <span className={`block text-[1rem] font-bold tabular-nums ${tone}`}>{formatPKR(v as number)}</span>
@@ -314,10 +314,10 @@ function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
             </section>
           )}
           <section>
-            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Sone ka lena dena</h3>
-            {!q.data?.metal.length ? <p className="text-[0.8125rem] text-slate-500">Abhi koi entry nahi</p> : (
+            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">{tr('Sone ka lena dena')}</h3>
+            {!q.data?.metal.length ? <p className="text-[0.8125rem] text-slate-500">{tr('Abhi koi entry nahi')}</p> : (
               <Table minWidth="36rem">
-                <THead><Tr><Th>Kab</Th><Th>Kya</Th><Th>Karat</Th><Th align="right">Grams</Th><Th>Ref</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Kab')}</Th><Th>{tr('Kya')}</Th><Th>{tr('Karat')}</Th><Th align="right">{tr('Grams')}</Th><Th>{tr('Ref')}</Th></Tr></THead>
                 <TBody>
                   {q.data.metal.map((e) => (
                     <Tr key={e.id}><Td>{dayTime(e.entryDate)}</Td><Td>{entryLabel(e.entryType).label}</Td><Td><KaratPill purity={e.purity} /></Td>
@@ -329,10 +329,10 @@ function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
             )}
           </section>
           <section>
-            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Orders</h3>
-            {!q.data?.orders.length ? <p className="text-[0.8125rem] text-slate-500">Is karigar ko koi order nahi diya</p> : (
+            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">{tr('Orders')}</h3>
+            {!q.data?.orders.length ? <p className="text-[0.8125rem] text-slate-500">{tr('Is karigar ko koi order nahi diya')}</p> : (
               <Table minWidth="36rem">
-                <THead><Tr><Th>Order</Th><Th>Customer</Th><Th>Halat</Th><Th align="right">Diya</Th><Th align="right">Bana</Th><Th>Dena</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Order')}</Th><Th>{tr('Customer')}</Th><Th>{tr('Halat')}</Th><Th align="right">{tr('Diya')}</Th><Th align="right">{tr('Bana')}</Th><Th>{tr('Dena')}</Th></Tr></THead>
                 <TBody>
                   {q.data.orders.map((o) => (
                     <Tr key={o.id}><Td className="font-medium">{o.orderNumber}</Td><Td>{o.customerName}</Td><Td><StatusPill status={o.status} /></Td>
@@ -344,9 +344,9 @@ function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
           </section>
           {!!q.data?.repairs.length && (
             <section>
-              <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Repair</h3>
+              <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">{tr('Repair')}</h3>
               <Table minWidth="36rem">
-                <THead><Tr><Th>Repair</Th><Th>Customer</Th><Th>Kaam</Th><Th>Wapas</Th><Th align="right">Charges</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Repair')}</Th><Th>{tr('Customer')}</Th><Th>{tr('Kaam')}</Th><Th>{tr('Wapas')}</Th><Th align="right">{tr('Charges')}</Th></Tr></THead>
                 <TBody>
                   {q.data.repairs.map((r) => (
                     <Tr key={r.id}><Td className="font-medium">{r.repairNumber}</Td><Td>{r.customerName ?? '—'}</Td><Td className="max-w-[14rem] truncate">{r.itemDescription}</Td><Td>{day(r.promisedDate)}</Td><Td align="right">{formatPKR(r.charge)}</Td></Tr>
@@ -356,10 +356,10 @@ function LedgerModal({ k, onClose }: { k: Karigar; onClose: () => void }) {
             </section>
           )}
           <section>
-            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">Mazdoori di</h3>
-            {!q.data?.payments.length ? <p className="text-[0.8125rem] text-slate-500">Abhi koi mazdoori nahi di</p> : (
+            <h3 className="mb-2 text-[0.875rem] font-bold text-slate-900">{tr('Mazdoori di')}</h3>
+            {!q.data?.payments.length ? <p className="text-[0.8125rem] text-slate-500">{tr('Abhi koi mazdoori nahi di')}</p> : (
               <Table minWidth="32rem">
-                <THead><Tr><Th>Kab</Th><Th>Expense #</Th><Th>Note</Th><Th align="right">Amount</Th></Tr></THead>
+                <THead><Tr><Th>{tr('Kab')}</Th><Th>{tr('Expense #')}</Th><Th>{tr('Note')}</Th><Th align="right">{tr('Amount')}</Th></Tr></THead>
                 <TBody>
                   {q.data.payments.map((p) => (
                     <Tr key={p.id}><Td>{dayTime(p.expenseDate)}</Td><Td>{p.expenseNumber}</Td><Td>{p.description || '—'}</Td><Td align="right" className="font-semibold">{formatPKR(p.amount)}</Td></Tr>
@@ -391,27 +391,27 @@ function LabourModal({ k, mode, onClose, onSaved }: { k: Karigar; mode: 'pay' | 
       return res.expense.expenseNumber;
     },
     onSuccess: (expenseNumber) => {
-      toast.success(expenseNumber ? `Mazdoori di — expense ${expenseNumber}` : 'Mazdoori likh di');
+      toast.success(expenseNumber ? tr('Mazdoori di — expense {{expenseNumber}}', { expenseNumber }) : tr('Mazdoori likh di'));
       onSaved();
     },
-    onError: (e) => setError(apiError(e, 'Save nahi hua')),
+    onError: (e) => setError(apiError(e, tr('Save nahi hua'))),
   });
   const submit = () => {
-    if (!(n > 0)) return setError('Amount likhein');
-    if (pay && n > due + 0.01) return setError(`Baqi sirf ${formatPKR(due)} hai`);
+    if (!(n > 0)) return setError(tr('Amount likhein'));
+    if (pay && n > due + 0.01) return setError(tr('Baqi sirf {{due}} hai', { due: formatPKR(due) }));
     setError('');
     save.mutate();
   };
   return (
-    <Modal open onClose={onClose} title={pay ? `${k.fullName} ko mazdoori` : `${k.fullName} ki mazdoori likhein`}
-      description={pay ? `Bani ${formatPKR(k.totalEarnings)} · di ${formatPKR(k.paidLabour)} · baqi ${formatPKR(due)}` : 'Order ke ilawa kaam (repair, polish) ki mazdoori — baqi me judti hai'}
-      footer={<><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button onClick={submit} loading={save.isPending}>{pay ? `Dein · ${formatPKR(n)}` : 'Likh dein'}</Button></>}>
+    <Modal open onClose={onClose} title={pay ? tr('{{fullName}} ko mazdoori', { fullName: k.fullName }) : tr('{{fullName}} ki mazdoori likhein', { fullName: k.fullName })}
+      description={pay ? tr('Bani {{totalEarnings}} · di {{paidLabour}} · baqi {{due}}', { totalEarnings: formatPKR(k.totalEarnings), paidLabour: formatPKR(k.paidLabour), due: formatPKR(due) }) : tr('Order ke ilawa kaam (repair, polish) ki mazdoori — baqi me judti hai')}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr('Rehne dein')}</Button><Button onClick={submit} loading={save.isPending}>{pay ? tr('Dein · {{formatPKR}}', { formatPKR: formatPKR(n) }) : tr('Likh dein')}</Button></>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); submit(); }}
         onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); submit(); } }}>
-        <Input label="Amount (Rs)" required autoFocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} />
-        {pay && <PaymentMethodPicker value={method} onChange={setMethod} label="Kaise di" />}
-        {pay && <Input label="Note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Jaise: order JCO-0007 ki mazdoori" />}
-        {pay && <p className="text-[0.75rem] text-slate-500">Yeh Expense me "Karigar mazdoori" ke taur par jata hai — cash ho to drawer se nikalta hai.</p>}
+        <Input label={tr('Amount (Rs)')} required autoFocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} />
+        {pay && <PaymentMethodPicker value={method} onChange={setMethod} label={tr('Kaise di')} />}
+        {pay && <Input label={tr('Note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder={tr('Jaise: order JCO-0007 ki mazdoori')} />}
+        {pay && <p className="text-[0.75rem] text-slate-500">{tr('Yeh Expense me "Karigar mazdoori" ke taur par jata hai — cash ho to drawer se nikalta hai.')}</p>}
         {error && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{error}</p>}
       </form>
     </Modal>

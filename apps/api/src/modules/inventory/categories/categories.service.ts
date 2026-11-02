@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { cleanName, mergeInto, nameTaken, periodRange, sameName, taxonomyInsights } from '../taxonomy/taxonomy.helper';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/create-category.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
 export class CategoriesService {
@@ -88,13 +89,13 @@ export class CategoriesService {
     if (id === intoId) throw new BadRequestException('Usi category me nahi mila sakte');
     const [from, into] = await Promise.all([this.own(user, id), this.own(user, intoId)]);
     const moved = await mergeInto(this.prisma, 'category', from.id, into.id);
-    return { moved, message: `${moved} products "${into.name}" me chale gaye` };
+    return { moved, ...apiMessage('{{moved}} products "{{intoName}}" me chale gaye', { moved, intoName: into.name }) };
   }
 
   async remove(user: AuthenticatedUser, id: string) {
     await this.own(user, id);
     const freed = await this.prisma.product.count({ where: { categoryId: id } });
     await this.prisma.category.delete({ where: { id } });
-    return { freed, message: freed ? `Category mit gayi — ${freed} products ab bina category hain` : 'Category mit gayi' };
+    return { freed, ...(freed ? apiMessage('Category mit gayi — {{freed}} products ab bina category hain', { freed }) : apiMessage('Category mit gayi')) };
   }
 }

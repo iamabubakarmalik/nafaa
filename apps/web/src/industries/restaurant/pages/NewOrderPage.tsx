@@ -9,13 +9,14 @@ import { RequireShop } from '@modules/pos/components';
 import type { OrderMode } from '../api/orders.api';
 import { OrderComposer } from '../components/OrderComposer';
 import { ORDER_MODES } from '../lib/orderMeta';
+import { t } from '@core/i18n';
 
 export default function NewOrderPage() {
   const [params] = useSearchParams();
   const mode = params.get('mode') as OrderMode | null;
   const orderId = params.get('orderId') ?? undefined;
   return (
-    <RequireShop action="Order lene">
+    <RequireShop action={t('Order lene')}>
       <OrderComposer key={orderId ?? 'new'} orderId={orderId} initialTableId={params.get('tableId') ?? undefined}
         initialMode={mode && ORDER_MODES.includes(mode) ? mode : undefined} />
     </RequireShop>

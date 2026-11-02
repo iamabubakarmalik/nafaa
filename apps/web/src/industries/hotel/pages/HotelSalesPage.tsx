@@ -11,6 +11,7 @@ import { SalesHistoryPage, type SalesHistoryConfig } from '@modules/sales/histor
 import type { HistorySale } from '@modules/sales/history/api';
 import { bookingsApi } from '../api/bookings.api';
 import { HOTEL_KEYS, roomsOf, stayDay } from '../components/meta';
+import { t } from '@core/i18n';
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium';
 
@@ -25,16 +26,17 @@ function useHotelExtras(sales: HistorySale[]) {
     const charge = /^HTL-(CXL|NS)-/.test(sale.saleNumber);
     return (
       <div className="mt-1.5 flex flex-wrap gap-1">
+        {/* i18n-ignore: route */}
         <Link to={b ? `/hotel/bookings/${b.id}` : '/hotel/bookings'} onClick={(e) => e.stopPropagation()} className={`${chip} bg-indigo-50 text-indigo-700 hover:underline`}>
-          {charge ? <UserX className="h-3 w-3" /> : <BedDouble className="h-3 w-3" />} {sale.sourceRef}{charge ? (sale.saleNumber.startsWith('HTL-NS') ? ' · no-show' : ' · cancel charge') : ''}
+          {charge ? <UserX className="h-3 w-3" /> : <BedDouble className="h-3 w-3" />} {sale.sourceRef}{charge ? (sale.saleNumber.startsWith('HTL-NS') ? t(' · no-show') : t(' · cancel charge')) : ''}
         </Link>
-        {b && !charge && <span className={`${chip} bg-slate-100 text-slate-700`}><CalendarRange className="h-3 w-3" /> Room {roomsOf(b)} · {stayDay(b.checkInDate)} → {stayDay(b.checkOutDate)}</span>}
+        {b && !charge && <span className={`${chip} bg-slate-100 text-slate-700`}><CalendarRange className="h-3 w-3" /> {' '}{t('Room {{roomsOf}} · {{checkInDate}} → {{checkOutDate}}', { roomsOf: roomsOf(b), checkInDate: stayDay(b.checkInDate), checkOutDate: stayDay(b.checkOutDate) })}</span>}
       </div>
     );
   };
 }
 
-const config: SalesHistoryConfig = { label: 'Hotel', useBillExtras: useHotelExtras };
+const config: SalesHistoryConfig = { label: t('Hotel'), useBillExtras: useHotelExtras };
 
 export default function HotelSalesPage() {
   return <SalesHistoryPage config={config} />;

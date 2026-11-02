@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { endOfDayTz, startOfDayTz, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { UpsertGiftPackDto } from './dto/upsert-gift-pack.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
@@ -50,7 +51,7 @@ export class GiftPacksService {
       where: { tenantId: user.tenantId, name: { equals: name, mode: 'insensitive' }, ...(id && { NOT: { id } }) },
       select: { id: true },
     });
-    if (dup) throw new BadRequestException(`Gift pack "${name}" pehle se hai`);
+    if (dup) throw new BadRequestException(apiMessage('Gift pack "{{name}}" pehle se hai', { name }));
     const lines = packItems(dto.items);
     if (lines.length < 2) throw new BadRequestException('Gift pack me kam se kam 2 khilone hon');
     const ids = [...new Set(lines.map((l) => l.productId))];

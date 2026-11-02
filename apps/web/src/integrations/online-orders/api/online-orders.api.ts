@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 /** Backend kabhi {data:{data:X}} kabhi {data:X} deta hai */
 function unwrap<T>(r: any): T {
@@ -771,7 +772,7 @@ export const couriersApi = {
       }
       const json = JSON.parse(await blob.text());
       const url = json?.data?.url ?? json?.url;
-      if (!url) throw new Error('Label nahi mila');
+      if (!url) throw new Error(t('Label nahi mila'));
       if (tab) tab.location.href = url; else window.open(url, '_blank', 'noopener');
     } catch (e: any) {
       tab?.close();
@@ -805,7 +806,7 @@ export const couriersApi = {
       }
       const json = JSON.parse(await blob.text());
       const url = json?.data?.url ?? json?.url;
-      if (!url) throw new Error('Label nahi mila');
+      if (!url) throw new Error(t('Label nahi mila'));
       if (tab) tab.location.href = url; else window.open(url, '_blank', 'noopener');
     } catch (e: any) {
       tab?.close();
@@ -855,7 +856,7 @@ export const darazApi = {
       const r = await apiClient.get(`/online-orders/${orderId}/daraz/label`, { responseType: 'blob' });
       const blob: Blob = r.data;
       const url = blob.type.includes('pdf') ? URL.createObjectURL(blob) : (JSON.parse(await blob.text())?.url as string);
-      if (!url) throw new Error('Label nahi mila');
+      if (!url) throw new Error(t('Label nahi mila'));
       if (tab) tab.location.href = url; else window.open(url, '_blank');
     } catch (e: any) {
       tab?.close();
@@ -866,7 +867,7 @@ export const darazApi = {
   },
 };
 
-export function apiErrorMessage(err: any, fallback = 'Kuch ghalat ho gaya'): string {
+export function apiErrorMessage(err: any, fallback = t('Kuch ghalat ho gaya')): string {
   const d = err?.response?.data;
   const m = d?.message ?? d?.error?.message ?? d?.data?.message ?? err?.message;
   if (Array.isArray(m)) return m.join(', ');
