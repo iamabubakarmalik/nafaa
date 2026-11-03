@@ -47,8 +47,15 @@ counts), so new app code never calls missing endpoints.
 ```bash
 cd apps/mobile
 npx eas-cli@latest update --channel production --environment production \
-  --message "short description" --non-interactive
+  --platform android --message "short description" --non-interactive
+# repeat with --platform ios once iOS binaries are live
 ```
+
+- Always pass `--platform android` / `ios`: the default `all` also exports web,
+  which fails on the app's root layout.
+- The update targets the runtime = `expo.version` in app.json at publish time.
+  To fix users still on an older binary (e.g. 2.0.0 while app.json says
+  2.0.1), set the version back temporarily, publish, then restore it.
 
 Use `--channel preview` for the internal preview APK first when unsure.
 Rollback: `npx eas-cli@latest update:republish` an earlier group, or
