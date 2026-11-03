@@ -29,6 +29,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { ScreenHeader, LargeTitle, useTabBarSpace } from '../components/Screen';
 import { useSharedValue } from 'react-native-reanimated';
 import { List } from '../components/List';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { SearchBar } from '../components/SearchBar';
 import { ChipGroup, type Option } from '../components/Chips';
 import { Fab } from '../components/Fab';
@@ -83,6 +84,7 @@ export function ListTemplate<T>({
   return (
     <View style={{ flex: 1, backgroundColor: th.colors.canvas, paddingTop: insets.top }}>
       <ScreenHeader title={title} subtitle={subtitle} onBack={onBack} actions={actions} scrollY={scrollY} />
+      <ErrorBoundary name={title}>
       <List
         data={data}
         loading={loading}
@@ -120,6 +122,7 @@ export function ListTemplate<T>({
           );
         }}
       />
+      </ErrorBoundary>
       {fab && <Fab icon={fab.icon} label={fab.label} onPress={fab.onPress} offset={tabBar ? barSpace - insets.bottom : 0} />}
     </View>
   );

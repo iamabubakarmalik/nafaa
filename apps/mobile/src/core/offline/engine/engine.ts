@@ -220,6 +220,7 @@ export class OfflineEngine {
     get: (id: string, shopId?: string | null) => L.getProduct(this.ctx.db, id, shopId),
     stock: (shopId: string, productId: string, variantId?: string | null) => L.stockOf(this.ctx.db, shopId, productId, variantId),
     count: () => L.countProducts(this.ctx.db),
+    countByCategory: () => L.countProductsByCategory(this.ctx.db),
     tierPrice: L.tierPrice,
   };
 

@@ -15,6 +15,11 @@ export class ProductImagesService {
     return p;
   }
 
+  /** Image changes do not touch the product row; bump it so phones pull the new picture on their next sync. */
+  private touch(productId: string) {
+    return this.prisma.product.update({ where: { id: productId }, data: { updatedAt: new Date() } }).catch(() => null);
+  }
+
   async list(user: AuthenticatedUser, productId: string) {
     await this.ensureProduct(user, productId);
     return this.prisma.productImage.findMany({
@@ -36,7 +41,7 @@ export class ProductImagesService {
       });
     }
 
-    return this.prisma.productImage.create({
+    const created = await this.prisma.productImage.create({
       data: {
         productId,
         url: dto.url,
@@ -47,6 +52,8 @@ export class ProductImagesService {
         uploadId: dto.uploadId,
       },
     });
+    await this.touch(productId);
+    return created;
   }
 
   async setPrimary(user: AuthenticatedUser, productId: string, imageId: string) {
@@ -61,6 +68,7 @@ export class ProductImagesService {
       where: { id: imageId },
       data: { isPrimary: true },
     });
+    await this.touch(productId);
 
     return updated;
   }
@@ -77,6 +85,7 @@ export class ProductImagesService {
       ),
     );
 
+    await this.touch(productId);
     return { message: 'Reordered', count: dto.imageIds.length };
   }
 
@@ -102,6 +111,7 @@ export class ProductImagesService {
       }
     }
 
+    await this.touch(productId);
     return { message: 'Image deleted' };
   }
 }

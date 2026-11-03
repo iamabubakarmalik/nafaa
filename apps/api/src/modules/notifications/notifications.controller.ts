@@ -1,7 +1,8 @@
 /**
  * /notifications: the latest list (bell, mobile), the page feed, unread
- * count, read/unread/delete for one or many, push tokens and the low-stock
- * check. Every route only touches the caller's own and business-wide rows.
+ * count, read/unread/delete for one or many, push tokens, the caller's own
+ * notification choices, a test push and the low-stock check. Every route
+ * only touches the caller's own and business-wide rows.
  */
 
 import {
@@ -15,6 +16,8 @@ import {
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { NOTIFICATION_GROUPS, NotificationsService, type BulkAction, type NotificationGroup } from './notifications.service';
+import { AlertPrefsService } from './alerts/alert-prefs.service';
+import { StaffAlertsService } from './alerts/staff-alerts.service';
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const asBool = ({ value }: { value: unknown }) => value === true || value === 'true' || value === '1';
@@ -44,7 +47,29 @@ class BulkDto {
 @ApiBearerAuth()
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly service: NotificationsService) {}
+  constructor(
+    private readonly service: NotificationsService,
+    private readonly prefs: AlertPrefsService,
+    private readonly alerts: StaffAlertsService,
+  ) {}
+
+  /** The caller's own choices: events (in-app / push), sound, vibration, quiet hours. */
+  @Get('prefs')
+  getPrefs(@GetUser() user: AuthenticatedUser) {
+    return this.prefs.get(user);
+  }
+
+  /** Partial update; unknown fields are ignored and values are checked. */
+  @Patch('prefs')
+  updatePrefs(@GetUser() user: AuthenticatedUser, @Body() body: Record<string, unknown>) {
+    return this.prefs.update(user, body);
+  }
+
+  /** Test push to the caller's phones; answers with what Expo reported (delivered, no device, setup needed…). */
+  @Post('test-push')
+  testPush(@GetUser() user: AuthenticatedUser) {
+    return this.alerts.testPush(user.id, user.tenantId);
+  }
 
   /** Plain query reads (no DTO) so older clients sending extra params keep working. */
   @Get()

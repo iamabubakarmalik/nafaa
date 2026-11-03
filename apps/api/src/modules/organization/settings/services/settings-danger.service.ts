@@ -58,11 +58,15 @@ export class SettingsDangerService {
    * processes the request by hand after the 7-day grace period (admin panel, Deletion requests).
    * The status before the request is remembered so a cancel can put it back exactly.
    */
-  async deleteTenant(user: AuthenticatedUser, confirmation: string, currentPassword: string) {
+  async deleteTenant(user: AuthenticatedUser, confirmation: string, currentPassword?: string) {
     if (confirmation !== 'DELETE MY SHOP') {
       throw new BadRequestException('Confirmation text ghalat — "DELETE MY SHOP" likhein');
     }
-    await this.verifyOwnerPassword(user, currentPassword);
+    // An owner who signs in only with Google or Apple has no password; the typed
+    // confirmation is the check then (App Store: account deletion must be possible in-app).
+    if (user.role !== 'OWNER') throw new ForbiddenException('Sirf owner');
+    const owner = await this.prisma.user.findUnique({ where: { id: user.id }, select: { passwordHash: true } });
+    if (owner?.passwordHash) await this.verifyOwnerPassword(user, currentPassword ?? '');
 
     const latest = await this.latestTenantDeletionLog(user.tenantId);
     if (latest?.action === 'TENANT_DELETION_REQUESTED') {

@@ -6,7 +6,7 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { View } from 'react-native';
-import { formatMoney } from '@/core/format';
+import { formatMoney, formatMonthShort } from '@/core/format';
 import { t } from '@/core/i18n';
 import { BarChart, DonutChart, HBarList, LineChart, ListRow, Segmented, Text, useChartColors, useTheme } from '@/design';
 import { useHourlySales, useInsights, type InsightDays } from '../api/dashboard';
@@ -178,7 +178,7 @@ export function MonthlyTrend() {
   const { salesHidden, costHidden } = useMasked();
   const q = useInsights(30, s.months === '12' ? 12 : 6);
   const rows = q.data?.monthly ?? [];
-  const name = (m: string) => new Date(`${m}-15T12:00:00`).toLocaleDateString('en-PK', { month: 'short' });
+  const name = formatMonthShort;
   return (
     <WidgetCard title={t('6 mahine ka muqabla')} description={t('Har mahine ki sale, expense aur profit')}
       controls={<Segmented size="sm" value={s.months} onChange={(months) => set({ months })} options={[{ value: '6', label: t('6 mahine') }, { value: '12', label: t('12 mahine') }]} />}>

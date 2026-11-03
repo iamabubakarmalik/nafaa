@@ -144,6 +144,12 @@ export async function countProducts(db: Db): Promise<number> {
   return (await db.first<{ c: number }>('SELECT COUNT(*) AS c FROM products WHERE isActive = 1'))?.c ?? 0;
 }
 
+/** Active products per category (null key = no category), for counter chips. */
+export async function countProductsByCategory(db: Db): Promise<Record<string, number>> {
+  const rows = await db.all<{ k: string | null; c: number }>('SELECT categoryId AS k, COUNT(*) AS c FROM products WHERE isActive = 1 GROUP BY categoryId');
+  return Object.fromEntries(rows.map((r) => [r.k ?? '', r.c]));
+}
+
 export async function getProduct(db: Db, id: string, shopId?: string | null): Promise<ProductDetail | null> {
   const stockExpr = shopId ? STOCK_SQL : 'NULL';
   const row = await db.first<ProductSqlRow>(

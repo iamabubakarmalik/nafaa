@@ -5,7 +5,7 @@
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "nafaa",
+    "scheme": ["nafaa", "com.nafaa.app"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "primaryColor": "#16a34a",
@@ -24,6 +24,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nafaa.app",
+      "usesAppleSignIn": true,
       "buildNumber": "6",
       "infoPlist": {
         "NSCameraUsageDescription": "Nafaa uses the camera to scan product barcodes and to take product photos.",
@@ -121,7 +122,13 @@
         {
           "color": "#16a34a",
           "icon": "./assets/notification-icon.png",
-          "defaultChannel": "default"
+          "defaultChannel": "default",
+          "sounds": [
+            "./assets/sounds/chime.wav",
+            "./assets/sounds/cash.wav",
+            "./assets/sounds/bell.wav",
+            "./assets/sounds/alert.wav"
+          ]
         }
       ],
       "expo-font",

@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { RequestAccountDeletionDto } from './dto/account-deletion.dto';
+import { AppleSignInDto, CompleteAppleSignupDto } from './dto/apple-sign-in.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompleteGoogleSignupDto } from './dto/complete-google-signup.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -282,6 +283,23 @@ export class AuthController {
   @ApiOperation({ summary: 'Mobile Google sign-in (idToken from native SDK)' })
   googleMobile(@Body() dto: GoogleMobileDto) {
     return this.authService.googleMobile(dto.idToken, dto.shopName);
+  }
+
+  // ===== SIGN IN WITH APPLE (iOS identity token) =====
+  @Public()
+  @Post('apple')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Sign in with Apple (identity token from the iOS app)' })
+  appleSignIn(@Body() dto: AppleSignInDto, @Req() req: Request) {
+    return this.authService.appleSignIn(dto, { userAgent: req.headers['user-agent'], ip: req.ip });
+  }
+
+  @Public()
+  @Post('apple/complete-signup')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete Apple sign-up with the shop name' })
+  completeAppleSignup(@Body() dto: CompleteAppleSignupDto, @Req() req: Request) {
+    return this.authService.completeAppleSignup(dto.tempToken, dto.shopName, { userAgent: req.headers['user-agent'], ip: req.ip });
   }
 
   // ===== GOOGLE DISCONNECT =====

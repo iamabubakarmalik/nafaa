@@ -25,6 +25,7 @@ import { DiscountsService } from '../discounts/discounts.service';
 import { hasPermission, PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
 import { acceptClientTime, saleClock } from '../../../common/helpers/client-time.helper';
 import { apiMessage } from '../../../common/i18n/api-message';
@@ -65,6 +66,7 @@ export class SalesService {
     private readonly discounts: DiscountsService,
     private readonly notifications: NotificationsService,
     private readonly fbr: FbrService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   async create(
@@ -902,15 +904,29 @@ export class SalesService {
       return { ...sale, payments: tender.rows };
     });
 
-    // 🔔 Sale notification (async, non-blocking, fire-and-forget)
-    this.notifications.create({
-      tenantId: user.tenantId,
-      type: 'NEW_SALE' as any,
-      title: '💰 Sale Complete',
-      message: apiMessage('{{saleNumber}} · Rs {{total}} · {{count}} items', { saleNumber, total: (result as any).total ?? total, count: dto.items.length }),
-      link: `/sales/${(result as any).id}/receipt`,
-      metadata: { saleId: (result as any).id, total, itemCount: dto.items.length },
-    }).catch(() => null);
+    // Alerts run after the response (sale, big discount, stock running out).
+    {
+      const r = result as { id: string; total: number; subtotal: number; discount: number; codeDiscount: number; loyaltyDiscount: number; shopId: string | null };
+      this.alerts.emit({
+        tenantId: user.tenantId, event: 'sale', type: 'NEW_SALE', shopId: r.shopId, actorId: user.id, amount: r.total,
+        title: '💰 Sale Complete',
+        message: apiMessage('{{saleNumber}} · Rs {{total}} · {{count}} items', { saleNumber, total: Math.round(r.total ?? total).toLocaleString('en-PK'), count: dto.items.length }),
+        link: `/sales/${r.id}/receipt`,
+        metadata: { saleId: r.id, total: r.total ?? total, itemCount: dto.items.length },
+      });
+      const manual = Math.max(0, (r.discount ?? 0) - (r.codeDiscount ?? 0) - (r.loyaltyDiscount ?? 0));
+      const percent = r.subtotal > 0 ? Math.round((manual / r.subtotal) * 100) : 0;
+      if (manual > 0 && percent >= 1) {
+        this.alerts.emit({
+          tenantId: user.tenantId, event: 'bigDiscount', type: 'WARNING', shopId: r.shopId, actorId: user.id, percent,
+          title: '🏷️ Bara Discount',
+          message: apiMessage('{{saleNumber}} par Rs {{discount}} Discount ({{percent}}%) · {{by}}', { saleNumber, discount: Math.round(manual).toLocaleString('en-PK'), percent }),
+          link: `/sales/${r.id}/receipt`,
+          metadata: { saleId: r.id, discount: manual, percent },
+        });
+      }
+      this.alerts.checkStock(user.tenantId, dto.items.map((i) => i.productId).filter((id): id is string => !!id), r.shopId);
+    }
 
     // A khata bill: record which part is paid, for profit when the money comes.
     if (creditAmount > 0) refreshSettlements(this.prisma, user.tenantId, (result as { customerId?: string | null }).customerId);
@@ -1681,6 +1697,13 @@ export class SalesService {
 
       return tx.sale.update({ where: { id }, data: { status: 'VOIDED' } });
     }).then((result) => {
+      this.alerts.emit({
+        tenantId: user.tenantId, event: 'voidRefund', type: 'WARNING', shopId: sale.shopId, actorId: user.id,
+        title: '🚫 Bill void hua',
+        message: apiMessage('{{saleNumber}} · Rs {{total}} · {{by}}', { saleNumber: sale.saleNumber, total: Math.round(sale.total).toLocaleString('en-PK') }),
+        link: `/sales/${id}/receipt`,
+        metadata: { saleId: id, total: sale.total, reason: reason?.trim() || null },
+      });
       for (const fn of this.voidListeners) void fn(user.tenantId, id).catch(() => undefined);
       void this.fbr
         .cancelInvoice(user.tenantId, id, reason ?? 'Sale voided')

@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { birthdayProblem, type BirthdayProblem } from '@nafaa/core/industries/toystore';
+import { businessDayKey } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { useOnlineStatus } from '@/core/net';
 import { onlineNeededText } from '@/core/offline';
@@ -17,7 +18,7 @@ const PROBLEM: Record<BirthdayProblem, string> = {
 };
 
 const asDate = (key: string) => new Date(`${key}T12:00:00+05:00`);
-const keyOf = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(d);
+const keyOf = (d: Date) => businessDayKey(d);
 
 interface Draft { childName: string; birth: string; gender: string; parentName: string; phone: string; relation: string; budget: string; days: string; notes: string }
 const blank: Draft = { childName: '', birth: '', gender: '', parentName: '', phone: '', relation: '', budget: '', days: '7', notes: '' };

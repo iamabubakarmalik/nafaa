@@ -17,6 +17,7 @@ import {
 } from '../../common/helpers/device-detection.helper';
 import { AdminNotificationsService } from '../../admin/notifications/admin-notifications.service';
 import { EmailService } from '../email/email.service';
+import { AppleIdentityService } from './apple/apple-identity.service';
 import { SmsService } from '../sms/sms.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -32,6 +33,13 @@ function makeReferralCode(seed: string): string {
   return `NAFAA-${clean || 'SHOP'}${rand}`;
 }
 
+/** Google OAuth client ids of the Nafaa mobile app (Android, iOS, web). */
+const GOOGLE_MOBILE_CLIENT_IDS = [
+  '109272166338-j3miqlc4kn1441l24dgd8tv1fphkid1k.apps.googleusercontent.com',
+  '109272166338-4fic8s75hh9e7otuvjgtaj1q02s8vp26.apps.googleusercontent.com',
+  '109272166338-vnd7gh3vnjds2m3gt5i2psnsanav06ep.apps.googleusercontent.com',
+];
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -41,6 +49,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
     private readonly adminNotifications: AdminNotificationsService,
+    private readonly appleIdentity: AppleIdentityService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -220,9 +229,12 @@ export class AuthService {
     }
 
     if (!user.passwordHash) {
-      this.recordFailedLogin(dto.email, 'No password set (Google account)', meta).catch(() => {});
+      const apple = !!user.appleId && !user.googleId;
+      this.recordFailedLogin(dto.email, apple ? 'No password set (Apple account)' : 'No password set (Google account)', meta).catch(() => {});
       throw new UnauthorizedException(
-        'Ye account Google se bana hai. "Continue with Google" use karein ya password set karein.',
+        apple
+          ? 'Ye account Apple se bana hai. "Sign in with Apple" use karein ya password set karein.'
+          : 'Ye account Google se bana hai. "Continue with Google" use karein ya password set karein.',
       );
     }
 
@@ -367,6 +379,35 @@ export class AuthService {
       });
     }
 
+    return this.createOwnerAccount({
+      shopName,
+      fullName: payload.fullName,
+      email: payload.email,
+      googleId: payload.googleId,
+      avatarUrl: payload.avatarUrl,
+      provider: AuthProvider.GOOGLE,
+    });
+  }
+
+  /**
+   * New business from a social sign-in (Google or Apple): tenant, main shop
+   * with its cash account, owner, cash register and onboarding progress, so
+   * onboarding (business model, industry) follows as for any new account.
+   */
+  private async createOwnerAccount(input: {
+    shopName: string;
+    fullName: string;
+    email: string;
+    googleId?: string;
+    appleId?: string;
+    avatarUrl?: string;
+    provider: AuthProvider;
+    userAgent?: string;
+    ip?: string;
+  }) {
+    const { shopName } = input;
+    const label = input.provider === AuthProvider.APPLE ? 'Apple' : 'Google';
+
     const slug = generateSlug(shopName);
     const referralCode = makeReferralCode(shopName);
 
@@ -394,14 +435,15 @@ export class AuthService {
         data: {
           tenantId: tenant.id,
           shopId: mainShop.id,
-          fullName: payload.fullName,
-          email: payload.email.toLowerCase(),
+          fullName: input.fullName,
+          email: input.email.toLowerCase(),
           passwordHash: null,
-          googleId: payload.googleId,
-          avatarUrl: payload.avatarUrl,
+          googleId: input.googleId ?? null,
+          appleId: input.appleId ?? null,
+          avatarUrl: input.avatarUrl,
           emailVerified: true,
           emailVerifiedAt: new Date(),
-          authProvider: AuthProvider.GOOGLE,
+          authProvider: input.provider,
           role: UserRole.OWNER,
           permissions: DEFAULT_ROLE_PERMISSIONS[UserRole.OWNER] ?? [],
         },
@@ -434,15 +476,15 @@ export class AuthService {
           action: 'CREATE',
           entityType: 'Tenant',
           entityId: tenant.id,
-          description: `Business "${shopName}" created via Google with main shop`,
-          metadata: { shopId: mainShop.id, provider: 'GOOGLE' },
+          description: `Business "${shopName}" created via ${label} with main shop`,
+          metadata: { shopId: mainShop.id, provider: input.provider },
         },
       });
 
       return { tenant, user: newUser, mainShop };
     });
 
-    this.notifyAdminNewSignup(result.tenant, result.user, 'GOOGLE');
+    this.notifyAdminNewSignup(result.tenant, result.user, input.provider);
     this.sendWelcomeEmail(result.tenant, result.user);
 
     const tokens = await this.issueTokens({
@@ -451,7 +493,7 @@ export class AuthService {
       email: result.user.email,
       role: result.user.role,
       shopId: result.mainShop.id,
-    });
+    }, input.userAgent, input.ip);
 
     return {
       user: this.sanitizeUser({ ...result.user, shopId: result.mainShop.id }),
@@ -480,15 +522,23 @@ export class AuthService {
       throw new BadRequestException('Google token mein required fields nahi');
     }
 
+    // The mobile app signs in with its own Android / iOS / web client ids
+    // (apps/mobile app.json extra); they are public and always accepted, so a
+    // missing or placeholder env value cannot lock the app out.
     const allowedAudiences = [
+      ...GOOGLE_MOBILE_CLIENT_IDS,
       this.configService.get<string>('GOOGLE_CLIENT_ID'),
       this.configService.get<string>('GOOGLE_IOS_CLIENT_ID'),
       this.configService.get<string>('GOOGLE_ANDROID_CLIENT_ID'),
       this.configService.get<string>('GOOGLE_WEB_CLIENT_ID'),
-    ].filter(Boolean);
+      ...(this.configService.get<string>('GOOGLE_MOBILE_CLIENT_IDS') ?? '').split(','),
+    ].map((id) => id?.trim()).filter((id): id is string => !!id && id.endsWith('.apps.googleusercontent.com') && !id.startsWith('your_'));
 
-    if (allowedAudiences.length > 0 && !allowedAudiences.includes(payload.aud)) {
+    if (!allowedAudiences.includes(payload.aud)) {
       throw new BadRequestException('Token audience galat hai');
+    }
+    if (payload.email_verified !== true && payload.email_verified !== 'true') {
+      throw new BadRequestException('Google ID token invalid');
     }
 
     const googleUser = {
@@ -505,6 +555,115 @@ export class AuthService {
     }
 
     return result;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SIGN IN WITH APPLE (iOS)
+  // Find by Apple id, then link an existing account by a verified email,
+  // otherwise a new business (asks for the shop name first, like Google).
+  // ═══════════════════════════════════════════════════════════
+  async appleSignIn(
+    dto: { identityToken: string; nonce?: string; fullName?: string; shopName?: string },
+    meta?: { userAgent?: string; ip?: string },
+  ) {
+    const identity = await this.appleIdentity.verify(dto.identityToken, dto.nonce);
+    const include = { tenant: true, assignedShop: true } as const;
+
+    let user = await this.prisma.user.findUnique({ where: { appleId: identity.sub }, include });
+
+    if (!user && identity.email && identity.emailVerified) {
+      const byEmail = await this.prisma.user.findUnique({ where: { email: identity.email } });
+      if (byEmail && !byEmail.appleId) {
+        user = await this.prisma.user.update({
+          where: { id: byEmail.id },
+          data: {
+            appleId: identity.sub,
+            emailVerified: true,
+            emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
+            authProvider: byEmail.passwordHash || byEmail.googleId ? AuthProvider.HYBRID : AuthProvider.APPLE,
+          },
+          include,
+        });
+      }
+    }
+
+    if (user) {
+      if (!user.isActive) throw new UnauthorizedException('Ye account band hai. Dukaan ke malik se baat karein.');
+      await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+      const tokens = await this.issueTokens(
+        { sub: user.id, tenantId: user.tenantId, email: user.email, role: user.role, shopId: user.shopId },
+        meta?.userAgent,
+        meta?.ip,
+      );
+      return { user: this.sanitizeUser(user), tenant: user.tenant, ...tokens, isNewUser: false };
+    }
+
+    if (!identity.email) {
+      throw new BadRequestException('Apple ne email nahi di. Apple ID settings me Nafaa ko hata kar dobara koshish karein, ya email se account banayein.');
+    }
+    const taken = await this.prisma.user.findUnique({ where: { email: identity.email }, select: { id: true } });
+    if (taken) {
+      throw new ConflictException('Ye email pehle se registered hai. Email aur password se login karein.');
+    }
+
+    // Apple sends the name only on the very first sign-in, so the app passes it on.
+    const fullName = (dto.fullName ?? '').trim().slice(0, 100);
+    const pending = {
+      appleId: identity.sub,
+      email: identity.email,
+      fullName: fullName || (identity.isPrivateEmail ? '' : identity.email.split('@')[0]),
+    };
+
+    const shopName = (dto.shopName ?? '').trim();
+    if (shopName.length >= 2) return this.createAppleOwner(pending, shopName, meta);
+
+    const tempToken = await this.jwtService.signAsync(
+      { ...pending, purpose: 'apple_signup' },
+      { secret: this.configService.get<string>('JWT_ACCESS_SECRET'), expiresIn: '15m' },
+    );
+    return { needsShopName: true as const, tempToken, email: pending.email, fullName: pending.fullName };
+  }
+
+  async completeAppleSignup(tempToken: string, shopName: string, meta?: { userAgent?: string; ip?: string }) {
+    let payload: { purpose?: string; appleId?: string; email?: string; fullName?: string };
+    try {
+      payload = await this.jwtService.verifyAsync(tempToken, {
+        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+      });
+    } catch {
+      throw new BadRequestException('Token expired ya invalid — Apple se dobara try karein');
+    }
+    if (payload.purpose !== 'apple_signup' || !payload.appleId || !payload.email) {
+      throw new BadRequestException('Invalid token');
+    }
+    const existing = await this.prisma.user.findFirst({
+      where: { OR: [{ appleId: payload.appleId }, { email: payload.email }] },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new ConflictException('Ye account pehle se bana hua hai. Apple se dobara login karein.');
+    }
+    return this.createAppleOwner(
+      { appleId: payload.appleId, email: payload.email, fullName: payload.fullName ?? '' },
+      shopName.trim(),
+      meta,
+    );
+  }
+
+  private createAppleOwner(
+    p: { appleId: string; email: string; fullName: string },
+    shopName: string,
+    meta?: { userAgent?: string; ip?: string },
+  ) {
+    return this.createOwnerAccount({
+      shopName,
+      fullName: p.fullName || shopName,
+      email: p.email,
+      appleId: p.appleId,
+      provider: AuthProvider.APPLE,
+      userAgent: meta?.userAgent,
+      ip: meta?.ip,
+    });
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -526,7 +685,7 @@ export class AuthService {
       where: { id: userId },
       data: {
         passwordHash,
-        authProvider: user.googleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
+        authProvider: user.googleId || user.appleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
       },
     });
 
@@ -795,7 +954,9 @@ export class AuthService {
     if (!user.passwordHash) {
       return {
         success: true,
-        message: 'Ye account Google se bana hai — Continue with Google use karein',
+        message: user.appleId && !user.googleId
+          ? 'Ye account Apple se bana hai — Sign in with Apple use karein'
+          : 'Ye account Google se bana hai — Continue with Google use karein',
       };
     }
 
@@ -841,7 +1002,7 @@ export class AuthService {
         passwordHash: await hashPassword(newPassword),
         passwordResetToken: null,
         passwordResetExpires: null,
-        authProvider: user.googleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
+        authProvider: user.googleId || user.appleId ? AuthProvider.HYBRID : AuthProvider.EMAIL,
       },
     });
 

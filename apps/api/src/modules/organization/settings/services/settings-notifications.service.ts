@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { apiMessage, notificationText } from '../../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../../notifications/alerts/staff-alerts.service';
 
 @Injectable()
 export class SettingsNotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly alerts: StaffAlertsService,
+  ) {}
 
   async get(user: AuthenticatedUser) {
     let pref = await this.prisma.notificationPreference.findUnique({
@@ -30,9 +34,11 @@ export class SettingsNotificationsService {
     });
   }
 
-  /** Send a test notification via chosen channel */
+  /**
+   * Test notification: always a row in the bell; for "push" also a real push
+   * to the caller's phones, with the delivery result (`push.status`).
+   */
   async sendTest(user: AuthenticatedUser, channel: 'email' | 'sms' | 'push') {
-    // Real dispatch handled by NotificationService — here we just enqueue
     await this.prisma.notification.create({
       data: {
         tenantId: user.tenantId,
@@ -41,6 +47,7 @@ export class SettingsNotificationsService {
         ...notificationText('🔔 Test Notification', apiMessage('Ye test {{channel}} notification hai — agar aap ko mila to setup theek hai.', { channel: channel.toUpperCase() })),
       },
     });
-    return { success: true, ...apiMessage('Test {{channel}} bhej diya', { channel }) };
+    const push = channel === 'push' ? await this.alerts.testPush(user.id, user.tenantId) : undefined;
+    return { success: true, ...apiMessage('Test {{channel}} bhej diya', { channel }), ...(push && { push }) };
   }
 }

@@ -1,12 +1,14 @@
 /**
  * When the API answers 402 (trial or plan ended) a dialog explains it and
- * leads to the plan page. It never logs anyone out.
+ * leads to the plan page. It never logs anyone out. On iOS the dialog is
+ * neutral: no plan link, no prices (App Store rule, see core/platform/purchases).
  */
 
 import { Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { t } from '@/core/i18n';
+import { PLAN_INACTIVE_TEXT, canPurchaseInApp } from '@/core/platform/purchases';
 import { on } from '@/core/events';
 import { useAuthStore } from '@/core/auth/store';
 import { Button, Dialog } from '@/design';
@@ -17,6 +19,19 @@ export function SubscriptionGate() {
   useEffect(() => on('subscription:required', ({ message: m }) => setMessage(m ?? '')), []);
   if (message === null) return null;
   const owner = role === 'OWNER' || role === 'SUPER_ADMIN';
+  if (!canPurchaseInApp()) {
+    return (
+      <Dialog
+        open
+        onClose={() => setMessage(null)}
+        icon={Sparkles}
+        tone="warning"
+        title={t('Plan active nahi hai')}
+        message={t(PLAN_INACTIVE_TEXT)}
+        actions={<Button onPress={() => setMessage(null)}>{t('Theek hai')}</Button>}
+      />
+    );
+  }
   return (
     <Dialog
       open

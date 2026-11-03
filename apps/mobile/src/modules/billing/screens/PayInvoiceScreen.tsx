@@ -15,6 +15,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { apiErrorMessage } from '@/core/api/errors';
 import { formatDate } from '@/core/format';
 import { t } from '@/core/i18n';
+import { PLAN_INACTIVE_TEXT, canPurchaseInApp } from '@/core/platform/purchases';
 import { useOnlineStatus } from '@/core/net';
 import { onlineNeededText } from '@/core/offline';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
@@ -28,6 +29,21 @@ import { INVOICE_STATUS, PROVIDER, daysText, daysUntil } from '../lib/meta';
 const PROVIDERS: PaymentProvider[] = ['MANUAL_BANK', 'JAZZCASH', 'EASYPAISA', 'NAYAPAY'];
 
 export function PayInvoiceScreen() {
+  return canPurchaseInApp() ? <PayInvoiceForm /> : <PayNotOnIos />;
+}
+
+/** iOS: payments are not taken in the app (App Store rule); the bill opens read-only. */
+function PayNotOnIos() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return (
+    <Screen title={t('Bill')}>
+      <EmptyState icon={Lock} title={t('Ye bill sirf dekhne ke liye hai')} message={t(PLAN_INACTIVE_TEXT)}
+        action={id ? <Button variant="secondary" onPress={() => router.replace(`/billing/invoice/${id}` as never)}>{t('Bill dekhein')}</Button> : undefined} />
+    </Screen>
+  );
+}
+
+function PayInvoiceForm() {
   const th = useTheme();
   const qc = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();

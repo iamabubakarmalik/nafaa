@@ -95,6 +95,12 @@ export function businessDayKey(d: DateInput = Date.now(), startHour = 0): string
   return `${p.year}-${String(p.month + 1).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
 }
 
+/** "Nov" for a "2026-11" month key (no Intl, same on every phone). */
+export function formatMonthShort(monthKey: string): string {
+  const m = Number(monthKey.slice(5, 7));
+  return MONTHS[m - 1] ?? monthKey;
+}
+
 /** Hour of day in Pakistan (0–23), for greetings and charts. */
 export const pkHour = (d: DateInput = Date.now()) => pkParts(d).hour;
 

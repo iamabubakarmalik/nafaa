@@ -14,7 +14,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Linking } from 'react-native';
-import { formatPKR } from '@/core/format';
+import { formatPKR, pkParts } from '@/core/format';
 import { renderReceipt } from './html';
 import { getReceiptSetup, printPaper, NAFAA } from './setup';
 import { methodWord, rw, type ReceiptLang } from './words';
@@ -85,6 +85,14 @@ export async function shareReceiptPdf(doc: ReceiptDoc, o: PrintOptions = {}): Pr
   }
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "4 Nov 2026, 3:05 PM" in Pakistan time, without Intl (same on every phone). */
+function billDateTime(d: Date) {
+  const p = pkParts(d);
+  return `${p.day} ${MONTHS[p.month]} ${p.year}, ${p.hour % 12 || 12}:${String(p.minute).padStart(2, '0')} ${p.hour < 12 ? 'AM' : 'PM'}`;
+}
+
 /** The bill as a WhatsApp message in the shop's bill language. */
 export function receiptText(doc: ReceiptDoc, lang: ReceiptLang, setup: ReceiptSetup = getReceiptSetup()): string {
   const due = Math.max(doc.total - doc.paid, 0);
@@ -95,7 +103,7 @@ export function receiptText(doc: ReceiptDoc, lang: ReceiptLang, setup: ReceiptSe
     : [];
   return [
     `*${setup.shop.name}*`,
-    `${rw(lang, 'bill')} ${doc.saleNumber} · ${doc.date.toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Karachi' })}`,
+    `${rw(lang, 'bill')} ${doc.saleNumber} · ${billDateTime(doc.date)}`,
     '',
     ...doc.lines.map((l) => `${l.qty} ${l.unit} ${l.name} — ${formatPKR(l.total)}`),
     '',

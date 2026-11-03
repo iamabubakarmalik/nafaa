@@ -5,6 +5,7 @@
  */
 
 import { t } from '@/core/i18n';
+import { PLAN_INACTIVE_TEXT, canPurchaseInApp } from '../platform/purchases';
 
 interface ApiErrorLike {
   response?: { status?: number; data?: { message?: unknown }; headers?: Record<string, unknown> };
@@ -34,7 +35,8 @@ export function apiErrorMessage(err: unknown, fallback = t('Kuch ghalat ho gaya.
   const status = e.response.status ?? 0;
   if (status === 429) return t('Bohat zyada koshishen ho gayin. Thora ruk kar dobara try karein.');
   if (status === 403) return serverMessage(err) || t('Is kaam ki ijazat nahi hai.');
-  if (status === 402) return serverMessage(err) || t('Aap ka plan khatam ho gaya hai.');
+  // iOS: the server's "renew / take a plan" wording is not shown (App Store rule).
+  if (status === 402) return canPurchaseInApp() ? serverMessage(err) || t('Aap ka plan khatam ho gaya hai.') : t(PLAN_INACTIVE_TEXT);
   const raw = serverMessage(err);
   if (status >= 500) return t('Server me masla aa gaya. Thori der baad dobara try karein.');
   return raw || fallback;

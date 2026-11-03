@@ -10,7 +10,7 @@ import { Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { buildable, packMoney, packProblems, type PackProblem } from '@nafaa/core/industries/toystore';
-import { formatMoney } from '@/core/format';
+import { businessDayKey, formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { useOnlineStatus } from '@/core/net';
 import { onlineNeededText, useProductSearch } from '@/core/offline';
@@ -32,7 +32,7 @@ const EMPTY: Draft = {
 };
 let seq = 0;
 const key = () => `l${++seq}`;
-const dayKey = (v?: string | null) => (v ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date(v)) : '');
+const dayKey = (v?: string | null) => (v ? businessDayKey(v) : '');
 const asDate = (k: string) => new Date(`${k}T12:00:00+05:00`);
 
 const PROBLEM: Record<PackProblem, string> = {

@@ -50,6 +50,7 @@ export const offline = {
     get: async (id: string, shopId?: string | null) => (await requireEngine()).products.get(id, shopId),
     stock: async (shopId: string, productId: string, variantId?: string | null) => (await requireEngine()).products.stock(shopId, productId, variantId),
     count: async () => (await requireEngine()).products.count(),
+    countByCategory: async () => (await requireEngine()).products.countByCategory(),
   },
   customers: {
     search: async (q: CustomerSearch = {}) => (await requireEngine()).customers.search(q),

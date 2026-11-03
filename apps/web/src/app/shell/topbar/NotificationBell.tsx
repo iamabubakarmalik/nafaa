@@ -1,9 +1,9 @@
 /**
  * Notification bell and panel.
  *
- * Polls the unread count and the latest 20 notifications every 30 seconds,
- * plays a sound when new ones arrive (a distinct sound for urgent types), and
- * shows them in a panel with All / Unread tabs grouped into Today and Earlier.
+ * Polls the unread count and the latest 20 notifications every 30 seconds
+ * and shows them in a panel with All / Unread tabs grouped into Today and
+ * Earlier. The sound for new ones plays in useRealtimeNotifications.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { notificationsApi, type Notification, type NotificationType } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
+import { playTone, useAlertPrefs } from '@modules/notifications/alertPrefs';
 import { cn } from '@core/lib/cn';
 import { IconButton } from '@/design-system/components';
 import { Panel, useDismiss } from '../ui';
@@ -79,10 +80,9 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { play, playUrgent, isMuted, setMuted } = useNotificationSound();
+  const { isMuted, setMuted } = useNotificationSound();
+  const { prefs } = useAlertPrefs();
   const [muted, setMutedState] = useState(false);
-  const seenIds = useRef<Set<string>>(new Set());
-  const initialized = useRef(false);
 
   const close = useCallback(() => setOpen(false), []);
   useDismiss(ref, open, close);
@@ -101,21 +101,7 @@ export default function NotificationBell() {
   });
   const notifications: Notification[] = useMemo(() => data?.items ?? [], [data]);
 
-  // Play a sound for notifications that arrived since the last poll.
-  useEffect(() => {
-    if (!notifications.length) return;
-    if (!initialized.current) {
-      notifications.forEach((n) => seenIds.current.add(n.id));
-      initialized.current = true;
-      return;
-    }
-    const fresh = notifications.filter((n) => !seenIds.current.has(n.id) && !n.isRead);
-    if (fresh.length) {
-      if (fresh.some((n) => URGENT_TYPES.includes(n.type))) playUrgent();
-      else play();
-    }
-    notifications.forEach((n) => seenIds.current.add(n.id));
-  }, [notifications, play, playUrgent]);
+  // Sounds for new notifications play in useRealtimeNotifications (the person's chosen tone).
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['notifications'] });
   const markRead = useMutation({ mutationFn: (id: string) => notificationsApi.markRead(id), onSuccess: invalidate });
@@ -126,7 +112,7 @@ export default function NotificationBell() {
     const next = !muted;
     setMuted(next);
     setMutedState(next);
-    if (!next) play();
+    if (!next) playTone(prefs?.sound ?? 'chime');
   };
 
   const openNotification = (n: Notification) => {

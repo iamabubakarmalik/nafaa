@@ -19,6 +19,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct, returnSaleBatches } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ReturnsRecordsService } from './returns-records.service';
 import { PIN_APPROVAL_ACTION, r2, r3, tidyCustomerBalance } from './returns.helpers';
@@ -75,6 +76,7 @@ export class ReturnsService {
     private readonly notifications: NotificationsService,
     private readonly fbr: FbrService,
     private readonly records: ReturnsRecordsService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   // ════════════════════════════════════════════════════════
@@ -597,14 +599,12 @@ export class ReturnsService {
     if (result.repeated) return result;
 
 
-    await this.notifications.create({
-      tenantId,
-      type: 'RETURN_PROCESSED',
-      title: 'Return Processed',
-      message: result.createdCutPieces.length > 0
-        ? apiMessage('{{returnNumber}}: Rs {{amount}} refunded • {{count}} cut piece(s) created', { returnNumber, amount: result.refundAmount.toFixed(0), count: result.createdCutPieces.length })
-        : apiMessage('{{returnNumber}}: Rs {{amount}} refunded', { returnNumber, amount: result.refundAmount.toFixed(0) }),
+    this.alerts.emit({
+      tenantId, event: 'voidRefund', type: 'RETURN_PROCESSED', shopId: sale.shopId, actorId: user.id,
+      title: '↩️ Return hui',
+      message: apiMessage('{{number}} · Rs {{amount}} wapas · {{by}}', { number: returnNumber, amount: Math.round(result.refundAmount).toLocaleString('en-PK') }),
       link: '/returns',
+      metadata: { returnId: result.id, saleId: sale.id, amount: result.refundAmount, cutPieces: result.createdCutPieces.length },
     });
 
     void this.fbr.submitCreditNote(tenantId, result.id).catch(() => undefined);

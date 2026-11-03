@@ -11,6 +11,7 @@ import { CashTransactionDto } from './dto/cash-transaction.dto';
 import { checkDenominations, type Denominations } from './dto/denominations';
 import { computeLiveCash, type CashWindow } from '../../../common/helpers/live-cash.helper';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 import { acceptClientTime, notBefore } from '../../../common/helpers/client-time.helper';
 
 type Db = Prisma.TransactionClient;
@@ -56,7 +57,10 @@ const PEOPLE = {
 
 @Injectable()
 export class CashRegisterService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly alerts: StaffAlertsService,
+  ) {}
 
   /**
    * Drawer cash for one shift from `openedAt` up to `until` (now when left
@@ -263,7 +267,7 @@ export class CashRegisterService {
     if (!shop) throw new NotFoundException('Shop not found or inactive');
     const denominations = checkDenominations(dto.denominations, dto.openingBalance);
 
-    return this.prisma.$transaction(async (tx) => {
+    const opened = await this.prisma.$transaction(async (tx) => {
       // Two openings at once wait on the branch row, so only one passes the check below.
       await tx.$queryRaw`SELECT id FROM "Shop" WHERE id = ${shopId} FOR UPDATE`;
       const existing = await tx.cashRegister.findFirst({
@@ -317,6 +321,14 @@ export class CashRegisterService {
 
       return register;
     });
+    this.alerts.emit({
+      tenantId: user.tenantId, event: 'register', type: 'REGISTER_OPENED', shopId, actorId: user.id, pushWorthy: false,
+      title: '🔓 Register khula',
+      message: apiMessage('{{shop}} · {{by}} · Rs {{amount}}', { shop: shop.name, amount: Math.round(dto.openingBalance).toLocaleString('en-PK') }),
+      link: '/cash-register',
+      metadata: { registerId: opened.id },
+    });
+    return opened;
   }
 
   async addTransaction(user: AuthenticatedUser, scope: ShopScope, dto: CashTransactionDto) {
@@ -372,7 +384,7 @@ export class CashRegisterService {
     const register = await this.findOpen(user, scope, dto.registerId);
     const denominations = checkDenominations(dto.denominations, dto.closingBalance);
 
-    return this.prisma.$transaction(async (tx) => {
+    const closed = await this.prisma.$transaction(async (tx) => {
       // Holding the row lock keeps cash in/out out until the count is saved.
       await this.lockOpen(tx, register.id);
       // A till counted offline closes at the time it was counted (never before it opened).
@@ -420,6 +432,21 @@ export class CashRegisterService {
 
       return tx.cashRegister.findUniqueOrThrow({ where: { id: register.id }, include: PEOPLE });
     }, { timeout: 20_000 });
+    const short = round2(-(closed.difference ?? 0));
+    const shop = closed.shop?.name ?? '';
+    this.alerts.emit({
+      tenantId: user.tenantId, event: 'register', shopId: closed.shopId, actorId: user.id,
+      type: short >= 1 ? 'WARNING' : 'REGISTER_CLOSED',
+      // A normal close stays in the app; a shortage also goes to phones.
+      pushWorthy: short >= 1,
+      title: short >= 1 ? '⚠️ Register me kami' : '🔒 Register band hua',
+      message: short >= 1
+        ? apiMessage('{{shop}} · {{by}} · Rs {{amount}} kam', { shop, amount: Math.round(short).toLocaleString('en-PK') })
+        : apiMessage('{{shop}} · {{by}} · Rs {{amount}}', { shop, amount: Math.round(dto.closingBalance).toLocaleString('en-PK') }),
+      link: '/cash-register',
+      metadata: { registerId: closed.id, difference: closed.difference },
+    });
+    return closed;
   }
 
   /** Last 30 shifts in scope (kept for the mobile app). */

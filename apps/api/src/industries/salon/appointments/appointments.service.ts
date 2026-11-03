@@ -19,6 +19,7 @@ import {
   AddPaymentDto, AppointmentPageQuery, AppointmentView, CheckoutAppointmentDto, CreateAppointmentDto, RescheduleDto, UpdateAppointmentStatusDto,
 } from './dto/create-appointment.dto';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../../modules/notifications/alerts/staff-alerts.service';
 
 /** Statuses that keep a stylist busy for the booked slot. */
 const BUSY = ['CONFIRMED', 'ARRIVED', 'IN_PROGRESS', 'RESCHEDULED'] as const;
@@ -40,6 +41,7 @@ export class AppointmentsService {
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
     private readonly bills: SalonBillsService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   async create(user: AuthenticatedUser, dto: CreateAppointmentDto, scopeShopId?: string | null) {
@@ -112,7 +114,7 @@ export class AppointmentsService {
     const notes = dto.numberOfGuests && dto.numberOfGuests > 1 ? `Guests: ${dto.numberOfGuests}` : '';
 
     const clock = await salonClock(this.tz, tenantId);
-    return withNextNumber(
+    const made = await withNextNumber(
       (prefix) => this.prisma.salonAppointment.findFirst({
         where: { tenantId, appointmentNumber: { startsWith: prefix } }, orderBy: { appointmentNumber: 'desc' }, select: { appointmentNumber: true },
       }).then((r) => r?.appointmentNumber),
@@ -144,6 +146,18 @@ export class AppointmentsService {
         include: { services: true },
       }),
     );
+    if (!dto.walkIn) {
+      const { tz } = await this.tz.clock(tenantId);
+      const when = new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(made.scheduledStart);
+      this.alerts.emit({
+        tenantId, event: 'booking', type: 'INFO', shopId: made.shopId, actorId: user.id,
+        title: '📅 Nayi booking',
+        message: apiMessage('{{customer}} · {{when}}', { customer: made.customerName ?? '', when }),
+        link: '/salon/appointments',
+        metadata: { appointmentId: made.id },
+      });
+    }
+    return made;
   }
 
   async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; staffProfileId?: string; from?: string; to?: string; search?: string; saleId?: string; saleIds?: string; source?: SalonAppointmentSource }) {

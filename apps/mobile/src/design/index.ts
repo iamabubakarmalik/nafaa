@@ -41,6 +41,7 @@ export { Avatar, initials } from './components/Avatar';
 export { Amount, type AmountProps } from './components/Amount';
 export { Skeleton, SkeletonRows } from './components/Skeleton';
 export { EmptyState, ErrorState } from './components/States';
+export { ErrorBoundary } from './components/ErrorBoundary';
 export { StatTile } from './components/StatTile';
 export { KpiStrip, type KpiItem } from './components/KpiStrip';
 export { SavedDataNote } from './components/SavedDataNote';

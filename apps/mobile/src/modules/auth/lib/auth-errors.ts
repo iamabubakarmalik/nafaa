@@ -12,6 +12,8 @@ interface ApiError {
 /** Known server messages, matched case-insensitively by substring. */
 const KNOWN: Array<[RegExp, string]> = [
   [/invalid email or password/i, t('Email ya password sahi nahi hai. Dobara check karein.')],
+  [/apple se bana hai|sign in with apple use/i, t('Ye account Apple se bana hai. "Sign in with Apple" dabayein, ya password reset karke naya password bana lein.')],
+  [/apple se dobara try/i, t('Apple wala session khatam ho gaya. Apple se dobara try karein.')],
   [/google se bana hai|continue with google/i, t('Ye account Google se bana hai. "Google se login" dabayein, ya password reset karke naya password bana lein.')],
   [/email already registered/i, t('Is email se pehle hi account bana hua hai. Login karein ya password reset kar lein.')],
   [/phone already (registered|in use)/i, t('Ye mobile number pehle se kisi account me hai. Doosra number likhein ya khaali chhor dein.')],

@@ -9,6 +9,7 @@ import { RefreshCw, Receipt } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { t } from '@/core/i18n';
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import { Amount, Card, ChipGroup, EmptyState, ErrorState, IconButton, Row, Screen, SkeletonRows, StatTile, Tabs, Text, useTheme } from '@/design';
 import { CachedNote } from '@/modules/sales/components/CachedNote';
 import type { BillingInterval, Invoice, InvoiceStatus, Payment, PaymentStatus } from '../api/billing';
@@ -32,8 +33,11 @@ export function BillingScreen({ defaultTab = 'overview' }: { defaultTab?: Billin
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [openPayment, setOpenPayment] = useState<Payment | null>(null);
 
+  // iOS: no plan comparison with prices or buy buttons (App Store rule).
+  const purchasable = canPurchaseInApp();
   const allowed = useMemo(() => (['overview', 'usage', 'invoices', 'payments', 'plans'] as BillingTab[])
-    .filter((x) => (x === 'usage' ? b.can.usage : x === 'plans' ? b.can.plans : b.can.billing)), [b.can.usage, b.can.plans, b.can.billing]);
+    .filter((x) => (x === 'usage' ? b.can.usage : x === 'plans' ? b.can.plans && purchasable : b.can.billing)), [b.can.usage, b.can.plans, b.can.billing, purchasable]);
+  const onUpgrade = b.can.plans && purchasable ? () => goPlans() : undefined;
   const tab: BillingTab = asked && allowed.includes(asked) ? asked : allowed.includes(defaultTab) ? defaultTab : allowed[0] ?? defaultTab;
 
   const goPlans = () => { if (b.needsRenewal && b.sub?.interval) setInterval(b.sub.interval); setTab('plans'); };
@@ -75,7 +79,7 @@ export function BillingScreen({ defaultTab = 'overview' }: { defaultTab?: Billin
                 value={<Amount value={b.totals.paidTotal} size="lg" weight="bold" />} hint={t('{{paidCount}} bill', { paidCount: b.totals.paidCount })} />
             </Row>
           )}
-          {b.can.usage && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} onUpgrade={b.can.plans ? goPlans : undefined} />}
+          {b.can.usage && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} onUpgrade={onUpgrade} />}
           {b.invoices.length > 0 && (
             <View style={{ gap: th.space(2) }}>
               <Row justify="between"><Text weight="semibold">{t('Naye bill')}</Text><Text size="sm" tone="brand" weight="semibold" onPress={() => setTab('invoices')}>{t('Sab dekhein')}</Text></Row>
@@ -85,7 +89,7 @@ export function BillingScreen({ defaultTab = 'overview' }: { defaultTab?: Billin
         </>
       )}
 
-      {tab === 'usage' && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} full onUpgrade={b.can.plans ? goPlans : undefined} />}
+      {tab === 'usage' && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} full onUpgrade={onUpgrade} />}
 
       {tab === 'invoices' && (
         <>
@@ -95,7 +99,7 @@ export function BillingScreen({ defaultTab = 'overview' }: { defaultTab?: Billin
           ]} />
           {b.loading.invoices ? <SkeletonRows count={5} /> : !invoices.length ? (
             <EmptyState icon={Receipt} compact title={b.invoices.length ? t('Is filter me koi bill nahi') : t('Abhi koi bill nahi')}
-              message={b.invoices.length ? t('Filter badal kar dekhein') : t('Plan lene par yahan bill aayenge')} />
+              message={b.invoices.length ? t('Filter badal kar dekhein') : purchasable ? t('Plan lene par yahan bill aayenge') : undefined} />
           ) : <InvoiceRows invoices={invoices} onOpen={openInvoice} />}
         </>
       )}
@@ -107,12 +111,12 @@ export function BillingScreen({ defaultTab = 'overview' }: { defaultTab?: Billin
           ]} />
           {b.loading.payments ? <SkeletonRows count={5} /> : !payments.length ? (
             <EmptyState icon={Receipt} compact title={b.payments.length ? t('Is filter me koi payment nahi') : t('Abhi koi payment nahi bheji')}
-              message={b.payments.length ? t('Filter badal kar dekhein') : t('Bill kholein aur "Payment karein" dabayein')} />
+              message={b.payments.length ? t('Filter badal kar dekhein') : purchasable ? t('Bill kholein aur "Payment karein" dabayein') : undefined} />
           ) : <PaymentRows payments={payments} onOpen={setOpenPayment} />}
         </>
       )}
 
-      {tab === 'plans' && <PlanCards b={b} interval={interval} setInterval={setInterval} />}
+      {tab === 'plans' && purchasable && <PlanCards b={b} interval={interval} setInterval={setInterval} />}
 
       <PaymentSheet payment={openPayment} onClose={() => setOpenPayment(null)} />
     </Screen>

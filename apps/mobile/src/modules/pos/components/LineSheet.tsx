@@ -23,6 +23,7 @@ export function LineSheet() {
   const api = usePos();
   const open = usePosUi((s) => s.sheet === 'line');
   const lineId = usePosUi((s) => s.lineId);
+  const lineField = usePosUi((s) => s.lineField);
   const line = useBill((s) => s.lines.find((l) => l.id === lineId));
   const billTier = useBill((s) => s.tier);
   const [field, setField] = useState<Field>('qty');
@@ -31,7 +32,11 @@ export function LineSheet() {
   const parts = api.counter.parts;
 
   useEffect(() => {
-    if (open && line) { setField('qty'); setValue(''); setNote(line.customNote ?? ''); }
+    if (!open || !line) return;
+    const rateOk = api.counter.canEditPrice && !line.fixedPrice && !line.dist?.free && line.type === 'product';
+    setField(rateOk ? lineField : 'qty');
+    setValue('');
+    setNote(line.customNote ?? '');
   }, [open, lineId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (open && !line) closeSheet(); }, [open, line]);
   if (!line) return null;

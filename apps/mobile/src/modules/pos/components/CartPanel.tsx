@@ -1,30 +1,41 @@
 /**
- * The bill: customer (khata balance, credit limit, points), lines with a
- * stepper (swipe to remove, tap to edit), the money summary and the pay
- * buttons. The same panel sits beside the catalog on tablets and in the
- * slide-up sheet on phones.
+ * The bill, in the web POS order: header (items, held bills, Hold, Clear,
+ * more), customer with "new customer", sale type (Retail / Wholesale /
+ * Credit), the lines (− qty +, × rate, total, remove, note, price type),
+ * then Discount (quick % chips), Charges, the total, "Cash" with the amount
+ * and Card / JazzCash / Easypaisa / Khata / Checkout. Full-height sheet on
+ * phones; beside the catalog on tablets.
  */
 
-import { BookOpen, ChevronRight, PauseCircle, Percent, ReceiptText, ShoppingCart, Trash2, Truck, UserPlus, Wallet } from 'lucide-react-native';
+import { BookOpen, ChevronDown, CreditCard, MoreHorizontal, PauseCircle, ShoppingCart, Smartphone, StickyNote, Tag, Trash2, Truck, UserPlus, Wallet, X, Zap, type LucideIcon } from 'lucide-react-native';
 import { memo, useRef } from 'react';
 import { FlatList, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
-import { creditStatus, type PosCartLine, type PriceTier } from '@nafaa/core/pos';
+import { creditStatus, type PaymentMethod, type PosCartLine } from '@nafaa/core/pos';
 import { t } from '@/core/i18n';
 import { formatMoney } from '@/core/format';
-import { Amount, Avatar, Badge, Button, EmptyState, Icon, PressableScale, Row, Segmented, Text, useTheme } from '@/design';
+import { Amount, Badge, Button, confirm, EmptyState, Icon, IconButton, PressableScale, Row, Text, toast, useTheme, withAlpha, type StatusTone } from '@/design';
 import { useBill } from '../engine/bill';
 import { useCounter } from '../engine/counter';
 import { useBillTotals } from '../engine/totals';
-import { openCheckoutSheet, openSheet, usePos } from '../engine/usePos';
+import { openCheckoutSheet, openNewCustomer, openSheet, usePos, type LineField } from '../engine/usePos';
+import { CustomerChip, HeldButton, TIER_LABEL, TierBar } from './BillCustomer';
 import { MoneyRow, Stepper } from './parts';
+import { PosThumb } from './ProductGrid';
 
-export const TIER_LABEL: Record<PriceTier, string> = { RETAIL: 'Retail', WHOLESALE: 'Wholesale', CREDIT: 'Credit' };
+export { TIER_LABEL, TierBar } from './BillCustomer';
 
-const LineRow = memo(function LineRow({ line, onStep, onOpen, onRemove, last }: { line: PosCartLine; onStep: (id: string, d: number) => void; onOpen: (id: string) => void; onRemove: (id: string) => void; last: boolean }) {
+const qtyText = (n: number) => String(Number(n.toFixed(3)));
+
+const LineRow = memo(function LineRow({ line, canRate, tierChip, showImages, onStep, onOpen, onRemove, last }: {
+  line: PosCartLine; canRate: boolean; tierChip: boolean; showImages: boolean; onStep: (id: string, d: number) => void; onOpen: (id: string, f: LineField) => void; onRemove: (id: string) => void; last: boolean;
+}) {
   const th = useTheme();
   const ref = useRef<SwipeableMethods>(null);
-  const edited = line.priceEdited && line.basePrice > line.unitPrice;
+  const lowered = line.priceEdited && line.basePrice > line.unitPrice;
+  const off = lowered ? (line.basePrice - line.unitPrice) * line.quantity : 0;
+  const rateTappable = canRate && !line.fixedPrice && !line.dist?.free && line.type === 'product';
+  const note = line.customNote || line.note;
   return (
     <ReanimatedSwipeable
       ref={ref}
@@ -39,146 +50,220 @@ const LineRow = memo(function LineRow({ line, onStep, onOpen, onRemove, last }: 
         </View>
       )}
     >
-      <PressableScale onPress={() => onOpen(line.id)} scaleTo={0.995} pressedStyle={{ backgroundColor: th.colors.surfaceMuted }}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2), paddingHorizontal: th.space(3), paddingVertical: th.space(2), backgroundColor: th.colors.surface,
-          borderBottomWidth: last ? 0 : 1, borderBottomColor: th.colors.divider }}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text size="sm" weight="semibold" numberOfLines={2}>{line.variantName ? `${line.name} · ${line.variantName}` : line.name}</Text>
-          <Row gap={1.5} wrap>
-            <Text size="xs" tone="muted" ltr>{`${formatMoney(line.unitPrice)} × ${Number(line.quantity.toFixed(3))} ${line.unitName}`}</Text>
-            {edited && <Badge tone="warning" size="sm">{t('Rate changed')}</Badge>}
-            {line.dist?.free && <Badge tone="success" size="sm">{t('Free')}</Badge>}
-            {line.priceTier && line.priceTier !== 'RETAIL' && !line.dist && <Badge tone="info" size="sm">{t(TIER_LABEL[line.priceTier])}</Badge>}
+      <View style={{ flexDirection: 'row', gap: th.space(2.5), paddingHorizontal: th.space(3), paddingVertical: th.space(2.5), backgroundColor: th.colors.surface, borderBottomWidth: last ? 0 : 1, borderBottomColor: th.colors.divider }}>
+        {showImages && <PosThumb name={line.name} url={line.image} size={40} radius={th.radius('md')} emojiSize={20} />}
+        <View style={{ flex: 1, gap: th.space(1.5) }}>
+          <Row gap={2} align="start">
+            <PressableScale onPress={() => onOpen(line.id, 'qty')} scaleTo={0.99} style={{ flex: 1, gap: 2 }}>
+              <Text size="sm" weight="semibold" numberOfLines={2}>{line.variantName ? `${line.name} · ${line.variantName}` : line.name}</Text>
+              {(line.dist?.free || lowered) && (
+                <Row gap={1.5} wrap>
+                  {line.dist?.free && <Badge tone="success" size="sm">{t('Free')}</Badge>}
+                  {lowered && <Badge tone="warning" size="sm">{t('Rate changed')}</Badge>}
+                </Row>
+              )}
+              {!!note && <Text size="2xs" tone="muted" numberOfLines={1} style={{ fontStyle: 'italic' }}>“{note}”</Text>}
+            </PressableScale>
+            <IconButton icon={StickyNote} size="sm" label={t('Note')} color={note ? th.colors.brand.text : th.colors.textSubtle} onPress={() => onOpen(line.id, 'qty')} />
+            <IconButton icon={Trash2} size="sm" label={t('Remove')} color={th.colors.danger.text} onPress={() => onRemove(line.id)} />
           </Row>
-          {!!(line.customNote || line.note) && <Text size="2xs" tone="muted" numberOfLines={1}>{line.customNote || line.note}</Text>}
+          <Row gap={2}>
+            {line.lockQty
+              ? <Text size="xs" tone="muted">{t('Qty fixed')}</Text>
+              : <Stepper compact value={line.quantity} onMinus={() => onStep(line.id, -1)} onPlus={() => onStep(line.id, 1)} onPressValue={() => onOpen(line.id, 'qty')} />}
+            <PressableScale onPress={() => onOpen(line.id, rateTappable ? 'rate' : 'qty')} haptic="tap" accessibilityLabel={t('Rate')} hitSlop={6} style={{ flexShrink: 1 }}>
+              <Text size="sm" tone="secondary" ltr numberOfLines={1} style={rateTappable ? { textDecorationLine: 'underline', textDecorationStyle: 'dotted' } : undefined}>× {formatMoney(line.unitPrice)}</Text>
+            </PressableScale>
+            <View style={{ flex: 1 }} />
+            <View style={{ alignItems: 'flex-end' }}>
+              <Amount value={line.lineTotal} weight="bold" size="base" />
+              {lowered && <Text size="2xs" color={th.colors.success.text} ltr>−{formatMoney(off)}</Text>}
+            </View>
+          </Row>
+          {tierChip && line.type === 'product' && !line.fixedPrice && !line.dist && (
+            <PressableScale onPress={() => onOpen(line.id, 'qty')} haptic="tap" style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: th.space(2), borderRadius: 13, backgroundColor: th.colors.surfaceMuted }}>
+              <Text size="2xs" weight="semibold" tone="secondary">{t('{{tier}} price', { tier: t(TIER_LABEL[line.priceTier ?? 'RETAIL']) })}</Text>
+              <Icon icon={ChevronDown} size={12} tone="muted" />
+            </PressableScale>
+          )}
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <Amount value={line.lineTotal} weight="bold" size="sm" />
-          {line.lockQty
-            ? <Text size="xs" tone="muted">{t('Qty fixed')}</Text>
-            : <Stepper compact value={line.quantity} onMinus={() => onStep(line.id, -1)} onPlus={() => onStep(line.id, 1)} />}
-        </View>
-      </PressableScale>
+      </View>
     </ReanimatedSwipeable>
   );
 });
 
-function CustomerBar() {
+const QUICK_PAY: Array<{ id: PaymentMethod; label: string; icon: LucideIcon; tone: StatusTone }> = [
+  { id: 'CARD', label: 'Card', icon: CreditCard, tone: 'info' },
+  { id: 'JAZZCASH', label: 'JazzCash', icon: Smartphone, tone: 'warning' },
+  { id: 'EASYPAISA', label: 'Easypaisa', icon: Zap, tone: 'success' },
+];
+
+/** Card, JazzCash, Easypaisa, Khata and Checkout under the Cash button, like the web. */
+function QuickPay({ disabled }: { disabled: boolean }) {
   const th = useTheme();
+  const counter = useCounter();
   const customer = useBill((s) => s.customer);
-  const totals = useBillTotals();
-  if (!customer) {
-    return (
-      <PressableScale onPress={() => openSheet('customer')} style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2.5), padding: th.space(3), borderRadius: th.radius('lg'), backgroundColor: th.colors.surfaceMuted }}>
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: th.colors.surface, alignItems: 'center', justifyContent: 'center' }}><Icon icon={UserPlus} tone="brand" /></View>
-        <View style={{ flex: 1 }}>
-          <Text size="sm" weight="semibold">{t('Walk-in customer')}</Text>
-          <Text size="xs" tone="muted">{t('Tap to pick a customer for khata or points')}</Text>
-        </View>
-        <Icon icon={ChevronRight} flip tone="subtle" />
-      </PressableScale>
-    );
-  }
-  const credit = creditStatus(customer);
-  const owes = (customer.balance ?? 0) > 0;
-  return (
-    <PressableScale onPress={() => openSheet('customer')} style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2.5), padding: th.space(3), borderRadius: th.radius('lg'), backgroundColor: th.colors.brand.soft, borderWidth: 1, borderColor: th.colors.brand.border }}>
-      <Avatar name={customer.name} size={36} />
-      <View style={{ flex: 1, gap: 1 }}>
-        <Text size="sm" weight="bold" numberOfLines={1}>{customer.name}</Text>
-        <Row gap={1.5} wrap>
-          {owes ? <Text size="xs" color={th.colors.warning.text}>{t('Khata {{amount}}', { amount: formatMoney(customer.balance) })}</Text>
-            : (customer.balance ?? 0) < 0 ? <Text size="xs" color={th.colors.success.text}>{t('Advance {{amount}}', { amount: formatMoney(-(customer.balance ?? 0)) })}</Text>
-              : <Text size="xs" tone="muted" ltr>{customer.phone ?? ''}</Text>}
-          {credit.limit > 0 && <Text size="xs" tone={credit.near ? 'danger' : 'muted'}>{t('Limit {{amount}}', { amount: formatMoney(credit.limit) })}</Text>}
-          {totals.pointsMax > 0 || customer.loyaltyPoints > 0 ? <Text size="xs" tone="muted">{t('{{n}} points', { n: customer.loyaltyPoints })}</Text> : null}
-        </Row>
-      </View>
-      {customer.pendingCreate && <Badge tone="warning" size="sm">{t('Not synced')}</Badge>}
-      <Icon icon={ChevronRight} flip tone="subtle" />
+  const tile = (key: string, label: string, icon: LucideIcon | null, color: string, onPress: () => void, off = false) => (
+    <PressableScale key={key} onPress={onPress} disabled={disabled} haptic="tap" accessibilityLabel={label}
+      style={{ flex: 1, minHeight: 50, borderRadius: th.radius('md'), alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 1, borderColor: th.colors.border,
+        backgroundColor: th.colors.surface, opacity: disabled || off ? 0.4 : 1, paddingHorizontal: 2 }}>
+      {icon ? <Icon icon={icon} size={16} color={color} /> : <Text size="2xs" weight="bold" tone="muted">•••</Text>}
+      <Text size="2xs" weight="semibold" numberOfLines={1}>{label}</Text>
     </PressableScale>
   );
-}
-
-function TierBar() {
-  const counter = useCounter();
-  const tier = useBill((s) => s.tier);
-  const setTier = useBill((s) => s.setTier);
-  const { parts, tierTrusted } = counter;
-  if (!parts.priceTiers || parts.priceTierList.length < 2) return null;
-  const options = parts.priceTierList.map((x) => ({ value: x, label: t(TIER_LABEL[x]) }));
   return (
-    <Segmented size="sm" options={options} value={tier} onChange={(v) => {
-      if (v !== parts.defaultPriceTier && !tierTrusted) return;
-      setTier(v);
-    }} />
+    <Row gap={1.5}>
+      {QUICK_PAY.map((q) => tile(q.id, t(q.label), q.icon, th.colors[q.tone].text, () => openCheckoutSheet('full', false, q.id)))}
+      {tile('khata', t('Khata'), BookOpen, th.colors.warning.text, () => {
+        if (!counter.rules.allowCredit) { toast.error(t('Khata is turned off in this shop')); return; }
+        if (!customer) { toast.error(t('Choose a customer for khata')); openSheet('customer'); return; }
+        openCheckoutSheet('credit');
+      }, !counter.rules.allowCredit || !customer)}
+      {tile('checkout', t('Checkout'), null, th.colors.text, () => openCheckoutSheet('full'))}
+    </Row>
   );
 }
 
-export function CartPanel({ onPay, onCash, onHeld, compact }: { onPay: () => void; onCash: () => void; onHeld?: () => void; compact?: boolean }) {
+/** Discount (applied chip or quick % chips) and charges / delivery, like the web bill footer. */
+function DiscountRow({ empty }: { empty: boolean }) {
+  const th = useTheme();
+  const counter = useCounter();
+  const bill = useBill();
+  const totals = useBillTotals();
+  const parts = counter.parts;
+  const limit = counter.rules.discountTrusted ? 100 : counter.rules.maxDiscountPercent;
+  const quick = counter.rules.allowDiscount ? parts.quickDiscounts.filter((p) => p <= limit) : [];
+  const hasDiscount = totals.discount > 0;
+  const chip = { height: 34, paddingHorizontal: th.space(3), borderRadius: 17, flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5 };
+  const charges = totals.charges > 0 || bill.delivery.on;
+  return (
+    <Row gap={1.5} wrap style={{ opacity: empty ? 0.45 : 1 }}>
+      {parts.showDiscount && (hasDiscount ? (
+        <PressableScale onPress={() => openSheet('discount')} disabled={empty} haptic="tap" style={{ ...chip, paddingEnd: 4, backgroundColor: th.colors.warning.soft }}>
+          <Icon icon={Tag} size={14} color={th.colors.warning.text} />
+          <Text size="xs" weight="semibold" color={th.colors.warning.text} ltr>
+            {bill.discountMode === 'pct' ? `${bill.discountPct}%` : t('Discount')} −{formatMoney(totals.discount)}
+          </Text>
+          <PressableScale onPress={() => bill.setDiscount('pct', 0, 0)} accessibilityLabel={t('Remove discount')} hitSlop={6}
+            style={{ width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon icon={X} size={13} color={th.colors.warning.text} />
+          </PressableScale>
+        </PressableScale>
+      ) : (
+        <>
+          <PressableScale onPress={() => openSheet('discount')} disabled={empty} haptic="tap" style={{ ...chip, borderWidth: 1, borderColor: th.colors.border }}>
+            <Icon icon={Tag} size={14} tone="default" />
+            <Text size="xs" weight="semibold">{t('Discount')}</Text>
+          </PressableScale>
+          {quick.map((pct) => (
+            <PressableScale key={pct} onPress={() => bill.setDiscount('pct', pct, 0)} disabled={empty} haptic="tap" accessibilityLabel={t('{{pct}}% Discount', { pct })}
+              style={{ ...chip, paddingHorizontal: th.space(2.5), backgroundColor: th.colors.surfaceMuted }}>
+              <Text size="xs" weight="semibold" ltr>{pct}%</Text>
+            </PressableScale>
+          ))}
+        </>
+      ))}
+      <PressableScale onPress={() => openSheet('charges')} disabled={empty} haptic="tap"
+        style={{ ...chip, borderWidth: 1, borderColor: charges ? withAlpha(th.colors.brand.solid, 0.4) : th.colors.border, backgroundColor: charges ? th.colors.brand.soft : undefined }}>
+        <Icon icon={Truck} size={14} color={charges ? th.colors.brand.text : th.colors.text} />
+        <Text size="xs" weight="semibold" color={charges ? th.colors.brand.text : undefined}>{t('Delivery / charges')}</Text>
+      </PressableScale>
+    </Row>
+  );
+}
+
+export function CartPanel({ onCash, onHeld, onClose, heldCount = 0 }: { onCash: () => void; onHeld?: () => void; onClose?: () => void; heldCount?: number }) {
   const th = useTheme();
   const api = usePos();
-  const counter = useCounter();
+  const parts = api.counter.parts;
   const lines = useBill((s) => s.lines);
   const customer = useBill((s) => s.customer);
-  const delivery = useBill((s) => s.delivery);
   const totals = useBillTotals();
   const credit = creditStatus(customer, 0);
   const discountAll = totals.discount + totals.codeDiscount + totals.loyaltyDiscount;
   const empty = !lines.length;
+  const canRate = api.counter.canEditPrice;
+  const tierChip = parts.priceTiers && parts.tierLineOverride && parts.priceTierList.length > 1;
+  const openLine = (id: string, f: LineField) => openSheet('line', id, f);
+
+  const clear = async () => {
+    const ok = await confirm({ title: t('Clear this bill?'), message: t('All items come off the bill. Hold it instead if the customer will come back.'), tone: 'danger', confirmLabel: t('Clear'), icon: Trash2 });
+    if (!ok) return;
+    useBill.getState().clear(parts.priceTiers ? parts.defaultPriceTier : 'RETAIL');
+    toast.info(t('Bill cleared'));
+  };
 
   return (
     <View style={{ flex: 1 }}>
+      <Row gap={1} style={{ paddingHorizontal: th.space(3), paddingBottom: th.space(2) }}>
+        <Text size="lg" weight="bold">{t('Bill')}</Text>
+        {!empty && <Badge tone="neutral" size="sm">{t('{{count}} items · qty {{q}}', { count: lines.length, q: qtyText(totals.quantity) })}</Badge>}
+        <View style={{ flex: 1 }} />
+        <HeldButton count={heldCount} />
+        {!empty && (
+          <PressableScale onPress={() => { void api.hold().then(() => onHeld?.()); }} haptic="tap" accessibilityLabel={t('Hold')}
+            style={{ height: 34, paddingHorizontal: th.space(1.5), borderRadius: th.radius('md'), flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <Icon icon={PauseCircle} size={16} tone="secondary" />
+            <Text size="sm" weight="semibold" tone="secondary">{t('Hold')}</Text>
+          </PressableScale>
+        )}
+        {!empty && <IconButton icon={Trash2} size="sm" label={t('Clear')} onPress={() => void clear()} />}
+        <IconButton icon={MoreHorizontal} size="sm" label={t('More')} onPress={() => openSheet('more')} />
+        {onClose && <IconButton icon={X} size="sm" variant="secondary" label={t('Close')} onPress={onClose} />}
+      </Row>
+
       <View style={{ gap: th.space(2), paddingHorizontal: th.space(3), paddingBottom: th.space(2) }}>
-        <CustomerBar />
+        <Row gap={2}>
+          <CustomerChip />
+          <IconButton icon={UserPlus} size="lg" variant="secondary" label={t('New customer')} onPress={openNewCustomer} />
+        </Row>
         {customer && credit.limit > 0 && credit.room != null && credit.room <= 0 && (
           <Text size="xs" color={th.colors.danger.text}>{t('{{name}} is at the credit limit. More khata needs the owner\'s PIN.', { name: customer.name })}</Text>
         )}
         <TierBar />
         {api.config.CartExtra && <api.config.CartExtra />}
       </View>
+
       {empty ? (
-        <View style={{ flex: 1, justifyContent: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', borderTopWidth: 1, borderTopColor: th.colors.divider }}>
           <EmptyState compact icon={ShoppingCart} title={t('The bill is empty')} message={t('Tap a product or scan a barcode.')} />
         </View>
       ) : (
         <FlatList
           data={lines}
           keyExtractor={(l) => l.id}
-          style={{ flex: 1 }}
+          style={{ flex: 1, borderTopWidth: 1, borderTopColor: th.colors.divider }}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item, index }) => (
-            <LineRow line={item} last={index === lines.length - 1} onStep={api.step} onRemove={api.remove} onOpen={(id) => openSheet('line', id)} />
+            <LineRow line={item} canRate={canRate} tierChip={tierChip} showImages={parts.showImages} last={index === lines.length - 1} onStep={api.step} onRemove={api.remove} onOpen={openLine} />
           )}
         />
       )}
-      <View style={{ borderTopWidth: 1, borderTopColor: th.colors.divider, padding: th.space(3), gap: th.space(1), backgroundColor: th.colors.surface }}>
-        <Row gap={2} style={{ marginBottom: th.space(1) }}>
-          {counter.parts.showDiscount && (
-            <Button size="sm" variant={discountAll > 0 ? 'soft' : 'secondary'} icon={Percent} onPress={() => openSheet('discount')} disabled={empty} style={{ flex: 1 }}>{t('Discount')}</Button>
-          )}
-          <Button size="sm" variant={totals.charges > 0 || delivery.on ? 'soft' : 'secondary'} icon={Truck} onPress={() => openSheet('charges')} disabled={empty} style={{ flex: 1 }}>{t('Charges')}</Button>
-          <Button size="sm" variant="secondary" icon={PauseCircle} onPress={() => { void api.hold().then(() => onHeld?.()); }} disabled={empty} style={{ flex: 1 }}>{t('Hold')}</Button>
-        </Row>
-        {!compact && <MoneyRow label={t('Subtotal ({{count}} items)', { count: lines.length })} value={totals.subtotal} />}
-        {discountAll > 0 && <MoneyRow label={t('Discount')} value={discountAll} sign="−" tone="success" onPress={() => openSheet('discount')} />}
-        {totals.charges > 0 && <MoneyRow label={t('Charges')} value={totals.charges} sign="+" onPress={() => openSheet('charges')} />}
-        <MoneyRow label={t('Total')} value={totals.total} strong />
-        <Row gap={2} style={{ marginTop: th.space(1) }}>
-          <Button size="xl" variant="success" icon={Wallet} onPress={onCash} disabled={empty} style={{ flex: 1.15 }}>{t('Cash')}</Button>
-          <Button size="xl" icon={ReceiptText} onPress={onPay} disabled={empty} style={{ flex: 1 }}>{t('Pay')}</Button>
-        </Row>
-        {customer && counter.rules.allowCredit && !empty && (
-          <Button size="md" variant="soft" icon={BookOpen} onPress={() => openCheckoutSheet('credit')}>{t('Put all on khata')}</Button>
-        )}
+
+      <View style={{ borderTopWidth: 1, borderTopColor: th.colors.divider, paddingHorizontal: th.space(3), paddingTop: th.space(2.5), paddingBottom: th.space(3), gap: th.space(2), backgroundColor: th.colors.surface }}>
+        <DiscountRow empty={empty} />
+        <View style={{ paddingHorizontal: th.space(3), paddingVertical: th.space(1.5), borderRadius: th.radius('lg'), backgroundColor: th.colors.surfaceMuted }}>
+          {(discountAll > 0 || totals.charges > 0) && <MoneyRow label={t('Subtotal')} value={totals.subtotal} />}
+          {discountAll > 0 && <MoneyRow label={t('Discount')} value={discountAll} sign="−" tone="success" onPress={() => openSheet('discount')} />}
+          {totals.charges > 0 && <MoneyRow label={t('Charges')} value={totals.charges} sign="+" onPress={() => openSheet('charges')} />}
+          <Row justify="between">
+            <Text size="sm" weight="medium" tone="muted">{t('Total')}</Text>
+            <Amount value={totals.total} size="2xl" weight="bold" />
+          </Row>
+        </View>
+        <Button size="xl" variant="success" icon={Wallet} onPress={onCash} disabled={empty} fullWidth>
+          {`${t('Cash')}  ·  ${formatMoney(totals.total)}`}
+        </Button>
+        <QuickPay disabled={empty} />
       </View>
     </View>
   );
 }
 
-/** Bill total for the phone's slide-up bar. */
+/** Bill size for the phone's "View bill" bar. */
 export function useCartSummary() {
   const lines = useBill((s) => s.lines);
   const totals = useBillTotals();
   return { count: lines.length, qty: totals.quantity, total: totals.total };
 }
+

@@ -17,6 +17,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QUEUE_NAMES } from '../../core/queue/queue.constants';
 import { PushService, type ExpoPushMessage } from '../push/push.service';
+import { PushDeliveryService } from '../push/push-delivery.service';
 import {
   pickText, sanitizeTarget, sanitizeText, versionInRange,
   type LocalizedText, type MobileTarget,
@@ -42,6 +43,7 @@ export class MobilePushService {
     private readonly prisma: PrismaService,
     private readonly push: PushService,
     @InjectQueue(QUEUE_NAMES.MOBILE_PUSH) private readonly queue: Queue,
+    private readonly delivery: PushDeliveryService,
   ) {}
 
   // ─── Audience ─────────────────────────────────────────────────────
@@ -213,7 +215,8 @@ export class MobilePushService {
           body: pickText(body, r.language),
           data: { kind: 'broadcast', broadcastId: id, ...(b.deepLink ? { url: b.deepLink } : {}) },
         }));
-        const results = await this.push.sendExpo(messages);
+        // Logged with the other pushes, so the delivery view shows broadcast receipts too.
+        const results = await this.delivery.deliver(messages.map((message, j) => ({ message, event: 'broadcast', platform: chunk[j].platform })));
         results.forEach((res, j) => {
           if (res.ok) sent++;
           else {

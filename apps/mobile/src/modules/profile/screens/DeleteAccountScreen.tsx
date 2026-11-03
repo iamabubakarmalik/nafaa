@@ -48,12 +48,14 @@ function DeleteBusiness() {
   const th = useTheme();
   const online = useOnlineStatus();
   const tenant = useAuthStore((s) => s.tenant);
+  // Google / Apple only owners have no password: the typed text is the check.
+  const hasPassword = useAuthStore((s) => s.user?.hasPassword !== false);
   const [text, setText] = useState('');
   const [password, setPassword] = useState('');
   const [sent, setSent] = useState(tenant?.status === 'SUSPENDED');
 
   const del = useMutation({
-    mutationFn: () => profileApi.deleteBusiness(text, password),
+    mutationFn: () => profileApi.deleteBusiness(text, hasPassword ? password : undefined),
     onSuccess: () => { setSent(true); toast.success(t('Delete ki darkhwast lag gayi — 7 din me cancel kar sakte hain')); },
     onError: (e) => toast.error(apiErrorMessage(e, t('Delete nahi hua'))),
   });
@@ -63,7 +65,7 @@ function DeleteBusiness() {
     onError: (e) => toast.error(apiErrorMessage(e, t('Cancel nahi hua'))),
   });
 
-  const ready = text === BUSINESS_TEXT && password.length >= 4;
+  const ready = text === BUSINESS_TEXT && (!hasPassword || password.length >= 4);
   const submit = async () => {
     if (!online) { toast.warning(onlineNeededText('settings')); return; }
     const ok = await confirm({ title: t('Poora business delete karein?'), message: t('Ye aap ke account, team aur poore data par asar karega.'), tone: 'danger', confirmLabel: t('Haan, delete karein') });
@@ -93,7 +95,7 @@ function DeleteBusiness() {
       <Button variant="secondary" icon={Database} onPress={() => router.push('/backup' as never)}>{t('Backup')}</Button>
       <FormSection title={t('Tasdeeq')}>
         <Input label={t('Likhein: {{text}}', { text: BUSINESS_TEXT })} value={text} onChangeText={setText} autoCapitalize="characters" autoCorrect={false} ltr />
-        <PasswordInput label={t('Password')} value={password} onChangeText={setPassword} />
+        {hasPassword && <PasswordInput label={t('Password')} value={password} onChangeText={setPassword} />}
         <Text size="xs" tone="muted" style={{ marginTop: -th.space(1) }}>{t('Delete ki darkhwast ke baad 7 din ki mohlat hai.')}</Text>
       </FormSection>
     </FormTemplate>

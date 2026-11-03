@@ -3,8 +3,12 @@
  * manifest; the phone keeps counting days in that zone while offline.
  */
 
-/** 'YYYY-MM-DD' for `at` in `timeZone` (falls back to the phone's own zone). */
+import { BUSINESS_TZ, businessDayKey } from '@/core/format';
+
+/** 'YYYY-MM-DD' for `at` in `timeZone` (Pakistan when none is given). */
 export function dayKeyIn(timeZone: string | null | undefined, at: Date = new Date()): string {
+  // Pakistan (every shop today): fixed UTC+5 math, no Intl time zone data needed.
+  if (!timeZone || timeZone === BUSINESS_TZ) return businessDayKey(at);
   try {
     const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: timeZone || undefined, year: 'numeric', month: '2-digit', day: '2-digit',

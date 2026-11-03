@@ -21,9 +21,12 @@ import {
 } from 'lucide-react-native';
 import { msg } from '@/core/i18n';
 import { PERMISSIONS as P, type PermissionKey } from '@/core/permissions';
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import { RETAIL_TYPE_NAV } from '@/industries/_nav/nav';
 import { TRADE_TYPE_NAV } from '@/industries/_nav/nav-trade';
 import { SERVICE_TYPE_NAV } from '@/industries/_nav/nav-services';
+
+const PURCHASABLE = canPurchaseInApp();
 
 export interface NavItem {
   /** Web path; shared id across apps. */
@@ -267,7 +270,7 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     id: 'messages', title: msg('Messages & reports'), icon: Bell, desc: msg('Notifications, WhatsApp messages aur rozana report'),
     items: [
-      { to: '/settings/notifications', href: '/settings/notifications', label: msg('Notifications'), icon: Bell, permission: VIEW, ownerOnly: true, desc: msg('Email, kam stock, rozana sale'), keywords: 'email alert notification' },
+      { to: '/settings/notifications', href: '/settings/notifications', label: msg('Notifications'), icon: Bell, desc: msg('Kis baat ki khabar, kis awaaz se'), keywords: 'email alert notification' },
       { to: '/settings/whatsapp', href: '/settings/whatsapp', label: msg('WhatsApp messages'), icon: MessageCircle, permission: VIEW, ownerOnly: true, desc: msg('Bill, udhaar aur shukriya ke tayyar message'), keywords: 'whatsapp message template bill udhaar shukriya' },
       { to: '/settings/reports', href: '/settings/reports', label: msg('Reports & daily summary'), icon: BarChart3, permission: VIEW, ownerOnly: true, desc: msg('Rozana closing report, hafta, report ka period'), keywords: 'daily summary closing report week fiscal year period' },
     ],
@@ -281,10 +284,11 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     id: 'billing', title: msg('Plan & billing'), icon: CreditCard, desc: msg('Plan, invoices, limits aur referrals'),
     items: [
-      { to: '/plans', href: '/plan', label: msg('Plan'), icon: Sparkles, permission: P.PLANS_VIEW, ownerOnly: true, desc: msg('Aap ki subscription aur upgrade'), keywords: 'subscription upgrade' },
-      { to: '/billing', href: '/billing', label: msg('Billing'), icon: CreditCard, permission: P.BILLING_VIEW, ownerOnly: true, desc: msg('Invoices aur Payment ka tareeqa'), keywords: 'invoice pay' },
+      // iOS: plan and bills are read-only and Referrals (plan credit) is hidden — core/platform/purchases.
+      { to: '/plans', href: '/plan', label: msg('Plan'), icon: Sparkles, permission: P.PLANS_VIEW, ownerOnly: true, desc: PURCHASABLE ? msg('Aap ki subscription aur upgrade') : msg('Aap ki subscription'), keywords: PURCHASABLE ? 'subscription upgrade' : 'subscription' },
+      { to: '/billing', href: '/billing', label: msg('Billing'), icon: CreditCard, permission: P.BILLING_VIEW, ownerOnly: true, desc: PURCHASABLE ? msg('Invoices aur Payment ka tareeqa') : msg('Invoices'), keywords: PURCHASABLE ? 'invoice pay' : 'invoice' },
       { to: '/plan-usage', href: '/plan-usage', label: msg('Usage'), icon: Gauge, permission: P.PLAN_USAGE_VIEW, desc: msg('Limits aur kitna istemal hua'), keywords: 'limits quota usage' },
-      { to: '/referrals', href: '/referrals', label: msg('Referrals'), icon: Gift, permission: P.REFERRALS_VIEW, ownerOnly: true, desc: msg('Doosre stores ko bulayein, inaam paayein'), keywords: 'invite refer reward' },
+      ...(PURCHASABLE ? [{ to: '/referrals', href: '/referrals', label: msg('Referrals'), icon: Gift, permission: P.REFERRALS_VIEW, ownerOnly: true, desc: msg('Doosre stores ko bulayein, inaam paayein'), keywords: 'invite refer reward' }] : []),
     ],
   },
   {

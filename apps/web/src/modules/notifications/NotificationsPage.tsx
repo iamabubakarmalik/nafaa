@@ -13,10 +13,10 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { toast } from 'sonner';
 import {
   AlertTriangle, Bell, BellOff, CalendarCheck, CheckCheck, CheckSquare, ExternalLink, Eye, EyeOff, Globe, GraduationCap, Inbox,
-  ListFilter, MessageCircle, MousePointerClick, Package, ShoppingCart, Square, Trash2, Volume2, VolumeX, X, type LucideIcon,
+  ListFilter, MessageCircle, MousePointerClick, Package, ShoppingCart, SlidersHorizontal, Square, Trash2, Volume2, VolumeX, X, type LucideIcon,
 } from 'lucide-react';
 import {
-  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
   heroButton, heroIconButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -28,6 +28,7 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { cn } from '@core/lib/cn';
 import { notificationsApi, type Notification, type NotificationFeed, type NotificationFeedFilters, type NotificationGroup } from './api/notifications.api';
 import { GROUPS, isSummary, metaOf, waUrlOf } from './meta';
+import { AlertPrefsPanel } from './AlertPrefsPanel';
 import { t as tr } from '@core/i18n';
 
 type Group = 'all' | NotificationGroup;
@@ -49,6 +50,7 @@ export default function NotificationsPage() {
   const sound = useNotificationSound();
 
   const [group, setGroup] = useState<Group>('all');
+  const [prefsOpen, setPrefsOpen] = useState(false);
   const [read, setRead] = useState<ReadFilter>('all');
   const [range, setRange] = useState<DateRangeValue>(ALL_TIME);
   const [search, setSearch] = useState('');
@@ -150,6 +152,9 @@ export default function NotificationsPage() {
 
   return (
     <PageShell>
+      <Modal open={prefsOpen} onClose={() => setPrefsOpen(false)} title={tr('Meri notifications')} description={tr('Kis baat ki khabar, kis awaaz se')} size="lg">
+        <AlertPrefsPanel />
+      </Modal>
       <PageHero
         title={tr('Notifications')}
         chip={<><Bell />{counts ? tr('{{unread}} bina parhe', { unread: counts.unread }) : '…'}</>}
@@ -160,6 +165,7 @@ export default function NotificationsPage() {
           <button type="button" onClick={() => { setSelecting((v) => !v); setPicked(new Set()); }} title={tr('Chunein (S)')} className={heroButton}><CheckSquare className="h-4 w-4" /><span className="hidden sm:inline">{selecting ? tr('Chunna band') : tr('Chunein')}</span></button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!items.length} /></span>
           <button type="button" onClick={toggleMute} title={muted ? tr('Awaaz chalu karein (M)') : tr('Awaaz band karein (M)')} aria-label={tr('Awaaz')} className={heroIconButton}>{muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}</button>
+          <button type="button" onClick={() => setPrefsOpen(true)} title={tr('Meri notifications')} aria-label={tr('Meri notifications')} className={heroIconButton}><SlidersHorizontal className="h-4 w-4" /></button>
           <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
       />

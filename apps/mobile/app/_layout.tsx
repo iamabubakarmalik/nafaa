@@ -10,10 +10,10 @@
  */
 
 import * as SplashScreen from 'expo-splash-screen';
-import { Stack } from 'expo-router';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { Appearance as RNAppearance, AppState, InteractionManager, View } from 'react-native';
+import { Appearance as RNAppearance, AppState, InteractionManager, Pressable, Text, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,7 +24,8 @@ import { queryClient } from '@/core/query/client';
 import { useBiometric } from '@/core/auth/biometric';
 import { useAuthStore } from '@/core/auth/store';
 import { consumeSkipIntro } from '@/core/i18n/sync';
-import { initCrashReporting } from '@/core/device/crash-reporting';
+import { initCrashReporting, recordError } from '@/core/device/crash-reporting';
+import { t } from '@/core/i18n';
 import {
   AppearanceBridge, AppIntro, DialogHost, getAppearance, primeFirstFrame, SheetProvider, ThemeProvider, ToastHost, useAppearance, useBundledFonts, useTheme,
 } from '@/design';
@@ -52,6 +53,25 @@ function syncNativeScheme(mode: string) {
 // right after a language reload.
 primeFirstFrame();
 syncNativeScheme(getAppearance().mode);
+
+/**
+ * Last-resort screen when a render error escapes every screen boundary (for
+ * example in a header or a layout). It must not depend on the app providers,
+ * which may be what failed, so it uses plain views.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const dark = useColorScheme() === 'dark';
+  useEffect(() => { recordError(error, 'render error at app root'); }, [error]);
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12, backgroundColor: dark ? '#0b0f0c' : '#f6f7f6' }}>
+      <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center', color: dark ? '#f2f4f3' : '#111827' }}>{t('Ye screen abhi nahi khul saki.')}</Text>
+      <Text style={{ fontSize: 14, textAlign: 'center', color: dark ? '#a3aca7' : '#6b7280' }}>{t('Masla report ho gaya hai. Dobara try karein ya wapas ja kar phir kholein.')}</Text>
+      <Pressable accessibilityRole="button" onPress={() => void retry()} style={{ marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, backgroundColor: '#16a34a' }}>
+        <Text style={{ color: '#ffffff', fontWeight: '600' }}>{t('Dobara try karein')}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const fontsReady = useBundledFonts();

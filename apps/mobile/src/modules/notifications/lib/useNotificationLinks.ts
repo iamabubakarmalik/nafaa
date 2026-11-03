@@ -24,6 +24,7 @@ function open(response: Notifications.NotificationResponse | null) {
   if (!response) return;
   const id = response.notification.request.identifier;
   if (handled.has(id)) return;
+  if ((response.notification.request.content.data as { kind?: unknown } | undefined)?.kind === 'tone-preview') return;
   handled.add(id);
   const link = linkOf(response);
   const route = routeForNotificationLink(link);

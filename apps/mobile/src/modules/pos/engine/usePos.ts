@@ -13,7 +13,7 @@ import { create } from 'zustand';
 import {
   addComboLine, addItemLine, derivePosUnits, isWeightUnit, NO_LIMIT, packUnit, parseScaleLabel, posHeldId, scaleQuantity,
   setLineDiscount, setLineNote, setLinePrice, setLineQty, setLineTier, stepLine,
-  type ComboInput, type PosCartLine, type PosCheckoutMode, type PosUnitOption, type PriceTier,
+  type ComboInput, type PaymentMethod, type PosCartLine, type PosCheckoutMode, type PosUnitOption, type PriceTier,
 } from '@nafaa/core/pos';
 import { useAuthStore } from '@/core/auth/store';
 import { shopParam } from '@/core/auth/shopScope';
@@ -51,7 +51,10 @@ export type Picker =
   | { kind: 'weigh'; product: ProductDetail; unit: PosUnitOption; opts: AddOptions }
   | { kind: 'price'; product: ProductDetail; unit: PosUnitOption; opts: AddOptions };
 
-export type PosSheet = 'cart' | 'customer' | 'discount' | 'charges' | 'checkout' | 'held' | 'scanner' | 'line' | 'more' | 'done' | 'tier' | null;
+export type PosSheet = 'cart' | 'customer' | 'discount' | 'charges' | 'checkout' | 'held' | 'scanner' | 'line' | 'more' | 'note' | 'done' | 'tier' | null;
+
+/** Which number the line sheet edits first. */
+export type LineField = 'qty' | 'rate' | 'off';
 
 interface PosUi {
   picker: Picker | null;
@@ -65,12 +68,35 @@ interface PosUi {
   mode: PosCheckoutMode;
   /** Open checkout straight in split payment. */
   split: boolean;
+  /** Payment method checkout starts on (quick pay tiles); null = the shop's default. */
+  method: PaymentMethod | null;
+  /** Field the line sheet opens on. */
+  lineField: LineField;
+  /** A sheet opened from the bill goes back to the bill when it closes. */
+  back: 'cart' | null;
+  /** The customer sheet opens straight on "New customer". */
+  customerAdd: boolean;
 }
 
-export const usePosUi = create<PosUi>(() => ({ picker: null, sheet: null, lineId: null, pulse: 0, lastAdded: null, mode: 'full', split: false }));
-export const openCheckoutSheet = (mode: PosCheckoutMode = 'full', split = false) => usePosUi.setState({ sheet: 'checkout', mode, split });
-export const openSheet = (sheet: PosSheet, lineId: string | null = null) => usePosUi.setState({ sheet, lineId });
-export const closeSheet = () => usePosUi.setState({ sheet: null });
+export const usePosUi = create<PosUi>(() => ({ picker: null, sheet: null, lineId: null, pulse: 0, lastAdded: null, mode: 'full', split: false, method: null, lineField: 'qty', back: null, customerAdd: false }));
+/** Remembers the bill when a sheet opens on top of it, so closing that sheet shows the bill again. */
+const backFor = (next: PosSheet): 'cart' | null => {
+  const { sheet, back } = usePosUi.getState();
+  if (next === 'cart' || next === 'done' || next === null) return null;
+  return sheet === 'cart' ? 'cart' : back;
+};
+export const openCheckoutSheet = (mode: PosCheckoutMode = 'full', split = false, method: PaymentMethod | null = null) =>
+  usePosUi.setState({ sheet: 'checkout', mode, split, method, back: backFor('checkout') });
+export const openSheet = (sheet: PosSheet, lineId: string | null = null, lineField: LineField = 'qty') =>
+  usePosUi.setState({ sheet, lineId, lineField, back: backFor(sheet), customerAdd: false });
+/** Customer sheet on the "New customer" form. */
+export const openNewCustomer = () => usePosUi.setState({ sheet: 'customer', back: backFor('customer'), customerAdd: true });
+export const closeSheet = () => {
+  const { back } = usePosUi.getState();
+  usePosUi.setState({ sheet: back, back: null });
+};
+/** Closes every sheet, the bill too. */
+export const closeAllSheets = () => usePosUi.setState({ sheet: null, back: null });
 export const closePicker = () => usePosUi.setState({ picker: null });
 
 /* ───────────── most sold on this counter ───────────── */

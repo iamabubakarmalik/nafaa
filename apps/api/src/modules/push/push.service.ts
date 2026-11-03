@@ -5,6 +5,7 @@ import { QueueService } from '../../core/queue/queue.service';
 import { SendPushDto } from './dto/send-push.dto';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const EXPO_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
 
 /** One message for the staff mobile app (Expo push token). */
 export interface ExpoPushMessage {
@@ -13,11 +14,21 @@ export interface ExpoPushMessage {
   body: string;
   data?: Record<string, unknown>;
   channelId?: string;
+  /** iOS sound file name, "default", or null for no sound. Android takes the sound from the channel. */
+  sound?: string | null;
 }
 
 export interface ExpoPushResult {
   ok: boolean;
+  /** Expo ticket id, used to fetch the delivery receipt later. */
+  ticketId?: string;
   /** Expo error code, e.g. DeviceNotRegistered. */
+  error?: string;
+}
+
+export interface ExpoReceipt {
+  status: 'ok' | 'error';
+  /** e.g. DeviceNotRegistered, InvalidCredentials, MessageTooBig, MessageRateExceeded. */
   error?: string;
 }
 
@@ -142,20 +153,50 @@ export class PushService {
         },
         body: JSON.stringify(messages.map((m) => ({
           to: m.to, title: m.title, body: m.body, data: m.data ?? {},
-          sound: 'default', priority: 'high', channelId: m.channelId ?? 'default',
+          ...(m.sound === null ? {} : { sound: m.sound ?? 'default' }),
+          priority: 'high', channelId: m.channelId ?? 'default',
         }))),
       });
-      const json = (await res.json().catch(() => null)) as { data?: Array<{ status: string; details?: { error?: string } }> } | null;
+      const json = (await res.json().catch(() => null)) as { data?: Array<{ status: string; id?: string; details?: { error?: string } }> } | null;
       if (!res.ok || !Array.isArray(json?.data)) {
         return messages.map(() => ({ ok: false, error: `HTTP_${res.status}` }));
       }
       return messages.map((_, i) => {
         const ticket = json!.data![i];
-        return ticket?.status === 'ok' ? { ok: true } : { ok: false, error: ticket?.details?.error ?? 'Unknown' };
+        return ticket?.status === 'ok' ? { ok: true, ticketId: ticket.id } : { ok: false, error: ticket?.details?.error ?? 'Unknown' };
       });
     } catch (err: any) {
       this.logger.warn(`Expo push request failed: ${err?.message}`);
       return messages.map(() => ({ ok: false, error: 'NetworkError' }));
+    }
+  }
+
+  /**
+   * Delivery receipts for up to 1000 ticket ids. A missing id means Expo has
+   * no receipt yet (or it expired after a day).
+   */
+  async expoReceipts(ticketIds: string[]): Promise<Record<string, ExpoReceipt>> {
+    if (!ticketIds.length) return {};
+    const accessToken = this.config.get<string>('EXPO_ACCESS_TOKEN');
+    try {
+      const res = await fetch(EXPO_RECEIPTS_URL, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ ids: ticketIds.slice(0, 1000) }),
+      });
+      const json = (await res.json().catch(() => null)) as { data?: Record<string, { status: string; details?: { error?: string } }> } | null;
+      const out: Record<string, ExpoReceipt> = {};
+      for (const [id, r] of Object.entries(json?.data ?? {})) {
+        out[id] = r.status === 'ok' ? { status: 'ok' } : { status: 'error', error: r.details?.error ?? 'Unknown' };
+      }
+      return out;
+    } catch (err: any) {
+      this.logger.warn(`Expo receipts request failed: ${err?.message}`);
+      return {};
     }
   }
 

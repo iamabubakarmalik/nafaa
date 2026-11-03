@@ -5,6 +5,7 @@
   "{{count}}m ago": "{{count}} منٹ پہلے",
   "{{what}} needs internet. You are seeing the last saved data.": "{{what}} کے لیے انٹرنیٹ چاہیے۔ آپ آخری محفوظ ڈیٹا دیکھ رہے ہیں۔",
   "A hint of your color": "آپ کے رنگ کی ہلکی جھلک",
+  "Aap ka plan active nahi hai. Account ke malik ya Nafaa support se rabta karein.": "آپ کا پلان ایکٹو نہیں ہے۔ اکاؤنٹ کے مالک یا Nafaa سپورٹ سے رابطہ کریں۔",
   "Aap ka plan khatam ho gaya hai.": "آپ کا پلان ختم ہو گیا ہے۔",
   "Ads ka kharcha aur ROAS dekhein": "ایڈز کا خرچہ اور ROAS دیکھیں",
   "Ads ka kharcha likhein / import karein": "ایڈز کا خرچہ لکھیں / امپورٹ کریں",
@@ -197,6 +198,7 @@
   "Marketplace": "مارکیٹ پلیس",
   "Mashwara dekhein": "مشورہ دیکھیں",
   "Mashwara likhein": "مشورہ لکھیں",
+  "Masla report ho gaya hai. Dobara try karein ya wapas ja kar phir kholein.": "مسئلہ رپورٹ ہو گیا ہے۔ دوبارہ کوشش کریں یا واپس جا کر پھر کھولیں۔",
   "Meat shop": "گوشت کی دکان",
   "Members, plans, renewals, check-ins, trainers, classes, lockers and equipment": "ممبر، پلان، رینیول، چیک اِن، ٹرینر، کلاسز، لاکر اور سامان",
   "Menu badlein": "مینو بدلیں",
@@ -371,5 +373,8 @@
   "Weight orders, cutting jobs, live animals, slaughter log, subscriptions, qurbani and wholesale": "وزن کے آرڈر، کٹائی کے کام، زندہ جانور، ذبح لاگ، سبسکرپشن، قربانی اور ہول سیل",
   "Wholesale": "ہول سیل",
   "Working late": "دیر تک کام",
-  "Workshop jobs, vehicles, mechanics, service reminders and core returns": "ورکشاپ کے کام، گاڑیاں، مکینک، سروس کی یاد دہانی اور کور ریٹرن"
+  "Workshop jobs, vehicles, mechanics, service reminders and core returns": "ورکشاپ کے کام، گاڑیاں، مکینک، سروس کی یاد دہانی اور کور ریٹرن",
+  "Ye feature aap ke maujooda plan me shamil nahi hai. Account ke malik ya Nafaa support se rabta karein.": "یہ فیچر آپ کے موجودہ پلان میں شامل نہیں ہے۔ اکاؤنٹ کے مالک یا Nafaa سپورٹ سے رابطہ کریں۔",
+  "Ye hissa abhi nahi khul saka.": "یہ حصہ ابھی نہیں کھل سکا۔",
+  "Ye screen abhi nahi khul saki.": "یہ اسکرین ابھی نہیں کھل سکی۔"
 }

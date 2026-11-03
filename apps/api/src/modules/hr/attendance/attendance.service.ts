@@ -20,6 +20,7 @@ import {
   CorrectAttendanceDto, CreateLeaveRequestDto, DecideLeaveDto, LeaveQueryDto, PunchDto, SheetQueryDto,
 } from './dto/attendance.dto';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 
 /** Minutes after opening time that still count as on time. */
 const GRACE_MINUTES = 10;
@@ -109,6 +110,7 @@ export class AttendanceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   /* ───── clock ───── */
@@ -333,6 +335,22 @@ export class AttendanceService {
   /* ───── check-in / check-out ───── */
 
   async checkIn(user: AuthenticatedUser, dto: PunchDto) {
+    const out = await this.punchIn(user, dto);
+    const r = out.record;
+    if (!out.already && r?.isLate && r.lateMinutes > 0) {
+      const staff = await this.prisma.staff.findUnique({ where: { id: r.staffId }, select: { fullName: true, shopId: true } });
+      this.alerts.emit({
+        tenantId: user.tenantId, event: 'lateCheckIn', type: 'INFO', shopId: staff?.shopId ?? null, actorId: user.id,
+        title: '⏰ Late check-in',
+        message: apiMessage('{{name}} {{minutes}} minute late aaye', { name: staff?.fullName ?? '', minutes: Math.round(r.lateMinutes) }),
+        link: '/staff/attendance',
+        metadata: { staffId: r.staffId, attendanceId: r.id, lateMinutes: r.lateMinutes },
+      });
+    }
+    return out;
+  }
+
+  private async punchIn(user: AuthenticatedUser, dto: PunchDto) {
     const staff = await this.loadStaff(user, dto.staffId);
     if (staff.status !== 'ACTIVE' && staff.status !== 'ON_LEAVE') throw new BadRequestException(apiMessage('{{fullName}} ab kaam par nahi ({{staffStatus}})', { fullName: staff.fullName, staffStatus: staff.status }));
     const clock = await this.shopClock(user.tenantId);

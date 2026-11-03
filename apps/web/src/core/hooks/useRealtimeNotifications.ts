@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { notificationsApi, type Notification } from '@modules/notifications/api/notifications.api';
-import { useNotificationSound } from './useNotificationSound';
+import { inQuietHours, isMutedHere, playTone, useAlertPrefs } from '@modules/notifications/alertPrefs';
 import { t } from '@core/i18n';
 
 const SEEN_KEY = 'nafaa-notifications-seen-v2';
@@ -23,14 +23,18 @@ const saveSeen = (seen: Set<string>) => {
 };
 
 /**
- * Realtime notification poller:
- * - Polls every 10 seconds for fresh notifications
- * - Plays LOUD sound + shows toast + browser notification for each NEW one
- * - Auto-requests browser notification permission on mount
+ * Live notifications on the web:
+ * - polls every 10 seconds for new ones;
+ * - plays the person's chosen tone (the "Alert" tone for urgent ones),
+ *   except in quiet hours or when muted on this browser;
+ * - shows a toast, and a desktop notification while the tab is hidden;
+ * - asks for the browser's notification permission once.
  */
 export function useRealtimeNotifications() {
   const queryClient = useQueryClient();
-  const { play, playUrgent } = useNotificationSound();
+  const { prefs } = useAlertPrefs();
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
   const seenRef = useRef<Set<string>>(loadSeen());
   const initializedRef = useRef(false);
 
@@ -71,10 +75,10 @@ export function useRealtimeNotifications() {
         newOnes.forEach((n) => seenRef.current.add(n.id));
         saveSeen(seenRef.current);
 
-        // Play sound (urgent if any is urgent)
+        const p = prefsRef.current;
         const hasUrgent = newOnes.some((n) => URGENT_TYPES.includes(n.type));
-        if (hasUrgent) playUrgent();
-        else play();
+        const sound = p?.sound ?? 'chime';
+        if (!isMutedHere() && !(p && inQuietHours(p)) && sound !== 'silent') playTone(hasUrgent ? 'alert' : sound);
 
         // Show toast for each (max 3 to avoid spam)
         newOnes.slice(0, 3).forEach((n) => {
@@ -90,7 +94,7 @@ export function useRealtimeNotifications() {
           });
 
           // Browser notification
-          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && document.hidden) {
             try {
               const notif = new Notification(n.title, {
                 body: n.message,
@@ -98,7 +102,8 @@ export function useRealtimeNotifications() {
                 badge: '/favicon.ico',
                 tag: n.id,
                 requireInteraction: isUrgent,
-                silent: false,
+                // The tone above already played.
+                silent: true,
               });
               notif.onclick = () => {
                 window.focus();

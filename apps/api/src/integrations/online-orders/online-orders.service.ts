@@ -145,14 +145,16 @@ export class OnlineOrdersService implements OnModuleInit {
     const blocked = await this.tools.isBlocked(order.tenantId, order.customerPhone).catch(() => null);
     if (blocked) await this.mergeMetadata(order.id, { blocked: { reason: blocked.reason, at: new Date().toISOString() } });
 
-    await this.notifications.create({
+    this.notifications.alert({
       tenantId: order.tenantId,
-      type: 'INFO' as any,
+      event: 'onlineOrder',
+      type: 'INFO',
+      shopId: order.shopId ?? null,
       title: blocked ? apiMessage('⛔ Blocked number se order #{{num}}', { num }) : apiMessage('🛍️ Naya online order #{{num}}', { num }),
       message: apiMessage('{{customer}} · Rs {{total}} · {{count}} item', { customer: order.customerName, total: Math.round(Number(order.total)).toLocaleString('en-PK'), count: itemCount }),
       link: `/online-orders?order=${order.id}`,
       metadata: { kind: 'ONLINE_ORDER', channelOrderId: order.id, source: integration.type },
-    } as any).catch(() => null);
+    });
 
     const config = readWebsiteConfig(integration.config);
     // Block kiye number ka order khud accept nahi — malik khud dekhe

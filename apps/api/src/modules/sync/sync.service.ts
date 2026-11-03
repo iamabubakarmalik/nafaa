@@ -234,7 +234,7 @@ export class SyncService {
         isActive: true, isFeatured: true, categoryId: true, brandId: true, updatedAt: true,
         category: { select: { name: true, color: true } },
         brand: { select: { name: true } },
-        images: { select: { url: true }, take: 1, orderBy: { sortOrder: 'asc' } },
+        images: { select: { url: true }, take: 1, orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }] },
         variants: {
           where: { isActive: true },
           orderBy: { sortOrder: 'asc' },

@@ -5,6 +5,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { t } from '@/core/i18n';
+// iOS: no "how to buy a plan" help (App Store rule).
+import { canPurchaseInApp } from '@/core/platform/purchases';
 
 export type HelpTopic = 'sales' | 'stock' | 'customers' | 'money' | 'reports' | 'account';
 
@@ -19,7 +21,7 @@ export const TOPICS: Array<{ id: HelpTopic; label: string; icon: LucideIcon; col
 
 export interface Faq { id: string; topic: HelpTopic; q: string; a: string }
 
-export const FAQS: Faq[] = [
+const ALL_FAQS: Faq[] = [
   { id: 'pos-sale', topic: 'sales', q: t('POS par sale kaise karein?'), a: t('POS kholein, maal scan karein ya naam se search, phir "Checkout" dabayein. Customer chunein (zaroori nahi), payment ka tareeqa chunein aur bill pura karein. Bill khud save ho jata hai aur print bhi ho sakta hai.') },
   { id: 'discount', topic: 'sales', q: t('Discount kaise lagayein?'), a: t('POS par kisi cheez ke saamne ya poore bill par discount lagayein — % ya amount. Pehle se bane discount codes Discounts page se banate aur band karte hain.') },
   { id: 'return', topic: 'sales', q: t('Maal wapas (return) kaise lein?'), a: t('Sale ka record kholein, bill par click karein aur "Maal wapas" dabayein. Wapas aane wali cheezein chunein aur paise wapas dene ka tareeqa (cash ya khata) chunein. Stock khud wapas jur jata hai.') },
@@ -38,10 +40,11 @@ export const FAQS: Faq[] = [
   { id: 'plan', topic: 'account', q: t('Plan kaise lein ya renew karein?'), a: t('Billing → Plans me plan aur muddat chunein. Bill banega; bank ya wallet se payment karke screenshot upload karein. Manzoor hote hi plan chalu. Istemaal tab me had dekh sakte hain.') },
   { id: 'password', topic: 'account', q: t('Password bhool gaya?'), a: t('Login page par "Password bhool gaye" dabayein aur email par aaya link kholein. Login ho to Profile → Hifazat se password badal sakte hain.') },
 ];
+export const FAQS = ALL_FAQS.filter((f) => canPurchaseInApp() || f.id !== 'plan');
 
 export interface Guide { id: string; topic: HelpTopic; title: string; text: string; icon: LucideIcon; to: string; steps: string[] }
 
-export const GUIDES: Guide[] = [
+const ALL_GUIDES: Guide[] = [
   { id: 'first-sale', topic: 'sales', title: t('Pehli sale'), text: t('Counter par pehla bill 1 minute me'), icon: ShoppingCart, to: '/pos', steps: [t('POS kholein'), t('Maal scan karein ya search'), t('Checkout dabayein'), t('Payment chunein aur bill print karein')] },
   { id: 'add-stock', topic: 'stock', title: t('Maal aur stock daalna'), text: t('Products banayein aur purchase darj karein'), icon: Package, to: '/products', steps: [t('Products → Naya product'), t('Qeemat, cost aur barcode likhein'), t('Purchase se stock barhayein'), t('Kam stock ki had lagayein')] },
   { id: 'suppliers', topic: 'stock', title: t('Supplier se purchase'), text: t('Bill, payment aur baqi'), icon: Truck, to: '/purchases', steps: [t('Suppliers me supplier banayein'), t('Purchase me naya bill'), t('Maal aur qeemat likhein'), t('Payment ya baqi darj karein')] },
@@ -54,3 +57,4 @@ export const GUIDES: Guide[] = [
   { id: 'backup', topic: 'account', title: t('Data mehfooz rakhna'), text: t('Backup file aur us ka record'), icon: Database, to: '/backup', steps: [t('Backup kholein'), t('"Backup download" dabayein'), t('File Drive/email me rakhein'), t('Har hafte dohrayein')] },
   { id: 'billing', topic: 'account', title: t('Plan aur payment'), text: t('Renew, upgrade aur bill'), icon: CreditCard, to: '/billing', steps: [t('Billing → Plans'), t('Plan aur period chunein'), t('Bank/wallet se payment'), t('Screenshot upload karein')] },
 ];
+export const GUIDES = ALL_GUIDES.filter((g) => canPurchaseInApp() || g.id !== 'billing');

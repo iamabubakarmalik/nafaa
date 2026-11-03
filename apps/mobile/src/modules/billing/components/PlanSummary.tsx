@@ -5,13 +5,16 @@ import { CalendarClock, CalendarDays, CreditCard, Layers, RefreshCw, Sparkles, W
 import { View } from 'react-native';
 import { formatDate } from '@/core/format';
 import { t } from '@/core/i18n';
+import { PLAN_INACTIVE_TEXT, canPurchaseInApp } from '@/core/platform/purchases';
 import { Amount, Button, Card, Icon, Row, Skeleton, StatusPill, Text, confirm, useTheme } from '@/design';
-import { INTERVAL, SUBSCRIPTION_STATUS, daysText } from '../lib/meta';
+import { INTERVAL, SUBSCRIPTION_STATUS, daysText, subscriptionHint } from '../lib/meta';
 import type { BillingData } from '../lib/useBilling';
 
 export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => void }) {
   const th = useTheme();
   const { sub, pending, daysLeft, needsRenewal, totals } = b;
+  // iOS shows the plan read-only: no prices, buy, renew or pay buttons (App Store rule).
+  const purchasable = canPurchaseInApp();
 
   if (b.loading.sub) return <Skeleton height={200} radius={th.radius('xl')} />;
   if (!sub?.plan) {
@@ -20,8 +23,8 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
         <View style={{ alignItems: 'center', gap: th.space(2), paddingVertical: th.space(4) }}>
           <Icon icon={Sparkles} size={28} tone="brand" />
           <Text weight="semibold">{t('Abhi koi plan nahi')}</Text>
-          <Text size="sm" tone="muted" align="center">{t('Plan chunein — payment ke baad sab kuch khul jayega.')}</Text>
-          {b.can.plans && <Button onPress={onPlans}>{t('Plans dekhein')}</Button>}
+          <Text size="sm" tone="muted" align="center">{purchasable ? t('Plan chunein — payment ke baad sab kuch khul jayega.') : t(PLAN_INACTIVE_TEXT)}</Text>
+          {b.can.plans && purchasable && <Button onPress={onPlans}>{t('Plans dekhein')}</Button>}
         </View>
       </Card>
     );
@@ -55,8 +58,8 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
               <StatusPill tone={st.tone} dot>{t(st.label)}</StatusPill>
             </Row>
             <Row gap={1} wrap>
-              {sub.amount > 0 && <><Amount value={sub.amount} size="sm" weight="semibold" /><Text size="sm" tone="muted">/ {t(INTERVAL[sub.interval]?.per ?? sub.interval)} ·</Text></>}
-              <Text size="sm" tone="muted">{t(st.hint)}</Text>
+              {sub.amount > 0 && purchasable && <><Amount value={sub.amount} size="sm" weight="semibold" /><Text size="sm" tone="muted">/ {t(INTERVAL[sub.interval]?.per ?? sub.interval)} ·</Text></>}
+              <Text size="sm" tone="muted">{subscriptionHint(sub.status)}</Text>
             </Row>
           </View>
         </Row>
@@ -69,7 +72,7 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
             hint={sub.cancelAtPeriodEnd ? t('Period ke aakhir par band hoga') : sub.autoRenew ? t('Khud renew hota hai') : t('Khud renew karna hoga')} />
         </View>
 
-        {b.can.plans && <Button style={{ marginTop: th.space(4) }} variant={needsRenewal || trial ? 'primary' : 'secondary'} fullWidth onPress={onPlans}>{cta}</Button>}
+        {b.can.plans && purchasable && <Button style={{ marginTop: th.space(4) }} variant={needsRenewal || trial ? 'primary' : 'secondary'} fullWidth onPress={onPlans}>{cta}</Button>}
 
         {canStop && (
           <View style={{ marginTop: th.space(3), gap: th.space(2) }}>
@@ -79,7 +82,7 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
                 : t('Kabhi bhi band kar sakte hain — period ke aakhir tak sab chalta rahega.')}
             </Text>
             {sub.cancelAtPeriodEnd
-              ? <Button variant="soft" icon={RefreshCw} loading={b.reactivate.isPending} onPress={() => b.reactivate.mutate()}>{t('Wapas chalu karein')}</Button>
+              ? purchasable && <Button variant="soft" icon={RefreshCw} loading={b.reactivate.isPending} onPress={() => b.reactivate.mutate()}>{t('Wapas chalu karein')}</Button>
               : <Button variant="critical" icon={XCircle} loading={b.cancel.isPending} onPress={stop}>{t('Plan band karein')}</Button>}
           </View>
         )}
@@ -88,7 +91,7 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
       {pending && (
         <Card tone="warning" title={t('{{name}} · {{value}} — payment baqi', { name: pending.subscription.plan.name, value: t(INTERVAL[pending.subscription.interval]?.label ?? '') })}>
           <Text size="sm">{t('Bill {{invoiceNumber}}. Payment approve hote hi naya plan chalu ho jayega — tab tak {{value}} chalta rahega.', { invoiceNumber: pending.invoice.invoiceNumber, value: trial ? t('trial') : t('purana plan') })}</Text>
-          {b.can.manage && (
+          {b.can.manage && purchasable && (
             <Button style={{ marginTop: th.space(3) }} icon={CreditCard} onPress={() => router.push(`/billing/invoice/${pending.invoice.id}/pay` as never)}>
               {t('{{amountDue}} ada karein', { amountDue: `Rs ${Math.round(pending.invoice.amountDue).toLocaleString('en-US')}` })}
             </Button>
@@ -96,7 +99,11 @@ export function PlanSummary({ b, onPlans }: { b: BillingData; onPlans: () => voi
         </Card>
       )}
 
-      {needsRenewal && !trial && !pending && (
+      {!purchasable && (sub.status === 'EXPIRED' || sub.status === 'PAST_DUE') && (
+        <Card tone="danger" title={t('Plan active nahi hai')}><Text size="sm">{t(PLAN_INACTIVE_TEXT)}</Text></Card>
+      )}
+
+      {needsRenewal && !trial && !pending && purchasable && (
         <Card tone="danger" title={sub.status === 'ACTIVE' ? t('Renew {{value}} karna hai', { value: daysLeft && daysLeft > 0 ? t('{{daysLeft}} din me', { daysLeft }) : t('aaj') }) : t('Plan renew karna zaroori hai')}>
           <Text size="sm">{t('Payment khud nahi kat-ti — renew aap ko karna hai. Bache hue din waste nahi honge, naye period me jud jayenge.')}</Text>
           {b.can.plans && <Button style={{ marginTop: th.space(3) }} icon={RefreshCw} onPress={onPlans}>{t('Renew')}</Button>}

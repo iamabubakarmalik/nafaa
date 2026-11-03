@@ -50,6 +50,7 @@ export function CheckoutSheet() {
   const open = usePosUi((s) => s.sheet === 'checkout');
   const initMode = usePosUi((s) => s.mode);
   const initSplit = usePosUi((s) => s.split);
+  const initMethod = usePosUi((s) => s.method);
   const customer = useBill((s) => s.customer);
   const total = totals.total;
   const tradeIns = (ctx.config.useTradeIns ?? noTradeIns)();
@@ -66,7 +67,7 @@ export function CheckoutSheet() {
   useEffect(() => {
     if (!open) return;
     setMode(initMode);
-    setMethod(counter.defaultMethod);
+    setMethod(initMethod ?? counter.defaultMethod);
     setTendered('');
     setDeposit(false);
     setBusy(false);

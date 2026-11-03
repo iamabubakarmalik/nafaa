@@ -16,12 +16,14 @@ import { useAuthStore } from '@/core/auth/store';
 import { DEFAULT_MODELS, type BusinessModel } from '@/core/business-models';
 import { Button, Card, IconButton, Input, PasswordInput, Text, toast, useTheme } from '@/design';
 import { AuthLayout, OrDivider } from '../components/AuthLayout';
+import { AppleButton } from '../components/AppleButton';
 import { GoogleButton } from '../components/GoogleButton';
 import { BusinessModelPicker } from '../components/BusinessModelPicker';
 import { IndustryPicker } from '../components/IndustryPicker';
 import { PasswordStrength } from '../components/PasswordStrength';
 import { authErrorMessage } from '../lib/auth-errors';
 import { industryChoices, rememberSignupPicks, setUpNewAccount } from '../lib/industry-choices';
+import { useAppleSignIn } from '../lib/useAppleSignIn';
 import { useGoogleSignIn } from '../lib/useGoogleSignIn';
 import { cleanPakistanPhone, isValidPakistanPhone } from '../lib/phone';
 
@@ -62,6 +64,7 @@ export function RegisterScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const set = (patch: Partial<typeof f>) => setF((v) => ({ ...v, ...patch }));
   const google = useGoogleSignIn(setFormError);
+  const apple = useAppleSignIn(setFormError);
 
   const register = useMutation({
     meta: { silentError: true },
@@ -145,8 +148,10 @@ export function RegisterScreen() {
         />
         <Button size="xl" fullWidth onPress={next} iconEnd={ArrowRight} iconEndFlip>{t('Next')}</Button>
         <OrDivider />
+        {formError && <Card tone="danger"><Text size="sm" tone="danger">{formError}</Text></Card>}
+        <AppleButton kind="sign-up" available={apple.available} onPress={() => { rememberSignupPicks({ businessType: f.businessType || null, models }); apple.start(); }} loading={apple.busy} disabled={google.busy} />
         <GoogleButton label={t('Google se account banayein')} onPress={() => { rememberSignupPicks({ businessType: f.businessType || null, models }); google.start(); }} loading={google.busy} disabled={!google.ready} />
-        <Text size="xs" tone="muted" align="center">{t('Google ke baad sirf dukaan ka naam poochenge.')}</Text>
+        <Text size="xs" tone="muted" align="center">{apple.available ? t('Apple ya Google ke baad sirf dukaan ka naam poochenge.') : t('Google ke baad sirf dukaan ka naam poochenge.')}</Text>
       </AuthLayout>
     );
   }

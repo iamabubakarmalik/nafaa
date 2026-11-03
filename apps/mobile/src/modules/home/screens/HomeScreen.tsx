@@ -10,17 +10,18 @@
 
 import { ChevronRight, Eye, EyeOff, LayoutGrid, Sparkles } from 'lucide-react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { InteractionManager, Pressable, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { perfFlush, perfMark } from '@/core/perf';
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import { t } from '@/core/i18n';
 import { useAuthStore } from '@/core/auth/store';
 import { isAllShops } from '@/core/auth/shopScope';
 import { pkHour } from '@/core/format';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
 import { haptic } from '@/core/device/haptics';
-import { Card, ErrorState, Icon, IconButton, SavedDataNote, Screen, Skeleton, Text, industryIdForBusinessType, useLayout, useTheme } from '@/design';
+import { Card, ErrorBoundary, ErrorState, Icon, IconButton, SavedDataNote, Screen, Skeleton, Text, industryIdForBusinessType, useLayout, useTheme } from '@/design';
 import { industryDashboardId } from '@/industries/dashboards';
 import { AppHeader } from '@/modules/shell/components/AppHeader';
 import { useDashboard, useSubscription } from '../api/dashboard';
@@ -160,9 +161,9 @@ function WidgetGrid({ items, tablet, onHold }: { items: ResolvedWidget[]; tablet
   const th = useTheme();
   const cell = (i: ResolvedWidget) => (
     <Pressable key={i.widget.id} onLongPress={onHold} delayLongPress={500} accessible={false} style={tablet ? { flex: 1, minWidth: 0 } : undefined}>
-      <WidgetBoundary title={i.widget.title}>
+      <ErrorBoundary compact name={`home:${i.widget.id}`} title={i.widget.title}>
         <i.widget.Component />
-      </WidgetBoundary>
+      </ErrorBoundary>
     </Pressable>
   );
   if (!tablet) return <>{items.map(cell)}</>;
@@ -183,24 +184,12 @@ function WidgetGrid({ items, tablet, onHold }: { items: ResolvedWidget[]; tablet
   return <>{rows.map((r) => <View key={r.map((i) => i.widget.id).join('+')} style={{ flexDirection: 'row', gap: th.space(4), alignItems: 'flex-start' }}>{r.map(cell)}</View>)}</>;
 }
 
-class WidgetBoundary extends Component<{ title: string; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  render() {
-    if (!this.state.failed) return this.props.children;
-    return (
-      <Card title={this.props.title}>
-        <Text size="sm" tone="muted">{t('Ye hissa abhi nahi khul saka.')}</Text>
-      </Card>
-    );
-  }
-}
-
 function TrialBanner() {
   const th = useTheme();
   const { data } = useSubscription();
   const owner = useAuthStore((s) => s.user?.role === 'OWNER');
-  if (!owner || data?.status !== 'TRIAL' || !data.trialEndsAt) return null;
+  // iOS: no "take a plan" prompt (App Store rule, core/platform/purchases).
+  if (!canPurchaseInApp() || !owner || data?.status !== 'TRIAL' || !data.trialEndsAt) return null;
   const days = Math.max(0, Math.ceil((new Date(data.trialEndsAt).getTime() - Date.now()) / 86_400_000));
   if (days > 3) return null;
   return (

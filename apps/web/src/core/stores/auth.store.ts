@@ -16,7 +16,7 @@ export interface AuthUser {
   assignedShop?: { id: string; name: string; isMain: boolean; type?: string; isActive?: boolean } | null;
   hasPassword?: boolean;
   googleId?: string | null;
-  authProvider?: 'EMAIL' | 'GOOGLE' | 'HYBRID';
+  authProvider?: 'EMAIL' | 'GOOGLE' | 'HYBRID' | 'APPLE';
   createdAt?: string;
   lastLoginAt?: string | null;
   /** App language: 'en' | 'ur' | 'roman'. Null until the user's first choice is saved. */

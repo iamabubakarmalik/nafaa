@@ -18,6 +18,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 import {
   businessDayKey, safeDayStart, startOfBusinessDayTz, startOfBusinessMonthTz, zonedToUtc,
 } from '../../../common/helpers/business-time.helper';
@@ -69,6 +71,7 @@ export class ExpensesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   /* ───────────────────────── helpers ───────────────────────── */
@@ -146,8 +149,9 @@ export class ExpensesService {
     const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
     const prefix = `EXP-${businessDayKey(new Date(), tz, dayStartHour).slice(2).replace(/-/g, '')}-`;
     const title = dto.title.trim();
+    let created = false;
 
-    return this.prisma.$transaction(async (tx) => {
+    const row = await this.prisma.$transaction(async (tx) => {
       // One writer per tenant at a time: keeps numbers unique and catches double clicks.
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`expense:${user.tenantId}`}))::text`;
 
@@ -168,6 +172,7 @@ export class ExpensesService {
       });
       const next = (Number(last?.expenseNumber.slice(prefix.length)) || 0) + 1;
 
+      created = true;
       return tx.expense.create({
         data: {
           tenantId: user.tenantId,
@@ -186,6 +191,16 @@ export class ExpensesService {
         include: INCLUDE,
       });
     });
+    if (created) {
+      this.alerts.emit({
+        tenantId: user.tenantId, event: 'expense', type: 'INFO', shopId, actorId: user.id,
+        title: '🧾 Naya Expense',
+        message: apiMessage('{{title}} · Rs {{amount}} · {{by}}', { title: row.title, amount: Math.round(row.amount).toLocaleString('en-PK') }),
+        link: '/expenses',
+        metadata: { expenseId: row.id, amount: row.amount },
+      });
+    }
+    return row;
   }
 
   async update(user: AuthenticatedUser, scope: ShopScope, id: string, dto: UpdateExpenseDto) {

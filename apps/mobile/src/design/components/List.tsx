@@ -19,7 +19,7 @@
 
 import { FlashList, type FlashListProps } from '@shopify/flash-list';
 import type { ReactElement } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { RefreshControl, View, type RefreshControlProps } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { SkeletonRows } from './Skeleton';
 import { ErrorState } from './States';
@@ -52,9 +52,15 @@ export function List<T>({ data, loading, error, onRetry, refreshing = false, onR
   );
 }
 
-/** Pull-to-refresh control in the brand color. Pass to ScrollView/List `refreshControl`. */
-export function PullToRefresh({ refreshing, onRefresh, onDark }: { refreshing: boolean; onRefresh: () => void; onDark?: boolean }) {
+/**
+ * Pull-to-refresh control in the brand color. Pass to ScrollView/List `refreshControl`.
+ *
+ * On Android the ScrollView clones this element and passes the native scroll
+ * view in as `children` plus the frame `style`; both must reach RefreshControl,
+ * or the whole scroll body is never drawn (blank screen).
+ */
+export function PullToRefresh({ refreshing, onRefresh, onDark, ...rest }: Omit<RefreshControlProps, 'refreshing' | 'onRefresh'> & { refreshing: boolean; onRefresh: () => void; onDark?: boolean }) {
   const th = useTheme();
   const color = onDark ? '#ffffff' : th.colors.brand.solid;
-  return <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={color} colors={[th.colors.brand.solid]} progressBackgroundColor={th.colors.surfaceRaised} />;
+  return <RefreshControl {...rest} refreshing={refreshing} onRefresh={onRefresh} tintColor={color} colors={[th.colors.brand.solid]} progressBackgroundColor={th.colors.surfaceRaised} />;
 }

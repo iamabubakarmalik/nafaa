@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { adminMobileApi, emptyTarget, type PushBroadcast, type PushInput } from '@/api/admin-mobile.api';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
+import { PushHealthCard } from '../components/PushHealthCard';
 import { Card, describeTarget, inputCls, labelCls, LANGUAGE_LABEL, LocalizedField, MobileHero, Pill, PLATFORM_LABEL, TargetPicker, Toggle } from '../components/MobileUi';
 
 const blank = (): PushInput => ({ ...emptyTarget(), title: { en: '' }, body: { en: '' }, deepLink: null, includeOlderApp: true });
@@ -67,6 +68,8 @@ export default function MobilePushPage() {
   return (
     <div className="space-y-6">
       <MobileHero title="Push notifications" subtitle="Send a notification to app users: everyone, a plan, an industry, chosen businesses, or a platform and version range. Each person gets it in their app language." />
+
+      <PushHealthCard />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
         <div className="space-y-6">

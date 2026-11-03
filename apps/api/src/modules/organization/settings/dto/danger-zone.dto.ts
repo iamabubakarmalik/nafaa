@@ -1,14 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class DeleteTenantDto {
   @ApiProperty({ description: 'Type "DELETE MY SHOP" to confirm' })
   @IsString()
   confirmation!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Required when the owner has a password (Google / Apple only accounts have none)' })
+  @IsOptional()
   @IsString()
-  currentPassword!: string;
+  currentPassword?: string;
 }
 
 export class TransferOwnershipDto {

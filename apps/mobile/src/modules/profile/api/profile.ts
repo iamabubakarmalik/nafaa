@@ -44,7 +44,7 @@ export const profileApi = {
   cancelDeletion: () => apiClient.post<AccountDeletionState>('/auth/account-deletion-request/cancel').then((r) => r.data),
 
   // Business deletion (owner): 7 days to change the mind.
-  deleteBusiness: (confirmation: string, currentPassword: string) =>
+  deleteBusiness: (confirmation: string, currentPassword?: string) =>
     apiClient.post<{ message?: string }>('/settings/danger/delete-tenant', { confirmation, currentPassword }).then((r) => r.data),
   cancelBusinessDeletion: () => apiClient.post('/settings/danger/cancel-deletion').then((r) => r.data),
 };

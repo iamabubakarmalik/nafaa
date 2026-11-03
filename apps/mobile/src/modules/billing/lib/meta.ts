@@ -6,6 +6,7 @@ import {
   Sparkles, Store, Tag, TrendingUp, Users, Wallet, XCircle, Zap, type LucideIcon,
 } from 'lucide-react-native';
 import { msg, t } from '@/core/i18n';
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import type { StatusTone } from '@/design';
 import type { BillingInterval, InvoiceStatus, PaymentProvider, PaymentStatus, Plan, SubscriptionStatus } from '../api/billing';
 
@@ -35,6 +36,13 @@ export const SUBSCRIPTION_STATUS: Record<SubscriptionStatus, StateMeta> = {
   PENDING_PAYMENT: { label: msg('Payment check ho rahi'), hint: msg('Payment approve hote hi plan chalu hoga'), icon: Clock, tone: 'warning' },
   CANCELLED: { label: msg('Band'), hint: msg('Plan band kar diya gaya'), icon: Ban, tone: 'neutral' },
 };
+
+/** Status hint; on iOS the "renew" nudges become plain facts (App Store rule). */
+export function subscriptionHint(status: SubscriptionStatus): string {
+  if (!canPurchaseInApp() && (status === 'PAST_DUE' || status === 'EXPIRED')) return t('Plan active nahi hai');
+  if (!canPurchaseInApp() && status === 'TRIAL') return t('Free trial chal raha hai');
+  return t(SUBSCRIPTION_STATUS[status].hint);
+}
 
 export const PROVIDER: Record<PaymentProvider, { label: string; hint: string; icon: LucideIcon }> = {
   MANUAL_BANK: { label: msg('Bank transfer'), hint: msg('Account number / IBAN par'), icon: Building },

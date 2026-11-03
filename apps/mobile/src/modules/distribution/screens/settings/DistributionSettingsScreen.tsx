@@ -12,6 +12,7 @@ import { Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { t } from '@/core/i18n';
+import { PLAN_FEATURE_TEXT, canPurchaseInApp } from '@/core/platform/purchases';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
 import { Button, Card, Input, Select, SettingLink, SettingsGroup, SettingsTemplate, SettingSwitch, Text, toast, useTheme } from '@/design';
 import { DIST_KEY, distSetupApi, type CreditMode, type DistributionMode, type DistributionSettings, type SettingsResponse, type UpdateSettings } from '../../api/distribution.api';
@@ -95,13 +96,13 @@ export function DistributionSettingsScreen() {
         <>
           {!access.planAllows && (
             <Card tone="brand" title={t('Aap ke plan{{value}} me Distribution shamil nahi', { value: access.planName ? ` (${access.planName})` : '' })}
-              description={t('Order booker app, routes, price lists, schemes, load sheet, settlement aur recovery — plan upgrade karke chalu karein.')}
+              description={canPurchaseInApp() ? t('Order booker app, routes, price lists, schemes, load sheet, settlement aur recovery — plan upgrade karke chalu karein.') : t(PLAN_FEATURE_TEXT)}
               action={<Sparkles size={20} color={th.colors.brand.text} />}>
-              <Button style={{ marginTop: th.space(2) }} onPress={() => router.push('/billing' as never)}>{t('Plans dekhein')}</Button>
+              {canPurchaseInApp() && <Button style={{ marginTop: th.space(2) }} onPress={() => router.push('/billing' as never)}>{t('Plans dekhein')}</Button>}
             </Card>
           )}
 
-          <SettingsGroup footnote={access.planAllows ? t('Band karne se purana data nahi mitta — sirf menu aur booker app band hote hain.') : t('Pehle plan upgrade karein.')}>
+          <SettingsGroup footnote={access.planAllows ? t('Band karne se purana data nahi mitta — sirf menu aur booker app band hote hain.') : canPurchaseInApp() ? t('Pehle plan upgrade karein.') : t('Aap ke plan me shamil nahi')}>
             <SettingSwitch label={t('Distribution chalu karein')} value={draft.enabled} disabled={!canEdit || !access.planAllows || save.isPending} onChange={(v) => set('enabled', v, true)} />
           </SettingsGroup>
 

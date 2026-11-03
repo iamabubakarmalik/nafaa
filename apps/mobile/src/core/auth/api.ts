@@ -20,6 +20,16 @@ export type GoogleResult = AuthResponse | { needsShopName: true; tempToken: stri
 
 export const isGoogleSession = (r: GoogleResult): r is AuthResponse => 'accessToken' in r;
 
+export type AppleResult = AuthResponse | { needsShopName: true; tempToken: string; email: string; fullName: string };
+
+export interface AppleSignInPayload {
+  identityToken: string;
+  nonce?: string;
+  fullName?: string;
+  email?: string;
+  shopName?: string;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     apiClient.post<AuthResponse>('/auth/login', { email, password }).then((r) => r.data),
@@ -37,5 +47,9 @@ export const authApi = {
   confirmVerifyEmail: (code: string) => apiClient.post('/auth/verify-email/confirm', { code }).then((r) => r.data),
   googleMobile: (idToken: string, shopName?: string) =>
     apiClient.post<GoogleResult>('/auth/google/mobile', { idToken, shopName }).then((r) => r.data),
+  appleSignIn: (payload: AppleSignInPayload) =>
+    apiClient.post<AppleResult>('/auth/apple', payload).then((r) => r.data),
+  completeAppleSignup: (tempToken: string, shopName: string) =>
+    apiClient.post<AuthResponse>('/auth/apple/complete-signup', { tempToken, shopName }).then((r) => r.data),
   shops: () => apiClient.get<Shop[] | { data: Shop[] }>('/shops').then((r) => (Array.isArray(r.data) ? r.data : r.data?.data ?? [])),
 };

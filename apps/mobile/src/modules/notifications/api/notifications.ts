@@ -42,6 +42,39 @@ export interface NotificationFeed {
   counts: { all: number; unread: number; groups: Record<NotificationGroup, number> };
 }
 
+/** Business events a person can switch on or off (same keys as the API). */
+export type AlertEvent =
+  | 'sale' | 'bigDiscount' | 'voidRefund' | 'expense' | 'purchase' | 'lowStock' | 'khataPayment'
+  | 'onlineOrder' | 'register' | 'lateCheckIn' | 'booking' | 'dailySummary' | 'account';
+
+export type AlertSound = 'chime' | 'cash' | 'bell' | 'alert' | 'silent';
+
+export interface AlertEventPref { event: AlertEvent; inApp: boolean; push: boolean; default: { inApp: boolean; push: boolean } }
+
+/** The signed-in person's own choices, shared with the web. */
+export interface AlertPrefs {
+  events: AlertEventPref[];
+  sound: AlertSound;
+  vibrate: boolean;
+  quietHours: boolean;
+  quietStart: string;
+  quietEnd: string;
+  saleMinAmount: number;
+  saleDigestMinutes: number;
+  discountPercent: number;
+  sounds: AlertSound[];
+  digestChoices: number[];
+}
+
+export type AlertPrefsPatch = Partial<Omit<AlertPrefs, 'events' | 'sounds' | 'digestChoices'>> & {
+  events?: Partial<Record<AlertEvent, { inApp?: boolean; push?: boolean }>>;
+};
+
+/** What happened to a test push, in plain terms. */
+export type TestPushStatus = 'delivered' | 'sent' | 'no-device' | 'android-setup' | 'ios-setup' | 'device-gone' | 'failed' | 'dry-run';
+
+export interface TestPushResult { status: TestPushStatus; devices: number; platforms: Record<string, number>; errors: string[] }
+
 function localize(n: AppNotification): AppNotification {
   const i18n = (n.metadata as { i18n?: { title?: { key?: unknown; params?: unknown }; message?: { key?: unknown; params?: unknown } } } | null)?.i18n;
   return { ...n, title: translateStoredText(n.title, i18n?.title), message: translateStoredText(n.message, i18n?.message) };
@@ -59,5 +92,8 @@ export const notificationsApi = {
   remove: (id: string) => apiClient.delete(`/notifications/${id}`).then((r) => r.data),
   checkLowStock: () => apiClient.post('/notifications/check-low-stock').then((r) => r.data),
   registerPushToken: (token: string) => apiClient.post('/notifications/push-token', { token }).then((r) => r.data),
+  prefs: () => apiClient.get<AlertPrefs>('/notifications/prefs').then((r) => r.data),
+  updatePrefs: (patch: AlertPrefsPatch) => apiClient.patch<AlertPrefs>('/notifications/prefs', patch).then((r) => r.data),
+  testPush: () => apiClient.post<TestPushResult>('/notifications/test-push').then((r) => r.data),
   unreadCount: () => apiClient.get<{ count?: number } | number>('/notifications/unread-count').then((r) => (typeof r.data === 'number' ? r.data : r.data?.count ?? 0)),
 };

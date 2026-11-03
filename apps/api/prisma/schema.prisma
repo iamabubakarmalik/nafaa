@@ -761,6 +761,8 @@ model User {
   emailVerifiedAt      DateTime?
   phoneVerified        Boolean              @default(false)
   googleId             String?              @unique
+  /// Apple user id (`sub` of the Sign in with Apple identity token).
+  appleId              String?              @unique
   authProvider         AuthProvider         @default(EMAIL)
   avatarUrl            String?
   passwordResetToken   String?              @unique
@@ -800,6 +802,7 @@ model User {
   notesAuthored       TenantNote[]            @relation("UserNotes")
   settingsUpdated     SystemSetting[]         @relation("UserSettings")
   mobileDevices       MobileDevice[]
+  notificationPref    UserNotificationPref?
   broadcasts          BroadcastNotification[] @relation("UserBroadcasts")
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
@@ -2514,6 +2517,7 @@ enum AuthProvider {
   EMAIL
   GOOGLE
   HYBRID
+  APPLE
 }
 
 // ===================================================================
@@ -24642,4 +24646,53 @@ model IdempotencyRecord {
 
   @@unique([tenantId, userId, key])
   @@index([expiresAt])
+}
+
+/// One person's own notification choices, shared by the web and the mobile app.
+model UserNotificationPref {
+  userId            String   @id
+  tenantId          String
+  /// Per event: { "<event>": { "inApp": bool, "push": bool } }. Missing events use the defaults for the role.
+  events            Json     @default("{}")
+  /// chime | cash | bell | alert | silent
+  sound             String   @default("chime")
+  vibrate           Boolean  @default(true)
+  quietHours        Boolean  @default(false)
+  /// "HH:mm" in the business time zone.
+  quietStart        String   @default("22:00")
+  quietEnd          String   @default("08:00")
+  /// Sale alerts only for bills of at least this amount (0 = every bill).
+  saleMinAmount     Float    @default(0)
+  /// 0 = a push for each sale; otherwise one summary push every N minutes.
+  saleDigestMinutes Int      @default(15)
+  /// A sale counts as a big discount at or above this percent of the bill.
+  discountPercent   Int      @default(20)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Every push sent to the staff app through Expo, and what Expo reported back.
+model PushTicket {
+  id        String    @id @default(uuid())
+  /// Expo ticket id; null when the send itself failed.
+  ticketId  String?
+  tenantId  String?
+  userId    String?
+  token     String
+  platform  String?
+  /// Alert event key, "test" or "broadcast".
+  event     String
+  /// SENT (waiting for the receipt) | DELIVERED | ERROR
+  status    String
+  /// Expo error code, e.g. DeviceNotRegistered or InvalidCredentials.
+  error     String?
+  createdAt DateTime  @default(now())
+  checkedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([createdAt])
 }

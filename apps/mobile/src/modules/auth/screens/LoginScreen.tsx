@@ -1,5 +1,5 @@
 /**
- * Sign in: email + password or Google (same flow and wording as the web
+ * Sign in: email + password, Google, or Apple on iOS (same flow and wording as the web
  * LoginPage). After a server "slow down" the button counts down.
  */
 
@@ -17,8 +17,10 @@ import { useOnlineStatus } from '@/core/net';
 import { kv } from '@/core/storage/kv';
 import { Button, Card, Input, PasswordInput, Text, toast, useTheme } from '@/design';
 import { AuthLayout, OrDivider } from '../components/AuthLayout';
+import { AppleButton } from '../components/AppleButton';
 import { GoogleButton } from '../components/GoogleButton';
 import { authErrorMessage, retryAfterSeconds } from '../lib/auth-errors';
+import { useAppleSignIn } from '../lib/useAppleSignIn';
 import { useGoogleSignIn } from '../lib/useGoogleSignIn';
 
 const LAST_EMAIL = 'nafaa.auth.last-email';
@@ -35,6 +37,7 @@ export function LoginScreen() {
   const [failed, setFailed] = useState(0);
   const [wait, setWait] = useState(0);
   const google = useGoogleSignIn(setFormError);
+  const apple = useAppleSignIn(setFormError);
   const params = useLocalSearchParams<{ impersonate?: string; access?: string; refresh?: string }>();
 
   // Admin impersonation, same as the web: the admin panel opens
@@ -99,6 +102,7 @@ export function LoginScreen() {
       {!online && (
         <Card tone="warning"><Text size="sm" tone="warning">{t('Internet nahi hai. Login ke liye internet zaroori hai.')}</Text></Card>
       )}
+      <AppleButton kind="sign-in" available={apple.available} onPress={apple.start} loading={apple.busy} disabled={!online || google.busy} />
       <GoogleButton label={t('Google se login karein')} onPress={google.start} loading={google.busy} disabled={!online || !google.ready} />
       <OrDivider />
       {formError && <Card tone="danger"><Text size="sm" tone="danger">{formError}</Text></Card>}

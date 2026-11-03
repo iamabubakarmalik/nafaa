@@ -5,6 +5,7 @@
  * Returns null for links with no screen on the phone.
  */
 
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import { NAV_GROUPS, SETTINGS_GROUPS } from '@/modules/shell/navigation/nav-config';
 import { AI_HREF } from '@/modules/shell/navigation/routes';
 import { onlineRouteFor } from '@/modules/online-store/hooks/onlineRoutes';
@@ -19,7 +20,8 @@ const DYNAMIC: Array<[RegExp, (m: RegExpExecArray) => string]> = [
   [new RegExp(`^/bookings/${ID}$`), (m) => `/bookings/${m[1]}`],
   [new RegExp(`^/customers/${ID}$`), (m) => `/customers/${m[1]}`],
   [new RegExp(`^/purchases/${ID}$`), (m) => `/purchases/${m[1]}`],
-  [new RegExp(`^/billing/invoice/${ID}/pay$`), (m) => `/billing/invoice/${m[1]}/pay`],
+  // iOS opens the bill itself: no payment screen there (core/platform/purchases).
+  [new RegExp(`^/billing/invoice/${ID}/pay$`), (m) => (canPurchaseInApp() ? `/billing/invoice/${m[1]}/pay` : `/billing/invoice/${m[1]}`)],
   [new RegExp(`^/billing/invoice/${ID}$`), (m) => `/billing/invoice/${m[1]}`],
   [new RegExp(`^/staff/${ID}$`), (m) => (m[1] === 'commission' ? '/staff/commission' : `/staff/${m[1]}`)],
 ];

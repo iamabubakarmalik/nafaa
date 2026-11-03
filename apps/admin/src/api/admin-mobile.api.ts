@@ -186,5 +186,22 @@ export const adminMobileApi = {
 
   audience: (t: Partial<PushInput>) => apiClient.post('/admin/mobile/push/audience', t).then(unwrap<PushAudience>),
   sendPush: (p: PushInput) => apiClient.post('/admin/mobile/push', p).then(unwrap<PushBroadcast>),
+  pushHealth: (days = 7) => apiClient.get('/admin/mobile/push-health', { params: { days } }).then(unwrap<PushHealth>),
   pushHistory: (page = 1) => apiClient.get('/admin/mobile/push', { params: { page } }).then(unwrap<Paged<PushBroadcast>>),
 };
+
+/** Delivery health from Expo receipts (all staff app pushes: alerts, tests, broadcasts). */
+export interface PushHealth {
+  days: number;
+  delivery: 'live' | 'dry-run';
+  total: number;
+  sent: number;
+  delivered: number;
+  failed: number;
+  unknown: number;
+  errors: Array<{ error: string; count: number }>;
+  platforms: Record<string, Record<string, number>>;
+  events: Array<{ event: string; count: number }>;
+  lastError: { error: string | null; platform: string | null; createdAt: string } | null;
+  credentialsProblem: boolean;
+}

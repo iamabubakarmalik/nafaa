@@ -91,7 +91,7 @@ describe('MobilePushService', () => {
 
   it('dedupes tokens and adds people on the older app when no platform or version filter is set', async () => {
     const prisma = pushPrisma();
-    const svc = new MobilePushService(prisma as any, push, queue);
+    const svc = new MobilePushService(prisma as any, push, queue, {} as any);
     const out = await svc.audience({ audience: 'all' });
     expect(out).toMatchObject({ total: 3, devices: 2, olderApp: 1, delivery: 'dry-run' });
     expect(out.byLanguage).toEqual({ ur: 1, en: 1, roman: 1 });
@@ -99,7 +99,7 @@ describe('MobilePushService', () => {
 
   it('applies the version range to devices and leaves the older app out', async () => {
     const prisma = pushPrisma();
-    const svc = new MobilePushService(prisma as any, push, queue);
+    const svc = new MobilePushService(prisma as any, push, queue, {} as any);
     const out = await svc.audience({ audience: 'all', minVersion: '2.0.0' });
     expect(out).toMatchObject({ total: 1, devices: 1, olderApp: 0 });
     expect(prisma.user.findMany).not.toHaveBeenCalled();
@@ -107,14 +107,14 @@ describe('MobilePushService', () => {
 
   it('resolves a plan audience to the businesses on that plan', async () => {
     const prisma = pushPrisma();
-    const svc = new MobilePushService(prisma as any, push, queue);
+    const svc = new MobilePushService(prisma as any, push, queue, {} as any);
     await svc.audience({ audience: 'plan', planSlugs: ['pro'] });
     expect(prisma.mobileDevice.findMany.mock.calls[0][0].where.tenantId).toEqual({ in: ['t1'] });
   });
 
   it('refuses a targeted push with nothing picked, and a second push while one is sending', async () => {
     const prisma = pushPrisma();
-    const svc = new MobilePushService(prisma as any, push, queue);
+    const svc = new MobilePushService(prisma as any, push, queue, {} as any);
     await expect(svc.create('admin', { title: { en: 'Hi' }, body: { en: 'There' }, audience: 'plan' })).rejects.toThrow('Pick at least one');
     prisma.mobilePushBroadcast.count.mockResolvedValue(1);
     await expect(svc.create('admin', { title: { en: 'Hi' }, body: { en: 'There' } })).rejects.toThrow('still sending');

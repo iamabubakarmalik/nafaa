@@ -12,6 +12,8 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { zonedToUtc } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { MessageText, notificationText, apiMessage } from '../../common/i18n/api-message';
+import { isAlertEvent, type AlertEvent } from './alerts/alert-catalog';
+import { StaffAlertsService, type AlertInput } from './alerts/staff-alerts.service';
 
 interface CreateNotificationParams {
   tenantId: string;
@@ -22,9 +24,26 @@ interface CreateNotificationParams {
   message: MessageText;
   link?: string;
   metadata?: any;
+  /** Alert event for push choices; worked out from the type when left out. */
+  event?: AlertEvent | null;
 }
 
-const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+/** The switchable event a stored notification belongs to, or null for general ones. */
+export function eventForNotification(type: NotificationType, metadata?: any, link?: string | null): AlertEvent | null {
+  const kind = metadata?.kind;
+  if (isAlertEvent(metadata?.event)) return metadata.event;
+  if (kind === 'daily-summary') return 'dailySummary';
+  if (kind === 'ONLINE_ORDER' || link?.startsWith('/online-orders')) return 'onlineOrder';
+  switch (type) {
+    case 'NEW_SALE': return 'sale';
+    case 'PAYMENT_RECEIVED': return 'khataPayment';
+    case 'RETURN_PROCESSED': return 'voidRefund';
+    case 'REGISTER_OPENED': case 'REGISTER_CLOSED': return 'register';
+    case 'LOW_STOCK': return 'lowStock';
+    case 'SUBSCRIPTION_EXPIRING': case 'PAYMENT_APPROVED': case 'PAYMENT_REJECTED': case 'REFERRAL_EARNED': case 'REFERRAL_SIGNUP': return 'account';
+    default: return null;
+  }
+}
 
 /** Page groups. A notification can sit in more than one. */
 export const NOTIFICATION_GROUPS = ['summary', 'sales', 'online', 'stock', 'alerts'] as const;
@@ -58,6 +77,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly clocks: TenantTimezoneService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   async registerPushToken(userId: string, token: string) {
@@ -88,82 +108,9 @@ export class NotificationsService {
     return { message: 'Push token registered', token };
   }
 
-  async sendPushToUsers(userIds: string[], payload: {
-    title: string;
-    body: string;
-    data?: any;
-    channelId?: string;
-  }) {
-    if (userIds.length === 0) return;
-
-    const users = await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { pushTokens: true },
-    });
-
-    const tokens = users.flatMap((u) => u.pushTokens || []);
-    if (tokens.length === 0) return;
-
-    // Build Expo push messages (batched)
-    const messages = tokens.map((token) => ({
-      to: token,
-      sound: 'default',
-      title: payload.title,
-      body: payload.body,
-      data: payload.data || {},
-      channelId: payload.channelId || 'default',
-      priority: 'high' as const,
-    }));
-
-    // Expo accepts max 100 per request
-    const chunks: any[][] = [];
-    for (let i = 0; i < messages.length; i += 100) {
-      chunks.push(messages.slice(i, i + 100));
-    }
-
-    for (const chunk of chunks) {
-      try {
-        const res = await fetch(EXPO_PUSH_URL, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(chunk),
-        });
-        const result = (await res.json()) as { data?: Array<{ status: string; details?: { error?: string } }> };
-
-        // Handle invalid tokens — remove from DB
-        if (result?.data) {
-          for (let i = 0; i < result.data.length; i++) {
-            const ticket = result.data[i];
-            if (
-              ticket?.status === 'error' &&
-              ticket?.details?.error === 'DeviceNotRegistered'
-            ) {
-              const badToken = chunk[i].to;
-              await this.removeInvalidToken(badToken);
-            }
-          }
-        }
-      } catch (err: any) {
-        this.logger.warn(`Push send failed: ${err?.message}`);
-      }
-    }
-  }
-
-  private async removeInvalidToken(token: string) {
-    const users = await this.prisma.user.findMany({
-      where: { pushTokens: { has: token } },
-      select: { id: true, pushTokens: true },
-    });
-
-    for (const user of users) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { pushTokens: user.pushTokens.filter((t) => t !== token) },
-      });
-    }
+  /** A business event for the right people (see StaffAlertsService). Returns at once. */
+  alert(input: AlertInput) {
+    this.alerts.emit(input);
   }
 
   async create(input: CreateNotificationParams) {
@@ -180,38 +127,15 @@ export class NotificationsService {
       },
     });
 
-    // Send push notifications
-    let targetUserIds: string[] = [];
-    if (params.userId) {
-      targetUserIds = [params.userId];
-    } else {
-      // Tenant-wide notification — send to all active users in the tenant
-      const tenantUsers = await this.prisma.user.findMany({
-        where: { tenantId: params.tenantId, isActive: true },
-        select: { id: true },
-      });
-      targetUserIds = tenantUsers.map((u) => u.id);
-    }
-
-    // Choose Android channel based on type
-    let channelId = 'default';
-    if (['NEW_SALE', 'PAYMENT_RECEIVED'].includes(params.type)) {
-      channelId = 'sales';
-    } else if (['LOW_STOCK', 'OUT_OF_STOCK', 'INVOICE_DUE'].includes(params.type)) {
-      channelId = 'alerts';
-    }
-
-    this.sendPushToUsers(targetUserIds, {
-      title: params.title,
-      body: params.message,
-      data: {
-        notificationId: notification.id,
-        type: params.type,
-        link: params.link,
-        ...(params.metadata || {}),
-      },
-      channelId,
-    }).catch((e) => this.logger.warn(`Async push failed: ${e?.message}`));
+    this.alerts.pushForNotification({
+      tenantId: params.tenantId,
+      userId: params.userId ?? null,
+      event: params.event ?? eventForNotification(params.type, params.metadata, params.link),
+      title: input.title,
+      message: input.message,
+      link: params.link ?? null,
+      data: { notificationId: notification.id, type: params.type },
+    });
 
     return notification;
   }

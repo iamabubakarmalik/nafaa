@@ -37,7 +37,7 @@ export function PreferencesTab() {
       <ListGroup>
         <ListRow icon={Palette} title={t('Rang, font aur size')} subtitle={t('Apna rang, likhai ka size aur safhe ki chaurai')} chevron onPress={() => router.push('/settings/appearance' as never)} />
         {can(P.POS_USE) && <ListRow icon={Printer} title={t('Print settings')} subtitle={t('Printer, kaghaz ka size aur bill ka design')} chevron onPress={() => router.push('/settings/receipt' as never)} />}
-        {can(P.SETTINGS_VIEW) && <ListRow icon={Bell} title={t('Notifications')} subtitle={t('Kab aur kaise khabar aaye')} chevron onPress={() => router.push('/settings/notifications' as never)} />}
+        <ListRow icon={Bell} title={t('Notifications')} subtitle={t('Kab aur kaise khabar aaye')} chevron onPress={() => router.push('/settings/notifications' as never)} />
       </ListGroup>
     </View>
   );

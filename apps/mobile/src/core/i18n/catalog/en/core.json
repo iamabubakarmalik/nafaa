@@ -5,6 +5,7 @@
   "{{count}}m ago": "{{count}}m ago",
   "{{what}} needs internet. You are seeing the last saved data.": "{{what}} needs internet. You are seeing the last saved data.",
   "A hint of your color": "A hint of your color",
+  "Aap ka plan active nahi hai. Account ke malik ya Nafaa support se rabta karein.": "Your plan is not active. Please contact your account owner or Nafaa support.",
   "Aap ka plan khatam ho gaya hai.": "Your plan has ended.",
   "Ads ka kharcha aur ROAS dekhein": "View ad spend and ROAS",
   "Ads ka kharcha likhein / import karein": "Record / import ad spend",
@@ -197,6 +198,7 @@
   "Marketplace": "Marketplace",
   "Mashwara dekhein": "View advice",
   "Mashwara likhein": "Write advice",
+  "Masla report ho gaya hai. Dobara try karein ya wapas ja kar phir kholein.": "The problem has been reported. Try again, or go back and open it again.",
   "Meat shop": "Meat shop",
   "Members, plans, renewals, check-ins, trainers, classes, lockers and equipment": "Members, plans, renewals, check-ins, trainers, classes, lockers and equipment",
   "Menu badlein": "Edit menu",
@@ -371,5 +373,8 @@
   "Weight orders, cutting jobs, live animals, slaughter log, subscriptions, qurbani and wholesale": "Weight orders, cutting jobs, live animals, slaughter log, subscriptions, qurbani and wholesale",
   "Wholesale": "Wholesale",
   "Working late": "Working late",
-  "Workshop jobs, vehicles, mechanics, service reminders and core returns": "Workshop jobs, vehicles, mechanics, service reminders and core returns"
+  "Workshop jobs, vehicles, mechanics, service reminders and core returns": "Workshop jobs, vehicles, mechanics, service reminders and core returns",
+  "Ye feature aap ke maujooda plan me shamil nahi hai. Account ke malik ya Nafaa support se rabta karein.": "This feature is not included in your current plan. Please contact your account owner or Nafaa support.",
+  "Ye hissa abhi nahi khul saka.": "This widget could not load right now.",
+  "Ye screen abhi nahi khul saki.": "This screen could not open right now."
 }

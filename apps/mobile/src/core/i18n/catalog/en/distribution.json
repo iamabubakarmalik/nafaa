@@ -179,6 +179,7 @@
   "Aakhri sync": "Last sync",
   "Aap dukaan se {{value}} m door hain (had {{radius}} m). Kaam ho jayega, lekin office ko door wala visit dikhega.": "You are {{value}} m from the shop (limit {{radius}} m). It will go through, but the office will see it as a far visit.",
   "Aap ka setup tayyar hai — plan upgrade karte hi ye sab yahin chalu ho jayega:": "Your setup is ready. Upgrade your plan and all of this turns on here:",
+  "Aap ke plan me shamil nahi": "Not included in your plan",
   "Aap ke plan{{value}} me Distribution shamil nahi": "Distribution is not in your plan{{value}}",
   "Aap ko koi van nahi di gayi": "No van has been assigned to you",
   "Aap ne badla — report wala lagayein": "You changed it. Use the reported values",

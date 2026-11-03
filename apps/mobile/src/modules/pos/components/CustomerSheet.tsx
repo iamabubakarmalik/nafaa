@@ -34,7 +34,7 @@ export function CustomerSheet() {
   const [saving, setSaving] = useState(false);
   const { data: list = [], isLoading } = useCustomerSearch({ query: query || undefined, limit: 60 }, { enabled: open });
 
-  useEffect(() => { if (open) { setQ(''); setAdding(false); } }, [open]);
+  useEffect(() => { if (open) { setQ(''); setName(''); setPhone(''); setAdding(usePosUi.getState().customerAdd); } }, [open]);
 
   const pick = (c: CustomerRow | null) => {
     setCustomer(c);

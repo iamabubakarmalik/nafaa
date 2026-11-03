@@ -8,6 +8,7 @@ import { Copy, CreditCard, ExternalLink, Share2 } from 'lucide-react-native';
 import { Share, View } from 'react-native';
 import { formatDate, formatDateTime } from '@/core/format';
 import { t } from '@/core/i18n';
+import { canPurchaseInApp } from '@/core/platform/purchases';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
 import { Amount, Button, Card, DetailRow, DetailSection, DetailTemplate, IconButton, ListRow, StatusPill, Text, toast, useTheme } from '@/design';
 import { billingApi } from '../api/billing';
@@ -49,7 +50,7 @@ export function InvoiceScreen() {
           {open && <Text size="xs" weight="semibold" color={th.colors[st.tone].text}>{days < 0 ? t('{{days}} din der ho gayi', { days: Math.abs(days) }) : t('Due: {{days}}', { days: daysText(days) })}</Text>}
         </View>
       ) : undefined}
-      bottomActions={inv && open && can(P.BILLING_MANAGE) ? (
+      bottomActions={inv && open && can(P.BILLING_MANAGE) && canPurchaseInApp() ? (
         <Button icon={CreditCard} fullWidth onPress={() => router.push(`/billing/invoice/${inv.id}/pay` as never)}>{t('Payment karein')}</Button>
       ) : undefined}
     >

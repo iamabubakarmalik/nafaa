@@ -27,6 +27,7 @@ import { saveSalePayments } from '../../common/helpers/sale-payments.helper';
 import { ListBookingsDto } from './dto/list-bookings.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { apiMessage } from '../../common/i18n/api-message';
+import { StaffAlertsService } from '../notifications/alerts/staff-alerts.service';
 
 const ACTIVE: BookingStatus[] = ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'];
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -51,6 +52,7 @@ export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tz: TenantTimezoneService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   /* ───────────────────────── scope ───────────────────────── */
@@ -548,7 +550,7 @@ export class BookingsService {
     for (let attempt = 0; attempt < 5; attempt++) {
       const bookingNumber = await this.nextNumber(user.tenantId, attempt);
       try {
-        return await this.prisma.$transaction(async (tx) => {
+        const made = await this.prisma.$transaction(async (tx) => {
           const booking = await tx.booking.create({
             data: {
               tenantId: user.tenantId,
@@ -621,6 +623,15 @@ export class BookingsService {
           }
           return booking;
         });
+        const customer = await this.prisma.customer.findUnique({ where: { id: made.customerId }, select: { name: true } }).catch(() => null);
+        this.alerts.emit({
+          tenantId: user.tenantId, event: 'booking', type: 'INFO', shopId: made.shopId, actorId: user.id,
+          title: '📅 Nayi booking',
+          message: apiMessage('{{number}} · {{customer}} · Rs {{total}}', { number: made.bookingNumber, customer: customer?.name ?? '', total: Math.round(made.total).toLocaleString('en-PK') }),
+          link: `/bookings/${made.id}`,
+          metadata: { bookingId: made.id, total: made.total },
+        });
+        return made;
       } catch (e) {
         if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
       }

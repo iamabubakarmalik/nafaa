@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage } from '@/core/api/errors';
-import { formatDate, formatMoney } from '@/core/format';
+import { formatDate, formatMoney, formatMonthShort } from '@/core/format';
 import { t } from '@/core/i18n';
 import { useOfflineList, useOutbox } from '@/core/offline';
 import { useOnlineStatus, useSyncStatus } from '@/core/net';
@@ -28,7 +28,7 @@ import { IncomeSheet, type IncomeDraft } from '../components/IncomeSheet';
 import { FIN, FIXED_INCOME, VIA, incomeCat } from '../lib/meta';
 
 const PAGE = 30;
-const monthShort = (key: string) => new Date(`${key}-15T12:00:00`).toLocaleDateString('en-PK', { month: 'short' });
+const monthShort = formatMonthShort;
 
 export function IncomeScreen() {
   const th = useTheme();

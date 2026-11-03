@@ -12,7 +12,7 @@ import { Crown, Gift, Package, Plus, Ticket, Trash2, UserCheck, X } from 'lucide
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { commissionOf, salonBillTotals } from '@nafaa/core/industries/salon';
-import { formatMoney } from '@/core/format';
+import { businessDayKey, formatMoney } from '@/core/format';
 import { t } from '@/core/i18n';
 import { Amount, Badge, Button, Card, Chip, Divider, EmptyState, Input, ListRow, MoneyInput, Row, Screen, SearchBar, Select, Sheet, Switch, Text, toast, useTheme } from '@/design';
 import { CustomerField, type PickedCustomer } from '../../_shared/serviceKit';
@@ -32,7 +32,7 @@ export function SalonCounterScreen() {
   const { guard } = useDeskOnline('salonDesk');
   const services = useQuery({ queryKey: [SALON_KEYS.services, 'active'], queryFn: () => salonApi.services.list({ active: true }) });
   const staff = useQuery({ queryKey: [SALON_KEYS.staff, 'bookable'], queryFn: () => salonApi.staff.list({ bookable: true }) });
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
+  const today = businessDayKey();
   const waiting = useQuery({ queryKey: [SALON_KEYS.calendar, 'counter', today], queryFn: () => salonApi.appointments.calendar(toIso(today, '00:00'), toIso(today, '23:59')), refetchInterval: 30_000 });
   const [customer, setCustomer] = useState<PickedCustomer | null>(null);
   const [lines, setLines] = useState<Line[]>([]);

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CloudOff } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Share, View } from 'react-native';
-import { formatRelative } from '@/core/format';
+import { businessDayKey, formatRelative } from '@/core/format';
 import { t } from '@/core/i18n';
 import { useCachedNotice } from '@/core/offline';
 import { Button, Row, Sheet, StatusPill, Text, TextArea, useTheme } from '@/design';
@@ -62,7 +62,4 @@ export function FactRow({ label, children }: { label: string; children: ReactNod
 
 export const shareText = (message: string) => Share.share({ message });
 
-export const todayKey = () => {
-  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date());
-  return p;
-};
+export const todayKey = () => businessDayKey();

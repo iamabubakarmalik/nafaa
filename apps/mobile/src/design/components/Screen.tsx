@@ -31,6 +31,7 @@ import { TABLET_MIN_WIDTH } from '../tokens/layout';
 import { Text } from './Text';
 import { IconButton } from './Button';
 import { PullToRefresh } from './List';
+import { ErrorBoundary } from './ErrorBoundary';
 
 export const TAB_BAR_SPACE = 96;
 
@@ -147,7 +148,7 @@ export const EmbeddedScreenContext = createContext(false);
 export function Screen(props: ScreenProps) {
   const embedded = useContext(EmbeddedScreenContext);
   const th = useTheme();
-  if (embedded) return <View style={[{ gap: th.space(3) }, props.contentStyle]}>{props.children}</View>;
+  if (embedded) return <View style={[{ gap: th.space(3) }, props.contentStyle]}><ErrorBoundary name={props.title}>{props.children}</ErrorBoundary></View>;
   return <FullScreen {...props} />;
 }
 
@@ -172,7 +173,7 @@ function FullScreen({
   const body = (
     <View style={inner}>
       {standardHeader && !keyboard && <LargeTitle title={title} subtitle={subtitle} />}
-      {children}
+      <ErrorBoundary name={title}>{children}</ErrorBoundary>
     </View>
   );
   const refresh = onRefresh ? <PullToRefresh refreshing={refreshing} onRefresh={onRefresh} /> : undefined;
@@ -181,7 +182,7 @@ function FullScreen({
     <View style={{ flex: 1, backgroundColor: background ?? th.colors.canvas, paddingTop: insets.top }}>
       {head}
       {!scroll ? (
-        <View style={[{ flex: 1 }, narrow && { width: '100%', maxWidth: 720, alignSelf: 'center' }, contentStyle]}>{children}</View>
+        <View style={[{ flex: 1 }, narrow && { width: '100%', maxWidth: 720, alignSelf: 'center' }, contentStyle]}><ErrorBoundary name={title}>{children}</ErrorBoundary></View>
       ) : keyboard ? (
         <KeyboardAwareScrollView bottomOffset={footer ? 90 : 24} keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingTop: th.space(2) }} refreshControl={refresh} showsVerticalScrollIndicator={false}>
           {body}

@@ -29,6 +29,7 @@ import {
 } from './dto/create-purchase.dto';
 import { LANDED_METHODS, LandedCostRow, LandedMethod, allocate, cleanLandedCost, perUnit, recostRemaining } from './landed-cost';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 
 type Tx = Prisma.TransactionClient;
 
@@ -100,6 +101,7 @@ export class PurchasesService {
     private readonly prisma: PrismaService,
     private readonly ledger: SupplierLedgerService,
     private readonly tz: TenantTimezoneService,
+    private readonly alerts: StaffAlertsService,
   ) {}
 
   /* ───────────────────────── helpers ───────────────────────── */
@@ -287,7 +289,7 @@ export class PurchasesService {
     const purchaseNumber = await this.number('PO', user.tenantId, async (n) =>
       !!(await this.prisma.purchase.findFirst({ where: { tenantId: user.tenantId, purchaseNumber: n }, select: { id: true } })));
 
-    return this.prisma.$transaction(async (tx) => {
+    const out = await this.prisma.$transaction(async (tx) => {
       const purchase = await tx.purchase.create({
         data: {
           tenantId: user.tenantId, shopId, supplierId: supplier.id, createdById: user.id, purchaseNumber,
@@ -331,6 +333,18 @@ export class PurchasesService {
       const createdRollsByItem = await this.createRolls(tx, user, purchase, lines, shopId, supplier.name);
       return { ...purchase, createdRollsByItem };
     }, { timeout: 30_000 });
+    if (receive) this.alertReceived(user, shopId, out.id, purchaseNumber, supplier.name, total);
+    return out;
+  }
+
+  private alertReceived(user: AuthenticatedUser, shopId: string | null, id: string, number: string, supplier: string, amount: number) {
+    this.alerts.emit({
+      tenantId: user.tenantId, event: 'purchase', type: 'INFO', shopId, actorId: user.id,
+      title: '📦 Purchase receive hui',
+      message: apiMessage('{{number}} · {{supplier}} · Rs {{total}}', { number, supplier, total: Math.round(amount).toLocaleString('en-PK') }),
+      link: `/purchases/${id}`,
+      metadata: { purchaseId: id, total: amount },
+    });
   }
 
   /** Carpet rolls for lines that carry them. */
@@ -401,7 +415,7 @@ export class PurchasesService {
     if (value <= 0 && !dto.close) throw new BadRequestException('Kuch bhi nahi aaya — quantity likhein');
     const paid = r2(Math.min(Math.max(dto.paidAmount ?? 0, 0), value));
 
-    return this.prisma.$transaction(async (tx) => {
+    const res = await this.prisma.$transaction(async (tx) => {
       await this.stockIn(tx, user, { shopId: p.shopId!, reference: p.purchaseNumber, supplierName: p.supplier.name }, rows);
       for (const r of rows) await tx.purchaseItem.update({ where: { id: r.item.id }, data: { receivedQty: { increment: r.baseQty } } });
       const items = await tx.purchaseItem.findMany({ where: { purchaseId: p.id }, select: { baseQuantity: true, receivedQty: true } });
@@ -425,6 +439,8 @@ export class PurchasesService {
       }
       return { received: value, status: done ? 'RECEIVED' : 'PARTIAL' };
     }, { timeout: 30_000 });
+    if (value > 0) this.alertReceived(user, p.shopId, p.id, p.purchaseNumber, p.supplier.name, value);
+    return res;
   }
 
   /** Sends goods back; the supplier's due goes down by their landed cost. */

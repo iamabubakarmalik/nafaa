@@ -15,6 +15,7 @@ import {
   OpeningBalanceDto,
 } from './dto/create-payment.dto';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 
 /**
  * ════════════════════════════════════════════════════════════════
@@ -33,7 +34,10 @@ import { apiMessage } from '../../../common/i18n/api-message';
  */
 @Injectable()
 export class CustomerLedgerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly alerts: StaffAlertsService,
+  ) {}
 
   /** What this customer owes *at one branch*. */
   private async branchBalance(
@@ -151,6 +155,13 @@ export class CustomerLedgerService {
     });
     // Profit on the bills this payment settles counts from today.
     refreshSettlements(this.prisma, user.tenantId, customerId);
+    this.alerts.emit({
+      tenantId: user.tenantId, event: 'khataPayment', type: 'PAYMENT_RECEIVED', shopId, actorId: user.id,
+      title: '💵 Udhaar ki wasooli',
+      message: apiMessage('{{customer}} ne Rs {{amount}} diye', { customer: done.customer.name, amount: Math.round(dto.amount).toLocaleString('en-PK') }),
+      link: `/customers/${customerId}`,
+      metadata: { customerId, amount: dto.amount },
+    });
     return { ...done, settles: settles ? this.forViewer(user, settles) : null };
   }
 

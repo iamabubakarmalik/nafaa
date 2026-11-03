@@ -7,6 +7,7 @@ import { SmsModule } from '../sms/sms.module';
 import { OnboardingModule } from '../onboarding/onboarding.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AppleIdentityService } from './apple/apple-identity.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
@@ -28,7 +29,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     OnboardingModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, AppleIdentityService, JwtStrategy, GoogleStrategy],
   exports: [AuthService, JwtModule, PassportModule],
 })
 export class AuthModule {}

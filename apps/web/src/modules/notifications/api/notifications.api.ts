@@ -97,6 +97,33 @@ function unwrapList(res: any): NotificationListResponse {
   return { items: [], meta: { page: 1, limit: 0, total: 0, totalPages: 0 } };
 }
 
+/** Business events a person can switch on or off (same keys as the API). */
+export type AlertEvent =
+  | 'sale' | 'bigDiscount' | 'voidRefund' | 'expense' | 'purchase' | 'lowStock' | 'khataPayment'
+  | 'onlineOrder' | 'register' | 'lateCheckIn' | 'booking' | 'dailySummary' | 'account';
+export type AlertSound = 'chime' | 'cash' | 'bell' | 'alert' | 'silent';
+export interface AlertEventPref { event: AlertEvent; inApp: boolean; push: boolean; default: { inApp: boolean; push: boolean } }
+
+/** The signed-in person's own choices, shared with the mobile app. */
+export interface AlertPrefs {
+  events: AlertEventPref[];
+  sound: AlertSound;
+  vibrate: boolean;
+  quietHours: boolean;
+  quietStart: string;
+  quietEnd: string;
+  saleMinAmount: number;
+  saleDigestMinutes: number;
+  discountPercent: number;
+  sounds: AlertSound[];
+  digestChoices: number[];
+}
+export type AlertPrefsPatch = Partial<Omit<AlertPrefs, 'events' | 'sounds' | 'digestChoices'>> & {
+  events?: Partial<Record<AlertEvent, { inApp?: boolean; push?: boolean }>>;
+};
+export type TestPushStatus = 'delivered' | 'sent' | 'no-device' | 'android-setup' | 'ios-setup' | 'device-gone' | 'failed' | 'dry-run';
+export interface TestPushResult { status: TestPushStatus; devices: number; platforms: Record<string, number>; errors: string[] }
+
 function unwrapOne<T>(res: any): T {
   const body = res?.data;
   if (body?.data !== undefined) return body.data as T;
@@ -137,6 +164,10 @@ export const notificationsApi = {
 
   remove: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/notifications/${id}`).then((r) => unwrapOne<{ message: string }>(r)),
+
+  prefs: (): Promise<AlertPrefs> => apiClient.get('/notifications/prefs').then((r) => unwrapOne<AlertPrefs>(r)),
+  updatePrefs: (patch: AlertPrefsPatch): Promise<AlertPrefs> => apiClient.patch('/notifications/prefs', patch).then((r) => unwrapOne<AlertPrefs>(r)),
+  testPush: (): Promise<TestPushResult> => apiClient.post('/notifications/test-push').then((r) => unwrapOne<TestPushResult>(r)),
 
   checkLowStock: () =>
     apiClient.post('/notifications/check-low-stock').then((r) => unwrapOne<any>(r)),

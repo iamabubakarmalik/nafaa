@@ -8,6 +8,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Ban, CalendarDays, Pencil, Plus, Stethoscope, UserCog } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { pkParts } from '@/core/format';
 import { t } from '@/core/i18n';
 import { useOnlineStatus } from '@/core/net';
 import { onlineNeededText } from '@/core/offline';
@@ -22,7 +23,7 @@ type Tab = 'active' | 'off' | 'all';
 
 /** "HH:MM" (shop clock) as a Date for the time picker, and back. */
 const timeDate = (hm: string) => new Date(`${todayKey()}T${hm}:00+05:00`);
-const dateTime24 = (d: Date) => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Karachi' }).format(d);
+const dateTime24 = (d: Date) => { const p = pkParts(d); return `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`; };
 
 export function OptometristsScreen() {
   const th = useTheme();

@@ -15,6 +15,7 @@ import { MobileAnalyticsService } from './mobile-analytics.service';
 import { MobileConfigService } from './mobile-config.service';
 import { MobileDevicesService } from './mobile-devices.service';
 import { MobilePushService } from './mobile-push.service';
+import { PushDeliveryService } from '../push/push-delivery.service';
 
 @ApiTags('Admin - Mobile app')
 @ApiBearerAuth()
@@ -26,6 +27,7 @@ export class MobileAdminController {
     private readonly configs: MobileConfigService,
     private readonly devices: MobileDevicesService,
     private readonly push: MobilePushService,
+    private readonly delivery: PushDeliveryService,
   ) {}
 
   @Get('overview')
@@ -122,6 +124,12 @@ export class MobileAdminController {
   @Get('push')
   history(@Query() q: PageQueryDto) {
     return this.push.history(q.page ?? 1, q.limit ?? 20);
+  }
+
+  /** Delivery health from Expo receipts: sent, delivered, errors by type and platform. */
+  @Get('push-health')
+  pushHealth(@Query('days') days?: string) {
+    return this.delivery.health(Number(days) || 7);
   }
 
   @Get('push/:id')

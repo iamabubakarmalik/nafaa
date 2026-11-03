@@ -1,12 +1,15 @@
 /**
- * The counter. Phones: the catalog with a slide-up bill bar; tablets: the
- * catalog and the bill side by side. Search and scan from the phone's own
+ * The counter, like the web POS at phone width. Phones: a light catalog
+ * (search + camera, Products / Combos / Quick, categories, most sold, tiles)
+ * and one "View bill" bar that opens the full bill; tablets: the catalog and
+ * the bill side by side. Search and scan from the phone's own
  * database (works offline), one-tap cash, full checkout, hold/resume and
  * the after-sale receipt. Industries plug in through PosIndustryConfig;
  * they never get a counter of their own.
  */
 
-import { Flame, Gift, LayoutGrid, MoreHorizontal, Package, PauseCircle, ScanBarcode, Store, Zap } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowRight, Camera, Gift, LayoutGrid, ShoppingCart, Store } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
@@ -14,20 +17,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { inCartBy, looksLikeBarcode, parseQtyPrefix } from '@nafaa/core/pos';
 import { t } from '@/core/i18n';
 import { useSyncStatus } from '@/core/net';
-import type { ProductRow } from '@/core/offline';
+import { offline, type ProductRow } from '@/core/offline';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
 import {
-  Amount, Badge, Button, Chip, EmptyState, Icon, IconButton, PressableScale, ProgressBar, Row, ScreenHeader, SearchBar, Sheet, Text,
+  Amount, Badge, Button, Chip, EmptyState, Icon, PressableScale, ProgressBar, Row, SearchBar, Segmented, Sheet, Text,
   toast, useDebouncedValue, useLayout, useTabBarSpace, useTheme, withAlpha,
 } from '@/design';
-import { useShellUi } from '@/modules/shell/hooks/useShellUi';
 import { SyncChip } from '@/modules/shell/components/SyncStatus';
+import { useShellUi } from '@/modules/shell/hooks/useShellUi';
 import { useBill } from '../engine/bill';
 import { useCategories, useCatalog, useCombos, useQuickKeys, useRecentItems, type PosCombo } from '../engine/catalog';
 import { checkoutBlock, completeSale } from '../engine/checkout';
 import { useDistributionPricing } from '../engine/useDistributionPricing';
 import type { PosShelf } from '../engine/industry';
-import { closeSheet, openCheckoutSheet, openSheet, usePos, usePosUi } from '../engine/usePos';
+import { closeAllSheets, openSheet, usePos, usePosUi } from '../engine/usePos';
 import { CartPanel, useCartSummary } from '../components/CartPanel';
 import { ChargesSheet, useChargesSync } from '../components/ChargesSheet';
 import { CheckoutSheet, useSaleContext } from '../components/CheckoutSheet';
@@ -37,6 +40,7 @@ import { DoneSheet } from '../components/DoneSheet';
 import { HeldSheet, useHeldBills } from '../components/HeldSheet';
 import { LineSheet } from '../components/LineSheet';
 import { MoreSheet } from '../components/MoreSheet';
+import { NoteSheet } from '../components/NoteSheet';
 import { PickerHost } from '../components/Pickers';
 import { ProductGrid } from '../components/ProductGrid';
 import { ScannerSheet } from '../components/ScannerSheet';
@@ -94,11 +98,13 @@ function Counter() {
   const query = useDebouncedValue(parseQtyPrefix(search).rest, 80);
   const catalog = useCatalog(view === 'products' ? query : '', categoryId);
   const categories = useCategories();
+  const counts = useCategoryCounts(!!sync.ready);
   const combos = useCombos(api.config.combos !== false);
   const keys = useQuickKeys(api.shopId, api.config.quickKeys !== false && parts.showQuickKeys);
   const recentTick = useLastTick();
   const recent = useRecentItems(api.shopId, recentTick);
   const held = useHeldBills(api.shopId);
+  const heldCount = held.data?.length ?? 0;
   const inCart = useMemo(() => inCartBy(lines), [lines]);
   const productInfo = useMemo(() => {
     const map = new Map((catalog.data ?? []).map((p) => [p.id, p]));
@@ -109,6 +115,10 @@ function Counter() {
   useChargesSync();
 
   const tap = (p: ProductRow) => { void api.addProduct(p.id); };
+  const minus = (p: ProductRow) => {
+    const line = [...lines].reverse().find((l) => l.productId === p.id && l.type === 'product');
+    if (line) api.step(line.id, -1);
+  };
 
   // Search box Enter: a code scans; otherwise the first result goes on the bill. "3*" in front sets the quantity.
   const submit = async () => {
@@ -128,12 +138,12 @@ function Counter() {
     await completeSale(ctx, { paymentMethod: 'CASH', paidAmount: ctx.totals.total, isCredit: false, depositExtra: false });
   };
 
-  const tabs: Array<{ id: View_; label: string; icon: typeof Package; show: boolean }> = [
-    { id: 'products', label: t('Products'), icon: LayoutGrid, show: true },
-    { id: 'recent', label: t('Most sold'), icon: Flame, show: parts.recentItems },
-    { id: 'combos', label: t('Combos'), icon: Gift, show: combos.length > 0 },
-    { id: 'keys', label: t('Quick keys'), icon: Zap, show: keys.keys.length > 0 },
-    ...(api.config.extraView ? [{ id: 'extra' as const, label: t(api.config.extraView.label), icon: api.config.extraView.icon, show: true }] : []),
+  const total = counts.all;
+  const tabs: Array<{ value: View_; label: string }> = [
+    { value: 'products', label: total ? `${t('Products')} ${total}` : t('Products') },
+    ...(combos.length ? [{ value: 'combos' as const, label: `${t('Combos')} ${combos.length}` }] : []),
+    ...(keys.keys.length ? [{ value: 'keys' as const, label: `${t('Quick')} ${keys.keys.length}` }] : []),
+    ...(api.config.extraView ? [{ value: 'extra' as const, label: t(api.config.extraView.label) }] : []),
   ];
 
   const shelf = (api.config.useShelf ?? noShelf)();
@@ -144,57 +154,54 @@ function Counter() {
     if (!api.config.hideProduct && !picked.length) return rows;
     return rows.filter((p) => !api.config.hideProduct?.(p) && picked.every((f) => f.match(p, shelfPick[f.key])));
   };
+  const aksar = view === 'products' && !query && parts.recentItems ? (shelfRows(recent.data) ?? []) : [];
 
   const firstSync = !sync.ready && !(catalog.data?.length);
-  const header = (
-    <View>
-      <ScreenHeader
-        title={t('POS')}
-        onBack={null}
-        compact
-        actions={
-          <>
-            <SyncChip />
-            <IconButton icon={PauseCircle} label={t('Held bills')} badge={held.data?.length || undefined} onPress={() => openSheet('held')} />
-            <IconButton icon={MoreHorizontal} label={t('More')} onPress={() => openSheet('more')} />
-          </>
-        }
-      />
-      <View style={{ paddingHorizontal: th.space(3), gap: th.space(2), paddingBottom: th.space(2) }}>
-        <SearchBar value={search} onChangeText={setSearch} placeholder={t(api.config.searchHint ?? 'Search or scan')} onScan={() => openSheet('scanner')} onSubmit={() => void submit()} />
+  const finder = (
+    <View style={{ paddingHorizontal: th.space(3), paddingTop: th.space(2), gap: th.space(2), paddingBottom: th.space(2) }}>
+      <Row gap={2}>
+        <View style={{ flex: 1 }}>
+          <SearchBar value={search} onChangeText={setSearch} placeholder={t(api.config.searchHint ?? 'Search or scan')} onSubmit={() => void submit()} />
+        </View>
+        <PressableScale onPress={() => openSheet('scanner')} haptic="tap" accessibilityLabel={t('Scan barcode')}
+          style={{ width: 48, height: 48, borderRadius: th.radius('lg'), alignItems: 'center', justifyContent: 'center', backgroundColor: th.colors.text }}>
+          <Icon icon={Camera} size={20} color={th.colors.canvas} />
+        </PressableScale>
+        {sync.state !== 'online' && <SyncChip />}
+      </Row>
+      {tabs.length > 1 && <Segmented size="sm" options={tabs} value={view} onChange={(v) => setView(v)} />}
+      {view === 'products' && parts.showCategories && categories.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: th.space(2) }}>
-          {tabs.filter((x) => x.show).map((x) => (
-            <Chip key={x.id} label={x.label} icon={x.icon} selected={view === x.id} onPress={() => setView(x.id)} />
-          ))}
-          {view === 'products' && parts.showCategories && categories.length > 0 && <View style={{ width: 1, backgroundColor: th.colors.border, marginVertical: 6 }} />}
-          {view === 'products' && parts.showCategories && categories.map((c) => (
-            <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(categoryId === c.id ? null : c.id)} />
+          <Chip label={t('All')} icon={LayoutGrid} count={total || undefined} selected={!categoryId} onPress={() => setCategoryId(null)} />
+          {categories.filter((c) => counts.by[c.id] || categoryId === c.id).map((c) => (
+            <Chip key={c.id} label={c.name} count={counts.by[c.id]} selected={categoryId === c.id} onPress={() => setCategoryId(categoryId === c.id ? null : c.id)} />
           ))}
         </ScrollView>
-        {view === 'products' && shelfFilters.length > 0 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: th.space(2), alignItems: 'center' }}>
-            {shelfFilters.map((f) => (
-              <View key={f.key} style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2) }}>
-                {!!f.label && <Text size="xs" tone="muted">{f.label}</Text>}
-                {f.options.map((o) => (
-                  <Chip key={o.value} label={o.label} selected={shelfPick[f.key] === o.value}
-                    onPress={() => setShelfPick((cur) => ({ ...cur, [f.key]: cur[f.key] === o.value ? '' : o.value }))} />
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-        )}
-        {firstSync && sync.progress && (
-          <View style={{ gap: 4 }}>
-            <Text size="xs" tone="muted">{t('Getting your products ready on this phone…')}</Text>
-            <ProgressBar value={sync.progress.total ? sync.progress.done / sync.progress.total : 0} />
-          </View>
-        )}
-      </View>
+      )}
+      {view === 'products' && shelfFilters.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: th.space(2), alignItems: 'center' }}>
+          {shelfFilters.map((f) => (
+            <View key={f.key} style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2) }}>
+              {!!f.label && <Text size="xs" tone="muted">{f.label}</Text>}
+              {f.options.map((o) => (
+                <Chip key={o.value} label={o.label} selected={shelfPick[f.key] === o.value}
+                  onPress={() => setShelfPick((cur) => ({ ...cur, [f.key]: cur[f.key] === o.value ? '' : o.value }))} />
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      {aksar.length > 0 && <Aksar items={aksar} onPress={tap} />}
+      {firstSync && sync.progress && (
+        <View style={{ gap: 4 }}>
+          <Text size="xs" tone="muted">{t('Getting your products ready on this phone…')}</Text>
+          <ProgressBar value={sync.progress.total ? sync.progress.done / sync.progress.total : 0} />
+        </View>
+      )}
     </View>
   );
 
-  const barSpace = isTablet ? 0 : tabSpace + 76;
+  const barSpace = isTablet ? 0 : tabSpace + BAR_HEIGHT;
   const Extra = api.config.extraView?.Component;
   const body = view === 'extra' && Extra ? (
     <Extra padBottom={barSpace} />
@@ -212,6 +219,7 @@ function Counter() {
       showImages={parts.showImages}
       subline={shelf.subline}
       onPress={tap}
+      onMinus={minus}
       query={view === 'products' ? query : undefined}
       padBottom={barSpace}
     />
@@ -221,18 +229,18 @@ function Counter() {
     <View style={{ flex: 1, backgroundColor: th.colors.canvas, paddingTop: insets.top }}>
       {isTablet ? (
         <View style={{ flex: 1, flexDirection: 'row' }}>
-          <View style={{ flex: 1 }}>{header}{body}</View>
-          <View style={{ width: Math.min(440, Math.max(360, width * 0.38)), borderStartWidth: 1, borderStartColor: th.colors.border, backgroundColor: th.colors.surface, paddingTop: th.space(3) }}>
-            <CartPanel onPay={() => openCheckoutSheet('full')} onCash={() => void instantCash()} />
+          <View style={{ flex: 1 }}>{finder}{body}</View>
+          <View style={{ width: Math.min(460, Math.max(380, width * 0.4)), borderStartWidth: 1, borderStartColor: th.colors.border, backgroundColor: th.colors.surface, paddingTop: th.space(3) }}>
+            <CartPanel heldCount={heldCount} onCash={() => void instantCash()} />
           </View>
         </View>
       ) : (
         <>
-          {header}
+          {finder}
           {body}
-          <CartBar bottom={tabSpace} onCash={() => void instantCash()} />
-          <Sheet open={cartOpen} onClose={closeSheet} height={0.9} scrollable={false} title={t('Bill')}>
-            <CartPanel onPay={() => openCheckoutSheet('full')} onCash={() => { closeSheet(); void instantCash(); }} onHeld={closeSheet} />
+          <BillBar bottom={tabSpace} heldCount={heldCount} />
+          <Sheet open={cartOpen} onClose={closeAllSheets} height={0.96} scrollable={false} hideClose>
+            <CartPanel heldCount={heldCount} onClose={closeAllSheets} onCash={() => { closeAllSheets(); void instantCash(); }} onHeld={closeAllSheets} />
           </Sheet>
         </>
       )}
@@ -241,6 +249,7 @@ function Counter() {
       <CustomerSheet />
       <DiscountSheet />
       <ChargesSheet />
+      <NoteSheet />
       <CheckoutSheet />
       <HeldSheet />
       <MoreSheet />
@@ -260,35 +269,80 @@ function useLastTick() {
   return tick;
 }
 
-/** Phone: the bill as a bar above the tabs; tap opens it, Cash sells in one tap. */
-function CartBar({ bottom, onCash }: { bottom: number; onCash: () => void }) {
+/** Active products per category from the phone's database (refreshed with each sync). */
+function useCategoryCounts(ready: boolean) {
+  const q = useQuery({
+    queryKey: ['offline', 'pos', 'category-counts', ready],
+    queryFn: () => offline.products.countByCategory(),
+    networkMode: 'always',
+    staleTime: 60_000,
+  });
+  return useMemo(() => {
+    const by = q.data ?? {};
+    return { by, all: Object.values(by).reduce((s, n) => s + n, 0) };
+  }, [q.data]);
+}
+
+/** Height the phone's "View bill" bar takes above the tab bar. */
+const BAR_HEIGHT = 72;
+
+/**
+ * Phone: one green bar above the tabs, like the web: "View bill" with the
+ * item count and the total; opens the full bill. Quiet when the bill is
+ * empty (still opens it for held bills and the customer).
+ */
+function BillBar({ bottom, heldCount }: { bottom: number; heldCount: number }) {
   const th = useTheme();
-  const { count, qty, total } = useCartSummary();
+  const { count, total } = useCartSummary();
   const pulse = usePosUi((s) => s.pulse);
   const scale = useSharedValue(1);
-  useEffect(() => { if (pulse && th.motion) scale.value = withSequence(withSpring(1.04, { damping: 8, stiffness: 400 }), withSpring(1)); }, [pulse]); // eslint-disable-line react-hooks/exhaustive-deps
+  const motion = th.motion;
+  useEffect(() => { if (pulse && motion) scale.value = withSequence(withSpring(1.03, { damping: 8, stiffness: 400 }), withSpring(1)); }, [pulse]); // eslint-disable-line react-hooks/exhaustive-deps
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const empty = count === 0;
+  const fg = empty ? th.colors.textMuted : th.colors.brand.onSolid;
   return (
     <Animated.View style={[{ position: 'absolute', start: th.space(3), end: th.space(3), bottom: bottom + th.space(2) }, style]}>
-      <Row gap={2} style={{ padding: th.space(1.5), borderRadius: th.radius('2xl'), backgroundColor: th.colors.surfaceRaised, borderWidth: 1, borderColor: th.colors.border,
-        shadowColor: th.colors.shadow, shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 10 }}>
-        <PressableScale onPress={() => openSheet('cart')} disabled={empty} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: th.space(2.5), paddingHorizontal: th.space(2), minHeight: 52 }}
-          accessibilityLabel={t('Open the bill')}>
-          <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: empty ? th.colors.surfaceMuted : withAlpha(th.colors.brand.solid, 0.14) }}>
-            <Icon icon={Package} size={20} color={empty ? th.colors.textSubtle : th.colors.brand.text} />
-            {!empty && <View style={{ position: 'absolute', top: -4, end: -6 }}><Badge tone="brand" solid size="sm">{count}</Badge></View>}
+      <PressableScale onPress={() => openSheet('cart')} haptic="tap" accessibilityLabel={t('View bill')} scaleTo={0.98}
+        style={{ height: 56, borderRadius: th.radius('xl'), paddingHorizontal: th.space(4), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+          backgroundColor: empty ? th.colors.surfaceRaised : th.colors.brand.solid, borderWidth: empty ? 1 : 0, borderColor: th.colors.border,
+          shadowColor: th.colors.shadow, shadowOpacity: empty ? 0.08 : 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: empty ? 3 : 10 }}>
+        <Row gap={3}>
+          <View>
+            <Icon icon={ShoppingCart} size={20} color={fg} />
+            {!empty && (
+              <View style={{ position: 'absolute', top: -7, end: -9, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: th.colors.brand.onSolid }}>
+                <Text size="2xs" weight="bold" color={th.colors.brand.solid} ltr>{count}</Text>
+              </View>
+            )}
           </View>
-          <View style={{ flex: 1 }}>
-            <Text size="xs" tone="muted" numberOfLines={1}>{empty ? t('No items yet') : t('{{count}} items · qty {{q}}', { count: count, q: Number(qty.toFixed(2)) })}</Text>
-            <Amount value={total} size="xl" weight="bold" />
-          </View>
-        </PressableScale>
-        <IconButton icon={ScanBarcode} label={t('Scan')} variant="secondary" size="lg" onPress={() => openSheet('scanner')} />
-        <Button size="lg" variant="success" disabled={empty} onPress={onCash}>{t('Cash')}</Button>
-        <Button size="lg" disabled={empty} onPress={() => openCheckoutSheet('full')}>{t('Pay')}</Button>
-      </Row>
+          <Text size="base" weight="semibold" color={fg}>
+            {empty ? (heldCount ? t('{{count}} held bills', { count: heldCount }) : t('Bill is empty')) : t('View bill')}
+          </Text>
+        </Row>
+        <Row gap={2}>
+          {!empty && <Amount value={total} size="lg" weight="bold" color={fg} />}
+          <Icon icon={ArrowRight} size={20} color={fg} flip />
+        </Row>
+      </PressableScale>
     </Animated.View>
+  );
+}
+
+/** "Most sold" in one line, like the web's Aksar row. */
+function Aksar({ items, onPress }: { items: ProductRow[]; onPress: (p: ProductRow) => void }) {
+  const th = useTheme();
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: th.space(1.5), alignItems: 'center' }}>
+      <Text size="2xs" weight="semibold" tone="subtle" uppercase>{t('Most sold')}</Text>
+      {items.slice(0, 10).map((p) => (
+        <PressableScale key={p.id} onPress={() => onPress(p)} haptic="tap" accessibilityLabel={`${p.name}, ${p.price}`}
+          style={{ height: 34, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: th.space(2.5), borderRadius: th.radius('md'), backgroundColor: th.colors.surface, borderWidth: 1, borderColor: th.colors.border }}>
+          <Text size="xs" weight="medium" numberOfLines={1} style={{ maxWidth: 130 }}>{p.name}</Text>
+          <Amount value={p.price} size="xs" color={th.colors.textMuted} decimals={0} />
+        </PressableScale>
+      ))}
+    </ScrollView>
   );
 }
 
