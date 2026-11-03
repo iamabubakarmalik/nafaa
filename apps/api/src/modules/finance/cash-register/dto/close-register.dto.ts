@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsObject, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsISO8601, IsNumber, IsObject, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import type { Denominations } from './denominations';
 
 export class CloseRegisterDto {
@@ -25,4 +25,10 @@ export class CloseRegisterDto {
   @IsOptional()
   @IsObject()
   denominations?: Denominations;
+
+  /** When the till was counted and closed on a device that was offline (client-time.helper rules). */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsISO8601()
+  clientClosedAt?: string;
 }

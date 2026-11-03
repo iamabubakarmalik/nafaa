@@ -52,7 +52,32 @@ export interface Appearance {
   heroPattern: HeroPattern;
   heroSize: HeroSize;
   heroStats: HeroStatsLayout;
+  /*
+   * Mobile app only (the web does not read them; set in Settings → Appearance
+   * → Mobile app). Optional so older layers stay valid; the API validates them.
+   */
+  mobileTabBar?: MobileTabBar;
+  mobileHeader?: 'compact' | 'standard' | 'large';
+  mobileStartScreen?: 'home' | 'pos';
+  mobilePosGrid?: 'list' | 'small' | 'medium' | 'large';
+  mobileHomeWidgets?: MobileHomeWidget[];
+  mobileAnimations?: boolean;
+  mobileHaptics?: boolean;
 }
+
+export type MobileTabBar = 'labels' | 'icons' | 'floating';
+
+/** Home screen blocks in the mobile app (same ids as the API). */
+export const MOBILE_HOME_WIDGETS = [
+  'sales-today', 'quick-actions', 'cash-register', 'khata-due', 'low-stock', 'recent-sales', 'top-products', 'online-orders', 'ai-insights',
+  'sales-trend', 'peak-hours', 'payment-mix', 'profit-loss', 'money-map', 'category-mix', 'staff-sales', 'weekday', 'top-customers', 'monthly', 'expenses-month', 'purchases', 'slow-movers', 'day-report', 'kpis',
+] as const;
+export type MobileHomeWidget = (typeof MOBILE_HOME_WIDGETS)[number];
+/** Blocks the app can show today, in its default order. */
+export const MOBILE_DEFAULT_HOME_WIDGETS: MobileHomeWidget[] = ['sales-today', 'quick-actions', 'cash-register', 'khata-due', 'low-stock', 'recent-sales', 'top-products'];
+
+/** Every block the app can draw: the default ones, then the optional dashboard widgets. */
+export const MOBILE_AVAILABLE_HOME_WIDGETS: MobileHomeWidget[] = [...MOBILE_DEFAULT_HOME_WIDGETS, 'sales-trend', 'peak-hours', 'payment-mix', 'profit-loss', 'money-map', 'category-mix', 'staff-sales', 'weekday', 'top-customers', 'monthly', 'expenses-month', 'purchases', 'slow-movers', 'day-report', 'kpis'];
 
 export type AppearanceLayer = Partial<Appearance>;
 

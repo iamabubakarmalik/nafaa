@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { adminAppearanceApi, type PlatformAppearance } from '@/api/admin-appearance.api';
 import { Button } from '@/components/ui/Button';
 
-type Field = Exclude<keyof PlatformAppearance, 'brandColor' | 'reduceMotion'>;
+type Field = Exclude<keyof PlatformAppearance, 'brandColor' | 'reduceMotion' | `mobile${string}`>;
 
 const OPTIONS: { key: Field; label: string; help: string; values: [string, string][] }[] = [
   { key: 'mode', label: 'Mode', help: 'Light, dark, or follow each device', values: [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']] },

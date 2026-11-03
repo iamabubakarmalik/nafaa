@@ -23,13 +23,14 @@ export class FurnitureDeliveriesController {
   list(@GetUser() user: AuthenticatedUser,
     @Query('status') status?: string,
     @Query('customerId') customerId?: string,
+    @Query('saleId') saleId?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.service.list(user, { status, customerId, from, to, search, page: page ? Number(page) : undefined, limit: limit ? Number(limit) : undefined });
+    return this.service.list(user, { status, customerId, saleId, from, to, search, page: page ? Number(page) : undefined, limit: limit ? Number(limit) : undefined });
   }
 
   @Get('summary') @RequirePermissions(PERMISSIONS.SERVICE_JOBS_VIEW)

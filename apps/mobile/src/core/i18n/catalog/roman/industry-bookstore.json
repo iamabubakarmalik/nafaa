@@ -1,0 +1,26 @@
+{
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
+  "{{name}} — badlein": "{{name}} — Edit",
+  "{{title}} — badlein": "{{title}} — Edit",
+  "Adad": "Quantity",
+  "Band karein": "Close",
+  "Chunein": "Select",
+  "Hatayein": "Delete",
+  "Kitab ki pusht wala ISBN barcode scan karein — wohi kitab khul jati hai. Naye ISBN par nayi kitab banayein.": "Kitab ke peeche wala ISBN barcode scan karein — wohi kitab khul jati hai. Naye ISBN par nayi kitab banayein.",
+  "Mulk": "Country",
+  "Naya": "New",
+  "Naya author": "New author",
+  "Naya publisher": "New publisher",
+  "Naya school": "New school",
+  "Nayi": "New",
+  "Nayi cheez": "New item",
+  "Nayi school list": "New school list",
+  "Shart": "Terms",
+  "Tafseel": "Details",
+  "Tareekh": "Date",
+  "Wapas": "Back",
+  "Zubaan": "Language"
+}

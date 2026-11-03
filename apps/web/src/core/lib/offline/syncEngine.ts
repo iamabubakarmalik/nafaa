@@ -348,12 +348,16 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
         receivedByPhone: sale.receivedByPhone,
         receivedByCnic: sale.receivedByCnic,
         items: sale.items,
+        // When the bill was rung up, so reports date it then and not at sync.
+        clientSoldAt: new Date(sale.createdAt).toISOString(),
         ...(sale.discountCode && { discountCode: sale.discountCode }),
         ...(sale.loyaltyPointsToUse && { loyaltyPointsToUse: sale.loyaltyPointsToUse }),
       };
+      // The server replays a stored answer for a repeated key, so a retry after
+      // a lost response never creates the same bill twice.
       let res;
       try {
-        res = await apiClient.post('/sales', body);
+        res = await apiClient.post('/sales', body, { headers: { 'Idempotency-Key': sale.id } });
       } catch (err: any) {
         // A code or points accepted offline may be refused now (limit reached,
         // points spent elsewhere). The customer already paid the counter total,
@@ -361,7 +365,11 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
         const usedPerks = sale.discountCode || sale.loyaltyPointsToUse;
         if (!usedPerks || err?.response?.status !== 400) throw err;
         const { discountCode: _c, loyaltyPointsToUse: _p, ...plain } = body as typeof body & { discountCode?: string; loyaltyPointsToUse?: number };
-        res = await apiClient.post('/sales', { ...plain, discount: (sale.discount || 0) + (sale.codeDiscount || 0) + (sale.loyaltyDiscount || 0) });
+        res = await apiClient.post(
+          '/sales',
+          { ...plain, discount: (sale.discount || 0) + (sale.codeDiscount || 0) + (sale.loyaltyDiscount || 0) },
+          { headers: { 'Idempotency-Key': `${sale.id}-plain` } },
+        );
       }
 
       const serverSale = res.data?.data;

@@ -47,6 +47,8 @@ export class SubscriptionGuard implements CanActivate {
     '/api/stripe',
     '/api/uploads',
     '/api/notifications',
+    // Mobile app check-in and remote settings (update prompts must reach expired accounts too).
+    '/api/mobile',
     '/api/notification-prefs',
     '/api/feature-gating',
     '/api/plan-usage',

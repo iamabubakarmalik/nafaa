@@ -4,9 +4,27 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../../core/queue/queue.service';
 import { SendPushDto } from './dto/send-push.dto';
 
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+
+/** One message for the staff mobile app (Expo push token). */
+export interface ExpoPushMessage {
+  to: string;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+  channelId?: string;
+}
+
+export interface ExpoPushResult {
+  ok: boolean;
+  /** Expo error code, e.g. DeviceNotRegistered. */
+  error?: string;
+}
+
 /**
  * PushService — dispatches push notifications through queue.
  * Actual FCM/APN integration happens in PushProcessor.
+ * Staff app (Expo) messages go through sendExpo.
  */
 @Injectable()
 export class PushService {
@@ -95,6 +113,50 @@ export class PushService {
     }
 
     return this.send({ ...dto, customerIds });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // EXPO (staff mobile app)
+  // ═══════════════════════════════════════════════════════════
+
+  /** Whether this server may deliver to real devices. Off by default outside production. */
+  expoDeliveryEnabled(): boolean {
+    const flag = this.config.get<string>('MOBILE_PUSH_LIVE');
+    if (flag === 'true') return true;
+    if (flag === 'false') return false;
+    return this.config.get<string>('NODE_ENV') === 'production';
+  }
+
+  /** Sends up to 100 messages in one request and returns one result per message, in order. */
+  async sendExpo(messages: ExpoPushMessage[]): Promise<ExpoPushResult[]> {
+    if (messages.length === 0) return [];
+    if (messages.length > 100) throw new Error('sendExpo accepts at most 100 messages per call');
+    const accessToken = this.config.get<string>('EXPO_ACCESS_TOKEN');
+    try {
+      const res = await fetch(EXPO_PUSH_URL, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify(messages.map((m) => ({
+          to: m.to, title: m.title, body: m.body, data: m.data ?? {},
+          sound: 'default', priority: 'high', channelId: m.channelId ?? 'default',
+        }))),
+      });
+      const json = (await res.json().catch(() => null)) as { data?: Array<{ status: string; details?: { error?: string } }> } | null;
+      if (!res.ok || !Array.isArray(json?.data)) {
+        return messages.map(() => ({ ok: false, error: `HTTP_${res.status}` }));
+      }
+      return messages.map((_, i) => {
+        const ticket = json!.data![i];
+        return ticket?.status === 'ok' ? { ok: true } : { ok: false, error: ticket?.details?.error ?? 'Unknown' };
+      });
+    } catch (err: any) {
+      this.logger.warn(`Expo push request failed: ${err?.message}`);
+      return messages.map(() => ({ ok: false, error: 'NetworkError' }));
+    }
   }
 
   // ═══════════════════════════════════════════════════════════

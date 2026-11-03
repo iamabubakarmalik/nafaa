@@ -1,0 +1,681 @@
+/**
+ * Permission keys, role defaults, labels and groups.
+ * Copied from apps/web/src/core/lib/permissions.ts (which mirrors the API).
+ * Change the API first, then the web, then copy here.
+ */
+
+import { t } from '@/core/i18n';
+export const PERMISSIONS = {
+  POS_USE: 'pos.use',
+  POS_DISCOUNT_OVERRIDE: 'pos.discount_override',
+  POS_PRICE_TIER: 'pos.price_tier',
+  SALES_VIEW: 'sales.view',
+  SALES_VOID: 'sales.void',
+  RETURNS_VIEW: 'returns.view',
+  RETURNS_CREATE: 'returns.create',
+  CUSTOMERS_VIEW: 'customers.view',
+  CUSTOMERS_EDIT: 'customers.edit',
+  KHATA_VIEW: 'khata.view',
+  KHATA_MANAGE: 'khata.manage',
+  LOYALTY_VIEW: 'loyalty.view',
+  DISCOUNTS_VIEW: 'discounts.view',
+  DISCOUNTS_MANAGE: 'discounts.manage',
+  CASH_REGISTER_VIEW: 'cash_register.view',
+  CASH_REGISTER_OPEN: 'cash_register.open',
+  CASH_REGISTER_CLOSE: 'cash_register.close',
+  PRODUCTS_VIEW: 'products.view',
+  PRODUCTS_CREATE: 'products.create',
+  PRODUCTS_EDIT: 'products.edit',
+  PRODUCTS_DELETE: 'products.delete',
+  BRANDS_VIEW: 'brands.view',
+  TAGS_VIEW: 'tags.view',
+  CATEGORIES_VIEW: 'categories.view',
+  LOW_STOCK_VIEW: 'low_stock.view',
+  BARCODE_LABELS_VIEW: 'barcode_labels.view',
+  STOCK_MOVEMENTS_VIEW: 'stock_movements.view',
+  STOCK_ADJUSTMENTS_MANAGE: 'stock_adjustments.manage',
+  /** Change stock as a data correction, with no profit effect. */
+  STOCK_ADJUSTMENTS_CORRECT: 'stock_adjustments.correct',
+  STOCK_TRANSFERS_MANAGE: 'stock_transfers.manage',
+  MANUFACTURING_VIEW: 'manufacturing.view',
+  MANUFACTURING_MANAGE: 'manufacturing.manage',
+  MANUFACTURING_PRODUCE: 'manufacturing.produce',
+  SUPPLIERS_VIEW: 'suppliers.view',
+  SUPPLIERS_EDIT: 'suppliers.edit',
+  PURCHASES_VIEW: 'purchases.view',
+  PURCHASES_CREATE: 'purchases.create',
+  DASHBOARD_VIEW: 'dashboard.view',
+  COST_VIEW: 'cost.view',
+  REPORTS_VIEW: 'reports.view',
+  PROFIT_REPORT_VIEW: 'profit_report.view',
+  /** Ask Nafaa AI about the shop. Each answer still needs the permission of the data it reads. */
+  AI_USE: 'ai.use',
+  STAFF_VIEW: 'staff.view',
+  STAFF_MANAGE: 'staff.manage',
+  COMMISSION_OWN: 'commission.own',
+  COMMISSION_VIEW: 'commission.view',
+  COMMISSION_MANAGE: 'commission.manage',
+  EXPENSES_VIEW: 'expenses.view',
+  EXPENSES_CREATE: 'expenses.create',
+  /** Other income (incentives, scheme claims, commission, rent). */
+  INCOME_VIEW: 'income.view',
+  INCOME_MANAGE: 'income.manage',
+  EXPORTS_VIEW: 'exports.view',
+  BACKUP_MANAGE: 'backup.manage',
+  TEAM_VIEW: 'team.view',
+  TEAM_MANAGE: 'team.manage',
+  SHOPS_VIEW: 'shops.view',
+  SHOPS_MANAGE: 'shops.manage',
+  ACTIVITY_VIEW: 'activity.view',
+  SETTINGS_VIEW: 'settings.view',
+  SETTINGS_EDIT: 'settings.edit',
+  SETTINGS_MANAGE: 'settings.manage',
+  BILLING_VIEW: 'billing.view',
+  BILLING_MANAGE: 'billing.manage',
+  PLANS_VIEW: 'plans.view',
+  PLAN_USAGE_VIEW: 'plan_usage.view',
+  REFERRALS_VIEW: 'referrals.view',
+
+  // ── Industry ke apne safhe ──
+  BAKERY_ORDERS_VIEW: 'bakery.orders.view',
+  BAKERY_ORDERS_MANAGE: 'bakery.orders.manage',
+  BAKERY_PRODUCTION_VIEW: 'bakery.production.view',
+  BAKERY_PRODUCTION_MANAGE: 'bakery.production.manage',
+  BAKERY_INGREDIENTS_VIEW: 'bakery.ingredients.view',
+  BAKERY_INGREDIENTS_MANAGE: 'bakery.ingredients.manage',
+  AGRI_FARMERS_VIEW: 'agri.farmers.view',
+  AGRI_FARMERS_MANAGE: 'agri.farmers.manage',
+  AGRI_ORDERS_VIEW: 'agri.orders.view',
+  AGRI_ORDERS_MANAGE: 'agri.orders.manage',
+  AGRI_ADVISORY_VIEW: 'agri.advisory.view',
+  AGRI_ADVISORY_MANAGE: 'agri.advisory.manage',
+  ELECTRONICS_SERIALS_VIEW: 'electronics.serials.view',
+  ELECTRONICS_SERIALS_MANAGE: 'electronics.serials.manage',
+  ELECTRONICS_WARRANTY_VIEW: 'electronics.warranty.view',
+  ELECTRONICS_WARRANTY_MANAGE: 'electronics.warranty.manage',
+  MOBILE_REPAIRS_VIEW: 'mobile.repairs.view',
+  MOBILE_REPAIRS_MANAGE: 'mobile.repairs.manage',
+  MOBILE_IMEI_VIEW: 'mobile.imei.view',
+  MOBILE_IMEI_MANAGE: 'mobile.imei.manage',
+  RESTAURANT_ORDERS_VIEW: 'restaurant.orders.view',
+  RESTAURANT_ORDERS_MANAGE: 'restaurant.orders.manage',
+  RESTAURANT_KITCHEN_VIEW: 'restaurant.kitchen.view',
+  RESTAURANT_KITCHEN_MANAGE: 'restaurant.kitchen.manage',
+  RESTAURANT_MENU_VIEW: 'restaurant.menu.view',
+  RESTAURANT_MENU_MANAGE: 'restaurant.menu.manage',
+  SERVICE_JOBS_VIEW: 'service.jobs.view',
+  SERVICE_JOBS_MANAGE: 'service.jobs.manage',
+  SERVICE_BOOKINGS_VIEW: 'service.bookings.view',
+  SERVICE_BOOKINGS_MANAGE: 'service.bookings.manage',
+  CLINIC_RECORDS_VIEW: 'clinic.records.view',
+  CLINIC_RECORDS_MANAGE: 'clinic.records.manage',
+  ONLINE_ORDERS_VIEW: 'online_orders.view',
+  ONLINE_ORDERS_MANAGE: 'online_orders.manage',
+  /** Online products: links, channel prices, stock sent, sync errors. */
+  ONLINE_PRODUCTS_VIEW: 'online_products.view',
+  /** Online products: link/unlink, create in Nafaa, channel prices, stock buffer, sync now. */
+  ONLINE_PRODUCTS_MANAGE: 'online_products.manage',
+  CATALOG_VIEW: 'catalog.view',
+  CATALOG_MANAGE: 'catalog.manage',
+  /** Ads spend log and ROAS report. Profit columns also need cost.view and profit_report.view. */
+  ADS_VIEW: 'ads.view',
+  /** Ads spend: add, edit, delete, import. Writing it to expenses also needs expenses.create. */
+  ADS_MANAGE: 'ads.manage',
+  // Distribution (wholesale) — mirror of the API keys
+  DISTRIBUTION_ORDERS_VIEW: 'distribution.orders.view',
+  DISTRIBUTION_ORDERS_BOOK: 'distribution.orders.book',
+  DISTRIBUTION_ORDERS_MANAGE: 'distribution.orders.manage',
+  DISTRIBUTION_PRICE_OVERRIDE: 'distribution.price_override',
+  DISTRIBUTION_LOADSHEETS_MANAGE: 'distribution.loadsheets.manage',
+  DISTRIBUTION_SETTLE: 'distribution.settle',
+  DISTRIBUTION_ROUTES_MANAGE: 'distribution.routes.manage',
+  DISTRIBUTION_PRICELISTS_VIEW: 'distribution.pricelists.view',
+  DISTRIBUTION_PRICELISTS_MANAGE: 'distribution.pricelists.manage',
+  DISTRIBUTION_SCHEMES_MANAGE: 'distribution.schemes.manage',
+  DISTRIBUTION_COLLECTIONS_COLLECT: 'distribution.collections.collect',
+  DISTRIBUTION_COLLECTIONS_VERIFY: 'distribution.collections.verify',
+  DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
+  DISTRIBUTION_VANS_MANAGE: 'distribution.vans.manage',
+  DISTRIBUTION_VANS_SELL: 'distribution.vans.sell',
+  DISTRIBUTION_RETURNS_COLLECT: 'distribution.returns.collect',
+  DISTRIBUTION_RETURNS_APPROVE: 'distribution.returns.approve',
+  DISTRIBUTION_CLAIMS_MANAGE: 'distribution.claims.manage',
+  DISTRIBUTION_TARGETS_MANAGE: 'distribution.targets.manage',
+  DISTRIBUTION_CHEQUES_MANAGE: 'distribution.cheques.manage',
+  TRADE_BUY: 'trade.buy',
+  TRADE_RECEIVE: 'trade.receive',
+  TRADE_SELL: 'trade.sell',
+  TRADE_LINKS_MANAGE: 'trade.links.manage',
+  TRADE_PAYMENTS_MANAGE: 'trade.payments.manage',
+} as const;
+
+export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export const ALL_PERMISSIONS: PermissionKey[] = Object.values(PERMISSIONS);
+
+/* ═════════════════════════════════════════════════════════════
+   ROLE KE DEFAULTS — backend ki naqal
+   ─────────────────────────────────────────────────────────────
+   Ye list backend ke `permissions.constants.ts` se hu-ba-hu copy
+   hai. Pehle dono alag alag badalti thin aur chup chap bhatak gayi
+   thin: frontend cashier ko 14 ijazat dikhata tha, backend us se
+   zyada deta tha. Team ke safhe par ginti ghalat aati thi.
+
+   Badalna ho to BACKEND me badlein, phir yahan copy karein.
+   ═════════════════════════════════════════════════════════════ */
+/**
+ * POS counter chalane ke liye kaun si ijazat lazmi hai.
+ *
+ * `pos.use` sirf safha kholne deti hai. Maal, rate aur category
+ * parhe baghair counter khali rehta hai, aur offline sync bhi ruk
+ * jati hai. Ye list Team ke safhe par tambeeh dikhane ke liye hai —
+ * rok nahi lagati, sirf batati hai ke kya toot jayega.
+ */
+export const POS_REQUIRED_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.PRODUCTS_VIEW,
+  PERMISSIONS.CATEGORIES_VIEW,
+  PERMISSIONS.SHOPS_VIEW,
+  PERMISSIONS.SETTINGS_VIEW,
+];
+
+/** Booker app needs these (mirror of the API's BOOKER_REQUIRED_PERMISSIONS); a warning only. */
+export const BOOKER_REQUIRED_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
+  PERMISSIONS.CUSTOMERS_VIEW,
+  PERMISSIONS.PRODUCTS_VIEW,
+];
+
+export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
+  OWNER: ALL_PERMISSIONS,
+  SUPER_ADMIN: ALL_PERMISSIONS,
+
+  MANAGER: [
+    PERMISSIONS.COST_VIEW,
+    PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
+    // Industry ke apne kaam — manager poori dukaan chalata hai
+    PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
+    PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
+    PERMISSIONS.BAKERY_INGREDIENTS_VIEW, PERMISSIONS.BAKERY_INGREDIENTS_MANAGE,
+    PERMISSIONS.AGRI_FARMERS_VIEW, PERMISSIONS.AGRI_FARMERS_MANAGE,
+    PERMISSIONS.AGRI_ORDERS_VIEW, PERMISSIONS.AGRI_ORDERS_MANAGE,
+    PERMISSIONS.AGRI_ADVISORY_VIEW, PERMISSIONS.AGRI_ADVISORY_MANAGE,
+    PERMISSIONS.ELECTRONICS_SERIALS_VIEW, PERMISSIONS.ELECTRONICS_SERIALS_MANAGE,
+    PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, PERMISSIONS.ELECTRONICS_WARRANTY_MANAGE,
+    PERMISSIONS.MOBILE_REPAIRS_VIEW, PERMISSIONS.MOBILE_REPAIRS_MANAGE,
+    PERMISSIONS.MOBILE_IMEI_VIEW, PERMISSIONS.MOBILE_IMEI_MANAGE,
+    PERMISSIONS.RESTAURANT_ORDERS_VIEW, PERMISSIONS.RESTAURANT_ORDERS_MANAGE,
+    PERMISSIONS.RESTAURANT_KITCHEN_VIEW, PERMISSIONS.RESTAURANT_KITCHEN_MANAGE,
+    PERMISSIONS.RESTAURANT_MENU_VIEW, PERMISSIONS.RESTAURANT_MENU_MANAGE,
+    PERMISSIONS.SERVICE_JOBS_VIEW, PERMISSIONS.SERVICE_JOBS_MANAGE,
+    PERMISSIONS.SERVICE_BOOKINGS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_MANAGE,
+    PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE,
+    PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
+    PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
+    PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
+    PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
+    // Distribution: everything except booking at another price.
+    PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE, PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
+    PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+    PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL, PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
+    PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE, PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
+    // Trade network: everything except linking (credit terms stay with the owner).
+    PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
+    PERMISSIONS.POS_USE,
+    PERMISSIONS.POS_PRICE_TIER,
+    PERMISSIONS.SALES_VIEW,
+    PERMISSIONS.SALES_VOID,
+    PERMISSIONS.RETURNS_VIEW,
+    PERMISSIONS.RETURNS_CREATE,
+    PERMISSIONS.CUSTOMERS_VIEW,
+    PERMISSIONS.CUSTOMERS_EDIT,
+    PERMISSIONS.KHATA_VIEW,
+    PERMISSIONS.KHATA_MANAGE,
+    PERMISSIONS.LOYALTY_VIEW,
+    PERMISSIONS.DISCOUNTS_VIEW,
+    PERMISSIONS.CASH_REGISTER_VIEW,
+    PERMISSIONS.CASH_REGISTER_OPEN,
+    PERMISSIONS.CASH_REGISTER_CLOSE,
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.PRODUCTS_CREATE,
+    PERMISSIONS.PRODUCTS_EDIT,
+    PERMISSIONS.PRODUCTS_DELETE,
+    PERMISSIONS.BRANDS_VIEW,
+    PERMISSIONS.TAGS_VIEW,
+    PERMISSIONS.CATEGORIES_VIEW,
+    PERMISSIONS.LOW_STOCK_VIEW,
+    PERMISSIONS.BARCODE_LABELS_VIEW,
+    PERMISSIONS.STOCK_MOVEMENTS_VIEW,
+    PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE,
+    PERMISSIONS.STOCK_ADJUSTMENTS_CORRECT,
+    PERMISSIONS.STOCK_TRANSFERS_MANAGE,
+    PERMISSIONS.MANUFACTURING_VIEW,
+    PERMISSIONS.MANUFACTURING_MANAGE,
+    PERMISSIONS.MANUFACTURING_PRODUCE,
+    PERMISSIONS.SUPPLIERS_VIEW,
+    PERMISSIONS.PURCHASES_VIEW,
+    PERMISSIONS.PURCHASES_CREATE,
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.PROFIT_REPORT_VIEW,
+    PERMISSIONS.AI_USE,
+    PERMISSIONS.STAFF_VIEW,
+    PERMISSIONS.EXPENSES_VIEW,
+    PERMISSIONS.EXPENSES_CREATE,
+    PERMISSIONS.INCOME_VIEW,
+    PERMISSIONS.INCOME_MANAGE,
+    PERMISSIONS.EXPORTS_VIEW,
+    PERMISSIONS.TEAM_VIEW,
+    PERMISSIONS.SHOPS_VIEW,
+    PERMISSIONS.ACTIVITY_VIEW,
+    PERMISSIONS.SETTINGS_VIEW,
+    PERMISSIONS.BILLING_VIEW,
+    PERMISSIONS.PLANS_VIEW,
+    PERMISSIONS.PLAN_USAGE_VIEW,
+    PERMISSIONS.REFERRALS_VIEW,
+  ],
+
+  CASHIER: [
+    // Apni commission — doosron ki nahi
+    PERMISSIONS.COMMISSION_OWN,
+    // ── POS chalane ke liye lazmi ──
+    // Counter par maal, category aur rate parhe baghair bikri hoti
+    // hi nahi. Ye nishan hata diye jayen to POS khali reh jata hai —
+    // Team ke safhe par is ki tambeeh bhi aati hai.
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.CATEGORIES_VIEW,
+    PERMISSIONS.BRANDS_VIEW,
+    PERMISSIONS.TAGS_VIEW,
+    PERMISSIONS.SHOPS_VIEW,
+    PERMISSIONS.SETTINGS_VIEW,
+
+    // Counter wale ko wohi kaam jo bikri ke liye chahiye — order
+    // lena aur dekhna. Banane/badalne ka kaam manager ka hai.
+    PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
+    PERMISSIONS.AGRI_FARMERS_VIEW,
+    PERMISSIONS.AGRI_ORDERS_VIEW,
+    PERMISSIONS.ELECTRONICS_SERIALS_VIEW,
+    PERMISSIONS.ELECTRONICS_WARRANTY_VIEW,
+    PERMISSIONS.MOBILE_REPAIRS_VIEW,
+    PERMISSIONS.MOBILE_IMEI_VIEW,
+    PERMISSIONS.RESTAURANT_ORDERS_VIEW, PERMISSIONS.RESTAURANT_ORDERS_MANAGE,
+    PERMISSIONS.RESTAURANT_MENU_VIEW,
+    PERMISSIONS.SERVICE_JOBS_VIEW,
+    PERMISSIONS.SERVICE_BOOKINGS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_MANAGE,
+    PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE,
+    PERMISSIONS.ONLINE_ORDERS_VIEW,
+    PERMISSIONS.POS_USE,
+    PERMISSIONS.SALES_VIEW,
+    PERMISSIONS.RETURNS_VIEW,
+    PERMISSIONS.CUSTOMERS_VIEW,
+    PERMISSIONS.CUSTOMERS_EDIT,
+    PERMISSIONS.KHATA_VIEW,
+    PERMISSIONS.LOYALTY_VIEW,
+    PERMISSIONS.DISCOUNTS_VIEW,
+    PERMISSIONS.CASH_REGISTER_VIEW,
+    PERMISSIONS.CASH_REGISTER_OPEN,
+    PERMISSIONS.CASH_REGISTER_CLOSE,
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.LOW_STOCK_VIEW,
+    PERMISSIONS.DASHBOARD_VIEW,
+  ],
+
+  STAFF: [
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.LOW_STOCK_VIEW,
+    PERMISSIONS.STOCK_MOVEMENTS_VIEW,
+    PERMISSIONS.SUPPLIERS_VIEW,
+    PERMISSIONS.CUSTOMERS_VIEW,
+  ],
+};
+
+// ═══ HELPERS ═══
+
+export function hasPermission(
+  userRole: string | undefined,
+  userPermissions: string[] | undefined,
+  required: PermissionKey | string,
+): boolean {
+  if (!userRole) return false;
+  if (userRole === 'OWNER' || userRole === 'SUPER_ADMIN') return true;
+  return (userPermissions ?? []).includes(required as string);
+}
+
+/** Check if user has ANY of the given permissions */
+export function hasAnyPermission(
+  userRole: string | undefined,
+  userPermissions: string[] | undefined,
+  required: Array<PermissionKey | string>,
+): boolean {
+  if (!userRole) return false;
+  if (userRole === 'OWNER' || userRole === 'SUPER_ADMIN') return true;
+  const set = new Set(userPermissions ?? []);
+  return required.some((p) => set.has(p as string));
+}
+
+/** Check if user has ALL of the given permissions */
+export function hasAllPermissions(
+  userRole: string | undefined,
+  userPermissions: string[] | undefined,
+  required: Array<PermissionKey | string>,
+): boolean {
+  if (!userRole) return false;
+  if (userRole === 'OWNER' || userRole === 'SUPER_ADMIN') return true;
+  const set = new Set(userPermissions ?? []);
+  return required.every((p) => set.has(p as string));
+}
+
+export const userHasPermission = hasPermission;
+
+export function isOwner(userRole: string | undefined): boolean {
+  return userRole === 'OWNER' || userRole === 'SUPER_ADMIN';
+}
+
+export function isShopLocked(userRole: string | undefined): boolean {
+  return !isOwner(userRole);
+}
+
+export const OWNER_ONLY_PATHS = new Set<string>([
+  '/shops', '/shops/overview', '/team', '/staff/salary/new',
+  '/billing', '/plans', '/referrals', '/backup', '/settings',
+  '/activity-log', '/fbr', '/fbr/invoices', '/fbr/reports', '/fbr/analytics',
+]);
+
+export function isOwnerOnlyPath(path: string): boolean {
+  return OWNER_ONLY_PATHS.has(path);
+}
+
+// ═══ LABELS ═══
+
+export const PERMISSION_LABELS: Record<string, string> = {
+  'pos.use': t('POS Counter Use'), 'pos.discount_override': t('Discount above limit (no PIN)'), 'pos.price_tier': t('Change price tier (Wholesale / Credit)'), 'sales.view': t('View Sales'), 'sales.void': t('Void Sales'),
+  'returns.view': t('View Returns'), 'returns.create': t('Create Returns'),
+  'customers.view': t('View Customers'), 'customers.edit': t('Edit Customers'),
+  'khata.view': t('View Udhaar/Khata'), 'khata.manage': t('Manage Udhaar/Khata'),
+  'loyalty.view': t('View Loyalty'), 'discounts.view': t('View Discounts'), 'discounts.manage': t('Manage Discounts'),
+  'cash_register.view': t('View Cash Register'), 'cash_register.open': t('Open Cash Register'), 'cash_register.close': t('Close Cash Register'),
+  'products.view': t('View Products'), 'products.create': t('Create Products'), 'products.edit': t('Edit Products'), 'products.delete': t('Delete Products'),
+  'brands.view': t('View Brands'), 'tags.view': t('View Tags'), 'categories.view': t('View Categories'),
+  'low_stock.view': t('View Low Stock'), 'barcode_labels.view': t('Barcode Labels'),
+  'stock_movements.view': t('View Stock Movements'), 'stock_adjustments.manage': t('Manage Adjustments'), 'stock_adjustments.correct': t('Galti theek karna (stock, bina profit asar)'), 'stock_transfers.manage': t('Manage Transfers'),
+  'manufacturing.view': t('Production dekhein'), 'manufacturing.manage': t('Recipe banayein / badlein'), 'manufacturing.produce': t('Maal banayein (Production)'),
+  'suppliers.view': t('View Suppliers'), 'suppliers.edit': t('Edit Suppliers'),
+  'purchases.view': t('View Purchases'), 'purchases.create': t('Create Purchases'),
+  'dashboard.view': t('View Dashboard'), 'cost.view': t('Cost aur profit dekhein'), 'reports.view': t('View Reports'), 'profit_report.view': t('Profit Report'), 'ai.use': t('Nafaa AI use'),
+  'staff.view': t('View Staff'), 'staff.manage': t('Manage Staff'),
+  'commission.own': t('Apni commission dekhein'),
+  'commission.view': t('Sab ki commission dekhein'),
+  'commission.manage': t('Commission rules aur payment'),
+  'expenses.view': t('View Expenses'), 'expenses.create': t('Create Expenses'),
+  'income.view': t('Doosri aamdani dekhein'), 'income.manage': t('Doosri aamdani likhein / badlein'),
+  'exports.view': t('Data Exports'), 'backup.manage': t('Manage Backups'),
+  'team.view': t('View Team'), 'team.manage': t('Manage Team'),
+  'shops.view': t('View Shops'), 'shops.manage': t('Manage Shops'),
+  'activity.view': t('View Activity Log'),
+  'settings.view': t('View Settings'), 'settings.edit': t('Edit Settings'), 'settings.manage': t('Manage Settings'),
+  'billing.view': t('View Billing'), 'billing.manage': t('Manage Billing'),
+  'plans.view': t('View Plans'), 'plan_usage.view': t('View Plan Usage'), 'referrals.view': t('View Referrals'),
+
+  // ── Industry ke apne kaam ──
+  'bakery.orders.view': t('Cake / bulk orders dekhein'), 'bakery.orders.manage': t('Cake / bulk orders banayein'),
+  'bakery.production.view': t('Baking plan dekhein'), 'bakery.production.manage': t('Baking plan chalayein'),
+  'bakery.ingredients.view': t('Banane ka saamaan dekhein'), 'bakery.ingredients.manage': t('Saamaan ka hisab badlein'),
+  'agri.farmers.view': t('Farmer dekhein'), 'agri.farmers.manage': t('Farmer banayein / badlein'),
+  'agri.orders.view': t('Bare order dekhein'), 'agri.orders.manage': t('Bare order banayein'),
+  'agri.advisory.view': t('Mashwara dekhein'), 'agri.advisory.manage': t('Mashwara likhein'),
+  'electronics.serials.view': t('Serial / IMEI dekhein'), 'electronics.serials.manage': t('Serial / IMEI darj karein'),
+  'electronics.warranty.view': t('Warranty claim dekhein'), 'electronics.warranty.manage': t('Warranty claim chalayein'),
+  'mobile.repairs.view': t('Marammat dekhein'), 'mobile.repairs.manage': t('Marammat chalayein'),
+  'mobile.imei.view': t('IMEI / purane phone dekhein'), 'mobile.imei.manage': t('IMEI / purane phone darj karein'),
+  'restaurant.orders.view': t('Order aur table dekhein'), 'restaurant.orders.manage': t('Order lein aur chalayein'),
+  'restaurant.kitchen.view': t('Kitchen (KOT) dekhein'), 'restaurant.kitchen.manage': t('Kitchen chalayein'),
+  'restaurant.menu.view': t('Menu dekhein'), 'restaurant.menu.manage': t('Menu badlein'),
+  'service.jobs.view': t('Kaam / job dekhein'), 'service.jobs.manage': t('Kaam / job chalayein'),
+  'service.bookings.view': t('Booking dekhein'), 'service.bookings.manage': t('Booking lein'),
+  'clinic.records.view': t('Mareez ka record dekhein'), 'clinic.records.manage': t('Checkup, nuskha aur lab result likhein'),
+  'online_orders.view': t('Online order dekhein'), 'online_orders.manage': t('Online order chalayein'),
+  'online_products.view': t('Online products dekhein (link, price, stock)'), 'online_products.manage': t('Online products jorein, Price aur Stock bhejein'),
+  'catalog.view': t('Online catalog dekhein'), 'catalog.manage': t('Online catalog badlein'),
+  'ads.view': t('Ads ka kharcha aur ROAS dekhein'), 'ads.manage': t('Ads ka kharcha likhein / import karein'),
+  'distribution.orders.view': t('Orders, load sheet aur visit dekhein'), 'distribution.orders.book': t('Order book karein (booker app)'),
+  'distribution.orders.manage': t('Orders approve karein, Invoice banayein, cancel karein'), 'distribution.price_override': t('Price list se hat kar price lagayein'),
+  'distribution.loadsheets.manage': t('Load sheet banayein / dispatch karein'), 'distribution.settle': t('Load sheet settle karein (delivery, return, cash)'),
+  'distribution.routes.manage': t('Routes banayein, customers lagayein'), 'distribution.pricelists.view': t('Price lists dekhein'),
+  'distribution.pricelists.manage': t('Price lists banayein / badlein'), 'distribution.schemes.manage': t('Schemes banayein / badlein'),
+  'distribution.collections.collect': t('Recovery / cash collect karein'), 'distribution.collections.verify': t('Recovery verify karein (khata me jaye)'),
+  'distribution.delivery.report': t('Delivery app: maal deliver karke har Invoice ki report bhejein'),
+  'distribution.vans.manage': t('Vans: godown se load, din band (ginti, short / zyada, maal wapas)'), 'distribution.vans.sell': t('Van se maal bechein (spot Invoice)'),
+  'distribution.returns.collect': t('Market return likhein (approval ke liye)'), 'distribution.returns.approve': t('Market return approve karein (khata credit, stock wapas)'),
+  'distribution.claims.manage': t('Company (principal) claims banayein, jama karayein, paisa likhein'), 'distribution.targets.manage': t('Monthly targets set karein'),
+  'distribution.cheques.manage': t('Cheque register: deposit, clear, bounce'),
+  'trade.buy': t('Suppliers se Nafaa par Order bhejein aur dekhein'), 'trade.receive': t('Network ka maal receive karein (Purchase stock me)'),
+  'trade.sell': t('Network customers aur un ka hisaab dekhein'), 'trade.links.manage': t('Supplier/customer jorein, approve karein, terms badlein'),
+  'trade.payments.manage': t('Network payment likhein aur confirm karein'),
+};
+
+export function getPermissionLabel(key: string): string {
+  return permissionLabel(key);
+}
+
+// ═══ GROUPS — includes title (alias of label) + color for TeamPage ═══
+
+export interface PermissionGroup {
+  title: string;   // used by TeamPage
+  label: string;   // alias
+  emoji: string;
+  color: string;
+  /** Sirf is industry par dikhe — khali to har dukaan par */
+  industry?: string;
+  permissions: PermissionKey[];
+}
+
+/**
+ * Is dukaan ke liye kaam ke groups.
+ *
+ * Industry wale groups sirf apni dukaan par dikhte hain. 34 industry
+ * permissions sab ko ek sath dikhana ulta nuqsan hai — malik ko 100
+ * se zyada checkbox me se apne kaam ki cheez dhoondni parti.
+ */
+export function permissionGroupsFor(industryId?: string | null): PermissionGroup[] {
+  const SERVICE_LIKE = ['services-biz', 'autoparts', 'appliances', 'salon', 'gym', 'clinic'];
+
+  const groups = PERMISSION_GROUPS.filter((g) => {
+    if (!g.industry) return true;
+    if (g.industry === industryId) return true;
+    if (g.industry === 'services' && SERVICE_LIKE.includes(industryId ?? '')) return true;
+    /* Industry pata hi na chale (pack load nahi hua, ya tenant ka
+       businessType kisi pack se match nahi karta) to SAB industry
+       groups dikha dete hain. Chhupa dena zyada bura hai: malik ko
+       lagta hai ke feature hai hi nahi. */
+    return !industryId;
+  });
+
+  /* ── Jaal: koi ijazat group se bahar na reh jaye ──
+     Nayi permission jor kar group me daalna bhool jayein to wo UI
+     me kabhi nazar nahi aati — yani malik usay kisi ko de hi nahi
+     sakta, aur wajah dhoondhne me ghanta lagta hai. Is liye jo
+     bachi hain wo khud ek group me aa jati hain. */
+  const covered = new Set(PERMISSION_GROUPS.flatMap((g) => g.permissions as string[]));
+  const leftover = ALL_PERMISSIONS.filter((p) => !covered.has(p));
+  if (leftover.length > 0) {
+    groups.push({
+      title: t('Baqi permissions'), label: t('Baqi permissions'), emoji: '🗝️', color: '#64748b',
+      permissions: leftover,
+    });
+  }
+
+  return groups;
+}
+
+/** Group me kis ka naam kya — UI me checkbox par yehi likha jata hai */
+export function permissionLabel(key: string): string {
+  return PERMISSION_LABELS[key] ?? key
+    .split('.')
+    .map((part) => part.replace(/_/g, ' '))
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' — ');
+}
+
+export const PERMISSION_GROUPS: PermissionGroup[] = [
+  {
+    title: t('POS & Sales'), label: t('POS & Sales'), emoji: '🛒', color: '#10b981',
+    permissions: [
+      PERMISSIONS.POS_USE, PERMISSIONS.POS_DISCOUNT_OVERRIDE, PERMISSIONS.POS_PRICE_TIER, PERMISSIONS.SALES_VIEW, PERMISSIONS.SALES_VOID,
+      PERMISSIONS.RETURNS_VIEW, PERMISSIONS.RETURNS_CREATE,
+    ],
+  },
+  {
+    title: t('Customers & Khata'), label: t('Customers & Khata'), emoji: '👥', color: '#8b5cf6',
+    permissions: [
+      PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CUSTOMERS_EDIT,
+      PERMISSIONS.KHATA_VIEW, PERMISSIONS.KHATA_MANAGE,
+      PERMISSIONS.LOYALTY_VIEW, PERMISSIONS.DISCOUNTS_VIEW, PERMISSIONS.DISCOUNTS_MANAGE,
+    ],
+  },
+  {
+    title: t('Cash Register'), label: t('Cash Register'), emoji: '💰', color: '#f59e0b',
+    permissions: [
+      PERMISSIONS.CASH_REGISTER_VIEW, PERMISSIONS.CASH_REGISTER_OPEN, PERMISSIONS.CASH_REGISTER_CLOSE,
+    ],
+  },
+  {
+    title: t('Products & Inventory'), label: t('Products & Inventory'), emoji: '📦', color: '#0891b2',
+    permissions: [
+      PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.PRODUCTS_CREATE, PERMISSIONS.PRODUCTS_EDIT, PERMISSIONS.PRODUCTS_DELETE,
+      PERMISSIONS.BRANDS_VIEW, PERMISSIONS.TAGS_VIEW, PERMISSIONS.CATEGORIES_VIEW,
+      PERMISSIONS.LOW_STOCK_VIEW, PERMISSIONS.BARCODE_LABELS_VIEW,
+      PERMISSIONS.STOCK_MOVEMENTS_VIEW, PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, PERMISSIONS.STOCK_ADJUSTMENTS_CORRECT, PERMISSIONS.STOCK_TRANSFERS_MANAGE,
+      PERMISSIONS.MANUFACTURING_VIEW, PERMISSIONS.MANUFACTURING_MANAGE, PERMISSIONS.MANUFACTURING_PRODUCE,
+    ],
+  },
+  {
+    title: t('Suppliers & Purchases'), label: t('Suppliers & Purchases'), emoji: '🚚', color: '#f97316',
+    permissions: [
+      PERMISSIONS.SUPPLIERS_VIEW, PERMISSIONS.SUPPLIERS_EDIT,
+      PERMISSIONS.PURCHASES_VIEW, PERMISSIONS.PURCHASES_CREATE,
+    ],
+  },
+  {
+    title: t('Reports & Analytics'), label: t('Reports & Analytics'), emoji: '📊', color: '#3b82f6',
+    permissions: [
+      PERMISSIONS.DASHBOARD_VIEW, PERMISSIONS.REPORTS_VIEW, PERMISSIONS.PROFIT_REPORT_VIEW,
+      PERMISSIONS.COST_VIEW, PERMISSIONS.AI_USE,
+    ],
+  },
+  {
+    title: t('Staff & Finance'), label: t('Staff & Finance'), emoji: '👨‍💼', color: '#ec4899',
+    permissions: [
+      PERMISSIONS.STAFF_VIEW, PERMISSIONS.STAFF_MANAGE,
+      PERMISSIONS.COMMISSION_OWN, PERMISSIONS.COMMISSION_VIEW, PERMISSIONS.COMMISSION_MANAGE,
+      PERMISSIONS.EXPENSES_VIEW, PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.INCOME_VIEW, PERMISSIONS.INCOME_MANAGE,
+      PERMISSIONS.EXPORTS_VIEW, PERMISSIONS.BACKUP_MANAGE,
+    ],
+  },
+  {
+    title: t('System & Admin'), label: t('System & Admin'), emoji: '⚙️', color: '#64748b',
+    permissions: [
+      PERMISSIONS.TEAM_VIEW, PERMISSIONS.TEAM_MANAGE,
+      PERMISSIONS.SHOPS_VIEW, PERMISSIONS.SHOPS_MANAGE,
+      PERMISSIONS.ACTIVITY_VIEW,
+      PERMISSIONS.SETTINGS_VIEW, PERMISSIONS.SETTINGS_EDIT, PERMISSIONS.SETTINGS_MANAGE,
+    ],
+  },
+  /* ── Industry ke apne kaam ──
+     Ye sab groups har dukaan par nahi dikhte. Safha sirf USI industry
+     ka group dikhata hai jis par dukaan chal rahi hai — warna bakery
+     wale ko "Farmers" aur "Kitchen" ka shor milta, jo us ke kaam ka
+     hai hi nahi. `industry` khana isi ke liye hai. */
+  {
+    title: t('Bakery ke kaam'), label: t('Bakery ke kaam'), emoji: '🧁', color: '#ec4899',
+    industry: 'bakery',
+    permissions: [
+      PERMISSIONS.BAKERY_ORDERS_VIEW, PERMISSIONS.BAKERY_ORDERS_MANAGE,
+      PERMISSIONS.BAKERY_PRODUCTION_VIEW, PERMISSIONS.BAKERY_PRODUCTION_MANAGE,
+      PERMISSIONS.BAKERY_INGREDIENTS_VIEW, PERMISSIONS.BAKERY_INGREDIENTS_MANAGE,
+    ],
+  },
+  {
+    title: t('Agri ke kaam'), label: t('Agri ke kaam'), emoji: '🌾', color: '#65a30d',
+    industry: 'agri',
+    permissions: [
+      PERMISSIONS.AGRI_FARMERS_VIEW, PERMISSIONS.AGRI_FARMERS_MANAGE,
+      PERMISSIONS.AGRI_ORDERS_VIEW, PERMISSIONS.AGRI_ORDERS_MANAGE,
+      PERMISSIONS.AGRI_ADVISORY_VIEW, PERMISSIONS.AGRI_ADVISORY_MANAGE,
+    ],
+  },
+  {
+    title: t('Electronics ke kaam'), label: t('Electronics ke kaam'), emoji: '🔌', color: '#3b82f6',
+    industry: 'electronics',
+    permissions: [
+      PERMISSIONS.ELECTRONICS_SERIALS_VIEW, PERMISSIONS.ELECTRONICS_SERIALS_MANAGE,
+      PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, PERMISSIONS.ELECTRONICS_WARRANTY_MANAGE,
+    ],
+  },
+  {
+    title: t('Mobile ke kaam'), label: t('Mobile ke kaam'), emoji: '📱', color: '#8b5cf6',
+    industry: 'mobile',
+    permissions: [
+      PERMISSIONS.MOBILE_REPAIRS_VIEW, PERMISSIONS.MOBILE_REPAIRS_MANAGE,
+      PERMISSIONS.MOBILE_IMEI_VIEW, PERMISSIONS.MOBILE_IMEI_MANAGE,
+    ],
+  },
+  {
+    title: t('Restaurant ke kaam'), label: t('Restaurant ke kaam'), emoji: '🍽️', color: '#f97316',
+    industry: 'restaurant',
+    permissions: [
+      PERMISSIONS.RESTAURANT_ORDERS_VIEW, PERMISSIONS.RESTAURANT_ORDERS_MANAGE,
+      PERMISSIONS.RESTAURANT_KITCHEN_VIEW, PERMISSIONS.RESTAURANT_KITCHEN_MANAGE,
+      PERMISSIONS.RESTAURANT_MENU_VIEW, PERMISSIONS.RESTAURANT_MENU_MANAGE,
+    ],
+  },
+  {
+    title: t('Service ke kaam'), label: t('Service ke kaam'), emoji: '🔧', color: '#14b8a6',
+    industry: 'services',
+    permissions: [
+      PERMISSIONS.SERVICE_JOBS_VIEW, PERMISSIONS.SERVICE_JOBS_MANAGE,
+      PERMISSIONS.SERVICE_BOOKINGS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_MANAGE,
+    ],
+  },
+  {
+    title: t('Clinic ka record'), label: t('Clinic ka record'), emoji: '🩺', color: '#0d9488',
+    industry: 'clinic',
+    permissions: [PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE],
+  },
+  {
+    title: t('Online dukaan'), label: t('Online dukaan'), emoji: '🌐', color: '#0ea5e9',
+    permissions: [
+      PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
+      PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
+      PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
+      PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
+    ],
+  },
+  {
+    title: t('Distribution'), label: t('Distribution'), emoji: '🚚', color: '#115e59',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_PRICE_OVERRIDE, PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE,
+      PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE, PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE, PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
+      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT, PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL,
+      PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT, PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE, PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
+    ],
+  },
+  {
+    title: t('Nafaa network'), label: t('Nafaa network'), emoji: '🔗', color: '#0f766e',
+    permissions: [
+      PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_LINKS_MANAGE, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
+    ],
+  },
+  {
+    title: t('Billing & Plans'), label: t('Billing & Plans'), emoji: '💳', color: '#a855f7',
+    permissions: [
+      PERMISSIONS.BILLING_VIEW, PERMISSIONS.BILLING_MANAGE,
+      PERMISSIONS.PLANS_VIEW, PERMISSIONS.PLAN_USAGE_VIEW, PERMISSIONS.REFERRALS_VIEW,
+    ],
+  },
+];

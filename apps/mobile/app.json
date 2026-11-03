@@ -2,7 +2,7 @@
   "expo": {
     "name": "Nafaa POS",
     "slug": "nafaa",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "nafaa",
@@ -10,14 +10,10 @@
     "newArchEnabled": true,
     "primaryColor": "#16a34a",
     "description": "Pakistan's smart POS \u2014 Sales, inventory, khata, and reports in one app.",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#16a34a"
-    },
     "updates": {
       "url": "https://u.expo.dev/378f6d14-5716-469e-9275-0af06ec03668",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
     },
     "runtimeVersion": {
       "policy": "appVersion"
@@ -28,13 +24,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nafaa.app",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
-        "NSCameraUsageDescription": "Nafaa needs camera access to scan product barcodes.",
-        "NSPhotoLibraryUsageDescription": "Nafaa needs photo library access to upload product images and shop logo.",
-        "NSPhotoLibraryAddUsageDescription": "Nafaa saves receipts and reports to your photo library.",
-        "NSFaceIDUsageDescription": "Nafaa uses Face ID for secure login.",
-        "ITSAppUsesNonExemptEncryption": false
+        "NSCameraUsageDescription": "Nafaa uses the camera to scan product barcodes and to take product photos.",
+        "NSPhotoLibraryUsageDescription": "Nafaa needs access to your photos so you can choose pictures for products and your shop logo.",
+        "NSFaceIDUsageDescription": "Nafaa uses Face ID to unlock the app quickly and securely.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Nafaa uses your location only when an order booker checks in at a customer's shop visit."
       },
       "associatedDomains": [
         "applinks:nafaa.pk"
@@ -43,7 +39,7 @@
     },
     "android": {
       "package": "com.nafaa.app",
-      "versionCode": 10,
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#16a34a"
@@ -52,18 +48,20 @@
         "CAMERA",
         "VIBRATE",
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT",
-        "BLUETOOTH",
-        "BLUETOOTH_ADMIN",
-        "BLUETOOTH_CONNECT",
-        "BLUETOOTH_SCAN",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
       ],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
       ],
       "intentFilters": [
         {
@@ -81,7 +79,8 @@
           ]
         }
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -90,26 +89,39 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#16a34a",
+          "dark": {
+            "backgroundColor": "#16a34a"
+          },
+          "imageWidth": 1,
+          "image": "./assets/splash-blank.png"
+        }
+      ],
       "expo-secure-store",
       "expo-localization",
       "expo-updates",
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Nafaa to access your camera to scan barcodes."
+          "cameraPermission": "Nafaa uses the camera to scan product barcodes and to take product photos.",
+          "recordAudioAndroid": false
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow Nafaa to use Face ID for secure login."
+          "faceIDPermission": "Nafaa uses Face ID to unlock the app quickly and securely."
         }
       ],
       [
         "expo-notifications",
         {
           "color": "#16a34a",
-          "icon": "./assets/notification-icon.png"
+          "icon": "./assets/notification-icon.png",
+          "defaultChannel": "default"
         }
       ],
       "expo-font",
@@ -139,7 +151,17 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Nafaa uses your location to check in at customer shops during order booking."
+          "locationWhenInUsePermission": "Nafaa uses your location only when an order booker checks in at a customer's shop visit.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Nafaa needs access to your photos so you can choose pictures for products and your shop logo.",
+          "cameraPermission": "Nafaa uses the camera to scan product barcodes and to take product photos.",
+          "microphonePermission": false
         }
       ]
     ],

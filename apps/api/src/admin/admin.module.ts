@@ -7,6 +7,7 @@ import { AdminBroadcastModule } from './broadcast/admin-broadcast.module';
 import { AdminBulkModule } from './bulk/admin-bulk.module';
 import { AdminCommunicationsModule } from './communications/admin-communications.module';
 import { AdminCustomersModule } from './customers/admin-customers.module';
+import { AdminDeletionRequestsModule } from './deletion-requests/admin-deletion-requests.module';
 import { AdminEmailTemplatesModule } from './email-templates/admin-email-templates.module';
 import { AdminExportsModule } from './exports/admin-exports.module';
 import { AdminHealthModule } from './health/admin-health.module';
@@ -43,6 +44,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminProductsModule,
     AdminSalesModule,
     AdminCustomersModule,
+    AdminDeletionRequestsModule,
     AdminInvoicesModule,
     AdminBroadcastModule,
     AdminPlatformDiscountsModule,

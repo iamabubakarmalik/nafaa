@@ -96,6 +96,14 @@ function emptyTotals(): Totals {
   };
 }
 
+/** Offline punches carry their own time: accepted up to 12 hours back, never in the future. */
+const PUNCH_BACKDATE_MS = 12 * 3_600_000;
+export function punchTime(at?: string, now = new Date()): Date {
+  const t = at ? Date.parse(at) : NaN;
+  if (Number.isNaN(t) || t > now.getTime() + 60_000 || t < now.getTime() - PUNCH_BACKDATE_MS) return now;
+  return new Date(Math.min(t, now.getTime()));
+}
+
 @Injectable()
 export class AttendanceService {
   constructor(
@@ -328,8 +336,8 @@ export class AttendanceService {
     const staff = await this.loadStaff(user, dto.staffId);
     if (staff.status !== 'ACTIVE' && staff.status !== 'ON_LEAVE') throw new BadRequestException(apiMessage('{{fullName}} ab kaam par nahi ({{staffStatus}})', { fullName: staff.fullName, staffStatus: staff.status }));
     const clock = await this.shopClock(user.tenantId);
-    const day = this.today(clock);
-    const now = new Date();
+    const now = punchTime(dto.at);
+    const day = businessDayKey(now, clock.tz, clock.dayStartHour);
     const m = this.measure(day, now, null, clock, staff.workingHoursPerDay);
     const existing = await this.prisma.attendance.findUnique({ where: { staffId_date: { staffId: staff.id, date: dateOf(day) } } });
     // A second click returns the same record instead of moving the time.
@@ -364,8 +372,8 @@ export class AttendanceService {
   async checkOut(user: AuthenticatedUser, dto: PunchDto) {
     const staff = await this.loadStaff(user, dto.staffId);
     const clock = await this.shopClock(user.tenantId);
-    const day = this.today(clock);
-    const now = new Date();
+    const now = punchTime(dto.at);
+    const day = businessDayKey(now, clock.tz, clock.dayStartHour);
     // The open record is today's, or yesterday's for a shift that ran past the day change.
     const open = await this.prisma.attendance.findFirst({
       where: {
@@ -377,6 +385,7 @@ export class AttendanceService {
     if (!open) throw new BadRequestException(apiMessage('{{fullName}} ka aaj check-in nahi hua', { fullName: staff.fullName }));
     if (open.checkOut) return { record: open, already: true };
 
+    if (open.checkIn && now < open.checkIn) throw new BadRequestException('Check-out ka waqt check-in se pehle nahi ho sakta');
     const key = keyOf(open.date);
     const m = this.measure(key, open.checkIn, now, clock, staff.workingHoursPerDay);
     // Guarded update: two clicks write the time once.

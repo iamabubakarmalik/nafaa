@@ -14,6 +14,7 @@ import ActivityPage from '@/features/activity/pages/ActivityPage';
 import AnalyticsPage from '@/features/analytics/pages/AnalyticsPage';
 import AdminProductsPage from '@/features/admin-products/pages/AdminProductsPage';
 import AdminSalesPage from '@/features/admin-sales/pages/AdminSalesPage';
+import DeletionRequestsPage from '@/features/deletion-requests/pages/DeletionRequestsPage';
 import AdminCustomersPage from '@/features/admin-customers/pages/AdminCustomersPage';
 import InvoicesPage from '@/features/invoices/pages/InvoicesPage';
 import BroadcastPage from '@/features/broadcast/pages/BroadcastPage';
@@ -26,6 +27,14 @@ import BulkActionsPage from '@/features/bulk-actions/pages/BulkActionsPage';
 import AdminExportsPage from '@/features/admin-exports/pages/AdminExportsPage';
 import NotificationsPage from '@/features/notifications/pages/NotificationsPage';
 import DistributionUsagePage from '@/features/distribution/pages/DistributionUsagePage';
+import MobileOverviewPage from '@/features/mobile/pages/MobileOverviewPage';
+import MobileDevicesPage from '@/features/mobile/pages/MobileDevicesPage';
+import MobileDeviceDetailPage from '@/features/mobile/pages/MobileDeviceDetailPage';
+import MobileReleasesPage from '@/features/mobile/pages/MobileReleasesPage';
+import MobileAnnouncementsPage from '@/features/mobile/pages/MobileAnnouncementsPage';
+import MobileFlagsPage from '@/features/mobile/pages/MobileFlagsPage';
+import MobileAppearancePage from '@/features/mobile/pages/MobileAppearancePage';
+import MobilePushPage from '@/features/mobile/pages/MobilePushPage';
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import AdminShell from '@/components/layout/AdminShell';
 
@@ -80,6 +89,7 @@ export default function App() {
               <Route path="/tenants/:id" element={<TenantDetailPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/customers" element={<AdminCustomersPage />} />
+              <Route path="/deletion-requests" element={<DeletionRequestsPage />} />
 
               <Route path="/products" element={<AdminProductsPage />} />
               <Route path="/sales" element={<AdminSalesPage />} />
@@ -91,6 +101,15 @@ export default function App() {
               <Route path="/referrals" element={<ReferralsPage />} />
               <Route path="/platform-discounts" element={<PlatformDiscountsPage />} />
               <Route path="/distribution" element={<DistributionUsagePage />} />
+
+              <Route path="/mobile" element={<MobileOverviewPage />} />
+              <Route path="/mobile/devices" element={<MobileDevicesPage />} />
+              <Route path="/mobile/devices/:id" element={<MobileDeviceDetailPage />} />
+              <Route path="/mobile/releases" element={<MobileReleasesPage />} />
+              <Route path="/mobile/announcements" element={<MobileAnnouncementsPage />} />
+              <Route path="/mobile/flags" element={<MobileFlagsPage />} />
+              <Route path="/mobile/appearance" element={<MobileAppearancePage />} />
+              <Route path="/mobile/push" element={<MobilePushPage />} />
 
               <Route path="/broadcast" element={<BroadcastPage />} />
               <Route path="/email-templates" element={<EmailTemplatesPage />} />

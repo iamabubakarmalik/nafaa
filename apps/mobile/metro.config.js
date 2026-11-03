@@ -1,5 +1,4 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const { withNativeWind } = require('nativewind/metro');
 const path = require('path');
 
 const projectRoot = __dirname;
@@ -26,4 +25,4 @@ config.server.enhanceMiddleware = (middleware) => (req, res, next) => {
   middleware(req, res, next);
 };
 
-module.exports = withNativeWind(config, { input: './global.css' });
+module.exports = config;

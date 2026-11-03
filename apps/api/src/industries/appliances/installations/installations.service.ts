@@ -89,6 +89,8 @@ export class InstallationsService {
     serviceType?: string;
     technicianId?: string;
     customerId?: string;
+    /** Jobs created from one bill (receipt rows). */
+    saleId?: string;
     unpaidOnly?: boolean;
     from?: string;
     to?: string;
@@ -106,6 +108,7 @@ export class InstallationsService {
       ...(params.serviceType && { serviceType: params.serviceType as any }),
       ...(params.technicianId && { technicianId: params.technicianId }),
       ...(params.customerId && { customerId: params.customerId }),
+      ...(params.saleId && { saleId: params.saleId }),
       ...(dayRange(params.from, params.to) && { scheduledDate: dayRange(params.from, params.to) }),
       // Unpaid is filtered in the query, so paging and the total count agree.
       ...(params.unpaidOnly && {

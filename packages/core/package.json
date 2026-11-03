@@ -1,0 +1,200 @@
+{
+  "name": "@nafaa/core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pure business logic shared by the web and mobile apps (TypeScript only, no React, DOM or React Native).",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "react-native": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./online-store": {
+      "types": "./src/online-store/index.ts",
+      "react-native": "./src/online-store/index.ts",
+      "default": "./src/online-store/index.ts"
+    },
+    "./pos": {
+      "types": "./src/pos/index.ts",
+      "react-native": "./src/pos/index.ts",
+      "default": "./src/pos/index.ts"
+    },
+    "./inventory": {
+      "types": "./src/inventory/index.ts",
+      "react-native": "./src/inventory/index.ts",
+      "default": "./src/inventory/index.ts"
+    },
+    "./customers": {
+      "types": "./src/customers/index.ts",
+      "react-native": "./src/customers/index.ts",
+      "default": "./src/customers/index.ts"
+    },
+    "./bookings": {
+      "types": "./src/bookings/index.ts",
+      "react-native": "./src/bookings/index.ts",
+      "default": "./src/bookings/index.ts"
+    },
+    "./finance": {
+      "types": "./src/finance/index.ts",
+      "react-native": "./src/finance/index.ts",
+      "default": "./src/finance/index.ts"
+    },
+    "./restaurant": {
+      "types": "./src/restaurant/index.ts",
+      "react-native": "./src/restaurant/index.ts",
+      "default": "./src/restaurant/index.ts"
+    },
+    "./bakery": {
+      "types": "./src/bakery/index.ts",
+      "react-native": "./src/bakery/index.ts",
+      "default": "./src/bakery/index.ts"
+    },
+    "./package.json": "./package.json",
+    "./industries/mobile": {
+      "types": "./src/industries/mobile/index.ts",
+      "react-native": "./src/industries/mobile/index.ts",
+      "default": "./src/industries/mobile/index.ts"
+    },
+    "./industries/electronics": {
+      "types": "./src/industries/electronics/index.ts",
+      "react-native": "./src/industries/electronics/index.ts",
+      "default": "./src/industries/electronics/index.ts"
+    },
+    "./industries/retail": {
+      "types": "./src/industries/retail/index.ts",
+      "react-native": "./src/industries/retail/index.ts",
+      "default": "./src/industries/retail/index.ts"
+    },
+    "./industries/pharmacy": {
+      "types": "./src/industries/pharmacy/index.ts",
+      "react-native": "./src/industries/pharmacy/index.ts",
+      "default": "./src/industries/pharmacy/index.ts"
+    },
+    "./industries/cosmetics": {
+      "types": "./src/industries/cosmetics/index.ts",
+      "react-native": "./src/industries/cosmetics/index.ts",
+      "default": "./src/industries/cosmetics/index.ts"
+    },
+    "./industries/garments": {
+      "types": "./src/industries/garments/index.ts",
+      "react-native": "./src/industries/garments/index.ts",
+      "default": "./src/industries/garments/index.ts"
+    },
+    "./industries/shoe": {
+      "types": "./src/industries/shoe/index.ts",
+      "react-native": "./src/industries/shoe/index.ts",
+      "default": "./src/industries/shoe/index.ts"
+    },
+    "./industries/sports": {
+      "types": "./src/industries/sports/index.ts",
+      "react-native": "./src/industries/sports/index.ts",
+      "default": "./src/industries/sports/index.ts"
+    },
+    "./industries/toystore": {
+      "types": "./src/industries/toystore/index.ts",
+      "react-native": "./src/industries/toystore/index.ts",
+      "default": "./src/industries/toystore/index.ts"
+    },
+    "./industries/bookstore": {
+      "types": "./src/industries/bookstore/index.ts",
+      "react-native": "./src/industries/bookstore/index.ts",
+      "default": "./src/industries/bookstore/index.ts"
+    },
+    "./industries/florist": {
+      "types": "./src/industries/florist/index.ts",
+      "react-native": "./src/industries/florist/index.ts",
+      "default": "./src/industries/florist/index.ts"
+    },
+    "./industries/petshop": {
+      "types": "./src/industries/petshop/index.ts",
+      "react-native": "./src/industries/petshop/index.ts",
+      "default": "./src/industries/petshop/index.ts"
+    },
+    "./industries/jewelry": {
+      "types": "./src/industries/jewelry/index.ts",
+      "react-native": "./src/industries/jewelry/index.ts",
+      "default": "./src/industries/jewelry/index.ts"
+    },
+    "./industries/optical": {
+      "types": "./src/industries/optical/index.ts",
+      "react-native": "./src/industries/optical/index.ts",
+      "default": "./src/industries/optical/index.ts"
+    },
+    "./industries/agri": {
+      "types": "./src/industries/agri/index.ts",
+      "react-native": "./src/industries/agri/index.ts",
+      "default": "./src/industries/agri/index.ts"
+    },
+    "./industries/dairy": {
+      "types": "./src/industries/dairy/index.ts",
+      "react-native": "./src/industries/dairy/index.ts",
+      "default": "./src/industries/dairy/index.ts"
+    },
+    "./industries/meat": {
+      "types": "./src/industries/meat/index.ts",
+      "react-native": "./src/industries/meat/index.ts",
+      "default": "./src/industries/meat/index.ts"
+    },
+    "./industries/carpet": {
+      "types": "./src/industries/carpet/index.ts",
+      "react-native": "./src/industries/carpet/index.ts",
+      "default": "./src/industries/carpet/index.ts"
+    },
+    "./industries/appliances": {
+      "types": "./src/industries/appliances/index.ts",
+      "react-native": "./src/industries/appliances/index.ts",
+      "default": "./src/industries/appliances/index.ts"
+    },
+    "./industries/hardware": {
+      "types": "./src/industries/hardware/index.ts",
+      "react-native": "./src/industries/hardware/index.ts",
+      "default": "./src/industries/hardware/index.ts"
+    },
+    "./industries/furniture": {
+      "types": "./src/industries/furniture/index.ts",
+      "react-native": "./src/industries/furniture/index.ts",
+      "default": "./src/industries/furniture/index.ts"
+    },
+    "./industries/autoparts": {
+      "types": "./src/industries/autoparts/index.ts",
+      "react-native": "./src/industries/autoparts/index.ts",
+      "default": "./src/industries/autoparts/index.ts"
+    },
+    "./industries/salon": {
+      "types": "./src/industries/salon/index.ts",
+      "react-native": "./src/industries/salon/index.ts",
+      "default": "./src/industries/salon/index.ts"
+    },
+    "./industries/clinic": {
+      "types": "./src/industries/clinic/index.ts",
+      "react-native": "./src/industries/clinic/index.ts",
+      "default": "./src/industries/clinic/index.ts"
+    },
+    "./industries/gym": {
+      "types": "./src/industries/gym/index.ts",
+      "react-native": "./src/industries/gym/index.ts",
+      "default": "./src/industries/gym/index.ts"
+    },
+    "./industries/hotel": {
+      "types": "./src/industries/hotel/index.ts",
+      "react-native": "./src/industries/hotel/index.ts",
+      "default": "./src/industries/hotel/index.ts"
+    },
+    "./industries/gaming": {
+      "types": "./src/industries/gaming/index.ts",
+      "react-native": "./src/industries/gaming/index.ts",
+      "default": "./src/industries/gaming/index.ts"
+    },
+    "./industries/services-biz": {
+      "types": "./src/industries/services-biz/index.ts",
+      "react-native": "./src/industries/services-biz/index.ts",
+      "default": "./src/industries/services-biz/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts"
+  }
+}

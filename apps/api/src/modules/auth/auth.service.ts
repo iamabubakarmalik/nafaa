@@ -1194,6 +1194,92 @@ export class AuthService {
       .catch(() => {});
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // ACCOUNT DELETION REQUEST (people who are not the owner)
+  // Records the request only. Nothing is deleted or deactivated here: the
+  // owner is told, and the request is processed by hand after the grace period.
+  // ═══════════════════════════════════════════════════════════
+  private static readonly DELETION_GRACE_DAYS = 30;
+
+  private async latestDeletionLog(userId: string) {
+    return this.prisma.activityLog.findFirst({
+      where: { entityType: 'USER', entityId: userId, action: { in: ['ACCOUNT_DELETION_REQUESTED', 'ACCOUNT_DELETION_CANCELLED'] } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  private deletionState(log: { action: string; createdAt: Date; metadata: unknown } | null) {
+    if (!log || log.action !== 'ACCOUNT_DELETION_REQUESTED') return { requested: false as const, requestedAt: null, scheduledFor: null };
+    const meta = (log.metadata ?? {}) as { scheduledFor?: string };
+    return {
+      requested: true as const,
+      requestedAt: log.createdAt,
+      scheduledFor: meta.scheduledFor ?? addHours(log.createdAt, AuthService.DELETION_GRACE_DAYS * 24).toISOString(),
+    };
+  }
+
+  async accountDeletionStatus(userId: string) {
+    return { success: true, ...this.deletionState(await this.latestDeletionLog(userId)) };
+  }
+
+  async requestAccountDeletion(userId: string, dto: { currentPassword?: string; confirmation?: string; reason?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+    if (user.role === 'OWNER' || user.role === 'SUPER_ADMIN') {
+      throw new BadRequestException('Malik ka account poore business se juda hai. Settings me "Business delete" use karein.');
+    }
+    if (user.passwordHash) {
+      if (!dto.currentPassword || !(await comparePassword(dto.currentPassword, user.passwordHash))) {
+        throw new UnauthorizedException('Password galat hai');
+      }
+    } else if (dto.confirmation !== 'DELETE MY ACCOUNT') {
+      throw new BadRequestException('Confirmation text ghalat — "DELETE MY ACCOUNT" likhein');
+    }
+
+    const existing = this.deletionState(await this.latestDeletionLog(userId));
+    if (existing.requested) return { success: true, ...existing, message: 'Delete ki darkhwast pehle se lagi hui hai' };
+
+    const scheduledFor = addHours(new Date(), AuthService.DELETION_GRACE_DAYS * 24).toISOString();
+    const log = await this.prisma.activityLog.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'ACCOUNT_DELETION_REQUESTED',
+        entityType: 'USER',
+        entityId: user.id,
+        description: `${user.fullName} (${user.email}) requested account deletion`,
+        metadata: { scheduledFor, reason: dto.reason?.trim() || null },
+      },
+    });
+
+    const owners = await this.prisma.user.findMany({ where: { tenantId: user.tenantId, role: 'OWNER', isActive: true }, select: { id: true } });
+    await Promise.all(owners.map((o) => this.prisma.notification.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: o.id,
+        type: 'INFO',
+        link: '/team',
+        ...notificationText('Account delete ki darkhwast', apiMessage('{{name}} ne apna account delete karne ki darkhwast ki hai.', { name: user.fullName })),
+      },
+    }))).catch(() => undefined);
+
+    return { success: true, requested: true, requestedAt: log.createdAt, scheduledFor, message: 'Delete ki darkhwast lag gayi. 30 din me cancel kar sakte hain.' };
+  }
+
+  async cancelAccountDeletion(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, tenantId: true, fullName: true } });
+    if (!user) throw new UnauthorizedException();
+    if (this.deletionState(await this.latestDeletionLog(userId)).requested) {
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId: user.tenantId, userId: user.id, action: 'ACCOUNT_DELETION_CANCELLED', entityType: 'USER', entityId: user.id,
+          description: `${user.fullName} cancelled the account deletion request`,
+        },
+      });
+    }
+    return { success: true, requested: false, message: 'Delete ki darkhwast cancel ho gayi' };
+  }
+
   private sendWelcomeEmail(tenant: any, user: any) {
     const appUrl = this.configService.get<string>('APP_URL') || 'http://localhost:5173';
     this.emailService

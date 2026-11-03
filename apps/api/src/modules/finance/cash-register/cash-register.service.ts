@@ -11,6 +11,7 @@ import { CashTransactionDto } from './dto/cash-transaction.dto';
 import { checkDenominations, type Denominations } from './dto/denominations';
 import { computeLiveCash, type CashWindow } from '../../../common/helpers/live-cash.helper';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { acceptClientTime, notBefore } from '../../../common/helpers/client-time.helper';
 
 type Db = Prisma.TransactionClient;
 
@@ -273,12 +274,26 @@ export class CashRegisterService {
         throw new BadRequestException(apiMessage('{{shopName}} ka register pehle se open hai. Pehle close karein.', { shopName: shop.name }));
       }
 
+      // A till opened offline is dated when it was opened, but never before the
+      // branch's last till closed (two tills must not count the same bills).
+      const clientOpened = acceptClientTime(dto.clientOpenedAt);
+      let openedAt: Date | undefined;
+      if (clientOpened) {
+        const last = await tx.cashRegister.findFirst({
+          where: { tenantId: user.tenantId, shopId, closedAt: { not: null } },
+          orderBy: { closedAt: 'desc' },
+          select: { closedAt: true },
+        });
+        openedAt = notBefore(clientOpened, last?.closedAt);
+      }
+
       const registerNumber = `CR-${shop.name.replace(/[^a-z0-9]/gi, '').slice(0, 3).toUpperCase() || 'REG'}-${Date.now().toString().slice(-7)}`;
       const register = await tx.cashRegister.create({
         data: {
           tenantId: user.tenantId,
           shopId,
           openedById: user.id,
+          ...(openedAt && { openedAt }),
           registerNumber,
           openingBalance: dto.openingBalance,
           expectedBalance: dto.openingBalance,
@@ -360,7 +375,9 @@ export class CashRegisterService {
     return this.prisma.$transaction(async (tx) => {
       // Holding the row lock keeps cash in/out out until the count is saved.
       await this.lockOpen(tx, register.id);
-      const closedAt = new Date();
+      // A till counted offline closes at the time it was counted (never before it opened).
+      const clientClosed = acceptClientTime(dto.clientClosedAt);
+      const closedAt = clientClosed ? notBefore(clientClosed, register.openedAt) : new Date();
       const cash = await this.computeCash(user.tenantId, register, closedAt, tx);
       const difference = round2(dto.closingBalance - cash.expected);
 

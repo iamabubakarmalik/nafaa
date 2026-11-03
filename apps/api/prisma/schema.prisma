@@ -477,6 +477,7 @@ model Tenant {
   referralsReceived      Referral[]              @relation("ReferralReferee")
   creditTransactions     CreditTransaction[]
   bookings               Booking[]
+  mobileDevices          MobileDevice[]
 
   // ─── Retail Industry Relations ───
   productCombos            ProductCombo[]
@@ -798,6 +799,7 @@ model User {
   discountsCreated    DiscountCode[]          @relation("UserDiscounts")
   notesAuthored       TenantNote[]            @relation("UserNotes")
   settingsUpdated     SystemSetting[]         @relation("UserSettings")
+  mobileDevices       MobileDevice[]
   broadcasts          BroadcastNotification[] @relation("UserBroadcasts")
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
@@ -1055,6 +1057,7 @@ model Product {
   @@index([tenantId, name])
   @@index([tenantId, isActive])
   @@index([tenantId, barcode])
+  @@index([tenantId, updatedAt, id])
   @@index([tenantId, isFeatured])
   @@index([categoryId])
   @@index([brandId])
@@ -1337,6 +1340,7 @@ model Customer {
   @@index([shopId])
   @@index([tenantId, shopId])
   @@index([tenantId, routeId])
+  @@index([tenantId, updatedAt, id])
 }
 
 model CustomerLedger {
@@ -3393,6 +3397,7 @@ model ShopStock {
   @@index([variantId])
   @@index([shopId, productId])
   @@index([shopId, stock])
+  @@index([shopId, updatedAt])
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -24494,4 +24499,147 @@ model TradePayment {
   @@index([linkId, status])
   @@index([sellerTenantId, status])
   @@index([buyerTenantId, status])
+}
+
+// ─── Mobile app control (admin panel → Mobile app) ───────────────────
+
+/// One installed copy of the mobile app (2.0 and later), kept fresh by the
+/// app's heartbeat on start and resume. installId is a uuid the app creates.
+model MobileDevice {
+  id             String   @id @default(uuid())
+  installId      String   @unique
+  tenantId       String
+  userId         String
+  /// ios | android
+  platform       String
+  appVersion     String
+  buildNumber    String?
+  /// Over-the-air runtime and the update currently running, if any.
+  runtimeVersion String?
+  updateId       String?
+  osVersion      String?
+  deviceModel    String?
+  deviceBrand    String?
+  /// en | ur | roman
+  language       String?
+  /// Expo push token; cleared when the push service reports it dead.
+  pushToken      String?
+  /// ISO country code from the edge proxy header, when present.
+  country        String?
+  /// App opens counted by the heartbeat (a gap of 30 minutes starts a new one).
+  sessions       Int      @default(1)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days   MobileDeviceDay[]
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([lastSeenAt])
+  @@index([firstSeenAt])
+  @@index([platform, appVersion])
+  @@index([pushToken])
+}
+
+/// The business days (PKT) on which a device was used. Feeds the active-devices chart.
+model MobileDeviceDay {
+  deviceId String
+  day      DateTime @db.Date
+  tenantId String
+
+  device MobileDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@id([deviceId, day])
+  @@index([day])
+}
+
+/// Banner shown inside the mobile app. Texts are {en, ur, roman}.
+model MobileAnnouncement {
+  id          String    @id @default(uuid())
+  title       Json
+  body        Json
+  /// info | success | warning | critical
+  tone        String    @default("info")
+  ctaLabel    Json?
+  ctaLink     String?
+  /// all | plan | industry | tenant
+  audience    String    @default("all")
+  planSlugs   String[]  @default([])
+  industries  String[]  @default([])
+  tenantIds   String[]  @default([])
+  /// Empty: every platform.
+  platforms   String[]  @default([])
+  minVersion  String?
+  maxVersion  String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  dismissible Boolean   @default(true)
+  isActive    Boolean   @default(true)
+  priority    Int       @default(0)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+}
+
+/// A push notification sent from the admin panel to a segment of app users.
+model MobilePushBroadcast {
+  id              String    @id @default(uuid())
+  title           Json
+  body            Json
+  deepLink        String?
+  audience        String    @default("all")
+  planSlugs       String[]  @default([])
+  industries      String[]  @default([])
+  tenantIds       String[]  @default([])
+  platforms       String[]  @default([])
+  minVersion      String?
+  maxVersion      String?
+  /// Also reach people on the older app (push token saved, no heartbeat yet).
+  includeOlderApp Boolean   @default(true)
+  /// QUEUED | SENDING | SENT | FAILED
+  status          String    @default("QUEUED")
+  audienceCount   Int       @default(0)
+  sentCount       Int       @default(0)
+  failedCount     Int       @default(0)
+  /// True when the server is not allowed to deliver (local and test servers).
+  dryRun          Boolean   @default(false)
+  error           String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime?
+  finishedAt      DateTime?
+
+  @@index([createdAt])
+}
+
+/// One write request sent with an `Idempotency-Key` header, kept so a retry
+/// of the same request gets the first answer instead of doing the work twice
+/// (offline phones resend after a lost response). Scoped per business and
+/// user; removed by a cron after `expiresAt` (about 30 days).
+model IdempotencyRecord {
+  id           String    @id @default(uuid())
+  tenantId     String
+  userId       String
+  key          String
+  method       String
+  path         String
+  /// sha256 of method, path and the JSON body; a different body under the same key is refused.
+  requestHash  String
+  /// IN_PROGRESS while the first request runs, DONE once its answer is stored.
+  status       String    @default("IN_PROGRESS")
+  statusCode   Int?
+  responseBody Json?
+  lockedAt     DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+  expiresAt    DateTime
+
+  @@unique([tenantId, userId, key])
+  @@index([expiresAt])
 }

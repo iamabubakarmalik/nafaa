@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsObject, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsISO8601, IsNumber, IsObject, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import type { Denominations } from './denominations';
 
 export class OpenRegisterDto {
@@ -25,4 +25,10 @@ export class OpenRegisterDto {
   @IsOptional()
   @IsObject()
   denominations?: Denominations;
+
+  /** When the till was opened on a device that was offline (client-time.helper rules). */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsISO8601()
+  clientOpenedAt?: string;
 }

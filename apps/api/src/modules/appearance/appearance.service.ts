@@ -10,7 +10,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { hasPermission, PERMISSIONS } from '../../common/constants/permissions.constants';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
-import { sanitizeLayer, type AppearanceLayer } from './appearance.schema';
+import { mergeLayerForSave, sanitizeLayer, type AppearanceLayer } from './appearance.schema';
 
 const PLATFORM_KEY = 'appearance:platform';
 const tenantKey = (tenantId: string) => `appearance:tenant:${tenantId}`;
@@ -54,17 +54,19 @@ export class AppearanceService {
     return this.read(PLATFORM_KEY);
   }
 
-  savePersonal(user: AuthenticatedUser, layer: unknown) {
-    return this.write(userKey(user.id), sanitizeLayer(layer), user.id);
+  async savePersonal(user: AuthenticatedUser, layer: unknown) {
+    const key = userKey(user.id);
+    return this.write(key, mergeLayerForSave(await this.read(key), layer), user.id);
   }
 
-  saveBusiness(user: AuthenticatedUser, layer: unknown) {
+  async saveBusiness(user: AuthenticatedUser, layer: unknown) {
     if (!this.canEditBusiness(user)) throw new ForbiddenException('Only the owner or a manager with settings access can change the business look');
-    return this.write(tenantKey(user.tenantId), sanitizeLayer(layer), user.id);
+    const key = tenantKey(user.tenantId);
+    return this.write(key, mergeLayerForSave(await this.read(key), layer), user.id);
   }
 
-  savePlatform(adminUserId: string, layer: unknown) {
-    return this.write(PLATFORM_KEY, sanitizeLayer(layer), adminUserId, true);
+  async savePlatform(adminUserId: string, layer: unknown) {
+    return this.write(PLATFORM_KEY, mergeLayerForSave(await this.read(PLATFORM_KEY), layer), adminUserId, true);
   }
 
   private canEditBusiness(user: AuthenticatedUser) {

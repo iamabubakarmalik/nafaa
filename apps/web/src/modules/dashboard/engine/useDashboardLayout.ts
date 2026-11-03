@@ -105,16 +105,29 @@ export function useDashboardLayout(config: DashboardConfig) {
   const widgets = useMemo(() => resolveWidgets(config.widgets, layout), [config.widgets, layout]);
   const kpis = useMemo(() => resolveKpis(config, layout), [config, layout]);
 
-  /** Applies a change to the resolved widget list and saves it. */
+  /**
+   * Applies a change to the resolved widget list and saves it. Ids this config
+   * does not know (widgets only the mobile app has) keep their place,
+   * visibility and width.
+   */
   const updateWidgets = useCallback((fn: (list: ResolvedWidget[]) => ResolvedWidget[]) => {
     const list = fn(widgets);
+    const known = new Set(config.widgets.map((w) => w.id));
+    const ids = list.map((i) => i.widget.id);
+    const listed = new Set(layout.order);
+    let k = 0;
+    const order = [...layout.order.map((id) => (known.has(id) ? ids[k++] : id)), ...ids.slice(k)]
+      .filter((id, i, all) => !!id && all.indexOf(id) === i && (known.has(id) || listed.has(id)));
     commit({
       ...layout,
-      order: list.map((i) => i.widget.id),
-      hidden: list.filter((i) => !i.visible).map((i) => i.widget.id),
-      sizes: Object.fromEntries(list.filter((i) => i.size !== i.widget.size).map((i) => [i.widget.id, i.size])),
+      order,
+      hidden: [...layout.hidden.filter((id) => !known.has(id)), ...list.filter((i) => !i.visible).map((i) => i.widget.id)],
+      sizes: {
+        ...Object.fromEntries(Object.entries(layout.sizes).filter(([id]) => !known.has(id))),
+        ...Object.fromEntries(list.filter((i) => i.size !== i.widget.size).map((i) => [i.widget.id, i.size])),
+      },
     });
-  }, [widgets, layout, commit]);
+  }, [widgets, layout, commit, config.widgets]);
 
   const setVisible = useCallback((id: string, visible: boolean) =>
     updateWidgets((list) => list.map((i) => (i.widget.id === id ? { ...i, visible } : i))), [updateWidgets]);

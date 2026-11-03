@@ -15,7 +15,7 @@
 import { useEffect, useState } from 'react';
 import {
   Accessibility, Building2, GraduationCap, LayoutGrid, LayoutTemplate, Monitor, Moon, MoveHorizontal, Palette, PanelLeft, PanelLeftClose,
-  PanelLeftOpen, RotateCcw, Rows3, SquareRoundCorner, Sun, Type, User,
+  PanelLeftOpen, RotateCcw, Rows3, Smartphone, SquareRoundCorner, Sun, Type, User,
 } from 'lucide-react';
 import { Button, IconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -36,9 +36,11 @@ import { AccentPicker } from '../components/AccentPicker';
 import { FontPicker } from '../components/FontPicker';
 import { AppearancePreview } from '../components/AppearancePreview';
 import { HeroSettings } from '../components/HeroSettings';
+import { MobileAppSettings } from '../components/MobileAppSettings';
 import { t as tr } from '@core/i18n';
 
 const HERO_KEYS = ['heroStyle', 'heroPattern', 'heroSize', 'heroStats'] as const;
+const MOBILE_KEYS = ['mobileTabBar', 'mobileHeader', 'mobileStartScreen', 'mobilePosGrid', 'mobileHomeWidgets', 'mobileAnimations', 'mobileHaptics'] as const;
 
 /* ─── Small visuals for the option cards ─── */
 
@@ -288,6 +290,11 @@ export default function AppearancePage() {
               checked={a.contrast === 'high'} onChange={(v) => ed.set('contrast', v ? 'high' : 'normal')} />
             <Toggle label={tr('Reduce motion')} desc={tr('Animations aur hilti cheezein band — tez aur aaram se')}
               checked={a.reduceMotion} onChange={(v) => ed.set('reduceMotion', v)} />
+          </SettingCard>
+
+          <SettingCard id="mobile" title={tr('Mobile app')} description={tr('Sirf Nafaa mobile app ke liye — tab bar, pehli screen, POS aur Home')} icon={Smartphone} color="indigo"
+            onReset={MOBILE_KEYS.some((k) => ed.isSet(k)) ? () => ed.resetMany(MOBILE_KEYS) : undefined}>
+            <MobileAppSettings ed={ed} />
           </SettingCard>
         </div>
 

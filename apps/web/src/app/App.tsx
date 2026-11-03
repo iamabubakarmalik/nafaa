@@ -158,6 +158,7 @@ import PlanUsagePage from '@modules/billing/plan-usage/pages/PlanUsagePage';
 import ProfilePage from '@modules/profile/pages/ProfilePage';
 import HelpPage from '@modules/help/pages/HelpPage';
 import LegalPage from '@modules/legal/pages/LegalPage';
+import DeleteAccountPage from '@modules/legal/pages/DeleteAccountPage';
 
 // ─── Retail tools (every industry) ─────────────────────────────
 import CombosPage from '@modules/inventory/combos/pages/CombosPage';
@@ -281,6 +282,8 @@ export default function App() {
             <Route path="/pay/:token" element={<PublicPayPage />} />
             <Route path="/connect/dev/:token" element={<DevInvitePage />} />
             <Route path="/docs/online-store" element={<OnlineStoreDocsPage />} />
+            {/* Google Play account-deletion URL — public, no login */}
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
             {/* Customer ki screen — sirf isi computer ki POS window se sunti hai, server se kuch nahi */}
             <Route path="/customer-display" element={<CustomerDisplayPage />} />
 

@@ -39,6 +39,7 @@ export class InstallationsController {
     @Query('serviceType') serviceType?: string,
     @Query('technicianId') technicianId?: string,
     @Query('customerId') customerId?: string,
+    @Query('saleId') saleId?: string,
     @Query('unpaidOnly') unpaid?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
@@ -47,7 +48,7 @@ export class InstallationsController {
     @Query('limit') limit?: string,
   ) {
     return this.service.list(user, {
-      status, serviceType, technicianId, customerId, from, to, search,
+      status, serviceType, technicianId, customerId, saleId, from, to, search,
       open: bool(open),
       unpaidOnly: bool(unpaid),
       page: page ? Number(page) : undefined,

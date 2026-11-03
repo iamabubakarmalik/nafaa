@@ -1,5 +1,5 @@
 import { AttendanceStatus, LeaveStatus, LeaveType } from '@prisma/client';
-import { IsBoolean, IsEnum, IsIn, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsIn, IsISO8601, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -23,6 +23,12 @@ export class LeaveQueryDto {
 export class PunchDto {
   @IsString() staffId!: string;
   @IsOptional() @IsString() @MaxLength(300) note?: string;
+  /**
+   * When the punch happened, for punches recorded offline and sent later.
+   * Accepted up to 12 hours back and never ahead of the server clock;
+   * otherwise the server time is used.
+   */
+  @IsOptional() @IsISO8601() at?: string;
 }
 
 /** Manual fix of one day by the owner or a manager; the reason is logged. */

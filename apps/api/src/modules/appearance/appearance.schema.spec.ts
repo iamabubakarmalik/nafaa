@@ -1,4 +1,4 @@
-import { sanitizeLayer } from './appearance.schema';
+import { mergeLayerForSave, sanitizeLayer } from './appearance.schema';
 
 describe('sanitizeLayer', () => {
   it('keeps valid fields and normalises the color', () => {
@@ -25,5 +25,39 @@ describe('sanitizeLayer', () => {
   it('handles non-objects', () => {
     expect(sanitizeLayer(null)).toEqual({});
     expect(sanitizeLayer('dark')).toEqual({});
+  });
+});
+
+describe('mobile appearance keys', () => {
+  it('keeps valid mobile options and known home widgets in order, without repeats', () => {
+    expect(sanitizeLayer({
+      mobileTabBar: 'floating', mobileStartScreen: 'pos', mobilePosGrid: 'large',
+      mobileAnimations: false, mobileHaptics: true,
+      mobileHomeWidgets: ['low-stock', 'sales-today', 'unknown', 'low-stock', 3],
+    })).toEqual({
+      mobileTabBar: 'floating', mobileStartScreen: 'pos', mobilePosGrid: 'large',
+      mobileAnimations: false, mobileHaptics: true,
+      mobileHomeWidgets: ['low-stock', 'sales-today'],
+    });
+  });
+
+  it('rejects bad mobile values', () => {
+    expect(sanitizeLayer({ mobileTabBar: 'side', mobileHaptics: 'yes', mobileHomeWidgets: 'sales-today' })).toEqual({});
+  });
+});
+
+describe('mergeLayerForSave', () => {
+  it('keeps stored mobile keys when a save leaves them out', () => {
+    expect(mergeLayerForSave({ mode: 'dark', mobileTabBar: 'icons', mobileHaptics: false }, { mode: 'light' }))
+      .toEqual({ mode: 'light', mobileTabBar: 'icons', mobileHaptics: false });
+  });
+
+  it('lets a save change or clear a mobile key it names', () => {
+    expect(mergeLayerForSave({ mobileTabBar: 'icons', mobilePosGrid: 'small' }, { mobileTabBar: 'labels', mobilePosGrid: null }))
+      .toEqual({ mobileTabBar: 'labels' });
+  });
+
+  it('does not carry web keys over', () => {
+    expect(mergeLayerForSave({ mode: 'dark' }, {})).toEqual({});
   });
 });

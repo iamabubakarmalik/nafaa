@@ -152,8 +152,10 @@ async function bootstrap() {
       // the browser's preflight and every request is blocked client-side — the
       // app then silently falls back to its offline cache and looks empty.
       'X-Shop-Id',
+      // Lets a resent write (offline sync) return the first answer instead of running twice.
+      'Idempotency-Key',
     ],
-    exposedHeaders: ['Content-Disposition'], // For file downloads
+    exposedHeaders: ['Content-Disposition', 'Idempotent-Replayed'], // File downloads; replayed writes
     maxAge: 86400, // 24 hours — cache preflight
   });
 

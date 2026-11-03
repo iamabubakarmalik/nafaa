@@ -110,7 +110,7 @@ export class FurnitureDeliveriesService {
     });
   }
 
-  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; from?: string; to?: string; search?: string; page?: number; limit?: number }) {
+  async list(user: AuthenticatedUser, params: { status?: string; customerId?: string; saleId?: string; from?: string; to?: string; search?: string; page?: number; limit?: number }) {
     const search = params.search?.trim();
     const statuses = (params.status ?? '').split(',').map((x) => x.trim()).filter(Boolean);
     const where: Prisma.FurnitureDeliveryWhereInput = {
@@ -118,6 +118,7 @@ export class FurnitureDeliveriesService {
       ...(statuses.length === 1 && { status: statuses[0] as any }),
       ...(statuses.length > 1 && { status: { in: statuses as any } }),
       ...(params.customerId && { customerId: params.customerId }),
+      ...(params.saleId && { saleId: params.saleId }),
       ...(params.from || params.to ? {
         scheduledDate: {
           ...(params.from && { gte: startOfDayTz(new Date(params.from)) }),

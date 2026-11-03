@@ -26,6 +26,7 @@ import { hasPermission, PERMISSIONS } from '../../../common/constants/permission
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
+import { acceptClientTime, saleClock } from '../../../common/helpers/client-time.helper';
 import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
@@ -569,9 +570,26 @@ export class SalesService {
 
     const saleNumber = `NF-${Date.now().toString().slice(-8)}`;
 
-    const cashRegister = await this.prisma.cashRegister.findFirst({
+    const openRegister = await this.prisma.cashRegister.findFirst({
       where: { tenantId: user.tenantId, shopId: sellingShopId, status: 'OPEN' },
     });
+    // A bill made offline carries the time it was rung up; it is dated then
+    // and counted in the till that was open at that moment.
+    const clientSold = acceptClientTime(dto.clientSoldAt);
+    let cashRegister = openRegister;
+    let soldAt: Date | undefined;
+    if (clientSold) {
+      const openAtTime = await this.prisma.cashRegister.findFirst({
+        where: {
+          tenantId: user.tenantId, shopId: sellingShopId, openedAt: { lte: clientSold },
+          OR: [{ status: 'OPEN' }, { closedAt: { gte: clientSold } }],
+        },
+        orderBy: { openedAt: 'desc' },
+      });
+      const clock = saleClock(clientSold, openAtTime, openRegister);
+      cashRegister = clock.register;
+      soldAt = clock.soldAt;
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       let customer = null;
@@ -618,6 +636,7 @@ export class SalesService {
           receivedByCnic: dto.receivedByCnic?.trim() || null,
           source: origin?.source ?? 'POS',
           sourceRef: origin?.sourceRef ?? null,
+          ...(soldAt && { soldAt }),
           items: {
             create: normalizedItems.map((item) => ({
               ...(item.productId ? { productId: item.productId } : {}),
@@ -665,7 +684,7 @@ export class SalesService {
             data: {
               status: 'SOLD',
               finalSoldPrice: item.price,
-              soldAt: new Date(),
+              soldAt: soldAt ?? new Date(),
               soldSaleId: sale.id,
             },
           });
@@ -681,7 +700,7 @@ export class SalesService {
               status: 'SOLD',
               saleItemId: saleItem.id,
               soldPrice: item.price,
-              soldAt: new Date(),
+              soldAt: soldAt ?? new Date(),
             },
           });
           const updatedImei = imeiMap.get(item.imeiId)!;
@@ -738,9 +757,9 @@ export class SalesService {
           // months, unless the unit already carries its own end date.
           const unit = serialMap.get(item.serialId);
           const months = warrantyMonthsByProduct.get(item.productId!) ?? 0;
-          const soldAt = new Date();
+          const unitSoldAt = soldAt ?? new Date();
           const warranty = unit && !unit.warrantyEndDate && months > 0
-            ? { warrantyStartDate: soldAt, warrantyEndDate: addMonths(soldAt, months), warrantyStatus: 'ACTIVE' as const }
+            ? { warrantyStartDate: unitSoldAt, warrantyEndDate: addMonths(unitSoldAt, months), warrantyStatus: 'ACTIVE' as const }
             : {};
           await tx.electronicsSerialTracking.update({
             where: { id: item.serialId },
@@ -749,7 +768,7 @@ export class SalesService {
               saleId: sale.id,
               saleItemId: saleItem.id,
               soldPrice: item.price,
-              soldAt,
+              soldAt: unitSoldAt,
               soldToCustomerId: dto.customerId ?? null,
               invoiceNumber: sale.saleNumber,
               ...warranty,

@@ -29,21 +29,24 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_ENV": "staging",
-        "EXPO_PUBLIC_API_URL": "https://staging-api.nafaa.pk/api",
-        "PNPM_VERSION": "11.0.8"
+        "EXPO_PUBLIC_ENV": "preview",
+        "EXPO_PUBLIC_API_URL": "https://api.nafaa.pk/api",
+        "PNPM_VERSION": "11.0.8",
+        "EXPO_PUBLIC_APP_URL": "https://nafaa.pk"
       },
       "ios": {
         "resourceClass": "m-medium",
         "simulator": false,
-        "image": "latest"
+        "image": "latest",
+        "enterpriseProvisioning": "adhoc"
       },
       "android": {
         "buildType": "apk",
         "resourceClass": "medium",
         "image": "latest"
       },
-      "node": "22.13.0"
+      "node": "22.13.0",
+      "autoIncrement": true
     },
     "production": {
       "channel": "production",

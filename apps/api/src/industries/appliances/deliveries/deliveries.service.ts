@@ -123,7 +123,7 @@ export class ApplianceDeliveriesService {
    * `page`: a page of rows, totals and paging.
    */
   async list(user: AuthenticatedUser, params: {
-    status?: string; customerId?: string; from?: string; to?: string; search?: string; view?: DeliveryView; page?: number; limit?: number;
+    status?: string; customerId?: string; saleId?: string; from?: string; to?: string; search?: string; view?: DeliveryView; page?: number; limit?: number;
   }) {
     const q = params.search?.trim();
     const range = dayRange(params.from, params.to);
@@ -132,6 +132,7 @@ export class ApplianceDeliveriesService {
       ...this.viewWhere(params.view),
       ...(params.status && { status: params.status }),
       ...(params.customerId && { customerId: params.customerId }),
+      ...(params.saleId && { saleId: params.saleId }),
       ...(range && { scheduledDate: range }),
       ...(q && {
         OR: [

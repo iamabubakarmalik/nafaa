@@ -5,7 +5,7 @@ import {
   Menu, X, ChevronRight, Sparkles, CreditCard, Gift, Activity,
   TrendingUp, Package, ShoppingCart, Receipt, Megaphone, Tag,
   Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell, Palette,
-  Rocket, Truck,
+  Rocket, Truck, Smartphone, TabletSmartphone, PackageCheck, BellRing, ToggleRight, Paintbrush, UserX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -37,6 +37,7 @@ const navGroups = [
       { to: '/tenants', label: 'Tenants (Shops)', icon: Building2 },
       { to: '/users', label: 'Users', icon: Users },
       { to: '/customers', label: 'All Customers', icon: Users },
+      { to: '/deletion-requests', label: 'Deletion requests', icon: UserX },
     ],
   },
   {
@@ -56,6 +57,18 @@ const navGroups = [
       { to: '/referrals', label: 'Referrals', icon: Gift },
       { to: '/platform-discounts', label: 'Promo Codes', icon: Tag },
       { to: '/distribution', label: 'Distribution usage', icon: Truck },
+    ],
+  },
+  {
+    label: 'Mobile app',
+    items: [
+      { to: '/mobile', label: 'Overview', icon: Smartphone, exact: true },
+      { to: '/mobile/devices', label: 'Devices', icon: TabletSmartphone },
+      { to: '/mobile/releases', label: 'Releases & updates', icon: PackageCheck },
+      { to: '/mobile/announcements', label: 'Announcements', icon: Megaphone },
+      { to: '/mobile/flags', label: 'Feature switches', icon: ToggleRight },
+      { to: '/mobile/appearance', label: 'Appearance', icon: Paintbrush },
+      { to: '/mobile/push', label: 'Push notifications', icon: BellRing },
     ],
   },
   {

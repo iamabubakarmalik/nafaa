@@ -1,4 +1,3 @@
-import SupplierFormScreen from './[id]/edit';
-export default function NewSupplierScreen() {
-  return <SupplierFormScreen mode="new" />;
-}
+import { SupplierFormScreen } from '@/modules/purchasing/screens/SupplierFormScreen';
+
+export default SupplierFormScreen;

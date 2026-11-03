@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import {
-  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber,
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsISO8601, IsNumber,
   IsOptional, IsString, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
@@ -277,6 +277,16 @@ export class CreateSaleDto {
   @IsString()
   @MaxLength(12)
   managerPin?: string;
+
+  /**
+   * When the bill was rung up, for a bill made offline and sent later. Used
+   * only when it is not in the future and at most 72 hours old; otherwise
+   * the server time applies (client-time.helper).
+   */
+  @ApiPropertyOptional({ example: '2026-11-02T15:30:00.000Z' })
+  @IsOptional()
+  @IsISO8601()
+  clientSoldAt?: string;
 
   @ApiPropertyOptional({
     description: 'Optional sale-level note (e.g. delivery address)',

@@ -20,9 +20,9 @@ export class ApplianceDeliveriesController {
   constructor(private readonly service: ApplianceDeliveriesService) {}
 
   @RequirePermissions(PERMISSIONS.SERVICE_JOBS_MANAGE) @Post() create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateApplianceDeliveryDto) { return this.service.create(user, dto); }
-  @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('customerId') customerId?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string,
+  @Get() list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('customerId') customerId?: string, @Query('saleId') saleId?: string, @Query('from') from?: string, @Query('to') to?: string, @Query('search') search?: string,
     @Query('view') view?: DeliveryView, @Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.service.list(user, { status, customerId, from, to, search, view, page: page ? Number(page) : undefined, limit: limit ? Number(limit) : undefined });
+    return this.service.list(user, { status, customerId, saleId, from, to, search, view, page: page ? Number(page) : undefined, limit: limit ? Number(limit) : undefined });
   }
   @Get('summary') summary(@GetUser() user: AuthenticatedUser) { return this.service.summary(user); }
   @Get(':id') getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) { return this.service.getOne(user, id); }

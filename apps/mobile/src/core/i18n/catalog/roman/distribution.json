@@ -1,0 +1,32 @@
+{
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
+  "{{name}} — badlein": "{{name}} — edit",
+  "{{name}} mitayein?": "{{name}} delete karein?",
+  "Amount likhein": "Amount likhein",
+  "Band karein": "Close",
+  "Booker ki report dekhne ke liye Reports ki permission chahiye.": "Booker ki report dekhne ke liye Reports ki permission chahiye.",
+  "Cancel karein": "Cancel",
+  "Chunein": "Select",
+  "Dukaan jorein": "Add shop",
+  "Ek route = ek ilaqa, mukarrar din, ek booker aur ek delivery wala.": "Ek route = ek ilaqa, fixed din, ek booker aur ek delivery wala.",
+  "Halat": "Status",
+  "Hatayein": "Delete",
+  "Is route par abhi koi dukaan nahi — \"Dukaan jorein\" dabayein.": "Is route par abhi koi dukaan nahi — \"Add shop\" dabayein.",
+  "Jin ke paas \"Order book karein\" ki permission hai": "Jin ke paas \"Order book karein\" ki permission hai",
+  "Jorein": "Add",
+  "Kam az kam 2 harf likhein": "Kam az kam 2 letters likhein",
+  "List mitayein": "List delete karein",
+  "Mitayein": "Delete",
+  "Naya route": "New route",
+  "Nayi scheme": "New scheme",
+  "Peeche": "Back",
+  "Rehne dein": "Cancel",
+  "Route mitayein": "Route delete karein",
+  "Save karein ({{count}})": "Save ({{count}})",
+  "Udhaar ka usool": "Udhaar ka rule",
+  "Udhaar ki wasooli": "Udhaar recovery",
+  "Wapas": "Back"
+}

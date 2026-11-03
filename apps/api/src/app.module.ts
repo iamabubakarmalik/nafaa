@@ -12,6 +12,8 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { ShopScopeInterceptor } from './common/shop-scope/shop-scope.interceptor';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { CostMaskingInterceptor } from './common/interceptors/cost-masking.interceptor';
+import { IdempotencyModule } from './common/idempotency/idempotency.module';
+import { IdempotencyInterceptor } from './common/idempotency/idempotency.interceptor';
 import { envValidationSchema } from './config/env.validation';
 
 // ─── Core Foundation (Global) ──────────────────────────────
@@ -121,6 +123,7 @@ import { EasypaisaModule } from './integrations/payments/easypaisa/easypaisa.mod
 // ─── Batch B: Delivery + Push ─────────────────────────────
 import { DeliveryModule } from './modules/delivery/delivery.module';
 import { PushModule } from './modules/push/push.module';
+import { MobileControlModule } from './modules/mobile-control/mobile-control.module';
 
 // ─── Batch C: Promotions + Messaging + Loyalty + Subscriptions
 import { PromotionsModule } from './modules/promotions/promotions.module';
@@ -152,6 +155,7 @@ import { B2BWholesaleModule } from './modules/b2b-wholesale/b2b-wholesale.module
 import { PrayerRamzanModule } from './modules/prayer-ramzan/prayer-ramzan.module';
 import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.module';
 import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
+import { SyncModule } from './modules/sync/sync.module';
 
 
 @Module({
@@ -170,6 +174,7 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     QueueModule,
     SchedulerModule,
     StorageModule,
+    IdempotencyModule,
 
     // ─── Shared services ───
     UploadsModule,
@@ -237,6 +242,7 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     ShopsModule,
     CashRegisterModule,
     MoneyModule,
+    SyncModule,
     ActivityLogModule,
     SearchModule,
     ExportsModule,
@@ -262,6 +268,7 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     // ─── Batch B ───
     DeliveryModule,
     PushModule,
+    MobileControlModule,
 
     // ─── Batch C ───
     PromotionsModule,
@@ -301,6 +308,8 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    // Outermost interceptor: replays the stored answer for a repeated Idempotency-Key.
+    { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     /* Lagat/munafa jin ko nahi dikhana, un ke jawab se nikal jata hai */
     { provide: APP_INTERCEPTOR, useClass: CostMaskingInterceptor },
     { provide: APP_GUARD, useClass: SubscriptionGuard },

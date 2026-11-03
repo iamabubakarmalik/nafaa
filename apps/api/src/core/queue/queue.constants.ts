@@ -13,6 +13,8 @@ export const QUEUE_NAMES = {
   IMAGE_PROCESSING: 'image-processing-queue',
   REPORT_GENERATION: 'report-queue',
   ANALYTICS: 'analytics-queue',
+  /** Admin push broadcasts to the staff mobile app. */
+  MOBILE_PUSH: 'mobile-push-queue',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

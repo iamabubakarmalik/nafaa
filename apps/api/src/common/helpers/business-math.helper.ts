@@ -102,8 +102,18 @@ export const BILL_CASH_IN = Prisma.sql`(SELECT COALESCE(SUM(sp.amount), 0) FROM 
 /** Prisma filter for live bills. */
 export const LIVE_BILL = { not: 'VOIDED' as const };
 
+/**
+ * A window edge as a naive UTC timestamp. Timestamp columns hold UTC wall
+ * time; a bare Date parameter is read as timestamptz, so the comparison
+ * shifted by the database session timezone (5 hours on a Karachi-configured
+ * Postgres). Binding text cast to `timestamp` keeps it session-independent.
+ */
+export function utcStamp(d: Date) {
+  return Prisma.sql`${d.toISOString().replace('Z', '')}::timestamp`;
+}
+
 function rangeSql(col: Prisma.Sql, r: MathRange) {
-  return Prisma.sql`${r.gte ? Prisma.sql`AND ${col} >= ${r.gte}` : Prisma.empty} ${r.lt ? Prisma.sql`AND ${col} < ${r.lt}` : Prisma.empty}`;
+  return Prisma.sql`${r.gte ? Prisma.sql`AND ${col} >= ${utcStamp(r.gte)}` : Prisma.empty} ${r.lt ? Prisma.sql`AND ${col} < ${utcStamp(r.lt)}` : Prisma.empty}`;
 }
 
 function shopSql(col: Prisma.Sql, scope: MathScope) {

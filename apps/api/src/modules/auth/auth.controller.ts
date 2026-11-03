@@ -8,6 +8,7 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators/get-user.decorator';
 import { Public } from './decorators/public.decorator';
+import { RequestAccountDeletionDto } from './dto/account-deletion.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompleteGoogleSignupDto } from './dto/complete-google-signup.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -173,6 +174,32 @@ export class AuthController {
     @Body() dto: SetPasswordDto,
   ) {
     return this.authService.setPassword(user.id, dto.newPassword);
+  }
+
+  // ===== ACCOUNT DELETION REQUEST (non-owners; records the request only) =====
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('account-deletion')
+  @ApiOperation({ summary: 'Is an account deletion request pending for me?' })
+  accountDeletionStatus(@GetUser() user: AuthenticatedUser) {
+    return this.authService.accountDeletionStatus(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('account-deletion-request')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Ask for my account to be deleted (password confirmed). Nothing is deleted immediately.' })
+  requestAccountDeletion(@GetUser() user: AuthenticatedUser, @Body() dto: RequestAccountDeletionDto) {
+    return this.authService.requestAccountDeletion(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('account-deletion-request/cancel')
+  @HttpCode(HttpStatus.OK)
+  cancelAccountDeletion(@GetUser() user: AuthenticatedUser) {
+    return this.authService.cancelAccountDeletion(user.id);
   }
 
   // ===== EMAIL VERIFICATION =====

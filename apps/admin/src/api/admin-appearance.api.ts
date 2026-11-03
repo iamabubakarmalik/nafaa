@@ -21,6 +21,13 @@ export type PlatformAppearance = Partial<{
   heroPattern: 'dots' | 'grid' | 'lines' | 'none';
   heroSize: 'comfortable' | 'compact';
   heroStats: 'inline' | 'cards';
+  // Mobile app only (edited on Mobile app → Appearance).
+  mobileTabBar: 'labels' | 'icons' | 'floating';
+  mobileStartScreen: 'home' | 'pos';
+  mobilePosGrid: 'list' | 'small' | 'medium' | 'large';
+  mobileHomeWidgets: string[];
+  mobileAnimations: boolean;
+  mobileHaptics: boolean;
 }>;
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

@@ -1,0 +1,25 @@
+{
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
+  "Aamdani likhein": "Income likhein",
+  "Amount likhein": "Amount likhein",
+  "Ausat cost": "Average cost",
+  "Ausat rate": "Average rate",
+  "Bayan": "Statement",
+  "Bills ki kul amount": "Bills ki kul amount",
+  "Gross profit minus kharchay": "Gross profit minus expenses",
+  "Hatayein": "Delete",
+  "Ishtehar": "Advertising",
+  "Kaarobari profit": "Business profit",
+  "Kharchay": "Expenses",
+  "Kharchay (operating)": "Expenses (operating)",
+  "Kism": "Type",
+  "Kul kharchay": "Total expenses",
+  "Naya account": "New account",
+  "Nayi category": "New category",
+  "Roz ka ausat": "Roz ka average",
+  "Sale ka rujhan": "Sale ka trend",
+  "Tareekh": "Date"
+}
