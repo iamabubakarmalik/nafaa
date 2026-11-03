@@ -2,14 +2,17 @@
   "expo": {
     "name": "Nafaa POS",
     "slug": "nafaa",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": ["nafaa", "com.nafaa.app"],
+    "scheme": [
+      "nafaa",
+      "com.nafaa.app"
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "primaryColor": "#16a34a",
-    "description": "Pakistan's smart POS \u2014 Sales, inventory, khata, and reports in one app.",
+    "description": "Pakistan's smart POS — Sales, inventory, khata, and reports in one app.",
     "updates": {
       "url": "https://u.expo.dev/378f6d14-5716-469e-9275-0af06ec03668",
       "fallbackToCacheTimeout": 0,
