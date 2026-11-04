@@ -98,6 +98,13 @@ export function AlertPrefsPanel() {
 
   return (
     <div className="space-y-4">
+      <Block icon={BellRing} title={tr('Apne kaam ke alerts bhi')} desc={tr('Staff ke kaam ke alerts owner/manager ko jate hain. Apne kaam ke alerts ke liye neeche on karein.')}>
+        <div className="space-y-3">
+          <Switch label={tr('Apne kaam ki khabar App me')} description={tr('Aap ka khud ka Sale ya Expense bhi list me aaye')} checked={prefs.ownActionsInApp} onChange={(ev) => save({ ownActionsInApp: ev.target.checked })} />
+          <Switch label={tr('Apne kaam ki push')} description={tr('Aap ka khud ka kaam ho to phone par bhi push aaye')} checked={prefs.ownActionsPush} onChange={(ev) => save({ ownActionsPush: ev.target.checked })} />
+        </div>
+      </Block>
+
       <Block icon={BellRing} title={tr('Kis baat ki khabar')} desc={tr('Sirf aap ke liye. Web aur app dono par yahi choices lagti hain.')}>
         <div className="overflow-hidden rounded-lg border border-slate-200">
           <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
@@ -107,6 +114,7 @@ export function AlertPrefsPanel() {
           </div>
           {prefs.events.map((e) => {
             const m = EVENT_META[e.event];
+            const desc = e.event === 'sale' && prefs.saleDigestMinutes > 0 ? `${m.desc()} · ${tr('Push har {{count}} min ka khulasa hai', { count: prefs.saleDigestMinutes })}` : m.desc();
             const I = m.icon;
             return (
               <div key={e.event} className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 border-t border-slate-100 px-3 py-2.5">
@@ -114,7 +122,7 @@ export function AlertPrefsPanel() {
                   <I className="h-4 w-4 shrink-0 text-slate-500" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-slate-900">{m.label()}</div>
-                    <div className="truncate text-xs text-slate-500">{m.desc()}</div>
+                    <div className="truncate text-xs text-slate-500">{desc}</div>
                   </div>
                 </div>
                 <span className="flex w-14 justify-center"><Switch size="sm" aria-label={tr('App me (ghanti)')} checked={e.inApp} onChange={(ev) => save({ events: { [e.event]: { inApp: ev.target.checked } } })} /></span>

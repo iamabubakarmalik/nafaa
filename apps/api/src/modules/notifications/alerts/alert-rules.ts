@@ -23,6 +23,8 @@ export interface AlertPrefs {
   saleMinAmount: number;
   saleDigestMinutes: number;
   discountPercent: number;
+  ownActionsInApp: boolean;
+  ownActionsPush: boolean;
 }
 
 export const DEFAULT_PREFS: AlertPrefs = {
@@ -35,6 +37,8 @@ export const DEFAULT_PREFS: AlertPrefs = {
   saleMinAmount: 0,
   saleDigestMinutes: 15,
   discountPercent: 20,
+  ownActionsInApp: true,
+  ownActionsPush: false,
 };
 
 export interface AlertPerson {
@@ -70,6 +74,8 @@ export function normalizePrefs(row: Partial<Record<keyof AlertPrefs, unknown>> |
     saleMinAmount: Math.max(0, num(row.saleMinAmount, 0)),
     saleDigestMinutes: (DIGEST_CHOICES as readonly number[]).includes(num(row.saleDigestMinutes, -1)) ? num(row.saleDigestMinutes, 15) : DEFAULT_PREFS.saleDigestMinutes,
     discountPercent: Math.min(100, Math.max(1, Math.round(num(row.discountPercent, 20)))),
+    ownActionsInApp: typeof row.ownActionsInApp === 'boolean' ? row.ownActionsInApp : DEFAULT_PREFS.ownActionsInApp,
+    ownActionsPush: typeof row.ownActionsPush === 'boolean' ? row.ownActionsPush : DEFAULT_PREFS.ownActionsPush,
   };
 }
 
@@ -77,7 +83,7 @@ export function normalizePrefs(row: Partial<Record<keyof AlertPrefs, unknown>> |
 export function sanitizePrefsInput(body: unknown, current: AlertPrefs): AlertPrefs {
   const src = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const merged: Record<string, unknown> = { ...current };
-  for (const key of ['sound', 'vibrate', 'quietHours', 'quietStart', 'quietEnd', 'saleMinAmount', 'saleDigestMinutes', 'discountPercent'] as const) {
+  for (const key of ['sound', 'vibrate', 'quietHours', 'quietStart', 'quietEnd', 'saleMinAmount', 'saleDigestMinutes', 'discountPercent', 'ownActionsInApp', 'ownActionsPush'] as const) {
     if (key in src) merged[key] = src[key];
   }
   const events: Record<string, unknown> = { ...current.events };

@@ -24667,6 +24667,10 @@ model UserNotificationPref {
   saleDigestMinutes Int      @default(15)
   /// A sale counts as a big discount at or above this percent of the bill.
   discountPercent   Int      @default(20)
+  /// Own actions (as the actor) appear in the bell / notifications list.
+  ownActionsInApp   Boolean  @default(true)
+  /// Own actions also send a push to the actor.
+  ownActionsPush    Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

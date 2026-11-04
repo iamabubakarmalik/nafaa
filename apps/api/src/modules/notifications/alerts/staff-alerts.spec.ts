@@ -11,6 +11,8 @@ const owner: AlertPerson = { id: 'o', role: 'OWNER', permissions: [], shopId: nu
 const manager: AlertPerson = { id: 'm', role: 'MANAGER', permissions: ['sales.view', 'expenses.view', 'returns.view'], shopId: 's1' };
 const cashier: AlertPerson = { id: 'c', role: 'CASHIER', permissions: ['sales.view', 'online_orders.view'], shopId: 's1' };
 
+const person = (id: string) => ({ id, role: 'OWNER', permissions: [], shopId: null });
+
 describe('alert rules: who gets what', () => {
   it('gives owners and managers the important events by default and keeps sale pushes off', () => {
     const p = normalizePrefs(null);
@@ -151,7 +153,7 @@ describe('StaffAlertsService', () => {
     return { svc, prisma, delivery, queue };
   }
 
-  it('tells the right people about an expense, not the person who added it', async () => {
+  it('tells the right people about an expense; the actor gets only the in-app row by default', async () => {
     const people = [
       row({ id: 'owner', mobileDevices: [device('ExponentPushToken[o]')] }),
       row({ id: 'actor', role: 'MANAGER', permissions: ['expenses.view'], shopId: 's1', mobileDevices: [device('ExponentPushToken[a]')] }),
@@ -161,11 +163,37 @@ describe('StaffAlertsService', () => {
     const { svc, prisma, delivery } = setup(people);
     await svc.run({ tenantId: 't', event: 'expense', shopId: 's1', actorId: 'actor', title: '🧾 Naya Expense', message: { message: '', messageKey: '{{title}} · Rs {{amount}} · {{by}}', params: { title: 'Rent', amount: '500' } } });
     const rows = prisma.notification.createMany.mock.calls[0][0].data;
-    expect(rows.map((r: any) => r.userId)).toEqual(['owner']);
+    expect(rows.map((r: any) => r.userId)).toEqual(['owner', 'actor']);
     expect(rows[0].message).toBe('Rent · Rs 500 · Asad');
     const items = delivery.deliver.mock.calls[0][0];
     expect(items).toHaveLength(1);
     expect(items[0].message).toMatchObject({ to: 'ExponentPushToken[o]', title: '🧾 New expense', body: 'Rent · Rs 500 · Asad', channelId: 'default', sound: 'default' });
+  });
+
+  it('plan(): actor flags control own-action alerts', () => {
+    const { svc } = setup([]);
+    const mk = (id: string, pref: any) => ({ ...person(id), prefs: normalizePrefs(pref), tokens: ['t'] }) as any;
+    const input = { tenantId: 't', event: 'expense', actorId: 'o', title: 'a', message: 'b' } as any;
+    const ids = (r: any[]) => r.map((x) => x.id);
+    let plan = svc.plan(input, [mk('o', null)]);
+    expect([ids(plan.inApp), ids(plan.push)]).toEqual([['o'], []]);
+    plan = svc.plan(input, [mk('o', { ownActionsPush: true })]);
+    expect([ids(plan.inApp), ids(plan.push)]).toEqual([['o'], ['o']]);
+    plan = svc.plan(input, [mk('o', { ownActionsInApp: false })]);
+    expect([ids(plan.inApp), ids(plan.push)]).toEqual([[], []]);
+    // The per-event switch still applies: sale push is off by default.
+    plan = svc.plan({ ...input, event: 'sale' }, [mk('o', { ownActionsPush: true })]);
+    expect(ids(plan.push)).toEqual([]);
+    plan = svc.plan({ ...input, event: 'sale' }, [mk('o', { ownActionsPush: true, events: { sale: { push: true } } })]);
+    expect(ids(plan.push)).toEqual(['o']);
+  });
+
+  it('prefs: own-action fields are normalized, defaulted and patchable', () => {
+    expect(normalizePrefs(null)).toMatchObject({ ownActionsInApp: true, ownActionsPush: false });
+    expect(normalizePrefs({} as any)).toMatchObject({ ownActionsInApp: true, ownActionsPush: false });
+    const next = sanitizePrefsInput({ ownActionsPush: true, ownActionsInApp: 'x', bogus: 1 }, normalizePrefs(null));
+    expect(next).toMatchObject({ ownActionsPush: true, ownActionsInApp: true });
+    expect(next).not.toHaveProperty('bogus');
   });
 
   it('respects a person who turned the push off but kept the in-app row', async () => {

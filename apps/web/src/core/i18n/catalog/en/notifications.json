@@ -164,5 +164,12 @@
   "WhatsApp": "WhatsApp",
   "WhatsApp par bhejein": "Send on WhatsApp",
   "Ye browser ye nahi karta": "This browser does not support it",
-  "Ye phone ab register nahi. App band kar ke dobara kholein, phir test karein.": "This phone is no longer registered. Close and reopen the app, then test again."
+  "Ye phone ab register nahi. App band kar ke dobara kholein, phir test karein.": "This phone is no longer registered. Close and reopen the app, then test again.",
+  "Apne kaam ke alerts bhi": "Alerts for my own actions too",
+  "Staff ke kaam ke alerts owner/manager ko jate hain. Apne kaam ke alerts ke liye neeche on karein.": "Alerts for staff actions go to the owner/manager. Turn on below to get alerts for your own actions.",
+  "Apne kaam ki khabar App me": "Own actions in the app",
+  "Aap ka khud ka Sale ya Expense bhi list me aaye": "Your own sales and expenses show in the list too",
+  "Apne kaam ki push": "Own actions as push",
+  "Aap ka khud ka kaam ho to phone par bhi push aaye": "Get a push on your phone for your own actions too",
+  "Push har {{count}} min ka khulasa hai": "Push is a summary every {{count}} min"
 }

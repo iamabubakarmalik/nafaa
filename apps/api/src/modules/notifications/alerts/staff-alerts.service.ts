@@ -33,7 +33,7 @@ export interface AlertInput {
   type?: NotificationType;
   /** Shop the event happened in; people tied to another shop are skipped. */
   shopId?: string | null;
-  /** The person who did it; they are not told about their own action. */
+  /** The person who did it; they are told only if their own-actions switches allow it. */
   actorId?: string | null;
   title: MessageText;
   message: MessageText;
@@ -149,13 +149,14 @@ export class StaffAlertsService implements OnModuleDestroy {
     const inApp: Recipient[] = [];
     const push: Recipient[] = [];
     for (const p of people) {
-      if (input.actorId && p.id === input.actorId && input.event !== 'dailySummary') continue;
+      const isActor = !!input.actorId && p.id === input.actorId && input.event !== 'dailySummary';
+      if (isActor && !p.prefs.ownActionsInApp && !p.prefs.ownActionsPush) continue;
       if (!inScope(p, input.shopId)) continue;
       if (input.event === 'sale' && (input.amount ?? 0) < p.prefs.saleMinAmount) continue;
       if (input.event === 'bigDiscount' && (input.percent ?? 0) < p.prefs.discountPercent) continue;
       const sw = eventSwitch(input.event, p, p.prefs);
-      if (sw.inApp) inApp.push(p);
-      if (sw.push && input.pushWorthy !== false && p.tokens.length) push.push(p);
+      if (sw.inApp && (!isActor || p.prefs.ownActionsInApp)) inApp.push(p);
+      if (sw.push && (!isActor || p.prefs.ownActionsPush) && input.pushWorthy !== false && p.tokens.length) push.push(p);
     }
     return { inApp, push };
   }
