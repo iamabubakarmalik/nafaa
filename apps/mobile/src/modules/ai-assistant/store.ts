@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from '@/core/auth/store';
 import { kv } from '@/core/storage/kv';
 import { t } from '@/core/i18n';
+import { hasAiConsent, requestAiConsent } from './lib/consent';
 import { AI_UNAVAILABLE, AiHttpError, aiApi, streamChat, type AiActionProposal, type AiChart, type AiChatRequest, type AiErrorCode, type AiLink, type AiMode, type AiReorder } from './api/ai';
 
 export interface ChatMessage {
@@ -227,6 +228,7 @@ export const useAiStore = create<AiState>((set, get) => {
     send: async (text, context, via = 'text') => {
       const message = text.trim();
       if (!message || get().streaming) return;
+      if (!hasAiConsent()) { requestAiConsent({ text: message, context, via }); return; }
       set((s) => ({ messages: [...s.messages, blank('user', message, { via }), blank('assistant', '', { pending: true })] }));
       const { conversationId, mode } = get();
       await run({ conversationId: conversationId ?? undefined, message, mode, context, via });
@@ -235,6 +237,7 @@ export const useAiStore = create<AiState>((set, get) => {
     regenerate: async (context) => {
       const { messages, conversationId, mode, streaming } = get();
       if (streaming || !conversationId) return;
+      if (!hasAiConsent()) { requestAiConsent(); return; }
       const lastUser = [...messages].reverse().find((m) => m.role === 'user');
       if (!lastUser) return;
       const cut = messages[messages.length - 1]?.role === 'assistant' ? messages.slice(0, -1) : messages;
@@ -246,6 +249,7 @@ export const useAiStore = create<AiState>((set, get) => {
       const message = text.trim();
       const { messages, conversationId, mode, streaming } = get();
       if (!message || streaming) return;
+      if (!hasAiConsent()) { requestAiConsent({ text: message, context, via }); return; }
       let i = messages.length - 1;
       while (i >= 0 && messages[i].role !== 'user') i--;
       if (i < 0 || !conversationId) { await get().send(message, context, via); return; }
@@ -256,6 +260,7 @@ export const useAiStore = create<AiState>((set, get) => {
     retry: async (context) => {
       const { messages, conversationId, streaming } = get();
       if (streaming) return;
+      if (!hasAiConsent()) { requestAiConsent(); return; }
       if (conversationId) { await get().regenerate(context); return; }
       // Never saved: drop the failed pair and ask again.
       let i = messages.length - 1;

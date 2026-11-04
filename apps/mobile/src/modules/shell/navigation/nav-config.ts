@@ -304,6 +304,7 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
     id: 'account', title: msg('Appearance & account'), icon: Palette, desc: msg('Rang, font, dark mode aur policies'),
     items: [
       { to: '/settings/appearance', href: '/settings/appearance', label: msg('Appearance'), icon: Palette, desc: msg('Rang, font, dark mode, text size, layout'), keywords: 'theme dark light mode color brand font urdu text size compact density corners tab bar haptics animation' },
+      { to: '/settings/ai', href: '/settings/ai', label: msg('Nafaa AI'), icon: Sparkles, permission: P.AI_USE, desc: msg('AI ko data bhejne ki ijazat'), keywords: 'ai data privacy consent share ijazat' },
       { to: '/help', href: '/help', label: msg('Help center'), icon: LifeBuoy, desc: msg('Sawal, video aur rabta'), keywords: 'help support madad' },
       { to: '/legal', href: '/legal', label: msg('Terms & privacy'), icon: ScrollText, desc: msg('Policies aur legal'), keywords: 'terms privacy policy legal' },
     ],

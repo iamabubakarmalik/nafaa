@@ -62,6 +62,8 @@ export interface AlertPrefs {
   saleMinAmount: number;
   saleDigestMinutes: number;
   discountPercent: number;
+  ownActionsInApp: boolean;
+  ownActionsPush: boolean;
   sounds: AlertSound[];
   digestChoices: number[];
 }

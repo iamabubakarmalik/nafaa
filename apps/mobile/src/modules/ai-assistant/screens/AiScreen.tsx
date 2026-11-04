@@ -7,7 +7,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
-import { History, MapPin, Send, Square, SquarePen, WifiOff } from 'lucide-react-native';
+import { History, MapPin, Send, ShieldCheck, Square, SquarePen, WifiOff } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -20,8 +20,10 @@ import { PERMISSIONS, usePermission } from '@/core/permissions';
 import { useFeatureFlag } from '@/modules/app-control';
 import { Button, Card, Chip, EmptyState, IconButton, Input, NafaaAiMark, PressableScale, Screen, Segmented, Sheet, Text, toast, useLayout, useTheme } from '@/design';
 import { aiApi } from '../api/ai';
+import { AiConsentSheet } from '../components/AiConsentSheet';
 import { AiHistory } from '../components/AiHistory';
 import { MessageItem } from '../components/MessageItem';
+import { requestAiConsent, useAiConsent } from '../lib/consent';
 import { pageContext, pageInfo } from '../lib/suggestions';
 import { useAiStore, type ChatMessage } from '../store';
 
@@ -35,6 +37,7 @@ export function AiScreen() {
   const userId = useAuthStore((s) => s.user?.id);
   const { from } = useLocalSearchParams<{ from?: string }>();
   const s = useAiStore();
+  const consent = useAiConsent();
   const [text, setText] = useState('');
   const [editing, setEditing] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -51,6 +54,10 @@ export function AiScreen() {
     if (owner && owner !== userId) useAiStore.getState().newChat();
     useAiStore.setState({ ownerId: userId });
   }, [userId]);
+
+  // Asked once, before the first question; afterwards only when a question is sent without consent.
+  const allowedHere = enabled && can(PERMISSIONS.AI_USE);
+  useEffect(() => { if (allowedHere && consent === null) requestAiConsent(); }, [allowedHere, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const status = useQuery({ queryKey: ['ai', 'status'], queryFn: aiApi.status, staleTime: 60_000, retry: false, enabled: online });
   useEffect(() => { if (status.data) s.setRemaining(status.data.remaining); }, [status.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -100,6 +107,15 @@ export function AiScreen() {
       <NafaaAiMark size={64} />
       <Text size="lg" weight="bold" align="center">{t('Assalam-o-Alaikum! Main Nafaa AI hoon.')}</Text>
       <Text size="sm" tone="muted" align="center">{t('Apni dukaan ke baare mein kuch bhi poochein — Sale, Profit, stock, udhaar, expenses. Jawab aap ke asal data se aata hai.')}</Text>
+      {consent !== 'allowed' && (
+        <Card tone="brand" style={{ alignSelf: 'stretch', marginTop: th.space(4) }}>
+          <View style={{ flexDirection: 'row', gap: th.space(3), alignItems: 'center' }}>
+            <ShieldCheck size={20} color={th.colors.brand.text} />
+            <Text size="sm" style={{ flex: 1 }}>{t('Sawal poochne ke liye Nafaa AI ko data bhejne ki ijazat dein.')}</Text>
+            <Button size="sm" variant="primary" onPress={() => requestAiConsent()}>{t('Allow')}</Button>
+          </View>
+        </Card>
+      )}
       {online ? (
         <View style={{ alignSelf: 'stretch', gap: th.space(2), marginTop: th.space(4) }}>
           {info.questions.map((q) => (
@@ -125,7 +141,7 @@ export function AiScreen() {
         </View>
       )}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(2), paddingHorizontal: th.space(4), paddingTop: th.space(2) }}>
-        <Segmented value={s.mode} onChange={s.setMode} options={[{ value: 'fast', label: t('Fast') }, { value: 'smart', label: t('Smart') }]} />
+        <Segmented style={{ width: 200 }} value={s.mode} onChange={s.setMode} options={[{ value: 'fast', label: t('Fast') }, { value: 'smart', label: t('Smart') }]} />
         <View style={{ flex: 1 }}>
           <Text size="xs" tone="muted" align="end">
             {smart ? t('3 message ke barabar') : s.remaining != null ? t('Aaj {{remaining}} sawal baqi', { remaining: s.remaining }) : ''}
@@ -204,6 +220,7 @@ export function AiScreen() {
       <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title={t('Purani chats')} height={0.8} scrollable={false}>
         <AiHistory onPicked={() => setHistoryOpen(false)} />
       </Sheet>
+      <AiConsentSheet />
     </Screen>
   );
 }

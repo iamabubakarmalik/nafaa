@@ -202,12 +202,17 @@ export function AlertPrefsSections() {
 
   return (
     <>
+      <SettingsGroup title={t('Apne kaam ke alerts bhi')} footnote={t('Staff ke kaam ke alerts owner/manager ko jate hain. Apne kaam ke alerts ke liye neeche on karein.')}>
+        <SettingSwitch label={t('Apne kaam ki khabar App me')} description={t('Aap ka khud ka Sale ya Expense bhi list me aaye')} value={prefs.ownActionsInApp} onChange={(v) => save({ ownActionsInApp: v })} disabled={disabled} />
+        <SettingSwitch label={t('Apne kaam ki push')} description={t('Aap ka khud ka kaam ho to phone par bhi push aaye')} value={prefs.ownActionsPush} onChange={(v) => save({ ownActionsPush: v })} disabled={disabled} />
+      </SettingsGroup>
+
       <TestPush disabled={disabled} />
 
       <SettingsGroup title={t('Kis baat ki khabar')} footnote={t('Sirf aap ke liye. Web aur app dono par yahi choices lagti hain.')}>
         {prefs.events.map((e) => {
           const meta = EVENT_META[e.event];
-          return <ListRow key={e.event} icon={meta.icon} title={t(meta.label)} subtitle={stateText(e)} chevron onPress={() => setOpen(e.event)} />;
+          return <ListRow key={e.event} icon={meta.icon} title={t(meta.label)} subtitle={e.event === 'sale' && prefs.saleDigestMinutes > 0 ? `${stateText(e)} · ${t('Push har {{count}} min ka khulasa hai', { count: prefs.saleDigestMinutes })}` : stateText(e)} chevron onPress={() => setOpen(e.event)} />;
         })}
       </SettingsGroup>
 
