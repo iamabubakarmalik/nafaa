@@ -15,7 +15,7 @@ import { DOC_ROOT_PATH, type EntryCard, type PublicEntity, type PublicEntry, typ
 import { PageBreadcrumbs } from '@/components/layout/Breadcrumbs';
 import { cx } from '@/components/ui/cx';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { Body } from '../article/parts/Body';
+import { Body, ClosingCta } from '../article/parts/Body';
 import { relativePath } from '../article/parts/Cards';
 import { FixtureRibbon } from '../article/parts/FixtureRibbon';
 import { formatDate, isoDate } from '../article/parts/format';
@@ -204,7 +204,7 @@ export function DocsTemplate({ entry, docs, site, entity, section = DEVELOPER_DO
             {isRoot && section.apiHero ? <ApiHero live={new Set(docs.map((d) => d.path))} /> : null}
 
             <div className="docs-body -mx-gutter mt-8 [&_.mx-auto]:!ml-0">
-              <Body entry={entry} variant="docs" withFaqs />
+              <Body entry={entry} variant="docs" withFaqs ctaAtEnd />
             </div>
 
             {childCards.length ? (
@@ -243,6 +243,8 @@ export function DocsTemplate({ entry, docs, site, entity, section = DEVELOPER_DO
                 ) : null}
               </nav>
             ) : null}
+
+            <ClosingCta entry={entry} site={site} fallback={false} className="docs-body -mx-gutter mt-6 [&_.mx-auto]:!ml-0" />
           </article>
 
           {toc.length > 1 ? (

@@ -128,7 +128,7 @@ Check whether Lightspeed sells and supports its Retail plans in Pakistan, and in
     'apps/web/src/modules/organization/shops/pages/ShopsOverviewPage.tsx',
     'apps/web/src/modules/hr/staff/components/RolesPanel.tsx',
     'apps/web/src/core/lib/offline/offlineSales.ts',
-    'apps/web/src/integrations/channels/daraz',
+    'apps/api/src/integrations/online-orders/daraz.service.ts',
     'apps/api/src/integrations/online-orders/courier-api/registry.ts',
     'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
     'apps/web/vite.config.ts',

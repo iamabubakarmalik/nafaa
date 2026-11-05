@@ -151,7 +151,17 @@ export const getEntry = cache(async (path: string, locale: string = DEFAULT_LOCA
       if (!(error instanceof CmsError && error.status === 401)) throw error;
     }
   }
-  const entry = await request<PublicEntry>('entry', { path, locale }, { allow404: true, tagParams: { locale, path } });
+  let entry: PublicEntry | null;
+  try {
+    entry = await request<PublicEntry>('entry', { path, locale }, { allow404: true, tagParams: { locale, path } });
+  } catch (error) {
+    // The API answers 400 for paths its schema rejects (for example
+    // "/feed.xml" or "/wp-login.php"). No entry can live there, so such a path
+    // is a miss: the caller tries the redirect table and then 404s, instead
+    // of answering 500.
+    if (error instanceof CmsError && error.status === 400) return null;
+    throw error;
+  }
   return entry ? withPairedAlternates(entry) : null;
 });
 

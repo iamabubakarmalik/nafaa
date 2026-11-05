@@ -235,7 +235,7 @@ export const entry: SeedEntry = {
     'apps/web/src/modules/customers/khata',
     'apps/web/src/core/payments/payQr.ts',
     'apps/web/src/modules/pos/components/PaymentMethodPicker.tsx',
-    'apps/web/src/core/i18n/messages/ur.json',
+    'apps/web/src/core/i18n/catalog/ur',
     'apps/web/src/modules/organization/shops',
     'apps/web/src/modules/inventory/transfers',
     'apps/web/src/industries/agri',

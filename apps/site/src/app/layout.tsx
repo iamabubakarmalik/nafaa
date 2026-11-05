@@ -28,6 +28,8 @@ import { PreviewBar } from '@/components/layout/PreviewBar';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { WhatsAppFab } from '@/components/layout/WhatsAppFab';
+import { MobileCtaBar } from '@/components/layout/MobileCtaBar';
+import { whatsappHref } from '@/components/blocks/lib/links';
 import { ThemeScript } from '@/components/layout/ThemeScript';
 import { EnglishOnly, LocaleHtml, LocaleMain } from '@/components/layout/LocaleGate';
 import { Analytics } from '@/components/islands/Analytics';
@@ -38,6 +40,7 @@ import { getEntity, getLayout, getPairedPaths, getPreviewToken, validatePreviewT
 import { siteIndexable, siteUrl } from '@/lib/cms/env';
 import { PREVIEW } from '@/lib/cms/preview';
 import { DEFAULT_LOCALE, OG_LOCALE } from '@/lib/cms/locale';
+import { FEED_PATH } from '@/lib/seo/feed';
 import { fontVariables } from '@/styles/fonts';
 import '@/styles/globals.css';
 import '@/components/layout/theme.css';
@@ -76,6 +79,20 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
+/** English only: the bar is part of the English shell (see MobileCtaBar). */
+const MOBILE_BAR_LABELS = {
+  region: 'Start with Nafaa',
+  trial: 'Start free trial',
+  whatsapp: 'WhatsApp',
+  whatsappAria: 'Chat with Nafaa on WhatsApp',
+};
+
+/** wa.me link from the entity's contact phone, the same fallback the floating button uses. */
+function phoneWhatsapp(phone: string | null | undefined): string | null {
+  const digits = phone?.replace(/\D/g, '') ?? '';
+  return digits.length >= 8 ? `https://wa.me/${digits.replace(/^0/, '92')}` : null;
+}
+
 async function previewState(): Promise<{ expiresAt: string | null } | null> {
   if (!(await draftMode()).isEnabled) return null;
   const token = await getPreviewToken();
@@ -100,8 +117,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <LocaleHtml urLive={layout.site.locales.includes('ur')} className={fontVariables}>
       <head>
         <ThemeScript />
+        {/* In <head> directly: a page's own metadata `alternates` would replace a root-level one. */}
+        <link rel="alternate" type="application/rss+xml" title={`${layout.site.name} blog`} href={FEED_PATH} />
       </head>
-      <body className="flex min-h-dvh flex-col">
+      {/* Clarity's default (Balanced) masking turns every word with a digit into
+          boxes ("Rs 1,500" → "Rs ▫,▫▫▫"), which made prices unreadable in
+          replays. Site copy is public, so the body is unmasked; form fields
+          stay masked by Clarity regardless, and forms and private tools opt
+          back in with data-clarity-mask. */}
+      <body className="flex min-h-dvh flex-col" data-clarity-unmask="true">
         {preview ? <PreviewBar expiresAt={preview.expiresAt} exitPath={PREVIEW.siteExitPath} /> : null}
         <EnglishOnly>
           <SiteHeader layout={layout} paired={paired} />
@@ -110,6 +134,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <EnglishOnly>
           <SiteFooter layout={layout} entity={entity} consentEnabled={consentEnabled} paired={paired} />
           <WhatsAppFab whatsapp={layout.site.whatsapp ?? whatsappFromEnv()} phone={entity?.contact?.phone} />
+          <MobileCtaBar
+            signupUrl={layout.site.signupUrl}
+            whatsappHref={whatsappHref(layout.site.whatsapp ?? whatsappFromEnv()) ?? phoneWhatsapp(entity?.contact?.phone)}
+            labels={MOBILE_BAR_LABELS}
+          />
         </EnglishOnly>
         <MotionObserver />
         <Analytics

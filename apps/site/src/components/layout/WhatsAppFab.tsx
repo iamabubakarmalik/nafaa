@@ -31,6 +31,7 @@ export function WhatsAppFab({
         href={href}
         rel="noopener"
         className={styles.fab}
+        data-whatsapp-fab=""
         data-track="whatsapp_click"
         data-track-label="Floating WhatsApp button"
         aria-label={t.whatsappFabLabel}
@@ -55,7 +56,7 @@ export function WhatsAppFab({
           <span className={styles.labelNote}>{t.whatsappFabNote}</span>
         </span>
       </a>
-      <span aria-hidden className={styles.spacer} />
+      <span aria-hidden data-whatsapp-fab="" className={styles.spacer} />
     </>
   );
 }

@@ -24,7 +24,7 @@ export const faqs: SeedFaq[] = [
     topic: 'solutions',
     question: 'کیا Nafaa میں میرا آن لائن اسٹور اور دکان ایک ہی اسٹاک استعمال کریں گے؟',
     answer:
-      'جی ہاں۔ ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Bazaar کے آرڈر انہی پروڈکٹس کے اسٹاک سے کٹتے ہیں جن سے کاؤنٹر بیچتا ہے۔ جب دکان میں آخری پیس بک جائے تو آن لائن چینل بھی اپ ڈیٹ ہو جاتے ہیں، اس لیے آپ وہ چیز نہیں بیچتے جو آپ کے پاس اب ہے ہی نہیں۔',
+      'جی ہاں۔ ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Market کے آرڈر انہی پروڈکٹس کے اسٹاک سے کٹتے ہیں جن سے کاؤنٹر بیچتا ہے۔ جب دکان میں آخری پیس بک جائے تو آن لائن چینل بھی اپ ڈیٹ ہو جاتے ہیں، اس لیے آپ وہ چیز نہیں بیچتے جو آپ کے پاس اب ہے ہی نہیں۔',
     sourceNote: 'stock-push.service and channel-catalog.service; marketplace publishing from Nafaa products.',
     origin: 'translation of faq mp-ecommerce-stock',
     evidence: [
@@ -39,7 +39,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa آن لائن اسٹور کے ساتھ میں انٹرنیٹ پر مال بیچ سکتا ہوں؟',
     answer:
-      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ آتے ہیں اور اسی شیلف کے اسٹاک سے کٹتے ہیں۔ نئے خریدار تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Bazaar پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
+      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ آتے ہیں اور اسی شیلف کے اسٹاک سے کٹتے ہیں۔ نئے خریدار تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Market پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: [
@@ -84,7 +84,7 @@ export const entry: SeedEntry = {
     {
       type: 'answerBox',
       facts: [
-        { label: 'چینل', value: 'ویب سائٹ، Shopify، WooCommerce، Daraz، Foodpanda اور Nafaa Bazaar' },
+        { label: 'چینل', value: 'ویب سائٹ، Shopify، WooCommerce، Daraz، Foodpanda اور Nafaa Market' },
         { label: 'اسٹاک', value: 'کاؤنٹر اور آن لائن کا ایک ہی اسٹاک؛ چیز بکے تو ہر چینل اپ ڈیٹ ہو جاتا ہے' },
         { label: 'کوریئر', value: 'TCS، Leopards، M&P، PostEx، Trax اور CallCourier' },
         { label: 'ادائیگی', value: 'COD، اور JazzCash اور Easypaisa کے پیمنٹ لنک' },
@@ -152,7 +152,7 @@ export const entry: SeedEntry = {
     {
       type: 'diagram',
       heading: 'کلک سے دروازے تک',
-      caption: 'ویب سائٹ، Shopify، Daraz اور Nafaa Bazaar کے آرڈر ایک لسٹ میں آتے ہیں، دکان کے اپنے اسٹاک سے پیک ہوتے ہیں اور کوریئر کو دیے جاتے ہیں۔',
+      caption: 'ویب سائٹ، Shopify، Daraz اور Nafaa Market کے آرڈر ایک لسٹ میں آتے ہیں، دکان کے اپنے اسٹاک سے پیک ہوتے ہیں اور کوریئر کو دیے جاتے ہیں۔',
       diagram: {
         kind: 'flow',
         nodes: [
@@ -196,7 +196,7 @@ export const entry: SeedEntry = {
         { label: 'Shopify یا WooCommerce', cells: { how: { value: 'Nafaa کا کنکشن انسٹال کریں یا منظور کریں' }, best: { value: 'وہ اسٹور جو پہلے سے آن لائن بیچ رہے ہیں اور دکان کے ساتھ ایک اسٹاک چاہتے ہیں' } } },
         { label: 'Daraz', cells: { how: { value: 'اپنا سیلر اکاؤنٹ جوڑیں' }, best: { value: 'اپنی مارکیٹنگ کے بغیر پورے پاکستان کے خریداروں تک پہنچنا' } } },
         { label: 'Foodpanda', cells: { how: { value: 'اپنا ریسٹورنٹ جوڑیں' }, best: { value: 'ڈیلیوری آرڈر لینے والے ریسٹورنٹ اور بیکریاں' } } },
-        { label: 'Nafaa Bazaar', cells: { how: { value: 'Nafaa سے پروڈکٹس شائع کریں' }, best: { value: 'Nafaa کی اپنی مارکیٹ پلیس پر قریبی خریداروں کو نظر آنا' } } },
+        { label: 'Nafaa Market', cells: { how: { value: 'Nafaa سے پروڈکٹس شائع کریں' }, best: { value: 'Nafaa کی اپنی مارکیٹ پلیس پر قریبی خریداروں کو نظر آنا' } } },
       ],
       id: 'bf498c8eae40',
     },

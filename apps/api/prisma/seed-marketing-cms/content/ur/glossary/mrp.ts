@@ -47,7 +47,7 @@ Nafaa ہر پروڈکٹ کی کاسٹ پرائس اور سیل پرائس محف
   ],
   origin: 'translation of content/glossary/products.ts (26 Oct 2026)',
   evidence: [
-    'apps/web/src/modules/inventory/products/components/VariantCard.tsx',
+    'apps/web/src/modules/inventory/products/detail/tabs.tsx',
     'apps/web/src/modules/inventory/products/editor/coreSteps.tsx',
   ],
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },

@@ -118,11 +118,11 @@ const articles: HelpArticle[] = [
   },
   {
     slug: 'mobile-imei-tracking',
-    title: 'Mobile shop: track every phone by IMEI',
+    title: 'IMEI tracking for mobile shops with PTA status',
     summary:
       'Add a phone model once, then put each handset into stock by its IMEI with cost, warranty and PTA status. Sell by scanning the IMEI at the counter, and use IMEI check to see when and to whom a phone was sold.',
-    seoDescription: 'How to add phones by IMEI in Nafaa, record PTA status and warranty, sell by scanning the IMEI and check any IMEI’s history at the counter.',
-    focusKeyword: 'imei tracking software',
+    seoDescription: 'A PTA IMEI tracker for mobile shops: add phones by IMEI, record PTA status and warranty, sell by scanning and check any IMEI’s history.',
+    focusKeyword: 'imei tracking pakistan',
     intro: [
       'A mobile shop account keeps new phones by IMEI, not just by count. The model (for example a 4GB/64GB phone in black) is the product; each handset in the box is a separate IMEI with its own cost, warranty and PTA status. Accessories such as chargers and covers are ordinary products sold by count.',
       '',

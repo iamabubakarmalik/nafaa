@@ -46,7 +46,7 @@ export const home: SeedEntry = {
   slug: '',
   title: 'Nafaa',
   summary:
-    'Nafaa is complete business software from Pakistan: POS, inventory, digital khata, an online store, the Nafaa Bazaar marketplace, staff and reports in one account, for shops, restaurants, online sellers, wholesalers, service businesses and multi-branch companies. Billing keeps working without internet.',
+    'Nafaa is complete business software from Pakistan: POS, inventory, digital khata, an online store, the Nafaa Market marketplace, staff and reports in one account, for shops, restaurants, online sellers, wholesalers, service businesses and multi-branch companies. Billing keeps working without internet.',
   data: { template: 'home' },
   seoTitle: 'Nafaa: Business Software, POS & Inventory for Every Business',
   seoDescription:
@@ -105,7 +105,7 @@ export const home: SeedEntry = {
         { label: 'Price', value: '7-day free trial, then paid plans from {{price:min.monthly}} a month' },
       ],
       romanUrdu:
-        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, Nafaa Bazaar, staff aur reports, sab ek account me. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
+        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, Nafaa Market, staff aur reports, sab ek account me. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
     },
     {
       id: 'home-platform',
@@ -120,7 +120,7 @@ export const home: SeedEntry = {
         { icon: 'notebook-pen', title: 'Digital khata', body: 'Every customer’s udhaar and payments, with a WhatsApp reminder in one tap.', href: '/product/khata' },
         { icon: 'receipt', title: 'Tax invoices', body: 'Optional FBR/PRA integration, only if your business needs it.', href: '/product/fbr' },
         { icon: 'shopping-bag', title: 'Online store', body: 'Orders from your own website, Shopify or WooCommerce land on the counter with stock in sync.', href: '/product/online-store' },
-        { icon: 'store', title: 'Nafaa Bazaar', body: 'List your products on the Nafaa marketplace and take orders from new customers.', href: '/marketplace' },
+        { icon: 'store', title: 'Nafaa Market', body: 'List your products on the Nafaa marketplace and take orders from new customers.', href: '/marketplace' },
         { icon: 'users', title: 'Staff & payroll', body: 'Roles and permissions, attendance, commission and payroll for every member of staff.', href: '/product/staff' },
         { icon: 'chart-column', title: 'Reports', body: 'Profit by product, profit and loss, day book, stock and tax reports.', href: '/product/reports' },
         { icon: 'wifi-off', title: 'Works offline', body: 'The counter keeps billing without internet and syncs when the connection returns.', href: '/product/offline-pos' },
@@ -220,7 +220,7 @@ export const home: SeedEntry = {
       items: [
         { icon: 'store', title: 'Retail & shops', body: 'Fast billing, stock in every unit and khata for kiryana, pharmacy, garments, mobile and 25+ other trades.', href: '/solutions/single-shop' },
         { icon: 'building-2', title: 'Retail chains', body: 'Branch-wise stock and sales, transfers, staff roles and one view of every branch.', href: '/solutions/retail-chains' },
-        { icon: 'shopping-bag', title: 'E-commerce sellers', body: 'Your own online store plus Nafaa Bazaar, with website orders and counter sales from one stock.', href: '/solutions/ecommerce' },
+        { icon: 'shopping-bag', title: 'E-commerce sellers', body: 'Your own online store plus Nafaa Market, with website orders and counter sales from one stock.', href: '/solutions/ecommerce' },
         { icon: 'utensils-crossed', title: 'Restaurants & cafés', body: 'Tables, dine-in, takeaway and delivery, kitchen tickets per station and split bills.', href: '/solutions/restaurants' },
         { icon: 'truck', title: 'Wholesale & distribution', body: 'Carton and piece prices, supplier purchases, customer credit limits and khata.', href: '/solutions/wholesale-distribution' },
         { icon: 'factory', title: 'Manufacturing', body: 'Stock, purchasing and reports today; tell us your process and we build the rest.', href: '/solutions/manufacturing' },
@@ -249,7 +249,7 @@ export const home: SeedEntry = {
       id: 'home-how-2',
       type: 'diagram',
       heading: 'One stock for the counter and every online channel',
-      caption: 'Orders from your website and Nafaa Bazaar take stock from the same shelf as the counter, so you never sell what you do not have.',
+      caption: 'Orders from your website and Nafaa Market take stock from the same shelf as the counter, so you never sell what you do not have.',
       diagram: { kind: 'store-sync' },
     },
     {
@@ -323,7 +323,7 @@ export const home: SeedEntry = {
     'apps/web/src/modules/hr',
     'apps/web/src/modules/reports',
     'apps/web/src/modules/finance/profit-report',
-    'apps/web/src/modules/multi-branch',
+    'apps/web/src/modules/organization/shops',
     'apps/web/src/modules/inventory/transfers',
     'apps/api/src/integrations/accounting',
     'apps/api/src/integrations/whatsapp',
@@ -334,7 +334,7 @@ export const home: SeedEntry = {
   ],
   factCheck: {
     checkedOn: '2026-10-20',
-    note: 'Module list checked against apps/web and apps/api: tax adapters (FBR, PRA, SRB, KPRA), online orders (website, WooCommerce, Shopify), Nafaa Bazaar publishing, HR (attendance, commission, payroll), accounting journal export (QuickBooks, Xero, Zoho, Tally), public API keys and webhooks, restaurant tables and stations, customer credit limit. The AI assistant is shown as available on the owner’s instruction (21 Oct 2026: the feature is about to ship). Manufacturing has no module, so it is offered as a build-to-order lead.',
+    note: 'Module list checked against apps/web and apps/api: tax adapters (FBR, PRA, SRB, KPRA), online orders (website, WooCommerce, Shopify), Nafaa Market publishing, HR (attendance, commission, payroll), accounting journal export (QuickBooks, Xero, Zoho, Tally), public API keys and webhooks, restaurant tables and stations, customer credit limit. The AI assistant is shown as available on the owner’s instruction (21 Oct 2026: the feature is about to ship). Manufacturing has no module, so it is offered as a build-to-order lead.',
   },
   dropped: ['B2B ordering between shops (apps/api/src/modules/b2b-wholesale) has no screen in apps/web yet, so it is not claimed.', 'Foodpanda channel: only DTOs exist, not claimed.'],
   needsOwner: ['Service page slugs /services/websites and /services/mobile-apps are new; confirm they will be written (PLAN lists custom-software, online-store-setup, data-migration, fbr-integration-setup, hardware, training).'],

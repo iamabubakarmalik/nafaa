@@ -193,7 +193,7 @@ You do not need dozens of reports. These few, read monthly, tell you most of wha
   evidence: [
     'apps/web/src/modules/inventory/products',
     'apps/web/src/modules/inventory/product-units',
-    'apps/web/src/modules/inventory/products/components/VariantBuilder.tsx',
+    'apps/web/src/modules/inventory/products/detail/tabs.tsx',
     'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
     'apps/web/src/modules/inventory/low-stock/components/ReorderView.tsx',
     'apps/web/src/modules/inventory/stock-adjustments/components/StockCountPanel.tsx',

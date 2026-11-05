@@ -128,7 +128,7 @@ No. One account holds both branches, each with its own stock and staff, and the 
     'apps/web/src/industries/salon',
     'apps/web/src/industries/clinic',
     'apps/web/src/industries/bookstore',
-    'apps/web/src/core/stores/locale.store.ts',
+    'apps/web/src/core/i18n/locales.ts',
     'apps/web/src/modules/organization/team/api/team.api.ts',
     'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
     'apps/web/src/modules/pos/components/PosTiles.tsx',

@@ -147,7 +147,7 @@ export const entry: SeedEntry = {
         { icon: 'wallet', title: 'پیمنٹ', body: 'کیش آن ڈیلیوری (COD)، اور جہاں چاہیں Nafaa سے JazzCash یا Easypaisa کے پیمنٹ لنک۔' },
         { icon: 'truck', title: 'کوریئر', body: 'Nafaa سے TCS، Leopards، M&P، PostEx، Trax یا Call Courier کی بکنگ۔' },
         { icon: 'package-search', title: 'Google پر پروڈکٹس', body: 'Google کے لیے پروڈکٹ فیڈ، تاکہ خریدار آپ کو ڈھونڈ سکیں۔' },
-        { icon: 'store', title: 'Nafaa Bazaar', body: 'چاہیں تو یہی پروڈکٹس Nafaa کی مارکیٹ پلیس پر بھی لگائیں۔' },
+        { icon: 'store', title: 'Nafaa Market', body: 'چاہیں تو یہی پروڈکٹس Nafaa کی مارکیٹ پلیس پر بھی لگائیں۔' },
       ],
       id: 'b8c1b0878baf',
     },

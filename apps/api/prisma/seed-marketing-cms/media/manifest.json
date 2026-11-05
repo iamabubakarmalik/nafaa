@@ -15,7 +15,9 @@
       "checksum": "5438e1fe4263126c324f3bd93484370cbfa40b83",
       "kind": "SCREENSHOT",
       "alt": "Agri store bulk orders in Nafaa: season orders per farmer with fertilizer and seed, total and balance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ایگری اسٹور کے بلک آرڈرز: ہر کسان کے سیزن آرڈر، کھاد اور بیج کے ساتھ، ٹوٹل اور بیلنس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -39,7 +41,9 @@
       "checksum": "0b7396a33b03dddec5822975d89e1ee6cba8f126",
       "kind": "SCREENSHOT",
       "alt": "Agri store farmer khata in Nafaa: each farmer's land and udhaar against the credit limit, season due date and collect button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ایگری اسٹور کا کسان کھاتہ: ہر کسان کی زمین اور ادھار کریڈٹ لمٹ کے مقابلے میں، سیزن کی آخری تاریخ اور وصولی کا بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -63,7 +67,9 @@
       "checksum": "a9d3992c71717383611e8db6fa48d2579a8583db",
       "kind": "SCREENSHOT",
       "alt": "Appliance installations in Nafaa: each AC or TV fitting with the customer, address, time slot, technician and status",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں اپلائنسز کی انسٹالیشنز: ہر AC یا TV فٹنگ، کسٹمر، پتہ، ٹائم سلاٹ، ٹیکنیشن اور اسٹیٹس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -87,7 +93,9 @@
       "checksum": "b2097f0b5cc6d9bf65b6ab7590053a65ae6902e3",
       "kind": "SCREENSHOT",
       "alt": "Appliance repair requests in Nafaa: product, customer complaint, warranty flag, urgency, technician, visit date and charge",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں اپلائنسز کی مرمت کی درخواستیں: پروڈکٹ، کسٹمر کی شکایت، وارنٹی، ارجنسی، ٹیکنیشن، وزٹ کی تاریخ اور چارج"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -111,7 +119,9 @@
       "checksum": "d842b1c8e51701bb570ae6e930d2347b2eb45b0e",
       "kind": "SCREENSHOT",
       "alt": "Auto parts stock in Nafaa: each part with its part number, brand and category, price, cost, margin and stock, with low-stock parts flagged",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں آٹو پارٹس کا Stock: ہر پارٹ اپنے پارٹ نمبر، برانڈ، کیٹیگری، قیمت، Cost، مارجن اور Stock کے ساتھ، کم Stock والے پارٹس نشان زد"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -135,7 +145,9 @@
       "checksum": "ce8af3909136748221ec41d76f0527b999d87670",
       "kind": "SCREENSHOT",
       "alt": "Auto workshop job cards in Nafaa: each car by registration with the customer's complaint, status, promised time, bill and balance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں آٹو ورکشاپ کے جاب کارڈ: ہر گاڑی رجسٹریشن نمبر سے، کسٹمر کی شکایت، اسٹیٹس، وعدے کا وقت، بل اور بیلنس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -159,7 +171,9 @@
       "checksum": "6907b53c7cfba0c1bce4dd8511c251a3c801cda2",
       "kind": "SCREENSHOT",
       "alt": "Bakery cake orders in Nafaa: flavour, weight, message on the cake, due time, pickup or delivery, and the balance after the advance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں بیکری کے کیک آرڈرز: فلیور، وزن، کیک پر پیغام، ڈیو ٹائم، پک اپ یا ڈیلیوری، اور ایڈوانس کے بعد بیلنس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -183,7 +197,9 @@
       "checksum": "9e212a8c662de647a062e184a645a9d45b611996",
       "kind": "SCREENSHOT",
       "alt": "Bakery khata in Nafaa: udhaar to collect, advances held for customers, and each customer's balance with payment and reminder buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں بیکری کا کھاتہ: وصول ہونے والا ادھار، کسٹمرز کے ایڈوانس، اور ہر کسٹمر کا بیلنس، پیمنٹ اور ریمائنڈر بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -207,7 +223,9 @@
       "checksum": "fb39a39190cb8c1de53cdde86b8480a9ac19cc65",
       "kind": "SCREENSHOT",
       "alt": "Bakery profit report in Nafaa by item: quantity sold, sale, cost, profit and margin, with a recipe cost tab",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں بیکری کی Profit رپورٹ آئٹم کے حساب سے: بکی ہوئی مقدار، Sale، Cost، Profit اور مارجن، ریسیپی Cost کے ٹیب کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -309,7 +327,9 @@
       "checksum": "f77a81835bab2de34a863d645455e6a1f18787ea",
       "kind": "IMAGE",
       "alt": "Dates and dried fruit piled high at a market stall in Karachi",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "کراچی کے بازار میں ایک اسٹال پر ڈھیر لگی کھجوریں اور خشک میوہ"
+      },
       "caption": "Dates and dried fruit piled high at a market stall in Karachi",
       "credit": "Photo: Ali Madad, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/local-vendor-in-karachi-traditional-market-40153760/",
@@ -387,7 +407,9 @@
       "checksum": "cc83f350816c7eac155478d527cd5c493c1745fd",
       "kind": "IMAGE",
       "alt": "A stall owner in Taxila counting cash at the end of a sale",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ٹیکسلا میں سیل کے اختتام پر ایک اسٹال مالک کیش گنتے ہوئے"
+      },
       "caption": "A stall owner in Taxila counting cash at the end of a sale",
       "credit": "Photo: Shamshir Lall, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/man-counting-money-at-taxila-market-stall-36687159/",
@@ -413,7 +435,9 @@
       "checksum": "e72e796ee9c72be282227bf1a515c38115780991",
       "kind": "IMAGE",
       "alt": "A shopkeeper in Pakistan writing in a paper register inside a fabric shop",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "پاکستان میں کپڑے کی دکان کے اندر ایک دکاندار کاغذی رجسٹر میں لکھتے ہوئے"
+      },
       "caption": "A shopkeeper in Pakistan writing in a paper register inside a fabric shop",
       "credit": "Photo: clickbyabbas, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/elderly-man-working-in-fabric-shop-interior-31402347/",
@@ -439,7 +463,9 @@
       "checksum": "8ede387db5a2bf4cdeb707bab5759df04721e0bc",
       "kind": "IMAGE",
       "alt": "A customer paying at a shop counter by scanning a QR code with a phone",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ایک کسٹمر دکان کے کاؤنٹر پر فون سے QR کوڈ اسکین کر کے پیمنٹ کرتے ہوئے"
+      },
       "caption": "A customer paying at a shop counter by scanning a QR code with a phone",
       "credit": "Photo: iMin Technology, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/a-close-up-shot-of-a-person-scanning-a-qr-code-12935051/",
@@ -621,7 +647,9 @@
       "checksum": "16732acc51bf072c63942affc34dc290c4e2e059",
       "kind": "IMAGE",
       "alt": "A shopkeeper among jars of spices, nuts and dried goods at his stall",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "مصالحوں، میوے اور خشک اشیا کے جار کے درمیان اپنے اسٹال پر کھڑا دکاندار"
+      },
       "caption": "A shopkeeper among jars of spices, nuts and dried goods at his stall",
       "credit": "Photo: Shahid Jamali, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/spices-and-dried-goods-market-stall-display-40032255/",
@@ -673,7 +701,9 @@
       "checksum": "3a8613016de66789c5999322a59cb3feae983aac",
       "kind": "IMAGE",
       "alt": "A smiling shopkeeper at his market stall in Karachi",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "کراچی میں اپنے مارکیٹ اسٹال پر مسکراتا ہوا دکاندار"
+      },
       "caption": "A smiling shopkeeper at his market stall in Karachi",
       "credit": "Photo: Ali Madad, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/smiling-vendor-at-karachi-market-stall-40153753/",
@@ -699,7 +729,9 @@
       "checksum": "34427e49ba9b84e4675b3e2ce03188f812eade00",
       "kind": "IMAGE",
       "alt": "A baker serving pastries at a bakery counter in Islamabad",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "اسلام آباد کی بیکری کے کاؤنٹر پر پیسٹریاں پیش کرتا ہوا بیکر"
+      },
       "caption": "A baker serving pastries at a bakery counter in Islamabad",
       "credit": "Photo: iram shehzad, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/chef-in-hijab-serving-pastries-at-islamabad-bakery-36965906/",
@@ -725,7 +757,9 @@
       "checksum": "d3d34a60b73084bebc27d1c889b32175e0643803",
       "kind": "IMAGE",
       "alt": "A pharmacist standing behind the counter of a medical store with medicine shelves behind him",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "میڈیکل اسٹور کے کاؤنٹر کے پیچھے کھڑا فارماسسٹ، پیچھے دواؤں کی شیلفیں"
+      },
       "caption": "A pharmacist standing behind the counter of a medical store with medicine shelves behind him",
       "credit": "Photo: Abdul batin, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/professional-pharmacist-in-modern-drugstore-space-for-text-13119975/",
@@ -751,7 +785,9 @@
       "checksum": "b121740e6d89e600749bf843509cb1089afb4b34",
       "kind": "IMAGE",
       "alt": "A shopkeeper in Karachi arranging his shop, with drinks and dried fruit on the shelves",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "کراچی کا ایک دکاندار اپنی دکان سجاتے ہوئے، شیلفوں پر مشروبات اور خشک میوہ"
+      },
       "caption": "A shopkeeper in Karachi arranging his shop, with drinks and dried fruit on the shelves",
       "credit": "Photo: Naqqash Ali, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/store-owner-in-karachi-shop-with-colorful-drinks-40218433/",
@@ -777,7 +813,9 @@
       "checksum": "e57b034ddad225e0916e1e43a1c74fe049436f40",
       "kind": "IMAGE",
       "alt": "Shops lit up at a market in Faisalabad at night",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "رات کے وقت فیصل آباد کے بازار میں روشن دکانیں"
+      },
       "caption": "Shops lit up at a market in Faisalabad at night",
       "credit": "Photo: Aa Dil, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/men-in-store-3025495/",
@@ -1011,7 +1049,9 @@
       "checksum": "a70bda526b4947a5c6c750055affd191805bb0b0",
       "kind": "IMAGE",
       "alt": "Open sacks of rice, lentils and grains for sale at a market stall in Sindh",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "سندھ کے بازار کے اسٹال پر فروخت کے لیے کھلی بوریوں میں چاول، دالیں اور اناج"
+      },
       "caption": "Open sacks of rice, lentils and grains for sale at a market stall in Sindh",
       "credit": "Photo: Ali Madad, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/vibrant-market-display-of-grains-and-spices-40153795/",
@@ -1037,7 +1077,9 @@
       "checksum": "7ea30a822a6ceb276abda3ca43582115c9c30814",
       "kind": "IMAGE",
       "alt": "A shopper choosing festive decorations at a market stall",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "بازار کے اسٹال پر عید کی سجاوٹ چنتی ہوئی ایک خریدار"
+      },
       "caption": "A shopper choosing festive decorations at a market stall",
       "credit": "Photo: Faiza Ali Memon, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/colorful-festival-decorations-in-market-display-40427494/",
@@ -1193,7 +1235,9 @@
       "checksum": "0bef81adac852792a2d4f7d76ade106caeb3d321",
       "kind": "IMAGE",
       "alt": "A shop checkout counter with a touchscreen till and boxes behind it",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ٹچ اسکرین ٹل والا شاپ کاؤنٹر، پیچھے ڈبے رکھے ہوئے"
+      },
       "caption": "A shop checkout counter with a touchscreen till and boxes behind it",
       "credit": "Photo: Jaykumar Bherwani, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/cash-register-and-boxes-in-a-retail-store-34638901/",
@@ -1219,7 +1263,9 @@
       "checksum": "d2ea272dde9d6f04a4d614c6f55d89b8a282f017",
       "kind": "IMAGE",
       "alt": "A shopkeeper in Punjab sorting through stock at the front of his shop",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "پنجاب کا ایک دکاندار اپنی دکان کے سامنے Stock چھانٹتے ہوئے"
+      },
       "caption": "A shopkeeper in Punjab sorting through stock at the front of his shop",
       "credit": "Photo: Fahad Ali, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/man-sorting-through-pile-of-groceries-14040401/",
@@ -1245,7 +1291,9 @@
       "checksum": "50c62892f2ab7c47a3a2e3c82fb2e0b291e78ae5",
       "kind": "IMAGE",
       "alt": "A smartphone showing a shop app on a white table",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "سفید میز پر رکھا اسمارٹ فون جس پر شاپ ایپ کھلی ہے"
+      },
       "caption": "A smartphone showing a shop app on a white table",
       "credit": "Photo: Eva Bronzini, Pexels (Pexels License)",
       "sourceUrl": "https://www.pexels.com/photo/close-up-shot-of-a-cellphone-on-white-surface-7661069/",
@@ -1323,7 +1371,9 @@
       "checksum": "896ad5f1f98c3ee445e18462961e58b8e551c088",
       "kind": "SCREENSHOT",
       "alt": "Bookstore school lists in Nafaa: each class's book set with items, school discount and set price, sold as one at the counter",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں بک اسٹور کی اسکول لسٹیں: ہر کلاس کا کتابوں کا سیٹ، اسکول Discount اور سیٹ کی قیمت، کاؤنٹر پر ایک ساتھ فروخت"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1347,7 +1397,9 @@
       "checksum": "b47daca46a332a26476b9e5e7bdbddcfaaf0bfc3",
       "kind": "SCREENSHOT",
       "alt": "Bookstore school accounts in Nafaa: each school's discount, credit days and limit, with khata and udhaar bill buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں بک اسٹور کے اسکول اکاؤنٹس: ہر اسکول کا Discount، کریڈٹ ڈیز اور لمٹ، کھاتہ اور ادھار بل کے بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1371,7 +1423,9 @@
       "checksum": "a970c5efd4fcd66a4656baa14252d86ed944c0f0",
       "kind": "SCREENSHOT",
       "alt": "Carpet rolls in Nafaa: each roll's width and length left, square feet, rack, rate per sqft and stock value",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں قالین کے رول: ہر رول کی بچی ہوئی چوڑائی اور لمبائی، مربع فٹ، ریک، فی مربع فٹ ریٹ اور Stock کی ویلیو"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1395,7 +1449,9 @@
       "checksum": "e6bee3fb3aaaabac9e6b796da786e66b5df2e09e",
       "kind": "SCREENSHOT",
       "alt": "Clinic appointments in Nafaa: each token with time, patient, doctor, visit type, status and fee paid or due",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کلینک کی اپوائنٹمنٹس: ہر ٹوکن وقت، مریض، ڈاکٹر، وزٹ کی قسم، اسٹیٹس اور ادا یا باقی فیس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1419,7 +1475,9 @@
       "checksum": "89f9c77e81a6d6951e963f0b2ac74f39c41d1f03",
       "kind": "SCREENSHOT",
       "alt": "Clinic patient records in Nafaa: MR number, phone, blood group, allergies and conditions, visit count and a token button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کلینک کے مریضوں کا ریکارڈ: MR نمبر، فون، بلڈ گروپ، الرجی اور بیماریاں، وزٹ کی تعداد اور ٹوکن کا بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1443,7 +1501,9 @@
       "checksum": "8ad879a333edbcadd36181e3590c43189059d5cf",
       "kind": "SCREENSHOT",
       "alt": "Clinic prescriptions in Nafaa: each prescription with patient, doctor, diagnosis and medicines, with print and dispensed buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کلینک کے نسخے: ہر نسخہ مریض، ڈاکٹر، تشخیص اور دواؤں کے ساتھ، پرنٹ اور دی گئی کے بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1467,7 +1527,9 @@
       "checksum": "71fccf32f421f8e921d8d667a88fefd0167c6514",
       "kind": "SCREENSHOT",
       "alt": "Cosmetics expiry list in Nafaa: batches expiring within 90 days with batch number, expiry date, stock and cost",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کاسمیٹکس کی ایکسپائری لسٹ: 90 دن میں ختم ہونے والے بیچ، بیچ نمبر، ایکسپائری تاریخ، Stock اور Cost کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1491,7 +1553,9 @@
       "checksum": "100fab59c76e70922caa956a4bc8887d0c3a3fbe",
       "kind": "SCREENSHOT",
       "alt": "Cosmetics shop products in Nafaa: stock value, items running low, near-expiry flags, price, cost and margin on each item",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کاسمیٹکس شاپ کی پروڈکٹس: Stock کی ویلیو، کم ہوتے آئٹم، ایکسپائری کے قریب کے نشان، ہر آئٹم کی قیمت، Cost اور مارجن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1515,7 +1579,9 @@
       "checksum": "6e474c3ab495561e705cf728d6333932443f8680",
       "kind": "SCREENSHOT",
       "alt": "Cosmetics testers in Nafaa: each tester opened from stock with its date, quantity, cost and approval status",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کاسمیٹکس ٹیسٹرز: Stock سے کھولا گیا ہر ٹیسٹر تاریخ، مقدار، Cost اور منظوری کی حالت کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1539,7 +1605,9 @@
       "checksum": "001ffbeff71d4821f0b1d46d7476745eb42480a8",
       "kind": "SCREENSHOT",
       "alt": "Dairy delivery customers in Nafaa: route, morning and evening litres, rate and balance due for every household and shop",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ڈیری ڈیلیوری کے کسٹمرز: ہر گھر اور دکان کا روٹ، صبح اور شام کے لیٹر، ریٹ اور واجب الادا بیلنس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1563,7 +1631,9 @@
       "checksum": "d57481b26d30f773308823c18250004d80f7dadc",
       "kind": "SCREENSHOT",
       "alt": "Dairy home delivery list in Nafaa: each customer's litres, rate and amount by route, with delivered and skip buttons and a rider's list",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ڈیری ہوم ڈیلیوری لسٹ: ہر کسٹمر کے لیٹر، ریٹ اور رقم روٹ کے حساب سے، ڈیلیور اور اسکپ کے بٹن اور رائیڈر کی لسٹ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1587,7 +1657,9 @@
       "checksum": "d9ff8fbd4f3a37d5e87bdbd40e4edb5a5e11adeb",
       "kind": "SCREENSHOT",
       "alt": "Dairy milk collection in Nafaa: litres from each gawala morning and evening, with rate, fat, bonus, grade and amount to pay",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ڈیری دودھ کی کلیکشن: ہر گوالے سے صبح اور شام کے لیٹر، ریٹ، فیٹ، بونس، گریڈ اور ادا کی جانے والی رقم"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1611,7 +1683,9 @@
       "checksum": "33a0f70603f3e978bfdfac12a276863e40de0f73",
       "kind": "SCREENSHOT",
       "alt": "Electronics bundles in Nafaa: deal packs with their items, bundle price against the full price, saving, profit and how many can be made from stock",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں الیکٹرونکس بنڈلز: ڈیل پیک اپنے آئٹمز کے ساتھ، بنڈل کی قیمت بمقابلہ پوری قیمت، بچت، Profit اور Stock سے کتنے بن سکتے ہیں"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1635,7 +1709,9 @@
       "checksum": "803fbca148cda894c5929dd80be53e42ac6c43c6",
       "kind": "SCREENSHOT",
       "alt": "Electronics serial register in Nafaa: every unit by serial number with its bill, warranty days left and any open warranty claim",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں الیکٹرونکس سیریل رجسٹر: ہر یونٹ سیریل نمبر سے، اس کا بل، وارنٹی کے باقی دن اور کوئی کھلا وارنٹی کلیم"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1659,7 +1735,9 @@
       "checksum": "5c1931bfb349667f772f9e86b83dbe1f2905194e",
       "kind": "SCREENSHOT",
       "alt": "Electronics warranty claims in Nafaa: open claims by product, customer and serial, with units in repair or sent to the brand",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں الیکٹرونکس وارنٹی کلیم: کھلے کلیم پروڈکٹ، کسٹمر اور سیریل کے حساب سے، مرمت میں یا برانڈ کو بھیجے گئے یونٹ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1683,7 +1761,9 @@
       "checksum": "b8691cef27e0cf94cb4622fa2e806b7a174f8589",
       "kind": "SCREENSHOT",
       "alt": "Florist orders in Nafaa: each delivery with recipient, address, card message, time slot, amount and balance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فلورسٹ کے آرڈرز: ہر ڈیلیوری وصول کنندہ، پتہ، کارڈ کا پیغام، ٹائم سلاٹ، رقم اور بیلنس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1707,7 +1787,9 @@
       "checksum": "adea80358580a3dbc9a6c74d083601a95e835b4d",
       "kind": "SCREENSHOT",
       "alt": "Florist wedding contracts in Nafaa: couple, contact, venue, date and days left, quoted amount and balance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فلورسٹ کے شادی کے کنٹریکٹ: جوڑا، رابطہ، مقام، تاریخ اور باقی دن، کوٹ کی گئی رقم اور بیلنس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1731,7 +1813,9 @@
       "checksum": "8aa1cbb6efd9cf5dc90103cf5a40a40433ba2edd",
       "kind": "SCREENSHOT",
       "alt": "Furniture custom orders in Nafaa: each made-to-order piece with karigar, due date and days left, price, balance and stage",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فرنیچر کے کسٹم آرڈرز: آرڈر پر بننے والا ہر ٹکڑا کاریگر، ڈیو تاریخ اور باقی دن، قیمت، بیلنس اور مرحلے کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1755,7 +1839,9 @@
       "checksum": "a9ec7bb66696668e744320a98d49679bfcc3cba5",
       "kind": "SCREENSHOT",
       "alt": "Gaming cafe live view in Nafaa: running sessions per station with time played, player, game and running bill",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں گیمنگ کیفے کا لائیو ویو: ہر اسٹیشن پر چلتے سیشن، کھیلا گیا وقت، پلیئر، گیم اور چلتا ہوا بل"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1779,7 +1865,9 @@
       "checksum": "a7ac593c72dc8ded3729f211e42874a14cb0f788",
       "kind": "SCREENSHOT",
       "alt": "Gaming zone stations in Nafaa: each PC, PS5, simulator and VR station with hourly rate, minimum time and status",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں گیمنگ زون کے اسٹیشن: ہر PC، PS5، سمیولیٹر اور VR اسٹیشن فی گھنٹہ ریٹ، کم از کم وقت اور اسٹیٹس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1803,7 +1891,9 @@
       "checksum": "b48f0c58eb1764f2e498c5ae7d4ffb7655ff8a9e",
       "kind": "SCREENSHOT",
       "alt": "Garment shop products in Nafaa: stock per size and colour on each article, with price, cost, margin and pieces in stock",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں گارمنٹس شاپ کی پروڈکٹس: ہر آرٹیکل پر سائز اور رنگ کے حساب سے Stock، قیمت، Cost، مارجن اور موجود پیس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1827,7 +1917,9 @@
       "checksum": "98e0c3630b15c1a3a4d43863777c653a96271f17",
       "kind": "SCREENSHOT",
       "alt": "Garment shop profit report in Nafaa by article: variants, discount given, sale, cost, profit and margin",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں گارمنٹس شاپ کی Profit رپورٹ آرٹیکل کے حساب سے: ویریئنٹس، دیا گیا Discount، Sale، Cost، Profit اور مارجن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1851,7 +1943,9 @@
       "checksum": "e06789988d6ca9a9b88c415fb5e7c44db8589a27",
       "kind": "SCREENSHOT",
       "alt": "Gym check-in in Nafaa: scan a card or QR or type the member number, with members inside now, time in and check-out",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جم چیک اِن: کارڈ یا QR اسکین کریں یا ممبر نمبر لکھیں، اس وقت اندر موجود ممبرز، اندر آنے کا وقت اور چیک آؤٹ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1875,7 +1969,9 @@
       "checksum": "abe1d42a347293e038568e5990f9ce495099ab20",
       "kind": "SCREENSHOT",
       "alt": "Gym members in Nafaa: each member's plan, goal, end date with days left, fee due and last visit, with renew and WhatsApp buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جم ممبرز: ہر ممبر کا پلان، ہدف، اختتامی تاریخ اور باقی دن، واجب الادا فیس اور آخری وزٹ، رینیو اور WhatsApp بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1899,7 +1995,9 @@
       "checksum": "34741b57fb2ed523460608749d2fd8c5896a2b7b",
       "kind": "SCREENSHOT",
       "alt": "Gym memberships in Nafaa: plans ending within 7 days, fee due, dates and days left, with fee, renew and freeze buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جم ممبرشپس: 7 دن میں ختم ہونے والے پلان، واجب الادا فیس، تاریخیں اور باقی دن، فیس، رینیو اور فریز کے بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1923,7 +2021,9 @@
       "checksum": "81d9c65745bc075a6114ed4802c8b32fb630b3d1",
       "kind": "SCREENSHOT",
       "alt": "Contractor khata in Nafaa: each contractor's udhaar with its credit limit and days, ageing buckets and a button to collect payment",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ٹھیکیدار کا کھاتہ: ہر ٹھیکیدار کا ادھار اس کی کریڈٹ لمٹ اور دنوں کے ساتھ، ایجنگ بکٹس اور پیمنٹ وصول کرنے کا بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1947,7 +2047,9 @@
       "checksum": "6fd103b8288df4b9397be0a26159af1a2bd9f997",
       "kind": "SCREENSHOT",
       "alt": "Hardware store quotations in Nafaa: each contractor's quotation with its site, items, status, days left and amount, and totals still awaiting a reply",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ہارڈویئر اسٹور کے کوٹیشن: ہر ٹھیکیدار کا کوٹیشن سائٹ، آئٹمز، اسٹیٹس، باقی دن اور رقم کے ساتھ، اور جواب کے منتظر کوٹیشنز کا ٹوٹل"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -1971,7 +2073,9 @@
       "checksum": "29df1911916636e902da983d06cd8fb8a88062f0",
       "kind": "SCREENSHOT",
       "alt": "Hardware store reorder list in Nafaa: items at or below their reorder point with stock, how much to order and the supplier for each",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ہارڈویئر اسٹور کی ری آرڈر لسٹ: ری آرڈر پوائنٹ پر یا اس سے کم آئٹم، Stock، کتنا منگوانا ہے اور ہر ایک کا سپلائر"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3420,7 +3524,9 @@
       "checksum": "7330ca7b055db9956d3b2f80de99dac2b314a48d",
       "kind": "SCREENSHOT",
       "alt": "Hotel bookings in Nafaa: in-house guests with room, dates, nights, booking source, total and balance due",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ہوٹل بکنگز: ٹھہرے ہوئے مہمان کمرے، تاریخوں، راتوں، بکنگ سورس، ٹوٹل اور واجب الادا بیلنس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3444,7 +3550,9 @@
       "checksum": "8ce05d156a9743c6f98a4238e5757bfe3ea303bb",
       "kind": "SCREENSHOT",
       "alt": "Hotel room board in Nafaa: every room by floor with its type and status, the guest staying, nights left, next arrival and rooms to clean",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ہوٹل روم بورڈ: ہر کمرہ منزل کے حساب سے، اس کی قسم اور اسٹیٹس، ٹھہرا ہوا مہمان، باقی راتیں، اگلی آمد اور صاف ہونے والے کمرے"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3468,7 +3576,9 @@
       "checksum": "86cfcd1cdf35918c4e7d9957f25771979a48b65e",
       "kind": "SCREENSHOT",
       "alt": "Jewellery custom orders in Nafaa: each order with karat, weight, design, karigar, due date, advance taken and balance",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جیولری کے کسٹم آرڈرز: ہر آرڈر قیراط، وزن، ڈیزائن، کاریگر، ڈیو تاریخ، لیا گیا ایڈوانس اور بیلنس کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3492,7 +3602,9 @@
       "checksum": "0b52a118ec097a40088349bb35ab38729e110f82",
       "kind": "SCREENSHOT",
       "alt": "Jewellery shop daily gold rate in Nafaa: 24K, 22K, 21K and 18K rates per tola and per gram, with buying rates for old gold",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جیولری شاپ کا روزانہ سونے کا ریٹ: 24K، 22K، 21K اور 18K کے ریٹ فی تولہ اور فی گرام، پرانے سونے کی خرید کے ریٹ کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3516,7 +3628,9 @@
       "checksum": "559d59374d93392b46707d686bc266646a973801",
       "kind": "SCREENSHOT",
       "alt": "Jewellery sales in Nafaa: each bill with karat, weight in grams and making charges, payment method and any udhaar left",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں جیولری کی Sales: ہر بل قیراط، گرام میں وزن اور میکنگ چارجز، پیمنٹ کا طریقہ اور باقی ادھار کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3540,7 +3654,9 @@
       "checksum": "35528d237cb14e91f1016541a6dd03c5a4ed9f99",
       "kind": "SCREENSHOT",
       "alt": "Meat shop daily rate sheet in Nafaa: each cut with stock in kg, cost, today's rate, restaurant rate and profit per kg, plus sold, waste and remaining weight",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں میٹ شاپ کی روزانہ ریٹ شیٹ: ہر کٹ کا کلو میں Stock، Cost، آج کا ریٹ، ریسٹورنٹ ریٹ اور فی کلو Profit، ساتھ بکا ہوا، ضائع اور باقی وزن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3564,7 +3680,9 @@
       "checksum": "d8296df62cc4911e6f81f0172c905347aeb1fe63",
       "kind": "SCREENSHOT",
       "alt": "Meat orders by weight in Nafaa: each order's cuts and kilos, occasion, delivery, advance and balance, with weigh, bill and cutting-slip buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں وزن کے حساب سے میٹ آرڈرز: ہر آرڈر کے کٹ اور کلو، موقع، ڈیلیوری، ایڈوانس اور بیلنس، وزن، بل اور کٹنگ سلپ کے بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3588,7 +3706,9 @@
       "checksum": "a2c34dab2a84df91119037aa9a438136ffa7b9c4",
       "kind": "SCREENSHOT",
       "alt": "Meat shop restaurant accounts in Nafaa: each restaurant's udhaar against its credit limit, delivery time and payment button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں میٹ شاپ کے ریسٹورنٹ اکاؤنٹس: ہر ریسٹورنٹ کا ادھار اس کی کریڈٹ لمٹ کے مقابلے میں، ڈیلیوری کا وقت اور پیمنٹ کا بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3612,7 +3732,9 @@
       "checksum": "9eff6c02e3d7adf5519996a69c2ceacace2c6c3e",
       "kind": "SCREENSHOT",
       "alt": "Mobile shop IMEI stock in Nafaa: each handset by IMEI with variant, colour, PTA status, days on the shelf, sale price and cost",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں موبائل شاپ کا IMEI Stock: ہر ہینڈسیٹ IMEI سے، ویریئنٹ، رنگ، PTA اسٹیٹس، شیلف پر دن، سیل قیمت اور Cost"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3636,7 +3758,9 @@
       "checksum": "98a07f81756de5e0424807f2bf2e7152a0d1d662",
       "kind": "SCREENSHOT",
       "alt": "Mobile shop khata in Nafaa: each customer's balance, including a phone sold on instalments, with payment and WhatsApp reminder buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں موبائل شاپ کا کھاتہ: ہر کسٹمر کا بیلنس، بشمول قسطوں پر بیچا گیا فون، پیمنٹ اور WhatsApp ریمائنڈر بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3660,7 +3784,9 @@
       "checksum": "9f651c252187b709604b6da2996626d559b9c003",
       "kind": "SCREENSHOT",
       "alt": "Mobile shop profit report in Nafaa by model: units sold, sale, cost, profit and margin, with a tab for profit per IMEI",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں موبائل شاپ کی Profit رپورٹ ماڈل کے حساب سے: بکے ہوئے یونٹ، Sale، Cost، Profit اور مارجن، فی IMEI Profit کے ٹیب کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3684,7 +3810,9 @@
       "checksum": "7b3bbbd28e8356943314aa1d62083226c6c074b5",
       "kind": "DOCUMENT",
       "alt": "Daily cash (galla) closing sheet (Excel): expected cash, note count and over or short, with a month log",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "روزانہ گلے (کیش) کی کلوزنگ شیٹ (Excel): متوقع کیش، نوٹوں کی گنتی اور زیادہ یا کم، مہینے کے لاگ کے ساتھ"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3708,7 +3836,9 @@
       "checksum": "67dcbc9b4eed63b6667b268e31fedce9d43ff390",
       "kind": "DOCUMENT",
       "alt": "Khata (udhaar) register template (Excel): customer balances, last payment and days since payment",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "کھاتہ (ادھار) رجسٹر ٹیمپلیٹ (Excel): کسٹمر کے بیلنس، آخری پیمنٹ اور پیمنٹ کے بعد گزرے دن"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3732,7 +3862,9 @@
       "checksum": "ce683d12a464418895dfa546ca2cc9372e4208a0",
       "kind": "DOCUMENT",
       "alt": "Price list template (Excel): retail, wholesale, pack and pack price by category",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "پرائس لسٹ ٹیمپلیٹ (Excel): کیٹیگری کے حساب سے ریٹیل، ہول سیل، پیک اور پیک کی قیمت"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3756,7 +3888,9 @@
       "checksum": "0cf665a51d7d723af31e52b79462350238656559",
       "kind": "DOCUMENT",
       "alt": "Product import template (Excel): 17 columns matching Nafaa's product import, with a column guide",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "پروڈکٹ امپورٹ ٹیمپلیٹ (Excel): نفع کے پروڈکٹ امپورٹ سے ملتے 17 کالم، کالم گائیڈ کے ساتھ"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3780,7 +3914,9 @@
       "checksum": "86a2b57a72330de64999003b741a14f1a99d48c0",
       "kind": "DOCUMENT",
       "alt": "Purchase order template (Excel): supplier, item lines, discount, tax, freight and total",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "پرچیز آرڈر ٹیمپلیٹ (Excel): سپلائر، آئٹم لائنیں، Discount، ٹیکس، فریٹ اور ٹوٹل"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3804,7 +3940,9 @@
       "checksum": "01928102fad1b1524e57f34b0e58d2cb60f7c209",
       "kind": "DOCUMENT",
       "alt": "Simple invoice template (Excel): item lines, discount, tax, total, paid and balance due",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "سادہ انوائس ٹیمپلیٹ (Excel): آئٹم لائنیں، Discount، ٹیکس، ٹوٹل، ادا شدہ اور واجب الادا بیلنس"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3828,7 +3966,9 @@
       "checksum": "ba4f3d6829df0cd0a8b27d648ca5acff1a697053",
       "kind": "DOCUMENT",
       "alt": "Stock take sheet (Excel): counted vs system stock, difference and its value at cost",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "Stock ٹیک شیٹ (Excel): گنتی بمقابلہ سسٹم Stock، فرق اور Cost پر اس کی ویلیو"
+      },
       "caption": null,
       "credit": "Nafaa (made for nafaa.pk, free to share)",
       "sourceUrl": null,
@@ -3852,7 +3992,9 @@
       "checksum": "eb934c2316be3fb53956c6ac0031c602eb657c53",
       "kind": "SCREENSHOT",
       "alt": "Optical eye test bookings in Nafaa: time, customer age and complaint, optometrist, status and test fee, with a start button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں آپٹیکل کی آنکھوں کے ٹیسٹ کی بکنگز: وقت، کسٹمر کی عمر اور شکایت، آپٹومیٹرسٹ، اسٹیٹس اور ٹیسٹ فیس، اسٹارٹ بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3876,7 +4018,9 @@
       "checksum": "0f11eb366265fce35aef27338b0c3b0d32d53f8d",
       "kind": "SCREENSHOT",
       "alt": "Optical glasses orders in Nafaa: each order's frame and lens, lab and promised date, status, price and balance, with lab and delivery buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں آپٹیکل کے چشمے کے آرڈرز: ہر آرڈر کا فریم اور لینس، لیب اور وعدے کی تاریخ، اسٹیٹس، قیمت اور بیلنس، لیب اور ڈیلیوری کے بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3900,7 +4044,9 @@
       "checksum": "4935510c8cabb9fd50c8d864b04a30c13594da75",
       "kind": "SCREENSHOT",
       "alt": "Optical prescriptions in Nafaa: right and left eye power with PD, type, optometrist and validity, with a button to start a glasses order",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں آپٹیکل کے نسخے: دائیں اور بائیں آنکھ کا پاور PD کے ساتھ، قسم، آپٹومیٹرسٹ اور میعاد، چشمے کا آرڈر شروع کرنے کے بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3924,7 +4070,9 @@
       "checksum": "03aec01050c5839fcedf4ad3bfddd92f2fc73a98",
       "kind": "SCREENSHOT",
       "alt": "Pet grooming bookings in Nafaa: pet, breed and owner, service, time, charge and a start button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں پیٹ گرومنگ بکنگز: پالتو جانور، نسل اور مالک، سروس، وقت، چارج اور اسٹارٹ بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3948,7 +4096,9 @@
       "checksum": "727a0626552280e8a67f9ddd598de67ad60a0820",
       "kind": "SCREENSHOT",
       "alt": "Pet shop live animals in Nafaa: each animal with breed, age, vaccine and deworming status, cage and price",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں پیٹ شاپ کے زندہ جانور: ہر جانور نسل، عمر، ویکسین اور ڈی ورمنگ کی حالت، پنجرے اور قیمت کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3972,7 +4122,9 @@
       "checksum": "05b1a8e2d00570acb3363a7bc0bc5fb1e42943c2",
       "kind": "SCREENSHOT",
       "alt": "Pharmacy expiry list in Nafaa: batches due in 30 and 90 days, each with batch number, expiry date, stock and value at cost and sale price",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فارمیسی کی ایکسپائری لسٹ: 30 اور 90 دن میں ختم ہونے والے بیچ، ہر ایک بیچ نمبر، ایکسپائری تاریخ، Stock اور Cost اور سیل قیمت پر ویلیو کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -3996,7 +4148,9 @@
       "checksum": "b5323672373c2145e8dcb91a38359d6eeab399d3",
       "kind": "SCREENSHOT",
       "alt": "Pharmacy khata in Nafaa: total udhaar to collect, ageing buckets and each customer's balance with payment and WhatsApp reminder buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فارمیسی کا کھاتہ: وصول ہونے والا کل ادھار، ایجنگ بکٹس اور ہر کسٹمر کا بیلنس، پیمنٹ اور WhatsApp ریمائنڈر بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4020,7 +4174,9 @@
       "checksum": "dca3bc5046848d0d00844c435393fae2c5cedcc8",
       "kind": "SCREENSHOT",
       "alt": "Pharmacy low-stock list in Nafaa: medicines below their alert level, days of stock left, what to order and stock expiring within 30 days",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں فارمیسی کی کم Stock لسٹ: الرٹ لیول سے نیچے کی دوائیں، Stock کے باقی دن، کیا منگوانا ہے اور 30 دن میں ایکسپائر ہونے والا Stock"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4044,7 +4200,9 @@
       "checksum": "c6ccec349739eadbfe5f8a46c4705f5f21cb4dae",
       "kind": "SCREENSHOT",
       "alt": "Restaurant dashboard in Nafaa with today's sale, open orders, tables and kitchen queue",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ریسٹورنٹ ڈیش بورڈ: آج کی Sale، کھلے آرڈرز، ٹیبلز اور کچن کی قطار"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4093,7 +4251,9 @@
       "checksum": "a5f2666762843e4a46dc356cd25ede2595779414",
       "kind": "SCREENSHOT",
       "alt": "Kitchen order tickets (KOT) board in Nafaa with new, cooking and ready columns",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کچن آرڈر ٹکٹ (KOT) بورڈ: نئے، پکتے ہوئے اور تیار آرڈرز کے کالم"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4117,7 +4277,9 @@
       "checksum": "5e17b8c22b3ccca811a8013dcbdd5c26d0ceb7ed",
       "kind": "SCREENSHOT",
       "alt": "Restaurant menu in Nafaa with dishes by category and prices",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ریسٹورنٹ مینو: کیٹیگری کے حساب سے ڈشز اور ان کی قیمتیں"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4141,7 +4303,9 @@
       "checksum": "f27a09ca2789806b0c0cd8cb5e1dcc6d05a59400",
       "kind": "SCREENSHOT",
       "alt": "Restaurant tables in dark mode with occupied, free, cleaning and reserved tables",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈارک موڈ میں ریسٹورنٹ کے ٹیبلز: مصروف، خالی، صفائی والے اور ریزرو ٹیبلز"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4166,7 +4330,9 @@
       "checksum": "18557dc0476bff523f9fd79d688f73bb2d7d7dee",
       "kind": "SCREENSHOT",
       "alt": "Restaurant tables on a tablet for waiters, with running bills per table",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ویٹرز کے لیے ٹیبلٹ پر ریسٹورنٹ ٹیبلز، ہر ٹیبل کے چلتے بل کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4191,7 +4357,9 @@
       "checksum": "20745c7ceb97bc5d986a78f706d616093594f1c9",
       "kind": "SCREENSHOT",
       "alt": "Restaurant floor in Nafaa: tables by section with running bills, guests and kitchen status",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ریسٹورنٹ فلور: سیکشن کے حساب سے ٹیبلز، چلتے بل، مہمان اور کچن کی حالت"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4215,7 +4383,9 @@
       "checksum": "37f7060c924f39bfa2b197603fdcf2853c63d0ca",
       "kind": "SCREENSHOT",
       "alt": "List of branches of a demo store in Nafaa with sale and stock for each",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ڈیمو اسٹور کی برانچوں کی لسٹ، ہر ایک کی Sale اور Stock کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4239,7 +4409,9 @@
       "checksum": "76c637176c9d0ce317fcd5186145e44bc8508fab",
       "kind": "SCREENSHOT",
       "alt": "Branch analytics in dark mode comparing sale across three branches",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈارک موڈ میں برانچ اینالیٹکس: تین برانچوں کی Sale کا موازنہ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4264,7 +4436,9 @@
       "checksum": "3e33deb457821977e20d45c2ec8ef4e107af6e3e",
       "kind": "SCREENSHOT",
       "alt": "Branch analytics in Nafaa comparing sale across three branches of a demo store",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں برانچ اینالیٹکس: ڈیمو اسٹور کی تین برانچوں کی Sale کا موازنہ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4288,7 +4462,9 @@
       "checksum": "eb39dcf4ce3a0a765ef5bf48e8af6c324bf98598",
       "kind": "SCREENSHOT",
       "alt": "Nafaa dashboard in dark mode with today's sale, bills, profit and cash in drawer",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈارک موڈ میں نفع کا ڈیش بورڈ: آج کی Sale، بل، Profit اور دراز میں کیش"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4313,7 +4489,9 @@
       "checksum": "b51890c05dfcfc6a1403ebba40e28eeae8850b3f",
       "kind": "SCREENSHOT",
       "alt": "Nafaa dashboard on an Android phone showing today's sale and key numbers",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "اینڈرائیڈ فون پر نفع کا ڈیش بورڈ جس میں آج کی Sale اور اہم اعداد ہیں"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4338,7 +4516,9 @@
       "checksum": "5b804cd63f64b17c5ac7c0008e13d1c7a841aafb",
       "kind": "SCREENSHOT",
       "alt": "Nafaa dashboard for a demo grocery store with today's sale, bills, profit and cash in drawer",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈیمو گروسری اسٹور کے لیے نفع کا ڈیش بورڈ: آج کی Sale، بل، Profit اور دراز میں کیش"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4362,7 +4542,9 @@
       "checksum": "a07c7eeb2dc916a1ca74886c2a89832992b68419",
       "kind": "SCREENSHOT",
       "alt": "Nafaa digital khata on an Android phone with customers and amounts due",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "اینڈرائیڈ فون پر نفع کا ڈیجیٹل کھاتہ، کسٹمرز اور واجب الادا رقم کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4387,7 +4569,9 @@
       "checksum": "ab650b9698580fa88064e8d738fdfc5a148b5d04",
       "kind": "SCREENSHOT",
       "alt": "Nafaa digital khata: total receivable, ageing buckets and customers with pending udhaar",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع کا ڈیجیٹل کھاتہ: کل وصولی، ایجنگ بکٹس اور باقی ادھار والے کسٹمرز"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4411,7 +4595,9 @@
       "checksum": "f7efbf6b7b0e548dbdd56c843d45ff17428560dc",
       "kind": "SCREENSHOT",
       "alt": "Low stock list in Nafaa showing items that are running out and need reordering",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں کم Stock کی لسٹ: ختم ہوتے آئٹم جنہیں دوبارہ منگوانا ہے"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4435,7 +4621,9 @@
       "checksum": "20df3388bff6f831c68a8352ec3ec8b173a09798",
       "kind": "SCREENSHOT",
       "alt": "Online orders from the shop website arriving in Nafaa, with status, customer area and totals",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "دکان کی ویب سائٹ سے نفع میں آنے والے آن لائن آرڈرز: اسٹیٹس، کسٹمر کا علاقہ اور ٹوٹل"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4459,7 +4647,9 @@
       "checksum": "04161aefdf475e802fd54e7a2dbcf36dc74d3b1a",
       "kind": "SCREENSHOT",
       "alt": "Nafaa POS checkout in dark mode, product grid with items added to the bill",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈارک موڈ میں نفع کا POS چیک آؤٹ: پروڈکٹ گرڈ اور بل میں شامل آئٹمز"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4484,7 +4674,9 @@
       "checksum": "d62344fe078a57cc47767641aa2236116055b230",
       "kind": "SCREENSHOT",
       "alt": "New website order alert popping up over the Nafaa POS, with Accept and View buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع کے POS پر ابھرتا ہوا ویب سائٹ کے نئے آرڈر کا الرٹ، Accept اور View بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4508,7 +4700,9 @@
       "checksum": "a192579c97d13105dd264aa1c74b3c9802e7f8ae",
       "kind": "SCREENSHOT",
       "alt": "Nafaa POS on an Android phone, product grid for quick billing in a demo grocery store",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "اینڈرائیڈ فون پر نفع کا POS: ڈیمو گروسری اسٹور میں تیز بلنگ کے لیے پروڈکٹ گرڈ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4533,7 +4727,9 @@
       "checksum": "a9ab06e1c4305dfcdcb7c174dbee395b7dc4bb38",
       "kind": "SCREENSHOT",
       "alt": "Nafaa POS checkout in a demo grocery store, product grid with a bill of five items in the cart",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈیمو گروسری اسٹور میں نفع کا POS چیک آؤٹ: پروڈکٹ گرڈ اور کارٹ میں پانچ آئٹم کا بل"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4557,7 +4753,9 @@
       "checksum": "e02c16f7599679f9d989abe24a0d146873860f14",
       "kind": "SCREENSHOT",
       "alt": "Nafaa inventory in dark mode with stock value, low stock alerts and product cards",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈارک موڈ میں نفع کا انوینٹری: Stock کی ویلیو، کم Stock کے الرٹ اور پروڈکٹ کارڈ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4582,7 +4780,9 @@
       "checksum": "b1c06a0bc92afc14cbe7e36501a06d0fe6267e29",
       "kind": "SCREENSHOT",
       "alt": "Nafaa inventory: product cards with price, cost, margin and stock, plus stock value and low stock alerts",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع کا انوینٹری: قیمت، Cost، مارجن اور Stock والے پروڈکٹ کارڈ، ساتھ Stock کی ویلیو اور کم Stock کے الرٹ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4606,7 +4806,9 @@
       "checksum": "f78ed83ea2635f4bc57fea8723f12ba9ec2737ff",
       "kind": "SCREENSHOT",
       "alt": "Profit and loss statement in Nafaa with net sale, gross profit, expenses and a sale-to-profit chart",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں Profit اور Loss اسٹیٹمنٹ: نیٹ Sale، گراس Profit، Expenses اور Sale سے Profit کا چارٹ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4630,7 +4832,9 @@
       "checksum": "28c6526007ca6f30439cd879552f54c425869c87",
       "kind": "SCREENSHOT",
       "alt": "Profit by product report in Nafaa with sale, cost, profit and margin for each item",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں پروڈکٹ کے حساب سے Profit رپورٹ: ہر آئٹم کی Sale، Cost، Profit اور مارجن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4654,7 +4858,9 @@
       "checksum": "b72b342a3ed080b9c638e923eb5227e03511532d",
       "kind": "SCREENSHOT",
       "alt": "Sale receipt printed from Nafaa for a demo grocery store",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈیمو گروسری اسٹور کے لیے نفع سے پرنٹ کی گئی Sale رسید"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4679,7 +4885,9 @@
       "checksum": "4f9fffe7fc217bbb235d8a469303fe705ff95776",
       "kind": "SCREENSHOT",
       "alt": "Nafaa reports hub for a demo grocery store",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "ڈیمو گروسری اسٹور کے لیے نفع کا رپورٹس ہب"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4703,7 +4911,9 @@
       "checksum": "4359100ad97d5089868a88652c16350eda8d9a4f",
       "kind": "SCREENSHOT",
       "alt": "Sales channels in Nafaa: own website connected, with WooCommerce and Shopify options",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں Sales چینلز: اپنی ویب سائٹ جڑی ہوئی، ساتھ WooCommerce اور Shopify کے آپشن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4727,7 +4937,9 @@
       "checksum": "5d7fdc4996ef65aa74f076ff78d911370acf558a",
       "kind": "SCREENSHOT",
       "alt": "Nafaa settings overview with business info, users, counter rules, tax and setup health",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع کی سیٹنگز کا جائزہ: بزنس کی معلومات، یوزرز، کاؤنٹر رولز، ٹیکس اور سیٹ اپ کی حالت"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4751,7 +4963,9 @@
       "checksum": "c22b8ab43c8833a49c6bfad354d3e53b8fa10f20",
       "kind": "SCREENSHOT",
       "alt": "Nafaa staff screen with team members, roles, duty status and sales by staff",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع کی اسٹاف اسکرین: ٹیم ممبرز، رولز، ڈیوٹی کی حالت اور اسٹاف کے حساب سے Sales"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4775,7 +4989,9 @@
       "checksum": "e552c99bd8127c42e0c93a2f7326deae20916c1f",
       "kind": "SCREENSHOT",
       "alt": "FBR POS integration setup in Nafaa, with PRA, SRB and KPRA tabs for provincial sales tax",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں FBR POS انٹیگریشن کا سیٹ اپ، صوبائی سیلز ٹیکس کے لیے PRA، SRB اور KPRA ٹیب کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4799,7 +5015,9 @@
       "checksum": "38e273fc0cb1f714dd1d28e07d0cb806941e2562",
       "kind": "SCREENSHOT",
       "alt": "Salon counter in Nafaa: today's booking queue, services with time and rate, and a booking loaded into the bill with each service's stylist",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں سیلون کاؤنٹر: آج کی بکنگ کی قطار، وقت اور ریٹ کے ساتھ سروسز، اور بل میں لوڈ کی گئی بکنگ جس میں ہر سروس کا اسٹائلسٹ ہے"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4823,7 +5041,9 @@
       "checksum": "0fbdc8ab2bddc26d85161b83b4dbc01f5740a09f",
       "kind": "SCREENSHOT",
       "alt": "Salon staff list in Nafaa: each stylist's role, duty status and login status, with call and WhatsApp buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں سیلون اسٹاف لسٹ: ہر اسٹائلسٹ کا رول، ڈیوٹی کی حالت اور لاگ اِن کی حالت، کال اور WhatsApp بٹن کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4847,7 +5067,9 @@
       "checksum": "c7fd73168113c6536c0447137a9db53fe89c80b5",
       "kind": "SCREENSHOT",
       "alt": "Service jobs in Nafaa: each job with customer, address, time, urgency, technician and bill, with balance due",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں سروس جابز: ہر جاب کسٹمر، پتہ، وقت، ارجنسی، ٹیکنیشن اور بل کے ساتھ، بیلنس واجب الادا"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4871,7 +5093,9 @@
       "checksum": "1c0c56b589038449949b0b445331b88bf035696a",
       "kind": "SCREENSHOT",
       "alt": "Service quotes in Nafaa: each estimate with customer, validity and total, with send, accept and convert-to-job buttons",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں سروس کوٹس: ہر تخمینہ کسٹمر، میعاد اور ٹوٹل کے ساتھ، بھیجنے، قبول کرنے اور جاب میں بدلنے کے بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4895,7 +5119,9 @@
       "checksum": "194e53cb5f67733e1d61e31491cebf3509492052",
       "kind": "SCREENSHOT",
       "alt": "Shoe shop products in Nafaa: stock per size on every article, with price, cost, margin and sizes that have run out",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں شو شاپ کی پروڈکٹس: ہر آرٹیکل پر سائز کے حساب سے Stock، قیمت، Cost، مارجن اور ختم ہو چکے سائز"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4919,7 +5145,9 @@
       "checksum": "c0452bb485a12eeff22a40786a7deb957cd7f2fc",
       "kind": "SCREENSHOT",
       "alt": "Shoe size reorder in Nafaa: which sizes to order for each article, from stock left and sales in the last 30 days",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں شوز کے سائز کا ری آرڈر: ہر آرٹیکل کے کون سے سائز منگوانے ہیں، بچے ہوئے Stock اور پچھلے 30 دن کی Sales سے"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4943,7 +5171,9 @@
       "checksum": "9fa3b63c2a8bf7aab7b89dc008e2235becdee886",
       "kind": "SCREENSHOT",
       "alt": "Shoe size requests in Nafaa: customers waiting for a size or colour, with a flag when the stock arrives and a WhatsApp button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں شوز کے سائز کی درخواستیں: سائز یا رنگ کے منتظر کسٹمرز، Stock آنے پر فلیگ اور WhatsApp بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4967,7 +5197,9 @@
       "checksum": "a7be8ebd6ec38335f620aa8235d14754dfc32562",
       "kind": "SCREENSHOT",
       "alt": "Sports repairs in Nafaa: bat, racket and ball repairs with the job, ready date, charge and advance taken",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں اسپورٹس کی مرمت: بیٹ، ریکٹ اور گیند کی مرمت، جاب، تیاری کی تاریخ، چارج اور لیا گیا ایڈوانس"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -4991,7 +5223,9 @@
       "checksum": "6302b98b8f2d7e1305a8bf7fabbdc669249710ff",
       "kind": "SCREENSHOT",
       "alt": "Sports team kit orders in Nafaa: each school or club order with items, delivery date, total, balance and stage",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں اسپورٹس ٹیم کٹ آرڈرز: ہر اسکول یا کلب کا آرڈر آئٹمز، ڈیلیوری تاریخ، ٹوٹل، بیلنس اور مرحلے کے ساتھ"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -5015,7 +5249,9 @@
       "checksum": "33e1589f919dc7b42c9bd9a56b8eb11f013e5d87",
       "kind": "SCREENSHOT",
       "alt": "Toy shop birthday list in Nafaa: each child's birthday with days left, the parent's phone and a WhatsApp message button",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ٹوائے شاپ کی سالگرہ لسٹ: ہر بچے کی سالگرہ باقی دنوں کے ساتھ، والدین کا فون اور WhatsApp پیغام کا بٹن"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,
@@ -5039,7 +5275,9 @@
       "checksum": "39e157053c0735561880e060d48d69611a7eac92",
       "kind": "SCREENSHOT",
       "alt": "Toy shop gift packs in Nafaa: items in each pack, pack price, saving for the customer and how many packs the stock can make",
-      "altTranslations": null,
+      "altTranslations": {
+        "ur": "نفع میں ٹوائے شاپ کے گفٹ پیک: ہر پیک کے آئٹم، پیک کی قیمت، کسٹمر کی بچت اور Stock سے کتنے پیک بن سکتے ہیں"
+      },
       "caption": null,
       "credit": null,
       "sourceUrl": null,

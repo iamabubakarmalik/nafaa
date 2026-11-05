@@ -78,7 +78,7 @@ export function ToolTemplate({ entry, site, entity }: { entry: PublicEntry; site
       ) : null}
 
       <div className="pb-8">
-        <Body entry={entry} variant="tool" withFaqs renderTool={(key) => <ToolIsland toolKey={key} locale={locale} />} />
+        <Body entry={entry} variant="tool" withFaqs ctaAtEnd renderTool={(key) => <ToolIsland toolKey={key} locale={locale} />} />
       </div>
 
       {entry.related.length ? (

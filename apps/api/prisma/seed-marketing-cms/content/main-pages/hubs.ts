@@ -58,7 +58,7 @@ const productHub = page({
       ['Sell', 'POS counter on any phone, tablet or computer, also without internet'],
       ['Stock', 'Products, units, batches, low-stock alerts, purchasing and suppliers'],
       ['Money', 'Khata, expenses, cash register, profit and loss, accounting export'],
-      ['Grow', 'Several branches, staff roles, your own online store and Nafaa Bazaar'],
+      ['Grow', 'Several branches, staff roles, your own online store and Nafaa Market'],
       ['Price', '7 din Free Trial, then plans from {{price:min.monthly}} a month'],
     ],
     romanUrdu:
@@ -164,7 +164,7 @@ const solutionsHub = page({
     facts: [
       ['One shop', 'Counter, stock and khata in one app'],
       ['Many branches', 'Head-office view, stock transfers and branch P&L'],
-      ['Selling online', 'Your own store, Shopify, WooCommerce, Daraz and Nafaa Bazaar from one stock'],
+      ['Selling online', 'Your own store, Shopify, WooCommerce, Daraz and Nafaa Market from one stock'],
       ['Food service', 'Tables, kitchen tickets, takeaway and delivery'],
       ['Trade and production', 'Carton prices, trade khata, raw materials and costing'],
     ],
@@ -183,7 +183,7 @@ const solutionsHub = page({
       [
         ['[Retail & shops](/solutions/single-shop)', 'Kiryana, pharmacy, garments, mobile and every single-counter shop', 'POS, stock, khata, reports'],
         ['[Retail chains](/solutions/retail-chains)', 'Two or more branches under one owner', 'Branches, stock transfers, staff roles, branch P&L'],
-        ['[E-commerce](/solutions/ecommerce)', 'Sellers with an online store, social or marketplace orders', 'Online orders, channels, couriers, Nafaa Bazaar'],
+        ['[E-commerce](/solutions/ecommerce)', 'Sellers with an online store, social or marketplace orders', 'Online orders, channels, couriers, Nafaa Market'],
         ['[Restaurants](/solutions/restaurants)', 'Restaurants, cafés, bakeries and cloud kitchens', 'Tables, kitchen tickets, menu, delivery'],
         ['[Wholesale & distribution](/solutions/wholesale-distribution)', 'Wholesalers, distributors and dealers', 'Carton prices, trade khata, A4 invoices'],
         ['[Manufacturing](/solutions/manufacturing)', 'Small and mid-size production units', 'Raw materials, production, costing, sales'],
@@ -441,7 +441,7 @@ const integrationsHub = page({
       ['store', 'Daraz', 'Daraz orders, stock and shipping labels inside Nafaa.', undefined, '/solutions/ecommerce'],
       ['utensils-crossed', 'Foodpanda', 'Accept, reject and mark Foodpanda orders ready from Nafaa.', undefined, '/solutions/restaurants'],
       ['code-xml', 'Your own website', 'Send orders from any website with ready code and a key.', undefined, '/developers'],
-      ['shopping-basket', 'Nafaa Bazaar', 'List products on the Nafaa marketplace from the same stock.', undefined, '/marketplace'],
+      ['shopping-basket', 'Nafaa Market', 'List products on the Nafaa marketplace from the same stock.', undefined, '/marketplace'],
     ], 'Orders from every channel land in one list and are packed from the same stock the shop sells from.'),
     features('Couriers', [
       ['truck', 'PostEx', 'Booking, labels, tracking and COD settlement.'],

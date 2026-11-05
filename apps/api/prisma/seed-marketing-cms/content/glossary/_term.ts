@@ -112,7 +112,7 @@ export const EV = {
   labels: `${W}/modules/inventory/barcodes/components/LabelDesigner.tsx`,
   labelRender: `${W}/modules/inventory/barcodes/components/renderLabels.ts`,
   stockReport: `${W}/modules/inventory/stock-report`,
-  variantCard: `${W}/modules/inventory/products/components/VariantCard.tsx`,
+  variantCard: `${W}/modules/inventory/products/detail/tabs.tsx`,
   priceStep: `${W}/modules/inventory/products/editor/coreSteps.tsx`,
   productImport: `${W}/modules/inventory/products/import`,
   returns: `${W}/modules/sales/returns/pages/ReturnsPage.tsx`,

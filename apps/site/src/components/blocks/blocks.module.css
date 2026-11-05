@@ -499,18 +499,9 @@
     opacity var(--d-base) ease;
 }
 
-.logo:hover img {
-  filter: none;
-  opacity: 1;
-}
-
 :global(.theme-ink) .logo img {
   filter: grayscale(1) brightness(0) invert(1);
   opacity: 0.66;
-}
-
-:global(.theme-ink) .logo:hover img {
-  opacity: 1;
 }
 
 /* ─── Cards: hover lift shared by grids ─────────────────────────────── */

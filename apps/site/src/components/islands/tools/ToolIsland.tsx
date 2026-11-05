@@ -8,6 +8,12 @@
  * calculator. Islands are server-rendered (their first state is real HTML)
  * and hydrate for input. The POS cost calculator gets plan prices from the
  * Plan table here, never from code.
+ *
+ * Session recordings: the site body is unmasked for Microsoft Clarity (see
+ * app/layout.tsx). Tools that echo what a visitor types about their own
+ * business or money (names, customers, amounts owed, wealth) are wrapped in
+ * `data-clarity-mask`, so replays show them as blocks. Inputs are masked by
+ * Clarity everywhere regardless.
  */
 import dynamic from 'next/dynamic';
 import type { ToolKey } from '@/lib/cms/contract/cms-contract';
@@ -48,7 +54,16 @@ async function posPlans(): Promise<PosCostPlan[]> {
   }
 }
 
+/** Tools whose output repeats personal or business details the visitor typed. */
+const PRIVATE_TOOLS: ReadonlySet<ToolKey> = new Set<ToolKey>(['invoice-generator', 'receipt-maker', 'khata-ageing-calculator', 'zakat-calculator']);
+
 export async function ToolIsland({ toolKey, locale = 'en' }: { toolKey: ToolKey; locale?: string }) {
+  const tool = await renderTool(toolKey, locale);
+  if (!tool || !PRIVATE_TOOLS.has(toolKey)) return tool;
+  return <div data-clarity-mask="true">{tool}</div>;
+}
+
+async function renderTool(toolKey: ToolKey, locale: string) {
   switch (toolKey) {
     case 'gst-calculator':
       return <GstCalculator locale={locale} />;

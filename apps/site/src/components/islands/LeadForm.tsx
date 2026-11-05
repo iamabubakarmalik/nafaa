@@ -207,7 +207,7 @@ export function LeadForm(props: LeadFormProps) {
   const invalid = (name: keyof Errors) => (errors[name] ? { 'aria-invalid': true, 'aria-describedby': `${id(name)}-error` } : {});
 
   return (
-    <form noValidate onSubmit={onSubmit} onInput={onFirstInput} className="relative rounded-xl border border-line bg-surface p-6 shadow-e2 ink:shadow-none md:p-8">
+    <form noValidate data-clarity-mask="true" onSubmit={onSubmit} onInput={onFirstInput} className="relative rounded-xl border border-line bg-surface p-6 shadow-e2 ink:shadow-none md:p-8">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field id={id('fullName')} label={t.name} error={errors.fullName}>
           <input id={id('fullName')} name="fullName" autoComplete="name" required className={INPUT} {...invalid('fullName')} />

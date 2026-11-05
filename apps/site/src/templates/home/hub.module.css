@@ -72,14 +72,6 @@
     box-shadow 250ms var(--ease-out);
 }
 
-.fact:hover {
-  transform: translateY(-2px);
-  border-color: rgb(var(--brand-500) / 0.35);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.7) inset,
-    0 24px 48px -24px rgb(var(--brand-700) / 0.35);
-}
-
 :global(html.theme-ink) .fact {
   background: rgb(15 23 42 / 0.7);
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 20px 40px -24px rgb(0 0 0 / 0.6);

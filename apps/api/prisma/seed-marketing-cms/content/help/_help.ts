@@ -159,6 +159,8 @@ export interface HelpTopicSpec {
   slug: HelpTopic;
   title: string;
   summary: string;
+  /** Descriptive page title for search results (30-60 characters). */
+  seoTitle?: string;
   /** Short markdown intro; the template lists the articles below it. */
   intro: string;
   related: EntryRef[];
@@ -171,6 +173,7 @@ export function helpTopic(t: HelpTopicSpec, index: number): SeedEntry {
     slug: t.slug,
     title: t.title,
     summary: t.summary,
+    ...(t.seoTitle ? { seoTitle: t.seoTitle } : {}),
     parent: 'PAGE:help',
     data: { template: 'default' },
     blocks: withIds(`PAGE:${t.slug}`, [prose(t.intro), { type: 'relatedLinks', heading: 'Related', source: 'related', limit: 6 } as Block]),

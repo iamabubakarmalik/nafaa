@@ -9,10 +9,10 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa صرف دکانداری کے کاروبار کے لیے ہے، یا دوسری انڈسٹریز کے لیے بھی؟',
     answer:
-      'صرف دکانوں کے لیے نہیں۔ Nafaa دکان کے کاؤنٹر سے شروع ہوا، مگر وہی اکاؤنٹ ریسٹورنٹ (ٹیبل، کچن ٹکٹ، ڈیلیوری)، آن لائن بیچنے والے (اپنا اسٹور اور Nafaa Bazaar مارکیٹ پلیس)، سروس کے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی خاص اسکرینیں ملتی ہیں۔',
+      'صرف دکانوں کے لیے نہیں۔ Nafaa دکان کے کاؤنٹر سے شروع ہوا، مگر وہی اکاؤنٹ ریسٹورنٹ (ٹیبل، کچن ٹکٹ، ڈیلیوری)، آن لائن بیچنے والے (اپنا اسٹور اور Nafaa Market مارکیٹ پلیس)، سروس کے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی خاص اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'ur-page-industries-change',

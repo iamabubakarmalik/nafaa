@@ -341,7 +341,7 @@ export function Services({ block, quote, entry, hubLink }: { block: FeaturesGrid
               const href = cardHref(item.href);
               const inner = (
                 <>
-                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/15 transition-colors duration-base group-hover:bg-brand-600 group-hover:text-white ink:bg-brand-400/10 ink:text-brand-300 ink:ring-brand-400/20">
+                  <span className={cx('inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/15 transition-colors duration-base ink:bg-brand-400/10 ink:text-brand-300 ink:ring-brand-400/20', href && 'group-hover:bg-brand-600 group-hover:text-white')}>
                     <CmsIcon name={item.icon} size={19} />
                   </span>
                   <span className="min-w-0">
@@ -352,8 +352,11 @@ export function Services({ block, quote, entry, hubLink }: { block: FeaturesGrid
                   </span>
                 </>
               );
-              const cls =
-                'group flex h-full gap-4 rounded-2xl border border-line bg-surface/90 p-4 shadow-e1 backdrop-blur transition-[transform,box-shadow,border-color] duration-base ease-out hover:-translate-y-0.5 hover:border-brand-500/30 hover:shadow-e2 ink:shadow-none';
+              // Hover lift and icon fill only apply when the card is a real link.
+              const cls = cx(
+                'group flex h-full gap-4 rounded-2xl border border-line bg-surface/90 p-4 shadow-e1 backdrop-blur ink:shadow-none',
+                href && 'transition-[transform,box-shadow,border-color] duration-base ease-out hover:-translate-y-0.5 hover:border-brand-500/30 hover:shadow-e2',
+              );
               return (
                 <li key={`${item.title}-${i}`}>
                   {href ? (

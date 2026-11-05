@@ -68,7 +68,7 @@ export function NewsletterForm({ className }: { className?: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className={className} aria-describedby={error ? `${id}-err` : undefined}>
+    <form onSubmit={onSubmit} noValidate data-clarity-mask="true" className={className} aria-describedby={error ? `${id}-err` : undefined}>
       <label htmlFor={`${id}-email`} className="sr-only">
         {t.emailLabel}
       </label>

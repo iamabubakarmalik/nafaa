@@ -138,7 +138,7 @@ If the counter is the heart of your business, start with Nafaa. If the books are
   factNote:
     'QuickBooks facts read on 2026-10-26: quickbooks.intuit.com/global (regional sites listed for UAE, UK, US and others; Pakistan entry has no regional link) and quickbooks.intuit.com/pricing (US: Simple Start 1 user, Essentials 3, Plus 5 with inventory tracking, Advanced 25; prices in US dollars; "Mobile point of sale" link). Nafaa QuickBooks journal checked in apps/api/src/integrations/accounting.',
   topics: ['Built for', 'Country sites', 'Pricing', 'Users', 'Inventory', 'POS', 'Local payments', 'Khata', 'Tax', 'Working together'],
-  dropped: ['"Certified integration" for FBR.', '"Urdu + English, 24/7" support.', 'All QuickBooks cells from the old page (no dated source).', '"Nafaa Bazaar built-in" (O14 pending).'],
+  dropped: ['"Certified integration" for FBR.', '"Urdu + English, 24/7" support.', 'All QuickBooks cells from the old page (no dated source).', '"Nafaa Market built-in" (O14 pending).'],
   needsOwner: [
     'Verify before publishing: whether QuickBooks Online can be bought and billed from Pakistan (the country selector showed no Pakistan regional site on 2026-10-26).',
     'Verify: US plan user counts (Simple Start 1, Essentials 3, Plus 5, Advanced 25) and that inventory tracking is listed only on Plus and Advanced.',

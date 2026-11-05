@@ -44,7 +44,7 @@ Nafaa میں ہر پروڈکٹ اور اس کی ہر قسم کا اپنا SKU ہ
   sortOrder: 98,
   origin: 'translation of content/glossary/products.ts, sku (26 Oct 2026)',
   evidence: [
-    'apps/web/src/modules/inventory/products/components/VariantCard.tsx',
+    'apps/web/src/modules/inventory/products/detail/tabs.tsx',
     'apps/web/src/modules/inventory/products/import',
     'apps/web/src/modules/pos',
   ],

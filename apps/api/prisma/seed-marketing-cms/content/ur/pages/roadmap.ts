@@ -19,10 +19,10 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'روڈ میپ کے علاوہ، کیا Nafaa آج صرف دکانوں کے لیے ہے؟',
     answer:
-      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Bazaar مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس پر اپنی الگ اسکرینیں ملتی ہیں۔',
+      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Market مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس پر اپنی الگ اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'ur-page-roadmap-devices',

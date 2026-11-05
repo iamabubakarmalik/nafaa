@@ -191,3 +191,17 @@
     );
   }
 }
+
+/* Mobile conversion bar (components/layout/MobileCtaBar.tsx), phones only:
+   the page keeps room for it at the end, so nothing hides behind it, and the
+   floating WhatsApp button steps aside because the bar has its own. Set from
+   the server HTML, so nothing shifts when the page loads. */
+@media (max-width: 639.98px) {
+  body:has([data-mobile-cta]) {
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+
+  body:has([data-mobile-cta]) [data-whatsapp-fab] {
+    display: none;
+  }
+}

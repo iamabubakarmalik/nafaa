@@ -113,7 +113,7 @@ export const entry: SeedEntry = {
             { label: 'اکاؤنٹنگ', icon: 'file-spreadsheet' },
             { label: 'اسٹاف اور اجازتیں', icon: 'users' },
             { label: 'آن لائن چینل', icon: 'globe' },
-            { label: 'Nafaa Bazaar', icon: 'store' },
+            { label: 'Nafaa Market', icon: 'store' },
           ],
         },
       },

@@ -7,7 +7,8 @@ import { EV, SRC, type TermSpec } from './_term';
 export const foodHealthTerms: TermSpec[] = [
   {
     slug: 'kot',
-    seoDescription: 'A KOT (Kitchen Order Ticket) tells the kitchen what to cook for an order, on paper or on a screen. Here is how restaurants route KOTs to each station.',
+    seoTitle: 'What is KOT? Meaning in Urdu for restaurants',
+    seoDescription: 'KOT meaning in Urdu (کچن آرڈر ٹکٹ): the slip or screen order that tells the kitchen what to cook, and how restaurants route each KOT to the right station.',
     imported: true,
     term: 'KOT (Kitchen Order Ticket)',
     definition: 'A KOT is the ticket, printed or on a screen, that tells the kitchen what to cook for an order.',

@@ -46,6 +46,7 @@ import bakeryWastage from './posts/reduce-bakery-wastage';
 import menuEngineering from './posts/restaurant-menu-engineering';
 import pharmacyExpiry from './posts/pharmacy-expiry-management';
 import mobileImei from './posts/mobile-shop-imei-records';
+import checkPtaImei from './posts/check-pta-imei-status-mobile-shop';
 import garmentSeasons from './posts/garment-shop-seasonal-stock-planning';
 import hardwareSkus from './posts/hardware-store-inventory-many-skus';
 import barcodeOrNot from './posts/barcode-vs-no-barcode-store';
@@ -130,6 +131,7 @@ const POSTS: PostSpec[] = [
   menuEngineering,
   pharmacyExpiry,
   mobileImei,
+  checkPtaImei,
   garmentSeasons,
   hardwareSkus,
   barcodeOrNot,

@@ -12,6 +12,7 @@ import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cm
 import { loadCards, loadEntry, staticSlugs } from '@/templates/article/data';
 import { loadPage, pageMetadata, pathFrom } from '@/templates/article/route-helpers';
 import { DocsTemplate, HELP_CENTER } from '@/templates/docs/DocsTemplate';
+import { titleFor } from '@/lib/seo/metadata';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -26,9 +27,39 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   return slugs.filter((slug) => slug.length > 0).map((slug) => ({ slug }));
 }
 
+/** Below this length a help hub or topic title says too little in search results. */
+const SHORT_TITLE = 35;
+
+/**
+ * The search title for the help root and topic pages. Their CMS titles are
+ * section names ("Getting started", 15 characters), which say nothing about
+ * the page in a results list. While the SEO title is that short, it is
+ * extended with what the page holds: "Getting started: 4 step-by-step Nafaa
+ * help guides". A longer SEO title set in the CMS is used as it is, and task
+ * articles keep theirs ("How to create your Nafaa account").
+ */
+function helpSearchTitle(entry: PublicEntry, depth: number): string | null {
+  const title = entry.seo.title.trim();
+  if (title.length >= SHORT_TITLE || entry.locale !== 'en') return null;
+  if (depth === 0) return `${title}: guides for billing, stock and khata`;
+  if (depth !== 1) return null;
+  const count = entry.children.length;
+  return `${entry.title.trim()}: ${count > 1 ? `${count} ` : ''}step-by-step Nafaa help guides`;
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  return pageMetadata(pathFrom(PREFIX, slug), TYPES, { hasOgRoute: false });
+  const path = pathFrom(PREFIX, slug);
+  const metadata = await pageMetadata(path, TYPES, { hasOgRoute: false });
+  const entry = metadata.title ? await loadEntry(path) : null;
+  const title = entry ? helpSearchTitle(entry, slug?.length ?? 0) : null;
+  if (!title) return metadata;
+  return {
+    ...metadata,
+    title: titleFor(title, entry?.seo.titleIncludesBrand || /\bNafaa\b/.test(title)),
+    openGraph: { ...metadata.openGraph, title },
+    twitter: { ...metadata.twitter, title },
+  };
 }
 
 function cardOf(entry: PublicEntry): EntryCard {

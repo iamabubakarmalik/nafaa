@@ -54,6 +54,14 @@ const en = {
   statusComing: 'Coming soon',
   exploreAll: (label: string) => `Explore all ${label.toLowerCase()}`,
   goTo: (label: string) => `Go to ${label.toLowerCase()}`,
+  // Header and mega menu
+  startTrial: 'Start free trial',
+  allIndustries: 'All 30+ industries',
+  topTrades: 'Popular trades',
+  developersStrip: 'For developers',
+  romanGuidesDescription: 'Hisaab-kitaab guides in Roman Urdu',
+  preferences: 'Language and theme',
+  englishOnly: 'This page is in English only',
   /** Footer "about" line in this language; null keeps the entity description from settings. */
   about: null as string | null,
   notFoundTitle: 'Page not found',
@@ -108,6 +116,14 @@ const ur: ShellStrings = {
   statusComing: 'جلد آ رہا ہے',
   exploreAll: (label: string) => `تمام ${label} دیکھیں`,
   goTo: (label: string) => `${label} دیکھیں`,
+  // Header and mega menu
+  startTrial: 'مفت ٹرائل شروع کریں',
+  allIndustries: '30 سے زیادہ کاروبار دیکھیں',
+  topTrades: 'مشہور کاروبار',
+  developersStrip: 'ڈویلپرز کے لیے',
+  romanGuidesDescription: 'رومن اردو میں حساب کتاب کی گائیڈز',
+  preferences: 'زبان اور تھیم',
+  englishOnly: 'یہ صفحہ ابھی صرف انگریزی میں ہے',
   about:
     'Nafaa پاکستان کا بزنس سافٹ ویئر ہے: دکانوں، ریسٹورنٹس، سروس والے کاروبار اور کئی برانچوں والی کمپنیوں کے لیے POS، اسٹاک، کھاتہ، خریداری، اسٹاف اور رپورٹس۔ آن لائن آرڈر اور آن لائن بیچنے والوں کے لیے مارکیٹ پلیس بھی، اور انٹرنیٹ نہ ہو تو بھی بلنگ چلتی رہتی ہے۔',
   notFoundTitle: 'یہ صفحہ نہیں ملا',
@@ -206,7 +222,7 @@ const UR_LABELS: Record<string, string> = {
   'Solutions by business type': 'کاروبار کے حساب سے سولوشنز',
   Marketplace: 'مارکیٹ پلیس',
   'Sell online': 'آن لائن بیچیں',
-  'Sell on Nafaa Bazaar': 'Nafaa Bazaar پر بیچیں',
+  'Sell on Nafaa Market': 'Nafaa Market پر بیچیں',
   'Your own online store': 'اپنا آن لائن اسٹور',
   'Shopify & WooCommerce': 'Shopify اور WooCommerce',
   'Ship every order': 'ہر آرڈر بھیجیں',

@@ -95,8 +95,8 @@ The Nafaa Tax settings store the NTN with each POS terminal where an authority's
   },
   {
     slug: 'strn',
-    seoDescription: 'The Sales Tax Registration Number (STRN) identifies a business registered with FBR for sales tax. Here is who needs one and where it appears on bills.',
-    seoTitle: 'What is STRN? Sales Tax Registration Number in Urdu',
+    seoTitle: 'What is STRN? Meaning in Urdu, format and how to get one',
+    seoDescription: 'STRN meaning in Urdu (سیلز ٹیکس رجسٹریشن نمبر): what the number is, who needs one, where it appears on a bill and how a business registers for it.',
     imported: true,
     term: 'STRN (Sales Tax Registration Number)',
     definition: 'The Sales Tax Registration Number identifies a business registered with FBR for sales tax.',

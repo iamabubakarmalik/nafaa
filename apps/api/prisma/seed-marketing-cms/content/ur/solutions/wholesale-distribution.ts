@@ -60,7 +60,7 @@ export const faqs: SeedFaq[] = [
       'ایک برانچ سے اسٹاک ٹرانسفر بنائیں، اور لینے والی برانچ تصدیق کرتی ہے کہ کیا پہنچا۔ اسٹاک ایک دکان سے نکل کر دوسری میں آتا ہے، اور ریکارڈ رہتا ہے کہ کس نے بھیجا اور کس نے لیا۔ ہیڈ آفس ہر برانچ کا اسٹاک، سیل اور پرافٹ اینڈ لاس ساتھ ساتھ دیکھتا ہے۔',
     sourceNote: 'inventory/transfers; multi-branch center, pnl and day-book pages.',
     origin: 'translation of faq mp-branches-transfer',
-    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch'],
+    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/organization/shops'],
   },
   {
     key: 'ur-sol-wholesale-distribution-export',

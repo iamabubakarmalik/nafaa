@@ -182,7 +182,7 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
               </div>
             ) : null}
 
-            <Body entry={entry} variant="article" withFaqs />
+            <Body entry={entry} variant="article" withFaqs ctaAtEnd />
             {terms.length || entry.author ? (
               <Container size="prose" className="mt-14 space-y-8">
                 {terms.length ? (

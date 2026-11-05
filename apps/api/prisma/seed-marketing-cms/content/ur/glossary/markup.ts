@@ -47,7 +47,7 @@ Nafaa کے پروڈکٹ ایڈیٹر میں قیمت والے مرحلے پر م
   origin: 'translation of content/glossary/money.ts, markup (26 Oct 2026)',
   evidence: [
     'apps/web/src/modules/inventory/products/editor/coreSteps.tsx',
-    'apps/web/src/modules/inventory/products/components/VariantCard.tsx',
+    'apps/web/src/modules/inventory/products/detail/tabs.tsx',
   ],
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],

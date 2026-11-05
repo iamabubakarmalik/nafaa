@@ -1,6 +1,6 @@
 /* eslint-disable */
 // GENERATED FILE. Do not edit.
-// Source: packages/cms-contract/src/cms-contract.ts (sha256 29e3bef663adeef6).
+// Source: packages/cms-contract/src/cms-contract.ts (sha256 0dc010312097dc54).
 // Edit the source, then run `node scripts/sync-cms-contract.mjs`.
 /**
  * Marketing CMS contract: the shared shapes of the nafaa.pk content system.
@@ -785,7 +785,7 @@ export const DIAGRAM_LABEL_KEYS: Record<BespokeDiagramKind, Readonly<Record<stri
   'khata-cycle': { sale: 'Udhaar sale', reminder: 'WhatsApp reminder', payment: 'Payment', balance: 'Balance updated' },
   'multi-branch': { hq: 'Head office', branchA: 'Branch 1', branchB: 'Branch 2', branchC: 'Branch 3', transfer: 'Stock transfer' },
   'order-to-cash': { booker: 'Order booker', warehouse: 'Warehouse', dispatch: 'Dispatch', invoice: 'Invoice', collection: 'Collection' },
-  'store-sync': { nafaa: 'Nafaa', shopify: 'Shopify', website: 'Online store', bazaar: 'Nafaa Bazaar', stock: 'Stock', orders: 'Orders' },
+  'store-sync': { nafaa: 'Nafaa', shopify: 'Shopify', website: 'Online store', bazaar: 'Nafaa Market', stock: 'Stock', orders: 'Orders' },
   'api-webhooks': { app: 'Your app', api: 'API v1', nafaa: 'Nafaa', webhooks: 'Webhooks' },
   'service-process': { discover: 'Discover', design: 'Design', build: 'Build', launch: 'Launch', support: 'Support' },
 };

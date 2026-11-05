@@ -271,27 +271,27 @@ const ecommerce = page({
   slug: 'ecommerce',
   title: 'E-commerce Sellers',
   summary:
-    'Nafaa for e-commerce sellers runs your online orders and the Nafaa Bazaar marketplace from the same stock as your shop: orders from your website, Shopify, WooCommerce and Daraz in one list, courier booking with TCS, Leopards, PostEx and more, COD tracking, risk checks and payment links.',
+    'Nafaa for e-commerce sellers runs your online orders and the Nafaa Market marketplace from the same stock as your shop: orders from your website, Shopify, WooCommerce and Daraz in one list, courier booking with TCS, Leopards, PostEx and more, COD tracking, risk checks and payment links.',
   data: { icon: 'shopping-bag', shortName: 'E-commerce', outcome: 'Online Store and Marketplace, One Stock', segment: 'Online sellers', status: 'live' },
   seoTitle: 'E-commerce Software for Pakistani Sellers: One Stock Online',
   seoDescription:
-    'Your website, Shopify, WooCommerce, Daraz and Nafaa Bazaar on one stock, with courier booking, COD tracking, risk checks and payment links. Free trial.',
+    'Your website, Shopify, WooCommerce, Daraz and Nafaa Market on one stock, with courier booking, COD tracking, risk checks and payment links. Free trial.',
   focusKeyword: 'ecommerce software pakistan',
   hero: {
     eyebrow: 'For e-commerce sellers',
     heading: 'Sell everywhere online and ship from one stock',
-    sub: 'Your own website, Shopify, WooCommerce, Daraz and Nafaa Bazaar, all feeding one order list and one stock. Book the courier from the order, catch risky COD buyers before you ship, and see where the courier money is.',
+    sub: 'Your own website, Shopify, WooCommerce, Daraz and Nafaa Market, all feeding one order list and one stock. Book the courier from the order, catch risky COD buyers before you ship, and see where the courier money is.',
     media: { id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders' },
     badges: ['Website + marketplace', '6 couriers', 'COD tracking'],
   },
   answer: {
     facts: [
-      ['Sell on', 'Your website, Shopify, WooCommerce, Daraz, a Nafaa order link and Nafaa Bazaar'],
+      ['Sell on', 'Your website, Shopify, WooCommerce, Daraz, a Nafaa order link and Nafaa Market'],
       ['Ship with', 'TCS, Leopards, M&P, PostEx, Trax and Call Courier'],
       ['Get paid', 'COD tracking by courier, plus JazzCash and Easypaisa payment links'],
       ['Stock', 'One stock with your shop or warehouse; channels update on every sale'],
     ],
-    romanUrdu: 'Apni website, Shopify, WooCommerce, Daraz aur Nafaa Bazaar sab ek stock se. Courier ki booking order se hi, COD ka paisa kis courier ke paas hai yeh saaf, aur mushkil customers ki pehchaan pehle.',
+    romanUrdu: 'Apni website, Shopify, WooCommerce, Daraz aur Nafaa Market sab ek stock se. Courier ki booking order se hi, COD ka paisa kis courier ke paas hai yeh saaf, aur mushkil customers ki pehchaan pehle.',
   },
   body: [
     diagram('Orders from every channel come into Nafaa; stock changes flow back out to each channel.', { kind: 'store-sync' }, 'One stock, every channel'),
@@ -340,7 +340,7 @@ Most online sellers here are also shopkeepers. The same rack serves walk-in buye
 
 The second trouble is money. With COD, a sale is not money until the courier pays. Nafaa tracks each parcel from booking to settlement, so you can see which courier is holding how much and for how long. The [online sales report](/product/reports) breaks sales down by channel, city and courier, with the return rate next to each.
 
-Want to reach buyers beyond your own followers? List the same products on [Nafaa Bazaar](/marketplace), the Nafaa marketplace, without keeping a second catalogue.`),
+Want to reach buyers beyond your own followers? List the same products on [Nafaa Market](/marketplace), the Nafaa marketplace, without keeping a second catalogue.`),
     features('Coming soon', [
       ['store', 'Facebook Shop', 'Sync products and orders with a Facebook shop.', 'coming'],
       ['camera', 'Instagram Shop', 'Tag products from your Nafaa catalogue in Instagram posts.', 'coming'],
@@ -349,7 +349,7 @@ Want to reach buyers beyond your own followers? List the same products on [Nafaa
     pricing('Plans for online and in-store selling'),
   ],
   faqKeys: ['mp-ecommerce-stock', 'mp-ecommerce-cod', 'sol-ecom-no-website', 'sol-ecom-courier-money', 'mp-online-channels', 'mp-bazaar-what'],
-  cta: { heading: 'Put every online order on one screen', body: 'Connect your store and list on Nafaa Bazaar in the free trial.' },
+  cta: { heading: 'Put every online order on one screen', body: 'Connect your store and list on Nafaa Market in the free trial.' },
   relations: [
     { ref: 'PRODUCT:online-store', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -382,7 +382,6 @@ Want to reach buyers beyond your own followers? List the same products on [Nafaa
     'apps/web/src/integrations/online-orders/pages/OnlineReportsPage.tsx',
     'apps/web/src/integrations/online-orders/components/PaymentLinkSection.tsx',
     'apps/web/src/integrations/online-orders/components/daraz/Daraz.tsx',
-    'apps/web/src/integrations/channels/social/facebook-shop/index.ts',
     'apps/api/src/integrations/online-orders/courier-api',
     'apps/api/src/integrations/google/feed.ts',
     'apps/api/src/marketplace/publishing',
@@ -774,7 +773,7 @@ const enterprise = page({
         { label: 'Accounting', icon: 'file-spreadsheet' },
         { label: 'Staff & permissions', icon: 'users' },
         { label: 'Online channels', icon: 'globe' },
-        { label: 'Nafaa Bazaar', icon: 'store' },
+        { label: 'Nafaa Market', icon: 'store' },
       ],
     },
     layout: 'split',

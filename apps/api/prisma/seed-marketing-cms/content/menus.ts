@@ -2,12 +2,17 @@
  * Site menus (PLAN 2.3). Seeded only when a menu does not exist yet; the D1
  * redesign script saves them over the starter menus on a local CMS.
  *
- * How the site renders them (apps/site/src/components/layout/MegaMenu.tsx):
+ * How the site renders them (apps/site/src/components/layout/header/model.ts):
+ * - The header shows five sections: Products, Solutions, Industries,
+ *   Resources, Pricing. `services` becomes a compact column in Solutions,
+ *   `developers` the link strip under Products; `marketplace` links already
+ *   appear in Products and Solutions.
  * - A top-level item with children opens a mega panel. Its own url becomes
  *   the "overview" link at the foot of the panel.
  * - Children that have children render as columns (group heading + links).
- *   Children without children that sit next to columns render in the panel's
- *   side rail as highlighted cards.
+ *   The first child without children becomes the panel's featured card;
+ *   further ones go to the panel's footer strip.
+ * - Industries show the top trades as an icon grid plus "All 30+ industries".
  * - A description that starts with "Coming soon:" shows a "Coming soon" badge
  *   (owner rule: unbuilt features are never shown as live).
  *
@@ -37,7 +42,7 @@ export const menus: SeedMenu[] = [
               { id: 'p-pos', kind: 'url', label: 'POS & billing', url: '/product/pos', icon: 'scan-barcode', description: 'Fast counter with barcode, units and receipts' },
               { id: 'p-payments', kind: 'url', label: 'Payments', url: '/product/payments', icon: 'wallet', description: 'Cash, card, JazzCash, Easypaisa and QR' },
               { id: 'p-store', kind: 'url', label: 'Online store', url: '/product/online-store', icon: 'shopping-bag', description: 'Website, Shopify and WooCommerce orders' },
-              { id: 'p-bazaar', kind: 'url', label: 'Nafaa Bazaar', url: '/marketplace', icon: 'store', description: 'Sell on the Nafaa marketplace' },
+              { id: 'p-bazaar', kind: 'url', label: 'Nafaa Market', url: '/marketplace', icon: 'store', description: 'Sell on the Nafaa marketplace' },
               { id: 'p-offline', kind: 'url', label: 'Works offline', url: '/product/offline-pos', icon: 'wifi-off', description: 'Keep billing when the internet drops' },
             ],
           },
@@ -127,7 +132,7 @@ export const menus: SeedMenu[] = [
             kind: 'group',
             label: 'Sell online',
             children: [
-              { id: 'm-bazaar', kind: 'url', label: 'Sell on Nafaa Bazaar', url: '/marketplace', icon: 'store', description: 'List your products on the Nafaa marketplace and reach new buyers' },
+              { id: 'm-bazaar', kind: 'url', label: 'Sell on Nafaa Market', url: '/marketplace', icon: 'store', description: 'List your products on the Nafaa marketplace and reach new buyers' },
               { id: 'm-store', kind: 'url', label: 'Your own online store', url: '/product/online-store', icon: 'shopping-bag', description: 'Website orders land on the counter' },
               { id: 'm-channels', kind: 'url', label: 'Shopify & WooCommerce', url: '/integrations', icon: 'plug', description: 'Bring store orders into the same stock' },
             ],
@@ -247,7 +252,7 @@ export const menus: SeedMenu[] = [
           { id: 'f-khata', kind: 'url', label: 'Digital khata', url: '/product/khata' },
           { id: 'f-fbr', kind: 'url', label: 'Tax invoicing', url: '/product/fbr' },
           { id: 'f-store', kind: 'url', label: 'Online store', url: '/product/online-store' },
-          { id: 'f-bazaar', kind: 'url', label: 'Nafaa Bazaar', url: '/marketplace' },
+          { id: 'f-bazaar', kind: 'url', label: 'Nafaa Market', url: '/marketplace' },
           { id: 'f-staff', kind: 'url', label: 'Staff & payroll', url: '/product/staff' },
           { id: 'f-reports', kind: 'url', label: 'Reports', url: '/product/reports' },
           { id: 'f-ai', kind: 'url', label: 'AI assistant', url: '/product/ai-assistant' },

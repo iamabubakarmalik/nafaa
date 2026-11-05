@@ -58,17 +58,17 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'Is Nafaa only for shops?',
     answer:
-      'No. Nafaa started at the shop counter, but the same account runs restaurants (tables, kitchen tickets, delivery), online sellers (your own store and the Nafaa Bazaar marketplace), service businesses (bookings, memberships, commission), wholesalers (carton prices, credit limits, suppliers) and companies with many branches. Each business type gets its own screens on top of the same POS, stock, khata and reports.',
+      'No. Nafaa started at the shop counter, but the same account runs restaurants (tables, kitchen tickets, delivery), online sellers (your own store and the Nafaa Market marketplace), service businesses (bookings, memberships, commission), wholesalers (carton prices, credit limits, suppliers) and companies with many branches. Each business type gets its own screens on top of the same POS, stock, khata and reports.',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'new',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'sell-online',
     topic: 'getting-started',
     question: 'Can I sell online with Nafaa?',
     answer:
-      'Yes. Orders from your own website, a Shopify store or a WooCommerce store come into Nafaa next to your counter sales and take stock from the same shelf. You can also list products on Nafaa Bazaar, the Nafaa marketplace, to reach new buyers.',
+      'Yes. Orders from your own website, a Shopify store or a WooCommerce store come into Nafaa next to your counter sales and take stock from the same shelf. You can also list products on Nafaa Market, the Nafaa marketplace, to reach new buyers.',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'new',
     evidence: ['apps/api/src/integrations/online-orders/order-normalizer.ts', 'apps/api/src/integrations/channels/custom-website', 'apps/api/src/marketplace/publishing'],

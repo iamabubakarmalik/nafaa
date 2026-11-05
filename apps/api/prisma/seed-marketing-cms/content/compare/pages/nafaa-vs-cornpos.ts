@@ -142,7 +142,7 @@ If the answers describe a growing restaurant chain, CORN POS is built for that. 
     'apps/web/src/industries/restaurant/pages/DeliveryTrackingPage.tsx',
     'apps/web/src/industries/restaurant/pages/HappyHoursPage.tsx',
     'apps/web/src/industries/restaurant/components/OrderDialogs.tsx',
-    'apps/web/src/integrations/channels/foodpanda',
+    'apps/api/src/integrations/online-orders/foodpanda.service.ts',
     'apps/web/src/modules/customers/directory/KhataBookPage.tsx',
     'apps/web/src/core/lib/offline/offlineSales.ts',
     'apps/web/src/integrations/tax-authority',

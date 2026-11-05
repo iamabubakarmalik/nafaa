@@ -176,6 +176,13 @@ export async function syncMedia(
     if (tagged) {
       result.ids.set(asset.key, tagged.id);
       result.matched.push(asset.key);
+      // Fill in alt translations the target is missing; existing ones are left as editors set them.
+      const current = (tagged.altTranslations ?? {}) as Record<string, string>;
+      const missing = Object.entries(asset.altTranslations ?? {}).filter(([locale, text]) => text && !current[locale]);
+      if (opts.apply && missing.length) {
+        await api.patch(`/media/${tagged.id}`, { altTranslations: { ...current, ...Object.fromEntries(missing) } });
+        log(`  media ${asset.key}: alt added for ${missing.map(([l]) => l).join(', ')}`);
+      }
       continue;
     }
     const same = asset.checksum ? byChecksum.get(asset.checksum) : undefined;

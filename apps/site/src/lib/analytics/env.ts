@@ -32,7 +32,20 @@ export interface ThirdPartyIds {
 
 function pick(value: string | undefined, pattern: RegExp): string | undefined {
   const v = value?.trim();
-  return v && pattern.test(v) ? v : undefined;
+  return v && pattern.test(v) && !isPlaceholder(v) ? v : undefined;
+}
+
+/**
+ * Sample values copied from setup guides ("123456789012345",
+ * "CXXXXXXXXXXXXXXXXXX", "GTM-XXXXXXX") pass the format checks but are not
+ * real accounts: Meta reported the site's pixel as invalid because of one.
+ * They are treated as unset.
+ */
+function isPlaceholder(value: string): boolean {
+  const body = value.replace(/^(GTM|G|AW)-/i, '');
+  if (/X{4,}/i.test(body)) return true;
+  if (/^(\d)\1+$/.test(body)) return true;
+  return /^\d+$/.test(body) && '12345678901234567890'.startsWith(body);
 }
 
 const LABEL = /^[A-Za-z0-9_-]{1,64}$/;

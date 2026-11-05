@@ -6,7 +6,11 @@
  *
  * Always: Organization, WebSite, the page node, BreadcrumbList, the editor's
  * `schemaExtra`. Then per template (ARCH 8 table). Rules kept here:
- * - never AggregateRating;
+ * - never AggregateRating or Review (there are no real reviews yet);
+ * - never Product: Nafaa is software, so plans are SoftwareApplication offers.
+ *   A Product node opts the page into Google's merchant listings, which then
+ *   ask for shipping and return details that a subscription does not have
+ *   (the old site's Product markup is what Search Console flagged);
  * - never LocalBusiness (offices appear only as the Organization address);
  * - SoftwareApplication offers list paid plans only (prices from Plan), so no
  *   price-0 offer is published;

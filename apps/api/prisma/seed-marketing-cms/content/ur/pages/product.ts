@@ -9,10 +9,10 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa کی پروڈکٹس صرف دکانوں کے کام آتی ہیں؟',
     answer:
-      'نہیں۔ Nafaa کاؤنٹر سے شروع ہوا، مگر یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Bazaar)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس پر اپنی اسکرینیں ملتی ہیں۔',
+      'نہیں۔ Nafaa کاؤنٹر سے شروع ہوا، مگر یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Market)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس پر اپنی اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'ur-page-product-one-price',
@@ -101,7 +101,7 @@ export const entry: SeedEntry = {
         { label: 'بیچیں', value: 'کسی بھی فون، ٹیبلٹ یا کمپیوٹر پر POS کاؤنٹر، انٹرنیٹ کے بغیر بھی' },
         { label: 'اسٹاک', value: 'پروڈکٹس، یونٹ، بیچ، کم اسٹاک کی وارننگ، خریداری اور سپلائر' },
         { label: 'پیسہ', value: 'کھاتہ، ایکسپینس، کیش رجسٹر، پرافٹ اینڈ لاس، اکاؤنٹنگ ایکسپورٹ' },
-        { label: 'آگے بڑھیں', value: 'کئی برانچیں، اسٹاف رولز، اپنا آن لائن اسٹور اور Nafaa Bazaar' },
+        { label: 'آگے بڑھیں', value: 'کئی برانچیں، اسٹاف رولز، اپنا آن لائن اسٹور اور Nafaa Market' },
         { label: 'قیمت', value: '7 دن کا فری ٹرائل، پھر {{price:min.monthly}} ماہانہ سے پلان' },
       ],
       romanUrdu:

@@ -8,10 +8,10 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa صرف دکانوں کے لیے ہے؟',
     answer:
-      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Bazaar مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی الگ اسکرینیں ملتی ہیں۔',
+      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Market مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی الگ اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'ur-home-sell-online',
@@ -19,7 +19,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا میں Nafaa سے آن لائن بیچ سکتا ہوں؟',
     answer:
-      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Bazaar پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
+      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Market پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: ['apps/api/src/integrations/online-orders/order-normalizer.ts', 'apps/api/src/integrations/channels/custom-website', 'apps/api/src/marketplace/publishing'],
@@ -98,7 +98,7 @@ export const entry: SeedEntry = {
   ],
   title: 'Nafaa',
   summary:
-    'Nafaa پاکستان کا مکمل بزنس سافٹ ویئر ہے: POS، اسٹاک، ڈیجیٹل کھاتہ، آن لائن اسٹور، Nafaa Bazaar مارکیٹ پلیس، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں۔ دکانوں، ریسٹورنٹس، آن لائن سیلرز، ہول سیلرز، سروس والے کاروباروں اور کئی برانچوں والی کمپنیوں کے لیے۔ انٹرنیٹ نہ ہو تو بھی بل بنتے رہتے ہیں۔',
+    'Nafaa پاکستان کا مکمل بزنس سافٹ ویئر ہے: POS، اسٹاک، ڈیجیٹل کھاتہ، آن لائن اسٹور، Nafaa Market مارکیٹ پلیس، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں۔ دکانوں، ریسٹورنٹس، آن لائن سیلرز، ہول سیلرز، سروس والے کاروباروں اور کئی برانچوں والی کمپنیوں کے لیے۔ انٹرنیٹ نہ ہو تو بھی بل بنتے رہتے ہیں۔',
   data: { template: 'home' },
   seoTitle: 'Nafaa: ہر کاروبار کے لیے بزنس سافٹ ویئر، POS اور اسٹاک',
   seoDescription: 'POS، اسٹاک، کھاتہ، آن لائن اسٹور، مارکیٹ پلیس، اسٹاف اور رپورٹس: دکان، ریسٹورنٹ اور ہر کاروبار کے لیے ایک سافٹ ویئر۔ انٹرنیٹ کے بغیر بھی بلنگ۔ 7 دن مفت ٹرائل۔',
@@ -170,7 +170,7 @@ export const entry: SeedEntry = {
         { label: 'قیمت', value: '7 دن مفت ٹرائل، اس کے بعد پیڈ پلان {{price:min.monthly}} ماہانہ سے' },
       ],
       romanUrdu:
-        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, Nafaa Bazaar, staff aur reports, sab ek account me. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
+        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, Nafaa Market, staff aur reports, sab ek account me. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
     },
     {
       id: 'home-platform',
@@ -213,7 +213,7 @@ export const entry: SeedEntry = {
         },
         {
           icon: 'store',
-          title: 'Nafaa Bazaar',
+          title: 'Nafaa Market',
           body: 'اپنی پروڈکٹس Nafaa مارکیٹ پلیس پر لگائیں اور نئے کسٹمرز سے آرڈر لیں۔',
           href: '/ur/marketplace',
         },
@@ -389,7 +389,7 @@ export const entry: SeedEntry = {
         {
           icon: 'shopping-bag',
           title: 'ای کامرس سیلرز',
-          body: 'آپ کا اپنا آن لائن اسٹور اور Nafaa Bazaar، اور ویب سائٹ کے آرڈر اور کاؤنٹر کی سیل ایک ہی اسٹاک سے۔',
+          body: 'آپ کا اپنا آن لائن اسٹور اور Nafaa Market، اور ویب سائٹ کے آرڈر اور کاؤنٹر کی سیل ایک ہی اسٹاک سے۔',
           href: '/ur/solutions/ecommerce',
         },
         {
@@ -447,7 +447,7 @@ export const entry: SeedEntry = {
       type: 'diagram',
       heading: 'کاؤنٹر اور ہر آن لائن چینل کا ایک ہی اسٹاک',
       caption:
-        'آپ کی ویب سائٹ اور Nafaa Bazaar کے آرڈر اسی شیلف سے اسٹاک لیتے ہیں جس سے کاؤنٹر، اس لیے کوئی ایسی چیز نہیں بکتی جو آپ کے پاس ہے ہی نہیں۔',
+        'آپ کی ویب سائٹ اور Nafaa Market کے آرڈر اسی شیلف سے اسٹاک لیتے ہیں جس سے کاؤنٹر، اس لیے کوئی ایسی چیز نہیں بکتی جو آپ کے پاس ہے ہی نہیں۔',
       diagram: { kind: 'store-sync' },
     },
     {
@@ -551,7 +551,7 @@ export const entry: SeedEntry = {
     'apps/web/src/modules/hr',
     'apps/web/src/modules/reports',
     'apps/web/src/modules/finance/profit-report',
-    'apps/web/src/modules/multi-branch',
+    'apps/web/src/modules/organization/shops',
     'apps/web/src/modules/inventory/transfers',
     'apps/api/src/integrations/accounting',
     'apps/api/src/integrations/whatsapp',

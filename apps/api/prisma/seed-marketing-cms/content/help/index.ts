@@ -41,6 +41,7 @@ const ARTICLES: Record<HelpTopic, HelpArticle[]> = {
 const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   'getting-started': {
     title: 'Getting started',
+    seoTitle: 'Getting started with Nafaa: account, shop and staff setup',
     summary: 'Create your Nafaa account, set up the shop, add your staff with their own logins and roles, and get the counter running on the computer, tablet or phone you already have.',
     intro:
       'Start here if you are new to Nafaa. These articles take you from sign-up to a shop that is ready to bill: the account and the 7-day trial, the shop details that print on every bill, staff logins with roles, and the devices the counter runs on.',
@@ -49,6 +50,7 @@ const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   },
   'products-and-stock': {
     title: 'Products and stock',
+    seoTitle: 'Products and stock in Nafaa: add, import and count items',
     summary: 'Add products one by one or from Excel, sell in units and packs, print barcode labels, keep stock correct with adjustments and transfers, and buy from suppliers with purchase orders and goods received notes.',
     intro:
       'Everything about the items you sell and the stock behind them: adding products, units and packs, bulk import and bulk edit, barcodes, low stock alerts, stock adjustments, transfers between branches, and purchasing from suppliers.',
@@ -57,6 +59,7 @@ const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   },
   'pos-counter': {
     title: 'Counter and POS',
+    seoTitle: 'Nafaa POS counter help: billing, discounts and returns',
     summary: 'Make bills fast at the counter: keyboard shortcuts, layouts, hold and recall, discounts, split payments, returns with the refund PIN, billing without internet, and receipt printers.',
     intro:
       'How the POS counter works day to day. Each article covers one task at the till, with the keys and buttons exactly as they appear on the counter screen.',
@@ -65,6 +68,7 @@ const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   },
   'khata-and-customers': {
     title: 'Khata and customers',
+    seoTitle: 'Khata and customers in Nafaa: udhaar, payments, reminders',
     summary: 'Keep customer udhaar in the digital khata: add customers, carry over opening balances from the old register, sell on credit, record payments, send WhatsApp reminders and set credit limits.',
     intro:
       'The digital khata replaces the paper udhaar register. These articles cover the customer record, opening balances, credit sales at the counter, receiving payments, reminders on WhatsApp and the credit limit that stops a balance from growing too far.',
@@ -73,6 +77,7 @@ const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   },
   'reports-and-cash': {
     title: 'Reports and cash',
+    seoTitle: 'Nafaa reports and cash closing: daily sales and profit',
     summary: 'Read the day’s sales, see profit by product and for the whole business, and close the cash drawer at the end of the day with the expected amount and the difference.',
     intro:
       'The reports most shops open every day: the daily sales summary, profit reports and the cash closing that checks the galla against what the system expects.',
@@ -81,14 +86,16 @@ const TOPIC_SPECS: Record<HelpTopic, Omit<HelpTopicSpec, 'slug'>> = {
   },
   grow: {
     title: 'Branches, online and loyalty',
+    seoTitle: 'Branches, online store and loyalty in Nafaa: how-to help',
     summary: 'Run more than one branch from one account, take orders from an online store, reward regular customers with loyalty points, and ask the AI assistant about your business in plain words.',
     intro:
       'Tools for a growing business: more branches, an online store whose orders land in the same stock, loyalty points for regular customers, and the AI assistant.',
     related: ['PRODUCT:multi-shop', 'PRODUCT:online-store', 'PRODUCT:loyalty', 'PRODUCT:ai-assistant'],
-    evidence: ['apps/web/src/modules/multi-branch', 'apps/web/src/modules/ai-assistant'],
+    evidence: ['apps/web/src/modules/organization/shops', 'apps/web/src/modules/ai-assistant'],
   },
   'by-business-type': {
     title: 'By business type',
+    seoTitle: 'Nafaa help by business: restaurant, pharmacy, mobile shop',
     summary: 'Tasks that belong to one kind of business: restaurant KOT and tables, pharmacy batches and expiry, mobile phone IMEI tracking, garments sizes and colours, bakery orders and salon bookings.',
     intro:
       'Nafaa switches on extra screens for your business type (Settings → Business type). These articles cover the most used ones. Everything in the other topics works for these businesses too.',

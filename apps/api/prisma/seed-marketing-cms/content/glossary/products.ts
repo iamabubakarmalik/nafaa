@@ -144,6 +144,8 @@ Nafaa has a shared multi-units page for every industry. A product can be sold in
   },
   {
     slug: 'wholesale-price',
+    seoTitle: 'What is Wholesale Price? Meaning in Urdu',
+    seoDescription: 'Wholesale price meaning in Urdu (تھوک قیمت): the lower rate for bulk buyers and resellers, how it differs from the retail price and how a shop can set it.',
     term: 'Wholesale Price',
     definition: 'A wholesale price is the lower price charged to buyers who purchase in bulk or resell the goods, such as retailers, contractors or institutions.',
     definitionRomanUrdu: 'Wholesale price woh kam qeemat hai jo zyada maal lene walon ya aage bechne walon se li jati hai, jaise dukandar, contractor ya idaray.',
@@ -187,7 +189,8 @@ The Sales Tax Act, 1990 and its schedules are published on [FBR: Acts, Rules and
   },
   {
     slug: 'imei',
-    seoDescription: 'An IMEI is the 15-digit number that identifies a mobile phone handset. Mobile shops in Pakistan use it to track stock, PTA status, warranty and theft.',
+    seoTitle: 'What is IMEI? Meaning in Urdu, PTA status and tracking',
+    seoDescription: 'IMEI meaning in Urdu (آئی ایم ای آئی): the 15-digit number that identifies a phone, how to check PTA status with it, and how mobile shops track IMEI stock.',
     imported: true,
     term: 'IMEI',
     definition: 'An IMEI is the 15-digit number that identifies a mobile phone handset.',
@@ -201,10 +204,15 @@ A mobile shop should record the IMEI when a phone enters stock and again on the 
 
 ## In Nafaa
 
-The Nafaa mobile pack keeps an IMEI register: each phone is entered with its IMEI and PTA status, the counter sells by IMEI, and returns can be searched by IMEI. Bulk import also takes an IMEI column for phones.`,
+The Nafaa mobile pack keeps an IMEI register: each phone is entered with its IMEI and PTA status, the counter sells by IMEI, and returns can be searched by IMEI. Bulk import also takes an IMEI column for phones. Nafaa stores the PTA status you record for each IMEI; it does not check PTA for you.
+
+## Checking PTA status
+
+PTA runs the DIRBS system. Its website, [dirbs.pta.gov.pk](https://dirbs.pta.gov.pk/), says a device can be checked by sending the 15-digit IMEI by SMS to 8484, through the website or through the DIRBS DVS app (checked on 5 November 2026). For the full routine, read [how to check PTA IMEI status and track phones in a mobile shop](/blog/check-pta-imei-status-mobile-shop) and the help article on [IMEI tracking for mobile shops](/help/by-business-type/mobile-imei-tracking).`,
     alsoKnownAs: ['IMEI number', 'International Mobile Equipment Identity'],
-    related: ['GLOSSARY_TERM:pta-approved', 'GLOSSARY_TERM:serial-number', 'INDUSTRY:mobile-shop'],
+    related: ['GLOSSARY_TERM:pta-approved', 'GLOSSARY_TERM:serial-number', 'INDUSTRY:mobile-shop', 'BLOG_POST:check-pta-imei-status-mobile-shop', 'PAGE:mobile-imei-tracking'],
     evidence: [EV.imeiInventory, EV.imeiApi, EV.returns],
+    sources: [SRC.dirbs],
   },
   {
     slug: 'pta-approved',
@@ -233,7 +241,8 @@ The Nafaa mobile pack records each phone's PTA status (approved, non-PTA, patche
   },
   {
     slug: 'serial-number',
-    seoDescription: 'Serial number tracking records the unique serial of each high-value unit from purchase to sale, so every piece can be traced for warranty and returns.',
+    seoTitle: 'What is a Serial Number? Meaning in Urdu and tracking',
+    seoDescription: 'Serial number meaning in Urdu (سیریل نمبر): the unique number on each unit, why shops record it for warranty and returns, and how it differs from a barcode.',
     term: 'Serial Number Tracking',
     definition: 'Serial number tracking records the unique serial of each high-value unit from purchase to sale, so every piece can be traced for warranty, returns and theft.',
     definitionRomanUrdu: 'Serial number tracking har qeemti unit ka apna serial khareed se bikri tak record karti hai, taake warranty, return aur chori me har piece ka pata chale.',

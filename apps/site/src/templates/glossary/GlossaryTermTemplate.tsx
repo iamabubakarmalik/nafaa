@@ -14,7 +14,7 @@ import { Markdown } from '@/components/blocks/rich-text/Markdown';
 import { Prose } from '@/components/ui/Prose';
 import { localizePath } from '@/lib/cms/locale';
 import { uiStrings } from '@/lib/i18n/ui';
-import { Body } from '../article/parts/Body';
+import { Body, ClosingCta } from '../article/parts/Body';
 import { CardGrid, ContentCard, relativePath } from '../article/parts/Cards';
 import { FixtureRibbon } from '../article/parts/FixtureRibbon';
 import { s5Graph } from '../article/parts/graph';
@@ -105,7 +105,7 @@ export function GlossaryTermTemplate({ entry, site, entity }: { entry: PublicEnt
           </Container>
 
           <div className="mt-10">
-            <Body entry={entry} variant="article" withFaqs />
+            <Body entry={entry} variant="article" withFaqs ctaAtEnd />
           </div>
 
           {relatedTerms.length ? (
@@ -125,6 +125,8 @@ export function GlossaryTermTemplate({ entry, site, entity }: { entry: PublicEnt
           ) : null}
         </div>
       </article>
+
+      <ClosingCta entry={entry} site={site} fallback={false} className="pb-8" />
 
       {relatedOther.length ? (
         <section aria-labelledby="learn-more" className="theme-muted border-t border-line/70 bg-canvas py-16 md:py-20">

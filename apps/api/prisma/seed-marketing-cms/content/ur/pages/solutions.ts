@@ -9,10 +9,10 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa کے سولوشنز صرف دکانوں کے لیے ہیں؟',
     answer:
-      'نہیں۔ Nafaa دکان کے کاؤنٹر سے شروع ہوا، مگر وہی اکاؤنٹ ریسٹورنٹ (ٹیبل، کچن ٹکٹ، ڈیلیوری)، آن لائن بیچنے والے (اپنا اسٹور اور Nafaa Bazaar مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی اسکرینیں ملتی ہیں۔',
+      'نہیں۔ Nafaa دکان کے کاؤنٹر سے شروع ہوا، مگر وہی اکاؤنٹ ریسٹورنٹ (ٹیبل، کچن ٹکٹ، ڈیلیوری)، آن لائن بیچنے والے (اپنا اسٹور اور Nafaa Market مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
-    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
   },
   {
     key: 'ur-page-solutions-combine',
@@ -31,7 +31,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'Nafaa کے ای کامرس سولوشن سے کیا میں آن لائن بیچ سکتا ہوں؟',
     answer:
-      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں آپ کی کاؤنٹر سیل کے ساتھ آتے ہیں اور اسی شیلف کے اسٹاک سے کٹتے ہیں۔ نئے خریدار تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa کی مارکیٹ پلیس، Nafaa Bazaar، پر بھی لگا سکتے ہیں۔',
+      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں آپ کی کاؤنٹر سیل کے ساتھ آتے ہیں اور اسی شیلف کے اسٹاک سے کٹتے ہیں۔ نئے خریدار تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa کی مارکیٹ پلیس، Nafaa Market، پر بھی لگا سکتے ہیں۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: ['apps/api/src/integrations/online-orders/order-normalizer.ts', 'apps/api/src/integrations/channels/custom-website', 'apps/api/src/marketplace/publishing'],
@@ -45,7 +45,7 @@ export const faqs: SeedFaq[] = [
       'جی ہاں۔ ایک برانچ سے اسٹاک ٹرانسفر بنائیں، اور وصول کرنے والی برانچ کنفرم کرتی ہے کہ کیا پہنچا۔ اسٹاک ایک دکان سے نکل کر دوسری میں آ جاتا ہے، اور ریکارڈ رہتا ہے کہ کس نے بھیجا اور کس نے وصول کیا۔ ہیڈ آفس ہر برانچ کا اسٹاک، سیل اور پرافٹ اینڈ لاس ساتھ ساتھ دیکھتا ہے۔',
     sourceNote: 'inventory/transfers; multi-branch center, pnl and day-book pages.',
     origin: 'translation of faq mp-branches-transfer',
-    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch'],
+    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/organization/shops'],
   },
   {
     key: 'ur-page-solutions-api',
@@ -93,7 +93,7 @@ export const entry: SeedEntry = {
       facts: [
         { label: 'ایک دکان', value: 'کاؤنٹر، اسٹاک اور کھاتہ ایک ایپ میں' },
         { label: 'کئی برانچیں', value: 'ہیڈ آفس کا منظر، اسٹاک ٹرانسفر اور ہر برانچ کا P&L' },
-        { label: 'آن لائن سیل', value: 'اپنا اسٹور، Shopify، WooCommerce، Daraz اور Nafaa Bazaar، ایک ہی اسٹاک سے' },
+        { label: 'آن لائن سیل', value: 'اپنا اسٹور، Shopify، WooCommerce، Daraz اور Nafaa Market، ایک ہی اسٹاک سے' },
         { label: 'کھانے کا کاروبار', value: 'ٹیبل، کچن ٹکٹ، ٹیک اوے اور ڈیلیوری' },
         { label: 'تجارت اور پیداوار', value: 'کارٹن کی قیمت، تجارتی کھاتہ، خام مال اور کاسٹنگ' },
       ],
@@ -130,7 +130,7 @@ export const entry: SeedEntry = {
       rows: [
         { label: '[ریٹیل اور دکانیں](/ur/solutions/single-shop)', cells: { who: { value: 'کریانہ، فارمیسی، گارمنٹس، موبائل اور ہر ایک کاؤنٹر والی دکان' }, core: { value: 'POS، اسٹاک، کھاتہ، رپورٹس' } } },
         { label: '[ریٹیل چین](/ur/solutions/retail-chains)', cells: { who: { value: 'ایک مالک کی دو یا زیادہ برانچیں' }, core: { value: 'برانچیں، اسٹاک ٹرانسفر، اسٹاف کے رول، ہر برانچ کا P&L' } } },
-        { label: '[ای کامرس](/ur/solutions/ecommerce)', cells: { who: { value: 'آن لائن اسٹور، سوشل میڈیا یا مارکیٹ پلیس سے آرڈر لینے والے سیلر' }, core: { value: 'آن لائن آرڈر، چینلز، کورئیر، Nafaa Bazaar' } } },
+        { label: '[ای کامرس](/ur/solutions/ecommerce)', cells: { who: { value: 'آن لائن اسٹور، سوشل میڈیا یا مارکیٹ پلیس سے آرڈر لینے والے سیلر' }, core: { value: 'آن لائن آرڈر، چینلز، کورئیر، Nafaa Market' } } },
         { label: '[ریسٹورنٹ](/ur/solutions/restaurants)', cells: { who: { value: 'ریسٹورنٹ، کیفے، بیکری اور کلاؤڈ کچن' }, core: { value: 'ٹیبل، کچن ٹکٹ، مینو، ڈیلیوری' } } },
         { label: '[ہول سیل اور ڈسٹری بیوشن](/ur/solutions/wholesale-distribution)', cells: { who: { value: 'ہول سیلر، ڈسٹری بیوٹر اور ڈیلر' }, core: { value: 'کارٹن کی قیمت، تجارتی کھاتہ، A4 انوائس' } } },
         { label: '[مینوفیکچرنگ](/ur/solutions/manufacturing)', cells: { who: { value: 'چھوٹے اور درمیانے پیداواری یونٹ' }, core: { value: 'خام مال، پیداوار، کاسٹنگ، سیل' } } },
@@ -177,7 +177,7 @@ export const entry: SeedEntry = {
           { id: 'shop', label: 'ایک دکان', icon: 'store' },
           { id: 'branches', label: 'مزید برانچیں', icon: 'building-2' },
           { id: 'online', label: 'آن لائن اسٹور', icon: 'globe' },
-          { id: 'bazaar', label: 'Nafaa Bazaar', icon: 'shopping-basket' },
+          { id: 'bazaar', label: 'Nafaa Market', icon: 'shopping-basket' },
           { id: 'api', label: 'آپ کے سسٹمز', icon: 'webhook', note: 'API اور webhooks' },
         ],
         edges: [

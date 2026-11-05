@@ -781,7 +781,7 @@ export const DIAGRAM_LABEL_KEYS: Record<BespokeDiagramKind, Readonly<Record<stri
   'khata-cycle': { sale: 'Udhaar sale', reminder: 'WhatsApp reminder', payment: 'Payment', balance: 'Balance updated' },
   'multi-branch': { hq: 'Head office', branchA: 'Branch 1', branchB: 'Branch 2', branchC: 'Branch 3', transfer: 'Stock transfer' },
   'order-to-cash': { booker: 'Order booker', warehouse: 'Warehouse', dispatch: 'Dispatch', invoice: 'Invoice', collection: 'Collection' },
-  'store-sync': { nafaa: 'Nafaa', shopify: 'Shopify', website: 'Online store', bazaar: 'Nafaa Bazaar', stock: 'Stock', orders: 'Orders' },
+  'store-sync': { nafaa: 'Nafaa', shopify: 'Shopify', website: 'Online store', bazaar: 'Nafaa Market', stock: 'Stock', orders: 'Orders' },
   'api-webhooks': { app: 'Your app', api: 'API v1', nafaa: 'Nafaa', webhooks: 'Webhooks' },
   'service-process': { discover: 'Discover', design: 'Design', build: 'Build', launch: 'Launch', support: 'Support' },
 };

@@ -88,7 +88,7 @@ export const mainPageFaqs: SeedFaq[] = [
       'Yes. Create a stock transfer from one branch, and the receiving branch confirms what arrived. Stock leaves one shop and lands in the other with a record of who sent and received it. Head office sees every branch\'s stock, sales and profit and loss side by side.',
     sourceNote: 'inventory/transfers; multi-branch center, pnl and day-book pages.',
     origin: NEW,
-    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch'],
+    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/organization/shops'],
   },
   {
     key: 'mp-reports-export',
@@ -117,7 +117,7 @@ export const mainPageFaqs: SeedFaq[] = [
     topic: 'solutions',
     question: 'Will my online store and shop share one stock?',
     answer:
-      'Yes. Website, Shopify, WooCommerce, Daraz and Nafaa Bazaar orders take stock from the same products as the counter. When the last piece sells in the shop, the online channels are updated, so you do not sell what you no longer have.',
+      'Yes. Website, Shopify, WooCommerce, Daraz and Nafaa Market orders take stock from the same products as the counter. When the last piece sells in the shop, the online channels are updated, so you do not sell what you no longer have.',
     sourceNote: 'stock-push.service and channel-catalog.service; marketplace publishing from Nafaa products.',
     origin: NEW,
     evidence: ['apps/api/src/integrations/online-orders/stock-push.service.ts', 'apps/api/src/integrations/online-orders/channel-catalog.service.ts', 'apps/api/src/marketplace/publishing'],
@@ -523,9 +523,9 @@ export const mainPageFaqs: SeedFaq[] = [
   {
     key: 'mp-bazaar-what',
     topic: 'marketplace',
-    question: 'What is Nafaa Bazaar?',
+    question: 'What is Nafaa Market?',
     answer:
-      'Nafaa Bazaar is the Nafaa marketplace, where buyers browse and order from shops that use Nafaa. You choose which of your products to list, and their price and stock come from your Nafaa account. Orders arrive in the same app as your counter sales and online orders.',
+      'Nafaa Market is the Nafaa marketplace, where buyers browse and order from shops that use Nafaa. You choose which of your products to list, and their price and stock come from your Nafaa account. Orders arrive in the same app as your counter sales and online orders.',
     sourceNote: 'apps/marketplace (buyer app); apps/api/src/marketplace (publishing, orders); apps/web/src/marketplace (seller screens).',
     origin: NEW,
     evidence: ['apps/marketplace', 'apps/api/src/marketplace/publishing', 'apps/api/src/marketplace/orders', 'apps/web/src/marketplace/products/MarketplaceProductsPage.tsx'],
@@ -615,7 +615,7 @@ export const mainPageFaqs: SeedFaq[] = [
   {
     key: 'hub-bazaar-delivery',
     topic: 'marketplace',
-    question: 'Who delivers Nafaa Bazaar orders?',
+    question: 'Who delivers Nafaa Market orders?',
     answer:
       'You do, with your own riders. Add riders in Nafaa, see who is available or out on a delivery, assign orders and follow them on the way. The order and its money stay in the same app as your counter sales.',
     sourceNote: 'MarketplaceDeliveryPage (riders and statuses); RiderTrackingPage.',
@@ -625,9 +625,9 @@ export const mainPageFaqs: SeedFaq[] = [
   {
     key: 'hub-bazaar-who',
     topic: 'marketplace',
-    question: 'Can any shop sell on Nafaa Bazaar?',
+    question: 'Can any shop sell on Nafaa Market?',
     answer:
-      'Nafaa Bazaar is for shops that run on Nafaa, because listings, prices and stock come from your Nafaa account. Start the free trial, add your products, fill in your shop profile and choose what to list. Products you do not list stay private to your counter.',
+      'Nafaa Market is for shops that run on Nafaa, because listings, prices and stock come from your Nafaa account. Start the free trial, add your products, fill in your shop profile and choose what to list. Products you do not list stay private to your counter.',
     sourceNote: 'Marketplace publishing reads the tenant catalogue.',
     origin: 'new (hubs pass, 26 Oct 2026)',
     evidence: ['apps/api/src/marketplace/publishing', 'apps/web/src/marketplace/shop-profile/ShopProfilePage.tsx'],

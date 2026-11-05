@@ -9,7 +9,7 @@ export const faqs: SeedFaq[] = [
     topic: 'solutions',
     question: 'آن لائن بیچنے والوں کے لیے Nafaa میں کیا ویب سائٹ اور دکان کا اسٹاک ایک ہی رہتا ہے؟',
     answer:
-      'جی ہاں۔ ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Bazaar کے آرڈر انہی پروڈکٹس سے اسٹاک لیتے ہیں جن سے کاؤنٹر بیچتا ہے۔ جب دکان میں آخری پیس بک جاتا ہے تو آن لائن چینلز بھی اپ ڈیٹ ہو جاتے ہیں، اس لیے آپ وہ چیز نہیں بیچتے جو آپ کے پاس اب ہے ہی نہیں۔',
+      'جی ہاں۔ ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Market کے آرڈر انہی پروڈکٹس سے اسٹاک لیتے ہیں جن سے کاؤنٹر بیچتا ہے۔ جب دکان میں آخری پیس بک جاتا ہے تو آن لائن چینلز بھی اپ ڈیٹ ہو جاتے ہیں، اس لیے آپ وہ چیز نہیں بیچتے جو آپ کے پاس اب ہے ہی نہیں۔',
     sourceNote: 'stock-push.service and channel-catalog.service; marketplace publishing from Nafaa products.',
     origin: 'translation of faq mp-ecommerce-stock',
     evidence: [
@@ -77,9 +77,9 @@ export const faqs: SeedFaq[] = [
     key: 'ur-sol-ecommerce-bazaar',
     locale: 'ur',
     topic: 'marketplace',
-    question: 'آن لائن بیچنے والوں کے لیے Nafaa Bazaar کیا ہے؟',
+    question: 'آن لائن بیچنے والوں کے لیے Nafaa Market کیا ہے؟',
     answer:
-      'Nafaa Bazaar، Nafaa کی مارکیٹ پلیس ہے جہاں خریدار Nafaa استعمال کرنے والی دکانوں کا مال دیکھتے اور آرڈر کرتے ہیں۔ آپ خود چنتے ہیں کہ کون سی پروڈکٹس لسٹ کرنی ہیں، اور ان کی قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آتے ہیں۔ آرڈر اسی ایپ میں آتے ہیں جہاں آپ کی کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں۔',
+      'Nafaa Market، Nafaa کی مارکیٹ پلیس ہے جہاں خریدار Nafaa استعمال کرنے والی دکانوں کا مال دیکھتے اور آرڈر کرتے ہیں۔ آپ خود چنتے ہیں کہ کون سی پروڈکٹس لسٹ کرنی ہیں، اور ان کی قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آتے ہیں۔ آرڈر اسی ایپ میں آتے ہیں جہاں آپ کی کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں۔',
     sourceNote: 'apps/marketplace (buyer app); apps/api/src/marketplace (publishing, orders); apps/web/src/marketplace (seller screens).',
     origin: 'translation of faq mp-bazaar-what',
     evidence: [
@@ -97,7 +97,7 @@ export const entry: SeedEntry = {
   slug: 'ecommerce',
   title: 'ای کامرس سیلرز',
   summary:
-    'ای کامرس سیلرز کے لیے Nafaa آپ کے آن لائن آرڈر اور Nafaa Bazaar مارکیٹ پلیس کو دکان کے اسی اسٹاک سے چلاتا ہے: ویب سائٹ، Shopify، WooCommerce اور Daraz کے آرڈر ایک لسٹ میں، TCS، Leopards، PostEx اور دوسرے کوریئرز کی بکنگ، COD کا حساب، رسک چیک اور پیمنٹ لنک۔',
+    'ای کامرس سیلرز کے لیے Nafaa آپ کے آن لائن آرڈر اور Nafaa Market مارکیٹ پلیس کو دکان کے اسی اسٹاک سے چلاتا ہے: ویب سائٹ، Shopify، WooCommerce اور Daraz کے آرڈر ایک لسٹ میں، TCS، Leopards، PostEx اور دوسرے کوریئرز کی بکنگ، COD کا حساب، رسک چیک اور پیمنٹ لنک۔',
   data: {
     icon: 'shopping-bag',
     shortName: 'ای کامرس',
@@ -110,7 +110,7 @@ export const entry: SeedEntry = {
       type: 'hero',
       eyebrow: 'ای کامرس سیلرز کے لیے',
       heading: 'ہر جگہ آن لائن بیچیں اور ایک ہی اسٹاک سے بھیجیں',
-      sub: 'آپ کی اپنی ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Bazaar، سب ایک آرڈر لسٹ اور ایک اسٹاک میں۔ آرڈر سے ہی کوریئر بک کریں، رسک والے COD خریدار بھیجنے سے پہلے پہچانیں، اور دیکھیں کوریئر کے پیسے کہاں ہیں۔',
+      sub: 'آپ کی اپنی ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Market، سب ایک آرڈر لسٹ اور ایک اسٹاک میں۔ آرڈر سے ہی کوریئر بک کریں، رسک والے COD خریدار بھیجنے سے پہلے پہچانیں، اور دیکھیں کوریئر کے پیسے کہاں ہیں۔',
       primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
       secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'hero_demo' },
       badges: ['ویب سائٹ + مارکیٹ پلیس', '6 کوریئر', 'COD کا حساب'],
@@ -121,13 +121,13 @@ export const entry: SeedEntry = {
     {
       type: 'answerBox',
       facts: [
-        { label: 'کہاں بیچیں', value: 'اپنی ویب سائٹ، Shopify، WooCommerce، Daraz، Nafaa کا آرڈر لنک اور Nafaa Bazaar' },
+        { label: 'کہاں بیچیں', value: 'اپنی ویب سائٹ، Shopify، WooCommerce، Daraz، Nafaa کا آرڈر لنک اور Nafaa Market' },
         { label: 'کس سے بھیجیں', value: 'TCS، Leopards، M&P، PostEx، Trax اور Call Courier' },
         { label: 'پیسے کیسے آئیں', value: 'ہر کوریئر کا الگ COD حساب، اور JazzCash اور Easypaisa کے پیمنٹ لنک' },
         { label: 'اسٹاک', value: 'دکان یا گودام کے ساتھ ایک ہی اسٹاک؛ ہر سیل پر سب چینل اپ ڈیٹ' },
       ],
       romanUrdu:
-        'Apni website, Shopify, WooCommerce, Daraz aur Nafaa Bazaar sab ek stock se. Courier ki booking order se hi, COD ka paisa kis courier ke paas hai yeh saaf, aur mushkil customers ki pehchaan pehle.',
+        'Apni website, Shopify, WooCommerce, Daraz aur Nafaa Market sab ek stock se. Courier ki booking order se hi, COD ka paisa kis courier ke paas hai yeh saaf, aur mushkil customers ki pehchaan pehle.',
       id: 'b5922cac1cd3',
     },
     {
@@ -170,7 +170,7 @@ export const entry: SeedEntry = {
     {
       type: 'diagram',
       heading: 'کلک سے دروازے تک',
-      caption: 'ویب سائٹ، Shopify، Daraz اور Nafaa Bazaar کے آرڈر ایک لسٹ میں آتے ہیں، دکان کے اپنے اسٹاک سے پیک ہوتے ہیں اور کوریئر کو دیے جاتے ہیں۔',
+      caption: 'ویب سائٹ، Shopify، Daraz اور Nafaa Market کے آرڈر ایک لسٹ میں آتے ہیں، دکان کے اپنے اسٹاک سے پیک ہوتے ہیں اور کوریئر کو دیے جاتے ہیں۔',
       diagram: {
         kind: 'flow',
         nodes: [
@@ -280,7 +280,7 @@ export const entry: SeedEntry = {
     {
       type: 'richText',
       markdown:
-        '## پاکستان میں دکان سے آن لائن بیچنا\n\nیہاں آن لائن بیچنے والے زیادہ تر دکاندار بھی ہیں۔ ایک ہی ریک دکان پر آنے والے خریدار، Instagram کے میسج، ویب سائٹ اور Daraz سب کو مال دیتا ہے، اور مسئلہ تب شروع ہوتا ہے جب ہر ایک اپنا الگ اسٹاک گنتا ہے۔ Nafaa ایک ہی گنتی رکھتا ہے۔ کاؤنٹر پر بکا ہوا پیس ویب سائٹ سے بھی ہٹ جاتا ہے، اور Daraz کا آرڈر Accept ہوتے ہی وہ آئٹم دکان کے اسٹاک سے نکل جاتا ہے۔\n\nدوسرا مسئلہ پیسوں کا ہے۔ COD میں سیل تب تک پیسہ نہیں جب تک کوریئر ادا نہ کرے۔ Nafaa ہر پارسل کو بکنگ سے سیٹلمنٹ تک دیکھتا ہے، تو آپ کو پتا رہتا ہے کہ کون سا کوریئر کتنے پیسے کب سے رکھے بیٹھا ہے۔ [آن لائن سیل رپورٹ](/ur/product/reports) سیل کو چینل، شہر اور کوریئر کے حساب سے الگ کرتی ہے، اور ہر ایک کے ساتھ واپسی کی شرح بھی دکھاتی ہے۔\n\nاپنے فالوورز سے آگے خریدار ڈھونڈنے ہیں؟ وہی پروڈکٹس [Nafaa Bazaar](/ur/marketplace) پر لسٹ کریں، جو Nafaa کی مارکیٹ پلیس ہے، دوسرا کیٹلاگ بنائے بغیر۔',
+        '## پاکستان میں دکان سے آن لائن بیچنا\n\nیہاں آن لائن بیچنے والے زیادہ تر دکاندار بھی ہیں۔ ایک ہی ریک دکان پر آنے والے خریدار، Instagram کے میسج، ویب سائٹ اور Daraz سب کو مال دیتا ہے، اور مسئلہ تب شروع ہوتا ہے جب ہر ایک اپنا الگ اسٹاک گنتا ہے۔ Nafaa ایک ہی گنتی رکھتا ہے۔ کاؤنٹر پر بکا ہوا پیس ویب سائٹ سے بھی ہٹ جاتا ہے، اور Daraz کا آرڈر Accept ہوتے ہی وہ آئٹم دکان کے اسٹاک سے نکل جاتا ہے۔\n\nدوسرا مسئلہ پیسوں کا ہے۔ COD میں سیل تب تک پیسہ نہیں جب تک کوریئر ادا نہ کرے۔ Nafaa ہر پارسل کو بکنگ سے سیٹلمنٹ تک دیکھتا ہے، تو آپ کو پتا رہتا ہے کہ کون سا کوریئر کتنے پیسے کب سے رکھے بیٹھا ہے۔ [آن لائن سیل رپورٹ](/ur/product/reports) سیل کو چینل، شہر اور کوریئر کے حساب سے الگ کرتی ہے، اور ہر ایک کے ساتھ واپسی کی شرح بھی دکھاتی ہے۔\n\nاپنے فالوورز سے آگے خریدار ڈھونڈنے ہیں؟ وہی پروڈکٹس [Nafaa Market](/ur/marketplace) پر لسٹ کریں، جو Nafaa کی مارکیٹ پلیس ہے، دوسرا کیٹلاگ بنائے بغیر۔',
       id: 'b885ba87774a',
     },
     {
@@ -300,7 +300,7 @@ export const entry: SeedEntry = {
     {
       type: 'cta',
       heading: 'ہر آن لائن آرڈر ایک اسکرین پر لائیں',
-      body: 'فری ٹرائل میں اپنا اسٹور جوڑیں اور Nafaa Bazaar پر لسٹ کریں۔',
+      body: 'فری ٹرائل میں اپنا اسٹور جوڑیں اور Nafaa Market پر لسٹ کریں۔',
       primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
       secondaryCta: { label: 'واٹس ایپ پر پوچھیں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
       id: 'b01b0aeee369',
@@ -329,7 +329,7 @@ export const entry: SeedEntry = {
   ],
   seoTitle: 'پاکستانی سیلرز کے لیے ای کامرس سافٹ ویئر: آن لائن ایک اسٹاک',
   seoDescription:
-    'ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Bazaar ایک اسٹاک پر، کوریئر بکنگ، COD کے حساب، رسک چیک اور پیمنٹ لنک کے ساتھ۔ فری ٹرائل۔',
+    'ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Market ایک اسٹاک پر، کوریئر بکنگ، COD کے حساب، رسک چیک اور پیمنٹ لنک کے ساتھ۔ فری ٹرائل۔',
   focusKeyword: 'ای کامرس سافٹ ویئر پاکستان',
   sortOrder: 3,
   featured: true,
@@ -346,7 +346,6 @@ export const entry: SeedEntry = {
     'apps/web/src/integrations/online-orders/pages/OnlineReportsPage.tsx',
     'apps/web/src/integrations/online-orders/components/PaymentLinkSection.tsx',
     'apps/web/src/integrations/online-orders/components/daraz/Daraz.tsx',
-    'apps/web/src/integrations/channels/social/facebook-shop/index.ts',
     'apps/api/src/integrations/online-orders/courier-api',
     'apps/api/src/integrations/google/feed.ts',
     'apps/api/src/marketplace/publishing',

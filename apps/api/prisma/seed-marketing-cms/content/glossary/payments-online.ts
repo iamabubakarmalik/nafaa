@@ -77,7 +77,8 @@ The Nafaa counter records JazzCash as its own payment method, including as one p
   },
   {
     slug: 'easypaisa',
-    seoDescription: 'Easypaisa is a Pakistani mobile wallet and digital bank used to send money, pay bills and pay shops by account number or QR code.',
+    seoTitle: 'What is Easypaisa? Meaning in Urdu and use in shops',
+    seoDescription: 'Easypaisa meaning in Urdu (ایزی پیسہ): a mobile wallet and digital bank used to send money, pay bills and pay shops by account number or QR code.',
     term: 'Easypaisa',
     definition: 'Easypaisa is a mobile wallet and digital banking service in Pakistan, used to send and receive money, pay bills and pay merchants by account number or QR code.',
     definitionRomanUrdu: 'Easypaisa Pakistan ka mobile wallet aur digital banking service hai, jis se paise bheje aur liye jaate hain, bill diye jaate hain aur dukaan ko QR se payment hoti hai.',
@@ -97,6 +98,8 @@ The Nafaa counter records Easypaisa as its own payment method and in split payme
   },
   {
     slug: 'ibft',
+    seoTitle: 'What is IBFT? Meaning in Urdu and how it works',
+    seoDescription: 'IBFT meaning in Urdu (انٹربینک فنڈز ٹرانسفر): an instant transfer between accounts at different banks in Pakistan, and how a shop can take payment by it.',
     term: 'IBFT (Interbank Funds Transfer)',
     definition: 'IBFT is an instant transfer of money from an account at one bank to an account at another bank in Pakistan, using the account number or IBAN.',
     definitionRomanUrdu: 'IBFT ek bank ke account se doosre bank ke account me foran paise bhejna hai, account number ya IBAN ke zariye.',
@@ -289,7 +292,7 @@ It is used in property deals, freelance platforms, high-value used goods and som
 Nafaa does not offer an escrow service.`,
     alsoKnownAs: ['escrow payment', 'amanat payment'],
     related: ['GLOSSARY_TERM:marketplace', 'GLOSSARY_TERM:chargeback', 'GLOSSARY_TERM:payment-gateway'],
-    dropped: ['"Nafaa Bazaar uses escrow" (owner decision O14: marketplace status not confirmed).'],
+    dropped: ['"Nafaa Market uses escrow" (owner decision O14: marketplace status not confirmed).'],
   },
   {
     slug: 'gmv',
@@ -314,7 +317,8 @@ Nafaa reports online orders next to counter sales, and its profit report works f
   },
   {
     slug: 'dropshipping',
-    seoDescription: 'Dropshipping is selling online without holding stock: the seller passes each order to a supplier, who ships it straight to the customer.',
+    seoTitle: 'What is Dropshipping? Meaning in Urdu with example',
+    seoDescription: 'Dropshipping meaning in Urdu (ڈراپ شپنگ): selling online without holding stock, with a worked example of how an order flows from customer to supplier.',
     term: 'Dropshipping',
     definition: 'Dropshipping is selling products online without holding stock: when an order comes in, the seller buys the item from a supplier who ships it straight to the customer.',
     definitionRomanUrdu: 'Dropshipping matlab stock rakhe baghair online bechna: order aane par bechne wala supplier se cheez khareedta hai aur supplier seedha gahak ko bhejta hai.',
@@ -350,6 +354,6 @@ Nafaa brings online orders into the same account as the shop, so they take stock
     alsoKnownAs: ['marketplace', 'e-commerce platform', 'online bazaar'],
     related: ['GLOSSARY_TERM:gmv', 'GLOSSARY_TERM:cod', 'GLOSSARY_TERM:escrow', 'PRODUCT:online-store', 'SOLUTION:ecommerce'],
     evidence: ['apps/web/src/integrations/online-orders/pages/ChannelsListPage.tsx'],
-    needsOwner: ['Nafaa Bazaar (own marketplace) not mentioned until its launch status is confirmed (owner decision O14).'],
+    needsOwner: ['Nafaa Market (own marketplace) not mentioned until its launch status is confirmed (owner decision O14).'],
   },
 ];

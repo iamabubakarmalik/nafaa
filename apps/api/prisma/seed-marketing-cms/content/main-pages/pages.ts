@@ -1,6 +1,6 @@
 /**
  * PAGE entries owned by the main templates: /pricing (template "pricing")
- * and /marketplace (template "default", the Nafaa Bazaar page).
+ * and /marketplace (template "default", the Nafaa Market page).
  * Prices and plan contents only come from the Plan table: the pricing block,
  * the plan matrix the pricing template draws under it, and {{price:...}}
  * tokens. Plan contents are not final (owner), so the copy here explains
@@ -111,18 +111,18 @@ Running many branches, need custom modules or want help moving from another syst
 const marketplace = page({
   type: 'PAGE',
   slug: 'marketplace',
-  title: 'Nafaa Bazaar',
+  title: 'Nafaa Market',
   summary:
-    'Nafaa Bazaar is the Nafaa marketplace. Shops that use Nafaa list products from their own stock, buyers browse and order, and every order arrives in the same app as counter sales and online orders, with your shop profile, reviews, promotions, buyer messages and delivery in one place.',
+    'Nafaa Market is the Nafaa marketplace. Shops that use Nafaa list products from their own stock, buyers browse and order, and every order arrives in the same app as counter sales and online orders, with your shop profile, reviews, promotions, buyer messages and delivery in one place.',
   data: { template: 'default' },
-  seoTitle: 'Nafaa Bazaar: Sell on the Nafaa Marketplace in Pakistan',
+  seoTitle: 'Nafaa Market: Sell on the Nafaa Marketplace in Pakistan',
   seoDescription:
-    'List products from your Nafaa stock on Nafaa Bazaar, get orders in the same app, and manage reviews, promotions and delivery. For shops using Nafaa.',
+    'List products from your Nafaa stock on Nafaa Market, get orders in the same app, and manage reviews, promotions and delivery. For shops using Nafaa.',
   focusKeyword: 'online marketplace pakistan sellers',
   hero: {
-    eyebrow: 'Nafaa Bazaar marketplace',
+    eyebrow: 'Nafaa Market marketplace',
     heading: 'Your shop, open to buyers far beyond your street',
-    sub: 'List products from the stock you already keep in Nafaa. Buyers find your shop on Nafaa Bazaar, orders arrive next to your counter sales, and price and stock stay in sync by themselves.',
+    sub: 'List products from the stock you already keep in Nafaa. Buyers find your shop on Nafaa Market, orders arrive next to your counter sales, and price and stock stay in sync by themselves.',
     diagram: {
       kind: 'flow',
       nodes: [
@@ -144,14 +144,14 @@ const marketplace = page({
     badges: ['Listed from your stock', 'Orders in the same app'],
   },
   answer: {
-    heading: 'Nafaa Bazaar in short',
+    heading: 'Nafaa Market in short',
     facts: [
       ['What it is', 'The Nafaa marketplace for shops that use Nafaa'],
       ['Listing', 'Choose products from your Nafaa stock; price and stock stay in sync'],
       ['Orders', 'Arrive in the Nafaa app with counter sales and online orders'],
       ['Manage', 'Shop profile, reviews, promotions, buyer messages and delivery'],
     ],
-    romanUrdu: 'Nafaa Bazaar Nafaa ka marketplace hai. Apne stock se products list karein, khareedar order karein, aur order usi app me aaye jahan counter ki bikri hoti hai.',
+    romanUrdu: 'Nafaa Market Nafaa ka marketplace hai. Apne stock se products list karein, khareedar order karein, aur order usi app me aaye jahan counter ki bikri hoti hai.',
   },
   body: [
     features('Everything a seller needs on the marketplace', [
@@ -167,12 +167,12 @@ const marketplace = page({
     steps('Start selling in four steps', [
       ['Use Nafaa for your shop', 'Start the free trial and add your products.'],
       ['Set up your shop profile', 'Name, photos, area and opening hours.'],
-      ['Choose what to list', 'Pick products to show on Nafaa Bazaar.'],
+      ['Choose what to list', 'Pick products to show on Nafaa Market.'],
       ['Take orders', 'Accept, pack and deliver; stock updates by itself.'],
     ]),
-    table('Your own online store and Nafaa Bazaar', 'Both run from the same Nafaa stock and land in the same order list. Most sellers use both: the store for buyers who already know them, the marketplace to be found by new ones.', [
+    table('Your own online store and Nafaa Market', 'Both run from the same Nafaa stock and land in the same order list. Most sellers use both: the store for buyers who already know them, the marketplace to be found by new ones.', [
       { key: 'own', label: 'Your own store' },
-      { key: 'bazaar', label: 'Nafaa Bazaar', highlight: true },
+      { key: 'bazaar', label: 'Nafaa Market', highlight: true },
     ], [
       ['Who finds you', 'People you bring: followers, customers, search', 'Buyers browsing the marketplace'],
       ['Setup', 'Connect a website, Shopify or WooCommerce, or share the Nafaa order link', 'Fill in the shop profile and choose products'],
@@ -183,14 +183,14 @@ const marketplace = page({
     shot({ heading: 'One order list for every channel', body: 'Marketplace orders sit with website and other online orders, each with its status and buyer, so one person can handle them all between counter sales.', id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders', layout: 'split-right' }),
     prose(`## One stock for the counter, your website and the marketplace
 
-Nafaa Bazaar is not a separate seller account to keep up to date. It reads the same products, prices and stock as your counter and your own online store, so a piece sold in the shop is gone from the marketplace too. Marketplace orders sit in the same list as website, Shopify and WooCommerce orders, and the money shows in the same reports.
+Nafaa Market is not a separate seller account to keep up to date. It reads the same products, prices and stock as your counter and your own online store, so a piece sold in the shop is gone from the marketplace too. Marketplace orders sit in the same list as website, Shopify and WooCommerce orders, and the money shows in the same reports.
 
 ## Who it suits
 
-Nafaa Bazaar suits shops with stock that travels well and buyers outside walking distance: [garments](/industries/garments), [cosmetics](/industries/cosmetics), [electronics](/industries/electronics), [books](/industries/bookstore) and similar trades. If you already sell online, the [e-commerce solution](/solutions/ecommerce) shows how the marketplace fits next to your website, couriers and COD.`),
+Nafaa Market suits shops with stock that travels well and buyers outside walking distance: [garments](/industries/garments), [cosmetics](/industries/cosmetics), [electronics](/industries/electronics), [books](/industries/bookstore) and similar trades. If you already sell online, the [e-commerce solution](/solutions/ecommerce) shows how the marketplace fits next to your website, couriers and COD.`),
   ],
   faqKeys: ['mp-bazaar-what', 'hub-bazaar-delivery', 'hub-bazaar-who', 'mp-ecommerce-stock', 'sell-online'],
-  cta: { heading: 'Open your shop to more buyers', body: 'Start with Nafaa, then list on Nafaa Bazaar when you are ready.' },
+  cta: { heading: 'Open your shop to more buyers', body: 'Start with Nafaa, then list on Nafaa Market when you are ready.' },
   relations: [
     { ref: 'SOLUTION:ecommerce', kind: 'RELATED' },
     { ref: 'PRODUCT:online-store', kind: 'RELATED' },
@@ -212,8 +212,8 @@ Nafaa Bazaar suits shops with stock that travels well and buyers outside walking
     'apps/web/src/integrations/online-orders/public/PublicOrderPage.tsx',
   ],
   needsOwner: [
-    'No marketplace screenshot yet: the seller screen shows prices as "Rs Rs" and the dashboard shows a "12,000+ Nafaa Bazaar customers" figure that looks made up (apps/web bugs). Capture after those are fixed.',
-    'Buyer reach and how buyers find Nafaa Bazaar (app or website URL) are not stated until the owner confirms them.',
+    'No marketplace screenshot yet: the seller screen shows prices as "Rs Rs" and the dashboard shows a "12,000+ Nafaa Market customers" figure that looks made up (apps/web bugs). Capture after those are fixed.',
+    'Buyer reach and how buyers find Nafaa Market (app or website URL) are not stated until the owner confirms them.',
   ],
 });
 

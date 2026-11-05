@@ -31,9 +31,6 @@ function glyph(children: ReactNode) {
   };
 }
 
-export const MenuGlyph = glyph(<path d="M4 5h16M4 12h16M4 19h16" />);
-export const CloseGlyph = glyph(<path d="M18 6 6 18M6 6l12 12" />);
-export const ChevronDownGlyph = glyph(<path d="m6 9 6 6 6-6" />);
 export const MoonGlyph = glyph(
   <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />,
 );

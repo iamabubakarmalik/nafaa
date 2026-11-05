@@ -44,7 +44,7 @@ Nafaa کا پروڈکٹ ایڈیٹر قیمت لکھتے ہی مارجن دکھ�
   sortOrder: 43,
   origin: 'translation of content/glossary/money.ts, gross-margin (26 Oct 2026)',
   evidence: [
-    'apps/web/src/modules/inventory/products/components/VariantCard.tsx',
+    'apps/web/src/modules/inventory/products/detail/tabs.tsx',
     'apps/web/src/modules/finance/profit-report',
   ],
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },

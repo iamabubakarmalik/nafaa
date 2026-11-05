@@ -70,7 +70,7 @@ const API_WEBHOOKS = block('Connect your own systems', 'Your systems call the Na
 
 const ECOMMERCE_FLOW = block(
   'From the click to the doorstep',
-  'Website, Shopify, Daraz and Nafaa Bazaar orders arrive in one list, are packed from the shop\'s own stock and handed to the courier.',
+  'Website, Shopify, Daraz and Nafaa Market orders arrive in one list, are packed from the shop\'s own stock and handed to the courier.',
   flow([
     ['orders', 'Online orders', 'shopping-bag', 'Website, Shopify, Daraz, Bazaar'],
     ['nafaa', 'Into Nafaa', 'layers', 'Next to the counter sales'],
@@ -572,7 +572,7 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
     STORE_SYNC,
     block(
       'How a marketplace order flows',
-      'Buyers find your shop on Nafaa Bazaar; the order lands in the same app as your counter sales.',
+      'Buyers find your shop on Nafaa Market; the order lands in the same app as your counter sales.',
       flow([
         ['list', 'List products', 'tags', 'From your stock'],
         ['browse', 'Buyers browse', 'search'],
@@ -594,7 +594,7 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
         ['shop', 'One shop', 'store'],
         ['branches', 'More branches', 'building-2'],
         ['online', 'Online store', 'globe'],
-        ['bazaar', 'Nafaa Bazaar', 'shopping-basket'],
+        ['bazaar', 'Nafaa Market', 'shopping-basket'],
         ['api', 'Your systems', 'webhook', 'API and webhooks'],
       ]),
     ),

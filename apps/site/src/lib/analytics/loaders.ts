@@ -3,11 +3,12 @@
  *
  * - Google (GTM, GA4, Google Ads) runs in Consent Mode v2: storage starts
  *   denied and is granted when the visitor accepts, so the tags may load on
- *   idle before a choice is made (ARCH 11).
+ *   idle before a choice is made (ARCH 11). With a GTM id only GTM loads.
  * - Clarity, Meta, TikTok, LinkedIn and Hotjar set their own cookies and load
  *   only after consent.
  * Every loader is idempotent and does nothing for an empty id.
  */
+import { pageTypeOf } from './attribution';
 import type { AdsConversions } from './env';
 import type { TrackEvent } from './track';
 
@@ -43,19 +44,53 @@ function gtag(): Gtag {
   return w.gtag;
 }
 
+let consentReady = false;
 let googleLoaded = false;
 
-/** GTM and/or gtag.js with consent defaults. `granted` is the stored choice at load time. */
-export function loadGoogle(ids: { gtmId?: string; gaId?: string; adsId?: string }, granted: boolean): void {
-  if (googleLoaded || !(ids.gtmId || ids.gaId || ids.adsId)) return;
-  googleLoaded = true;
+/** Event that tells GTM the visitor has just chosen (GTM custom event trigger). */
+export const CONSENT_UPDATE_EVENT = 'nafaa_consent_update';
+
+/**
+ * Consent Mode v2 defaults, pushed to dataLayer before any Google script
+ * loads and before any event. Everything starts denied (the banner's rule:
+ * no analytics or ad cookies until the visitor accepts); Google tags still
+ * load and send cookieless pings, so GA4 is not blocked, only cookieless
+ * until consent. A stored "granted" from an earlier visit is applied at once.
+ * Idempotent.
+ */
+export function initGoogleConsent(granted: boolean): void {
+  if (consentReady) return;
+  consentReady = true;
   const g = gtag();
   g('consent', 'default', { ...DENIED, wait_for_update: 500 });
   if (granted) g('consent', 'update', GRANTED);
+}
+
+/** A plain dataLayer event for GTM triggers. Safe before GTM loads: GTM reads the queue when it starts. */
+export function pushDataLayer(event: string, params: Record<string, unknown> = {}): void {
+  const w = win();
+  w.dataLayer = w.dataLayer ?? [];
+  w.dataLayer.push({ event, ...params });
+}
+
+/**
+ * Loads Google tags. With a GTM container id, only GTM loads: the
+ * container's own "GA4 - Configuration" Google tag sends GA4, so the site
+ * does not load gtag.js for GA as well (that sent every pageview twice).
+ * gtag.js loads only for GA4 when there is no GTM, and for Google Ads
+ * (conversions only, no GA config) when an Ads id is set.
+ */
+export function loadGoogle(ids: { gtmId?: string; gaId?: string; adsId?: string }, granted: boolean): void {
+  if (googleLoaded || !(ids.gtmId || ids.gaId || ids.adsId)) return;
+  googleLoaded = true;
+  const gtmMode = Boolean(ids.gtmId);
+  initGoogleConsent(granted);
+  const g = gtag();
   g('js', new Date());
-  if (ids.gaId) g('config', ids.gaId);
+  const gaId = gtmMode ? undefined : ids.gaId;
+  if (gaId) g('config', gaId);
   if (ids.adsId) g('config', ids.adsId);
-  const tagId = ids.gaId ?? ids.adsId;
+  const tagId = gaId ?? ids.adsId;
   if (tagId) injectScript('nafaa-gtag', `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`);
   if (ids.gtmId) {
     win().dataLayer!.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
@@ -63,21 +98,35 @@ export function loadGoogle(ids: { gtmId?: string; gaId?: string; adsId?: string 
   }
 }
 
+/** The visitor's banner choice as a Consent Mode update, then a dataLayer event so GTM can fire consent-gated tags (Clarity, Meta Pixel). */
 export function updateGoogleConsent(granted: boolean): void {
-  if (!googleLoaded) return;
+  initGoogleConsent(false);
   gtag()('consent', 'update', granted ? GRANTED : DENIED);
+  pushDataLayer(CONSENT_UPDATE_EVENT, { consent_choice: granted ? 'granted' : 'denied' });
 }
 
-/** Forwards first-party events to GA4 and the mapped Google Ads conversions. */
-export function googleForwarder(adsId: string | undefined, conversions: AdsConversions) {
+/** First-party event names → the names GTM and GA4 see. Unlisted events keep their name. */
+const GTM_EVENT_NAMES: Partial<Record<TrackEvent, string>> = {
+  signup_clicked: 'sign_up_start',
+  demo_submit: 'demo_request',
+};
+
+/**
+ * Forwards first-party events to Google. With GTM, every event becomes a
+ * dataLayer event (queued until GTM starts), named as in GTM_EVENT_NAMES;
+ * GTM's GA4 Event tags pick them up. Without GTM, gtag.js gets them once it
+ * has loaded. Mapped Google Ads conversions go out either way when an Ads
+ * id and label are set.
+ */
+export function googleForwarder(ids: { gtmId?: string; adsId?: string }, conversions: AdsConversions) {
   const map: Partial<Record<TrackEvent, keyof AdsConversions>> = { signup_clicked: 'signup', demo_submit: 'demo', form_start: 'lead' };
   return (eventName: TrackEvent, properties: Record<string, unknown>): void => {
-    if (!googleLoaded) return;
-    const g = gtag();
-    g('event', eventName, properties);
+    const params = { page_path: window.location.pathname, page_type: pageTypeOf(window.location.pathname), ...properties };
+    if (ids.gtmId) pushDataLayer(GTM_EVENT_NAMES[eventName] ?? eventName, params);
+    else if (googleLoaded) gtag()('event', eventName, params);
     const key = map[eventName];
     const label = key ? conversions[key] : undefined;
-    if (adsId && label) g('event', 'conversion', { send_to: `${adsId}/${label}` });
+    if (googleLoaded && ids.adsId && label) gtag()('event', 'conversion', { send_to: `${ids.adsId}/${label}` });
   };
 }
 

@@ -74,100 +74,6 @@
   --c-surface-2: 30 41 59;
 }
 
-/* Header glass: the canvas colour at 85% with blur. */
-.site-header {
-  background-color: rgb(var(--c-canvas) / 0.85);
-  backdrop-filter: saturate(1.4) blur(12px);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-}
-
-/* Mega menu: opens on hover (pointer devices) and on keyboard focus. A short
-   open delay stops panels flashing while the pointer crosses the nav, and a
-   short close delay stops flicker in the gap under the trigger. */
-.mega-panel {
-  visibility: hidden;
-  opacity: 0;
-  transform: translate3d(-50%, -6px, 0) scale(0.985);
-  transform-origin: 50% 0;
-  transition:
-    opacity 160ms var(--ease-out, ease-out),
-    transform 220ms var(--ease-out, ease-out),
-    visibility 0s linear 160ms;
-}
-
-.mega-item:focus-within > .mega-panel,
-.mega-item[data-open] > .mega-panel {
-  visibility: visible;
-  opacity: 1;
-  transform: translate3d(-50%, 0, 0);
-  transition-delay: 0s;
-}
-
-@media (hover: hover) {
-  .mega-item:hover > .mega-panel {
-    visibility: visible;
-    opacity: 1;
-    transform: translate3d(-50%, 0, 0);
-    transition-delay: 80ms;
-  }
-}
-
-.mega-item:is(:hover, :focus-within, [data-open]) > .mega-trigger {
-  color: rgb(var(--c-fg-strong));
-  background-color: rgb(var(--c-surface-3));
-}
-
-.mega-item:is(:hover, :focus-within, [data-open]) > button .mega-chevron {
-  transform: rotate(180deg);
-}
-
-/* Columns inside an open panel arrive a beat after the sheet. */
-.mega-sheet li {
-  transition: opacity 260ms var(--ease-out, ease-out), transform 260ms var(--ease-out, ease-out);
-}
-.mega-item:not(:hover):not(:focus-within):not([data-open]) .mega-sheet li,
-.mega-item[data-closed] .mega-sheet li {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-/* Rail cards: the first one carries a soft brand wash. */
-.mega-rail-brand {
-  background-image:
-    radial-gradient(120% 90% at 100% 0%, rgb(var(--brand-500) / 0.16), transparent 60%),
-    linear-gradient(rgb(var(--c-surface)), rgb(var(--c-surface)));
-}
-.mega-rail-soft {
-  background-color: rgb(var(--c-surface));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mega-panel,
-  .mega-chevron,
-  .mega-sheet li {
-    transition: none;
-  }
-}
-
-/* Header: a hairline and shadow appear once the page scrolls (CSS only). */
-@supports (animation-timeline: scroll()) {
-  .site-header {
-    animation: header-raise linear both;
-    animation-timeline: scroll(root);
-    animation-range: 0 96px;
-  }
-}
-@keyframes header-raise {
-  from {
-    border-bottom-color: transparent;
-    box-shadow: none;
-  }
-  to {
-    border-bottom-color: rgb(var(--c-line) / 0.9);
-    box-shadow: 0 8px 24px -16px rgb(2 6 23 / 0.25);
-  }
-}
-
 /* Theme toggle icons: show the icon for the theme you would switch to. */
 .theme-icon-dark {
   display: none;
@@ -179,16 +85,31 @@
   display: inline-block;
 }
 
-/* Escape closed the panel: keep it hidden while focus stays on the trigger. */
-.mega-item[data-closed] > .mega-panel {
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
 /*
  * Nafaa logo colours (brand/logo/README.md). Light-background colours by
  * default; the dark-background set follows the resolved theme and dark bands.
+ * The header logo (public/menu/logo.svg) reads the --nl-* properties; inline
+ * logo paths use the .nafaa-logo-* classes.
  */
+:root {
+  --nl-bowl: #16a34a;
+  --nl-dot: #f59e0b;
+  --nl-word: #052e16;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --nl-bowl: #22c55e;
+    --nl-dot: #fbbf24;
+    --nl-word: #f8fafc;
+  }
+}
+:root[data-theme='dark'],
+.theme-ink {
+  --nl-bowl: #22c55e;
+  --nl-dot: #fbbf24;
+  --nl-word: #f8fafc;
+}
+
 .nafaa-logo-bowl {
   fill: #16a34a;
 }

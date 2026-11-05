@@ -1,6 +1,6 @@
 /**
  * Main marketing pages (D2): products, solutions, services, pricing and the
- * Nafaa Bazaar page, plus the FAQs they use.
+ * Nafaa Market page, plus the FAQs they use.
  */
 
 import type { SeedEntry } from '../../lib/types';

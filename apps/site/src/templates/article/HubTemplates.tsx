@@ -48,7 +48,7 @@ function HubShell({ base, cards, eyebrow, header, children, skipGridsOf }: { bas
         {header}
       </PageHeader>
       {children}
-      <Body entry={entry} variant="hub" skipGridsOf={skipGridsOf} withFaqs />
+      <Body entry={entry} variant="hub" skipGridsOf={skipGridsOf} withFaqs ctaAtEnd />
       <ClosingCta entry={entry} site={site} />
     </>
   );

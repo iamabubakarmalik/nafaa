@@ -220,7 +220,7 @@ const inventory = page({
     ]),
     prose(`## One stock for the counter, the website and the marketplace
 
-Stock in Nafaa is not a separate list that someone updates at night. The counter, purchase bills, returns, online orders and Nafaa Bazaar all move the same numbers, so what you see is what is on the shelf. Businesses with branches see each branch's stock and can transfer between them, and the stock report shows value at cost and at sale price, what is dead or slow, what is near expiry, and the stock on any past date for your accountant.
+Stock in Nafaa is not a separate list that someone updates at night. The counter, purchase bills, returns, online orders and Nafaa Market all move the same numbers, so what you see is what is on the shelf. Businesses with branches see each branch's stock and can transfer between them, and the stock report shows value at cost and at sale price, what is dead or slow, what is near expiry, and the stock on any past date for your accountant.
 
 ## Who it is for
 
@@ -553,7 +553,7 @@ const onlineStore = page({
   },
   answer: {
     facts: [
-      ['Channels', 'Website, Shopify, WooCommerce, Daraz, Foodpanda and Nafaa Bazaar'],
+      ['Channels', 'Website, Shopify, WooCommerce, Daraz, Foodpanda and Nafaa Market'],
       ['Stock', 'One stock for counter and online; channels update when items sell'],
       ['Couriers', 'TCS, Leopards, M&P, PostEx, Trax and CallCourier'],
       ['Payments', 'COD, plus JazzCash and Easypaisa payment links'],
@@ -612,7 +612,7 @@ const onlineStore = page({
       ['Shopify or WooCommerce', 'Install or approve the Nafaa connection', 'Stores already selling online that want one stock with the shop'],
       ['Daraz', 'Connect your seller account', 'Reaching buyers across Pakistan without your own marketing'],
       ['Foodpanda', 'Connect your restaurant', 'Restaurants and bakeries taking delivery orders'],
-      ['Nafaa Bazaar', 'Publish products from Nafaa', 'Being found by nearby buyers on Nafaa\'s own marketplace'],
+      ['Nafaa Market', 'Publish products from Nafaa', 'Being found by nearby buyers on Nafaa\'s own marketplace'],
     ]),
     prose(`## Built for cash-on-delivery
 

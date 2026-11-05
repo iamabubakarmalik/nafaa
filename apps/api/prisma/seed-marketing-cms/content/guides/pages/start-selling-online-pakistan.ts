@@ -181,7 +181,7 @@ If you would rather have the store built for you, see our [e-commerce store deve
       layout: 'split-left',
     }),
     tip('Start with customers who already know your shop. A WhatsApp message to regulars announcing home delivery often brings the first orders before any advertising.', 'Your first customers are already yours'),
-    note('Nafaa connects your own website, Shopify, WooCommerce, Daraz, Foodpanda and Nafaa Bazaar to the shop\'s stock, books TCS, Leopards, M&P, PostEx, Trax and CallCourier, sends JazzCash and Easypaisa payment links, and shows each buyer\'s past deliveries and returns before you ship. See [Online Store](/product/online-store) and [E-commerce sellers](/solutions/ecommerce).'),
+    note('Nafaa connects your own website, Shopify, WooCommerce, Daraz, Foodpanda and Nafaa Market to the shop\'s stock, books TCS, Leopards, M&P, PostEx, Trax and CallCourier, sends JazzCash and Easypaisa payment links, and shows each buyer\'s past deliveries and returns before you ship. See [Online Store](/product/online-store) and [E-commerce sellers](/solutions/ecommerce).'),
   ],
   faqs: [
     [

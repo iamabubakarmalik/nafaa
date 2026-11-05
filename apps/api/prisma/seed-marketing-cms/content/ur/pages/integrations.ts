@@ -9,7 +9,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa کی انٹیگریشنز سے میں آن لائن بیچ سکتا ہوں؟',
     answer:
-      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Bazaar پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
+      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Market پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: [
@@ -148,7 +148,7 @@ export const entry: SeedEntry = {
         { icon: 'store', title: 'Daraz', body: 'Daraz کے آرڈر، اسٹاک اور شپنگ لیبل Nafaa کے اندر۔', href: '/ur/solutions/ecommerce' },
         { icon: 'utensils-crossed', title: 'Foodpanda', body: 'Foodpanda کے آرڈر Nafaa سے قبول کریں، رد کریں اور تیار کا نشان لگائیں۔', href: '/ur/solutions/restaurants' },
         { icon: 'code-xml', title: 'آپ کی اپنی ویب سائٹ', body: 'تیار کوڈ اور ایک key سے کسی بھی ویب سائٹ کے آرڈر بھیجیں۔', href: '/developers' },
-        { icon: 'shopping-basket', title: 'Nafaa Bazaar', body: 'اسی اسٹاک سے پروڈکٹس Nafaa کی مارکیٹ پلیس پر لگائیں۔', href: '/ur/marketplace' },
+        { icon: 'shopping-basket', title: 'Nafaa Market', body: 'اسی اسٹاک سے پروڈکٹس Nafaa کی مارکیٹ پلیس پر لگائیں۔', href: '/ur/marketplace' },
       ],
       id: 'ba43040d4699',
     },

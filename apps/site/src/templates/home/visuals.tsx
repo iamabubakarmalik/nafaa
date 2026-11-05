@@ -235,7 +235,7 @@ function Store() {
   );
 }
 
-/** Nafaa Bazaar: your products listed among other shops, one picked by a buyer. */
+/** Nafaa Market: your products listed among other shops, one picked by a buyer. */
 function Bazaar() {
   return (
     <div className="relative flex h-full items-center justify-center px-5">
@@ -244,7 +244,7 @@ function Bazaar() {
           <span className="inline-flex size-5 items-center justify-center rounded-md bg-brand-600 text-white">
             <CmsIcon name="store" size={11} />
           </span>
-          <span className="text-[10px] font-bold text-fg-strong">Nafaa Bazaar</span>
+          <span className="text-[10px] font-bold text-fg-strong">Nafaa Market</span>
           <span className="ml-auto flex h-4 flex-1 max-w-[5rem] items-center rounded-full bg-fg/[0.06] px-1.5">
             <CmsIcon name="search" size={9} className="text-fg-subtle" />
           </span>

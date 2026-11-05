@@ -204,7 +204,7 @@ const storeSetup = page({
       ['wallet', 'Payments', 'COD, and JazzCash or Easypaisa payment links from Nafaa where you want them.'],
       ['truck', 'Couriers', 'TCS, Leopards, M&P, PostEx, Trax or Call Courier booking from Nafaa.'],
       ['package-search', 'Google listings', 'Product feed for Google so shoppers can find you.'],
-      ['store', 'Nafaa Bazaar', 'Optionally list the same products on the Nafaa marketplace.'],
+      ['store', 'Nafaa Market', 'Optionally list the same products on the Nafaa marketplace.'],
     ]),
     shot({ heading: 'Every order lands in Nafaa', body: 'Once connected, orders from the new store arrive in the same list as every other channel, ready to accept, pack and book with a courier.', id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders', layout: 'split-right' }),
     steps('From catalogue to first order', [

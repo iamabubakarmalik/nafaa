@@ -15,8 +15,9 @@ import { paymentTerms } from './payments-online';
 import { productTerms } from './products';
 import { stockTerms } from './stock';
 import { taxTerms } from './tax';
+import { softwareBusinessTerms } from './software-business';
 
-const ALL: TermSpec[] = [...counterTerms, ...productTerms, ...moneyTerms, ...stockTerms, ...foodHealthTerms, ...paymentTerms, ...taxTerms];
+const ALL: TermSpec[] = [...counterTerms, ...productTerms, ...moneyTerms, ...stockTerms, ...foodHealthTerms, ...paymentTerms, ...taxTerms, ...softwareBusinessTerms];
 
 const seen = new Set<string>();
 for (const t of ALL) {
