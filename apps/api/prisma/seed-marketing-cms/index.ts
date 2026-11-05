@@ -55,6 +55,8 @@ interface Args {
   overwrite: Set<string>;
   overwriteSettings: { all: boolean; values: Set<string> };
   overwriteMenus: { all: boolean; values: Set<string> };
+  /** Update existing FAQs whose answer, topic or source note differs from the seed (and republish live ones). */
+  overwriteFaqs: boolean;
   only: Set<Step>;
   api: string;
   email: string | undefined;
@@ -69,6 +71,7 @@ function parseArgs(argv: string[]): Args {
     overwrite: listArg(argv, 'overwrite').values,
     overwriteSettings: listArg(argv, 'overwrite-settings'),
     overwriteMenus: listArg(argv, 'overwrite-menus'),
+    overwriteFaqs: argv.includes('--overwrite-faqs'),
     only: only.size ? (only as Set<Step>) : new Set(STEPS),
     api: apiArg(argv),
     email: argValue(argv, 'email'),
@@ -191,7 +194,9 @@ async function main(): Promise<void> {
   });
   const faqPlan = faqs.map((f) => {
     const found = existingFaqs.get(faqLookupKey(f.locale ?? 'en', f.question));
-    return { faq: f, action: (found ? 'skip' : 'create') as Action, id: found?.id };
+    const changed = !!found && (found.answer !== f.answer || (found.topic ?? null) !== (f.topic ?? null) || (found.sourceNote ?? null) !== (f.sourceNote ?? null));
+    const action: Action = !found ? 'create' : args.overwriteFaqs && changed ? 'update' : 'skip';
+    return { faq: f, action, id: found?.id, live: found?.status === 'PUBLISHED' };
   });
   const overwritesSetting = (key: string): boolean => args.overwriteSettings.all || args.overwriteSettings.values.has(key);
   const overwritesMenu = (key: string): boolean => args.overwriteMenus.all || args.overwriteMenus.values.has(key);
@@ -226,7 +231,7 @@ async function main(): Promise<void> {
   console.log('\nPlan');
   const off = (step: Step): string => (runs(step) ? '' : ' (step not selected)');
   console.log(`  settings  create ${count(settingPlan, 'create')}, update ${count(settingPlan, 'update')}, skip ${count(settingPlan, 'skip')}${off('settings')}`);
-  console.log(`  faqs      create ${count(faqPlan, 'create')}, skip ${count(faqPlan, 'skip')}${off('faqs')}`);
+  console.log(`  faqs      create ${count(faqPlan, 'create')}, update ${count(faqPlan, 'update')}, skip ${count(faqPlan, 'skip')}${off('faqs')}`);
   console.log(`  entries   create ${count(plan, 'create')}, update ${count(plan, 'update')}, skip ${count(plan, 'skip')}${off('entries')}`);
   console.log(`  menus     create ${count(menuPlan, 'create')}, update ${count(menuPlan, 'update')}, skip ${count(menuPlan, 'skip')}${off('menus')}`);
   console.log(`  redirects import ${redirects.length} (the API skips or updates existing rules)${off('redirects')}`);
@@ -259,7 +264,7 @@ async function main(): Promise<void> {
 
 interface ApplyPlan {
   settingPlan: { s: (typeof settings)[number]; action: Action }[];
-  faqPlan: { faq: (typeof faqs)[number]; action: Action; id: string | undefined }[];
+  faqPlan: { faq: (typeof faqs)[number]; action: Action; id: string | undefined; live: boolean }[];
   plan: Planned[];
   menuPlan: { m: (typeof menus)[number]; action: Action }[];
   mediaIds: Map<string, string>;
@@ -280,9 +285,16 @@ async function applySteps(api: CmsApi, args: Args, ctx: ApplyPlan): Promise<void
   if (!runs('faqs') && !runs('entries') && !runs('redirects') && !runs('menus')) return;
 
   const faqIds = new Map<string, string>();
-  for (const { faq, action, id } of faqPlan) {
+  for (const { faq, action, id, live } of faqPlan) {
     if (action === 'skip' && id) {
       faqIds.set(faq.key, id);
+      continue;
+    }
+    if (action === 'update' && id) {
+      faqIds.set(faq.key, id);
+      if (!runs('faqs')) continue;
+      await api.patch(`/faqs/${id}`, { topic: faq.topic, answer: faq.answer, sourceNote: faq.sourceNote });
+      if (live) await api.post(`/faqs/${id}/publish`, {});
       continue;
     }
     if (!runs('faqs')) continue;
