@@ -42,7 +42,7 @@ export function NewsletterForm({ className }: { className?: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          source: 'site-footer',
+          source: 'NEWSLETTER',
           sourceUrl: window.location.href,
           sourcePage: window.location.pathname,
           ...(utm.utmSource ? { utmSource: utm.utmSource } : {}),
