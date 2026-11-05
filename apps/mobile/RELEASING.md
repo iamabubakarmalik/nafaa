@@ -13,7 +13,7 @@ nobody needs to open Play Console or App Store Connect for a normal release.
 | Push (Android) | EAS FCM V1 key from Firebase project **nafaa-pos** | must match `google-services.json` |
 | Push (iOS) | EAS APNs key | add when the Apple membership is active |
 | Google sign-in | GCP project `109272166338`, Android OAuth client `…j3miqlc…` | Play signing SHA-1 + "Enable custom URI scheme" |
-| iOS | App Store Connect app `6769007778`, team `A48F33D4Q8` | Apple Developer membership must be renewed by the account holder (Rashdan) before any iOS build or submit |
+| iOS | App Store Connect app `6769007778`, team `A48F33D4Q8` (Individual, holder Rashdan) | Signing (dist cert `1F75631E…`, profile `UPUNMBWS99` with Sign in with Apple), APNs key and an ASC API key are all stored on EAS, so `build` and `submit` run with `--non-interactive`. Only a new capability needs the account holder's Apple ID once (`eas build -p ios` interactive). Never revoke the cert: Rashdan's other apps use it |
 
 Never commit service-account JSON files, keystores or `.p8` keys.
 
@@ -67,9 +67,16 @@ Rollback: `npx eas-cli@latest update:republish` an earlier group, or
 cd apps/mobile
 # bump expo.version in app.json first (build numbers auto-increment remotely)
 npx eas-cli@latest build -p android --profile production --non-interactive --no-wait --auto-submit
-# iOS (only while the Apple membership is active):
 npx eas-cli@latest build -p ios --profile production --non-interactive --no-wait --auto-submit
 ```
+
+The iOS image is pinned to `macos-tahoe-26.5-xcode-26.6` in `eas.json`. `latest`
+(Xcode 27) fails on pods whose deployment target is below 15.0. Move the pin
+forward only after an SDK upgrade.
+
+If a local `ios/` or `android/` folder exists (left by `expo run:ios` /
+`prebuild`), move it out of `apps/mobile` first. Otherwise EAS treats the
+project as bare and fails with "runtime version policies are not supported".
 
 Android submits to the **production** track with `releaseStatus: completed`
 (see `eas.json → submit.production.android`). Check status with
