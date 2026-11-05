@@ -11,6 +11,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Container } from '@/components/ui/Container';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { EntryCard } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
 import { uiStrings } from '@/lib/i18n/ui';
@@ -45,7 +46,7 @@ export function ShowcaseSection({
   const themeClass =
     theme === 'ink' ? 'theme-ink bg-canvas text-fg' : theme === 'muted' ? 'theme-muted bg-canvas text-fg border-y border-line/70' : 'theme-default bg-canvas text-fg';
   return (
-    <section id={id} aria-labelledby={labelledBy} className={cx('relative isolate overflow-x-clip', themeClass, SPACING[spacing], className)}>
+    <section id={id} aria-labelledby={labelledBy} className={cx(BELOW_FOLD, 'relative isolate overflow-x-clip', themeClass, SPACING[spacing], className)} style={{ '--cv-h': '60rem', '--cv-h-lg': '50rem' }}>
       {children}
     </section>
   );

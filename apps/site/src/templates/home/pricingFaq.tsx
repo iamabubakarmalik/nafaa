@@ -19,6 +19,7 @@ import { limitText, priceOf, savingPercent } from '@/components/blocks/PricingTa
 import { PricingToggle, type PricingPeriod } from '@/components/islands/PricingToggle';
 import { Prose } from '@/components/ui/Prose';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { FaqBlock, PricingTableBlock, PublicEntry, PublicPlan, SiteSettings } from '@/lib/cms/contract/cms-contract';
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import { CmsIcon } from '@/lib/icons';
@@ -73,7 +74,7 @@ export function HomePricing({
   const highlight = block.highlightPlan ?? plans.find((x) => x.display.highlight)?.slug;
 
   return (
-    <section aria-labelledby="home-pricing" className="relative isolate overflow-hidden py-section">
+    <section aria-labelledby="home-pricing" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden py-section')} style={{ '--cv-h': '159rem', '--cv-h-lg': '67rem' }}>
       <Backdrop pattern="dots" />
       <div data-pricing="" data-period="monthly" className={cx(blockStyles.pricing, 'mx-auto box-content max-w-wide px-gutter')}>
         <div className="mx-auto max-w-2xl text-center" data-reveal>
@@ -196,7 +197,7 @@ export function HomeFaq({ block, entry, site }: { block: FaqBlock; entry: Public
   const wa = whatsappHref(site.whatsapp);
   const h = uiStrings(entry.locale).home;
   return (
-    <section aria-labelledby="home-faq" className="relative isolate border-t border-line/70 py-section">
+    <section aria-labelledby="home-faq" className={cx(BELOW_FOLD, 'relative isolate border-t border-line/70 py-section')} style={{ '--cv-h': '93rem', '--cv-h-lg': '54rem' }}>
       <div className="mx-auto box-content grid max-w-wide gap-12 px-gutter lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:gap-20">
         <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start" data-reveal>
           <p className="text-eyebrow uppercase text-link">{h.faqEyebrow}</p>

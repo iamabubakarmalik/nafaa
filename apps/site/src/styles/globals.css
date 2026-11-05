@@ -192,6 +192,22 @@
   }
 }
 
+/* Bands below the fold: the browser skips their style, layout and paint
+   until they come near the viewport, and remembers the real height after
+   the first render (`auto`). The estimate only sizes the scrollbar before
+   that. Paint containment clips at the band's edges, so it goes only on
+   bands whose decoration stays inside them. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto var(--cv-h, 48rem);
+}
+
+@media (min-width: 64rem) {
+  .cv-auto {
+    contain-intrinsic-block-size: auto var(--cv-h-lg, var(--cv-h, 40rem));
+  }
+}
+
 /* Mobile conversion bar (components/layout/MobileCtaBar.tsx), phones only:
    the page keeps room for it at the end, so nothing hides behind it, and the
    floating WhatsApp button steps aside because the bar has its own. Set from

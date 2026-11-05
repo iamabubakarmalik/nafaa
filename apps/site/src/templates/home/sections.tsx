@@ -16,6 +16,7 @@ import { formatPkr } from '@/components/blocks/lib/format';
 import { Diagram } from '@/components/diagrams';
 import { FrameFor } from '@/components/frames';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type {
   AnswerBoxBlock,
   CtaBlock,
@@ -107,6 +108,9 @@ function rotatorCss(n: number): string {
 function Rotator({ words, label }: { words: string[]; label: string }) {
   const n = words.length;
   const step = 2.6;
+  // One fade of the cycle (rotatorCss): every delay starts this much early,
+  // so the first word is already fully shown when the loop starts.
+  const lead = (Math.min(4, 100 / n / 4) / 100) * n * step;
   return (
     <p className="mt-7 flex justify-center">
       <style>{rotatorCss(n)}</style>
@@ -121,7 +125,7 @@ function Rotator({ words, label }: { words: string[]; label: string }) {
             <span
               key={word}
               className={fx.rotatorWord}
-              style={{ '--rot-name': `home-rotator-${n}`, '--rot-dur': `${n * step}s`, '--delay': `${i * step}s` }}
+              style={{ '--rot-name': `home-rotator-${n}`, '--rot-dur': `${n * step}s`, '--delay': `${(i * step - lead).toFixed(2)}s` }}
             >
               {word}
             </span>
@@ -258,7 +262,7 @@ export function HomeHero({
 
   return (
     <section aria-labelledby="home-hero" className="relative isolate overflow-hidden">
-      <div aria-hidden className={fx.aurora}>
+      <div aria-hidden className={fx.aurora} data-animate="once">
         <span />
         <span />
       </div>
@@ -388,7 +392,7 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
   const left = facts.slice(0, half);
   const right = facts.slice(half);
   return (
-    <section aria-labelledby="home-answer" className="relative isolate overflow-hidden py-section">
+    <section aria-labelledby="home-answer" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden py-section')} style={{ '--cv-h': '115rem', '--cv-h-lg': '69rem' }}>
       <Backdrop pattern="dots" noon="right" />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-[50rem] text-center" data-reveal>
@@ -485,7 +489,7 @@ export function HomeHowItWorks({ blocks, links, locale }: { blocks: DiagramBlock
   if (!blocks.length) return null;
   const t = uiStrings(locale);
   return (
-    <section aria-labelledby="home-how" className="relative isolate overflow-hidden py-section">
+    <section aria-labelledby="home-how" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden py-section')} style={{ '--cv-h': '117rem', '--cv-h-lg': '67rem' }}>
       <Backdrop tint="slate" pattern="grid" />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-2xl text-center" data-reveal>
@@ -529,7 +533,7 @@ export function HomeHowItWorks({ blocks, links, locale }: { blocks: DiagramBlock
 
 export function Closing({ block }: { block: CtaBlock; entry: PublicEntry }) {
   return (
-    <section aria-labelledby="home-closing" className="px-gutter pb-16 pt-8 md:pb-24">
+    <section aria-labelledby="home-closing" className={cx(BELOW_FOLD, 'px-gutter pb-16 pt-8 md:pb-24')} style={{ '--cv-h': '43rem', '--cv-h-lg': '44rem' }}>
       <div className="theme-ink relative isolate mx-auto max-w-wide overflow-hidden rounded-[28px] bg-canvas px-6 py-16 text-center text-fg md:px-12 md:py-24" data-reveal="scale">
         <div aria-hidden className={fx.closingAurora}>
           <span />

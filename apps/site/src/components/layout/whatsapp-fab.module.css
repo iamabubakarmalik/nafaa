@@ -170,8 +170,13 @@
     animation: fab-in 600ms var(--ease-out) 1.2s both;
   }
 
-  .online::after {
+  /* The ping waits for the motion island (after load), like other loops. */
+  :global(html[data-motion]) .online::after {
     animation: online-ping 2.4s var(--ease-out) 2s infinite;
+  }
+
+  :global(html[data-motion-paused]) .online::after {
+    animation-play-state: paused;
   }
 
   .fab:hover .mark {

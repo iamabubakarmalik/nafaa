@@ -304,7 +304,9 @@ export function CmsImage(props: CmsImageProps): ReactElement {
     preload(imgProps.src, { as: 'image', imageSrcSet: imgProps.srcSet, imageSizes: sizes, fetchPriority: 'high', media: visibleMedia });
   }
 
-  const img = createElement('img', imgProps);
+  // getImageProps leaves fetchpriority off the <img>; the LCP image wants it
+  // on the element as well as on the preload hint.
+  const img = createElement('img', priority ? { ...imgProps, fetchPriority: 'high' } : imgProps);
   if (!visibleMedia) return img;
   return createElement('picture', null, createElement('source', { media: `not all and ${visibleMedia}`, srcSet: BLANK_IMAGE }), img);
 }

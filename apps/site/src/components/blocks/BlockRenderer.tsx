@@ -19,6 +19,7 @@
 import type { ReactNode } from 'react';
 import { Section } from '@/components/ui/Section';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { Block, BlockType, ToolKey } from '@/lib/cms/contract/cms-contract';
 import { AnswerBox } from './AnswerBox';
 import { Callout } from './Callout';
@@ -140,6 +141,9 @@ export async function BlockRenderer({ blocks, entry, source = cmsSource, renderT
             spacing={isHero ? 'none' : COMPACT.has(block.type) || FLOW.has(block.type) ? 'compact' : 'default'}
             className={cx(
               'overflow-x-clip',
+              // Bands after the hero skip rendering until near the viewport;
+              // tool blocks are the point of their page and render normally.
+              !isHero && block.type !== 'tool' && BELOW_FOLD,
               isHero && 'pb-16 pt-12 md:pb-24 md:pt-20',
               joinsPrev && '!pt-0',
             )}

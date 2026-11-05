@@ -186,13 +186,14 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: white;
-  background: #1fa855;
+  /* WhatsApp green, darkened to 4.7:1 so the white label passes WCAG AA. */
+  background: #1a8547;
   box-shadow: 0 8px 18px -10px rgb(31 168 85 / 0.9);
   transition: transform 150ms var(--ease-out), background-color 150ms;
 }
 
 .askBtn:hover {
-  background: #179247;
+  background: #15773d;
   transform: translateY(-1px);
 }
 

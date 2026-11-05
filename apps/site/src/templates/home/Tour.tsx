@@ -20,6 +20,7 @@ import { Markdown } from '@/components/blocks/rich-text/Markdown';
 import { FrameFor } from '@/components/frames';
 import type { PublicEntry, ScreenshotBlock } from '@/lib/cms/contract/cms-contract';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import { CmsIcon } from '@/lib/icons';
 import { mediaById } from '@/lib/media';
 import { uiStrings } from '@/lib/i18n/ui';
@@ -169,7 +170,7 @@ export function Tour({ blocks, entry }: { blocks: ScreenshotBlock[]; entry: Publ
   });
 
   return (
-    <section aria-labelledby="home-tour" className="relative isolate overflow-hidden pb-section">
+    <section aria-labelledby="home-tour" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden pb-section')} style={{ '--cv-h': '59rem', '--cv-h-lg': '58rem' }}>
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-2xl text-center" data-reveal>
           <p className="text-eyebrow uppercase text-link">{t.tourEyebrow}</p>

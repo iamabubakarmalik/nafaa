@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import { FeatureBadge } from '@/components/blocks/parts/FeatureBadge';
 import { formatDate, hexToChannels, isoDate } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { EntryCard } from '@/lib/cms/contract/cms-contract';
 import { DEFAULT_LOCALE, localizePath } from '@/lib/cms/locale';
 import { uiStrings } from '@/lib/i18n/ui';
@@ -140,7 +141,7 @@ export function TileSection({
   if (cards.length === 0) return null;
   const cols = columns === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3';
   return (
-    <section aria-labelledby={id} className="py-10 md:py-12">
+    <section aria-labelledby={id} className={cx(BELOW_FOLD, 'py-10 md:py-12')} style={{ '--cv-h': '30rem', '--cv-h-lg': '22rem' }}>
       <div className="mx-auto box-content max-w-container px-gutter">
         <SectionTitle id={id} title={title} intro={intro} link={link} size="h3" />
         <ul className={cx('mt-6 grid gap-4', cols)} data-reveal="stagger">

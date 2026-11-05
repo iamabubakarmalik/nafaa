@@ -6,10 +6,12 @@
  */
 import Link from 'next/link';
 import { CtaButton } from '@/components/blocks/parts/CtaButton';
+import { RenderNear } from '@/components/islands/RenderNear';
 import { FeatureBadge } from '@/components/blocks/parts/FeatureBadge';
 import { InlineMarkdown } from '@/components/blocks/rich-text/Markdown';
 import { hexToChannels } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { CtaBlock, EntryCard, FeaturesGridBlock, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
 import { uiStrings } from '@/lib/i18n/ui';
@@ -87,7 +89,7 @@ export function WorksWith({ block, link }: { block: FeaturesGridBlock; link?: st
     </ul>
   );
   return (
-    <section aria-labelledby="home-works" className="border-y border-line/70 py-8">
+    <section aria-labelledby="home-works" className={cx(BELOW_FOLD, 'border-y border-line/70 py-8')} style={{ '--cv-h': '8rem', '--cv-h-lg': '8rem' }}>
       <div className="mx-auto box-content flex max-w-wide flex-col items-center gap-5 px-gutter lg:flex-row lg:gap-10">
         <h2 id="home-works" className="shrink-0 text-center text-small font-medium text-fg-subtle lg:max-w-[14rem] lg:text-start">
           {link ? (
@@ -101,7 +103,7 @@ export function WorksWith({ block, link }: { block: FeaturesGridBlock; link?: st
         <div className={cx(fx.ticker, 'w-full min-w-0 flex-1')} data-animate="once">
           <div className={fx.tickerTrack}>
             {row(false)}
-            {row(true)}
+            <RenderNear>{row(true)}</RenderNear>
           </div>
         </div>
       </div>
@@ -133,7 +135,7 @@ export function Platform({ block, entry, hubLink }: { block: FeaturesGridBlock; 
   const t = uiStrings(locale);
   const layout = spans(block.items.length);
   return (
-    <section aria-labelledby="home-platform" className="relative isolate py-section">
+    <section aria-labelledby="home-platform" className={cx(BELOW_FOLD, 'relative isolate py-section')} style={{ '--cv-h': '54rem', '--cv-h-lg': '148rem' }}>
       <div aria-hidden className={fx.softWash} />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <SectionHead id="home-platform" eyebrow={t.home.platformEyebrow} title={block.heading} intro={block.intro} link={hubLink} linkLabel={t.home.allProducts} />
@@ -146,7 +148,9 @@ export function Platform({ block, entry, hubLink }: { block: FeaturesGridBlock; 
               <>
                 {visual ? (
                   <div aria-hidden dir="ltr" className={cx(fx.visual, 'relative h-44 overflow-hidden border-b border-line')}>
-                    <PlatformVisual icon={item.icon} />
+                    <RenderNear>
+                      <PlatformVisual icon={item.icon} />
+                    </RenderNear>
                   </div>
                 ) : null}
                 <div className="flex flex-1 flex-col p-6">
@@ -211,7 +215,7 @@ export function Solutions({ block, hubLink, signupUrl, locale = 'en' }: { block:
     accent: hexToChannels(SOLUTION_TONES[i % SOLUTION_TONES.length]) ?? undefined,
   }));
   return (
-    <section aria-labelledby="home-solutions" className="relative isolate overflow-hidden border-y border-line/70 py-section">
+    <section aria-labelledby="home-solutions" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden border-y border-line/70 py-section')} style={{ '--cv-h': '79rem', '--cv-h-lg': '64rem' }}>
       <Backdrop tint="slate" pattern="dots" />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <SectionHead id="home-solutions" eyebrow={t.solutionsEyebrow} title={block.heading} intro={block.intro} link={hubLink} linkLabel={t.allSolutions} center />
@@ -260,7 +264,9 @@ export function Solutions({ block, hubLink, signupUrl, locale = 'en' }: { block:
                   </div>
                 </div>
                 <div aria-hidden dir="ltr" className={fx.solScene} data-animate="">
-                  <SolutionScene icon={item.icon} />
+                  <RenderNear>
+                    <SolutionScene icon={item.icon} />
+                  </RenderNear>
                 </div>
               </article>
             );
@@ -298,7 +304,7 @@ export function Industries({ heading, intro, cards, hubLink, locale }: { heading
   const rows: EntryCard[][] = [[], [], []];
   cards.forEach((card, i) => rows[i % 3]?.push(card));
   return (
-    <section aria-labelledby="home-industries" className="overflow-hidden py-section">
+    <section aria-labelledby="home-industries" className={cx(BELOW_FOLD, 'overflow-hidden py-section')} style={{ '--cv-h': '41rem', '--cv-h-lg': '52rem' }}>
       <div className="mx-auto box-content max-w-wide px-gutter">
         <SectionHead id="home-industries" eyebrow={t.home.industriesCount(cards.length)} title={heading} intro={intro} link={hubLink} linkLabel={t.allIndustries} />
       </div>
@@ -313,11 +319,13 @@ export function Industries({ heading, intro, cards, hubLink, locale }: { heading
                     <IndustryChip key={card.id} card={card} />
                   ))}
                 </ul>
-                <ul className={fx.tickerRow} aria-hidden>
-                  {row.map((card) => (
-                    <IndustryChip key={card.id} card={card} hidden />
-                  ))}
-                </ul>
+                <RenderNear>
+                  <ul className={fx.tickerRow} aria-hidden>
+                    {row.map((card) => (
+                      <IndustryChip key={card.id} card={card} hidden />
+                    ))}
+                  </ul>
+                </RenderNear>
               </div>
             </div>
           ))}
@@ -331,7 +339,7 @@ export function Industries({ heading, intro, cards, hubLink, locale }: { heading
 export function Services({ block, quote, entry, hubLink }: { block: FeaturesGridBlock; quote?: CtaBlock; entry: PublicEntry; hubLink?: string }) {
   const t = uiStrings(entry.locale).home;
   return (
-    <section aria-labelledby="home-services" className="relative isolate overflow-hidden py-section">
+    <section aria-labelledby="home-services" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden py-section')} style={{ '--cv-h': '115rem', '--cv-h-lg': '65rem' }}>
       <Backdrop pattern="dots" />
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
         <div>
@@ -408,7 +416,7 @@ export function AiAssistant({ block, link, locale }: { block: FeaturesGridBlock;
   const t = uiStrings(locale);
   const question = block.items.find((it) => /[“"]/.test(it.body))?.body.replace(/[“”"]/g, '');
   return (
-    <section aria-labelledby="home-ai" className="relative isolate overflow-hidden py-section">
+    <section aria-labelledby="home-ai" className={cx(BELOW_FOLD, 'relative isolate overflow-hidden py-section')} style={{ '--cv-h': '72rem', '--cv-h-lg': '43rem' }}>
       <Backdrop pattern="grid" noon="right" />
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-2 lg:gap-20">
         <div data-reveal>

@@ -22,6 +22,7 @@ import type { SiteLayout } from '@/lib/cms/client';
 import { LOGO_WORDMARK } from '@/lib/brand/logo';
 import { CookieSettingsButton } from '@/components/islands/ConsentBanner';
 import { cx } from '@/components/ui/cx';
+import { BELOW_FOLD } from '@/components/ui/belowFold';
 import { CmsIcon } from '@/lib/icons';
 import { shellStrings, type SiteLocale } from '@/lib/i18n/shell';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -78,7 +79,7 @@ export function SiteFooter({
   const email = entity?.contact.email;
 
   return (
-    <footer className="theme-muted relative isolate overflow-hidden border-t border-line bg-canvas text-fg" data-track-area="footer">
+    <footer className={cx(BELOW_FOLD, 'theme-muted relative isolate overflow-hidden border-t border-line bg-canvas text-fg')} style={{ '--cv-h': '160rem', '--cv-h-lg': '74rem' }} data-track-area="footer">
       <div className="mx-auto box-content max-w-wide px-gutter pt-16">
         {/* Newsletter and talk-to-us row */}
         <div className="grid gap-8 rounded-2xl border border-line bg-surface p-6 shadow-e1 ink:shadow-none md:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
