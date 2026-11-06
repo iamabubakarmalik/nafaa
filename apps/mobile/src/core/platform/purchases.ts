@@ -27,3 +27,17 @@ export const PLAN_INACTIVE_TEXT = msg('Aap ka plan active nahi hai. Account ke m
 
 /** Neutral text for iOS where a feature needs a bigger plan. */
 export const PLAN_FEATURE_TEXT = msg('Ye feature aap ke maujooda plan me shamil nahi hai. Account ke malik ya Nafaa support se rabta karein.');
+
+/**
+ * App Store rule (guideline 3.1.1, review of 2.0.1): on iOS a business account
+ * is not created in the app, because the account leads to a plan bought
+ * outside the app. iOS only signs in to existing accounts; new businesses join
+ * on the web or Android. Entry points: LoginScreen footer, the /register and
+ * /google-complete routes, and the Google / Apple sign-in hooks.
+ */
+export function canRegisterInApp(): boolean {
+  return Platform.OS !== 'ios';
+}
+
+/** iOS: Google or Apple sign-in found no existing Nafaa account. */
+export const NO_ACCOUNT_TEXT = msg('Is email se koi Nafaa account nahi mila. Apne business ke malik ya admin se login details lein.');

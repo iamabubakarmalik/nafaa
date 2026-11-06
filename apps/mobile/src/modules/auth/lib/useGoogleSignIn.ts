@@ -9,6 +9,7 @@ import { t } from '@/core/i18n';
 import { authApi, isGoogleSession } from '@/core/auth/api';
 import { useAuthStore } from '@/core/auth/store';
 import { toast } from '@/design';
+import { canRegisterInApp, NO_ACCOUNT_TEXT } from '@/core/platform/purchases';
 import { authErrorMessage } from './auth-errors';
 import { useGoogleIdToken } from './google';
 
@@ -31,6 +32,8 @@ export function useGoogleSignIn(onError: (message: string | null) => void) {
         if (isGoogleSession(res)) {
           await useAuthStore.getState().setSession(res);
           toast.success(t('Khush aamdeed, {{firstName}}!', { firstName: res.user.fullName.split(' ')[0] }));
+        } else if (!canRegisterInApp()) {
+          onError(t(NO_ACCOUNT_TEXT));
         } else {
           pendingGoogle.idToken = idToken;
           pendingGoogle.email = res.email;

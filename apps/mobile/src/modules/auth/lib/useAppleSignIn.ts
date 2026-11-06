@@ -12,6 +12,7 @@ import { authApi, isGoogleSession } from '@/core/auth/api';
 import { useAuthStore } from '@/core/auth/store';
 import { toast } from '@/design';
 import { appleAuth } from './apple';
+import { canRegisterInApp, NO_ACCOUNT_TEXT } from '@/core/platform/purchases';
 import { authErrorMessage } from './auth-errors';
 
 /** Holds the Apple sign-up token while a new user types the shop name. */
@@ -58,6 +59,8 @@ export function useAppleSignIn(onError: (message: string | null) => void) {
         await useAuthStore.getState().setSession(res);
         const first = res.user.fullName.split(' ')[0];
         toast.success(first ? t('Khush aamdeed, {{firstName}}!', { firstName: first }) : t('Khush aamdeed!'));
+      } else if (!canRegisterInApp()) {
+        onError(t(NO_ACCOUNT_TEXT));
       } else {
         pendingApple.tempToken = res.tempToken;
         pendingApple.email = res.email;

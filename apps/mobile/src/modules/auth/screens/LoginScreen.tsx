@@ -14,6 +14,7 @@ import { apiClient } from '@/core/api/client';
 import type { AuthTenant, AuthUser } from '@/core/auth/types';
 import { useAuthStore } from '@/core/auth/store';
 import { useOnlineStatus } from '@/core/net';
+import { canRegisterInApp } from '@/core/platform/purchases';
 import { kv } from '@/core/storage/kv';
 import { Button, Card, Input, PasswordInput, Text, toast, useTheme } from '@/design';
 import { AuthLayout, OrDivider } from '../components/AuthLayout';
@@ -92,11 +93,13 @@ export function LoginScreen() {
     <AuthLayout
       title={t('Wapas aaiye')}
       subtitle={t('Apni dukaan kholne ke liye login karein.')}
-      footer={(
+      footer={canRegisterInApp() ? (
         <Text tone="secondary" align="center">
           {t('Nafaa par naye hain?')}{' '}
           <Link href="/register" asChild><Text weight="bold" tone="brand" suppressHighlighting>{t('Free account banayein')}</Text></Link>
         </Text>
+      ) : (
+        <Text size="sm" tone="secondary" align="center">{t('Login details nahi hain? Apne business ke malik ya admin se poochein.')}</Text>
       )}
     >
       {!online && (
