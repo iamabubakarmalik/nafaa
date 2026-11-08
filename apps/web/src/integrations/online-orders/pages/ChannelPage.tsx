@@ -3,20 +3,22 @@
  * Indolj or an own website) with its numbers, products, settings, setup
  * guide and activity log.
  *
- * Tabs: Overview · Products · Settings · Setup · Activity (?tab=…).
+ * Tabs: Overview (with the "Kya kya hota hai" card) · Products · Settings
+ * (every control, status mapping, Sync now) · Setup · Activity (server-paged
+ * sync + webhook log) (?tab=…).
  * "?connected=1" (after an install or approve) opens Products once.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Activity, ArrowDownLeft, ArrowUpRight, BookOpen, ExternalLink, LayoutDashboard, MoreHorizontal, Package, Pause, Play, RefreshCw, Send,
+  Activity, BookOpen, ExternalLink, LayoutDashboard, MoreHorizontal, Package, Pause, Play, RefreshCw, Send,
   Settings2, ShoppingBag, Trash2, TriangleAlert, Wrench,
 } from 'lucide-react';
 import {
-  Alert, Badge, Button, PageHero, PageShell, Segmented, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
+  Alert, Button, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
@@ -24,13 +26,15 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../api/online-orders.api';
 import { CHANNELS_KEY, useSalesChannels } from '../hooks/useSalesChannels';
-import { timeAgo, whenText } from '../lib/labels';
+import { timeAgo } from '../lib/labels';
 import { HttpsNotice } from '../components/website/ManualKeysForm';
 import { ChannelOverview, panel } from '../components/channel/ChannelOverview';
 import { ChannelProducts } from '../components/channel/ChannelProducts';
 import { ShopifyPlanAlert } from '../components/channel/ShopifyPlanAlert';
 import { ChannelSettings, useChannelLifecycle } from '../components/channel/ChannelSettings';
 import { ChannelSetup } from '../components/channel/ChannelSetup';
+import { ChannelActivity } from '../components/channel/ChannelActivity';
+import { channelOpsApi } from '../api/channel-ops.api';
 import { bareUrl, channelFacts, type ChannelTab } from '../components/channel/meta';
 import { t as tr } from '@core/i18n';
 
@@ -200,68 +204,8 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
       {tab === 'products' && <ChannelProducts id={id} data={data} facts={facts} setTab={setTab} />}
       {tab === 'settings' && <ChannelSettings key={i.id} id={id} data={data} facts={facts} onChange={onChange} />}
       {tab === 'setup' && <ChannelSetup id={id} data={data} facts={facts} onChange={onChange} setTab={setTab} via={via} setVia={setVia} />}
-      {tab === 'activity' && <ActivityTab logs={data.logs} name={facts.name} />}
+      {tab === 'activity' && <ChannelActivity id={id} name={facts.name} />}
     </PageShell>
-  );
-}
-
-/* ─── Activity ─── */
-
-const LOG_LABEL: Record<string, string> = {
-  STOCK_SYNC: tr('Stock bheja'), PRICE_PUSH: tr('Price bheji'), PRODUCTS_IMPORT: tr('Products laaye'), PRODUCTS_EXPORT: tr('Products bheje'),
-  SYNC_PRODUCTS: tr('Products sync'), PRODUCT_LINK: tr('Product jora'), ORDER_SYNC: tr('Orders check kiye'), TEST_ORDER: tr('Test order'),
-  SHOPIFY_TOKEN_REFRESH: tr('Shopify ki ijazat taaza'), SHOPIFY_WEBHOOKS: tr('Shopify webhooks'), WOO_CONNECT: tr('WooCommerce jora'),
-  ORDERS_CREATE: tr('Naya order aaya'), ORDERS_UPDATED: tr('Order badla'), ORDERS_CANCELLED: tr('Order cancel hua'),
-  'order.created': tr('Naya order aaya'), 'order.updated': tr('Order badla'), 'order.cancelled': tr('Order cancel hua'), 'order.confirmed': tr('Order accept hua'),
-  SHOPIFY_CONNECT: tr('Shopify jora'), SHOPIFY_UNINSTALLED: tr('Shopify se app hataya gaya'), SHOPIFY_TOKEN_CHECK: tr('Shopify ijazat check'),
-  SHOPIFY_SHOP_INFO: tr('Shopify store info'),
-};
-/** Activity code → words; unknown codes become "Order export" style text. */
-const logLabel = (code: string) => (code.startsWith('STATUS_PUSH') ? tr('Status bheja{{value}}', { value: code.includes(':') ? ` (${code.split(':')[1].toLowerCase().replace(/_/g, ' ')})` : '' }) : null)
-  ?? LOG_LABEL[code] ?? LOG_LABEL[code.toUpperCase()]
-  ?? code.replace(/[._/-]+/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-
-function ActivityTab({ logs, name }: { logs: WebsiteOverview['logs']; name: string }) {
-  const [f, setF] = useState<'all' | 'err'>('all');
-  const errors = logs.filter((l) => !l.ok).length;
-  const rows = useMemo(() => logs.filter((l) => f === 'all' || !l.ok), [logs, f]);
-  return (
-    <section className={panel}>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-5">
-        <div className="min-w-0">
-          <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Activity')}</h2>
-          <p className="text-[0.75rem] text-slate-500">{tr('{{name}} se aane aur jaane wali har request — ghalti ho to wajah yahin likhi hoti hai', { name })}</p>
-        </div>
-        <Segmented value={f} onChange={setF} label={tr('Activity filter')} items={[{ value: 'all', label: tr('Sab'), count: logs.length }, { value: 'err', label: tr('Ghaltiyan'), count: errors }]} />
-      </div>
-      {rows.length === 0 ? (
-        <div className="px-6 py-12 text-center">
-          <Activity className="mx-auto h-9 w-9 text-slate-300" />
-          <p className="mt-2 text-sm font-semibold text-slate-900">{f === 'err' ? tr('Koi ghalti nahi') : tr('Abhi kuch nahi')}</p>
-          <p className="mt-1 text-[0.8125rem] text-slate-500">{f === 'err' ? tr('Sab requests theek chal rahi hain.') : tr('Test order bhejein — pehli line yahan aayegi.')}</p>
-        </div>
-      ) : (
-        <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
-          {rows.map((l) => (
-            <li key={l.id} className="flex items-start gap-3 px-4 py-2.5 sm:px-5">
-              <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', l.kind === 'IN' ? 'bg-sky-50 text-sky-600' : 'bg-violet-50 text-violet-600')}
-                title={l.kind === 'IN' ? tr('{{name}} se aaya', { name }) : tr('{{name}} ko gaya', { name })}>
-                {l.kind === 'IN' ? <ArrowDownLeft className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[0.84375rem] font-semibold text-slate-900">{logLabel(l.label)}</span>
-                  <span className="hidden font-mono text-[0.6875rem] text-slate-400 sm:inline">{l.label}</span>
-                  <Badge size="xs" variant={l.ok ? 'success' : 'danger'}>{l.ok ? tr('Theek') : tr('Ghalti')}</Badge>
-                </div>
-                {l.error && <p className="mt-0.5 break-words text-[0.78125rem] text-rose-600">{l.error}</p>}
-              </div>
-              <span className="shrink-0 text-[0.75rem] text-slate-500" title={whenText(l.at)}>{timeAgo(l.at)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   );
 }
 
@@ -286,6 +230,19 @@ function MoreMenu({ id, data, siteUrl, onChange, setTab }: {
   const ref = useRef<HTMLDivElement>(null);
   const i = data.integration!;
   const life = useChannelLifecycle(id, onChange);
+  const qc = useQueryClient();
+  // Missed orders from the last 3 days, then stock and prices (same as Settings → Sync).
+  const sync = useMutation({
+    mutationFn: () => channelOpsApi.syncNow(id),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ['sales-channel', id] });
+      qc.invalidateQueries({ queryKey: ['channel-logs', id] });
+      toast.success(tr('Sync ho gaya'), {
+        description: r.orders ? tr('{{seen}} orders dekhe, {{created}} naye, {{updated}} ka status badla', r.orders) : undefined,
+      });
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
@@ -305,6 +262,11 @@ function MoreMenu({ id, data, siteUrl, onChange, setTab }: {
         <div role="menu" className="absolute end-0 z-40 mt-1.5 w-60 rounded-2xl bg-white p-1.5 text-slate-700 shadow-xl ring-1 ring-slate-200">
           <button type="button" role="menuitem" className={item} onClick={go(() => setTab('setup'))}><BookOpen className="h-4 w-4 text-slate-400" /> {' '}{tr('Setup guide')}</button>
           <button type="button" role="menuitem" className={item} onClick={go(() => setTab('settings'))}><Settings2 className="h-4 w-4 text-slate-400" /> {' '}{tr('Settings')}</button>
+          {['SHOPIFY', 'WOOCOMMERCE', 'DARAZ'].includes(i.type) && (
+            <button type="button" role="menuitem" className={item} disabled={sync.isPending || !i.isActive} onClick={go(() => sync.mutate())}>
+              <RefreshCw className="h-4 w-4 text-slate-400" /> {' '}{sync.isPending ? tr('Sync ho raha…') : tr('Sync now')}
+            </button>
+          )}
           {siteUrl && <a role="menuitem" className={item} href={siteUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><ExternalLink className="h-4 w-4 text-slate-400" /> {' '}{tr('Store kholein')}</a>}
           <div className="my-1 border-t border-slate-100" />
           <button type="button" role="menuitem" className={item} disabled={life.toggle.isPending} onClick={go(() => life.toggle.mutate(!i.isActive))}>

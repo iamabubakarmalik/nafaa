@@ -38,7 +38,15 @@ import { ExpensesService } from '../../modules/finance/expenses/expenses.service
 import { OrderScanService } from './order-scan.service';
 import { OrderChannelSyncService } from './order-channel-sync.service';
 import { OrderEntryService } from './order-entry.service';
+import { DispatchController } from './dispatch.controller';
+import { DispatchService } from './dispatch.service';
+import { AbandonedCartsService } from './abandoned-carts.service';
+import { CommerceGrowthService } from './commerce-growth.service';
+import { CommerceGrowthController } from './commerce-growth.controller';
 import { StockAdjustmentsService } from '../../modules/inventory/stock-adjustments/stock-adjustments.service';
+import { CommerceAdminController, CommerceAdminService, CommerceControlsController } from './commerce-admin.controller';
+import { ChannelOpsController } from './channel-ops.controller';
+import { ChannelOpsService } from './channel-ops.service';
 import {
   BlocklistController,
   ChannelsController,
@@ -58,6 +66,8 @@ import {
     WebsiteApiController,
     // Before OnlineOrdersController, so `online-orders/:id` never takes its paths.
     OrderMoneyController,
+    DispatchController,
+    CommerceGrowthController,
     OnlineOrdersController,
     LegacyChannelOrdersController,
     ChannelsController,
@@ -75,10 +85,14 @@ import {
     FoodpandaPluginController,
     FoodpandaController,
     OnlineProductsController,
+    CommerceAdminController, CommerceControlsController,
+    ChannelOpsController,
   ],
   providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
     OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
-    OrderChannelSyncService, OrderEntryService],
+    OrderChannelSyncService, OrderEntryService, DispatchService,
+    AbandonedCartsService, CommerceGrowthService, CommerceAdminService,
+    ChannelOpsService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

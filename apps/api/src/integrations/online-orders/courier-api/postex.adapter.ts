@@ -1,3 +1,4 @@
+import { TRACKING_MAPPERS } from './tracking-events';
 import { courierFetch } from './http';
 import { normalizeCourierStatus } from './status';
 import {
@@ -99,6 +100,7 @@ export const postexAdapter: CourierAdapter = {
         label,
         at: last?.modifiedDatetime || last?.updatedAt ? new Date(last.modifiedDatetime ?? last.updatedAt) : null,
         history: history.slice(-20).map((h) => ({ label: String(h.transactionStatusMessage ?? h.status ?? ''), at: h.modifiedDatetime ?? h.updatedAt ?? null })),
+        events: TRACKING_MAPPERS.POSTEX(d),
       });
     }
     return out;
@@ -124,6 +126,27 @@ export const postexAdapter: CourierAdapter = {
 
   async bulkLabel(creds, tns) {
     return this.label(creds, tns.slice(0, 50).join(','));
+  },
+
+  /** PostEx answers generate-load-sheet with the sheet PDF for its rider. */
+  async loadsheet(creds, settings, tns) {
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}/v2/generate-load-sheet`, {
+        method: 'POST',
+        headers: { token: creds.apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackingNumbers: tns, ...(settings.pickupAddressCode ? { pickupAddress: settings.pickupAddressCode } : {}) }),
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      throw new CourierApiError('PostEx se loadsheet nahi bani — thori der baad try karein');
+    }
+    const type = res.headers.get('content-type') ?? '';
+    if (res.ok && /pdf|octet-stream/.test(type)) return { pdf: Buffer.from(await res.arrayBuffer()) };
+    const body: any = await res.json().catch(() => null);
+    if (res.status === 401 || String(body?.statusCode) === '401') throw new CourierApiError('PostEx ne key nahi maani', true);
+    if (String(body?.statusCode ?? res.status) !== '200') throw new CourierApiError(cleanMsg(body?.statusMessage) ?? 'PostEx ne loadsheet nahi banai');
+    return { ref: body?.dist?.loadSheetId ? String(body.dist.loadSheetId) : null, url: findUrl(body?.dist) };
   },
 
   async cancel(creds, tn) {

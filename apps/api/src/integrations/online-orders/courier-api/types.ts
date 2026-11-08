@@ -1,3 +1,5 @@
+import type { TrackEvent } from './tracking-events';
+
 /**
  * Courier API adapters ka mushtarka roop. Har courier (PostEx, Leopards, …)
  * yahi interface poora karta hai — service ko courier ka farq nahi pata.
@@ -76,6 +78,8 @@ export interface TrackResult {
   label: string;
   at?: Date | null;
   history: { label: string; at?: string | null }[];
+  /** Every step in one shape for all couriers (tracking-events.ts), oldest first. */
+  events?: TrackEvent[];
 }
 
 /** Courier portal par book hua parcel (Nafaa se ho ya seedha portal se) */
@@ -113,6 +117,11 @@ export interface CourierAdapter {
   listShipments?(creds: CourierCreds, from: string, to: string): Promise<PortalShipment[]>;
   /** Kai CN ka ek hi label PDF */
   bulkLabel?(creds: CourierCreds, trackingNumbers: string[]): Promise<{ pdf?: Buffer; url?: string }>;
+  /**
+   * Hands the day's parcels to the courier as one loadsheet (pickup list).
+   * Returns the courier's reference and, when it sends one, the sheet itself.
+   */
+  loadsheet?(creds: CourierCreds, settings: CourierSettings, trackingNumbers: string[]): Promise<{ ref?: string | null; pdf?: Buffer; url?: string | null }>;
   /** COD settle hua? null = pata nahi (courier ye nahi batata) */
   paymentSettled?(creds: CourierCreds, trackingNumber: string): Promise<{ settled: boolean; reference?: string | null } | null>;
 }

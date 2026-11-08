@@ -50,3 +50,17 @@ export function emitOrderStatus(e: OrderStatusEvent) {
     try { orderEvents.emit('status', e); } catch { /* a listener's error never blocks the order */ }
   });
 }
+
+/**
+ * An order's status should go to a channel whose service cannot be injected
+ * into StatusWebhookService without a cycle (Daraz needs OnlineOrdersService).
+ */
+export interface ChannelPush { integrationId: string; orderId: string; event: string }
+export const channelPushEvents = new EventEmitter();
+channelPushEvents.setMaxListeners(20);
+
+export function emitChannelPush(e: ChannelPush) {
+  setImmediate(() => {
+    try { channelPushEvents.emit('push', e); } catch { /* a listener's error never blocks the order */ }
+  });
+}

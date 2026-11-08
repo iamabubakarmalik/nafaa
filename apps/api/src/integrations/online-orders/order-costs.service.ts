@@ -306,9 +306,11 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
    * True profit of the period's online orders (received in the period, test
    * orders left out, only orders that got a bill), in total and by channel,
    * courier, city and product. Product rows split an order's delivery
-   * charge and selling costs by each line's share of the order.
+   * charge and selling costs by each line's share of the order. `returns`
+   * holds the returned parcels alone; `withOrders` adds one row per order,
+   * lowest profit first.
    */
-  async profitReport(user: AuthenticatedUser, scope: ShopScope, q: { from?: string; to?: string; integrationId?: string }) {
+  async profitReport(user: AuthenticatedUser, scope: ShopScope, q: { from?: string; to?: string; integrationId?: string; withOrders?: boolean }) {
     const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
     const today = businessDayKey(new Date(), tz, dayStartHour);
     const to = q.to && DAY_KEY.test(q.to) ? q.to : today;
@@ -322,7 +324,10 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
           tenantId: user.tenantId, ...(scope.whereLoose as any), receivedAt: range, nafaaSaleId: { not: null },
           ...(q.integrationId ? { integrationId: q.integrationId } : {}),
         },
-        select: { ...COST_SELECT, nafaaSaleId: true, items: true, integration: { select: { id: true, displayName: true, type: true } } },
+        select: {
+          ...COST_SELECT, nafaaSaleId: true, items: true, externalOrderNumber: true, externalOrderId: true, receivedAt: true,
+          integration: { select: { id: true, displayName: true, type: true } },
+        },
         take: 30_000,
       }),
     ]);
@@ -338,6 +343,9 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
       if (est) a.estimated += count;
     };
     const total = blank();
+    // Parcels that came back: no sale, only what was spent on them.
+    const returnedAgg = blank();
+    const orderRows: Array<Record<string, unknown> & { profit: number }> = [];
     const byChannel = new Map<string, Agg & { name: string; type: string }>();
     const byCourier = new Map<string, Agg & { code: string; name: string }>();
     const byCity = new Map<string, Agg & { city: string }>();
@@ -351,6 +359,15 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
       const p = orderProfit(bill, costs);
       const c = Object.fromEntries(COST_KINDS.map((k) => [k, costs[k].value])) as Record<CostKind, number>;
       add(total, p, c, 1, 1, costs.estimated);
+      if (o.orderStatus === 'RETURNED') add(returnedAgg, p, c, 1, 1, costs.estimated);
+      if (q.withOrders) {
+        orderRows.push({
+          id: o.id, number: String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#+/, ''), receivedAt: o.receivedAt,
+          channel: o.integration.displayName, channelType: o.integration.type, courier: courierName(o.courierCode), city: o.customerCity,
+          status: o.orderStatus, sale: r2(p.sale + p.deliveryCollected), cost: p.cost, sellingCosts: p.sellingCosts, profit: p.profit,
+          margin: p.margin, estimated: costs.estimated,
+        });
+      }
       const ch = byChannel.get(o.integrationId) ?? { ...blank(), name: o.integration.displayName, type: o.integration.type };
       add(ch, p, c, 1, 1, costs.estimated); byChannel.set(o.integrationId, ch);
       const code = o.courierCode ?? 'NONE';
@@ -394,6 +411,8 @@ export class OrderCostsService implements OnModuleInit, OnModuleDestroy {
       posting: s.postExpenses,
       missingRates: [...missingRates].map((c) => ({ code: c, name: courierName(c) })),
       totals: finish(total),
+      returns: finish(returnedAgg),
+      ...(q.withOrders && { orders: orderRows.sort((a, b) => a.profit - b.profit).slice(0, 500) }),
       byChannel: list(byChannel),
       byCourier: list(byCourier),
       byCity: list(byCity, 30),

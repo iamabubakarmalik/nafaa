@@ -13,6 +13,7 @@ import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { apiMessage } from '../../common/i18n/api-message';
+import { outboundAction, readStatusMap, trackingInfo } from './channel-status-map';
 
 /**
  * WooCommerce — ek click me jorna (Shopify jaisa):
@@ -208,9 +209,12 @@ export class WooCommerceService {
     if (!client || !/^\d+$/.test(String(order.externalOrderId))) return;
     const wooId = order.externalOrderId;
     const status: string = order.orderStatus;
-    const tracking = [order.courierName, order.trackingNumber].filter(Boolean).join(' ');
+    const track = trackingInfo(order);
+    const tracking = [track?.company, track?.number, track?.url].filter(Boolean).join(' ');
+    // The merchant's status mapping (Settings → Order status) decides the Woo status; 'note' = note only.
+    const map = readStatusMap('WOOCOMMERCE', readWebsiteConfig(integration.config).statusMap);
+    const action = outboundAction('WOOCOMMERCE', map, status, event);
 
-    const map: Record<string, string> = { CONFIRMED: 'processing', DELIVERED: 'completed', CANCELLED: 'cancelled', REJECTED: 'cancelled', RETURNED: 'failed' };
     const notes: Record<string, { text: string; customer: boolean }> = {
       CONFIRMED: { text: 'Nafaa: order accept ho gaya, bill ban gaya', customer: false },
       PREPARING: { text: 'Nafaa: order pack ho raha hai', customer: false },
@@ -225,13 +229,15 @@ export class WooCommerceService {
     let ok = true;
     let error: string | undefined;
     try {
-      if (event === 'order.paid') {
+      if (action === 'none') {
+        // the merchant chose to send nothing for this status
+      } else if (event === 'order.paid') {
         await client.request('POST', `/orders/${wooId}/notes`, { body: { note: 'Nafaa: paisa mil gaya' } });
       } else {
-        if (map[status]) {
+        if (action !== 'note') {
           const current = await client.request<any>('GET', `/orders/${wooId}`, { query: { _fields: 'status' } });
-          if (current?.status !== map[status]) {
-            await client.request('PUT', `/orders/${wooId}`, { body: { status: map[status] } });
+          if (current?.status !== action) {
+            await client.request('PUT', `/orders/${wooId}`, { body: { status: action } });
           }
         }
         const n = notes[status];
@@ -241,7 +247,7 @@ export class WooCommerceService {
       ok = false;
       error = e?.message;
     }
-    await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: wooId });
+    await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: wooId, action });
 
     // Accept/cancel se stock badla — website par foran lagao
     if (['CONFIRMED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(status)) {

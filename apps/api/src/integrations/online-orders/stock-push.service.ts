@@ -9,6 +9,7 @@ import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
 import { channelPrice, priceAction } from './channel-price';
 import { PAGE_DELAY_MS, trackLinks } from './link-sync';
+import { commerceControls, pushPaused } from './commerce-controls';
 
 const DEBOUNCE_MS = 15_000;
 /** Pehli dafa (server start) kitna pichhe dekhna hai */
@@ -91,7 +92,10 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
           ...(tenants ? { tenantId: { in: tenants } } : {}),
         },
       });
+      // Platform kill switch (Admin > Online store > Controls): paused channel types are skipped.
+      const paused = (await commerceControls(this.prisma)).killSwitch;
       for (const ch of channels) {
+        if (paused[ch.type as keyof typeof paused]) continue;
         await this.pushChannel(ch).catch((e) => this.logger.warn(`Stock push ${ch.displayName}: ${e?.message}`));
         if (readWebsiteConfig(ch.config).pushPrice) {
           await this.pushChannelPrices(ch).catch((e) => this.logger.warn(`Price push ${ch.displayName}: ${e?.message}`));
@@ -123,6 +127,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
   async pushPricesFor(ch: Integration, where: Prisma.ProductChannelMappingWhereInput = {}, force = false) {
     const cfg = readWebsiteConfig(ch.config);
     if (!cfg.pushPrice || !this.connected(ch)) return { sent: 0 };
+    if (await pushPaused(this.prisma, ch.type)) return { sent: 0 };
     const shopId = cfg.shopId ?? ch.shopId;
     let sent = 0;
     let cursor: string | undefined;

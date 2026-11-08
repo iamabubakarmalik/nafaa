@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { CalendarClock, MapPin, MessageCircle, Package, Truck } from 'lucide-react';
+import { CalendarClock, MapPin, Package, Truck } from 'lucide-react';
 import { Avatar } from '@/design-system/components';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
@@ -17,6 +17,7 @@ import { boardOf, isClosed, itemQty, orderNo, stageEntry, tint } from '../../lib
 import { RiskBadge } from '../RiskBadge';
 import { moneyOf } from './OrderMoneyCard';
 import { RowActions } from './RowActions';
+import { WaButton } from './WaButton';
 import { StatusMenu } from './StatusMenu';
 import type { ToolKind } from './OrderTools';
 import type { QuickAction } from './useOrderActions';
@@ -51,14 +52,6 @@ export interface BoardRowProps {
   onDelete: () => void;
   onRestore: () => void;
   onPermanent: () => void;
-}
-
-/** Prefilled WhatsApp text asking the customer to confirm a COD order. */
-export function confirmText(o: OnlineOrder, shop: string | undefined, money: (n: number) => string) {
-  const items = o.items.slice(0, 3).map((i) => `${qtyText(Number(i.quantity))} × ${i.name}`).join(', ');
-  return t('Assalam o Alaikum {{name}}! {{shop}} se aap ka order #{{no}}: {{items}}. Total {{total}}. Kya hum ye order bhej dein? Jawab me "Haan" ya "Nahi" likh dein. Shukriya!', {
-    name: o.customerName, shop: shop ?? '', no: orderNo(o), items, total: money(o.total),
-  });
 }
 
 export function BoardRow(p: BoardRowProps) {
@@ -165,13 +158,9 @@ function cells(p: BoardRowProps) {
             {conf === 'CONFIRMED' ? t('WA Confirmed') : conf === 'REFUSED' ? t('Mana kiya') : conf === 'NO_ANSWER' ? t('Jawab nahi') : t('WA Unconfirmed')}
           </span>
         )}
-        {wa && !closed && !o.deletedAt && (
+        {wa && !o.deletedAt && (
           <Live>
-            <a href={`https://wa.me/${wa}?text=${encodeURIComponent(confirmText(o, p.shopName, money))}`} target="_blank" rel="noreferrer"
-              onClick={() => { if (!tags.includes(TEXTED_TAG)) p.onTexted(); }}
-              title={t('WhatsApp par confirm karwayein')} className="flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-white hover:brightness-95">
-              <MessageCircle className="h-3.5 w-3.5" />
-            </a>
+            <WaButton order={o} shopName={p.shopName} money={money} onTexted={() => { if (!tags.includes(TEXTED_TAG)) p.onTexted(); }} />
           </Live>
         )}
         {tags.includes(TEXTED_TAG) && <span className={cn(pill, 'bg-emerald-50 text-emerald-700')}>{t('Texted')}</span>}

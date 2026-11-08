@@ -1,3 +1,4 @@
+import { TRACKING_MAPPERS } from './tracking-events';
 import { courierFetch } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
@@ -116,6 +117,7 @@ export const callCourierAdapter: CourierAdapter = {
         label,
         at: null,
         history: events.slice(-20).map((e) => ({ label: `${e.ProcessDescForPortal ?? e.OperationDesc ?? ''}${e.ReasonDesc ? ` (${e.ReasonDesc})` : ''}`, at: e.TransactionDate ?? null })),
+        events: TRACKING_MAPPERS.CALL_COURIER(events),
       });
     }
     return out;

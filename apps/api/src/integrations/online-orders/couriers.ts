@@ -14,6 +14,8 @@ export const COURIERS = [
   { code: 'CALL_COURIER', name: 'Call Courier', site: 'https://callcourier.com.pk' },
   { code: 'DAEWOO', name: 'Daewoo FastEx', site: 'https://fastex.pk' },
   { code: 'TPL_RIDER', name: 'Rider (TPL)', site: 'https://track.withrider.com' },
+  // No merchant API: the shop books at the post office and types the article number.
+  { code: 'PAKPOST', name: 'Pakistan Post', site: 'https://ep.gov.pk' },
   { code: 'OTHER', name: 'Doosra', site: null },
 ] as const;
 

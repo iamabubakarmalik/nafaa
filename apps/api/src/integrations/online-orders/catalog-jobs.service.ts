@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } 
 import { CatalogJob, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ACTIVE_STATUSES, addErrors, chunkDelayMs, chunkSize, JobKind, nextChunk, percent } from './catalog-jobs';
+import { commerceControls } from './commerce-controls';
 
 export interface ChunkResult {
   done: number;
@@ -124,7 +125,9 @@ export class CatalogJobsService implements OnModuleInit, OnModuleDestroy {
       await this.finish(job.id, 'FAILED', ['Ye kaam is server par nahi chal sakta']);
       return;
     }
-    const { chunk, next, last } = nextChunk(items, job.cursor, chunkSize(kind, channelType));
+    // Admin limits (Online store > Controls) win over the built-in sizes and pauses.
+    const limits = (await commerceControls(this.prisma)).catalogJobs;
+    const { chunk, next, last } = nextChunk(items, job.cursor, limits.chunkSize[kind] ?? chunkSize(kind, channelType));
     let res: ChunkResult;
     try {
       res = chunk.length ? await handler(job, chunk) : { done: 0, failed: 0 };
@@ -141,7 +144,7 @@ export class CatalogJobsService implements OnModuleInit, OnModuleDestroy {
         done: { increment: res.done },
         failed: { increment: res.failed },
         errors: addErrors(fresh?.errors, res.errors ?? []),
-        heartbeatAt: new Date(Date.now() + chunkDelayMs(channelType)),
+        heartbeatAt: new Date(Date.now() + (limits.delayMs ?? chunkDelayMs(channelType))),
         ...(last && !cancelled ? { status: 'DONE', finishedAt: new Date() } : {}),
       },
     });

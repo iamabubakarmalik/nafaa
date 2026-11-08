@@ -83,7 +83,8 @@ export default function OnlineOrdersPage() {
   const [search, setSearch] = useState(() => params.get('search') ?? '');
   const [query, setQuery] = useState(() => (params.get('search') ?? '').trim());
   const [range, setRange] = useReportRange('month');
-  const [filters, setFilters] = useState<BoardFilterState>(EMPTY_FILTERS);
+  // `?assignedTo=` comes from the dashboard's team panel.
+  const [filters, setFilters] = useState<BoardFilterState>(() => ({ ...EMPTY_FILTERS, assigned: params.get('assignedTo') ?? '' }));
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [canNotify, setCanNotify] = useState(() => typeof Notification === 'undefined' || Notification.permission !== 'default');
   const [exporting, setExporting] = useState(false);

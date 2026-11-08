@@ -111,7 +111,11 @@ export interface OnlineOrder {
   courierStatus?: CourierState | 'BOOKING' | null;
   courierStatusAt?: string | null;
   courierBooked?: boolean;
-  courierTrail?: { label: string; state: CourierState; history: { label: string; at?: string | null }[]; at: string } | null;
+  courierTrail?: {
+    label: string; state: CourierState; history: { label: string; at?: string | null }[]; at: string;
+    /** Every courier step in one shape (oldest first); absent on trails saved before. */
+    events?: Array<{ at: string | null; status: string; text: string; city?: string; rider?: { name?: string; phone?: string } }>;
+  } | null;
   risk?: CustomerRisk | null;
   confirmation?: { result: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED'; at: string; attempts: number; note?: string | null } | null;
   autoBookError?: string | null;

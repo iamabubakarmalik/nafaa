@@ -1,20 +1,24 @@
 /**
- * Channel Settings tab: every option the channel has, grouped by what it
- * decides — orders, stock, price, delivery charges, status back to the site,
- * safety, name, and turning the channel off. Only options that apply to the
- * channel's platform are shown.
+ * Channel Settings tab: every option the channel has in one place, grouped
+ * by what it decides — orders, stock, price, product details, order status
+ * mapping, sync, delivery charges, safety, name, and turning the channel
+ * off. Only options the channel's platform allows are shown; what it does
+ * not allow is said in words, never as a dead button.
  */
 
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, Pause, Play, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { CheckCircle2, Pause, Play, RefreshCw, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { Button, confirmDialog, Input, Select, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteConfig, type WebsiteOverview } from '../../api/online-orders.api';
-import { ONLINE_PRODUCTS_KEY, onlineProductsApi } from '../../api/online-products.api';
+import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type PushContent } from '../../api/online-products.api';
+import { channelOpsApi } from '../../api/channel-ops.api';
+import { timeAgo } from '../../lib/labels';
+import { StatusMapSection } from './StatusMapSection';
 import { CHANNELS_KEY } from '../../hooks/useSalesChannels';
 import { ChannelSettingsModal } from '../online-products/ChannelSettingsModal';
 import { ruleText } from '../online-products/meta';
@@ -99,6 +103,38 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  // Catalog switches (stock, price, details, auto-link) save one at a time.
+  const catSave = useMutation({
+    mutationFn: (patch: Parameters<typeof onlineProductsApi.settings>[1]) => onlineProductsApi.settings(id, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [ONLINE_PRODUCTS_KEY] });
+      qc.invalidateQueries({ queryKey: ['sales-channel', id] });
+      toast.success(t('Save ho gaya'));
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const syncNow = useMutation({
+    mutationFn: () => channelOpsApi.syncNow(id),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ['sales-channel', id] });
+      qc.invalidateQueries({ queryKey: ['channel-logs', id] });
+      const o = r.orders;
+      toast.success(t('Sync ho gaya'), {
+        description: [
+          o ? t('{{seen}} orders dekhe, {{created}} naye, {{updated}} ka status badla', { seen: o.seen, created: o.created, updated: o.updated }) : null,
+          r.catalog?.error ?? null, ...r.notes,
+        ].filter(Boolean).join(' · ') || undefined,
+      });
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const pc = productChannel;
+  const stockShare = !pc ? '—' : pc.stockMode === 'PERCENT' ? t('{{n}}% stock', { n: pc.stockPercent }) : pc.stockMode === 'FIXED' ? t('{{n}} piece har product', { n: pc.stockFixed }) : t('Poora stock');
+  const CONTENT_FIELDS: Array<{ key: keyof PushContent; label: string }> = [
+    { key: 'title', label: t('Naam (title)') }, { key: 'description', label: t('Description') }, { key: 'images', label: t('Tasveerein') },
+    { key: 'compareAt', label: t('Sale price (compare-at)') }, { key: 'sku', label: t('SKU / barcode') }, { key: 'weight', label: t('Weight') },
+  ];
+
   const site = facts.kind === 'custom' ? 'website' : facts.name;
   const twoWay = facts.automatic && (facts.kind === 'shopify' || facts.kind === 'woocommerce');
   const signable = facts.kind === 'custom' || ((facts.kind === 'shopify' || facts.kind === 'woocommerce') && !facts.automatic);
@@ -124,13 +160,25 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
             </Select>
           } />
         {facts.productChannel && (
-          <Row title={t('Stock {{name}} par khud', { name: facts.name })}
-            help={facts.automatic ? t('POS par sale, purchase ya adjustment → 1 minute me update, aur har 15 minute poori sync.') : t('Pehle {{name}} ko Setup se automatic jorein.', { name: facts.name })}
-            control={facts.automatic ? <On /> : <span className="text-[0.8125rem] font-medium text-slate-500">{t('Jorna baqi')}</span>} />
+          <Row title={t('Stock {{name}} par bhejein', { name: facts.name })}
+            help={!facts.automatic ? t('Pehle {{name}} ko Setup se automatic jorein.', { name: facts.name })
+              : pc?.pushStock === false ? t('Band hai — {{name}} par Stock haath se rakhein.', { name: facts.name })
+                : t('POS par sale, purchase ya adjustment → 1 minute me update, aur har 15 minute poori sync.')}
+            control={facts.automatic && pc
+              ? <Switch size="sm" checked={pc.pushStock} disabled={catSave.isPending} onChange={(e) => catSave.mutate({ pushStock: e.target.checked })} aria-label={t('Stock bhejein')} />
+              : <span className="text-[0.8125rem] font-medium text-slate-500">{t('Jorna baqi')}</span>} />
         )}
         {facts.productChannel && (
-          <Row title={t('Stock buffer')} help={t('{{name}} ko asli stock se itne kam batayein — taake POS aur online ek saath bik kar minus na ho.', { name: facts.name })}
-            control={<span className="text-[0.875rem] font-semibold tabular-nums text-slate-900">{productChannel ? (buffer ? t('{{buffer}} piece', { buffer }) : t('Koi nahi')) : '—'}</span>} />
+          <Row title={t('Kitna stock aur buffer')}
+            help={t('{{name}} ko poora stock, % ya fixed hissa — aur buffer jitne piece kam batayein taake POS aur online ek saath bik kar minus na ho.', { name: facts.name })}
+            control={<div className="flex items-center gap-2">
+              <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-900">{pc ? `${stockShare} · ${buffer ? t('buffer {{buffer}}', { buffer }) : t('buffer nahi')}` : '—'}</span>
+              <Button size="sm" variant="secondary" disabled={!pc} onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Badlein')}</Button>
+            </div>} />
+        )}
+        {facts.productChannel && pc && facts.kind !== 'custom' && (
+          <Row title={t('Pakke match khud jorein')} help={t('{{name}} par naya product aaye aur SKU ya barcode Nafaa se bilkul mile to khud jur jata hai.', { name: facts.name })}
+            control={<Switch size="sm" checked={pc.autoLink} disabled={catSave.isPending} onChange={(e) => catSave.mutate({ autoLink: e.target.checked })} aria-label={t('Pakke match khud jorein')} />} />
         )}
         {facts.kind === 'shopify' && i.shopify?.locationName && (
           <Row title={t('Shopify stock location')} help={t('Nafaa stock isi location par likhta hai. Badalni ho to Shopify me pehli location badal kar Setup → Check.')} control={<span className="text-[0.875rem] font-semibold text-slate-900">{i.shopify.locationName}</span>} />
@@ -145,14 +193,55 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
               <option value="NAFAA">{t('Nafaa wali (POS ki price)')}</option>
             </Select>
           } />
-        {facts.productChannel && (
-          <Row title={t('{{name}} par price', { name: facts.name })}
-            help={productChannel
-              ? (productChannel.pushPrice ? t('Nafaa bhejta hai: {{priceRule}}. Kisi product ki apni price Online products me.', { priceRule: ruleText(productChannel.priceRule) }) : t('Nafaa price nahi bhejta — {{name}} par jo hai wahi rehti hai.', { name: facts.name }))
-              : t('Price rule, rounding aur stock buffer yahan se badlein.')}
-            control={<Button size="sm" variant="secondary" disabled={!productChannel} onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Price aur buffer')}</Button>} />
+        {facts.productChannel && pc && facts.kind !== 'custom' && (
+          <Row title={t('{{name}} par price bhejein', { name: facts.name })}
+            help={pc.pushPrice ? t('Nafaa bhejta hai: {{priceRule}}. Kisi product ki apni price Online products me.', { priceRule: ruleText(pc.priceRule) }) : t('Nafaa price nahi bhejta — {{name}} par jo hai wahi rehti hai.', { name: facts.name })}
+            control={<div className="flex items-center gap-2">
+              <Switch size="sm" checked={pc.pushPrice} disabled={catSave.isPending} onChange={(e) => catSave.mutate({ pushPrice: e.target.checked })} aria-label={t('Price bhejein')} />
+              <Button size="sm" variant="secondary" onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Price rule')}</Button>
+            </div>} />
         )}
       </Section>
+
+      {facts.productChannel && facts.kind !== 'custom' && (
+        <Section title={t('Product ki tafseel')} help={t('Product ki kaun si cheezein Nafaa {{name}} par bheje.', { name: facts.name })}>
+          {pc?.canContent ? CONTENT_FIELDS.map((f) => (
+            <Row key={f.key} title={f.label}
+              control={<Switch size="sm" checked={pc.pushContent[f.key]} disabled={catSave.isPending}
+                onChange={(e) => catSave.mutate({ pushContent: { [f.key]: e.target.checked } })} aria-label={f.label} />} />
+          )) : (
+            <p className="py-3.5 text-[0.8125rem] text-slate-500">{pc?.contentNote ?? t('{{name}} par sirf Stock aur Price jate hain.', { name: facts.name })}</p>
+          )}
+        </Section>
+      )}
+
+      {facts.kind !== 'indolj' && (
+        <Section title={t('Order status')} help={t('{{name}} ka kaun sa status Nafaa board ke kis status ke barabar hai — dono taraf.', { name: facts.kind === 'custom' ? t('Website') : facts.name })}>
+          {facts.kind === 'custom' || ((facts.kind === 'shopify' || facts.kind === 'woocommerce') && !facts.automatic) ? (
+            <div className="py-3.5">
+              <Input size="sm" label={t('Status URL (Nafaa → website)')} value={statusUrl} onChange={(e) => setStatusUrl(e.target.value)} placeholder="https://meri-website.com/nafaa-status"
+                hint={t('Har status badalne par Nafaa is URL par khabar bhejta hai. Nafaa plugin ise khud lagata hai.')} />
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button size="sm" loading={save.isPending} disabled={(statusUrl.trim() || null) === (cfg.statusWebhookUrl ?? null)} onClick={() => save.mutate({ statusWebhookUrl: statusUrl.trim() || null })}>{t('Save')}</Button>
+                <Button size="sm" variant="secondary" loading={testHook.isPending} disabled={!cfg.statusWebhookUrl} onClick={() => testHook.mutate()}>{t('Test')}</Button>
+              </div>
+            </div>
+          ) : twoWay ? (
+            <Row title={<span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-success-600" /> {' '}{t('Rabta theek')}</span>}
+              help={t('Check dabayein — Nafaa {{name}} se baat kar ke batata hai.', { name: facts.name })}
+              control={<Button size="sm" variant="ghost" loading={testHook.isPending} onClick={() => testHook.mutate()}>{t('Check')}</Button>} />
+          ) : null}
+          <StatusMapSection id={id} channelName={facts.kind === 'custom' ? t('Website') : facts.name} />
+        </Section>
+      )}
+
+      {(facts.kind === 'shopify' || facts.kind === 'woocommerce' || facts.kind === 'daraz') && (
+        <Section title={t('Sync')} help={t('Webhook kabhi chhoot jaye to — {{name}} se pichle 3 din ke orders, phir Stock aur Price dobara.', { name: facts.name })}>
+          <Row title={t('Abhi sync karein')}
+            help={i.lastSyncAt ? t('Aakhri sync {{when}}', { when: timeAgo(i.lastSyncAt) }) : t('Har 30 minute khud bhi hota hai.')}
+            control={<Button size="sm" variant="secondary" loading={syncNow.isPending} disabled={!facts.automatic || !i.isActive} onClick={() => syncNow.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>{t('Sync now')}</Button>} />
+        </Section>
+      )}
 
       <Section title={t('Delivery charges')} help={t('Customer jo delivery charges deta hai, wo kis ke paas jate hain.')}>
         <Row title={t('Delivery charges kis ke paas')}
@@ -164,27 +253,6 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
             </Select>
           } />
       </Section>
-
-      {facts.kind !== 'daraz' && facts.kind !== 'indolj' && (
-        <Section title={t('{{value}} ko status', { value: facts.kind === 'custom' ? t('Website') : facts.name })} help={t('Accept, raste me, deliver aur cancel ki khabar wapas.')}>
-          {twoWay ? (
-            <Row title={<span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-success-600" /> {' '}{t('Khud ho raha hai')}</span>}
-              help={facts.kind === 'shopify'
-                ? t('Accept par tag, raste me par fulfillment + tracking (customer ko Shopify email), deliver par Delivered, cancel par order cancel.')
-                : t('Accept par Processing, deliver par Completed, cancel par Cancelled, aur customer ko "raste me" note.')}
-              control={<Button size="sm" variant="ghost" loading={testHook.isPending} onClick={() => testHook.mutate()}>{t('Check')}</Button>} />
-          ) : (
-            <div className="py-3.5">
-              <Input size="sm" label={t('Status URL (Nafaa → website)')} value={statusUrl} onChange={(e) => setStatusUrl(e.target.value)} placeholder="https://meri-website.com/nafaa-status"
-                hint={t('Har status badalne par Nafaa is URL par khabar bhejta hai. Nafaa plugin ise khud lagata hai.')} />
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button size="sm" loading={save.isPending} disabled={(statusUrl.trim() || null) === (cfg.statusWebhookUrl ?? null)} onClick={() => save.mutate({ statusWebhookUrl: statusUrl.trim() || null })}>{t('Save')}</Button>
-                <Button size="sm" variant="secondary" loading={testHook.isPending} disabled={!cfg.statusWebhookUrl} onClick={() => testHook.mutate()}>{t('Test')}</Button>
-              </div>
-            </div>
-          )}
-        </Section>
-      )}
 
       {signable && (
         <Section title={t('Hifazat')} help={t('Sirf asli website ke orders qabool hon.')}>

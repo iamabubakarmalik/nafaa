@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
+import TenantCommercePanel from '@/features/commerce/components/TenantCommercePanel';
 import { BusinessModelChips } from '../components/BusinessModelChips';
 
 const statusColors: Record<string, string> = {
@@ -171,6 +172,8 @@ export default function TenantDetailPage() {
       </section>
 
       <TenantNotesPanel tenantId={tenant.id} />
+
+      <TenantCommercePanel tenantId={tenant.id} />
 
       <section className="grid lg:grid-cols-2 gap-6">
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">

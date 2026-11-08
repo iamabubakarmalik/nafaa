@@ -16929,6 +16929,31 @@ model CourierShipment {
   @@map("courier_shipments")
 }
 
+/// A courier's pickup list for one business day: the parcels handed over,
+/// and the courier's own loadsheet reference when its API made one.
+model CourierLoadsheet {
+  id              String   @id @default(cuid())
+  tenantId        String
+  courierCode     String
+  /// Business day, YYYY-MM-DD.
+  day             String
+  orderIds        Json
+  trackingNumbers Json
+  parcels         Int      @default(0)
+  pieces          Int      @default(0)
+  codTotal        Decimal  @default(0) @db.Decimal(14, 2)
+  /// NAFAA = sheet printed from Nafaa only; API = the courier made one too.
+  source          String   @default("NAFAA")
+  externalRef     String?
+  apiError        String?
+  createdById     String?
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId, day])
+  @@index([tenantId, courierCode, day])
+  @@map("courier_loadsheets")
+}
+
 // ═══════════════════════════════════════════════════════════════
 // ▓▓▓  WHATSAPP BUSINESS  ▓▓▓
 // ═══════════════════════════════════════════════════════════════
@@ -17525,6 +17550,47 @@ model ChannelOrder {
   @@index([tenantId, followUpAt])
   @@index([tenantId, deletedAt])
   @@map("channel_orders")
+}
+
+/// A checkout the customer left before paying (Shopify abandoned checkouts,
+/// or a custom website's `checkout.abandoned` event). Recovered = a later
+/// order from the same phone or email.
+model AbandonedCheckout {
+  id               String    @id @default(cuid())
+  tenantId         String
+  shopId           String?
+  /// Sales channel (Integration id); no FK so channel removal keeps history simple.
+  integrationId    String
+  externalId       String
+  /// SHOPIFY | WEBSITE
+  source           String
+  name             String?
+  customerName     String?
+  customerPhone    String?
+  /// Last 10 digits of the phone, for matching later orders.
+  phoneKey         String?
+  customerEmail    String?
+  customerCity     String?
+  items            Json
+  total            Float     @default(0)
+  currency         String?
+  recoveryUrl      String?
+  abandonedAt      DateTime
+  /// The channel reports the checkout as completed.
+  completedAt      DateTime?
+  contactedAt      DateTime?
+  contactedById    String?
+  contactCount     Int       @default(0)
+  recoveredOrderId String?
+  recoveredAt      DateTime?
+  recoveredValue   Float?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([integrationId, externalId])
+  @@index([tenantId, abandonedAt])
+  @@index([tenantId, phoneKey])
+  @@map("abandoned_checkouts")
 }
 
 model SyncLog {

@@ -1,3 +1,4 @@
+import { TRACKING_MAPPERS } from './tracking-events';
 import { courierFetch, fetchPdfOrJson, pkToday } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
@@ -123,6 +124,7 @@ export const traxAdapter: CourierAdapter = {
         label,
         at: last.timestamp ? new Date(Number(last.timestamp) * 1000) : null,
         history: [...hist].reverse().slice(-20).map((h) => ({ label: `${h.status ?? ''}${h.status_reason ? ` (${h.status_reason})` : ''}`, at: h.date_time ?? null })),
+        events: TRACKING_MAPPERS.TRAX(body),
       });
     }
     return out;

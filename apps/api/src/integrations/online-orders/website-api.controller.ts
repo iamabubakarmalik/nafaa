@@ -14,6 +14,9 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
+import { AbandonedCartsService } from './abandoned-carts.service';
+import { ChannelOpsService } from './channel-ops.service';
+import { plainStatusKeys } from './channel-status-map';
 import { detectPlatform, isIndoljStatus, normalizeOrder } from './order-normalizer';
 import { readWebsiteConfig, stockRule, verifySignature } from './website-config';
 
@@ -42,6 +45,8 @@ export class WebsiteApiController {
     private readonly setup: WebsiteSetupService,
     private readonly woo: WooCommerceService,
     private readonly shopify: ShopifyService,
+    private readonly carts: AbandonedCartsService,
+    private readonly ops: ChannelOpsService,
   ) {}
 
   // ═══ WooCommerce "Approve" ke baad keys yahan aati hain ═══
@@ -67,7 +72,7 @@ export class WebsiteApiController {
       name: integration.displayName,
       business: (tenant as any)?.name ?? null,
       branch: shop?.name ?? null,
-      features: ['orders', 'status', 'products', 'stock', 'import'],
+      features: ['orders', 'status', 'products', 'stock', 'import', 'abandoned_checkouts'],
       apiVersion: 1,
     };
   }
@@ -176,6 +181,17 @@ export class WebsiteApiController {
     return this.handleOrder(integration, req, body);
   }
 
+  // ═══ Abandoned checkout (custom code / plugin): the customer left without ordering ═══
+  @Post('checkouts/abandoned')
+  @HttpCode(200)
+  @ApiHeader({ name: 'X-Nafaa-Key', required: true })
+  @ApiOperation({ summary: 'Checkout left without an order: id, customer {name, phone, email, city}, items, total, recovery_url, abandoned_at' })
+  async abandonedCheckout(@Req() req: Request, @Body() body: any) {
+    const integration = await this.auth(req);
+    this.checkSignature(integration, req);
+    return this.carts.fromWebsite(integration, body);
+  }
+
   // ═══ Website ne order ka status badla (customer ne cancel kiya, paisa aa gaya) ═══
   @Post('orders/:orderId/status')
   @HttpCode(200)
@@ -187,6 +203,9 @@ export class WebsiteApiController {
   ) {
     const integration = await this.auth(req);
     this.checkSignature(integration, req);
+    // The channel's status mapping (Settings → Order status) decides what each status does.
+    const mapped = await this.ops.applyInbound(integration, orderId, plainStatusKeys(body?.status, body?.paymentStatus), body?.reason);
+    if (mapped.mapped) return { success: true };
     const status = String(body?.status ?? '').toLowerCase();
     const pay = String(body?.paymentStatus ?? '').toLowerCase();
     return this.orders.applyWebsiteUpdate(integration, orderId, {
@@ -316,6 +335,11 @@ export class WebsiteApiController {
   }
 
   private async handleOrder(integration: Integration, req: Request, body: any, branchParam?: string) {
+    // The same endpoint takes `{ event: "checkout.abandoned", checkout }`: not an order.
+    if (body?.event === 'checkout.abandoned') {
+      this.checkSignature(integration, req);
+      return this.carts.fromWebsite(integration, body);
+    }
     // Indolj ka status webhook (order cancel / deliver) — naya order nahi
     if (isIndoljStatus(body)) {
       const st = String(body.status).toLowerCase();
@@ -340,8 +364,10 @@ export class WebsiteApiController {
           where: { id: order.id }, data: { metadata: { ...((order.metadata as any) ?? {}), route: routeKey } },
         }).catch(() => null);
       }
-      // Website par cancel hua aur hamara bill ban chuka tha → malik ko bata do
-      if (normalized.cancelled && order.nafaaSaleId) {
+      // The store's status through the channel's status mapping (cancel, paid, shipped, delivered …).
+      // Channels without a mapping keep the old rule: a cancel after the bill tells the owner.
+      const mapped = await this.ops.applyInbound(integration, normalized.externalOrderId, this.ops.keysFromWebhook(platform, body)).catch(() => null);
+      if (mapped && !mapped.mapped && normalized.cancelled && order.nafaaSaleId) {
         await this.orders.applyWebsiteUpdate(integration, normalized.externalOrderId, { cancelled: true, reason: 'Website par cancel hua' }).catch(() => null);
       }
       await this.markVerified(integration);

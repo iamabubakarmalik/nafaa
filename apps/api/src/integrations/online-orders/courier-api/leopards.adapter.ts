@@ -1,4 +1,5 @@
-import { courierFetch } from './http';
+import { TRACKING_MAPPERS } from './tracking-events';
+import { courierFetch, fetchPdfOrJson, findUrl } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
 import {
@@ -82,6 +83,7 @@ export const leopardsAdapter: CourierAdapter = {
           label,
           at: last?.Activity_datetime ? new Date(last.Activity_datetime) : null,
           history: detail.slice(-20).map((d) => ({ label: String(d.Status ?? ''), at: d.Activity_datetime ?? d.Activity_Date ?? null })),
+          events: TRACKING_MAPPERS.LEOPARDS(p),
         });
       }
     }
@@ -124,6 +126,20 @@ export const leopardsAdapter: CourierAdapter = {
       settled: /^paid$/i.test(String(row.status ?? row.payment_status ?? '').trim()),
       reference: row.invoice_cheque_no ? `cheque ${row.invoice_cheque_no}${row.invoice_cheque_date ? ` (${row.invoice_cheque_date})` : ''}` : null,
     };
+  },
+
+  /** generateLoadSheet gives a sheet id; downloadLoadSheet returns the PDF for it. */
+  async loadsheet(creds, settings, tns) {
+    const body = await call(creds, 'generateLoadSheet', {
+      cn_numbers: tns,
+      courier_name: String(settings.courierName ?? 'Rider'),
+      courier_code: String(settings.courierCode ?? '0'),
+    });
+    const ref = body.load_sheet_id ? String(body.load_sheet_id) : null;
+    if (!ref) return { ref: null };
+    const q = new URLSearchParams({ api_key: creds.apiKey, api_password: creds.apiSecret ?? '', load_sheet_id: ref, response_type: 'PDF' });
+    const file = await fetchPdfOrJson(`${BASE}/downloadLoadSheet/?${q}`, { Accept: 'application/pdf' }).catch(() => null);
+    return { ref, pdf: file?.pdf, url: findUrl(file?.json) };
   },
 
   async label(_creds, _tn, savedUrl) {

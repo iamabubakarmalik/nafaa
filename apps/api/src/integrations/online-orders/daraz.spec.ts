@@ -1,4 +1,4 @@
-import { darazSign, readTokenResponse, stockXml } from './daraz.client';
+import { darazSign, priceXml, readTokenResponse, stockXml } from './daraz.client';
 
 describe('Daraz signing', () => {
   it('official doc test vector', () => {
@@ -44,5 +44,21 @@ describe('Daraz items', () => {
   });
   it('isoPk: Pakistan waqt', () => {
     expect(isoPk(new Date('2026-09-30T05:00:00Z'))).toBe('2026-09-30T10:00:00+05:00');
+  });
+});
+
+describe('Daraz price XML', () => {
+  const at = new Date('2026-11-09T10:00:00Z');
+  it('normal price only', () => {
+    const x = priceXml([{ itemId: '1', skuId: '2', sellerSku: 'S', price: 1200 }], at);
+    expect(x).toContain('<Price>1200.00</Price>');
+    expect(x).not.toContain('SalePrice');
+  });
+  it('sale price with dates', () => {
+    const x = priceXml([{ itemId: '1', skuId: '2', sellerSku: 'S', price: 1500, salePrice: 1200 }], at);
+    expect(x).toContain('<Price>1500.00</Price><SalePrice>1200.00</SalePrice><SaleStartDate>2026-11-09</SaleStartDate><SaleEndDate>2027-11-09</SaleEndDate>');
+  });
+  it('a sale price not below the price is dropped', () => {
+    expect(priceXml([{ itemId: '1', skuId: '2', sellerSku: 'S', price: 1000, salePrice: 1000 }], at)).not.toContain('SalePrice');
   });
 });

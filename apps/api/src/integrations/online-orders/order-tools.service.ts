@@ -27,6 +27,10 @@ export interface BlockEntry {
   reason: string | null;
   at: string;
   by: string;
+  /** Reported from an order: what the staff saw (screenshots described, call notes). */
+  evidence?: string | null;
+  orderId?: string | null;
+  orderNo?: string | null;
 }
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -73,7 +77,7 @@ export class OrderToolsService {
     return (await this.blocklist(tenantId)).find((b) => b.key === k) ?? null;
   }
 
-  async block(user: AuthenticatedUser, body: { phone?: string; name?: string; reason?: string }) {
+  async block(user: AuthenticatedUser, body: { phone?: string; name?: string; reason?: string; evidence?: string; orderId?: string; orderNo?: string }) {
     const k = phoneKey(body?.phone);
     if (!k) throw new BadRequestException('Sahi phone number daalein');
     const list = await this.blocklist(user.tenantId);
@@ -84,6 +88,8 @@ export class OrderToolsService {
       reason: body.reason?.trim().slice(0, 200) || null,
       at: new Date().toISOString(),
       by: user.id,
+      ...(body.evidence?.trim() && { evidence: body.evidence.trim().slice(0, 1000) }),
+      ...(body.orderId && { orderId: String(body.orderId).slice(0, 64), orderNo: body.orderNo ? String(body.orderNo).slice(0, 40) : null }),
     };
     const next = [entry, ...list.filter((b) => b.key !== k)].slice(0, 5000);
     await this.saveBlocklist(user.tenantId, next);

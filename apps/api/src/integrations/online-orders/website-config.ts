@@ -70,6 +70,8 @@ export interface WebsiteConfig {
   shopifyBilling: 'direct' | 'shopify';
   /** Last read of the store's Shopify App Pricing subscription (App Store installs only) */
   shopifyPlan: ShopifyPlanState | null;
+  /** Order status mapping choices (channel-status-map.ts); null = the defaults. */
+  statusMap: { inbound?: Record<string, string>; outbound?: Record<string, string> } | null;
 }
 
 export interface ShopifyPlanState {
@@ -102,6 +104,7 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   siteUrl: null,
   shopifyBilling: 'direct',
   shopifyPlan: null,
+  statusMap: null,
 };
 
 export function readWebsiteConfig(raw: unknown): WebsiteConfig {
@@ -122,6 +125,7 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     autoLink: c.autoLink === true,
     shopifyBilling: c.shopifyBilling === 'shopify' ? 'shopify' : 'direct',
     shopifyPlan: c.shopifyPlan && typeof c.shopifyPlan === 'object' ? c.shopifyPlan : null,
+    statusMap: c.statusMap && typeof c.statusMap === 'object' ? c.statusMap : null,
   };
 }
 

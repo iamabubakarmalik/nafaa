@@ -1,6 +1,7 @@
 /**
  * Online store dashboard, the home of the commerce workspace: today's
- * numbers, the work waiting in each order status, the connected channels,
+ * numbers, the work waiting in each order status, each staff member's
+ * queue, the connected channels,
  * the last 30 days at a glance and every commerce module (live or coming
  * soon).
  *
@@ -11,9 +12,9 @@ import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  AlarmClock, AlertTriangle, BadgePercent, BarChart3, Bot, Calculator, CheckCircle2, CircleDollarSign, Clock, CreditCard, FileSpreadsheet,
+  Activity, AlarmClock, AlertTriangle, BadgePercent, BarChart3, Bot, Calculator, CheckCircle2, CircleDollarSign, Clock, CreditCard, FileSpreadsheet,
   Globe, GraduationCap, Headphones, Hourglass, Languages, Megaphone, MessageCircle, PackageCheck, PackagePlus, PackageX, PauseCircle, Plus,
-  Printer, Repeat, RotateCcw, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, Sparkles, Truck, Users, Wallet, Workflow,
+  Printer, Repeat, RotateCcw, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, Sparkles, TrendingUp, Truck, Users, Wallet, Workflow,
   type LucideIcon,
 } from 'lucide-react';
 import { KpiCard, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
@@ -27,6 +28,7 @@ import { BrandLogo, brandForChannel } from '@/assets/brands/BrandLogo';
 import { onlineOrdersApi } from '../api/online-orders.api';
 import { useSalesChannels } from '../hooks/useSalesChannels';
 import { timeAgo } from '../lib/labels';
+import { TeamQueue } from '../components/TeamQueue';
 import { t as tr } from '@core/i18n';
 
 type Work = { key: string; label: string; hint: string; icon: LucideIcon; color: string };
@@ -61,12 +63,17 @@ const LIVE: Module[] = [
   { to: '/online-store/costs', label: tr('Selling costs'), text: tr('Courier, COD fee, packaging — asli profit'), icon: Calculator, color: '#16a34a' },
   { to: '/online-store/ads', label: tr('Ads & ROAS'), text: tr('Ads ka kharcha aur wapsi'), icon: Megaphone, color: '#db2777' },
   { to: '/online-store/price-calculator', label: tr('Price calculator'), text: tr('Har channel ki sahi price'), icon: BadgePercent, color: '#9333ea' },
+  { to: '/online-orders/abandoned', label: tr('Abandoned carts'), text: tr('Chhode hue checkout WhatsApp se wapas'), icon: ShoppingCart, color: '#2563eb' },
+  { to: '/online-orders/profit', label: tr('Profit'), text: tr('Sale − Cost − ads − courier − returns = asli Profit'), icon: TrendingUp, color: '#16a34a' },
+  { to: '/online-orders/payment-health', label: tr('Payment health'), text: tr('COD kis courier ke paas, kab aayega'), icon: Activity, color: '#0d9488' },
+  { to: '/online-store/whatsapp-templates', label: tr('WhatsApp messages'), text: tr('Confirm, advance, tracking ke message'), icon: MessageCircle, color: '#16a34a' },
+  { to: '/online-orders/dispatch', label: tr('Dispatch & airway bills'), text: tr('Bulk booking, label, loadsheet, COD audit'), icon: Printer, color: '#ea580c' },
+  { to: '/online-orders/dispatch-scan', label: tr('Dispatch scan'), text: tr('Rider ko dete waqt scan — ghalti foran'), icon: ScanLine, color: '#dc2626' },
+  { to: '/online-orders/dispatch-report', label: tr('Dispatch report'), text: tr('Delivered, returns, stuck, claims'), icon: BarChart3, color: '#4f46e5' },
+  { to: '/online-orders/post-office', label: tr('Post office'), text: tr('Pakistan Post booking list, VPP, article no.'), icon: Send, color: '#b91c1c' },
 ];
 
 const SOON: Module[] = [
-  { to: '/online-store/soon/dispatch', label: tr('Dispatch & airway bills'), text: tr('Bulk booking, thermal label, loadsheet'), icon: Printer, color: '#ea580c' },
-  { to: '/online-store/soon/abandoned', label: tr('Abandoned carts'), text: tr('Chhode hue checkout wapas'), icon: ShoppingCart, color: '#2563eb' },
-  { to: '/online-store/soon/post-office', label: tr('Post office'), text: tr('Pakistan Post booking aur VPP'), icon: Send, color: '#b91c1c' },
   { label: tr('WhatsApp AI bot'), text: tr('Order khud confirm, Roman Urdu me jawab'), icon: MessageCircle, color: '#16a34a' },
   { label: tr('Marketing hub'), text: tr('Meta, Google, TikTok ads ek jagah'), icon: Megaphone, color: '#db2777' },
   { label: tr('Social media'), text: tr('Post schedule, captions, inbox'), icon: Share2, color: '#0ea5e9' },
@@ -167,6 +174,8 @@ export default function CommerceHomePage() {
           })}
         </div>
       </section>
+
+      <TeamQueue />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         {/* Channels */}

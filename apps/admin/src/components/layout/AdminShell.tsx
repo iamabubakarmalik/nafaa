@@ -6,6 +6,7 @@ import {
   TrendingUp, Package, ShoppingCart, Receipt, Megaphone, Tag,
   Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell, Palette,
   Rocket, Truck, Smartphone, TabletSmartphone, PackageCheck, BellRing, ToggleRight, Paintbrush, UserX,
+  Store, Plug, ListChecks, PackageSearch, Power,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -57,6 +58,17 @@ const navGroups = [
       { to: '/referrals', label: 'Referrals', icon: Gift },
       { to: '/platform-discounts', label: 'Promo Codes', icon: Tag },
       { to: '/distribution', label: 'Distribution usage', icon: Truck },
+    ],
+  },
+  {
+    label: 'Online store',
+    items: [
+      { to: '/commerce', label: 'Overview', icon: Store, exact: true },
+      { to: '/commerce/channels', label: 'Channels', icon: Plug },
+      { to: '/commerce/jobs', label: 'Catalog jobs', icon: ListChecks },
+      { to: '/commerce/orders', label: 'Orders monitor', icon: PackageSearch },
+      { to: '/commerce/couriers', label: 'Couriers', icon: Truck },
+      { to: '/commerce/controls', label: 'Controls', icon: Power },
     ],
   },
   {

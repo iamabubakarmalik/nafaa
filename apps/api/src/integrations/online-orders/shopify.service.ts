@@ -9,6 +9,7 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { readWebsiteConfig, ShopifyPlanState, stockRule } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
+import { outboundAction, readStatusMap, trackingInfo as shopifyTracking } from './channel-status-map';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError, shopAddressMessage } from './shopify-shop';
@@ -475,35 +476,41 @@ export class ShopifyService {
     if (!client || !/^\d+$/.test(String(order.externalOrderId))) return;
     const id = orderGid(order.externalOrderId);
     const status: string = order.orderStatus;
+    // The merchant's status mapping (Settings → Order status) decides what goes to Shopify.
+    const map = readStatusMap('SHOPIFY', readWebsiteConfig(integration.config).statusMap);
+    const action = outboundAction('SHOPIFY', map, status, event);
     let ok = true;
     let error: string | undefined;
     try {
       if (event === 'order.paid' || (status === 'DELIVERED' && order.paymentStatus === 'PAID')) {
-        await this.markPaid(client, id).catch(() => null);
+        if (map.outbound.PAID === 'paid') await this.markPaid(client, id).catch(() => null);
       }
-      if (status === 'CONFIRMED') {
-        await this.tag(client, id, ['Nafaa: Accepted']);
-      } else if (status === 'PREPARING' || status === 'READY') {
-        await this.tag(client, id, [status === 'READY' ? 'Nafaa: Packed' : 'Nafaa: Packing']);
-      } else if (status === 'OUT_FOR_DELIVERY') {
-        await this.fulfill(client, id, order.courierName, order.trackingNumber);
-      } else if (status === 'DELIVERED') {
-        const fulfillmentId = await this.fulfill(client, id, order.courierName, order.trackingNumber);
+      if (event === 'order.paid' || action === 'none') {
+        // nothing more for this status
+      } else if (action === 'tag') {
+        const word: Record<string, string> = {
+          CONFIRMED: 'Accepted', PREPARING: 'Packing', READY: 'Packed', OUT_FOR_DELIVERY: 'Dispatched',
+          RETURNED: 'Returned (RTO)', CANCELLED: 'Cancelled', REJECTED: 'Cancelled',
+        };
+        await this.tag(client, id, [`Nafaa: ${word[status] ?? status}`]);
+      } else if (action === 'fulfill') {
+        await this.fulfill(client, id, order);
+      } else if (action === 'delivered') {
+        const fulfillmentId = await this.fulfill(client, id, order);
         if (fulfillmentId) {
           await client.mutate(`mutation($e: FulfillmentEventInput!) { fulfillmentEventCreate(fulfillmentEvent: $e) { fulfillmentEvent { id } userErrors { field message } } }`,
             { e: { fulfillmentId, status: 'DELIVERED' } }, 'fulfillmentEventCreate').catch(() => null);
         }
-      } else if (status === 'RETURNED') {
-        // Fulfilled order Shopify me cancel nahi hota — tag + note
-        await this.tag(client, id, ['Nafaa: Returned (RTO)']);
-      } else if (status === 'CANCELLED' || status === 'REJECTED') {
+      } else if (action === 'cancel') {
+        // A fulfilled order (returned parcel) cannot be cancelled until its fulfillments are cancelled.
+        if (status === 'RETURNED') await this.cancelFulfillments(client, id);
         await client.mutate(`mutation($id: ID!, $note: String) {
           orderCancel(orderId: $id, reason: OTHER, refund: false, restock: true, notifyCustomer: false, staffNote: $note) {
             job { id } orderCancelUserErrors { field message }
           }
-        }`, { id, note: `Nafaa: ${order.cancelReason ?? 'cancel'}` }, 'orderCancel').catch(async (e) => {
-          // Pehle se cancel/fulfilled ho to kam az kam tag
-          await this.tag(client, id, ['Nafaa: Cancelled']);
+        }`, { id, note: `Nafaa: ${order.cancelReason ?? order.returnReason ?? 'cancel'}` }, 'orderCancel').catch(async (e) => {
+          // Already cancelled or fulfilled: at least a tag
+          await this.tag(client, id, [status === 'RETURNED' ? 'Nafaa: Returned (RTO)' : 'Nafaa: Cancelled']);
           throw e;
         });
       }
@@ -511,11 +518,19 @@ export class ShopifyService {
       ok = false;
       error = e?.message;
     }
-    await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: order.externalOrderId });
+    await this.log(integration, `STATUS_PUSH:${status}`, ok, error, { orderId: order.externalOrderId, action });
 
     if (['CONFIRMED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(status)) {
       const skus = ((order.items as any[]) ?? []).map((i) => i?.sku).filter(Boolean);
       if (skus.length) this.syncStock(integration, { onlySkus: skus }).catch(() => null);
+    }
+  }
+
+  /** Cancels the order's live fulfillments (a returned parcel) so the order itself can be cancelled. */
+  private async cancelFulfillments(client: ShopifyClient, id: string) {
+    const data = await client.graphql<any>(`query($id: ID!) { order(id: $id) { fulfillments(first: 10) { id status } } }`, { id });
+    for (const f of (data?.order?.fulfillments ?? []).filter((x: any) => x.status === 'SUCCESS')) {
+      await client.mutate(`mutation($id: ID!) { fulfillmentCancel(id: $id) { fulfillment { id } userErrors { field message } } }`, { id: f.id }, 'fulfillmentCancel').catch(() => null);
     }
   }
 
@@ -531,17 +546,27 @@ export class ShopifyService {
       { input: { id } }, 'orderMarkAsPaid');
   }
 
-  /** Order ke khule fulfillment orders poore karo (tracking ke saath). Pehle se ho to wahi fulfillment id */
-  private async fulfill(client: ShopifyClient, id: string, company?: string | null, number?: string | null): Promise<string | null> {
+  /**
+   * Fulfills the order's open fulfillment orders with the courier, tracking
+   * number and tracking link. Already fulfilled: the tracking on that
+   * fulfillment is brought up to date instead. Returns the fulfillment id.
+   */
+  private async fulfill(client: ShopifyClient, id: string, order: { courierName?: string | null; courierCode?: string | null; trackingNumber?: string | null }): Promise<string | null> {
+    const tracking = shopifyTracking(order);
     const data = await client.graphql<any>(`query($id: ID!) {
       order(id: $id) {
-        fulfillments(first: 5) { id status }
+        fulfillments(first: 5) { id status trackingInfo(first: 1) { number } }
         fulfillmentOrders(first: 10) { nodes { id status } }
       }
     }`, { id });
     const open = (data?.order?.fulfillmentOrders?.nodes ?? []).filter((f: any) => ['OPEN', 'IN_PROGRESS'].includes(f.status));
     if (!open.length) {
       const done = (data?.order?.fulfillments ?? []).find((f: any) => f.status === 'SUCCESS');
+      if (done && tracking && done.trackingInfo?.[0]?.number !== tracking.number) {
+        await client.mutate(`mutation($id: ID!, $t: FulfillmentTrackingInput!) {
+          fulfillmentTrackingInfoUpdate(fulfillmentId: $id, trackingInfoInput: $t, notifyCustomer: true) { fulfillment { id } userErrors { field message } }
+        }`, { id: done.id, t: tracking }, 'fulfillmentTrackingInfoUpdate').catch(() => null);
+      }
       return done?.id ?? null;
     }
     const res = await client.mutate<any>(`mutation($f: FulfillmentInput!) {
@@ -550,7 +575,7 @@ export class ShopifyService {
       f: {
         lineItemsByFulfillmentOrder: open.map((f: any) => ({ fulfillmentOrderId: f.id })),
         notifyCustomer: true,
-        ...((company || number) && { trackingInfo: { company: company || undefined, number: number || undefined } }),
+        ...(tracking && { trackingInfo: tracking }),
       },
     }, 'fulfillmentCreate');
     return res?.fulfillment?.id ?? null;

@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'crypto';
-import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import * as crypto from 'crypto';
 import { Integration, IntegrationStatus } from '@prisma/client';
@@ -16,6 +16,9 @@ import { DARAZ_AUTHORIZE, DarazClient, DarazError, priceXml, readTokenResponse, 
 import { PAGE_DELAY_MS, trackLinks } from './link-sync';
 import type { RemoteProduct } from './channel-catalog.service';
 import { apiMessage } from '../../common/i18n/api-message';
+import { darazStatusKey, inboundSteps, outboundAction, readStatusMap } from './channel-status-map';
+import { ChannelPush, channelPushEvents } from './order-events';
+import { pausedMessage, pushPaused } from './commerce-controls';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 /** Pehli dafa kitne din pichhe ke orders laane hain */
@@ -80,9 +83,10 @@ export function groupDarazItems(rows: any[]) {
  * ready to ship + Daraz ka label Nafaa se.
  */
 @Injectable()
-export class DarazService {
+export class DarazService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DarazService.name);
   private running = false;
+  private readonly onPushEvent = (e: ChannelPush) => { void this.pushStatus(e).catch((err) => this.logger.warn(`Daraz status push: ${err?.message ?? err}`)); };
 
   constructor(
     private readonly prisma: PrismaService,
@@ -90,6 +94,9 @@ export class DarazService {
     private readonly orders: OnlineOrdersService,
     private readonly catalog: WebsiteCatalogService,
   ) {}
+
+  onModuleInit() { channelPushEvents.on('push', this.onPushEvent); }
+  onModuleDestroy() { channelPushEvents.off('push', this.onPushEvent); }
 
   configured() {
     return !!(process.env.DARAZ_APP_KEY && process.env.DARAZ_APP_SECRET);
@@ -308,7 +315,7 @@ export class DarazService {
     const externalId = String(o.order_id);
     const existing = await this.prisma.channelOrder.findUnique({
       where: { integrationId_externalOrderId: { integrationId: i.id, externalOrderId: externalId } },
-      select: { id: true, orderStatus: true, nafaaSaleId: true, dispatchedAt: true },
+      select: { id: true, orderStatus: true, paymentStatus: true, nafaaSaleId: true, dispatchedAt: true },
     });
 
     if (!existing) {
@@ -344,21 +351,20 @@ export class DarazService {
       return 'created';
     }
 
-    // Maujood order: Daraz ka haal Nafaa par
+    // Existing order: Daraz's status on the Nafaa order, through the channel's status mapping.
     await this.mergeDarazMeta(existing.id, { statuses: o.statuses ?? [] });
     if (CLOSED.includes(existing.orderStatus)) return 'same';
+    const key = darazStatusKey(Array.isArray(o.statuses) ? o.statuses : rows.map((r) => r.status));
+    const map = readStatusMap('DARAZ', readWebsiteConfig(i.config).statusMap);
+    const steps = key ? inboundSteps(map, [key], existing) : [];
+    if (!steps.length) return 'same';
     const actor = await this.orders.systemActor(i.tenantId);
     const all = new ShopScope(null, true);
-    if (state === 'cancelled') {
-      await this.orders.applyWebsiteUpdate(i, externalId, { cancelled: true, reason: 'Daraz par cancel hua' });
-    } else if (!existing.nafaaSaleId) {
-      return 'same'; // abhi accept nahi — dukandar pehle accept kare
-    } else if (state === 'returned' && existing.dispatchedAt) {
-      await this.orders.markReturned(actor, all, existing.id, 'Daraz: wapas / failed');
-    } else if (state === 'delivered' && existing.orderStatus !== 'DELIVERED') {
-      await this.orders.updateStatus(actor, all, existing.id, { status: 'DELIVERED' });
-    } else if ((state === 'shipped' || state === 'delivered') && ['CONFIRMED', 'PREPARING', 'READY'].includes(existing.orderStatus)) {
-      await this.orders.updateStatus(actor, all, existing.id, { status: 'OUT_FOR_DELIVERY' });
+    for (const step of steps) {
+      if (step.kind === 'cancel') await this.orders.applyWebsiteUpdate(i, externalId, { cancelled: true, reason: 'Daraz par cancel hua' });
+      else if (step.kind === 'paid') await this.orders.applyWebsiteUpdate(i, externalId, { paid: true });
+      else if (step.kind === 'returned') await this.orders.markReturned(actor, all, existing.id, 'Daraz: wapas / failed');
+      else await this.orders.updateStatus(actor, all, existing.id, { status: step.status });
     }
     return 'updated';
   }
@@ -408,11 +414,15 @@ export class DarazService {
     return out;
   }
 
-  /** Nafaa price → Daraz normal price, for linked SKUs. */
-  async pushPrices(i: Integration, items: { externalProductId: string; externalVariantId: string | null; externalSku: string | null; price: number }[]) {
+  /** Nafaa price → Daraz price (and sale price when Nafaa has one), for linked SKUs. */
+  async pushPrices(i: Integration, items: { externalProductId: string; externalVariantId: string | null; externalSku: string | null; price: number; compareAt?: number | null }[]) {
+    // A sale price in Nafaa (compare-at above the price): Daraz's Price is the old price, SalePrice the new one.
     const rows = items
       .filter((x) => x.externalVariantId && x.externalSku && x.price > 0)
-      .map((x) => ({ itemId: x.externalProductId, skuId: String(x.externalVariantId), sellerSku: String(x.externalSku), price: x.price }));
+      .map((x) => ({
+        itemId: x.externalProductId, skuId: String(x.externalVariantId), sellerSku: String(x.externalSku),
+        ...(x.compareAt && x.compareAt > x.price ? { price: x.compareAt, salePrice: x.price } : { price: x.price }),
+      }));
     if (!rows.length) return 0;
     const client = await this.client(i);
     let sent = 0;
@@ -509,6 +519,11 @@ export class DarazService {
 
   async readyToShip(user: AuthenticatedUser, orderId: string) {
     const order = await this.darazOrder(user, orderId);
+    return this.rts(order);
+  }
+
+  /** Pack + ready to ship on Daraz; Daraz's tracking number and courier come back on the order. */
+  private async rts(order: Awaited<ReturnType<DarazService['darazOrder']>>) {
     if (!order.nafaaSaleId) throw new BadRequestException('Pehle order accept karein (bill + stock), phir Daraz par ready to ship');
     const client = await this.client(order.integration);
     const meta = (order.metadata ?? {}) as any;
@@ -546,6 +561,58 @@ export class DarazService {
       data: { trackingNumber: tracking, courierName: provider ? `Daraz · ${provider}` : 'Daraz', courierCode: 'OTHER', ...(['CONFIRMED', 'PREPARING'].includes(order.orderStatus) ? { orderStatus: 'READY' } : {}) },
     });
     return { ok: true, packages, trackingNumber: tracking, provider };
+  }
+
+
+  // ═══════════════════════════════════════════════════════════
+  // STATUS — Nafaa → Daraz (Settings → Order status: ready to ship / cancel)
+  // ═══════════════════════════════════════════════════════════
+
+  async pushStatus(e: ChannelPush) {
+    const order = await this.prisma.channelOrder.findUnique({ where: { id: e.orderId }, include: { integration: true } });
+    if (!order || order.integration.type !== 'DARAZ' || order.integrationId !== e.integrationId || !this.isConnected(order.integration)) return;
+    if ((order.metadata as any)?.test || !/^\d+$/.test(String(order.externalOrderId))) return;
+    const map = readStatusMap('DARAZ', readWebsiteConfig(order.integration.config).statusMap);
+    const action = outboundAction('DARAZ', map, order.orderStatus, e.event);
+    if (action === 'none') return;
+    // Platform kill switch (Admin > Online store > Controls)
+    if (await pushPaused(this.prisma, 'DARAZ')) {
+      await this.log(order.integration, `STATUS_PUSH:${order.orderStatus}`, false, pausedMessage('DARAZ'), { orderId: order.externalOrderId, action });
+      return;
+    }
+    try {
+      if (action === 'rts') {
+        if ((order.metadata as any)?.daraz?.rtsAt) return;
+        await this.rts(order);
+      } else if (action === 'cancel') {
+        await this.cancelOnDaraz(order, order.cancelReason);
+      }
+      await this.log(order.integration, `STATUS_PUSH:${order.orderStatus}`, true, undefined, { orderId: order.externalOrderId, action });
+    } catch (err: any) {
+      await this.log(order.integration, `STATUS_PUSH:${order.orderStatus}`, false, String(err?.response?.message ?? err?.message ?? err).slice(0, 300), { orderId: order.externalOrderId, action });
+    }
+  }
+
+  /**
+   * Seller cancel on Daraz: Daraz lists the reasons it accepts for these
+   * items; the one closest to the Nafaa reason is used (stock, price,
+   * customer), else Daraz's first reason.
+   */
+  private async cancelOnDaraz(order: { integration: Integration; externalOrderId: string }, reason: string | null) {
+    const client = await this.client(order.integration);
+    const items: any[] = (await client.call('/order/items/get', { order_id: order.externalOrderId }))?.data ?? [];
+    const live = items.filter((x) => !['canceled', 'cancelled', 'shipped', 'delivered', 'returned'].includes(String(x.status).toLowerCase()));
+    if (!live.length) return;
+    const ids = live.map((x) => Number(x.order_item_id));
+    const check = await client.call('/order/reverse/cancel/validate', { order_id: order.externalOrderId, order_item_id_list: JSON.stringify(ids) }).catch(() => null);
+    const options: Array<{ reason_id: string | number; reason_name?: string }> = collect(check, 'reason_id');
+    const words = String(reason ?? '').toLowerCase();
+    const want = /stock|maal|khatam/.test(words) ? /stock/i : /price|qeemat/.test(words) ? /pric/i : /customer|buyer|grahak/.test(words) ? /customer|buyer/i : null;
+    const pick = (want && options.find((r) => want.test(String(r.reason_name ?? '')))) || options[0];
+    if (!pick) throw new BadRequestException('Daraz ne cancel ki wajah nahi batai — Seller Center se cancel karein');
+    for (const id of ids) {
+      await client.call('/order/cancel', { order_item_id: id, reason_id: pick.reason_id, reason_detail: (reason ?? 'Seller cancel').slice(0, 200) }, 'POST');
+    }
   }
 
   async label(user: AuthenticatedUser, orderId: string): Promise<{ pdf?: Buffer; url?: string }> {

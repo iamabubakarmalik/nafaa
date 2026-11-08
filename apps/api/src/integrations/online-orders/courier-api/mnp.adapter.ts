@@ -1,3 +1,4 @@
+import { TRACKING_MAPPERS } from './tracking-events';
 import { courierFetch } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
@@ -107,6 +108,7 @@ export const mnpAdapter: CourierAdapter = {
         label,
         at: null,
         history: details.slice(-20).map((h) => ({ label: `${h.Status ?? ''}${h.Detail ? ` — ${h.Detail}` : ''}${h.Location ? ` (${h.Location})` : ''}`, at: h.DateTime ?? null })),
+        events: TRACKING_MAPPERS.MNP(d),
       });
     }
     return out;

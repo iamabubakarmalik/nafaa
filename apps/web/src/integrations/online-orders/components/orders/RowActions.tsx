@@ -1,13 +1,15 @@
 /**
  * The row "⋯" menu on the orders board: edit, assign, follow-up, tag, note,
- * replacement, split, courier booking and label, print slip, open on the
- * channel, and delete / restore.
+ * replacement, split, courier booking and label, airway bill, cancel
+ * booking, re-dispatch, courier claim, print slip, open on the channel, and
+ * delete / restore.
  */
 
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CalendarClock, ExternalLink, FileText, MoreHorizontal, Package, Pencil, Repeat, RotateCcw, Scissors, StickyNote, Tag, Trash2, Truck, UserPlus,
+  CalendarClock, ExternalLink, FileText, MoreHorizontal, Package, Pencil, Repeat, RotateCcw, Scissors, ShieldAlert, StickyNote, Tag, Trash2, Truck, UserPlus,
+  Printer, Send, ShieldEllipsis, XCircle,
 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { useDismissible } from '@core/print/useDismissible';
@@ -15,6 +17,8 @@ import type { CourierAccount, OnlineOrder } from '../../api/online-orders.api';
 import { openInvoices } from '../../lib/orders';
 import { orderOptions, type QuickAction } from './useOrderActions';
 import type { ToolKind } from './OrderTools';
+import { useBoardRefresh } from './useMoveOrder';
+import { CancelBookingDialog, ClaimDialog, RedispatchDialog, canRedispatch } from '../dispatch/DispatchDialogs';
 import { t } from '@core/i18n';
 
 /** Admin link for a Shopify order, from the store's address. */
@@ -40,6 +44,8 @@ export function RowActions({ order: o, siteUrl, couriers, onTool, onQuick, onOpe
   onPermanent: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [dlg, setDlg] = useState<'redispatch' | 'claim' | 'cancel' | null>(null);
+  const refresh = useBoardRefresh();
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   useDismissible(ref, open, () => setOpen(false));
@@ -79,15 +85,23 @@ export function RowActions({ order: o, siteUrl, couriers, onTool, onQuick, onOpe
                 </button>
               ))}
               {opt.label && <button type="button" role="menuitem" className={item} onClick={pick(() => onQuick({ kind: 'label' }))}><Tag className={icon} />{t('Courier label print')}</button>}
+              {o.trackingNumber && <button type="button" role="menuitem" className={item} onClick={pick(() => window.open(`/online-orders/labels?ids=${o.id}`, '_blank'))}><Printer className={icon} />{t('Airway bill (Nafaa label)')}</button>}
+              {o.trackingNumber && !['DELIVERED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(o.orderStatus) && <button type="button" role="menuitem" className={item} onClick={pick(() => setDlg('cancel'))}><XCircle className={icon} />{t('Booking cancel / CN hatayein')}</button>}
+              {canRedispatch(o) && <button type="button" role="menuitem" className={item} onClick={pick(() => setDlg('redispatch'))}><Send className={icon} />{t('Re-dispatch (naya CN)')}</button>}
+              {!!o.dispatchedAt && <button type="button" role="menuitem" className={item} onClick={pick(() => setDlg('claim'))}><ShieldEllipsis className={icon} />{t('Courier claim')}</button>}
               <button type="button" role="menuitem" className={item} onClick={pick(() => openInvoices([o.id]))}><FileText className={icon} />{t('Slip print')}</button>
               {shopUrl && <a role="menuitem" className={item} href={shopUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><ExternalLink className={icon} />{t('Shopify me kholein')}</a>}
               <button type="button" role="menuitem" className={item} onClick={pick(onOpen)}><Package className={icon} />{t('Poori details')}</button>
               <div className="my-1 h-px bg-slate-100" />
+              {o.customerPhone && <button type="button" role="menuitem" className={cn(item, 'text-rose-700 hover:bg-rose-50')} onClick={pick(() => onTool('report-scam'))}><ShieldAlert className="h-4 w-4" />{t('Scammer report karein')}</button>}
               <button type="button" role="menuitem" className={cn(item, 'text-rose-700 hover:bg-rose-50')} onClick={pick(onDelete)}><Trash2 className="h-4 w-4" />{t('Delete')}</button>
             </>
           )}
         </div>
       )}
+      {dlg === 'redispatch' && <RedispatchDialog order={o} onClose={() => setDlg(null)} onDone={() => refresh(o.id)} />}
+      {dlg === 'claim' && <ClaimDialog order={o} onClose={() => setDlg(null)} onDone={() => refresh(o.id)} />}
+      {dlg === 'cancel' && <CancelBookingDialog orders={[o]} onClose={() => setDlg(null)} onDone={() => refresh(o.id)} />}
     </div>
   );
 }

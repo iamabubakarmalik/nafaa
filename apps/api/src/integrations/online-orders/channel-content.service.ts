@@ -7,6 +7,7 @@ import { ShopifyService } from './shopify.service';
 import { numericId } from './shopify.client';
 import { friendlySyncError, markLinks } from './link-sync';
 import { mappingKey } from './mapping-key';
+import { pausedMessage, pushPaused } from './commerce-controls';
 
 export interface ContentResult {
   sent: number;
@@ -49,6 +50,11 @@ export class ChannelContentService {
   /** Content and listed status for these products on one channel. */
   async push(i: Integration, productIds: string[], only?: { statusOnly?: boolean }): Promise<ContentResult> {
     const out: ContentResult = { sent: 0, failed: 0, addedSizes: 0, errors: [], note: null };
+    // Platform kill switch (Admin > Online store > Controls).
+    if (await pushPaused(this.prisma, i.type)) {
+      out.errors.push(pausedMessage(i.type));
+      return out;
+    }
     if (i.type === 'DARAZ') {
       // Unlisted on Daraz = stock 0, done by the stock push.
       out.note = only?.statusOnly ? null : DARAZ_CONTENT_NOTE;

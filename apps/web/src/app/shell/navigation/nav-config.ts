@@ -84,7 +84,7 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-orders/new', label: t('Add order'), icon: PackagePlus, permission: P.SALES_VIEW, keywords: 'manual whatsapp instagram phone paste excel import naya order replacement' },
       { to: '/online-orders/pack', label: t('Packing scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'pack scan barcode packing slip label ready parcel' },
       { to: '/online-orders/returns-scan', label: t('Return scan'), icon: PackageX, permission: P.SALES_VIEW, keywords: 'rto return wapas parcel scan damaged kharab restock' },
-      { to: '/online-store/soon/abandoned', label: t('Abandoned carts'), icon: ShoppingCart, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'abandoned cart checkout recover chhoda' },
+      { to: '/online-orders/abandoned', label: t('Abandoned carts'), icon: ShoppingCart, permission: P.SALES_VIEW, keywords: 'abandoned cart checkout recover chhoda wapas shopify whatsapp' },
     ],
   },
   {
@@ -94,8 +94,10 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-store/couriers/rules', label: t('Auto booking'), icon: Zap, permission: P.SALES_VIEW, keywords: 'courier rules auto booking best courier city' },
       { to: '/online-orders/cod', label: t('COD & payments'), icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier settlement paisa cpr' },
       { to: '/online-orders/cod/reconcile', label: t('COD statement match'), icon: FileSpreadsheet, permission: P.SALES_VIEW, keywords: 'cod reconcile statement cpr audit match' },
-      { to: '/online-store/soon/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking' },
-      { to: '/online-store/soon/post-office', label: t('Post office'), icon: Send, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'pakistan post post office vpp' },
+      { to: '/online-orders/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking rate compare cancel booking cpr cod audit' },
+      { to: '/online-orders/dispatch-scan', label: t('Dispatch scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'dispatch scan rider handover cn barcode bhej diya dispatched' },
+      { to: '/online-orders/dispatch-report', label: t('Dispatch report'), icon: BarChart3, permission: P.SALES_VIEW, keywords: 'dispatch report delivered returned rto stuck claims redispatch courier success rate' },
+      { to: '/online-orders/post-office', label: t('Post office'), icon: Send, permission: P.SALES_VIEW, keywords: 'pakistan post post office vpp article number ep.gov.pk' },
     ],
   },
   {
@@ -110,12 +112,15 @@ export const commerceNavGroups: NavGroup[] = [
     items: [
       { to: '/online-orders/customers', label: t('Customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
       { to: '/online-store/blocklist', label: t('Report scammer'), icon: ShieldAlert, permission: P.SALES_VIEW, keywords: 'block list fake order scammer fraud rto number' },
+      { to: '/online-store/whatsapp-templates', label: t('WhatsApp messages'), icon: MessageCircle, permission: P.SALES_VIEW, keywords: 'whatsapp template message confirm address advance dispatched tracking review wa.me' },
     ],
   },
   {
     id: 'c-money', label: t('Money & growth'), icon: Calculator, color: '#16a34a', defaultOpen: true, order: 6,
     items: [
       { to: '/online-store/costs', label: t('Selling costs'), icon: Calculator, permission: P.SALES_VIEW, keywords: 'courier charge rate card cod fee packaging gateway fee profit expense rto' },
+      { to: '/online-orders/profit', label: t('Profit'), icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW, alsoNeeds: P.COST_VIEW, keywords: 'profit net munafa sale cost ads courier returns expense cash received cod' },
+      { to: '/online-orders/payment-health', label: t('Payment health'), icon: Activity, permission: P.SALES_VIEW, keywords: 'cod outstanding settlement courier paisa prepaid advance payment link failed refund rto loss' },
       { to: '/online-store/ads', label: t('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
       { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'whatsapp bot ai marketing social affiliate automation roadmap' },
     ],

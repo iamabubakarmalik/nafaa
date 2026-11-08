@@ -1,14 +1,15 @@
 /**
  * Bar at the bottom of the board while orders are picked: move all of them
- * to any status, assign, follow-up, tag, courier booking, slips, packing
- * list, Excel export, combine, and delete / restore. Each order reports its
+ * to any status, assign, follow-up, tag, courier booking (rate compare),
+ * labels, cancel booking, slips, packing list, Excel export, combine, and
+ * delete / restore. Each order reports its
  * own result; the ones that failed stay picked with the reason shown.
  */
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CalendarClock, Download, Eraser, FileText, Loader2, Merge, PackageOpen, RotateCcw, Tag, Trash2, Truck, UserPlus, X } from 'lucide-react';
+import { CalendarClock, Download, Eraser, FileText, Loader2, Merge, PackageOpen, Printer, RotateCcw, Tag, Trash2, Truck, UserPlus, X, XCircle } from 'lucide-react';
 import { confirmDialog } from '@/design-system/components';
 import { usePrinter } from '@core/print';
 import { cn } from '@core/lib/cn';
@@ -21,6 +22,8 @@ import { MoveDialog, type MoveExtra } from './MoveDialog';
 import { OrderToolModal, reportBulk, type ToolKind } from './OrderTools';
 import { StatusMenu } from './StatusMenu';
 import { useBoardRefresh } from './useMoveOrder';
+import { BookCourierDialog } from '../dispatch/BookCourierDialog';
+import { CancelBookingDialog } from '../dispatch/DispatchDialogs';
 import { t } from '@core/i18n';
 
 export function BulkMoveBar({ orders, picked, custom, deletedView, onClear, onKeep }: {
@@ -38,7 +41,7 @@ export function BulkMoveBar({ orders, picked, custom, deletedView, onClear, onKe
   const [busy, setBusy] = useState(false);
   const [ask, setAsk] = useState<BoardStatus | null>(null);
   const [tool, setTool] = useState<ToolKind | null>(null);
-  const [courier, setCourier] = useState('');
+  const [dialog, setDialog] = useState<'book' | 'cancel' | null>(null);
   const { data: accounts } = useQuery({ queryKey: COURIERS_KEY, queryFn: couriersApi.list, staleTime: 5 * 60_000 });
   const couriers = (accounts ?? []).filter((a) => a.connected && a.active);
 
@@ -76,14 +79,8 @@ export function BulkMoveBar({ orders, picked, custom, deletedView, onClear, onKe
   };
   const pickMove = (to: BoardStatus) => (to === 'CANCELLED' || to === 'RETURNED' ? setAsk(to) : move(to));
 
-  const book = () => {
-    const code = courier || couriers[0]?.code;
-    if (!code) return;
-    void run(async () => {
-      const r = await couriersApi.bulkBook(code, { orderIds: bookable.map((o) => o.id) });
-      return { results: r.results.map((x) => ({ id: x.orderId, ok: x.ok, error: x.error })) };
-    }, t('courier par book'));
-  };
+  const booked = sel.filter((o) => o.trackingNumber && !['DELIVERED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(o.orderStatus));
+  const afterDialog = (failed: string[]) => { if (failed.length) onKeep(failed); else onClear(); refresh(); };
   const combine = async () => {
     const yes = await confirmDialog({ title: t('{{count}} orders ek karein?', { count: sel.length }), text: t('Sab cheezein sab se purane order me aa jayengi, baqi orders "Deleted" me chale jayenge.'), yes: t('Ek karein') });
     if (!yes) return;
@@ -123,16 +120,10 @@ export function BulkMoveBar({ orders, picked, custom, deletedView, onClear, onKe
             <Pill disabled={busy} onClick={() => setTool('follow-up')}><CalendarClock className="h-3.5 w-3.5" />{t('Follow-up')}</Pill>
             <Pill disabled={busy} onClick={() => setTool('tag')}><Tag className="h-3.5 w-3.5" />{t('Tag')}</Pill>
             {bookable.length > 0 && couriers.length > 0 && (
-              <span className="inline-flex items-center gap-1">
-                {couriers.length > 1 && (
-                  <select value={courier || couriers[0].code} onChange={(e) => setCourier(e.target.value)} aria-label={t('Courier')}
-                    className="h-8 rounded-lg border border-white/20 bg-white/10 px-2 text-xs text-white outline-none">
-                    {couriers.map((c) => <option key={c.code} value={c.code} className="text-slate-900">{c.name}</option>)}
-                  </select>
-                )}
-                <Pill disabled={busy} onClick={book}><Truck className="h-3.5 w-3.5" />{t('{{count}} book', { count: bookable.length })}</Pill>
-              </span>
+              <Pill disabled={busy} onClick={() => setDialog('book')}><Truck className="h-3.5 w-3.5" />{t('Book courier ({{count}})', { count: bookable.length })}</Pill>
             )}
+            {booked.length > 0 && <Pill disabled={busy} onClick={() => window.open(`/online-orders/labels?ids=${booked.map((o) => o.id).join(',')}`, '_blank')}><Printer className="h-3.5 w-3.5" />{t('Labels')}</Pill>}
+            {booked.length > 0 && <Pill disabled={busy} onClick={() => setDialog('cancel')}><XCircle className="h-3.5 w-3.5" />{t('Booking cancel')}</Pill>}
             <Pill disabled={busy} onClick={() => openInvoices(ids)}><FileText className="h-3.5 w-3.5" />{t('Slips')}</Pill>
             <Pill disabled={busy} onClick={() => void print(ordersDoc(sel, t('Packing list'), new Date().toLocaleDateString('en-PK'), '', sel.length))}><PackageOpen className="h-3.5 w-3.5" />{t('Packing list')}</Pill>
             <Pill disabled={busy} onClick={exportCsv}><Download className="h-3.5 w-3.5" />{t('Excel')}</Pill>
@@ -147,6 +138,8 @@ export function BulkMoveBar({ orders, picked, custom, deletedView, onClear, onKe
         <MoveDialog entry={boardEntry(ask, custom)!} count={ids.length} loading={busy} onClose={() => setAsk(null)}
           onConfirm={(extra) => { const to = ask; setAsk(null); move(to, extra); }} />
       )}
+      {dialog === 'book' && <BookCourierDialog orders={bookable} onClose={() => setDialog(null)} onDone={afterDialog} />}
+      {dialog === 'cancel' && <CancelBookingDialog orders={booked} onClose={() => setDialog(null)} onDone={afterDialog} />}
       {tool && <OrderToolModal kind={tool} orders={sel} onClose={() => setTool(null)} onDone={(failed) => (failed.length ? onKeep(failed) : onClear())} />}
     </div>
   );

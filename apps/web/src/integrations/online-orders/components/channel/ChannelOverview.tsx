@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, CheckCircle2, Circle, ExternalLink, LifeBuoy, ShoppingBag, TriangleAlert, Wrench } from 'lucide-react';
 import { Badge, Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
+import { ChannelMatrixCard } from './ChannelMatrixCard';
 import { cn } from '@core/lib/cn';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
@@ -98,6 +99,8 @@ export function ChannelOverview({ id, data, facts, setTab, branchName }: {
             </ul>
           )}
         </section>
+
+        <ChannelMatrixCard channel={facts.kind} name={facts.name} onSettings={() => setTab('settings')} />
 
         {data.branches && data.branches.length > 1 && <BranchesCard branches={data.branches} />}
       </div>

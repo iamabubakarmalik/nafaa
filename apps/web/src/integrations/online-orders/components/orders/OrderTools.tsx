@@ -14,10 +14,11 @@ import { apiErrorMessage, onlineOrdersApi, type OnlineOrder } from '../../api/on
 import { orderBoardApi, type BulkResult } from '../../api/order-board.api';
 import { orderNo } from '../../lib/orders';
 import { useBoardRefresh } from './useMoveOrder';
+import { ReportScamModal } from './ReportScamModal';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 
-export type ToolKind = 'assign' | 'follow-up' | 'tag' | 'note' | 'split';
+export type ToolKind = 'assign' | 'follow-up' | 'tag' | 'note' | 'split' | 'report-scam';
 
 export function useTeam() {
   return useQuery({ queryKey: ['team'], queryFn: () => teamApi.list().catch(() => []), staleTime: 5 * 60_000 });
@@ -76,6 +77,7 @@ export function OrderToolModal({ kind, orders, onClose, onDone }: {
     onSave={(text) => run(() => onlineOrdersApi.addNote(one.id, text), async () => ({ results: [] }), t('note likh diya'))} />;
   if (kind === 'split' && one) return <SplitModal order={one} busy={busy} onClose={onClose}
     onSave={(idx) => run(() => orderBoardApi.split(one.id, idx), async () => ({ results: [] }), t('naya order ban gaya'))} />;
+  if (kind === 'report-scam' && one) return <ReportScamModal order={one} onClose={onClose} />;
   return null;
 }
 

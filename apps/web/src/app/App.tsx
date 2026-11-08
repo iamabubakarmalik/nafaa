@@ -30,6 +30,8 @@ import {
   OnlineOrdersPage, CommerceHomePage, CommerceSoonPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage, OnlineProductsPage,
   CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage, AddOrderPage, EditOrderPage,
 } from '@integrations/online-orders';
+import { AbandonedCartsPage, PaymentHealthPage, ProfitPage, WaTemplatesPage } from '@integrations/online-orders';
+import { DispatchPage, DispatchReportPage, DispatchScanPage, PostOfficePage, PrintLabelsPage } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
 
@@ -306,6 +308,7 @@ export default function App() {
               <Route path="/jewelry/sales/:id/receipt" element={<ReceiptPage />} />
               {/* Online orders ke invoice / packing slip — shell ke bina (print) */}
               <Route path="/online-orders/print" element={<PrintInvoicesPage />} />
+              <Route path="/online-orders/labels" element={<PrintLabelsPage />} />
               {/* WooCommerce "Approve" ke baad popup yahan wapas aata hai — shell ke bagair */}
               <Route path="/connect/:platform/done" element={<ConnectDonePage />} />
 
@@ -450,6 +453,10 @@ export default function App() {
                   <Route path="/online-orders/cod/reconcile" element={secure(PERMISSIONS.SALES_VIEW, <CodReconcilePage />)} />
                   <Route path="/online-orders/pack" element={secure(PERMISSIONS.SALES_VIEW, <PackPage />)} />
                   <Route path="/online-orders/returns-scan" element={secure(PERMISSIONS.SALES_VIEW, <ReturnScanPage />)} />
+                  <Route path="/online-orders/dispatch" element={secure(PERMISSIONS.SALES_VIEW, <DispatchPage />)} />
+                  <Route path="/online-orders/dispatch-scan" element={secure(PERMISSIONS.SALES_VIEW, <DispatchScanPage />)} />
+                  <Route path="/online-orders/dispatch-report" element={secure(PERMISSIONS.SALES_VIEW, <DispatchReportPage />)} />
+                  <Route path="/online-orders/post-office" element={secure(PERMISSIONS.SALES_VIEW, <PostOfficePage />)} />
                   <Route path="/online-store/costs" element={secure(PERMISSIONS.SALES_VIEW, <OrderCostsPage />)} />
                   <Route path="/online-store/couriers/rules" element={secure(PERMISSIONS.SALES_VIEW, <CourierRulesPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
@@ -458,6 +465,10 @@ export default function App() {
                   <Route path="/online-store/products" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <OnlineProductsPage />)} />
                   <Route path="/online-store/price-calculator" element={secure(PERMISSIONS.COST_VIEW, <PriceCalculatorPage />)} />
                   <Route path="/online-store/ads" element={secure(PERMISSIONS.ADS_VIEW, <AdsPage />)} />
+                  <Route path="/online-orders/abandoned" element={secure(PERMISSIONS.SALES_VIEW, <AbandonedCartsPage />)} />
+                  <Route path="/online-orders/payment-health" element={secure(PERMISSIONS.SALES_VIEW, <PaymentHealthPage />)} />
+                  <Route path="/online-orders/profit" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, secure(PERMISSIONS.COST_VIEW, <ProfitPage />))} />
+                  <Route path="/online-store/whatsapp-templates" element={secure(PERMISSIONS.SALES_VIEW, <WaTemplatesPage />)} />
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />

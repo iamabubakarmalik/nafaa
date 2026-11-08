@@ -5,7 +5,8 @@ import { Integration } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { assertSafeWebhookUrl, isPrivateIp, readWebsiteConfig, signPayload } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
-import { emitChannelStatus } from './order-events';
+import { emitChannelPush, emitChannelStatus } from './order-events';
+import { outboundAction, readStatusMap, trackingUrl } from './channel-status-map';
 import { ShopifyService } from './shopify.service';
 
 /**
@@ -33,6 +34,11 @@ export class StatusWebhookService {
       return;
     }
     if ((order.metadata as any)?.test) return;
+    // Daraz: ready to ship / cancel per the channel's status mapping (DarazService listens)
+    if (integration.type === 'DARAZ') {
+      emitChannelPush({ integrationId: integration.id, orderId: order.id, event });
+      return;
+    }
     // WooCommerce ek click se jura hai → seedha uske order par status/note
     if (this.woo.isConnected(integration)) {
       this.woo.pushStatus(integration, order, event).catch(() => null);
@@ -44,6 +50,8 @@ export class StatusWebhookService {
     }
     const config = readWebsiteConfig(integration.config);
     if (!config.statusWebhookUrl || (order.metadata as any)?.test) return;
+    // Custom website: the merchant may turn a status off or rename it (Settings → Order status).
+    if (integration.type === 'CUSTOM_WEBSITE' && outboundAction('CUSTOM_WEBSITE', readStatusMap('CUSTOM_WEBSITE', config.statusMap), order.orderStatus, event) === 'none') return;
     let url: string;
     try {
       url = assertSafeWebhookUrl(config.statusWebhookUrl);
@@ -59,8 +67,15 @@ export class StatusWebhookService {
       orderId: order.externalOrderId,
       orderNumber: order.externalOrderNumber,
       status: order.orderStatus,
+      ...(() => {
+        // The website's own word for this status, when the merchant set one.
+        if (integration.type !== 'CUSTOM_WEBSITE') return {};
+        const action = outboundAction('CUSTOM_WEBSITE', readStatusMap('CUSTOM_WEBSITE', readWebsiteConfig(integration.config).statusMap), order.orderStatus, event);
+        return action !== 'send' && action !== 'none' ? { channelStatus: action } : {};
+      })(),
       paymentStatus: order.paymentStatus,
       trackingNumber: order.trackingNumber ?? null,
+      trackingUrl: trackingUrl(order.courierCode, order.trackingNumber),
       courierName: order.courierName ?? null,
       cancelReason: order.cancelReason ?? null,
       timestamp: new Date().toISOString(),

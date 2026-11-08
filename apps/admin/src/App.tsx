@@ -27,6 +27,12 @@ import BulkActionsPage from '@/features/bulk-actions/pages/BulkActionsPage';
 import AdminExportsPage from '@/features/admin-exports/pages/AdminExportsPage';
 import NotificationsPage from '@/features/notifications/pages/NotificationsPage';
 import DistributionUsagePage from '@/features/distribution/pages/DistributionUsagePage';
+import CommerceOverviewPage from '@/features/commerce/pages/CommerceOverviewPage';
+import CommerceChannelsPage from '@/features/commerce/pages/CommerceChannelsPage';
+import CommerceJobsPage from '@/features/commerce/pages/CommerceJobsPage';
+import CommerceOrdersPage from '@/features/commerce/pages/CommerceOrdersPage';
+import CommerceCouriersPage from '@/features/commerce/pages/CommerceCouriersPage';
+import CommerceControlsPage from '@/features/commerce/pages/CommerceControlsPage';
 import MobileOverviewPage from '@/features/mobile/pages/MobileOverviewPage';
 import MobileDevicesPage from '@/features/mobile/pages/MobileDevicesPage';
 import MobileDeviceDetailPage from '@/features/mobile/pages/MobileDeviceDetailPage';
@@ -101,6 +107,13 @@ export default function App() {
               <Route path="/referrals" element={<ReferralsPage />} />
               <Route path="/platform-discounts" element={<PlatformDiscountsPage />} />
               <Route path="/distribution" element={<DistributionUsagePage />} />
+
+              <Route path="/commerce" element={<CommerceOverviewPage />} />
+              <Route path="/commerce/channels" element={<CommerceChannelsPage />} />
+              <Route path="/commerce/jobs" element={<CommerceJobsPage />} />
+              <Route path="/commerce/orders" element={<CommerceOrdersPage />} />
+              <Route path="/commerce/couriers" element={<CommerceCouriersPage />} />
+              <Route path="/commerce/controls" element={<CommerceControlsPage />} />
 
               <Route path="/mobile" element={<MobileOverviewPage />} />
               <Route path="/mobile/devices" element={<MobileDevicesPage />} />

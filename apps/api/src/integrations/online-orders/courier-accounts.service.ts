@@ -18,6 +18,7 @@ import { shopDue } from './shop-due';
 import { COURIERS, courierName } from './couriers';
 import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
+import { eventsFromHistory, mergeEvents } from './courier-api/tracking-events';
 import { isDispatched, isFinal, normalizeCourierStatus } from './courier-api/status';
 import { CourierApiError, CourierCity, CourierCreds, CourierSettings, CourierState, PortalShipment, TrackResult } from './courier-api/types';
 import { apiMessage } from '../../common/i18n/api-message';
@@ -746,6 +747,14 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     return this.wrap(() => api.adapter.label(creds, tns[0]));
   }
 
+  /** Hands a day's CNs to the courier's loadsheet API; null when the courier has none or is not connected. */
+  async courierLoadsheet(tenantId: string, code: string, trackingNumbers: string[]) {
+    const api = courierApi(code);
+    if (!api?.adapter.loadsheet) return null;
+    const { cfg, creds } = await this.account(tenantId, code);
+    return this.wrap(() => api.adapter.loadsheet!(creds, readSettings(cfg), trackingNumbers));
+  }
+
   /** Courier ka status order par lagao: utha → raste me, deliver, RTO */
   private async applyTracking(cfg: CourierConfig, order: { id: string; orderStatus: string; courierStatus: string | null; tenantId: string }, r: TrackResult) {
     await this.prisma.channelOrder.update({
@@ -774,9 +783,23 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * The latest courier status on the order (courierTrail) with every step as
+   * normalised events, merged with the steps saved before. The courier's
+   * portal row for the same CN gets the same events.
+   */
   private async withCourierTrail(orderId: string, r: TrackResult) {
-    const row = await this.prisma.channelOrder.findUnique({ where: { id: orderId }, select: { metadata: true } });
-    return { ...((row?.metadata as any) ?? {}), courierTrail: { label: r.label, state: r.state, history: r.history, at: new Date().toISOString() } } as Prisma.InputJsonValue;
+    const row = await this.prisma.channelOrder.findUnique({ where: { id: orderId }, select: { metadata: true, tenantId: true } });
+    const meta = (row?.metadata as any) ?? {};
+    const prev = meta.courierTrail;
+    const events = mergeEvents(prev?.cn === r.trackingNumber || (!prev?.cn && prev?.events) ? prev?.events : [], r.events ?? eventsFromHistory(r.history));
+    if (row && events.length) {
+      await this.prisma.courierShipment.updateMany({
+        where: { tenantId: row.tenantId, trackingNumber: r.trackingNumber },
+        data: { events: events as unknown as Prisma.InputJsonValue, lastEvent: r.label || null, lastEventAt: new Date() },
+      }).catch(() => null);
+    }
+    return { ...meta, courierTrail: { label: r.label, state: r.state, history: r.history, events, cn: r.trackingNumber, at: new Date().toISOString() } } as Prisma.InputJsonValue;
   }
 
   // ═══════════════════════════════════════════════════════════

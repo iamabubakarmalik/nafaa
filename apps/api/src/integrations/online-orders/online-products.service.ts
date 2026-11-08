@@ -18,6 +18,7 @@ import { channelPrice, PriceRule, readPriceRule, samePrice } from './channel-pri
 import { MatchIndex, MatchProduct, suggestAll } from './product-matcher';
 import { friendlySyncError, markLinks } from './link-sync';
 import { mappingKey } from './mapping-key';
+import { pausedMessage, pushPaused } from './commerce-controls';
 
 /** Channels whose products Nafaa links, prices and keeps in stock. */
 export const PRODUCT_CHANNEL_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'CUSTOM_WEBSITE'] as const;
@@ -730,6 +731,7 @@ export class OnlineProductsService implements OnModuleInit {
     if (c.mode === 'indolj') throw new BadRequestException('Indolj par Stock track nahi hota aur Price Indolj panel se badalti hai — bhejne ko kuch nahi');
     if (c.mode === 'website') throw new BadRequestException('Website Stock aur Price khud Nafaa se leti hai — yahan se bhejne ki zaroorat nahi');
     if (!this.connected(c.integration)) throw new BadRequestException('Channel jura nahi — pehle channel ka safha khol kar jorein');
+    if (await pushPaused(this.prisma, c.integration.type)) throw new BadRequestException(pausedMessage(c.integration.type));
     const out: { stock: unknown; prices: number; error: string | null; stockOff: boolean } = { stock: null, prices: 0, error: null, stockOff: !c.cfg.pushStock };
     try {
       out.stock = await this.syncStock(c.integration);
@@ -780,6 +782,8 @@ export class OnlineProductsService implements OnModuleInit {
   /** Stock and price for some products on one channel (after linking, or "Sync now"). */
   async syncProducts(i: Integration, productIds: string[], force = false) {
     if (!(PUSH_TYPES as readonly string[]).includes(i.type) || !this.connected(i) || !productIds.length) return;
+    // Platform kill switch: the job or "Sync now" reports the pause instead of sending.
+    if (await pushPaused(this.prisma, i.type)) throw new BadRequestException(pausedMessage(i.type));
     if (i.type === 'DARAZ') {
       await this.daraz.syncStock(i, { productIds });
     } else if (i.type === 'WOOCOMMERCE' || i.type === 'SHOPIFY') {

@@ -95,11 +95,18 @@ export function stockXml(rows: { itemId: string; skuId: string; sellerSku: strin
 }
 
 /** Price update XML: the normal Price of each SKU (20 SKUs per request). A running Daraz sale price is left alone. */
-export function priceXml(rows: { itemId: string; skuId: string; sellerSku: string; price: number }[]) {
+export function priceXml(rows: { itemId: string; skuId: string; sellerSku: string; price: number; salePrice?: number }[], today = new Date()) {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const skus = rows.map((r) =>
-    `<Sku><ItemId>${esc(r.itemId)}</ItemId><SkuId>${esc(r.skuId)}</SkuId><SellerSku>${esc(r.sellerSku)}</SellerSku><Price>${(Math.round(r.price * 100) / 100).toFixed(2)}</Price></Sku>`,
-  ).join('');
+  const money = (n: number) => (Math.round(n * 100) / 100).toFixed(2);
+  // Sale dates in Pakistan time, yyyy-MM-dd; the sale runs a year unless Nafaa changes it.
+  const day = (d: Date) => new Date(d.getTime() + 5 * 3600_000).toISOString().slice(0, 10);
+  const end = new Date(today.getTime() + 365 * 86_400_000);
+  const skus = rows.map((r) => {
+    const sale = r.salePrice && r.salePrice > 0 && r.salePrice < r.price
+      ? `<SalePrice>${money(r.salePrice)}</SalePrice><SaleStartDate>${day(today)}</SaleStartDate><SaleEndDate>${day(end)}</SaleEndDate>`
+      : '';
+    return `<Sku><ItemId>${esc(r.itemId)}</ItemId><SkuId>${esc(r.skuId)}</SkuId><SellerSku>${esc(r.sellerSku)}</SellerSku><Price>${money(r.price)}</Price>${sale}</Sku>`;
+  }).join('');
   return `<?xml version="1.0" encoding="UTF-8" ?><Request><Product><Skus>${skus}</Skus></Product></Request>`;
 }
 

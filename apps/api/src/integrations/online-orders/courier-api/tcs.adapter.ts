@@ -1,3 +1,4 @@
+import { TRACKING_MAPPERS } from './tracking-events';
 import { courierFetch, fetchPdfOrJson, findUrl } from './http';
 import { normalizeCourierStatus } from './status';
 import { pkPhone } from './postex.adapter';
@@ -172,6 +173,7 @@ export const tcsAdapter: CourierAdapter = {
         label,
         at: null,
         history: [...checkpoints].reverse().slice(-20).map((h) => ({ label: String(h.status ?? ''), at: h.datetime ?? null })),
+        events: TRACKING_MAPPERS.TCS(body),
       });
     }
     return out;

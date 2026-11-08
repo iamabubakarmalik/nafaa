@@ -111,6 +111,7 @@ export const COURIER_OPTIONS = [
   { code: 'CALL_COURIER', name: 'Call Courier' },
   { code: 'DAEWOO', name: 'Daewoo FastEx' },
   { code: 'TPL_RIDER', name: 'Rider (TPL)' },
+  { code: 'PAKPOST', name: 'Pakistan Post' },
   { code: 'OTHER', name: 'Doosra' },
 ];
 
