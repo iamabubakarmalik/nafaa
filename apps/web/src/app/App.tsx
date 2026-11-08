@@ -27,8 +27,8 @@ import TaxPage from '@modules/tax/TaxPage';
 import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage, OnlineProductsPage,
-  CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage,
+  OnlineOrdersPage, CommerceHomePage, CommerceSoonPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage, OnlineProductsPage,
+  CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage, AddOrderPage, EditOrderPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -441,7 +441,11 @@ export default function App() {
                   <Route path="/settings/danger" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.SETTINGS_MANAGE, <SettingsSectionPage section="danger" />))} />
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
                   <Route path="/integrations" element={secure(PERMISSIONS.SETTINGS_VIEW, <IntegrationHubPage />)} />
+                  <Route path="/online-store" element={secure(PERMISSIONS.SALES_VIEW, <CommerceHomePage />)} />
+                  <Route path="/online-store/soon/:key" element={secure(PERMISSIONS.SALES_VIEW, <CommerceSoonPage />)} />
                   <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />
+                  <Route path="/online-orders/new" element={secure(PERMISSIONS.SALES_VIEW, <AddOrderPage />)} />
+                  <Route path="/online-orders/:id/edit" element={secure(PERMISSIONS.SALES_VIEW, <EditOrderPage />)} />
                   <Route path="/online-orders/cod" element={secure(PERMISSIONS.SALES_VIEW, <CodPage />)} />
                   <Route path="/online-orders/cod/reconcile" element={secure(PERMISSIONS.SALES_VIEW, <CodReconcilePage />)} />
                   <Route path="/online-orders/pack" element={secure(PERMISSIONS.SALES_VIEW, <PackPage />)} />

@@ -3,9 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
-import { GridFilter, OnlineProductsService } from './online-products.service';
+import { BulkAction, GridFilter, OnlineProductsService, Selection, SettingsBody } from './online-products.service';
 import type { LinkInput } from './channel-catalog.service';
-import type { PriceRule } from './channel-price';
 
 /**
  * Online products: one place for linking, channel prices and stock across
@@ -82,7 +81,7 @@ export class OnlineProductsController {
 
   @Put('channels/:id/settings')
   @ApiOperation({ summary: 'Channel price rule, price push and stock buffer' })
-  settings(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) {
+  settings(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: SettingsBody) {
     return this.svc.saveSettings(user, id, body ?? {});
   }
 
@@ -94,8 +93,50 @@ export class OnlineProductsController {
 
   @Post('items/:productId/sync')
   @ApiOperation({ summary: 'Send one product\'s stock and prices to every linked channel now' })
-  syncProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) {
-    return this.svc.syncProduct(user, productId);
+  syncProduct(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string, @Query('content') content?: string) {
+    return this.svc.syncProduct(user, productId, { content: content === '1' });
+  }
+
+  @Put('links/:mappingId')
+  @ApiOperation({ summary: 'Listed, own stock share, own price and sale price for one link' })
+  updateLink(@GetUser() user: AuthenticatedUser, @Param('mappingId') mappingId: string, @Body() body: { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }) {
+    return this.svc.updateLink(user, mappingId, body ?? {});
+  }
+
+  @Post('bulk')
+  @ApiOperation({ summary: 'One action on picked products (or all matching): listed, stock share, price, sale price, push, publish' })
+  bulk(@GetUser() user: AuthenticatedUser, @Body() body: { selection?: Selection; action?: BulkAction; channelId?: string | null; value?: unknown }) {
+    return this.svc.bulk(user, body ?? {});
+  }
+
+  @Post('channels/:id/import-all')
+  @ApiOperation({ summary: 'Make every unmatched channel item in Nafaa (background job)' })
+  importAll(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.importAll(user, id);
+  }
+
+  @Post('channels/:id/link-all')
+  @ApiOperation({ summary: 'Link every SKU/barcode match (background job)' })
+  linkAll(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.linkAll(user, id);
+  }
+
+  @Get('jobs')
+  @ApiOperation({ summary: 'Running and recent catalog jobs with progress' })
+  jobs(@GetUser() user: AuthenticatedUser) {
+    return this.svc.jobsList(user);
+  }
+
+  @Get('jobs/:jobId')
+  @ApiOperation({ summary: 'One catalog job with progress' })
+  job(@GetUser() user: AuthenticatedUser, @Param('jobId') jobId: string) {
+    return this.svc.job(user, jobId);
+  }
+
+  @Post('jobs/:jobId/cancel')
+  @ApiOperation({ summary: 'Stop a running catalog job' })
+  cancelJob(@GetUser() user: AuthenticatedUser, @Param('jobId') jobId: string) {
+    return this.svc.cancelJob(user, jobId);
   }
 
   @Put('links/:mappingId/price')

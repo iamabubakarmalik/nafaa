@@ -2,10 +2,12 @@
  * Online products: every Nafaa product and size against every connected
  * channel (Daraz, each WooCommerce site, Shopify). Each cell shows whether it
  * is linked, the Price Nafaa sets there, the Stock sent and the last sync.
- * Linking (with SKU and name suggestions), channel Price rules, per-product
- * Price, stock buffer and "Sync now" all start here.
+ * Nafaa is the master list: import or link a whole channel in one click
+ * (background job with progress), split Stock per channel, switch a product
+ * Listed/off per channel, own Price and Sale price, and bulk actions on the
+ * picked products or on every product matching the filter.
  *
- * Keys: / search · R refresh.
+ * Keys: / search · R refresh · G guide.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,11 +15,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, BadgeDollarSign, Boxes, CheckCircle2, Clock, Link2, Link2Off, Package, PackageCheck, PackageX, Plus, RefreshCw,
+  AlertTriangle, BadgeDollarSign, Boxes, CheckCircle2, ChevronDown, Clock, Download, EyeOff, GraduationCap, Link2, Link2Off, Package, PackageCheck, PackageX, Plus, RefreshCw,
   Settings2, Store, type LucideIcon,
 } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Skeleton, heroButton, heroIconButton, confirmDialog,
+  Button, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Skeleton, Switch, heroButton, heroIconButton, confirmDialog,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -25,17 +27,21 @@ import { usePermission } from '@core/hooks/usePermission';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { apiErrorMessage } from '../api/online-orders.api';
 import {
-  ONLINE_PRODUCTS_KEY, onlineProductsApi, type GridCell, type GridFilter, type GridItem, type GridRow, type LinkedCell, type OnlineChannel,
+  ONLINE_PRODUCTS_KEY, onlineProductsApi, type GridCell, type GridFilter, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type Selection,
 } from '../api/online-products.api';
 import { timeAgo } from '../lib/labels';
-import { ChannelMark, channelName, kindOf, priceText, refreshOnlineProducts, rs, stockText, WEBSITE_LINKS_NOTE } from '../components/online-products/meta';
+import { ChannelMark, channelName, kindOf, lastPushText, priceText, refreshOnlineProducts, rs, stockText, WEBSITE_LINKS_NOTE } from '../components/online-products/meta';
+import { JOBS_KEY, JobsPanel } from '../components/online-products/JobsPanel';
+import { MasterBulkBar } from '../components/online-products/MasterBulkBar';
+import { ProductsGuide } from '../components/online-products/ProductsGuide';
+import { usePageGuide } from '@core/components/PageGuide';
 import { LinkModal, type LinkFocus } from '../components/online-products/LinkModal';
 import { ChannelSettingsModal } from '../components/online-products/ChannelSettingsModal';
 import { CellModal } from '../components/online-products/CellModal';
 import { IssuesPanel } from '../components/online-products/IssuesPanel';
 import { t as tr } from '@core/i18n';
 
-const LIMIT = 25;
+const PAGE_SIZES = [25, 50, 100];
 
 const TABS: Array<{ id: GridFilter; label: string; icon: LucideIcon; tone?: string }> = [
   { id: 'all', label: tr('Sab'), icon: Boxes },
@@ -44,6 +50,7 @@ const TABS: Array<{ id: GridFilter; label: string; icon: LucideIcon; tone?: stri
   { id: 'price', label: tr('Price farq'), icon: BadgeDollarSign, tone: 'text-amber-600' },
   { id: 'out', label: tr('Stock khatam'), icon: PackageX, tone: 'text-rose-600' },
   { id: 'linked', label: tr('Jure hue'), icon: Link2, tone: 'text-success-600' },
+  { id: 'unlisted', label: tr('Band (unlisted)'), icon: EyeOff, tone: 'text-slate-500' },
 ];
 
 type Open =
@@ -79,15 +86,22 @@ export default function OnlineProductsPage() {
     if (f !== filter && TABS.some((t) => t.id === f)) setFilterState(f);
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
   const [open, setOpen] = useState<Open | null>(null);
+  const guide = usePageGuide();
+  // Picked products on this page, or every product matching the filter.
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [allMatching, setAllMatching] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const clearPick = () => { setPicked(new Set()); setAllMatching(false); };
 
   useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { setPage(1); }, [query, filter, channelId]);
+  useEffect(() => { setPage(1); clearPick(); }, [query, filter, channelId, limit]);
 
   const channelsQ = useQuery({ queryKey: [ONLINE_PRODUCTS_KEY, 'channels'], queryFn: onlineProductsApi.channels, staleTime: 30_000 });
   const gridQ = useQuery({
-    queryKey: [ONLINE_PRODUCTS_KEY, 'grid', { page, query, filter, channelId }],
-    queryFn: () => onlineProductsApi.grid({ page, limit: LIMIT, search: query || undefined, filter, channelId: channelId || undefined }),
+    queryKey: [ONLINE_PRODUCTS_KEY, 'grid', { page, query, filter, channelId, limit }],
+    queryFn: () => onlineProductsApi.grid({ page, limit, search: query || undefined, filter, channelId: channelId || undefined }),
     placeholderData: (p) => p,
   });
   const summaryQ = useQuery({ queryKey: [ONLINE_PRODUCTS_KEY, 'summary', channelId], queryFn: () => onlineProductsApi.summary(channelId || undefined), staleTime: 30_000 });
@@ -125,6 +139,21 @@ export default function OnlineProductsPage() {
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
+  const startJob = useMutation({
+    mutationFn: ({ c, kind }: { c: OnlineChannel; kind: 'import' | 'link' }) => (kind === 'import' ? onlineProductsApi.importAll(c.id) : onlineProductsApi.linkAll(c.id)),
+    onSuccess: (r, { c, kind }) => {
+      qc.invalidateQueries({ queryKey: JOBS_KEY });
+      if (r.existing) toast.info(tr('Ye kaam pehle se chal raha hai'));
+      else if (!r.job.total) toast.info(kind === 'import' ? tr('{{channelName}}: Nafaa me lane ko kuch nahi — sab jure ya milte hain', { channelName: channelName(c) }) : tr('{{channelName}}: koi pakka match baqi nahi', { channelName: channelName(c) }));
+      else toast.success(kind === 'import' ? tr('{{count}} products Nafaa me aa rahe hain', { count: r.job.total }) : tr('{{count}} pakke match jur rahe hain', { count: r.job.total }));
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const setListed = useMutation({
+    mutationFn: ({ mappingId, listed }: { mappingId: string; listed: boolean }) => onlineProductsApi.updateLink(mappingId, { listed }),
+    onSuccess: (_r, v) => { refresh(); toast.success(v.listed ? tr('Listed — channel par dikhega') : tr('Band — channel par chhup jayega')); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
   const unlinkSizeLess = useMutation({
     mutationFn: (mappingId: string) => onlineProductsApi.unlink(mappingId),
     onSuccess: () => { refresh(); toast.success(tr('Bina size wala link hata diya — ab har size jorein')); },
@@ -145,6 +174,15 @@ export default function OnlineProductsPage() {
   const failedRows = channels.reduce((n, c) => n + (c.failed ?? 0), 0);
   const channelLabel = channels.find((c) => c.id === channelId);
   const filtered = !!query || !!channelId || filter !== 'all';
+  const pageIds = g?.items.map((i) => i.productId) ?? [];
+  const pagePicked = pageIds.length > 0 && pageIds.every((id) => picked.has(id));
+  const pickCount = allMatching ? g?.total ?? 0 : picked.size;
+  const selection: Selection = allMatching
+    ? { all: true, search: query || undefined, filter, channelId: channelId || undefined }
+    : { productIds: [...picked] };
+  const togglePick = (id: string) => { setAllMatching(false); setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; }); };
+  const togglePage = () => { setAllMatching(false); setPicked((p) => { const n = new Set(p); if (pagePicked) pageIds.forEach((id) => n.delete(id)); else pageIds.forEach((id) => n.add(id)); return n; }); };
+  const toggleOpen = (id: string) => setExpanded((e) => { const n = new Set(e); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
     <PageShell>
@@ -157,6 +195,7 @@ export default function OnlineProductsPage() {
         actions={<>
           <Link to="/online-store/channels" className={heroButton}><Store className="h-4 w-4" /><span className="max-sm:hidden">{tr('Channels')}</span></Link>
           <button type="button" onClick={refresh} title={tr('Taaza karein (R)')} className={heroIconButton}><RefreshCw className={cn('h-4 w-4', gridQ.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
           { label: tr('Jure hue'), value: channelsQ.data ? linkedRows.toLocaleString('en-PK') : '', hint: channels.length ? tr('{{sellable}} products/sizes × {{count}} channels', { sellable: sellable.toLocaleString('en-PK'), count: channels.length }) : undefined },
@@ -176,6 +215,8 @@ export default function OnlineProductsPage() {
           <Link to="/online-store/connect" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" /> {' '}{tr('Channel jorein')}</Link>
         </div>
       ) : (<>
+        <JobsPanel channels={channels} />
+
         <IssuesPanel channels={channels} canManage={canManage}
           onLink={(c) => setOpen({ kind: 'link', channel: c })}
           onFilter={(c, f) => { setChannelId(c.id); setFilter(f); }} />
@@ -184,6 +225,9 @@ export default function OnlineProductsPage() {
           {channels.map((c) => (
             <ChannelCard key={c.id} c={c} sellable={sellable} canManage={canManage}
               syncing={syncChannel.isPending && syncChannel.variables?.id === c.id}
+              starting={startJob.isPending && startJob.variables?.c.id === c.id ? startJob.variables.kind : null}
+              onImportAll={() => startJob.mutate({ c, kind: 'import' })}
+              onLinkAll={() => startJob.mutate({ c, kind: 'link' })}
               onLink={() => setOpen({ kind: 'link', channel: c })}
               onSettings={() => setOpen({ kind: 'settings', channel: c })}
               onSync={() => syncChannel.mutate(c)} />
@@ -213,6 +257,8 @@ export default function OnlineProductsPage() {
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
           </> : undefined}
           onClear={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>
+          <FilterMenu icon={Boxes} label={tr('{{limit}} / safha', { limit })} value={String(limit)} active={false} onChange={(v) => setLimit(Number(v) || 25)} align="right" width="w-40"
+            options={PAGE_SIZES.map((n) => ({ value: String(n), label: tr('{{n}} products', { n }) }))} />
           {channels.length > 1 && (
             <FilterMenu icon={Store} label={tr('Channel')} value={channelId} active={!!channelId} onChange={setChannelId} align="right" width="w-72"
               options={[{ value: '', label: tr('Sab channels') }, ...channels.map((c) => ({ value: c.id, label: channelName(c), hint: kindOf(c).label, color: kindOf(c).color }))]} />
@@ -235,11 +281,23 @@ export default function OnlineProductsPage() {
             {filtered && <Button className="mt-4" variant="ghost" onClick={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>{tr('Filter saaf karein')}</Button>}
           </div>
         ) : (<>
+          {canManage && pagePicked && g.total > pageIds.length && (
+            <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-brand-50 px-3 py-2 text-[0.8125rem] text-brand-900 ring-1 ring-brand-100">
+              {allMatching
+                ? <>{tr('Is filter ke sab {{total}} products chune hain.', { total: g.total.toLocaleString('en-PK') })}<button type="button" className="font-semibold underline" onClick={clearPick}>{tr('Chunna khatam')}</button></>
+                : <>{tr('Is safhe ke {{count}} chune.', { count: pageIds.length })}<button type="button" className="font-semibold underline" onClick={() => setAllMatching(true)}>{tr('Sab {{total}} chunein', { total: g.total.toLocaleString('en-PK') })}</button></>}
+            </div>
+          )}
           {/* Desktop and tablet: one column per channel */}
           <div className="hidden overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80 md:block">
             <table className="w-full border-separate border-spacing-0" style={{ minWidth: `${18 + cols.length * 12}rem` }}>
               <thead>
                 <tr className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  {canManage && (
+                    <th className="sticky start-0 z-10 w-10 border-b border-slate-100 bg-slate-50 ps-3">
+                      <input type="checkbox" aria-label={tr('Is safhe ke sab chunein')} checked={pagePicked} onChange={togglePage} className="h-4 w-4 rounded border-slate-300" />
+                    </th>
+                  )}
                   {/* With one or two channels the product column would take all the spare width; cap it so the channel columns get it. */}
                   <th className="sticky start-0 z-10 border-b border-slate-100 bg-slate-50 py-2.5 ps-4 pe-3"
                     style={cols.length <= 2 ? { width: cols.length === 1 ? tr('min(26rem, 42%)') : tr('min(24rem, 34%)') } : undefined}>{tr('Product')}</th>
@@ -259,6 +317,9 @@ export default function OnlineProductsPage() {
               <tbody>
                 {g.items.map((item) => (
                   <ProductRows key={item.productId} item={item} cols={cols} canManage={canManage}
+                    picked={allMatching || picked.has(item.productId)} onPick={() => togglePick(item.productId)}
+                    open={expanded.has(item.productId)} onToggle={() => toggleOpen(item.productId)}
+                    onListed={(mappingId, listed) => setListed.mutate({ mappingId, listed })}
                     syncing={syncProduct.isPending && syncProduct.variables === item.productId}
                     onSync={() => syncProduct.mutate(item.productId)}
                     onCell={(c, cell, row) => openCell(c, cell, item, row)}
@@ -272,6 +333,8 @@ export default function OnlineProductsPage() {
           <ul className="space-y-3 md:hidden">
             {g.items.map((item) => (
               <ProductCard key={item.productId} item={item} cols={cols} canManage={canManage}
+                picked={allMatching || picked.has(item.productId)} onPick={() => togglePick(item.productId)}
+                open onToggle={() => undefined} onListed={(mappingId, listed) => setListed.mutate({ mappingId, listed })}
                 syncing={syncProduct.isPending && syncProduct.variables === item.productId}
                 onSync={() => syncProduct.mutate(item.productId)}
                 onCell={(c, cell, row) => openCell(c, cell, item, row)}
@@ -289,6 +352,8 @@ export default function OnlineProductsPage() {
         </>)}
       </>)}
 
+      {canManage && pickCount > 0 && <MasterBulkBar count={pickCount} selection={selection} channels={channels} onClear={clearPick} />}
+      {guide.isOpen && <ProductsGuide onClose={guide.close} />}
       {open?.kind === 'link' && <LinkModal channel={open.channel} focus={open.focus} canManage={canManage} onClose={() => setOpen(null)} />}
       {open?.kind === 'settings' && <ChannelSettingsModal channel={open.channel} onClose={() => setOpen(null)} />}
       {open?.kind === 'cell' && (
@@ -301,8 +366,9 @@ export default function OnlineProductsPage() {
 
 /* ═════════════════════ Channel card ═════════════════════ */
 
-function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSync }: {
-  c: OnlineChannel; sellable: number; canManage: boolean; syncing: boolean; onLink: () => void; onSettings: () => void; onSync: () => void;
+function ChannelCard({ c, sellable, canManage, syncing, starting, onImportAll, onLinkAll, onLink, onSettings, onSync }: {
+  c: OnlineChannel; sellable: number; canManage: boolean; syncing: boolean; starting: 'import' | 'link' | null;
+  onImportAll: () => void; onLinkAll: () => void; onLink: () => void; onSettings: () => void; onSync: () => void;
 }) {
   const pct = sellable ? Math.min(100, Math.round(((c.linked ?? 0) / sellable) * 100)) : 0;
   const k = kindOf(c);
@@ -337,6 +403,16 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
       </dl>
       {!c.canFetch && <p className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200/80">{WEBSITE_LINKS_NOTE}</p>}
 
+      {canManage && c.canFetch && (
+        <div className="mb-2 grid grid-cols-2 gap-2">
+          <Button size="sm" variant="secondary" loading={starting === 'import'} disabled={!c.live && c.canPush} onClick={onImportAll} leftIcon={<Download className="h-4 w-4" />} title={tr('Channel ke jo products Nafaa me nahi, sab ban jayein')}>
+            <span className="truncate">{tr('Sab le aayein')}</span>
+          </Button>
+          <Button size="sm" variant="secondary" loading={starting === 'link'} disabled={!c.live && c.canPush} onClick={onLinkAll} leftIcon={<Link2 className="h-4 w-4" />} title={tr('SKU/barcode wale sab match jor dein')}>
+            <span className="truncate">{tr('Sab pakke jorein')}</span>
+          </Button>
+        </div>
+      )}
       {canManage && (
         <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-3">
           {c.canFetch && <Button size="sm" onClick={onLink} leftIcon={<Link2 className="h-4 w-4" />}>{tr('Jorein')}</Button>}
@@ -369,22 +445,56 @@ function Thumb({ src, small }: { src: string | null; small?: boolean }) {
 
 interface RowProps {
   item: GridItem; cols: OnlineChannel[]; canManage: boolean; syncing: boolean;
+  picked: boolean; onPick: () => void; open: boolean; onToggle: () => void;
   onSync: () => void; onCell: (c: OnlineChannel, cell: GridCell, row: GridRow) => void; onSizeLess: (mappingId: string, c: OnlineChannel) => void;
+  onListed: (mappingId: string, listed: boolean) => void;
 }
 
 /** Linked on a channel Nafaa pushes to (only those have "Sync now"). */
 const anyLinked = (item: GridItem, cols: OnlineChannel[]) => item.rows.some((r) => cols.some((c) => c.canPush && r.cells[c.id]?.linked));
 
-function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLess }: RowProps) {
+/** "Nafaa 100 → Daraz 30 · Shopify 20" for one product/size. */
+function Split({ row, cols }: { row: GridRow; cols: OnlineChannel[] }) {
+  const parts = cols.filter((c) => c.canPush && c.tracksStock && row.cells[c.id]?.linked);
+  if (row.nafaaStock === null || !parts.length) return null;
+  return (
+    <span className="flex flex-wrap items-center gap-x-1 text-[0.71875rem] text-slate-500">
+      <span className="font-semibold text-slate-700">{tr('Nafaa {{count}}', { count: row.nafaaStock })}</span>
+      <span aria-hidden>→</span>
+      {parts.map((c, i) => {
+        const cell = row.cells[c.id] as LinkedCell;
+        return (
+          <span key={c.id} className={cn(!cell.listed && 'text-slate-400 line-through')}>
+            {channelName(c)} <b className="tabular-nums text-slate-700">{cell.stock ?? 0}</b>{i < parts.length - 1 ? ' ·' : ''}
+          </span>
+        );
+      })}
+      {row.scaled && <span className="ms-1 rounded bg-amber-50 px-1 font-semibold text-amber-700" title={tr('Fixed hisse Stock se zyada the — sab barabar kam kiye')}>{tr('kam kiya')}</span>}
+    </span>
+  );
+}
+
+function PickBox({ picked, onPick, label }: { picked: boolean; onPick: () => void; label: string }) {
+  return <input type="checkbox" checked={picked} onChange={onPick} aria-label={label} className="h-4 w-4 rounded border-slate-300" />;
+}
+
+function ProductRows({ item, cols, canManage, syncing, picked, onPick, open, onToggle, onSync, onCell, onSizeLess, onListed }: RowProps) {
   const sized = item.hasVariants && item.rows.some((r) => r.variantId);
   const head = (
     <div className="flex items-center gap-3">
+      {sized ? (
+        <button type="button" onClick={onToggle} aria-expanded={open} aria-label={open ? tr('Sizes chhupayein') : tr('Sizes dikhayein')}
+          className="-ms-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <ChevronDown className={cn('h-4 w-4 transition', !open && '-rotate-90')} />
+        </button>
+      ) : null}
       <Thumb src={item.image} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[0.875rem] font-semibold text-slate-900" title={item.name}>{item.name}</p>
         <p className="truncate text-[0.75rem] text-slate-500">
           {sized ? tr('{{count}} sizes', { count: item.rows.length }) : <>{item.sku ? <span className="font-mono">{item.sku}</span> : tr('SKU nahi')} {' '}{tr('· Nafaa {{rs}}', { rs: rs(item.rows[0]?.price ?? item.price) })}</>}
         </p>
+        {!sized && item.rows[0] && <Split row={item.rows[0]} cols={cols} />}
       </div>
       {canManage && anyLinked(item, cols) && (
         <button type="button" onClick={onSync} disabled={syncing} title={tr('Is product ka Stock aur Price abhi bhejein')} aria-label={tr('Abhi bhejein')}
@@ -394,46 +504,59 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
       )}
     </div>
   );
-  const firstCell = 'sticky start-0 z-[1] border-b border-slate-100 bg-white py-2 ps-4 pe-3';
+  const pickCell = 'sticky start-0 z-[1] w-10 border-b border-slate-100 bg-white ps-3';
+  const firstCell = cn('sticky z-[1] border-b border-slate-100 bg-white py-2 ps-4 pe-3', canManage ? 'start-10' : 'start-0');
+  const pickTd = canManage ? <td className={cn(pickCell, sized && open && 'border-b-0')}><PickBox picked={picked} onPick={onPick} label={tr('{{name}} chunein', { name: item.name })} /></td> : null;
   if (!sized) {
     const row = item.rows[0];
     return (
-      <tr className="align-middle">
+      <tr className={cn('align-middle', picked && '[&>td]:bg-brand-50/40')}>
+        {pickTd}
         <td className={firstCell}>{head}</td>
-        {cols.map((c) => <td key={c.id} className="border-b border-s border-slate-100 p-1.5"><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+        {cols.map((c) => <td key={c.id} className="border-b border-s border-slate-100 p-1.5"><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} onListed={onListed} /></td>)}
       </tr>
     );
   }
   return (
     <>
-      <tr className="align-top">
-        <td className={cn(firstCell, 'border-b-0 pb-1')}>{head}</td>
+      <tr className={cn('align-top', picked && '[&>td]:bg-brand-50/40')}>
+        {pickTd}
+        <td className={cn(firstCell, open && 'border-b-0 pb-1')}>{head}</td>
         {cols.map((c) => {
           const bad = item.sizeLess[c.id];
-          const linked = item.rows.filter((r) => r.cells[c.id]?.linked).length;
+          const linkedRows = item.rows.filter((r) => r.cells[c.id]?.linked);
+          const off = linkedRows.filter((r) => (r.cells[c.id] as LinkedCell).listed === false).length;
+          const sent = linkedRows.reduce((n, r) => n + Number((r.cells[c.id] as LinkedCell).stock ?? 0), 0);
           return (
-            <td key={c.id} className="border-s border-slate-100 px-3 pb-1 pt-2.5 align-middle">
+            <td key={c.id} className={cn('border-s border-slate-100 px-3 pb-1 pt-2.5 align-middle', !open && 'border-b')}>
               {bad ? (
                 <button type="button" disabled={!canManage} onClick={() => onSizeLess(bad, c)}
                   className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-start text-[0.71875rem] font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {' '}{tr('Size ke baghair jura — theek karein')}
                 </button>
               ) : (
-                <span className={cn('text-[0.71875rem] font-semibold', linked === item.rows.length ? 'text-success-700' : 'text-slate-500')}>{tr('{{linked}}/{{count}} sizes jure', { linked, count: item.rows.length })}</span>
+                <span className="block text-[0.71875rem]">
+                  <span className={cn('font-semibold', linkedRows.length === item.rows.length ? 'text-success-700' : 'text-slate-500')}>{tr('{{linked}}/{{count}} sizes jure', { linked: linkedRows.length, count: item.rows.length })}</span>
+                  {linkedRows.length > 0 && c.tracksStock && <span className="block text-slate-500">{tr('Stock {{sent}}', { sent })}{off ? tr(' · {{off}} band', { off }) : ''}</span>}
+                </span>
               )}
             </td>
           );
         })}
       </tr>
-      {item.rows.map((row, i) => (
+      {open && item.rows.map((row, i) => (
         <tr key={row.variantId ?? i} className="align-middle">
+          {canManage && <td className={cn(pickCell, i < item.rows.length - 1 ? 'border-b-slate-50' : '')} />}
           <td className={cn(firstCell, i < item.rows.length - 1 && 'border-b-slate-50')}>
-            <div className="flex items-center gap-2 ps-[3.25rem]">
-              <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.75rem] font-semibold text-slate-800">{row.label}</span>
-              <span className="min-w-0 truncate text-[0.75rem] text-slate-500">{row.sku ? <span className="font-mono">{row.sku}</span> : null}{row.sku ? ' · ' : ''}{rs(row.price)}</span>
+            <div className="ps-[5rem]">
+              <div className="flex items-center gap-2">
+                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.75rem] font-semibold text-slate-800">{row.label}</span>
+                <span className="min-w-0 truncate text-[0.75rem] text-slate-500">{row.sku ? <span className="font-mono">{row.sku}</span> : null}{row.sku ? ' · ' : ''}{rs(row.price)}</span>
+              </div>
+              <Split row={row} cols={cols} />
             </div>
           </td>
-          {cols.map((c) => <td key={c.id} className={cn('border-s border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+          {cols.map((c) => <td key={c.id} className={cn('border-s border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} onListed={onListed} /></td>)}
         </tr>
       ))}
     </>
@@ -447,7 +570,7 @@ function StatusIcon({ cell }: { cell: LinkedCell }) {
   return <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-label={tr('Abhi nahi bheja')} />;
 }
 
-function Cell({ c, cell, canManage, onOpen }: { c: OnlineChannel; cell?: GridCell; canManage: boolean; onOpen: () => void }) {
+function Cell({ c, cell, canManage, onOpen, onListed }: { c: OnlineChannel; cell?: GridCell; canManage: boolean; onOpen: () => void; onListed: (mappingId: string, listed: boolean) => void }) {
   if (!cell) return null;
   if (!cell.linked) {
     // A developer-built site links through its orders or CSV, so there is nothing to pick here.
@@ -460,40 +583,54 @@ function Cell({ c, cell, canManage, onOpen }: { c: OnlineChannel; cell?: GridCel
       </button>
     );
   }
+  const off = cell.listed === false;
+  const push = lastPushText(cell.lastPush);
   return (
-    <button type="button" onClick={onOpen}
-      className={cn('block w-full rounded-xl px-2.5 py-1.5 text-start ring-1 transition hover:bg-slate-50',
-        cell.status === 'FAILED' ? 'bg-rose-50/60 ring-rose-200' : cell.priceDiffers ? 'ring-amber-200' : 'ring-transparent hover:ring-slate-200')}>
-      <span className="flex items-center justify-between gap-2">
-        <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-900">
-          {rs(cell.price)}{cell.override ? <span className="ms-1 rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">{tr('apni')}</span> : null}
+    <div className={cn('relative rounded-xl ring-1 transition hover:bg-slate-50',
+      cell.status === 'FAILED' ? 'bg-rose-50/60 ring-rose-200' : off ? 'bg-slate-50 ring-slate-200' : cell.priceDiffers ? 'ring-amber-200' : 'ring-transparent hover:ring-slate-200')}>
+      <button type="button" onClick={onOpen} title={push ?? undefined} className="block w-full px-2.5 py-1.5 text-start">
+        <span className={cn('flex items-center gap-1.5', c.canPush && 'pe-10')}>
+          <span className={cn('text-[0.8125rem] font-semibold tabular-nums', off ? 'text-slate-400' : 'text-slate-900')}>{rs(cell.price)}</span>
+          {cell.override ? <span className="rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">{tr('apni')}</span> : null}
+          {cell.compareAtPrice ? <span className="text-[0.6875rem] tabular-nums text-slate-400 line-through">{rs(cell.compareAtPrice)}</span> : null}
+          <StatusIcon cell={cell} />
         </span>
-        <StatusIcon cell={cell} />
-      </span>
-      <span className="block text-[0.71875rem] text-slate-500">
-        {!c.tracksStock ? tr('Stock track nahi') : <>{tr('Stock')}{' '} <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b></>}
-        {cell.lastSyncedAt && cell.status === 'SUCCESS' ? ` · ${timeAgo(cell.lastSyncedAt)}` : ''}
-      </span>
-      {cell.status === 'FAILED' && cell.error ? (
-        <span className="mt-0.5 line-clamp-2 block text-[0.6875rem] font-medium text-rose-700">{cell.error}</span>
-      ) : cell.priceDiffers && cell.channelPrice !== null ? (
-        <span className="mt-0.5 block text-[0.6875rem] font-semibold text-amber-700">{tr('Channel par {{channelPrice}}', { channelPrice: rs(cell.channelPrice) })}</span>
-      ) : null}
-    </button>
+        <span className="block text-[0.71875rem] text-slate-500">
+          {off ? <span className="font-semibold text-slate-500">{tr('Band')}</span>
+            : !c.tracksStock ? tr('Stock track nahi')
+              : <>{tr('Stock')}{' '} <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b>
+                {cell.allocQty !== null && cell.allocQty !== undefined ? <span className="ms-1 rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">{tr('fixed')}</span> : null}</>}
+          {cell.lastSyncedAt && cell.status === 'SUCCESS' ? ` · ${timeAgo(cell.lastSyncedAt)}` : ''}
+        </span>
+        {cell.status === 'FAILED' && cell.error ? (
+          <span className="mt-0.5 line-clamp-2 block text-[0.6875rem] font-medium text-rose-700">{cell.error}</span>
+        ) : cell.priceDiffers && cell.channelPrice !== null ? (
+          <span className="mt-0.5 block text-[0.6875rem] font-semibold text-amber-700">{tr('Channel par {{channelPrice}}', { channelPrice: rs(cell.channelPrice) })}</span>
+        ) : null}
+      </button>
+      {c.canPush && (
+        <span className="absolute end-2 top-1.5">
+          <Switch size="sm" checked={!off} disabled={!canManage} onChange={(e) => onListed(cell.mappingId, e.target.checked)}
+            aria-label={off ? tr('{{channelName}} par Listed karein', { channelName: channelName(c) }) : tr('{{channelName}} par band karein', { channelName: channelName(c) })} />
+        </span>
+      )}
+    </div>
   );
 }
 
 /* ═════════════════════ Phone card ═════════════════════ */
 
-function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLess }: RowProps) {
+function ProductCard({ item, cols, canManage, syncing, picked, onPick, onSync, onCell, onSizeLess, onListed }: RowProps) {
   const sized = item.hasVariants && item.rows.some((r) => r.variantId);
   return (
-    <li className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+    <li className={cn('overflow-hidden rounded-3xl bg-white shadow-sm ring-1', picked ? 'ring-brand-300' : 'ring-slate-200/80')}>
       <div className="flex items-center gap-3 px-3 py-2.5">
+        {canManage && <PickBox picked={picked} onPick={onPick} label={tr('{{name}} chunein', { name: item.name })} />}
         <Thumb src={item.image} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{item.name}</p>
           <p className="truncate text-[0.75rem] text-slate-500">{sized ? tr('{{count}} sizes', { count: item.rows.length }) : <>{tr('{{value}}Nafaa {{rs}}', { value: item.sku ? `${item.sku} · ` : '', rs: rs(item.rows[0]?.price ?? item.price) })}</>}</p>
+          {!sized && item.rows[0] && <Split row={item.rows[0]} cols={cols} />}
         </div>
         {canManage && anyLinked(item, cols) && (
           <button type="button" onClick={onSync} disabled={syncing} aria-label={tr('Abhi bhejein')} className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
@@ -511,24 +648,28 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
         {item.rows.map((row, i) => (
           <div key={row.variantId ?? i} className="px-3 py-2">
             {sized && (
-              <p className="mb-1.5 flex items-center gap-2 text-[0.75rem]">
-                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-800">{row.label}</span>
-                <span className="truncate text-slate-500">{row.sku ? `${row.sku} · ` : ''}{rs(row.price)}</span>
-              </p>
+              <div className="mb-1.5">
+                <p className="flex items-center gap-2 text-[0.75rem]">
+                  <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-800">{row.label}</span>
+                  <span className="truncate text-slate-500">{row.sku ? `${row.sku} · ` : ''}{rs(row.price)}</span>
+                </p>
+                <Split row={row} cols={cols} />
+              </div>
             )}
             <ul className="space-y-1">
               {cols.map((c) => {
                 const cell = row.cells[c.id];
                 if (!cell) return null;
+                const off = cell.linked && cell.listed === false;
                 return (
-                  <li key={c.id}>
+                  <li key={c.id} className="flex items-center gap-1">
                     <button type="button" onClick={() => onCell(c, cell, row)} disabled={!cell.linked && !(canManage && c.canFetch)}
-                      className="flex w-full items-center gap-2 rounded-xl px-1.5 py-1 text-start hover:bg-slate-50">
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-1.5 py-1 text-start hover:bg-slate-50">
                       <ChannelMark channel={c} size="sm" />
                       <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium text-slate-700">{channelName(c)}</span>
                       {cell.linked ? (
                         <>
-                          <span className="text-[0.75rem] tabular-nums text-slate-500">{c.tracksStock ? tr('Stock {{value}}', { value: cell.stock ?? '—' }) : tr('Stock track nahi')}</span>
+                          <span className="text-[0.75rem] tabular-nums text-slate-500">{off ? tr('Band') : c.tracksStock ? tr('Stock {{value}}', { value: cell.stock ?? '—' }) : tr('Stock track nahi')}</span>
                           <span className={cn('text-[0.8125rem] font-semibold tabular-nums', cell.priceDiffers ? 'text-amber-700' : 'text-slate-900')}>{rs(cell.price)}</span>
                           <StatusIcon cell={cell} />
                         </>
@@ -538,13 +679,20 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
                         </span>
                       )}
                     </button>
-                    {cell.linked && cell.status === 'FAILED' && cell.error && (
-                      <p className="line-clamp-2 pb-1 ps-9 pe-1.5 text-[0.6875rem] font-medium text-rose-700">{cell.error}</p>
+                    {cell.linked && c.canPush && (
+                      <Switch size="sm" checked={!off} disabled={!canManage} onChange={(e) => onListed(cell.mappingId, e.target.checked)}
+                        aria-label={off ? tr('{{channelName}} par Listed karein', { channelName: channelName(c) }) : tr('{{channelName}} par band karein', { channelName: channelName(c) })} />
                     )}
                   </li>
                 );
               })}
             </ul>
+            {row.cells && cols.map((c) => {
+              const cell = row.cells[c.id];
+              return cell?.linked && cell.status === 'FAILED' && cell.error
+                ? <p key={c.id} className="line-clamp-2 pb-1 ps-9 pe-1.5 text-[0.6875rem] font-medium text-rose-700">{channelName(c)}: {cell.error}</p>
+                : null;
+            })}
           </div>
         ))}
       </div>

@@ -11,6 +11,9 @@ export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ' | 'CUSTOM_WEBSITE'
 /** How the channel works with products; Indolj and developer-built sites are both CUSTOM_WEBSITE. */
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
+export type StockMode = 'ALL' | 'PERCENT' | 'FIXED';
+export interface PushContent { title: boolean; description: boolean; images: boolean; compareAt: boolean; sku: boolean; weight: boolean }
+
 export interface OnlineChannel {
   id: string;
   type: ChannelType;
@@ -31,6 +34,15 @@ export interface OnlineChannel {
   pushPrice: boolean;
   priceRule: PriceRule;
   stockBuffer: number;
+  /** How much of Nafaa stock the channel gets */
+  stockMode: StockMode;
+  stockPercent: number;
+  stockFixed: number;
+  pushContent: PushContent;
+  /** Nafaa can make new products there (Shopify, WooCommerce). */
+  canPublish: boolean;
+  canContent: boolean;
+  contentNote: string | null;
   /** Nafaa sends stock to this channel (off = nothing goes out). */
   pushStock: boolean;
   /** Exact SKU/barcode matches are linked by themselves. */
@@ -60,11 +72,24 @@ export interface LinkedCell {
   status: 'PENDING' | 'SYNCING' | 'SUCCESS' | 'FAILED' | 'SKIPPED' | null;
   error: string | null;
   lastSyncedAt: string | null;
+  /** Shown and sold there; false = draft/hidden */
+  listed: boolean;
+  /** Own units for this channel; null = the channel's stock mode */
+  allocQty: number | null;
+  compareAtPrice: number | null;
+  lastPush: LastPush | null;
 }
+export interface LastPush { at: string; what: Array<'stock' | 'price' | 'content' | 'status' | 'publish'>; ok: boolean; error: string | null }
 export interface OpenCell { linked: false; price: number; stock: number | null; nafaaStock: number }
 export type GridCell = LinkedCell | OpenCell;
 
-export interface GridRow { variantId: string | null; label: string | null; sku: string | null; price: number; cells: Record<string, GridCell> }
+export interface GridRow {
+  variantId: string | null; label: string | null; sku: string | null; price: number; cells: Record<string, GridCell>;
+  /** Nafaa stock at the main branch */
+  nafaaStock: number | null;
+  /** Fixed shares were more than the stock and were cut down */
+  scaled: boolean;
+}
 export interface GridItem {
   productId: string; name: string; sku: string | null; image: string | null; hasVariants: boolean; price: number;
   rows: GridRow[];
@@ -72,7 +97,7 @@ export interface GridItem {
   sizeLess: Record<string, string>;
 }
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out';
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted';
 export interface GridQuery { page: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string }
 export interface GridPage { channels: OnlineChannel[]; items: GridItem[]; total: number; page: number; pages: number; limit: number }
 export type GridSummary = Record<GridFilter, number>;
@@ -108,6 +133,19 @@ export interface Issue {
   count?: number;
 }
 
+export type JobKind = 'IMPORT_ALL' | 'LINK_ALL' | 'PUSH' | 'PUBLISH';
+export interface CatalogJob {
+  id: string; kind: JobKind; status: 'QUEUED' | 'RUNNING' | 'DONE' | 'FAILED' | 'CANCELLED'; integrationId: string | null;
+  total: number; done: number; failed: number; percent: number; errors: string[];
+  params: Record<string, unknown> | null; createdAt: string; startedAt: string | null; finishedAt: string | null;
+}
+export interface JobStart { job: CatalogJob; existing: boolean }
+
+export interface Selection { productIds?: string[]; all?: boolean; search?: string; filter?: GridFilter; channelId?: string }
+export type BulkAction = 'listed' | 'alloc' | 'price' | 'compareAt' | 'push' | 'publish';
+
+export interface LinkPatch { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }
+
 export const ONLINE_PRODUCTS_KEY = 'online-products';
 
 export const onlineProductsApi = {
@@ -120,13 +158,16 @@ export const onlineProductsApi = {
     apiClient.post(`/online-products/channels/${channelId}/links`, { links }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
   importItems: (channelId: string, externalProductIds: string[]) =>
     apiClient.post(`/online-products/channels/${channelId}/import`, { externalProductIds }, { timeout: 180_000 })
-      .then((r) => unwrap<{ created: number; linkedExisting: number; failed: number; errors: string[] }>(r)),
-  settings: (channelId: string, body: { priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) =>
+      .then((r) => unwrap<{ created: number; linkedExisting: number; failed: number; errors: string[] } | JobStart>(r)),
+  settings: (channelId: string, body: {
+    priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
+    stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
+  }) =>
     apiClient.put(`/online-products/channels/${channelId}/settings`, body).then((r) => unwrap<OnlineChannel>(r)),
   syncChannel: (channelId: string) =>
     apiClient.post(`/online-products/channels/${channelId}/sync`, {}, { timeout: 180_000 }).then((r) => unwrap<{ prices: number; error: string | null }>(r)),
-  syncProduct: (productId: string) =>
-    apiClient.post(`/online-products/items/${productId}/sync`, {}, { timeout: 120_000 })
+  syncProduct: (productId: string, content = false) =>
+    apiClient.post(`/online-products/items/${productId}/sync`, {}, { timeout: 120_000, params: content ? { content: 1 } : {} })
       .then((r) => unwrap<{ results: Array<{ channelId: string; name: string; ok: boolean; error: string | null }> }>(r)),
   setPrice: (mappingId: string, priceOverride: number | null) =>
     apiClient.put(`/online-products/links/${mappingId}/price`, { priceOverride }).then((r) => unwrap<{ success: boolean }>(r)),
@@ -135,6 +176,16 @@ export const onlineProductsApi = {
     apiClient.post(`/online-products/channels/${channelId}/link-sure`, {}, { timeout: 180_000 }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
   fixSizeLess: (channelId: string) =>
     apiClient.post(`/online-products/channels/${channelId}/fix-size-less`, {}).then((r) => unwrap<{ removed: number }>(r)),
+  updateLink: (mappingId: string, patch: LinkPatch) =>
+    apiClient.put(`/online-products/links/${mappingId}`, patch).then((r) => unwrap<{ success: boolean; link: LinkPatch }>(r)),
+  bulk: (body: { selection: Selection; action: BulkAction; channelId?: string | null; value?: unknown }) =>
+    apiClient.post('/online-products/bulk', body, { timeout: 120_000 }).then((r) => unwrap<JobStart & { updated: number; skipped?: number }>(r)),
+  importAll: (channelId: string) =>
+    apiClient.post(`/online-products/channels/${channelId}/import-all`, {}, { timeout: 300_000 }).then((r) => unwrap<JobStart & { sure: number; maybe: number }>(r)),
+  linkAll: (channelId: string) =>
+    apiClient.post(`/online-products/channels/${channelId}/link-all`, {}, { timeout: 300_000 }).then((r) => unwrap<JobStart>(r)),
+  jobs: () => apiClient.get('/online-products/jobs').then((r) => unwrap<{ jobs: CatalogJob[] }>(r)),
+  cancelJob: (id: string) => apiClient.post(`/online-products/jobs/${id}/cancel`, {}).then((r) => unwrap<CatalogJob>(r)),
   unlink: (mappingId: string) => apiClient.delete(`/online-products/links/${mappingId}`).then((r) => unwrap<{ success: boolean }>(r)),
 };
 

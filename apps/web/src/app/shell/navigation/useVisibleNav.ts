@@ -7,10 +7,14 @@
  * moves its main group up: Online store for online sellers, Distribution for
  * wholesalers and distributors. The expanded sidebar, the collapsed rail and the
  * mobile drawer all read from this hook so they never disagree.
+ *
+ * Inside the online store (isCommercePath) the menu is the commerce
+ * workspace instead: its own groups plus the connected channels.
  */
 
 import { createElement, useMemo, type ComponentType } from 'react';
-import { Plus } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Globe, Plus } from 'lucide-react';
 import { permissionForPath } from '@core/lib/route-permissions';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
@@ -22,7 +26,7 @@ import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { useDistributionState } from '@modules/distribution/hooks/useDistribution';
 import { useBusinessModels } from '@core/lib/business-models';
 import { cn } from '@core/lib/cn';
-import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
+import { allShopsNavGroups, canSeeSettingsItem, commerceNavGroups, isCommercePath, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 import { t } from '@core/i18n';
 
 type Channel = { id: string; type: string; platform?: string | null; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
@@ -38,23 +42,28 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const distribution = dist.state === 'on';
   const fullDistribution = distribution && dist.data?.settings.mode !== 'WHOLESALE';
   const { sellsOnline, sellsToShops } = useBusinessModels();
+  const { pathname } = useLocation();
+  const commerce = !isMarketplace && isCommercePath(pathname);
   // A wholesaler whose plan lacks distribution (or who switched it off) keeps one entry that explains the next step.
   const distributionTeaser = (sellsToShops || industry?.id === 'distribution') && (dist.state === 'plan' || dist.state === 'off');
 
-  const groups = useMemo<NavGroup[]>(() => {
+  const { groups, searchGroups } = useMemo(() => {
     const pos = posNavGroups.map((g) => {
-      const group = g.id === 'online' ? { ...g, items: [...g.items, ...channelItems(channels)] } : g;
-      if (g.id === 'online' && sellsOnline) return { ...group, order: 0.6, defaultOpen: true };
-      if (g.id === 'distribution' && sellsToShops) return { ...group, order: 0.5, defaultOpen: true };
-      return group;
+      if (g.id === 'online' && sellsOnline) return { ...g, order: 0.6, defaultOpen: true };
+      if (g.id === 'distribution' && sellsToShops) return { ...g, order: 0.5, defaultOpen: true };
+      return g;
     });
-    const base = isMarketplace
+    const commerceGroups: NavGroup[] = [
+      ...commerceNavGroups,
+      { id: 'c-channels', label: t('Sales channels'), icon: Globe, color: '#0284c7', defaultOpen: true, order: 7, items: channelItems(channels) },
+    ];
+    const main = isMarketplace
       ? marketplaceNavGroups
       : isAllShops
         ? allShopsNavGroups
         : [...pos, ...(industry?.navGroups?.map(fromIndustryGroup) ?? [])];
     const owner = isOwner(role as never);
-    return [...base]
+    const visible = (base: NavGroup[]): NavGroup[] => [...base]
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
       .map((g) => ({
         ...g,
@@ -65,7 +74,8 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
           if (it.feature === 'distribution' && !distribution && !(distributionTeaser && it.to === '/distribution')) return false;
           if (!owner && isOwnerOnlyPath(it.to)) return false;
           // Setup screens live in Settings, not in the everyday menu.
-          if (!isMarketplace && isSettingsPath(it.to)) return false;
+          // (The commerce workspace lists its channels even though their setup pages open in Settings.)
+          if (!isMarketplace && g.id !== 'c-channels' && isSettingsPath(it.to)) return false;
           // Industry packs do not declare permissions on their nav items, so
           // the permission is derived from the route.
           if (it.alsoNeeds && !hasPermission(role as never, permissions, it.alsoNeeds)) return false;
@@ -77,14 +87,22 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
         ? { ...g, items: g.items.map((it) => (it.to === '/distribution' ? { ...it, badge: dist.state === 'plan' ? t('Plan') : t('Band') } : it)) }
         : g))
       .filter((g) => g.items.length > 0);
-  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops]);
+    const shownMain = visible(main);
+    const shownCommerce = isMarketplace ? [] : visible(commerceGroups);
+    // Search finds every page: the other workspace's pages are added after the current menu.
+    const seen = new Set<string>();
+    const all = [...(commerce ? shownCommerce : shownMain), ...(commerce ? shownMain : shownCommerce)]
+      .map((g) => ({ ...g, items: g.items.filter((it) => !seen.has(it.to) && seen.add(it.to)) }))
+      .filter((g) => g.items.length > 0);
+    return { groups: commerce ? shownCommerce : shownMain, searchGroups: all };
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops, commerce]);
 
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 
   // The gear opens the first page that lives inside Settings, never an everyday page it links to.
   const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems.find((i) => !i.external)?.to ?? '/profile';
 
-  return { groups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
+  return { groups, searchGroups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, commerce, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
 }
 
 /** One nav item per connected sales channel, with its pending-order count. */

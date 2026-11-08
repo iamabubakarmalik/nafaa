@@ -28,12 +28,16 @@ import { StorefrontAdminController, StorefrontPublicController } from './storefr
 import { OnlineProductsController } from './online-products.controller';
 import { OnlineProductsService } from './online-products.service';
 import { CatalogWatchService } from './catalog-watch.service';
+import { CatalogJobsService } from './catalog-jobs.service';
+import { ChannelContentService } from './channel-content.service';
 import { OrderMoneyController } from './order-costs.controller';
 import { OrderCostsService } from './order-costs.service';
 import { CodReconcileService } from './cod-reconcile.service';
 import { CourierRulesService } from './courier-rules.service';
 import { ExpensesService } from '../../modules/finance/expenses/expenses.service';
 import { OrderScanService } from './order-scan.service';
+import { OrderChannelSyncService } from './order-channel-sync.service';
+import { OrderEntryService } from './order-entry.service';
 import { StockAdjustmentsService } from '../../modules/inventory/stock-adjustments/stock-adjustments.service';
 import {
   BlocklistController,
@@ -72,8 +76,9 @@ import {
     FoodpandaController,
     OnlineProductsController,
   ],
-  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService,
-    OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService],
+  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
+    OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
+    OrderChannelSyncService, OrderEntryService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

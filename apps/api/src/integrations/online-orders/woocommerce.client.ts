@@ -55,8 +55,8 @@ export class WooClient {
     }
   }
 
-  /** Sab pages ek saath (hadd: maxPages × 100) */
-  async all<T = any>(path: string, query: Record<string, any> = {}, maxPages = 30): Promise<T[]> {
+  /** Every page (bound: maxPages × 100, high enough for any shop) */
+  async all<T = any>(path: string, query: Record<string, any> = {}, maxPages = 1000): Promise<T[]> {
     const out: T[] = [];
     for (let page = 1; page <= maxPages; page++) {
       const rows = await this.request<T[]>('GET', path, { query: { per_page: 100, page, ...query } });

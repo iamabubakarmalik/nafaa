@@ -9,9 +9,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { HelpCircle, PanelLeftOpen, Settings } from 'lucide-react';
+import { ArrowLeft, HelpCircle, PanelLeftOpen, Settings } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { isActivePath, isSettingsPath, type NavGroup, type NavItem } from '../navigation/nav-config';
+import { isActivePath, isSettingsPath, lastMainPath, type NavGroup, type NavItem } from '../navigation/nav-config';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
 import { BrandMark } from './BrandMark';
@@ -26,7 +26,7 @@ const MAX_PINNED_VISIBLE = 5;
 export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { groups, settingsHome, industry, isMarketplace } = useVisibleNav(role, permissions);
+  const { groups, settingsHome, industry, isMarketplace, commerce } = useVisibleNav(role, permissions);
   useRecentPaths();
   const { favs } = useFavorites();
   const [fly, setFly] = useState<Flyout | null>(null);
@@ -97,8 +97,19 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
         </span>
       </button>
 
+      {commerce && (
+        <NavLink
+          to={lastMainPath()}
+          aria-label={t('Back to Nafaa')}
+          className={railButton(false)}
+          onMouseEnter={(e) => show('back', e.currentTarget, t('Back to Nafaa'))}
+          onMouseLeave={hideSoon}
+        >
+          <ArrowLeft className="h-[1.125rem] w-[1.125rem] rtl:rotate-180" />
+        </NavLink>
+      )}
       <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden px-2 [scrollbar-width:none]">
-        {visiblePinned.map((it) => {
+        {!commerce && visiblePinned.map((it) => {
           const Icon = it.icon;
           const active = isActivePath(location.pathname, it.to);
           return (

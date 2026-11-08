@@ -7,7 +7,8 @@ import { decrypt, encrypt } from '../../core/lib/crypto';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
-import { assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
+import { assertSafeWebhookUrl, readWebsiteConfig, stockRule } from './website-config';
+import type { WebsiteCatalogService as CatalogType } from './website-catalog.service';
 import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
@@ -326,10 +327,10 @@ export class WooCommerceService {
         }
       }
     } else {
-      const products = await client.all<any>('/products', { _fields: 'id,sku,type,manage_stock,stock_quantity', status: 'any' }, 30);
+      const products = await client.all<any>('/products', { _fields: 'id,sku,type,manage_stock,stock_quantity', status: 'any' });
       for (const p of products) {
         if (p.type === 'variable') {
-          const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,sku,manage_stock,stock_quantity' }, 3).catch(() => []);
+          const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,sku,manage_stock,stock_quantity' }, 10).catch(() => []);
           for (const v of vars) rows.push({ id: v.id, parentId: p.id, sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
         } else {
           rows.push({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock });
@@ -344,7 +345,7 @@ export class WooCommerceService {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi product jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus, cfg.stockBuffer) : {};
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus, stockRule(cfg)) : {};
 
     const simple: any[] = [];
     const byParent = new Map<number, any[]>();
@@ -386,7 +387,7 @@ export class WooCommerceService {
     const products = await client.all<any>('/products', {
       status: 'publish',
       _fields: 'id,name,sku,type,regular_price,price,stock_quantity,manage_stock,description,short_description,categories,images',
-    }, 40);
+    });
     const cfg = readWebsiteConfig(integration.config);
     const rows = products.map((p) => ({
       id: String(p.id),
@@ -411,16 +412,41 @@ export class WooCommerceService {
   async exportToWoo(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; productIds?: string[] }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    return this.exportFor(integration, opts);
+  }
+
+  /**
+   * Nafaa products → WooCommerce (variable products with variations). A SKU
+   * already on the site is linked, not made twice. With productIds only those
+   * are read (the publish job sends small chunks).
+   */
+  async exportFor(integration: Integration, opts: { updatePrice?: boolean; productIds?: string[]; listed?: boolean }) {
     const client = this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config);
     const shopId = cfg.shopId ?? integration.shopId;
+    const status = opts.listed === false ? 'draft' : 'publish';
 
-    const [all, woo] = await Promise.all([
-      this.catalog.exportAll(integration.tenantId, shopId),
-      client.all<any>('/products', { _fields: 'id,sku', status: 'any' }, 40),
-    ]);
-    const nafaa = opts.productIds?.length ? all.filter((p) => opts.productIds!.includes(p.id)) : all;
-    const wooBySku = new Map(woo.filter((w) => w.sku).map((w) => [String(w.sku), w.id]));
+    let all: Awaited<ReturnType<CatalogType['exportAll']>>;
+    let woo: any[] = [];
+    if (opts.productIds?.length) {
+      all = [];
+      for (let k = 0; k < opts.productIds.length; k += 500) {
+        all.push(...(await this.catalog.exportProducts(integration.tenantId, shopId, { productIds: opts.productIds.slice(k, k + 500), limit: 500, stockRule: stockRule(cfg) })).products);
+      }
+      // Only this chunk's SKUs are looked up (Woo's sku filter also finds variations).
+      const skus = [...new Set(all.flatMap((p) => [p.sku, ...p.variants.map((v: any) => v.sku)]).filter(Boolean))] as string[];
+      for (let k = 0; k < skus.length; k += 50) {
+        woo.push(...((await client.request<any[]>('GET', '/products', { query: { sku: skus.slice(k, k + 50).join(','), per_page: '100', status: 'any', _fields: 'id,sku,type,parent_id' } }).catch(() => [])) ?? []));
+      }
+    } else {
+      [all, woo] = await Promise.all([
+        this.catalog.exportAll(integration.tenantId, shopId),
+        client.all<any>('/products', { _fields: 'id,sku', status: 'any' }),
+      ]);
+    }
+    const nafaa = all;
+    const wooBySku = new Map(woo.filter((w) => w.sku && w.type !== 'variation').map((w) => [String(w.sku), w.id]));
+    const wooVarBySku = new Map(woo.filter((w) => w.sku && w.type === 'variation').map((w) => [String(w.sku), w]));
 
     let created = 0;
     let updated = 0;
@@ -432,7 +458,18 @@ export class WooCommerceService {
 
     for (const p of nafaa) {
       const sku = p.sku || `NF-${p.id.slice(0, 8)}`;
-      const existingId = wooBySku.get(sku);
+      // Sizes already on the site: link each variation by SKU.
+      const knownVars = p.variants.map((v: any) => ({ v, w: v.sku ? wooVarBySku.get(v.sku) : undefined })).filter((x: any) => x.w);
+      if (p.variants.length && knownVars.length) {
+        for (const { v, w } of knownVars) await this.link(integration.id, p.id, String(w.parent_id), v.sku, v.id, String(w.id), `${p.name} — ${v.name}`);
+        continue;
+      }
+      if (p.variants.length && wooBySku.get(sku)) {
+        failed++;
+        if (errors.length < 10) errors.push(`${p.name}: website par pehle se hai — "Jorein" se har size jorein`);
+        continue;
+      }
+      const existingId = p.variants.length ? undefined : wooBySku.get(sku);
       if (existingId) {
         if (opts.updatePrice && !p.variants.length) updates.push({ id: existingId, regular_price: String(p.price) });
         await this.link(integration.id, p.id, String(existingId), sku);
@@ -443,7 +480,7 @@ export class WooCommerceService {
         try {
           const parent = await client.request<any>('POST', '/products', {
             body: {
-              name: p.name, type: 'variable', sku, description: p.description ?? '', short_description: p.shortDescription ?? '',
+              name: p.name, type: 'variable', sku, status, description: p.description ?? '', short_description: p.shortDescription ?? '',
               images: p.images.slice(0, 5).map((src: string) => ({ src })),
               attributes: [{ name: 'Option', visible: true, variation: true, options: p.variants.map((v: any) => v.name) }],
             },
@@ -472,7 +509,7 @@ export class WooCommerceService {
         continue;
       }
       creates.push({
-        name: p.name, type: 'simple', sku, regular_price: String(p.price),
+        name: p.name, type: 'simple', sku, status, regular_price: String(p.price),
         description: p.description ?? '', short_description: p.shortDescription ?? '',
         manage_stock: true, stock_quantity: Math.floor(p.stock),
         images: p.images.slice(0, 5).map((src: string) => ({ src })),
@@ -527,12 +564,17 @@ export class WooCommerceService {
   }
 
   /** Nafaa → website qeemat (jore hue products). Kitne bheje */
-  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number }[]) {
+  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number; compareAt?: number | null }[]) {
     const client = this.mustClient(integration);
-    const simple = items.filter((i) => !i.externalVariantId).map((i) => ({ id: Number(i.externalProductId), regular_price: String(i.price) }));
+    // A sale: the struck-out price is Woo's regular price and the selling price its sale price. null clears a sale Nafaa set.
+    const priceOf = (i: { price: number; compareAt?: number | null }) =>
+      i.compareAt && i.compareAt > i.price ? { regular_price: String(i.compareAt), sale_price: String(i.price) }
+        : i.compareAt === null ? { regular_price: String(i.price), sale_price: '' }
+          : { regular_price: String(i.price) };
+    const simple = items.filter((i) => !i.externalVariantId).map((i) => ({ id: Number(i.externalProductId), ...priceOf(i) }));
     const byParent = new Map<string, any[]>();
     for (const i of items.filter((x) => x.externalVariantId)) {
-      byParent.set(i.externalProductId, [...(byParent.get(i.externalProductId) ?? []), { id: Number(i.externalVariantId), regular_price: String(i.price) }]);
+      byParent.set(i.externalProductId, [...(byParent.get(i.externalProductId) ?? []), { id: Number(i.externalVariantId), ...priceOf(i) }]);
     }
     let sent = 0;
     for (let k = 0; k < simple.length; k += 100) {

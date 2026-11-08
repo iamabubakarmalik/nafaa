@@ -2,7 +2,7 @@ import { apiClient } from '@core/api/client';
 import { t } from '@core/i18n';
 
 /** Backend kabhi {data:{data:X}} kabhi {data:X} deta hai */
-function unwrap<T>(r: any): T {
+export function unwrap<T>(r: any): T {
   if (r?.data?.data !== undefined) return r.data.data as T;
   if (r?.data !== undefined) return r.data as T;
   return r as T;
@@ -70,7 +70,26 @@ export interface OnlineOrder {
     tags?: string[];
     edits?: { at: string; changes: Record<string, { from: string | null; to: string | null }> }[];
     blocked?: { reason?: string | null; at: string };
+    /** Where a manual order came from (MANUAL, WHATSAPP, INSTAGRAM, ...). */
+    source?: string;
+    /** The order's status on the channel itself (e.g. Shopify), when the channel reports one. */
+    channelStatus?: string;
+    timeline?: { at: string; by?: string | null; byName?: string | null; from?: string | null; to: string; note?: string | null }[];
+    syncErrors?: { at: string; channel?: string; message: string }[];
+    splitFrom?: string;
   };
+  /** Board flag on top of orderStatus (PAY_PENDING, ON_HOLD, custom:<key>, ...). */
+  stage?: string | null;
+  assignedToId?: string | null;
+  followUpAt?: string | null;
+  followUpNote?: string | null;
+  deletedAt?: string | null;
+  replacementOfId?: string | null;
+  mergedIntoId?: string | null;
+  weightKg?: number | null;
+  /** Board column the API puts the order in (NEW, ON_HOLD, PACKED, custom:<key>, ...). */
+  board?: string;
+  assigneeName?: string | null;
   receivedAt: string;
   acceptedAt?: string;
   dispatchedAt?: string;
@@ -312,6 +331,8 @@ export interface OnlineOrderDetail extends OnlineOrder {
   costPosting?: { on: boolean; postedAt: string | null; expenseNumber: string | null };
   /** The shop asks risky customers for an advance: this much (pct of the total). */
   riskAdvice?: { pct: number; amount: number } | null;
+  /** The channel accepts edits from Nafaa (shows the "change on channel too" switch). */
+  canSyncEdit?: boolean;
 }
 
 export interface OrderAlertRow {
@@ -322,6 +343,9 @@ export interface OnlineOrdersList {
   items: OnlineOrder[];
   total: number;
   counts: Record<string, number>;
+  /** Count per board tile for the same filters (board itself left out). Older API: absent. */
+  boardCounts?: Record<string, number>;
+  customStages?: Array<{ key: string; label: string; color: string }>;
   /** Status counts inside from/to; null when no dates were sent. */
   rangeCounts: Record<string, number> | null;
   stats: { todayOrders: number; todayValue: number; codDueCount: number; codDueValue: number };
@@ -339,6 +363,14 @@ export interface OrderListQuery {
   pay?: 'COD' | 'PAID';
   /** Customer confirmation; NONE = not asked yet. */
   confirm?: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
+  /** Board tile (see lib/orders BOARD); replaces status for the new board. */
+  board?: string;
+  city?: string;
+  courierCode?: string;
+  /** 'me' | 'none' | user id */
+  assignedTo?: string;
+  stage?: string;
+  tag?: string;
 }
 
 export interface LiveOrders {

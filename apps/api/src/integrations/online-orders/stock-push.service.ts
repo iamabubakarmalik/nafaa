@@ -127,11 +127,11 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     let sent = 0;
     let cursor: string | undefined;
     // Pages of 500 links; a rule change can touch every link of a big shop.
-    for (let pageNo = 0; pageNo < 40; pageNo++) {
+    for (;;) {
       const maps = await this.prisma.productChannelMapping.findMany({
         where: { ...where, integrationId: ch.id, externalProductId: { not: null } },
         select: {
-          id: true, productId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalData: true, variantId: true, priceOverride: true,
+          id: true, productId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalData: true, variantId: true, priceOverride: true, compareAtPrice: true,
           product: { select: { price: true } }, variant: { select: { price: true } },
         },
         orderBy: { id: 'asc' },
@@ -148,7 +148,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
 
   private async pushPricePage(ch: Integration, cfg: ReturnType<typeof readWebsiteConfig>, shopId: string | null, maps: Array<{
     id: string; productId: string; externalProductId: string | null; externalVariantId: string | null; externalSku: string | null; externalData: unknown;
-    variantId: string | null; priceOverride: number | null; product: { price: number }; variant: { price: number } | null;
+    variantId: string | null; priceOverride: number | null; compareAtPrice: number | null; product: { price: number }; variant: { price: number } | null;
   }>, force: boolean) {
     const branchPrices = shopId
       ? await this.prisma.shopStock.findMany({
@@ -162,27 +162,32 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
         const branch = branchPrices.find((b) => b.productId === m.productId && (b.variantId ?? null) === (m.variantId ?? null))?.shopPrice;
         const base = Number(branch ?? (m.variantId ? m.variant?.price ?? m.product.price : m.product.price));
         const price = channelPrice(base, cfg.priceRule, m.priceOverride);
-        return { m, price, action: priceAction(m.externalData as any, price, nowMs, force) };
+        const d = (m.externalData as any) ?? {};
+        // Sale price: sent while set; once removed, cleared on the channel one time.
+        const compareAt = m.compareAtPrice && m.compareAtPrice > price ? m.compareAtPrice : d.pushedCompareAt ? null : undefined;
+        const compareChanged = compareAt !== undefined && Number(d.pushedCompareAt ?? 0) !== Number(compareAt ?? 0);
+        const action = compareChanged && price > 0 ? 'push' : priceAction(d, price, nowMs, force);
+        return { m, price, compareAt, action };
       })
       .filter(({ action }) => action !== 'skip');
     if (!changed.length) return 0;
 
-    const items = changed.map(({ m, price }) => ({
-      externalProductId: String(m.externalProductId), externalVariantId: m.externalVariantId ? String(m.externalVariantId) : null, externalSku: m.externalSku, price,
+    const items = changed.map(({ m, price, compareAt }) => ({
+      externalProductId: String(m.externalProductId), externalVariantId: m.externalVariantId ? String(m.externalVariantId) : null, externalSku: m.externalSku, price, compareAt,
     }));
     await trackLinks(this.prisma, ch.id, { id: { in: changed.map(({ m }) => m.id) } }, async () => {
       if (ch.type === 'WOOCOMMERCE') await this.woo.pushPrices(ch, items);
       else if (ch.type === 'SHOPIFY') await this.shopify.pushPrices(ch, items);
       else if (ch.type === 'DARAZ') await this.daraz.pushPrices(ch, items);
-    });
+    }, ['price']);
     const at = new Date().toISOString();
-    for (const { m, price, action } of changed) {
+    for (const { m, price, action, compareAt } of changed) {
       const d = ((m.externalData as any) ?? {});
       // A drift re-send counts towards the backoff; a real price change starts it again.
       const drift = action === 'drift' ? { driftPushes: (Number(d.driftPushes) || 0) + 1, driftPushedAt: at } : { driftPushes: 0, driftPushedAt: null };
       await this.prisma.productChannelMapping.update({
         where: { id: m.id },
-        data: { externalData: { ...d, pushedPrice: price, pushedPriceAt: at, channelPrice: price, channelPriceAt: at, ...drift } },
+        data: { externalData: { ...d, pushedPrice: price, pushedPriceAt: at, channelPrice: price, channelPriceAt: at, pushedCompareAt: compareAt ?? null, ...drift } },
       }).catch(() => null);
     }
     return changed.length;
@@ -207,16 +212,26 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
 
     const now = new Date();
     const since = this.watermark.get(ch.id) ?? new Date(now.getTime() - FIRST_LOOKBACK_MS);
-    const changed = await this.prisma.shopStock.findMany({
-      where: { shopId, updatedAt: { gt: since, lte: now } },
-      select: { productId: true, variantId: true },
-      take: 2000,
-    });
+    // Every changed row, in pages (a stock count can touch thousands at once).
+    const productSet = new Set<string>();
+    let cursor: string | undefined;
+    for (;;) {
+      const rows = await this.prisma.shopStock.findMany({
+        where: { shopId, updatedAt: { gt: since, lte: now } },
+        select: { id: true, productId: true },
+        orderBy: { id: 'asc' },
+        take: 5000,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      });
+      for (const r of rows) productSet.add(r.productId);
+      if (rows.length < 5000) break;
+      cursor = rows[rows.length - 1].id;
+    }
     // 30s overlap: jo transaction abhi commit nahi hui thi woh agli dafa pakri jaye
     this.watermark.set(ch.id, new Date(now.getTime() - 30_000));
-    if (!changed.length) return;
+    if (!productSet.size) return;
 
-    const productIds = [...new Set(changed.map((c) => c.productId))];
+    const productIds = [...productSet];
     // A big change (bulk import, stock count) goes out in pages of 200 products, with a pause per platform.
     for (let k = 0; k < productIds.length; k += MAX_PRODUCTS_PER_PUSH) {
       if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS[ch.type as keyof typeof PAGE_DELAY_MS] ?? 500));
@@ -252,8 +267,14 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
       .map((l) => ({ externalProductId: String(l.externalProductId), externalVariantId: l.externalVariantId ? String(l.externalVariantId) : null }));
     if (!skus.length && !onlyLinks.length) return;
 
-    const opts = { onlySkus: skus.slice(0, 50), onlyLinks: onlyLinks.slice(0, 200) };
-    if (ch.type === 'WOOCOMMERCE') await this.woo.syncStock(ch, opts);
-    else if (ch.type === 'SHOPIFY') await this.shopify.syncStock(ch, opts);
+    // Links in pages of 200 (sizes can make many per product); SKU look-ups in pages of 30.
+    const pages = Math.max(Math.ceil(onlyLinks.length / 200), Math.ceil(skus.length / 30));
+    for (let k = 0; k < pages; k++) {
+      if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS[ch.type as keyof typeof PAGE_DELAY_MS] ?? 500));
+      const opts = { onlySkus: skus.slice(k * 30, k * 30 + 30), onlyLinks: onlyLinks.slice(k * 200, k * 200 + 200) };
+      if (!opts.onlySkus.length && !opts.onlyLinks.length) continue;
+      if (ch.type === 'WOOCOMMERCE') await this.woo.syncStock(ch, opts);
+      else if (ch.type === 'SHOPIFY') await this.shopify.syncStock(ch, opts);
+    }
   }
 }

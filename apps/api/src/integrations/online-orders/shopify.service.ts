@@ -7,7 +7,7 @@ import { decrypt, encrypt } from '../../core/lib/crypto';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
-import { readWebsiteConfig, ShopifyPlanState } from './website-config';
+import { readWebsiteConfig, ShopifyPlanState, stockRule } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
@@ -583,10 +583,10 @@ export class ShopifyService {
   }
 
   /** Nafaa → Shopify qeemat (jore hue variants). Product ke hisaab se ek mutation */
-  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number }[]) {
+  async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number; compareAt?: number | null }[]) {
     if (this.planBlocked(integration)) return 0;
     const client = await this.mustClient(integration);
-    const byProduct = new Map<string, { id: string; price: string }[]>();
+    const byProduct = new Map<string, { id: string; price: string; compareAtPrice?: string | null }[]>();
     for (const i of items) {
       let vid = i.externalVariantId;
       if (!vid) {
@@ -596,7 +596,9 @@ export class ShopifyService {
       }
       if (!vid) continue;
       const pid = `gid://shopify/Product/${i.externalProductId}`;
-      byProduct.set(pid, [...(byProduct.get(pid) ?? []), { id: `gid://shopify/ProductVariant/${vid}`, price: String(i.price) }]);
+      // compareAt: a sale price shown struck out; null clears one Nafaa set, undefined leaves Shopify's.
+      const compare = i.compareAt && i.compareAt > i.price ? { compareAtPrice: String(i.compareAt) } : i.compareAt === null ? { compareAtPrice: null } : {};
+      byProduct.set(pid, [...(byProduct.get(pid) ?? []), { id: `gid://shopify/ProductVariant/${vid}`, price: String(i.price), ...compare }]);
     }
     let sent = 0;
     for (const [pid, variants] of byProduct) {
@@ -651,7 +653,7 @@ export class ShopifyService {
     if (!partial || q) {
       variants = await client.paginate<any>(`query($after: String, $q: String, $loc: ID!) {
         productVariants(first: 250, after: $after, query: $q) { nodes { ${VARIANT} } pageInfo { hasNextPage endCursor } }
-      }`, 'productVariants', { q, loc: locationId }, 20);
+      }`, 'productVariants', { q, loc: locationId });
     }
     // Jore hue variants / products seedha id se (SKU ho ya na ho)
     const links = opts.onlyLinks ?? [];
@@ -679,7 +681,7 @@ export class ShopifyService {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi variant jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus, cfg.stockBuffer) : {};
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus, stockRule(cfg)) : {};
 
     const changes: { inventoryItemId: string; locationId: string; quantity: number; changeFromQuantity: number | null }[] = [];
     let missing = 0;
@@ -768,18 +770,43 @@ export class ShopifyService {
   async exportToShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; productIds?: string[] }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    return this.exportFor(integration, opts);
+  }
+
+  /**
+   * Nafaa products → Shopify (with sizes/colours as options). A product whose
+   * SKU is already there is linked, not made twice. With productIds only those
+   * are read (the publish job sends small chunks).
+   */
+  async exportFor(integration: Integration, opts: { updatePrice?: boolean; productIds?: string[]; listed?: boolean }) {
     if (this.planBlocked(integration)) throw new BadRequestException('Pehle Shopify me Nafaa ka plan chunein — channel page par "Shopify plan chunein" dabayein');
     const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
+    const shopId = cfg.shopId ?? integration.shopId;
+    const VARIANTS = `query($after: String, $q: String) {
+        productVariants(first: 250, after: $after, query: $q) { nodes { id sku price product { id } } pageInfo { hasNextPage endCursor } }
+      }`;
 
-    const [all, existing] = await Promise.all([
-      this.catalog.exportAll(integration.tenantId, cfg.shopId ?? integration.shopId),
-      client.paginate<any>(`query($after: String) {
-        productVariants(first: 250, after: $after) { nodes { id sku price product { id } } pageInfo { hasNextPage endCursor } }
-      }`, 'productVariants', {}, 40),
-    ]);
-    const nafaa = opts.productIds?.length ? all.filter((p) => opts.productIds!.includes(p.id)) : all;
+    let all: Awaited<ReturnType<WebsiteCatalogService['exportAll']>>;
+    let existing: any[] = [];
+    if (opts.productIds?.length) {
+      all = [];
+      for (let k = 0; k < opts.productIds.length; k += 500) {
+        all.push(...(await this.catalog.exportProducts(integration.tenantId, shopId, { productIds: opts.productIds.slice(k, k + 500), limit: 500, stockRule: stockRule(cfg) })).products);
+      }
+      // Only this chunk's SKUs are looked up on Shopify.
+      const skus = [...new Set(all.flatMap((p) => [p.sku, ...p.variants.map((v: any) => v.sku)]).filter(Boolean))] as string[];
+      for (let k = 0; k < skus.length; k += 40) {
+        existing.push(...(await client.paginate<any>(VARIANTS, 'productVariants', { q: skus.slice(k, k + 40).map((s) => `sku:${JSON.stringify(s)}`).join(' OR ') })));
+      }
+    } else {
+      [all, existing] = await Promise.all([
+        this.catalog.exportAll(integration.tenantId, shopId),
+        client.paginate<any>(VARIANTS, 'productVariants', {}),
+      ]);
+    }
+    const nafaa = all;
     const bySku = new Map(existing.filter((v) => v.sku).map((v) => [String(v.sku), v]));
 
     let created = 0;
@@ -791,6 +818,14 @@ export class ShopifyService {
       const sku = p.sku || `NF-${p.id.slice(0, 8)}`;
       const found = bySku.get(sku) ?? p.variants.map((v: any) => v.sku && bySku.get(v.sku)).find(Boolean);
       if (found) {
+        // A product with sizes links per size (a size-less link bills "Available: 0").
+        if (p.variants.length) {
+          for (const v of p.variants as any[]) {
+            const sv = v.sku ? bySku.get(v.sku) : null;
+            if (sv) await this.link(integration.id, p.id, numericId(sv.product.id), v.sku, v.id, numericId(sv.id), `${p.name} — ${v.name}`);
+          }
+          continue;
+        }
         await this.link(integration.id, p.id, numericId(found.product.id), sku, null, numericId(found.id), p.name);
         if (opts.updatePrice && !p.variants.length && Number(found.price) !== Number(p.price)) {
           await client.mutate(`mutation($pid: ID!, $v: [ProductVariantsBulkInput!]!) {
@@ -802,9 +837,15 @@ export class ShopifyService {
       }
 
       const hasVariants = p.variants.length > 0;
+      // Size and colour become Shopify options when every size has them; otherwise one "Option" with the size name.
+      const dims = optionDims(p.variants);
       const optionName = hasVariants ? 'Option' : 'Title';
+      const optionValues = (v: any) => (dims ? dims.map((d) => ({ optionName: d.name, name: String(v[d.key]) })) : [{ optionName, name: v.name }]);
+      const productOptions = dims
+        ? dims.map((d) => ({ name: d.name, values: [...new Set(p.variants.map((v: any) => String(v[d.key])))].map((name) => ({ name })) }))
+        : [{ name: optionName, values: (hasVariants ? p.variants : [{ name: 'Default Title' }]).map((v: any) => ({ name: v.name })) }];
       const variants = (hasVariants ? p.variants : [{ name: 'Default Title', sku, price: p.price, stock: p.stock }]).map((v: any) => ({
-        optionValues: [{ optionName, name: v.name }],
+        optionValues: optionValues(v),
         price: String(v.price),
         inventoryItem: { sku: v.sku || (hasVariants ? undefined : sku), tracked: true },
         ...(locationId && { inventoryQuantities: [{ locationId, name: 'available', quantity: Math.max(0, Math.floor(v.stock ?? 0)) }] }),
@@ -818,8 +859,8 @@ export class ShopifyService {
             title: p.name,
             descriptionHtml: p.description ?? '',
             productType: p.category ?? '',
-            status: 'ACTIVE',
-            productOptions: [{ name: optionName, values: (hasVariants ? p.variants : [{ name: 'Default Title' }]).map((v: any) => ({ name: v.name })) }],
+            status: opts.listed === false ? 'DRAFT' : 'ACTIVE',
+            productOptions,
             variants,
             files: p.images.slice(0, 5).map((src: string) => ({ originalSource: src, contentType: 'IMAGE' })),
           },
@@ -829,7 +870,7 @@ export class ShopifyService {
           if (hasVariants) {
             // Har Nafaa variant apne Shopify variant se (SKU, warna naam se)
             for (const v of p.variants) {
-              const sv = made.find((m) => (v.sku && m.sku === v.sku) || m.title === v.name);
+              const sv = made.find((m) => (v.sku && m.sku === v.sku) || m.title === v.name || (dims && m.title === dims.map((d) => v[d.key]).join(' / ')));
               if (sv) await this.link(integration.id, p.id, numericId(res.product.id), v.sku ?? undefined, v.id, numericId(sv.id), `${p.name} — ${v.name}`);
             }
           } else {
@@ -1432,6 +1473,15 @@ export class ShopifyService {
 }
 
 export { ShopifyError };
+
+/** Size/colour as separate options when every variant has them and each pair is unique. */
+export function optionDims(variants: Array<{ size?: string | null; color?: string | null }>): Array<{ key: 'size' | 'color'; name: string }> | null {
+  if (!variants.length) return null;
+  const dims = ([['size', 'Size'], ['color', 'Color']] as const).filter(([k]) => variants.every((v) => String(v[k] ?? '').trim())).map(([key, name]) => ({ key, name }));
+  if (!dims.length) return null;
+  const combos = new Set(variants.map((v) => dims.map((d) => String(v[d.key])).join('|')));
+  return combos.size === variants.length ? dims : null;
+}
 
 export type ShopifyMode = 'app' | 'token' | 'client';
 

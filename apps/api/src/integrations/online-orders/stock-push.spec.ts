@@ -12,7 +12,7 @@ function setup(opts: { changed: { productId: string; variantId: string | null }[
       update: async () => ({}),
       updateMany: async () => ({ count: 0 }),
     },
-    product: { findMany: async () => opts.products ?? [] },
+    product: { findMany: async (q: any) => (opts.products ?? []).filter((p: any) => !q?.where?.id?.in || q.where.id.in.includes(p.id)) },
   };
   const woo: any = { isConnected: () => true, syncStock: async (_i: any, o: any) => { pushed.push(o); }, pushPrices: async (_i: any, items: any) => { prices.push(items); } };
   const shopify: any = { isConnected: () => true };
@@ -38,16 +38,18 @@ describe('StockPushService', () => {
     expect(pushed.length).toBe(0);
   });
 
-  it('200+ products changed: pushed in pages of 200, not skipped', async () => {
+  it('200+ products changed: every SKU is pushed once, in small pages, none skipped', async () => {
     const ids = Array.from({ length: 201 }, (_, i) => `p${i}`);
     const { svc, pushed } = setup({
       changed: ids.map((productId) => ({ productId, variantId: null })),
       products: ids.map((id) => ({ id, sku: `SKU-${id}`, variants: [] })),
     });
     await svc.run(null);
-    expect(pushed.length).toBe(2);
-    expect(pushed[1].onlySkus.length).toBeGreaterThan(0);
-  });
+    const sent = pushed.flatMap((p: any) => p.onlySkus);
+    expect(new Set(sent).size).toBe(201);
+    expect(sent.length).toBe(201);
+    expect(Math.max(...pushed.map((p: any) => p.onlySkus.length))).toBeLessThanOrEqual(30);
+  }, 20_000);
 
   it('stock push off for the channel: nothing is sent', async () => {
     const { svc, pushed } = setup({ changed: [{ productId: 'p1', variantId: null }], products: [{ id: 'p1', sku: 'A', variants: [] }], pushStock: false });

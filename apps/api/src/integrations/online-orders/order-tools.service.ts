@@ -9,10 +9,14 @@ import { courierName } from './couriers';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { businessDayKey, hourInTz } from '../../common/helpers/business-time.helper';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
+import { SYSTEM_STAGES, stageKey } from './order-board';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const blockKey = (tenantId: string) => `online_orders_blocklist:${tenantId}`;
 const riskKey = (tenantId: string) => `online_order_risk:${tenantId}`;
+const stagesKey = (tenantId: string) => `online_custom_stages:${tenantId}`;
+
+export interface CustomStage { key: string; label: string; color: string }
 
 export interface RiskSettings { askAdvance: boolean; advancePct: number }
 
@@ -120,6 +124,45 @@ export class OrderToolsService {
       update: { value: JSON.stringify(next) },
     });
     return next;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CUSTOM STAGES — the shop's own board columns (stage = custom:<key>)
+  // ═══════════════════════════════════════════════════════════
+
+  async customStages(tenantId: string): Promise<CustomStage[]> {
+    const row = await this.prisma.systemSetting.findUnique({ where: { key: stagesKey(tenantId) } });
+    try {
+      const list = row?.value ? JSON.parse(row.value) : [];
+      return Array.isArray(list) ? list.filter((x) => x && typeof x.key === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async saveCustomStages(user: AuthenticatedUser, raw: unknown): Promise<CustomStage[]> {
+    const ok: string[] = ['OWNER', 'MANAGER', 'SUPER_ADMIN'];
+    if (!ok.includes(user.role)) throw new BadRequestException('Stages sirf malik ya manager badal sakta hai');
+    const input: any[] = Array.isArray(raw) ? raw : Array.isArray((raw as any)?.stages) ? (raw as any).stages : [];
+    if (input.length > 20) throw new BadRequestException('Zyada se zyada 20 stages');
+    const out: CustomStage[] = [];
+    for (const s of input) {
+      const label = String(s?.label ?? '').trim().slice(0, 40);
+      if (!label) throw new BadRequestException('Stage ka naam likhein');
+      const key = stageKey(s?.key ? String(s.key).replace(/^custom:/, '') : label);
+      if (!key) throw new BadRequestException('Stage ka naam English haroof me likhein');
+      if ((SYSTEM_STAGES as readonly string[]).includes(key.toUpperCase()) || out.some((x) => x.key === key)) {
+        throw new BadRequestException('Ye stage pehle se hai — doosra naam rakhein');
+      }
+      const color = /^#[0-9a-f]{3,8}$/i.test(String(s?.color ?? '')) || /^[a-z]{3,15}$/i.test(String(s?.color ?? '')) ? String(s.color) : 'gray';
+      out.push({ key, label, color });
+    }
+    await this.prisma.systemSetting.upsert({
+      where: { key: stagesKey(user.tenantId) },
+      create: { key: stagesKey(user.tenantId), value: JSON.stringify(out), category: 'online_orders', isPublic: false },
+      update: { value: JSON.stringify(out) },
+    });
+    return out;
   }
 
   private async saveBlocklist(tenantId: string, list: BlockEntry[]) {

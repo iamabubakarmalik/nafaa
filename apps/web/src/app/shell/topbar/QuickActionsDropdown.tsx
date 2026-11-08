@@ -46,7 +46,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const { groups, settingsItems } = useVisibleNav(role, permissions);
+  const { searchGroups: groups, settingsItems } = useVisibleNav(role, permissions);
 
   const close = useCallback(() => { setOpen(false); setQ(''); setIdx(0); }, []);
   useDismiss(ref, open, close);

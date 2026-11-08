@@ -60,6 +60,68 @@ export type SettingsItem = NavItem & {
   external?: boolean;
 };
 
+/* ─── Online store workspace ───
+   Opening the online store swaps the sidebar for this menu (like a separate
+   app), with a way back to the rest of Nafaa. Connected channels are added by
+   useVisibleNav. Items marked `soon` open an honest "Coming soon" page. */
+export const COMMERCE_HOME = '/online-store';
+const COMMERCE_PREFIXES = ['/online-store', '/online-orders'];
+export const isCommercePath = (path: string) =>
+  COMMERCE_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`)) && !path.startsWith('/online-orders/print');
+
+export const commerceNavGroups: NavGroup[] = [
+  {
+    id: 'c-overview', label: t('Overview'), icon: LayoutDashboard, color: '#0ea5e9', defaultOpen: true, order: 1,
+    items: [
+      { to: COMMERCE_HOME, label: t('Dashboard'), icon: LayoutDashboard, permission: P.SALES_VIEW, keywords: 'home commerce summary aaj' },
+      { to: '/online-orders/reports', label: t('Reports'), icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel dispatch report' },
+    ],
+  },
+  {
+    id: 'c-orders', label: t('Orders'), icon: ShoppingBag, color: '#2563eb', defaultOpen: true, order: 2,
+    items: [
+      { to: '/online-orders', label: t('Orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz shopify confirm pending packed dispatched' },
+      { to: '/online-orders/new', label: t('Add order'), icon: PackagePlus, permission: P.SALES_VIEW, keywords: 'manual whatsapp instagram phone paste excel import naya order replacement' },
+      { to: '/online-orders/pack', label: t('Packing scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'pack scan barcode packing slip label ready parcel' },
+      { to: '/online-orders/returns-scan', label: t('Return scan'), icon: PackageX, permission: P.SALES_VIEW, keywords: 'rto return wapas parcel scan damaged kharab restock' },
+      { to: '/online-store/soon/abandoned', label: t('Abandoned carts'), icon: ShoppingCart, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'abandoned cart checkout recover chhoda' },
+    ],
+  },
+  {
+    id: 'c-shipping', label: t('Shipping'), icon: Truck, color: '#ea580c', defaultOpen: true, order: 3,
+    items: [
+      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
+      { to: '/online-store/couriers/rules', label: t('Auto booking'), icon: Zap, permission: P.SALES_VIEW, keywords: 'courier rules auto booking best courier city' },
+      { to: '/online-orders/cod', label: t('COD & payments'), icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier settlement paisa cpr' },
+      { to: '/online-orders/cod/reconcile', label: t('COD statement match'), icon: FileSpreadsheet, permission: P.SALES_VIEW, keywords: 'cod reconcile statement cpr audit match' },
+      { to: '/online-store/soon/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking' },
+      { to: '/online-store/soon/post-office', label: t('Post office'), icon: Send, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'pakistan post post office vpp' },
+    ],
+  },
+  {
+    id: 'c-catalog', label: t('Catalog'), icon: PackageCheck, color: '#7c3aed', defaultOpen: true, order: 4,
+    items: [
+      { to: '/online-store/products', label: t('Products & stock'), icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW, keywords: 'daraz shopify woocommerce products link jorna sku price stock sync channel allocation' },
+      { to: '/online-store/price-calculator', label: t('Price calculator'), icon: BadgePercent, permission: P.COST_VIEW, keywords: 'price nikalein calculator margin break even daraz commission shopify fee cod rto ads profit qeemat' },
+    ],
+  },
+  {
+    id: 'c-customers', label: t('Customers'), icon: Users, color: '#0d9488', defaultOpen: true, order: 5,
+    items: [
+      { to: '/online-orders/customers', label: t('Customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
+      { to: '/online-store/blocklist', label: t('Report scammer'), icon: ShieldAlert, permission: P.SALES_VIEW, keywords: 'block list fake order scammer fraud rto number' },
+    ],
+  },
+  {
+    id: 'c-money', label: t('Money & growth'), icon: Calculator, color: '#16a34a', defaultOpen: true, order: 6,
+    items: [
+      { to: '/online-store/costs', label: t('Selling costs'), icon: Calculator, permission: P.SALES_VIEW, keywords: 'courier charge rate card cod fee packaging gateway fee profit expense rto' },
+      { to: '/online-store/ads', label: t('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
+      { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'whatsapp bot ai marketing social affiliate automation roadmap' },
+    ],
+  },
+];
+
 /* ─── POS workspace ─── */
 export const posNavGroups: NavGroup[] = [
   {
@@ -89,21 +151,11 @@ export const posNavGroups: NavGroup[] = [
     ],
   },
   {
+    // The online store has its own workspace (commerceNavGroups); the main menu only opens it.
     id: 'online', label: t('Online store'), icon: Globe, color: '#0ea5e9', defaultOpen: true, order: 6,
     items: [
-      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
-      { to: '/online-store/products', label: t('Online products'), icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW, keywords: 'daraz shopify woocommerce products link jorna sku price stock sync channel' },
-      { to: '/online-store/price-calculator', label: t('Price calculator'), icon: BadgePercent, permission: P.COST_VIEW, keywords: 'price nikalein calculator margin break even daraz commission shopify fee cod rto ads profit qeemat' },
-      { to: '/online-store/ads', label: t('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
-      { to: '/online-orders/pack', label: t('Packing'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'pack scan barcode packing slip label ready parcel' },
-      { to: '/online-orders/returns-scan', label: t('RTO returns'), icon: PackageX, permission: P.SALES_VIEW, keywords: 'rto return wapas parcel scan damaged kharab restock' },
-      { to: '/online-orders/cod', label: t('COD & courier'), icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
-      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
-      { to: '/online-store/costs', label: t('Selling costs'), icon: Calculator, permission: P.SALES_VIEW, keywords: 'courier charge rate card cod fee packaging gateway fee profit expense rto' },
-      { to: '/online-orders/customers', label: t('Online customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
-      { to: '/online-orders/reports', label: t('Online reports'), icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel block' },
-      // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan
-      // useVisibleNav khud daalta hai — Shopify ke "Sales channels" jaisa.
+      { to: COMMERCE_HOME, label: t('Online store'), icon: Store, permission: P.SALES_VIEW, keywords: 'online store ecommerce e-commerce daraz shopify woocommerce website commerce dukaan' },
+      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz shopify order' },
     ],
   },
   {
@@ -600,6 +652,11 @@ export function fromIndustryGroup(g: IndustryNavGroup): NavGroup {
 
 /* ─── Small persistence helpers ─── */
 export const LAST_APP_PATH_KEY = 'nafaa-last-app-path';
+/** The last page outside the online store, where "Back to Nafaa" returns. */
+export const LAST_MAIN_PATH_KEY = 'nafaa-last-main-path';
+export const lastMainPath = () => {
+  try { return sessionStorage.getItem(LAST_MAIN_PATH_KEY) || '/dashboard'; } catch { return '/dashboard'; }
+};
 const GROUPS_KEY = 'nafaa-sidebar-groups-v8';
 const FAVORITES_KEY = 'nafaa-sidebar-favorites-v6';
 const RECENT_KEY = 'nafaa-sidebar-recent-v2';

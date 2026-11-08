@@ -11,7 +11,7 @@ import { Info } from 'lucide-react';
 import { Button, Input, Modal, Segmented, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../../api/online-orders.api';
-import { applyRule, onlineProductsApi, type OnlineChannel, type PriceRounding, type PriceRuleMode } from '../../api/online-products.api';
+import { applyRule, onlineProductsApi, type OnlineChannel, type PriceRounding, type PriceRuleMode, type PushContent, type StockMode } from '../../api/online-products.api';
 import { ChannelMark, channelName, kindOf, refreshOnlineProducts, rs } from './meta';
 import { t, Trans } from '@core/i18n';
 
@@ -26,6 +26,10 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
   const [buffer, setBuffer] = useState(channel.stockBuffer ? String(channel.stockBuffer) : '');
   const [pushStock, setPushStock] = useState(channel.pushStock);
   const [autoLink, setAutoLink] = useState(channel.autoLink);
+  const [stockMode, setStockMode] = useState<StockMode>(channel.stockMode ?? 'ALL');
+  const [stockPercent, setStockPercent] = useState(String(channel.stockPercent ?? 100));
+  const [stockFixed, setStockFixed] = useState(channel.stockFixed ? String(channel.stockFixed) : '');
+  const [content, setContent] = useState<PushContent>(channel.pushContent);
 
   const value = mode === 'NONE' ? 0 : (Number(amount) || 0) * (dir === 'down' ? -1 : 1);
   const rule = { mode, value, rounding };
@@ -34,7 +38,12 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
   const save = useMutation({
     // A custom website only takes the stock buffer; its price is the Nafaa price from the website API.
     mutationFn: () => onlineProductsApi.settings(channel.id, {
-      ...(channel.canPush ? { pushPrice, priceRule: rule, pushStock, autoLink } : {}),
+      ...(channel.canPush ? {
+        pushPrice, priceRule: rule, pushStock, autoLink, stockMode,
+        stockPercent: Math.min(100, Math.max(1, Math.floor(Number(stockPercent) || 100))),
+        stockFixed: Math.max(0, Math.floor(Number(stockFixed) || 0)),
+        ...(channel.canContent ? { pushContent: content } : {}),
+      } : {}),
       stockBuffer: Math.max(0, Math.floor(Number(buffer) || 0)),
     }),
     onSuccess: () => {
@@ -119,6 +128,44 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
             </p>
           </div>
         </section>
+
+        {channel.canPush && (
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <p className="text-[0.8125rem] font-semibold text-slate-800">{t('Is channel ko kitna Stock')}</p>
+            <Segmented<StockMode> label={t('Stock ka hissa')} value={stockMode} onChange={setStockMode} className="w-full [&>button]:flex-1 [&>button]:justify-center"
+              items={[{ value: 'ALL', label: t('Poora') }, { value: 'PERCENT', label: t('% hissa') }, { value: 'FIXED', label: t('Fixed') }]} />
+            {stockMode === 'PERCENT' && (
+              <Input inputMode="numeric" value={stockPercent} onChange={(e) => setStockPercent(e.target.value.replace(/\D/g, ''))} aria-label={t('Kitne percent')}
+                wrapperClassName="w-32" rightIcon={<span className="text-[0.75rem] text-slate-500">%</span>} />
+            )}
+            {stockMode === 'FIXED' && (
+              <Input inputMode="numeric" value={stockFixed} onChange={(e) => setStockFixed(e.target.value.replace(/\D/g, ''))} placeholder="0" aria-label={t('Har product kitne')}
+                wrapperClassName="w-32" rightIcon={<span className="text-[0.75rem] text-slate-500">{t('pcs')}</span>} />
+            )}
+            <p className="text-[0.75rem] text-slate-500">
+              {stockMode === 'ALL' ? t('Nafaa ka poora Stock (buffer ke baad) is channel par dikhega.')
+                : stockMode === 'PERCENT' ? t('Maslan Nafaa me 100 hain aur 30% rakha to channel par 30 dikhenge.')
+                  : t('Har product/size ke itne channel ko milenge. Kisi ek ka apna number grid me us ke khane se rakhein.')}
+              {' '}{t('Kabhi Nafaa ke Stock se zyada nahi jata — fixed hisse zyada hon to sab barabar kam ho jate hain.')}
+            </p>
+          </section>
+        )}
+
+        {channel.canContent && (
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <p className="text-[0.8125rem] font-semibold text-slate-800">{t('"Abhi bhejein" par kya jaye')}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {([
+                ['title', t('Naam (title)')], ['description', t('Description')], ['images', t('Tasveerein')],
+                ['compareAt', t('Sale price (kati hui Price)')], ['sku', t('SKU aur barcode')], ['weight', t('Weight')],
+              ] as Array<[keyof PushContent, string]>).map(([k, label]) => (
+                <Switch key={k} checked={content[k]} onChange={(e) => setContent((c) => ({ ...c, [k]: e.target.checked }))} label={label} />
+              ))}
+            </div>
+            <p className="text-[0.75rem] text-slate-500">{t('Listed / band hamesha jata hai. Shopify par tasveerein sirf tab jati hain jab wahan koi tasveer na ho.')}</p>
+          </section>
+        )}
+        {channel.contentNote && <p className="rounded-2xl bg-amber-50 p-3 text-[0.78125rem] text-amber-900 ring-1 ring-amber-100">{t('Daraz par title/tasveer/description bhejna Coming soon — Stock aur Price ja rahe hain')}</p>}
 
         <p className="flex gap-2 rounded-2xl bg-sky-50 p-3 text-[0.78125rem] text-sky-900 ring-1 ring-sky-100">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />

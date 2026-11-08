@@ -96,7 +96,7 @@ export function GlobalSearchDialog() {
   const { open, setOpen } = useGlobalSearch();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const { groups, settingsItems } = useVisibleNav(user?.role, user?.permissions);
+  const { searchGroups: groups, settingsItems } = useVisibleNav(user?.role, user?.permissions);
   const openHelp = useShortcutsHelp((st) => st.setOpen);
   const returnFocus = useRef<HTMLElement | null>(null);
   const [query, setQuery] = useState('');

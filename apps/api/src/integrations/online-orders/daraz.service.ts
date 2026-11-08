@@ -377,7 +377,9 @@ export class DarazService {
   async remoteProducts(i: Integration): Promise<RemoteProduct[]> {
     const client = await this.client(i);
     const out: RemoteProduct[] = [];
-    for (let offset = 0; offset < 10_000; offset += 50) {
+    // Pages of 50 with a short pause (Daraz QPS); the bound only guards a looping API.
+    for (let offset = 0; offset < 500_000; offset += 50) {
+      if (offset > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS.DARAZ));
       const r = await client.call('/products/get', { filter: 'all', offset, limit: 50 });
       const page: any[] = r?.data?.products ?? [];
       for (const p of page) {

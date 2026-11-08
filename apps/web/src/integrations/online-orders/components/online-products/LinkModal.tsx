@@ -71,7 +71,12 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
   });
   const create = useMutation({
     mutationFn: (ids: string[]) => onlineProductsApi.importItems(channel.id, ids),
-    onSuccess: (r) => { setPicked(new Set()); after(tr('{{created}} naye products Nafaa me bane{{value}}', { created: r.created, value: r.linkedExisting ? tr(', {{linkedExisting}} pehle walon se jure', { linkedExisting: r.linkedExisting }) : '' }), r.errors); },
+    onSuccess: (r) => {
+      setPicked(new Set());
+      // A big pick runs in the background; its progress shows on the products page.
+      if ('job' in r) { after(tr('{{count}} products Nafaa me ban rahe hain — progress oopar dekhein', { count: r.job.total }), []); return; }
+      after(tr('{{created}} naye products Nafaa me bane{{value}}', { created: r.created, value: r.linkedExisting ? tr(', {{linkedExisting}} pehle walon se jure', { linkedExisting: r.linkedExisting }) : '' }), r.errors);
+    },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 

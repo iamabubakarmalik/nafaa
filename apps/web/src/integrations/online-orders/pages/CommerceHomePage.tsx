@@ -1,0 +1,285 @@
+/**
+ * Online store dashboard, the home of the commerce workspace: today's
+ * numbers, the work waiting in each order status, the connected channels,
+ * the last 30 days at a glance and every commerce module (live or coming
+ * soon).
+ *
+ * Keys: N add order · O orders · G guide.
+ */
+
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import {
+  AlarmClock, AlertTriangle, BadgePercent, BarChart3, Bot, Calculator, CheckCircle2, CircleDollarSign, Clock, CreditCard, FileSpreadsheet,
+  Globe, GraduationCap, Headphones, Hourglass, Languages, Megaphone, MessageCircle, PackageCheck, PackagePlus, PackageX, PauseCircle, Plus,
+  Printer, Repeat, RotateCcw, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, Sparkles, Truck, Users, Wallet, Workflow,
+  type LucideIcon,
+} from 'lucide-react';
+import { KpiCard, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { cn } from '@core/lib/cn';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { BrandLogo, brandForChannel } from '@/assets/brands/BrandLogo';
+import { onlineOrdersApi } from '../api/online-orders.api';
+import { useSalesChannels } from '../hooks/useSalesChannels';
+import { timeAgo } from '../lib/labels';
+import { t as tr } from '@core/i18n';
+
+type Work = { key: string; label: string; hint: string; icon: LucideIcon; color: string };
+
+/** The order statuses that need someone's hands, in the order work flows. */
+const WORK: Work[] = [
+  { key: 'NEW', label: tr('New'), hint: tr('Confirm karne hain'), icon: ShoppingBag, color: '#2563eb' },
+  { key: 'PAY_PENDING', label: tr('Pay pending'), hint: tr('Advance ka intezar'), icon: CreditCard, color: '#7c3aed' },
+  { key: 'ON_HOLD', label: tr('On hold'), hint: tr('Ruke hue'), icon: PauseCircle, color: '#64748b' },
+  { key: 'NO_STOCK', label: tr('No stock'), hint: tr('Maal nahi hai'), icon: PackageX, color: '#dc2626' },
+  { key: 'CONFIRMED', label: tr('Confirmed'), hint: tr('Pack karne hain'), icon: CheckCircle2, color: '#0d9488' },
+  { key: 'PACKED_NOT_SENT', label: tr('Packed, not sent'), hint: tr('Courier ko dene hain'), icon: PackageCheck, color: '#ea580c' },
+  { key: 'STUCK', label: tr('Stuck 5+ days'), hint: tr('Courier ke paas atke'), icon: Hourglass, color: '#b45309' },
+  { key: 'ISSUES', label: tr('Issues'), hint: tr('Courier ka masla'), icon: AlertTriangle, color: '#e11d48' },
+  { key: 'RETURNING', label: tr('Returning'), hint: tr('Wapas aa rahe'), icon: RotateCcw, color: '#c026d3' },
+  { key: 'FOLLOW_UP', label: tr('Follow-ups due'), hint: tr('Aaj dobara rabta'), icon: AlarmClock, color: '#0284c7' },
+];
+
+type Module = { to?: string; label: string; text: string; icon: LucideIcon; color: string };
+
+const LIVE: Module[] = [
+  { to: '/online-orders', label: tr('Orders'), text: tr('Har channel ke orders, status aur bulk kaam'), icon: ShoppingBag, color: '#2563eb' },
+  { to: '/online-orders/new', label: tr('Add order'), text: tr('WhatsApp, Instagram, phone — paste ya Excel'), icon: PackagePlus, color: '#16a34a' },
+  { to: '/online-store/products', label: tr('Products & stock'), text: tr('Nafaa se stock, price aur link har channel par'), icon: PackageCheck, color: '#7c3aed' },
+  { to: '/online-store/couriers', label: tr('Couriers'), text: tr('Booking, label, tracking'), icon: Truck, color: '#ea580c' },
+  { to: '/online-orders/cod', label: tr('COD & payments'), text: tr('Courier ke paas kitna paisa hai'), icon: Wallet, color: '#0d9488' },
+  { to: '/online-orders/pack', label: tr('Packing scan'), text: tr('Scan karke pack, ghalti nahi'), icon: ScanLine, color: '#0284c7' },
+  { to: '/online-orders/returns-scan', label: tr('Return scan'), text: tr('RTO wapas, stock wapas'), icon: PackageX, color: '#c026d3' },
+  { to: '/online-orders/customers', label: tr('Customers'), text: tr('Repeat, VIP aur gayab customers'), icon: Users, color: '#0f766e' },
+  { to: '/online-store/blocklist', label: tr('Report scammer'), text: tr('Fake order wale number block'), icon: ShieldAlert, color: '#e11d48' },
+  { to: '/online-orders/reports', label: tr('Reports'), text: tr('City, courier, channel ka RTO aur sale'), icon: BarChart3, color: '#4f46e5' },
+  { to: '/online-store/costs', label: tr('Selling costs'), text: tr('Courier, COD fee, packaging — asli profit'), icon: Calculator, color: '#16a34a' },
+  { to: '/online-store/ads', label: tr('Ads & ROAS'), text: tr('Ads ka kharcha aur wapsi'), icon: Megaphone, color: '#db2777' },
+  { to: '/online-store/price-calculator', label: tr('Price calculator'), text: tr('Har channel ki sahi price'), icon: BadgePercent, color: '#9333ea' },
+];
+
+const SOON: Module[] = [
+  { to: '/online-store/soon/dispatch', label: tr('Dispatch & airway bills'), text: tr('Bulk booking, thermal label, loadsheet'), icon: Printer, color: '#ea580c' },
+  { to: '/online-store/soon/abandoned', label: tr('Abandoned carts'), text: tr('Chhode hue checkout wapas'), icon: ShoppingCart, color: '#2563eb' },
+  { to: '/online-store/soon/post-office', label: tr('Post office'), text: tr('Pakistan Post booking aur VPP'), icon: Send, color: '#b91c1c' },
+  { label: tr('WhatsApp AI bot'), text: tr('Order khud confirm, Roman Urdu me jawab'), icon: MessageCircle, color: '#16a34a' },
+  { label: tr('Marketing hub'), text: tr('Meta, Google, TikTok ads ek jagah'), icon: Megaphone, color: '#db2777' },
+  { label: tr('Social media'), text: tr('Post schedule, captions, inbox'), icon: Share2, color: '#0ea5e9' },
+  { label: tr('Loyalty & retention'), text: tr('Points, referral, win-back'), icon: Repeat, color: '#f59e0b' },
+  { label: tr('Affiliates'), text: tr('Influencer codes aur commission'), icon: Users, color: '#7c3aed' },
+  { label: tr('Automation builder'), text: tr('Agar ye ho to wo karo'), icon: Workflow, color: '#0d9488' },
+  { label: tr('Call center'), text: tr('Click-to-call aur agent dashboard'), icon: Headphones, color: '#475569' },
+  { label: tr('International'), text: tr('Doosri currency aur mulk'), icon: Languages, color: '#0284c7' },
+  { label: tr('AI store manager'), text: tr('Bol kar poochein, AI kaam kare'), icon: Bot, color: '#9333ea' },
+];
+
+export default function CommerceHomePage() {
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const today = businessDayKey(new Date(), startHour);
+  const monthAgo = (() => {
+    const [y, m, d] = today.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d - 29)).toISOString().slice(0, 10);
+  })();
+
+  const { data: channels, isLoading: channelsLoading } = useSalesChannels();
+  const countsQ = useQuery({
+    queryKey: ['online-orders', 'home-counts'],
+    queryFn: () => onlineOrdersApi.list({ limit: 1 }),
+    refetchInterval: 30_000,
+  });
+  const reportQ = useQuery({
+    queryKey: ['online-orders', 'report', monthAgo, today, 'home'],
+    queryFn: () => onlineOrdersApi.report({ from: monthAgo, to: today }),
+    staleTime: 5 * 60_000,
+  });
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); navigate('/online-orders/new'); }
+      if (e.key === 'o' || e.key === 'O') { e.preventDefault(); navigate('/online-orders'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  const list = countsQ.data;
+  const board = list?.boardCounts ?? {};
+  const stats = list?.stats;
+  const r = reportQ.data?.totals;
+  const salesChannels = (channels ?? []).filter((c) => c.type !== 'MANUAL');
+
+  return (
+    <PageShell>
+      <PageHero
+        title={tr('Online store')}
+        chip={<><Globe />{tr('Aaj')}</>}
+        meta={salesChannels.length
+          ? tr('{{count}} channel jore hue · sab orders, stock aur courier yahin se', { count: salesChannels.length })
+          : tr('Apni website, Shopify ya Daraz joren — sab kuch Nafaa se chalayein')}
+        busy={countsQ.isFetching && !countsQ.isLoading}
+        loading={countsQ.isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          <Link to="/online-orders/new" className={heroButton}><Plus className="h-4 w-4" /> {tr('Add order')}</Link>
+          <Link to="/online-orders" className={heroButton}><ShoppingBag className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Orders')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={stats ? [
+          { label: tr('Aaj ke orders'), value: String(stats.todayOrders) },
+          { label: tr('Aaj ki sale'), value: money(stats.todayValue) },
+          { label: tr('Confirm karne hain'), value: String(board.NEW ?? list?.counts?.PENDING ?? 0) },
+          { label: tr('COD baqi'), value: money(stats.codDueValue), hint: tr('{{count}} order', { count: stats.codDueCount }) },
+        ] : [{ label: tr('Aaj ke orders'), value: '' }, { label: tr('Aaj ki sale'), value: '' }, { label: tr('Confirm karne hain'), value: '' }, { label: tr('COD baqi'), value: '' }]}
+      />
+
+      {/* Work waiting in each status */}
+      <section aria-labelledby="work-title">
+        <h2 id="work-title" className="mb-2 flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Clock className="h-4 w-4 text-slate-400" /> {tr('Aaj ka kaam')}</h2>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+          {WORK.map((w) => {
+            const n = board[w.key];
+            return (
+              <Link
+                key={w.key}
+                to={`/online-orders?board=${w.key}`}
+                className={cn('group flex min-w-0 items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md',
+                  !n && 'opacity-70')}
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${w.color}17`, color: w.color }}><w.icon className="h-4 w-4" /></span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{w.label}</span>
+                  <span className="block truncate text-[0.75rem] text-slate-500">{w.hint}</span>
+                </span>
+                <span className="ms-auto text-[1.125rem] font-bold tabular-nums text-slate-900">
+                  {countsQ.isLoading ? <Skeleton className="h-5 w-6" /> : (n ?? 0)}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        {/* Channels */}
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80" aria-labelledby="channels-title">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 id="channels-title" className="text-[0.9375rem] font-semibold text-slate-900">{tr('Sales channels')}</h2>
+            <Link to="/online-store/connect" className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-brand-700 hover:underline"><Plus className="h-3.5 w-3.5" /> {tr('Channel joren')}</Link>
+          </div>
+          {channelsLoading ? (
+            <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
+          ) : !salesChannels.length ? (
+            <div className="rounded-xl bg-slate-50 p-4 text-center text-[0.8125rem] text-slate-600">
+              {tr('Abhi koi channel nahi jura. Shopify, WooCommerce, Daraz ya apni website joren — orders khud yahan aayenge.')}
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {(['shopify', 'woocommerce', 'daraz'] as const).map((b) => <BrandLogo key={b} name={b} size={28} />)}
+              </div>
+            </div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {salesChannels.map((c) => (
+                <li key={c.id}>
+                  <Link to={`/online-orders?channel=${c.id}`} className="flex items-center gap-3 rounded-lg py-2.5 transition hover:bg-slate-50">
+                    <BrandLogo name={brandForChannel(c.type, { platform: c.platform })} size={28} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.displayName}</span>
+                      <span className="block truncate text-[0.75rem] text-slate-500">
+                        {c.lastOrderAt ? tr('Aakhri order {{ago}}', { ago: timeAgo(c.lastOrderAt) }) : tr('Abhi koi order nahi')}
+                      </span>
+                    </span>
+                    {c.pendingOrders > 0 && (
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[0.75rem] font-semibold text-blue-700">{tr('{{count}} naye', { count: c.pendingOrders })}</span>
+                    )}
+                    <span className={cn('h-2 w-2 shrink-0 rounded-full', c.live ? 'bg-emerald-500' : 'bg-slate-300')} title={c.live ? tr('Chal raha hai') : tr('Band')} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Last 30 days */}
+        <section aria-labelledby="month-title">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 id="month-title" className="text-[0.9375rem] font-semibold text-slate-900">{tr('Pichhle 30 din')}</h2>
+            <Link to="/online-orders/reports" className="text-[0.8125rem] font-medium text-brand-700 hover:underline">{tr('Poori report')}</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            {!r ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+              <KpiCard icon={CircleDollarSign} color="#16a34a" label={tr('Online sale')} value={money(r.netValue)} hint={tr('{{count}} order', { count: r.netOrders })} />
+              <KpiCard icon={PackageCheck} color="#0d9488" label={tr('Delivery rate')} value={`${r.deliveryRate}%`} hint={tr('{{count}} deliver hue', { count: r.delivered })} />
+              <KpiCard icon={RotateCcw} color="#c026d3" label={tr('RTO')} value={`${r.rtoRate}%`} hint={tr('{{count}} wapas', { count: r.returned })} />
+              <KpiCard icon={ShoppingBag} color="#2563eb" label={tr('Ausat order')} value={money(r.avgOrderValue)} hint={tr('{{count}} customer', { count: r.customers })} />
+            </>}
+          </div>
+          {!!reportQ.data?.riskyCities?.length && (
+            <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
+              <span className="font-semibold">{tr('Zyada RTO wale shehar:')}</span>{' '}
+              {reportQ.data.riskyCities.slice(0, 4).map((c) => `${c.city} (${c.rtoRate}%)`).join(' · ')}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Every commerce module */}
+      <section aria-labelledby="modules-title">
+        <h2 id="modules-title" className="mb-2 text-[0.9375rem] font-semibold text-slate-900">{tr('Nafaa Commerce — sab kuch ek jagah')}</h2>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+          {LIVE.map((m) => <ModuleCard key={m.label} m={m} />)}
+        </div>
+        <h3 className="mb-2 mt-5 flex items-center gap-2 text-[0.875rem] font-semibold text-slate-700"><Sparkles className="h-4 w-4 text-amber-500" /> {tr('Jaldi aa raha hai')}</h3>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+          {SOON.map((m) => <ModuleCard key={m.label} m={m} soon />)}
+        </div>
+      </section>
+
+      {guide.isOpen && (
+        <PageGuide
+          title={tr('Online store — aasaan tareeqa')}
+          description={tr('Nafaa aap ka main system hai: orders, stock, price aur courier sab yahin se.')}
+          onClose={guide.close}
+          flow={[
+            { label: tr('Order aaya'), hint: tr('Shopify, Daraz, website, WhatsApp'), icon: ShoppingBag, color: '#2563eb' },
+            { label: tr('Confirm'), hint: tr('Call ya WhatsApp'), icon: CheckCircle2, color: '#0d9488' },
+            { label: tr('Packed'), hint: tr('Scan karke'), icon: PackageCheck, color: '#7c3aed' },
+            { label: tr('Dispatched'), hint: tr('Courier ko diya'), icon: Truck, color: '#ea580c' },
+            { label: tr('Delivered'), hint: tr('COD ka paisa aaya'), icon: Wallet, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Clock, color: '#2563eb', title: tr('Aaj ka kaam'), text: tr('Har dabbe me utne orders hain jin par kaam baqi hai. Dabba dabayein, wohi orders khul jayenge.') },
+            { icon: Globe, color: '#0284c7', title: tr('Channels'), text: tr('Jitne channel jore hain sab ke orders ek jagah. Hara nishan = chal raha hai.') },
+            { icon: PackageCheck, color: '#7c3aed', title: tr('Nafaa hi main hai'), text: tr('Stock, price aur products Nafaa me badlein — har channel par khud chale jate hain.') },
+            { icon: FileSpreadsheet, color: '#16a34a', title: tr('Naya order'), text: tr('WhatsApp ya Instagram ka order "Add order" se — text paste karein ya Excel daalein.') },
+          ]}
+          shortcuts={[['N', tr('Add order')], ['O', tr('Orders')], ['G', tr('Guide')]]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function ModuleCard({ m, soon }: { m: Module; soon?: boolean }) {
+  const body = (
+    <>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${m.color}17`, color: m.color }}><m.icon className="h-4 w-4" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900">
+          <span className="truncate">{m.label}</span>
+          {soon && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[0.625rem] font-semibold uppercase text-amber-800">{tr('Soon')}</span>}
+        </span>
+        <span className="mt-0.5 block text-[0.75rem] leading-snug text-slate-500">{m.text}</span>
+      </span>
+    </>
+  );
+  const cls = cn('flex items-start gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80', m.to && 'transition hover:-translate-y-0.5 hover:shadow-md', soon && 'bg-slate-50/80');
+  return m.to ? <Link to={m.to} className={cls}>{body}</Link> : <div className={cls}>{body}</div>;
+}

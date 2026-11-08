@@ -101,7 +101,7 @@ export class ShopifyClient {
   }
 
   /** Cursor wali list — sab pages (hadd ke saath) */
-  async paginate<T = any>(query: string, path: string, variables: Record<string, any> = {}, maxPages = 40): Promise<T[]> {
+  async paginate<T = any>(query: string, path: string, variables: Record<string, any> = {}, maxPages = 1000): Promise<T[]> {
     const out: T[] = [];
     let after: string | null = null;
     for (let i = 0; i < maxPages; i++) {

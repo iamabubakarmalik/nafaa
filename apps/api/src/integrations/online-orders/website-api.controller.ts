@@ -15,7 +15,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { detectPlatform, isIndoljStatus, normalizeOrder } from './order-normalizer';
-import { readWebsiteConfig, verifySignature } from './website-config';
+import { readWebsiteConfig, stockRule, verifySignature } from './website-config';
 
 /**
  * Website ⇄ Nafaa public API  (v1)
@@ -215,6 +215,7 @@ export class WebsiteApiController {
       search,
       updatedSince: updatedSince ? new Date(updatedSince) : undefined,
       stockBuffer: config.stockBuffer,
+      stockRule: stockRule(config),
     });
   }
 
@@ -226,7 +227,7 @@ export class WebsiteApiController {
     const list = String(skus ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 500);
     if (!list.length) throw new BadRequestException('?skus=A1,B2 bhejein');
     const config = readWebsiteConfig(integration.config);
-    const stock = await this.catalog.stockBySku(integration.tenantId, config.shopId ?? integration.shopId, integration.id, list, config.stockBuffer);
+    const stock = await this.catalog.stockBySku(integration.tenantId, config.shopId ?? integration.shopId, integration.id, list, stockRule(config));
     return { stock };
   }
 

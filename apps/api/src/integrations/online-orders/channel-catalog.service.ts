@@ -53,7 +53,7 @@ export interface LinkInput {
 @Injectable()
 export class ChannelCatalogService {
   private readonly logger = new Logger(ChannelCatalogService.name);
-  private cache = new Map<string, { at: number; data: RemoteProduct[] }>();
+  private cache = new Map<string, { at: number; data: RemoteProduct[]; holdUntil?: number }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -72,6 +72,12 @@ export class ChannelCatalogService {
   }
 
   /** Drop the cached channel list (after links or imports change it). */
+  /** Keeps the channel list read once for a running job (a big list is not read again per chunk). */
+  holdCache(integrationId: string, ms: number) {
+    const hit = this.cache.get(integrationId);
+    if (hit) hit.holdUntil = Date.now() + ms;
+  }
+
   forget(integrationId: string) {
     this.cache.delete(integrationId);
   }
@@ -122,7 +128,7 @@ export class ChannelCatalogService {
 
   async remoteProducts(integration: Integration, refresh = false): Promise<RemoteProduct[]> {
     const hit = this.cache.get(integration.id);
-    if (!refresh && hit && Date.now() - hit.at < CACHE_MS) return hit.data;
+    if (!refresh && hit && (Date.now() - hit.at < CACHE_MS || Date.now() < (hit.holdUntil ?? 0))) return hit.data;
     const kind = this.kind(integration);
     const data = kind === 'woocommerce' ? await this.wooProducts(integration)
       : kind === 'shopify' ? await this.shopifyProducts(integration)
@@ -139,14 +145,14 @@ export class ChannelCatalogService {
     const products = await client.all<any>('/products', {
       status: 'any',
       _fields: 'id,name,type,status,sku,price,regular_price,stock_quantity,manage_stock,images',
-    }, 20);
+    });
     const out: RemoteProduct[] = [];
     for (const p of products) {
       const image = p.images?.[0]?.src ?? null;
       if (p.type === 'variable') {
         const vars = await client.all<any>(`/products/${p.id}/variations`, {
           _fields: 'id,sku,price,regular_price,stock_quantity,manage_stock,attributes,image',
-        }, 3).catch(() => []);
+        }, 10).catch(() => []);
         out.push({
           externalProductId: String(p.id), title: p.name, image, status: p.status, hasVariants: true,
           variants: vars.map((v: any) => ({
@@ -185,7 +191,7 @@ export class ChannelCatalogService {
         }
         pageInfo { hasNextPage endCursor }
       }
-    }`, 'products', {}, 20);
+    }`, 'products', {});
     return products.map((p: any) => {
       const vars: any[] = p.variants?.nodes ?? [];
       const image = p.featuredMedia?.preview?.image?.url ?? null;

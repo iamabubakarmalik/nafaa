@@ -11,6 +11,12 @@ export interface PickedProduct {
   productId: string;
   variantId: string | null;
   label: string;
+  /** Sale price of the product or variant (for order forms). */
+  price?: number;
+  sku?: string | null;
+  image?: string | null;
+  name?: string;
+  variantName?: string | null;
 }
 
 /**
@@ -106,7 +112,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = tr('Nafaa p
                     {head}
                     <div className="mt-1.5 flex flex-wrap gap-1 ps-10">
                       {p.variants.map((v: any) => (
-                        <button key={v.id} onClick={() => pick({ productId: p.id, variantId: v.id, label: `${p.name} — ${v.name}` })}
+                        <button key={v.id} onClick={() => pick({ productId: p.id, variantId: v.id, label: `${p.name} — ${v.name}`, name: p.name, variantName: v.name, price: Number(v.price ?? p.price) || 0, sku: v.sku ?? p.sku, image: img })}
                           className="rounded-md border border-slate-200 px-2 py-1 text-[0.75rem] font-medium text-slate-700 hover:border-slate-900 hover:bg-slate-50 dark:border-ink-700 dark:text-ink-200 dark:hover:bg-ink-800">
                           {v.name}{v.sku ? <span className="text-slate-400"> · {v.sku}</span> : null}
                         </button>
@@ -116,7 +122,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = tr('Nafaa p
                 );
               }
               return (
-                <button key={p.id} onClick={() => pick({ productId: p.id, variantId: null, label: p.name })}
+                <button key={p.id} onClick={() => pick({ productId: p.id, variantId: null, label: p.name, name: p.name, price: Number(p.price) || 0, sku: p.sku, image: img })}
                   className="block w-full rounded-lg px-2 py-1.5 text-start hover:bg-slate-50 dark:hover:bg-ink-800">
                   {head}
                 </button>

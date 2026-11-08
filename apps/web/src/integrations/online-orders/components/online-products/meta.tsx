@@ -5,7 +5,8 @@
 
 import type { QueryClient } from '@tanstack/react-query';
 import { BrandLogo, brandColor, brandForChannel, brandLabel, type BrandName } from '@/assets/brands/BrandLogo';
-import { ONLINE_PRODUCTS_KEY, type OnlineChannel, type PriceRule } from '../../api/online-products.api';
+import { ONLINE_PRODUCTS_KEY, type LastPush, type OnlineChannel, type PriceRule } from '../../api/online-products.api';
+import { timeAgo } from '../../lib/labels';
 import { t } from '@core/i18n';
 
 type ChannelLike = Pick<OnlineChannel, 'type'> & Partial<Pick<OnlineChannel, 'mode' | 'platform'>>;
@@ -48,12 +49,25 @@ export function stockText(c: OnlineChannel): string {
   const kept = c.stockBuffer ? t(', {{stockBuffer}} rakh kar', { stockBuffer: c.stockBuffer }) : '';
   if (c.mode === 'website') return t('Website Nafaa se leti hai{{kept}}', { kept });
   if (c.canPush && !c.pushStock) return t('Bhejna band hai — channel par haath se');
+  if (c.stockMode === 'PERCENT') return t('Nafaa Stock ka {{percent}}%{{kept}}', { percent: c.stockPercent, kept });
+  if (c.stockMode === 'FIXED') return t('Har product {{fixed}} (fixed){{kept}}', { fixed: c.stockFixed, kept });
   return c.stockBuffer ? t('Nafaa se{{kept}}', { kept }) : t('Nafaa se, poora');
 }
 
 export const WEBSITE_LINKS_NOTE = t('Ye website apne products khud bhejti hai — order aane par ya CSV se jurte hain');
 
 export const channelName = (c: OnlineChannel) => c.name || kindOf(c).label;
+
+const PUSH_WHAT: Record<LastPush['what'][number], () => string> = {
+  stock: () => t('Stock'), price: () => t('Price'), content: () => t('Content'), status: () => t('Listed'), publish: () => t('Publish'),
+};
+
+/** "Stock, Price · 5 min pehle · theek" */
+export function lastPushText(p: LastPush | null | undefined): string | null {
+  if (!p?.at) return null;
+  const what = (p.what ?? []).map((w) => PUSH_WHAT[w]?.() ?? w).join(', ');
+  return t('Aakhri push: {{what}} · {{when}} · {{result}}', { what, when: timeAgo(p.at), result: p.ok ? t('theek') : t('nahi gaya') });
+}
 
 /** Everything the page shows after a link, price or sync change. */
 export function refreshOnlineProducts(qc: QueryClient) {

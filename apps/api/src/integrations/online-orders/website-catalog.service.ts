@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { applyStockDelta } from '../../common/shop-scope';
-import { readWebsiteConfig } from './website-config';
+import { readWebsiteConfig, stockRule } from './website-config';
+import { allocate, channelShare, Claim, StockRule } from './stock-allocation';
 import { mappingKey } from './mapping-key';
 
 export interface CatalogExportOptions {
@@ -11,8 +12,12 @@ export interface CatalogExportOptions {
   search?: string;
   updatedSince?: Date;
   skus?: string[];
+  /** Only these products */
+  productIds?: string[];
   /** Units kept back from a website (channel stock buffer); 0 = full stock. */
   stockBuffer?: number;
+  /** The channel's stock share rule; wins over stockBuffer when given. */
+  stockRule?: StockRule;
 }
 
 export interface ImportOptions {
@@ -32,7 +37,9 @@ export interface ImportResult {
   errors: { name: string; error: string }[];
 }
 
-const MAX_IMPORT = 2000;
+/** Safety bound for one import request (CSV / channel list). */
+const MAX_IMPORT = 100_000;
+const PENDING_SCAN = 5000;
 
 const toNum = (v: any): number | undefined => {
   if (v === null || v === undefined || v === '') return undefined;
@@ -87,6 +94,7 @@ export class WebsiteCatalogService {
         { variants: { some: { sku: { in: opts.skus } } } },
       ];
     }
+    if (opts.productIds?.length) where.id = { in: opts.productIds };
 
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -114,12 +122,13 @@ export class WebsiteCatalogService {
     ]);
 
     const buffer = Math.max(0, Math.floor(opts.stockBuffer ?? 0));
+    const share = (n: number) => (opts.stockRule ? channelShare(n, opts.stockRule) : n - buffer);
     const products = items.map((p: any) => {
       const rows: any[] = p.shopStocks ?? [];
       const baseRow = rows.find((r) => r.variantId === null);
       const variants = (p.variants ?? []).map((v: any) => {
         const row = rows.find((r) => r.variantId === v.id);
-        const stock = (shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0)) - buffer;
+        const stock = share(shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0));
         return {
           id: v.id,
           name: v.name,
@@ -134,7 +143,7 @@ export class WebsiteCatalogService {
         };
       });
 
-      const baseStock = (shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0)) - buffer;
+      const baseStock = share(shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0));
       const stock = variants.length
         ? variants.reduce((s: number, v: any) => s + v.stock, 0)
         : Math.max(baseStock, 0);
@@ -165,7 +174,7 @@ export class WebsiteCatalogService {
    * unka maal "reserved" hai — warna sync website ka stock wapas bara kar
    * deta aur wahi cheez dobara bik jati.
    */
-  async stockBySku(tenantId: string, shopId: string | null, integrationId: string, skus: string[], buffer = 0) {
+  async stockBySku(tenantId: string, shopId: string | null, integrationId: string, skus: string[], rule: StockRule | number = 0) {
     const stock: Record<string, number> = {};
     for (let i = 0; i < skus.length; i += 500) {
       const res = await this.exportProducts(tenantId, shopId, { skus: skus.slice(i, i + 500), limit: 500 });
@@ -178,7 +187,7 @@ export class WebsiteCatalogService {
     const pending = await this.prisma.channelOrder.findMany({
       where: { integrationId, orderStatus: { in: ['PENDING', 'ACCEPTING'] } },
       select: { items: true },
-      take: 500,
+      take: PENDING_SCAN,
     });
     for (const o of pending) {
       for (const it of (o.items as any[]) ?? []) {
@@ -187,8 +196,9 @@ export class WebsiteCatalogService {
         }
       }
     }
-    // Stock buffer: keep some units back from the channel.
-    if (buffer > 0) for (const k of Object.keys(stock)) stock[k] = Math.max(0, stock[k] - buffer);
+    // The channel's share (buffer, percent or fixed). Items matched only by SKU have no link, so no own allocation.
+    const r: StockRule = typeof rule === 'number' ? { mode: 'ALL', percent: 100, fixed: 0, buffer: rule } : rule;
+    for (const k of Object.keys(stock)) stock[k] = channelShare(stock[k], r);
     return stock;
   }
 
@@ -196,7 +206,12 @@ export class WebsiteCatalogService {
   // STOCK — jore hue variants ka Nafaa stock (pending orders minus)
   // ═══════════════════════════════════════════════════════════
 
-  /** key = website ka variant id (ya simple product id) → bechne layak stock */
+  /**
+   * key = channel variant id (or simple product id) → units to show there.
+   * Pending (not yet accepted) orders hold their units back; then the stock is
+   * split by allocation: this channel's rule and link share, scaled down
+   * against the fixed shares of the other channels on the same branch.
+   */
   async stockByLink(integration: { id: string; tenantId: string; shopId: string | null; config: any }): Promise<Map<string, number>> {
     const cfg = readWebsiteConfig(integration.config);
     const shopId = cfg.shopId ?? integration.shopId;
@@ -204,40 +219,87 @@ export class WebsiteCatalogService {
     if (!shopId) return out;
     const mappings = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: integration.id },
-      select: { productId: true, variantId: true, externalProductId: true, externalVariantId: true },
+      select: { productId: true, variantId: true, externalProductId: true, externalVariantId: true, allocQty: true, listed: true },
     });
     if (!mappings.length) return out;
-    const rows = await this.prisma.shopStock.findMany({
-      where: { shopId, productId: { in: [...new Set(mappings.map((m) => m.productId))] } },
-      select: { productId: true, variantId: true, stock: true },
-    });
+    const productIds = [...new Set(mappings.map((m) => m.productId))];
+    const [rows, others] = await Promise.all([
+      this.findInChunks(productIds, (ids) => this.prisma.shopStock.findMany({
+        where: { shopId, productId: { in: ids } },
+        select: { productId: true, variantId: true, stock: true },
+      })),
+      this.otherClaims(integration, shopId, productIds),
+    ]);
+    const stockOf = new Map(rows.map((r) => [mappingKey(r.productId, r.variantId), Number(r.stock ?? 0)]));
+    const pending = await this.pendingByKey(integration.id);
+    const mine = stockRule(cfg);
     for (const m of mappings) {
       const key = m.externalVariantId ?? m.externalProductId;
       if (!key) continue;
-      const row = rows.find((r) => r.productId === m.productId && (r.variantId ?? null) === (m.variantId ?? null));
-      out.set(String(key), Math.max(0, Number(row?.stock ?? 0)));
+      const k = mappingKey(m.productId, m.variantId);
+      const free = Math.max(0, (stockOf.get(k) ?? 0) - (pending.get(String(key)) ?? 0));
+      const claims: Claim[] = [{ channelId: integration.id, rule: mine, allocQty: m.allocQty, listed: m.listed }, ...(others.get(k) ?? [])];
+      out.set(String(key), allocate(free, claims).qty[integration.id]);
     }
-    // Aa chuke magar accept na hue orders ka maal "reserved"
+    return out;
+  }
+
+  /** Units held by not-yet-accepted orders, keyed by channel variant/product id. */
+  private async pendingByKey(integrationId: string) {
+    const held = new Map<string, number>();
     const pending = await this.prisma.channelOrder.findMany({
-      where: { integrationId: integration.id, orderStatus: { in: ['PENDING', 'ACCEPTING'] } },
+      where: { integrationId, orderStatus: { in: ['PENDING', 'ACCEPTING'] } },
       select: { items: true },
-      take: 500,
+      take: PENDING_SCAN,
     });
     for (const o of pending) {
       for (const it of (o.items as any[]) ?? []) {
         const key = it?.externalVariantId ?? it?.externalProductId;
-        if (key && out.has(String(key))) out.set(String(key), Math.max(0, out.get(String(key))! - Number(it.quantity ?? 0)));
+        if (key) held.set(String(key), (held.get(String(key)) ?? 0) + Number(it.quantity ?? 0));
       }
     }
-    // Stock buffer: keep some units back from the channel.
-    if (cfg.stockBuffer > 0) for (const [k, v] of out) out.set(k, Math.max(0, v - cfg.stockBuffer));
+    return held;
+  }
+
+  /**
+   * Allocation claims of the tenant's other push channels on the same branch,
+   * keyed by product/size. Used to scale fixed shares down to the real stock.
+   */
+  async otherClaims(integration: { id: string; tenantId: string }, shopId: string, productIds: string[]) {
+    const out = new Map<string, Claim[]>();
+    const channels = await this.prisma.integration.findMany({
+      where: { tenantId: integration.tenantId, id: { not: integration.id }, type: { in: ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] }, isActive: true },
+      select: { id: true, shopId: true, config: true },
+    });
+    const same = channels.filter((c) => (readWebsiteConfig(c.config).shopId ?? c.shopId) === shopId);
+    if (!same.length || !productIds.length) return out;
+    const rules = new Map(same.map((c) => [c.id, stockRule(readWebsiteConfig(c.config))]));
+    // Only channels or links that ask for fixed units can change this channel's share.
+    const fixedChannels = same.filter((c) => rules.get(c.id)!.mode === 'FIXED').map((c) => c.id);
+    const links = await this.findInChunks(productIds, (ids) => this.prisma.productChannelMapping.findMany({
+      where: {
+        integrationId: { in: same.map((c) => c.id) }, productId: { in: ids }, listed: true,
+        OR: [{ allocQty: { not: null } }, ...(fixedChannels.length ? [{ integrationId: { in: fixedChannels } }] : [])],
+      },
+      select: { integrationId: true, productId: true, variantId: true, allocQty: true, listed: true },
+    }));
+    for (const l of links) {
+      const k = mappingKey(l.productId, l.variantId);
+      out.set(k, [...(out.get(k) ?? []), { channelId: l.integrationId, rule: rules.get(l.integrationId)!, allocQty: l.allocQty, listed: l.listed }]);
+    }
+    return out;
+  }
+
+  private async findInChunks<T>(ids: string[], run: (ids: string[]) => Promise<T[]>, size = 5000): Promise<T[]> {
+    const out: T[] = [];
+    for (let k = 0; k < ids.length; k += size) out.push(...(await run(ids.slice(k, k + size))));
     return out;
   }
 
   /** Website ki CSV ke liye — sab products ek saath (page by page jama karke) */
   async exportAll(tenantId: string, shopId: string | null) {
     const all: Awaited<ReturnType<WebsiteCatalogService['exportProducts']>>['products'] = [];
-    for (let page = 1; page <= 40; page++) {
+    for (let page = 1; page <= 2000; page++) {
       const res = await this.exportProducts(tenantId, shopId, { page, limit: 500 });
       all.push(...res.products);
       if (!res.hasMore) break;

@@ -21,19 +21,25 @@ export function friendlySyncError(e: unknown): string {
   return (msg || 'Sync nahi hua').replace(/\b(api[_ ]?key|access[_ ]?token|token|secret)\b/gi, 'login').slice(0, 300);
 }
 
+/** What a push sent: stock, price, content (title, images …), status (listed/draft), publish (created there). */
+export type PushWhat = 'stock' | 'price' | 'content' | 'status' | 'publish';
+
 export async function markLinks(
   prisma: PrismaService,
   integrationId: string,
   where: Prisma.ProductChannelMappingWhereInput,
   ok: boolean,
   error?: unknown,
+  what: PushWhat[] = ['stock'],
 ) {
   try {
+    const at = new Date();
+    const lastPush = { at: at.toISOString(), what, ok, error: ok ? null : friendlySyncError(error) };
     await prisma.productChannelMapping.updateMany({
       where: { ...where, integrationId },
       data: ok
-        ? { syncStatus: 'SUCCESS', syncError: null, lastSyncedAt: new Date() }
-        : { syncStatus: 'FAILED', syncError: friendlySyncError(error) },
+        ? { syncStatus: 'SUCCESS', syncError: null, lastSyncedAt: at, lastPush }
+        : { syncStatus: 'FAILED', syncError: friendlySyncError(error), lastPush },
     });
   } catch {
     // The status is a display aid; a failed write must not fail the push.
@@ -46,13 +52,14 @@ export async function trackLinks<T>(
   integrationId: string,
   where: Prisma.ProductChannelMappingWhereInput,
   run: () => Promise<T>,
+  what: PushWhat[] = ['stock'],
 ): Promise<T> {
   try {
     const res = await run();
-    await markLinks(prisma, integrationId, where, true);
+    await markLinks(prisma, integrationId, where, true, undefined, what);
     return res;
   } catch (e) {
-    await markLinks(prisma, integrationId, where, false, e);
+    await markLinks(prisma, integrationId, where, false, e, what);
     throw e;
   }
 }
@@ -91,7 +98,7 @@ export async function forEachLinkPage(
   size: number,
   run: (links: LinkRef[], productIds: string[]) => Promise<void>,
   delayMs = 0,
-  maxPages = 200,
+  maxPages = 100_000,
 ): Promise<number> {
   let cursor: string | undefined;
   let pages = 0;

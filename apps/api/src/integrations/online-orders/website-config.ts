@@ -1,6 +1,26 @@
 import { isIP } from 'net';
 import * as crypto from 'crypto';
 import { NO_PRICE_RULE, PriceRule, readPriceRule } from './channel-price';
+import { readStockRule, StockMode, StockRule } from './stock-allocation';
+
+/** What a content push sends to the channel (title, description, images, sale price, SKU, weight). */
+export interface PushContent {
+  title: boolean;
+  description: boolean;
+  images: boolean;
+  compareAt: boolean;
+  sku: boolean;
+  weight: boolean;
+}
+
+export const DEFAULT_PUSH_CONTENT: PushContent = { title: true, description: true, images: false, compareAt: true, sku: false, weight: true };
+
+export function readPushContent(raw: unknown): PushContent {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Partial<Record<keyof PushContent, unknown>>;
+  const out = { ...DEFAULT_PUSH_CONTENT };
+  for (const k of Object.keys(out) as (keyof PushContent)[]) if (typeof r[k] === 'boolean') out[k] = r[k] as boolean;
+  return out;
+}
 
 /**
  * Website connection ki settings — `Integration.config` JSON me rehti hain.
@@ -24,6 +44,12 @@ export interface WebsiteConfig {
   priceRule: PriceRule;
   /** Units kept back: the channel is told stock minus this. */
   stockBuffer: number;
+  /** How much of Nafaa stock the channel gets: all, a percent, or a fixed number per product */
+  stockMode: StockMode;
+  stockPercent: number;
+  stockFixed: number;
+  /** Fields a content push sends */
+  pushContent: PushContent;
   /** Send Nafaa stock to the channel (Woo/Shopify/Daraz). Off = no stock push of any kind. */
   pushStock: boolean;
   /** Link exact SKU/barcode matches by itself. On for channels made after it existed; off for older ones. */
@@ -63,6 +89,10 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   pushPrice: false,
   priceRule: NO_PRICE_RULE,
   stockBuffer: 0,
+  stockMode: 'ALL',
+  stockPercent: 100,
+  stockFixed: 0,
+  pushContent: DEFAULT_PUSH_CONTENT,
   pushStock: true,
   autoLink: false,
   statusWebhookUrl: null,
@@ -84,11 +114,20 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     pushPrice: c.pushPrice === true,
     priceRule: readPriceRule(c.priceRule),
     stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
+    stockMode: readStockRule(c).mode,
+    stockPercent: readStockRule(c).percent,
+    stockFixed: readStockRule(c).fixed,
+    pushContent: readPushContent(c.pushContent),
     pushStock: c.pushStock !== false,
     autoLink: c.autoLink === true,
     shopifyBilling: c.shopifyBilling === 'shopify' ? 'shopify' : 'direct',
     shopifyPlan: c.shopifyPlan && typeof c.shopifyPlan === 'object' ? c.shopifyPlan : null,
   };
+}
+
+/** The channel's stock share rule (mode, percent, fixed, buffer). */
+export function stockRule(cfg: Pick<WebsiteConfig, 'stockMode' | 'stockPercent' | 'stockFixed' | 'stockBuffer'>): StockRule {
+  return { mode: cfg.stockMode, percent: cfg.stockPercent, fixed: cfg.stockFixed, buffer: cfg.stockBuffer };
 }
 
 const safeEqual = (a: string, b: string): boolean => {

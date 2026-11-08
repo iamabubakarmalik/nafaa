@@ -10,10 +10,11 @@
  */
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { ChevronsDownUp, ChevronsUpDown, Clock, HelpCircle, PanelLeftClose, Search, Settings, Star, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, Clock, Globe, HelpCircle, PanelLeftClose, Search, Settings, Star, X } from 'lucide-react';
 import { industryIdentity } from '@/design-system';
-import { isActivePath, isSettingsPath, loadGroupState, MAX_RECENT, saveGroupState, type NavGroup, type NavItem } from '../navigation/nav-config';
+import { cn } from '@core/lib/cn';
+import { isActivePath, isSettingsPath, lastMainPath, loadGroupState, MAX_RECENT, saveGroupState, type NavGroup, type NavItem } from '../navigation/nav-config';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
 import { IconButton, Kbd } from '@/design-system/components';
@@ -47,7 +48,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
   const location = useLocation();
   const searchRef = useRef<HTMLInputElement>(null);
   const navRef = useRef<HTMLElement>(null);
-  const { groups, settingsItems, settingsHome, industry, isMarketplace, workspace, activeWorkspace } = useVisibleNav(role, permissions);
+  const { groups, settingsItems, settingsHome, industry, isMarketplace, commerce, workspace, activeWorkspace } = useVisibleNav(role, permissions);
   const recentPaths = useRecentPaths();
   const { favs, toggle } = useFavorites();
   const [search, setSearch] = useState('');
@@ -100,13 +101,13 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-    const key = `nafaa-sidebar-scroll-${activeWorkspace}`;
+    const key = `nafaa-sidebar-scroll-${commerce ? 'commerce' : activeWorkspace}`;
     const saved = sessionStorage.getItem(key);
     if (saved) nav.scrollTop = Number(saved);
     const onScroll = () => sessionStorage.setItem(key, String(nav.scrollTop));
     nav.addEventListener('scroll', onScroll, { passive: true });
     return () => nav.removeEventListener('scroll', onScroll);
-  }, [activeWorkspace]);
+  }, [activeWorkspace, commerce]);
 
   const subtitle = isMarketplace
     ? workspace.label
@@ -116,14 +117,28 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {/* Online store workspace: a way back to the rest of Nafaa */}
+      {commerce && (
+        <div className="px-3 pt-3">
+          <Link
+            to={lastMainPath()}
+            onClick={onItemClick}
+            className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[0.8125rem] font-medium text-slate-500 transition hover:bg-white/70 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-ink-400 dark:hover:bg-ink-white/[0.05] dark:hover:text-ink-white"
+          >
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> {t('Back to Nafaa')}
+          </Link>
+        </div>
+      )}
       {/* Store header */}
-      <div className="flex items-center gap-2 px-3 pb-2 pt-3">
+      <div className={cn('flex items-center gap-2 px-3 pb-2', commerce ? 'pt-1' : 'pt-3')}>
         <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
-          <BrandMark industryId={industry?.id} marketplace={isMarketplace} />
+          {commerce ? (
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm"><Globe className="h-[1.125rem] w-[1.125rem]" /></span>
+          ) : <BrandMark industryId={industry?.id} marketplace={isMarketplace} />}
           <div className="min-w-0">
-            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{tenantName || t('My store')}</div>
+            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{commerce ? t('Online store') : tenantName || t('My store')}</div>
             <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-ink-400">
-              {subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}
+              {commerce ? <span className="normal-case">{tenantName || t('My store')}</span> : <>{subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}</>}
             </div>
           </div>
         </div>
@@ -181,7 +196,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
           <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? t('No matches') : t('{{count}} results', { count: total })}</div>
         )}
 
-        {!query && pinned.length > 0 && (
+        {!query && !commerce && pinned.length > 0 && (
           <NavSection title={t('Pinned')} icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}>
             {pinned.map((it) => (
               <NavRow key={`pin-${it.to}`} item={it} fav onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
@@ -189,7 +204,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
           </NavSection>
         )}
 
-        {!query && recent.length > 0 && (
+        {!query && !commerce && recent.length > 0 && (
           <div>
             <GroupHeader label={t('Recently visited')} icon={Clock} open={showRecent} onClick={() => setShowRecent((v) => !v)} />
             {showRecent && (

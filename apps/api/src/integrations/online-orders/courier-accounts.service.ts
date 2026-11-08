@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { patchOrderMetadata } from './order-metadata';
 import { Cron } from '@nestjs/schedule';
 import { CourierConfig, CourierProvider, CourierShipmentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -127,11 +128,8 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async noteAutoBook(orderId: string, text: string) {
-    const row = await this.prisma.channelOrder.findUnique({ where: { id: orderId }, select: { metadata: true } });
-    await this.prisma.channelOrder.update({
-      where: { id: orderId },
-      data: { metadata: { ...((row?.metadata as any) ?? {}), autoBookError: text } },
-    }).catch(() => null);
+    // One SQL statement, so it never overwrites keys written by a parallel accept or move.
+    await patchOrderMetadata(this.prisma, orderId, { autoBookError: text }).catch(() => null);
   }
 
   // ═══════════════════════════════════════════════════════════

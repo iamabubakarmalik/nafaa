@@ -5,7 +5,8 @@ import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../common/shop-scope';
-import { ItemMatch, OnlineOrdersService } from './online-orders.service';
+import { EditFullBody, ItemMatch, OnlineOrdersService } from './online-orders.service';
+import { ManualOrderBody, OrderEntryService } from './order-entry.service';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { StatusWebhookService } from './status-webhook.service';
@@ -33,6 +34,7 @@ export class OnlineOrdersController {
     private readonly setup: WebsiteSetupService,
     private readonly piiLog: PiiAccessLogService,
     private readonly costs: OrderCostsService,
+    private readonly entry: OrderEntryService,
   ) {}
 
   @Get('report')
@@ -97,11 +99,17 @@ export class OnlineOrdersController {
     @Query('to') to?: string,
     @Query('pay') pay?: string,
     @Query('confirm') confirm?: string,
+    @Query('board') board?: string,
+    @Query('city') city?: string,
+    @Query('courierCode') courierCode?: string,
+    @Query('assignedTo') assignedTo?: string,
+    @Query('stage') stage?: string,
+    @Query('tag') tag?: string,
     @Ip() ip?: string,
   ) {
-    this.piiLog.record(user, { kind: 'ORDER_LIST', filters: { status, integrationId, search } }, ip);
+    this.piiLog.record(user, { kind: 'ORDER_LIST', filters: { status, integrationId, search, board } }, ip);
     return this.svc.list(user, scope, {
-      status, integrationId, search, payment, from, to,
+      status, integrationId, search, payment, from, to, board, city, courierCode, assignedTo, stage, tag,
       pay: pay === 'COD' || pay === 'PAID' ? pay : undefined,
       confirm: confirm === 'CONFIRMED' || confirm === 'NO_ANSWER' || confirm === 'REFUSED' || confirm === 'NONE' ? confirm : undefined,
       limit: limit ? +limit : 50,
@@ -128,9 +136,58 @@ export class OnlineOrdersController {
   }
 
   @Post('bulk')
-  @ApiOperation({ summary: 'Kai orders ek saath: accept / next / cancel / confirm' })
-  bulk(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { action?: string; ids?: string[]; reason?: string }) {
+  @ApiOperation({ summary: 'Many orders at once: accept / next / cancel / confirm / assign / follow-up / tag / delete / restore / stage' })
+  bulk(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: any) {
+    if (this.entry.isBulkAction(body?.action)) return this.entry.bulk(user, scope, body ?? {});
     return this.svc.bulk(user, scope, body ?? {});
+  }
+
+  @Post('bulk-move')
+  @ApiOperation({ summary: 'Move many orders to one board status' })
+  bulkMove(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { ids?: string[]; to?: string; reason?: string; force?: boolean }) {
+    return this.svc.bulkMove(user, scope, body ?? {});
+  }
+
+  @Get('stages')
+  @ApiOperation({ summary: 'Custom board stages of this shop' })
+  stages(@GetUser() user: AuthenticatedUser) {
+    return this.entry.stages(user);
+  }
+
+  @Put('stages')
+  @ApiOperation({ summary: 'Save custom board stages (owner / manager, max 20)' })
+  saveStages(@GetUser() user: AuthenticatedUser, @Body() body: unknown) {
+    return this.entry.saveStages(user, body);
+  }
+
+  @Get('duplicates')
+  @ApiOperation({ summary: 'Open orders of the same phone within 48 hours' })
+  duplicates(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) {
+    return this.entry.duplicates(user, scope);
+  }
+
+  @Post('combine')
+  @ApiOperation({ summary: 'Combine new orders of one customer into the oldest' })
+  combine(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { ids?: string[] }) {
+    return this.entry.combine(user, scope, body ?? {});
+  }
+
+  @Post('manual')
+  @ApiOperation({ summary: 'Add an order by hand (WhatsApp, Instagram, phone ...), in Nafaa or on Shopify' })
+  manual(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: ManualOrderBody) {
+    return this.entry.createManual(user, scope, body ?? {});
+  }
+
+  @Post('parse')
+  @ApiOperation({ summary: 'Read customer, phone, address, city and items from pasted chat text' })
+  parse(@GetUser() user: AuthenticatedUser, @Body() body: { text?: string }) {
+    return this.entry.parse(user, body ?? {});
+  }
+
+  @Post('import')
+  @ApiOperation({ summary: 'Excel rows (read on the client) into manual orders, max 500' })
+  importRows(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Body() body: { rows?: any[]; source?: string; accept?: boolean }) {
+    return this.entry.importRows(user, scope, body ?? {});
   }
 
   @Get('live')
@@ -157,6 +214,56 @@ export class OnlineOrdersController {
     @Body() body: { matches?: Record<string, ItemMatch>; shopId?: string },
   ) {
     return this.svc.accept(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/move')
+  @ApiOperation({ summary: 'Move to any board status (accept / void / reopen as needed)' })
+  move(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('id') id: string,
+    @Body() body: { to?: string; reason?: string; trackingNumber?: string; courierCode?: string; force?: boolean },
+  ) {
+    return this.svc.move(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/edit-full')
+  @ApiOperation({ summary: 'Edit items, money and customer; the bill is made again; optional channel sync' })
+  editFull(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: EditFullBody) {
+    return this.svc.editFull(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/assign')
+  assign(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { userId?: string | null }) {
+    return this.entry.assign(user, scope, id, body?.userId ?? null);
+  }
+
+  @Post(':id/follow-up')
+  followUp(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { at?: string | null; note?: string }) {
+    return this.entry.followUp(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/split')
+  @ApiOperation({ summary: 'Move some items into a new order (before accept)' })
+  split(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { itemIndexes?: number[] }) {
+    return this.entry.split(user, scope, id, body ?? {});
+  }
+
+  @Post(':id/restore')
+  restore(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.svc.restore(user, scope, id);
+  }
+
+  @Delete(':id/permanent')
+  @ApiOperation({ summary: 'Remove a deleted order for good (owner / manager)' })
+  permanentDelete(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
+    return this.svc.permanentDelete(user, scope, id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Soft delete (a live bill is cancelled first)' })
+  softDelete(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Query('reason') reason?: string, @Body() body?: { reason?: string }) {
+    return this.svc.softDelete(user, scope, id, body?.reason ?? reason);
   }
 
   @Post(':id/edit')

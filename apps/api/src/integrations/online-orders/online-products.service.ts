@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Integration, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
@@ -9,10 +9,14 @@ import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
 import { StockPushService } from './stock-push.service';
-import { readWebsiteConfig, WebsiteConfig } from './website-config';
+import { PushContent, readPushContent, readWebsiteConfig, stockRule, WebsiteConfig } from './website-config';
+import { allocate, channelShare, Claim, readStockRule, StockMode } from './stock-allocation';
+import { CatalogJobsService, ChunkResult } from './catalog-jobs.service';
+import { ChannelContentService, DARAZ_CONTENT_NOTE } from './channel-content.service';
+import type { CatalogJob } from '@prisma/client';
 import { channelPrice, PriceRule, readPriceRule, samePrice } from './channel-price';
 import { MatchIndex, MatchProduct, suggestAll } from './product-matcher';
-import { friendlySyncError } from './link-sync';
+import { friendlySyncError, markLinks } from './link-sync';
 import { mappingKey } from './mapping-key';
 
 /** Channels whose products Nafaa links, prices and keeps in stock. */
@@ -30,7 +34,24 @@ const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
  */
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out';
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted';
+const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted'];
+
+/** Products picked on the grid: a list, or every product matching the grid's search and filter. */
+export interface Selection {
+  productIds?: string[];
+  all?: boolean;
+  search?: string;
+  filter?: GridFilter;
+  channelId?: string;
+}
+
+export type BulkAction = 'listed' | 'alloc' | 'price' | 'compareAt' | 'push' | 'publish';
+
+export interface SettingsBody {
+  priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
+  stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
+}
 
 const PRICE_SCAN_LIMIT = 50_000;
 
@@ -51,7 +72,7 @@ const isPush = (mode: ChannelMode) => mode === 'woocommerce' || mode === 'shopif
  * services; this class only joins them into one view and one set of actions.
  */
 @Injectable()
-export class OnlineProductsService {
+export class OnlineProductsService implements OnModuleInit {
   private readonly logger = new Logger(OnlineProductsService.name);
 
   constructor(
@@ -62,7 +83,16 @@ export class OnlineProductsService {
     private readonly shopify: ShopifyService,
     private readonly daraz: DarazService,
     private readonly push: StockPushService,
+    private readonly jobs: CatalogJobsService,
+    private readonly content: ChannelContentService,
   ) {}
+
+  onModuleInit() {
+    this.jobs.register('IMPORT_ALL', (job, chunk) => this.runImportChunk(job, chunk as string[]));
+    this.jobs.register('LINK_ALL', (job, chunk) => this.runLinkChunk(job, chunk as LinkInput[]));
+    this.jobs.register('PUSH', (job, chunk) => this.runPushChunk(job, chunk as string[]));
+    this.jobs.register('PUBLISH', (job, chunk) => this.runPublishChunk(job, chunk as string[]));
+  }
 
   // ═══════════════════════════════════════════════════════════
   // CHANNELS
@@ -98,7 +128,7 @@ export class OnlineProductsService {
   /** Stock shown for the channel: after the buffer, or null where the channel has no stock (Indolj). */
   private shownStock(c: Col, stock: number | undefined) {
     if (c.mode === 'indolj' || !c.shopId) return null;
-    return Math.max(0, Math.floor(Number(stock ?? 0)) - c.cfg.stockBuffer);
+    return channelShare(Number(stock ?? 0), stockRule(c.cfg));
   }
 
   private async requireCol(tenantId: string, id: string): Promise<Col> {
@@ -145,6 +175,15 @@ export class OnlineProductsService {
       pushPrice: isPush(c.mode) && c.cfg.pushPrice,
       priceRule: isPush(c.mode) ? c.cfg.priceRule : readPriceRule(undefined),
       stockBuffer: c.cfg.stockBuffer,
+      stockMode: c.cfg.stockMode,
+      stockPercent: c.cfg.stockPercent,
+      stockFixed: c.cfg.stockFixed,
+      pushContent: c.cfg.pushContent,
+      /** Nafaa can make new products there ("Publish"). */
+      canPublish: c.mode === 'woocommerce' || c.mode === 'shopify',
+      /** Content push (title, images …) works there. */
+      canContent: c.mode === 'woocommerce' || c.mode === 'shopify',
+      contentNote: c.mode === 'daraz' ? DARAZ_CONTENT_NOTE : null,
       pushStock: isPush(c.mode) && c.cfg.pushStock,
       autoLink: c.mode !== 'website' && c.cfg.autoLink,
       priceSource: c.cfg.priceSource,
@@ -178,7 +217,7 @@ export class OnlineProductsService {
     return new Map(shops.map((s) => [s.id, s.name]));
   }
 
-  async saveSettings(user: AuthenticatedUser, channelId: string, body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) {
+  async saveSettings(user: AuthenticatedUser, channelId: string, body: SettingsBody) {
     const c = await this.requireCol(user.tenantId, channelId);
     const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id: c.integration.id }, select: { config: true } });
     const raw = ((fresh.config as any) ?? {}) as Record<string, unknown>;
@@ -188,6 +227,12 @@ export class OnlineProductsService {
     if (isPush(c.mode) && body.priceRule !== undefined) next.priceRule = readPriceRule(body.priceRule);
     if (isPush(c.mode) && body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
     if (body.stockBuffer !== undefined) next.stockBuffer = Math.min(10_000, Math.max(0, Math.floor(Number(body.stockBuffer) || 0)));
+    // Stock share and content fields: only where Nafaa pushes.
+    if (isPush(c.mode) && (body.stockMode !== undefined || body.stockPercent !== undefined || body.stockFixed !== undefined)) {
+      const r = readStockRule({ ...c.cfg, ...next, ...body });
+      Object.assign(next, { stockMode: r.mode, stockPercent: r.percent, stockFixed: r.fixed });
+    }
+    if (isPush(c.mode) && body.pushContent) next.pushContent = readPushContent({ ...c.cfg.pushContent, ...body.pushContent });
     if (isPush(c.mode) && body.pushStock !== undefined) next.pushStock = !!body.pushStock;
     if (isPush(c.mode) && body.autoLink !== undefined) {
       next.autoLink = !!body.autoLink;
@@ -199,7 +244,7 @@ export class OnlineProductsService {
     if (isPush(c.mode)) {
       this.background(async () => {
         await this.push.pushPricesFor(updated);
-        if (body.stockBuffer !== undefined || body.pushStock === true) await this.syncStock(updated);
+        if (body.stockBuffer !== undefined || body.pushStock === true || body.stockMode !== undefined || body.stockPercent !== undefined || body.stockFixed !== undefined) await this.syncStock(updated);
       }, `settings ${updated.displayName}`);
     }
     return this.info(this.col(updated), await this.shopNames(user.tenantId));
@@ -229,6 +274,8 @@ export class OnlineProductsService {
             { hasVariants: true, channelMappings: { some: { integrationId: { in: ids }, variantId: null } } },
           ],
         };
+      case 'unlisted':
+        return { channelMappings: { some: { integrationId: { in: ids }, listed: false } } };
       case 'out':
         if (!shops.length) return { id: { in: [] } };
         return {
@@ -290,17 +337,22 @@ export class OnlineProductsService {
     return map;
   }
 
+  private async gridWhere(tenantId: string, cols: Col[], search: string | undefined, filter: GridFilter): Promise<Prisma.ProductWhereInput> {
+    const where: Prisma.ProductWhereInput = { AND: [{ tenantId, isActive: true }, this.searchWhere(search), this.filterWhere(filter, cols)] };
+    if (filter === 'price') (where.AND as Prisma.ProductWhereInput[]).push({ id: { in: [...(await this.priceDiffIds(cols))] } });
+    return where;
+  }
+
   async grid(user: AuthenticatedUser, q: { page?: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string }) {
     const all = await this.cols(user.tenantId);
     const cols = q.channelId ? all.filter((c) => c.integration.id === q.channelId) : all;
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(100, Math.max(5, Number(q.limit) || 30));
-    const filter: GridFilter = (['all', 'linked', 'unlinked', 'errors', 'price', 'out'] as const).includes(q.filter as GridFilter) ? (q.filter as GridFilter) : 'all';
+    const filter: GridFilter = GRID_FILTERS.includes(q.filter as GridFilter) ? (q.filter as GridFilter) : 'all';
     const shops = await this.shopNames(user.tenantId);
     if (!cols.length) return { channels: [], items: [], total: 0, page, pages: 0, limit };
 
-    const where: Prisma.ProductWhereInput = { AND: [{ tenantId: user.tenantId, isActive: true }, this.searchWhere(q.search), this.filterWhere(filter, cols)] };
-    if (filter === 'price') (where.AND as Prisma.ProductWhereInput[]).push({ id: { in: [...(await this.priceDiffIds(cols))] } });
+    const where = await this.gridWhere(user.tenantId, cols, q.search, filter);
 
     const ids = cols.map((c) => c.integration.id);
     const shopIds = [...new Set(cols.map((c) => c.shopId).filter(Boolean))] as string[];
@@ -320,6 +372,7 @@ export class OnlineProductsService {
             select: {
               id: true, integrationId: true, variantId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalTitle: true,
               priceOverride: true, externalData: true, syncStatus: true, syncError: true, lastSyncedAt: true,
+              listed: true, allocQty: true, compareAtPrice: true, lastPush: true,
             },
           },
           shopStocks: shopIds.length ? { where: { shopId: { in: shopIds } }, select: { shopId: true, variantId: true, stock: true, shopPrice: true } } : false,
@@ -331,11 +384,25 @@ export class OnlineProductsService {
       const stocks = (p as any).shopStocks as Array<{ shopId: string; variantId: string | null; stock: number; shopPrice: number | null }> | undefined ?? [];
       const rowOf = (variantId: string | null, label: string | null, sku: string | null, price: number) => {
         const cells: Record<string, unknown> = {};
+        const linkOf = (c: Col) => p.channelMappings.find((x) => x.integrationId === c.integration.id && (x.variantId ?? null) === variantId);
+        // Stock split per branch: the pushed channels drawing from it share its stock.
+        const allocBy = new Map<string, ReturnType<typeof allocate>>();
+        for (const shopId of new Set(cols.map((c) => c.shopId).filter(Boolean) as string[])) {
+          const raw = Number(stocks.find((s) => s.shopId === shopId && (s.variantId ?? null) === variantId)?.stock ?? 0);
+          const claims: Claim[] = cols.filter((c) => c.shopId === shopId && isPush(c.mode) && linkOf(c)).map((c) => {
+            const m = linkOf(c)!;
+            return { channelId: c.integration.id, rule: stockRule(c.cfg), allocQty: m.allocQty, listed: m.listed };
+          });
+          allocBy.set(shopId, allocate(raw, claims));
+        }
+        let scaled = false;
         for (const c of cols) {
           const ss = stocks.find((s) => s.shopId === c.shopId && (s.variantId ?? null) === variantId);
           const base = Number(ss?.shopPrice ?? price);
-          const stock = this.shownStock(c, ss?.stock);
-          const m = p.channelMappings.find((x) => x.integrationId === c.integration.id && (x.variantId ?? null) === variantId);
+          const m = linkOf(c);
+          const share = c.shopId ? allocBy.get(c.shopId) : undefined;
+          if (m && share?.scaled && isPush(c.mode)) scaled = true;
+          const stock = m && isPush(c.mode) && c.shopId ? share?.qty[c.integration.id] ?? 0 : this.shownStock(c, ss?.stock);
           const want = this.wantPrice(c, base, m?.priceOverride);
           if (!m) {
             cells[c.integration.id] = { linked: false, price: want, stock, nafaaStock: Number(ss?.stock ?? 0) };
@@ -353,13 +420,19 @@ export class OnlineProductsService {
             priceDiffers: seen !== null && !samePrice(want, seen),
             stock,
             nafaaStock: Number(ss?.stock ?? 0),
+            listed: m.listed,
+            allocQty: isPush(c.mode) ? m.allocQty : null,
+            compareAtPrice: isPush(c.mode) ? m.compareAtPrice : null,
+            lastPush: isPush(c.mode) ? m.lastPush : null,
             // Nothing is pushed to a custom website or Indolj, so there is no sync status to show.
             status: isPush(c.mode) ? m.syncStatus : null,
             error: isPush(c.mode) && m.syncStatus === 'FAILED' ? m.syncError ?? 'Sync nahi hua' : null,
             lastSyncedAt: m.lastSyncedAt,
           };
         }
-        return { variantId, label, sku, price, cells };
+        const mainShop = cols.find((c) => c.shopId)?.shopId ?? null;
+        const nafaaStock = mainShop ? Number(stocks.find((s) => s.shopId === mainShop && (s.variantId ?? null) === variantId)?.stock ?? 0) : null;
+        return { variantId, label, sku, price, cells, nafaaStock, scaled };
       };
       const rows = p.hasVariants && p.variants.length
         ? p.variants.map((v) => rowOf(v.id, v.name, v.sku, Number(v.price ?? p.price)))
@@ -379,14 +452,14 @@ export class OnlineProductsService {
   async summary(user: AuthenticatedUser, channelId?: string) {
     const all = await this.cols(user.tenantId);
     const cols = channelId ? all.filter((c) => c.integration.id === channelId) : all;
-    if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0 };
+    if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0 };
     const base: Prisma.ProductWhereInput = { tenantId: user.tenantId, isActive: true };
     const count = (f: GridFilter) => this.prisma.product.count({ where: { AND: [base, this.filterWhere(f, cols)] } });
-    const [allN, linked, unlinked, errors, out, price] = await Promise.all([
-      count('all'), count('linked'), count('unlinked'), count('errors'), count('out'),
+    const [allN, linked, unlinked, errors, out, unlisted, price] = await Promise.all([
+      count('all'), count('linked'), count('unlinked'), count('errors'), count('out'), count('unlisted'),
       this.priceDiffIds(cols).then(async (ids) => (ids.size ? this.prisma.product.count({ where: { ...base, id: { in: [...ids] } } }) : 0)),
     ]);
-    return { all: allN, linked, unlinked, errors, price, out };
+    return { all: allN, linked, unlinked, errors, price, out, unlisted };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -600,7 +673,13 @@ export class OnlineProductsService {
   async link(user: AuthenticatedUser, channelId: string, links: LinkInput[]) {
     const c = await this.requireCol(user.tenantId, channelId);
     if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
-    const res = await this.catalog.saveLinksFor(c.integration, user.tenantId, (links ?? []).slice(0, 1000));
+    // saveLinksFor takes 500 at a time; every link is saved.
+    const res = { saved: 0, errors: [] as string[] };
+    for (let k = 0; k < (links ?? []).length; k += 500) {
+      const r = await this.catalog.saveLinksFor(c.integration, user.tenantId, links.slice(k, k + 500));
+      res.saved += r.saved;
+      res.errors.push(...r.errors);
+    }
     if (res.saved) {
       const productIds = [...new Set((links ?? []).map((l) => l.productId))];
       this.background(() => this.syncProducts(c.integration, productIds), `link ${c.integration.displayName}`);
@@ -612,7 +691,10 @@ export class OnlineProductsService {
     const c = await this.requireCol(user.tenantId, channelId);
     if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
     if (!Array.isArray(externalProductIds) || !externalProductIds.length) throw new BadRequestException('Koi product nahi chuna');
-    return this.catalog.importFor(c.integration, user.tenantId, externalProductIds.map(String).slice(0, 200));
+    const ids = [...new Set(externalProductIds.map(String))];
+    // Big picks run as a background job with progress.
+    if (ids.length > 25) return this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'IMPORT_ALL', integrationId: c.integration.id, items: ids, params: { channelType: c.integration.type } });
+    return this.catalog.importFor(c.integration, user.tenantId, ids);
   }
 
   private async mapping(tenantId: string, mappingId: string) {
@@ -659,7 +741,7 @@ export class OnlineProductsService {
   }
 
   /** "Sync now" for one product on every channel it is linked to. */
-  async syncProduct(user: AuthenticatedUser, productId: string) {
+  async syncProduct(user: AuthenticatedUser, productId: string, opts: { content?: boolean } = {}) {
     const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true } });
     if (!product) throw new NotFoundException('Product nahi mila');
     const cols = await this.cols(user.tenantId);
@@ -670,6 +752,11 @@ export class OnlineProductsService {
       if (!linked) continue;
       try {
         if (!this.connected(c.integration)) throw new BadRequestException('Channel jura nahi');
+        // "Retry" with content: title, images … and listed status go again too.
+        if (opts.content) {
+          const r = await this.content.push(c.integration, [productId]);
+          if (r.errors.length) throw new BadRequestException(r.errors[0]);
+        }
         await this.syncProducts(c.integration, [productId], true);
         results.push({ channelId: c.integration.id, name: c.integration.displayName, ok: true, error: null });
       } catch (e) {
@@ -709,6 +796,232 @@ export class OnlineProductsService {
     await this.push.pushPricesFor(i, { productId: { in: productIds } }, force);
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // MASTER CATALOG — per-link control, bulk actions, background jobs
+  // ═══════════════════════════════════════════════════════════
+
+  /** Listed, own stock share, own price and sale price for one link. */
+  async updateLink(user: AuthenticatedUser, mappingId: string, body: { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }) {
+    const m = await this.mapping(user.tenantId, mappingId);
+    if (!isPush(this.modeOf(m.integration))) throw new BadRequestException('Is channel ko Nafaa se kuch nahi jata — ye Stock aur Price khud leta hai');
+    const data: Prisma.ProductChannelMappingUpdateInput = {};
+    if (body.listed !== undefined) data.listed = !!body.listed;
+    if (body.allocQty !== undefined) data.allocQty = cleanQty(body.allocQty);
+    if (body.priceOverride !== undefined) data.priceOverride = cleanPrice(body.priceOverride);
+    if (body.compareAtPrice !== undefined) data.compareAtPrice = cleanPrice(body.compareAtPrice);
+    const saved = await this.prisma.productChannelMapping.update({
+      where: { id: m.id }, data,
+      select: { id: true, listed: true, allocQty: true, priceOverride: true, compareAtPrice: true },
+    });
+    this.background(async () => {
+      if (body.listed !== undefined) await this.content.push(m.integration, [m.productId], { statusOnly: true });
+      // A share change can move the other channels' shares too (scaled fixed shares).
+      if (body.allocQty !== undefined || body.listed !== undefined) await this.pushEverywhere(user.tenantId, [m.productId], false);
+      else await this.syncProducts(m.integration, [m.productId], true);
+    }, `link ${m.integration.displayName}`);
+    return { success: true, link: saved };
+  }
+
+  /** Product ids picked on the grid: the given list, or every product matching the grid's search/filter. */
+  async selectionIds(user: AuthenticatedUser, sel: Selection | undefined): Promise<string[]> {
+    if (sel?.all) {
+      const all = await this.cols(user.tenantId);
+      const cols = sel.channelId ? all.filter((c) => c.integration.id === sel.channelId) : all;
+      if (!cols.length) return [];
+      const filter: GridFilter = GRID_FILTERS.includes(sel.filter as GridFilter) ? (sel.filter as GridFilter) : 'all';
+      const rows = await this.prisma.product.findMany({ where: await this.gridWhere(user.tenantId, cols, sel.search, filter), select: { id: true }, orderBy: { id: 'asc' } });
+      return rows.map((r) => r.id);
+    }
+    const ids = [...new Set((sel?.productIds ?? []).map(String))];
+    if (!ids.length) return [];
+    const ok = await this.prisma.product.findMany({ where: { id: { in: ids }, tenantId: user.tenantId }, select: { id: true } });
+    return ok.map((r) => r.id);
+  }
+
+  /**
+   * One action on many products: listed on/off, stock share, own price, sale
+   * price, push now, or publish to a channel. The database part is done at
+   * once; the channel part runs as a background job with progress.
+   */
+  async bulk(user: AuthenticatedUser, body: { selection?: Selection; action?: BulkAction; channelId?: string | null; value?: unknown }) {
+    const action = body?.action;
+    if (!action || !['listed', 'alloc', 'price', 'compareAt', 'push', 'publish'].includes(action)) throw new BadRequestException('Kaam chunein');
+    const ids = await this.selectionIds(user, body.selection);
+    if (!ids.length) throw new BadRequestException('Koi product nahi chuna');
+    const all = (await this.cols(user.tenantId)).filter((c) => isPush(c.mode));
+    const targets = body.channelId ? all.filter((c) => c.integration.id === body.channelId) : all;
+    if (!targets.length) throw new BadRequestException(body.channelId ? 'Ye channel Nafaa se Stock/Price nahi leta' : 'Koi channel nahi jahan Nafaa bhejta hai');
+    const targetIds = targets.map((c) => c.integration.id);
+    const single = targets.length === 1 ? targets[0] : null;
+
+    if (action === 'publish') {
+      if (!single || !(single.mode === 'shopify' || single.mode === 'woocommerce')) throw new BadRequestException('Naya product sirf Shopify ya WooCommerce par ban sakta hai — ek channel chunein');
+      if (!this.connected(single.integration)) throw new BadRequestException('Channel jura nahi — pehle channel ka safha khol kar jorein');
+      const linked = new Set<string>();
+      for (let k = 0; k < ids.length; k += 5000) {
+        const rows = await this.prisma.productChannelMapping.findMany({ where: { integrationId: single.integration.id, productId: { in: ids.slice(k, k + 5000) } }, select: { productId: true }, distinct: ['productId'] });
+        for (const r of rows) linked.add(r.productId);
+      }
+      const fresh = ids.filter((id) => !linked.has(id));
+      const res = await this.jobs.start({
+        tenantId: user.tenantId, userId: user.id, kind: 'PUBLISH', integrationId: single.integration.id, items: fresh,
+        params: { channelType: single.integration.type, listed: body.value !== false, skipped: ids.length - fresh.length },
+      });
+      return { updated: 0, skipped: ids.length - fresh.length, ...res };
+    }
+
+    let updated = 0;
+    const data: Prisma.ProductChannelMappingUpdateManyMutationInput =
+      action === 'listed' ? { listed: body.value !== false }
+        : action === 'alloc' ? { allocQty: cleanQty(body.value as any) }
+          : action === 'price' ? { priceOverride: cleanPrice(body.value as any) }
+            : action === 'compareAt' ? { compareAtPrice: cleanPrice(body.value as any) }
+              : {};
+    if (action !== 'push') {
+      for (let k = 0; k < ids.length; k += 5000) {
+        const r = await this.prisma.productChannelMapping.updateMany({ where: { integrationId: { in: targetIds }, productId: { in: ids.slice(k, k + 5000) } }, data });
+        updated += r.count;
+      }
+    }
+    // Stock shares affect every channel on the branch, so those pushes go everywhere.
+    const everywhere = action === 'alloc' || action === 'listed';
+    const params = {
+      channelIds: everywhere ? null : targetIds,
+      channelType: everywhere ? null : single?.integration.type ?? null,
+      content: action === 'push' && body.value !== 'stock',
+      status: action === 'listed' || action === 'push',
+      price: action === 'price' || action === 'compareAt' || action === 'push',
+      action,
+    };
+    const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'PUSH', integrationId: everywhere ? null : single?.integration.id ?? null, items: ids, params });
+    return { updated, ...res };
+  }
+
+  /** "Sab le aayein": every channel item with no Nafaa match is made in Nafaa (with sizes) and linked. */
+  async importAll(user: AuthenticatedUser, channelId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    const sc = await this.scan(c, true);
+    if (sc.remoteError && !sc.remote.length) throw new BadRequestException(sc.remoteError);
+    const open = new Map<string, number>();
+    for (const { item, match } of sc.results) if (!match) open.set(item.p.externalProductId, (open.get(item.p.externalProductId) ?? 0) + 1);
+    // Only listings with nothing linked or suggested; suggested ones are linked, not made twice.
+    const ids = sc.remote.filter((p) => p.variants.length && open.get(p.externalProductId) === p.variants.length).map((p) => p.externalProductId);
+    const sure = pickSureLinks(sc.results).length;
+    this.catalog.holdCache(c.integration.id, 15 * 60_000);
+    const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'IMPORT_ALL', integrationId: c.integration.id, items: ids, params: { channelType: c.integration.type } });
+    return { ...res, sure, maybe: sc.results.filter((r) => r.match && r.match.kind !== 'sku').length };
+  }
+
+  /** "Sab pakke jorein" for any size of list: every SKU/barcode match, in the background. */
+  async linkAll(user: AuthenticatedUser, channelId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    const sc = await this.scan(c, true);
+    if (sc.remoteError && !sc.remote.length) throw new BadRequestException(sc.remoteError);
+    const links = pickSureLinks(sc.results);
+    const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'LINK_ALL', integrationId: c.integration.id, items: links, params: { channelType: c.integration.type } });
+    await this.patchWatch(c.integration.id, (w) => ({ ...w, scan: w.scan ? { ...w.scan, sure: 0 } : w.scan }));
+    return res;
+  }
+
+  jobsList(user: AuthenticatedUser) {
+    return this.jobs.list(user.tenantId);
+  }
+
+  job(user: AuthenticatedUser, id: string) {
+    return this.jobs.get(user.tenantId, id);
+  }
+
+  cancelJob(user: AuthenticatedUser, id: string) {
+    return this.jobs.cancel(user.tenantId, id);
+  }
+
+  /** Stock and price of these products on every push channel they are linked to. */
+  private async pushEverywhere(tenantId: string, productIds: string[], force: boolean) {
+    for (const c of (await this.cols(tenantId)).filter((x) => isPush(x.mode) && this.connected(x.integration))) {
+      await this.syncProducts(c.integration, productIds, force).catch((e) => this.logger.warn(`Push ${c.integration.displayName}: ${e?.message}`));
+    }
+  }
+
+  private async jobChannel(job: CatalogJob) {
+    if (!job.integrationId) throw new Error('Channel nahi mila');
+    const i = await this.prisma.integration.findFirst({ where: { id: job.integrationId, tenantId: job.tenantId } });
+    if (!i) throw new Error('Channel hata diya gaya');
+    return i;
+  }
+
+  private async runImportChunk(job: CatalogJob, externalIds: string[]): Promise<ChunkResult> {
+    const i = await this.jobChannel(job);
+    this.catalog.holdCache(i.id, 15 * 60_000);
+    // A restart can repeat a chunk: items linked meanwhile are skipped, not made twice.
+    const linked = await this.prisma.productChannelMapping.findMany({ where: { integrationId: i.id, externalProductId: { in: externalIds } }, select: { externalProductId: true }, distinct: ['externalProductId'] });
+    const skip = new Set(linked.map((l) => String(l.externalProductId)));
+    const todo = externalIds.filter((id) => !skip.has(id));
+    if (!todo.length) return { done: externalIds.length, failed: 0 };
+    const res = await this.catalog.importFor(i, job.tenantId, todo);
+    const failed = Math.min(todo.length, res.failed);
+    return { done: externalIds.length - failed, failed, errors: res.errors };
+  }
+
+  private async runLinkChunk(job: CatalogJob, links: LinkInput[]): Promise<ChunkResult> {
+    const i = await this.jobChannel(job);
+    const res = await this.catalog.saveLinksFor(i, job.tenantId, links);
+    if (res.saved) {
+      const productIds = [...new Set(links.map((l) => l.productId))];
+      this.background(() => this.syncProducts(i, productIds), `link all ${i.displayName}`);
+    }
+    return { done: res.saved, failed: links.length - res.saved, errors: res.errors };
+  }
+
+  private async runPushChunk(job: CatalogJob, productIds: string[]): Promise<ChunkResult> {
+    const p = (job.params ?? {}) as { channelIds?: string[] | null; content?: boolean; status?: boolean; price?: boolean };
+    const cols = (await this.cols(job.tenantId)).filter((c) => isPush(c.mode) && (!p.channelIds || p.channelIds.includes(c.integration.id)));
+    const errors: string[] = [];
+    const bad = new Set<string>();
+    for (const c of cols) {
+      const i = c.integration;
+      const rows = await this.prisma.productChannelMapping.findMany({ where: { integrationId: i.id, productId: { in: productIds } }, select: { productId: true }, distinct: ['productId'] });
+      const ids = rows.map((r) => r.productId);
+      if (!ids.length) continue;
+      if (!this.connected(i)) {
+        errors.push(`${i.displayName}: channel jura nahi`);
+        ids.forEach((id) => bad.add(id));
+        continue;
+      }
+      try {
+        if (p.content || p.status) {
+          const r = await this.content.push(i, ids, { statusOnly: !p.content });
+          if (r.errors.length) errors.push(...r.errors.map((e) => `${i.displayName} · ${e}`));
+        }
+        await this.syncProducts(i, ids, !!p.price);
+      } catch (e) {
+        errors.push(`${i.displayName}: ${friendlySyncError(e)}`);
+        ids.forEach((id) => bad.add(id));
+      }
+    }
+    return { done: productIds.length - bad.size, failed: bad.size, errors };
+  }
+
+  private async runPublishChunk(job: CatalogJob, productIds: string[]): Promise<ChunkResult> {
+    const i = await this.jobChannel(job);
+    const listed = (job.params as any)?.listed !== false;
+    // Products linked since the job started (or by a repeated chunk) are not made again.
+    const linked = await this.prisma.productChannelMapping.findMany({ where: { integrationId: i.id, productId: { in: productIds } }, select: { productId: true }, distinct: ['productId'] });
+    const skip = new Set(linked.map((l) => l.productId));
+    const todo = productIds.filter((id) => !skip.has(id));
+    if (!todo.length) return { done: productIds.length, failed: 0 };
+    const res = i.type === 'SHOPIFY' ? await this.shopify.exportFor(i, { productIds: todo, listed })
+      : i.type === 'WOOCOMMERCE' ? await this.woo.exportFor(i, { productIds: todo, listed })
+        : null;
+    if (!res) throw new Error('Is channel par naya product nahi ban sakta');
+    await markLinks(this.prisma, i.id, { productId: { in: todo } }, true, undefined, ['publish']);
+    if (!listed) await this.prisma.productChannelMapping.updateMany({ where: { integrationId: i.id, productId: { in: todo } }, data: { listed: false } });
+    this.catalog.forget(i.id);
+    await this.syncProducts(i, todo).catch(() => null);
+    return { done: productIds.length - res.failed, failed: res.failed, errors: res.errors };
+  }
+
   private background(run: () => Promise<unknown>, what: string) {
     setTimeout(() => { run().catch((e) => this.logger.warn(`Online products ${what}: ${e?.message}`)); }, 0);
   }
@@ -719,6 +1032,22 @@ function knownPrice(data: unknown): number | null {
   const d = (data ?? {}) as any;
   const n = Number(d.channelPrice ?? d.pushedPrice);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** A price from the UI: empty = none; otherwise a positive number. */
+function cleanPrice(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0 || n > 100_000_000) throw new BadRequestException('Price sahi nahi');
+  return Math.round(n * 100) / 100;
+}
+
+/** Units for a channel: empty = the channel rule; otherwise a whole number 0 or more. */
+function cleanQty(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Math.floor(Number(v));
+  if (!Number.isFinite(n) || n < 0 || n > 1_000_000) throw new BadRequestException('Stock sahi nahi');
+  return n;
 }
 
 function emptyStats() {

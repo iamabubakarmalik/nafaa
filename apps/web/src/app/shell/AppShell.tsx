@@ -30,7 +30,7 @@ import { cn } from '@core/lib/cn';
 import { useAppearance } from '@/design-system';
 import { Kbd } from '@/design-system/components';
 import { useDialogFocusManager, useListKeys, useSuggestKeys } from '@/design-system/keyboard';
-import { isSettingsPath, LAST_APP_PATH_KEY } from './navigation/nav-config';
+import { isCommercePath, isSettingsPath, LAST_APP_PATH_KEY, LAST_MAIN_PATH_KEY } from './navigation/nav-config';
 import { Sidebar } from './sidebar/Sidebar';
 import { MobileSidebar } from './sidebar/MobileSidebar';
 import { Topbar } from './topbar/Topbar';
@@ -71,7 +71,10 @@ export default function AppShell() {
   const settingsMode = isSettingsPath(location.pathname);
   useEffect(() => {
     if (settingsMode) return;
-    try { sessionStorage.setItem(LAST_APP_PATH_KEY, location.pathname + location.search); } catch { /* storage unavailable */ }
+    try {
+      sessionStorage.setItem(LAST_APP_PATH_KEY, location.pathname + location.search);
+      if (!isCommercePath(location.pathname)) sessionStorage.setItem(LAST_MAIN_PATH_KEY, location.pathname + location.search);
+    } catch { /* storage unavailable */ }
   }, [settingsMode, location.pathname, location.search]);
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);

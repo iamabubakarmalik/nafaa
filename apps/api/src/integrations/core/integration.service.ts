@@ -48,6 +48,8 @@ export class IntegrationService {
     if (['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY'].includes(dto.type)) {
       throw new BadRequestException('Website "Online store → Website jorein" se jorein');
     }
+    // The "Manual orders" channel is made by the Add order page itself.
+    if (dto.type === 'MANUAL') throw new BadRequestException('Ye channel khud banta hai');
     const existing = await this.prisma.integration.findFirst({
       where: { tenantId, type: dto.type },
     });
@@ -85,7 +87,8 @@ export class IntegrationService {
   // ═══════════════════════════════════════════════════════════
 
   async list(tenantId: string, category?: IntegrationCategory) {
-    const where: Prisma.IntegrationWhereInput = { tenantId };
+    // The internal "Manual orders" channel is not a connection to show here.
+    const where: Prisma.IntegrationWhereInput = { tenantId, type: { not: 'MANUAL' } };
     if (category) where.category = category;
 
     const [items, total] = await Promise.all([

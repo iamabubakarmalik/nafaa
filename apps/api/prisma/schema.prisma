@@ -17348,6 +17348,8 @@ enum IntegrationType {
   CALLCOURIER
   NAYAPAY
   RAAST
+  /// Orders the shop types in itself (WhatsApp, Instagram, phone); one per tenant.
+  MANUAL
 }
 
 enum IntegrationCategory {
@@ -17496,6 +17498,20 @@ model ChannelOrder {
   rtoCost           Float?
   // Posted as an "Online selling costs" expense (P&L) at this time.
   costsPostedAt     DateTime?
+  // Orders board: a flag on top of orderStatus (PAY_PENDING, ON_HOLD,
+  // NO_STOCK, CUSTOMER_QUERY, PACKED_NOT_SENT, CLAIM, ISSUE, custom:<key>).
+  stage             String?
+  // Staff member handling the order (user id, no FK).
+  assignedToId      String?
+  followUpAt        DateTime?
+  followUpNote      String?
+  // Soft delete; lists hide these unless the DELETED board is open.
+  deletedAt         DateTime?
+  // Replacement order: the original order's id.
+  replacementOfId   String?
+  // Combined orders: the order this one was merged into.
+  mergedIntoId      String?
+  weightKg          Float?
 
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
@@ -17504,6 +17520,10 @@ model ChannelOrder {
   @@index([tenantId, courierCode])
   @@index([tenantId, courierBookedAt])
   @@index([tenantId, trackingNumber])
+  @@index([tenantId, stage])
+  @@index([tenantId, assignedToId])
+  @@index([tenantId, followUpAt])
+  @@index([tenantId, deletedAt])
   @@map("channel_orders")
 }
 
@@ -17576,6 +17596,14 @@ model ProductChannelMapping {
   priceOverride     Float?
   // Last stock/price push error for this link; null when the last push worked
   syncError         String?
+  // Shown and sold on this channel; false = draft/hidden there (Daraz: stock 0)
+  listed            Boolean         @default(true)
+  // Units given to this channel; null = the channel's stock mode decides
+  allocQty          Int?
+  // Price shown struck out on the channel (sale); null = none
+  compareAtPrice    Float?
+  // Last push to the channel: { at, what[], ok, error }
+  lastPush          Json?
 
   @@unique([integrationId, linkKey])
   @@index([integrationId, productId])
@@ -17584,6 +17612,36 @@ model ProductChannelMapping {
   @@index([integrationId, syncStatus])
   @@index([productId])
   @@map("product_channel_mappings")
+}
+
+/// Long catalog work (import all, link all, push, publish) run in chunks in the background.
+model CatalogJob {
+  id            String    @id @default(cuid())
+  tenantId      String
+  integrationId String?
+  /// IMPORT_ALL | LINK_ALL | PUSH | PUBLISH
+  kind          String
+  /// QUEUED | RUNNING | DONE | FAILED | CANCELLED
+  status        String    @default("QUEUED")
+  total         Int       @default(0)
+  done          Int       @default(0)
+  failed        Int       @default(0)
+  /// Position in `items` the next chunk starts from
+  cursor        Int       @default(0)
+  /// Work list (product ids, channel product ids or links)
+  items         Json?
+  params        Json?
+  errors        Json?
+  createdById   String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  heartbeatAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("catalog_jobs")
 }
 
 // ═══════════════════════════════════════════════════════════════

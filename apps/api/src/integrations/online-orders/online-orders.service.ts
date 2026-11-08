@@ -1,7 +1,7 @@
 import {
-  BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnModuleInit,
+  BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, OnModuleInit,
 } from '@nestjs/common';
-import { Integration, Prisma, SaleSource, UserRole } from '@prisma/client';
+import { ChannelOrder, Integration, Prisma, SaleSource, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { SalesService } from '../../modules/sales/sales/sales.service';
@@ -23,6 +23,12 @@ import { randomBytes } from 'crypto';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 import { apiMessage } from '../../common/i18n/api-message';
+import {
+  BoardStatus, CLOSED_STATUSES, FLAG_STAGES, HOLD_STAGES, LIFECYCLE_RANK, MoveStep, STUCK_DAYS,
+  boardOf, isBoardStatus, isColumnStage, isCustomStage, isFlagStage, isHoldStage, planMove,
+} from './order-board';
+import { OrderChannelSyncService, SyncCustomer, SyncItem, SyncResult } from './order-channel-sync.service';
+import { appendTimeline, patchOrderMetadata } from './order-metadata';
 
 /**
  * Online order ka poora safar:
@@ -58,7 +64,26 @@ const SOURCE_BY_TYPE: Record<string, SaleSource> = {
   SHOPIFY: 'SHOPIFY',
   DARAZ: 'DARAZ',
   FOODPANDA: 'FOODPANDA',
+  // Orders typed in by the shop bill as website sales (no separate SaleSource).
+  MANUAL: 'WEBSITE',
 };
+
+/** Courier states that need the shop's attention (failed attempt, refused). */
+const COURIER_PROBLEM = ['ATTEMPTED'];
+const COURIER_RETURNING = ['RETURNING', 'RETURNED'];
+
+export interface EditFullBody {
+  items?: Array<{ productId?: string; variantId?: string | null; name?: string; sku?: string; variant?: string; quantity?: number; price?: number }>;
+  discount?: number;
+  deliveryFee?: number;
+  customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  customerCity?: string;
+  notes?: string;
+  weightKg?: number | null;
+  syncToChannel?: boolean;
+}
 
 export interface ItemMatch {
   productId: string;
@@ -91,6 +116,7 @@ export class OnlineOrdersService implements OnModuleInit {
     private readonly notifications: NotificationsService,
     private readonly statusHook: StatusWebhookService,
     private readonly tools: OrderToolsService,
+    private readonly channelSync: OrderChannelSyncService,
   ) {}
 
   /**
@@ -145,7 +171,8 @@ export class OnlineOrdersService implements OnModuleInit {
     const blocked = await this.tools.isBlocked(order.tenantId, order.customerPhone).catch(() => null);
     if (blocked) await this.mergeMetadata(order.id, { blocked: { reason: blocked.reason, at: new Date().toISOString() } });
 
-    this.notifications.alert({
+    // An Excel import adds many orders at once; one alert per row would flood the bell.
+    if (!(order.metadata as any)?.imported) this.notifications.alert({
       tenantId: order.tenantId,
       event: 'onlineOrder',
       type: 'INFO',
@@ -199,15 +226,27 @@ export class OnlineOrdersService implements OnModuleInit {
     pay?: 'COD' | 'PAID';
     /** Customer confirmation: CONFIRMED, NO_ANSWER, REFUSED, or NONE (not asked yet). */
     confirm?: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
+    /** Orders board: a tile key (NEW, PACKED, STUCK, custom:<key>, DELETED ...). */
+    board?: string;
+    city?: string;
+    courierCode?: string;
+    /** `me`, `none` or a user id. */
+    assignedTo?: string;
+    stage?: string;
+    tag?: string;
   }) {
     // Channel chuna ho to ginti (tabs, aaj, COD) bhi usi channel ki
-    const base: Prisma.ChannelOrderWhereInput = {
+    const scopeBase: Prisma.ChannelOrderWhereInput = {
       ...this.scopeWhere(user, scope),
       ...(q.integrationId && { integrationId: q.integrationId }),
     };
+    // Soft-deleted orders show only on the DELETED tile.
+    const base: Prisma.ChannelOrderWhereInput = { ...scopeBase, deletedAt: null };
     const where: Prisma.ChannelOrderWhereInput = { ...base };
     // Extra conditions go in AND so they never replace the branch scope's OR.
     const and: Prisma.ChannelOrderWhereInput[] = [];
+    // Filters shared by the list and the board tiles (everything except board/status).
+    const filters: Prisma.ChannelOrderWhereInput[] = [];
     if (q.status === 'ACTIVE') where.orderStatus = { in: ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'] };
     else if (q.status === 'CLOSED') where.orderStatus = { in: CLOSED };
     else if (q.status) where.orderStatus = q.status;
@@ -216,17 +255,24 @@ export class OnlineOrdersService implements OnModuleInit {
       where.nafaaSaleId = { not: null };
       where.orderStatus = { notIn: CLOSED };
     }
-    if (q.pay === 'COD') and.push({ metadata: { path: ['cod'], equals: true } });
-    if (q.pay === 'PAID') and.push({ paymentStatus: 'PAID' });
-    if (q.confirm === 'NONE') and.push({ metadata: { path: ['confirmation', 'result'], equals: Prisma.AnyNull } });
-    else if (q.confirm) and.push({ metadata: { path: ['confirmation', 'result'], equals: q.confirm } });
+    if (q.pay === 'COD') filters.push({ metadata: { path: ['cod'], equals: true } });
+    if (q.pay === 'PAID') filters.push({ paymentStatus: 'PAID' });
+    if (q.confirm === 'NONE') filters.push({ metadata: { path: ['confirmation', 'result'], equals: Prisma.AnyNull } });
+    else if (q.confirm) filters.push({ metadata: { path: ['confirmation', 'result'], equals: q.confirm } });
     const range = q.from && q.to && DAY_KEY.test(q.from) && DAY_KEY.test(q.to)
       ? await periodRange(this.tzService, user.tenantId, q.from, q.to)
       : null;
-    if (range) and.push({ receivedAt: range });
+    if (range) filters.push({ receivedAt: range });
+    if (q.city?.trim()) filters.push({ customerCity: { contains: q.city.trim(), mode: 'insensitive' } });
+    if (q.courierCode?.trim()) filters.push({ courierCode: q.courierCode.trim().toUpperCase() });
+    if (q.assignedTo === 'none') filters.push({ assignedToId: null });
+    else if (q.assignedTo === 'me') filters.push({ assignedToId: user.id });
+    else if (q.assignedTo?.trim()) filters.push({ assignedToId: q.assignedTo.trim() });
+    if (q.stage?.trim()) filters.push({ stage: q.stage.trim() });
+    if (q.tag?.trim()) filters.push({ metadata: { path: ['tags'], array_contains: [q.tag.trim()] } });
     if (q.search?.trim()) {
       const s = q.search.trim();
-      and.push({
+      filters.push({
         OR: [
           { externalOrderNumber: { contains: s.replace(/^#/, ''), mode: 'insensitive' } },
           { externalOrderId: { contains: s, mode: 'insensitive' } },
@@ -236,12 +282,18 @@ export class OnlineOrdersService implements OnModuleInit {
         ],
       });
     }
-    if (and.length) where.AND = and;
-
     /* Dukaan ka apna karobari din — raat 12 baje band hone wali
        dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
     const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
+    const customStages = await this.tools.customStages(user.tenantId).catch(() => []);
+    if (q.board) {
+      if (q.board === 'DELETED') where.deletedAt = { not: null };
+      const bw = this.boardWhere(q.board, today);
+      if (bw) and.push(bw);
+    }
+    and.push(...filters);
+    if (and.length) where.AND = and;
     // NOT on a JSON path drops rows that lack the key (SQL NULL), so test orders are left out this way.
     const notTest: Prisma.ChannelOrderWhereInput = { OR: [{ metadata: { path: ['test'], equals: Prisma.AnyNull } }, { metadata: { path: ['test'], equals: false } }] };
     const staleBefore = new Date(Date.now() - STALE_PENDING_MS);
@@ -286,6 +338,11 @@ export class OnlineOrdersService implements OnModuleInit {
         where: { ...base, orderStatus: { notIn: ['CANCELLED', 'REJECTED', 'RETURNED'] }, AND: [{ metadata: { path: ['cancelRequested'], equals: true } }] },
       }),
     ]);
+    const boardCounts = await this.boardCounts(scopeBase, filters, today, customStages.map((c) => `custom:${c.key}`));
+    const assigneeIds = [...new Set(items.map((o) => o.assignedToId).filter((x): x is string => !!x))];
+    const assignees = assigneeIds.length
+      ? await this.prisma.user.findMany({ where: { id: { in: assigneeIds }, tenantId: user.tenantId }, select: { id: true, fullName: true, email: true } })
+      : [];
 
     const statusCounts: Record<string, number> = {};
     counts.forEach((c) => { statusCounts[c.orderStatus] = c._count._all; });
@@ -307,12 +364,17 @@ export class OnlineOrdersService implements OnModuleInit {
         // Is order ko chhod kar pichhli history
         const r = risks.get(phoneKey(o.customerPhone) ?? '');
         const isTest = !!(o.metadata as any)?.test;
-        if (!r || isTest) return { ...this.present(o), risk: null };
+        const a = o.assignedToId ? assignees.find((u) => u.id === o.assignedToId) : undefined;
+        const view = { ...this.present(o), assigneeName: a ? a.fullName || a.email : null };
+        if (!r || isTest) return { ...view, risk: null };
         const self = minusSelf(r, o.orderStatus, Number(o.total));
         const risk = withSignals(r.level === 'BLOCKED' ? { ...r, ...self } : riskOf(self), this.signals(o, avgOrder, times, null));
-        return { ...this.present(o), risk: { ...risk, duplicateOpen: !CLOSED.includes(o.orderStatus) && o.orderStatus !== 'DELIVERED' ? self.open : 0 } };
+        return { ...view, risk: { ...risk, duplicateOpen: !CLOSED.includes(o.orderStatus) && o.orderStatus !== 'DELIVERED' ? self.open : 0 } };
       }),
       total,
+      /** Orders board tiles: count per tile with the same filters (board and status left out). */
+      boardCounts,
+      customStages,
       counts: statusCounts,
       /** Status counts inside from/to; null when no dates were given. */
       rangeCounts: rangeStatusCounts,
@@ -330,9 +392,79 @@ export class OnlineOrdersService implements OnModuleInit {
     };
   }
 
+  /**
+   * The where clause of one board tile. Lifecycle tiles leave out orders
+   * that sit in a column stage (holds, packed-not-sent, custom), so every
+   * open order is in exactly one column. null = no extra condition.
+   */
+  private boardWhere(board: string, today: Date): Prisma.ChannelOrderWhereInput | null {
+    const plain: Prisma.ChannelOrderWhereInput = { OR: [{ stage: null }, { stage: { in: [...FLAG_STAGES] } }] };
+    const open = { notIn: CLOSED_STATUSES };
+    const now = Date.now();
+    switch (board) {
+      case 'ALL': case 'DELETED': return null;
+      case 'TODAY': return { receivedAt: { gte: today } };
+      case 'NEW': return { orderStatus: { in: ['PENDING', 'ACCEPTING'] }, ...plain };
+      case 'CONFIRMED': return { orderStatus: { in: ['CONFIRMED', 'PREPARING'] }, ...plain };
+      case 'PACKED': return { orderStatus: 'READY', ...plain };
+      case 'PACKED_NOT_SENT': return { orderStatus: 'READY', stage: 'PACKED_NOT_SENT' };
+      case 'DISPATCHED': return { orderStatus: 'OUT_FOR_DELIVERY', ...plain };
+      case 'DELIVERED': return { orderStatus: 'DELIVERED', ...plain };
+      case 'RETURNED': return { orderStatus: 'RETURNED' };
+      case 'CANCELLED': return { orderStatus: { in: ['CANCELLED', 'REJECTED'] } };
+      case 'OUT_FOR_DELIVERY': return { courierStatus: 'OUT_FOR_DELIVERY', orderStatus: { notIn: [...CLOSED_STATUSES, 'DELIVERED'] } };
+      case 'STUCK': return { orderStatus: 'OUT_FOR_DELIVERY', dispatchedAt: { lt: new Date(now - STUCK_DAYS * 86_400_000) } };
+      case 'ISSUES': return { OR: [{ stage: 'ISSUE' }, { courierStatus: { in: COURIER_PROBLEM }, orderStatus: { notIn: [...CLOSED_STATUSES, 'DELIVERED'] } }] };
+      case 'RETURNING': return { courierStatus: { in: COURIER_RETURNING }, orderStatus: { notIn: CLOSED_STATUSES } };
+      case 'REPLACEMENT': return { replacementOfId: { not: null } };
+      case 'CLAIM': return { stage: 'CLAIM' };
+      case 'FOLLOW_UP': return { followUpAt: { lte: new Date(now) } };
+      case 'COD_DUE': return { paymentStatus: { not: 'PAID' }, nafaaSaleId: { not: null }, orderStatus: open };
+      default:
+        if ((HOLD_STAGES as readonly string[]).includes(board) || isCustomStage(board)) return { stage: board, orderStatus: open };
+        throw new BadRequestException('Ghalat board');
+    }
+  }
+
+  /** Counts for every board tile, with the list's filters (board and status left out). */
+  private async boardCounts(scopeBase: Prisma.ChannelOrderWhereInput, filters: Prisma.ChannelOrderWhereInput[], today: Date, customKeys: string[]) {
+    const live: Prisma.ChannelOrderWhereInput = { ...scopeBase, deletedAt: null, ...(filters.length && { AND: filters }) };
+    const count = (board: string) => {
+      const w: Prisma.ChannelOrderWhereInput = { ...scopeBase, deletedAt: board === 'DELETED' ? { not: null } : null };
+      const extra = this.boardWhere(board, today);
+      return this.prisma.channelOrder.count({ where: { ...w, AND: [...filters, ...(extra ? [extra] : [])] } });
+    };
+    const separate = ['TODAY', 'OUT_FOR_DELIVERY', 'STUCK', 'ISSUES', 'RETURNING', 'REPLACEMENT', 'FOLLOW_UP', 'COD_DUE', 'DELETED'];
+    const [groups, ...rest] = await Promise.all([
+      this.prisma.channelOrder.groupBy({ by: ['orderStatus', 'stage'], where: live, _count: { _all: true } }),
+      ...separate.map(count),
+    ]);
+    const out: Record<string, number> = {
+      ALL: 0, NEW: 0, PAY_PENDING: 0, ON_HOLD: 0, NO_STOCK: 0, CUSTOMER_QUERY: 0, CONFIRMED: 0, PACKED: 0, PACKED_NOT_SENT: 0,
+      DISPATCHED: 0, DELIVERED: 0, RETURNED: 0, CANCELLED: 0, CLAIM: 0,
+    };
+    for (const k of customKeys) out[k] = 0;
+    for (const g of groups as Array<{ orderStatus: string; stage: string | null; _count: { _all: number } }>) {
+      const n = g._count._all;
+      out.ALL += n;
+      if (g.stage === 'CLAIM') out.CLAIM += n;
+      if (g.orderStatus === 'RETURNED') { out.RETURNED += n; continue; }
+      if (CLOSED_STATUSES.includes(g.orderStatus)) { out.CANCELLED += n; continue; }
+      if (g.stage && isColumnStage(g.stage)) {
+        if (g.stage === 'PACKED_NOT_SENT') { if (g.orderStatus === 'READY') out.PACKED_NOT_SENT += n; continue; }
+        out[g.stage] = (out[g.stage] ?? 0) + n;
+        continue;
+      }
+      const col = boardOf({ orderStatus: g.orderStatus, stage: null });
+      out[col] = (out[col] ?? 0) + n;
+    }
+    separate.forEach((k, i) => { out[k] = rest[i] as number; });
+    return out;
+  }
+
   /** Har page par chalne wali halki query — sidebar badge aur naye order ka popup */
   async live(user: AuthenticatedUser, scope: ShopScope) {
-    const where: Prisma.ChannelOrderWhereInput = { ...this.scopeWhere(user, scope), orderStatus: 'PENDING' };
+    const where: Prisma.ChannelOrderWhereInput = { ...this.scopeWhere(user, scope), orderStatus: 'PENDING', deletedAt: null };
     const [pendingCount, latest] = await Promise.all([
       this.prisma.channelOrder.count({ where }),
       this.prisma.channelOrder.findMany({
@@ -373,6 +505,7 @@ export class OnlineOrdersService implements OnModuleInit {
     const rows = await this.prisma.channelOrder.findMany({
       where: {
         tenantId,
+        deletedAt: null,
         receivedAt: { gte: new Date(Date.now() - 365 * 86_400_000) },
         OR: keys.map((k) => ({ customerPhone: { endsWith: k.slice(-7) } })),
         ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
@@ -472,6 +605,8 @@ export class OnlineOrdersService implements OnModuleInit {
       integration: { id: order.integration.id, type: order.integration.type, displayName: order.integration.displayName },
       autoPrint: config.autoPrint,
       fulfilShopId: shopId,
+      // The edit page shows "change on the channel too" only when this is true.
+      canSyncEdit: this.channelSync.canEdit(order.integration),
       sale,
       lines: items.map((it, i) => {
         const r = resolved[i];
@@ -581,61 +716,12 @@ export class OnlineOrdersService implements OnModuleInit {
 
     let saleId: string | null = null;
     try {
-      const shopId = await resolveWriteShopId(
-        this.prisma,
-        user.tenantId,
-        scope,
-        body.shopId ?? order.shopId ?? config.shopId ?? order.integration.shopId,
-      );
-      const customerId = await this.findOrCreateCustomer(user.tenantId, shopId, order);
       const meta = (order.metadata ?? {}) as any;
-      const paymentMethod = mapPaymentMethod(order.paymentMethod ?? undefined);
-      const deliveryFee = Number(order.deliveryFee);
-      // Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud leta hai — bill me shamil nahi.
-      // A choice made on this order wins over the channel setting.
-      const riderKeepsDelivery = meta.deliveryChoice ? meta.deliveryChoice === 'RIDER' : config.deliveryFeeMode === 'RIDER';
-      const discount = Number(order.discount) || 0;
-      const billTotal = await this.expectedBillTotal(items, matched, config.priceSource, discount, riderKeepsDelivery ? 0 : deliveryFee);
-      const source = SOURCE_BY_TYPE[order.integration.type] ?? 'WEBSITE';
-      const sourceRef = order.externalOrderNumber ?? order.externalOrderId;
-
-      // Pichli koshish me bill ban gaya tha lekin order se jura nahi (crash) —
-      // dobara bill banane ke bajaye wahi jor do, warna stock do dafa kat-ta.
-      const orphan = await this.prisma.sale.findFirst({
-        where: {
-          tenantId: user.tenantId, source, sourceRef, status: { not: 'VOIDED' },
-          createdAt: { gte: order.receivedAt },
-        },
-        select: { id: true, saleNumber: true, total: true },
+      const { sale, shopId, riderKeepsDelivery, deliveryFee } = await this.makeBill(user, scope, order, items, matched, {
+        shopId: body.shopId,
+        priceOverride: config.priceSource === 'WEBSITE',
+        reuseOrphan: true,
       });
-
-      const sale = orphan ?? await this.sales.create(
-        user,
-        new ShopScope(shopId, false),
-        {
-          shopId,
-          customerId,
-          paymentMethod,
-          // Online sale poori wasool maani jati hai — COD ka paisa order par
-          // "Paisa mil gaya" se track hota hai, customer ke khate me udhaar nahi.
-          // Bill ka apna total dete hain (website ka nahi) taake tax/rounding
-          // ka farq udhaar ya "change" na ban jaye.
-          paidAmount: billTotal,
-          discount,
-          items: items.map((it, i) => ({
-            productId: matched[i].productId,
-            variantId: matched[i].variantId ?? undefined,
-            quantity: it.quantity,
-            ...(config.priceSource === 'WEBSITE' && { priceOverride: it.price }),
-          })),
-          serviceCharges: deliveryFee > 0
-            ? [riderKeepsDelivery
-              ? { type: 'DELIVERY', label: 'Delivery (rider ko — bill me shamil nahi)', amount: deliveryFee, passThrough: true }
-              : { type: 'DELIVERY', label: meta.shippingMethod ? `Delivery (${meta.shippingMethod})` : 'Delivery', amount: deliveryFee }]
-            : undefined,
-        } as any,
-        { source, sourceRef },
-      );
       saleId = sale.id;
 
       // Sirf tab CONFIRMED jab order ab bhi hamare lock me ho
@@ -646,6 +732,8 @@ export class OnlineOrdersService implements OnModuleInit {
           orderStatus: 'CONFIRMED',
           nafaaSaleId: sale.id,
           shopId,
+          // Holds belong to orders before accept; packed-not-sent needs READY.
+          stage: isColumnStage(order.stage) && !isCustomStage(order.stage) ? null : order.stage,
           acceptedAt: now,
           processedAt: now,
           items: items.map((it, i) => ({ ...it, productId: matched[i].productId, variantId: matched[i].variantId ?? null })) as any,
@@ -692,6 +780,81 @@ export class OnlineOrdersService implements OnModuleInit {
     }
   }
 
+  /**
+   * Makes the POS bill for an order through `SalesService.create`, so stock,
+   * cost, khata, loyalty and the sale number work as at the counter. Used by
+   * accept and by the full edit. `reuseOrphan` (accept only) picks up a bill
+   * an earlier crashed attempt made but never linked to the order.
+   */
+  private async makeBill(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    order: ChannelOrder & { integration: Integration },
+    items: StoredItem[],
+    matched: ItemMatch[],
+    opts: { shopId?: string | null; priceOverride: boolean; reuseOrphan?: boolean; discount?: number; deliveryFee?: number },
+  ) {
+    const config = readWebsiteConfig(order.integration.config);
+    const shopId = await resolveWriteShopId(
+      this.prisma,
+      user.tenantId,
+      scope,
+      opts.shopId ?? order.shopId ?? config.shopId ?? order.integration.shopId,
+    );
+    const customerId = await this.findOrCreateCustomer(user.tenantId, shopId, order);
+    const meta = (order.metadata ?? {}) as any;
+    const paymentMethod = mapPaymentMethod(order.paymentMethod ?? undefined);
+    const deliveryFee = opts.deliveryFee ?? Number(order.deliveryFee);
+    // Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud leta hai — bill me shamil nahi.
+    // A choice made on this order wins over the channel setting.
+    const riderKeepsDelivery = meta.deliveryChoice ? meta.deliveryChoice === 'RIDER' : config.deliveryFeeMode === 'RIDER';
+    const discount = opts.discount ?? (Number(order.discount) || 0);
+    const billTotal = await this.expectedBillTotal(items, matched, opts.priceOverride ? 'WEBSITE' : 'NAFAA', discount, riderKeepsDelivery ? 0 : deliveryFee);
+    const source = SOURCE_BY_TYPE[order.integration.type] ?? 'WEBSITE';
+    const sourceRef = order.externalOrderNumber ?? order.externalOrderId;
+
+    // Pichli koshish me bill ban gaya tha lekin order se jura nahi (crash) —
+    // dobara bill banane ke bajaye wahi jor do, warna stock do dafa kat-ta.
+    const orphan = opts.reuseOrphan
+      ? await this.prisma.sale.findFirst({
+          where: {
+            tenantId: user.tenantId, source, sourceRef, status: { not: 'VOIDED' },
+            createdAt: { gte: order.receivedAt },
+          },
+          select: { id: true, saleNumber: true, total: true },
+        })
+      : null;
+
+    const sale = orphan ?? await this.sales.create(
+      user,
+      new ShopScope(shopId, false),
+      {
+        shopId,
+        customerId,
+        paymentMethod,
+        // Online sale poori wasool maani jati hai — COD ka paisa order par
+        // "Paisa mil gaya" se track hota hai, customer ke khate me udhaar nahi.
+        // Bill ka apna total dete hain (website ka nahi) taake tax/rounding
+        // ka farq udhaar ya "change" na ban jaye.
+        paidAmount: billTotal,
+        discount,
+        items: items.map((it, i) => ({
+          productId: matched[i].productId,
+          variantId: matched[i].variantId ?? undefined,
+          quantity: it.quantity,
+          ...(opts.priceOverride && { priceOverride: it.price }),
+        })),
+        serviceCharges: deliveryFee > 0
+          ? [riderKeepsDelivery
+            ? { type: 'DELIVERY', label: 'Delivery (rider ko — bill me shamil nahi)', amount: deliveryFee, passThrough: true }
+            : { type: 'DELIVERY', label: meta.shippingMethod ? `Delivery (${meta.shippingMethod})` : 'Delivery', amount: deliveryFee }]
+          : undefined,
+      } as any,
+      { source, sourceRef },
+    );
+    return { sale: { id: sale.id, saleNumber: sale.saleNumber, total: sale.total }, shopId, riderKeepsDelivery, deliveryFee };
+  }
+
   private isStaleLock(at: Date | null) {
     return !at || Date.now() - at.getTime() > LOCK_TTL_MS;
   }
@@ -728,6 +891,8 @@ export class OnlineOrdersService implements OnModuleInit {
     const now = new Date();
     const meta = (order.metadata ?? {}) as any;
     const data: Prisma.ChannelOrderUpdateInput = { orderStatus: status };
+    // Stages that no longer fit the new status are cleared.
+    if (isHoldStage(order.stage) || (order.stage === 'PACKED_NOT_SENT' && status !== 'READY')) data.stage = null;
     if (body.trackingNumber !== undefined) data.trackingNumber = body.trackingNumber.trim() || null;
     if (body.courierCode !== undefined) {
       const code = body.courierCode ? String(body.courierCode).toUpperCase() : null;
@@ -786,7 +951,7 @@ export class OnlineOrdersService implements OnModuleInit {
 
     const updated = await this.prisma.channelOrder.update({
       where: { id },
-      data: { orderStatus: status, cancelledAt: new Date(), cancelReason: reason?.trim() || null },
+      data: { orderStatus: status, cancelledAt: new Date(), cancelReason: reason?.trim() || null, stage: isFlagStage(order.stage) ? order.stage : null },
       include: { integration: true },
     });
     this.statusHook.send(updated.integration, updated, 'order.cancelled');
@@ -991,6 +1156,7 @@ export class OnlineOrdersService implements OnModuleInit {
       where: { id },
       data: {
         orderStatus: 'RETURNED',
+        stage: isFlagStage(order.stage) ? order.stage : null,
         returnedAt: new Date(),
         returnReason: reason?.trim() || null,
         paymentStatus: order.paymentStatus === 'PAID' ? 'PAID' : 'NOT_COLLECTED',
@@ -1149,6 +1315,442 @@ export class OnlineOrdersService implements OnModuleInit {
       }
     }
     return { success: true };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ORDERS BOARD — move to any status, soft delete
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Moves an order straight to any board status. Forward from NEW runs
+   * accept first (bill + stock); back to NEW or a hold voids the bill; a
+   * closed order is reopened first. Every move is kept in metadata.timeline.
+   */
+  async move(
+    user: AuthenticatedUser,
+    scope: ShopScope,
+    id: string,
+    body: { to?: string; reason?: string; trackingNumber?: string; courierCode?: string; force?: boolean },
+  ) {
+    const to = String(body?.to ?? '') as BoardStatus;
+    if (!isBoardStatus(to)) throw new BadRequestException('Ghalat status');
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (order.deletedAt) throw new BadRequestException('Ye order delete hai — pehle wapas layein');
+    if (isCustomStage(to)) {
+      const keys = (await this.tools.customStages(user.tenantId)).map((c) => `custom:${c.key}`);
+      if (!keys.includes(to)) throw new BadRequestException('Ye stage nahi mili');
+    }
+    const from = boardOf(order);
+    const plan = planMove({
+      orderStatus: order.orderStatus === ACCEPTING && this.isStaleLock(order.processedAt) ? 'PENDING' : order.orderStatus,
+      stage: order.stage,
+      nafaaSaleId: order.nafaaSaleId,
+      dispatchedAt: order.dispatchedAt,
+      codSettledAt: order.codSettledAt,
+      courierBooked: !!order.courierBookedAt && !!order.trackingNumber && order.courierStatus !== 'CANCELLED',
+    }, to, { force: body?.force === true });
+    if ('error' in plan) throw this.moveError(plan.error);
+
+    const reason = body?.reason?.trim().slice(0, 200) || undefined;
+    for (const step of plan.steps) await this.runMoveStep(user, scope, id, step, { ...body, reason });
+
+    const fresh = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id }, include: { integration: true } });
+    if (!plan.steps.length && fresh.stage === plan.stage) return this.present(fresh);
+    if (fresh.stage !== plan.stage) await this.prisma.channelOrder.update({ where: { id }, data: { stage: plan.stage } });
+    await appendTimeline(this.prisma, id, { at: new Date().toISOString(), by: user.id, byName: await this.userName(user), from, to, note: reason ?? null });
+    return this.view(id);
+  }
+
+  /** Same move for many orders; each one on its own, a failure does not stop the rest. */
+  async bulkMove(user: AuthenticatedUser, scope: ShopScope, body: { ids?: string[]; to?: string; reason?: string; force?: boolean }) {
+    const ids = [...new Set((Array.isArray(body?.ids) ? body.ids : []).map(String))];
+    if (!ids.length) throw new BadRequestException('Koi order nahi chuna');
+    if (ids.length > 200) throw new BadRequestException('Ek dafa me zyada se zyada 200 orders');
+    if (!isBoardStatus(body?.to)) throw new BadRequestException('Ghalat status');
+    const results: { id: string; ok: boolean; error?: string; code?: string }[] = [];
+    for (const id of ids) {
+      try {
+        await this.move(user, scope, id, { to: body.to, reason: body.reason, force: body.force });
+        results.push({ id, ok: true });
+      } catch (e: any) {
+        const r = e?.response ?? {};
+        const m = r.message ?? e?.message ?? 'Nahi hua';
+        results.push({ id, ok: false, error: Array.isArray(m) ? m.join(', ') : String(m), ...(r.code && { code: String(r.code) }) });
+      }
+    }
+    return { done: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length, results };
+  }
+
+  private moveError(code: string) {
+    switch (code) {
+      case 'COD_SETTLED':
+        return new BadRequestException({ code, ...apiMessage('Is order ka COD settle ho chuka — ab ye peeche nahi ja sakta') });
+      case 'NEEDS_FORCE':
+        return new ConflictException({ code, ...apiMessage('Parcel bheja ya courier par book ho chuka hai — phir bhi wapas lana hai to dobara confirm karein') });
+      case 'BUSY':
+        return new ConflictException({ code, ...apiMessage('Is order ka bill abhi ban raha hai — thori der me dekhein') });
+      default:
+        return new BadRequestException({ code, ...apiMessage('Ghalat status') });
+    }
+  }
+
+  private async runMoveStep(
+    user: AuthenticatedUser, scope: ShopScope, id: string, step: MoveStep,
+    body: { reason?: string; trackingNumber?: string; courierCode?: string },
+  ) {
+    switch (step.op) {
+      case 'accept': await this.accept(user, scope, id, {}); return;
+      case 'forward':
+        await this.updateStatus(user, scope, id, { status: step.status, trackingNumber: body.trackingNumber, courierCode: body.courierCode });
+        return;
+      case 'back': await this.moveBack(user, scope, id, step.status); return;
+      case 'cancel': await this.cancel(user, scope, id, body.reason); return;
+      case 'return': await this.markReturned(user, scope, id, body.reason); return;
+      case 'revert': await this.reopen(user, id, 'revert', body.reason); return;
+      case 'reopen': await this.reopen(user, id, 'reopen', body.reason); return;
+    }
+  }
+
+  /**
+   * Back to PENDING. `revert`: an accepted order (its bill is voided, stock
+   * comes back). `reopen`: a cancelled or returned order (bill already void).
+   */
+  private async reopen(user: AuthenticatedUser, id: string, kind: 'revert' | 'reopen', note?: string) {
+    const order = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id } });
+    const data: Prisma.ChannelOrderUpdateManyMutationInput = {
+      orderStatus: 'PENDING', nafaaSaleId: null, acceptedAt: null, processedAt: null, dispatchedAt: null, deliveredAt: null,
+      ...this.undoDeliveredPayment(order),
+    };
+    if (kind === 'reopen') {
+      Object.assign(data, { cancelledAt: null, cancelReason: null, returnedAt: null, returnReason: null });
+      if (['NOT_COLLECTED', 'COLLECTED'].includes(order.paymentStatus)) data.paymentStatus = 'PENDING';
+    }
+    // The order is unlinked from its bill first: voiding a linked bill cancels the order.
+    const res = await this.prisma.channelOrder.updateMany({ where: { id, orderStatus: order.orderStatus, nafaaSaleId: order.nafaaSaleId }, data });
+    if (!res.count) throw new ConflictException('Order beech me badal gaya — dobara dekhein');
+    if (!order.nafaaSaleId) return;
+    const sale = await this.prisma.sale.findFirst({ where: { id: order.nafaaSaleId, tenantId: user.tenantId }, select: { id: true, status: true } });
+    if (!sale || sale.status === 'VOIDED') return;
+    try {
+      await this.sales.voidSale(user, new ShopScope(null, true), sale.id, `Online order wapas Naya: ${note ?? '-'}`);
+    } catch (e) {
+      // The bill stays, so the order goes back to how it was.
+      const undo = Object.fromEntries(Object.keys(data).map((k) => [k, (order as any)[k]]));
+      await this.prisma.channelOrder.update({ where: { id }, data: undo }).catch(() => null);
+      throw e;
+    }
+  }
+
+  /** An accepted order one or more steps back (packed → confirmed, delivered → dispatched ...). */
+  private async moveBack(user: AuthenticatedUser, scope: ShopScope, id: string, status: string) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    await this.assertBillAlive(order);
+    const data: Prisma.ChannelOrderUpdateManyMutationInput = { orderStatus: status };
+    if (order.orderStatus === 'DELIVERED') Object.assign(data, { deliveredAt: null }, this.undoDeliveredPayment(order));
+    if ((LIFECYCLE_RANK[status] ?? 0) < LIFECYCLE_RANK.OUT_FOR_DELIVERY) data.dispatchedAt = null;
+    if (order.stage === 'PACKED_NOT_SENT' && status !== 'READY') data.stage = null;
+    const res = await this.prisma.channelOrder.updateMany({ where: { id, orderStatus: order.orderStatus }, data });
+    if (!res.count) throw new ConflictException('Order beech me badal gaya — dobara dekhein');
+    const updated = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id }, include: { integration: true } });
+    this.statusHook.send(updated.integration, updated, 'order.status_changed');
+  }
+
+  /** Payment flags that "Delivered" set on a COD order (not a real settlement). */
+  private undoDeliveredPayment(o: { metadata: unknown; codSettledAt: Date | null; paymentStatus: string; deliveredAt: Date | null; paymentReceivedAt: Date | null }) {
+    if (!(o.metadata as any)?.cod || o.codSettledAt) return {};
+    if (o.paymentStatus === 'COLLECTED') return { paymentStatus: 'PENDING' };
+    const sameTime = o.deliveredAt && o.paymentReceivedAt && Math.abs(o.paymentReceivedAt.getTime() - o.deliveredAt.getTime()) < 5_000;
+    if (o.paymentStatus === 'PAID' && sameTime) return { paymentStatus: 'PENDING', paymentReceivedAt: null };
+    return {};
+  }
+
+  /** Soft delete: hidden from lists (DELETED tile only). A live bill is cancelled first. */
+  async softDelete(user: AuthenticatedUser, scope: ShopScope, id: string, reason?: string) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (order.deletedAt) return this.present(order);
+    if (order.orderStatus === ACCEPTING && !this.isStaleLock(order.processedAt)) throw new ConflictException('Bill abhi ban raha hai — 2 second baad delete karein');
+    if (order.nafaaSaleId && !CLOSED.includes(order.orderStatus)) {
+      const sale = await this.prisma.sale.findFirst({ where: { id: order.nafaaSaleId, tenantId: user.tenantId }, select: { status: true } });
+      if (sale && sale.status !== 'VOIDED') await this.cancel(user, scope, id, reason?.trim() || 'Order delete');
+    }
+    return this.markDeleted(user, id, { reason });
+  }
+
+  /** Marks an order deleted (also used when orders are combined). */
+  async markDeleted(user: AuthenticatedUser, id: string, opts: { reason?: string; mergedIntoId?: string }) {
+    const fresh = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id } });
+    const now = new Date();
+    const note = opts.reason?.trim().slice(0, 200) || null;
+    await this.prisma.channelOrder.update({
+      where: { id },
+      data: { deletedAt: now, ...(opts.mergedIntoId && { mergedIntoId: opts.mergedIntoId }) },
+    });
+    await patchOrderMetadata(this.prisma, id, { deleted: { at: now.toISOString(), by: user.id, reason: note } });
+    await appendTimeline(this.prisma, id, { at: now.toISOString(), by: user.id, byName: await this.userName(user), from: boardOf(fresh), to: 'DELETED', note });
+    return this.view(id);
+  }
+
+  async restore(user: AuthenticatedUser, scope: ShopScope, id: string) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (!order.deletedAt) return this.present(order);
+    if (order.mergedIntoId) throw new BadRequestException('Ye order doosre order me jor diya gaya tha — wahi order dekhein');
+    await this.prisma.channelOrder.update({ where: { id }, data: { deletedAt: null } });
+    await appendTimeline(this.prisma, id, { at: new Date().toISOString(), by: user.id, byName: await this.userName(user), from: 'DELETED', to: boardOf(order) });
+    return this.view(id);
+  }
+
+  /** Removes a soft-deleted order for good; only owner/manager, never with a live bill. */
+  async permanentDelete(user: AuthenticatedUser, scope: ShopScope, id: string) {
+    if (!['OWNER', 'MANAGER', 'SUPER_ADMIN'].includes(user.role)) throw new ForbiddenException('Hamesha ke liye delete sirf malik ya manager kar sakta hai');
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (!order.deletedAt) throw new BadRequestException('Pehle order delete karein, phir hamesha ke liye hatayein');
+    if (order.nafaaSaleId) {
+      const sale = await this.prisma.sale.findFirst({ where: { id: order.nafaaSaleId, tenantId: user.tenantId }, select: { status: true } });
+      if (sale && sale.status !== 'VOIDED') throw new BadRequestException('Is order ka bill abhi chal raha hai — hamesha ke liye delete nahi hota');
+    }
+    await this.prisma.channelOrder.delete({ where: { id } });
+    return { ok: true, id };
+  }
+
+  /** One order as the list shows it (for other services in this module). */
+  async view(id: string) {
+    const o = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id }, include: { integration: true } });
+    return this.present(o);
+  }
+
+  /** Adds a timeline entry (assign, follow-up, combine, split ...). */
+  async addTimeline(user: AuthenticatedUser, id: string, to: string, note?: string | null, extra: Prisma.ChannelOrderUpdateInput = {}) {
+    const o = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id } });
+    if (Object.keys(extra).length) await this.prisma.channelOrder.update({ where: { id }, data: extra });
+    await appendTimeline(this.prisma, id, { at: new Date().toISOString(), by: user.id, byName: await this.userName(user), from: boardOf(o), to, note: note ?? null });
+    return this.view(id);
+  }
+
+  private async userName(user: AuthenticatedUser) {
+    const u = await this.prisma.user.findUnique({ where: { id: user.id }, select: { fullName: true, email: true } }).catch(() => null);
+    return u?.fullName || u?.email || null;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FULL EDIT — items, money, customer; the bill follows
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Edits everything on an order. With a live bill, the old bill is voided
+   * and a new one made through makeBill (same path as accept), so stock,
+   * cost, profit and khata stay right. `syncToChannel` sends the change to
+   * Shopify / WooCommerce; a sync failure is reported, never rolled back.
+   */
+  async editFull(user: AuthenticatedUser, scope: ShopScope, id: string, body: EditFullBody) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (order.deletedAt) throw new BadRequestException('Delete hua order edit nahi hota');
+    if (CLOSED.includes(order.orderStatus)) throw new BadRequestException('Cancel ya wapas aaya order edit nahi hota');
+    if (order.orderStatus === 'DELIVERED' && order.codSettledAt) throw new BadRequestException('Deliver aur COD settle ho chuka order edit nahi hota');
+    if (order.orderStatus === ACCEPTING && !this.isStaleLock(order.processedAt)) throw new ConflictException('Is order ka bill abhi ban raha hai — thori der me dekhein');
+
+    const meta = (order.metadata ?? {}) as any;
+    const oldItems = ((order.items as unknown as StoredItem[]) ?? []).filter(Boolean);
+    const items = Array.isArray(body?.items) ? await this.cleanEditItems(user.tenantId, body.items, oldItems) : oldItems;
+    if (!items.length) throw new BadRequestException('Kam az kam ek item rakhein');
+
+    const money = (v: unknown, fallback: number, label: string) => {
+      if (v === undefined || v === null || v === '') return fallback;
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 0) throw new BadRequestException(apiMessage('{{label}} sahi likhein', { label }));
+      return Math.round(n * 100) / 100;
+    };
+    const discount = money(body?.discount, Number(order.discount) || 0, 'Discount');
+    const deliveryFee = money(body?.deliveryFee, Number(order.deliveryFee) || 0, 'Delivery charge');
+    const subtotal = Math.round(items.reduce((s, it) => s + it.price * it.quantity, 0) * 100) / 100;
+    if (discount > subtotal + 0.009) throw new BadRequestException('Discount items ki qeemat se zyada nahi ho sakta');
+    const total = Math.round(Math.max(0, subtotal - discount + deliveryFee) * 100) / 100;
+
+    const text = (v: unknown, max: number) => (v === undefined ? undefined : String(v ?? '').trim().slice(0, max) || null);
+    const fields = {
+      customerName: text(body?.customerName, 100),
+      customerPhone: text(body?.customerPhone, 20),
+      customerAddress: text(body?.customerAddress, 400),
+      customerCity: text(body?.customerCity, 80),
+      notes: text(body?.notes, 500),
+    };
+    if (fields.customerName === null) throw new BadRequestException('Customer ka naam khali nahi ho sakta');
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+    for (const [k, v] of Object.entries(fields)) {
+      if (v !== undefined && v !== ((order as any)[k] ?? null)) changes[k] = { from: (order as any)[k] ?? null, to: v };
+    }
+    let weightKg: number | null | undefined;
+    if (body?.weightKg !== undefined) {
+      weightKg = body.weightKg === null || (body.weightKg as any) === '' ? null : Number(body.weightKg);
+      if (weightKg !== null && (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 1000)) throw new BadRequestException('Wazan sahi likhein (kg)');
+      if (weightKg !== (order.weightKg ?? null)) changes.weightKg = { from: order.weightKg ?? null, to: weightKg };
+    }
+    const sig = (list: StoredItem[]) => JSON.stringify(list.map((i) => [i.name, i.variant ?? null, i.quantity, i.price, i.productId ?? null, i.variantId ?? null]));
+    const itemsChanged = sig(oldItems) !== sig(items);
+    const moneyChanged = Math.abs(total - Number(order.total)) > 0.009 || Math.abs(discount - Number(order.discount)) > 0.009 || Math.abs(deliveryFee - Number(order.deliveryFee)) > 0.009;
+    if (itemsChanged) changes.items = { from: summary(oldItems), to: summary(items) };
+    if (moneyChanged) changes.total = { from: Number(order.total), to: total };
+
+    const addressChanged = !!(changes.customerAddress || changes.customerCity || changes.customerPhone);
+    const booked = !!order.courierBookedAt && !!order.trackingNumber && order.courierStatus !== 'CANCELLED';
+    if (booked && (addressChanged || (moneyChanged && meta.cod))) {
+      throw new BadRequestException('Courier booking ho chuki — pehle booking cancel karein, phir order badlein aur dobara book karein');
+    }
+    if (order.dispatchedAt && addressChanged) throw new BadRequestException('Parcel ja chuka — ab courier se address badalwayein');
+    if (paidAdvance(meta) > total + 0.5) throw new BadRequestException('Customer is se zyada advance de chuka — pehle advance theek karein');
+    if (!Object.keys(changes).length) return { order: this.present(order), sync: null };
+
+    // ─── The bill follows the new items and money ─────────────
+    let nafaaSaleId = order.nafaaSaleId;
+    let finalItems = items;
+    let rebilled = false;
+    const liveSale = order.nafaaSaleId
+      ? await this.prisma.sale.findFirst({ where: { id: order.nafaaSaleId, tenantId: user.tenantId }, select: { id: true, status: true } })
+      : null;
+    if (liveSale && liveSale.status !== 'VOIDED' && (itemsChanged || moneyChanged)) {
+      const matched: ItemMatch[] = [];
+      const unmatched: { index: number; name: string; sku?: string; variant?: string }[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const r = items[i].productId
+          ? { productId: items[i].productId!, variantId: items[i].variantId ?? null }
+          : await this.resolveItem(user.tenantId, order.integrationId, items[i]);
+        if (r) matched[i] = { productId: r.productId, variantId: r.variantId ?? null };
+        else unmatched.push({ index: i, name: items[i].name, sku: items[i].sku, variant: items[i].variant });
+      }
+      if (unmatched.length) {
+        throw new ConflictException({
+          code: 'UNMATCHED_ITEMS',
+          ...apiMessage('{{unmatchedCount}} item ka Nafaa product nahi mila — pehle jodein', { unmatchedCount: unmatched.length }),
+          unmatched,
+        });
+      }
+      finalItems = items.map((it, i) => ({ ...it, productId: matched[i].productId, variantId: matched[i].variantId ?? null }));
+      // Unlink first: voiding a bill that is still linked cancels the order.
+      await this.prisma.channelOrder.update({ where: { id }, data: { nafaaSaleId: null } });
+      try {
+        await this.sales.voidSale(user, new ShopScope(null, true), liveSale.id, 'Online order edit — naya bill');
+      } catch (e) {
+        await this.prisma.channelOrder.update({ where: { id }, data: { nafaaSaleId: liveSale.id } }).catch(() => null);
+        throw e;
+      }
+      const draft = { ...order, ...Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined)), items: finalItems } as unknown as typeof order;
+      try {
+        const made = await this.makeBill(user, scope, draft, finalItems, matched, { shopId: order.shopId, priceOverride: true, discount, deliveryFee });
+        nafaaSaleId = made.sale.id;
+        rebilled = true;
+      } catch (e: any) {
+        await this.restoreBill(user, scope, order, oldItems, String(e?.response?.message ?? e?.message ?? ''));
+        throw e;
+      }
+    }
+
+    const now = new Date().toISOString();
+    const nextMeta: any = {
+      ...meta,
+      ...(meta.riderDelivery !== undefined && { riderDelivery: deliveryFee }),
+      edits: [...(meta.edits ?? []), { at: now, by: user.id, byName: await this.userName(user), changes, rebilled }].slice(-20),
+    };
+    const data: Prisma.ChannelOrderUpdateInput = {
+      items: finalItems as any,
+      subtotal, discount, deliveryFee, total,
+      nafaaSaleId,
+      metadata: nextMeta,
+      ...(weightKg !== undefined && { weightKg }),
+    };
+    for (const [k, v] of Object.entries(fields)) if (v !== undefined && changes[k]) (data as any)[k] = v;
+    let updated = await this.prisma.channelOrder.update({ where: { id }, data, include: { integration: true } });
+
+    let sync: SyncResult | null = null;
+    if (body?.syncToChannel) {
+      const customer: SyncCustomer = {};
+      for (const k of ['customerName', 'customerPhone', 'customerAddress', 'customerCity', 'notes'] as const) if (changes[k]) customer[k] = fields[k];
+      sync = await this.channelSync.pushEdit(order.integration, order, oldItems as SyncItem[], finalItems as SyncItem[], Object.keys(customer).length ? customer : null)
+        .catch((e: any) => ({ channel: order.integration.type, ok: false, message: String(e?.message ?? 'Sync nahi hua') }));
+      if (!sync.ok) {
+        const m = (updated.metadata ?? {}) as any;
+        updated = await this.prisma.channelOrder.update({
+          where: { id },
+          data: { metadata: { ...m, syncErrors: [...(m.syncErrors ?? []), { at: now, kind: 'EDIT', channel: sync.channel, message: sync.message }].slice(-20) } },
+          include: { integration: true },
+        });
+      }
+    }
+    return { order: this.present(updated), sync };
+  }
+
+  /**
+   * The new bill could not be made after the old one was voided: make the
+   * old bill again so stock stays right; if even that fails, the order goes
+   * back to NEW without a bill so the shop accepts it again.
+   */
+  private async restoreBill(user: AuthenticatedUser, scope: ShopScope, order: ChannelOrder & { integration: Integration }, oldItems: StoredItem[], why: string) {
+    try {
+      const matched = oldItems.map((it) => ({ productId: it.productId as string, variantId: it.variantId ?? null }));
+      if (matched.some((m) => !m.productId)) throw new Error('unmatched');
+      const made = await this.makeBill(user, scope, order, oldItems, matched, {
+        shopId: order.shopId, priceOverride: readWebsiteConfig(order.integration.config).priceSource === 'WEBSITE',
+      });
+      await this.prisma.channelOrder.update({ where: { id: order.id }, data: { nafaaSaleId: made.sale.id } });
+    } catch {
+      await this.prisma.channelOrder.update({
+        where: { id: order.id },
+        data: { nafaaSaleId: null, orderStatus: 'PENDING', acceptedAt: null, processedAt: null, metadata: { ...((order.metadata as any) ?? {}), editError: why.slice(0, 300) } },
+      });
+    }
+  }
+
+  /** Checks edited lines: product/size of this shop, sane quantity and price; channel ids carried over. */
+  private async cleanEditItems(tenantId: string, raw: NonNullable<EditFullBody['items']>, oldItems: StoredItem[]): Promise<StoredItem[]> {
+    if (raw.length > 100) throw new BadRequestException('Zyada se zyada 100 items');
+    const used = new Set<number>();
+    const out: StoredItem[] = [];
+    for (const r of raw) {
+      const label = String(r?.name ?? '').trim() || 'Item';
+      const quantity = Number(r?.quantity);
+      if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 100_000) throw new BadRequestException(apiMessage('{{name}}: tadad sahi likhein', { name: label }));
+      const price = Number(r?.price);
+      if (!Number.isFinite(price) || price < 0) throw new BadRequestException(apiMessage('{{name}}: qeemat sahi likhein', { name: label }));
+      let product: { id: string; name: string; sku: string | null; hasVariants: boolean } | null = null;
+      let variant: { id: string; name: string; size: string | null; color: string | null; sku: string | null } | null = null;
+      if (r?.productId) {
+        product = await this.prisma.product.findFirst({ where: { id: String(r.productId), tenantId, isActive: true }, select: { id: true, name: true, sku: true, hasVariants: true } });
+        if (!product) throw new BadRequestException(apiMessage('{{name}}: product nahi mila', { name: label }));
+        if (product.hasVariants && !r.variantId) throw new BadRequestException(apiMessage('{{name}}: is product ke size/variant hain — sahi size chunein', { name: product.name }));
+        if (r.variantId) {
+          variant = await this.prisma.productVariant.findFirst({
+            where: { id: String(r.variantId), productId: product.id, isActive: true },
+            select: { id: true, name: true, size: true, color: true, sku: true },
+          });
+          if (!variant) throw new BadRequestException(apiMessage('{{name}}: chuna hua variant is product ka nahi', { name: product.name }));
+        }
+      }
+      const name = String(r?.name ?? '').trim().slice(0, 200) || product?.name;
+      if (!name) throw new BadRequestException('Item ka naam likhein');
+      const variantLabel = r?.variant?.trim() || (variant ? variant.name || [variant.color, variant.size].filter(Boolean).join(' / ') : undefined);
+      const j = oldItems.findIndex((o, k) => !used.has(k) && (product
+        ? o.productId === product.id && (o.variantId ?? null) === (variant?.id ?? null)
+        : o.name === name && (o.variant ?? '') === (variantLabel ?? '')));
+      const old = j >= 0 ? oldItems[j] : undefined;
+      if (j >= 0) used.add(j);
+      out.push(clean({
+        name,
+        sku: r?.sku?.trim() || variant?.sku || product?.sku || old?.sku || undefined,
+        variant: variantLabel || old?.variant,
+        quantity,
+        price: Math.round(price * 100) / 100,
+        image: old?.image,
+        externalProductId: old?.externalProductId,
+        externalVariantId: old?.externalVariantId,
+        productId: product?.id ?? old?.productId,
+        variantId: product ? variant?.id ?? null : old?.variantId ?? null,
+      }));
+    }
+    return out;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1435,11 +2037,7 @@ export class OnlineOrdersService implements OnModuleInit {
   setCityCheck(fn: (tenantId: string, city: string) => Promise<boolean | null>) { this.cityCheck = fn; }
 
   private async mergeMetadata(id: string, patch: Record<string, any>) {
-    const row = await this.prisma.channelOrder.findUnique({ where: { id }, select: { metadata: true } });
-    await this.prisma.channelOrder.update({
-      where: { id },
-      data: { metadata: { ...((row?.metadata as any) ?? {}), ...patch } },
-    }).catch(() => null);
+    await patchOrderMetadata(this.prisma, id, patch).catch(() => null);
   }
 
   private present(o: any) {
@@ -1461,6 +2059,8 @@ export class OnlineOrdersService implements OnModuleInit {
       isTest: !!meta.test,
       platform: meta.platform ?? 'custom',
       nextStatus: FLOW.includes(o.orderStatus) ? FLOW[FLOW.indexOf(o.orderStatus) + 1] ?? null : null,
+      // Orders board column (NEW, ON_HOLD, PACKED, custom:<key> ...).
+      board: boardOf(o),
       courierLabel: courierName(o.courierCode) ?? o.courierName ?? null,
       courierSite: COURIERS.find((c) => c.code === o.courierCode)?.site ?? null,
       // Nafaa se courier API par book hua (PostEx/Leopards) — label/refresh/cancel yahin se
@@ -1483,4 +2083,14 @@ function minusSelf(r: CustomerRisk, status: string, total: number) {
   else h.open--;
   for (const k of Object.keys(h) as (keyof typeof h)[]) h[k] = Math.max(0, h[k]);
   return h;
+}
+
+/** Short text of an item list for the edit log. */
+function summary(items: StoredItem[]) {
+  return items.map((i) => `${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.quantity} @${i.price}`).join('; ').slice(0, 500);
+}
+
+/** Drops undefined keys so stored JSON stays small. */
+function clean<T extends object>(o: T): T {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
 }

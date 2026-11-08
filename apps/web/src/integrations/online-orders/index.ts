@@ -1,4 +1,8 @@
 export { default as OnlineOrdersPage } from './pages/OnlineOrdersPage';
+export { default as AddOrderPage } from './pages/AddOrderPage';
+export { default as EditOrderPage } from './pages/EditOrderPage';
+export { default as CommerceHomePage } from './pages/CommerceHomePage';
+export { default as CommerceSoonPage } from './pages/CommerceSoonPage';
 export { default as WebsiteConnectPage, WebsiteRedirect } from './pages/ChannelPage';
 export { default as ShopifyAppPage } from './pages/ShopifyAppPage';
 export { default as ConnectChannelPage } from './pages/ConnectChannelPage';
