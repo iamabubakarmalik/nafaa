@@ -20,8 +20,9 @@ import {
 import { ADS_AFFECTED_KEYS, ADS_KEY, AD_PLATFORMS, adsApi, type AdEntry, type AdPlatform, type AdsSetup, type RoasRow } from '../api/growth';
 import { apiErrorMessage } from '../api/online';
 import { BrandLogo, type BrandName } from '../components/BrandLogo';
-import { KpiStrip, SavedDataNote } from '../components/bits';
+import { SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { ProductPicker } from '../components/ProductPicker';
 import { AD_PLATFORM_LABEL } from '../lib/labels';
 import { useOnlineGuard } from '../lib/online';
@@ -83,7 +84,7 @@ export function AdsScreen() {
         options={periodOptions(['today', 'yesterday', 'week', 'month', 'thisMonth', 'quarter']).map((o) => ({ ...o, label: t(o.label) }))} />
       {reportQ.isError && !r ? <ErrorState error={reportQ.error} onRetry={reportQ.refetch} /> : !r || !tt ? <SkeletonRows count={6} /> : (
         <>
-          <KpiStrip items={[
+          <KpiHero items={[
             { key: 's', label: t('Ads kharcha'), icon: Megaphone, tone: 'accent', value: formatMoney(tt.spend), hint: r.byPlatform.map((p) => `${t(AD_PLATFORM_LABEL[p.platform])} ${p.share}%`).join(' · ') || t('Abhi koi entry nahi') },
             { key: 'o', label: t('Online sale'), icon: ShoppingBag, tone: 'info', value: formatMoney(tt.sales), hint: t('{{orders}} orders · {{returned}} wapas', { orders: tt.orders, returned: tt.returned }) },
             { key: 'r', label: t('ROAS'), icon: Target, tone: tt.roas == null ? 'neutral' : tt.roas >= 3 ? 'success' : tt.roas >= 1.5 ? 'warning' : 'danger', value: roasText(tt.roas), hint: t('Sale ÷ Ads kharcha') },

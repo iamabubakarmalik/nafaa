@@ -23,8 +23,9 @@ import {
   Segmented, Select, SkeletonRows, Tabs, Text, confirm, toast, useDebouncedValue, useTheme, type StatusTone,
 } from '@/design';
 import { apiErrorMessage, couriersApi } from '../api/online';
+import { KpiHero } from '../components/CommerceHero';
 import { CourierLogo } from '../components/BrandLogo';
-import { KpiStrip, Note } from '../components/bits';
+import { Note } from '../components/bits';
 import { COURIER_STATE_LABEL, STATUS_LABEL } from '../lib/labels';
 import { KEYS, useOnlineGuard } from '../lib/online';
 import { openCourierLabels } from '../lib/docs';
@@ -92,7 +93,7 @@ export function CourierDetailScreen() {
         </View>
         {sync.isPending && <ActivityIndicator />}
       </View>
-      <KpiStrip items={[
+      <KpiHero items={[
         { key: 'a', label: t('Raste me'), icon: Truck, tone: 'info', value: String(s.active), hint: s.awaitingPickup ? t('{{awaitingPickup}} pickup baqi', { awaitingPickup: s.awaitingPickup }) : undefined, onPress: () => showParcels('active') },
         { key: 'p', label: t('Pickup ka intezar'), icon: Printer, tone: 'warning', value: String(s.awaitingPickup), hint: t('Label print karke parcel dein'), onPress: () => showParcels('booked') },
         { key: 'u', label: t('Customer tak nahi pohanche'), icon: UserX, tone: 'danger', value: String(s.attempted), hint: t('Call karein warna RTO'), onPress: () => showParcels('attempted') },

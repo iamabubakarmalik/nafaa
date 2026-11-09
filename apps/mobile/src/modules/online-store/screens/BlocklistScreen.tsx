@@ -15,6 +15,7 @@ import { PERMISSIONS, usePermission } from '@/core/permissions';
 import { Button, Card, EmptyState, IconButton, Input, ListTemplate, Switch, Text, confirm, toast, useTheme } from '@/design';
 import { apiErrorMessage, ordersApi, scanApi } from '../api/online';
 import { SavedDataNote } from '../components/bits';
+import { CommerceHero } from '../components/CommerceHero';
 import { KEYS, useOnlineGuard } from '../lib/online';
 
 export function BlocklistScreen() {
@@ -50,6 +51,12 @@ export function BlocklistScreen() {
       search={{ value: search, onChange: setSearch, placeholder: t('Number ya naam…') }}
       summary={(
         <View style={{ gap: th.space(3) }}>
+          <CommerceHero chip={t('Report scammer')} loading={q.isLoading}
+            stats={[
+              { label: t('Blocked numbers'), value: String(q.data?.length ?? 0) },
+              { label: t('Naam ke saath'), value: String((q.data ?? []).filter((b) => b.name).length) },
+              { label: t('Dikh rahe'), value: String(rows.length) },
+            ]} />
           <SavedDataNote query={q} />
           <Text size="xs" tone="muted">{t("In se aane wale order khud accept nahi hote — 'Blocked' ke nishan ke saath 'Naye' me rukte hain.")}</Text>
           <RiskRuleCard canEdit={can(PERMISSIONS.SETTINGS_EDIT) || canManage} />

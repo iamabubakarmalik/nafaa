@@ -16,8 +16,9 @@ import { t } from '@/core/i18n';
 import { Amount, Badge, Card, ChipGroup, EmptyState, ErrorState, IconButton, Screen, SearchBar, SkeletonRows, Tabs, Text, useTheme } from '@/design';
 import { couriersApi } from '../api/online';
 import { CourierLogo } from '../components/BrandLogo';
-import { KpiStrip, SavedDataNote } from '../components/bits';
+import { SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { KEYS } from '../lib/online';
 
 type Kind = '' | 'connected' | 'api' | 'manual';
@@ -52,7 +53,7 @@ export function CouriersScreen() {
       <OnlineMenuButton current="/online/couriers" />
     </>} onRefresh={q.refetch} refreshing={q.isRefetching}>
       <SavedDataNote query={q} />
-      <KpiStrip items={[
+      <KpiHero items={[
         { key: 'a', label: t('Raste me'), icon: Truck, tone: 'info', loading: !q.data, value: String(sum('active')), hint: t('{{sum}} pickup baqi', { sum: sum('awaitingPickup') }) },
         { key: 'c', label: t('Courier ke paas (COD)'), icon: Wallet, tone: 'warning', loading: !q.data, value: <Amount value={sum('codPendingValue')} size="lg" weight="bold" />, hint: t('{{sum}} parcel', { sum: sum('codPending') }), onPress: () => router.push('/online/cod' as never) },
         { key: 'r', label: t('RTO (30 din)'), icon: PackageCheck, tone: rtoTone(rto), loading: !q.data, value: `${rto}%`, hint: `${sum('returned30')} / ${dispatched}` },

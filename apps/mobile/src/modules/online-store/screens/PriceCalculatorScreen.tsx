@@ -26,6 +26,7 @@ import { BrandLogo, type BrandName } from '../components/BrandLogo';
 import { OnlineMenuButton } from '../components/OnlineMenu';
 import { ProductPicker } from '../components/ProductPicker';
 import { BREAKDOWN_LABEL, KIND_LABEL } from '../lib/labels';
+import { StoreHero } from '../components/CommerceHero';
 
 const KIND_BRAND: Record<ChannelKind, BrandName> = { DARAZ: 'daraz', SHOPIFY: 'shopify', WOOCOMMERCE: 'woocommerce', WEBSITE: 'website' };
 const str = (n: number | null | undefined) => (n == null ? '' : String(Math.round(n * 100) / 100));
@@ -94,6 +95,7 @@ export function PriceCalculatorScreen() {
 
   return (
     <Screen title={t('Price calculator')} actions={<OnlineMenuButton current="/online/price-calculator" />} keyboard>
+      <StoreHero chip={t('Price calculator')} />
       {ctxQ.isError ? <ErrorState error={ctxQ.error} onRetry={ctxQ.refetch} /> : !ctx || !state ? <SkeletonRows count={8} /> : (
         <>
           <Card title={t('Product aur target')}>

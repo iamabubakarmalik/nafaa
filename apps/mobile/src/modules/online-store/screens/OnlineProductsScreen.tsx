@@ -27,11 +27,13 @@ import {
   CellSheet, ChannelCard, ChannelMark, ChannelSettingsSheet, IssuesPanel, LinkSheet, refreshProducts, type LinkFocus,
 } from '../components/products/ProductSheets';
 import { KEYS, useOnlineGuard } from '../lib/online';
+import { CommerceHero } from '../components/CommerceHero';
+import { JobsStrip } from '../components/products/JobsStrip';
 
 const LIMIT = 25;
 const TABS: Array<{ id: GridFilter; label: string }> = [
   { id: 'all', label: msg('Sab') }, { id: 'unlinked', label: msg('Jorna baqi') }, { id: 'errors', label: msg('Masle') },
-  { id: 'price', label: msg('Price farq') }, { id: 'out', label: msg('Stock khatam') }, { id: 'linked', label: msg('Jure hue') },
+  { id: 'price', label: msg('Price farq') }, { id: 'out', label: msg('Stock khatam') }, { id: 'unlisted', label: msg('Chhupe (draft)') }, { id: 'linked', label: msg('Jure hue') },
 ];
 
 type Open =
@@ -99,6 +101,14 @@ export function OnlineProductsScreen() {
 
   const summary = (
     <View style={{ gap: th.space(3) }}>
+      <CommerceHero chip={t('Nafaa hi main hai')} loading={summaryQ.isLoading}
+        stats={[
+          { label: t('Jure hue'), value: String(s?.linked ?? 0) },
+          { label: t('Jorna baqi'), value: String(s?.unlinked ?? 0) },
+          { label: t('Masle'), value: String(s?.errors ?? 0) },
+          { label: t('Stock khatam'), value: String(s?.out ?? 0) },
+        ]} />
+      <JobsStrip />
       <SavedDataNote query={channelsQ} />
       {!channelsQ.isLoading && channels.length === 0 ? (
         <>

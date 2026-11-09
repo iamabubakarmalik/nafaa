@@ -26,6 +26,8 @@ import { CourierLogo } from '../components/BrandLogo';
 import { OrderStatusBadge, SavedDataNote } from '../components/bits';
 import { Scanner, type ScanFlash } from '@/core/hardware/scanner';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { CommerceHero } from '../components/CommerceHero';
+import { OrderMiniList, useBoardSlice } from '../components/board/OrderMiniList';
 import { KEYS, useOnlineGuard } from '../lib/online';
 import { openCourierLabel, openCourierLabels, printInvoices } from '../lib/docs';
 import { useShopLanguage } from '../lib/messages';
@@ -49,6 +51,9 @@ export function PackScreen() {
   const [camera, setCamera] = useState(true);
 
   const queue = useQuery({ queryKey: [...KEYS.orders, 'pack-queue'], queryFn: () => ordersApi.list({ status: 'ACTIVE', limit: 100 }), refetchInterval: 30_000 });
+  const confirmedQ = useBoardSlice('pack-confirmed', { board: 'CONFIRMED' }, 1);
+  const packedQ = useBoardSlice('pack-packed', { board: 'PACKED' });
+  const notSentQ = useBoardSlice('pack-not-sent', { board: 'PACKED_NOT_SENT' }, 1);
   const waiting = (queue.data?.items ?? []).filter((o) => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.orderStatus));
 
   const signal = (ok: boolean) => { haptic(ok ? 'success' : 'error'); setFlash(ok ? 'ok' : 'bad'); setTimeout(() => setFlash(null), 700); };
@@ -119,6 +124,12 @@ export function PackScreen() {
       <IconButton icon={RotateCcw} label={t('RTO returns')} onPress={() => router.push('/online/returns' as never)} />
       <OnlineMenuButton current="/online/pack" />
     </>} onRefresh={() => queue.refetch()} refreshing={queue.isRefetching} keyboard>
+      <CommerceHero chip={t('Packing')} loading={queue.isLoading}
+        stats={[
+          { label: t('Pack karne hain'), value: String(confirmedQ.data?.total ?? 0) },
+          { label: t('Packed'), value: String(packedQ.data?.total ?? 0) },
+          { label: t('Packed not sent'), value: String(notSentQ.data?.total ?? 0) },
+        ]} />
       <SavedDataNote query={queue} />
       <Scanner variant="inline" active={camera && !alarm} flash={flash} onCode={onScan} height={order ? 170 : 230} />
       <View style={{ flexDirection: 'row', gap: th.space(2), alignItems: 'flex-end' }}>
@@ -131,9 +142,9 @@ export function PackScreen() {
 
       {alarm && (
         <View accessibilityRole="alert" style={{ backgroundColor: th.colors.danger.solid, borderRadius: th.radius('xl'), padding: th.space(4), gap: th.space(2), alignItems: 'center' }}>
-          <AlertOctagon size={44} color="#ffffff" />
-          <Text size="2xl" weight="heavy" color="#ffffff" align="center">{alarm.title}</Text>
-          <Text size="base" weight="semibold" color="rgba(255,255,255,0.92)" align="center">{alarm.text}</Text>
+          <AlertOctagon size={44} color={th.colors.danger.onSolid} />
+          <Text size="2xl" weight="heavy" color={th.colors.danger.onSolid} align="center">{alarm.title}</Text>
+          <Text size="base" weight="semibold" color={th.colors.danger.onSolid} align="center">{alarm.text}</Text>
           <Button size="lg" variant="inverse" onPress={() => setAlarm(null)}>{t('Theek hai')}</Button>
         </View>
       )}
@@ -233,6 +244,8 @@ export function PackScreen() {
           </View>
         )}
       </Card>
+      <OrderMiniList title={t('Packed — courier ko dene hain')} board="PACKED" query={packedQ} empty={t('Abhi koi packed parcel nahi')} />
+      <Button variant="secondary" icon={ScanLine} onPress={() => router.push('/online/dispatch-scan' as never)}>{t('Dispatch scan kholein')}</Button>
     </Screen>
   );
 }

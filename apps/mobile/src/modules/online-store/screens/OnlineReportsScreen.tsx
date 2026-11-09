@@ -23,8 +23,9 @@ import {
 import { ordersApi, moneyApi } from '../api/online';
 import { morningApi } from '../api/growth';
 import { CourierLogo } from '../components/BrandLogo';
-import { KpiStrip, Note, SavedDataNote } from '../components/bits';
+import { Note, SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { STATUS_LABEL } from '../lib/labels';
 import { KEYS } from '../lib/online';
 import { periodOptions, periodRange, type PeriodPreset } from '../lib/period';
@@ -99,7 +100,7 @@ export function OnlineReportsScreen() {
       {q.isError && !r ? <ErrorState error={q.error} onRetry={q.refetch} /> : !r || !tt ? <SkeletonRows count={8} /> : (
         <>
           <Text size="xs" tone="muted">{formatDate(`${r.range.from}T12:00:00`)} – {formatDate(`${r.range.to}T12:00:00`)} · {t('cancel aur wapas orders sale me nahi gine jate')}</Text>
-          <KpiStrip items={[
+          <KpiHero items={[
             { key: 's', label: t('Online sale · {{netOrders}} order', { netOrders: tt.netOrders }), icon: (valueChange ?? 0) >= 0 ? ArrowUpRight : ArrowDownRight, tone: (valueChange ?? 0) >= 0 ? 'success' : 'danger', value: <Amount value={tt.netValue} size="lg" weight="bold" />, hint: vs(valueChange) },
             { key: 'o', label: t('Orders aaye'), icon: ShoppingBag, tone: 'brand', value: String(tt.orders), hint: vs(change(tt.orders, r.previous.orders)) },
             { key: 'd', label: t('Deliver hue'), icon: PackageCheck, tone: 'success', value: <Amount value={tt.deliveredValue} size="lg" weight="bold" />, hint: t('{{delivered}} · {{deliveryRate}}% bheje hue', { delivered: tt.delivered, deliveryRate: tt.deliveryRate }) },

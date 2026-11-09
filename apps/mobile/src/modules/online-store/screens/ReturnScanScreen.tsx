@@ -3,7 +3,8 @@
  * goes through the normal RTO path (its bill is voided, which puts every
  * item back in the order's branch). Items that came back broken are marked
  * damaged and written off as a stock loss instead. The courier and return
- * charges are kept on the order. Mirrors the web ReturnScanPage.
+ * charges are kept on the order. Below the scanner: parcels still coming
+ * back (Pending RTO) and the ones received today. Mirrors the web ReturnScanPage.
  */
 
 import { useState } from 'react';
@@ -23,6 +24,9 @@ import { Scanner, type ScanFlash } from '@/core/hardware/scanner';
 import { OnlineMenuButton } from '../components/OnlineMenu';
 import { RTO_REASONS } from '../lib/labels';
 import { KEYS, useOnlineGuard } from '../lib/online';
+import { CommerceHero } from '../components/CommerceHero';
+import { OrderMiniList, useBoardSlice } from '../components/board/OrderMiniList';
+import { periodRange } from '../lib/period';
 
 export function ReturnScanScreen() {
   const th = useTheme();
@@ -35,6 +39,9 @@ export function ReturnScanScreen() {
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState<ScanFlash>(null);
   const [done, setDone] = useState<Array<{ number: string; restocked: number; damaged: number; rtoCost: number; courierCode: string | null }>>([]);
+  const today = periodRange('today')!;
+  const pendingQ = useBoardSlice('rto-pending', { board: 'RETURNING' });
+  const todayQ = useBoardSlice('rto-today', { board: 'RETURNED', from: today.from, to: today.to });
   const signal = (ok: boolean) => { haptic(ok ? 'success' : 'error'); setFlash(ok ? 'ok' : 'bad'); setTimeout(() => setFlash(null), 700); };
 
   const lookup = useMutation({
@@ -53,6 +60,7 @@ export function ReturnScanScreen() {
       if (r.failed.length) toast.error(t('Kuch kharab maal nahi likha gaya: {{value}}', { value: r.failed.join(', ') }));
       else toast.success(t('#{{number}} wapas — {{restocked}} shelf par{{value}}', { number: r.order.number, restocked: r.restocked, value: r.damaged ? t(', {{damaged}} kharab likhe', { damaged: r.damaged }) : '' }));
       for (const k of [KEYS.orders, KEYS.codSummary, KEYS.codHistory, KEYS.profit]) qc.invalidateQueries({ queryKey: k });
+      void pendingQ.refetch(); void todayQ.refetch();
       setOrder(null); setDamaged({}); setValue('');
     },
     onError: (e) => { signal(false); setError(apiErrorMessage(e, t('Nahi hua'))); },
@@ -73,6 +81,13 @@ export function ReturnScanScreen() {
       <IconButton icon={ScanLine} label={t('Packing')} onPress={() => router.push('/online/pack' as never)} />
       <OnlineMenuButton current="/online/returns" />
     </>} keyboard>
+      <CommerceHero chip={t('Wapas aaye parcel')} loading={pendingQ.isLoading}
+        stats={[
+          { label: t('Pending RTO'), value: String(pendingQ.data?.total ?? 0) },
+          { label: t('Aaj receive'), value: String(todayQ.data?.total ?? 0) },
+          { label: t('Abhi scan kiye'), value: String(done.length) },
+          { label: t('Kharab'), value: String(done.reduce((a, d) => a + d.damaged, 0)) },
+        ]} />
       <Scanner variant="inline" active={!order} flash={flash} onCode={scan} height={order ? 140 : 230} />
       <View style={{ flexDirection: 'row', gap: th.space(2), alignItems: 'flex-end' }}>
         <Input containerStyle={{ flex: 1 }} value={value} onChangeText={setValue} icon={ScanLine} ltr autoCapitalize="characters" autoCorrect={false}
@@ -82,8 +97,8 @@ export function ReturnScanScreen() {
 
       {error && (
         <View accessibilityRole="alert" style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(3), backgroundColor: th.colors.danger.solid, borderRadius: th.radius('xl'), padding: th.space(4) }}>
-          <AlertOctagon size={28} color="#ffffff" />
-          <Text size="base" weight="semibold" color="#ffffff" style={{ flex: 1 }}>{order ? `#${order.number}: ` : ''}{error}</Text>
+          <AlertOctagon size={28} color={th.colors.danger.onSolid} />
+          <Text size="base" weight="semibold" color={th.colors.danger.onSolid} style={{ flex: 1 }}>{order ? `#${order.number}: ` : ''}{error}</Text>
           <Button size="sm" variant="inverse" onPress={() => setError(null)}>{t('Theek hai')}</Button>
         </View>
       )}
@@ -148,6 +163,9 @@ export function ReturnScanScreen() {
           ))}
         </Card>
       )}
+
+      <OrderMiniList title={t('Pending RTO')} board="RETURNING" query={pendingQ} empty={t('Koi parcel wapas raste me nahi')} />
+      <OrderMiniList title={t('Aaj receive hue')} board="RETURNED" query={todayQ} empty={t('Aaj abhi koi parcel wapas nahi aaya')} />
     </Screen>
   );
 }

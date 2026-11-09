@@ -22,7 +22,7 @@ import {
   Badge, Button, Card, Checkbox, EmptyState, Input, MoneyInput, PressableScale, SearchBar, Segmented, Sheet, SkeletonRows, Switch, Tabs, Text,
   confirm, toast, useDebouncedValue, useTheme,
 } from '@/design';
-import { apiErrorMessage, productsApi } from '../../api/online';
+import { apiErrorMessage, productsApi, type LinkPatch } from '../../api/online';
 import { KEYS } from '../../lib/online';
 import { openOnWeb } from '../../lib/device';
 import { BrandLogo, brandForChannel } from '../BrandLogo';
@@ -167,11 +167,17 @@ export function CellSheet({ open, channel, cell, title, productId, canManage, on
   const th = useTheme();
   const qc = useQueryClient();
   const [own, setOwn] = useState<number | null>(null);
-  useEffect(() => { if (open) setOwn(cell?.override ?? null); }, [open, cell?.mappingId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [alloc, setAlloc] = useState<string>('');
+  useEffect(() => { if (open) { setOwn(cell?.override ?? null); setAlloc(cell?.allocQty == null ? '' : String(cell.allocQty)); } }, [open, cell?.mappingId]); // eslint-disable-line react-hooks/exhaustive-deps
   const done = (m: string) => { refreshProducts(qc); toast.success(m); };
   const price = useMutation({
     mutationFn: (v: number | null) => productsApi.setPrice(cell!.mappingId, v),
     onSuccess: (_r, v) => { done(v === null ? t('Ab rule wali Price lagegi') : t('Apni Price save ho gayi')); onClose(); },
+    onError: (e) => toast.error(apiErrorMessage(e, t('Nahi hua'))),
+  });
+  const patch = useMutation({
+    mutationFn: (body: LinkPatch) => productsApi.updateLink(cell!.mappingId, body),
+    onSuccess: (_r, body) => done(body.listed === false ? t('Channel par chhupa diya (draft)') : body.listed ? t('Channel par dikh raha hai') : t('Stock hissa save ho gaya')),
     onError: (e) => toast.error(apiErrorMessage(e, t('Nahi hua'))),
   });
   const sync = useMutation({
@@ -217,6 +223,20 @@ export function CellSheet({ open, channel, cell, title, productId, canManage, on
             </Text>
           </Card>
         </View>
+        {push && (
+          <Switch value={cell.listed !== false} disabled={!canManage || patch.isPending} onChange={(v) => patch.mutate({ listed: v })}
+            label={t('Channel par dikhayein')} description={cell.listed === false ? t('Abhi draft / chhupa hai — customer nahi khareed sakta') : t('Band karein to channel par chhup jayega (draft)')} />
+        )}
+        {push && channel.tracksStock && (
+          <View style={{ gap: th.space(2) }}>
+            <Text size="sm" weight="semibold">{t('Is channel ka apna Stock hissa')}</Text>
+            <Text size="xs" tone="muted">{t('Khali chhorein to channel ka rule lagega. Likhein to sirf itne units is channel par jayenge.')}</Text>
+            <View style={{ flexDirection: 'row', gap: th.space(2), alignItems: 'flex-end' }}>
+              <Input containerStyle={{ flex: 1 }} value={alloc} onChangeText={setAlloc} keyboardType="number-pad" placeholder={t('Rule wala')} disabled={!canManage} />
+              {canManage && <Button variant="secondary" loading={patch.isPending} onPress={() => patch.mutate({ allocQty: alloc.trim() === '' ? null : Math.max(0, Math.floor(Number(alloc) || 0)) })}>{t('Save')}</Button>}
+            </View>
+          </View>
+        )}
         {push && (
           <View style={{ gap: th.space(2) }}>
             <Text size="sm" weight="semibold">{t('Is channel par apni Price')}</Text>

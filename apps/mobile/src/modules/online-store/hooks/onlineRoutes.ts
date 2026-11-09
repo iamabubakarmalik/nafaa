@@ -9,12 +9,16 @@ export function onlineRouteFor(link: unknown): string | null {
   const path = url.pathname.replace(/\/+$/, '');
   if (path === '/online-orders') {
     const id = url.searchParams.get('order');
-    return id ? `/online/orders/${encodeURIComponent(id)}` : '/online';
+    const board = url.searchParams.get('board');
+    return id ? `/online/orders/${encodeURIComponent(id)}` : board ? `/online/orders?board=${encodeURIComponent(board)}` : '/online/orders';
   }
   const map: Record<string, string> = {
     '/online-orders/cod': '/online/cod', '/online-orders/pack': '/online/pack', '/online-orders/returns-scan': '/online/returns',
     '/online-orders/customers': '/online/customers', '/online-orders/reports': '/online/reports', '/online-store/products': '/online/products',
     '/online-store/couriers': '/online/couriers', '/online-store/channels': '/online/channels', '/online-store/ads': '/online/ads',
+    '/online-store': '/online', '/online-orders/new': '/online/orders/new', '/online-orders/dispatch-scan': '/online/dispatch-scan',
+    '/online-orders/abandoned': '/online/abandoned', '/online-orders/profit': '/online/profit', '/online-orders/payment-health': '/online/payment-health',
+    '/online-store/whatsapp-templates': '/online/whatsapp-templates', '/online-orders/cod/reconcile': '/online/cod-reconcile',
   };
   return map[path] ?? null;
 }

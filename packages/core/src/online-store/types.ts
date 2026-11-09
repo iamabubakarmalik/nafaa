@@ -665,6 +665,11 @@ export interface LinkedCell {
   status: 'PENDING' | 'SYNCING' | 'SUCCESS' | 'FAILED' | 'SKIPPED' | null;
   error: string | null;
   lastSyncedAt: string | null;
+  /** Shown and sold on the channel; false = draft / hidden (older API: absent). */
+  listed?: boolean;
+  /** Own units for this channel; null = the channel's stock mode. */
+  allocQty?: number | null;
+  compareAtPrice?: number | null;
 }
 export interface OpenCell { linked: false; price: number; stock: number | null; nafaaStock: number }
 export type GridCell = LinkedCell | OpenCell;
@@ -677,7 +682,7 @@ export interface GridItem {
   sizeLess: Record<string, string>;
 }
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out';
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted';
 export interface GridQuery { page: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string }
 export interface GridPage { channels: OnlineChannel[]; items: GridItem[]; total: number; page: number; pages: number; limit: number }
 export type GridSummary = Record<GridFilter, number>;

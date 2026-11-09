@@ -22,8 +22,9 @@ import {
   TextArea, confirm, toast, useDebouncedValue, useTheme,
 } from '@/design';
 import { apiErrorMessage, ordersApi } from '../api/online';
-import { KpiStrip, OrderStatusBadge, SavedDataNote } from '../components/bits';
+import { OrderStatusBadge, SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { CUSTOMER_SEGMENTS } from '../lib/labels';
 import { KEYS, useOnlineGuard } from '../lib/online';
 import { callPhone, copyText, openWhatsApp } from '../lib/device';
@@ -102,7 +103,7 @@ export function OnlineCustomersScreen() {
   const summary = (
     <View style={{ gap: th.space(3) }}>
       <SavedDataNote query={q} />
-      <KpiStrip items={[
+      <KpiHero items={[
         { key: 'c', label: t('Customers'), icon: Users, loading: !first, value: String(first?.totals.customers ?? 0), hint: t('pichhle 2 saal') },
         { key: 's', label: t('Kul kharch'), icon: Crown, tone: 'success', loading: !first, value: <Amount value={first?.totals.spent ?? 0} size="lg" weight="bold" />, hint: t('deliver hue orders') },
         { key: 'r', label: t('Dobara lene wale'), icon: Repeat, tone: 'info', loading: !first, value: `${first?.totals.repeatRate ?? 0}%`, hint: String(counts.repeat ?? 0), onPress: () => setSegment('repeat') },

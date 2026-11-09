@@ -16,8 +16,9 @@ import { PERMISSIONS, usePermission } from '@/core/permissions';
 import { Badge, Button, Card, EmptyState, ListTemplate, PressableScale, Text, confirm, toast, useTheme } from '@/design';
 import { apiErrorMessage, ordersApi } from '../api/online';
 import { BrandLogo, ChannelLogo, type BrandName } from '../components/BrandLogo';
-import { ConnectOnWebCard, KpiStrip, SavedDataNote } from '../components/bits';
+import { ConnectOnWebCard, SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { KEYS, useOnlineGuard } from '../lib/online';
 import { openOnWeb } from '../lib/device';
 
@@ -59,7 +60,7 @@ export function ChannelsScreen() {
         <View style={{ gap: th.space(3) }}>
           <SavedDataNote query={q} />
           {channels.length > 0 && (
-            <KpiStrip items={[
+            <KpiHero items={[
               { key: 'l', label: t('Live'), icon: Globe, tone: 'success', value: String(live), hint: channels.length - live ? t('{{value}} band', { value: channels.length - live }) : undefined },
               { key: 'p', label: t('Naye orders'), icon: ShoppingBag, tone: 'warning', value: String(pending), hint: pending ? t('accept karne') : undefined, onPress: () => router.push('/online' as never) },
             ]} />

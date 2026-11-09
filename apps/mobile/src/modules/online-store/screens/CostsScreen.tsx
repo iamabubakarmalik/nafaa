@@ -21,6 +21,7 @@ import {
 import { apiErrorMessage, moneyApi } from '../api/online';
 import { BrandLogo, ChannelLogo, CourierLogo, brandForPayment } from '../components/BrandLogo';
 import { KEYS, useOnlineGuard } from '../lib/online';
+import { StoreHero } from '../components/CommerceHero';
 
 const GATEWAYS = [{ code: 'SAFEPAY', name: 'Safepay' }, { code: 'JAZZCASH', name: 'JazzCash' }, { code: 'EASYPAISA', name: 'Easypaisa' }];
 const blankRate = (): CourierRate => ({ base: 0, baseKg: 0.5, perKg: 0, cities: [], codPct: 0, codFixed: 0, rtoPct: 100 });
@@ -58,6 +59,7 @@ export function CostsScreen() {
           <Button style={{ flex: 1 }} size="lg" icon={Save} loading={save.isPending} onPress={guard(() => save.mutate())}>{t('Save')}</Button>
         </View>
       ) : undefined}>
+      <StoreHero chip={t('Selling costs')} />
       {q.isLoading || !draft || !q.data ? (q.error ? <ErrorState error={q.error} onRetry={q.refetch} /> : <SkeletonRows count={6} />) : (
         <>
           <Card title={t('P&L me kaise jaye')} description={t('Ek hi jagah se — warna kharcha do dafa ginta hai.')}>

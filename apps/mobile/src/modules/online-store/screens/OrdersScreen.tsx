@@ -1,9 +1,10 @@
 /**
- * Online orders from every channel (website, WooCommerce, Shopify, Daraz,
- * Foodpanda): status tabs with counts, search (order #, name, phone, CN),
- * filters, alerts for late and cancel-asked orders, one-tap next steps,
- * long press to pick several for bulk actions. Mirrors the web order desk
- * (integrations/online-orders/pages/OnlineOrdersPage).
+ * Orders board (web OnlineOrdersPage): status tiles in one horizontal row
+ * with counts, search (order #, name, phone, CN), filters (date, channel,
+ * courier, city, assigned to, payment, confirmation, tag), alerts for late
+ * and cancel-asked orders, order cards with the WhatsApp templates and a
+ * status chip that moves the order anywhere. Long press picks several for
+ * bulk move, assign, tag, follow-up, courier booking and labels.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -11,78 +12,95 @@ import { ActivityIndicator, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
-  AlertTriangle, CheckSquare, ShoppingBag, SlidersHorizontal, Timer, Trophy, Truck, Wallet, XCircle, Zap,
+  AlertTriangle, CalendarClock, CheckSquare, FileText, Package, PackagePlus, Printer, SlidersHorizontal, Tag, Timer, Truck, UserRound,
 } from 'lucide-react-native';
-import {
-  ORDER_TAB_IDS, isQueueTab, orderNo, tabCount, tabQuery, type OnlineOrder, type OrderListQuery, type OrderTab,
-} from '@nafaa/core/online-store';
+import { orderNo } from '@nafaa/core/online-store';
 import { useAuthStore } from '@/core/auth/store';
 import { t } from '@/core/i18n';
-import { useApiQuery } from '@/core/offline';
 import { PERMISSIONS, usePermission } from '@/core/permissions';
-import {
-  Amount, Button, ChipGroup, EmptyState, IconButton, ListTemplate, Sheet, Text, useDebouncedValue, useTheme,
-} from '@/design';
+import { Button, ChipGroup, EmptyState, IconButton, ListGroup, ListRow, ListTemplate, Sheet, Text, useDebouncedValue, useTheme } from '@/design';
 import { ordersApi } from '../api/online';
-import { BulkBar, OrderMenuSheet, ReasonSheet } from '../components/OrderSheets';
-import { OrderRow } from '../components/OrderRow';
+import { boardApi, type BoardOrder, type BoardQuery } from '../api/board';
+import { BoardBulkBar } from '../components/board/BoardBulkBar';
+import { BoardCard } from '../components/board/BoardCard';
+import { BoardTiles } from '../components/board/BoardTiles';
+import { BookCourierSheet } from '../components/board/BookCourierSheet';
+import { StatusSheet } from '../components/board/StatusSheet';
+import { TeamToolSheet, useTeam, type TeamTool } from '../components/board/TeamSheets';
+import { WaSheet } from '../components/board/WaSheet';
 import { OnlineMenuButton } from '../components/OnlineMenu';
-import { ConnectOnWebCard, KpiStrip, Note, SavedDataNote } from '../components/bits';
-import { ChannelLogo } from '../components/BrandLogo';
-import { useOrderActions } from '../hooks/useOrderActions';
-import { CANCEL_REASONS, CONFIRM_OPTIONS, TAB_LABEL } from '../lib/labels';
+import { CommerceHero } from '../components/CommerceHero';
+import { ConnectOnWebCard, Note, SavedDataNote } from '../components/bits';
+import { useConnectedCouriers } from '../hooks/useConnectedCouriers';
+import { entryLabel, useMoveOrder } from '../hooks/useMoveOrder';
+import { TILES, boardEntry, boardOf, isBoardKey } from '../lib/board';
+import { CONFIRM_OPTIONS } from '../lib/labels';
 import { KEYS, useOnlineGuard } from '../lib/online';
 import { PERIOD_LABEL, periodOptions, periodRange, type PeriodPreset } from '../lib/period';
-import { printInvoices } from '../lib/docs';
+import { printInvoices, printLabels } from '../lib/docs';
 import { useShopLanguage } from '../lib/messages';
 
 const PAGE = 40;
 type Pay = '' | 'COD' | 'PAID';
 type Confirm = '' | 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
+interface Filters { pay: Pay; confirm: Confirm; courier: string; city: string; assigned: string; tag: string }
+const EMPTY: Filters = { pay: '', confirm: '', courier: '', city: '', assigned: '', tag: '' };
 
 export function OrdersScreen() {
   const th = useTheme();
-  const params = useLocalSearchParams<{ order?: string; search?: string; channel?: string; tab?: string }>();
+  const params = useLocalSearchParams<{ order?: string; search?: string; channel?: string; board?: string; assignedTo?: string }>();
   const can = usePermission();
   const canManage = can(PERMISSIONS.ONLINE_ORDERS_MANAGE);
   const shopName = useAuthStore((s) => s.tenant?.name ?? '');
   const lang = useShopLanguage();
   const { guard } = useOnlineGuard();
 
-  const [tab, setTab] = useState<OrderTab>(() => (params.search ? 'ALL' : (ORDER_TAB_IDS.some((x) => x.id === params.tab) ? params.tab as OrderTab : 'PENDING')));
+  const [board, setBoard] = useState(() => (params.search ? 'ALL' : isBoardKey(params.board) ? params.board! : 'NEW'));
   const [search, setSearch] = useState(params.search ?? '');
   const query = useDebouncedValue(search.trim(), 300);
   const [period, setPeriod] = useState<PeriodPreset>('month');
   const [channelId, setChannelId] = useState(params.channel ?? '');
-  const [pay, setPay] = useState<Pay>('');
-  const [confirm, setConfirm] = useState<Confirm>('');
+  const [filters, setFilters] = useState<Filters>(() => ({ ...EMPTY, assigned: params.assignedTo ?? '' }));
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [menuFor, setMenuFor] = useState<OnlineOrder | null>(null);
-  const [cancelFor, setCancelFor] = useState<OnlineOrder | null>(null);
+  const [statusFor, setStatusFor] = useState<BoardOrder | null>(null);
+  const [waFor, setWaFor] = useState<BoardOrder | null>(null);
+  const [menuFor, setMenuFor] = useState<BoardOrder | null>(null);
+  const [tool, setTool] = useState<{ kind: TeamTool; order: BoardOrder } | null>(null);
+  const [book, setBook] = useState<BoardOrder[] | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(id); }, []);
-  // A push or link with ?order=<id> opens that order.
-  useEffect(() => {
-    if (params.order) router.push(`/online/orders/${params.order}` as never);
-  }, [params.order]);
+  useEffect(() => { if (params.order) router.push(`/online/orders/${params.order}` as never); }, [params.order]);
+  // Home tiles and links open the board on a status.
+  useEffect(() => { if (isBoardKey(params.board)) setBoard(params.board!); }, [params.board]);
+  useEffect(() => { if (params.assignedTo !== undefined) setFilters((f) => ({ ...f, assigned: params.assignedTo ?? '' })); }, [params.assignedTo]);
 
   const range = periodRange(period);
-  const dated = !isQueueTab(tab) && !query && !!range;
-  const listQuery: OrderListQuery = {
+  const custom = useQuery({ queryKey: [...KEYS.orders, 'stages'], queryFn: boardApi.stages, staleTime: 5 * 60_000 }).data ?? [];
+  const entry = boardEntry(board, custom) ?? TILES[1];
+  const dated = !entry.queue && !query && !!range;
+  const base: BoardQuery = {
     integrationId: channelId || undefined,
-    ...tabQuery(tab),
     search: query || undefined,
-    pay: pay || undefined,
-    confirm: confirm || undefined,
+    pay: filters.pay || undefined,
+    confirm: filters.confirm || undefined,
+    courierCode: filters.courier || undefined,
+    city: filters.city || undefined,
+    assignedTo: filters.assigned || undefined,
+    tag: filters.tag || undefined,
+  };
+  const listQuery: BoardQuery = {
+    ...base,
+    board: board === 'ALL' ? undefined : board,
+    payment: board === 'COD_DUE' ? 'COD_DUE' : undefined,
     ...(dated ? { from: range!.from, to: range!.to } : {}),
   };
 
   const listQ = useInfiniteQuery({
-    queryKey: [...KEYS.orders, 'list', listQuery],
-    queryFn: ({ pageParam }) => ordersApi.list({ ...listQuery, limit: PAGE, offset: pageParam }),
+    queryKey: [...KEYS.orders, 'board', listQuery],
+    queryFn: ({ pageParam }) => boardApi.list({ ...listQuery, limit: PAGE, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => {
       const loaded = pages.reduce((a, p) => a + p.items.length, 0);
@@ -90,60 +108,64 @@ export function OrdersScreen() {
     },
     refetchInterval: 20_000,
   });
-  const countsQ = useQuery({
-    queryKey: [...KEYS.orders, 'counts', channelId, range?.from, range?.to],
-    queryFn: () => ordersApi.list({ integrationId: channelId || undefined, limit: 1, ...(range ? { from: range.from, to: range.to } : {}) }),
-    refetchInterval: 30_000,
+  // Tile counts: open-work tiles count every date, closed tiles follow the date.
+  const allQ = useQuery({ queryKey: [...KEYS.orders, 'board-counts', base], queryFn: () => boardApi.list({ ...base, limit: 1 }), refetchInterval: 30_000 });
+  const rangedQ = useQuery({
+    queryKey: [...KEYS.orders, 'board-counts', base, range?.from, range?.to],
+    queryFn: () => boardApi.list({ ...base, limit: 1, from: range!.from, to: range!.to }),
+    refetchInterval: 30_000, enabled: !!range && !query,
   });
   const reportQ = useQuery({
-    queryKey: [...KEYS.report, range?.from ?? 'all', range?.to ?? 'all', channelId],
-    queryFn: () => ordersApi.report({ ...(range ?? {}), integrationId: channelId || undefined }),
-    staleTime: 60_000,
+    queryKey: [...KEYS.report, 'cities', range?.from ?? 'all', range?.to ?? 'all', channelId],
+    queryFn: () => ordersApi.report({ ...(range ?? {}), integrationId: channelId || undefined }), staleTime: 5 * 60_000,
   });
   const channelsQ = useQuery({ queryKey: KEYS.channels, queryFn: ordersApi.channels, staleTime: 5 * 60_000 });
-  const shopsQ = useApiQuery<Array<{ id: string; name: string; isActive?: boolean }>>('/shops');
+  const couriers = useConnectedCouriers().connected;
+  const team = (useTeam().data ?? []).filter((m) => m.isActive);
 
   const orders = useMemo(() => listQ.data?.pages.flatMap((p) => p.items) ?? [], [listQ.data]);
-  const c = countsQ.data;
-  const counts = c?.counts ?? {};
-  const alerts = c?.alerts;
-  const r = reportQ.data;
+  const counts = useMemo(() => {
+    const all = allQ.data?.boardCounts;
+    if (!all) return undefined;
+    const ranged = range && !query ? rangedQ.data?.boardCounts : all;
+    if (!ranged) return undefined;
+    const out: Record<string, number> = {};
+    for (const k of new Set([...Object.keys(all), ...Object.keys(ranged)])) out[k] = (boardEntry(k, custom)?.queue ?? true) ? all[k] ?? 0 : ranged[k] ?? 0;
+    return out;
+  }, [allQ.data, rangedQ.data, range, query, custom]);
+  const alerts = allQ.data?.alerts;
   const channels = channelsQ.data ?? [];
   const channel = channels.find((x) => x.id === channelId);
-  const activeShops = (Array.isArray(shopsQ.data) ? shopsQ.data : []).filter((s) => s.isActive !== false);
-  const branchOf = useCallback((o: OnlineOrder) => (activeShops.length > 1 ? activeShops.find((s) => s.id === o.shopId)?.name : undefined), [activeShops]);
+  const cities = useMemo(() => (reportQ.data?.byCity ?? []).map((c) => c.city).filter(Boolean).slice(0, 30), [reportQ.data]);
+  const tags = useMemo(() => [...new Set(orders.flatMap((o) => o.metadata?.tags ?? []))].sort(), [orders]);
 
-  const actions = useOrderActions();
-  const open = useCallback((o: OnlineOrder) => router.push(`/online/orders/${o.id}` as never), []);
-  const toggle = useCallback((o: OnlineOrder) => setPicked((s) => { const n = new Set(s); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; }), []);
-  const startPick = useCallback((o: OnlineOrder) => { if (!canManage) return; setSelecting(true); setPicked(new Set([o.id])); }, [canManage]);
+  const mover = useMoveOrder(custom);
+  const open = useCallback((o: BoardOrder) => router.push(`/online/orders/${o.id}` as never), []);
+  const toggle = useCallback((o: BoardOrder) => setPicked((s) => { const n = new Set(s); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; }), []);
+  const startPick = useCallback((o: BoardOrder) => { if (!canManage) return; setSelecting(true); setPicked(new Set([o.id])); }, [canManage]);
   const stopPick = () => { setSelecting(false); setPicked(new Set()); };
-  const refresh = () => { void listQ.refetch(); void countsQ.refetch(); void reportQ.refetch(); };
-  const filtered = !!pay || !!confirm || !!channelId;
-  const firstRun = !countsQ.isLoading && !!c && Object.keys(counts).length === 0 && !query && !filtered;
+  const refresh = () => { void listQ.refetch(); void allQ.refetch(); void rangedQ.refetch(); };
+  const filtered = Object.values(filters).some(Boolean) || !!channelId;
+  const firstRun = !allQ.isLoading && !!allQ.data && allQ.data.total === 0 && !query && !filtered;
+  const clear = () => { setFilters(EMPTY); setChannelId(''); };
+  const goBoard = (k: string) => { setBoard(k); stopPick(); };
+  const later = (fn: () => void) => { setMenuFor(null); setTimeout(fn, 250); };
 
-  const tabOptions = ORDER_TAB_IDS.map((x) => ({
-    value: x.id, label: t(TAB_LABEL[x.id]), count: c ? tabCount(x.id, counts, c.rangeCounts, c.stats.codDueCount) : undefined,
-  }));
+  const teamName = (id: string) => (id === 'me' ? t('Mere orders') : id === 'none' ? t('Kisi ke paas nahi') : team.find((m) => m.id === id)?.fullName ?? id);
+  const chips = [
+    channel?.displayName,
+    filters.pay === 'COD' ? t('Sirf COD') : filters.pay === 'PAID' ? t('Sirf paid') : '',
+    filters.confirm ? t(CONFIRM_OPTIONS.find((x) => x.value === filters.confirm)!.label) : '',
+    filters.courier ? couriers.find((c) => c.code === filters.courier)?.name ?? filters.courier : '',
+    filters.city, filters.assigned ? teamName(filters.assigned) : '', filters.tag ? t('Tag: {{tag}}', { tag: filters.tag }) : '',
+    dated ? t(PERIOD_LABEL[period]) : entry.queue ? t('Is list par date nahi lagti') : query ? t('Talaash har date me') : '',
+  ].filter(Boolean).join(' · ');
 
-  const totals = r?.totals;
   const summary = (
     <View style={{ gap: th.space(3) }}>
+      <CommerceHero list={allQ.data} loading={allQ.isLoading} />
       <SavedDataNote query={listQ} />
-      {!firstRun && (
-        <KpiStrip items={[
-          { key: 'new', label: t('Naye orders'), icon: Zap, tone: 'warning', loading: !c, value: String(counts.PENDING ?? 0),
-            hint: alerts?.stalePending.count ? t('{{count}} der se ruke', { count: alerts.stalePending.count }) : t('Accept karne hain'), onPress: () => setTab('PENDING') },
-          { key: 'active', label: t('Chal rahe'), icon: Truck, tone: 'info', loading: !c, value: String(c ? tabCount('ACTIVE', counts, null, 0) : 0), hint: t('Pack ya raste me'), onPress: () => setTab('ACTIVE') },
-          { key: 'cod', label: t('COD paisa baqi'), icon: Wallet, tone: 'warning', loading: !c, value: <Amount value={c?.stats.codDueValue ?? 0} size="lg" weight="bold" />,
-            hint: t('{{value}} order · dabayein', { value: c?.stats.codDueCount ?? 0 }), onPress: () => setTab('COD_DUE') },
-          { key: 'sale', label: t('Online sale · {{netOrders}} order', { netOrders: totals?.netOrders ?? 0 }), icon: ShoppingBag, tone: 'success', loading: !totals,
-            value: <Amount value={totals?.netValue ?? 0} size="lg" weight="bold" />, hint: range ? t(PERIOD_LABEL[period]) : t('Har date') },
-          { key: 'rto', label: t('RTO (wapas)'), icon: XCircle, tone: 'danger', loading: !totals, value: `${totals?.rtoRate ?? 0}%`, hint: `${totals?.returned ?? 0} / ${totals?.dispatched ?? 0}`, onPress: () => setTab('CLOSED') },
-          ...(r?.biggest ? [{ key: 'big', label: t('Sab se bara order'), icon: Trophy, tone: 'brand' as const, value: <Amount value={r.biggest.total} size="lg" weight="bold" />,
-            hint: `${r.biggest.customerName} · #${r.biggest.number}`, onPress: () => router.push(`/online/orders/${r.biggest!.id}` as never) }] : []),
-        ]} />
-      )}
+      <BoardTiles value={board} counts={counts} custom={custom} onChange={goBoard} />
       {alerts && alerts.stalePending.count > 0 && (
         <Note tone="danger" icon={Timer}
           title={t('{{count}} naya order {{staleMinutes}} minute se zyada ruka hai', { count: alerts.stalePending.count, staleMinutes: alerts.staleMinutes })}
@@ -160,30 +182,26 @@ export function OrdersScreen() {
           {t('Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono.')}
         </Note>
       )}
-      {(filtered || dated || selecting) && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: th.space(2) }}>
-          {channel && <ChannelLogo type={channel.type} platform={channel.platform} size={20} />}
-          <Text size="xs" tone="muted" style={{ flex: 1 }}>
-            {[channel?.displayName, pay === 'COD' ? t('Sirf COD') : pay === 'PAID' ? t('Sirf paid') : '', confirm ? t(CONFIRM_OPTIONS.find((x) => x.value === confirm)!.label) : '',
-              dated ? t(PERIOD_LABEL[period]) : isQueueTab(tab) ? t('Is list par date nahi lagti') : query ? t('Talaash har date me') : ''].filter(Boolean).join(' · ')}
-          </Text>
-          {selecting && <Button size="sm" variant="secondary" icon={CheckSquare} onPress={() => setPicked(new Set(orders.map((o) => o.id)))}>{t('Sab chunein')}</Button>}
-        </View>
-      )}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: th.space(2) }}>
+        <Text size="sm" weight="semibold">{entryLabel(entry, board)}</Text>
+        {!!chips && <Text size="xs" tone="muted" style={{ flex: 1 }} numberOfLines={2}>· {chips}</Text>}
+        {filtered && <Button size="sm" variant="ghost" onPress={clear}>{t('Filter hatayein')}</Button>}
+        {selecting && <Button size="sm" variant="secondary" icon={CheckSquare} onPress={() => setPicked(new Set(orders.map((o) => o.id)))}>{t('Sab chunein')}</Button>}
+      </View>
     </View>
   );
 
   return (
     <View style={{ flex: 1 }}>
       <ListTemplate
-        title={channel ? channel.displayName : t('Online orders')}
+        title={channel ? channel.displayName : t('Orders')}
         actions={<>
+          {canManage && <IconButton icon={PackagePlus} label={t('Add order')} onPress={() => router.push('/online/orders/new' as never)} />}
           {canManage && <IconButton icon={CheckSquare} label={selecting ? t('Chhoro') : t('Kai chunein')} variant={selecting ? 'primary' : 'ghost'} onPress={() => (selecting ? stopPick() : setSelecting(true))} />}
           <IconButton icon={SlidersHorizontal} label={t('Filters')} badge={filtered} onPress={() => setFiltersOpen(true)} />
-          <OnlineMenuButton current="/online" />
+          <OnlineMenuButton current="/online/orders" />
         </>}
         search={{ value: search, onChange: setSearch, placeholder: t('Order #, naam, phone ya CN…') }}
-        filters={{ value: tab, onChange: (v) => { setTab(v as OrderTab); stopPick(); }, options: tabOptions }}
         summary={summary}
         data={firstRun ? [] : orders}
         loading={listQ.isLoading}
@@ -192,50 +210,62 @@ export function OrdersScreen() {
         refreshing={listQ.isRefetching && !listQ.isFetchingNextPage}
         onRefresh={refresh}
         onEndReached={() => { if (listQ.hasNextPage && !listQ.isFetchingNextPage) void listQ.fetchNextPage(); }}
-        footer={listQ.isFetchingNextPage ? <ActivityIndicator style={{ margin: th.space(4) }} color={th.colors.brand.solid} /> : undefined}
+        footer={listQ.isFetchingNextPage ? <ActivityIndicator style={{ margin: th.space(4) }} color={th.colors.brand.solid} /> : selecting ? <View style={{ height: 170 }} /> : undefined}
         keyExtractor={(o) => o.id}
         renderItem={({ item }) => (
-          <OrderRow order={item} now={now} staleMinutes={alerts?.staleMinutes ?? 15} branchName={branchOf(item)} selecting={selecting}
-            checked={picked.has(item.id)} busy={actions.busyId === item.id} canManage={canManage}
-            onOpen={open} onToggle={toggle} onLongPress={startPick}
-            onAccept={guard((o: OnlineOrder) => actions.run(o, { kind: 'accept' }))}
-            onNext={guard((o: OnlineOrder) => (o.nextStatus === 'OUT_FOR_DELIVERY' && !o.courierBooked ? open(o) : actions.run(o, { kind: 'next' })))}
-            onMore={setMenuFor} />
+          <BoardCard order={item} now={now} custom={custom} selecting={selecting} checked={picked.has(item.id)} busy={mover.busyId === item.id}
+            canManage={canManage} onOpen={open} onToggle={toggle} onLongPress={startPick}
+            onStatus={guard((o: BoardOrder) => setStatusFor(o))} onWhatsApp={setWaFor} onMore={setMenuFor} />
         )}
         empty={firstRun ? (
           <View style={{ paddingHorizontal: th.space(4), gap: th.space(3) }}>
-            <EmptyState icon={ShoppingBag} title={channels.length ? t('Abhi koi online order nahi') : t('Abhi koi online order nahi aaya')}
-              message={channels.length ? t('Channel jura hua hai — naya order aate hi yahan aayega aur ghanti bajegi.') : t('Apni website, Shopify, WooCommerce, Daraz ya Foodpanda Nafaa se jodein — 2 minute ka kaam hai. Phir har order yahan aayega, ghanti bajegi aur ek click me bill banega.')} />
+            <EmptyState icon={Package} title={channels.length ? t('Abhi koi online order nahi') : t('Abhi koi online order nahi aaya')}
+              message={channels.length ? t('Channel jura hua hai — naya order aate hi yahan aayega aur ghanti bajegi.') : t('Apni website, Shopify, WooCommerce, Daraz ya Foodpanda Nafaa se jodein — 2 minute ka kaam hai. Phir har order yahan aayega, ghanti bajegi aur ek click me bill banega.')}
+              action={canManage ? <Button icon={PackagePlus} onPress={() => router.push('/online/orders/new' as never)}>{t('Add order')}</Button> : undefined} />
             {!channels.length && <ConnectOnWebCard />}
           </View>
         ) : (
-          <EmptyState icon={ShoppingBag}
-            title={query ? t('"{{query}}" se koi order nahi mila', { query }) : tab === 'PENDING' ? t('Koi naya order nahi') : t('Is list me koi order nahi')}
-            message={tab === 'PENDING' ? t('Naya order aate hi ghanti bajegi aur yahan dikhega.') : t('Date ya filter badal kar dekhein.')}
-            action={filtered ? <Button variant="secondary" onPress={() => { setPay(''); setConfirm(''); setChannelId(''); }}>{t('Filter hatayein')}</Button> : undefined} />
+          <EmptyState icon={Package}
+            title={query ? t('"{{query}}" se koi order nahi mila', { query }) : t('{{status}} me koi order nahi', { status: entryLabel(entry, board) })}
+            message={entry.queue ? t('Yahan kaam khatam — doosra dabba dekhein.') : t('Date ya filter badal kar dekhein.')}
+            action={filtered ? <Button variant="secondary" onPress={clear}>{t('Filter hatayein')}</Button> : undefined} />
         )}
       />
 
       {selecting && (
-        <BulkBar orders={orders} picked={picked} couriers={actions.couriers} onClear={stopPick} onKeep={(ids) => setPicked(new Set(ids))}
+        <BoardBulkBar orders={orders} picked={picked} custom={custom} onClear={stopPick} onKeep={(ids) => setPicked(new Set(ids))}
           onInvoices={(ids) => printInvoices(ids, shopName, lang)} />
       )}
 
-      <OrderMenuSheet order={menuFor} couriers={actions.couriers} canManage={canManage} onClose={() => setMenuFor(null)}
-        onAction={guard((o: OnlineOrder, a: Parameters<typeof actions.run>[1]) => actions.run(o, a))}
-        onOpen={open} onCancel={setCancelFor} onInvoice={(o) => printInvoices([o.id], shopName, lang)} />
+      {mover.ui}
+      <StatusSheet open={!!statusFor} title={statusFor ? `#${orderNo(statusFor)}` : ''} current={statusFor ? boardOf(statusFor) : undefined} custom={custom}
+        onClose={() => setStatusFor(null)} onPick={(to) => { const o = statusFor!; setStatusFor(null); mover.request(o, to); }} />
+      <WaSheet order={waFor} onClose={() => setWaFor(null)} />
+      <TeamToolSheet tool={tool?.kind ?? null} ids={tool ? [tool.order.id] : []}
+        current={tool ? { assignedToId: tool.order.assignedToId, followUpAt: tool.order.followUpAt, followUpNote: tool.order.followUpNote, tags: tool.order.metadata?.tags } : undefined}
+        onClose={() => setTool(null)} />
+      <BookCourierSheet orders={book} onClose={() => setBook(null)} />
 
-      <ReasonSheet open={!!cancelFor} reasons={CANCEL_REASONS}
-        title={cancelFor ? (cancelFor.orderStatus === 'PENDING' ? t('#{{cancelTarget}} reject karein?', { cancelTarget: orderNo(cancelFor) }) : t('#{{cancelTarget}} cancel karein?', { cancelTarget: orderNo(cancelFor) })) : ''}
-        description={cancelFor?.nafaaSaleId ? t('Bill void ho jayega aur saara stock wapas inventory me aa jayega.') : t('Order cancel list me chala jayega.')}
-        confirmLabel={t('Haan, cancel')} loading={actions.pending}
-        onClose={() => setCancelFor(null)}
-        onConfirm={guard((reason: string) => { actions.run(cancelFor!, { kind: 'cancel', reason }); setCancelFor(null); })} />
+      <Sheet open={!!menuFor} onClose={() => setMenuFor(null)} title={menuFor ? `#${orderNo(menuFor)}` : undefined} description={menuFor?.customerName}>
+        {menuFor && (
+          <ListGroup>
+            {canManage && !menuFor.courierBooked && !menuFor.dispatchedAt && !!menuFor.nafaaSaleId && (
+              <ListRow icon={Truck} iconTone="info" title={t('Courier par book')} onPress={guard(() => later(() => setBook([menuFor])))} />
+            )}
+            {!!menuFor.trackingNumber && <ListRow icon={Printer} title={t('Airway bill / label')} onPress={() => later(() => void printLabels([menuFor.id]))} />}
+            {!!menuFor.nafaaSaleId && <ListRow icon={FileText} title={t('Invoice / packing slip')} onPress={() => later(() => printInvoices([menuFor.id], shopName, lang))} />}
+            {canManage && <ListRow icon={UserRound} title={t('Kis ke zimme')} subtitle={menuFor.assigneeName ?? undefined} onPress={() => later(() => setTool({ kind: 'assign', order: menuFor }))} />}
+            {canManage && <ListRow icon={CalendarClock} title={t('Follow-up')} onPress={() => later(() => setTool({ kind: 'follow-up', order: menuFor }))} />}
+            {canManage && <ListRow icon={Tag} title={t('Tags')} onPress={() => later(() => setTool({ kind: 'tag', order: menuFor }))} />}
+            <ListRow icon={Package} title={t('Poori details')} chevron onPress={() => later(() => open(menuFor))} />
+          </ListGroup>
+        )}
+      </Sheet>
 
       <Sheet open={filtersOpen} onClose={() => setFiltersOpen(false)} title={t('Filters')}
         footer={<Button fullWidth size="lg" onPress={() => setFiltersOpen(false)}>{t('Dikhayein')}</Button>}>
         <View style={{ gap: th.space(4) }}>
-          <FilterBlock title={t('Date')} hint={t('"Naye", "Chal rahe" aur "COD baqi" par date nahi lagti — koi purana ruka order chhupe na.')}>
+          <FilterBlock title={t('Date')} hint={t('Kaam wale dabbon par date nahi lagti — koi purana ruka order chhupe na.')}>
             <ChipGroup wrap value={period} onChange={(v) => setPeriod(v as PeriodPreset)} options={periodOptions(['today', 'week', 'month', 'quarter', 'all']).map((o) => ({ ...o, label: t(o.label) }))} />
           </FilterBlock>
           {channels.length > 1 && (
@@ -244,13 +274,34 @@ export function OrdersScreen() {
                 options={[{ value: '', label: t('Sab channels') }, ...channels.map((ch) => ({ value: ch.id, label: ch.displayName, count: ch.pendingOrders || undefined }))]} />
             </FilterBlock>
           )}
+          {couriers.length > 0 && (
+            <FilterBlock title={t('Courier')}>
+              <ChipGroup wrap value={filters.courier} onChange={(v) => setFilters((f) => ({ ...f, courier: v }))}
+                options={[{ value: '', label: t('Sab couriers') }, ...couriers.map((c) => ({ value: c.code, label: c.name }))]} />
+            </FilterBlock>
+          )}
+          {cities.length > 0 && (
+            <FilterBlock title={t('Shehar')}>
+              <ChipGroup wrap value={filters.city} onChange={(v) => setFilters((f) => ({ ...f, city: v }))}
+                options={[{ value: '', label: t('Sab shehar') }, ...cities.map((c) => ({ value: c, label: c }))]} />
+            </FilterBlock>
+          )}
+          <FilterBlock title={t('Kis ke zimme')}>
+            <ChipGroup wrap value={filters.assigned} onChange={(v) => setFilters((f) => ({ ...f, assigned: v }))}
+              options={[{ value: '', label: t('Sab') }, { value: 'me', label: t('Mere orders') }, { value: 'none', label: t('Kisi ke paas nahi') }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]} />
+          </FilterBlock>
           <FilterBlock title={t('Paisa')}>
-            <ChipGroup wrap value={pay} onChange={(v) => setPay(v as Pay)} options={[{ value: '', label: t('Sab') }, { value: 'COD', label: t('Sirf COD') }, { value: 'PAID', label: t('Sirf paid') }]} />
+            <ChipGroup wrap value={filters.pay} onChange={(v) => setFilters((f) => ({ ...f, pay: v as Pay }))} options={[{ value: '', label: t('Sab') }, { value: 'COD', label: t('Sirf COD') }, { value: 'PAID', label: t('Sirf paid') }]} />
           </FilterBlock>
           <FilterBlock title={t('Confirm')}>
-            <ChipGroup wrap value={confirm} onChange={(v) => setConfirm(v as Confirm)} options={CONFIRM_OPTIONS.map((o) => ({ value: o.value, label: t(o.label) }))} />
+            <ChipGroup wrap value={filters.confirm} onChange={(v) => setFilters((f) => ({ ...f, confirm: v as Confirm }))} options={CONFIRM_OPTIONS.map((o) => ({ value: o.value, label: t(o.label) }))} />
           </FilterBlock>
-          {filtered && <Button variant="ghost" onPress={() => { setPay(''); setConfirm(''); setChannelId(''); }}>{t('Filter hatayein')}</Button>}
+          {tags.length > 0 && (
+            <FilterBlock title={t('Tag')}>
+              <ChipGroup wrap value={filters.tag} onChange={(v) => setFilters((f) => ({ ...f, tag: v }))} options={[{ value: '', label: t('Sab') }, ...tags.map((x) => ({ value: x, label: x }))]} />
+            </FilterBlock>
+          )}
+          {filtered && <Button variant="ghost" onPress={clear}>{t('Filter hatayein')}</Button>}
         </View>
       </Sheet>
     </View>

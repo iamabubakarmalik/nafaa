@@ -2,7 +2,7 @@
  * Printed and shared documents of the online store: the invoice / packing
  * slip that goes in the parcel (one page per order, in the shop's bill
  * language), courier labels (PDF from the courier, or its link), and CSV
- * files. Printing uses the system print sheet (AirPrint / Android print);
+ * files, and Nafaa airway bills (4x6 / A4). Printing uses the system print sheet (AirPrint / Android print);
  * sharing hands a PDF or CSV to WhatsApp, email or Files.
  */
 
@@ -17,6 +17,8 @@ import { toast } from '@/design';
 import { openInApp } from './device';
 import type { DocLang } from './messages';
 import { apiErrorMessage } from '../api/online';
+import { dispatchApi, type Label, type LabelsResult } from '../api/board';
+import { barcodeSvg } from '@/core/receipt/barcode';
 
 const rs = (n: number) => formatMoney(n);
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
@@ -179,5 +181,52 @@ export async function shareCsv(fileName: string, rows: unknown[][]) {
     await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text', dialogTitle: fileName });
   } catch (e) {
     toast.error(apiErrorMessage(e, t('CSV nahi bani')));
+  }
+}
+
+/** One airway bill (Nafaa label) with the CN barcode, COD, customer, items and the shop's return address. */
+function labelHtml(l: Label, from: LabelsResult['from'], a4: boolean): string {
+  const code = l.trackingNumber || l.barcode || l.number;
+  return `<div class="lbl${a4 ? ' a4' : ''}">
+  <div class="top"><b>${esc(l.courierName ?? l.courierCode ?? '')}</b><span>#${esc(l.number)}</span></div>
+  <div class="bc">${barcodeSvg(code, true)}<div class="cn">${esc(code)}</div></div>
+  <div class="cod">${l.prepaid ? 'PREPAID' : `COD ${esc(rs(l.cod))}`}</div>
+  <div class="to"><small>TO</small><b>${esc(l.customerName)}</b><div>${esc(l.customerPhone)}</div><div>${esc(l.address)}</div><b>${esc(l.city)}</b></div>
+  <div class="items">${l.lines.map(esc).join('<br/>')}${l.moreItems ? `<br/>+${l.moreItems}` : ''}</div>
+  <div class="meta">${l.pieces} pc${l.weightKg ? ` · ${l.weightKg} kg` : ''}${l.notes ? ` · ${esc(l.notes)}` : ''}</div>
+  <div class="from"><small>FROM</small> ${esc(from.name)} · ${esc(from.phone)}<br/>${esc(from.address)}</div>
+</div>`;
+}
+
+function labelsHtml(r: LabelsResult): string {
+  const a4 = r.size === 'A4';
+  const css = `@page{size:${a4 ? 'A4' : '4in 6in'};margin:${a4 ? '8mm' : '0'}}body{font-family:-apple-system,Roboto,sans-serif;margin:0;color:#000}
+.lbl{width:4in;height:6in;box-sizing:border-box;padding:10px;border:1px solid #000;page-break-after:always;display:flex;flex-direction:column;gap:6px;font-size:12px}
+.lbl.a4{width:100%;height:auto;min-height:88mm;page-break-after:auto;page-break-inside:avoid;margin-bottom:6mm}
+.top{display:flex;justify-content:space-between;font-size:14px}.bc{text-align:center}.bc svg{max-width:100%;height:56px}.cn{font-family:monospace;font-size:15px;font-weight:700}
+.cod{font-size:20px;font-weight:800;text-align:center;border:2px solid #000;padding:4px}.to b{display:block;font-size:14px}.to small,.from small{font-weight:700;color:#444}
+.items{border-top:1px dashed #000;padding-top:4px}.meta{color:#333}.from{border-top:1px solid #000;padding-top:4px;margin-top:auto;font-size:11px}`;
+  return `<html><head><meta charset="utf-8"/><style>${css}</style></head><body>${r.labels.map((l) => labelHtml(l, r.from, a4)).join('')}</body></html>`;
+}
+
+/**
+ * Airway bills of these orders. One order with the courier's own label
+ * link opens that link; otherwise Nafaa labels (4x6 thermal or A4, as set
+ * on the web dispatch page) go to the print sheet or the share sheet.
+ */
+export async function printLabels(ids: string[], mode: 'print' | 'share' = 'print') {
+  try {
+    const r = await dispatchApi.labels(ids);
+    if (!r.labels.length) { toast.error(t('Label nahi mila')); return; }
+    if (r.labels.length === 1 && r.labels[0].courierLabelUrl) { await openInApp(r.labels[0].courierLabelUrl); return; }
+    const html = labelsHtml(r);
+    if (mode === 'print') { await Print.printAsync({ html }); return; }
+    const { uri } = await Print.printToFileAsync({ html, width: r.size === 'A4' ? 595 : 288, height: r.size === 'A4' ? 842 : 432 });
+    const name = `${FileSystem.cacheDirectory}labels-${r.labels.length === 1 ? r.labels[0].number : `${r.labels.length}-orders`}.pdf`;
+    await FileSystem.moveAsync({ from: uri, to: name }).catch(() => undefined);
+    const file = (await FileSystem.getInfoAsync(name)).exists ? name : uri;
+    await Sharing.shareAsync(file, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: t('Labels') });
+  } catch (e) {
+    if (!String((e as Error)?.message ?? '').toLowerCase().includes('cancel')) toast.error(apiErrorMessage(e, t('Labels nahi khule')));
   }
 }

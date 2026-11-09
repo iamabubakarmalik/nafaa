@@ -21,6 +21,7 @@ import { CourierLogo } from '../components/BrandLogo';
 import { Note } from '../components/bits';
 import { RISK_LABEL } from '../lib/labels';
 import { KEYS, useOnlineGuard } from '../lib/online';
+import { CommerceHero } from '../components/CommerceHero';
 
 const RISKS = ['NEW', 'WATCH', 'HIGH', 'OK', 'TRUSTED'] as const;
 
@@ -51,6 +52,12 @@ export function CourierRulesScreen() {
       footer={dirty && canEdit ? <Button fullWidth size="lg" icon={Save} loading={save.isPending} onPress={guard(() => save.mutate())}>{t('Save')}</Button> : undefined}>
       {q.isLoading || !draft ? (q.error ? <ErrorState error={q.error} onRetry={q.refetch} /> : <SkeletonRows count={6} />) : (
         <>
+          <CommerceHero chip={t('Auto booking')}
+            stats={[
+              { label: t('Rules'), value: String(draft.rules.length) },
+              { label: t('Jure courier'), value: String(couriers.filter((c) => c.connected).length) },
+              { label: t('Halat'), value: draft.trigger === 'OFF' ? t('Band') : t('Chalu') },
+            ]} />
           {!q.data!.saved && draft.trigger !== 'OFF' && (
             <Note tone="info">{t('Abhi purani setting chal rahi hai ({{name}} par accept hote hi). Save karne par yahi rules chalenge.', { name: couriers.find((c) => c.code === draft.fallback)?.name })}</Note>
           )}

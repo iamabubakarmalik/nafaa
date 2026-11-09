@@ -24,8 +24,9 @@ import {
 } from '@/design';
 import { apiErrorMessage, ordersApi } from '../api/online';
 import { CourierLogo } from '../components/BrandLogo';
-import { KpiStrip, SavedDataNote } from '../components/bits';
+import { SavedDataNote } from '../components/bits';
 import { OnlineMenuButton } from '../components/OnlineMenu';
+import { KpiHero } from '../components/CommerceHero';
 import { KEYS, refreshOrders, useOnlineGuard } from '../lib/online';
 import { periodOptions, periodRange, type PeriodPreset } from '../lib/period';
 import { shareCsv } from '../lib/docs';
@@ -116,7 +117,7 @@ export function CodScreen() {
       <OnlineMenuButton current="/online/cod" />
     </>} onRefresh={() => { void summaryQ.refetch(); void historyQ.refetch(); void transitQ.refetch(); }} refreshing={summaryQ.isRefetching}>
       <SavedDataNote query={summaryQ} />
-      <KpiStrip items={[
+      <KpiHero items={[
         { key: 'with', label: t('Courier ke paas'), icon: Wallet, tone: 'warning', loading: !s, value: <Amount value={s?.totals.withCourierValue ?? 0} size="lg" weight="bold" />,
           hint: t('{{withCourier}} deliver · paisa nahi aaya', { withCourier: s?.totals.withCourier ?? 0 }), onPress: () => setTab('with') },
         { key: 'transit', label: t('Raste me (COD)'), icon: Truck, tone: 'info', loading: !s, value: <Amount value={s?.totals.inTransitValue ?? 0} size="lg" weight="bold" />,

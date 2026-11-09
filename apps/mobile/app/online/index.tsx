@@ -1,3 +1,3 @@
-import { OrdersScreen } from '@/modules/online-store/screens/OrdersScreen';
+import { CommerceHomeScreen } from '@/modules/online-store/screens/CommerceHomeScreen';
 
-export default OrdersScreen;
+export default CommerceHomeScreen;

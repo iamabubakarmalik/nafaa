@@ -27,7 +27,7 @@ import { KEYS } from '../../lib/online';
 import { copyText, openInApp } from '../../lib/device';
 import { openCourierLabel, openDarazLabel } from '../../lib/docs';
 import { BrandLogo, CourierLogo, brandForCourierCode } from '../BrandLogo';
-import { useConnectedCouriers } from '../../hooks/useOrderActions';
+import { useConnectedCouriers } from '../../hooks/useConnectedCouriers';
 
 const courierName = (code: string) => (COURIER_LABEL_OVERRIDES[code] ? t(COURIER_LABEL_OVERRIDES[code]) : COURIER_NAMES[code as keyof typeof COURIER_NAMES] ?? code);
 

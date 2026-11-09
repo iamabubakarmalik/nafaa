@@ -48,7 +48,7 @@ const CREATE: Action[] = [
 const DAILY: Action[] = [
   { key: 'attendance', href: '/staff/attendance', label: msg('Mark attendance'), icon: CheckCircle2, tone: 'info', permission: P.STAFF_VIEW, module: 'staff' },
   { key: 'register', href: '/cash-register', label: msg('Cash register'), icon: Wallet, tone: 'brand', permission: P.CASH_REGISTER_VIEW, module: 'cash-register', keywords: 'till close day galla' },
-  { key: 'online-orders', href: '/online', label: msg('Online orders'), icon: ShoppingBag, tone: 'info', permission: P.SALES_VIEW, module: 'onlineOrders', keywords: 'website cod shopify daraz woocommerce accept' },
+  { key: 'online-orders', href: '/online/orders/new', label: msg('Online order'), icon: ShoppingBag, tone: 'info', permission: P.ONLINE_ORDERS_MANAGE, module: 'onlineOrders', keywords: 'online order manual whatsapp instagram phone paste website cod' },
   { key: 'online-pack', href: '/online/pack', label: msg('Packing'), icon: ScanLine, tone: 'accent', permission: P.SALES_VIEW, module: 'onlineOrders', keywords: 'pack scan parcel label' },
 ];
 const JUMP: Action[] = [

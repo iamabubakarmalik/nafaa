@@ -134,7 +134,22 @@ export const productsApi = {
   linkSure: (channelId: string) => post<{ saved: number; errors: string[] }>(`/online-products/channels/${channelId}/link-sure`, undefined, 180_000),
   fixSizeLess: (channelId: string) => post<{ removed: number }>(`/online-products/channels/${channelId}/fix-size-less`),
   unlink: (mappingId: string) => del<{ success: boolean }>(`/online-products/links/${mappingId}`),
+  /** Listed switch, own stock share, price override, compare-at price of one link. */
+  updateLink: (mappingId: string, body: LinkPatch) => put<{ success: boolean; link: LinkPatch }>(`/online-products/links/${mappingId}`, body),
+  /** Bulk change or push for picked products (big runs come back as a job). */
+  bulk: (body: { selection: { productIds?: string[]; all?: boolean; filter?: GridFilter; channelId?: string }; action: 'listed' | 'alloc' | 'price' | 'compareAt' | 'push'; channelId?: string | null; value?: unknown }) =>
+    post<{ updated: number; skipped?: number; job?: CatalogJob; existing?: boolean }>('/online-products/bulk', body, 120_000),
+  jobs: () => get<{ jobs: CatalogJob[] }>('/online-products/jobs'),
+  cancelJob: (id: string) => post<CatalogJob>(`/online-products/jobs/${id}/cancel`),
 };
+
+/** Fields of a channel link the app can change (web LinkPatch). */
+export interface LinkPatch { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }
+/** A long catalog run (import, link, push) with its progress. */
+export interface CatalogJob {
+  id: string; kind: 'IMPORT_ALL' | 'LINK_ALL' | 'PUSH' | 'PUBLISH'; status: 'QUEUED' | 'RUNNING' | 'DONE' | 'FAILED' | 'CANCELLED'; integrationId: string | null;
+  total: number; done: number; failed: number; percent: number; errors: string[]; createdAt: string; finishedAt: string | null;
+}
 
 export type { GridFilter };
 

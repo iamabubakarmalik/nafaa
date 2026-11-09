@@ -27,8 +27,9 @@ import {
   Amount, Badge, Button, Card, Checkbox, EmptyState, Input, PressableScale, Screen, Select, Switch, Tabs, Text, toast, useTheme,
 } from '@/design';
 import { apiErrorMessage, moneyApi } from '../api/online';
+import { KpiHero } from '../components/CommerceHero';
 import { CourierLogo } from '../components/BrandLogo';
-import { KpiStrip, Note } from '../components/bits';
+import { Note } from '../components/bits';
 import { STATEMENT_FIELD_LABEL } from '../lib/labels';
 import { refreshOrders, useOnlineGuard } from '../lib/online';
 
@@ -157,7 +158,7 @@ export function CodReconcileScreen() {
 
       {result && tot && (
         <>
-          <KpiStrip items={[
+          <KpiHero items={[
             { key: 's', label: t('Statement me'), icon: FileSpreadsheet, value: <Amount value={tot.statement} size="lg" weight="bold" />, hint: t('Charges {{value}}', { value: formatMoney(tot.charges) }) },
             { key: 'm', label: t('Mil gaye'), icon: CheckCircle2, tone: 'success', value: <Amount value={tot.matchedReceived} size="lg" weight="bold" />, hint: t('{{count}} order', { count: matched.length }), onPress: () => setTab('matched') },
             { key: 'd', label: t('Farq'), icon: AlertTriangle, tone: 'warning', value: String(diffs.length), hint: t('Amount barabar nahi'), onPress: () => setTab('matched') },
