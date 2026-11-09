@@ -25,12 +25,21 @@ const PNG: Record<string, number> = {
   raast: require('./logos/png/raast.png'),
   sadapay: require('./logos/png/sadapay.png'),
   trax: require('./logos/png/trax.png'),
+  barqraftar: require('./logos/png/barqraftar.png'),
+  zoom: require('./logos/png/zoom.png'),
+  instaworld: require('./logos/png/instaworld.png'),
+  shipnoc: require('./logos/png/shipnoc.png'),
+  pakpost: require('./logos/png/pakpost.png'),
+  run: require('./logos/png/run.png'),
+  xtreme: require('./logos/png/xtreme.png'),
 };
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export type BrandName =
   | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website'
   | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
+  | 'swyft' | 'tranzo' | 'barqraftar' | 'zoom' | 'instaworld' | 'shipnoc' | 'bykea' | 'movex' | 'forrun'
+  | 'pakpost' | 'xtreme' | 'run'
   | 'jazzcash' | 'easypaisa' | 'safepay' | 'raast' | 'nayapay' | 'sadapay' | 'payfast'
   | 'google' | 'whatsapp' | 'meta' | 'tiktok' | 'other';
 
@@ -51,6 +60,18 @@ const BRANDS: Record<BrandName, { label: string; color: string; bg?: string; pad
   blueex: { label: 'BlueEx', color: '#0047BA' },
   daewoo: { label: 'Daewoo FastEx', color: '#0B8BD9', pad: 0.12 },
   tpl: { label: 'Rider (TPL)', color: '#64748B', letters: 'TPL' },
+  swyft: { label: 'Swyft', color: '#64748B', letters: 'SW' },
+  tranzo: { label: 'Tranzo', color: '#3244DD', pad: 0.1 },
+  barqraftar: { label: 'BarqRaftar', color: '#FDB913', pad: 0.06 },
+  zoom: { label: 'Zoom COD', color: '#D9261C', pad: 0.06 },
+  instaworld: { label: 'InstaWorld', color: '#97D9F7', pad: 0.08 },
+  shipnoc: { label: 'ShipNOC', color: '#8DC63F', pad: 0.1 },
+  bykea: { label: 'Bykea', color: '#64748B', letters: 'BY' },
+  movex: { label: 'MoveX', color: '#64748B', letters: 'MX' },
+  forrun: { label: 'Forrun', color: '#64748B', letters: 'FR' },
+  pakpost: { label: 'Pakistan Post', color: '#D8232A', pad: 0 },
+  xtreme: { label: 'Xtreme Ecom', color: '#1F4FBF', pad: 0.06 },
+  run: { label: 'Run Courier', color: '#39FF14', bg: '#000000', pad: 0.1 },
   rider: { label: 'Rider', color: '#64748B' },
   jazzcash: { label: 'JazzCash', color: '#E82028', pad: 0.1 },
   easypaisa: { label: 'Easypaisa', color: '#27B15D', bg: '#0E3F20', pad: 0.06 },

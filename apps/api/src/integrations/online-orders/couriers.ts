@@ -26,6 +26,8 @@ export const COURIERS = [
   { code: 'FORRUN', name: 'Forrun', site: 'https://forrun.co' },
   // No merchant API: the shop books at the post office and types the article number.
   { code: 'PAKPOST', name: 'Pakistan Post', site: 'https://ep.gov.pk' },
+  { code: 'XTREME', name: 'Xtreme Ecom', site: 'https://xtremeecomlogistics.com' },
+  { code: 'RUN', name: 'Run Courier', site: 'https://runcourier.com' },
   { code: 'OTHER', name: 'Doosra', site: null },
 ] as const;
 
@@ -41,6 +43,7 @@ const TRACK_URLS: Partial<Record<string, string>> = {
   TPL_RIDER: 'https://track.withrider.com/#/track/{cn}',
   BARQRAFTAR: 'https://barqraftar.pk/track?tracking_number={cn}',
   ZOOM: 'https://portal.zoomcod.com/track-details.php?track_code={cn}',
+  RUN: 'https://portal.runcourier.com/track-details.php?track_code={cn}',
 };
 
 /** The courier's tracking page for one CN, or null when it has no linkable page. */
@@ -61,7 +64,7 @@ export const courierLink = (code?: string | null, cn?: string | null) =>
  * connection can be built and checked.
  */
 export const API_SOON: ReadonlySet<string> = new Set([
-  'TRANZO', 'SWYFT', 'BARQRAFTAR', 'TPL_RIDER', 'DAEWOO', 'BLUE_EX', 'ZOOM', 'BYKEA', 'MOVEX', 'FORRUN',
+  'TRANZO', 'SWYFT', 'BARQRAFTAR', 'TPL_RIDER', 'DAEWOO', 'BLUE_EX', 'ZOOM', 'BYKEA', 'MOVEX', 'FORRUN', 'XTREME', 'RUN',
 ]);
 
 export type CourierCode = (typeof COURIERS)[number]['code'];

@@ -7,9 +7,11 @@
  *    PostEx, SLGTrax, M&P, Call Courier, Indolj, Daewoo FastEx, SadaPay,
  *    JazzCash (its sandbox site);
  *  - Safepay's partner CDN: Easypaisa, PayFast, Raast (the red wordmark).
- * Swyft, TPL Rider and the smaller couriers (Tranzo, BarqRaftar, Zoom COD,
- * InstaWorld, ShipNOC, Bykea, MoveX, Forrun) have no logo file yet and show a
- * lettermark tile in a neutral colour; own rider and own website use an icon.
+ *  - each courier's own website: Tranzo (favicon mark), BarqRaftar, Zoom COD,
+ *    InstaWorld, ShipNOC, Pakistan Post, Run Courier, Xtreme Ecom.
+ * Swyft, TPL Rider, Bykea, MoveX and Forrun have no usable logo file yet
+ * (site unreachable, blocked or only a 16px favicon) and show a lettermark tile
+ * in a neutral colour; own rider and own website use an icon.
  *
  * Use <BrandLogo name="shopify" size="sm|md|lg" /> or the brandFor* helpers.
  */
@@ -42,11 +44,20 @@ import mnp from './mnp.png';
 import callcourier from './callcourier.png';
 import indolj from './indolj.png';
 import daewoo from './daewoo.png';
+import tranzo from './tranzo.svg';
+import barqraftar from './barqraftar.png';
+import zoom from './zoom.png';
+import instaworld from './instaworld.png';
+import shipnoc from './shipnoc.png';
+import pakpost from './pakpost.png';
+import run from './run.png';
+import xtreme from './xtreme.png';
 
 export type BrandName =
   | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website'
   | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
   | 'swyft' | 'tranzo' | 'barqraftar' | 'zoom' | 'instaworld' | 'shipnoc' | 'bykea' | 'movex' | 'forrun'
+  | 'pakpost' | 'xtreme' | 'run'
   | 'jazzcash' | 'easypaisa' | 'safepay' | 'raast' | 'nayapay' | 'sadapay' | 'payfast'
   | 'google' | 'whatsapp' | 'meta' | 'tiktok' | 'other';
 
@@ -87,14 +98,17 @@ export const BRANDS: Record<BrandName, Brand> = {
   daewoo: { label: 'Daewoo FastEx', color: '#0B8BD9', src: daewoo, pad: 0.12 },
   tpl: { label: 'Rider (TPL)', color: '#64748B', letters: 'TPL' },
   swyft: { label: 'Swyft', color: '#64748B', letters: 'SW' },
-  tranzo: { label: 'Tranzo', color: '#64748B', letters: 'TZ' },
-  barqraftar: { label: 'BarqRaftar', color: '#64748B', letters: 'BR' },
-  zoom: { label: 'Zoom COD', color: '#64748B', letters: 'ZM' },
-  instaworld: { label: 'InstaWorld', color: '#64748B', letters: 'IW' },
-  shipnoc: { label: 'ShipNOC', color: '#64748B', letters: 'NOC' },
+  tranzo: { label: 'Tranzo', color: '#3244DD', src: tranzo, pad: 0.1 },
+  barqraftar: { label: 'BarqRaftar', color: '#FDB913', src: barqraftar, pad: 0.06 },
+  zoom: { label: 'Zoom COD', color: '#D9261C', src: zoom, pad: 0.06 },
+  instaworld: { label: 'InstaWorld', color: '#97D9F7', src: instaworld, pad: 0.08 },
+  shipnoc: { label: 'ShipNOC', color: '#8DC63F', src: shipnoc, pad: 0.1 },
   bykea: { label: 'Bykea', color: '#64748B', letters: 'BY' },
   movex: { label: 'MoveX', color: '#64748B', letters: 'MX' },
   forrun: { label: 'Forrun', color: '#64748B', letters: 'FR' },
+  pakpost: { label: 'Pakistan Post', color: '#D8232A', src: pakpost, bleed: true },
+  xtreme: { label: 'Xtreme Ecom', color: '#1F4FBF', src: xtreme, pad: 0.06 },
+  run: { label: 'Run Courier', color: '#39FF14', src: run, bg: '#000000', pad: 0.1 },
   rider: { label: 'Apna rider', color: '#64748B', icon: Bike },
   jazzcash: { label: 'JazzCash', color: '#E82028', src: jazzcash, pad: 0.1 },
   easypaisa: { label: 'Easypaisa', color: '#27B15D', src: easypaisa, bg: '#0E3F20', pad: 0.06 },
@@ -134,7 +148,7 @@ const COURIER: Record<string, BrandName> = {
   TCS: 'tcs', LEOPARDS: 'leopards', POSTEX: 'postex', TRAX: 'trax', MNP: 'mnp', CALL_COURIER: 'callcourier',
   BLUE_EX: 'blueex', BLUEEX: 'blueex', DAEWOO: 'daewoo', TPL_RIDER: 'tpl', RIDER: 'rider', SWYFT: 'swyft',
   TRANZO: 'tranzo', BARQRAFTAR: 'barqraftar', ZOOM: 'zoom', INSTAWORLD: 'instaworld', SHIPNOC: 'shipnoc', BYKEA: 'bykea',
-  MOVEX: 'movex', FORRUN: 'forrun',
+  MOVEX: 'movex', FORRUN: 'forrun', PAKPOST: 'pakpost', XTREME: 'xtreme', RUN: 'run',
 };
 /** Courier code (TCS, LEOPARDS, POSTEX…) → logo. */
 export const brandForCourier = (code?: string | null): BrandName => COURIER[String(code ?? '').toUpperCase()] ?? 'other';

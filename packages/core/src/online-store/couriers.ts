@@ -60,7 +60,9 @@ export function moveRule(rules: CourierRule[], i: number, by: number): CourierRu
 }
 
 export type CourierBrand =
-  | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider' | 'other';
+  | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
+  | 'swyft' | 'tranzo' | 'barqraftar' | 'zoom' | 'instaworld' | 'shipnoc' | 'bykea' | 'movex' | 'forrun'
+  | 'pakpost' | 'xtreme' | 'run' | 'other';
 
 /** Courier code or name shown on an order ("TCS", "M&P", "Apna rider") → brand key. */
 export function courierBrand(nameOrCode?: string | null): CourierBrand {
@@ -75,6 +77,18 @@ export function courierBrand(nameOrCode?: string | null): CourierBrand {
   if (k.includes('BLUEEX') || k === 'BLUEX') return 'blueex';
   if (k.includes('DAEWOO')) return 'daewoo';
   if (k.includes('TPL')) return 'tpl';
+  if (k.includes('TRANZO')) return 'tranzo';
+  if (k.includes('SWYFT')) return 'swyft';
+  if (k.includes('BARQ')) return 'barqraftar';
+  if (k.includes('ZOOM')) return 'zoom';
+  if (k.includes('INSTAWORLD')) return 'instaworld';
+  if (k.includes('SHIPNOC')) return 'shipnoc';
+  if (k.includes('BYKEA')) return 'bykea';
+  if (k.includes('MOVEX')) return 'movex';
+  if (k.includes('FORRUN')) return 'forrun';
+  if (k.includes('PAKPOST') || k.includes('PAKISTANPOST')) return 'pakpost';
+  if (k.includes('XTREME')) return 'xtreme';
+  if (k === 'RUN' || k.startsWith('RUNCOURIER')) return 'run';
   if (k.includes('RIDER')) return 'rider';
   return 'other';
 }
@@ -82,13 +96,13 @@ export function courierBrand(nameOrCode?: string | null): CourierBrand {
 /** Couriers the dispatch form offers (code + brand name; "Apna rider" and "Doosra" are labels the app translates). */
 export const COURIER_CODES = [
   'RIDER', 'TCS', 'LEOPARDS', 'POSTEX', 'TRAX', 'MNP', 'BLUE_EX', 'CALL_COURIER', 'DAEWOO', 'TPL_RIDER',
-  'INSTAWORLD', 'SHIPNOC', 'TRANZO', 'SWYFT', 'BARQRAFTAR', 'ZOOM', 'MOVEX', 'FORRUN', 'BYKEA', 'PAKPOST', 'OTHER',
+  'INSTAWORLD', 'SHIPNOC', 'TRANZO', 'SWYFT', 'BARQRAFTAR', 'ZOOM', 'MOVEX', 'FORRUN', 'BYKEA', 'PAKPOST', 'XTREME', 'RUN', 'OTHER',
 ] as const;
 export const COURIER_NAMES: Record<(typeof COURIER_CODES)[number], string> = {
   RIDER: 'Rider', TCS: 'TCS', LEOPARDS: 'Leopards', POSTEX: 'PostEx', TRAX: 'Trax', MNP: 'M&P', BLUE_EX: 'BlueEx',
   CALL_COURIER: 'Call Courier', DAEWOO: 'Daewoo FastEx', TPL_RIDER: 'Rider (TPL)',
   INSTAWORLD: 'InstaWorld', SHIPNOC: 'ShipNOC', TRANZO: 'Tranzo', SWYFT: 'Swyft', BARQRAFTAR: 'BarqRaftar', ZOOM: 'Zoom COD',
-  MOVEX: 'MoveX', FORRUN: 'Forrun', BYKEA: 'Bykea', PAKPOST: 'Pakistan Post', OTHER: 'Other',
+  MOVEX: 'MoveX', FORRUN: 'Forrun', BYKEA: 'Bykea', PAKPOST: 'Pakistan Post', XTREME: 'Xtreme Ecom', RUN: 'Run Courier', OTHER: 'Other',
 };
 
 export type CourierStateTone = 'neutral' | 'info' | 'brand' | 'warning' | 'success' | 'danger';
