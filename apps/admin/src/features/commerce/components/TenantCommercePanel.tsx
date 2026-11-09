@@ -1,4 +1,4 @@
-/** Online store panel on the tenant detail page: the shop's channels, orders, catalog links, stock recovery, couriers and catalog jobs. */
+/** Online store panel on the tenant detail page: the shop's channels, orders, catalog links, stock and price recovery, couriers and catalog jobs. */
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { Store } from 'lucide-react';
 import { adminCommerceApi } from '@/api/admin-commerce.api';
 import { ChannelDrawer } from './ChannelDrawer';
 import { StockRecoveryPanel } from './StockRecoveryPanel';
+import { PriceRecoveryPanel } from './PriceRecoveryPanel';
 import { ChannelStatus, Empty, enumLabel, JobStatus, kindLabel, Pill, when } from './CommerceUi';
 
 export default function TenantCommercePanel({ tenantId }: { tenantId: string }) {
@@ -63,6 +64,7 @@ export default function TenantCommercePanel({ tenantId }: { tenantId: string }) 
           )}
 
           {data.channels.length > 0 && <StockRecoveryPanel tenantId={tenantId} />}
+          {data.channels.length > 0 && <PriceRecoveryPanel tenantId={tenantId} />}
 
           <div className="grid gap-5 lg:grid-cols-2">
             <div>

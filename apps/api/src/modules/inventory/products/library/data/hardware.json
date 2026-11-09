@@ -1,0 +1,3912 @@
+[
+ {
+  "id": "hardware-lucky-cement-50kg-bag",
+  "name": "Lucky Cement 50kg Bag",
+  "brand": "Lucky",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1188,
+  "tags": [
+   "lucky",
+   "cement",
+   "50kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-bestway-cement-50kg-bag",
+  "name": "Bestway Cement 50kg Bag",
+  "brand": "Bestway",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1380,
+  "costPrice": 1214,
+  "tags": [
+   "bestway",
+   "cement",
+   "50kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-fauji-cement-50kg-bag",
+  "name": "Fauji Cement 50kg Bag",
+  "brand": "Fauji",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1340,
+  "costPrice": 1179,
+  "tags": [
+   "fauji",
+   "cement",
+   "50kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-dg-khan-cement-50kg-bag",
+  "name": "DG Khan Cement 50kg Bag",
+  "brand": "DG Khan",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1330,
+  "costPrice": 1170,
+  "tags": [
+   "dg",
+   "khan",
+   "cement",
+   "50kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-maple-leaf-cement-50kg-bag",
+  "name": "Maple Leaf Cement 50kg Bag",
+  "brand": "Maple Leaf",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1360,
+  "costPrice": 1197,
+  "tags": [
+   "maple",
+   "leaf",
+   "cement",
+   "50kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-cherat-cement-50kg-bag",
+  "name": "Cherat Cement 50kg Bag",
+  "brand": "Cherat",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1330,
+  "costPrice": 1170,
+  "tags": [
+   "cherat",
+   "cement",
+   "50kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-kohat-cement-50kg-bag",
+  "name": "Kohat Cement 50kg Bag",
+  "brand": "Kohat",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1320,
+  "costPrice": 1162,
+  "tags": [
+   "kohat",
+   "cement",
+   "50kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-white-cement-birla-40kg",
+  "name": "White Cement Birla 40kg",
+  "brand": "White Cement",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2464,
+  "tags": [
+   "white",
+   "cement",
+   "birla",
+   "40kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-bajri-crush-per-truck-load",
+  "name": "Bajri (Crush) per Truck Load",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 39600,
+  "tags": [
+   "bajri",
+   "crush",
+   "per",
+   "truck",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-sand-ret-per-truck-load",
+  "name": "Sand (Ret) per Truck Load",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 24640,
+  "tags": [
+   "sand",
+   "ret",
+   "per",
+   "truck",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-red-brick-grade-a-per-1000",
+  "name": "Red Brick Grade A per 1000",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 16000,
+  "costPrice": 14080,
+  "tags": [
+   "red",
+   "brick",
+   "grade",
+   "per",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-block-concrete-6-inch",
+  "name": "Block Concrete 6 inch",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 84,
+  "tags": [
+   "block",
+   "concrete",
+   "inch",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-tile-adhesive-20kg-bag",
+  "name": "Tile Adhesive 20kg Bag",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "tile",
+   "adhesive",
+   "20kg",
+   "bag",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-tile-grout-1kg",
+  "name": "Tile Grout 1kg",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "tile",
+   "grout",
+   "1kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-waterproofing-compound-5kg",
+  "name": "Waterproofing Compound 5kg",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1452,
+  "tags": [
+   "waterproofing",
+   "compound",
+   "5kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-plaster-of-paris-25kg",
+  "name": "Plaster of Paris 25kg",
+  "brand": "",
+  "category": "Cement & Building",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "plaster",
+   "of",
+   "paris",
+   "25kg",
+   "cement & building"
+  ]
+ },
+ {
+  "id": "hardware-steel-bar-grade-60-per-kg",
+  "name": "Steel Bar Grade 60 per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 265,
+  "costPrice": 244,
+  "tags": [
+   "steel",
+   "bar",
+   "grade",
+   "60",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-steel-bar-grade-40-per-kg",
+  "name": "Steel Bar Grade 40 per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 245,
+  "costPrice": 225,
+  "tags": [
+   "steel",
+   "bar",
+   "grade",
+   "40",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-binding-wire-per-kg",
+  "name": "Binding Wire per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 320,
+  "costPrice": 294,
+  "tags": [
+   "binding",
+   "wire",
+   "per",
+   "kg",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-ms-angle-per-kg",
+  "name": "MS Angle per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 290,
+  "costPrice": 267,
+  "tags": [
+   "ms",
+   "angle",
+   "per",
+   "kg",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-ms-flat-bar-per-kg",
+  "name": "MS Flat Bar per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 285,
+  "costPrice": 262,
+  "tags": [
+   "ms",
+   "flat",
+   "bar",
+   "per",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-ms-channel-per-kg",
+  "name": "MS Channel per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 295,
+  "costPrice": 271,
+  "tags": [
+   "ms",
+   "channel",
+   "per",
+   "kg",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-gi-sheet-per-kg",
+  "name": "GI Sheet per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 380,
+  "costPrice": 350,
+  "tags": [
+   "gi",
+   "sheet",
+   "per",
+   "kg",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-mild-steel-plate-per-kg",
+  "name": "Mild Steel Plate per kg",
+  "brand": "",
+  "category": "Steel & Rods",
+  "unit": "kg",
+  "price": 310,
+  "costPrice": 285,
+  "tags": [
+   "mild",
+   "steel",
+   "plate",
+   "per",
+   "steel & rods"
+  ]
+ },
+ {
+  "id": "hardware-popular-upvc-pipe-1-2-inch-10ft",
+  "name": "Popular uPVC Pipe 1/2 inch 10ft",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "popular",
+   "upvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-upvc-pipe-3-4-inch-10ft",
+  "name": "Popular uPVC Pipe 3/4 inch 10ft",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 484,
+  "tags": [
+   "popular",
+   "upvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-upvc-pipe-1-inch-10ft",
+  "name": "Popular uPVC Pipe 1 inch 10ft",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 663,
+  "tags": [
+   "popular",
+   "upvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-upvc-pipe-2-inch-10ft",
+  "name": "Popular uPVC Pipe 2 inch 10ft",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "popular",
+   "upvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-upvc-pipe-4-inch-10ft",
+  "name": "Popular uPVC Pipe 4 inch 10ft",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2184,
+  "tags": [
+   "popular",
+   "upvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-elbow-1-2-inch",
+  "name": "Popular Elbow 1/2 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 45,
+  "costPrice": 35,
+  "tags": [
+   "popular",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-elbow-3-4-inch",
+  "name": "Popular Elbow 3/4 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 65,
+  "costPrice": 51,
+  "tags": [
+   "popular",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-elbow-1-inch",
+  "name": "Popular Elbow 1 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 70,
+  "tags": [
+   "popular",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-tee-1-2-inch",
+  "name": "Popular Tee 1/2 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 55,
+  "costPrice": 43,
+  "tags": [
+   "popular",
+   "tee",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-tee-3-4-inch",
+  "name": "Popular Tee 3/4 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 75,
+  "costPrice": 58,
+  "tags": [
+   "popular",
+   "tee",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-socket-1-2-inch",
+  "name": "Popular Socket 1/2 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 31,
+  "tags": [
+   "popular",
+   "socket",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-socket-3-4-inch",
+  "name": "Popular Socket 3/4 inch",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 55,
+  "costPrice": 43,
+  "tags": [
+   "popular",
+   "socket",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-ball-valve-1-2-inch-pvc",
+  "name": "Popular Ball Valve 1/2 inch PVC",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "popular",
+   "ball",
+   "valve",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-popular-ball-valve-3-4-inch-pvc",
+  "name": "Popular Ball Valve 3/4 inch PVC",
+  "brand": "Popular",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "popular",
+   "ball",
+   "valve",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-ppr-pipe-1-2-inch-1-meter",
+  "name": "Master PPR Pipe 1/2 inch 1 meter",
+  "brand": "Master",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "master",
+   "ppr",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-ppr-pipe-3-4-inch-1-meter",
+  "name": "Master PPR Pipe 3/4 inch 1 meter",
+  "brand": "Master",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 260,
+  "costPrice": 203,
+  "tags": [
+   "master",
+   "ppr",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-ppr-elbow-3-4-inch",
+  "name": "Master PPR Elbow 3/4 inch",
+  "brand": "Master",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 55,
+  "tags": [
+   "master",
+   "ppr",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-ppr-ball-valve-3-4-inch",
+  "name": "Master PPR Ball Valve 3/4 inch",
+  "brand": "Master",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "master",
+   "ppr",
+   "ball",
+   "valve",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-cpvc-pipe-3-4-inch-10ft",
+  "name": "Master CPVC Pipe 3/4 inch 10ft",
+  "brand": "Master",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "master",
+   "cpvc",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-dura-ppr-pipe-1-inch-4m",
+  "name": "Dura PPR Pipe 1 inch 4m",
+  "brand": "Dura",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "dura",
+   "ppr",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-dura-ppr-elbow-1-inch",
+  "name": "Dura PPR Elbow 1 inch",
+  "brand": "Dura",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 74,
+  "tags": [
+   "dura",
+   "ppr",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-dura-ppr-tee-1-inch",
+  "name": "Dura PPR Tee 1 inch",
+  "brand": "Dura",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 94,
+  "tags": [
+   "dura",
+   "ppr",
+   "tee",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-dura-ppr-union-3-4-inch",
+  "name": "Dura PPR Union 3/4 inch",
+  "brand": "Dura",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "dura",
+   "ppr",
+   "union",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-gi-pipe-1-2-inch-20ft",
+  "name": "GI Pipe 1/2 inch 20ft",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1911,
+  "tags": [
+   "gi",
+   "pipe",
+   "inch",
+   "20ft",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-gi-pipe-3-4-inch-20ft",
+  "name": "GI Pipe 3/4 inch 20ft",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 3250,
+  "costPrice": 2535,
+  "tags": [
+   "gi",
+   "pipe",
+   "inch",
+   "20ft",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-gi-elbow-1-2-inch",
+  "name": "GI Elbow 1/2 inch",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 65,
+  "costPrice": 51,
+  "tags": [
+   "gi",
+   "elbow",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-gi-socket-1-2-inch",
+  "name": "GI Socket 1/2 inch",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 55,
+  "costPrice": 43,
+  "tags": [
+   "gi",
+   "socket",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-teflon-tape",
+  "name": "Teflon Tape",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 23,
+  "tags": [
+   "teflon",
+   "tape",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-pvc-solvent-cement",
+  "name": "PVC Solvent Cement",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "pvc",
+   "solvent",
+   "cement",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-water-tank-float-valve",
+  "name": "Water Tank Float Valve",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "water",
+   "tank",
+   "float",
+   "valve",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-water-tank-connector-1-inch",
+  "name": "Water Tank Connector 1 inch",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "water",
+   "tank",
+   "connector",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-flexible-hose-pipe-1-2-inch-braided",
+  "name": "Flexible Hose Pipe 1/2 inch Braided",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "flexible",
+   "hose",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-garden-hose-pipe-50ft",
+  "name": "Garden Hose Pipe 50ft",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "garden",
+   "hose",
+   "pipe",
+   "50ft",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-hose-pipe-nozzle",
+  "name": "Hose Pipe Nozzle",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "hose",
+   "pipe",
+   "nozzle",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-sewerage-pipe-4-inch",
+  "name": "Sewerage Pipe 4 inch",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1911,
+  "tags": [
+   "sewerage",
+   "pipe",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-trap-p-type-4-inch",
+  "name": "Trap P Type 4 inch",
+  "brand": "",
+  "category": "Pipes & Fittings",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "trap",
+   "type",
+   "inch",
+   "pipes & fittings"
+  ]
+ },
+ {
+  "id": "hardware-master-kitchen-mixer-tap",
+  "name": "Master Kitchen Mixer Tap",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "master",
+   "kitchen",
+   "mixer",
+   "tap",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-master-basin-mixer-tap",
+  "name": "Master Basin Mixer Tap",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "master",
+   "basin",
+   "mixer",
+   "tap",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-master-bib-cock-tap-brass",
+  "name": "Master Bib Cock Tap Brass",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "master",
+   "bib",
+   "cock",
+   "tap",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-master-angle-valve",
+  "name": "Master Angle Valve",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "master",
+   "angle",
+   "valve",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-master-shower-set-complete",
+  "name": "Master Shower Set Complete",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "master",
+   "shower",
+   "set",
+   "complete",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-master-hand-shower-set",
+  "name": "Master Hand Shower Set",
+  "brand": "Master",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "master",
+   "hand",
+   "shower",
+   "set",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-faisal-wash-basin-with-pedestal",
+  "name": "Faisal Wash Basin with Pedestal",
+  "brand": "Faisal",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "faisal",
+   "wash",
+   "basin",
+   "with",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-faisal-commode-western",
+  "name": "Faisal Commode Western",
+  "brand": "Faisal",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "faisal",
+   "commode",
+   "western",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-faisal-commode-eastern",
+  "name": "Faisal Commode Eastern",
+  "brand": "Faisal",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "faisal",
+   "commode",
+   "eastern",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-faisal-flush-tank",
+  "name": "Faisal Flush Tank",
+  "brand": "Faisal",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "faisal",
+   "flush",
+   "tank",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-water-tank-500l-plastic",
+  "name": "Water Tank 500L Plastic",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "water",
+   "tank",
+   "500l",
+   "plastic",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-water-tank-1000l-plastic",
+  "name": "Water Tank 1000L Plastic",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 13125,
+  "tags": [
+   "water",
+   "tank",
+   "1000l",
+   "plastic",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-water-tank-2000l-plastic",
+  "name": "Water Tank 2000L Plastic",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24000,
+  "tags": [
+   "water",
+   "tank",
+   "2000l",
+   "plastic",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-bathroom-accessories-set-1-set",
+  "name": "Bathroom Accessories Set 1 set",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "bathroom",
+   "accessories",
+   "set",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-kitchen-sink-stainless-steel-single",
+  "name": "Kitchen Sink Stainless Steel Single",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "kitchen",
+   "sink",
+   "stainless",
+   "steel",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-floor-drain-stainless",
+  "name": "Floor Drain Stainless",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "floor",
+   "drain",
+   "stainless",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-soap-dish",
+  "name": "Soap Dish",
+  "brand": "",
+  "category": "Sanitary & Taps",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "soap",
+   "dish",
+   "sanitary & taps"
+  ]
+ },
+ {
+  "id": "hardware-berger-luxury-silk-emulsion-4-litre",
+  "name": "Berger Luxury Silk Emulsion 4 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 7800,
+  "costPrice": 6240,
+  "tags": [
+   "berger",
+   "luxury",
+   "silk",
+   "emulsion",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-berger-weather-shield-4-litre",
+  "name": "Berger Weather Shield 4 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "berger",
+   "weather",
+   "shield",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-berger-easy-clean-emulsion-4-litre",
+  "name": "Berger Easy Clean Emulsion 4 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 5600,
+  "costPrice": 4480,
+  "tags": [
+   "berger",
+   "easy",
+   "clean",
+   "emulsion",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-berger-weather-coat-20-litre",
+  "name": "Berger Weather Coat 20 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 21500,
+  "costPrice": 17200,
+  "tags": [
+   "berger",
+   "weather",
+   "coat",
+   "20",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-berger-synthetic-enamel-1-litre",
+  "name": "Berger Synthetic Enamel 1 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "berger",
+   "synthetic",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-berger-synthetic-enamel-4-litre",
+  "name": "Berger Synthetic Enamel 4 litre",
+  "brand": "Berger",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 6200,
+  "costPrice": 4960,
+  "tags": [
+   "berger",
+   "synthetic",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-diamond-weather-shield-emulsion-4-litre",
+  "name": "Diamond Weather Shield Emulsion 4 litre",
+  "brand": "Diamond",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 7800,
+  "costPrice": 6240,
+  "tags": [
+   "diamond",
+   "weather",
+   "shield",
+   "emulsion",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-diamond-emulsion-4-litre",
+  "name": "Diamond Emulsion 4 litre",
+  "brand": "Diamond",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3840,
+  "tags": [
+   "diamond",
+   "emulsion",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-diamond-distemper-20kg",
+  "name": "Diamond Distemper 20kg",
+  "brand": "Diamond",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 6200,
+  "costPrice": 4960,
+  "tags": [
+   "diamond",
+   "distemper",
+   "20kg",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-diamond-enamel-1-litre",
+  "name": "Diamond Enamel 1 litre",
+  "brand": "Diamond",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "diamond",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-ici-dulux-weathershield-4-litre",
+  "name": "ICI Dulux Weathershield 4 litre",
+  "brand": "ICI Dulux",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9200,
+  "tags": [
+   "ici",
+   "dulux",
+   "weathershield",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-ici-dulux-super-clean-emulsion-4-litre",
+  "name": "ICI Dulux Super Clean Emulsion 4 litre",
+  "brand": "ICI Dulux",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 9800,
+  "costPrice": 7840,
+  "tags": [
+   "ici",
+   "dulux",
+   "super",
+   "clean",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-ici-dulux-velvet-touch-4-litre",
+  "name": "ICI Dulux Velvet Touch 4 litre",
+  "brand": "ICI Dulux",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 10800,
+  "costPrice": 8640,
+  "tags": [
+   "ici",
+   "dulux",
+   "velvet",
+   "touch",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-ici-dulux-enamel-gloss-1-litre",
+  "name": "ICI Dulux Enamel Gloss 1 litre",
+  "brand": "ICI Dulux",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1560,
+  "tags": [
+   "ici",
+   "dulux",
+   "enamel",
+   "gloss",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-nippon-odour-less-emulsion-4-litre",
+  "name": "Nippon Odour-less Emulsion 4 litre",
+  "brand": "Nippon",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 6900,
+  "costPrice": 5520,
+  "tags": [
+   "nippon",
+   "odour",
+   "less",
+   "emulsion",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-nippon-weatherbond-4-litre",
+  "name": "Nippon Weatherbond 4 litre",
+  "brand": "Nippon",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 8900,
+  "costPrice": 7120,
+  "tags": [
+   "nippon",
+   "weatherbond",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-jotun-majestic-4-litre",
+  "name": "Jotun Majestic 4 litre",
+  "brand": "Jotun",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "jotun",
+   "majestic",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-brighto-paint-enamel-1-litre",
+  "name": "Brighto Paint Enamel 1 litre",
+  "brand": "Brighto",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "brighto",
+   "paint",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-brighto-paint-enamel-4-litre",
+  "name": "Brighto Paint Enamel 4 litre",
+  "brand": "Brighto",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 4600,
+  "costPrice": 3680,
+  "tags": [
+   "brighto",
+   "paint",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-weldon-paint-enamel-1-litre",
+  "name": "Weldon Paint Enamel 1 litre",
+  "brand": "Weldon",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 960,
+  "tags": [
+   "weldon",
+   "paint",
+   "enamel",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-wall-putty-20kg",
+  "name": "Wall Putty 20kg",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 1920,
+  "tags": [
+   "wall",
+   "putty",
+   "20kg",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-wall-putty-5kg",
+  "name": "Wall Putty 5kg",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 700,
+  "costPrice": 560,
+  "tags": [
+   "wall",
+   "putty",
+   "5kg",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-primer-water-base-4-litre",
+  "name": "Primer Water Base 4 litre",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2560,
+  "tags": [
+   "primer",
+   "water",
+   "base",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-primer-oil-base-4-litre",
+  "name": "Primer Oil Base 4 litre",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 3040,
+  "tags": [
+   "primer",
+   "oil",
+   "base",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-thinner-1-litre",
+  "name": "Thinner 1 litre",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "thinner",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-thinner-4-litre",
+  "name": "Thinner 4 litre",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "thinner",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-wood-polish-1-litre",
+  "name": "Wood Polish 1 litre",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "wood",
+   "polish",
+   "litre",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-spray-paint-can",
+  "name": "Spray Paint Can",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "spray",
+   "paint",
+   "can",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-paint-brush-2-inch",
+  "name": "Paint Brush 2 inch",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "paint",
+   "brush",
+   "inch",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-paint-brush-4-inch",
+  "name": "Paint Brush 4 inch",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 176,
+  "tags": [
+   "paint",
+   "brush",
+   "inch",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-paint-roller-9-inch",
+  "name": "Paint Roller 9 inch",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 280,
+  "tags": [
+   "paint",
+   "roller",
+   "inch",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-paint-tray",
+  "name": "Paint Tray",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 200,
+  "tags": [
+   "paint",
+   "tray",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-sand-paper-sheet",
+  "name": "Sand Paper Sheet",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 32,
+  "tags": [
+   "sand",
+   "paper",
+   "sheet",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-masking-tape-1-inch",
+  "name": "Masking Tape 1 inch",
+  "brand": "",
+  "category": "Paints",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 72,
+  "tags": [
+   "masking",
+   "tape",
+   "inch",
+   "paints"
+  ]
+ },
+ {
+  "id": "hardware-stanley-claw-hammer-16oz",
+  "name": "Stanley Claw Hammer 16oz",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "stanley",
+   "claw",
+   "hammer",
+   "16oz",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-screwdriver-set-6pcs-1-set",
+  "name": "Stanley Screwdriver Set 6pcs 1 set",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "stanley",
+   "screwdriver",
+   "set",
+   "6pcs",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-combination-pliers-8-inch",
+  "name": "Stanley Combination Pliers 8 inch",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "stanley",
+   "combination",
+   "pliers",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-measuring-tape-5m",
+  "name": "Stanley Measuring Tape 5m",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "stanley",
+   "measuring",
+   "tape",
+   "5m",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-hacksaw-frame",
+  "name": "Stanley Hacksaw Frame",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1012,
+  "tags": [
+   "stanley",
+   "hacksaw",
+   "frame",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-adjustable-wrench-10-inch",
+  "name": "Stanley Adjustable Wrench 10 inch",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "stanley",
+   "adjustable",
+   "wrench",
+   "10",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-spirit-level-24-inch",
+  "name": "Stanley Spirit Level 24 inch",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "stanley",
+   "spirit",
+   "level",
+   "24",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-utility-knife",
+  "name": "Stanley Utility Knife",
+  "brand": "Stanley",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "stanley",
+   "utility",
+   "knife",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-hand-tool-set-100pcs-1-set",
+  "name": "Bosch Hand Tool Set 100pcs 1 set",
+  "brand": "Bosch",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 8625,
+  "tags": [
+   "bosch",
+   "hand",
+   "tool",
+   "set",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-taparia-pliers-8-inch",
+  "name": "Taparia Pliers 8 inch",
+  "brand": "Taparia",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "taparia",
+   "pliers",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-hammer-heavy-2lb",
+  "name": "Hammer Heavy 2lb",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "hammer",
+   "heavy",
+   "2lb",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-chisel-set-1-set",
+  "name": "Chisel Set 1 set",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "chisel",
+   "set",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-hand-saw-20-inch",
+  "name": "Hand Saw 20 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "hand",
+   "saw",
+   "20",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-screwdriver-flat-6-inch",
+  "name": "Screwdriver Flat 6 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "screwdriver",
+   "flat",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-screwdriver-star-6-inch",
+  "name": "Screwdriver Star 6 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "screwdriver",
+   "star",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-spanner-set-12pcs-1-set",
+  "name": "Spanner Set 12pcs 1 set",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "spanner",
+   "set",
+   "12pcs",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-allen-key-set-1-set",
+  "name": "Allen Key Set 1 set",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "allen",
+   "key",
+   "set",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-pipe-wrench-14-inch",
+  "name": "Pipe Wrench 14 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "pipe",
+   "wrench",
+   "14",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-trowel-karni",
+  "name": "Trowel (Karni)",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "trowel",
+   "karni",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-plumb-bob",
+  "name": "Plumb Bob",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "plumb",
+   "bob",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-shovel-belcha",
+  "name": "Shovel (Belcha)",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "shovel",
+   "belcha",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-pickaxe",
+  "name": "Pickaxe",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "pickaxe",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-wheelbarrow",
+  "name": "Wheelbarrow",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "wheelbarrow",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-crowbar",
+  "name": "Crowbar",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "crowbar",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-tool-box-plastic-16-inch",
+  "name": "Tool Box Plastic 16 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "tool",
+   "box",
+   "plastic",
+   "16",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-tool-box-metal-20-inch",
+  "name": "Tool Box Metal 20 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "tool",
+   "box",
+   "metal",
+   "20",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-vice-table-4-inch",
+  "name": "Vice Table 4 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "vice",
+   "table",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-file-flat-8-inch",
+  "name": "File Flat 8 inch",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "file",
+   "flat",
+   "inch",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-scissors-tin-cutter",
+  "name": "Scissors Tin Cutter",
+  "brand": "",
+  "category": "Hand Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "scissors",
+   "tin",
+   "cutter",
+   "hand tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-impact-drill-gsb-13-re",
+  "name": "Bosch Impact Drill GSB 13 RE",
+  "brand": "Bosch",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9200,
+  "tags": [
+   "bosch",
+   "impact",
+   "drill",
+   "gsb",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-angle-grinder-gws-600",
+  "name": "Bosch Angle Grinder GWS 600",
+  "brand": "Bosch",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 7900,
+  "costPrice": 6320,
+  "tags": [
+   "bosch",
+   "angle",
+   "grinder",
+   "gws",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-rotary-hammer-gbh-2-26",
+  "name": "Bosch Rotary Hammer GBH 2-26",
+  "brand": "Bosch",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22800,
+  "tags": [
+   "bosch",
+   "rotary",
+   "hammer",
+   "gbh",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-jigsaw-gst-700",
+  "name": "Bosch Jigsaw GST 700",
+  "brand": "Bosch",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "bosch",
+   "jigsaw",
+   "gst",
+   "700",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-bosch-cordless-drill-12v",
+  "name": "Bosch Cordless Drill 12V",
+  "brand": "Bosch",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "bosch",
+   "cordless",
+   "drill",
+   "12v",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-dewalt-impact-drill-dwd024",
+  "name": "Dewalt Impact Drill DWD024",
+  "brand": "Dewalt",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "dewalt",
+   "impact",
+   "drill",
+   "dwd024",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-dewalt-angle-grinder-4-inch",
+  "name": "Dewalt Angle Grinder 4 inch",
+  "brand": "Dewalt",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "dewalt",
+   "angle",
+   "grinder",
+   "inch",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-dewalt-cordless-drill-18v",
+  "name": "Dewalt Cordless Drill 18V",
+  "brand": "Dewalt",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 19600,
+  "tags": [
+   "dewalt",
+   "cordless",
+   "drill",
+   "18v",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-makita-angle-grinder-4-inch",
+  "name": "Makita Angle Grinder 4 inch",
+  "brand": "Makita",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "makita",
+   "angle",
+   "grinder",
+   "inch",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-makita-impact-drill-13mm",
+  "name": "Makita Impact Drill 13mm",
+  "brand": "Makita",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "makita",
+   "impact",
+   "drill",
+   "13mm",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-total-electric-drill-13mm",
+  "name": "Total Electric Drill 13mm",
+  "brand": "Total",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "total",
+   "electric",
+   "drill",
+   "13mm",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-total-angle-grinder-4-inch",
+  "name": "Total Angle Grinder 4 inch",
+  "brand": "Total",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "total",
+   "angle",
+   "grinder",
+   "inch",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-total-cordless-drill-12v",
+  "name": "Total Cordless Drill 12V",
+  "brand": "Total",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "total",
+   "cordless",
+   "drill",
+   "12v",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-total-heat-gun-2000w",
+  "name": "Total Heat Gun 2000W",
+  "brand": "Total",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "total",
+   "heat",
+   "gun",
+   "2000w",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-stanley-electric-drill-13mm",
+  "name": "Stanley Electric Drill 13mm",
+  "brand": "Stanley",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "stanley",
+   "electric",
+   "drill",
+   "13mm",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-welding-machine-200a",
+  "name": "Welding Machine 200A",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "welding",
+   "machine",
+   "200a",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-welding-rod-6013-per-kg",
+  "name": "Welding Rod 6013 per kg",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "welding",
+   "rod",
+   "6013",
+   "per",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-cutting-disc-4-inch",
+  "name": "Cutting Disc 4 inch",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 72,
+  "tags": [
+   "cutting",
+   "disc",
+   "inch",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-grinding-disc-4-inch",
+  "name": "Grinding Disc 4 inch",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 88,
+  "tags": [
+   "grinding",
+   "disc",
+   "inch",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-drill-bit-set-hss-13pcs-1-set",
+  "name": "Drill Bit Set HSS 13pcs 1 set",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 760,
+  "tags": [
+   "drill",
+   "bit",
+   "set",
+   "hss",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-masonry-drill-bit-8mm",
+  "name": "Masonry Drill Bit 8mm",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "masonry",
+   "drill",
+   "bit",
+   "8mm",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-hole-saw-set-1-set",
+  "name": "Hole Saw Set 1 set",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "hole",
+   "saw",
+   "set",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-extension-cable-5m",
+  "name": "Extension Cable 5m",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "extension",
+   "cable",
+   "5m",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-water-pump-1hp",
+  "name": "Water Pump 1HP",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "water",
+   "pump",
+   "1hp",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-water-pump-0-5hp",
+  "name": "Water Pump 0.5HP",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "water",
+   "pump",
+   "5hp",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-hand-pump-lever",
+  "name": "Hand Pump Lever",
+  "brand": "",
+  "category": "Power Tools",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "hand",
+   "pump",
+   "lever",
+   "power tools"
+  ]
+ },
+ {
+  "id": "hardware-pak-electron-wire-3-29-per-coil-90-feet",
+  "name": "Pak Electron Wire 3/29 per coil 90 feet",
+  "brand": "Pak Electron",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "pak",
+   "electron",
+   "wire",
+   "29",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-pak-electron-wire-7-29-per-coil-90-feet",
+  "name": "Pak Electron Wire 7/29 per coil 90 feet",
+  "brand": "Pak Electron",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 10500,
+  "costPrice": 8190,
+  "tags": [
+   "pak",
+   "electron",
+   "wire",
+   "29",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-fast-cables-wire-3-29-90ft-coil",
+  "name": "Fast Cables Wire 3/29 90ft Coil",
+  "brand": "Fast Cables",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 5400,
+  "costPrice": 4212,
+  "tags": [
+   "fast",
+   "cables",
+   "wire",
+   "29",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-fast-cables-wire-7-29-90ft-coil",
+  "name": "Fast Cables Wire 7/29 90ft Coil",
+  "brand": "Fast Cables",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 10200,
+  "costPrice": 7956,
+  "tags": [
+   "fast",
+   "cables",
+   "wire",
+   "29",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-fast-cables-wire-1-44-90ft-coil",
+  "name": "Fast Cables Wire 1/44 90ft Coil",
+  "brand": "Fast Cables",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 3042,
+  "tags": [
+   "fast",
+   "cables",
+   "wire",
+   "44",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-fast-cables-wire-7-36-90ft-coil",
+  "name": "Fast Cables Wire 7/36 90ft Coil",
+  "brand": "Fast Cables",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6630,
+  "tags": [
+   "fast",
+   "cables",
+   "wire",
+   "36",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-pioneer-cable-flexible-3-core-1-meter",
+  "name": "Pioneer Cable Flexible 3 Core 1 meter",
+  "brand": "Pioneer",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 74,
+  "tags": [
+   "pioneer",
+   "cable",
+   "flexible",
+   "core",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-pioneer-twin-flat-cable-90ft",
+  "name": "Pioneer Twin Flat Cable 90ft",
+  "brand": "Pioneer",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2964,
+  "tags": [
+   "pioneer",
+   "twin",
+   "flat",
+   "cable",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-switch-1-way",
+  "name": "Master Switch 1 Way",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 74,
+  "tags": [
+   "master",
+   "switch",
+   "way",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-switch-2-way",
+  "name": "Master Switch 2 Way",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 101,
+  "tags": [
+   "master",
+   "switch",
+   "way",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-socket-3-pin",
+  "name": "Master Socket 3 Pin",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 117,
+  "tags": [
+   "master",
+   "socket",
+   "pin",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-socket-3-pin-15a",
+  "name": "Master Socket 3 Pin 15A",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "master",
+   "socket",
+   "pin",
+   "15a",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-dimmer-switch",
+  "name": "Master Dimmer Switch",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "master",
+   "dimmer",
+   "switch",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-fan-regulator",
+  "name": "Master Fan Regulator",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "master",
+   "fan",
+   "regulator",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-master-switch-board-6-switch",
+  "name": "Master Switch Board 6 Switch",
+  "brand": "Master",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "master",
+   "switch",
+   "board",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-abb-mcb-16a",
+  "name": "ABB MCB 16A",
+  "brand": "ABB",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "abb",
+   "mcb",
+   "16a",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-abb-mcb-32a",
+  "name": "ABB MCB 32A",
+  "brand": "ABB",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 897,
+  "tags": [
+   "abb",
+   "mcb",
+   "32a",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-siemens-mcb-20a",
+  "name": "Siemens MCB 20A",
+  "brand": "Siemens",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "siemens",
+   "mcb",
+   "20a",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-mcb-63a-double-pole",
+  "name": "MCB 63A Double Pole",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1716,
+  "tags": [
+   "mcb",
+   "63a",
+   "double",
+   "pole",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-distribution-box-6-way",
+  "name": "Distribution Box 6 Way",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "distribution",
+   "box",
+   "way",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-pvc-conduit-pipe-3-4-inch",
+  "name": "PVC Conduit Pipe 3/4 inch",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 94,
+  "tags": [
+   "pvc",
+   "conduit",
+   "pipe",
+   "inch",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-pvc-casing-1-inch-per-meter",
+  "name": "PVC Casing 1 inch per meter",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 47,
+  "tags": [
+   "pvc",
+   "casing",
+   "inch",
+   "per",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-electrical-tape-black",
+  "name": "Electrical Tape Black",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 31,
+  "tags": [
+   "electrical",
+   "tape",
+   "black"
+  ]
+ },
+ {
+  "id": "hardware-wire-connector-strip",
+  "name": "Wire Connector Strip",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 47,
+  "tags": [
+   "wire",
+   "connector",
+   "strip",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-holder-bulb-b22",
+  "name": "Holder Bulb B22",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 31,
+  "tags": [
+   "holder",
+   "bulb",
+   "b22",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-extension-board-4-socket-5m",
+  "name": "Extension Board 4 Socket 5m",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "extension",
+   "board",
+   "socket",
+   "5m",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-extension-board-6-socket-5m",
+  "name": "Extension Board 6 Socket 5m",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1053,
+  "tags": [
+   "extension",
+   "board",
+   "socket",
+   "5m",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-plug-top-3-pin",
+  "name": "Plug Top 3 Pin",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 47,
+  "tags": [
+   "plug",
+   "top",
+   "pin",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-multiplug-adapter",
+  "name": "Multiplug Adapter",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 94,
+  "tags": [
+   "multiplug",
+   "adapter",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-doorbell-wired",
+  "name": "Doorbell Wired",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "doorbell",
+   "wired",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-meter-box",
+  "name": "Meter Box",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "meter",
+   "box",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-earthing-rod",
+  "name": "Earthing Rod",
+  "brand": "",
+  "category": "Electrical",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "earthing",
+   "rod",
+   "electrical"
+  ]
+ },
+ {
+  "id": "hardware-philips-led-bulb-9w",
+  "name": "Philips LED Bulb 9W",
+  "brand": "Philips",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "philips",
+   "led",
+   "bulb",
+   "9w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-philips-led-bulb-12w",
+  "name": "Philips LED Bulb 12W",
+  "brand": "Philips",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "philips",
+   "led",
+   "bulb",
+   "12w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-philips-led-tube-18w",
+  "name": "Philips LED Tube 18W",
+  "brand": "Philips",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "philips",
+   "led",
+   "tube",
+   "18w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-philips-led-panel-18w",
+  "name": "Philips LED Panel 18W",
+  "brand": "Philips",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "philips",
+   "led",
+   "panel",
+   "18w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-osram-led-bulb-9w",
+  "name": "Osram LED Bulb 9W",
+  "brand": "Osram",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 248,
+  "tags": [
+   "osram",
+   "led",
+   "bulb",
+   "9w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-gfc-led-bulb-12w",
+  "name": "GFC LED Bulb 12W",
+  "brand": "GFC",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 240,
+  "tags": [
+   "gfc",
+   "led",
+   "bulb",
+   "12w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-gfc-led-tube-20w",
+  "name": "GFC LED Tube 20W",
+  "brand": "GFC",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "gfc",
+   "led",
+   "tube",
+   "20w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-gfc-energy-saver-18w",
+  "name": "GFC Energy Saver 18W",
+  "brand": "GFC",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 210,
+  "tags": [
+   "gfc",
+   "energy",
+   "saver",
+   "18w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-led-bulb-7w",
+  "name": "LED Bulb 7W",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 135,
+  "tags": [
+   "led",
+   "bulb",
+   "7w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-led-flood-light-50w",
+  "name": "LED Flood Light 50W",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "led",
+   "flood",
+   "light",
+   "50w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-led-flood-light-100w",
+  "name": "LED Flood Light 100W",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "led",
+   "flood",
+   "light",
+   "100w",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-led-strip-light-5m",
+  "name": "LED Strip Light 5m",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "led",
+   "strip",
+   "light",
+   "5m",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-solar-street-light",
+  "name": "Solar Street Light",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "solar",
+   "street",
+   "light",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-tube-light-holder-set",
+  "name": "Tube Light Holder Set",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "tube",
+   "light",
+   "holder",
+   "set",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-chandelier-fancy",
+  "name": "Chandelier Fancy",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "chandelier",
+   "fancy",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-wall-bracket-light",
+  "name": "Wall Bracket Light",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "wall",
+   "bracket",
+   "light",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-spot-light-round-led",
+  "name": "Spot Light Round LED",
+  "brand": "",
+  "category": "Lights",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "spot",
+   "light",
+   "round",
+   "led",
+   "lights"
+  ]
+ },
+ {
+  "id": "hardware-master-padlock-50mm",
+  "name": "Master Padlock 50mm",
+  "brand": "Master",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "master",
+   "padlock",
+   "50mm",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-master-padlock-63mm",
+  "name": "Master Padlock 63mm",
+  "brand": "Master",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "master",
+   "padlock",
+   "63mm",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-master-door-lock-cylinder",
+  "name": "Master Door Lock Cylinder",
+  "brand": "Master",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "master",
+   "door",
+   "lock",
+   "cylinder",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-master-mortise-lock-set",
+  "name": "Master Mortise Lock Set",
+  "brand": "Master",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1764,
+  "tags": [
+   "master",
+   "mortise",
+   "lock",
+   "set",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-dorset-door-lock-cylinder",
+  "name": "Dorset Door Lock Cylinder",
+  "brand": "Dorset",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1188,
+  "tags": [
+   "dorset",
+   "door",
+   "lock",
+   "cylinder",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-yale-padlock-50mm",
+  "name": "Yale Padlock 50mm",
+  "brand": "Yale",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "yale",
+   "padlock",
+   "50mm",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-door-handle-pair-1-pair",
+  "name": "Door Handle Pair 1 pair",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "door",
+   "handle",
+   "pair",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-latch-tower-bolt-6-inch",
+  "name": "Latch Tower Bolt 6 inch",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 68,
+  "tags": [
+   "latch",
+   "tower",
+   "bolt",
+   "inch",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-door-hinge-4-inch-pair-1-pair",
+  "name": "Door Hinge 4 inch Pair 1 pair",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 108,
+  "tags": [
+   "door",
+   "hinge",
+   "inch",
+   "pair",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-gate-hinge-heavy",
+  "name": "Gate Hinge Heavy",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "gate",
+   "hinge",
+   "heavy",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-door-closer",
+  "name": "Door Closer",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "door",
+   "closer",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-door-stopper",
+  "name": "Door Stopper",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 43,
+  "tags": [
+   "door",
+   "stopper",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-cabinet-handle",
+  "name": "Cabinet Handle",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 43,
+  "tags": [
+   "cabinet",
+   "handle",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-drawer-slide-pair-18-inch-1-pair",
+  "name": "Drawer Slide Pair 18 inch 1 pair",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "drawer",
+   "slide",
+   "pair",
+   "18",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-screws-box-1-inch",
+  "name": "Screws Box 1 inch",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "screws",
+   "box",
+   "inch",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-screws-box-2-inch",
+  "name": "Screws Box 2 inch",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "screws",
+   "box",
+   "inch",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-nails-1-kg-2-inch",
+  "name": "Nails 1 kg 2 inch",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 209,
+  "tags": [
+   "nails",
+   "kg",
+   "inch",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-nuts-and-bolts-set-1-set",
+  "name": "Nuts and Bolts Set 1 set",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "nuts",
+   "and",
+   "bolts",
+   "set",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-rawal-plug-box",
+  "name": "Rawal Plug Box",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 108,
+  "tags": [
+   "rawal",
+   "plug",
+   "box",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-anchor-bolt-10mm",
+  "name": "Anchor Bolt 10mm",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 45,
+  "costPrice": 32,
+  "tags": [
+   "anchor",
+   "bolt",
+   "10mm",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-wire-rope-per-meter",
+  "name": "Wire Rope per meter",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 68,
+  "tags": [
+   "wire",
+   "rope",
+   "per",
+   "meter",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-chain-iron-8mm-per-meter",
+  "name": "Chain Iron 8mm per meter",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "chain",
+   "iron",
+   "8mm",
+   "per",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-fevicol-1-kg",
+  "name": "Fevicol 1 kg",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "fevicol",
+   "kg",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-fevicol-250g",
+  "name": "Fevicol 250g",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "fevicol",
+   "250g",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-silicone-sealant-tube",
+  "name": "Silicone Sealant Tube",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "silicone",
+   "sealant",
+   "tube",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-araldite-epoxy",
+  "name": "Araldite Epoxy",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "araldite",
+   "epoxy",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-super-glue",
+  "name": "Super Glue",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 29,
+  "tags": [
+   "super",
+   "glue",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-gum-wood-adhesive-1-kg",
+  "name": "Gum Wood Adhesive 1 kg",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "gum",
+   "wood",
+   "adhesive",
+   "kg",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-black-tape-waterproof",
+  "name": "Black Tape Waterproof",
+  "brand": "",
+  "category": "Locks & Fasteners",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "black",
+   "tape",
+   "waterproof",
+   "locks & fasteners"
+  ]
+ },
+ {
+  "id": "hardware-safety-helmet",
+  "name": "Safety Helmet",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "safety",
+   "helmet"
+  ]
+ },
+ {
+  "id": "hardware-safety-shoes-1-pair",
+  "name": "Safety Shoes 1 pair",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "safety",
+   "shoes",
+   "pair"
+  ]
+ },
+ {
+  "id": "hardware-hand-gloves-cotton-1-pair",
+  "name": "Hand Gloves Cotton 1 pair",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 43,
+  "tags": [
+   "hand",
+   "gloves",
+   "cotton",
+   "pair",
+   "safety"
+  ]
+ },
+ {
+  "id": "hardware-rubber-gloves-1-pair",
+  "name": "Rubber Gloves 1 pair",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "rubber",
+   "gloves",
+   "pair",
+   "safety"
+  ]
+ },
+ {
+  "id": "hardware-safety-glasses",
+  "name": "Safety Glasses",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "safety",
+   "glasses"
+  ]
+ },
+ {
+  "id": "hardware-welding-mask",
+  "name": "Welding Mask",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "welding",
+   "mask",
+   "safety"
+  ]
+ },
+ {
+  "id": "hardware-dust-mask",
+  "name": "Dust Mask",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 22,
+  "tags": [
+   "dust",
+   "mask",
+   "safety"
+  ]
+ },
+ {
+  "id": "hardware-safety-vest-reflective",
+  "name": "Safety Vest Reflective",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "safety",
+   "vest",
+   "reflective"
+  ]
+ },
+ {
+  "id": "hardware-fire-extinguisher-6kg",
+  "name": "Fire Extinguisher 6kg",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3960,
+  "tags": [
+   "fire",
+   "extinguisher",
+   "6kg",
+   "safety"
+  ]
+ },
+ {
+  "id": "hardware-ear-plugs",
+  "name": "Ear Plugs",
+  "brand": "",
+  "category": "Safety",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 43,
+  "tags": [
+   "ear",
+   "plugs",
+   "safety"
+  ]
+ }
+]

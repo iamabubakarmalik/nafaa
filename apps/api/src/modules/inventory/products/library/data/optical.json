@@ -1,0 +1,1620 @@
+[
+ {
+  "id": "optical-ray-ban-optical-frame-rb5154",
+  "name": "Ray-Ban Optical Frame RB5154",
+  "brand": "Ray-Ban",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 9250,
+  "tags": [
+   "ray",
+   "ban",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-ray-ban-optical-frame-rb7047",
+  "name": "Ray-Ban Optical Frame RB7047",
+  "brand": "Ray-Ban",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 9750,
+  "tags": [
+   "ray",
+   "ban",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-ray-ban-wayfarer-optical-frame",
+  "name": "Ray-Ban Wayfarer Optical Frame",
+  "brand": "Ray-Ban",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 8750,
+  "tags": [
+   "ray",
+   "ban",
+   "wayfarer",
+   "optical",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-oakley-optical-frame-crosslink",
+  "name": "Oakley Optical Frame Crosslink",
+  "brand": "Oakley",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 9750,
+  "tags": [
+   "oakley",
+   "optical",
+   "frame",
+   "crosslink",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-police-optical-frame",
+  "name": "Police Optical Frame",
+  "brand": "Police",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 7250,
+  "tags": [
+   "police",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-tommy-hilfiger-optical-frame",
+  "name": "Tommy Hilfiger Optical Frame",
+  "brand": "Tommy Hilfiger",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 16500,
+  "costPrice": 8250,
+  "tags": [
+   "tommy",
+   "hilfiger",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-carrera-optical-frame",
+  "name": "Carrera Optical Frame",
+  "brand": "Carrera",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 7250,
+  "tags": [
+   "carrera",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-fossil-optical-frame",
+  "name": "Fossil Optical Frame",
+  "brand": "Fossil",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 5750,
+  "tags": [
+   "fossil",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-titan-optical-frame",
+  "name": "Titan Optical Frame",
+  "brand": "Titan",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 3250,
+  "tags": [
+   "titan",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-lenskart-optical-frame-metal",
+  "name": "Lenskart Optical Frame Metal",
+  "brand": "Lenskart",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1750,
+  "tags": [
+   "lenskart",
+   "optical",
+   "frame",
+   "metal",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-vincent-chase-optical-frame-full-rim",
+  "name": "Vincent Chase Optical Frame Full Rim",
+  "brand": "Vincent Chase",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1750,
+  "tags": [
+   "vincent",
+   "chase",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-john-jacobs-optical-frame",
+  "name": "John Jacobs Optical Frame",
+  "brand": "John Jacobs",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 4750,
+  "tags": [
+   "john",
+   "jacobs",
+   "optical",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-metal-frame-full-rim",
+  "name": "Metal Frame Full Rim",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1100,
+  "tags": [
+   "metal",
+   "frame",
+   "full",
+   "rim",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-metal-frame-half-rim",
+  "name": "Metal Frame Half Rim",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2000,
+  "costPrice": 1000,
+  "tags": [
+   "metal",
+   "frame",
+   "half",
+   "rim",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-metal-frame-rimless",
+  "name": "Metal Frame Rimless",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 1400,
+  "tags": [
+   "metal",
+   "frame",
+   "rimless",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-plastic-frame-full-rim",
+  "name": "Plastic Frame Full Rim",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 900,
+  "tags": [
+   "plastic",
+   "frame",
+   "full",
+   "rim",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-tr90-flexible-frame",
+  "name": "TR90 Flexible Frame",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1250,
+  "tags": [
+   "tr90",
+   "flexible",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-titanium-frame",
+  "name": "Titanium Frame",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 3250,
+  "tags": [
+   "titanium",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-kids-frame-flexible",
+  "name": "Kids Frame Flexible",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 900,
+  "tags": [
+   "kids",
+   "frame",
+   "flexible",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-kids-frame-plastic",
+  "name": "Kids Frame Plastic",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 1400,
+  "costPrice": 700,
+  "tags": [
+   "kids",
+   "frame",
+   "plastic",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-ladies-fashion-frame",
+  "name": "Ladies Fashion Frame",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1250,
+  "tags": [
+   "ladies",
+   "fashion",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-mens-classic-frame",
+  "name": "Mens Classic Frame",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1100,
+  "tags": [
+   "mens",
+   "classic",
+   "frame",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-reading-glass-frame-ready-made",
+  "name": "Reading Glass Frame Ready Made",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 600,
+  "tags": [
+   "reading",
+   "glass",
+   "frame",
+   "ready",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-frame-local-economy",
+  "name": "Frame Local Economy",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 475,
+  "tags": [
+   "frame",
+   "local",
+   "economy",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-frame-local-premium",
+  "name": "Frame Local Premium",
+  "brand": "",
+  "category": "Frames",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 825,
+  "tags": [
+   "frame",
+   "local",
+   "premium",
+   "frames"
+  ]
+ },
+ {
+  "id": "optical-plastic-lens-single-vision",
+  "name": "Plastic Lens Single Vision",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 1500,
+  "costPrice": 825,
+  "tags": [
+   "plastic",
+   "lens",
+   "single",
+   "vision",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-plastic-lens-single-vision-anti-glare",
+  "name": "Plastic Lens Single Vision Anti-Glare",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 2200,
+  "costPrice": 1210,
+  "tags": [
+   "plastic",
+   "lens",
+   "single",
+   "vision",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-plastic-lens-blue-cut",
+  "name": "Plastic Lens Blue Cut",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 3200,
+  "costPrice": 1760,
+  "tags": [
+   "plastic",
+   "lens",
+   "blue",
+   "cut",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-plastic-lens-photochromic",
+  "name": "Plastic Lens Photochromic",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "plastic",
+   "lens",
+   "photochromic",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-hard-resin-lens-1-56-single-vision",
+  "name": "Hard Resin Lens 1.56 Single Vision",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 2800,
+  "costPrice": 1540,
+  "tags": [
+   "hard",
+   "resin",
+   "lens",
+   "56",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-hard-resin-lens-1-56-blue-cut",
+  "name": "Hard Resin Lens 1.56 Blue Cut",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 4200,
+  "costPrice": 2310,
+  "tags": [
+   "hard",
+   "resin",
+   "lens",
+   "56",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-high-index-lens-1-61",
+  "name": "High Index Lens 1.61",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 6500,
+  "costPrice": 3575,
+  "tags": [
+   "high",
+   "index",
+   "lens",
+   "61",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-high-index-lens-1-67",
+  "name": "High Index Lens 1.67",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 9500,
+  "costPrice": 5225,
+  "tags": [
+   "high",
+   "index",
+   "lens",
+   "67",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-high-index-lens-1-74",
+  "name": "High Index Lens 1.74",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 15500,
+  "costPrice": 8525,
+  "tags": [
+   "high",
+   "index",
+   "lens",
+   "74",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-bifocal-lens",
+  "name": "Bifocal Lens",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "bifocal",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-progressive-lens-basic",
+  "name": "Progressive Lens Basic",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 7500,
+  "costPrice": 4125,
+  "tags": [
+   "progressive",
+   "lens",
+   "basic",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-progressive-lens-premium",
+  "name": "Progressive Lens Premium",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 14500,
+  "costPrice": 7975,
+  "tags": [
+   "progressive",
+   "lens",
+   "premium",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-glass-lens-single-vision",
+  "name": "Glass Lens Single Vision",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 2800,
+  "costPrice": 1540,
+  "tags": [
+   "glass",
+   "lens",
+   "single",
+   "vision",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-polycarbonate-lens-kids",
+  "name": "Polycarbonate Lens Kids",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "polycarbonate",
+   "lens",
+   "kids",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-polarized-lens",
+  "name": "Polarized Lens",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 6500,
+  "costPrice": 3575,
+  "tags": [
+   "polarized",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-zeiss-single-vision-lens",
+  "name": "Zeiss Single Vision Lens",
+  "brand": "Zeiss",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 12500,
+  "costPrice": 6875,
+  "tags": [
+   "zeiss",
+   "single",
+   "vision",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-zeiss-progressive-lens",
+  "name": "Zeiss Progressive Lens",
+  "brand": "Zeiss",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 35000,
+  "costPrice": 19250,
+  "tags": [
+   "zeiss",
+   "progressive",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-essilor-varilux-progressive-lens",
+  "name": "Essilor Varilux Progressive Lens",
+  "brand": "Essilor",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 38000,
+  "costPrice": 20900,
+  "tags": [
+   "essilor",
+   "varilux",
+   "progressive",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-essilor-single-vision-crizal",
+  "name": "Essilor Single Vision Crizal",
+  "brand": "Essilor",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 14500,
+  "costPrice": 7975,
+  "tags": [
+   "essilor",
+   "single",
+   "vision",
+   "crizal",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-hoya-single-vision-lens",
+  "name": "Hoya Single Vision Lens",
+  "brand": "Hoya",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 9500,
+  "costPrice": 5225,
+  "tags": [
+   "hoya",
+   "single",
+   "vision",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-hoya-progressive-lens",
+  "name": "Hoya Progressive Lens",
+  "brand": "Hoya",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 28500,
+  "costPrice": 15675,
+  "tags": [
+   "hoya",
+   "progressive",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-rodenstock-single-vision-lens",
+  "name": "Rodenstock Single Vision Lens",
+  "brand": "Rodenstock",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 12500,
+  "costPrice": 6875,
+  "tags": [
+   "rodenstock",
+   "single",
+   "vision",
+   "lens",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-lens-fitting-charges",
+  "name": "Lens Fitting Charges",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 500,
+  "costPrice": 275,
+  "tags": [
+   "lens",
+   "fitting",
+   "charges",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-lens-edge-cutting",
+  "name": "Lens Edge Cutting",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 300,
+  "costPrice": 165,
+  "tags": [
+   "lens",
+   "edge",
+   "cutting",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-frame-repair-service",
+  "name": "Frame Repair Service",
+  "brand": "",
+  "category": "Lenses",
+  "unit": "pair",
+  "price": 300,
+  "costPrice": 165,
+  "tags": [
+   "frame",
+   "repair",
+   "service",
+   "lenses"
+  ]
+ },
+ {
+  "id": "optical-ray-ban-aviator-sunglasses",
+  "name": "Ray-Ban Aviator Sunglasses",
+  "brand": "Ray-Ban",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 22500,
+  "costPrice": 12375,
+  "tags": [
+   "ray",
+   "ban",
+   "aviator",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-ray-ban-wayfarer-sunglasses",
+  "name": "Ray-Ban Wayfarer Sunglasses",
+  "brand": "Ray-Ban",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 21500,
+  "costPrice": 11825,
+  "tags": [
+   "ray",
+   "ban",
+   "wayfarer",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-ray-ban-clubmaster-sunglasses",
+  "name": "Ray-Ban Clubmaster Sunglasses",
+  "brand": "Ray-Ban",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 23500,
+  "costPrice": 12925,
+  "tags": [
+   "ray",
+   "ban",
+   "clubmaster",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-oakley-holbrook-sunglasses",
+  "name": "Oakley Holbrook Sunglasses",
+  "brand": "Oakley",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 13475,
+  "tags": [
+   "oakley",
+   "holbrook",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-oakley-sport-sunglasses",
+  "name": "Oakley Sport Sunglasses",
+  "brand": "Oakley",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 15675,
+  "tags": [
+   "oakley",
+   "sport",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-police-sunglasses",
+  "name": "Police Sunglasses",
+  "brand": "Police",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 9625,
+  "tags": [
+   "police",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-carrera-sunglasses",
+  "name": "Carrera Sunglasses",
+  "brand": "Carrera",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 10175,
+  "tags": [
+   "carrera",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-guess-sunglasses",
+  "name": "Guess Sunglasses",
+  "brand": "Guess",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 7975,
+  "tags": [
+   "guess",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-gucci-sunglasses",
+  "name": "Gucci Sunglasses",
+  "brand": "Gucci",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 24750,
+  "tags": [
+   "gucci",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-prada-sunglasses",
+  "name": "Prada Sunglasses",
+  "brand": "Prada",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 23100,
+  "tags": [
+   "prada",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-maui-jim-sunglasses",
+  "name": "Maui Jim Sunglasses",
+  "brand": "Maui Jim",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 20900,
+  "tags": [
+   "maui",
+   "jim",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-aviator-local",
+  "name": "Sunglasses Aviator Local",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 990,
+  "tags": [
+   "sunglasses",
+   "aviator",
+   "local"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-wayfarer-local",
+  "name": "Sunglasses Wayfarer Local",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 825,
+  "tags": [
+   "sunglasses",
+   "wayfarer",
+   "local"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-polarized-mens",
+  "name": "Sunglasses Polarized Mens",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "sunglasses",
+   "polarized",
+   "mens"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-ladies-fashion",
+  "name": "Sunglasses Ladies Fashion",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1375,
+  "tags": [
+   "sunglasses",
+   "ladies",
+   "fashion"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-kids",
+  "name": "Sunglasses Kids",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "sunglasses",
+   "kids"
+  ]
+ },
+ {
+  "id": "optical-sunglasses-sports-cycling",
+  "name": "Sunglasses Sports Cycling",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 1540,
+  "tags": [
+   "sunglasses",
+   "sports",
+   "cycling"
+  ]
+ },
+ {
+  "id": "optical-night-driving-glasses",
+  "name": "Night Driving Glasses",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1210,
+  "tags": [
+   "night",
+   "driving",
+   "glasses",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-clip-on-sunglasses",
+  "name": "Clip-On Sunglasses",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 990,
+  "tags": [
+   "clip",
+   "on",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-fishing-polarized-glasses",
+  "name": "Fishing Polarized Glasses",
+  "brand": "",
+  "category": "Sunglasses",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "fishing",
+   "polarized",
+   "glasses",
+   "sunglasses"
+  ]
+ },
+ {
+  "id": "optical-bausch-and-lomb-monthly-lenses-soflens",
+  "name": "Bausch & Lomb Monthly Lenses Soflens",
+  "brand": "Bausch & Lomb",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 3500,
+  "costPrice": 2275,
+  "tags": [
+   "bausch",
+   "lomb",
+   "monthly",
+   "lenses",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-bausch-and-lomb-colour-lenses-monthly",
+  "name": "Bausch & Lomb Colour Lenses Monthly",
+  "brand": "Bausch & Lomb",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 4500,
+  "costPrice": 2925,
+  "tags": [
+   "bausch",
+   "lomb",
+   "colour",
+   "lenses",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-johnson-and-johnson-acuvue-monthly",
+  "name": "Johnson & Johnson Acuvue Monthly",
+  "brand": "Johnson & Johnson",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 4500,
+  "costPrice": 2925,
+  "tags": [
+   "johnson",
+   "acuvue",
+   "monthly",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-johnson-and-johnson-acuvue-daily",
+  "name": "Johnson & Johnson Acuvue Daily",
+  "brand": "Johnson & Johnson",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 7500,
+  "costPrice": 4875,
+  "tags": [
+   "johnson",
+   "acuvue",
+   "daily",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-alcon-air-optix-aqua",
+  "name": "Alcon Air Optix Aqua",
+  "brand": "Alcon",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 5500,
+  "costPrice": 3575,
+  "tags": [
+   "alcon",
+   "air",
+   "optix",
+   "aqua",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-alcon-dailies-total-1",
+  "name": "Alcon Dailies Total 1",
+  "brand": "Alcon",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 9500,
+  "costPrice": 6175,
+  "tags": [
+   "alcon",
+   "dailies",
+   "total",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-coopervision-biofinity-monthly",
+  "name": "CooperVision Biofinity Monthly",
+  "brand": "CooperVision",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 5500,
+  "costPrice": 3575,
+  "tags": [
+   "coopervision",
+   "biofinity",
+   "monthly",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-freshlook-colourblends-monthly",
+  "name": "Freshlook Colourblends Monthly",
+  "brand": "Freshlook",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 3500,
+  "costPrice": 2275,
+  "tags": [
+   "freshlook",
+   "colourblends",
+   "monthly",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-freshlook-dailies-colour",
+  "name": "Freshlook Dailies Colour",
+  "brand": "Freshlook",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 4500,
+  "costPrice": 2925,
+  "tags": [
+   "freshlook",
+   "dailies",
+   "colour",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-soft-contact-lens-yearly",
+  "name": "Soft Contact Lens Yearly",
+  "brand": "",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 2500,
+  "costPrice": 1625,
+  "tags": [
+   "soft",
+   "contact",
+   "lens",
+   "yearly",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-cosmetic-colour-lenses-pair",
+  "name": "Cosmetic Colour Lenses Pair",
+  "brand": "",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 1800,
+  "costPrice": 1170,
+  "tags": [
+   "cosmetic",
+   "colour",
+   "lenses",
+   "pair",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-renu-lens-solution-120ml",
+  "name": "Renu Lens Solution 120ml",
+  "brand": "Renu",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "renu",
+   "lens",
+   "solution",
+   "120ml",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-renu-lens-solution-355ml",
+  "name": "Renu Lens Solution 355ml",
+  "brand": "Renu",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 1650,
+  "costPrice": 1072,
+  "tags": [
+   "renu",
+   "lens",
+   "solution",
+   "355ml",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-opti-free-multipurpose-solution-300ml",
+  "name": "Opti-Free Multipurpose Solution 300ml",
+  "brand": "Opti-Free",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 2200,
+  "costPrice": 1430,
+  "tags": [
+   "opti",
+   "free",
+   "multipurpose",
+   "solution",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-bausch-and-lomb-lens-solution-355ml",
+  "name": "Bausch & Lomb Lens Solution 355ml",
+  "brand": "Bausch & Lomb",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 1800,
+  "costPrice": 1170,
+  "tags": [
+   "bausch",
+   "lomb",
+   "lens",
+   "solution",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-lens-case",
+  "name": "Lens Case",
+  "brand": "",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 150,
+  "costPrice": 98,
+  "tags": [
+   "lens",
+   "case",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-lens-tweezers",
+  "name": "Lens Tweezers",
+  "brand": "",
+  "category": "Contact Lenses",
+  "unit": "pair",
+  "price": 120,
+  "costPrice": 78,
+  "tags": [
+   "lens",
+   "tweezers",
+   "contact lenses"
+  ]
+ },
+ {
+  "id": "optical-eye-glass-case-hard",
+  "name": "Eye Glass Case Hard",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 193,
+  "tags": [
+   "eye",
+   "glass",
+   "case",
+   "hard",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-eye-glass-case-soft",
+  "name": "Eye Glass Case Soft",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "eye",
+   "glass",
+   "case",
+   "soft",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-eye-glass-case-premium-leather",
+  "name": "Eye Glass Case Premium Leather",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 522,
+  "tags": [
+   "eye",
+   "glass",
+   "case",
+   "premium",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-glasses-cleaning-cloth",
+  "name": "Glasses Cleaning Cloth",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 44,
+  "tags": [
+   "glasses",
+   "cleaning",
+   "cloth",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-lens-cleaning-spray",
+  "name": "Lens Cleaning Spray",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 193,
+  "tags": [
+   "lens",
+   "cleaning",
+   "spray",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-anti-fog-spray",
+  "name": "Anti-Fog Spray",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "anti",
+   "fog",
+   "spray",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-glasses-chain-cord",
+  "name": "Glasses Chain Cord",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "glasses",
+   "chain",
+   "cord",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-nose-pad-silicone-pair-1-pair",
+  "name": "Nose Pad Silicone Pair 1 pair",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 28,
+  "tags": [
+   "nose",
+   "pad",
+   "silicone",
+   "pair",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-screw-kit-repair",
+  "name": "Screw Kit Repair",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "screw",
+   "kit",
+   "repair",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-glasses-strap-sports",
+  "name": "Glasses Strap Sports",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "glasses",
+   "strap",
+   "sports",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-1-00",
+  "name": "Reading Glasses +1.00",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "reading",
+   "glasses",
+   "00",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-1-50",
+  "name": "Reading Glasses +1.50",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "reading",
+   "glasses",
+   "50",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-2-00",
+  "name": "Reading Glasses +2.00",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "reading",
+   "glasses",
+   "00",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-2-50",
+  "name": "Reading Glasses +2.50",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "reading",
+   "glasses",
+   "50",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-3-00",
+  "name": "Reading Glasses +3.00",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 660,
+  "tags": [
+   "reading",
+   "glasses",
+   "00",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-reading-glasses-folding",
+  "name": "Reading Glasses Folding",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 825,
+  "tags": [
+   "reading",
+   "glasses",
+   "folding",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-magnifying-glass",
+  "name": "Magnifying Glass",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 358,
+  "tags": [
+   "magnifying",
+   "glass",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-eye-drops-lubricant",
+  "name": "Eye Drops Lubricant",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "eye",
+   "drops",
+   "lubricant",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-computer-glasses-blue-light",
+  "name": "Computer Glasses Blue Light",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1210,
+  "tags": [
+   "computer",
+   "glasses",
+   "blue",
+   "light",
+   "accessories"
+  ]
+ },
+ {
+  "id": "optical-frame-display-stand",
+  "name": "Frame Display Stand",
+  "brand": "",
+  "category": "Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "frame",
+   "display",
+   "stand",
+   "accessories"
+  ]
+ }
+]

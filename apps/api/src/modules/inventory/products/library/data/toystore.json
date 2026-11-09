@@ -1,0 +1,2370 @@
+[
+ {
+  "id": "toystore-teddy-bear-small-30cm",
+  "name": "Teddy Bear Small 30cm",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "teddy",
+   "bear",
+   "small",
+   "30cm",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-teddy-bear-medium-60cm",
+  "name": "Teddy Bear Medium 60cm",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1188,
+  "tags": [
+   "teddy",
+   "bear",
+   "medium",
+   "60cm",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-teddy-bear-large-100cm",
+  "name": "Teddy Bear Large 100cm",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2736,
+  "tags": [
+   "teddy",
+   "bear",
+   "large",
+   "100cm",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-teddy-bear-giant-150cm",
+  "name": "Teddy Bear Giant 150cm",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5400,
+  "tags": [
+   "teddy",
+   "bear",
+   "giant",
+   "150cm",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-teddy-bear-with-heart",
+  "name": "Teddy Bear with Heart",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "teddy",
+   "bear",
+   "with",
+   "heart",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-panda-soft-toy-40cm",
+  "name": "Panda Soft Toy 40cm",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "panda",
+   "soft",
+   "toy",
+   "40cm",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-unicorn-soft-toy",
+  "name": "Unicorn Soft Toy",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "unicorn",
+   "soft",
+   "toy",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-dog-soft-toy",
+  "name": "Dog Soft Toy",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "dog",
+   "soft",
+   "toy",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-rabbit-soft-toy",
+  "name": "Rabbit Soft Toy",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "rabbit",
+   "soft",
+   "toy",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-elephant-soft-toy",
+  "name": "Elephant Soft Toy",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 828,
+  "tags": [
+   "elephant",
+   "soft",
+   "toy",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-dinosaur-soft-toy",
+  "name": "Dinosaur Soft Toy",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "dinosaur",
+   "soft",
+   "toy",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-minion-plush",
+  "name": "Minion Plush",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "minion",
+   "plush",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-pillow-plush-cartoon",
+  "name": "Pillow Plush Cartoon",
+  "brand": "",
+  "category": "Soft Toys",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "pillow",
+   "plush",
+   "cartoon",
+   "soft toys"
+  ]
+ },
+ {
+  "id": "toystore-hot-wheels-basic-car-single",
+  "name": "Hot Wheels Basic Car Single",
+  "brand": "Hot Wheels",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "hot",
+   "wheels",
+   "basic",
+   "car",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-hot-wheels-car-5-pack",
+  "name": "Hot Wheels Car 5 Pack",
+  "brand": "Hot Wheels",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "hot",
+   "wheels",
+   "car",
+   "pack",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-hot-wheels-track-set",
+  "name": "Hot Wheels Track Set",
+  "brand": "Hot Wheels",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "hot",
+   "wheels",
+   "track",
+   "set",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-matchbox-car-single",
+  "name": "Matchbox Car Single",
+  "brand": "Matchbox",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "matchbox",
+   "car",
+   "single",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-remote-control-car-small",
+  "name": "Remote Control Car Small",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "remote",
+   "control",
+   "car",
+   "small",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-remote-control-car-4wd-big",
+  "name": "Remote Control Car 4WD Big",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "remote",
+   "control",
+   "car",
+   "4wd",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-rc-drift-car",
+  "name": "RC Drift Car",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "rc",
+   "drift",
+   "car",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-rc-helicopter",
+  "name": "RC Helicopter",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "rc",
+   "helicopter",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-rc-drone-with-camera",
+  "name": "RC Drone with Camera",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "rc",
+   "drone",
+   "with",
+   "camera",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-battery-operated-car",
+  "name": "Battery Operated Car",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "battery",
+   "operated",
+   "car",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-pull-back-car-set-of-6-1-set",
+  "name": "Pull Back Car Set of 6 1 set",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "pull",
+   "back",
+   "car",
+   "set",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-die-cast-car-metal",
+  "name": "Die Cast Car Metal",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "die",
+   "cast",
+   "car",
+   "metal",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-police-car-with-siren",
+  "name": "Police Car with Siren",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "police",
+   "car",
+   "with",
+   "siren",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-truck-toy-large",
+  "name": "Truck Toy Large",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "truck",
+   "toy",
+   "large",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-excavator-toy-large",
+  "name": "Excavator Toy Large",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "excavator",
+   "toy",
+   "large",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-train-set-electric",
+  "name": "Train Set Electric",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "train",
+   "set",
+   "electric",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-electric-car-ride-on",
+  "name": "Kids Electric Car Ride On",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24000,
+  "tags": [
+   "kids",
+   "electric",
+   "car",
+   "ride",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-electric-bike-ride-on",
+  "name": "Kids Electric Bike Ride On",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 18375,
+  "tags": [
+   "kids",
+   "electric",
+   "bike",
+   "ride",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-tricycle",
+  "name": "Kids Tricycle",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "kids",
+   "tricycle",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-cycle-12-inch",
+  "name": "Kids Cycle 12 inch",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "kids",
+   "cycle",
+   "12",
+   "inch",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-cycle-16-inch",
+  "name": "Kids Cycle 16 inch",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 13500,
+  "costPrice": 10125,
+  "tags": [
+   "kids",
+   "cycle",
+   "16",
+   "inch",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-scooter-2-wheel",
+  "name": "Kids Scooter 2 Wheel",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "kids",
+   "scooter",
+   "wheel",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-kids-scooter-3-wheel-led",
+  "name": "Kids Scooter 3 Wheel LED",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "kids",
+   "scooter",
+   "wheel",
+   "led",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-baby-walker",
+  "name": "Baby Walker",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "baby",
+   "walker",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-baby-rocking-horse",
+  "name": "Baby Rocking Horse",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "baby",
+   "rocking",
+   "horse",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-baby-swing",
+  "name": "Baby Swing",
+  "brand": "",
+  "category": "Cars, Bikes & Remote Control",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "baby",
+   "swing",
+   "cars, bikes & remote control"
+  ]
+ },
+ {
+  "id": "toystore-lego-classic-brick-box",
+  "name": "Lego Classic Brick Box",
+  "brand": "Lego",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "lego",
+   "classic",
+   "brick",
+   "box",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-lego-city-police-station",
+  "name": "Lego City Police Station",
+  "brand": "Lego",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "lego",
+   "city",
+   "police",
+   "station",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-lego-duplo-starter-set",
+  "name": "Lego Duplo Starter Set",
+  "brand": "Lego",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "lego",
+   "duplo",
+   "starter",
+   "set",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-lego-technic-car",
+  "name": "Lego Technic Car",
+  "brand": "Lego",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "lego",
+   "technic",
+   "car",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-lego-friends-set",
+  "name": "Lego Friends Set",
+  "brand": "Lego",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "lego",
+   "friends",
+   "set",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-building-blocks-100pcs",
+  "name": "Building Blocks 100pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "building",
+   "blocks",
+   "100pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-building-blocks-250pcs",
+  "name": "Building Blocks 250pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "building",
+   "blocks",
+   "250pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-building-blocks-500pcs",
+  "name": "Building Blocks 500pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "building",
+   "blocks",
+   "500pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-magnetic-blocks-50pcs",
+  "name": "Magnetic Blocks 50pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "magnetic",
+   "blocks",
+   "50pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-wooden-blocks-alphabet",
+  "name": "Wooden Blocks Alphabet",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "wooden",
+   "blocks",
+   "alphabet",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-wooden-puzzle-alphabet",
+  "name": "Wooden Puzzle Alphabet",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "wooden",
+   "puzzle",
+   "alphabet",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-wooden-puzzle-animals",
+  "name": "Wooden Puzzle Animals",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "wooden",
+   "puzzle",
+   "animals",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-jigsaw-puzzle-100pcs",
+  "name": "Jigsaw Puzzle 100pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "jigsaw",
+   "puzzle",
+   "100pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-jigsaw-puzzle-500pcs",
+  "name": "Jigsaw Puzzle 500pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "jigsaw",
+   "puzzle",
+   "500pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-jigsaw-puzzle-1000pcs",
+  "name": "Jigsaw Puzzle 1000pcs",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "jigsaw",
+   "puzzle",
+   "1000pcs",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-rubiks-cube-3x3",
+  "name": "Rubik's Cube 3x3",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "rubik",
+   "cube",
+   "3x3",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-rubiks-cube-4x4",
+  "name": "Rubik's Cube 4x4",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "rubik",
+   "cube",
+   "4x4",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-fidget-spinner",
+  "name": "Fidget Spinner",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "fidget",
+   "spinner",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-pop-it-fidget-toy",
+  "name": "Pop It Fidget Toy",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "pop",
+   "it",
+   "fidget",
+   "toy",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-slime-kit",
+  "name": "Slime Kit",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "slime",
+   "kit",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-kinetic-sand-1kg",
+  "name": "Kinetic Sand 1kg",
+  "brand": "",
+  "category": "Building Blocks & Puzzles",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "kinetic",
+   "sand",
+   "1kg",
+   "building blocks & puzzles"
+  ]
+ },
+ {
+  "id": "toystore-barbie-doll-basic",
+  "name": "Barbie Doll Basic",
+  "brand": "Barbie",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2016,
+  "tags": [
+   "barbie",
+   "doll",
+   "basic",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-barbie-dreamhouse-playset",
+  "name": "Barbie Dreamhouse Playset",
+  "brand": "Barbie",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13320,
+  "tags": [
+   "barbie",
+   "dreamhouse",
+   "playset",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-barbie-fashion-doll",
+  "name": "Barbie Fashion Doll",
+  "brand": "Barbie",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "barbie",
+   "fashion",
+   "doll",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-barbie-doll-clothes-set",
+  "name": "Barbie Doll Clothes Set",
+  "brand": "Barbie",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1332,
+  "tags": [
+   "barbie",
+   "doll",
+   "clothes",
+   "set",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-baby-doll-small",
+  "name": "Baby Doll Small",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "baby",
+   "doll",
+   "small",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-baby-doll-walking",
+  "name": "Baby Doll Walking",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1332,
+  "tags": [
+   "baby",
+   "doll",
+   "walking",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-baby-doll-with-clothes",
+  "name": "Baby Doll with Clothes",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "baby",
+   "doll",
+   "with",
+   "clothes",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-doll-house-wooden",
+  "name": "Doll House Wooden",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4680,
+  "tags": [
+   "doll",
+   "house",
+   "wooden",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-doll-house-plastic",
+  "name": "Doll House Plastic",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "doll",
+   "house",
+   "plastic",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-doll-stroller",
+  "name": "Doll Stroller",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1584,
+  "tags": [
+   "doll",
+   "stroller",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-kitchen-set-plastic-1-set",
+  "name": "Kitchen Set Plastic 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1332,
+  "tags": [
+   "kitchen",
+   "set",
+   "plastic",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-kitchen-set-big-with-lights-1-set",
+  "name": "Kitchen Set Big with Lights 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3960,
+  "tags": [
+   "kitchen",
+   "set",
+   "big",
+   "with",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-doctor-set-kids-1-set",
+  "name": "Doctor Set Kids 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "doctor",
+   "set",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-tea-set-kids-1-set",
+  "name": "Tea Set Kids 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 540,
+  "tags": [
+   "tea",
+   "set",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-tool-set-kids-plastic-1-set",
+  "name": "Tool Set Kids Plastic 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "tool",
+   "set",
+   "kids",
+   "plastic",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-makeup-set-kids-1-set",
+  "name": "Makeup Set Kids 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "makeup",
+   "set",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-shopping-cart-toy",
+  "name": "Shopping Cart Toy",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1584,
+  "tags": [
+   "shopping",
+   "cart",
+   "toy",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-cash-register-toy",
+  "name": "Cash Register Toy",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1332,
+  "tags": [
+   "cash",
+   "register",
+   "toy",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-hair-salon-playset-1-set",
+  "name": "Hair Salon Playset 1 set",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1584,
+  "tags": [
+   "hair",
+   "salon",
+   "playset",
+   "set",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-super-hero-mask",
+  "name": "Super Hero Mask",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "super",
+   "hero",
+   "mask",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-super-hero-costume-kids",
+  "name": "Super Hero Costume Kids",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "super",
+   "hero",
+   "costume",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-police-costume-kids",
+  "name": "Police Costume Kids",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "police",
+   "costume",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-princess-dress-kids",
+  "name": "Princess Dress Kids",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1584,
+  "tags": [
+   "princess",
+   "dress",
+   "kids",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-fancy-dress-wig",
+  "name": "Fancy Dress Wig",
+  "brand": "",
+  "category": "Dolls & Pretend Play",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "fancy",
+   "dress",
+   "wig",
+   "dolls & pretend play"
+  ]
+ },
+ {
+  "id": "toystore-hasbro-monopoly-board-game",
+  "name": "Hasbro Monopoly Board Game",
+  "brand": "Hasbro",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "hasbro",
+   "monopoly",
+   "board",
+   "game",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-hasbro-uno-cards",
+  "name": "Hasbro Uno Cards",
+  "brand": "Hasbro",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "hasbro",
+   "uno",
+   "cards",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-hasbro-nerf-blaster",
+  "name": "Hasbro Nerf Blaster",
+  "brand": "Hasbro",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "hasbro",
+   "nerf",
+   "blaster",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-hasbro-play-doh-set",
+  "name": "Hasbro Play-Doh Set",
+  "brand": "Hasbro",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "hasbro",
+   "play",
+   "doh",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-mattel-uno-card-game",
+  "name": "Mattel Uno Card Game",
+  "brand": "Mattel",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "mattel",
+   "uno",
+   "card",
+   "game",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-mattel-scrabble",
+  "name": "Mattel Scrabble",
+  "brand": "Mattel",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "mattel",
+   "scrabble",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-action-figure-spiderman",
+  "name": "Action Figure Spiderman",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "action",
+   "figure",
+   "spiderman",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-action-figure-batman",
+  "name": "Action Figure Batman",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "action",
+   "figure",
+   "batman",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-action-figure-set-6pcs-1-set",
+  "name": "Action Figure Set 6pcs 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "action",
+   "figure",
+   "set",
+   "6pcs",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-transformers-robot",
+  "name": "Transformers Robot",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "transformers",
+   "robot",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-gun-water",
+  "name": "Toy Gun Water",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "toy",
+   "gun",
+   "water",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-water-gun-large",
+  "name": "Water Gun Large",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "water",
+   "gun",
+   "large",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-gun-pistol-cap",
+  "name": "Toy Gun Pistol Cap",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "toy",
+   "gun",
+   "pistol",
+   "cap",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-sword",
+  "name": "Toy Sword",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "toy",
+   "sword",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-bow-and-arrow-set-1-set",
+  "name": "Bow and Arrow Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "bow",
+   "and",
+   "arrow",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-ludo-board-game",
+  "name": "Ludo Board Game",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "ludo",
+   "board",
+   "game",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-snake-and-ladder",
+  "name": "Snake and Ladder",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "snake",
+   "and",
+   "ladder",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-business-board-game",
+  "name": "Business Board Game",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "business",
+   "board",
+   "game",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-playing-cards-deck",
+  "name": "Playing Cards Deck",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "playing",
+   "cards",
+   "deck",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-carrom-board-small",
+  "name": "Carrom Board Small",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "carrom",
+   "board",
+   "small",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-chess-set-plastic",
+  "name": "Chess Set Plastic",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "chess",
+   "set",
+   "plastic",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-spinning-top",
+  "name": "Spinning Top",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "spinning",
+   "top",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-yo-yo",
+  "name": "Yo-Yo",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 75,
+  "tags": [
+   "yo",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-marbles-bag",
+  "name": "Marbles Bag",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "marbles",
+   "bag",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kite-paper-dozen-1-dozen",
+  "name": "Kite Paper Dozen 1 dozen",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "kite",
+   "paper",
+   "dozen",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kite-string-reel",
+  "name": "Kite String Reel",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "kite",
+   "string",
+   "reel",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-balloons-pack-of-50",
+  "name": "Balloons Pack of 50",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "balloons",
+   "pack",
+   "of",
+   "50",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-bubble-gun",
+  "name": "Bubble Gun",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "bubble",
+   "gun",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-bubble-solution",
+  "name": "Bubble Solution",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "bubble",
+   "solution",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-drawing-board-magnetic",
+  "name": "Drawing Board Magnetic",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "drawing",
+   "board",
+   "magnetic",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-lcd-writing-tablet",
+  "name": "LCD Writing Tablet",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "lcd",
+   "writing",
+   "tablet",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-educational-tablet-kids",
+  "name": "Educational Tablet Kids",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "educational",
+   "tablet",
+   "kids",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-learning-alphabet-toy",
+  "name": "Learning Alphabet Toy",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "learning",
+   "alphabet",
+   "toy",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-abacus-counting-frame",
+  "name": "Abacus Counting Frame",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "abacus",
+   "counting",
+   "frame",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-musical-piano-toy",
+  "name": "Musical Piano Toy",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "musical",
+   "piano",
+   "toy",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-drum-set",
+  "name": "Toy Drum Set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "toy",
+   "drum",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-guitar",
+  "name": "Toy Guitar",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "toy",
+   "guitar",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-microphone",
+  "name": "Toy Microphone",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "toy",
+   "microphone",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-baby-rattle-set-1-set",
+  "name": "Baby Rattle Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "baby",
+   "rattle",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-teether-ring",
+  "name": "Teether Ring",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "teether",
+   "ring",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-baby-musical-mobile",
+  "name": "Baby Musical Mobile",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "baby",
+   "musical",
+   "mobile",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-baby-activity-gym-mat",
+  "name": "Baby Activity Gym Mat",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "baby",
+   "activity",
+   "gym",
+   "mat",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-sand-toys-beach-set-1-set",
+  "name": "Sand Toys Beach Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "sand",
+   "toys",
+   "beach",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-swimming-pool-inflatable",
+  "name": "Kids Swimming Pool Inflatable",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "kids",
+   "swimming",
+   "pool",
+   "inflatable",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-water-balloon-pack",
+  "name": "Water Balloon Pack",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "water",
+   "balloon",
+   "pack",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-bike-tricycle-mini",
+  "name": "Toy Bike Tricycle Mini",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "toy",
+   "bike",
+   "tricycle",
+   "mini",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-table-chair-set-1-set",
+  "name": "Kids Table Chair Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "kids",
+   "table",
+   "chair",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-foam-mat-puzzle-9pcs",
+  "name": "Foam Mat Puzzle 9pcs",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "foam",
+   "mat",
+   "puzzle",
+   "9pcs",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-remote-control-boat",
+  "name": "Remote Control Boat",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "remote",
+   "control",
+   "boat",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-space-rocket-toy",
+  "name": "Space Rocket Toy",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "space",
+   "rocket",
+   "toy",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-robot-toy-walking",
+  "name": "Robot Toy Walking",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "robot",
+   "toy",
+   "walking",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-dinosaur-figure-large",
+  "name": "Dinosaur Figure Large",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "dinosaur",
+   "figure",
+   "large",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-animals-figure-set-zoo-1-set",
+  "name": "Animals Figure Set Zoo 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "animals",
+   "figure",
+   "set",
+   "zoo",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-sticker-book",
+  "name": "Sticker Book",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "sticker",
+   "book",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-backpack-cartoon",
+  "name": "Kids Backpack Cartoon",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "kids",
+   "backpack",
+   "cartoon",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-lunch-box-cartoon",
+  "name": "Kids Lunch Box Cartoon",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "kids",
+   "lunch",
+   "box",
+   "cartoon",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-water-bottle-kids-cartoon",
+  "name": "Water Bottle Kids Cartoon",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "water",
+   "bottle",
+   "kids",
+   "cartoon",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-cooking-pot-set-1-set",
+  "name": "Toy Cooking Pot Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "toy",
+   "cooking",
+   "pot",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-dinosaur-egg-dig-kit",
+  "name": "Toy Dinosaur Egg Dig Kit",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "toy",
+   "dinosaur",
+   "egg",
+   "dig",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-phone-kids-musical",
+  "name": "Toy Phone Kids Musical",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "toy",
+   "phone",
+   "kids",
+   "musical",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-camera-kids",
+  "name": "Toy Camera Kids",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "toy",
+   "camera",
+   "kids",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-parking-garage",
+  "name": "Toy Parking Garage",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "toy",
+   "parking",
+   "garage",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-airplane-large",
+  "name": "Toy Airplane Large",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "toy",
+   "airplane",
+   "large",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-toy-animal-farm-set-1-set",
+  "name": "Toy Animal Farm Set 1 set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "toy",
+   "animal",
+   "farm",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-educational-flash-cards",
+  "name": "Educational Flash Cards",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "educational",
+   "flash",
+   "cards",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-wooden-train-set",
+  "name": "Wooden Train Set",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "wooden",
+   "train",
+   "set",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-magnetic-fishing-game",
+  "name": "Magnetic Fishing Game",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "magnetic",
+   "fishing",
+   "game",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-stacking-rings-toy",
+  "name": "Stacking Rings Toy",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "stacking",
+   "rings",
+   "toy",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-shape-sorter-cube",
+  "name": "Shape Sorter Cube",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "shape",
+   "sorter",
+   "cube",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-binoculars",
+  "name": "Kids Binoculars",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "kids",
+   "binoculars",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-science-kit",
+  "name": "Kids Science Kit",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "kids",
+   "science",
+   "kit",
+   "action figures & games"
+  ]
+ },
+ {
+  "id": "toystore-kids-watch-digital",
+  "name": "Kids Watch Digital",
+  "brand": "",
+  "category": "Action Figures & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "kids",
+   "watch",
+   "digital",
+   "action figures & games"
+  ]
+ }
+]

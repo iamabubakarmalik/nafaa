@@ -23,6 +23,7 @@ import {
 } from './commerce-controls';
 import { STUCK_DAYS } from './order-board';
 import { StockHandoverService } from './stock-handover.service';
+import { PriceRecoveryChoice, PriceSourceService } from './price-source.service';
 
 /** Integration types that belong to the online store. */
 const COMMERCE_TYPES: IntegrationType[] = ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'FOODPANDA', 'MANUAL'];
@@ -77,6 +78,7 @@ export class CommerceAdminService {
     private readonly watch: CatalogWatchService,
     private readonly products: OnlineProductsService,
     private readonly handover: StockHandoverService,
+    private readonly prices: PriceSourceService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -658,6 +660,21 @@ export class CommerceAdminService {
     if (!channelId) throw new BadRequestException('Pick a channel');
     const res = await this.handover.tenantApply(tenantId, channelId, mappingIds, adminId);
     await this.log(tenantId, adminId, 'COMMERCE_IMPORT_FIX', channelId, `Import fix applied: ${res.untracked} untracked, ${res.adjusted} stock restored`, { ...res, picked: mappingIds.length });
+    return res;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // PRICE RECOVERY (drift re-send) — read-only preview, apply on an explicit click
+  // ═══════════════════════════════════════════════════════════
+
+  priceRecovery(tenantId: string) {
+    return this.prices.tenantPreview(tenantId);
+  }
+
+  async applyPriceRecovery(adminId: string, tenantId: string, channelId: string, items: Array<{ mappingId: string; choice: PriceRecoveryChoice }>) {
+    if (!channelId) throw new BadRequestException('Pick a channel');
+    const res = await this.prices.tenantApply(tenantId, channelId, items, adminId);
+    await this.log(tenantId, adminId, 'COMMERCE_PRICE_RECOVERY', channelId, `Price recovery applied: ${res.restored} channel prices back, ${res.kept} kept Nafaa price`, { ...res, picked: items.length });
     return res;
   }
 

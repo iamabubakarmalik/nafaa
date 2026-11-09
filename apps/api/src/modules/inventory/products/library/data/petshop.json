@@ -1,0 +1,2444 @@
+[
+ {
+  "id": "petshop-pedigree-adult-dry-dog-food-chicken-and-vegetables-1-2kg",
+  "name": "Pedigree Adult Dry Dog Food Chicken & Vegetables 1.2kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1287,
+  "tags": [
+   "pedigree",
+   "adult",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-adult-dry-dog-food-chicken-and-vegetables-3kg",
+  "name": "Pedigree Adult Dry Dog Food Chicken & Vegetables 3kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 3650,
+  "costPrice": 2847,
+  "tags": [
+   "pedigree",
+   "adult",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-adult-dry-dog-food-chicken-and-vegetables-10kg",
+  "name": "Pedigree Adult Dry Dog Food Chicken & Vegetables 10kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "pedigree",
+   "adult",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-adult-dry-dog-food-chicken-and-vegetables-20kg",
+  "name": "Pedigree Adult Dry Dog Food Chicken & Vegetables 20kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 13650,
+  "tags": [
+   "pedigree",
+   "adult",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-puppy-dry-dog-food-1-3kg",
+  "name": "Pedigree Puppy Dry Dog Food 1.3kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1365,
+  "tags": [
+   "pedigree",
+   "puppy",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-puppy-dry-dog-food-3kg",
+  "name": "Pedigree Puppy Dry Dog Food 3kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 3850,
+  "costPrice": 3003,
+  "tags": [
+   "pedigree",
+   "puppy",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-puppy-dry-dog-food-10kg",
+  "name": "Pedigree Puppy Dry Dog Food 10kg",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 9800,
+  "costPrice": 7644,
+  "tags": [
+   "pedigree",
+   "puppy",
+   "dry",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-adult-chicken-gravy-pouch-80g",
+  "name": "Pedigree Adult Chicken Gravy Pouch 80g",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "pedigree",
+   "adult",
+   "chicken",
+   "gravy",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-adult-chicken-gravy-pouch-12-pouches",
+  "name": "Pedigree Adult Chicken Gravy Pouch 12 pouches",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 2750,
+  "costPrice": 2145,
+  "tags": [
+   "pedigree",
+   "adult",
+   "chicken",
+   "gravy",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-dentastix-large-1-pack",
+  "name": "Pedigree Dentastix Large 1 pack",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "pedigree",
+   "dentastix",
+   "large",
+   "pack",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-dentastix-large-28-sticks",
+  "name": "Pedigree Dentastix Large 28 sticks",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "pedigree",
+   "dentastix",
+   "large",
+   "28",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-pedigree-dentastix-small-1-pack",
+  "name": "Pedigree Dentastix Small 1 pack",
+  "brand": "Pedigree",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "pedigree",
+   "dentastix",
+   "small",
+   "pack",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-maxi-adult-dry-dog-food-1kg",
+  "name": "Royal Canin Maxi Adult Dry Dog Food 1kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2184,
+  "tags": [
+   "royal",
+   "canin",
+   "maxi",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-maxi-adult-dry-dog-food-4kg",
+  "name": "Royal Canin Maxi Adult Dry Dog Food 4kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "royal",
+   "canin",
+   "maxi",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-maxi-adult-dry-dog-food-15kg",
+  "name": "Royal Canin Maxi Adult Dry Dog Food 15kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 29500,
+  "costPrice": 23010,
+  "tags": [
+   "royal",
+   "canin",
+   "maxi",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-mini-adult-800g",
+  "name": "Royal Canin Mini Adult 800g",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1950,
+  "tags": [
+   "royal",
+   "canin",
+   "mini",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-mini-adult-2kg",
+  "name": "Royal Canin Mini Adult 2kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 5800,
+  "costPrice": 4524,
+  "tags": [
+   "royal",
+   "canin",
+   "mini",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-mini-adult-8kg",
+  "name": "Royal Canin Mini Adult 8kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 13650,
+  "tags": [
+   "royal",
+   "canin",
+   "mini",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-puppy-giant-1kg",
+  "name": "Royal Canin Puppy Giant 1kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2262,
+  "tags": [
+   "royal",
+   "canin",
+   "puppy",
+   "giant",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-puppy-giant-15kg",
+  "name": "Royal Canin Puppy Giant 15kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 29500,
+  "costPrice": 23010,
+  "tags": [
+   "royal",
+   "canin",
+   "puppy",
+   "giant",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-golden-retriever-adult-3kg",
+  "name": "Royal Canin Golden Retriever Adult 3kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "royal",
+   "canin",
+   "golden",
+   "retriever",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-golden-retriever-adult-12kg",
+  "name": "Royal Canin Golden Retriever Adult 12kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 29000,
+  "costPrice": 22620,
+  "tags": [
+   "royal",
+   "canin",
+   "golden",
+   "retriever",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-german-shepherd-adult-3kg",
+  "name": "Royal Canin German Shepherd Adult 3kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "royal",
+   "canin",
+   "german",
+   "shepherd",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-german-shepherd-adult-11kg",
+  "name": "Royal Canin German Shepherd Adult 11kg",
+  "brand": "Royal Canin",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 26500,
+  "costPrice": 20670,
+  "tags": [
+   "royal",
+   "canin",
+   "german",
+   "shepherd",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-adult-dog-food-chicken-and-egg-1-2kg",
+  "name": "Drools Adult Dog Food Chicken & Egg 1.2kg",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "drools",
+   "adult",
+   "dog",
+   "food",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-adult-dog-food-chicken-and-egg-3kg",
+  "name": "Drools Adult Dog Food Chicken & Egg 3kg",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2496,
+  "tags": [
+   "drools",
+   "adult",
+   "dog",
+   "food",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-adult-dog-food-chicken-and-egg-12kg",
+  "name": "Drools Adult Dog Food Chicken & Egg 12kg",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 8970,
+  "tags": [
+   "drools",
+   "adult",
+   "dog",
+   "food",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-puppy-food-1-2kg",
+  "name": "Drools Puppy Food 1.2kg",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1550,
+  "costPrice": 1209,
+  "tags": [
+   "drools",
+   "puppy",
+   "food",
+   "2kg",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-puppy-food-3kg",
+  "name": "Drools Puppy Food 3kg",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 3400,
+  "costPrice": 2652,
+  "tags": [
+   "drools",
+   "puppy",
+   "food",
+   "3kg",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-drools-absolute-calcium-bone",
+  "name": "Drools Absolute Calcium Bone",
+  "brand": "Drools",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "drools",
+   "absolute",
+   "calcium",
+   "bone",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-hills-science-diet-adult-dog-food-1-5kg",
+  "name": "Hills Science Diet Adult Dog Food 1.5kg",
+  "brand": "Hills",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "hills",
+   "science",
+   "diet",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-hills-science-diet-adult-dog-food-12kg",
+  "name": "Hills Science Diet Adult Dog Food 12kg",
+  "brand": "Hills",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 22500,
+  "costPrice": 17550,
+  "tags": [
+   "hills",
+   "science",
+   "diet",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-purina-pro-plan-adult-dog-3kg",
+  "name": "Purina Pro Plan Adult Dog 3kg",
+  "brand": "Purina",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6630,
+  "tags": [
+   "purina",
+   "pro",
+   "plan",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-purina-pro-plan-adult-dog-12kg",
+  "name": "Purina Pro Plan Adult Dog 12kg",
+  "brand": "Purina",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 26500,
+  "costPrice": 20670,
+  "tags": [
+   "purina",
+   "pro",
+   "plan",
+   "adult",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-acana-dog-food-heritage-2kg",
+  "name": "Acana Dog Food Heritage 2kg",
+  "brand": "Acana",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5850,
+  "tags": [
+   "acana",
+   "dog",
+   "food",
+   "heritage",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-acana-dog-food-heritage-11-4kg",
+  "name": "Acana Dog Food Heritage 11.4kg",
+  "brand": "Acana",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22230,
+  "tags": [
+   "acana",
+   "dog",
+   "food",
+   "heritage",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-meat-up-dog-food-chicken-1kg",
+  "name": "Meat Up Dog Food Chicken 1kg",
+  "brand": "Meat Up",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 858,
+  "tags": [
+   "meat",
+   "up",
+   "dog",
+   "food",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-dog-food-local-dry-premium-per-kg-1kg",
+  "name": "Dog Food Local Dry Premium per kg 1kg",
+  "brand": "",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "dog",
+   "food",
+   "local",
+   "dry",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-chicken-bone-treats-dog-1pack",
+  "name": "Chicken Bone Treats Dog 1pack",
+  "brand": "",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "chicken",
+   "bone",
+   "treats",
+   "dog",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-rawhide-bone-dog-chew",
+  "name": "Rawhide Bone Dog Chew",
+  "brand": "",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "rawhide",
+   "bone",
+   "dog",
+   "chew",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-dog-biscuits-per-kg-1kg",
+  "name": "Dog Biscuits per kg 1kg",
+  "brand": "",
+  "category": "Dog Food",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 585,
+  "tags": [
+   "dog",
+   "biscuits",
+   "per",
+   "kg",
+   "dog food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-adult-dry-cat-food-tuna-1-2kg",
+  "name": "Whiskas Adult Dry Cat Food Tuna 1.2kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "whiskas",
+   "adult",
+   "dry",
+   "cat",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-adult-dry-cat-food-tuna-3kg",
+  "name": "Whiskas Adult Dry Cat Food Tuna 3kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 3250,
+  "costPrice": 2535,
+  "tags": [
+   "whiskas",
+   "adult",
+   "dry",
+   "cat",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-adult-dry-cat-food-tuna-7kg",
+  "name": "Whiskas Adult Dry Cat Food Tuna 7kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 7200,
+  "costPrice": 5616,
+  "tags": [
+   "whiskas",
+   "adult",
+   "dry",
+   "cat",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-adult-dry-cat-food-mackerel-1-2kg",
+  "name": "Whiskas Adult Dry Cat Food Mackerel 1.2kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "whiskas",
+   "adult",
+   "dry",
+   "cat",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-adult-dry-cat-food-mackerel-3kg",
+  "name": "Whiskas Adult Dry Cat Food Mackerel 3kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 3250,
+  "costPrice": 2535,
+  "tags": [
+   "whiskas",
+   "adult",
+   "dry",
+   "cat",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-kitten-dry-food-1-1kg",
+  "name": "Whiskas Kitten Dry Food 1.1kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1550,
+  "costPrice": 1209,
+  "tags": [
+   "whiskas",
+   "kitten",
+   "dry",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-kitten-dry-food-3kg",
+  "name": "Whiskas Kitten Dry Food 3kg",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 3450,
+  "costPrice": 2691,
+  "tags": [
+   "whiskas",
+   "kitten",
+   "dry",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-wet-food-pouch-tuna-85g",
+  "name": "Whiskas Wet Food Pouch Tuna 85g",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "whiskas",
+   "wet",
+   "food",
+   "pouch",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-wet-food-pouch-tuna-12-pouches",
+  "name": "Whiskas Wet Food Pouch Tuna 12 pouches",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1950,
+  "tags": [
+   "whiskas",
+   "wet",
+   "food",
+   "pouch",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-whiskas-wet-food-can-400g",
+  "name": "Whiskas Wet Food Can 400g",
+  "brand": "Whiskas",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 429,
+  "tags": [
+   "whiskas",
+   "wet",
+   "food",
+   "can",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-kitten-dry-cat-food-400g",
+  "name": "Royal Canin Kitten Dry Cat Food 400g",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "royal",
+   "canin",
+   "kitten",
+   "dry",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-kitten-dry-cat-food-2kg",
+  "name": "Royal Canin Kitten Dry Cat Food 2kg",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "royal",
+   "canin",
+   "kitten",
+   "dry",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-persian-adult-400g",
+  "name": "Royal Canin Persian Adult 400g",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "royal",
+   "canin",
+   "persian",
+   "adult",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-persian-adult-2kg",
+  "name": "Royal Canin Persian Adult 2kg",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "royal",
+   "canin",
+   "persian",
+   "adult",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-indoor-adult-400g",
+  "name": "Royal Canin Indoor Adult 400g",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1053,
+  "tags": [
+   "royal",
+   "canin",
+   "indoor",
+   "adult",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-indoor-adult-2kg",
+  "name": "Royal Canin Indoor Adult 2kg",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 5900,
+  "costPrice": 4602,
+  "tags": [
+   "royal",
+   "canin",
+   "indoor",
+   "adult",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-royal-canin-sterilised-adult-2kg",
+  "name": "Royal Canin Sterilised Adult 2kg",
+  "brand": "Royal Canin",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "royal",
+   "canin",
+   "sterilised",
+   "adult",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-me-o-adult-cat-food-tuna-1-2kg",
+  "name": "Me-O Adult Cat Food Tuna 1.2kg",
+  "brand": "Me-O",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "me",
+   "adult",
+   "cat",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-me-o-adult-cat-food-tuna-3kg",
+  "name": "Me-O Adult Cat Food Tuna 3kg",
+  "brand": "Me-O",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2262,
+  "tags": [
+   "me",
+   "adult",
+   "cat",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-me-o-adult-cat-food-tuna-7kg",
+  "name": "Me-O Adult Cat Food Tuna 7kg",
+  "brand": "Me-O",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 6400,
+  "costPrice": 4992,
+  "tags": [
+   "me",
+   "adult",
+   "cat",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-me-o-kitten-food-1-1kg",
+  "name": "Me-O Kitten Food 1.1kg",
+  "brand": "Me-O",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1053,
+  "tags": [
+   "me",
+   "kitten",
+   "food",
+   "1kg",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-me-o-cat-food-pouch-80g",
+  "name": "Me-O Cat Food Pouch 80g",
+  "brand": "Me-O",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "me",
+   "cat",
+   "food",
+   "pouch",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-felix-wet-cat-food-pouch-85g",
+  "name": "Felix Wet Cat Food Pouch 85g",
+  "brand": "Felix",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 230,
+  "costPrice": 179,
+  "tags": [
+   "felix",
+   "wet",
+   "cat",
+   "food",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-sheba-cat-treats-wet-food-85g",
+  "name": "Sheba Cat Treats Wet Food 85g",
+  "brand": "Sheba",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "sheba",
+   "cat",
+   "treats",
+   "wet",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-catsan-cat-litter-classic-5-litre",
+  "name": "Catsan Cat Litter Classic 5 litre",
+  "brand": "Catsan",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "catsan",
+   "cat",
+   "litter",
+   "classic",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-catsan-cat-litter-classic-10-litre",
+  "name": "Catsan Cat Litter Classic 10 litre",
+  "brand": "Catsan",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1365,
+  "tags": [
+   "catsan",
+   "cat",
+   "litter",
+   "classic",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-litter-clumping-5kg",
+  "name": "Cat Litter Clumping 5kg",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 897,
+  "tags": [
+   "cat",
+   "litter",
+   "clumping",
+   "5kg",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-litter-clumping-10kg",
+  "name": "Cat Litter Clumping 10kg",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1716,
+  "tags": [
+   "cat",
+   "litter",
+   "clumping",
+   "10kg",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-litter-silica-crystal-3-8-litre",
+  "name": "Cat Litter Silica Crystal 3.8 litre",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1287,
+  "tags": [
+   "cat",
+   "litter",
+   "silica",
+   "crystal",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-treats-cream-1-pack",
+  "name": "Cat Treats Cream 1 pack",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "cat",
+   "treats",
+   "cream",
+   "pack",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-grass",
+  "name": "Cat Grass",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "cat",
+   "grass",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-cat-milk-bottle-250ml",
+  "name": "Cat Milk Bottle 250ml",
+  "brand": "",
+  "category": "Cat Food",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 429,
+  "tags": [
+   "cat",
+   "milk",
+   "bottle",
+   "250ml",
+   "cat food"
+  ]
+ },
+ {
+  "id": "petshop-parrot-food-mix-per-kg-1kg",
+  "name": "Parrot Food Mix per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "parrot",
+   "food",
+   "mix",
+   "per",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-cockatiel-food-per-kg-1kg",
+  "name": "Cockatiel Food per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "cockatiel",
+   "food",
+   "per",
+   "kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-budgies-food-per-kg-1kg",
+  "name": "Budgies Food per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "budgies",
+   "food",
+   "per",
+   "kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-love-birds-mix-per-kg-1kg",
+  "name": "Love Birds Mix per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 375,
+  "tags": [
+   "love",
+   "birds",
+   "mix",
+   "per",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-macaw-food-per-kg-1kg",
+  "name": "Macaw Food per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "macaw",
+   "food",
+   "per",
+   "kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-cuttle-bone",
+  "name": "Cuttle Bone",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "cuttle",
+   "bone",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-mineral-block",
+  "name": "Bird Mineral Block",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "bird",
+   "mineral",
+   "block",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-cage-small",
+  "name": "Bird Cage Small",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "bird",
+   "cage",
+   "small",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-cage-medium",
+  "name": "Bird Cage Medium",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "bird",
+   "cage",
+   "medium",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-cage-large",
+  "name": "Bird Cage Large",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "bird",
+   "cage",
+   "large",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-parrot-cage-big-stand",
+  "name": "Parrot Cage Big Stand",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "parrot",
+   "cage",
+   "big",
+   "stand",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-feeder-cup",
+  "name": "Bird Feeder Cup",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "bird",
+   "feeder",
+   "cup",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-water-dispenser",
+  "name": "Bird Water Dispenser",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "bird",
+   "water",
+   "dispenser",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-nest-box-wooden",
+  "name": "Bird Nest Box Wooden",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "bird",
+   "nest",
+   "box",
+   "wooden",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-bird-swing-toy",
+  "name": "Bird Swing Toy",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "bird",
+   "swing",
+   "toy",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-chicken-feed-starter-25kg-25kg",
+  "name": "Chicken Feed Starter 25kg 25kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "chicken",
+   "feed",
+   "starter",
+   "25kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-hen-layer-feed-50kg-50kg",
+  "name": "Hen Layer Feed 50kg 50kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "hen",
+   "layer",
+   "feed",
+   "50kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-pigeon-food-mix-per-kg-1kg",
+  "name": "Pigeon Food Mix per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "pigeon",
+   "food",
+   "mix",
+   "per",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-fish-food-flakes-100g",
+  "name": "Fish Food Flakes 100g",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "fish",
+   "food",
+   "flakes",
+   "100g",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-fish-food-pellets-250g",
+  "name": "Fish Food Pellets 250g",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "fish",
+   "food",
+   "pellets",
+   "250g",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-fish-food-gold-fish-100g",
+  "name": "Fish Food Gold Fish 100g",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "fish",
+   "food",
+   "gold",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-tetra-fish-food-tetramin-100g",
+  "name": "Tetra Fish Food Tetramin 100g",
+  "brand": "Tetra",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "tetra",
+   "fish",
+   "food",
+   "tetramin",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-tetra-fish-food-goldfish-100g",
+  "name": "Tetra Fish Food Goldfish 100g",
+  "brand": "Tetra",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "tetra",
+   "fish",
+   "food",
+   "goldfish",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-glass-2ft",
+  "name": "Aquarium Glass 2ft",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "aquarium",
+   "glass",
+   "2ft",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-glass-3ft",
+  "name": "Aquarium Glass 3ft",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "aquarium",
+   "glass",
+   "3ft",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-filter-internal",
+  "name": "Aquarium Filter Internal",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "aquarium",
+   "filter",
+   "internal",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-air-pump",
+  "name": "Aquarium Air Pump",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "aquarium",
+   "air",
+   "pump",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-heater-100w",
+  "name": "Aquarium Heater 100W",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "aquarium",
+   "heater",
+   "100w",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-led-light",
+  "name": "Aquarium LED Light",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "aquarium",
+   "led",
+   "light",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-decoration",
+  "name": "Aquarium Decoration",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "aquarium",
+   "decoration",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-gravel-per-kg-1kg",
+  "name": "Aquarium Gravel per kg 1kg",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "aquarium",
+   "gravel",
+   "per",
+   "kg",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-aquarium-net",
+  "name": "Aquarium Net",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "aquarium",
+   "net",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-water-conditioner-100ml",
+  "name": "Water Conditioner 100ml",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "water",
+   "conditioner",
+   "100ml",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-gold-fish-live",
+  "name": "Gold Fish Live",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "gold",
+   "fish",
+   "live",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-betta-fish-with-bowl",
+  "name": "Betta Fish with Bowl",
+  "brand": "",
+  "category": "Birds & Fish",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "betta",
+   "fish",
+   "with",
+   "bowl",
+   "birds & fish"
+  ]
+ },
+ {
+  "id": "petshop-dog-collar-small",
+  "name": "Dog Collar Small",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "dog",
+   "collar",
+   "small",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-collar-medium",
+  "name": "Dog Collar Medium",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "dog",
+   "collar",
+   "medium",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-collar-large",
+  "name": "Dog Collar Large",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "dog",
+   "collar",
+   "large",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-leash-nylon",
+  "name": "Dog Leash Nylon",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "dog",
+   "leash",
+   "nylon",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-chain-steel",
+  "name": "Dog Chain Steel",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "dog",
+   "chain",
+   "steel",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-harness-medium",
+  "name": "Dog Harness Medium",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "dog",
+   "harness",
+   "medium",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-muzzle",
+  "name": "Dog Muzzle",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "dog",
+   "muzzle",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-bowl-steel-small",
+  "name": "Dog Bowl Steel Small",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "dog",
+   "bowl",
+   "steel",
+   "small",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-bowl-steel-large",
+  "name": "Dog Bowl Steel Large",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "dog",
+   "bowl",
+   "steel",
+   "large",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-bed-medium",
+  "name": "Dog Bed Medium",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "dog",
+   "bed",
+   "medium",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-bed-large",
+  "name": "Dog Bed Large",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3960,
+  "tags": [
+   "dog",
+   "bed",
+   "large",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-house-plastic",
+  "name": "Dog House Plastic",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 6840,
+  "tags": [
+   "dog",
+   "house",
+   "plastic",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-cage-folding-24-inch",
+  "name": "Dog Cage Folding 24 inch",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5400,
+  "tags": [
+   "dog",
+   "cage",
+   "folding",
+   "24",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-cage-folding-36-inch",
+  "name": "Dog Cage Folding 36 inch",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10440,
+  "tags": [
+   "dog",
+   "cage",
+   "folding",
+   "36",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-coat-winter-small",
+  "name": "Dog Coat Winter Small",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "dog",
+   "coat",
+   "winter",
+   "small",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-dog-raincoat",
+  "name": "Dog Raincoat",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "dog",
+   "raincoat",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-chew-toy-rubber-bone",
+  "name": "Chew Toy Rubber Bone",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "chew",
+   "toy",
+   "rubber",
+   "bone",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-squeaky-toy",
+  "name": "Squeaky Toy",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "squeaky",
+   "toy",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-tennis-ball-dog-toy",
+  "name": "Tennis Ball Dog Toy",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "tennis",
+   "ball",
+   "dog",
+   "toy",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-rope-toy-dog",
+  "name": "Rope Toy Dog",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "rope",
+   "toy",
+   "dog",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-collar-with-bell",
+  "name": "Cat Collar with Bell",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "cat",
+   "collar",
+   "with",
+   "bell",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-bed-round",
+  "name": "Cat Bed Round",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1584,
+  "tags": [
+   "cat",
+   "bed",
+   "round",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-tree-tower",
+  "name": "Cat Tree Tower",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9000,
+  "tags": [
+   "cat",
+   "tree",
+   "tower",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-scratch-post",
+  "name": "Cat Scratch Post",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1332,
+  "tags": [
+   "cat",
+   "scratch",
+   "post",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-litter-box-with-hood",
+  "name": "Cat Litter Box with Hood",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2304,
+  "tags": [
+   "cat",
+   "litter",
+   "box",
+   "with",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-litter-scoop",
+  "name": "Cat Litter Scoop",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "cat",
+   "litter",
+   "scoop",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-carrier-bag",
+  "name": "Cat Carrier Bag",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "cat",
+   "carrier",
+   "bag",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-toy-mouse",
+  "name": "Cat Toy Mouse",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 108,
+  "tags": [
+   "cat",
+   "toy",
+   "mouse",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-cat-toy-feather-wand",
+  "name": "Cat Toy Feather Wand",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "cat",
+   "toy",
+   "feather",
+   "wand",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-carrier-plastic-medium",
+  "name": "Pet Carrier Plastic Medium",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "pet",
+   "carrier",
+   "plastic",
+   "medium",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-feeder-automatic",
+  "name": "Pet Feeder Automatic",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4680,
+  "tags": [
+   "pet",
+   "feeder",
+   "automatic",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-water-fountain-pet",
+  "name": "Water Fountain Pet",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "water",
+   "fountain",
+   "pet",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-hair-brush",
+  "name": "Pet Hair Brush",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "pet",
+   "hair",
+   "brush",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-nail-clipper",
+  "name": "Pet Nail Clipper",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "pet",
+   "nail",
+   "clipper",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-shampoo-dog-250ml",
+  "name": "Pet Shampoo Dog 250ml",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "pet",
+   "shampoo",
+   "dog",
+   "250ml",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-shampoo-cat-250ml",
+  "name": "Pet Shampoo Cat 250ml",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "pet",
+   "shampoo",
+   "cat",
+   "250ml",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-perfume-spray-100ml",
+  "name": "Pet Perfume Spray 100ml",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "pet",
+   "perfume",
+   "spray",
+   "100ml",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-grooming-comb",
+  "name": "Pet Grooming Comb",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "pet",
+   "grooming",
+   "comb",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-tick-and-flea-spray-100ml",
+  "name": "Tick and Flea Spray 100ml",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "tick",
+   "and",
+   "flea",
+   "spray",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-wipes-pack",
+  "name": "Pet Wipes Pack",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "pet",
+   "wipes",
+   "pack",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-training-treats",
+  "name": "Pet Training Treats",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "pet",
+   "training",
+   "treats",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-beaphar-flea-collar-dog",
+  "name": "Beaphar Flea Collar Dog",
+  "brand": "Beaphar",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "beaphar",
+   "flea",
+   "collar",
+   "dog",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-beaphar-tick-and-flea-drops",
+  "name": "Beaphar Tick & Flea Drops",
+  "brand": "Beaphar",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1188,
+  "tags": [
+   "beaphar",
+   "tick",
+   "flea",
+   "drops",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-frontline-spot-on-dog-medium",
+  "name": "Frontline Spot On Dog Medium",
+  "brand": "Frontline",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1764,
+  "tags": [
+   "frontline",
+   "spot",
+   "on",
+   "dog",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-frontline-spot-on-cat",
+  "name": "Frontline Spot On Cat",
+  "brand": "Frontline",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1620,
+  "tags": [
+   "frontline",
+   "spot",
+   "on",
+   "cat",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-drontal-dewormer-tablets",
+  "name": "Drontal Dewormer Tablets",
+  "brand": "Drontal",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "drontal",
+   "dewormer",
+   "tablets",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-vitamin-syrup-100ml",
+  "name": "Pet Vitamin Syrup 100ml",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "pet",
+   "vitamin",
+   "syrup",
+   "100ml",
+   "pet accessories"
+  ]
+ },
+ {
+  "id": "petshop-pet-first-aid-spray",
+  "name": "Pet First Aid Spray",
+  "brand": "",
+  "category": "Pet Accessories",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "pet",
+   "first",
+   "aid",
+   "spray",
+   "pet accessories"
+  ]
+ }
+]

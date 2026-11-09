@@ -137,6 +137,23 @@ export interface StockRecoveryPreview { rows: StockRecoveryRow[]; checked: numbe
 export interface TenantStockRecovery { channels: Array<{ id: string; name: string; type: string; preview: StockRecoveryPreview }> }
 export interface StockRecoveryApply { untracked: number; adjusted: number; skipped: number; errors: string[]; pushed: boolean }
 
+/** Price recovery per link: channel prices Nafaa overwrote while it was the only price source. */
+export type PriceTarget = 'PRODUCT' | 'VARIANT' | 'SHOP' | 'CHANNEL';
+export interface PriceRecoveryRow {
+  mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null;
+  channelPrice: number | null; pushedPrice: number | null; nafaaPrice: number | null;
+  channelPriceAt: string | null; driftPushedAt: string | null; driftPushes: number;
+  target: PriceTarget | null; held: boolean;
+}
+export interface PriceRecoveryPreview {
+  channel: { id: string; name: string; type: string; priceFrom: string; websitePriceTo: string };
+  rows: PriceRecoveryRow[]; checked: number; note: string | null;
+}
+export interface TenantPriceRecovery { channels: Array<{ id: string; name: string; type: string; preview: PriceRecoveryPreview }> }
+export type PriceRecoveryChoice = 'channel' | 'nafaa';
+export interface PriceRecoveryApply { restored: number; kept: number; sent: number; skipped: number; errors: string[] }
+
 export interface ChannelFilters { search?: string; kind?: string; status?: string; tenantId?: string; problems?: boolean; page?: number; limit?: number }
 
 export const adminCommerceApi = {
@@ -159,4 +176,7 @@ export const adminCommerceApi = {
   stockRecovery: (tenantId: string) => get<TenantStockRecovery>(`/admin/commerce/tenants/${tenantId}/stock-recovery`),
   applyStockRecovery: (tenantId: string, channelId: string, mappingIds: string[]) =>
     post<StockRecoveryApply>(`/admin/commerce/tenants/${tenantId}/stock-recovery/apply`, { channelId, mappingIds }),
+  priceRecovery: (tenantId: string) => get<TenantPriceRecovery>(`/admin/commerce/tenants/${tenantId}/price-recovery`),
+  applyPriceRecovery: (tenantId: string, channelId: string, items: Array<{ mappingId: string; choice: PriceRecoveryChoice }>) =>
+    post<PriceRecoveryApply>(`/admin/commerce/tenants/${tenantId}/price-recovery/apply`, { channelId, items }),
 };

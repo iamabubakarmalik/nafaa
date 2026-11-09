@@ -1,0 +1,2605 @@
+[
+ {
+  "id": "dairy-nestle-milkpak-uht-milk-250ml",
+  "name": "Nestle Milkpak UHT Milk 250ml",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 84,
+  "tags": [
+   "nestle",
+   "milkpak",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-milkpak-uht-milk-1-litre",
+  "name": "Nestle Milkpak UHT Milk 1 litre",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 290,
+  "tags": [
+   "nestle",
+   "milkpak",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-milkpak-uht-milk-1-5-litre",
+  "name": "Nestle Milkpak UHT Milk 1.5 litre",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 431,
+  "tags": [
+   "nestle",
+   "milkpak",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-milkpak-low-fat-1-litre",
+  "name": "Nestle Milkpak Low Fat 1 litre",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 340,
+  "costPrice": 299,
+  "tags": [
+   "nestle",
+   "milkpak",
+   "low",
+   "fat",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nesvita-milk-1-litre",
+  "name": "Nestle Nesvita Milk 1 litre",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 308,
+  "tags": [
+   "nestle",
+   "nesvita",
+   "milk",
+   "litre"
+  ]
+ },
+ {
+  "id": "dairy-nestle-everyday-tea-whitener-390g",
+  "name": "Nestle Everyday Tea Whitener 390g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "nestle",
+   "everyday",
+   "tea",
+   "whitener",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-everyday-tea-whitener-1kg",
+  "name": "Nestle Everyday Tea Whitener 1kg",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 2100,
+  "costPrice": 1848,
+  "tags": [
+   "nestle",
+   "everyday",
+   "tea",
+   "whitener",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-everyday-powder-milk-390g",
+  "name": "Nestle Everyday Powder Milk 390g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 748,
+  "tags": [
+   "nestle",
+   "everyday",
+   "powder",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-everyday-powder-milk-900g",
+  "name": "Nestle Everyday Powder Milk 900g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1628,
+  "tags": [
+   "nestle",
+   "everyday",
+   "powder",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-cerelac-wheat-175g",
+  "name": "Nestle Cerelac Wheat 175g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "nestle",
+   "cerelac",
+   "wheat",
+   "175g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-cerelac-wheat-350g",
+  "name": "Nestle Cerelac Wheat 350g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 686,
+  "tags": [
+   "nestle",
+   "cerelac",
+   "wheat",
+   "350g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nido-fortigrow-powder-400g",
+  "name": "Nestle Nido Fortigrow Powder 400g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1452,
+  "tags": [
+   "nestle",
+   "nido",
+   "fortigrow",
+   "powder",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nido-fortigrow-powder-900g",
+  "name": "Nestle Nido Fortigrow Powder 900g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 3450,
+  "costPrice": 3036,
+  "tags": [
+   "nestle",
+   "nido",
+   "fortigrow",
+   "powder",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-lactogen-1-400g",
+  "name": "Nestle Lactogen 1 400g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1628,
+  "tags": [
+   "nestle",
+   "lactogen",
+   "400g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-lactogen-2-400g",
+  "name": "Nestle Lactogen 2 400g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1628,
+  "tags": [
+   "nestle",
+   "lactogen",
+   "400g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nan-pro-1-400g",
+  "name": "Nestle NAN Pro 1 400g",
+  "brand": "Nestle",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2156,
+  "tags": [
+   "nestle",
+   "nan",
+   "pro",
+   "400g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-full-cream-milk-250ml",
+  "name": "Olpers Full Cream Milk 250ml",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 84,
+  "tags": [
+   "olpers",
+   "full",
+   "cream",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-full-cream-milk-1-litre",
+  "name": "Olpers Full Cream Milk 1 litre",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 282,
+  "tags": [
+   "olpers",
+   "full",
+   "cream",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-full-cream-milk-1-5-litre",
+  "name": "Olpers Full Cream Milk 1.5 litre",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 422,
+  "tags": [
+   "olpers",
+   "full",
+   "cream",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-low-fat-milk-1-litre",
+  "name": "Olpers Low Fat Milk 1 litre",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 290,
+  "tags": [
+   "olpers",
+   "low",
+   "fat",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-cooking-cream-200ml",
+  "name": "Olpers Cooking Cream 200ml",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 185,
+  "tags": [
+   "olpers",
+   "cooking",
+   "cream",
+   "200ml",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-olpers-flavoured-milk-chocolate-225ml",
+  "name": "Olpers Flavoured Milk Chocolate 225ml",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 79,
+  "tags": [
+   "olpers",
+   "flavoured",
+   "milk",
+   "chocolate"
+  ]
+ },
+ {
+  "id": "dairy-olpers-flavoured-milk-strawberry-225ml",
+  "name": "Olpers Flavoured Milk Strawberry 225ml",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 79,
+  "tags": [
+   "olpers",
+   "flavoured",
+   "milk",
+   "strawberry"
+  ]
+ },
+ {
+  "id": "dairy-olpers-cream-pouch-200ml",
+  "name": "Olpers Cream Pouch 200ml",
+  "brand": "Olpers",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 167,
+  "tags": [
+   "olpers",
+   "cream",
+   "pouch",
+   "200ml",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-adams-milk-uht-1-litre",
+  "name": "Adams Milk UHT 1 litre",
+  "brand": "Adams",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 315,
+  "costPrice": 277,
+  "tags": [
+   "adams",
+   "milk",
+   "uht",
+   "litre"
+  ]
+ },
+ {
+  "id": "dairy-adams-milk-uht-250ml",
+  "name": "Adams Milk UHT 250ml",
+  "brand": "Adams",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 79,
+  "tags": [
+   "adams",
+   "milk",
+   "uht",
+   "250ml"
+  ]
+ },
+ {
+  "id": "dairy-adams-cream-200ml",
+  "name": "Adams Cream 200ml",
+  "brand": "Adams",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 185,
+  "costPrice": 163,
+  "tags": [
+   "adams",
+   "cream",
+   "200ml",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-adams-butter-salted-100g",
+  "name": "Adams Butter Salted 100g",
+  "brand": "Adams",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "adams",
+   "butter",
+   "salted",
+   "100g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-adams-butter-salted-200g",
+  "name": "Adams Butter Salted 200g",
+  "brand": "Adams",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 378,
+  "tags": [
+   "adams",
+   "butter",
+   "salted",
+   "200g",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-dalda-dairy-milk-powder-350g",
+  "name": "Dalda Dairy Milk Powder 350g",
+  "brand": "Dalda",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 686,
+  "tags": [
+   "dalda",
+   "dairy",
+   "milk",
+   "powder"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-full-cream-milk-1-litre",
+  "name": "Haleeb Full Cream Milk 1 litre",
+  "brand": "Haleeb",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 282,
+  "tags": [
+   "haleeb",
+   "full",
+   "cream",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-cooking-cream-200ml",
+  "name": "Haleeb Cooking Cream 200ml",
+  "brand": "Haleeb",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 167,
+  "tags": [
+   "haleeb",
+   "cooking",
+   "cream",
+   "200ml",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-flavoured-milk-225ml",
+  "name": "Haleeb Flavoured Milk 225ml",
+  "brand": "Haleeb",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 85,
+  "costPrice": 75,
+  "tags": [
+   "haleeb",
+   "flavoured",
+   "milk",
+   "225ml"
+  ]
+ },
+ {
+  "id": "dairy-good-milk-uht-milk-1-litre",
+  "name": "Good Milk UHT Milk 1 litre",
+  "brand": "Good Milk",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 290,
+  "tags": [
+   "good",
+   "milk",
+   "uht"
+  ]
+ },
+ {
+  "id": "dairy-good-milk-uht-milk-250ml",
+  "name": "Good Milk UHT Milk 250ml",
+  "brand": "Good Milk",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 79,
+  "tags": [
+   "good",
+   "milk",
+   "uht"
+  ]
+ },
+ {
+  "id": "dairy-good-milk-cream-200ml",
+  "name": "Good Milk Cream 200ml",
+  "brand": "Good Milk",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 167,
+  "tags": [
+   "good",
+   "milk",
+   "cream",
+   "200ml"
+  ]
+ },
+ {
+  "id": "dairy-dairy-pure-uht-milk-1-litre",
+  "name": "Dairy Pure UHT Milk 1 litre",
+  "brand": "Dairy Pure",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 310,
+  "costPrice": 273,
+  "tags": [
+   "dairy",
+   "pure",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-gourmet-uht-milk-1-litre",
+  "name": "Gourmet UHT Milk 1 litre",
+  "brand": "Gourmet",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 315,
+  "costPrice": 277,
+  "tags": [
+   "gourmet",
+   "uht",
+   "milk",
+   "litre"
+  ]
+ },
+ {
+  "id": "dairy-dairy-queen-uht-milk-1-litre",
+  "name": "Dairy Queen UHT Milk 1 litre",
+  "brand": "Dairy Queen",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 310,
+  "costPrice": 273,
+  "tags": [
+   "dairy",
+   "queen",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-uht-milk-1-litre",
+  "name": "Day Fresh UHT Milk 1 litre",
+  "brand": "Day Fresh",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 305,
+  "costPrice": 268,
+  "tags": [
+   "day",
+   "fresh",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-uht-milk-250ml",
+  "name": "Day Fresh UHT Milk 250ml",
+  "brand": "Day Fresh",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 85,
+  "costPrice": 75,
+  "tags": [
+   "day",
+   "fresh",
+   "uht",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-low-fat-milk-1-litre",
+  "name": "Day Fresh Low Fat Milk 1 litre",
+  "brand": "Day Fresh",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 315,
+  "costPrice": 277,
+  "tags": [
+   "day",
+   "fresh",
+   "low",
+   "fat",
+   "milk"
+  ]
+ },
+ {
+  "id": "dairy-prema-uht-milk-1-litre",
+  "name": "Prema UHT Milk 1 litre",
+  "brand": "Prema",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 264,
+  "tags": [
+   "prema",
+   "uht",
+   "milk",
+   "litre"
+  ]
+ },
+ {
+  "id": "dairy-milk-pak-chocolate-milk-200ml",
+  "name": "Milk Pak Chocolate Milk 200ml",
+  "brand": "Milk Pak",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 85,
+  "costPrice": 75,
+  "tags": [
+   "milk",
+   "pak",
+   "chocolate"
+  ]
+ },
+ {
+  "id": "dairy-rainbow-milk-powder-350g",
+  "name": "Rainbow Milk Powder 350g",
+  "brand": "Rainbow",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 700,
+  "costPrice": 616,
+  "tags": [
+   "rainbow",
+   "milk",
+   "powder",
+   "350g"
+  ]
+ },
+ {
+  "id": "dairy-rainbow-milk-powder-900g",
+  "name": "Rainbow Milk Powder 900g",
+  "brand": "Rainbow",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1700,
+  "costPrice": 1496,
+  "tags": [
+   "rainbow",
+   "milk",
+   "powder",
+   "900g"
+  ]
+ },
+ {
+  "id": "dairy-anchor-milk-powder-full-cream-400g",
+  "name": "Anchor Milk Powder Full Cream 400g",
+  "brand": "Anchor",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 1012,
+  "tags": [
+   "anchor",
+   "milk",
+   "powder",
+   "full"
+  ]
+ },
+ {
+  "id": "dairy-anchor-milk-powder-full-cream-900g",
+  "name": "Anchor Milk Powder Full Cream 900g",
+  "brand": "Anchor",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2156,
+  "tags": [
+   "anchor",
+   "milk",
+   "powder",
+   "full"
+  ]
+ },
+ {
+  "id": "dairy-anchor-milk-powder-full-cream-2-5kg-tin-2-5kg",
+  "name": "Anchor Milk Powder Full Cream 2.5kg Tin 2.5kg",
+  "brand": "Anchor",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 5900,
+  "costPrice": 5192,
+  "tags": [
+   "anchor",
+   "milk",
+   "powder",
+   "full"
+  ]
+ },
+ {
+  "id": "dairy-fresh-milk-loose-milk-per-litre-1-litre",
+  "name": "Fresh Milk Loose Milk per litre 1 litre",
+  "brand": "Fresh Milk",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 185,
+  "tags": [
+   "fresh",
+   "milk",
+   "loose"
+  ]
+ },
+ {
+  "id": "dairy-fresh-milk-buffalo-milk-loose-per-litre-1-litre",
+  "name": "Fresh Milk Buffalo Milk Loose per litre 1 litre",
+  "brand": "Fresh Milk",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 194,
+  "tags": [
+   "fresh",
+   "milk",
+   "buffalo"
+  ]
+ },
+ {
+  "id": "dairy-doodh-cow-milk-per-litre-1-litre",
+  "name": "Doodh Cow Milk per litre 1 litre",
+  "brand": "",
+  "category": "Milk",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 176,
+  "tags": [
+   "doodh",
+   "cow",
+   "milk",
+   "per"
+  ]
+ },
+ {
+  "id": "dairy-nestle-yogurt-natural-250g",
+  "name": "Nestle Yogurt Natural 250g",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 110,
+  "tags": [
+   "nestle",
+   "yogurt",
+   "natural",
+   "250g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-yogurt-natural-400g",
+  "name": "Nestle Yogurt Natural 400g",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 162,
+  "tags": [
+   "nestle",
+   "yogurt",
+   "natural",
+   "400g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-yogurt-natural-1kg",
+  "name": "Nestle Yogurt Natural 1kg",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 357,
+  "tags": [
+   "nestle",
+   "yogurt",
+   "natural",
+   "1kg",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-raita-200g",
+  "name": "Nestle Raita 200g",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 81,
+  "tags": [
+   "nestle",
+   "raita",
+   "200g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-fruita-vitals-mango-drink-200ml",
+  "name": "Nestle Fruita Vitals Mango Drink 200ml",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 60,
+  "tags": [
+   "nestle",
+   "fruita",
+   "vitals",
+   "mango",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-sweet-lassi-250ml",
+  "name": "Nestle Sweet Lassi 250ml",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 81,
+  "tags": [
+   "nestle",
+   "sweet",
+   "lassi",
+   "250ml",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-sweet-yogurt-250g",
+  "name": "Nestle Sweet Yogurt 250g",
+  "brand": "Nestle",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 110,
+  "tags": [
+   "nestle",
+   "sweet",
+   "yogurt",
+   "250g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-yogurt-400g",
+  "name": "Olpers Yogurt 400g",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 162,
+  "tags": [
+   "olpers",
+   "yogurt",
+   "400g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-yogurt-1kg",
+  "name": "Olpers Yogurt 1kg",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 357,
+  "tags": [
+   "olpers",
+   "yogurt",
+   "1kg",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-raita-200g",
+  "name": "Olpers Raita 200g",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 76,
+  "tags": [
+   "olpers",
+   "raita",
+   "200g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-lassi-sweet-250ml",
+  "name": "Olpers Lassi Sweet 250ml",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 76,
+  "tags": [
+   "olpers",
+   "lassi",
+   "sweet",
+   "250ml",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-lassi-salted-250ml",
+  "name": "Olpers Lassi Salted 250ml",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 76,
+  "tags": [
+   "olpers",
+   "lassi",
+   "salted",
+   "250ml",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-olpers-cream-200ml",
+  "name": "Olpers Cream 200ml",
+  "brand": "Olpers",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 162,
+  "tags": [
+   "olpers",
+   "cream",
+   "200ml",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-yogurt-400g",
+  "name": "Haleeb Yogurt 400g",
+  "brand": "Haleeb",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 185,
+  "costPrice": 157,
+  "tags": [
+   "haleeb",
+   "yogurt",
+   "400g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-yogurt-1kg",
+  "name": "Haleeb Yogurt 1kg",
+  "brand": "Haleeb",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 410,
+  "costPrice": 348,
+  "tags": [
+   "haleeb",
+   "yogurt",
+   "1kg",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-raita-200g",
+  "name": "Haleeb Raita 200g",
+  "brand": "Haleeb",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 76,
+  "tags": [
+   "haleeb",
+   "raita",
+   "200g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-dairy-queen-yogurt-400g",
+  "name": "Dairy Queen Yogurt 400g",
+  "brand": "Dairy Queen",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 153,
+  "tags": [
+   "dairy",
+   "queen",
+   "yogurt",
+   "400g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-dairy-queen-yogurt-1kg",
+  "name": "Dairy Queen Yogurt 1kg",
+  "brand": "Dairy Queen",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 400,
+  "costPrice": 340,
+  "tags": [
+   "dairy",
+   "queen",
+   "yogurt",
+   "1kg",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-dairy-pure-yogurt-plain-400g",
+  "name": "Dairy Pure Yogurt Plain 400g",
+  "brand": "Dairy Pure",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 153,
+  "tags": [
+   "dairy",
+   "pure",
+   "yogurt",
+   "plain",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-yogurt-400g",
+  "name": "Day Fresh Yogurt 400g",
+  "brand": "Day Fresh",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 153,
+  "tags": [
+   "day",
+   "fresh",
+   "yogurt",
+   "400g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-lassi-250ml",
+  "name": "Day Fresh Lassi 250ml",
+  "brand": "Day Fresh",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 85,
+  "costPrice": 72,
+  "tags": [
+   "day",
+   "fresh",
+   "lassi",
+   "250ml",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-day-fresh-dahi-1kg",
+  "name": "Day Fresh Dahi 1kg",
+  "brand": "Day Fresh",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 323,
+  "tags": [
+   "day",
+   "fresh",
+   "dahi",
+   "1kg",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-dahi-loose-dahi-per-kg-1-kg",
+  "name": "Dahi Loose Dahi per kg 1 kg",
+  "brand": "Dahi Loose",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 255,
+  "tags": [
+   "dahi",
+   "loose",
+   "per",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-lassi-loose-lassi-per-litre-1-litre",
+  "name": "Lassi Loose Lassi per litre 1 litre",
+  "brand": "Lassi Loose",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 128,
+  "tags": [
+   "lassi",
+   "loose",
+   "per",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-fresh-cream-malai-per-kg-1kg",
+  "name": "Fresh Cream Malai per kg 1kg",
+  "brand": "Fresh Cream",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1232,
+  "tags": [
+   "fresh",
+   "cream",
+   "malai",
+   "per",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-fresh-cream-malai-250g-250g",
+  "name": "Fresh Cream Malai 250g 250g",
+  "brand": "Fresh Cream",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 323,
+  "tags": [
+   "fresh",
+   "cream",
+   "malai",
+   "250g",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-fresh-cream-whipping-cream-250ml",
+  "name": "Fresh Cream Whipping Cream 250ml",
+  "brand": "Fresh Cream",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 468,
+  "tags": [
+   "fresh",
+   "cream",
+   "whipping",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-haleeb-ice-cream-tub-vanilla-1-litre",
+  "name": "Haleeb Ice Cream Tub Vanilla 1 litre",
+  "brand": "Haleeb",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 808,
+  "tags": [
+   "haleeb",
+   "ice",
+   "cream",
+   "tub",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-walls-ice-cream-cone",
+  "name": "Walls Ice Cream Cone",
+  "brand": "Walls",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 68,
+  "tags": [
+   "walls",
+   "ice",
+   "cream",
+   "cone",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-walls-ice-cream-cup",
+  "name": "Walls Ice Cream Cup",
+  "brand": "Walls",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 60,
+  "tags": [
+   "walls",
+   "ice",
+   "cream",
+   "cup",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-walls-ice-cream-tub-vanilla-1-litre",
+  "name": "Walls Ice Cream Tub Vanilla 1 litre",
+  "brand": "Walls",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 808,
+  "tags": [
+   "walls",
+   "ice",
+   "cream",
+   "tub",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-walls-ice-cream-tub-chocolate-1-litre",
+  "name": "Walls Ice Cream Tub Chocolate 1 litre",
+  "brand": "Walls",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 808,
+  "tags": [
+   "walls",
+   "ice",
+   "cream",
+   "tub",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-omore-ice-cream-tub-vanilla-1-litre",
+  "name": "Omore Ice Cream Tub Vanilla 1 litre",
+  "brand": "Omore",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 765,
+  "tags": [
+   "omore",
+   "ice",
+   "cream",
+   "tub",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-omore-ice-cream-stick",
+  "name": "Omore Ice Cream Stick",
+  "brand": "Omore",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 42,
+  "tags": [
+   "omore",
+   "ice",
+   "cream",
+   "stick",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-omore-ice-cream-cone",
+  "name": "Omore Ice Cream Cone",
+  "brand": "Omore",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 60,
+  "tags": [
+   "omore",
+   "ice",
+   "cream",
+   "cone",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-igloo-ice-cream-tub-1-litre",
+  "name": "Igloo Ice Cream Tub 1 litre",
+  "brand": "Igloo",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 765,
+  "tags": [
+   "igloo",
+   "ice",
+   "cream",
+   "tub",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-kolson-ice-cream-bar",
+  "name": "Kolson Ice Cream Bar",
+  "brand": "Kolson",
+  "category": "Yogurt, Lassi & Cream",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 51,
+  "tags": [
+   "kolson",
+   "ice",
+   "cream",
+   "bar",
+   "yogurt, lassi & cream"
+  ]
+ },
+ {
+  "id": "dairy-nestle-butter-salted-100g",
+  "name": "Nestle Butter Salted 100g",
+  "brand": "Nestle",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "nestle",
+   "butter",
+   "salted",
+   "100g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nestle-butter-salted-200g",
+  "name": "Nestle Butter Salted 200g",
+  "brand": "Nestle",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 378,
+  "tags": [
+   "nestle",
+   "butter",
+   "salted",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nestle-butter-unsalted-100g",
+  "name": "Nestle Butter Unsalted 100g",
+  "brand": "Nestle",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 260,
+  "costPrice": 229,
+  "tags": [
+   "nestle",
+   "butter",
+   "unsalted",
+   "100g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-butter-100g",
+  "name": "Nurpur Butter 100g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "nurpur",
+   "butter",
+   "100g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-butter-200g",
+  "name": "Nurpur Butter 200g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 370,
+  "tags": [
+   "nurpur",
+   "butter",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-butter-500g",
+  "name": "Nurpur Butter 500g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 980,
+  "costPrice": 862,
+  "tags": [
+   "nurpur",
+   "butter",
+   "500g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-butter-unsalted-100g",
+  "name": "Nurpur Butter Unsalted 100g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 260,
+  "costPrice": 229,
+  "tags": [
+   "nurpur",
+   "butter",
+   "unsalted",
+   "100g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-cheese-slices-10-slices",
+  "name": "Nurpur Cheese Slices 10 slices",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "nurpur",
+   "cheese",
+   "slices",
+   "10",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-cheese-spread-200g",
+  "name": "Nurpur Cheese Spread 200g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 334,
+  "tags": [
+   "nurpur",
+   "cheese",
+   "spread",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-mozzarella-cheese-200g",
+  "name": "Nurpur Mozzarella Cheese 200g",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 484,
+  "tags": [
+   "nurpur",
+   "mozzarella",
+   "cheese",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-mozzarella-cheese-1kg",
+  "name": "Nurpur Mozzarella Cheese 1kg",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2156,
+  "tags": [
+   "nurpur",
+   "mozzarella",
+   "cheese",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-nurpur-cream-200ml",
+  "name": "Nurpur Cream 200ml",
+  "brand": "Nurpur",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 167,
+  "tags": [
+   "nurpur",
+   "cream",
+   "200ml",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-butter-salted-100g-2",
+  "name": "Adams Butter Salted 100g",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "adams",
+   "butter",
+   "salted",
+   "100g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-butter-salted-200g-2",
+  "name": "Adams Butter Salted 200g",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 378,
+  "tags": [
+   "adams",
+   "butter",
+   "salted",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-cheese-slices-10-slices",
+  "name": "Adams Cheese Slices 10 slices",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 440,
+  "costPrice": 387,
+  "tags": [
+   "adams",
+   "cheese",
+   "slices",
+   "10",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-cheese-spread-200g",
+  "name": "Adams Cheese Spread 200g",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 370,
+  "costPrice": 326,
+  "tags": [
+   "adams",
+   "cheese",
+   "spread",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-processed-cheese-block-200g",
+  "name": "Adams Processed Cheese Block 200g",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 484,
+  "tags": [
+   "adams",
+   "processed",
+   "cheese",
+   "block",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-adams-processed-cheese-block-1kg",
+  "name": "Adams Processed Cheese Block 1kg",
+  "brand": "Adams",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 2112,
+  "tags": [
+   "adams",
+   "processed",
+   "cheese",
+   "block",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-lurpak-butter-salted-200g",
+  "name": "Lurpak Butter Salted 200g",
+  "brand": "Lurpak",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "lurpak",
+   "butter",
+   "salted",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-anchor-butter-salted-200g",
+  "name": "Anchor Butter Salted 200g",
+  "brand": "Anchor",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 572,
+  "tags": [
+   "anchor",
+   "butter",
+   "salted",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-anchor-cheese-slices-10-slices",
+  "name": "Anchor Cheese Slices 10 slices",
+  "brand": "Anchor",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 422,
+  "tags": [
+   "anchor",
+   "cheese",
+   "slices",
+   "10",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-kraft-cheese-slices-10-slices",
+  "name": "Kraft Cheese Slices 10 slices",
+  "brand": "Kraft",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 458,
+  "tags": [
+   "kraft",
+   "cheese",
+   "slices",
+   "10",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-kraft-cheese-spread-200g",
+  "name": "Kraft Cheese Spread 200g",
+  "brand": "Kraft",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 370,
+  "tags": [
+   "kraft",
+   "cheese",
+   "spread",
+   "200g",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-dalda-banaspati-ghee-1kg-pouch-1kg",
+  "name": "Dalda Banaspati Ghee 1kg Pouch 1kg",
+  "brand": "Dalda",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 546,
+  "tags": [
+   "dalda",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-dalda-banaspati-ghee-1kg-pouch-5kg",
+  "name": "Dalda Banaspati Ghee 1kg Pouch 5kg",
+  "brand": "Dalda",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 3000,
+  "costPrice": 2640,
+  "tags": [
+   "dalda",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-dalda-cooking-oil-1-litre-1-litre",
+  "name": "Dalda Cooking Oil 1 litre 1 litre",
+  "brand": "Dalda",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 546,
+  "tags": [
+   "dalda",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-dalda-cooking-oil-5-litre-5-litre",
+  "name": "Dalda Cooking Oil 5 litre 5 litre",
+  "brand": "Dalda",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2950,
+  "costPrice": 2596,
+  "tags": [
+   "dalda",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-tullo-banaspati-ghee-1kg-1kg",
+  "name": "Tullo Banaspati Ghee 1kg 1kg",
+  "brand": "Tullo",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 610,
+  "costPrice": 537,
+  "tags": [
+   "tullo",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-habib-banaspati-ghee-1kg-1kg",
+  "name": "Habib Banaspati Ghee 1kg 1kg",
+  "brand": "Habib",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 610,
+  "costPrice": 537,
+  "tags": [
+   "habib",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-habib-banaspati-ghee-1kg-5kg",
+  "name": "Habib Banaspati Ghee 1kg 5kg",
+  "brand": "Habib",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2950,
+  "costPrice": 2596,
+  "tags": [
+   "habib",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-habib-cooking-oil-1-litre-1-litre",
+  "name": "Habib Cooking Oil 1 litre 1 litre",
+  "brand": "Habib",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "habib",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-eva-cooking-oil-1-litre-1-litre",
+  "name": "Eva Cooking Oil 1 litre 1 litre",
+  "brand": "Eva",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 519,
+  "tags": [
+   "eva",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-eva-banaspati-ghee-1kg-1kg",
+  "name": "Eva Banaspati Ghee 1kg 1kg",
+  "brand": "Eva",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 519,
+  "tags": [
+   "eva",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-sufi-cooking-oil-1-litre-1-litre",
+  "name": "Sufi Cooking Oil 1 litre 1 litre",
+  "brand": "Sufi",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 610,
+  "costPrice": 537,
+  "tags": [
+   "sufi",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-sufi-banaspati-ghee-1kg-1kg",
+  "name": "Sufi Banaspati Ghee 1kg 1kg",
+  "brand": "Sufi",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "sufi",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-mezan-cooking-oil-1-litre-1-litre",
+  "name": "Mezan Cooking Oil 1 litre 1 litre",
+  "brand": "Mezan",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "mezan",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-mezan-banaspati-ghee-1kg-1kg",
+  "name": "Mezan Banaspati Ghee 1kg 1kg",
+  "brand": "Mezan",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 519,
+  "tags": [
+   "mezan",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-soya-supreme-banaspati-ghee-1kg-1kg",
+  "name": "Soya Supreme Banaspati Ghee 1kg 1kg",
+  "brand": "Soya Supreme",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 610,
+  "costPrice": 537,
+  "tags": [
+   "soya",
+   "supreme",
+   "banaspati",
+   "ghee",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-soya-supreme-cooking-oil-1-litre-1-litre",
+  "name": "Soya Supreme Cooking Oil 1 litre 1 litre",
+  "brand": "Soya Supreme",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 605,
+  "costPrice": 532,
+  "tags": [
+   "soya",
+   "supreme",
+   "cooking",
+   "oil",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-kisan-cooking-oil-1-litre-1-litre",
+  "name": "Kisan Cooking Oil 1 litre 1 litre",
+  "brand": "Kisan",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "kisan",
+   "cooking",
+   "oil",
+   "litre",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-rahat-banaspati-ghee-1kg-1kg",
+  "name": "Rahat Banaspati Ghee 1kg 1kg",
+  "brand": "Rahat",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "rahat",
+   "banaspati",
+   "ghee",
+   "1kg",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-desi-ghee-pure-desi-ghee-per-kg-1kg",
+  "name": "Desi Ghee Pure Desi Ghee per kg 1kg",
+  "brand": "Desi Ghee",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1936,
+  "tags": [
+   "desi",
+   "ghee",
+   "pure",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-desi-ghee-desi-ghee-buffalo-per-kg-1kg",
+  "name": "Desi Ghee Desi Ghee Buffalo per kg 1kg",
+  "brand": "Desi Ghee",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2156,
+  "tags": [
+   "desi",
+   "ghee",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-desi-ghee-cow-desi-ghee-per-kg-1kg",
+  "name": "Desi Ghee Cow Desi Ghee per kg 1kg",
+  "brand": "Desi Ghee",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 2600,
+  "costPrice": 2288,
+  "tags": [
+   "desi",
+   "ghee",
+   "cow",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-cheese-local-paneer-per-kg-1kg",
+  "name": "Cheese Local Paneer per kg 1kg",
+  "brand": "Cheese Local",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 924,
+  "tags": [
+   "cheese",
+   "local",
+   "paneer",
+   "per",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-cheese-local-khoya-per-kg-1kg",
+  "name": "Cheese Local Khoya per kg 1kg",
+  "brand": "Cheese Local",
+  "category": "Butter, Ghee & Oil",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "cheese",
+   "local",
+   "khoya",
+   "per",
+   "butter, ghee & oil"
+  ]
+ },
+ {
+  "id": "dairy-desi-anday-dozen-1-dozen",
+  "name": "Desi Anday Dozen 1 dozen",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 458,
+  "tags": [
+   "desi",
+   "anday",
+   "dozen",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-farm-eggs-dozen-1-dozen",
+  "name": "Farm Eggs Dozen 1 dozen",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 360,
+  "costPrice": 317,
+  "tags": [
+   "farm",
+   "eggs",
+   "dozen",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-egg-tray-30-eggs-1-tray",
+  "name": "Egg Tray 30 Eggs 1 tray",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 792,
+  "tags": [
+   "egg",
+   "tray",
+   "30",
+   "eggs",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-egg-tray-30-desi-1-tray",
+  "name": "Egg Tray 30 Desi 1 tray",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 1300,
+  "costPrice": 1144,
+  "tags": [
+   "egg",
+   "tray",
+   "30",
+   "desi",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-quail-eggs-pack-12",
+  "name": "Quail Eggs Pack 12",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 308,
+  "tags": [
+   "quail",
+   "eggs",
+   "pack",
+   "12",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-duck-eggs-dozen-1-dozen",
+  "name": "Duck Eggs Dozen 1 dozen",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "duck",
+   "eggs",
+   "dozen",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-nestle-milo-chocolate-drink-200g",
+  "name": "Nestle Milo Chocolate Drink 200g",
+  "brand": "Nestle",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "nestle",
+   "milo",
+   "chocolate",
+   "drink",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-nestle-milo-chocolate-drink-400g",
+  "name": "Nestle Milo Chocolate Drink 400g",
+  "brand": "Nestle",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 748,
+  "tags": [
+   "nestle",
+   "milo",
+   "chocolate",
+   "drink",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nescafe-classic-50g",
+  "name": "Nestle Nescafe Classic 50g",
+  "brand": "Nestle",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 572,
+  "tags": [
+   "nestle",
+   "nescafe",
+   "classic",
+   "50g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nescafe-classic-100g",
+  "name": "Nestle Nescafe Classic 100g",
+  "brand": "Nestle",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1100,
+  "tags": [
+   "nestle",
+   "nescafe",
+   "classic",
+   "100g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-nestle-nesquik-strawberry-300g",
+  "name": "Nestle Nesquik Strawberry 300g",
+  "brand": "Nestle",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 680,
+  "costPrice": 598,
+  "tags": [
+   "nestle",
+   "nesquik",
+   "strawberry",
+   "300g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-tapal-danedar-tea-190g",
+  "name": "Tapal Danedar Tea 190g",
+  "brand": "Tapal",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 264,
+  "tags": [
+   "tapal",
+   "danedar",
+   "tea",
+   "190g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-tapal-danedar-tea-430g",
+  "name": "Tapal Danedar Tea 430g",
+  "brand": "Tapal",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 640,
+  "costPrice": 563,
+  "tags": [
+   "tapal",
+   "danedar",
+   "tea",
+   "430g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-lipton-yellow-label-tea-190g",
+  "name": "Lipton Yellow Label Tea 190g",
+  "brand": "Lipton",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 264,
+  "tags": [
+   "lipton",
+   "yellow",
+   "label",
+   "tea",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-lipton-yellow-label-tea-430g",
+  "name": "Lipton Yellow Label Tea 430g",
+  "brand": "Lipton",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 640,
+  "costPrice": 563,
+  "tags": [
+   "lipton",
+   "yellow",
+   "label",
+   "tea",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-vital-tea-pack-190g",
+  "name": "Vital Tea Pack 190g",
+  "brand": "Vital",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 255,
+  "tags": [
+   "vital",
+   "tea",
+   "pack",
+   "190g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-vital-tea-pack-430g",
+  "name": "Vital Tea Pack 430g",
+  "brand": "Vital",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 546,
+  "tags": [
+   "vital",
+   "tea",
+   "pack",
+   "430g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-supreme-tea-pack-190g",
+  "name": "Supreme Tea Pack 190g",
+  "brand": "Supreme",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 246,
+  "tags": [
+   "supreme",
+   "tea",
+   "pack",
+   "190g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-supreme-tea-pack-430g",
+  "name": "Supreme Tea Pack 430g",
+  "brand": "Supreme",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 528,
+  "tags": [
+   "supreme",
+   "tea",
+   "pack",
+   "430g",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-rooh-afza-syrup-800ml",
+  "name": "Rooh Afza Syrup 800ml",
+  "brand": "Rooh Afza",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 572,
+  "tags": [
+   "rooh",
+   "afza",
+   "syrup",
+   "800ml",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-rooh-afza-syrup-small-400ml",
+  "name": "Rooh Afza Syrup Small 400ml",
+  "brand": "Rooh Afza",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 308,
+  "tags": [
+   "rooh",
+   "afza",
+   "syrup",
+   "small",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-pakola-ice-cream-soda-bottle-1-5-litre",
+  "name": "Pakola Ice Cream Soda Bottle 1.5 litre",
+  "brand": "Pakola",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 185,
+  "tags": [
+   "pakola",
+   "ice",
+   "cream",
+   "soda",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-dettol-milk-bottle-cleaner",
+  "name": "Dettol Milk Bottle Cleaner",
+  "brand": "Dettol",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "dettol",
+   "milk",
+   "bottle",
+   "cleaner",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-milk-can-20-litre",
+  "name": "Milk Can 20 litre",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 3080,
+  "tags": [
+   "milk",
+   "can",
+   "20",
+   "litre",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-milk-can-40-litre",
+  "name": "Milk Can 40 litre",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4840,
+  "tags": [
+   "milk",
+   "can",
+   "40",
+   "litre",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-milk-bottle-glass-1-litre",
+  "name": "Milk Bottle Glass 1 litre",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "milk",
+   "bottle",
+   "glass",
+   "litre",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-milk-bottle-plastic-1-litre",
+  "name": "Milk Bottle Plastic 1 litre",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 45,
+  "costPrice": 40,
+  "tags": [
+   "milk",
+   "bottle",
+   "plastic",
+   "litre",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-butter-paper-pack",
+  "name": "Butter Paper Pack",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "butter",
+   "paper",
+   "pack",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-plastic-yogurt-cup-100pcs",
+  "name": "Plastic Yogurt Cup 100pcs",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "plastic",
+   "yogurt",
+   "cup",
+   "100pcs",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-milk-pouch-packing-roll",
+  "name": "Milk Pouch Packing Roll",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1100,
+  "tags": [
+   "milk",
+   "pouch",
+   "packing",
+   "roll",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-ice-bag-1kg-1kg",
+  "name": "Ice Bag 1kg 1kg",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 70,
+  "tags": [
+   "ice",
+   "bag",
+   "1kg",
+   "eggs, milk powder & misc"
+  ]
+ },
+ {
+  "id": "dairy-ice-block",
+  "name": "Ice Block",
+  "brand": "",
+  "category": "Eggs, Milk Powder & Misc",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "ice",
+   "block",
+   "eggs, milk powder & misc"
+  ]
+ }
+]

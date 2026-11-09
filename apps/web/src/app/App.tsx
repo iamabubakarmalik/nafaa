@@ -5,6 +5,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
 import { ConfirmHost } from '@/design-system/components';
+import { ProductLibraryHost } from '@modules/inventory/products/library/libraryHost';
 import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { AppearanceBridge, AppearanceProvider } from '@/design-system';
 
@@ -659,6 +660,7 @@ export default function App() {
 
       <ManagerPinHost />
       <ConfirmHost />
+      <ProductLibraryHost />
       <Toaster
         position="top-right"
         richColors

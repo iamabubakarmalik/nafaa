@@ -19,6 +19,7 @@ import { ChannelMark, channelName, lastPushText, rs } from './meta';
 import { InlineEdit } from './InlineEdit';
 import { causeInfo, causeShort, syncCause } from './syncErrors';
 import { HoldTag } from './StockHold';
+import { priceHoldNumbers } from './PriceHold';
 
 export interface GridHandlers {
   onPick: (productId: string) => void;
@@ -58,6 +59,7 @@ export function Thumb({ src, size = 'md' }: { src: string | null; size?: 'sm' | 
 export function dotOf(c: OnlineChannel, cell: LinkedCell): { cls: string; label: string } {
   // A held link sends nothing, whatever its last push said.
   if (cell.hold) return { cls: 'bg-amber-500', label: t('Stock milana baqi') };
+  if (cell.priceHold) return { cls: 'bg-amber-500', label: t('Qeemat ka faisla baqi') };
   if (cell.listed === false) return { cls: 'bg-slate-300', label: t('Band (unlisted)') };
   if (!c.canPush || cell.status === null) return { cls: 'bg-slate-300', label: c.mode === 'website' ? t('Website khud leti hai') : t('Kuch nahi bheja jata') };
   if (cell.status === 'FAILED') return { cls: 'bg-rose-500', label: causeInfo(syncCause(cell.error)).title };
@@ -103,7 +105,8 @@ function CellBody({ c, cell, canManage, compact }: { c: OnlineChannel; cell: Lin
           </InlineEdit>
           {cell.override ? <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" title={t('Apni Price (rule nahi)')} /> : null}
           {cell.compareAtPrice ? <span className="text-[0.6875rem] tabular-nums text-slate-400 line-through">{rs(cell.compareAtPrice).replace('Rs ', '')}</span> : null}
-          {cell.priceDiffers && cell.channelPrice !== null && !compact ? <span className="truncate text-[0.6875rem] text-amber-700" title={t('Channel par abhi {{price}}', { price: rs(cell.channelPrice) })}>≠ {rs(cell.channelPrice).replace('Rs ', '')}</span> : null}
+          {cell.priceHold ? <span className="shrink-0 rounded bg-amber-50 px-1 text-[0.65625rem] font-semibold leading-4 text-amber-800 ring-1 ring-amber-200" title={`${t('Qeemat ka faisla baqi')} · ${priceHoldNumbers(cell.priceHold)}`}>{t('Faisla baqi')}</span> : null}
+          {cell.priceDiffers && cell.channelPrice !== null && !compact && !cell.priceHold ? <span className="truncate text-[0.6875rem] text-amber-700" title={t('Channel par abhi {{price}}', { price: rs(cell.channelPrice) })}>≠ {rs(cell.channelPrice).replace('Rs ', '')}</span> : null}
         </span>
         <span className="mt-0.5 flex items-center gap-1 text-[0.71875rem] text-slate-500">
           {failed ? <span className="inline-flex items-center gap-1 font-semibold text-rose-700"><AlertTriangle className="h-3 w-3" />{causeShort(syncCause(cell.error))}</span>

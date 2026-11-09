@@ -16,6 +16,7 @@ import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { AbandonedCartsService } from './abandoned-carts.service';
 import { ChannelOpsService } from './channel-ops.service';
+import { ProductEventsService } from './product-events.service';
 import { plainStatusKeys } from './channel-status-map';
 import { detectPlatform, isIndoljStatus, normalizeOrder } from './order-normalizer';
 import { readWebsiteConfig, stockRule, verifySignature } from './website-config';
@@ -47,6 +48,7 @@ export class WebsiteApiController {
     private readonly shopify: ShopifyService,
     private readonly carts: AbandonedCartsService,
     private readonly ops: ChannelOpsService,
+    private readonly productEvents: ProductEventsService,
   ) {}
 
   // ═══ WooCommerce "Approve" ke baad keys yahan aati hain ═══
@@ -169,6 +171,18 @@ export class WebsiteApiController {
     // App Store install with no Shopify plan yet: acknowledge so Shopify stops retrying, but take nothing in
     if (this.shopify.planBlocked(integration)) {
       return { success: true, skipped: 'shopify-plan' };
+    }
+    // Shopify stock levels: only stock edited by hand on the channel is taken in (see ChannelSyncService).
+    if (/^inventory_levels\//i.test(topic)) {
+      const signed = this.checkSignature(integration, req);
+      return { success: true, ...(signed && /update/i.test(topic) ? this.productEvents.acceptInventory(integration, body) : { queued: false }) };
+    }
+    // Product webhooks (new products, channel price changes) share this URL; they never touch orders.
+    if (/^products?[/.]/i.test(topic)) {
+      // Product events can change Nafaa prices: only a signed body counts.
+      const signed = this.checkSignature(integration, req);
+      const res = signed && ProductEventsService.isProductTopic(topic) ? this.productEvents.accept(integration, topic, body) : { queued: false };
+      return { success: true, ...res };
     }
     if (/deleted|delete/.test(topic)) {
       this.checkSignature(integration, req);

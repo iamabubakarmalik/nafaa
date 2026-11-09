@@ -49,6 +49,8 @@ import { ChannelSettingsModal } from '../components/online-products/ChannelSetti
 import { causeInfo, syncCause } from '../components/online-products/syncErrors';
 import { BackorderWaitingCard } from '../components/online-products/BackorderSettings';
 import { StockRecoveryDrawer } from '../components/online-products/StockRecoveryDrawer';
+import { PriceRecoveryDrawer } from '../components/online-products/PriceRecoveryDrawer';
+import { SyncChoiceBanner } from '../components/online-products/SyncSettingsCard';
 import { t as tr } from '@core/i18n';
 
 const PAGE_SIZES = [25, 50, 100];
@@ -57,6 +59,7 @@ const FILTERS: Array<{ id: GridFilter; label: () => string; tone?: 'danger' | 'w
   { id: 'unlinked', label: () => tr('Jorna baqi') },
   { id: 'errors', label: () => tr('Masle'), tone: 'danger' },
   { id: 'hold', label: () => tr('Stock milana baqi'), tone: 'warning' },
+  { id: 'price-hold', label: () => tr('Qeemat ka faisla baqi'), tone: 'warning' },
   { id: 'untracked', label: () => tr('Ginti nahi') },
   { id: 'price', label: () => tr('Price farq'), tone: 'warning' },
   { id: 'out', label: () => tr('Stock khatam'), tone: 'danger' },
@@ -69,7 +72,8 @@ const HIDDEN_COLS_KEY = 'nafaa-op-hidden-channels';
 type Open =
   | { kind: 'link'; channel: OnlineChannel; focus?: LinkFocus }
   | { kind: 'settings'; channel: OnlineChannel; section?: 'content' }
-  | { kind: 'recover'; channel: OnlineChannel };
+  | { kind: 'recover'; channel: OnlineChannel }
+  | { kind: 'price-recover'; channel: OnlineChannel };
 
 const readHidden = (): string[] => { try { return JSON.parse(localStorage.getItem(HIDDEN_COLS_KEY) ?? '[]'); } catch { return []; } };
 
@@ -170,6 +174,7 @@ export default function OnlineProductsPage() {
     if (action === 'rules') { setOpen({ kind: 'settings', channel: c }); return; }
     if (action === 'content') { setOpen({ kind: 'settings', channel: c, section: 'content' }); return; }
     if (action === 'recover') { setOpen({ kind: 'recover', channel: c }); return; }
+    if (action === 'price-recover') { setOpen({ kind: 'price-recover', channel: c }); return; }
     if (action === 'pause' && !(await confirmDialog({ title: tr('{{name}} rok dein?', { name: channelName(c) }), text: tr('Naye orders aur Stock/Price ka aana-jana ruk jayega. Baad me "Dobara chalayein" se shuru karein.'), danger: true }))) return;
     setBusyChannel({ id: c.id, action });
     try {
@@ -294,7 +299,7 @@ export default function OnlineProductsPage() {
           const cell = r.cells[c.id];
           if (!cell?.linked) return ['', '', tr('Jura nahi')];
           const lc = cell as LinkedCell;
-          return [lc.price, lc.stock ?? '', lc.listed === false ? tr('Band') : lc.hold ? tr('Stock milana baqi') : lc.tracksStock === false && !lc.countOptIn ? tr('Ginti nahi') : lc.status === 'FAILED' ? causeInfo(syncCause(lc.error)).title : tr('Jura hua')];
+          return [lc.price, lc.stock ?? '', lc.listed === false ? tr('Band') : lc.hold ? tr('Stock milana baqi') : lc.priceHold ? tr('Qeemat ka faisla baqi') : lc.tracksStock === false && !lc.countOptIn ? tr('Ginti nahi') : lc.status === 'FAILED' ? causeInfo(syncCause(lc.error)).title : tr('Jura hua')];
         }),
       ]));
       downloadCsv(`nafaa-online-products-${new Date().toISOString().slice(0, 10)}.csv`, [head, ...rows]);
@@ -385,6 +390,7 @@ export default function OnlineProductsPage() {
         <ChannelsBar channels={channels} sellable={sellable} active={channelId} onFocus={setChannelId} canManage={canManage}
           busy={busyChannel} onAction={(c, a) => void channelAction(c, a)} />
 
+        {canManage && <SyncChoiceBanner channels={channels} onOpen={(c) => setOpen({ kind: 'settings', channel: c })} />}
         <ProblemsBanner issues={issuesQ.data?.issues ?? []} onOpen={() => setDrawer('problems')} />
 
         <div className="relative z-10 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -461,7 +467,7 @@ export default function OnlineProductsPage() {
           <div className="rounded-2xl bg-white py-12 ring-1 ring-slate-200/80">
             <EmptyState icon={<Package className="h-5 w-5" />}
               title={filtered ? tr('Is filter me koi product nahi') : tr('Nafaa me abhi koi product nahi')}
-              description={filter === 'errors' ? tr('Koi masla nahi — sab channels par Stock aur Price ja rahe hain.') : filter === 'hold' ? tr('Koi link ruka hua nahi — Nafaa aur channel ka Stock barabar hai.') : filter === 'untracked' ? tr('Har jura hua item channel par gina ja raha hai.') : filter === 'price' ? tr('Har channel par Price wohi hai jo Nafaa rakhta hai.') : tr('Filter badal kar dekhein.')}
+              description={filter === 'errors' ? tr('Koi masla nahi — sab channels par Stock aur Price ja rahe hain.') : filter === 'hold' ? tr('Koi link ruka hua nahi — Nafaa aur channel ka Stock barabar hai.') : filter === 'price-hold' ? tr('Koi qeemat faisle ke intezar me nahi.') : filter === 'untracked' ? tr('Har jura hua item channel par gina ja raha hai.') : filter === 'price' ? tr('Har channel par Price wohi hai jo Nafaa rakhta hai.') : tr('Filter badal kar dekhein.')}
               action={filtered ? <Button size="sm" variant="ghost" onClick={clearFilters}>{tr('Filter saaf karein')}</Button> : undefined} />
           </div>
         ) : (<>
@@ -502,6 +508,7 @@ export default function OnlineProductsPage() {
       )}
       {open?.kind === 'link' && <LinkModal channel={open.channel} focus={open.focus} canManage={canManage} onClose={() => setOpen(null)} />}
       {open?.kind === 'recover' && <StockRecoveryDrawer channel={open.channel} onClose={() => setOpen(null)} />}
+      {open?.kind === 'price-recover' && <PriceRecoveryDrawer channel={open.channel} onClose={() => setOpen(null)} />}
       {open?.kind === 'settings' && <ChannelSettingsModal channel={open.channel} section={open.section} onClose={() => setOpen(null)} />}
     </PageShell>
   );

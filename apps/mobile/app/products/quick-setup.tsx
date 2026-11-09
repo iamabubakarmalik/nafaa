@@ -1,3 +1,4 @@
-import { QuickSetupScreen } from '@/modules/inventory/catalog-setup/screens/QuickSetupScreen';
+import { LibraryScreen } from '@/modules/inventory/library/LibraryScreen';
 
-export default QuickSetupScreen;
+/** Old Quick Setup link; the product library replaced it. */
+export default LibraryScreen;

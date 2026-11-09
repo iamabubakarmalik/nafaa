@@ -6,11 +6,12 @@
 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Beaker, CalendarX, FileText, ShieldAlert, Snowflake } from 'lucide-react';
+import { Beaker, CalendarX, FileText, Library, ShieldAlert, Snowflake } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
+import { openProductLibrary } from '@modules/inventory/products/library/libraryHost';
 import { useMedicineFacts } from '../hooks/useMedicineFacts';
 import { REGISTER_CLASSES, SCHEDULE_META } from '../lib/meta';
 import { t } from '@core/i18n';
@@ -44,6 +45,7 @@ const base: Omit<ProductsPageConfig, 'extras' | 'columns'> = {
     </div>
   ) : null),
   guide: [
+    { icon: Library, color: '#2563eb', title: t('DRAP library'), text: t('"Library se products" me DRAP ki hazaron dawaiyan MRP, company aur formula ke saath hain — chunein aur add karein. Margin se cost khud lagti hai.') },
     { icon: Beaker, color: '#0891b2', title: t('Formula (salt)'), text: t('Har dawai ka salt aur strength likhein — card par generic naam dikhta hai aur POS par salt se dhoond kar substitute milta hai.') },
     { icon: ShieldAlert, color: '#e11d48', title: t('Register wali dawai'), text: t('Narcotic aur controlled dawai par laal "Register" lagta hai. POS par in ke liye doctor aur mareez ka naam poocha jata hai.') },
     { icon: CalendarX, color: '#d97706', title: t('Batch aur expiry'), text: t('Purchase me har batch ka number aur expiry likhein. POS pehle jaldi expire hone wala batch bechta hai.') },
@@ -69,6 +71,13 @@ export default function PharmacyProducts() {
           </>
         ),
         chips: m.manufacturer ? <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-600">{m.manufacturer}</span> : undefined,
+        actions: m.generic ? (
+          <button type="button" title={t('Same formula ki dawaiyan (library)')} aria-label={t('Same formula ki dawaiyan (library)')}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openProductLibrary({ initial: { library: 'pharmacy', formula: m.generic!, formulaLabel: m.generic! } }); }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-cyan-700 hover:bg-cyan-50">
+            <Library className="h-4 w-4" />
+          </button>
+        ) : undefined,
       };
     },
     columns: [

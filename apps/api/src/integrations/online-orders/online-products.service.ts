@@ -3,13 +3,13 @@ import { Integration, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ChannelCatalogService, LinkInput, RemoteProduct, RemoteVariant } from './channel-catalog.service';
-import { pickSureLinks, ScanResult } from './catalog-watch';
+import { autoImportAllowed, isNewItem, itemKey, newProductPicks, pickSureLinks, ScanResult, WatchState } from './catalog-watch';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
 import { StockPushService } from './stock-push.service';
-import { PushContent, readPushContent, readWebsiteConfig, stockRule, WebsiteConfig } from './website-config';
+import { AUTO_SYNC_PRESET, isAutoSync, PriceFrom, PushContent, readPriceFrom, readPushContent, readWebsiteConfig, stockRule, WebsiteConfig } from './website-config';
 import { allocate, channelShare, Claim, readStockRule, StockMode } from './stock-allocation';
 import { CatalogJobsService, ChunkResult } from './catalog-jobs.service';
 import { ChannelContentService, DARAZ_CONTENT_NOTE } from './channel-content.service';
@@ -37,8 +37,8 @@ const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
  */
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted' | 'backorder' | 'hold' | 'untracked';
-const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted', 'backorder', 'hold', 'untracked'];
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted' | 'backorder' | 'hold' | 'untracked' | 'price-hold';
+const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted', 'backorder', 'hold', 'untracked', 'price-hold'];
 
 /** Products picked on the grid: a list, or every product matching the grid's search and filter. */
 export interface Selection {
@@ -59,6 +59,10 @@ export type BulkAction = 'listed' | 'alloc' | 'price' | 'pricePercent' | 'compar
 export interface SettingsBody {
   priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
   stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
+  priceFrom?: PriceFrom; websitePriceTo?: 'PRODUCT' | 'CHANNEL'; autoImport?: boolean;
+  contentFrom?: PriceFrom; autoPublish?: 'OFF' | 'MARKED' | 'ALL'; stockFromChannel?: boolean;
+  /** "AUTO" = "Sab kuch khud sync (recommended)" (applied first; other fields then override). */
+  preset?: 'AUTO';
 }
 
 const PRICE_SCAN_LIMIT = 50_000;
@@ -181,6 +185,24 @@ export class OnlineProductsService implements OnModuleInit {
       shopId: c.shopId,
       shopName: c.shopId ? shops.get(c.shopId) ?? null : null,
       pushPrice: isPush(c.mode) && c.cfg.pushPrice,
+      /** "Qeemat kahan se badlegi?": NAFAA, WEBSITE, LATEST or NONE. */
+      priceFrom: isPush(c.mode) ? c.cfg.priceFrom : 'NONE',
+      /** New channel: the price source question is still open. */
+      priceFromAsk: isPush(c.mode) && c.cfg.priceFromAsk,
+      /** Where a website price lands in Nafaa without a price rule: PRODUCT or CHANNEL. */
+      websitePriceTo: c.cfg.websitePriceTo,
+      /** New channel products come into Nafaa by themselves. */
+      autoImport: isPush(c.mode) && c.cfg.autoImport,
+      /** Name, description, pictures: NAFAA, WEBSITE, LATEST or NONE. */
+      contentFrom: isPush(c.mode) && c.mode !== 'daraz' ? c.cfg.contentFrom : 'NONE',
+      /** New Nafaa products made on the channel: OFF, MARKED or ALL. */
+      autoPublish: c.mode === 'woocommerce' || c.mode === 'shopify' ? c.cfg.autoPublish : 'OFF',
+      /** Stock edited by hand on the channel is taken into Nafaa. */
+      stockFromChannel: isPush(c.mode) && c.cfg.stockFromChannel,
+      /** The merchant picked the sync settings (older channels: "Sync settings chunein"). */
+      syncChosen: !isPush(c.mode) || c.cfg.syncChosen,
+      /** All of "Sab kuch khud sync" is on. */
+      autoSync: isPush(c.mode) && isAutoSync(c.cfg),
       priceRule: isPush(c.mode) ? c.cfg.priceRule : readPriceRule(undefined),
       stockBuffer: c.cfg.stockBuffer,
       stockMode: c.cfg.stockMode,
@@ -233,7 +255,46 @@ export class OnlineProductsService implements OnModuleInit {
     if (c.mode === 'indolj') throw new BadRequestException('Indolj par Price Indolj panel se badlein; Stock wahan track nahi hota');
     // Price rule and price push only where Nafaa sends prices; a custom website only takes the stock buffer.
     if (isPush(c.mode) && body.priceRule !== undefined) next.priceRule = readPriceRule(body.priceRule);
-    if (isPush(c.mode) && body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
+    // "Sab kuch khud sync": the preset first, then any field sent with it.
+    if (isPush(c.mode) && body.preset === 'AUTO') {
+      Object.assign(next, AUTO_SYNC_PRESET);
+      // Name, description and pictures go with the content sync.
+      next.pushContent = readPushContent({ ...c.cfg.pushContent, title: true, description: true, images: true });
+      if (!c.shopId) next.autoImport = false;
+      if (c.mode === 'daraz') { next.contentFrom = 'NONE'; next.autoPublish = 'OFF'; }
+    }
+    if (isPush(c.mode) && body.contentFrom !== undefined) {
+      if (!['NAFAA', 'WEBSITE', 'LATEST', 'NONE'].includes(body.contentFrom)) throw new BadRequestException('Naam aur tasveerein kahan se badlein — sahi option chunein');
+      next.contentFrom = c.mode === 'daraz' ? 'NONE' : body.contentFrom;
+    }
+    if (isPush(c.mode) && body.autoPublish !== undefined) {
+      const v = ['OFF', 'MARKED', 'ALL'].includes(body.autoPublish) ? body.autoPublish : 'OFF';
+      next.autoPublish = c.mode === 'daraz' ? 'OFF' : v;
+      // "All new products": only products made from now on, never the existing catalog.
+      if (v === 'ALL' && c.cfg.autoPublish !== 'ALL') next.autoPublishSince = new Date().toISOString();
+    }
+    if (isPush(c.mode) && body.stockFromChannel !== undefined) next.stockFromChannel = !!body.stockFromChannel;
+    const syncKeys: Array<keyof SettingsBody> = ['preset', 'priceFrom', 'contentFrom', 'autoImport', 'autoPublish', 'stockFromChannel', 'pushPrice', 'pushStock'];
+    if (isPush(c.mode) && syncKeys.some((k) => body[k] !== undefined)) next.syncChosen = true;
+    if (isPush(c.mode) && body.priceFrom !== undefined) {
+      if (!['NAFAA', 'WEBSITE', 'LATEST', 'NONE'].includes(body.priceFrom)) throw new BadRequestException('Price kahan se badlegi — sahi option chunein');
+      next.priceFrom = body.priceFrom;
+      next.priceFromAsk = false;
+    } else if (isPush(c.mode) && body.pushPrice !== undefined) {
+      // The older on/off switch maps onto the price source: on adds Nafaa as a sender, off removes it.
+      const was = readPriceFrom(raw);
+      next.priceFrom = body.pushPrice
+        ? (was === 'WEBSITE' ? 'LATEST' : was === 'NONE' ? 'NAFAA' : was)
+        : (was === 'LATEST' ? 'WEBSITE' : was === 'NAFAA' ? 'NONE' : was);
+    }
+    if (next.priceFrom !== undefined) next.pushPrice = next.priceFrom === 'NAFAA' || next.priceFrom === 'LATEST';
+    if (isPush(c.mode) && body.websitePriceTo !== undefined) next.websitePriceTo = body.websitePriceTo === 'CHANNEL' ? 'CHANNEL' : 'PRODUCT';
+    if (isPush(c.mode) && body.autoImport !== undefined) {
+      if (body.autoImport && !c.shopId) throw new BadRequestException('Pehle channel ki branch chunein — naye products ka Stock usi branch me aayega');
+      next.autoImport = !!body.autoImport;
+    }
+    // Auto import switched on: the watch reads the channel within five minutes (the baseline is kept).
+    if (next.autoImport === true && !c.cfg.autoImport) next.catalogWatch = { ...((next.catalogWatch as any) ?? (raw.catalogWatch as any) ?? {}), scan: null };
     if (body.stockBuffer !== undefined) next.stockBuffer = Math.min(10_000, Math.max(0, Math.floor(Number(body.stockBuffer) || 0)));
     // Stock share and content fields: only where Nafaa pushes.
     if (isPush(c.mode) && (body.stockMode !== undefined || body.stockPercent !== undefined || body.stockFixed !== undefined)) {
@@ -250,6 +311,11 @@ export class OnlineProductsService implements OnModuleInit {
     const updated = await this.prisma.integration.update({ where: { id: c.integration.id }, data: { config: next as any } });
     // New prices / buffer go out in the background (a custom website reads them on its next pull).
     if (isPush(c.mode)) {
+      const cfg = readWebsiteConfig(updated.config);
+      // Product webhooks tell Nafaa about new products and channel price changes within seconds.
+      if (cfg.autoImport || cfg.priceFrom !== 'NONE' || cfg.contentFrom !== 'NONE' || cfg.stockFromChannel) {
+        this.background(() => this.installProductHooks(updated), `product hooks ${updated.displayName}`);
+      }
       this.background(async () => {
         await this.push.pushPricesFor(updated);
         if (body.stockBuffer !== undefined || body.pushStock === true || body.stockMode !== undefined || body.stockPercent !== undefined || body.stockFixed !== undefined) await this.syncStock(updated);
@@ -286,6 +352,8 @@ export class OnlineProductsService implements OnModuleInit {
         return { channelMappings: { some: { integrationId: { in: ids }, listed: false } } };
       case 'hold':
         return { channelMappings: { some: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } } } };
+      case 'price-hold':
+        return { channelMappings: { some: { integrationId: { in: ids }, NOT: { priceHold: { equals: Prisma.DbNull } } } } };
       case 'untracked':
         return { channelMappings: { some: { integrationId: { in: ids }, tracksStock: false } } };
       case 'backorder':
@@ -402,7 +470,7 @@ export class OnlineProductsService implements OnModuleInit {
             select: {
               id: true, integrationId: true, variantId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalTitle: true,
               priceOverride: true, externalData: true, syncStatus: true, syncError: true, lastSyncedAt: true,
-              listed: true, allocQty: true, compareAtPrice: true, lastPush: true, backorder: true, stockHold: true, tracksStock: true,
+              listed: true, allocQty: true, compareAtPrice: true, lastPush: true, backorder: true, stockHold: true, tracksStock: true, priceHold: true,
             },
           },
           shopStocks: shopIds.length ? { where: { shopId: { in: shopIds } }, select: { shopId: true, variantId: true, stock: true, shopPrice: true } } : false,
@@ -461,6 +529,8 @@ export class OnlineProductsService implements OnModuleInit {
             lastPush: isPush(c.mode) ? m.lastPush : null,
             // Waiting for the merchant to pick Nafaa or channel stock; nothing is pushed meanwhile.
             hold: isPush(c.mode) ? readHold(m.stockHold) : null,
+            // The channel changed the price after Nafaa's last push: waiting for "kaunsi rakhein?".
+            priceHold: isPush(c.mode) && m.priceHold ? m.priceHold : null,
             // false = the channel does not count this item's stock ("Channel ginti nahi karta").
             tracksStock: m.tracksStock,
             countOptIn: countOptedIn(m.externalData),
@@ -518,20 +588,22 @@ export class OnlineProductsService implements OnModuleInit {
    * items (for "Price farq" and drift re-sends), and matches the open items
    * against the Nafaa catalog. Used by the link screen and the catalog watch.
    */
-  async scan(c: Col, refresh = false): Promise<ScanResult> {
+  async scan(c: Col, refresh = false, only?: Set<string>): Promise<ScanResult> {
     const i = c.integration;
     let remote: RemoteProduct[] = [];
     let remoteError: string | null = null;
     let remoteFailure: unknown = null;
     try {
       remote = await this.catalog.remoteProducts(i, refresh);
+      // A few products (product webhook): the rest of the list is not looked at.
+      if (only) remote = remote.filter((p) => only.has(p.externalProductId));
     } catch (e) {
       remoteError = friendlySyncError(e);
       remoteFailure = e;
     }
 
     const mappings = await this.prisma.productChannelMapping.findMany({
-      where: { integrationId: i.id },
+      where: { integrationId: i.id, ...(only && { externalProductId: { in: [...only] } }) },
       select: { id: true, linkKey: true, externalProductId: true, externalVariantId: true, externalData: true, tracksStock: true },
     });
     const byVariant = new Map(mappings.filter((m) => m.externalVariantId).map((m) => [String(m.externalVariantId), m]));
@@ -539,8 +611,11 @@ export class OnlineProductsService implements OnModuleInit {
     const isLinked = (p: RemoteProduct, v: RemoteVariant) =>
       (v.externalVariantId ? byVariant.get(v.externalVariantId) : byProduct.get(p.externalProductId));
 
-    // Remember what the channel shows as price, for "price differs".
+    // Remember what the channel shows as price, for "price differs" and the price source.
     const now = new Date().toISOString();
+    // Price facts carry the time the list read started; a read older than what a link already knows is not applied.
+    const readMs = this.catalog.readAt(i.id) ?? Date.now();
+    const readIso = new Date(readMs).toISOString();
     const priceUpdates: Array<{ id: string; data: any; tracks?: boolean }> = [];
     const open: Array<{ p: RemoteProduct; v: RemoteVariant }> = [];
     let linked = 0;
@@ -551,16 +626,18 @@ export class OnlineProductsService implements OnModuleInit {
         linked++;
         // Remember the channel price and stock (and whether the channel counts it) for "price differs", the push guard and recovery.
         const d = ((m.externalData as any) ?? {}) as Record<string, any>;
-        const priceMoved = v.price > 0 && Number(d.channelPrice) !== v.price;
-        const stockMoved = v.stock !== null && v.stock !== undefined && Number(d.channelStock) !== Number(v.stock);
+        const knownAt = Date.parse(String(d.channelPriceAt ?? ''));
+        const priceMoved = v.price > 0 && Number(d.channelPrice) !== v.price && !(Number.isFinite(knownAt) && knownAt >= readMs);
+        const stockKnownAt = Date.parse(String(d.channelStockAt ?? ''));
+        const stockMoved = v.stock !== null && v.stock !== undefined && Number(d.channelStock) !== Number(v.stock) && !(Number.isFinite(stockKnownAt) && stockKnownAt >= readMs);
         const tracksMoved = v.tracked !== undefined && v.tracked !== null && m.tracksStock !== v.tracked;
         if (priceMoved || stockMoved || tracksMoved) {
           priceUpdates.push({
             id: m.id,
             data: {
               ...d,
-              ...(priceMoved && { channelPrice: v.price, channelPriceAt: now }),
-              ...(stockMoved && { channelStock: Number(v.stock), channelStockAt: now, ...(!d.firstChannelStock && { firstChannelStock: { qty: Number(v.stock), at: now } }) }),
+              ...(priceMoved && { channelPrice: v.price, channelPriceAt: readIso }),
+              ...(stockMoved && { channelStock: Number(v.stock), channelStockAt: readIso, ...(!d.firstChannelStock && { firstChannelStock: { qty: Number(v.stock), at: now } }) }),
             },
             ...(tracksMoved && { tracks: v.tracked as boolean }),
           });
@@ -581,7 +658,10 @@ export class OnlineProductsService implements OnModuleInit {
         })
       : [];
     const index = new MatchIndex(products as unknown as MatchProduct[]);
-    const taken = new Set(mappings.map((m) => m.linkKey));
+    // Nafaa items already linked on this channel are never suggested again (all links, also outside a subset).
+    const taken = new Set(only
+      ? (await this.prisma.productChannelMapping.findMany({ where: { integrationId: i.id }, select: { linkKey: true } })).map((m) => m.linkKey)
+      : mappings.map((m) => m.linkKey));
     const results = suggestAll(open.map(({ p, v }) => ({
       title: p.title, variantTitle: v.title, hasVariants: p.hasVariants, sku: v.sku, barcode: v.barcode, p, v,
     })), index, taken);
@@ -700,17 +780,19 @@ export class OnlineProductsService implements OnModuleInit {
     const cols = await this.cols(user.tenantId);
     if (!cols.length) return { issues: [] };
     const ids = cols.map((c) => c.integration.id);
-    const [sizeLess, failed, why, held] = await Promise.all([
+    const [sizeLess, failed, why, held, priceHeld] = await Promise.all([
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, variantId: null, product: { hasVariants: true } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId', 'syncError'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } }, _count: { _all: true } }),
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, NOT: { priceHold: { equals: Prisma.DbNull } } }, _count: { _all: true } }),
     ]);
     // Failed links per stored error text, so the screen can group them by cause.
     const reasonsOf = (id: string) => why.filter((r) => r.integrationId === id).map((r) => ({ error: r.syncError ?? null, count: r._count._all })).sort((a, b) => b.count - a.count);
     const n = (rows: Array<{ integrationId: string; _count: { _all: number } }>, id: string) => rows.find((r) => r.integrationId === id)?._count._all ?? 0;
     const issues: Array<{
-      id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link' | 'stock-hold'; text: string; detail?: string | null; count?: number;
+      id: string; channelId: string; tone: 'danger' | 'warning' | 'info';
+      kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link' | 'stock-hold' | 'price-hold' | 'new-products'; text: string; detail?: string | null; count?: number;
       reasons?: Array<{ error: string | null; count: number }>;
     }> = [];
     for (const c of cols) {
@@ -727,10 +809,15 @@ export class OnlineProductsService implements OnModuleInit {
       if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, reasons: reasonsOf(i.id), text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
       const h = isPush(c.mode) ? n(held, i.id) : 0;
       if (h) issues.push({ id: `${i.id}:hold`, channelId: i.id, tone: 'warning', kind: 'stock-hold', count: h, text: `${name}: ${h} links par Stock milana baqi — Nafaa ya channel ka Stock chunein` });
+      const ph = isPush(c.mode) ? n(priceHeld, i.id) : 0;
+      if (ph) issues.push({ id: `${i.id}:price-hold`, channelId: i.id, tone: 'warning', kind: 'price-hold', count: ph, text: `${name}: ${ph} links par website par qeemat badli — kaunsi rakhein?` });
       const sure = Number(watch.scan?.sure ?? 0);
       if (sure && c.mode !== 'website') issues.push({ id: `${i.id}:sure`, channelId: i.id, tone: 'info', kind: 'link-sure', count: sure, text: `${name}: ${sure} products jorna baqi — sab pakke jod dein` });
+      // New channel products with no Nafaa match: "Sab laayein". Other new items wait to be linked.
+      const importable = isPush(c.mode) ? Number(watch.scan?.newProducts ?? 0) : 0;
+      if (importable) issues.push({ id: `${i.id}:new-products`, channelId: i.id, tone: 'info', kind: 'new-products', count: importable, text: `${name}: ${importable} naye products website par` });
       const fresh = Number(watch.scan?.newUnlinked ?? 0);
-      if (fresh && c.mode !== 'website') issues.push({ id: `${i.id}:new`, channelId: i.id, tone: 'info', kind: 'link', count: fresh, text: `${name}: ${fresh} naye products Nafaa se jure nahi` });
+      if (fresh && !importable && c.mode !== 'website') issues.push({ id: `${i.id}:new`, channelId: i.id, tone: 'info', kind: 'link', count: fresh, text: `${name}: ${fresh} naye products Nafaa se jure nahi` });
     }
     return { issues };
   }
@@ -1042,6 +1129,73 @@ export class OnlineProductsService implements OnModuleInit {
     this.catalog.holdCache(c.integration.id, 15 * 60_000);
     const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'IMPORT_ALL', integrationId: c.integration.id, items: ids, params: { channelType: c.integration.type } });
     return { ...res, sure, maybe: sc.results.filter((r) => r.match && r.match.kind !== 'sku').length };
+  }
+
+  /**
+   * Channel products that are new since the catalog watch began and have no
+   * Nafaa match (see newProductPicks). `announced` = ids a product webhook
+   * reported as created.
+   */
+  newProductIds(sc: ScanResult, state: WatchState | null | undefined, announced: string[] = []) {
+    const told = new Set(announced.map(String));
+    return newProductPicks({
+      remote: sc.remote,
+      results: sc.results,
+      isNew: (p, v) => isNewItem(state, itemKey(p, v), told.has(p.externalProductId)),
+    });
+  }
+
+  /**
+   * Brings channel products into Nafaa without a click ("Website ke naye
+   * products khud Nafaa me laayein"): the same import as "Sab le aayein", so
+   * stock comes in as opening stock, an existing Nafaa item waits on
+   * "Stock milana baqi", and untracked items stay untracked. More than 25 go
+   * as a background job (shown under Activity).
+   */
+  async autoImport(c: Col, externalProductIds: string[], how: 'watch' | 'webhook') {
+    if (!autoImportAllowed(c.cfg, c.mode, c.shopId) || !externalProductIds.length) return { imported: 0, queued: 0 };
+    const i = c.integration;
+    const ids = [...new Set(externalProductIds.map(String))].slice(0, 2000);
+    if (ids.length > 25) {
+      this.catalog.holdCache(i.id, 15 * 60_000);
+      const res = await this.jobs.start({ tenantId: i.tenantId, userId: null, kind: 'IMPORT_ALL', integrationId: i.id, items: ids, params: { channelType: i.type, auto: how } });
+      return { imported: 0, queued: res.existing ? 0 : ids.length };
+    }
+    const res = await this.catalog.importFor(i, i.tenantId, ids);
+    await this.prisma.syncLog.create({
+      data: {
+        integrationId: i.id, tenantId: i.tenantId, operation: 'PRODUCTS_IMPORT', direction: 'INBOUND', status: res.failed && !res.created && !res.linkedExisting ? 'FAILED' : 'SUCCESS',
+        recordsSuccess: res.created + res.linkedExisting, recordsFailed: res.failed,
+        details: { auto: how, created: res.created, linkedExisting: res.linkedExisting, held: res.held, untracked: res.untracked, errors: res.errors.slice(0, 10) } as any,
+        completedAt: new Date(),
+      },
+    }).catch(() => null);
+    return { imported: res.created + res.linkedExisting, queued: 0 };
+  }
+
+  /** "Sab laayein" from the Masle panel: every new channel product with no Nafaa match. */
+  async importNew(user: AuthenticatedUser, channelId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (!isPush(c.mode)) throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    if (!c.shopId) throw new BadRequestException('Pehle channel ki branch chunein — naye products ka Stock usi branch me aayega');
+    const sc = await this.scan(c, true);
+    if (sc.remoteError && !sc.remote.length) throw new BadRequestException(sc.remoteError);
+    const state = ((c.integration.config as any)?.catalogWatch?.state ?? null) as WatchState | null;
+    const ids = this.newProductIds(sc, state);
+    this.catalog.holdCache(c.integration.id, 15 * 60_000);
+    const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'IMPORT_ALL', integrationId: c.integration.id, items: ids, params: { channelType: c.integration.type, auto: 'new' } });
+    await this.patchWatch(c.integration.id, (w) => ({ ...w, scan: w.scan ? { ...w.scan, newProducts: 0 } : w.scan }));
+    return { ...res, count: ids.length };
+  }
+
+  /** Product create/update webhooks on Shopify and WooCommerce (order webhooks are untouched). */
+  async installProductHooks(i: Integration) {
+    if (!this.connected(i)) return { ok: false, installed: 0 };
+    const res = i.type === 'SHOPIFY' ? await this.shopify.installProductHooks(i)
+      : i.type === 'WOOCOMMERCE' ? await this.woo.installProductHooks(i)
+        : { ok: false, installed: 0, error: null as string | null };
+    await this.patchWatch(i.id, (w) => ({ ...w, productHooks: { at: new Date().toISOString(), ok: res.ok, installed: res.installed, error: (res as any).error ?? null } }));
+    return res;
   }
 
   /** "Sab pakke jorein" for any size of list: every SKU/barcode match, in the background. */

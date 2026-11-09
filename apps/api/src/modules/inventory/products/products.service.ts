@@ -8,7 +8,8 @@ import { NOT_SERVICE_PRODUCT, ShopScope, applyStockDelta, resolveWriteShopId, ro
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { PAKISTAN_CATALOG, CATEGORY_META, type SeedProduct } from './seed-catalog/pakistan-grocery-catalog';
+import { PAKISTAN_CATALOG, CATEGORY_META, seedImportRow } from './seed-catalog/pakistan-grocery-catalog';
+import { CatalogImporter } from './catalog-import';
 import { apiMessage } from '../../../common/i18n/api-message';
 import { syncBaseUnits } from '../../../industries/retail/product-units/unit-math';
 
@@ -729,8 +730,10 @@ export class ProductsService {
   }
 
   /**
-   * Bulk-create products from catalog — with brands, categories, tags auto-created.
-   * Frontend passes array of catalog IDs + optional price overrides.
+   * Quick Setup: creates the picked grocery catalog products (with brands,
+   * categories and tags) through the shared catalog importer. Kept for the
+   * mobile app versions that still call it; the product library is the new
+   * way in.
    */
   async quickSetupImport(
     user: AuthenticatedUser,
@@ -738,245 +741,36 @@ export class ProductsService {
     priceOverrides: Record<string, { price?: number; costPrice?: number; stock?: number }> = {},
     targetShopId?: string,
   ) {
-    const selected = PAKISTAN_CATALOG.filter((p) => catalogIds.includes(p.id));
+    const ids = new Set(catalogIds);
+    const selected = PAKISTAN_CATALOG.filter((p) => ids.has(p.id));
     if (!selected.length) {
       return { message: 'Koi products select nahi hue', imported: 0 };
     }
-
-    // ═══ Resolve target shop: agar user ne dropdown se koi shop select ki hai
-    //    to us mein stock daalo; warna main shop; warna pehli active shop ═══
-    let resolvedShopId: string | null = null;
-    if (targetShopId) {
-      const s = await this.prisma.shop.findFirst({
-        where: { id: targetShopId, tenantId: user.tenantId, isActive: true },
-        select: { id: true },
-      });
-      if (s) resolvedShopId = s.id;
-    }
-    if (!resolvedShopId) {
-      const mainShop = await this.prisma.shop.findFirst({
-        where: { tenantId: user.tenantId, isActive: true, isMain: true },
-        select: { id: true },
-      });
-      resolvedShopId = mainShop?.id ?? null;
-    }
-    if (!resolvedShopId) {
-      const anyShop = await this.prisma.shop.findFirst({
-        where: { tenantId: user.tenantId, isActive: true },
-        orderBy: { createdAt: 'asc' },
-        select: { id: true },
-      });
-      resolvedShopId = anyShop?.id ?? null;
-    }
-    this.logger.log(`Quick-setup: stock will land in shopId=${resolvedShopId ?? 'NONE'}`);
-
-    // Pre-load existing brands/categories/tags
-    const [existingBrands, existingCats, existingTags, existingProducts] = await Promise.all([
-      this.prisma.brand.findMany({ where: { tenantId: user.tenantId } }),
-      this.prisma.category.findMany({ where: { tenantId: user.tenantId } }),
-      this.prisma.tag.findMany({ where: { tenantId: user.tenantId } }),
-      this.prisma.product.findMany({
-        where: { tenantId: user.tenantId },
-        select: { name: true },
-      }),
-    ]);
-
-    const brandCache = new Map(existingBrands.map((b) => [b.name.toLowerCase().trim(), b.id]));
-    const catCache = new Map(existingCats.map((c) => [c.name.toLowerCase().trim(), c.id]));
-    const tagCache = new Map(existingTags.map((t) => [t.name.toLowerCase().trim(), t.id]));
-    const existingNames = new Set(existingProducts.map((p) => p.name.toLowerCase().trim()));
-
-    let brandsCreated = 0;
-    let categoriesCreated = 0;
-    let tagsCreated = 0;
-    let productsCreated = 0;
-    let productsSkipped = 0;
-    const errors: Array<{ name: string; error: string }> = [];
-
-    // ═══ Step 1: Create missing brands ═══
-    const brandsToCreate = new Set<string>();
-    for (const p of selected) {
-      if (!brandCache.has(p.brand.toLowerCase().trim())) {
-        brandsToCreate.add(p.brand);
-      }
-    }
-    for (const brandName of brandsToCreate) {
-      const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      try {
-        const b = await this.prisma.brand.create({
-          data: {
-            tenantId: user.tenantId,
-            name: brandName,
-            slug: `${slug}-${Math.random().toString(36).slice(2, 5)}`,
-          },
-        });
-        brandCache.set(brandName.toLowerCase().trim(), b.id);
-        brandsCreated++;
-      } catch (e: any) {
-        this.logger.warn(`Brand ${brandName} failed: ${e.message}`);
-      }
-    }
-
-    // ═══ Step 2: Create missing categories ═══
-    const catsToCreate = new Set<string>();
-    for (const p of selected) {
-      if (!catCache.has(p.category.toLowerCase().trim())) {
-        catsToCreate.add(p.category);
-      }
-    }
-    for (const catName of catsToCreate) {
-      try {
-        const c = await this.prisma.category.create({
-          data: {
-            tenantId: user.tenantId,
-            name: catName,
-            color: CATEGORY_META[catName]?.color ?? '#64748b',
-          },
-        });
-        catCache.set(catName.toLowerCase().trim(), c.id);
-        categoriesCreated++;
-      } catch (e: any) {
-        this.logger.warn(`Category ${catName} failed: ${e.message}`);
-      }
-    }
-
-    // ═══ Step 3: Create missing tags ═══
-    const tagsToCreate = new Set<string>();
-    for (const p of selected) {
-      for (const tag of p.tags) {
-        if (!tagCache.has(tag.toLowerCase().trim())) {
-          tagsToCreate.add(tag);
-        }
-      }
-    }
-    for (const tagName of tagsToCreate) {
-      try {
-        const t = await this.prisma.tag.create({
-          data: {
-            tenantId: user.tenantId,
-            name: tagName,
-            color: '#16a34a',
-          },
-        });
-        tagCache.set(tagName.toLowerCase().trim(), t.id);
-        tagsCreated++;
-      } catch {}
-    }
-
-    // ═══ Step 4: Create products (in transaction batches of 20) ═══
-    const batches: SeedProduct[][] = [];
-    for (let i = 0; i < selected.length; i += 20) {
-      batches.push(selected.slice(i, i + 20));
-    }
-
-    for (const batch of batches) {
-      await this.prisma.$transaction(async (tx) => {
-        for (const p of batch) {
-          // Skip if product name already exists
-          if (existingNames.has(p.name.toLowerCase().trim())) {
-            productsSkipped++;
-            continue;
-          }
-
-          const override = priceOverrides[p.id] || {};
-          const finalPrice = override.price ?? p.price;
-          const finalCost = override.costPrice ?? p.costPrice;
-          const finalStock = override.stock ?? 0;
-
-          try {
-            const brandId = brandCache.get(p.brand.toLowerCase().trim());
-            const categoryId = catCache.get(p.category.toLowerCase().trim());
-            const tagIds = p.tags
-              .map((t) => tagCache.get(t.toLowerCase().trim()))
-              .filter(Boolean) as string[];
-
-            const slug =
-              p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100) +
-              '-' + Math.random().toString(36).slice(2, 6);
-
-            // Auto-generate barcode if not provided
-            let barcode = p.barcode;
-            if (!barcode) {
-              const ts = Date.now().toString().slice(-10);
-              const rnd = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-              barcode = `200${ts}${rnd}`.slice(0, 13);
-            }
-
-            const created = await tx.product.create({
-              data: {
-                tenantId: user.tenantId,
-                name: p.name,
-                slug,
-                brandId,
-                categoryId,
-                unit: p.unit,
-                price: finalPrice,
-                costPrice: finalCost,
-                wholesalePrice: p.wholesalePrice ?? null,
-                stock: 0,
-                lowStockAlert: 5,
-                barcode,
-                description: p.description,
-                weight: p.weight,
-                weightUnit: p.weightUnit,
-                isActive: true,
-                isFeatured: false,
-              },
-            });
-
-            // Tags
-            if (tagIds.length) {
-              await tx.productTag.createMany({
-                data: tagIds.map((tagId) => ({ productId: created.id, tagId })),
-                skipDuplicates: true,
-              });
-            }
-
-            // Image
-            if (p.imageUrl) {
-              await tx.productImage.create({
-                data: {
-                  productId: created.id,
-                  url: p.imageUrl,
-                  isPrimary: true,
-                  sortOrder: 0,
-                },
-              });
-            }
-
-            // ShopStock — stock goes to the resolved target shop; other shops start at 0
-            await this.ensureShopStockForShopsTx(
-              tx,
-              user.tenantId,
-              created.id,
-              finalStock,
-              resolvedShopId,
-              user.id,
-            );
-
-            existingNames.add(p.name.toLowerCase().trim());
-            productsCreated++;
-          } catch (e: any) {
-            errors.push({ name: p.name, error: e.message });
-            this.logger.warn(`Quick-setup product ${p.name} failed: ${e.message}`);
-          }
-        }
-      }, { timeout: 30000 });
-    }
-
-    // ⭐ Self-heal: har product ki ShopStock har shop mein guarantee
+    const importer = new CatalogImporter(this.prisma, user.tenantId, user.id, {
+      shopId: targetShopId, generateBarcodes: true, stockNote: 'Quick Setup opening stock',
+    });
+    const t = await importer.run(selected.map((p) => {
+      const o = priceOverrides[p.id] ?? {};
+      return { ...seedImportRow(p), price: o.price ?? p.price, costPrice: o.costPrice ?? p.costPrice, stock: o.stock ?? 0 };
+    }));
     await this.healMissingShopStock(user.tenantId);
 
+    const productsCreated = t.created;
     return {
       ...apiMessage('{{productsCreated}} products import ho gaye! 🎉', { productsCreated }),
       imported: productsCreated,
-      skipped: productsSkipped,
-      brandsCreated,
-      categoriesCreated,
-      tagsCreated,
-      errorCount: errors.length,
-      errors: errors.slice(0, 10), // First 10 errors only
+      skipped: t.skipped,
+      brandsCreated: t.brandsCreated,
+      categoriesCreated: t.categoriesCreated,
+      tagsCreated: t.tagsCreated,
+      errorCount: t.errors.length,
+      errors: t.errors.slice(0, 10),
     };
+  }
+
+  /** Repairs missing branch stock rows; the library calls it after an import. */
+  healShopStock(tenantId: string) {
+    return this.healMissingShopStock(tenantId);
   }
 
   // ═══════════════════════════════════════════════════════════

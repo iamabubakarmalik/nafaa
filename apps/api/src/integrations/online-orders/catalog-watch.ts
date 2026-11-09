@@ -65,7 +65,53 @@ export function watchStep(prev: WatchState | null | undefined, openKeys: string[
   return { state: { seen: open, firstSeen }, staleNew };
 }
 
-export type AlertKind = 'sync' | 'unlinked' | 'disconnected';
+export type AlertKind = 'sync' | 'unlinked' | 'disconnected' | 'price';
+
+/**
+ * Is this open channel item new? Items open on the watch's first run are the
+ * baseline (not new); items that appeared later are. Before any baseline, only
+ * items a product webhook announced as created count as new.
+ */
+export function isNewItem(state: WatchState | null | undefined, key: string, announced = false): boolean {
+  if (!state) return announced;
+  if (state.firstSeen[key]) return true;
+  return !state.seen.includes(key);
+}
+
+/** Statuses of a sellable channel product (Shopify active, Woo publish, Daraz active). */
+const LIVE_STATUSES = new Set(['active', 'publish', 'live', '']);
+
+/**
+ * Channel products to bring into Nafaa by themselves: the whole listing is
+ * unlinked, nothing in Nafaa matches any of its items (a SKU match is linked
+ * instead, a likely match waits for the merchant), it is live on the channel,
+ * and at least one of its items is new.
+ */
+export function newProductPicks(input: {
+  remote: Array<{ externalProductId: string; status?: string | null; variants: Array<{ externalVariantId: string | null }> }>;
+  results: Array<{ item: { p: { externalProductId: string }; v: { externalVariantId: string | null } }; match: { kind: string } | null }>;
+  isNew: (p: { externalProductId: string }, v: { externalVariantId: string | null }) => boolean;
+}): string[] {
+  const open = new Map<string, { count: number; matched: boolean; fresh: boolean }>();
+  for (const { item, match } of input.results) {
+    const o = open.get(item.p.externalProductId) ?? { count: 0, matched: false, fresh: false };
+    o.count++;
+    if (match) o.matched = true;
+    if (input.isNew(item.p, item.v)) o.fresh = true;
+    open.set(item.p.externalProductId, o);
+  }
+  return input.remote
+    .filter((p) => {
+      const o = open.get(p.externalProductId);
+      return !!o && p.variants.length > 0 && o.count === p.variants.length && !o.matched && o.fresh && LIVE_STATUSES.has(String(p.status ?? '').toLowerCase());
+    })
+    .map((p) => p.externalProductId);
+}
+
+/** Auto import runs only where the merchant switched it on, Nafaa pushes to the channel, and a branch takes the stock. */
+export function autoImportAllowed(cfg: { autoImport: boolean }, mode: string, shopId: string | null | undefined): boolean {
+  return cfg.autoImport && (mode === 'woocommerce' || mode === 'shopify' || mode === 'daraz') && !!shopId;
+}
 
 /** At most one alert per channel and kind in a day. */
 export const alertDue = (lastIso: string | null | undefined, now: number) => !lastIso || now - Date.parse(lastIso) >= DAY_MS;

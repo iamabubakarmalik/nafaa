@@ -45,6 +45,8 @@ const appStoreKey = (shop: string) => `shopify.appstore-install:${shop}`;
 const PLAN_TTL_MS = 60 * 60_000;
 
 const WEBHOOK_TOPICS = ['ORDERS_CREATE', 'ORDERS_UPDATED', 'ORDERS_CANCELLED', 'ORDERS_PAID', 'APP_UNINSTALLED'] as const;
+/** Installed only for channels that auto-import or follow channel prices (see installProductHooks). */
+const PRODUCT_HOOK_TOPICS = ['PRODUCTS_CREATE', 'PRODUCTS_UPDATE'] as const;
 
 @Injectable()
 export class ShopifyService {
@@ -409,6 +411,46 @@ export class ShopifyService {
       return { ok: true, installed };
     } catch (e: any) {
       return { ok: false, installed: 0, error: e?.message };
+    }
+  }
+
+  /**
+   * Product create/update webhooks (read_products, already granted): new
+   * products and price changes reach Nafaa within seconds. Same endpoint and
+   * signing as the order webhooks; scopes and OAuth are unchanged.
+   */
+  async installProductHooks(integration: Integration) {
+    if (this.planBlocked(integration)) return { ok: false, installed: 0, error: 'shopify-plan' };
+    const client = await this.client(integration);
+    const hook = this.setup.urls(integration.apiKey).hook;
+    if (!client || !hook) return { ok: false, installed: 0, error: 'Shopify jura nahi' };
+    try {
+      const existing = await client.paginate<any>(`query($after: String) {
+        webhookSubscriptions(first: 100, after: $after) {
+          nodes { id topic endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } } }
+          pageInfo { hasNextPage endCursor }
+        }
+      }`, 'webhookSubscriptions', {}, 5);
+      let installed = 0;
+      // Stock levels only where stock edited by hand on Shopify is taken into Nafaa (read_inventory, already granted).
+      const topics = readWebsiteConfig(integration.config).stockFromChannel ? [...PRODUCT_HOOK_TOPICS, 'INVENTORY_LEVELS_UPDATE'] : [...PRODUCT_HOOK_TOPICS];
+      for (const topic of topics) {
+        const mine = existing.filter((w) => w.topic === topic && String(w.endpoint?.callbackUrl ?? '').includes('/integrations/website/v1/hook/'));
+        const current = mine.find((w) => w.endpoint?.callbackUrl === hook);
+        for (const w of mine) {
+          if (w === current) continue;
+          await client.mutate(`mutation($id: ID!) { webhookSubscriptionDelete(id: $id) { deletedWebhookSubscriptionId userErrors { field message } } }`,
+            { id: w.id }, 'webhookSubscriptionDelete').catch(() => null);
+        }
+        if (current) continue;
+        await client.mutate(`mutation($topic: WebhookSubscriptionTopic!, $sub: WebhookSubscriptionInput!) {
+          webhookSubscriptionCreate(topic: $topic, webhookSubscription: $sub) { webhookSubscription { id } userErrors { field message } }
+        }`, { topic, sub: { callbackUrl: hook, format: 'JSON' } }, 'webhookSubscriptionCreate');
+        installed++;
+      }
+      return { ok: true, installed, error: null };
+    } catch (e: any) {
+      return { ok: false, installed: 0, error: e?.message ?? 'Webhook nahi laga' };
     }
   }
 

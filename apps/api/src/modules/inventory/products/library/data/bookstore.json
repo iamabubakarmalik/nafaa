@@ -1,0 +1,3314 @@
+[
+ {
+  "id": "bookstore-oxford-english-grammar-course",
+  "name": "Oxford English Grammar Course",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "oxford",
+   "english",
+   "grammar",
+   "course",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-pakistan-studies-book-9-10",
+  "name": "Oxford Pakistan Studies Book 9-10",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "oxford",
+   "pakistan",
+   "studies",
+   "book",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-dictionary-of-current-english",
+  "name": "Oxford Dictionary of Current English",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1800,
+  "tags": [
+   "oxford",
+   "dictionary",
+   "of",
+   "current",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-pocket-dictionary-english-urdu",
+  "name": "Oxford Pocket Dictionary English-Urdu",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "oxford",
+   "pocket",
+   "dictionary",
+   "english",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-primary-atlas",
+  "name": "Oxford Primary Atlas",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 440,
+  "tags": [
+   "oxford",
+   "primary",
+   "atlas",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-school-atlas-pakistan",
+  "name": "Oxford School Atlas Pakistan",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "oxford",
+   "school",
+   "atlas",
+   "pakistan",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-new-syllabus-mathematics-book-1",
+  "name": "Oxford New Syllabus Mathematics Book 1",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "oxford",
+   "new",
+   "syllabus",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-oxford-reading-tree-level-1",
+  "name": "Oxford Oxford Reading Tree Level 1",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "oxford",
+   "reading",
+   "tree",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-oxford-reading-tree-level-2",
+  "name": "Oxford Oxford Reading Tree Level 2",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "oxford",
+   "reading",
+   "tree",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-english-grammar-for-class-5",
+  "name": "Oxford English Grammar for Class 5",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 440,
+  "tags": [
+   "oxford",
+   "english",
+   "grammar",
+   "for",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-mathematics-textbook-class-8",
+  "name": "Oxford Mathematics Textbook Class 8",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 760,
+  "tags": [
+   "oxford",
+   "mathematics",
+   "textbook",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-science-textbook-class-7",
+  "name": "Oxford Science Textbook Class 7",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 760,
+  "tags": [
+   "oxford",
+   "science",
+   "textbook",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-islamiyat-textbook-class-6",
+  "name": "Oxford Islamiyat Textbook Class 6",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "oxford",
+   "islamiyat",
+   "textbook",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-urdu-textbook-class-5",
+  "name": "Oxford Urdu Textbook Class 5",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 304,
+  "tags": [
+   "oxford",
+   "urdu",
+   "textbook",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-computer-science-class-7",
+  "name": "Oxford Computer Science Class 7",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "oxford",
+   "computer",
+   "science",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-oxford-social-studies-class-6",
+  "name": "Oxford Social Studies Class 6",
+  "brand": "Oxford",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 440,
+  "tags": [
+   "oxford",
+   "social",
+   "studies",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-english-class-9",
+  "name": "Punjab Textbook Board English Class 9",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 200,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "english",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-physics-class-10",
+  "name": "Punjab Textbook Board Physics Class 10",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 256,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "physics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-chemistry-class-9",
+  "name": "Punjab Textbook Board Chemistry Class 9",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 256,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "chemistry",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-biology-class-10",
+  "name": "Punjab Textbook Board Biology Class 10",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 280,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "biology",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-mathematics-class-10",
+  "name": "Punjab Textbook Board Mathematics Class 10",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 240,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-urdu-class-10",
+  "name": "Punjab Textbook Board Urdu Class 10",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 200,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "urdu",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-pak-studies-class-9",
+  "name": "Punjab Textbook Board Pak Studies Class 9",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 160,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "pak",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-islamiyat-class-10",
+  "name": "Punjab Textbook Board Islamiyat Class 10",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 144,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "islamiyat",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-computer-science-class-9",
+  "name": "Punjab Textbook Board Computer Science Class 9",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 256,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "computer",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-english-fsc-part-1",
+  "name": "Punjab Textbook Board English FSc Part 1",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 280,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "english",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-physics-fsc-part-1",
+  "name": "Punjab Textbook Board Physics FSc Part 1",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 416,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "physics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-chemistry-fsc-part-1",
+  "name": "Punjab Textbook Board Chemistry FSc Part 1",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 416,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "chemistry",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-mathematics-fsc-part-1",
+  "name": "Punjab Textbook Board Mathematics FSc Part 1",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 416,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-punjab-textbook-board-biology-fsc-part-1",
+  "name": "Punjab Textbook Board Biology FSc Part 1",
+  "brand": "Punjab Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 440,
+  "tags": [
+   "punjab",
+   "textbook",
+   "board",
+   "biology",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-sindh-textbook-board-english-class-9",
+  "name": "Sindh Textbook Board English Class 9",
+  "brand": "Sindh Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 192,
+  "tags": [
+   "sindh",
+   "textbook",
+   "board",
+   "english",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-sindh-textbook-board-physics-class-10",
+  "name": "Sindh Textbook Board Physics Class 10",
+  "brand": "Sindh Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 240,
+  "tags": [
+   "sindh",
+   "textbook",
+   "board",
+   "physics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-kpk-textbook-board-english-class-9",
+  "name": "KPK Textbook Board English Class 9",
+  "brand": "KPK Textbook Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 192,
+  "tags": [
+   "kpk",
+   "textbook",
+   "board",
+   "english",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-federal-board-physics-class-11",
+  "name": "Federal Board Physics Class 11",
+  "brand": "Federal Board",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 384,
+  "tags": [
+   "federal",
+   "board",
+   "physics",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-igcse-mathematics",
+  "name": "Cambridge IGCSE Mathematics",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3600,
+  "tags": [
+   "cambridge",
+   "igcse",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-igcse-physics",
+  "name": "Cambridge IGCSE Physics",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3600,
+  "tags": [
+   "cambridge",
+   "igcse",
+   "physics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-igcse-chemistry",
+  "name": "Cambridge IGCSE Chemistry",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3600,
+  "tags": [
+   "cambridge",
+   "igcse",
+   "chemistry",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-o-level-english-grammar",
+  "name": "Cambridge O Level English Grammar",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2560,
+  "tags": [
+   "cambridge",
+   "level",
+   "english",
+   "grammar",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-a-level-mathematics",
+  "name": "Cambridge A Level Mathematics",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "cambridge",
+   "level",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-cambridge-complete-biology-igcse",
+  "name": "Cambridge Complete Biology IGCSE",
+  "brand": "Cambridge",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3600,
+  "tags": [
+   "cambridge",
+   "complete",
+   "biology",
+   "igcse",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-pearson-edexcel-mathematics",
+  "name": "Pearson Edexcel Mathematics",
+  "brand": "Pearson",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4160,
+  "tags": [
+   "pearson",
+   "edexcel",
+   "mathematics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-pearson-edexcel-physics",
+  "name": "Pearson Edexcel Physics",
+  "brand": "Pearson",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4160,
+  "tags": [
+   "pearson",
+   "edexcel",
+   "physics",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-past-papers-matric",
+  "name": "Past Papers Matric",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "past",
+   "papers",
+   "matric",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-past-papers-fsc",
+  "name": "Past Papers FSc",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "past",
+   "papers",
+   "fsc",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-key-book-matric-science",
+  "name": "Key Book Matric Science",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 600,
+  "tags": [
+   "key",
+   "book",
+   "matric",
+   "science",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-key-book-english-class-10",
+  "name": "Key Book English Class 10",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "key",
+   "book",
+   "english",
+   "class",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-notes-guide-mdcat",
+  "name": "Notes Guide MDCAT",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2240,
+  "tags": [
+   "notes",
+   "guide",
+   "mdcat",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-notes-guide-ecat",
+  "name": "Notes Guide ECAT",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2240,
+  "tags": [
+   "notes",
+   "guide",
+   "ecat",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-css-compulsory-subjects-guide",
+  "name": "CSS Compulsory Subjects Guide",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 2000,
+  "tags": [
+   "css",
+   "compulsory",
+   "subjects",
+   "guide",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-ppsc-guide-book",
+  "name": "PPSC Guide Book",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "ppsc",
+   "guide",
+   "book",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-ielts-preparation-book",
+  "name": "IELTS Preparation Book",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2240,
+  "tags": [
+   "ielts",
+   "preparation",
+   "book",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-typing-tutor-book",
+  "name": "Typing Tutor Book",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "typing",
+   "tutor",
+   "book",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-quran-pak-large-print",
+  "name": "Quran Pak Large Print",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "quran",
+   "pak",
+   "large",
+   "print",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-quran-pak-small",
+  "name": "Quran Pak Small",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "quran",
+   "pak",
+   "small",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-quran-with-urdu-translation",
+  "name": "Quran with Urdu Translation",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "quran",
+   "with",
+   "urdu",
+   "translation",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-noorani-qaida",
+  "name": "Noorani Qaida",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "noorani",
+   "qaida",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-namaz-book",
+  "name": "Namaz Book",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 120,
+  "tags": [
+   "namaz",
+   "book",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-tafseer-ibn-kathir-urdu-set-1-set",
+  "name": "Tafseer Ibn Kathir Urdu Set 1 set",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "tafseer",
+   "ibn",
+   "kathir",
+   "urdu",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-hadith-book-bukhari-urdu",
+  "name": "Hadith Book Bukhari Urdu",
+  "brand": "",
+  "category": "Textbooks & Guides",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1960,
+  "tags": [
+   "hadith",
+   "book",
+   "bukhari",
+   "urdu",
+   "textbooks & guides"
+  ]
+ },
+ {
+  "id": "bookstore-alice-in-wonderland",
+  "name": "Alice in Wonderland",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "alice",
+   "in",
+   "wonderland",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-harry-potter-and-the-philosophers-stone",
+  "name": "Harry Potter and the Philosopher's Stone",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "harry",
+   "potter",
+   "and",
+   "the",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-rich-dad-poor-dad",
+  "name": "Rich Dad Poor Dad",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1012,
+  "tags": [
+   "rich",
+   "dad",
+   "poor",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-atomic-habits",
+  "name": "Atomic Habits",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "atomic",
+   "habits",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-the-alchemist",
+  "name": "The Alchemist",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "the",
+   "alchemist",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-think-and-grow-rich",
+  "name": "Think and Grow Rich",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "think",
+   "and",
+   "grow",
+   "rich",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-the-psychology-of-money",
+  "name": "The Psychology of Money",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "the",
+   "psychology",
+   "of",
+   "money",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-chicken-soup-for-the-soul",
+  "name": "Chicken Soup for the Soul",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1012,
+  "tags": [
+   "chicken",
+   "soup",
+   "for",
+   "the",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-umera-ahmed-peer-e-kamil",
+  "name": "Umera Ahmed Peer-e-Kamil",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "umera",
+   "ahmed",
+   "peer",
+   "kamil",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-nimra-ahmed-jannat-kay-pattay",
+  "name": "Nimra Ahmed Jannat Kay Pattay",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 862,
+  "tags": [
+   "nimra",
+   "ahmed",
+   "jannat",
+   "kay",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-mustansar-hussain-tarar-safarnama",
+  "name": "Mustansar Hussain Tarar Safarnama",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "mustansar",
+   "hussain",
+   "tarar",
+   "safarnama",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-ashfaq-ahmed-zavia",
+  "name": "Ashfaq Ahmed Zavia",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "ashfaq",
+   "ahmed",
+   "zavia",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-allama-iqbal-bang-e-dara",
+  "name": "Allama Iqbal Bang-e-Dara",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "allama",
+   "iqbal",
+   "bang",
+   "dara",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-allama-iqbal-kulliyat",
+  "name": "Allama Iqbal Kulliyat",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "allama",
+   "iqbal",
+   "kulliyat",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-urdu-digest-monthly",
+  "name": "Urdu Digest Monthly",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "urdu",
+   "digest",
+   "monthly",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-short-stories-for-kids",
+  "name": "Short Stories for Kids",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "short",
+   "stories",
+   "for",
+   "kids",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-kids-moral-stories",
+  "name": "Kids Moral Stories",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "kids",
+   "moral",
+   "stories",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-islamic-stories-for-kids",
+  "name": "Islamic Stories for Kids",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "islamic",
+   "stories",
+   "for",
+   "kids",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-alphabet-book-english",
+  "name": "Alphabet Book English",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "alphabet",
+   "book",
+   "english",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-alphabet-book-urdu",
+  "name": "Alphabet Book Urdu",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "alphabet",
+   "book",
+   "urdu",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-maths-tables-book",
+  "name": "Maths Tables Book",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 60,
+  "tags": [
+   "maths",
+   "tables",
+   "book",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-colouring-book",
+  "name": "Colouring Book",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "colouring",
+   "book",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-dot-to-dot-book",
+  "name": "Dot to Dot Book",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 75,
+  "tags": [
+   "dot",
+   "to",
+   "book",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-sticker-activity-book",
+  "name": "Sticker Activity Book",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 150,
+  "tags": [
+   "sticker",
+   "activity",
+   "book",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-coloring-book-large",
+  "name": "Coloring Book Large",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "coloring",
+   "book",
+   "large",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-daily-planner-diary-2026",
+  "name": "Daily Planner Diary 2026",
+  "brand": "",
+  "category": "Story & General Books",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "daily",
+   "planner",
+   "diary",
+   "2026",
+   "story & general books"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-notebook-200-pages-ruled",
+  "name": "Dollar Notebook 200 Pages Ruled",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "dollar",
+   "notebook",
+   "200",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-notebook-100-pages-ruled",
+  "name": "Dollar Notebook 100 Pages Ruled",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 82,
+  "tags": [
+   "dollar",
+   "notebook",
+   "100",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-notebook-300-pages",
+  "name": "Dollar Notebook 300 Pages",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 270,
+  "costPrice": 202,
+  "tags": [
+   "dollar",
+   "notebook",
+   "300",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-practical-copy-120-pages",
+  "name": "Dollar Practical Copy 120 Pages",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "dollar",
+   "practical",
+   "copy",
+   "120",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-drawing-book-40-pages",
+  "name": "Dollar Drawing Book 40 Pages",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "dollar",
+   "drawing",
+   "book",
+   "40",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-graph-book",
+  "name": "Dollar Graph Book",
+  "brand": "Dollar",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "dollar",
+   "graph",
+   "book",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-piano-notebook-200-pages-ruled",
+  "name": "Piano Notebook 200 Pages Ruled",
+  "brand": "Piano",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 128,
+  "tags": [
+   "piano",
+   "notebook",
+   "200",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-piano-notebook-100-pages",
+  "name": "Piano Notebook 100 Pages",
+  "brand": "Piano",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 75,
+  "tags": [
+   "piano",
+   "notebook",
+   "100",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-piano-long-book-200-pages",
+  "name": "Piano Long Book 200 Pages",
+  "brand": "Piano",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "piano",
+   "long",
+   "book",
+   "200",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-piano-diary-pocket",
+  "name": "Piano Diary Pocket",
+  "brand": "Piano",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "piano",
+   "diary",
+   "pocket",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-register-300-pages",
+  "name": "Register 300 Pages",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "register",
+   "300",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-register-500-pages",
+  "name": "Register 500 Pages",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 562,
+  "tags": [
+   "register",
+   "500",
+   "pages",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-cash-memo-book",
+  "name": "Cash Memo Book",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "cash",
+   "memo",
+   "book",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-voucher-book",
+  "name": "Voucher Book",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 98,
+  "tags": [
+   "voucher",
+   "book",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-ledger-khata-register",
+  "name": "Ledger Khata Register",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "ledger",
+   "khata",
+   "register",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-note-pad-a5",
+  "name": "Note Pad A5",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "note",
+   "pad",
+   "a5",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-spiral-notebook-a4",
+  "name": "Spiral Notebook A4",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 165,
+  "tags": [
+   "spiral",
+   "notebook",
+   "a4",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-sticky-notes-3x3",
+  "name": "Sticky Notes 3x3",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "sticky",
+   "notes",
+   "3x3",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-sticky-notes-pack-colour",
+  "name": "Sticky Notes Pack Colour",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "sticky",
+   "notes",
+   "pack",
+   "colour",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-chart-paper-sheet",
+  "name": "Chart Paper Sheet",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 25,
+  "costPrice": 19,
+  "tags": [
+   "chart",
+   "paper",
+   "sheet",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-chart-paper-coloured",
+  "name": "Chart Paper Coloured",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 22,
+  "tags": [
+   "chart",
+   "paper",
+   "coloured",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-sketch-book-a4",
+  "name": "Sketch Book A4",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "sketch",
+   "book",
+   "a4",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-a4-paper-rim-double-a",
+  "name": "A4 Paper Rim Double A",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1012,
+  "tags": [
+   "a4",
+   "paper",
+   "rim",
+   "double",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-a4-paper-rim-paper-one",
+  "name": "A4 Paper Rim Paper One",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "a4",
+   "paper",
+   "rim",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-a4-paper-rim-supreme",
+  "name": "A4 Paper Rim Supreme",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "a4",
+   "paper",
+   "rim",
+   "supreme",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-legal-size-paper-rim",
+  "name": "Legal Size Paper Rim",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "legal",
+   "size",
+   "paper",
+   "rim",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-a3-paper-rim",
+  "name": "A3 Paper Rim",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "a3",
+   "paper",
+   "rim",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-photocopy-paper-70gsm-rim",
+  "name": "Photocopy Paper 70gsm Rim",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "photocopy",
+   "paper",
+   "70gsm",
+   "rim",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-carbon-paper-pack",
+  "name": "Carbon Paper Pack",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "carbon",
+   "paper",
+   "pack",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-tracing-paper-sheet",
+  "name": "Tracing Paper Sheet",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 22,
+  "tags": [
+   "tracing",
+   "paper",
+   "sheet",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-soft-board-2x3-feet",
+  "name": "Soft Board 2x3 feet",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "soft",
+   "board",
+   "2x3",
+   "feet",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-whiteboard-2x3-feet",
+  "name": "Whiteboard 2x3 feet",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "whiteboard",
+   "2x3",
+   "feet",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-whiteboard-3x4-feet",
+  "name": "Whiteboard 3x4 feet",
+  "brand": "",
+  "category": "Notebooks & Paper",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "whiteboard",
+   "3x4",
+   "feet",
+   "notebooks & paper"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-ball-point-pen-blue",
+  "name": "Dollar Ball Point Pen Blue",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "dollar",
+   "ball",
+   "point",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-ball-point-pen-black",
+  "name": "Dollar Ball Point Pen Black",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "dollar",
+   "ball",
+   "point",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-gel-pen",
+  "name": "Dollar Gel Pen",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "dollar",
+   "gel",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-pencil-hb",
+  "name": "Dollar Pencil HB",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "dollar",
+   "pencil",
+   "hb",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-pencil-pack-of-10",
+  "name": "Dollar Pencil Pack of 10",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 98,
+  "tags": [
+   "dollar",
+   "pencil",
+   "pack",
+   "of",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-eraser",
+  "name": "Dollar Eraser",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "dollar",
+   "eraser",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-sharpener",
+  "name": "Dollar Sharpener",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "dollar",
+   "sharpener",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-ball-pen-box-50pcs",
+  "name": "Dollar Ball Pen Box 50pcs",
+  "brand": "Dollar",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "dollar",
+   "ball",
+   "pen",
+   "box",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-ball-point-pen-blue",
+  "name": "Piano Ball Point Pen Blue",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "piano",
+   "ball",
+   "point",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-ball-point-pen-box-10pcs",
+  "name": "Piano Ball Point Pen Box 10pcs",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 98,
+  "tags": [
+   "piano",
+   "ball",
+   "point",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-gel-pen",
+  "name": "Piano Gel Pen",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 35,
+  "costPrice": 26,
+  "tags": [
+   "piano",
+   "gel",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-pencil-hb",
+  "name": "Piano Pencil HB",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 12,
+  "costPrice": 9,
+  "tags": [
+   "piano",
+   "pencil",
+   "hb",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-marker-whiteboard",
+  "name": "Piano Marker Whiteboard",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "piano",
+   "marker",
+   "whiteboard",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-permanent-marker",
+  "name": "Piano Permanent Marker",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 65,
+  "costPrice": 49,
+  "tags": [
+   "piano",
+   "permanent",
+   "marker",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-piano-highlighter",
+  "name": "Piano Highlighter",
+  "brand": "Piano",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 52,
+  "tags": [
+   "piano",
+   "highlighter",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-ball-pen-blue",
+  "name": "Picasso Ball Pen Blue",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 15,
+  "costPrice": 11,
+  "tags": [
+   "picasso",
+   "ball",
+   "pen",
+   "blue",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-gel-pen",
+  "name": "Picasso Gel Pen",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "picasso",
+   "gel",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-pencil-pack-of-12",
+  "name": "Picasso Pencil Pack of 12",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "picasso",
+   "pencil",
+   "pack",
+   "of",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-pen-box-20pcs",
+  "name": "Picasso Pen Box 20pcs",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "picasso",
+   "pen",
+   "box",
+   "20pcs",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-marker-permanent",
+  "name": "Picasso Marker Permanent",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 52,
+  "tags": [
+   "picasso",
+   "marker",
+   "permanent",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-whiteboard-marker",
+  "name": "Picasso Whiteboard Marker",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 65,
+  "costPrice": 49,
+  "tags": [
+   "picasso",
+   "whiteboard",
+   "marker",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-highlighter-pack-4pcs",
+  "name": "Picasso Highlighter Pack 4pcs",
+  "brand": "Picasso",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "picasso",
+   "highlighter",
+   "pack",
+   "4pcs",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pelikan-fountain-pen",
+  "name": "Pelikan Fountain Pen",
+  "brand": "Pelikan",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "pelikan",
+   "fountain",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-parker-jotter-ball-pen",
+  "name": "Parker Jotter Ball Pen",
+  "brand": "Parker",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "parker",
+   "jotter",
+   "ball",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-parker-vector-fountain-pen",
+  "name": "Parker Vector Fountain Pen",
+  "brand": "Parker",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "parker",
+   "vector",
+   "fountain",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-parker-quink-ink-bottle",
+  "name": "Parker Quink Ink Bottle",
+  "brand": "Parker",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "parker",
+   "quink",
+   "ink",
+   "bottle",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pilot-pen-blue",
+  "name": "Pilot Pen Blue",
+  "brand": "Pilot",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "pilot",
+   "pen",
+   "blue",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pilot-v5-hi-tecpoint",
+  "name": "Pilot V5 Hi-Tecpoint",
+  "brand": "Pilot",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "pilot",
+   "v5",
+   "hi",
+   "tecpoint",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pentel-energel-pen",
+  "name": "Pentel Energel Pen",
+  "brand": "Pentel",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "pentel",
+   "energel",
+   "pen",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pentel-mechanical-pencil-0-5",
+  "name": "Pentel Mechanical Pencil 0.5",
+  "brand": "Pentel",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "pentel",
+   "mechanical",
+   "pencil",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-staedtler-pencil-hb-pack-12",
+  "name": "Staedtler Pencil HB Pack 12",
+  "brand": "Staedtler",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "staedtler",
+   "pencil",
+   "hb",
+   "pack",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-staedtler-mars-plastic-eraser",
+  "name": "Staedtler Mars Plastic Eraser",
+  "brand": "Staedtler",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 71,
+  "tags": [
+   "staedtler",
+   "mars",
+   "plastic",
+   "eraser",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-staedtler-mechanical-pencil",
+  "name": "Staedtler Mechanical Pencil",
+  "brand": "Staedtler",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "staedtler",
+   "mechanical",
+   "pencil",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-faber-castell-pencil-hb",
+  "name": "Faber-Castell Pencil HB",
+  "brand": "Faber-Castell",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 25,
+  "costPrice": 19,
+  "tags": [
+   "faber",
+   "castell",
+   "pencil",
+   "hb",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-faber-castell-colour-pencil-12-shades",
+  "name": "Faber-Castell Colour Pencil 12 Shades",
+  "brand": "Faber-Castell",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "faber",
+   "castell",
+   "colour",
+   "pencil",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-faber-castell-colour-pencil-24-shades",
+  "name": "Faber-Castell Colour Pencil 24 Shades",
+  "brand": "Faber-Castell",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "faber",
+   "castell",
+   "colour",
+   "pencil",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-faber-castell-water-colour-pencils",
+  "name": "Faber-Castell Water Colour Pencils",
+  "brand": "Faber-Castell",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "faber",
+   "castell",
+   "water",
+   "colour",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-lead-refill-0-5mm",
+  "name": "Lead Refill 0.5mm",
+  "brand": "",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "lead",
+   "refill",
+   "5mm",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pen-stand",
+  "name": "Pen Stand",
+  "brand": "",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "pen",
+   "stand",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-pencil-cutter-metal",
+  "name": "Pencil Cutter Metal",
+  "brand": "",
+  "category": "Pens & Pencils",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 22,
+  "tags": [
+   "pencil",
+   "cutter",
+   "metal",
+   "pens & pencils"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-crayons-12-colours",
+  "name": "Dollar Crayons 12 Colours",
+  "brand": "Dollar",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 75,
+  "tags": [
+   "dollar",
+   "crayons",
+   "12",
+   "colours",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-crayons-24-colours",
+  "name": "Dollar Crayons 24 Colours",
+  "brand": "Dollar",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "dollar",
+   "crayons",
+   "24",
+   "colours",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-water-colour-box",
+  "name": "Dollar Water Colour Box",
+  "brand": "Dollar",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "dollar",
+   "water",
+   "colour",
+   "box",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-dollar-geometry-box",
+  "name": "Dollar Geometry Box",
+  "brand": "Dollar",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "dollar",
+   "geometry",
+   "box",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-piano-geometry-box",
+  "name": "Piano Geometry Box",
+  "brand": "Piano",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 135,
+  "tags": [
+   "piano",
+   "geometry",
+   "box",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-piano-oil-pastel-12-colours",
+  "name": "Piano Oil Pastel 12 Colours",
+  "brand": "Piano",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 98,
+  "tags": [
+   "piano",
+   "oil",
+   "pastel",
+   "12",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-piano-oil-pastel-24-colours",
+  "name": "Piano Oil Pastel 24 Colours",
+  "brand": "Piano",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "piano",
+   "oil",
+   "pastel",
+   "24",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-piano-crayon-pack-12",
+  "name": "Piano Crayon Pack 12",
+  "brand": "Piano",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "piano",
+   "crayon",
+   "pack",
+   "12",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-piano-poster-colour-set",
+  "name": "Piano Poster Colour Set",
+  "brand": "Piano",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 135,
+  "tags": [
+   "piano",
+   "poster",
+   "colour",
+   "set",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-poster-colour-set",
+  "name": "Picasso Poster Colour Set",
+  "brand": "Picasso",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "picasso",
+   "poster",
+   "colour",
+   "set",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-water-colour-cake-12",
+  "name": "Picasso Water Colour Cake 12",
+  "brand": "Picasso",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 165,
+  "tags": [
+   "picasso",
+   "water",
+   "colour",
+   "cake",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-oil-pastel-12",
+  "name": "Picasso Oil Pastel 12",
+  "brand": "Picasso",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 98,
+  "tags": [
+   "picasso",
+   "oil",
+   "pastel",
+   "12",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-picasso-brush-set-6pcs",
+  "name": "Picasso Brush Set 6pcs",
+  "brand": "Picasso",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "picasso",
+   "brush",
+   "set",
+   "6pcs",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-camlin-geometry-box",
+  "name": "Camlin Geometry Box",
+  "brand": "Camlin",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "camlin",
+   "geometry",
+   "box",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-camlin-fabric-colour-set",
+  "name": "Camlin Fabric Colour Set",
+  "brand": "Camlin",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "camlin",
+   "fabric",
+   "colour",
+   "set",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-paint-brush-set",
+  "name": "Paint Brush Set",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "paint",
+   "brush",
+   "set",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-canvas-board-a4",
+  "name": "Canvas Board A4",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "canvas",
+   "board",
+   "a4",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-glue-stick",
+  "name": "Glue Stick",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "glue",
+   "stick",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-fevicol-small",
+  "name": "Fevicol Small",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "fevicol",
+   "small",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-scotch-tape-roll",
+  "name": "Scotch Tape Roll",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 38,
+  "tags": [
+   "scotch",
+   "tape",
+   "roll",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-double-sided-tape",
+  "name": "Double Sided Tape",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "double",
+   "sided",
+   "tape",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-scissors-school",
+  "name": "Scissors School",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 52,
+  "tags": [
+   "scissors",
+   "school",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-scissors-office-8-inch",
+  "name": "Scissors Office 8 inch",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "scissors",
+   "office",
+   "inch",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-ruler-12-inch",
+  "name": "Ruler 12 inch",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 25,
+  "costPrice": 19,
+  "tags": [
+   "ruler",
+   "12",
+   "inch",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-steel-ruler-12-inch",
+  "name": "Steel Ruler 12 inch",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "steel",
+   "ruler",
+   "12",
+   "inch",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-compass-box",
+  "name": "Compass Box",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "compass",
+   "box",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-set-square-pair",
+  "name": "Set Square Pair",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 38,
+  "tags": [
+   "set",
+   "square",
+   "pair",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-protractor",
+  "name": "Protractor",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 20,
+  "costPrice": 15,
+  "tags": [
+   "protractor",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-clay-dough-pack",
+  "name": "Clay Dough Pack",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "clay",
+   "dough",
+   "pack",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-craft-paper-pack",
+  "name": "Craft Paper Pack",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "craft",
+   "paper",
+   "pack",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-glitter-pack",
+  "name": "Glitter Pack",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "glitter",
+   "pack",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-pop-stick-pack",
+  "name": "Pop Stick Pack",
+  "brand": "",
+  "category": "Art, Colours & Geometry",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "pop",
+   "stick",
+   "pack",
+   "art, colours & geometry"
+  ]
+ },
+ {
+  "id": "bookstore-stapler-medium",
+  "name": "Stapler Medium",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "stapler",
+   "medium",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-stapler-heavy-duty",
+  "name": "Stapler Heavy Duty",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "stapler",
+   "heavy",
+   "duty",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-staple-pins-box",
+  "name": "Staple Pins Box",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "staple",
+   "pins",
+   "box",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-paper-punch",
+  "name": "Paper Punch",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "paper",
+   "punch",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-file-cover-plastic",
+  "name": "File Cover Plastic",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "file",
+   "cover",
+   "plastic",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-file-cover-card",
+  "name": "File Cover Card",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "file",
+   "cover",
+   "card",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-box-file",
+  "name": "Box File",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "box",
+   "file",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-clip-board",
+  "name": "Clip Board",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "clip",
+   "board",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-paper-clips-box",
+  "name": "Paper Clips Box",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "paper",
+   "clips",
+   "box",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-binder-clips-pack",
+  "name": "Binder Clips Pack",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "binder",
+   "clips",
+   "pack",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-rubber-bands-pack",
+  "name": "Rubber Bands Pack",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 75,
+  "tags": [
+   "rubber",
+   "bands",
+   "pack",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-stamp-pad-blue",
+  "name": "Stamp Pad Blue",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "stamp",
+   "pad",
+   "blue",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-stamp-ink-bottle",
+  "name": "Stamp Ink Bottle",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "stamp",
+   "ink",
+   "bottle",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-correction-fluid",
+  "name": "Correction Fluid",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "correction",
+   "fluid",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-correction-tape",
+  "name": "Correction Tape",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 68,
+  "tags": [
+   "correction",
+   "tape",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-envelope-brown-100pcs",
+  "name": "Envelope Brown 100pcs",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "envelope",
+   "brown",
+   "100pcs",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-envelope-white-100pcs",
+  "name": "Envelope White 100pcs",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "envelope",
+   "white",
+   "100pcs",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-laminating-pouch-a4-100pcs",
+  "name": "Laminating Pouch A4 100pcs",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "laminating",
+   "pouch",
+   "a4",
+   "100pcs",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-id-card-holder",
+  "name": "Id Card Holder",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "id",
+   "card",
+   "holder",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-lanyard",
+  "name": "Lanyard",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 35,
+  "costPrice": 26,
+  "tags": [
+   "lanyard",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-school-bag-medium",
+  "name": "School Bag Medium",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "school",
+   "bag",
+   "medium",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-school-bag-large",
+  "name": "School Bag Large",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "school",
+   "bag",
+   "large",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-lunch-box",
+  "name": "Lunch Box",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "lunch",
+   "box",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-water-bottle-600ml",
+  "name": "Water Bottle 600ml",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "water",
+   "bottle",
+   "600ml",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-pencil-box-plastic",
+  "name": "Pencil Box Plastic",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "pencil",
+   "box",
+   "plastic",
+   "office supplies"
+  ]
+ },
+ {
+  "id": "bookstore-calculator-school",
+  "name": "Calculator School",
+  "brand": "",
+  "category": "Office Supplies",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "calculator",
+   "school",
+   "office supplies"
+  ]
+ }
+]

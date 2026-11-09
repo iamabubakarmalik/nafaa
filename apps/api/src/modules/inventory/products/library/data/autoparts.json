@@ -1,0 +1,4114 @@
+[
+ {
+  "id": "autoparts-shell-helix-hx7-10w-40-1-litre",
+  "name": "Shell Helix HX7 10W-40 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1845,
+  "tags": [
+   "shell",
+   "helix",
+   "hx7",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-helix-hx7-10w-40-4-litre",
+  "name": "Shell Helix HX7 10W-40 4 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 8400,
+  "costPrice": 6888,
+  "tags": [
+   "shell",
+   "helix",
+   "hx7",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-helix-hx8-5w-30-1-litre",
+  "name": "Shell Helix HX8 5W-30 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2378,
+  "tags": [
+   "shell",
+   "helix",
+   "hx8",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-helix-hx8-5w-30-4-litre",
+  "name": "Shell Helix HX8 5W-30 4 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 10900,
+  "costPrice": 8938,
+  "tags": [
+   "shell",
+   "helix",
+   "hx8",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-helix-ultra-5w-40-1-litre",
+  "name": "Shell Helix Ultra 5W-40 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 3198,
+  "tags": [
+   "shell",
+   "helix",
+   "ultra",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-helix-ultra-5w-40-4-litre",
+  "name": "Shell Helix Ultra 5W-40 4 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 14900,
+  "costPrice": 12218,
+  "tags": [
+   "shell",
+   "helix",
+   "ultra",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-advance-ax5-motorcycle-20w-50-1-litre",
+  "name": "Shell Advance AX5 Motorcycle 20W-50 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 861,
+  "tags": [
+   "shell",
+   "advance",
+   "ax5",
+   "motorcycle",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-advance-ax5-motorcycle-20w-50-800ml",
+  "name": "Shell Advance AX5 Motorcycle 20W-50 800ml",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 738,
+  "tags": [
+   "shell",
+   "advance",
+   "ax5",
+   "motorcycle",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-advance-4t-ultra-10w-40-1-litre",
+  "name": "Shell Advance 4T Ultra 10W-40 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1400,
+  "costPrice": 1148,
+  "tags": [
+   "shell",
+   "advance",
+   "4t",
+   "ultra",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-rimula-r4-15w-40-diesel-1-litre",
+  "name": "Shell Rimula R4 15W-40 Diesel 1 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 902,
+  "tags": [
+   "shell",
+   "rimula",
+   "r4",
+   "15w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-rimula-r4-15w-40-diesel-5-litre",
+  "name": "Shell Rimula R4 15W-40 Diesel 5 litre",
+  "brand": "Shell",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4264,
+  "tags": [
+   "shell",
+   "rimula",
+   "r4",
+   "15w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-x5-10w-40-1-litre",
+  "name": "ZIC X5 10W-40 1 litre",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2000,
+  "costPrice": 1640,
+  "tags": [
+   "zic",
+   "x5",
+   "10w",
+   "40",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-x5-10w-40-4-litre",
+  "name": "ZIC X5 10W-40 4 litre",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 7800,
+  "costPrice": 6396,
+  "tags": [
+   "zic",
+   "x5",
+   "10w",
+   "40",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-x7-5w-30-1-litre",
+  "name": "ZIC X7 5W-30 1 litre",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2750,
+  "costPrice": 2255,
+  "tags": [
+   "zic",
+   "x7",
+   "5w",
+   "30",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-x7-5w-30-4-litre",
+  "name": "ZIC X7 5W-30 4 litre",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 10400,
+  "costPrice": 8528,
+  "tags": [
+   "zic",
+   "x7",
+   "5w",
+   "30",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-m9-4t-motorcycle-10w-40-1-litre",
+  "name": "ZIC M9 4T Motorcycle 10W-40 1 litre",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "zic",
+   "m9",
+   "4t",
+   "motorcycle",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-zic-m7-4t-motorcycle-20w-50-800ml",
+  "name": "ZIC M7 4T Motorcycle 20W-50 800ml",
+  "brand": "ZIC",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "zic",
+   "m7",
+   "4t",
+   "motorcycle",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-quartz-7000-10w-40-1-litre",
+  "name": "Total Quartz 7000 10W-40 1 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2100,
+  "costPrice": 1722,
+  "tags": [
+   "total",
+   "quartz",
+   "7000",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-quartz-7000-10w-40-4-litre",
+  "name": "Total Quartz 7000 10W-40 4 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 8000,
+  "costPrice": 6560,
+  "tags": [
+   "total",
+   "quartz",
+   "7000",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-quartz-9000-5w-40-1-litre",
+  "name": "Total Quartz 9000 5W-40 1 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3300,
+  "costPrice": 2706,
+  "tags": [
+   "total",
+   "quartz",
+   "9000",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-quartz-9000-5w-40-4-litre",
+  "name": "Total Quartz 9000 5W-40 4 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 12600,
+  "costPrice": 10332,
+  "tags": [
+   "total",
+   "quartz",
+   "9000",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-quartz-ineo-5w-30-1-litre",
+  "name": "Total Quartz Ineo 5W-30 1 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3100,
+  "costPrice": 2542,
+  "tags": [
+   "total",
+   "quartz",
+   "ineo",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-gtx-20w-50-1-litre",
+  "name": "Castrol GTX 20W-50 1 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1435,
+  "tags": [
+   "castrol",
+   "gtx",
+   "20w",
+   "50",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-gtx-20w-50-4-litre",
+  "name": "Castrol GTX 20W-50 4 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 6600,
+  "costPrice": 5412,
+  "tags": [
+   "castrol",
+   "gtx",
+   "20w",
+   "50",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-magnatec-10w-40-1-litre",
+  "name": "Castrol Magnatec 10W-40 1 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2350,
+  "costPrice": 1927,
+  "tags": [
+   "castrol",
+   "magnatec",
+   "10w",
+   "40",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-magnatec-10w-40-4-litre",
+  "name": "Castrol Magnatec 10W-40 4 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 8900,
+  "costPrice": 7298,
+  "tags": [
+   "castrol",
+   "magnatec",
+   "10w",
+   "40",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-edge-5w-30-1-litre",
+  "name": "Castrol Edge 5W-30 1 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 3116,
+  "tags": [
+   "castrol",
+   "edge",
+   "5w",
+   "30",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-edge-5w-30-4-litre",
+  "name": "Castrol Edge 5W-30 4 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11890,
+  "tags": [
+   "castrol",
+   "edge",
+   "5w",
+   "30",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-activ-4t-20w-40-motorcycle-800ml",
+  "name": "Castrol Activ 4T 20W-40 Motorcycle 800ml",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "castrol",
+   "activ",
+   "4t",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-activ-4t-20w-40-motorcycle-1-litre",
+  "name": "Castrol Activ 4T 20W-40 Motorcycle 1 litre",
+  "brand": "Castrol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 943,
+  "tags": [
+   "castrol",
+   "activ",
+   "4t",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-mobil-super-2000-10w-40-1-litre",
+  "name": "Mobil Super 2000 10W-40 1 litre",
+  "brand": "Mobil",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2000,
+  "costPrice": 1640,
+  "tags": [
+   "mobil",
+   "super",
+   "2000",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-mobil-super-2000-10w-40-4-litre",
+  "name": "Mobil Super 2000 10W-40 4 litre",
+  "brand": "Mobil",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 7600,
+  "costPrice": 6232,
+  "tags": [
+   "mobil",
+   "super",
+   "2000",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-mobil-1-5w-30-1-litre",
+  "name": "Mobil 1 5W-30 1 litre",
+  "brand": "Mobil",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 3198,
+  "tags": [
+   "mobil",
+   "5w",
+   "30",
+   "litre",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-pso-carient-plus-20w-50-1-litre",
+  "name": "PSO Carient Plus 20W-50 1 litre",
+  "brand": "PSO",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1400,
+  "costPrice": 1148,
+  "tags": [
+   "pso",
+   "carient",
+   "plus",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-pso-carient-plus-20w-50-4-litre",
+  "name": "PSO Carient Plus 20W-50 4 litre",
+  "brand": "PSO",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 5300,
+  "costPrice": 4346,
+  "tags": [
+   "pso",
+   "carient",
+   "plus",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-pso-carient-max-10w-40-1-litre",
+  "name": "PSO Carient Max 10W-40 1 litre",
+  "brand": "PSO",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "pso",
+   "carient",
+   "max",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-pso-carient-max-10w-40-4-litre",
+  "name": "PSO Carient Max 10W-40 4 litre",
+  "brand": "PSO",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 6200,
+  "costPrice": 5084,
+  "tags": [
+   "pso",
+   "carient",
+   "max",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-pso-carient-bike-4t-20w-50-1-litre",
+  "name": "PSO Carient Bike 4T 20W-50 1 litre",
+  "brand": "PSO",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "pso",
+   "carient",
+   "bike",
+   "4t",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-hascol-petronas-syntium-10w-40-1-litre",
+  "name": "Hascol Petronas Syntium 10W-40 1 litre",
+  "brand": "Hascol",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 2100,
+  "costPrice": 1722,
+  "tags": [
+   "hascol",
+   "petronas",
+   "syntium",
+   "10w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-petronas-syntium-3000-5w-40-1-litre",
+  "name": "Petronas Syntium 3000 5W-40 1 litre",
+  "brand": "Petronas",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 3100,
+  "costPrice": 2542,
+  "tags": [
+   "petronas",
+   "syntium",
+   "3000",
+   "5w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-gul-motor-oil-20w-50-1-litre",
+  "name": "Gul Motor Oil 20W-50 1 litre",
+  "brand": "Gul",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "gul",
+   "motor",
+   "oil",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-attock-sepia-extra-20w-50-1-litre",
+  "name": "Attock Sepia Extra 20W-50 1 litre",
+  "brand": "Attock",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 984,
+  "tags": [
+   "attock",
+   "sepia",
+   "extra",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-attock-sepia-extra-20w-50-4-litre",
+  "name": "Attock Sepia Extra 20W-50 4 litre",
+  "brand": "Attock",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3690,
+  "tags": [
+   "attock",
+   "sepia",
+   "extra",
+   "20w",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-attock-sepia-4t-bike-oil-1-litre",
+  "name": "Attock Sepia 4T Bike Oil 1 litre",
+  "brand": "Attock",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 738,
+  "tags": [
+   "attock",
+   "sepia",
+   "4t",
+   "bike",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-total-hi-perf-4t-motorcycle-20w-50-1-litre",
+  "name": "Total Hi-Perf 4T Motorcycle 20W-50 1 litre",
+  "brand": "Total",
+  "category": "Engine Oil",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 861,
+  "tags": [
+   "total",
+   "hi",
+   "perf",
+   "4t",
+   "engine oil"
+  ]
+ },
+ {
+  "id": "autoparts-shell-atf-dexron-iii-1-litre",
+  "name": "Shell ATF Dexron III 1 litre",
+  "brand": "Shell",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1400,
+  "tags": [
+   "shell",
+   "atf",
+   "dexron",
+   "iii",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-shell-gear-oil-80w-90-1-litre",
+  "name": "Shell Gear Oil 80W-90 1 litre",
+  "brand": "Shell",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1080,
+  "tags": [
+   "shell",
+   "gear",
+   "oil",
+   "80w",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-castrol-brake-fluid-dot-4-500ml",
+  "name": "Castrol Brake Fluid DOT 4 500ml",
+  "brand": "Castrol",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 720,
+  "tags": [
+   "castrol",
+   "brake",
+   "fluid",
+   "dot",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-shell-brake-fluid-dot-4-500ml",
+  "name": "Shell Brake Fluid DOT 4 500ml",
+  "brand": "Shell",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "shell",
+   "brake",
+   "fluid",
+   "dot",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-pso-brake-fluid-dot-3-500ml",
+  "name": "PSO Brake Fluid DOT 3 500ml",
+  "brand": "PSO",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 440,
+  "tags": [
+   "pso",
+   "brake",
+   "fluid",
+   "dot",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-prestone-coolant-antifreeze-1-litre",
+  "name": "Prestone Coolant Antifreeze 1 litre",
+  "brand": "Prestone",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "prestone",
+   "coolant",
+   "antifreeze",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-prestone-coolant-antifreeze-4-litre",
+  "name": "Prestone Coolant Antifreeze 4 litre",
+  "brand": "Prestone",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 4600,
+  "costPrice": 3680,
+  "tags": [
+   "prestone",
+   "coolant",
+   "antifreeze",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-radiator-coolant-green-1-litre",
+  "name": "Radiator Coolant Green 1 litre",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "radiator",
+   "coolant",
+   "green",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-radiator-coolant-green-4-litre",
+  "name": "Radiator Coolant Green 4 litre",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "radiator",
+   "coolant",
+   "green",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-distilled-water-battery-1-litre",
+  "name": "Distilled Water Battery 1 litre",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "distilled",
+   "water",
+   "battery",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-distilled-water-battery-5-litre",
+  "name": "Distilled Water Battery 5 litre",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "distilled",
+   "water",
+   "battery",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-wurth-power-steering-fluid-1-litre",
+  "name": "Wurth Power Steering Fluid 1 litre",
+  "brand": "Wurth",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1080,
+  "tags": [
+   "wurth",
+   "power",
+   "steering",
+   "fluid",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-wiper-washer-fluid-1-litre",
+  "name": "Wiper Washer Fluid 1 litre",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 280,
+  "tags": [
+   "wiper",
+   "washer",
+   "fluid",
+   "litre",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-stp-engine-flush-354ml",
+  "name": "STP Engine Flush 354ml",
+  "brand": "STP",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 760,
+  "tags": [
+   "stp",
+   "engine",
+   "flush",
+   "354ml",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-stp-fuel-injector-cleaner-354ml",
+  "name": "STP Fuel Injector Cleaner 354ml",
+  "brand": "STP",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 920,
+  "tags": [
+   "stp",
+   "fuel",
+   "injector",
+   "cleaner",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-wynns-radiator-flush-325ml",
+  "name": "Wynns Radiator Flush 325ml",
+  "brand": "Wynns",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "wynns",
+   "radiator",
+   "flush",
+   "325ml",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-wd-40-spray-191g",
+  "name": "WD-40 Spray 191g",
+  "brand": "WD-40",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "wd",
+   "40",
+   "spray",
+   "191g",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-wd-40-spray-382g",
+  "name": "WD-40 Spray 382g",
+  "brand": "WD-40",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1080,
+  "tags": [
+   "wd",
+   "40",
+   "spray",
+   "382g",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-chain-lube-spray-motorcycle",
+  "name": "Chain Lube Spray Motorcycle",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "chain",
+   "lube",
+   "spray",
+   "motorcycle",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-brake-cleaner-spray-500ml",
+  "name": "Brake Cleaner Spray 500ml",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "brake",
+   "cleaner",
+   "spray",
+   "500ml",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-carburetor-cleaner-spray-500ml",
+  "name": "Carburetor Cleaner Spray 500ml",
+  "brand": "",
+  "category": "Other Fluids",
+  "unit": "pcs",
+  "price": 700,
+  "costPrice": 560,
+  "tags": [
+   "carburetor",
+   "cleaner",
+   "spray",
+   "500ml",
+   "other fluids"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-suzuki-cultus",
+  "name": "Guard Oil Filter Suzuki Cultus",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-suzuki-mehran",
+  "name": "Guard Oil Filter Suzuki Mehran",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 360,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-suzuki-bolan",
+  "name": "Guard Oil Filter Suzuki Bolan",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 360,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-suzuki-alto",
+  "name": "Guard Oil Filter Suzuki Alto",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 390,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-honda-city",
+  "name": "Guard Oil Filter Honda City",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "honda",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-honda-civic",
+  "name": "Guard Oil Filter Honda Civic",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 700,
+  "costPrice": 525,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "honda",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-toyota-corolla",
+  "name": "Guard Oil Filter Toyota Corolla",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 680,
+  "costPrice": 510,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-toyota-hilux",
+  "name": "Guard Oil Filter Toyota Hilux",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 675,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-kia-sportage",
+  "name": "Guard Oil Filter Kia Sportage",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 800,
+  "costPrice": 600,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "kia",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-oil-filter-hyundai-tucson",
+  "name": "Guard Oil Filter Hyundai Tucson",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "guard",
+   "oil",
+   "filter",
+   "hyundai",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-suzuki-cultus",
+  "name": "Guard Air Filter Suzuki Cultus",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-suzuki-mehran",
+  "name": "Guard Air Filter Suzuki Mehran",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-suzuki-alto",
+  "name": "Guard Air Filter Suzuki Alto",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 600,
+  "costPrice": 450,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-honda-city",
+  "name": "Guard Air Filter Honda City",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "honda",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-honda-civic",
+  "name": "Guard Air Filter Honda Civic",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "honda",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-toyota-corolla",
+  "name": "Guard Air Filter Toyota Corolla",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-air-filter-toyota-hilux",
+  "name": "Guard Air Filter Toyota Hilux",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "guard",
+   "air",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-ac-filter-toyota-corolla",
+  "name": "Guard AC Filter Toyota Corolla",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "guard",
+   "ac",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-ac-filter-honda-city",
+  "name": "Guard AC Filter Honda City",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "guard",
+   "ac",
+   "filter",
+   "honda",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-fuel-filter-toyota-corolla",
+  "name": "Guard Fuel Filter Toyota Corolla",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 825,
+  "tags": [
+   "guard",
+   "fuel",
+   "filter",
+   "toyota",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-fuel-filter-suzuki-cultus",
+  "name": "Guard Fuel Filter Suzuki Cultus",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 700,
+  "costPrice": 525,
+  "tags": [
+   "guard",
+   "fuel",
+   "filter",
+   "suzuki",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-guard-diesel-filter-hilux",
+  "name": "Guard Diesel Filter Hilux",
+  "brand": "Guard",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "guard",
+   "diesel",
+   "filter",
+   "hilux",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-oil-filter-cd-70",
+  "name": "Atlas Honda Oil Filter CD 70",
+  "brand": "Atlas Honda",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "atlas",
+   "honda",
+   "oil",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-oil-filter-cg-125",
+  "name": "Atlas Honda Oil Filter CG 125",
+  "brand": "Atlas Honda",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 218,
+  "tags": [
+   "atlas",
+   "honda",
+   "oil",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-air-filter-cd-70",
+  "name": "Atlas Honda Air Filter CD 70",
+  "brand": "Atlas Honda",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 240,
+  "tags": [
+   "atlas",
+   "honda",
+   "air",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-air-filter-cg-125",
+  "name": "Atlas Honda Air Filter CG 125",
+  "brand": "Atlas Honda",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 285,
+  "tags": [
+   "atlas",
+   "honda",
+   "air",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-suzuki-genuine-oil-filter-cultus",
+  "name": "Suzuki Genuine Oil Filter Cultus",
+  "brand": "Suzuki",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 562,
+  "tags": [
+   "suzuki",
+   "genuine",
+   "oil",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-suzuki-genuine-air-filter-cultus",
+  "name": "Suzuki Genuine Air Filter Cultus",
+  "brand": "Suzuki",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "suzuki",
+   "genuine",
+   "air",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-toyota-genuine-oil-filter-corolla",
+  "name": "Toyota Genuine Oil Filter Corolla",
+  "brand": "Toyota",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "toyota",
+   "genuine",
+   "oil",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-honda-genuine-oil-filter-city",
+  "name": "Honda Genuine Oil Filter City",
+  "brand": "Honda",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 788,
+  "tags": [
+   "honda",
+   "genuine",
+   "oil",
+   "filter",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-mann-oil-filter-corolla",
+  "name": "Mann Oil Filter Corolla",
+  "brand": "Mann",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "mann",
+   "oil",
+   "filter",
+   "corolla",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-bosch-oil-filter-universal",
+  "name": "Bosch Oil Filter Universal",
+  "brand": "Bosch",
+  "category": "Filters",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 675,
+  "tags": [
+   "bosch",
+   "oil",
+   "filter",
+   "universal",
+   "filters"
+  ]
+ },
+ {
+  "id": "autoparts-suzuki-genuine-brake-pads-cultus-front-1-set",
+  "name": "Suzuki Genuine Brake Pads Cultus Front 1 set",
+  "brand": "Suzuki",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "suzuki",
+   "genuine",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-suzuki-genuine-brake-pads-mehran-front-1-set",
+  "name": "Suzuki Genuine Brake Pads Mehran Front 1 set",
+  "brand": "Suzuki",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "suzuki",
+   "genuine",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-toyota-genuine-brake-pads-corolla-front-1-set",
+  "name": "Toyota Genuine Brake Pads Corolla Front 1 set",
+  "brand": "Toyota",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "toyota",
+   "genuine",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-honda-genuine-brake-pads-city-front-1-set",
+  "name": "Honda Genuine Brake Pads City Front 1 set",
+  "brand": "Honda",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 6200,
+  "costPrice": 4650,
+  "tags": [
+   "honda",
+   "genuine",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-akebono-brake-pads-corolla-front-1-set",
+  "name": "Akebono Brake Pads Corolla Front 1 set",
+  "brand": "Akebono",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "akebono",
+   "brake",
+   "pads",
+   "corolla",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-akebono-brake-pads-civic-front-1-set",
+  "name": "Akebono Brake Pads Civic Front 1 set",
+  "brand": "Akebono",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 5800,
+  "costPrice": 4350,
+  "tags": [
+   "akebono",
+   "brake",
+   "pads",
+   "civic",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-akebono-brake-pads-city-front-1-set",
+  "name": "Akebono Brake Pads City Front 1 set",
+  "brand": "Akebono",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "akebono",
+   "brake",
+   "pads",
+   "city",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brembo-brake-pads-universal-front-1-set",
+  "name": "Brembo Brake Pads Universal Front 1 set",
+  "brand": "Brembo",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "brembo",
+   "brake",
+   "pads",
+   "universal",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-pads-cultus-front-1-set",
+  "name": "Brake Pads Cultus Front 1 set",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "brake",
+   "pads",
+   "cultus",
+   "front",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-pads-mehran-front-1-set",
+  "name": "Brake Pads Mehran Front 1 set",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1125,
+  "tags": [
+   "brake",
+   "pads",
+   "mehran",
+   "front",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-pads-corolla-front-1-set",
+  "name": "Brake Pads Corolla Front 1 set",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "brake",
+   "pads",
+   "corolla",
+   "front",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-shoe-mehran-rear-1-set",
+  "name": "Brake Shoe Mehran Rear 1 set",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "brake",
+   "shoe",
+   "mehran",
+   "rear",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-shoe-cultus-rear-1-set",
+  "name": "Brake Shoe Cultus Rear 1 set",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1350,
+  "tags": [
+   "brake",
+   "shoe",
+   "cultus",
+   "rear",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-brake-pads-cd-70-front-1-set",
+  "name": "Atlas Honda Brake Pads CD 70 Front 1 set",
+  "brand": "Atlas Honda",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 285,
+  "tags": [
+   "atlas",
+   "honda",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-brake-shoe-cd-70-1-set",
+  "name": "Atlas Honda Brake Shoe CD 70 1 set",
+  "brand": "Atlas Honda",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "atlas",
+   "honda",
+   "brake",
+   "shoe",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-brake-pads-cg-125-front-1-set",
+  "name": "Atlas Honda Brake Pads CG 125 Front 1 set",
+  "brand": "Atlas Honda",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "atlas",
+   "honda",
+   "brake",
+   "pads",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-brake-shoe-cg-125-1-set",
+  "name": "Atlas Honda Brake Shoe CG 125 1 set",
+  "brand": "Atlas Honda",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "atlas",
+   "honda",
+   "brake",
+   "shoe",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-suzuki-brake-disc-cultus",
+  "name": "Suzuki Brake Disc Cultus",
+  "brand": "Suzuki",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "suzuki",
+   "brake",
+   "disc",
+   "cultus",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-disc-corolla-front",
+  "name": "Brake Disc Corolla Front",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "brake",
+   "disc",
+   "corolla",
+   "front",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-cable-bike",
+  "name": "Brake Cable Bike",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "brake",
+   "cable",
+   "bike",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-clutch-cable-bike",
+  "name": "Clutch Cable Bike",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "clutch",
+   "cable",
+   "bike",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-accelerator-cable-bike",
+  "name": "Accelerator Cable Bike",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "accelerator",
+   "cable",
+   "bike",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-lever-bike",
+  "name": "Brake Lever Bike",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "brake",
+   "lever",
+   "bike",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-brake-master-cylinder-bike",
+  "name": "Brake Master Cylinder Bike",
+  "brand": "",
+  "category": "Brake System",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "brake",
+   "master",
+   "cylinder",
+   "bike",
+   "brake system"
+  ]
+ },
+ {
+  "id": "autoparts-exide-battery-n50-1-1",
+  "name": "Exide Battery N50 (1+1)",
+  "brand": "Exide",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 15500,
+  "costPrice": 13175,
+  "tags": [
+   "exide",
+   "battery",
+   "n50",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-exide-battery-ns60-13-plate",
+  "name": "Exide Battery NS60 (13 plate)",
+  "brand": "Exide",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 14875,
+  "tags": [
+   "exide",
+   "battery",
+   "ns60",
+   "13",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-exide-battery-n70-15-plate",
+  "name": "Exide Battery N70 (15 plate)",
+  "brand": "Exide",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 20825,
+  "tags": [
+   "exide",
+   "battery",
+   "n70",
+   "15",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-exide-battery-bike-12v-5ah",
+  "name": "Exide Battery Bike 12V 5Ah",
+  "brand": "Exide",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 3600,
+  "costPrice": 3060,
+  "tags": [
+   "exide",
+   "battery",
+   "bike",
+   "12v",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-phoenix-battery-n50",
+  "name": "Phoenix Battery N50",
+  "brand": "Phoenix",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 12325,
+  "tags": [
+   "phoenix",
+   "battery",
+   "n50",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-phoenix-battery-ns70",
+  "name": "Phoenix Battery NS70",
+  "brand": "Phoenix",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 21500,
+  "costPrice": 18275,
+  "tags": [
+   "phoenix",
+   "battery",
+   "ns70",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-phoenix-battery-bike-12v-7ah",
+  "name": "Phoenix Battery Bike 12V 7Ah",
+  "brand": "Phoenix",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3570,
+  "tags": [
+   "phoenix",
+   "battery",
+   "bike",
+   "12v",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-osaka-battery-n50",
+  "name": "Osaka Battery N50",
+  "brand": "Osaka",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 15000,
+  "costPrice": 12750,
+  "tags": [
+   "osaka",
+   "battery",
+   "n50",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-osaka-battery-ns60",
+  "name": "Osaka Battery NS60",
+  "brand": "Osaka",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 15725,
+  "tags": [
+   "osaka",
+   "battery",
+   "ns60",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-ags-battery-n50",
+  "name": "AGS Battery N50",
+  "brand": "AGS",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 14800,
+  "costPrice": 12580,
+  "tags": [
+   "ags",
+   "battery",
+   "n50",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-ags-battery-n70",
+  "name": "AGS Battery N70",
+  "brand": "AGS",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 23500,
+  "costPrice": 19975,
+  "tags": [
+   "ags",
+   "battery",
+   "n70",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-ags-battery-bike-12v-5ah",
+  "name": "AGS Battery Bike 12V 5Ah",
+  "brand": "AGS",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2975,
+  "tags": [
+   "ags",
+   "battery",
+   "bike",
+   "12v",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-daewoo-battery-n50",
+  "name": "Daewoo Battery N50",
+  "brand": "Daewoo",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 15200,
+  "costPrice": 12920,
+  "tags": [
+   "daewoo",
+   "battery",
+   "n50",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-daewoo-battery-n70",
+  "name": "Daewoo Battery N70",
+  "brand": "Daewoo",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 24000,
+  "costPrice": 20400,
+  "tags": [
+   "daewoo",
+   "battery",
+   "n70",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-volta-battery-bike-ytx7l",
+  "name": "Volta Battery Bike YTX7L",
+  "brand": "Volta",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 3230,
+  "tags": [
+   "volta",
+   "battery",
+   "bike",
+   "ytx7l",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-volta-battery-12v-100ah-deep-cycle",
+  "name": "Volta Battery 12V 100Ah Deep Cycle",
+  "brand": "Volta",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 32300,
+  "tags": [
+   "volta",
+   "battery",
+   "12v",
+   "100ah",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-battery-terminal-pair",
+  "name": "Battery Terminal Pair",
+  "brand": "",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 212,
+  "tags": [
+   "battery",
+   "terminal",
+   "pair",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-battery-jumper-cable",
+  "name": "Battery Jumper Cable",
+  "brand": "",
+  "category": "Batteries",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1402,
+  "tags": [
+   "battery",
+   "jumper",
+   "cable",
+   "batteries"
+  ]
+ },
+ {
+  "id": "autoparts-ngk-spark-plug-cr7hsa-bike",
+  "name": "NGK Spark Plug CR7HSA Bike",
+  "brand": "NGK",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 285,
+  "tags": [
+   "ngk",
+   "spark",
+   "plug",
+   "cr7hsa",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ngk-spark-plug-c7hsa-cd-70",
+  "name": "NGK Spark Plug C7HSA CD 70",
+  "brand": "NGK",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 240,
+  "tags": [
+   "ngk",
+   "spark",
+   "plug",
+   "c7hsa",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ngk-spark-plug-bkr6e-car",
+  "name": "NGK Spark Plug BKR6E Car",
+  "brand": "NGK",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "ngk",
+   "spark",
+   "plug",
+   "bkr6e",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ngk-spark-plug-bkr5e-car",
+  "name": "NGK Spark Plug BKR5E Car",
+  "brand": "NGK",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "ngk",
+   "spark",
+   "plug",
+   "bkr5e",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ngk-iridium-spark-plug",
+  "name": "NGK Iridium Spark Plug",
+  "brand": "NGK",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "ngk",
+   "iridium",
+   "spark",
+   "plug",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-bosch-spark-plug-super",
+  "name": "Bosch Spark Plug Super",
+  "brand": "Bosch",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 360,
+  "tags": [
+   "bosch",
+   "spark",
+   "plug",
+   "super",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-denso-spark-plug-iridium-toyota",
+  "name": "Denso Spark Plug Iridium Toyota",
+  "brand": "Denso",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "denso",
+   "spark",
+   "plug",
+   "iridium",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-spark-plug-cd-70",
+  "name": "Atlas Honda Spark Plug CD 70",
+  "brand": "Atlas Honda",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 210,
+  "tags": [
+   "atlas",
+   "honda",
+   "spark",
+   "plug",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-spark-plug-cg-125",
+  "name": "Atlas Honda Spark Plug CG 125",
+  "brand": "Atlas Honda",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "atlas",
+   "honda",
+   "spark",
+   "plug",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ignition-coil-suzuki-cultus",
+  "name": "Ignition Coil Suzuki Cultus",
+  "brand": "",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "ignition",
+   "coil",
+   "suzuki",
+   "cultus",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-ignition-coil-corolla",
+  "name": "Ignition Coil Corolla",
+  "brand": "",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "ignition",
+   "coil",
+   "corolla",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-spark-plug-wire-set-cultus-1-set",
+  "name": "Spark Plug Wire Set Cultus 1 set",
+  "brand": "",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1462,
+  "tags": [
+   "spark",
+   "plug",
+   "wire",
+   "set",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-cdi-unit-cd-70",
+  "name": "Atlas Honda CDI Unit CD 70",
+  "brand": "Atlas Honda",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "atlas",
+   "honda",
+   "cdi",
+   "unit",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-magneto-coil-cd-70",
+  "name": "Atlas Honda Magneto Coil CD 70",
+  "brand": "Atlas Honda",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1462,
+  "tags": [
+   "atlas",
+   "honda",
+   "magneto",
+   "coil",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-kick-spring",
+  "name": "Atlas Honda Kick Spring",
+  "brand": "Atlas Honda",
+  "category": "Spark Plugs & Ignition",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "atlas",
+   "honda",
+   "kick",
+   "spring",
+   "spark plugs & ignition"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-chain-set-cd-70-1-set",
+  "name": "Atlas Honda Chain Set CD 70 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "atlas",
+   "honda",
+   "chain",
+   "set",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-chain-set-cg-125-1-set",
+  "name": "Atlas Honda Chain Set CG 125 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2650,
+  "costPrice": 1988,
+  "tags": [
+   "atlas",
+   "honda",
+   "chain",
+   "set",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-clutch-plate-set-cd-70-1-set",
+  "name": "Atlas Honda Clutch Plate Set CD 70 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "atlas",
+   "honda",
+   "clutch",
+   "plate",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-clutch-plate-set-cg-125-1-set",
+  "name": "Atlas Honda Clutch Plate Set CG 125 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "atlas",
+   "honda",
+   "clutch",
+   "plate",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-piston-kit-cd-70-1-set",
+  "name": "Atlas Honda Piston Kit CD 70 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "atlas",
+   "honda",
+   "piston",
+   "kit",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-piston-kit-cg-125-1-set",
+  "name": "Atlas Honda Piston Kit CG 125 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1462,
+  "tags": [
+   "atlas",
+   "honda",
+   "piston",
+   "kit",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-cylinder-kit-cd-70-1-set",
+  "name": "Atlas Honda Cylinder Kit CD 70 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "atlas",
+   "honda",
+   "cylinder",
+   "kit",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-carburetor-cd-70",
+  "name": "Atlas Honda Carburetor CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2650,
+  "costPrice": 1988,
+  "tags": [
+   "atlas",
+   "honda",
+   "carburetor",
+   "cd",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-carburetor-cg-125",
+  "name": "Atlas Honda Carburetor CG 125",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 3250,
+  "costPrice": 2438,
+  "tags": [
+   "atlas",
+   "honda",
+   "carburetor",
+   "cg",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-handle-grip-pair-1-pair",
+  "name": "Atlas Honda Handle Grip Pair 1 pair",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "atlas",
+   "honda",
+   "handle",
+   "grip",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-side-mirror-pair-1-pair",
+  "name": "Atlas Honda Side Mirror Pair 1 pair",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "atlas",
+   "honda",
+   "side",
+   "mirror",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-headlight-bulb",
+  "name": "Atlas Honda Headlight Bulb",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "atlas",
+   "honda",
+   "headlight",
+   "bulb",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-headlight-assembly-cd-70",
+  "name": "Atlas Honda Headlight Assembly CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "atlas",
+   "honda",
+   "headlight",
+   "assembly",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-indicator-set-1-set",
+  "name": "Atlas Honda Indicator Set 1 set",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "atlas",
+   "honda",
+   "indicator",
+   "set",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-tail-light-assembly-cd-70",
+  "name": "Atlas Honda Tail Light Assembly CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "atlas",
+   "honda",
+   "tail",
+   "light",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-kick-rod-cd-70",
+  "name": "Atlas Honda Kick Rod CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "atlas",
+   "honda",
+   "kick",
+   "rod",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-gear-lever-cd-70",
+  "name": "Atlas Honda Gear Lever CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "atlas",
+   "honda",
+   "gear",
+   "lever",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-front-fork-oil-seal-pair-1-pair",
+  "name": "Atlas Honda Front Fork Oil Seal Pair 1 pair",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "atlas",
+   "honda",
+   "front",
+   "fork",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-front-shocker-pair-cd-70-1-pair",
+  "name": "Atlas Honda Front Shocker Pair CD 70 1 pair",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "atlas",
+   "honda",
+   "front",
+   "shocker",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-rear-shocker-pair-cd-70-1-pair",
+  "name": "Atlas Honda Rear Shocker Pair CD 70 1 pair",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "atlas",
+   "honda",
+   "rear",
+   "shocker",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-seat-cover-cd-70",
+  "name": "Atlas Honda Seat Cover CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "atlas",
+   "honda",
+   "seat",
+   "cover",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-atlas-honda-silencer-cd-70",
+  "name": "Atlas Honda Silencer CD 70",
+  "brand": "Atlas Honda",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "atlas",
+   "honda",
+   "silencer",
+   "cd",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-tyre-tube-17-inch",
+  "name": "Bike Tyre Tube 17 inch",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "bike",
+   "tyre",
+   "tube",
+   "17",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-tyre-2-75-18-rear",
+  "name": "Bike Tyre 2.75-18 Rear",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "bike",
+   "tyre",
+   "75",
+   "18",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-tyre-2-75-17-front",
+  "name": "Bike Tyre 2.75-17 Front",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2175,
+  "tags": [
+   "bike",
+   "tyre",
+   "75",
+   "17",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-sprocket-set-cd-70-1-set",
+  "name": "Bike Sprocket Set CD 70 1 set",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "bike",
+   "sprocket",
+   "set",
+   "cd",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-cover-waterproof",
+  "name": "Bike Cover Waterproof",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "bike",
+   "cover",
+   "waterproof",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-helmet-open-face",
+  "name": "Helmet Open Face",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "helmet",
+   "open",
+   "face",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-helmet-full-face",
+  "name": "Helmet Full Face",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "helmet",
+   "full",
+   "face",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-bike-phone-holder",
+  "name": "Bike Phone Holder",
+  "brand": "",
+  "category": "Bike Spares",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "bike",
+   "phone",
+   "holder",
+   "bike spares"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-155-70r13",
+  "name": "General Tyre Tyre 155/70R13",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10625,
+  "tags": [
+   "general",
+   "tyre",
+   "155",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-175-70r13",
+  "name": "General Tyre Tyre 175/70R13",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 12325,
+  "tags": [
+   "general",
+   "tyre",
+   "175",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-185-65r15-corolla",
+  "name": "General Tyre Tyre 185/65R15 Corolla",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 16575,
+  "tags": [
+   "general",
+   "tyre",
+   "185",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-195-65r15",
+  "name": "General Tyre Tyre 195/65R15",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 21000,
+  "costPrice": 17850,
+  "tags": [
+   "general",
+   "tyre",
+   "195",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-205-55r16-civic",
+  "name": "General Tyre Tyre 205/55R16 Civic",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 20825,
+  "tags": [
+   "general",
+   "tyre",
+   "205",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-general-tyre-tyre-155-80r13-mehran",
+  "name": "General Tyre Tyre 155/80R13 Mehran",
+  "brand": "General Tyre",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9775,
+  "tags": [
+   "general",
+   "tyre",
+   "155",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-yokohama-tyre-185-65r15",
+  "name": "Yokohama Tyre 185/65R15",
+  "brand": "Yokohama",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 22500,
+  "costPrice": 19125,
+  "tags": [
+   "yokohama",
+   "tyre",
+   "185",
+   "65r15",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-yokohama-tyre-205-60r16",
+  "name": "Yokohama Tyre 205/60R16",
+  "brand": "Yokohama",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 27500,
+  "costPrice": 23375,
+  "tags": [
+   "yokohama",
+   "tyre",
+   "205",
+   "60r16",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-dunlop-tyre-185-65r15",
+  "name": "Dunlop Tyre 185/65R15",
+  "brand": "Dunlop",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 21500,
+  "costPrice": 18275,
+  "tags": [
+   "dunlop",
+   "tyre",
+   "185",
+   "65r15",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-bridgestone-tyre-195-65r15",
+  "name": "Bridgestone Tyre 195/65R15",
+  "brand": "Bridgestone",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 25500,
+  "costPrice": 21675,
+  "tags": [
+   "bridgestone",
+   "tyre",
+   "195",
+   "65r15",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-michelin-tyre-205-55r16",
+  "name": "Michelin Tyre 205/55R16",
+  "brand": "Michelin",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 34500,
+  "costPrice": 29325,
+  "tags": [
+   "michelin",
+   "tyre",
+   "205",
+   "55r16",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-continental-tyre-215-60r16",
+  "name": "Continental Tyre 215/60R16",
+  "brand": "Continental",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 36500,
+  "costPrice": 31025,
+  "tags": [
+   "continental",
+   "tyre",
+   "215",
+   "60r16",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-tyre-tube-car-13-inch",
+  "name": "Tyre Tube Car 13 inch",
+  "brand": "",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 1020,
+  "tags": [
+   "tyre",
+   "tube",
+   "car",
+   "13",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-tyre-valve-cap-set-1-set",
+  "name": "Tyre Valve Cap Set 1 set",
+  "brand": "",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 85,
+  "tags": [
+   "tyre",
+   "valve",
+   "cap",
+   "set",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-tyre-pressure-gauge",
+  "name": "Tyre Pressure Gauge",
+  "brand": "",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 382,
+  "tags": [
+   "tyre",
+   "pressure",
+   "gauge",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-tyre-inflator-12v",
+  "name": "Tyre Inflator 12V",
+  "brand": "",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2380,
+  "tags": [
+   "tyre",
+   "inflator",
+   "12v",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-puncture-repair-kit",
+  "name": "Puncture Repair Kit",
+  "brand": "",
+  "category": "Tyres",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 552,
+  "tags": [
+   "puncture",
+   "repair",
+   "kit",
+   "tyres"
+  ]
+ },
+ {
+  "id": "autoparts-philips-h4-headlight-bulb-pair-1-pair",
+  "name": "Philips H4 Headlight Bulb Pair 1 pair",
+  "brand": "Philips",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "philips",
+   "h4",
+   "headlight",
+   "bulb",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-philips-h7-headlight-bulb-pair-1-pair",
+  "name": "Philips H7 Headlight Bulb Pair 1 pair",
+  "brand": "Philips",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1080,
+  "tags": [
+   "philips",
+   "h7",
+   "headlight",
+   "bulb",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-philips-h11-bulb",
+  "name": "Philips H11 Bulb",
+  "brand": "Philips",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "philips",
+   "h11",
+   "bulb",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-osram-h4-bulb-night-breaker-1-pair",
+  "name": "Osram H4 Bulb Night Breaker 1 pair",
+  "brand": "Osram",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1764,
+  "tags": [
+   "osram",
+   "h4",
+   "bulb",
+   "night",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-led-headlight-bulb-h4-pair-1-pair",
+  "name": "LED Headlight Bulb H4 Pair 1 pair",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "led",
+   "headlight",
+   "bulb",
+   "h4",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-led-headlight-bulb-h7-pair-1-pair",
+  "name": "LED Headlight Bulb H7 Pair 1 pair",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2736,
+  "tags": [
+   "led",
+   "headlight",
+   "bulb",
+   "h7",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-indicator-bulb-t20",
+  "name": "Indicator Bulb T20",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 43,
+  "tags": [
+   "indicator",
+   "bulb",
+   "t20",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-parking-bulb-t10-pair-1-pair",
+  "name": "Parking Bulb T10 Pair 1 pair",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 108,
+  "tags": [
+   "parking",
+   "bulb",
+   "t10",
+   "pair",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-fog-lamp-universal-pair-1-pair",
+  "name": "Fog Lamp Universal Pair 1 pair",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "fog",
+   "lamp",
+   "universal",
+   "pair",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-horn-pair-universal-1-pair",
+  "name": "Horn Pair Universal 1 pair",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "horn",
+   "pair",
+   "universal",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-wiper-blade-20-inch",
+  "name": "Wiper Blade 20 inch",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "wiper",
+   "blade",
+   "20",
+   "inch",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-wiper-blade-22-inch",
+  "name": "Wiper Blade 22 inch",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 360,
+  "tags": [
+   "wiper",
+   "blade",
+   "22",
+   "inch",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-wiper-blade-24-inch",
+  "name": "Wiper Blade 24 inch",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "wiper",
+   "blade",
+   "24",
+   "inch",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-bosch-wiper-blade-22-inch",
+  "name": "Bosch Wiper Blade 22 inch",
+  "brand": "Bosch",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 684,
+  "tags": [
+   "bosch",
+   "wiper",
+   "blade",
+   "22",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-fuse-set-car-1-set",
+  "name": "Fuse Set Car 1 set",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "fuse",
+   "set",
+   "car",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-relay-12v-4-pin",
+  "name": "Relay 12V 4 Pin",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "relay",
+   "12v",
+   "pin",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-car-alarm-system",
+  "name": "Car Alarm System",
+  "brand": "",
+  "category": "Lights & Electrical",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "car",
+   "alarm",
+   "system",
+   "lights & electrical"
+  ]
+ },
+ {
+  "id": "autoparts-seat-cover-set-corolla-1-set",
+  "name": "Seat Cover Set Corolla 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 8750,
+  "tags": [
+   "seat",
+   "cover",
+   "set",
+   "corolla",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-seat-cover-set-cultus-1-set",
+  "name": "Seat Cover Set Cultus 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 6650,
+  "tags": [
+   "seat",
+   "cover",
+   "set",
+   "cultus",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-floor-mats-rubber-universal-1-set",
+  "name": "Floor Mats Rubber Universal 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1750,
+  "tags": [
+   "floor",
+   "mats",
+   "rubber",
+   "universal",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-floor-mats-3d-corolla-1-set",
+  "name": "Floor Mats 3D Corolla 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4550,
+  "tags": [
+   "floor",
+   "mats",
+   "3d",
+   "corolla",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-steering-cover",
+  "name": "Steering Cover",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 455,
+  "tags": [
+   "steering",
+   "cover",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-perfume-gel",
+  "name": "Car Perfume Gel",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 175,
+  "tags": [
+   "car",
+   "perfume",
+   "gel",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-perfume-spray",
+  "name": "Car Perfume Spray",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 315,
+  "tags": [
+   "car",
+   "perfume",
+   "spray",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-dashboard-polish",
+  "name": "Car Dashboard Polish",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 385,
+  "tags": [
+   "car",
+   "dashboard",
+   "polish",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-shampoo-1-litre",
+  "name": "Car Shampoo 1 litre",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 455,
+  "tags": [
+   "car",
+   "shampoo",
+   "litre",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-microfiber-cloth",
+  "name": "Microfiber Cloth",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 175,
+  "tags": [
+   "microfiber",
+   "cloth",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-cover-parachute",
+  "name": "Car Cover Parachute",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 1960,
+  "tags": [
+   "car",
+   "cover",
+   "parachute",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-mud-flaps-set-1-set",
+  "name": "Mud Flaps Set 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1295,
+  "tags": [
+   "mud",
+   "flaps",
+   "set",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-sun-shade-windscreen",
+  "name": "Sun Shade Windscreen",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 665,
+  "tags": [
+   "sun",
+   "shade",
+   "windscreen",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-mobile-holder-vent",
+  "name": "Car Mobile Holder Vent",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 315,
+  "tags": [
+   "car",
+   "mobile",
+   "holder",
+   "vent",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-charger-dual-usb",
+  "name": "Car Charger Dual USB",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 455,
+  "tags": [
+   "car",
+   "charger",
+   "dual",
+   "usb",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-tow-rope",
+  "name": "Tow Rope",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 665,
+  "tags": [
+   "tow",
+   "rope",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-jack-and-wheel-spanner-set-1-set",
+  "name": "Jack and Wheel Spanner Set 1 set",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2450,
+  "tags": [
+   "jack",
+   "and",
+   "wheel",
+   "spanner",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-reflective-triangle",
+  "name": "Reflective Triangle",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 455,
+  "tags": [
+   "reflective",
+   "triangle",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-fire-extinguisher-car-1kg",
+  "name": "Fire Extinguisher Car 1kg",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1365,
+  "tags": [
+   "fire",
+   "extinguisher",
+   "car",
+   "1kg",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-first-aid-kit-car",
+  "name": "First Aid Kit Car",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 875,
+  "tags": [
+   "first",
+   "aid",
+   "kit",
+   "car",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-car-vacuum-cleaner-12v",
+  "name": "Car Vacuum Cleaner 12V",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1750,
+  "tags": [
+   "car",
+   "vacuum",
+   "cleaner",
+   "12v",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-dash-camera-1080p",
+  "name": "Dash Camera 1080p",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5250,
+  "tags": [
+   "dash",
+   "camera",
+   "1080p",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-reverse-camera",
+  "name": "Reverse Camera",
+  "brand": "",
+  "category": "Car Accessories",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2450,
+  "tags": [
+   "reverse",
+   "camera",
+   "car accessories"
+  ]
+ },
+ {
+  "id": "autoparts-shock-absorber-front-cultus",
+  "name": "Shock Absorber Front Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3600,
+  "tags": [
+   "shock",
+   "absorber",
+   "front",
+   "cultus",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-shock-absorber-rear-cultus",
+  "name": "Shock Absorber Rear Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "shock",
+   "absorber",
+   "rear",
+   "cultus",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-shock-absorber-front-corolla",
+  "name": "Shock Absorber Front Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "shock",
+   "absorber",
+   "front",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-shock-absorber-rear-corolla",
+  "name": "Shock Absorber Rear Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "shock",
+   "absorber",
+   "rear",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-ball-joint-corolla",
+  "name": "Ball Joint Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "ball",
+   "joint",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-tie-rod-end-corolla",
+  "name": "Tie Rod End Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "tie",
+   "rod",
+   "end",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-stabilizer-link-corolla",
+  "name": "Stabilizer Link Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "stabilizer",
+   "link",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-ball-joint-cultus",
+  "name": "Ball Joint Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 825,
+  "tags": [
+   "ball",
+   "joint",
+   "cultus",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-tie-rod-end-cultus",
+  "name": "Tie Rod End Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 900,
+  "costPrice": 675,
+  "tags": [
+   "tie",
+   "rod",
+   "end",
+   "cultus",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-wheel-bearing-corolla-front",
+  "name": "Wheel Bearing Corolla Front",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 2650,
+  "costPrice": 1988,
+  "tags": [
+   "wheel",
+   "bearing",
+   "corolla",
+   "front",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-cv-joint-boot-kit",
+  "name": "CV Joint Boot Kit",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "cv",
+   "joint",
+   "boot",
+   "kit",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-radiator-cap",
+  "name": "Radiator Cap",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "radiator",
+   "cap",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-radiator-hose-upper-corolla",
+  "name": "Radiator Hose Upper Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "radiator",
+   "hose",
+   "upper",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-fan-belt-cultus",
+  "name": "Fan Belt Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "fan",
+   "belt",
+   "cultus",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-timing-belt-corolla",
+  "name": "Timing Belt Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "timing",
+   "belt",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-water-pump-corolla",
+  "name": "Water Pump Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "water",
+   "pump",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-thermostat-corolla",
+  "name": "Thermostat Corolla",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "thermostat",
+   "corolla",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-side-mirror-corolla-right",
+  "name": "Side Mirror Corolla Right",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "side",
+   "mirror",
+   "corolla",
+   "right",
+   "suspension & body"
+  ]
+ },
+ {
+  "id": "autoparts-door-handle-cultus",
+  "name": "Door Handle Cultus",
+  "brand": "",
+  "category": "Suspension & Body",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "door",
+   "handle",
+   "cultus",
+   "suspension & body"
+  ]
+ }
+]

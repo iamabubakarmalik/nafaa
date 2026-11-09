@@ -1,0 +1,1417 @@
+[
+ {
+  "id": "florist-rose-red-single-stem",
+  "name": "Rose Red Single Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 55,
+  "tags": [
+   "rose",
+   "red",
+   "single",
+   "stem",
+   "gulab",
+   "phool",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-pink-single-stem",
+  "name": "Rose Pink Single Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 55,
+  "tags": [
+   "rose",
+   "pink",
+   "single",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-white-single-stem",
+  "name": "Rose White Single Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 55,
+  "tags": [
+   "rose",
+   "white",
+   "single",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-yellow-single-stem",
+  "name": "Rose Yellow Single Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 55,
+  "tags": [
+   "rose",
+   "yellow",
+   "single",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-bunch-12-stems-1-bunch",
+  "name": "Rose Bunch 12 Stems 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 605,
+  "tags": [
+   "rose",
+   "bunch",
+   "12",
+   "stems",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-bunch-24-stems-1-bunch",
+  "name": "Rose Bunch 24 Stems 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 2100,
+  "costPrice": 1155,
+  "tags": [
+   "rose",
+   "bunch",
+   "24",
+   "stems",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-bunch-50-stems-1-bunch",
+  "name": "Rose Bunch 50 Stems 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 4000,
+  "costPrice": 2200,
+  "tags": [
+   "rose",
+   "bunch",
+   "50",
+   "stems",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rose-petals-bag",
+  "name": "Rose Petals Bag",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 165,
+  "tags": [
+   "rose",
+   "petals",
+   "bag",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-gul-e-daudi-bunch-1-bunch",
+  "name": "Gul-e-Daudi Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "gul",
+   "daudi",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-marigold-genda-bunch-1-bunch",
+  "name": "Marigold (Genda) Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "marigold",
+   "genda",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-marigold-mala",
+  "name": "Marigold Mala",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "marigold",
+   "mala",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-lily-stem",
+  "name": "Lily Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "lily",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-gladiolus-stem",
+  "name": "Gladiolus Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "gladiolus",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-carnation-stem",
+  "name": "Carnation Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "carnation",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-orchid-stem",
+  "name": "Orchid Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "orchid",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-tulip-stem-imported",
+  "name": "Tulip Stem Imported",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "tulip",
+   "stem",
+   "imported",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-sunflower-stem",
+  "name": "Sunflower Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "sunflower",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-daisy-bunch-1-bunch",
+  "name": "Daisy Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 275,
+  "tags": [
+   "daisy",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-gerbera-stem",
+  "name": "Gerbera Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "gerbera",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-baby-breath-bunch-1-bunch",
+  "name": "Baby Breath Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 248,
+  "tags": [
+   "baby",
+   "breath",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-jasmine-moti-gajra-pair-1-pair",
+  "name": "Jasmine (Moti Gajra) Pair 1 pair",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 138,
+  "tags": [
+   "jasmine",
+   "moti",
+   "gajra",
+   "pair",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-moti-gajra-mala",
+  "name": "Moti Gajra Mala",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "moti",
+   "gajra",
+   "mala",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-rajnigandha-stem",
+  "name": "Rajnigandha Stem",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 55,
+  "tags": [
+   "rajnigandha",
+   "stem",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-green-leaves-bunch-1-bunch",
+  "name": "Green Leaves Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 82,
+  "tags": [
+   "green",
+   "leaves",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-eucalyptus-bunch-1-bunch",
+  "name": "Eucalyptus Bunch 1 bunch",
+  "brand": "",
+  "category": "Flowers (per stem/bunch)",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 193,
+  "tags": [
+   "eucalyptus",
+   "bunch",
+   "flowers (per stem/bunch)"
+  ]
+ },
+ {
+  "id": "florist-bouquet-red-roses-12",
+  "name": "Bouquet Red Roses 12",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1375,
+  "tags": [
+   "bouquet",
+   "red",
+   "roses",
+   "12",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-red-roses-24",
+  "name": "Bouquet Red Roses 24",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "bouquet",
+   "red",
+   "roses",
+   "24",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-mixed-flowers-small",
+  "name": "Bouquet Mixed Flowers Small",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1375,
+  "tags": [
+   "bouquet",
+   "mixed",
+   "flowers",
+   "small",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-mixed-flowers-medium",
+  "name": "Bouquet Mixed Flowers Medium",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "bouquet",
+   "mixed",
+   "flowers",
+   "medium",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-mixed-flowers-large",
+  "name": "Bouquet Mixed Flowers Large",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 4125,
+  "tags": [
+   "bouquet",
+   "mixed",
+   "flowers",
+   "large",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-premium-lily-roses",
+  "name": "Bouquet Premium Lily Roses",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 4675,
+  "tags": [
+   "bouquet",
+   "premium",
+   "lily",
+   "roses",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-sunflower",
+  "name": "Bouquet Sunflower",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "bouquet",
+   "sunflower",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-tulip",
+  "name": "Bouquet Tulip",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 3575,
+  "tags": [
+   "bouquet",
+   "tulip",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-orchid",
+  "name": "Bouquet Orchid",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 4125,
+  "tags": [
+   "bouquet",
+   "orchid",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-wedding-bridal",
+  "name": "Bouquet Wedding Bridal",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 12000,
+  "costPrice": 6600,
+  "tags": [
+   "bouquet",
+   "wedding",
+   "bridal",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-hand-wrapped-simple",
+  "name": "Bouquet Hand Wrapped Simple",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 990,
+  "tags": [
+   "bouquet",
+   "hand",
+   "wrapped",
+   "simple",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-chocolate-flowers",
+  "name": "Bouquet Chocolate Flowers",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3025,
+  "tags": [
+   "bouquet",
+   "chocolate",
+   "flowers",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-teddy-flowers",
+  "name": "Bouquet Teddy Flowers",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 3575,
+  "tags": [
+   "bouquet",
+   "teddy",
+   "flowers",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-graduation",
+  "name": "Bouquet Graduation",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "bouquet",
+   "graduation",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-get-well-soon",
+  "name": "Bouquet Get Well Soon",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "bouquet",
+   "get",
+   "well",
+   "soon",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-anniversary",
+  "name": "Bouquet Anniversary",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3025,
+  "tags": [
+   "bouquet",
+   "anniversary",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-birthday",
+  "name": "Bouquet Birthday",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "bouquet",
+   "birthday",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-eid",
+  "name": "Bouquet Eid",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "bouquet",
+   "eid",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-valentine-day",
+  "name": "Bouquet Valentine Day",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 3575,
+  "tags": [
+   "bouquet",
+   "valentine",
+   "day",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-bouquet-mothers-day",
+  "name": "Bouquet Mother's Day",
+  "brand": "",
+  "category": "Bouquets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "bouquet",
+   "mother",
+   "day",
+   "bouquets"
+  ]
+ },
+ {
+  "id": "florist-flower-basket-small",
+  "name": "Flower Basket Small",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "flower",
+   "basket",
+   "small",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-basket-large",
+  "name": "Flower Basket Large",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 4125,
+  "tags": [
+   "flower",
+   "basket",
+   "large",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-box-roses",
+  "name": "Flower Box Roses",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 3025,
+  "tags": [
+   "flower",
+   "box",
+   "roses",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-vase-arrangement",
+  "name": "Flower Vase Arrangement",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2475,
+  "tags": [
+   "flower",
+   "vase",
+   "arrangement",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-stand-funeral",
+  "name": "Flower Stand Funeral",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 12000,
+  "costPrice": 6600,
+  "tags": [
+   "flower",
+   "stand",
+   "funeral",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-wreath-funeral",
+  "name": "Flower Wreath Funeral",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 5225,
+  "tags": [
+   "flower",
+   "wreath",
+   "funeral",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-garland-wedding-haar",
+  "name": "Flower Garland Wedding (Haar)",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1375,
+  "tags": [
+   "flower",
+   "garland",
+   "wedding",
+   "haar",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-garland-mala-big",
+  "name": "Flower Garland Mala Big",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1018,
+  "tags": [
+   "flower",
+   "garland",
+   "mala",
+   "big",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-flower-hall-decoration",
+  "name": "Flower Hall Decoration",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 24750,
+  "tags": [
+   "flower",
+   "hall",
+   "decoration",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-stage-decoration-flowers",
+  "name": "Stage Decoration Flowers",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 46750,
+  "tags": [
+   "stage",
+   "decoration",
+   "flowers",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-entrance-gate-flowers",
+  "name": "Entrance Gate Flowers",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 25000,
+  "costPrice": 13750,
+  "tags": [
+   "entrance",
+   "gate",
+   "flowers",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-car-decoration-flowers",
+  "name": "Car Decoration Flowers",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 6875,
+  "tags": [
+   "car",
+   "decoration",
+   "flowers",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-table-centerpiece",
+  "name": "Table Centerpiece",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 1925,
+  "tags": [
+   "table",
+   "centerpiece",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-candle-floating-flowers",
+  "name": "Candle Floating Flowers",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 522,
+  "tags": [
+   "candle",
+   "floating",
+   "flowers",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-mehndi-decoration",
+  "name": "Mehndi Decoration",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 19250,
+  "tags": [
+   "mehndi",
+   "decoration",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-nikah-stage-decoration",
+  "name": "Nikah Stage Decoration",
+  "brand": "",
+  "category": "Arrangements & Decor",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 30250,
+  "tags": [
+   "nikah",
+   "stage",
+   "decoration",
+   "arrangements & decor"
+  ]
+ },
+ {
+  "id": "florist-money-plant-pot",
+  "name": "Money Plant Pot",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "money",
+   "plant",
+   "pot",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-snake-plant-pot",
+  "name": "Snake Plant Pot",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 570,
+  "tags": [
+   "snake",
+   "plant",
+   "pot",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-peace-lily-pot",
+  "name": "Peace Lily Pot",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "peace",
+   "lily",
+   "pot",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-aloe-vera-plant",
+  "name": "Aloe Vera Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "aloe",
+   "vera",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-rose-plant-pot",
+  "name": "Rose Plant Pot",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "rose",
+   "plant",
+   "pot",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-jasmine-plant",
+  "name": "Jasmine Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 330,
+  "tags": [
+   "jasmine",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-areca-palm",
+  "name": "Areca Palm",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1110,
+  "tags": [
+   "areca",
+   "palm",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-bamboo-plant",
+  "name": "Bamboo Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 750,
+  "tags": [
+   "bamboo",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-cactus-small",
+  "name": "Cactus Small",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "cactus",
+   "small",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-succulent-plant",
+  "name": "Succulent Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "succulent",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-bonsai",
+  "name": "Bonsai",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2100,
+  "tags": [
+   "bonsai",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-indoor-plant-large",
+  "name": "Indoor Plant Large",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2700,
+  "tags": [
+   "indoor",
+   "plant",
+   "large",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-tulsi-plant",
+  "name": "Tulsi Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "tulsi",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-mint-plant",
+  "name": "Mint Plant",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "mint",
+   "plant",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-plastic-pot-small",
+  "name": "Plastic Pot Small",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "plastic",
+   "pot",
+   "small",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-plastic-pot-medium",
+  "name": "Plastic Pot Medium",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "plastic",
+   "pot",
+   "medium",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-plastic-pot-large",
+  "name": "Plastic Pot Large",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "plastic",
+   "pot",
+   "large",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-ceramic-pot-small",
+  "name": "Ceramic Pot Small",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "ceramic",
+   "pot",
+   "small",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-ceramic-pot-large",
+  "name": "Ceramic Pot Large",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1110,
+  "tags": [
+   "ceramic",
+   "pot",
+   "large",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-clay-pot-small",
+  "name": "Clay Pot Small",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 60,
+  "tags": [
+   "clay",
+   "pot",
+   "small",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-clay-pot-large",
+  "name": "Clay Pot Large",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "clay",
+   "pot",
+   "large",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-hanging-pot",
+  "name": "Hanging Pot",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "hanging",
+   "pot",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-soil-bag-10kg",
+  "name": "Soil Bag 10kg",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "soil",
+   "bag",
+   "10kg",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-compost-bag-5kg",
+  "name": "Compost Bag 5kg",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "compost",
+   "bag",
+   "5kg",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-plant-fertilizer-500g",
+  "name": "Plant Fertilizer 500g",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "plant",
+   "fertilizer",
+   "500g",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-plant-spray-bottle",
+  "name": "Plant Spray Bottle",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "plant",
+   "spray",
+   "bottle",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-garden-tools-set-1-set",
+  "name": "Garden Tools Set 1 set",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1110,
+  "tags": [
+   "garden",
+   "tools",
+   "set",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-gift-card-set",
+  "name": "Gift Card Set",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "gift",
+   "card",
+   "set",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-gift-wrapping-paper",
+  "name": "Gift Wrapping Paper",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 36,
+  "tags": [
+   "gift",
+   "wrapping",
+   "paper",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-ribbon-roll",
+  "name": "Ribbon Roll",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 72,
+  "tags": [
+   "ribbon",
+   "roll",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-floral-foam-block",
+  "name": "Floral Foam Block",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "floral",
+   "foam",
+   "block",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-artificial-flowers-bunch-1-bunch",
+  "name": "Artificial Flowers Bunch 1 bunch",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "artificial",
+   "flowers",
+   "bunch",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-artificial-rose-stem",
+  "name": "Artificial Rose Stem",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 60,
+  "tags": [
+   "artificial",
+   "rose",
+   "stem",
+   "plants & pots"
+  ]
+ },
+ {
+  "id": "florist-artificial-plant-large",
+  "name": "Artificial Plant Large",
+  "brand": "",
+  "category": "Plants & Pots",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2100,
+  "tags": [
+   "artificial",
+   "plant",
+   "large",
+   "plants & pots"
+  ]
+ }
+]

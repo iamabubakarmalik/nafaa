@@ -2,13 +2,15 @@
  * Actions for picked products (or every product matching the filter):
  * Listed on/off, Stock share, own Price, Sale price, push now and publish to
  * a channel. Each runs as a background job; progress shows in the jobs panel.
+ * Picked products (not "all matching") can also be marked for channels that
+ * make only marked products.
  */
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Link2, PackageOpen, Percent, Send, Tag, Upload, X } from 'lucide-react';
-import { Button, Input, Modal } from '@/design-system/components';
+import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Flag, Link2, PackageOpen, Percent, Send, Tag, Upload, X } from 'lucide-react';
+import { Button, Input, Modal, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../../api/online-orders.api';
@@ -27,6 +29,27 @@ export function MasterBulkBar({ count, selection, channels, onClear, onLinkSure,
   const qc = useQueryClient();
   const push = channels.filter((c) => c.canPush);
   const [ask, setAsk] = useState<Ask | null>(null);
+  // Marks need product ids; "all matching the filter" is left out.
+  const marked = channels.filter((c) => c.canPublish && c.autoPublish === 'MARKED');
+  const markIds = !selection.all && selection.productIds?.length ? selection.productIds : null;
+  const mark = useMutation({
+    mutationFn: (ids: string[]) => onlineProductsApi.publishMarks({ productIds: ids, on: true }),
+    onSuccess: (r) => {
+      refreshOnlineProducts(qc);
+      toast.success(t('{{changed}} products par nishan lag gaya — website par thori der me ban jayenge', { changed: r.changed }));
+      onClear();
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const runMark = async () => {
+    if (!markIds) return;
+    const ok = await confirmDialog({
+      title: t('Website par banane ka nishan lagayein?'),
+      text: t('{{count}} products par nishan lagega. {{channels}} par jo product abhi nahi, wo khud ban jayenge. Pehle se jure products par kuch nahi badlega.', { count: markIds.length, channels: marked.map(channelName).join(', ') }),
+      yes: t('Nishan lagayein'),
+    });
+    if (ok) mark.mutate(markIds);
+  };
 
   if (!push.length) return null;
   const open = (action: BulkAction, value?: unknown) => setAsk({ action, value });
@@ -45,6 +68,7 @@ export function MasterBulkBar({ count, selection, channels, onClear, onLinkSure,
         <BarButton icon={PackageOpen} onClick={() => open('backorder', true)}>{t('Backorder chalu')}</BarButton>
         <BarButton icon={PackageOpen} onClick={() => open('backorder', false)}>{t('Backorder band')}</BarButton>
         {push.some((c) => c.canPublish) && <BarButton icon={Upload} onClick={() => open('publish')}>{t('Channel par banayein')}</BarButton>}
+        {markIds && marked.length > 0 && <BarButton icon={Flag} onClick={() => void runMark()} busy={mark.isPending}>{t('Website par banayein (nishan)')}</BarButton>}
         {channels.some((c) => c.canFetch) && <BarButton icon={Link2} onClick={onLinkSure} busy={linking}>{t('Pakke match jorein')}</BarButton>}
         <BarButton icon={Download} onClick={onExport} busy={exporting}>{t('CSV')}</BarButton>
         <button type="button" onClick={onClear} aria-label={t('Chunna khatam')} className="ms-auto rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"><X className="h-4 w-4" /></button>

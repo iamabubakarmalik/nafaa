@@ -1,0 +1,2377 @@
+[
+ {
+  "id": "agri-engro-urea-50kg-bag",
+  "name": "Engro Urea 50kg Bag",
+  "brand": "Engro",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 4650,
+  "costPrice": 4185,
+  "tags": [
+   "engro",
+   "urea",
+   "50kg",
+   "bag",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-engro-dap-50kg-bag",
+  "name": "Engro DAP 50kg Bag",
+  "brand": "Engro",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 11250,
+  "tags": [
+   "engro",
+   "dap",
+   "50kg",
+   "bag",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-engro-zarkhez-50kg",
+  "name": "Engro Zarkhez 50kg",
+  "brand": "Engro",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 10350,
+  "tags": [
+   "engro",
+   "zarkhez",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-engro-zingro-zinc-1kg",
+  "name": "Engro Zingro Zinc 1kg",
+  "brand": "Engro",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 468,
+  "tags": [
+   "engro",
+   "zingro",
+   "zinc",
+   "1kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fauji-urea-50kg-bag",
+  "name": "Fauji Urea 50kg Bag",
+  "brand": "Fauji",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 4600,
+  "costPrice": 4140,
+  "tags": [
+   "fauji",
+   "urea",
+   "50kg",
+   "bag",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fauji-dap-50kg-bag",
+  "name": "Fauji DAP 50kg Bag",
+  "brand": "Fauji",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 12400,
+  "costPrice": 11160,
+  "tags": [
+   "fauji",
+   "dap",
+   "50kg",
+   "bag",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fauji-sop-50kg",
+  "name": "Fauji SOP 50kg",
+  "brand": "Fauji",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 8550,
+  "tags": [
+   "fauji",
+   "sop",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fauji-can-50kg",
+  "name": "Fauji CAN 50kg",
+  "brand": "Fauji",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 3420,
+  "tags": [
+   "fauji",
+   "can",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fatima-urea-sona-50kg",
+  "name": "Fatima Urea Sona 50kg",
+  "brand": "Fatima",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 4600,
+  "costPrice": 4140,
+  "tags": [
+   "fatima",
+   "urea",
+   "sona",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fatima-nitrophos-50kg",
+  "name": "Fatima Nitrophos 50kg",
+  "brand": "Fatima",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5850,
+  "tags": [
+   "fatima",
+   "nitrophos",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fatima-calcium-ammonium-nitrate-50kg",
+  "name": "Fatima Calcium Ammonium Nitrate 50kg",
+  "brand": "Fatima",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 3510,
+  "tags": [
+   "fatima",
+   "calcium",
+   "ammonium",
+   "nitrate",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-fatima-dap-50kg",
+  "name": "Fatima DAP 50kg",
+  "brand": "Fatima",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 12400,
+  "costPrice": 11160,
+  "tags": [
+   "fatima",
+   "dap",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-agritech-urea-50kg-bag",
+  "name": "Agritech Urea 50kg Bag",
+  "brand": "Agritech",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 4600,
+  "costPrice": 4140,
+  "tags": [
+   "agritech",
+   "urea",
+   "50kg",
+   "bag",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-agritech-nitro-phosphate-50kg",
+  "name": "Agritech Nitro Phosphate 50kg",
+  "brand": "Agritech",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 6400,
+  "costPrice": 5760,
+  "tags": [
+   "agritech",
+   "nitro",
+   "phosphate",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-bunge-urea-50kg",
+  "name": "Bunge Urea 50kg",
+  "brand": "Bunge",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 4550,
+  "costPrice": 4095,
+  "tags": [
+   "bunge",
+   "urea",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-potash-mop-50kg",
+  "name": "Potash Mop 50kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 7650,
+  "tags": [
+   "potash",
+   "mop",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-gypsum-50kg",
+  "name": "Gypsum 50kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1350,
+  "tags": [
+   "gypsum",
+   "50kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-zinc-sulphate-5kg",
+  "name": "Zinc Sulphate 5kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1980,
+  "tags": [
+   "zinc",
+   "sulphate",
+   "5kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-boron-1kg",
+  "name": "Boron 1kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 405,
+  "tags": [
+   "boron",
+   "1kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-micronutrient-mix-1kg",
+  "name": "Micronutrient Mix 1kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 855,
+  "tags": [
+   "micronutrient",
+   "mix",
+   "1kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-organic-compost-40kg",
+  "name": "Organic Compost 40kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 1080,
+  "tags": [
+   "organic",
+   "compost",
+   "40kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-vermicompost-25kg",
+  "name": "Vermicompost 25kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1485,
+  "tags": [
+   "vermicompost",
+   "25kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-humic-acid-1-litre",
+  "name": "Humic Acid 1 litre",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 765,
+  "tags": [
+   "humic",
+   "acid",
+   "litre",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-seaweed-extract-1-litre",
+  "name": "Seaweed Extract 1 litre",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1305,
+  "tags": [
+   "seaweed",
+   "extract",
+   "litre",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-water-soluble-npk-1kg",
+  "name": "Water Soluble NPK 1kg",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 855,
+  "tags": [
+   "water",
+   "soluble",
+   "npk",
+   "1kg",
+   "fertilizer"
+  ]
+ },
+ {
+  "id": "agri-foliar-fertilizer-1-litre",
+  "name": "Foliar Fertilizer 1 litre",
+  "brand": "",
+  "category": "Fertilizer",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1305,
+  "tags": [
+   "foliar",
+   "fertilizer",
+   "litre"
+  ]
+ },
+ {
+  "id": "agri-syngenta-karate-insecticide-250ml",
+  "name": "Syngenta Karate Insecticide 250ml",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "syngenta",
+   "karate",
+   "insecticide",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-karate-insecticide-1-litre",
+  "name": "Syngenta Karate Insecticide 1 litre",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3936,
+  "tags": [
+   "syngenta",
+   "karate",
+   "insecticide",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-engeo-insecticide-250ml",
+  "name": "Syngenta Engeo Insecticide 250ml",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1599,
+  "tags": [
+   "syngenta",
+   "engeo",
+   "insecticide",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-cruiser-seed-treatment-100ml",
+  "name": "Syngenta Cruiser Seed Treatment 100ml",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "syngenta",
+   "cruiser",
+   "seed",
+   "treatment",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-amistar-fungicide-250ml",
+  "name": "Syngenta Amistar Fungicide 250ml",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2009,
+  "tags": [
+   "syngenta",
+   "amistar",
+   "fungicide",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-gramoxone-weedicide-1-litre",
+  "name": "Syngenta Gramoxone Weedicide 1 litre",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "syngenta",
+   "gramoxone",
+   "weedicide",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-syngenta-topik-weedicide-200g",
+  "name": "Syngenta Topik Weedicide 200g",
+  "brand": "Syngenta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "syngenta",
+   "topik",
+   "weedicide",
+   "200g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-bayer-confidor-insecticide-250ml",
+  "name": "Bayer Confidor Insecticide 250ml",
+  "brand": "Bayer",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1599,
+  "tags": [
+   "bayer",
+   "confidor",
+   "insecticide",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-bayer-confidor-insecticide-small-50ml",
+  "name": "Bayer Confidor Insecticide Small 50ml",
+  "brand": "Bayer",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "bayer",
+   "confidor",
+   "insecticide",
+   "small",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-bayer-movento-100ml",
+  "name": "Bayer Movento 100ml",
+  "brand": "Bayer",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 2009,
+  "tags": [
+   "bayer",
+   "movento",
+   "100ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-bayer-nativo-fungicide-100g",
+  "name": "Bayer Nativo Fungicide 100g",
+  "brand": "Bayer",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "bayer",
+   "nativo",
+   "fungicide",
+   "100g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-fmc-talstar-insecticide-250ml",
+  "name": "FMC Talstar Insecticide 250ml",
+  "brand": "FMC",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "fmc",
+   "talstar",
+   "insecticide",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-fmc-coragen-50ml",
+  "name": "FMC Coragen 50ml",
+  "brand": "FMC",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 2850,
+  "costPrice": 2337,
+  "tags": [
+   "fmc",
+   "coragen",
+   "50ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-fmc-bifenthrin-10ec-1-litre",
+  "name": "FMC Bifenthrin 10EC 1 litre",
+  "brand": "FMC",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2624,
+  "tags": [
+   "fmc",
+   "bifenthrin",
+   "10ec",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-arysta-dimethoate-1-litre",
+  "name": "Arysta Dimethoate 1 litre",
+  "brand": "Arysta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1517,
+  "tags": [
+   "arysta",
+   "dimethoate",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-arysta-atrazine-1kg",
+  "name": "Arysta Atrazine 1kg",
+  "brand": "Arysta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "arysta",
+   "atrazine",
+   "1kg",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-arysta-glyphosate-1-litre",
+  "name": "Arysta Glyphosate 1 litre",
+  "brand": "Arysta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "arysta",
+   "glyphosate",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-pyriproxyfen-250ml",
+  "name": "Jaffar Pyriproxyfen 250ml",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "jaffar",
+   "pyriproxyfen",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-imidacloprid-20sl-250ml",
+  "name": "Jaffar Imidacloprid 20SL 250ml",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 697,
+  "tags": [
+   "jaffar",
+   "imidacloprid",
+   "20sl",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-chlorpyrifos-40ec-1-litre",
+  "name": "Jaffar Chlorpyrifos 40EC 1 litre",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1435,
+  "tags": [
+   "jaffar",
+   "chlorpyrifos",
+   "40ec",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-lambda-cyhalothrin-250ml",
+  "name": "Jaffar Lambda Cyhalothrin 250ml",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 902,
+  "tags": [
+   "jaffar",
+   "lambda",
+   "cyhalothrin",
+   "250ml",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-acetamiprid-100g",
+  "name": "Jaffar Acetamiprid 100g",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 451,
+  "tags": [
+   "jaffar",
+   "acetamiprid",
+   "100g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-jaffar-emamectin-benzoate-250g",
+  "name": "Jaffar Emamectin Benzoate 250g",
+  "brand": "Jaffar",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "jaffar",
+   "emamectin",
+   "benzoate",
+   "250g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-arysta-mancozeb-1kg",
+  "name": "Arysta Mancozeb 1kg",
+  "brand": "Arysta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "arysta",
+   "mancozeb",
+   "1kg",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-arysta-copper-oxychloride-1kg",
+  "name": "Arysta Copper Oxychloride 1kg",
+  "brand": "Arysta",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1107,
+  "tags": [
+   "arysta",
+   "copper",
+   "oxychloride",
+   "1kg",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-rat-killer-powder-100g",
+  "name": "Rat Killer Powder 100g",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 123,
+  "tags": [
+   "rat",
+   "killer",
+   "powder",
+   "100g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-rat-poison-cake",
+  "name": "Rat Poison Cake",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 33,
+  "tags": [
+   "rat",
+   "poison",
+   "cake",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-slug-pellet-1kg",
+  "name": "Slug Pellet 1kg",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "slug",
+   "pellet",
+   "1kg",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-weed-killer-2-4-d-1-litre",
+  "name": "Weed Killer 2,4-D 1 litre",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 902,
+  "tags": [
+   "weed",
+   "killer",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-pendimethalin-1-litre",
+  "name": "Pendimethalin 1 litre",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "pendimethalin",
+   "litre",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-fungicide-carbendazim-500g",
+  "name": "Fungicide Carbendazim 500g",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "fungicide",
+   "carbendazim",
+   "500g",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-knapsack-sprayer-manual-16l",
+  "name": "Knapsack Sprayer Manual 16L",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2870,
+  "tags": [
+   "knapsack",
+   "sprayer",
+   "manual",
+   "16l",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-battery-sprayer-16l",
+  "name": "Battery Sprayer 16L",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5330,
+  "tags": [
+   "battery",
+   "sprayer",
+   "16l",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-hand-sprayer-pressure-2l",
+  "name": "Hand Sprayer Pressure 2L",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "hand",
+   "sprayer",
+   "pressure",
+   "2l",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-spray-nozzle-pack",
+  "name": "Spray Nozzle Pack",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 205,
+  "tags": [
+   "spray",
+   "nozzle",
+   "pack",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-spray-gloves-1-pair",
+  "name": "Spray Gloves 1 pair",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 205,
+  "tags": [
+   "spray",
+   "gloves",
+   "pair",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-spray-mask",
+  "name": "Spray Mask",
+  "brand": "",
+  "category": "Pesticides & Sprays",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 287,
+  "tags": [
+   "spray",
+   "mask",
+   "pesticides & sprays"
+  ]
+ },
+ {
+  "id": "agri-pioneer-hybrid-maize-seed-30d-1-bag",
+  "name": "Pioneer Hybrid Maize Seed 30D 1 bag",
+  "brand": "Pioneer",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11890,
+  "tags": [
+   "pioneer",
+   "hybrid",
+   "maize",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-pioneer-corn-seed-3025-1-bag",
+  "name": "Pioneer Corn Seed 3025 1 bag",
+  "brand": "Pioneer",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 15500,
+  "costPrice": 12710,
+  "tags": [
+   "pioneer",
+   "corn",
+   "seed",
+   "3025",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-syngenta-hybrid-maize-seed-nk-1-bag",
+  "name": "Syngenta Hybrid Maize Seed NK 1 bag",
+  "brand": "Syngenta",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 13500,
+  "costPrice": 11070,
+  "tags": [
+   "syngenta",
+   "hybrid",
+   "maize",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-syngenta-tomato-hybrid-seed-10g",
+  "name": "Syngenta Tomato Hybrid Seed 10g",
+  "brand": "Syngenta",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "syngenta",
+   "tomato",
+   "hybrid",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-syngenta-cucumber-seed-25g",
+  "name": "Syngenta Cucumber Seed 25g",
+  "brand": "Syngenta",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "syngenta",
+   "cucumber",
+   "seed",
+   "25g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-syngenta-chilli-hybrid-seed-10g",
+  "name": "Syngenta Chilli Hybrid Seed 10g",
+  "brand": "Syngenta",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "syngenta",
+   "chilli",
+   "hybrid",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-monsanto-hybrid-maize-seed-1-bag",
+  "name": "Monsanto Hybrid Maize Seed 1 bag",
+  "brand": "Monsanto",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 14000,
+  "costPrice": 11480,
+  "tags": [
+   "monsanto",
+   "hybrid",
+   "maize",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-guard-sunflower-hybrid-seed-1-bag",
+  "name": "Guard Sunflower Hybrid Seed 1 bag",
+  "brand": "Guard",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10250,
+  "tags": [
+   "guard",
+   "sunflower",
+   "hybrid",
+   "seed",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-mari-wheat-seed-faisalabad-2008-40kg",
+  "name": "Mari Wheat Seed Faisalabad-2008 40kg",
+  "brand": "Mari",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4510,
+  "tags": [
+   "mari",
+   "wheat",
+   "seed",
+   "faisalabad",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-mari-wheat-seed-akbar-2019-40kg",
+  "name": "Mari Wheat Seed Akbar-2019 40kg",
+  "brand": "Mari",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 5800,
+  "costPrice": 4756,
+  "tags": [
+   "mari",
+   "wheat",
+   "seed",
+   "akbar",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-wheat-seed-certified-40kg",
+  "name": "Wheat Seed Certified 40kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4264,
+  "tags": [
+   "wheat",
+   "seed",
+   "certified",
+   "40kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-rice-seed-super-basmati-10kg",
+  "name": "Rice Seed Super Basmati 10kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2624,
+  "tags": [
+   "rice",
+   "seed",
+   "super",
+   "basmati",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-rice-seed-kainat-10kg",
+  "name": "Rice Seed Kainat 10kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 3000,
+  "costPrice": 2460,
+  "tags": [
+   "rice",
+   "seed",
+   "kainat",
+   "10kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-cotton-seed-bt-1-bag",
+  "name": "Cotton Seed Bt 1 bag",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5330,
+  "tags": [
+   "cotton",
+   "seed",
+   "bt",
+   "bag",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-sugarcane-seed-cutting",
+  "name": "Sugarcane Seed Cutting",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 410,
+  "tags": [
+   "sugarcane",
+   "seed",
+   "cutting",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-potato-seed-per-kg-1kg",
+  "name": "Potato Seed per kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 98,
+  "tags": [
+   "potato",
+   "seed",
+   "per",
+   "kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-onion-seed-250g-250g",
+  "name": "Onion Seed 250g 250g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1476,
+  "tags": [
+   "onion",
+   "seed",
+   "250g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-onion-seed-phulkara-1kg",
+  "name": "Onion Seed Phulkara 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6150,
+  "tags": [
+   "onion",
+   "seed",
+   "phulkara",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-tomato-seed-hybrid-10g-10g",
+  "name": "Tomato Seed Hybrid 10g 10g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "tomato",
+   "seed",
+   "hybrid",
+   "10g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-chilli-seed-hybrid-10g-10g",
+  "name": "Chilli Seed Hybrid 10g 10g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 779,
+  "tags": [
+   "chilli",
+   "seed",
+   "hybrid",
+   "10g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-brinjal-seed-10g-10g",
+  "name": "Brinjal Seed 10g 10g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 533,
+  "tags": [
+   "brinjal",
+   "seed",
+   "10g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-okra-seed-100g-100g",
+  "name": "Okra Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "okra",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-spinach-seed-100g-100g",
+  "name": "Spinach Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 205,
+  "tags": [
+   "spinach",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-methi-seed-100g-100g",
+  "name": "Methi Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 123,
+  "tags": [
+   "methi",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-coriander-seed-100g-100g",
+  "name": "Coriander Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 123,
+  "tags": [
+   "coriander",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-carrot-seed-100g-100g",
+  "name": "Carrot Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "carrot",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-radish-seed-100g-100g",
+  "name": "Radish Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 148,
+  "tags": [
+   "radish",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-cucumber-seed-50g-50g",
+  "name": "Cucumber Seed 50g 50g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "cucumber",
+   "seed",
+   "50g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-bitter-gourd-seed-100g-100g",
+  "name": "Bitter Gourd Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "bitter",
+   "gourd",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-pumpkin-seed-100g-100g",
+  "name": "Pumpkin Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "pumpkin",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-muskmelon-seed-100g-100g",
+  "name": "Muskmelon Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "muskmelon",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-watermelon-seed-100g-100g",
+  "name": "Watermelon Seed 100g 100g",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 533,
+  "tags": [
+   "watermelon",
+   "seed",
+   "100g",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-fodder-seed-berseem-1kg-1kg",
+  "name": "Fodder Seed Berseem 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 451,
+  "tags": [
+   "fodder",
+   "seed",
+   "berseem",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-fodder-seed-sorghum-1kg-1kg",
+  "name": "Fodder Seed Sorghum 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 287,
+  "tags": [
+   "fodder",
+   "seed",
+   "sorghum",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-fodder-seed-maize-1kg-1kg",
+  "name": "Fodder Seed Maize 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "fodder",
+   "seed",
+   "maize",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-mustard-seed-1kg-1kg",
+  "name": "Mustard Seed 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 369,
+  "tags": [
+   "mustard",
+   "seed",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-canola-seed-1kg-1kg",
+  "name": "Canola Seed 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "canola",
+   "seed",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-grass-seed-lawn-1kg-1kg",
+  "name": "Grass Seed Lawn 1kg 1kg",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "grass",
+   "seed",
+   "lawn",
+   "1kg",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-flower-seed-pack",
+  "name": "Flower Seed Pack",
+  "brand": "",
+  "category": "Seeds",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 49,
+  "tags": [
+   "flower",
+   "seed",
+   "pack",
+   "seeds"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-cattle-feed-wanda-50kg",
+  "name": "Hi-Tech Cattle Feed Wanda 50kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3700,
+  "costPrice": 3145,
+  "tags": [
+   "hi",
+   "tech",
+   "cattle",
+   "feed",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-dairy-feed-50kg",
+  "name": "Hi-Tech Dairy Feed 50kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3570,
+  "tags": [
+   "hi",
+   "tech",
+   "dairy",
+   "feed",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-poultry-layer-feed-50kg",
+  "name": "Hi-Tech Poultry Layer Feed 50kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 8900,
+  "costPrice": 7565,
+  "tags": [
+   "hi",
+   "tech",
+   "poultry",
+   "layer",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-poultry-broiler-feed-50kg",
+  "name": "Hi-Tech Poultry Broiler Feed 50kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 8075,
+  "tags": [
+   "hi",
+   "tech",
+   "poultry",
+   "broiler",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-poultry-starter-feed-50kg",
+  "name": "Hi-Tech Poultry Starter Feed 50kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 9800,
+  "costPrice": 8330,
+  "tags": [
+   "hi",
+   "tech",
+   "poultry",
+   "starter",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-hi-tech-fish-feed-25kg",
+  "name": "Hi-Tech Fish Feed 25kg",
+  "brand": "Hi-Tech",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6375,
+  "tags": [
+   "hi",
+   "tech",
+   "fish",
+   "feed",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-oil-seed-cotton-seed-cake-khal-50kg",
+  "name": "Oil Seed Cotton Seed Cake Khal 50kg",
+  "brand": "Oil Seed",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3600,
+  "costPrice": 3060,
+  "tags": [
+   "oil",
+   "seed",
+   "cotton",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-oil-seed-cotton-seed-wanda-50kg",
+  "name": "Oil Seed Cotton Seed Wanda 50kg",
+  "brand": "Oil Seed",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3400,
+  "costPrice": 2890,
+  "tags": [
+   "oil",
+   "seed",
+   "cotton",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-oil-seed-mustard-cake-50kg",
+  "name": "Oil Seed Mustard Cake 50kg",
+  "brand": "Oil Seed",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2720,
+  "tags": [
+   "oil",
+   "seed",
+   "mustard",
+   "cake",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-wheat-bran-chokar-40kg",
+  "name": "Wheat Bran (Chokar) 40kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2380,
+  "tags": [
+   "wheat",
+   "bran",
+   "chokar",
+   "40kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-rice-polish-40kg",
+  "name": "Rice Polish 40kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2720,
+  "tags": [
+   "rice",
+   "polish",
+   "40kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-mineral-mixture-25kg",
+  "name": "Mineral Mixture 25kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2975,
+  "tags": [
+   "mineral",
+   "mixture",
+   "25kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-salt-lick-block-cattle",
+  "name": "Salt Lick Block Cattle",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 212,
+  "tags": [
+   "salt",
+   "lick",
+   "block",
+   "cattle",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-calcium-powder-cattle-1kg-1kg",
+  "name": "Calcium Powder Cattle 1kg 1kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 382,
+  "tags": [
+   "calcium",
+   "powder",
+   "cattle",
+   "1kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-molasses-cattle-per-kg-1kg",
+  "name": "Molasses Cattle per kg 1kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 68,
+  "tags": [
+   "molasses",
+   "cattle",
+   "per",
+   "kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-vitamin-ad3e-injection-100ml",
+  "name": "Vitamin AD3E Injection 100ml",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 808,
+  "tags": [
+   "vitamin",
+   "ad3e",
+   "injection",
+   "100ml",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-cattle-dewormer-tablet",
+  "name": "Cattle Dewormer Tablet",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 382,
+  "tags": [
+   "cattle",
+   "dewormer",
+   "tablet",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-poultry-vaccine-pack",
+  "name": "Poultry Vaccine Pack",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 468,
+  "tags": [
+   "poultry",
+   "vaccine",
+   "pack",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-poultry-vitamin-powder-1kg",
+  "name": "Poultry Vitamin Powder 1kg",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 808,
+  "tags": [
+   "poultry",
+   "vitamin",
+   "powder",
+   "1kg",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-poultry-drinker",
+  "name": "Poultry Drinker",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 212,
+  "tags": [
+   "poultry",
+   "drinker",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-poultry-feeder",
+  "name": "Poultry Feeder",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 298,
+  "tags": [
+   "poultry",
+   "feeder",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-chick-brooder-heater",
+  "name": "Chick Brooder Heater",
+  "brand": "",
+  "category": "Animal Feed",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1232,
+  "tags": [
+   "chick",
+   "brooder",
+   "heater",
+   "animal feed"
+  ]
+ },
+ {
+  "id": "agri-kassi-hoe",
+  "name": "Kassi (Hoe)",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "kassi",
+   "hoe",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-phawra-shovel",
+  "name": "Phawra (Shovel)",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "phawra",
+   "shovel",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-kulhari-axe",
+  "name": "Kulhari (Axe)",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "kulhari",
+   "axe",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-daati-sickle",
+  "name": "Daati Sickle",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "daati",
+   "sickle",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-chaff-cutter-toka-hand",
+  "name": "Chaff Cutter Toka Hand",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 15000,
+  "costPrice": 11700,
+  "tags": [
+   "chaff",
+   "cutter",
+   "toka",
+   "hand",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-water-pipe-pvc-layflat-100ft",
+  "name": "Water Pipe PVC Layflat 100ft",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "water",
+   "pipe",
+   "pvc",
+   "layflat",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-drip-irrigation-pipe-per-roll",
+  "name": "Drip Irrigation Pipe per Roll",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "drip",
+   "irrigation",
+   "pipe",
+   "per",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-drip-emitter-pack-of-100",
+  "name": "Drip Emitter Pack of 100",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "drip",
+   "emitter",
+   "pack",
+   "of",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-sprinkler-garden",
+  "name": "Sprinkler Garden",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "sprinkler",
+   "garden",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-water-pump-tubewell-5hp",
+  "name": "Water Pump Tubewell 5HP",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 35100,
+  "tags": [
+   "water",
+   "pump",
+   "tubewell",
+   "5hp",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-water-pump-diesel-3hp",
+  "name": "Water Pump Diesel 3HP",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 42900,
+  "tags": [
+   "water",
+   "pump",
+   "diesel",
+   "3hp",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-garden-hose-50ft",
+  "name": "Garden Hose 50ft",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "garden",
+   "hose",
+   "50ft",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-fruit-tree-pruner",
+  "name": "Fruit Tree Pruner",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "fruit",
+   "tree",
+   "pruner",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-pruning-shears",
+  "name": "Pruning Shears",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "pruning",
+   "shears",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-seed-tray-98-hole",
+  "name": "Seed Tray 98 Hole",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 74,
+  "tags": [
+   "seed",
+   "tray",
+   "98",
+   "hole",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-net-house-cover-per-meter",
+  "name": "Net House Cover per meter",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 47,
+  "tags": [
+   "net",
+   "house",
+   "cover",
+   "per",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-mulching-plastic-roll",
+  "name": "Mulching Plastic Roll",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "mulching",
+   "plastic",
+   "roll",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-greenhouse-plastic-sheet-per-meter",
+  "name": "Greenhouse Plastic Sheet per meter",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "greenhouse",
+   "plastic",
+   "sheet",
+   "per",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-grain-storage-bag-50kg-pack-of-10-10",
+  "name": "Grain Storage Bag 50kg Pack of 10 10",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 800,
+  "costPrice": 624,
+  "tags": [
+   "grain",
+   "storage",
+   "bag",
+   "50kg",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-jute-bag-pack-of-10-10",
+  "name": "Jute Bag Pack of 10 10",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 936,
+  "tags": [
+   "jute",
+   "bag",
+   "pack",
+   "of",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-tarpaulin-10x12",
+  "name": "Tarpaulin 10x12",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "tarpaulin",
+   "10x12",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-weighing-scale-agri-100kg",
+  "name": "Weighing Scale Agri 100kg",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "weighing",
+   "scale",
+   "agri",
+   "100kg",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-soil-ph-meter",
+  "name": "Soil pH Meter",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "soil",
+   "ph",
+   "meter",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-rain-boots-gum-1-pair",
+  "name": "Rain Boots Gum 1 pair",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "rain",
+   "boots",
+   "gum",
+   "pair",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-raincoat-farmer",
+  "name": "Raincoat Farmer",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "raincoat",
+   "farmer",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-tractor-engine-oil-15w-40-5-litre",
+  "name": "Tractor Engine Oil 15W-40 5 litre",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4056,
+  "tags": [
+   "tractor",
+   "engine",
+   "oil",
+   "15w",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-tractor-filter-set",
+  "name": "Tractor Filter Set",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "tractor",
+   "filter",
+   "set",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-tractor-battery-n100",
+  "name": "Tractor Battery N100",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21840,
+  "tags": [
+   "tractor",
+   "battery",
+   "n100",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-tractor-tyre-rear-14-9-28",
+  "name": "Tractor Tyre Rear 14.9-28",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 37440,
+  "tags": [
+   "tractor",
+   "tyre",
+   "rear",
+   "14",
+   "tools & irrigation"
+  ]
+ },
+ {
+  "id": "agri-rotavator-blade-set-1-set",
+  "name": "Rotavator Blade Set 1 set",
+  "brand": "",
+  "category": "Tools & Irrigation",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9750,
+  "tags": [
+   "rotavator",
+   "blade",
+   "set",
+   "tools & irrigation"
+  ]
+ }
+]

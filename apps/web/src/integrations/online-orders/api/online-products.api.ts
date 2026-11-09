@@ -12,6 +12,10 @@ export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ' | 'CUSTOM_WEBSITE'
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
 export type StockMode = 'ALL' | 'PERCENT' | 'FIXED';
+export type SyncFrom = 'NAFAA' | 'WEBSITE' | 'LATEST' | 'NONE';
+export type AutoPublish = 'OFF' | 'MARKED' | 'ALL';
+/** Where a price taken from the channel is saved in Nafaa. */
+export type PriceTarget = 'PRODUCT' | 'VARIANT' | 'SHOP' | 'CHANNEL';
 export interface PushContent { title: boolean; description: boolean; images: boolean; compareAt: boolean; sku: boolean; weight: boolean }
 
 export interface OnlineChannel {
@@ -48,6 +52,24 @@ export interface OnlineChannel {
   /** Exact SKU/barcode matches are linked by themselves. */
   autoLink: boolean;
   priceSource: 'WEBSITE' | 'NAFAA';
+  /** Where price changes come from: Nafaa only, the channel only, whichever changed last, or neither. */
+  priceFrom: SyncFrom;
+  /** A channel price change waits for the user (old channels moving to two-way price). */
+  priceFromAsk: boolean;
+  /** With no price rule, where a channel price lands in Nafaa: the product price or a price for this channel only. */
+  websitePriceTo: 'PRODUCT' | 'CHANNEL';
+  /** New channel products are brought into Nafaa by themselves (needs a branch). */
+  autoImport: boolean;
+  /** Where title, description and images come from (always NONE on Daraz). */
+  contentFrom: SyncFrom;
+  /** New Nafaa products are made on the channel: off, only marked ones, or all. */
+  autoPublish: AutoPublish;
+  /** Stock changed by hand on the channel is taken into Nafaa. */
+  stockFromChannel: boolean;
+  /** The user has saved sync settings at least once. */
+  syncChosen: boolean;
+  /** Every two-way option is on ("Sab kuch khud sync"). */
+  autoSync: boolean;
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
   linked?: number;
@@ -91,7 +113,10 @@ export interface LinkedCell {
   tracksStock?: boolean | null;
   /** The user asked Nafaa to turn counting on for this item. */
   countOptIn?: boolean;
+  /** The price changed on the channel and differs from Nafaa: nothing is sent until the user picks one. Older API builds leave it out. */
+  priceHold?: PriceHoldInfo | null;
 }
+export interface PriceHoldInfo { since: string; nafaaPrice: number | null; channelPrice: number | null; agreedPrice: number | null; channelPriceAt: string | null }
 export type HoldReason = 'link' | 'import' | 'guard';
 export interface StockHoldInfo { since: string; channelStock: number | null; nafaaStock: number; reason: HoldReason }
 export interface LastPush { at: string; what: Array<'stock' | 'price' | 'content' | 'status' | 'publish'>; ok: boolean; error: string | null }
@@ -119,7 +144,7 @@ export interface GridItem {
   backorderMax?: number | null;
 }
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'hold' | 'untracked' | 'price' | 'out' | 'unlisted' | 'backorder';
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'hold' | 'price-hold' | 'untracked' | 'price' | 'out' | 'unlisted' | 'backorder';
 export interface GridScope { categoryId?: string; brandId?: string }
 export interface GridQuery extends GridScope { page: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string; productId?: string }
 export interface GridPage { channels: OnlineChannel[]; items: GridItem[]; total: number; page: number; pages: number; limit: number }
@@ -152,7 +177,7 @@ export interface Issue {
   id: string;
   channelId: string;
   tone: 'danger' | 'warning' | 'info';
-  kind: 'reconnect' | 'fix-size-less' | 'errors' | 'stock-hold' | 'link-sure' | 'link';
+  kind: 'reconnect' | 'fix-size-less' | 'errors' | 'stock-hold' | 'price-hold' | 'link-sure' | 'link' | 'new-products';
   text: string;
   detail?: string | null;
   count?: number;
@@ -260,6 +285,58 @@ export interface RecoveryPreview {
 }
 export interface RecoveryApplyResult { untracked: number; adjusted: number; skipped: number; errors: string[]; pushed: boolean }
 
+/* ─── Price holds: the channel price changed and the user picks Nafaa's or the channel's ─── */
+
+export type PriceHoldAction = 'nafaa' | 'website';
+export interface PriceHoldRow {
+  mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null;
+  nafaaPrice: number | null; channelPrice: number | null; agreedPrice: number | null;
+  since: string; channelPriceAt: string | null; target: PriceTarget | null;
+}
+export interface PriceHoldPage { total: number; page: number; pages: number; priceFrom: SyncFrom; items: PriceHoldRow[] }
+export interface PriceHoldResult { resolved: number; sent: number; taken: number; skipped: number; errors: string[] }
+
+/* ─── Price recovery: channel prices Nafaa overwrote, to put back or keep ─── */
+
+export type PriceRecoveryChoice = 'channel' | 'nafaa';
+export interface PriceRecoveryRow {
+  mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null;
+  channelPrice: number | null; pushedPrice: number | null; nafaaPrice: number | null;
+  channelPriceAt: string | null; driftPushedAt: string | null; driftPushes: number;
+  target: PriceTarget | null; held: boolean;
+}
+export interface PriceRecoveryPreview {
+  channel: { id: string; name: string; type: string; priceFrom: SyncFrom; websitePriceTo: 'PRODUCT' | 'CHANNEL' };
+  rows: PriceRecoveryRow[];
+  checked: number;
+  note: string | null;
+}
+export interface PriceRecoveryResult { restored: number; kept: number; sent: number; skipped: number; errors: string[] }
+
+/* ─── Sync history: what came in from or went out to a channel, per product ─── */
+
+export type SyncField = 'price' | 'title' | 'description' | 'images' | 'stock' | 'product';
+export type SyncKind = 'PULL' | 'PUSH' | 'HOLD' | 'KEEP_NAFAA' | 'KEEP_CHANNEL' | 'RECOVER_CHANNEL' | 'RECOVER_NAFAA' | 'HAND_EDIT' | 'IMPORT' | 'PUBLISH';
+export interface SyncHistoryRow {
+  id: string; integrationId: string; productId: string | null; variantId: string | null;
+  field: SyncField; direction: 'IN' | 'OUT' | 'NONE'; kind: SyncKind; target: PriceTarget | null;
+  oldValue: string | null; newValue: string | null; note: string | null; createdAt: string;
+}
+
+export interface ChannelSyncSettings {
+  preset?: 'AUTO';
+  priceFrom?: SyncFrom;
+  websitePriceTo?: 'PRODUCT' | 'CHANNEL';
+  autoImport?: boolean;
+  contentFrom?: SyncFrom;
+  autoPublish?: AutoPublish;
+  stockFromChannel?: boolean;
+  pushStock?: boolean;
+  autoLink?: boolean;
+}
+
 export interface LinkPatch { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }
 
 export const ONLINE_PRODUCTS_KEY = 'online-products';
@@ -280,8 +357,8 @@ export const onlineProductsApi = {
   importItems: (channelId: string, externalProductIds: string[]) =>
     apiClient.post(`/online-products/channels/${channelId}/import`, { externalProductIds }, { timeout: 180_000 })
       .then((r) => unwrap<{ created: number; linkedExisting: number; held?: number; untracked?: number; failed: number; errors: string[] } | JobStart>(r)),
-  settings: (channelId: string, body: {
-    priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
+  settings: (channelId: string, body: ChannelSyncSettings & {
+    priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number;
     stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
   }) =>
     apiClient.put(`/online-products/channels/${channelId}/settings`, body).then((r) => unwrap<OnlineChannel>(r)),
@@ -326,6 +403,21 @@ export const onlineProductsApi = {
     apiClient.get(`/online-products/channels/${channelId}/stock-recovery`, { timeout: 120_000 }).then((r) => unwrap<RecoveryPreview>(r)),
   applyRecovery: (channelId: string, mappingIds: string[]) =>
     apiClient.post(`/online-products/channels/${channelId}/stock-recovery/apply`, { mappingIds }, { timeout: 180_000 }).then((r) => unwrap<RecoveryApplyResult>(r)),
+  priceHolds: (channelId: string, page = 1, limit = 50) =>
+    apiClient.get(`/online-products/channels/${channelId}/price-holds`, { params: { page, limit } }).then((r) => unwrap<PriceHoldPage>(r)),
+  resolvePriceHolds: (channelId: string, body: { action: PriceHoldAction; all: true } | { action: PriceHoldAction; mappingIds: string[] }) =>
+    apiClient.post(`/online-products/channels/${channelId}/price-holds/resolve`, body, { timeout: 180_000 }).then((r) => unwrap<PriceHoldResult>(r)),
+  priceRecovery: (channelId: string) =>
+    apiClient.get(`/online-products/channels/${channelId}/price-recovery`, { timeout: 120_000 }).then((r) => unwrap<PriceRecoveryPreview>(r)),
+  applyPriceRecovery: (channelId: string, items: Array<{ mappingId: string; choice: PriceRecoveryChoice }>) =>
+    apiClient.post(`/online-products/channels/${channelId}/price-recovery/apply`, { items }, { timeout: 180_000 }).then((r) => unwrap<PriceRecoveryResult>(r)),
+  importNew: (channelId: string) =>
+    apiClient.post(`/online-products/channels/${channelId}/import-new`, {}, { timeout: 300_000 }).then((r) => unwrap<JobStart & { count: number }>(r)),
+  syncHistory: (q: { productId?: string; channelId?: string; limit?: number }) =>
+    apiClient.get('/online-products/sync-history', { params: q }).then((r) => unwrap<{ items: SyncHistoryRow[] }>(r)),
+  /** Mark products to be made on Shopify/WooCommerce channels set to "only marked" (no channelIds = every such channel). */
+  publishMarks: (body: { productIds: string[]; channelIds?: string[]; on: boolean }) =>
+    apiClient.post('/online-products/publish-marks', body).then((r) => unwrap<{ changed: number; channels: number }>(r)),
   waitingBackorders: (productIds?: string[]) =>
     apiClient.get('/online-products/backorders', { params: productIds?.length ? { productId: productIds.join(',') } : {} }).then((r) => unwrap<BackorderOrder[]>(r)),
 };

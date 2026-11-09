@@ -1,7 +1,7 @@
 import { alertDue, itemKey, pickSureLinks, watchStep } from './catalog-watch';
 import { CatalogWatchService, scanEveryMs } from './catalog-watch.service';
 import { forEachLinkPage } from './link-sync';
-import { priceAction } from './channel-price';
+import { priceDecision } from './channel-price';
 
 const remote = (id: string, title: string, vid: string | null = null, sku: string | null = null) => ({
   p: { externalProductId: id, title, image: null, status: 'active', hasVariants: !!vid, variants: [] as any[] },
@@ -54,25 +54,14 @@ describe('watch state', () => {
   });
 });
 
-describe('price drift', () => {
+describe('price drift is no longer re-sent', () => {
   const now = Date.parse('2026-10-29T10:00:00Z');
-  it('new price is pushed; same price on the channel is skipped', () => {
-    expect(priceAction({ pushedPrice: 100, channelPrice: 100 }, 120, now)).toBe('push');
-    expect(priceAction({ pushedPrice: 120, channelPrice: 120 }, 120, now)).toBe('skip');
-    expect(priceAction({}, 120, now)).toBe('push');
+  const pushedAt = new Date(now - 3600_000).toISOString();
+  it('a price changed on the channel after the push is held, not reverted', () => {
+    const d = { pushedPrice: 120, pushedPriceAt: pushedAt, channelPrice: 150, channelPriceAt: new Date(now - 60_000).toISOString(), nafaaPrice: 120, nafaaPriceAt: pushedAt };
+    expect(priceDecision({ from: 'NAFAA', want: 120, data: d, now }).step).toBe('hold');
   });
-  it('channel changed it: re-sent, then backs off 30 min, 1 h, 2 h …', () => {
-    expect(priceAction({ pushedPrice: 120, channelPrice: 150 }, 120, now)).toBe('drift');
-    const at = new Date(now - 20 * 60_000).toISOString();
-    expect(priceAction({ pushedPrice: 120, channelPrice: 150, driftPushes: 0, driftPushedAt: at }, 120, now)).toBe('skip');
-    expect(priceAction({ pushedPrice: 120, channelPrice: 150, driftPushes: 1, driftPushedAt: new Date(now - 50 * 60_000).toISOString() }, 120, now)).toBe('skip');
-    expect(priceAction({ pushedPrice: 120, channelPrice: 150, driftPushes: 1, driftPushedAt: new Date(now - 61 * 60_000).toISOString() }, 120, now)).toBe('drift');
-    expect(priceAction({ pushedPrice: 120, channelPrice: 150, driftPushes: 10, driftPushedAt: new Date(now - 23 * 3600_000).toISOString() }, 120, now)).toBe('skip');
-  });
-  it('"Sync now" forces it', () => {
-    expect(priceAction({ pushedPrice: 120, channelPrice: 120 }, 120, now, true)).toBe('push');
-  });
-});
+})
 
 describe('paging through all links', () => {
   it('visits every link once, in pages, beyond the old 200 cap', async () => {
@@ -110,7 +99,9 @@ describe('CatalogWatchService.runChannel', () => {
     let saved: any = null;
     const notes: any[] = [];
     const products: any = {
-      col: () => ({ integration: ch, cfg: { autoLink: opts.autoLink, pushPrice: false }, mode: 'woocommerce' }),
+      col: () => ({ integration: ch, cfg: { autoLink: opts.autoLink, pushPrice: false, priceFrom: 'NONE', contentFrom: 'NONE', autoImport: false, stockFromChannel: false }, mode: 'woocommerce' }),
+      newProductIds: () => [],
+      installProductHooks: async () => ({ ok: true, installed: 0 }),
       connected: () => true,
       scan: async () => scan,
       linkSureFor: async (_c: any, sc: any, auto: boolean) => { const l = pickSureLinks(sc.results); linked.push({ l, auto }); return { saved: l.length, errors: [] }; },
@@ -119,7 +110,8 @@ describe('CatalogWatchService.runChannel', () => {
     const prisma: any = { productChannelMapping: { count: async () => opts.failed ?? 0 } };
     const push: any = { pushPricesFor: async () => ({ sent: 0 }) };
     const notifications: any = { create: async (n: any) => { notes.push(n); return n; } };
-    return { ch, svc: new CatalogWatchService(prisma, products, push, notifications), linked, saved: () => saved, notes };
+    const sync: any = { scanHandEdits: async () => ({ taken: 0 }) };
+    return { ch, svc: new CatalogWatchService(prisma, products, push, notifications, sync), linked, saved: () => saved, notes };
   }
 
   it('auto-link on: links the SKU match only and records it', async () => {

@@ -1,0 +1,2269 @@
+[
+ {
+  "id": "appliances-haier-inverter-ac-1-ton",
+  "name": "Haier Inverter AC 1 Ton",
+  "brand": "Haier",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 118800,
+  "tags": [
+   "haier",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-haier-inverter-ac-1-5-ton",
+  "name": "Haier Inverter AC 1.5 Ton",
+  "brand": "Haier",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 165000,
+  "costPrice": 145200,
+  "tags": [
+   "haier",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-haier-inverter-ac-2-ton",
+  "name": "Haier Inverter AC 2 Ton",
+  "brand": "Haier",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 235000,
+  "costPrice": 206800,
+  "tags": [
+   "haier",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-gree-inverter-ac-1-ton",
+  "name": "Gree Inverter AC 1 Ton",
+  "brand": "Gree",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 118800,
+  "tags": [
+   "gree",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-gree-inverter-ac-1-5-ton",
+  "name": "Gree Inverter AC 1.5 Ton",
+  "brand": "Gree",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 170000,
+  "costPrice": 149600,
+  "tags": [
+   "gree",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-gree-inverter-ac-2-ton",
+  "name": "Gree Inverter AC 2 Ton",
+  "brand": "Gree",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 250000,
+  "costPrice": 220000,
+  "tags": [
+   "gree",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-inverter-ac-1-5-ton",
+  "name": "Dawlance Inverter AC 1.5 Ton",
+  "brand": "Dawlance",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 165000,
+  "costPrice": 145200,
+  "tags": [
+   "dawlance",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-inverter-ac-1-ton",
+  "name": "Dawlance Inverter AC 1 Ton",
+  "brand": "Dawlance",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 118800,
+  "tags": [
+   "dawlance",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-orient-inverter-ac-1-5-ton",
+  "name": "Orient Inverter AC 1.5 Ton",
+  "brand": "Orient",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 155000,
+  "costPrice": 136400,
+  "tags": [
+   "orient",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-pel-inverter-ac-1-5-ton",
+  "name": "PEL Inverter AC 1.5 Ton",
+  "brand": "PEL",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 150000,
+  "costPrice": 132000,
+  "tags": [
+   "pel",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-kenwood-inverter-ac-1-5-ton",
+  "name": "Kenwood Inverter AC 1.5 Ton",
+  "brand": "Kenwood",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 155000,
+  "costPrice": 136400,
+  "tags": [
+   "kenwood",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-tcl-inverter-ac-1-5-ton",
+  "name": "TCL Inverter AC 1.5 Ton",
+  "brand": "TCL",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 155000,
+  "costPrice": 136400,
+  "tags": [
+   "tcl",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-midea-inverter-ac-1-5-ton",
+  "name": "Midea Inverter AC 1.5 Ton",
+  "brand": "Midea",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 150000,
+  "costPrice": 132000,
+  "tags": [
+   "midea",
+   "inverter",
+   "ac",
+   "ton",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-changhong-ruba-inverter-ac-1-5-ton",
+  "name": "Changhong Ruba Inverter AC 1.5 Ton",
+  "brand": "Changhong Ruba",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 150000,
+  "costPrice": 132000,
+  "tags": [
+   "changhong",
+   "ruba",
+   "inverter",
+   "ac",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-ac-installation-kit",
+  "name": "AC Installation Kit",
+  "brand": "",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6600,
+  "tags": [
+   "ac",
+   "installation",
+   "kit",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-ac-stand-outdoor",
+  "name": "AC Stand Outdoor",
+  "brand": "",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 3080,
+  "tags": [
+   "ac",
+   "stand",
+   "outdoor",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-ac-stabilizer",
+  "name": "AC Stabilizer",
+  "brand": "",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6600,
+  "tags": [
+   "ac",
+   "stabilizer",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-ac-cover",
+  "name": "AC Cover",
+  "brand": "",
+  "category": "Air Conditioners",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "ac",
+   "cover",
+   "air conditioners"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-refrigerator-9188-lf",
+  "name": "Dawlance Refrigerator 9188 LF",
+  "brand": "Dawlance",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 115000,
+  "costPrice": 101200,
+  "tags": [
+   "dawlance",
+   "refrigerator",
+   "9188",
+   "lf",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-refrigerator-9122",
+  "name": "Dawlance Refrigerator 9122",
+  "brand": "Dawlance",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 92400,
+  "tags": [
+   "dawlance",
+   "refrigerator",
+   "9122",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-inverter-refrigerator-9191-wb",
+  "name": "Dawlance Inverter Refrigerator 9191 WB",
+  "brand": "Dawlance",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 127600,
+  "tags": [
+   "dawlance",
+   "inverter",
+   "refrigerator",
+   "9191",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-deep-freezer-91997",
+  "name": "Dawlance Deep Freezer 91997",
+  "brand": "Dawlance",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 92400,
+  "tags": [
+   "dawlance",
+   "deep",
+   "freezer",
+   "91997",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-haier-refrigerator-hrf-336-inverter",
+  "name": "Haier Refrigerator HRF-336 Inverter",
+  "brand": "Haier",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 118800,
+  "tags": [
+   "haier",
+   "refrigerator",
+   "hrf",
+   "336",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-haier-refrigerator-hrf-306",
+  "name": "Haier Refrigerator HRF-306",
+  "brand": "Haier",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 115000,
+  "costPrice": 101200,
+  "tags": [
+   "haier",
+   "refrigerator",
+   "hrf",
+   "306",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-haier-deep-freezer-hdf-345",
+  "name": "Haier Deep Freezer HDF-345",
+  "brand": "Haier",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 74800,
+  "tags": [
+   "haier",
+   "deep",
+   "freezer",
+   "hdf",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-haier-deep-freezer-hdf-245",
+  "name": "Haier Deep Freezer HDF-245",
+  "brand": "Haier",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 68000,
+  "costPrice": 59840,
+  "tags": [
+   "haier",
+   "deep",
+   "freezer",
+   "hdf",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-pel-refrigerator-prinvo-2550",
+  "name": "PEL Refrigerator PRINVO-2550",
+  "brand": "PEL",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 92400,
+  "tags": [
+   "pel",
+   "refrigerator",
+   "prinvo",
+   "2550",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-pel-refrigerator-prl-2550",
+  "name": "PEL Refrigerator PRL-2550",
+  "brand": "PEL",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 92000,
+  "costPrice": 80960,
+  "tags": [
+   "pel",
+   "refrigerator",
+   "prl",
+   "2550",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-pel-deep-freezer-pdf-300",
+  "name": "PEL Deep Freezer PDF-300",
+  "brand": "PEL",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 72000,
+  "costPrice": 63360,
+  "tags": [
+   "pel",
+   "deep",
+   "freezer",
+   "pdf",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-orient-refrigerator-inverter",
+  "name": "Orient Refrigerator Inverter",
+  "brand": "Orient",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 125000,
+  "costPrice": 110000,
+  "tags": [
+   "orient",
+   "refrigerator",
+   "inverter",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-orient-deep-freezer",
+  "name": "Orient Deep Freezer",
+  "brand": "Orient",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 78000,
+  "costPrice": 68640,
+  "tags": [
+   "orient",
+   "deep",
+   "freezer",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-samsung-refrigerator-inverter-double-door",
+  "name": "Samsung Refrigerator Inverter Double Door",
+  "brand": "Samsung",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 175000,
+  "costPrice": 154000,
+  "tags": [
+   "samsung",
+   "refrigerator",
+   "inverter",
+   "double",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-lg-refrigerator-inverter-double-door",
+  "name": "LG Refrigerator Inverter Double Door",
+  "brand": "LG",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 185000,
+  "costPrice": 162800,
+  "tags": [
+   "lg",
+   "refrigerator",
+   "inverter",
+   "double",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-gree-refrigerator",
+  "name": "Gree Refrigerator",
+  "brand": "Gree",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 125000,
+  "costPrice": 110000,
+  "tags": [
+   "gree",
+   "refrigerator",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-waves-refrigerator",
+  "name": "Waves Refrigerator",
+  "brand": "Waves",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 120000,
+  "costPrice": 105600,
+  "tags": [
+   "waves",
+   "refrigerator",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-water-dispenser-hot-and-cold",
+  "name": "Water Dispenser Hot and Cold",
+  "brand": "",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 28160,
+  "tags": [
+   "water",
+   "dispenser",
+   "hot",
+   "and",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-haier-water-dispenser",
+  "name": "Haier Water Dispenser",
+  "brand": "Haier",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 33440,
+  "tags": [
+   "haier",
+   "water",
+   "dispenser",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-water-dispenser",
+  "name": "Dawlance Water Dispenser",
+  "brand": "Dawlance",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 30800,
+  "tags": [
+   "dawlance",
+   "water",
+   "dispenser",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-mini-fridge",
+  "name": "Mini Fridge",
+  "brand": "",
+  "category": "Refrigerators & Freezers",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 39600,
+  "tags": [
+   "mini",
+   "fridge",
+   "refrigerators & freezers"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-twin-tub-washing-machine",
+  "name": "Dawlance Twin Tub Washing Machine",
+  "brand": "Dawlance",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 42240,
+  "tags": [
+   "dawlance",
+   "twin",
+   "tub",
+   "washing",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-automatic-washing-machine-8kg",
+  "name": "Dawlance Automatic Washing Machine 8kg",
+  "brand": "Dawlance",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 83600,
+  "tags": [
+   "dawlance",
+   "automatic",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-haier-twin-tub-hwm-120",
+  "name": "Haier Twin Tub HWM-120",
+  "brand": "Haier",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 39600,
+  "tags": [
+   "haier",
+   "twin",
+   "tub",
+   "hwm",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-haier-automatic-front-load-8kg",
+  "name": "Haier Automatic Front Load 8kg",
+  "brand": "Haier",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 115000,
+  "costPrice": 101200,
+  "tags": [
+   "haier",
+   "automatic",
+   "front",
+   "load",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-haier-automatic-top-load-10kg",
+  "name": "Haier Automatic Top Load 10kg",
+  "brand": "Haier",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 83600,
+  "tags": [
+   "haier",
+   "automatic",
+   "top",
+   "load",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-haier-dryer",
+  "name": "Haier Dryer",
+  "brand": "Haier",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 30800,
+  "tags": [
+   "haier",
+   "dryer",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-washing-machine-single-tub",
+  "name": "Super Asia Washing Machine Single Tub",
+  "brand": "Super Asia",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 24640,
+  "tags": [
+   "super",
+   "asia",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-washing-machine-twin-tub",
+  "name": "Super Asia Washing Machine Twin Tub",
+  "brand": "Super Asia",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 33440,
+  "tags": [
+   "super",
+   "asia",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-dryer-sd-520",
+  "name": "Super Asia Dryer SD-520",
+  "brand": "Super Asia",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 24640,
+  "tags": [
+   "super",
+   "asia",
+   "dryer",
+   "sd",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-national-washing-machine",
+  "name": "National Washing Machine",
+  "brand": "National",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 28160,
+  "tags": [
+   "national",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-orient-washing-machine",
+  "name": "Orient Washing Machine",
+  "brand": "Orient",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 40000,
+  "costPrice": 35200,
+  "tags": [
+   "orient",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-pel-washing-machine",
+  "name": "PEL Washing Machine",
+  "brand": "PEL",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 40000,
+  "costPrice": 35200,
+  "tags": [
+   "pel",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-kenwood-washing-machine",
+  "name": "Kenwood Washing Machine",
+  "brand": "Kenwood",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 36960,
+  "tags": [
+   "kenwood",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-boss-washing-machine",
+  "name": "Boss Washing Machine",
+  "brand": "Boss",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 31680,
+  "tags": [
+   "boss",
+   "washing",
+   "machine",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-washing-machine-cover",
+  "name": "Washing Machine Cover",
+  "brand": "",
+  "category": "Washing Machines",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "washing",
+   "machine",
+   "cover",
+   "washing machines"
+  ]
+ },
+ {
+  "id": "appliances-pak-fans-ceiling-fan-56-inch",
+  "name": "Pak Fans Ceiling Fan 56 inch",
+  "brand": "Pak Fans",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11890,
+  "tags": [
+   "pak",
+   "fans",
+   "ceiling",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-pak-fans-ceiling-fan-48-inch",
+  "name": "Pak Fans Ceiling Fan 48 inch",
+  "brand": "Pak Fans",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10250,
+  "tags": [
+   "pak",
+   "fans",
+   "ceiling",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-pak-fans-pedestal-fan-24-inch",
+  "name": "Pak Fans Pedestal Fan 24 inch",
+  "brand": "Pak Fans",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 14350,
+  "tags": [
+   "pak",
+   "fans",
+   "pedestal",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-pak-fans-exhaust-fan-12-inch",
+  "name": "Pak Fans Exhaust Fan 12 inch",
+  "brand": "Pak Fans",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6970,
+  "tags": [
+   "pak",
+   "fans",
+   "exhaust",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-gfc-ceiling-fan-56-inch",
+  "name": "GFC Ceiling Fan 56 inch",
+  "brand": "GFC",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 14000,
+  "costPrice": 11480,
+  "tags": [
+   "gfc",
+   "ceiling",
+   "fan",
+   "56",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-gfc-ceiling-fan-48-inch",
+  "name": "GFC Ceiling Fan 48 inch",
+  "brand": "GFC",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 12000,
+  "costPrice": 9840,
+  "tags": [
+   "gfc",
+   "ceiling",
+   "fan",
+   "48",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-gfc-bracket-fan",
+  "name": "GFC Bracket Fan",
+  "brand": "GFC",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6150,
+  "tags": [
+   "gfc",
+   "bracket",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-gfc-pedestal-fan-18-inch",
+  "name": "GFC Pedestal Fan 18 inch",
+  "brand": "GFC",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 13500,
+  "costPrice": 11070,
+  "tags": [
+   "gfc",
+   "pedestal",
+   "fan",
+   "18",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-royal-ceiling-fan-56-inch",
+  "name": "Royal Ceiling Fan 56 inch",
+  "brand": "Royal",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11890,
+  "tags": [
+   "royal",
+   "ceiling",
+   "fan",
+   "56",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-royal-ceiling-fan-48-inch",
+  "name": "Royal Ceiling Fan 48 inch",
+  "brand": "Royal",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10250,
+  "tags": [
+   "royal",
+   "ceiling",
+   "fan",
+   "48",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-royal-pedestal-fan",
+  "name": "Royal Pedestal Fan",
+  "brand": "Royal",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 17000,
+  "costPrice": 13940,
+  "tags": [
+   "royal",
+   "pedestal",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-ceiling-fan-56-inch",
+  "name": "Super Asia Ceiling Fan 56 inch",
+  "brand": "Super Asia",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11890,
+  "tags": [
+   "super",
+   "asia",
+   "ceiling",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-exhaust-fan",
+  "name": "Super Asia Exhaust Fan",
+  "brand": "Super Asia",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6970,
+  "tags": [
+   "super",
+   "asia",
+   "exhaust",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-indus-ceiling-fan-56-inch",
+  "name": "Indus Ceiling Fan 56 inch",
+  "brand": "Indus",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 13500,
+  "costPrice": 11070,
+  "tags": [
+   "indus",
+   "ceiling",
+   "fan",
+   "56",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-indus-pedestal-fan",
+  "name": "Indus Pedestal Fan",
+  "brand": "Indus",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 16500,
+  "costPrice": 13530,
+  "tags": [
+   "indus",
+   "pedestal",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-sogo-table-fan-16-inch",
+  "name": "Sogo Table Fan 16 inch",
+  "brand": "Sogo",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4510,
+  "tags": [
+   "sogo",
+   "table",
+   "fan",
+   "16",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-sogo-pedestal-fan",
+  "name": "Sogo Pedestal Fan",
+  "brand": "Sogo",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10250,
+  "tags": [
+   "sogo",
+   "pedestal",
+   "fan",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-sogo-room-cooler",
+  "name": "Sogo Room Cooler",
+  "brand": "Sogo",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 15170,
+  "tags": [
+   "sogo",
+   "room",
+   "cooler",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-pak-room-air-cooler",
+  "name": "Pak Room Air Cooler",
+  "brand": "Pak",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 39360,
+  "tags": [
+   "pak",
+   "room",
+   "air",
+   "cooler",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-air-cooler-evaporative",
+  "name": "Air Cooler Evaporative",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 18040,
+  "tags": [
+   "air",
+   "cooler",
+   "evaporative",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-fan-capacitor-2-5uf",
+  "name": "Fan Capacitor 2.5uF",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 205,
+  "tags": [
+   "fan",
+   "capacitor",
+   "5uf",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-fan-regulator",
+  "name": "Fan Regulator",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 287,
+  "tags": [
+   "fan",
+   "regulator",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-fan-blade-set-1-set",
+  "name": "Fan Blade Set 1 set",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1517,
+  "tags": [
+   "fan",
+   "blade",
+   "set",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-cooler-pump",
+  "name": "Cooler Pump",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1517,
+  "tags": [
+   "cooler",
+   "pump",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-cooler-pad",
+  "name": "Cooler Pad",
+  "brand": "",
+  "category": "Fans & Cooling",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 2050,
+  "tags": [
+   "cooler",
+   "pad",
+   "fans & cooling"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-blender-400w",
+  "name": "Westpoint Blender 400W",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "westpoint",
+   "blender",
+   "400w",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-juicer-blender",
+  "name": "Westpoint Juicer Blender",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9200,
+  "tags": [
+   "westpoint",
+   "juicer",
+   "blender",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-hand-mixer",
+  "name": "Westpoint Hand Mixer",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "westpoint",
+   "hand",
+   "mixer",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-rice-cooker-1-8l",
+  "name": "Westpoint Rice Cooker 1.8L",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "westpoint",
+   "rice",
+   "cooker",
+   "8l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-electric-kettle-1-8l",
+  "name": "Westpoint Electric Kettle 1.8L",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "westpoint",
+   "electric",
+   "kettle",
+   "8l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-toaster-2-slice",
+  "name": "Westpoint Toaster 2 Slice",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "westpoint",
+   "toaster",
+   "slice",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-iron-box",
+  "name": "Westpoint Iron Box",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "westpoint",
+   "iron",
+   "box",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-sandwich-maker",
+  "name": "Westpoint Sandwich Maker",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "westpoint",
+   "sandwich",
+   "maker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-chopper",
+  "name": "Westpoint Chopper",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "westpoint",
+   "chopper",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-dry-mill-grinder",
+  "name": "Westpoint Dry Mill Grinder",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "westpoint",
+   "dry",
+   "mill",
+   "grinder",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-westpoint-air-fryer-4l",
+  "name": "Westpoint Air Fryer 4L",
+  "brand": "Westpoint",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "westpoint",
+   "air",
+   "fryer",
+   "4l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-blender-400w",
+  "name": "Anex Blender 400W",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "anex",
+   "blender",
+   "400w",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-hand-blender",
+  "name": "Anex Hand Blender",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "anex",
+   "hand",
+   "blender",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-rice-cooker-2-8l",
+  "name": "Anex Rice Cooker 2.8L",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "anex",
+   "rice",
+   "cooker",
+   "8l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-electric-kettle-1-8l",
+  "name": "Anex Electric Kettle 1.8L",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "anex",
+   "electric",
+   "kettle",
+   "8l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-chopper",
+  "name": "Anex Chopper",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "anex",
+   "chopper",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-juicer-extractor",
+  "name": "Anex Juicer Extractor",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "anex",
+   "juicer",
+   "extractor",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-sandwich-maker",
+  "name": "Anex Sandwich Maker",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "anex",
+   "sandwich",
+   "maker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-toaster",
+  "name": "Anex Toaster",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "anex",
+   "toaster",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-air-fryer",
+  "name": "Anex Air Fryer",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 15600,
+  "tags": [
+   "anex",
+   "air",
+   "fryer",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-iron",
+  "name": "Anex Iron",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "anex",
+   "iron",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-anex-steam-iron",
+  "name": "Anex Steam Iron",
+  "brand": "Anex",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "anex",
+   "steam",
+   "iron",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-philips-air-fryer-hd9200",
+  "name": "Philips Air Fryer HD9200",
+  "brand": "Philips",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 25600,
+  "tags": [
+   "philips",
+   "air",
+   "fryer",
+   "hd9200",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-philips-steam-iron",
+  "name": "Philips Steam Iron",
+  "brand": "Philips",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "philips",
+   "steam",
+   "iron",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-philips-blender",
+  "name": "Philips Blender",
+  "brand": "Philips",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "philips",
+   "blender",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-philips-rice-cooker",
+  "name": "Philips Rice Cooker",
+  "brand": "Philips",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "philips",
+   "rice",
+   "cooker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-philips-electric-kettle",
+  "name": "Philips Electric Kettle",
+  "brand": "Philips",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "philips",
+   "electric",
+   "kettle",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-tefal-non-stick-pan-28cm",
+  "name": "Tefal Non-Stick Pan 28cm",
+  "brand": "Tefal",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "tefal",
+   "non",
+   "stick",
+   "pan",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-tefal-pressure-cooker-6l",
+  "name": "Tefal Pressure Cooker 6L",
+  "brand": "Tefal",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "tefal",
+   "pressure",
+   "cooker",
+   "6l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-microwave-oven-20l",
+  "name": "Dawlance Microwave Oven 20L",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22800,
+  "tags": [
+   "dawlance",
+   "microwave",
+   "oven",
+   "20l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-microwave-oven-25l-grill",
+  "name": "Dawlance Microwave Oven 25L Grill",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 38500,
+  "costPrice": 30800,
+  "tags": [
+   "dawlance",
+   "microwave",
+   "oven",
+   "25l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-microwave-30l",
+  "name": "Dawlance Microwave 30L",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 33600,
+  "tags": [
+   "dawlance",
+   "microwave",
+   "30l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-haier-microwave-oven-25l",
+  "name": "Haier Microwave Oven 25L",
+  "brand": "Haier",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 25600,
+  "tags": [
+   "haier",
+   "microwave",
+   "oven",
+   "25l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-pel-microwave-oven-20l",
+  "name": "PEL Microwave Oven 20L",
+  "brand": "PEL",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 26500,
+  "costPrice": 21200,
+  "tags": [
+   "pel",
+   "microwave",
+   "oven",
+   "20l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-samsung-microwave-oven-23l",
+  "name": "Samsung Microwave Oven 23L",
+  "brand": "Samsung",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 30400,
+  "tags": [
+   "samsung",
+   "microwave",
+   "oven",
+   "23l",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-cooking-range-3-burner",
+  "name": "Dawlance Cooking Range 3 Burner",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 52000,
+  "tags": [
+   "dawlance",
+   "cooking",
+   "range",
+   "burner",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-built-in-hob-3-burner",
+  "name": "Dawlance Built-in Hob 3 Burner",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 33600,
+  "tags": [
+   "dawlance",
+   "built",
+   "in",
+   "hob",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dawlance-built-in-oven-60cm",
+  "name": "Dawlance Built-in Oven 60cm",
+  "brand": "Dawlance",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 75000,
+  "costPrice": 60000,
+  "tags": [
+   "dawlance",
+   "built",
+   "in",
+   "oven",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-gas-stove-2-burner",
+  "name": "Nasgas Gas Stove 2 Burner",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "nasgas",
+   "gas",
+   "stove",
+   "burner",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-gas-stove-3-burner",
+  "name": "Nasgas Gas Stove 3 Burner",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "nasgas",
+   "gas",
+   "stove",
+   "burner",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-gas-stove-4-burner",
+  "name": "Nasgas Gas Stove 4 Burner",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "nasgas",
+   "gas",
+   "stove",
+   "burner",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-gas-cooking-range-5-burner",
+  "name": "Nasgas Gas Cooking Range 5 Burner",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 52000,
+  "tags": [
+   "nasgas",
+   "gas",
+   "cooking",
+   "range",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-gas-geyser-35-gallon",
+  "name": "Nasgas Gas Geyser 35 Gallon",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 28000,
+  "tags": [
+   "nasgas",
+   "gas",
+   "geyser",
+   "35",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-nasgas-instant-gas-geyser-6l",
+  "name": "Nasgas Instant Gas Geyser 6L",
+  "brand": "Nasgas",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 30400,
+  "tags": [
+   "nasgas",
+   "instant",
+   "gas",
+   "geyser",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-instant-geyser",
+  "name": "Super Asia Instant Geyser",
+  "brand": "Super Asia",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 30400,
+  "tags": [
+   "super",
+   "asia",
+   "instant",
+   "geyser",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-electric-geyser-35l",
+  "name": "Super Asia Electric Geyser 35L",
+  "brand": "Super Asia",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 25600,
+  "tags": [
+   "super",
+   "asia",
+   "electric",
+   "geyser",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-super-asia-hot-plate",
+  "name": "Super Asia Hot Plate",
+  "brand": "Super Asia",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "super",
+   "asia",
+   "hot",
+   "plate",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-cyclone-hand-mixer",
+  "name": "Cyclone Hand Mixer",
+  "brand": "Cyclone",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "cyclone",
+   "hand",
+   "mixer",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-cyclone-hand-blender",
+  "name": "Cyclone Hand Blender",
+  "brand": "Cyclone",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "cyclone",
+   "hand",
+   "blender",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-electric-heater-2000w",
+  "name": "Electric Heater 2000W",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4400,
+  "tags": [
+   "electric",
+   "heater",
+   "2000w",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-gas-heater",
+  "name": "Gas Heater",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "gas",
+   "heater",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-room-heater-oil-radiator",
+  "name": "Room Heater Oil Radiator",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "room",
+   "heater",
+   "oil",
+   "radiator",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-vacuum-cleaner",
+  "name": "Vacuum Cleaner",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 17600,
+  "tags": [
+   "vacuum",
+   "cleaner",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-water-filter-plant",
+  "name": "Water Filter Plant",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 36000,
+  "tags": [
+   "water",
+   "filter",
+   "plant",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-water-filter-cartridge-set-1-set",
+  "name": "Water Filter Cartridge Set 1 set",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "water",
+   "filter",
+   "cartridge",
+   "set",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-water-filter-cartridge-single",
+  "name": "Water Filter Cartridge Single",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "water",
+   "filter",
+   "cartridge",
+   "single",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-hair-dryer",
+  "name": "Hair Dryer",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "hair",
+   "dryer",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-electric-blanket",
+  "name": "Electric Blanket",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "electric",
+   "blanket",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-sewing-machine",
+  "name": "Sewing Machine",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 22400,
+  "tags": [
+   "sewing",
+   "machine",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-air-purifier",
+  "name": "Air Purifier",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "air",
+   "purifier",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-humidifier",
+  "name": "Humidifier",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "humidifier",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dehumidifier",
+  "name": "Dehumidifier",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 28000,
+  "tags": [
+   "dehumidifier",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-food-processor",
+  "name": "Food Processor",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "food",
+   "processor",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-meat-mincer",
+  "name": "Meat Mincer",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "meat",
+   "mincer",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-dough-maker",
+  "name": "Dough Maker",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "dough",
+   "maker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-egg-boiler",
+  "name": "Egg Boiler",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "egg",
+   "boiler",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-coffee-maker",
+  "name": "Coffee Maker",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "coffee",
+   "maker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-tea-maker",
+  "name": "Tea Maker",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "tea",
+   "maker",
+   "kitchen appliances"
+  ]
+ },
+ {
+  "id": "appliances-slow-cooker",
+  "name": "Slow Cooker",
+  "brand": "",
+  "category": "Kitchen Appliances",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11600,
+  "tags": [
+   "slow",
+   "cooker",
+   "kitchen appliances"
+  ]
+ }
+]

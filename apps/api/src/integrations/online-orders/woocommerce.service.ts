@@ -32,6 +32,8 @@ import { outboundAction, readStatusMap, trackingInfo } from './channel-status-ma
  */
 
 const WOO_TOPICS = ['order.created', 'order.updated', 'order.deleted'] as const;
+/** Installed only for channels that auto-import or follow channel prices (see installProductHooks). */
+const WOO_PRODUCT_TOPICS = ['product.created', 'product.updated'] as const;
 
 interface WooCreds { consumerKey: string; consumerSecret: string }
 
@@ -196,6 +198,30 @@ export class WooCommerceService {
       return { ok: true, installed };
     } catch (e: any) {
       return { ok: false, installed: 0, error: e?.message };
+    }
+  }
+
+  /** Product created/updated webhooks: new products and price changes reach Nafaa within seconds. */
+  async installProductHooks(integration: Integration) {
+    const client = this.client(integration);
+    const hook = this.setup.urls(integration.apiKey).hook;
+    if (!client || !hook || !integration.webhookSecret) return { ok: false, installed: 0, error: 'Keys nahi hain' };
+    try {
+      const existing = await client.all<any>('/webhooks', {}, 5);
+      let installed = 0;
+      for (const topic of WOO_PRODUCT_TOPICS) {
+        const mine = existing.filter((w) => w.topic === topic && String(w.delivery_url ?? '').includes('/integrations/website/v1/hook/'));
+        const current = mine.find((w) => w.delivery_url === hook && w.status === 'active');
+        for (const w of mine) if (w !== current) await client.request('DELETE', `/webhooks/${w.id}`, { query: { force: 'true' } }).catch(() => null);
+        if (current) continue;
+        await client.request('POST', '/webhooks', {
+          body: { name: `Nafaa POS — ${topic}`, topic, delivery_url: hook, secret: integration.webhookSecret, status: 'active' },
+        });
+        installed++;
+      }
+      return { ok: true, installed, error: null };
+    } catch (e: any) {
+      return { ok: false, installed: 0, error: e?.message ?? 'Webhook nahi laga' };
     }
   }
 

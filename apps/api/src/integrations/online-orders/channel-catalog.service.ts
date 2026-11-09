@@ -172,20 +172,53 @@ export class ChannelCatalogService {
     const hit = this.cache.get(integration.id);
     if (!refresh && hit && (Date.now() - hit.at < CACHE_MS || Date.now() < (hit.holdUntil ?? 0))) return hit.data;
     const kind = this.kind(integration);
+    // The time the read started: a price read before a push must not count as newer than that push.
+    const started = Date.now();
     const data = kind === 'woocommerce' ? await this.wooProducts(integration)
       : kind === 'shopify' ? await this.shopifyProducts(integration)
         : kind === 'daraz' ? await this.daraz.remoteProducts(integration)
         : kind === 'indolj' ? await fetchIndoljMenu(this.indoljCreds(integration)!)
           : [];
-    this.cache.set(integration.id, { at: Date.now(), data });
+    this.cache.set(integration.id, { at: started, data });
     return data;
   }
 
-  private async wooProducts(integration: Integration): Promise<RemoteProduct[]> {
+  /** When the cached channel list was read (start of the read), or null. */
+  readAt(integrationId: string): number | null {
+    return this.cache.get(integrationId)?.at ?? null;
+  }
+
+  /**
+   * Reads a few channel products by id (after a product webhook) and puts them
+   * into the cached list, so a new product is known without reading the whole
+   * catalog. Without a cached list the whole list is read once. Returns the
+   * products read; removed ones are dropped from the cache.
+   */
+  async refreshSome(integration: Integration, externalProductIds: string[]): Promise<RemoteProduct[]> {
+    const ids = [...new Set(externalProductIds.map(String))].filter((x) => /^\d+$/.test(x)).slice(0, 50);
+    if (!ids.length) return [];
+    const hit = this.cache.get(integration.id);
+    const kind = this.kind(integration);
+    if (!hit || (kind !== 'shopify' && kind !== 'woocommerce')) {
+      const all = await this.remoteProducts(integration, true);
+      return all.filter((p) => ids.includes(p.externalProductId));
+    }
+    const started = Date.now();
+    const fresh = kind === 'shopify' ? await this.shopifyProducts(integration, ids) : await this.wooProducts(integration, ids);
+    const byId = new Map(fresh.map((p) => [p.externalProductId, p]));
+    const data = hit.data.filter((p) => !ids.includes(p.externalProductId) || byId.has(p.externalProductId)).map((p) => byId.get(p.externalProductId) ?? p);
+    for (const p of fresh) if (!hit.data.some((x) => x.externalProductId === p.externalProductId)) data.push(p);
+    // The list keeps its old read time (older items were read then); these few are newer.
+    this.cache.set(integration.id, { ...hit, data, at: Math.min(hit.at, started) });
+    return fresh;
+  }
+
+  private async wooProducts(integration: Integration, onlyIds?: string[]): Promise<RemoteProduct[]> {
     const client = this.woo.client(integration);
     if (!client) return [];
     const products = await client.all<any>('/products', {
       status: 'any',
+      ...(onlyIds?.length && { include: onlyIds.join(',') }),
       _fields: 'id,name,type,status,sku,price,regular_price,sale_price,stock_quantity,manage_stock,images,attributes,global_unique_id',
     });
     const out: RemoteProduct[] = [];
@@ -224,12 +257,14 @@ export class ChannelCatalogService {
     return out;
   }
 
-  private async shopifyProducts(integration: Integration): Promise<RemoteProduct[]> {
+  private async shopifyProducts(integration: Integration, onlyIds?: string[]): Promise<RemoteProduct[]> {
     const client = await this.shopify.client(integration);
     if (!client) return [];
+    // A few products by id (webhook): Shopify's product search takes "id:1 OR id:2".
+    const query = onlyIds?.length ? onlyIds.map((id) => `id:${id}`).join(' OR ') : null;
     // 25 per page: the inventory item per variant keeps each page inside Shopify's query cost.
-    const products = await client.paginate<any>(`query($after: String) {
-      products(first: 25, after: $after) {
+    const products = await client.paginate<any>(`query($after: String, $query: String) {
+      products(first: 25, after: $after, query: $query) {
         nodes {
           id title status
           options { name }
@@ -238,7 +273,7 @@ export class ChannelCatalogService {
         }
         pageInfo { hasNextPage endCursor }
       }
-    }`, 'products', {});
+    }`, 'products', { query });
     return products.map((p: any) => {
       const vars: any[] = p.variants?.nodes ?? [];
       const image = p.featuredMedia?.preview?.image?.url ?? null;

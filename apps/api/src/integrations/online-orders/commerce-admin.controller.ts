@@ -135,6 +135,16 @@ export class CommerceAdminController {
   applyStockRecovery(@GetUser() user: AuthenticatedUser, @Param('tenantId') tenantId: string, @Body() body: { channelId?: string; mappingIds?: string[] }) {
     return this.svc.applyStockRecovery(user.id, tenantId, String(body?.channelId ?? ''), body?.mappingIds ?? []);
   }
+
+  @Get('tenants/:tenantId/price-recovery')
+  priceRecovery(@Param('tenantId') tenantId: string) {
+    return this.svc.priceRecovery(tenantId);
+  }
+
+  @Post('tenants/:tenantId/price-recovery/apply')
+  applyPriceRecovery(@GetUser() user: AuthenticatedUser, @Param('tenantId') tenantId: string, @Body() body: { channelId?: string; items?: Array<{ mappingId: string; choice: 'channel' | 'nafaa' }> }) {
+    return this.svc.applyPriceRecovery(user.id, tenantId, String(body?.channelId ?? ''), body?.items ?? []);
+  }
 }
 
 @ApiTags('Online store')

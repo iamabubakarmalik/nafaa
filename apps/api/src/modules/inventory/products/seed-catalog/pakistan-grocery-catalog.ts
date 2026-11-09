@@ -4,6 +4,8 @@
  * Each variant (size/flavor) = separate product for easy shop-owner use
  */
 
+import type { CatalogImportRow } from '../catalog-import';
+
 export interface SeedProduct {
   id: string;
   name: string;
@@ -1054,3 +1056,24 @@ export const CATALOG_STATS = {
   personalCare: PERSONAL_CARE.length,
   household: HOUSEHOLD.length,
 };
+
+/** A seed product as a catalog import row, with its category colour. */
+export function seedImportRow(p: SeedProduct): CatalogImportRow {
+  return {
+    key: p.id,
+    name: p.name,
+    brand: p.brand,
+    category: p.category,
+    categoryColor: CATEGORY_META[p.category]?.color ?? null,
+    tags: p.tags,
+    unit: p.unit,
+    price: p.price,
+    costPrice: p.costPrice,
+    wholesalePrice: p.wholesalePrice ?? null,
+    barcode: p.barcode ?? null,
+    imageUrl: p.imageUrl ?? null,
+    description: p.description ?? null,
+    weight: p.weight ?? null,
+    weightUnit: p.weightUnit ?? null,
+  };
+}

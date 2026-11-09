@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../common/shop-scope';
 import { startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
-import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
+import { AUTO_SYNC_PRESET, DEFAULT_PUSH_CONTENT, WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { normalizeShopifySiteUrl } from './shopify-shop';
 import { apiMessage } from '../../common/i18n/api-message';
@@ -177,8 +177,10 @@ export class WebsiteSetupService {
       shopId,
       platform: PLATFORM_OF[body.type],
       siteUrl: body.siteUrl ?? null,
-      // New channels link exact SKU/barcode matches by themselves; older channels keep it off.
-      autoLink: true,
+      // New channels link exact SKU/barcode matches by themselves (in the preset); older channels keep it off.
+      // New channels start on "Sab kuch khud sync"; the merchant can change any part on the channel's Sync settings.
+      ...AUTO_SYNC_PRESET,
+      pushContent: { ...DEFAULT_PUSH_CONTENT, images: true },
     };
     const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : body.type === 'DARAZ' ? 'Daraz store' : body.type === 'FOODPANDA' ? 'Foodpanda' : 'Meri website';
 

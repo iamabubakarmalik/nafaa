@@ -4,7 +4,7 @@
  * or table view, quick stock, bulk actions, scan, CSV, print/PDF and
  * whole-catalog analytics. Industries add their own details through config.
  *
- * Keys: / search · B scan · V view · A analytics · N new · R refresh · G guide.
+ * Keys: / search · B scan · V view · A analytics · N new · L library · R refresh · G guide.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -12,7 +12,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, CalendarClock, Check, CloudOff, Download, FileUp, Filter, GraduationCap,
-  LayoutGrid, Layers, ListChecks, MousePointerClick, Package, Plus, RefreshCw, ScanLine, Search, Snowflake, Sparkles, Star,
+  LayoutGrid, Layers, Library, ListChecks, MousePointerClick, Package, Plus, RefreshCw, ScanLine, Search, Snowflake, Sparkles, Star,
   Columns3, Globe, Rows3, Square, SquareCheck, Table2, Tag, ToggleRight, Truck, Wallet, X, type LucideIcon,
   Wheat,
 } from 'lucide-react';
@@ -39,6 +39,8 @@ import { CatalogAnalytics } from './components/CatalogAnalytics';
 import { ProductCard, ProductRow, qty } from './components/ProductCard';
 import { StockModal } from './components/StockModal';
 import type { GuideStep, ProductsPageConfig } from './types';
+import { openProductLibrary } from '../library/libraryHost';
+import { libraryApi } from '../library/api';
 import { t as tr } from '@core/i18n';
 
 const SORTS: Array<FilterOption<CatalogSort>> = [
@@ -136,7 +138,19 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         return;
       }
       if (await config.onScanMiss?.(term, navigate)) return;
-      toast.error(tr('"{{term}}" kisi cheez par nahi mila', { term }), can.create ? { action: { label: tr('Nayi banayein'), onClick: () => navigate(`${config.paths.create}?barcode=${encodeURIComponent(term)}`) } } : undefined);
+      if (can.create) {
+        const known = await libraryApi.byBarcode(term).catch(() => []);
+        if (known.length) {
+          toast.info(tr('Library me mila: {{name}}', { name: known[0].name }), { action: { label: tr('Add karein'), onClick: () => openProductLibrary({ initial: { q: term, library: known[0].library } }) } });
+          return;
+        }
+        toast.error(tr('"{{term}}" kisi cheez par nahi mila', { term }), {
+          action: { label: tr('Nayi banayein'), onClick: () => navigate(`${config.paths.create}?barcode=${encodeURIComponent(term)}`) },
+          cancel: { label: tr('Library me dhoondo'), onClick: () => openProductLibrary({ pickBarcode: term }) },
+        });
+        return;
+      }
+      toast.error(tr('"{{term}}" kisi cheez par nahi mila', { term }));
     } catch { toast.error(tr('Dhoonda nahi ja saka')); }
   }, [c, config, can.create, can.stock, navigate]);
 
@@ -149,6 +163,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       else if (k === 'v') c.setView(c.view === 'grid' ? 'table' : 'grid');
       else if (k === 'a') setTab((t) => (t === 'analytics' ? 'products' : 'analytics'));
       else if (k === 'n' && can.create) navigate(config.paths.create);
+      else if (k === 'l' && can.create) openProductLibrary();
       else if (k === 'r') void c.refresh();
       else if (k === 'g') setGuide(true);
       else if (e.key === 'Escape' && c.selected.size) c.setSelected(new Set());
@@ -274,6 +289,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
           <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? tr('Ban raha…') : tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label={tr('Print')} /></span>
           {HeroExtra && <HeroExtra />}
+          {can.create && <button type="button" onClick={() => openProductLibrary()} title={tr('Tayyar products ki list se chunein (L)')} className={heroButton}><Library className="h-4 w-4" /><span className="hidden sm:inline">{tr('Library se products')}</span></button>}
           {can.create && config.paths.bulkImport && <Link to={config.paths.bulkImport} title={tr('Excel ya CSV file se products daalein')} className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">{tr('Excel import')}</span></Link>}
           {can.create && <Link to="/products/bulk-create" title={tr('Bohat se products ek sheet me likh kar banayein')} className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">{tr('Bulk banayein')}</span></Link>}
           {can.edit && <Link to="/products/bulk-edit" title={tr('Bulk edit — bohat se products ek saath (spreadsheet)')} className={heroIconButton}><ListChecks className="h-4 w-4" /></Link>}
@@ -491,6 +507,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
 function ProductsGuide({ extra, onClose }: { extra?: GuideStep[]; onClose: () => void }) {
   const steps: GuideStep[] = [
     { icon: Plus, color: '#2563eb', title: tr('Maal daalein'), text: tr('"Naya" se ek cheez, ya Excel se sab ek saath. Barcode scan karein — nahi mila to wahin se nayi ban jati hai.') },
+    { icon: Library, color: '#ea580c', title: tr('Library se products'), text: tr('Tayyar list se chunein — naam, price aur company pehle se likhi. Dawaiyan formula ke saath aati hain.') },
     { icon: Search, color: '#7c3aed', title: tr('Search'), text: tr('Naam, SKU, barcode ya model likhein. Category, brand aur halat ke filter upar hain — ginti saath likhi hai.') },
     { icon: AlertTriangle, color: '#d97706', title: tr('Kam aur khatam'), text: tr('Upar ki pattiyan dabayein: Kam, Khatam, Nahi bik raha. Peela dabba batata hai kya mangwana hai.') },
     { icon: Package, color: '#16a34a', title: tr('Stock badlein'), text: tr('Card par stock ka number ya "+ Stock" dabayein. Daalein, nikaalein ya ginti — wajah ke saath record banta hai.') },
@@ -516,7 +533,7 @@ function ProductsGuide({ extra, onClose }: { extra?: GuideStep[]; onClose: () =>
       </ol>
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
         <span className="font-semibold text-slate-900">{tr('Jaldi ke liye:')}</span>
-        {[['/', tr('dhoondein')], ['B', tr('scan')], ['V', tr('cards/table')], ['A', tr('analytics')], ['N', tr('naya')], ['R', tr('taaza')], ['G', tr('guide')]].map(([k, t]) => (
+        {[['/', tr('dhoondein')], ['B', tr('scan')], ['V', tr('cards/table')], ['A', tr('analytics')], ['N', tr('naya')], ['L', tr('library')], ['R', tr('taaza')], ['G', tr('guide')]].map(([k, t]) => (
           <span key={k} className="inline-flex items-center gap-1"><Kbd>{k}</Kbd> {t}</span>
         ))}
       </div>

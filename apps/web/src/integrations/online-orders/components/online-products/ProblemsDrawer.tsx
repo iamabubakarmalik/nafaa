@@ -1,8 +1,8 @@
 /**
  * What needs attention across channels, grouped by cause in plain words
- * (login ended, channel offline, linked without a size, stock waiting for a
- * decision, product missing on the channel, price differs, matches waiting),
- * each with a one-click fix
+ * (login ended, channel offline, linked without a size, stock or price waiting
+ * for a decision, product missing on the channel, price differs, matches
+ * waiting, new products on the channel), each with a one-click fix
  * where there is one. The page shows a one-line banner that opens it.
  */
 
@@ -10,7 +10,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeftRight, BadgeDollarSign, CheckCircle2, Link2, PlugZap, Ruler, SearchX, Sparkles, Timer, TriangleAlert, WifiOff, X, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, BadgeDollarSign, CheckCircle2, CircleDollarSign, Link2, PackagePlus, PlugZap, Ruler, SearchX, Sparkles, Timer, TriangleAlert, WifiOff, X, type LucideIcon } from 'lucide-react';
 import { Button, Drawer, EmptyState, Skeleton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
@@ -20,11 +20,12 @@ import { JOBS_KEY } from './ActivityDrawer';
 import { ChannelMark, channelName, refreshOnlineProducts } from './meta';
 import { causeInfo, syncCause, type SyncCause } from './syncErrors';
 import { HoldChannelRow } from './StockHold';
+import { PriceHoldChannelRow } from './PriceHold';
 
 export const ISSUES_KEY = [ONLINE_PRODUCTS_KEY, 'issues'] as const;
 export const useIssues = () => useQuery({ queryKey: ISSUES_KEY, queryFn: onlineProductsApi.issues, staleTime: 60_000 });
 
-type GroupId = 'reconnect' | SyncCause | 'hold' | 'price' | 'link-sure' | 'link';
+type GroupId = 'reconnect' | SyncCause | 'hold' | 'price-hold' | 'price' | 'link-sure' | 'link' | 'new-products';
 interface Row { channel: OnlineChannel; count: number; kind: Issue['kind'] | 'price'; detail?: string | null }
 interface Group { id: GroupId; tone: 'danger' | 'warning' | 'info'; icon: LucideIcon; title: string; text: string; rows: Row[]; total: number }
 
@@ -58,13 +59,17 @@ function buildGroups(issues: Issue[], channels: OnlineChannel[], priceCount: num
       }
     } else if (i.kind === 'stock-hold') {
       add('hold', { tone: 'warning', icon: ArrowLeftRight, title: t('Stock milana baqi'), text: t('In links par Nafaa aur channel ka Stock alag hai. Jab tak aap faisla na karein, Nafaa kuch nahi bhejta.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
+    } else if (i.kind === 'price-hold') {
+      add('price-hold', { tone: 'warning', icon: CircleDollarSign, title: t('Website par qeemat badli — kaunsi rakhein?'), text: t('In links ki qeemat website par badli aur Nafaa se alag hai. Jab tak aap na chunein, Nafaa koi qeemat nahi bhejta.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
+    } else if (i.kind === 'new-products') {
+      add('new-products', { tone: 'info', icon: PackagePlus, title: t('Naye products website par'), text: t('Website par naye products bane hain jo Nafaa me nahi. Sab ek saath Nafaa me laayein ya dekh kar jorein.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     } else if (i.kind === 'link-sure') {
       add('link-sure', { tone: 'info', icon: Sparkles, title: t('Pakke match jorna baqi'), text: t('In ka SKU ya barcode Nafaa se bilkul milta hai — ek click me jur jayenge.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     } else if (i.kind === 'link') {
       add('link', { tone: 'info', icon: Link2, title: t('Channel ke naye products jure nahi'), text: t('Channel par naye products hain jo Nafaa se jure nahi. Jorein ya Nafaa me le aayein.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     }
   }
-  const order: GroupId[] = ['reconnect', 'auth', 'offline', 'disabled', 'size', 'hold', 'location', 'sku', 'timeout', 'other', 'price', 'link-sure', 'link'];
+  const order: GroupId[] = ['reconnect', 'auth', 'offline', 'disabled', 'size', 'hold', 'price-hold', 'location', 'sku', 'timeout', 'other', 'price', 'new-products', 'link-sure', 'link'];
   const list = order.map((id) => groups.get(id)).filter(Boolean) as Group[];
   if (priceCount > 0) {
     list.splice(list.findIndex((g) => g.tone === 'info') < 0 ? list.length : list.findIndex((g) => g.tone === 'info'), 0, {
@@ -116,6 +121,16 @@ export function ProblemsDrawer({ open, onClose, channels, priceCount, canManage,
     onSuccess: (r) => { done(); toast.success(t('{{removed}} bina size wale link hata diye — ab har size jorein', { removed: r.removed })); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
+  const importNew = useMutation({
+    mutationFn: (id: string) => onlineProductsApi.importNew(id),
+    onSuccess: (r) => {
+      done();
+      if (r.existing) toast.info(t('Ye kaam pehle se chal raha hai'));
+      else if (!r.count) toast.info(t('Laane ko koi naya product nahi'));
+      else toast.success(t('{{count}} naye products Nafaa me aa rahe hain — progress Activity me', { count: r.count }));
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
   const resend = useMutation({
     mutationFn: ({ channelId, filter }: { channelId: string | null; filter: GridFilter }) =>
       onlineProductsApi.bulk({ selection: { all: true, filter, channelId: channelId ?? undefined }, action: 'push', channelId, value: 'stock' }),
@@ -141,6 +156,12 @@ export function ProblemsDrawer({ open, onClose, channels, priceCount, canManage,
       ) : see;
     }
     if (g.id === 'link-sure') return canManage ? <Button size="xs" loading={linkSure.isPending && linkSure.variables === c.id} onClick={() => linkSure.mutate(c.id)}>{t('Sab jorein')}</Button> : null;
+    if (g.id === 'new-products') {
+      return canManage ? <>
+        <Button size="xs" variant="ghost" onClick={() => { onLink(c); onClose(); }}>{t('Dekhein')}</Button>
+        <Button size="xs" loading={importNew.isPending && importNew.variables === c.id} onClick={() => importNew.mutate(c.id)}>{t('Sab laayein')}</Button>
+      </> : null;
+    }
     if (g.id === 'link') return canManage ? <Button size="xs" variant="secondary" onClick={() => { onLink(c); onClose(); }}>{t('Jorein')}</Button> : null;
     if (g.id === 'sku') return <>{see}{canManage && c.canFetch && <Button size="xs" variant="secondary" onClick={() => { onLink(c); onClose(); }}>{t('Dobara jorein')}</Button>}</>;
     // Offline, timeout, other: look, then send again once the channel is back.
@@ -179,6 +200,9 @@ export function ProblemsDrawer({ open, onClose, channels, priceCount, canManage,
                   {g.rows.map((r) => g.id === 'hold' ? (
                     <HoldChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage}
                       onSee={() => { onFilter(r.channel.id, 'hold'); onClose(); }} />
+                  ) : g.id === 'price-hold' ? (
+                    <PriceHoldChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage}
+                      onSee={() => { onFilter(r.channel.id, 'price-hold'); onClose(); }} />
                   ) : (
                     <li key={`${r.channel.id}:${r.kind}`} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2">
                       <ChannelMark channel={r.channel} size="sm" />

@@ -1,0 +1,1512 @@
+[
+ {
+  "id": "jewelry-gold-24k-per-gram",
+  "name": "Gold 24K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 21500,
+  "costPrice": 19995,
+  "tags": [
+   "gold",
+   "24k",
+   "per",
+   "gram",
+   "sona",
+   "gold rate",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-22k-per-gram",
+  "name": "Gold 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 19700,
+  "costPrice": 18321,
+  "tags": [
+   "gold",
+   "22k",
+   "per",
+   "gram",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-21k-per-gram",
+  "name": "Gold 21K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 18800,
+  "costPrice": 17484,
+  "tags": [
+   "gold",
+   "21k",
+   "per",
+   "gram",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-18k-per-gram",
+  "name": "Gold 18K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 16100,
+  "costPrice": 14973,
+  "tags": [
+   "gold",
+   "18k",
+   "per",
+   "gram",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-ring-ladies-22k-per-gram",
+  "name": "Gold Ring Ladies 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "ring",
+   "ladies",
+   "22k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-ring-mens-22k-per-gram",
+  "name": "Gold Ring Mens 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "ring",
+   "mens",
+   "22k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-chain-22k-per-gram",
+  "name": "Gold Chain 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20200,
+  "costPrice": 18786,
+  "tags": [
+   "gold",
+   "chain",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-bangles-22k-per-gram",
+  "name": "Gold Bangles 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20200,
+  "costPrice": 18786,
+  "tags": [
+   "gold",
+   "bangles",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-necklace-set-22k-per-gram",
+  "name": "Gold Necklace Set 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20800,
+  "costPrice": 19344,
+  "tags": [
+   "gold",
+   "necklace",
+   "set",
+   "22k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-earrings-22k-per-gram",
+  "name": "Gold Earrings 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "earrings",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-tops-22k-per-gram",
+  "name": "Gold Tops 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "tops",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-locket-22k-per-gram",
+  "name": "Gold Locket 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "locket",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-bracelet-22k-per-gram",
+  "name": "Gold Bracelet 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20200,
+  "costPrice": 18786,
+  "tags": [
+   "gold",
+   "bracelet",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-kara-mens-22k-per-gram",
+  "name": "Gold Kara Mens 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20200,
+  "costPrice": 18786,
+  "tags": [
+   "gold",
+   "kara",
+   "mens",
+   "22k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-coin-24k-1-gram",
+  "name": "Gold Coin 24K 1 gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 22400,
+  "costPrice": 20832,
+  "tags": [
+   "gold",
+   "coin",
+   "24k",
+   "gram",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-bar-24k-10-gram",
+  "name": "Gold Bar 24K 10 gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 22000,
+  "costPrice": 20460,
+  "tags": [
+   "gold",
+   "bar",
+   "24k",
+   "10",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-bar-24k-1-tola-11-66g",
+  "name": "Gold Bar 24K 1 tola (11.66g)",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 22000,
+  "costPrice": 20460,
+  "tags": [
+   "gold",
+   "bar",
+   "24k",
+   "tola",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-pendant-21k-per-gram",
+  "name": "Gold Pendant 21K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 19500,
+  "costPrice": 18135,
+  "tags": [
+   "gold",
+   "pendant",
+   "21k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-nose-pin-21k-per-gram",
+  "name": "Gold Nose Pin 21K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20000,
+  "costPrice": 18600,
+  "tags": [
+   "gold",
+   "nose",
+   "pin",
+   "21k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-mangtika-22k-per-gram",
+  "name": "Gold Mangtika 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 20500,
+  "costPrice": 19065,
+  "tags": [
+   "gold",
+   "mangtika",
+   "22k",
+   "per",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-gold-bridal-set-22k-per-gram",
+  "name": "Gold Bridal Set 22K per gram",
+  "brand": "",
+  "category": "Gold (per gram)",
+  "unit": "g",
+  "price": 21000,
+  "costPrice": 19530,
+  "tags": [
+   "gold",
+   "bridal",
+   "set",
+   "22k",
+   "gold (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-925-per-gram",
+  "name": "Silver 925 per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 320,
+  "costPrice": 288,
+  "tags": [
+   "silver",
+   "925",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-chain-per-gram",
+  "name": "Silver Chain per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 350,
+  "costPrice": 315,
+  "tags": [
+   "silver",
+   "chain",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-ring-mens-per-gram",
+  "name": "Silver Ring Mens per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 380,
+  "costPrice": 342,
+  "tags": [
+   "silver",
+   "ring",
+   "mens",
+   "per",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-ring-ladies-per-gram",
+  "name": "Silver Ring Ladies per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 380,
+  "costPrice": 342,
+  "tags": [
+   "silver",
+   "ring",
+   "ladies",
+   "per",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-bracelet-per-gram",
+  "name": "Silver Bracelet per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 350,
+  "costPrice": 315,
+  "tags": [
+   "silver",
+   "bracelet",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-anklet-per-gram",
+  "name": "Silver Anklet per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 340,
+  "costPrice": 306,
+  "tags": [
+   "silver",
+   "anklet",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-pendant-per-gram",
+  "name": "Silver Pendant per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 360,
+  "costPrice": 324,
+  "tags": [
+   "silver",
+   "pendant",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-coin-per-gram",
+  "name": "Silver Coin per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 290,
+  "costPrice": 261,
+  "tags": [
+   "silver",
+   "coin",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-bar-per-gram",
+  "name": "Silver Bar per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 250,
+  "costPrice": 225,
+  "tags": [
+   "silver",
+   "bar",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-bangles-per-gram",
+  "name": "Silver Bangles per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 340,
+  "costPrice": 306,
+  "tags": [
+   "silver",
+   "bangles",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-tasbeeh-per-gram",
+  "name": "Silver Tasbeeh per gram",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 330,
+  "costPrice": 297,
+  "tags": [
+   "silver",
+   "tasbeeh",
+   "per",
+   "gram",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-silver-ring-with-stone",
+  "name": "Silver Ring with Stone",
+  "brand": "",
+  "category": "Silver (per gram)",
+  "unit": "g",
+  "price": 1800,
+  "costPrice": 1620,
+  "tags": [
+   "silver",
+   "ring",
+   "with",
+   "stone",
+   "silver (per gram)"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-ring-solitaire-0-25ct",
+  "name": "Diamond Ring Solitaire 0.25ct",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 185000,
+  "costPrice": 138750,
+  "tags": [
+   "diamond",
+   "ring",
+   "solitaire",
+   "25ct",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-ring-solitaire-0-5ct",
+  "name": "Diamond Ring Solitaire 0.5ct",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 420000,
+  "costPrice": 315000,
+  "tags": [
+   "diamond",
+   "ring",
+   "solitaire",
+   "5ct",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-earrings-studs",
+  "name": "Diamond Earrings Studs",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 71250,
+  "tags": [
+   "diamond",
+   "earrings",
+   "studs",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-pendant",
+  "name": "Diamond Pendant",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 75000,
+  "costPrice": 56250,
+  "tags": [
+   "diamond",
+   "pendant",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-bracelet",
+  "name": "Diamond Bracelet",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 250000,
+  "costPrice": 187500,
+  "tags": [
+   "diamond",
+   "bracelet",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-diamond-bridal-set",
+  "name": "Diamond Bridal Set",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 1250000,
+  "costPrice": 937500,
+  "tags": [
+   "diamond",
+   "bridal",
+   "set",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-sapphire-stone-ring",
+  "name": "Sapphire Stone Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 26250,
+  "tags": [
+   "sapphire",
+   "stone",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-ruby-stone",
+  "name": "Ruby Stone",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "ruby",
+   "stone",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-emerald-stone-panna",
+  "name": "Emerald Stone (Panna)",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 41250,
+  "tags": [
+   "emerald",
+   "stone",
+   "panna",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-turquoise-firoza-stone-ring",
+  "name": "Turquoise (Firoza) Stone Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "turquoise",
+   "firoza",
+   "stone",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-yaqoot-ring",
+  "name": "Yaqoot Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "yaqoot",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-aqeeq-ring",
+  "name": "Aqeeq Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "aqeeq",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-aqeeq-tasbeeh",
+  "name": "Aqeeq Tasbeeh",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "aqeeq",
+   "tasbeeh",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-moonstone-ring",
+  "name": "Moonstone Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "moonstone",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-pearl-necklace-real",
+  "name": "Pearl Necklace Real",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "pearl",
+   "necklace",
+   "real",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-pearl-earrings",
+  "name": "Pearl Earrings",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "pearl",
+   "earrings",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-opal-ring",
+  "name": "Opal Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "opal",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-amethyst-ring",
+  "name": "Amethyst Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "amethyst",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-coral-ring",
+  "name": "Coral Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "coral",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-cats-eye-ring",
+  "name": "Cat's Eye Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "cat",
+   "eye",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-zircon-ring",
+  "name": "Zircon Ring",
+  "brand": "",
+  "category": "Diamond & Stones",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "zircon",
+   "ring",
+   "diamond & stones"
+  ]
+ },
+ {
+  "id": "jewelry-bridal-set-artificial-gold-plated",
+  "name": "Bridal Set Artificial Gold Plated",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 5100,
+  "tags": [
+   "bridal",
+   "set",
+   "artificial",
+   "gold",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-bridal-set-kundan",
+  "name": "Bridal Set Kundan",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 7500,
+  "tags": [
+   "bridal",
+   "set",
+   "kundan",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-necklace-set-gold-plated",
+  "name": "Necklace Set Gold Plated",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2100,
+  "tags": [
+   "necklace",
+   "set",
+   "gold",
+   "plated",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-necklace-set-pearl",
+  "name": "Necklace Set Pearl",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1500,
+  "tags": [
+   "necklace",
+   "set",
+   "pearl",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-necklace-set-kundan",
+  "name": "Necklace Set Kundan",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2700,
+  "tags": [
+   "necklace",
+   "set",
+   "kundan",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-earrings-jhumka-gold-plated",
+  "name": "Earrings Jhumka Gold Plated",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "earrings",
+   "jhumka",
+   "gold",
+   "plated",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-earrings-studs",
+  "name": "Earrings Studs",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "earrings",
+   "studs",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-earrings-pearl-drop",
+  "name": "Earrings Pearl Drop",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "earrings",
+   "pearl",
+   "drop",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-earrings-chandelier",
+  "name": "Earrings Chandelier",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 720,
+  "tags": [
+   "earrings",
+   "chandelier",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-bangles-gold-plated-set-of-4-1-set",
+  "name": "Bangles Gold Plated Set of 4 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 570,
+  "tags": [
+   "bangles",
+   "gold",
+   "plated",
+   "set",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-bangles-glass-dozen-1-dozen",
+  "name": "Bangles Glass Dozen 1 dozen",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "bangles",
+   "glass",
+   "dozen",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-bangles-metal-set-of-6-1-set",
+  "name": "Bangles Metal Set of 6 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "bangles",
+   "metal",
+   "set",
+   "of",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-bracelet-charm",
+  "name": "Bracelet Charm",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 330,
+  "tags": [
+   "bracelet",
+   "charm",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-ring-adjustable-stone",
+  "name": "Ring Adjustable Stone",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "ring",
+   "adjustable",
+   "stone",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-ring-cocktail",
+  "name": "Ring Cocktail",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "ring",
+   "cocktail",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-ring-set-of-5-1-set",
+  "name": "Ring Set of 5 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "ring",
+   "set",
+   "of",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-nose-pin-stud",
+  "name": "Nose Pin Stud",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "nose",
+   "pin",
+   "stud",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-nose-ring-clip-on",
+  "name": "Nose Ring Clip-On",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "nose",
+   "ring",
+   "clip",
+   "on",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-maang-tikka",
+  "name": "Maang Tikka",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "maang",
+   "tikka",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-matha-patti",
+  "name": "Matha Patti",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "matha",
+   "patti",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-choker-set",
+  "name": "Choker Set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 1920,
+  "tags": [
+   "choker",
+   "set",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-long-necklace-rani-haar",
+  "name": "Long Necklace Rani Haar",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 2700,
+  "tags": [
+   "long",
+   "necklace",
+   "rani",
+   "haar",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-anklet-payal-pair-1-pair",
+  "name": "Anklet Payal Pair 1 pair",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "anklet",
+   "payal",
+   "pair",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-pendant-chain-silver-look",
+  "name": "Pendant Chain Silver Look",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "pendant",
+   "chain",
+   "silver",
+   "look",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-chain-gold-plated-18-inch",
+  "name": "Chain Gold Plated 18 inch",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 570,
+  "tags": [
+   "chain",
+   "gold",
+   "plated",
+   "18",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-chain-gold-plated-24-inch",
+  "name": "Chain Gold Plated 24 inch",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 750,
+  "tags": [
+   "chain",
+   "gold",
+   "plated",
+   "24",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-mens-chain-steel",
+  "name": "Mens Chain Steel",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "mens",
+   "chain",
+   "steel",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-mens-bracelet-steel",
+  "name": "Mens Bracelet Steel",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "mens",
+   "bracelet",
+   "steel",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-mens-ring-steel",
+  "name": "Mens Ring Steel",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "mens",
+   "ring",
+   "steel",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-mens-watch-chain",
+  "name": "Mens Watch Chain",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "mens",
+   "watch",
+   "chain",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-cufflinks-set-1-set",
+  "name": "Cufflinks Set 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 750,
+  "tags": [
+   "cufflinks",
+   "set",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-tie-pin",
+  "name": "Tie Pin",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "tie",
+   "pin",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-hair-clip-stone",
+  "name": "Hair Clip Stone",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "hair",
+   "clip",
+   "stone",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-hair-band-pearl",
+  "name": "Hair Band Pearl",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "hair",
+   "band",
+   "pearl",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-brooch",
+  "name": "Brooch",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "brooch",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-kids-bangles-set-1-set",
+  "name": "Kids Bangles Set 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "kids",
+   "bangles",
+   "set",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-kids-earrings-studs",
+  "name": "Kids Earrings Studs",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "kids",
+   "earrings",
+   "studs",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-mehndi-set-bridal-jewellery-1-set",
+  "name": "Mehndi Set Bridal Jewellery 1 set",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 15000,
+  "costPrice": 9000,
+  "tags": [
+   "mehndi",
+   "set",
+   "bridal",
+   "jewellery",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-tasbeeh-wooden",
+  "name": "Tasbeeh Wooden",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "tasbeeh",
+   "wooden",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-tasbeeh-crystal",
+  "name": "Tasbeeh Crystal",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "tasbeeh",
+   "crystal",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-tasbeeh-silver-look",
+  "name": "Tasbeeh Silver Look",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 750,
+  "tags": [
+   "tasbeeh",
+   "silver",
+   "look",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-jewellery-box-small",
+  "name": "Jewellery Box Small",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "jewellery",
+   "box",
+   "small",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-jewellery-box-large",
+  "name": "Jewellery Box Large",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1110,
+  "tags": [
+   "jewellery",
+   "box",
+   "large",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-jewellery-box-velvet-ring",
+  "name": "Jewellery Box Velvet Ring",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "jewellery",
+   "box",
+   "velvet",
+   "ring",
+   "artificial jewellery"
+  ]
+ },
+ {
+  "id": "jewelry-jewellery-cleaning-kit",
+  "name": "Jewellery Cleaning Kit",
+  "brand": "",
+  "category": "Artificial Jewellery",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "jewellery",
+   "cleaning",
+   "kit",
+   "artificial jewellery"
+  ]
+ }
+]

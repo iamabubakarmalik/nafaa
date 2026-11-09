@@ -1,0 +1,1280 @@
+[
+ {
+  "id": "carpet-persian-carpet-5x8-ft",
+  "name": "Persian Carpet 5x8 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 35100,
+  "tags": [
+   "persian",
+   "carpet",
+   "5x8",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-persian-carpet-6x9-ft",
+  "name": "Persian Carpet 6x9 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 50700,
+  "tags": [
+   "persian",
+   "carpet",
+   "6x9",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-persian-carpet-8x10-ft",
+  "name": "Persian Carpet 8x10 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 74100,
+  "tags": [
+   "persian",
+   "carpet",
+   "8x10",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-persian-carpet-9x12-ft",
+  "name": "Persian Carpet 9x12 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 125000,
+  "costPrice": 97500,
+  "tags": [
+   "persian",
+   "carpet",
+   "9x12",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-machine-made-carpet-5x7-ft",
+  "name": "Machine Made Carpet 5x7 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9750,
+  "tags": [
+   "machine",
+   "made",
+   "carpet",
+   "5x7",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-machine-made-carpet-6x9-ft",
+  "name": "Machine Made Carpet 6x9 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14430,
+  "tags": [
+   "machine",
+   "made",
+   "carpet",
+   "6x9",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-machine-made-carpet-8x11-ft",
+  "name": "Machine Made Carpet 8x11 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22230,
+  "tags": [
+   "machine",
+   "made",
+   "carpet",
+   "8x11",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-turkish-carpet-5x8-ft",
+  "name": "Turkish Carpet 5x8 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21840,
+  "tags": [
+   "turkish",
+   "carpet",
+   "5x8",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-turkish-carpet-7x10-ft",
+  "name": "Turkish Carpet 7x10 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 35100,
+  "tags": [
+   "turkish",
+   "carpet",
+   "7x10",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-turkish-carpet-8x11-ft",
+  "name": "Turkish Carpet 8x11 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 45240,
+  "tags": [
+   "turkish",
+   "carpet",
+   "8x11",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-afghan-carpet-6x9-ft",
+  "name": "Afghan Carpet 6x9 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 66300,
+  "tags": [
+   "afghan",
+   "carpet",
+   "6x9",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-afghan-carpet-8x10-ft",
+  "name": "Afghan Carpet 8x10 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 113100,
+  "tags": [
+   "afghan",
+   "carpet",
+   "8x10",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-hand-knotted-carpet-5x8-ft",
+  "name": "Hand Knotted Carpet 5x8 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 150000,
+  "costPrice": 117000,
+  "tags": [
+   "hand",
+   "knotted",
+   "carpet",
+   "5x8",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-hand-knotted-carpet-8x10-ft",
+  "name": "Hand Knotted Carpet 8x10 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 450000,
+  "costPrice": 351000,
+  "tags": [
+   "hand",
+   "knotted",
+   "carpet",
+   "8x10",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-silk-carpet-4x6-ft",
+  "name": "Silk Carpet 4x6 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 120000,
+  "costPrice": 93600,
+  "tags": [
+   "silk",
+   "carpet",
+   "4x6",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-kashmiri-carpet-5x8-ft",
+  "name": "Kashmiri Carpet 5x8 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 66300,
+  "tags": [
+   "kashmiri",
+   "carpet",
+   "5x8",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-shaggy-carpet-5x7-ft",
+  "name": "Shaggy Carpet 5x7 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9750,
+  "tags": [
+   "shaggy",
+   "carpet",
+   "5x7",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-shaggy-carpet-6x9-ft",
+  "name": "Shaggy Carpet 6x9 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14430,
+  "tags": [
+   "shaggy",
+   "carpet",
+   "6x9",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-kids-carpet-4x6-ft",
+  "name": "Kids Carpet 4x6 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5850,
+  "tags": [
+   "kids",
+   "carpet",
+   "4x6",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-prayer-mat-velvet",
+  "name": "Prayer Mat Velvet",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "prayer",
+   "mat",
+   "velvet",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-prayer-mat-foam",
+  "name": "Prayer Mat Foam",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "prayer",
+   "mat",
+   "foam",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-prayer-mat-travel",
+  "name": "Prayer Mat Travel",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "prayer",
+   "mat",
+   "travel",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-prayer-mat-kids",
+  "name": "Prayer Mat Kids",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "prayer",
+   "mat",
+   "kids",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-carpet-runner-3x10-ft",
+  "name": "Carpet Runner 3x10 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "carpet",
+   "runner",
+   "3x10",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-carpet-runner-3x15-ft",
+  "name": "Carpet Runner 3x15 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "carpet",
+   "runner",
+   "3x15",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-door-mat",
+  "name": "Door Mat",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "door",
+   "mat",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-door-mat-rubber",
+  "name": "Door Mat Rubber",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "door",
+   "mat",
+   "rubber",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-bath-mat",
+  "name": "Bath Mat",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "bath",
+   "mat",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-round-carpet-5-ft",
+  "name": "Round Carpet 5 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9750,
+  "tags": [
+   "round",
+   "carpet",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-jute-mat-5x7-ft",
+  "name": "Jute Mat 5x7 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "jute",
+   "mat",
+   "5x7",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-area-rug-3x5-ft",
+  "name": "Area Rug 3x5 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "area",
+   "rug",
+   "3x5",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-cotton-dhurrie-5x7-ft",
+  "name": "Cotton Dhurrie 5x7 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "cotton",
+   "dhurrie",
+   "5x7",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-cotton-dhurrie-6x9-ft",
+  "name": "Cotton Dhurrie 6x9 ft",
+  "brand": "",
+  "category": "Carpets",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "cotton",
+   "dhurrie",
+   "6x9",
+   "ft",
+   "carpets"
+  ]
+ },
+ {
+  "id": "carpet-wall-to-wall-carpet-per-sq-ft",
+  "name": "Wall to Wall Carpet per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 94,
+  "tags": [
+   "wall",
+   "to",
+   "carpet",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wall-to-wall-carpet-premium-per-sq-ft",
+  "name": "Wall to Wall Carpet Premium per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "wall",
+   "to",
+   "carpet",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-carpet-tiles-per-sq-ft",
+  "name": "Carpet Tiles per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "carpet",
+   "tiles",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wooden-flooring-per-sq-ft",
+  "name": "Wooden Flooring per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "wooden",
+   "flooring",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wooden-flooring-premium-per-sq-ft",
+  "name": "Wooden Flooring Premium per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "wooden",
+   "flooring",
+   "premium",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-vinyl-flooring-per-sq-ft",
+  "name": "Vinyl Flooring per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 109,
+  "tags": [
+   "vinyl",
+   "flooring",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-vinyl-flooring-premium-per-sq-ft",
+  "name": "Vinyl Flooring Premium per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "vinyl",
+   "flooring",
+   "premium",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-pvc-flooring-roll-per-sq-ft",
+  "name": "PVC Flooring Roll per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 85,
+  "costPrice": 66,
+  "tags": [
+   "pvc",
+   "flooring",
+   "roll",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-artificial-grass-20mm-per-sq-ft",
+  "name": "Artificial Grass 20mm per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 74,
+  "tags": [
+   "artificial",
+   "grass",
+   "20mm",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-artificial-grass-35mm-per-sq-ft",
+  "name": "Artificial Grass 35mm per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 109,
+  "tags": [
+   "artificial",
+   "grass",
+   "35mm",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-artificial-grass-50mm-per-sq-ft",
+  "name": "Artificial Grass 50mm per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "artificial",
+   "grass",
+   "50mm",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-rubber-flooring-tiles-per-sq-ft",
+  "name": "Rubber Flooring Tiles per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 117,
+  "tags": [
+   "rubber",
+   "flooring",
+   "tiles",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-prayer-hall-carpet-roll-per-sq-ft",
+  "name": "Prayer Hall Carpet Roll per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 109,
+  "tags": [
+   "prayer",
+   "hall",
+   "carpet",
+   "roll",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-mosque-carpet-per-sq-ft",
+  "name": "Mosque Carpet per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 125,
+  "tags": [
+   "mosque",
+   "carpet",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wall-panel-wooden-per-sq-ft",
+  "name": "Wall Panel Wooden per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 218,
+  "tags": [
+   "wall",
+   "panel",
+   "wooden",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-pvc-wall-panel-per-sq-ft",
+  "name": "PVC Wall Panel per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "pvc",
+   "wall",
+   "panel",
+   "per",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wallpaper-roll",
+  "name": "Wallpaper Roll",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "wallpaper",
+   "roll",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-wallpaper-per-sq-ft",
+  "name": "Wallpaper per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 117,
+  "tags": [
+   "wallpaper",
+   "per",
+   "sq",
+   "ft",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-3d-wallpaper-roll",
+  "name": "3D Wallpaper Roll",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "3d",
+   "wallpaper",
+   "roll",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-window-blinds-per-sq-ft",
+  "name": "Window Blinds per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "window",
+   "blinds",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-roller-blinds-per-sq-ft",
+  "name": "Roller Blinds per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 250,
+  "tags": [
+   "roller",
+   "blinds",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-zebra-blinds-per-sq-ft",
+  "name": "Zebra Blinds per sq ft",
+  "brand": "",
+  "category": "Wall to Wall & Flooring (per sq ft)",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 429,
+  "tags": [
+   "zebra",
+   "blinds",
+   "per",
+   "sq",
+   "wall to wall & flooring (per sq ft)"
+  ]
+ },
+ {
+  "id": "carpet-curtain-fabric-per-meter",
+  "name": "Curtain Fabric per meter",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "curtain",
+   "fabric",
+   "per",
+   "meter",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-fabric-velvet-per-meter",
+  "name": "Curtain Fabric Velvet per meter",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "curtain",
+   "fabric",
+   "velvet",
+   "per",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-sheer-per-meter",
+  "name": "Curtain Sheer per meter",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "curtain",
+   "sheer",
+   "per",
+   "meter",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-ready-made-pair-5-ft",
+  "name": "Curtain Ready Made Pair 5 ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "curtain",
+   "ready",
+   "made",
+   "pair",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-ready-made-pair-7-ft",
+  "name": "Curtain Ready Made Pair 7 ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "curtain",
+   "ready",
+   "made",
+   "pair",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-ready-made-premium-pair",
+  "name": "Curtain Ready Made Premium Pair",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "curtain",
+   "ready",
+   "made",
+   "premium",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-ring-set-1-set",
+  "name": "Curtain Ring Set 1 set",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "curtain",
+   "ring",
+   "set",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-rod-steel-6-ft",
+  "name": "Curtain Rod Steel 6 ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "curtain",
+   "rod",
+   "steel",
+   "ft",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-rod-wooden-6-ft",
+  "name": "Curtain Rod Wooden 6 ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "curtain",
+   "rod",
+   "wooden",
+   "ft",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-rod-double-8-ft",
+  "name": "Curtain Rod Double 8 ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "curtain",
+   "rod",
+   "double",
+   "ft",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-curtain-rail-track-per-meter",
+  "name": "Curtain Rail Track per meter",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "curtain",
+   "rail",
+   "track",
+   "per",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-sofa-cover-set-1-set",
+  "name": "Sofa Cover Set 1 set",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "sofa",
+   "cover",
+   "set",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-cushion-cover",
+  "name": "Cushion Cover",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "cushion",
+   "cover",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-cushion-filled",
+  "name": "Cushion Filled",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "cushion",
+   "filled",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-floor-cushion",
+  "name": "Floor Cushion",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "floor",
+   "cushion",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-bed-cover-double",
+  "name": "Bed Cover Double",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "bed",
+   "cover",
+   "double",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-table-cloth-dining",
+  "name": "Table Cloth Dining",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "table",
+   "cloth",
+   "dining",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-table-runner",
+  "name": "Table Runner",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "table",
+   "runner",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-chair-cover",
+  "name": "Chair Cover",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "chair",
+   "cover",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-gaddi-floor-seating-set-1-set",
+  "name": "Gaddi Floor Seating Set 1 set",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "gaddi",
+   "floor",
+   "seating",
+   "set",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-cleaner-foam",
+  "name": "Carpet Cleaner Foam",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "carpet",
+   "cleaner",
+   "foam",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-underlay-per-sq-ft",
+  "name": "Carpet Underlay per sq ft",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "carpet",
+   "underlay",
+   "per",
+   "sq",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-padding-pad",
+  "name": "Carpet Padding Pad",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "carpet",
+   "padding",
+   "pad",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-double-sided-tape-carpet",
+  "name": "Double Sided Tape Carpet",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "double",
+   "sided",
+   "tape",
+   "carpet",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-binding-service",
+  "name": "Carpet Binding Service",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1125,
+  "tags": [
+   "carpet",
+   "binding",
+   "service",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-washing-service",
+  "name": "Carpet Washing Service",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "carpet",
+   "washing",
+   "service",
+   "curtains & soft furnishing"
+  ]
+ },
+ {
+  "id": "carpet-carpet-repair-service",
+  "name": "Carpet Repair Service",
+  "brand": "",
+  "category": "Curtains & Soft Furnishing",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "carpet",
+   "repair",
+   "service",
+   "curtains & soft furnishing"
+  ]
+ }
+]

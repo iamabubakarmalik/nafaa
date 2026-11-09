@@ -1,0 +1,42 @@
+{
+"head-shoulders-shampoo-185ml": {
+"barcode": "8001841299365",
+"imageUrl": null
+},
+"lays-sour-cream-onion-rs-30": {
+"barcode": "0028400072724",
+"imageUrl": "https://images.openfoodfacts.org/images/products/002/840/007/2724/front_en.20.400.jpg"
+},
+"olpers-full-cream-milk-1-5l": {
+"barcode": "8964000346334",
+"imageUrl": "https://images.openfoodfacts.org/images/products/896/400/034/6334/front_en.32.400.jpg"
+},
+"milkpak-full-cream-milk-1l": {
+"barcode": "8961008219561",
+"imageUrl": "https://images.openfoodfacts.org/images/products/896/100/821/9561/front_en.12.400.jpg"
+},
+"national-chaat-masala-50g": {
+"barcode": "0620514001029",
+"imageUrl": "https://images.openfoodfacts.org/images/products/062/051/400/1029/front_en.18.400.jpg"
+},
+"tapal-danedar-tea-190g": {
+"barcode": "0815096001158",
+"imageUrl": "https://images.openfoodfacts.org/images/products/081/509/600/1158/front_en.4.400.jpg"
+},
+"tapal-tea-bags-25-bags": {
+"barcode": "0815096000915",
+"imageUrl": null
+},
+"shan-fish-masala-50g": {
+"barcode": "6290360090160",
+"imageUrl": null
+},
+"shan-pulao-50g": {
+"barcode": "6290360090627",
+"imageUrl": null
+},
+"shan-biryani-masala-50g": {
+"barcode": "6290360090405",
+"imageUrl": null
+}
+}

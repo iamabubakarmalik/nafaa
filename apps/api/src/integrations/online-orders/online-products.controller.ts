@@ -7,6 +7,8 @@ import { BulkAction, GridFilter, OnlineProductsService, Selection, SettingsBody 
 import type { LinkInput } from './channel-catalog.service';
 import { BackorderSaveBody, BackorderService } from './backorder-stock';
 import { StockHandoverService } from './stock-handover.service';
+import { PriceRecoveryChoice, PriceSourceService } from './price-source.service';
+import { ChannelSyncService } from './channel-sync.service';
 
 /**
  * Online products: one place for linking, channel prices and stock across
@@ -18,7 +20,13 @@ import { StockHandoverService } from './stock-handover.service';
 @UseGuards(JwtAuthGuard)
 @Controller('online-products')
 export class OnlineProductsController {
-  constructor(private readonly svc: OnlineProductsService, private readonly backorders: BackorderService, private readonly handover: StockHandoverService) {}
+  constructor(
+    private readonly svc: OnlineProductsService,
+    private readonly backorders: BackorderService,
+    private readonly handover: StockHandoverService,
+    private readonly prices: PriceSourceService,
+    private readonly sync: ChannelSyncService,
+  ) {}
 
   @Get('channels')
   @ApiOperation({ summary: 'Connected product channels with price rule, stock buffer and link counts' })
@@ -127,6 +135,60 @@ export class OnlineProductsController {
   @ApiOperation({ summary: 'Import fix: tracking off again on Shopify for picked items, old stock back in Nafaa (owner/manager)' })
   applyRecovery(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { mappingIds?: string[] }) {
     return this.handover.recoveryApply(user, id, body?.mappingIds ?? []);
+  }
+
+  @Get('channels/:id/price-holds')
+  @ApiOperation({ summary: 'Links whose price changed on the channel after Nafaa\'s last push, waiting for a decision' })
+  priceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.prices.holds(user, id, { page: Number(page) || 1, limit: Number(limit) || 50 });
+  }
+
+  @Post('channels/:id/price-holds/resolve')
+  @ApiOperation({ summary: 'Send Nafaa\'s price ("nafaa") or take the channel price into Nafaa ("website") for held links (owner/manager)' })
+  resolvePriceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { action?: string; mappingIds?: string[]; all?: boolean }) {
+    return this.prices.resolve(user, id, body ?? {});
+  }
+
+  @Get('channels/:id/price-recovery')
+  @ApiOperation({ summary: 'Price recovery preview: links where Nafaa re-sent its price over a channel price (read only)' })
+  priceRecovery(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.prices.recoveryPreview(user, id);
+  }
+
+  @Post('channels/:id/price-recovery/apply')
+  @ApiOperation({ summary: 'Price recovery: channel price back (Nafaa and channel) or keep Nafaa\'s price, per picked link (owner/manager)' })
+  applyPriceRecovery(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { items?: Array<{ mappingId: string; choice: PriceRecoveryChoice }> }) {
+    return this.prices.recoveryApply(user, id, body?.items ?? []);
+  }
+
+  @Get('sync-history')
+  @ApiOperation({ summary: 'Channel sync history (price, name, description, pictures, stock, publish) for a product or a channel' })
+  syncHistory(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('channelId') channelId?: string, @Query('limit') limit?: string) {
+    return this.prices.history(user, { productId, channelId, limit: Number(limit) || 50 });
+  }
+
+  @Post('publish-marks')
+  @ApiOperation({ summary: 'Mark (on) or unmark (off) Nafaa products to be made on channels (all Shopify/Woo channels when none given)' })
+  publishMarks(@GetUser() user: AuthenticatedUser, @Body() body: { productIds?: string[]; channelIds?: string[]; on?: boolean }) {
+    return this.sync.mark(user, body ?? {});
+  }
+
+  @Get('channels/:id/publish-marks')
+  @ApiOperation({ summary: 'Products marked to be made on this channel' })
+  channelPublishMarks(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.sync.marks(user, id);
+  }
+
+  @Get('price-history')
+  @ApiOperation({ summary: 'Channel price history for a product or a channel' })
+  priceHistory(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string, @Query('channelId') channelId?: string, @Query('limit') limit?: string) {
+    return this.prices.history(user, { productId, channelId, limit: Number(limit) || 50 });
+  }
+
+  @Post('channels/:id/import-new')
+  @ApiOperation({ summary: 'Bring every new channel product with no Nafaa match into Nafaa (background job)' })
+  importNew(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.importNew(user, id);
   }
 
   @Put('channels/:id/settings')

@@ -17,7 +17,8 @@ function setup(opts: { changed: { productId: string; variantId: string | null }[
   const woo: any = { isConnected: () => true, syncStock: async (_i: any, o: any) => { pushed.push(o); }, pushPrices: async (_i: any, items: any) => { prices.push(items); } };
   const shopify: any = { isConnected: () => true };
   const daraz: any = { isConnected: () => false };
-  return { svc: new StockPushService(prisma, woo, shopify, daraz), pushed, prices };
+  const sync: any = { nafaaChanged: async () => ({ pushed: 0 }) };
+  return { svc: new StockPushService(prisma, woo, shopify, daraz, sync), pushed, prices };
 }
 
 describe('StockPushService', () => {
@@ -76,7 +77,7 @@ describe('StockPushService', () => {
       maps: [{ id: 'm1', externalProductId: '5', externalVariantId: null, variantId: null, externalData: {}, product: { price: 500 }, variant: null }],
     });
     const res = await svc.pushPricesFor({ id: 'w1', tenantId: 't1', type: 'CUSTOM_WEBSITE', shopId: 's1', displayName: 'Site', config: { pushPrice: true, indolj: { activationToken: 'x' } } } as any, {}, true);
-    expect(res).toEqual({ sent: 0 });
+    expect(res).toMatchObject({ sent: 0 });
     expect(prices.length).toBe(0);
   });
 });

@@ -1,0 +1,2086 @@
+[
+ {
+  "id": "restaurant-chicken-karahi-half",
+  "name": "Chicken Karahi Half",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 1350,
+  "costPrice": 608,
+  "tags": [
+   "chicken",
+   "karahi",
+   "half",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-karahi-full",
+  "name": "Chicken Karahi Full",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 2450,
+  "costPrice": 1102,
+  "tags": [
+   "chicken",
+   "karahi",
+   "full",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-karahi-half",
+  "name": "Mutton Karahi Half",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 2450,
+  "costPrice": 1102,
+  "tags": [
+   "mutton",
+   "karahi",
+   "half",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-karahi-full",
+  "name": "Mutton Karahi Full",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 4500,
+  "costPrice": 2025,
+  "tags": [
+   "mutton",
+   "karahi",
+   "full",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-handi-half",
+  "name": "Chicken Handi Half",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 1350,
+  "costPrice": 608,
+  "tags": [
+   "chicken",
+   "handi",
+   "half",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-handi-full",
+  "name": "Chicken Handi Full",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 2450,
+  "costPrice": 1102,
+  "tags": [
+   "chicken",
+   "handi",
+   "full",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-tikka-leg",
+  "name": "Chicken Tikka Leg",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "chicken",
+   "tikka",
+   "leg",
+   "bbq",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-tikka-chest",
+  "name": "Chicken Tikka Chest",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 500,
+  "costPrice": 225,
+  "tags": [
+   "chicken",
+   "tikka",
+   "chest",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-seekh-kebab",
+  "name": "Chicken Seekh Kebab",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 350,
+  "costPrice": 158,
+  "tags": [
+   "chicken",
+   "seekh",
+   "kebab",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-beef-seekh-kebab",
+  "name": "Beef Seekh Kebab",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "beef",
+   "seekh",
+   "kebab",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-reshmi-kebab",
+  "name": "Reshmi Kebab",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "reshmi",
+   "kebab",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-malai-boti-plate",
+  "name": "Malai Boti Plate",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 950,
+  "costPrice": 428,
+  "tags": [
+   "malai",
+   "boti",
+   "plate",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-boti-plate",
+  "name": "Chicken Boti Plate",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 850,
+  "costPrice": 382,
+  "tags": [
+   "chicken",
+   "boti",
+   "plate",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-beef-boti-plate",
+  "name": "Beef Boti Plate",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 1050,
+  "costPrice": 472,
+  "tags": [
+   "beef",
+   "boti",
+   "plate",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-chops-plate",
+  "name": "Mutton Chops Plate",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 1850,
+  "costPrice": 832,
+  "tags": [
+   "mutton",
+   "chops",
+   "plate",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-pakora",
+  "name": "Chicken Pakora",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 248,
+  "tags": [
+   "chicken",
+   "pakora",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-bihari-kebab",
+  "name": "Bihari Kebab",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 950,
+  "costPrice": 428,
+  "tags": [
+   "bihari",
+   "kebab",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-gola-kebab",
+  "name": "Gola Kebab",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "gola",
+   "kebab",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-bar-b-q-platter",
+  "name": "Chicken Bar B Q Platter",
+  "brand": "",
+  "category": "BBQ & Karahi",
+  "unit": "plate",
+  "price": 2200,
+  "costPrice": 990,
+  "tags": [
+   "chicken",
+   "bar",
+   "platter",
+   "bbq & karahi"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-biryani",
+  "name": "Chicken Biryani",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "chicken",
+   "biryani",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-beef-biryani",
+  "name": "Beef Biryani",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 248,
+  "tags": [
+   "beef",
+   "biryani",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-biryani",
+  "name": "Mutton Biryani",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 850,
+  "costPrice": 382,
+  "tags": [
+   "mutton",
+   "biryani",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-pulao",
+  "name": "Chicken Pulao",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 380,
+  "costPrice": 171,
+  "tags": [
+   "chicken",
+   "pulao",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-beef-pulao",
+  "name": "Beef Pulao",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 480,
+  "costPrice": 216,
+  "tags": [
+   "beef",
+   "pulao",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-pulao",
+  "name": "Mutton Pulao",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 750,
+  "costPrice": 338,
+  "tags": [
+   "mutton",
+   "pulao",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-zarda-plate",
+  "name": "Zarda Plate",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 112,
+  "tags": [
+   "zarda",
+   "plate",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-plain-rice",
+  "name": "Plain Rice",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 112,
+  "tags": [
+   "plain",
+   "rice",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-daal-mash",
+  "name": "Daal Mash",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 300,
+  "costPrice": 135,
+  "tags": [
+   "daal",
+   "mash",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-daal-chana",
+  "name": "Daal Chana",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 112,
+  "tags": [
+   "daal",
+   "chana",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-mix-sabzi",
+  "name": "Mix Sabzi",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 300,
+  "costPrice": 135,
+  "tags": [
+   "mix",
+   "sabzi",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-aloo-gobi",
+  "name": "Aloo Gobi",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 300,
+  "costPrice": 135,
+  "tags": [
+   "aloo",
+   "gobi",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-chana-masala",
+  "name": "Chana Masala",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 280,
+  "costPrice": 126,
+  "tags": [
+   "chana",
+   "masala",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-qorma",
+  "name": "Chicken Qorma",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 850,
+  "costPrice": 382,
+  "tags": [
+   "chicken",
+   "qorma",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-beef-nihari",
+  "name": "Beef Nihari",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 950,
+  "costPrice": 428,
+  "tags": [
+   "beef",
+   "nihari",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-mutton-nihari",
+  "name": "Mutton Nihari",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 1450,
+  "costPrice": 652,
+  "tags": [
+   "mutton",
+   "nihari",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-haleem",
+  "name": "Haleem",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "haleem",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-paya",
+  "name": "Paya",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 248,
+  "tags": [
+   "paya",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-korma",
+  "name": "Chicken Korma",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 850,
+  "costPrice": 382,
+  "tags": [
+   "chicken",
+   "korma",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-aloo-gosht",
+  "name": "Aloo Gosht",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 950,
+  "costPrice": 428,
+  "tags": [
+   "aloo",
+   "gosht",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-kofta-curry",
+  "name": "Kofta Curry",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 248,
+  "tags": [
+   "kofta",
+   "curry",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-bhindi-masala",
+  "name": "Bhindi Masala",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 300,
+  "costPrice": 135,
+  "tags": [
+   "bhindi",
+   "masala",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-palak-paneer",
+  "name": "Palak Paneer",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 202,
+  "tags": [
+   "palak",
+   "paneer",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-jalfrezi",
+  "name": "Chicken Jalfrezi",
+  "brand": "",
+  "category": "Rice & Curry",
+  "unit": "plate",
+  "price": 750,
+  "costPrice": 338,
+  "tags": [
+   "chicken",
+   "jalfrezi",
+   "rice & curry"
+  ]
+ },
+ {
+  "id": "restaurant-zinger-burger",
+  "name": "Zinger Burger",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "zinger",
+   "burger",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-burger",
+  "name": "Chicken Burger",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "chicken",
+   "burger",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-beef-burger",
+  "name": "Beef Burger",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "beef",
+   "burger",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-double-patty-burger",
+  "name": "Double Patty Burger",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "double",
+   "patty",
+   "burger",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-cheese-burger",
+  "name": "Cheese Burger",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 200,
+  "tags": [
+   "cheese",
+   "burger",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-club-sandwich",
+  "name": "Club Sandwich",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 220,
+  "tags": [
+   "club",
+   "sandwich",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-sandwich",
+  "name": "Chicken Sandwich",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "chicken",
+   "sandwich",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-shawarma",
+  "name": "Chicken Shawarma",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "chicken",
+   "shawarma",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-beef-shawarma",
+  "name": "Beef Shawarma",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "beef",
+   "shawarma",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-zinger-shawarma",
+  "name": "Zinger Shawarma",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "zinger",
+   "shawarma",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-small-chicken-tikka",
+  "name": "Pizza Small Chicken Tikka",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "pizza",
+   "small",
+   "chicken",
+   "tikka",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-medium-chicken-tikka",
+  "name": "Pizza Medium Chicken Tikka",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 460,
+  "tags": [
+   "pizza",
+   "medium",
+   "chicken",
+   "tikka",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-large-chicken-tikka",
+  "name": "Pizza Large Chicken Tikka",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 660,
+  "tags": [
+   "pizza",
+   "large",
+   "chicken",
+   "tikka",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-small-fajita",
+  "name": "Pizza Small Fajita",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "pizza",
+   "small",
+   "fajita",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-medium-fajita",
+  "name": "Pizza Medium Fajita",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 460,
+  "tags": [
+   "pizza",
+   "medium",
+   "fajita",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-large-fajita",
+  "name": "Pizza Large Fajita",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 660,
+  "tags": [
+   "pizza",
+   "large",
+   "fajita",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-medium-cheese",
+  "name": "Pizza Medium Cheese",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 420,
+  "tags": [
+   "pizza",
+   "medium",
+   "cheese",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-medium-pepperoni",
+  "name": "Pizza Medium Pepperoni",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 540,
+  "tags": [
+   "pizza",
+   "medium",
+   "pepperoni",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pasta-chicken-alfredo",
+  "name": "Pasta Chicken Alfredo",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "pasta",
+   "chicken",
+   "alfredo",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-pasta-creamy-tikka",
+  "name": "Pasta Creamy Tikka",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "pasta",
+   "creamy",
+   "tikka",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fries-regular",
+  "name": "Fries Regular",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 80,
+  "tags": [
+   "fries",
+   "regular",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fries-large",
+  "name": "Fries Large",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "fries",
+   "large",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-loaded-fries",
+  "name": "Loaded Fries",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "loaded",
+   "fries",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-wings-6-pcs",
+  "name": "Chicken Wings 6 pcs",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "chicken",
+   "wings",
+   "pcs",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-wings-12-pcs",
+  "name": "Chicken Wings 12 pcs",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 340,
+  "tags": [
+   "chicken",
+   "wings",
+   "12",
+   "pcs",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-nuggets-6-pcs",
+  "name": "Chicken Nuggets 6 pcs",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "chicken",
+   "nuggets",
+   "pcs",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fried-chicken-2-pcs",
+  "name": "Fried Chicken 2 pcs",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 220,
+  "tags": [
+   "fried",
+   "chicken",
+   "pcs",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fried-chicken-4-pcs",
+  "name": "Fried Chicken 4 pcs",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 420,
+  "tags": [
+   "fried",
+   "chicken",
+   "pcs",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-hot-dog",
+  "name": "Hot Dog",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "hot",
+   "dog",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-wrap-chicken",
+  "name": "Wrap Chicken",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "wrap",
+   "chicken",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-paratha-roll-chicken",
+  "name": "Paratha Roll Chicken",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "paratha",
+   "roll",
+   "chicken",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-paratha-roll-beef",
+  "name": "Paratha Roll Beef",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "paratha",
+   "roll",
+   "beef",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-rice-platter-chicken",
+  "name": "Rice Platter Chicken",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 220,
+  "tags": [
+   "rice",
+   "platter",
+   "chicken",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fish-and-chips",
+  "name": "Fish and Chips",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 340,
+  "tags": [
+   "fish",
+   "and",
+   "chips",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-soup",
+  "name": "Chicken Soup",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "chicken",
+   "soup",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-hot-and-sour-soup",
+  "name": "Hot and Sour Soup",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "hot",
+   "and",
+   "sour",
+   "soup",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-corn-soup",
+  "name": "Chicken Corn Soup",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "chicken",
+   "corn",
+   "soup",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-fried-rice-chicken",
+  "name": "Fried Rice Chicken",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "fried",
+   "rice",
+   "chicken",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chicken-manchurian",
+  "name": "Chicken Manchurian",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 260,
+  "tags": [
+   "chicken",
+   "manchurian",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-chowmein-chicken",
+  "name": "Chowmein Chicken",
+  "brand": "",
+  "category": "Fast Food",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "chowmein",
+   "chicken",
+   "fast food"
+  ]
+ },
+ {
+  "id": "restaurant-halwa-puri",
+  "name": "Halwa Puri",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "halwa",
+   "puri",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-aloo-paratha",
+  "name": "Aloo Paratha",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 180,
+  "costPrice": 72,
+  "tags": [
+   "aloo",
+   "paratha",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-paratha-plain",
+  "name": "Paratha Plain",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 100,
+  "costPrice": 40,
+  "tags": [
+   "paratha",
+   "plain",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-paratha-with-egg",
+  "name": "Paratha with Egg",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 200,
+  "costPrice": 80,
+  "tags": [
+   "paratha",
+   "with",
+   "egg",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-omelette",
+  "name": "Omelette",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 150,
+  "costPrice": 60,
+  "tags": [
+   "omelette",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-fried-egg",
+  "name": "Fried Egg",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 100,
+  "costPrice": 40,
+  "tags": [
+   "fried",
+   "egg",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-anda-paratha-roll",
+  "name": "Anda Paratha Roll",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "anda",
+   "paratha",
+   "roll",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-channay-puri",
+  "name": "Channay Puri",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "channay",
+   "puri",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-nihari-naan",
+  "name": "Nihari Naan",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 220,
+  "tags": [
+   "nihari",
+   "naan",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-lassi-special",
+  "name": "Lassi Special",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 220,
+  "costPrice": 88,
+  "tags": [
+   "lassi",
+   "special",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-chana-chaat",
+  "name": "Chana Chaat",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "chana",
+   "chaat",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-cheese-omelette",
+  "name": "Cheese Omelette",
+  "brand": "",
+  "category": "Breakfast",
+  "unit": "plate",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "cheese",
+   "omelette",
+   "breakfast"
+  ]
+ },
+ {
+  "id": "restaurant-roti-tandoori",
+  "name": "Roti Tandoori",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 25,
+  "costPrice": 10,
+  "tags": [
+   "roti",
+   "tandoori",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-naan",
+  "name": "Naan",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 16,
+  "tags": [
+   "naan",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-garlic-naan",
+  "name": "Garlic Naan",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 32,
+  "tags": [
+   "garlic",
+   "naan",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-kulcha",
+  "name": "Kulcha",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 20,
+  "tags": [
+   "kulcha",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-paratha",
+  "name": "Paratha",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 32,
+  "tags": [
+   "paratha",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-raita",
+  "name": "Raita",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 40,
+  "tags": [
+   "raita",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-salad",
+  "name": "Salad",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 60,
+  "tags": [
+   "salad",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-papad",
+  "name": "Papad",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 12,
+  "tags": [
+   "papad",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-chutney",
+  "name": "Chutney",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 20,
+  "tags": [
+   "chutney",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-extra-gravy",
+  "name": "Extra Gravy",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 40,
+  "tags": [
+   "extra",
+   "gravy",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-rumali-roti",
+  "name": "Rumali Roti",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 16,
+  "tags": [
+   "rumali",
+   "roti",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-sheermal",
+  "name": "Sheermal",
+  "brand": "",
+  "category": "Breads & Sides",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 28,
+  "tags": [
+   "sheermal",
+   "breads & sides"
+  ]
+ },
+ {
+  "id": "restaurant-chai-cup",
+  "name": "Chai Cup",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 28,
+  "tags": [
+   "chai",
+   "cup",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-doodh-patti",
+  "name": "Doodh Patti",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 42,
+  "tags": [
+   "doodh",
+   "patti",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-kashmiri-chai",
+  "name": "Kashmiri Chai",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 63,
+  "tags": [
+   "kashmiri",
+   "chai",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-coffee-hot",
+  "name": "Coffee Hot",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 88,
+  "tags": [
+   "coffee",
+   "hot",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-cappuccino",
+  "name": "Cappuccino",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 400,
+  "costPrice": 140,
+  "tags": [
+   "cappuccino",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-cold-coffee",
+  "name": "Cold Coffee",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 158,
+  "tags": [
+   "cold",
+   "coffee",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-mint-margarita",
+  "name": "Mint Margarita",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 105,
+  "tags": [
+   "mint",
+   "margarita",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-fresh-lime",
+  "name": "Fresh Lime",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 70,
+  "tags": [
+   "fresh",
+   "lime",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-fresh-juice-orange",
+  "name": "Fresh Juice Orange",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 105,
+  "tags": [
+   "fresh",
+   "juice",
+   "orange",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-fresh-juice-mango",
+  "name": "Fresh Juice Mango",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 105,
+  "tags": [
+   "fresh",
+   "juice",
+   "mango",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-lassi-sweet",
+  "name": "Lassi Sweet",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 70,
+  "tags": [
+   "lassi",
+   "sweet",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-lassi-salted",
+  "name": "Lassi Salted",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 70,
+  "tags": [
+   "lassi",
+   "salted",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-milkshake-chocolate",
+  "name": "Milkshake Chocolate",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 158,
+  "tags": [
+   "milkshake",
+   "chocolate",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-milkshake-mango",
+  "name": "Milkshake Mango",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 158,
+  "tags": [
+   "milkshake",
+   "mango",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-soft-drink-regular-345ml",
+  "name": "Soft Drink Regular 345ml",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 35,
+  "tags": [
+   "soft",
+   "drink",
+   "regular",
+   "345ml",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-soft-drink-1-5-litre",
+  "name": "Soft Drink 1.5 litre",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 88,
+  "tags": [
+   "soft",
+   "drink",
+   "litre",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-mineral-water-500ml",
+  "name": "Mineral Water 500ml",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 24,
+  "tags": [
+   "mineral",
+   "water",
+   "500ml",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-mineral-water-1-5-litre",
+  "name": "Mineral Water 1.5 litre",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 49,
+  "tags": [
+   "mineral",
+   "water",
+   "litre",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-rooh-afza-sharbat",
+  "name": "Rooh Afza Sharbat",
+  "brand": "",
+  "category": "Drinks",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 52,
+  "tags": [
+   "rooh",
+   "afza",
+   "sharbat",
+   "drinks"
+  ]
+ },
+ {
+  "id": "restaurant-kheer",
+  "name": "Kheer",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 100,
+  "tags": [
+   "kheer",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-gulab-jamun-2-pcs",
+  "name": "Gulab Jamun 2 pcs",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 80,
+  "tags": [
+   "gulab",
+   "jamun",
+   "pcs",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-gajar-halwa",
+  "name": "Gajar Halwa",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "gajar",
+   "halwa",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-ice-cream-scoop",
+  "name": "Ice Cream Scoop",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 60,
+  "tags": [
+   "ice",
+   "cream",
+   "scoop",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-kulfi-falooda",
+  "name": "Kulfi Falooda",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 140,
+  "tags": [
+   "kulfi",
+   "falooda",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-brownie-with-ice-cream",
+  "name": "Brownie with Ice Cream",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 180,
+  "tags": [
+   "brownie",
+   "with",
+   "ice",
+   "cream",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-shahi-tukray",
+  "name": "Shahi Tukray",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "shahi",
+   "tukray",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-rabri",
+  "name": "Rabri",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "rabri",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-fruit-chaat",
+  "name": "Fruit Chaat",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 120,
+  "tags": [
+   "fruit",
+   "chaat",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-chocolate-lava-cake",
+  "name": "Chocolate Lava Cake",
+  "brand": "",
+  "category": "Desserts",
+  "unit": "pcs",
+  "price": 500,
+  "costPrice": 200,
+  "tags": [
+   "chocolate",
+   "lava",
+   "cake",
+   "desserts"
+  ]
+ },
+ {
+  "id": "restaurant-family-deal-biryani",
+  "name": "Family Deal Biryani",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 1800,
+  "costPrice": 900,
+  "tags": [
+   "family",
+   "deal",
+   "biryani",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-student-deal",
+  "name": "Student Deal",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 225,
+  "tags": [
+   "student",
+   "deal",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-single-burger-combo",
+  "name": "Single Burger Combo",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 650,
+  "costPrice": 325,
+  "tags": [
+   "single",
+   "burger",
+   "combo",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-pizza-deal-2-medium",
+  "name": "Pizza Deal 2 Medium",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 2100,
+  "costPrice": 1050,
+  "tags": [
+   "pizza",
+   "deal",
+   "medium",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-bbq-dinner-deal-4-persons",
+  "name": "BBQ Dinner Deal 4 Persons",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 4500,
+  "costPrice": 2250,
+  "tags": [
+   "bbq",
+   "dinner",
+   "deal",
+   "persons",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-karahi-deal-4-persons",
+  "name": "Karahi Deal 4 Persons",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 3800,
+  "costPrice": 1900,
+  "tags": [
+   "karahi",
+   "deal",
+   "persons",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-lunch-box-biryani",
+  "name": "Lunch Box Biryani",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 380,
+  "costPrice": 190,
+  "tags": [
+   "lunch",
+   "box",
+   "biryani",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-iftar-deal",
+  "name": "Iftar Deal",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 550,
+  "costPrice": 275,
+  "tags": [
+   "iftar",
+   "deal",
+   "deals & combos"
+  ]
+ },
+ {
+  "id": "restaurant-breakfast-deal-halwa-puri",
+  "name": "Breakfast Deal Halwa Puri",
+  "brand": "",
+  "category": "Deals & Combos",
+  "unit": "plate",
+  "price": 450,
+  "costPrice": 225,
+  "tags": [
+   "breakfast",
+   "deal",
+   "halwa",
+   "puri",
+   "deals & combos"
+  ]
+ }
+]

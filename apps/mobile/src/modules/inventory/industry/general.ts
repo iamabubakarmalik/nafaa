@@ -27,9 +27,8 @@ export const retailInventory: InventoryIndustryConfig = {
   label: msg('Retail'),
   list: {
     filters: ['tags'],
-    actions: [{ icon: Sparkles, label: msg('Quick Setup'), href: '/products/quick-setup', permission: 'products.create' }],
     guide: [
-      { icon: Sparkles, title: msg('Quick Setup'), text: msg('2000+ aam cheezein (atta, cheeni, sabun…) tayyar hain — chunein aur rate daal dein.') },
+      { icon: Sparkles, title: msg('Library se products'), text: msg('Aam cheezein (atta, cheeni, sabun…) tayyar hain — "Library se products" se chunein aur rate daal dein.') },
       { icon: Boxes, title: msg('Packing'), text: msg('Cheez darjan, dabba ya carton mein bhi bikti ho to Qeemat step mein Packing jorein — har packing ka apna rate aur barcode.') },
     ],
   },

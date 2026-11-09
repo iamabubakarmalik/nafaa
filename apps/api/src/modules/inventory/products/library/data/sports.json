@@ -1,0 +1,2458 @@
+[
+ {
+  "id": "sports-ss-cricket-bat-english-willow",
+  "name": "SS Cricket Bat English Willow",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "ss",
+   "cricket",
+   "bat",
+   "english"
+  ]
+ },
+ {
+  "id": "sports-ss-cricket-bat-kashmir-willow",
+  "name": "SS Cricket Bat Kashmir Willow",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "ss",
+   "cricket",
+   "bat",
+   "kashmir"
+  ]
+ },
+ {
+  "id": "sports-ss-hard-ball-cricket-bat",
+  "name": "SS Hard Ball Cricket Bat",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9375,
+  "tags": [
+   "ss",
+   "hard",
+   "ball",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-ss-cricket-ball-hard-leather-red",
+  "name": "SS Cricket Ball Hard Leather Red",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "ss",
+   "cricket",
+   "ball",
+   "hard"
+  ]
+ },
+ {
+  "id": "sports-ss-cricket-batting-pads-1-pair",
+  "name": "SS Cricket Batting Pads 1 pair",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "ss",
+   "cricket",
+   "batting",
+   "pads"
+  ]
+ },
+ {
+  "id": "sports-ss-batting-gloves-1-pair",
+  "name": "SS Batting Gloves 1 pair",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "ss",
+   "batting",
+   "gloves",
+   "pair",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-ss-wicket-keeping-gloves-1-pair",
+  "name": "SS Wicket Keeping Gloves 1 pair",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "ss",
+   "wicket",
+   "keeping",
+   "gloves",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-ss-cricket-helmet",
+  "name": "SS Cricket Helmet",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "ss",
+   "cricket",
+   "helmet"
+  ]
+ },
+ {
+  "id": "sports-ss-cricket-kit-bag-large",
+  "name": "SS Cricket Kit Bag Large",
+  "brand": "SS",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "ss",
+   "cricket",
+   "kit",
+   "bag"
+  ]
+ },
+ {
+  "id": "sports-gm-cricket-bat-english-willow",
+  "name": "GM Cricket Bat English Willow",
+  "brand": "GM",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 28500,
+  "tags": [
+   "gm",
+   "cricket",
+   "bat",
+   "english"
+  ]
+ },
+ {
+  "id": "sports-gm-cricket-bat-kashmir-willow",
+  "name": "GM Cricket Bat Kashmir Willow",
+  "brand": "GM",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "gm",
+   "cricket",
+   "bat",
+   "kashmir"
+  ]
+ },
+ {
+  "id": "sports-gm-cricket-ball-hard-leather",
+  "name": "GM Cricket Ball Hard Leather",
+  "brand": "GM",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "gm",
+   "cricket",
+   "ball",
+   "hard"
+  ]
+ },
+ {
+  "id": "sports-ca-cricket-bat-kashmir-willow",
+  "name": "CA Cricket Bat Kashmir Willow",
+  "brand": "CA",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 7800,
+  "costPrice": 5850,
+  "tags": [
+   "ca",
+   "cricket",
+   "bat",
+   "kashmir"
+  ]
+ },
+ {
+  "id": "sports-ca-cricket-bat-english-willow-grade-2",
+  "name": "CA Cricket Bat English Willow Grade 2",
+  "brand": "CA",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24000,
+  "tags": [
+   "ca",
+   "cricket",
+   "bat",
+   "english"
+  ]
+ },
+ {
+  "id": "sports-gray-nicolls-cricket-bat-prestige",
+  "name": "Gray-Nicolls Cricket Bat Prestige",
+  "brand": "Gray-Nicolls",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 48750,
+  "tags": [
+   "gray",
+   "nicolls",
+   "cricket",
+   "bat"
+  ]
+ },
+ {
+  "id": "sports-master-tape-ball-bat-scoop",
+  "name": "Master Tape Ball Bat Scoop",
+  "brand": "Master",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "master",
+   "tape",
+   "ball",
+   "bat",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-tennis-ball-cricket-pack-of-6",
+  "name": "Tennis Ball Cricket Pack of 6",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "tennis",
+   "ball",
+   "cricket",
+   "pack"
+  ]
+ },
+ {
+  "id": "sports-tape-ball-cricket",
+  "name": "Tape Ball Cricket",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "tape",
+   "ball",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-tape-ball-hard-heavy",
+  "name": "Tape Ball Hard Heavy",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 150,
+  "tags": [
+   "tape",
+   "ball",
+   "hard",
+   "heavy",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-cricket-stumps-set-wooden-1-set",
+  "name": "Cricket Stumps Set Wooden 1 set",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1350,
+  "tags": [
+   "cricket",
+   "stumps",
+   "set",
+   "wooden"
+  ]
+ },
+ {
+  "id": "sports-cricket-stumps-set-plastic-1-set",
+  "name": "Cricket Stumps Set Plastic 1 set",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "cricket",
+   "stumps",
+   "set",
+   "plastic"
+  ]
+ },
+ {
+  "id": "sports-bat-grip",
+  "name": "Bat Grip",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "bat",
+   "grip",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-bat-tape-fibre",
+  "name": "Bat Tape Fibre",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "bat",
+   "tape",
+   "fibre",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-thigh-pad",
+  "name": "Thigh Pad",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "thigh",
+   "pad",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-arm-guard",
+  "name": "Arm Guard",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "arm",
+   "guard",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-abdominal-guard",
+  "name": "Abdominal Guard",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "abdominal",
+   "guard",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-cricket-shoes-spikes-1-pair",
+  "name": "Cricket Shoes Spikes 1 pair",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "cricket",
+   "shoes",
+   "spikes",
+   "pair"
+  ]
+ },
+ {
+  "id": "sports-cricket-white-trouser",
+  "name": "Cricket White Trouser",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1350,
+  "tags": [
+   "cricket",
+   "white",
+   "trouser"
+  ]
+ },
+ {
+  "id": "sports-cricket-sweater",
+  "name": "Cricket Sweater",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "cricket",
+   "sweater"
+  ]
+ },
+ {
+  "id": "sports-cricket-cap",
+  "name": "Cricket Cap",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "cricket",
+   "cap"
+  ]
+ },
+ {
+  "id": "sports-sun-hat-cricket",
+  "name": "Sun Hat Cricket",
+  "brand": "",
+  "category": "Cricket",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "sun",
+   "hat",
+   "cricket"
+  ]
+ },
+ {
+  "id": "sports-nike-football-size-5",
+  "name": "Nike Football Size 5",
+  "brand": "Nike",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "nike",
+   "football",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-adidas-football-size-5",
+  "name": "Adidas Football Size 5",
+  "brand": "Adidas",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "adidas",
+   "football",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-adidas-tango-football",
+  "name": "Adidas Tango Football",
+  "brand": "Adidas",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "adidas",
+   "tango",
+   "football"
+  ]
+ },
+ {
+  "id": "sports-puma-football-size-5",
+  "name": "Puma Football Size 5",
+  "brand": "Puma",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "puma",
+   "football",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-molten-football-size-5",
+  "name": "Molten Football Size 5",
+  "brand": "Molten",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "molten",
+   "football",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-mikasa-football-size-5",
+  "name": "Mikasa Football Size 5",
+  "brand": "Mikasa",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "mikasa",
+   "football",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-football-local-size-5",
+  "name": "Football Local Size 5",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "football",
+   "local",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-football-local-size-4",
+  "name": "Football Local Size 4",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "football",
+   "local",
+   "size"
+  ]
+ },
+ {
+  "id": "sports-football-stitched-premium",
+  "name": "Football Stitched Premium",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "football",
+   "stitched",
+   "premium"
+  ]
+ },
+ {
+  "id": "sports-football-net-goal",
+  "name": "Football Net Goal",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "football",
+   "net",
+   "goal"
+  ]
+ },
+ {
+  "id": "sports-football-goal-post-small",
+  "name": "Football Goal Post Small",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "football",
+   "goal",
+   "post",
+   "small"
+  ]
+ },
+ {
+  "id": "sports-shin-guards-1-pair",
+  "name": "Shin Guards 1 pair",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "shin",
+   "guards",
+   "pair",
+   "football"
+  ]
+ },
+ {
+  "id": "sports-goalkeeper-gloves-1-pair",
+  "name": "Goalkeeper Gloves 1 pair",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "goalkeeper",
+   "gloves",
+   "pair",
+   "football"
+  ]
+ },
+ {
+  "id": "sports-football-socks-1-pair",
+  "name": "Football Socks 1 pair",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "football",
+   "socks",
+   "pair"
+  ]
+ },
+ {
+  "id": "sports-football-pump-hand",
+  "name": "Football Pump Hand",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "football",
+   "pump",
+   "hand"
+  ]
+ },
+ {
+  "id": "sports-pump-needle-pack",
+  "name": "Pump Needle Pack",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "pump",
+   "needle",
+   "pack",
+   "football"
+  ]
+ },
+ {
+  "id": "sports-football-jersey-local",
+  "name": "Football Jersey Local",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "football",
+   "jersey",
+   "local"
+  ]
+ },
+ {
+  "id": "sports-football-training-cones-pack-of-10",
+  "name": "Football Training Cones Pack of 10",
+  "brand": "",
+  "category": "Football",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "football",
+   "training",
+   "cones",
+   "pack"
+  ]
+ },
+ {
+  "id": "sports-yonex-badminton-racket-muscle-power",
+  "name": "Yonex Badminton Racket Muscle Power",
+  "brand": "Yonex",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "yonex",
+   "badminton",
+   "racket",
+   "muscle",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-yonex-badminton-racket-astrox",
+  "name": "Yonex Badminton Racket Astrox",
+  "brand": "Yonex",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "yonex",
+   "badminton",
+   "racket",
+   "astrox",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-yonex-shuttlecock-mavis-350-pack-of-6",
+  "name": "Yonex Shuttlecock Mavis 350 Pack of 6",
+  "brand": "Yonex",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "yonex",
+   "shuttlecock",
+   "mavis",
+   "350",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-yonex-badminton-grip-tape",
+  "name": "Yonex Badminton Grip Tape",
+  "brand": "Yonex",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "yonex",
+   "badminton",
+   "grip",
+   "tape",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-victor-badminton-racket",
+  "name": "Victor Badminton Racket",
+  "brand": "Victor",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "victor",
+   "badminton",
+   "racket",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-li-ning-badminton-racket",
+  "name": "Li-Ning Badminton Racket",
+  "brand": "Li-Ning",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "li",
+   "ning",
+   "badminton",
+   "racket",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-badminton-racket-pair-with-cover-1-pair",
+  "name": "Badminton Racket Pair with Cover 1 pair",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1350,
+  "tags": [
+   "badminton",
+   "racket",
+   "pair",
+   "with",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-shuttlecock-plastic-tube-of-6",
+  "name": "Shuttlecock Plastic Tube of 6",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "shuttlecock",
+   "plastic",
+   "tube",
+   "of",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-shuttlecock-feather-tube-of-12",
+  "name": "Shuttlecock Feather Tube of 12",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "shuttlecock",
+   "feather",
+   "tube",
+   "of",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-badminton-net",
+  "name": "Badminton Net",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "badminton",
+   "net",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-badminton-net-with-poles",
+  "name": "Badminton Net with Poles",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "badminton",
+   "net",
+   "with",
+   "poles",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-wilson-tennis-racket",
+  "name": "Wilson Tennis Racket",
+  "brand": "Wilson",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "wilson",
+   "tennis",
+   "racket",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-wilson-tennis-balls-can-of-3",
+  "name": "Wilson Tennis Balls Can of 3",
+  "brand": "Wilson",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "wilson",
+   "tennis",
+   "balls",
+   "can",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-head-tennis-racket",
+  "name": "Head Tennis Racket",
+  "brand": "Head",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9375,
+  "tags": [
+   "head",
+   "tennis",
+   "racket",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-dunlop-tennis-balls-can-of-4",
+  "name": "Dunlop Tennis Balls Can of 4",
+  "brand": "Dunlop",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "dunlop",
+   "tennis",
+   "balls",
+   "can",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-butterfly-table-tennis-bat",
+  "name": "Butterfly Table Tennis Bat",
+  "brand": "Butterfly",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "butterfly",
+   "table",
+   "tennis",
+   "bat",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-butterfly-table-tennis-ball-pack-of-3",
+  "name": "Butterfly Table Tennis Ball Pack of 3",
+  "brand": "Butterfly",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "butterfly",
+   "table",
+   "tennis",
+   "ball",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-stiga-table-tennis-bat",
+  "name": "Stiga Table Tennis Bat",
+  "brand": "Stiga",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "stiga",
+   "table",
+   "tennis",
+   "bat",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-table-tennis-bat-pair-1-pair",
+  "name": "Table Tennis Bat Pair 1 pair",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "table",
+   "tennis",
+   "bat",
+   "pair",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-table-tennis-balls-pack-of-6",
+  "name": "Table Tennis Balls Pack of 6",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "table",
+   "tennis",
+   "balls",
+   "pack",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-table-tennis-table-folding",
+  "name": "Table Tennis Table Folding",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "table",
+   "tennis",
+   "folding",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-table-tennis-net",
+  "name": "Table Tennis Net",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "table",
+   "tennis",
+   "net",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-squash-racket",
+  "name": "Squash Racket",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "squash",
+   "racket",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-squash-ball",
+  "name": "Squash Ball",
+  "brand": "",
+  "category": "Badminton, Tennis & Table Tennis",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "squash",
+   "ball",
+   "badminton, tennis & table tennis"
+  ]
+ },
+ {
+  "id": "sports-dumbbell-pair-5kg-1-pair",
+  "name": "Dumbbell Pair 5kg 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "dumbbell",
+   "pair",
+   "5kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-dumbbell-pair-10kg-1-pair",
+  "name": "Dumbbell Pair 10kg 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "dumbbell",
+   "pair",
+   "10kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-dumbbell-pair-15kg-1-pair",
+  "name": "Dumbbell Pair 15kg 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "dumbbell",
+   "pair",
+   "15kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-dumbbell-pair-20kg-1-pair",
+  "name": "Dumbbell Pair 20kg 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9375,
+  "tags": [
+   "dumbbell",
+   "pair",
+   "20kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-adjustable-dumbbell-set-20kg-1-set",
+  "name": "Adjustable Dumbbell Set 20kg 1 set",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "adjustable",
+   "dumbbell",
+   "set",
+   "20kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-weight-plate-5kg",
+  "name": "Weight Plate 5kg",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "weight",
+   "plate",
+   "5kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-weight-plate-10kg",
+  "name": "Weight Plate 10kg",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "weight",
+   "plate",
+   "10kg",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-barbell-rod-5ft",
+  "name": "Barbell Rod 5ft",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "barbell",
+   "rod",
+   "5ft",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-barbell-rod-6ft",
+  "name": "Barbell Rod 6ft",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "barbell",
+   "rod",
+   "6ft",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-curl-bar",
+  "name": "Curl Bar",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "curl",
+   "bar",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-bench-press-flat",
+  "name": "Bench Press Flat",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "bench",
+   "press",
+   "flat",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-bench-adjustable",
+  "name": "Bench Adjustable",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 25000,
+  "costPrice": 18750,
+  "tags": [
+   "bench",
+   "adjustable",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-gym-bench-dumbbell",
+  "name": "Gym Bench Dumbbell",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "gym",
+   "bench",
+   "dumbbell",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-weight-lifting-gloves-1-pair",
+  "name": "Weight Lifting Gloves 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "weight",
+   "lifting",
+   "gloves",
+   "pair",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-weight-lifting-belt",
+  "name": "Weight Lifting Belt",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "weight",
+   "lifting",
+   "belt",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-hand-gripper",
+  "name": "Hand Gripper",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "hand",
+   "gripper",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-skipping-rope",
+  "name": "Skipping Rope",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "skipping",
+   "rope",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-skipping-rope-digital",
+  "name": "Skipping Rope Digital",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "skipping",
+   "rope",
+   "digital",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-yoga-mat-6mm",
+  "name": "Yoga Mat 6mm",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "yoga",
+   "mat",
+   "6mm",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-yoga-mat-10mm",
+  "name": "Yoga Mat 10mm",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "yoga",
+   "mat",
+   "10mm",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-yoga-block",
+  "name": "Yoga Block",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "yoga",
+   "block",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-yoga-ball-65cm",
+  "name": "Yoga Ball 65cm",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "yoga",
+   "ball",
+   "65cm",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-resistance-band-set-1-set",
+  "name": "Resistance Band Set 1 set",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "resistance",
+   "band",
+   "set",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-pull-up-bar-door",
+  "name": "Pull Up Bar Door",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "pull",
+   "up",
+   "bar",
+   "door",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-push-up-stand-pair-1-pair",
+  "name": "Push Up Stand Pair 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "push",
+   "up",
+   "stand",
+   "pair",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-ab-roller",
+  "name": "Ab Roller",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "ab",
+   "roller",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-treadmill-manual",
+  "name": "Treadmill Manual",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "treadmill",
+   "manual",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-treadmill-electric-2hp",
+  "name": "Treadmill Electric 2HP",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 71250,
+  "tags": [
+   "treadmill",
+   "electric",
+   "2hp",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-exercise-bike",
+  "name": "Exercise Bike",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24000,
+  "tags": [
+   "exercise",
+   "bike",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-elliptical-trainer",
+  "name": "Elliptical Trainer",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 43500,
+  "tags": [
+   "elliptical",
+   "trainer",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-home-gym-multi-station",
+  "name": "Home Gym Multi Station",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 75000,
+  "costPrice": 56250,
+  "tags": [
+   "home",
+   "gym",
+   "multi",
+   "station",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-massage-gun",
+  "name": "Massage Gun",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "massage",
+   "gun",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-foam-roller",
+  "name": "Foam Roller",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "foam",
+   "roller",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-boxing-gloves-12oz-1-pair",
+  "name": "Boxing Gloves 12oz 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "boxing",
+   "gloves",
+   "12oz",
+   "pair",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-punching-bag-4ft",
+  "name": "Punching Bag 4ft",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "punching",
+   "bag",
+   "4ft",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-boxing-hand-wraps-1-pair",
+  "name": "Boxing Hand Wraps 1 pair",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "boxing",
+   "hand",
+   "wraps",
+   "pair",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-sports-water-bottle-shaker",
+  "name": "Sports Water Bottle Shaker",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "sports",
+   "water",
+   "bottle",
+   "shaker",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-gym-bag",
+  "name": "Gym Bag",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "gym",
+   "bag",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-digital-weighing-scale-body",
+  "name": "Digital Weighing Scale Body",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "digital",
+   "weighing",
+   "scale",
+   "body",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-fitness-tracker-band",
+  "name": "Fitness Tracker Band",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "fitness",
+   "tracker",
+   "band",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-whey-protein-shaker",
+  "name": "Whey Protein Shaker",
+  "brand": "",
+  "category": "Fitness & Gym",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "whey",
+   "protein",
+   "shaker",
+   "fitness & gym"
+  ]
+ },
+ {
+  "id": "sports-volleyball-size-5",
+  "name": "Volleyball Size 5",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "volleyball",
+   "size",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-volleyball-net-with-poles",
+  "name": "Volleyball Net with Poles",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "volleyball",
+   "net",
+   "with",
+   "poles",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-basketball-size-7",
+  "name": "Basketball Size 7",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "basketball",
+   "size",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-basketball-hoop-wall-mount",
+  "name": "Basketball Hoop Wall Mount",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "basketball",
+   "hoop",
+   "wall",
+   "mount",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-hockey-stick",
+  "name": "Hockey Stick",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "hockey",
+   "stick",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-hockey-ball",
+  "name": "Hockey Ball",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "hockey",
+   "ball",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-baseball-bat",
+  "name": "Baseball Bat",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "baseball",
+   "bat",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-frisbee",
+  "name": "Frisbee",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "frisbee",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-skateboard",
+  "name": "Skateboard",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "skateboard",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-roller-skates-kids-1-pair",
+  "name": "Roller Skates Kids 1 pair",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "roller",
+   "skates",
+   "kids",
+   "pair",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-cycle-bmx-20-inch",
+  "name": "Cycle BMX 20 inch",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "cycle",
+   "bmx",
+   "20",
+   "inch",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-cycle-kids-16-inch",
+  "name": "Cycle Kids 16 inch",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "cycle",
+   "kids",
+   "16",
+   "inch",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-cycle-mountain-26-inch",
+  "name": "Cycle Mountain 26 inch",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21000,
+  "tags": [
+   "cycle",
+   "mountain",
+   "26",
+   "inch",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-cycle-cycle-helmet",
+  "name": "Cycle Cycle Helmet",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "cycle",
+   "helmet",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-swimming-goggles",
+  "name": "Swimming Goggles",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "swimming",
+   "goggles",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-swimming-cap",
+  "name": "Swimming Cap",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "swimming",
+   "cap",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-swimming-trunks",
+  "name": "Swimming Trunks",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "swimming",
+   "trunks",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-swimming-costume-ladies",
+  "name": "Swimming Costume Ladies",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "swimming",
+   "costume",
+   "ladies",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-swimming-float-kids",
+  "name": "Swimming Float Kids",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "swimming",
+   "float",
+   "kids",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-carrom-board-large",
+  "name": "Carrom Board Large",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "carrom",
+   "board",
+   "large",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-carrom-board-medium",
+  "name": "Carrom Board Medium",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2850,
+  "tags": [
+   "carrom",
+   "board",
+   "medium",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-carrom-coins-set-1-set",
+  "name": "Carrom Coins Set 1 set",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "carrom",
+   "coins",
+   "set",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-carrom-powder",
+  "name": "Carrom Powder",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "carrom",
+   "powder",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-chess-board-wooden",
+  "name": "Chess Board Wooden",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "chess",
+   "board",
+   "wooden",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-chess-board-folding",
+  "name": "Chess Board Folding",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "chess",
+   "board",
+   "folding",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-ludo-board",
+  "name": "Ludo Board",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "ludo",
+   "board",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-snooker-cue-stick",
+  "name": "Snooker Cue Stick",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "snooker",
+   "cue",
+   "stick",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-dart-board-set",
+  "name": "Dart Board Set",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "dart",
+   "board",
+   "set",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-camping-tent-4-person",
+  "name": "Camping Tent 4 Person",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "camping",
+   "tent",
+   "person",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sleeping-bag",
+  "name": "Sleeping Bag",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "sleeping",
+   "bag",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-hiking-backpack-50l",
+  "name": "Hiking Backpack 50L",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "hiking",
+   "backpack",
+   "50l",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-water-bottle-steel-1l",
+  "name": "Water Bottle Steel 1L",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "water",
+   "bottle",
+   "steel",
+   "1l",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-trophy-cup-gold-small",
+  "name": "Trophy Cup Gold Small",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "trophy",
+   "cup",
+   "gold",
+   "small",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-medal-gold-silver-bronze-set-1-set",
+  "name": "Medal Gold Silver Bronze Set 1 set",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "medal",
+   "gold",
+   "silver",
+   "bronze",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-t-shirt-dri-fit-s",
+  "name": "Sports T-Shirt Dri-Fit S",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "sports",
+   "shirt",
+   "dri",
+   "fit",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-t-shirt-dri-fit-m",
+  "name": "Sports T-Shirt Dri-Fit M",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "sports",
+   "shirt",
+   "dri",
+   "fit",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-t-shirt-dri-fit-l",
+  "name": "Sports T-Shirt Dri-Fit L",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "sports",
+   "shirt",
+   "dri",
+   "fit",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-t-shirt-dri-fit-xl",
+  "name": "Sports T-Shirt Dri-Fit XL",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "sports",
+   "shirt",
+   "dri",
+   "fit",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-track-suit-sports-m",
+  "name": "Track Suit Sports M",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "track",
+   "suit",
+   "sports",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-track-suit-sports-l",
+  "name": "Track Suit Sports L",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "track",
+   "suit",
+   "sports",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-track-suit-sports-xl",
+  "name": "Track Suit Sports XL",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "track",
+   "suit",
+   "sports",
+   "xl",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-shorts-m",
+  "name": "Sports Shorts M",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "sports",
+   "shorts",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-shorts-l",
+  "name": "Sports Shorts L",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "sports",
+   "shorts",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-shorts-xl",
+  "name": "Sports Shorts XL",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "sports",
+   "shorts",
+   "xl",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-cap",
+  "name": "Sports Cap",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "sports",
+   "cap",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-wrist-band-pair-1-pair",
+  "name": "Wrist Band Pair 1 pair",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "wrist",
+   "band",
+   "pair",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-knee-support",
+  "name": "Knee Support",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "knee",
+   "support",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-ankle-support",
+  "name": "Ankle Support",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "ankle",
+   "support",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-whistle-metal",
+  "name": "Whistle Metal",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "whistle",
+   "metal",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-stop-watch-digital",
+  "name": "Stop Watch Digital",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "stop",
+   "watch",
+   "digital",
+   "other sports & games"
+  ]
+ },
+ {
+  "id": "sports-sports-bag-duffle",
+  "name": "Sports Bag Duffle",
+  "brand": "",
+  "category": "Other Sports & Games",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "sports",
+   "bag",
+   "duffle",
+   "other sports & games"
+  ]
+ }
+]

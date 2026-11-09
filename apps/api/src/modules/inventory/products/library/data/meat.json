@@ -1,0 +1,1299 @@
+[
+ {
+  "id": "meat-beef-with-bone",
+  "name": "Beef with Bone",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1100,
+  "costPrice": 935,
+  "tags": [
+   "beef",
+   "with",
+   "bone",
+   "gosht",
+   "gai"
+  ]
+ },
+ {
+  "id": "meat-beef-boneless",
+  "name": "Beef Boneless",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1402,
+  "tags": [
+   "beef",
+   "boneless"
+  ]
+ },
+ {
+  "id": "meat-beef-qeema",
+  "name": "Beef Qeema",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1400,
+  "costPrice": 1190,
+  "tags": [
+   "beef",
+   "qeema"
+  ]
+ },
+ {
+  "id": "meat-beef-boti",
+  "name": "Beef Boti",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1232,
+  "tags": [
+   "beef",
+   "boti"
+  ]
+ },
+ {
+  "id": "meat-beef-steak",
+  "name": "Beef Steak",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 2200,
+  "costPrice": 1870,
+  "tags": [
+   "beef",
+   "steak"
+  ]
+ },
+ {
+  "id": "meat-beef-nihari-cut",
+  "name": "Beef Nihari Cut",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1062,
+  "tags": [
+   "beef",
+   "nihari",
+   "cut"
+  ]
+ },
+ {
+  "id": "meat-beef-paya",
+  "name": "Beef Paya",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 800,
+  "costPrice": 680,
+  "tags": [
+   "beef",
+   "paya"
+  ]
+ },
+ {
+  "id": "meat-beef-liver",
+  "name": "Beef Liver",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 900,
+  "costPrice": 765,
+  "tags": [
+   "beef",
+   "liver"
+  ]
+ },
+ {
+  "id": "meat-beef-brain-maghaz-1-piece",
+  "name": "Beef Brain (Maghaz) 1 piece",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 450,
+  "costPrice": 382,
+  "tags": [
+   "beef",
+   "brain",
+   "maghaz",
+   "piece"
+  ]
+ },
+ {
+  "id": "meat-beef-kidney",
+  "name": "Beef Kidney",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 650,
+  "costPrice": 552,
+  "tags": [
+   "beef",
+   "kidney"
+  ]
+ },
+ {
+  "id": "meat-beef-bone",
+  "name": "Beef Bone",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 300,
+  "costPrice": 255,
+  "tags": [
+   "beef",
+   "bone"
+  ]
+ },
+ {
+  "id": "meat-beef-fat",
+  "name": "Beef Fat",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 250,
+  "costPrice": 212,
+  "tags": [
+   "beef",
+   "fat"
+  ]
+ },
+ {
+  "id": "meat-beef-tongue",
+  "name": "Beef Tongue",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1232,
+  "tags": [
+   "beef",
+   "tongue"
+  ]
+ },
+ {
+  "id": "meat-beef-ribs",
+  "name": "Beef Ribs",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1300,
+  "costPrice": 1105,
+  "tags": [
+   "beef",
+   "ribs"
+  ]
+ },
+ {
+  "id": "meat-beef-shami-kebab-mix",
+  "name": "Beef Shami Kebab Mix",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1700,
+  "costPrice": 1445,
+  "tags": [
+   "beef",
+   "shami",
+   "kebab",
+   "mix"
+  ]
+ },
+ {
+  "id": "meat-beef-seekh-kebab-mix",
+  "name": "Beef Seekh Kebab Mix",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1402,
+  "tags": [
+   "beef",
+   "seekh",
+   "kebab",
+   "mix"
+  ]
+ },
+ {
+  "id": "meat-beef-burger-patty",
+  "name": "Beef Burger Patty",
+  "brand": "",
+  "category": "Beef",
+  "unit": "kg",
+  "price": 1850,
+  "costPrice": 1572,
+  "tags": [
+   "beef",
+   "burger",
+   "patty"
+  ]
+ },
+ {
+  "id": "meat-mutton-with-bone",
+  "name": "Mutton with Bone",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2300,
+  "costPrice": 2024,
+  "tags": [
+   "mutton",
+   "with",
+   "bone",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-boneless",
+  "name": "Mutton Boneless",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 3100,
+  "costPrice": 2728,
+  "tags": [
+   "mutton",
+   "boneless",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-qeema",
+  "name": "Mutton Qeema",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2800,
+  "costPrice": 2464,
+  "tags": [
+   "mutton",
+   "qeema",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-chops",
+  "name": "Mutton Chops",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2800,
+  "costPrice": 2464,
+  "tags": [
+   "mutton",
+   "chops",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-leg-raan-with-bone",
+  "name": "Mutton Leg (Raan) with Bone",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2400,
+  "costPrice": 2112,
+  "tags": [
+   "mutton",
+   "leg",
+   "raan",
+   "with",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-boti",
+  "name": "Mutton Boti",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2800,
+  "costPrice": 2464,
+  "tags": [
+   "mutton",
+   "boti",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-karahi-cut",
+  "name": "Mutton Karahi Cut",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2400,
+  "costPrice": 2112,
+  "tags": [
+   "mutton",
+   "karahi",
+   "cut",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-nihari-cut",
+  "name": "Mutton Nihari Cut",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2300,
+  "costPrice": 2024,
+  "tags": [
+   "mutton",
+   "nihari",
+   "cut",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-paya-per-set",
+  "name": "Mutton Paya per set",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "mutton",
+   "paya",
+   "per",
+   "set",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-liver-kaleji",
+  "name": "Mutton Liver (Kaleji)",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 1400,
+  "costPrice": 1232,
+  "tags": [
+   "mutton",
+   "liver",
+   "kaleji",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-kidney-gurda",
+  "name": "Mutton Kidney (Gurda)",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 1100,
+  "costPrice": 968,
+  "tags": [
+   "mutton",
+   "kidney",
+   "gurda",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-brain-maghaz-1-piece",
+  "name": "Mutton Brain (Maghaz) 1 piece",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 350,
+  "costPrice": 308,
+  "tags": [
+   "mutton",
+   "brain",
+   "maghaz",
+   "piece",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-ribs",
+  "name": "Mutton Ribs",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2350,
+  "costPrice": 2068,
+  "tags": [
+   "mutton",
+   "ribs",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-mutton-shoulder",
+  "name": "Mutton Shoulder",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2300,
+  "costPrice": 2024,
+  "tags": [
+   "mutton",
+   "shoulder",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-goat-chops-bakra",
+  "name": "Goat Chops (Bakra)",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2900,
+  "costPrice": 2552,
+  "tags": [
+   "goat",
+   "chops",
+   "bakra",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-goat-with-bone-bakra",
+  "name": "Goat with Bone (Bakra)",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2500,
+  "costPrice": 2200,
+  "tags": [
+   "goat",
+   "with",
+   "bone",
+   "bakra",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-goat-boneless",
+  "name": "Goat Boneless",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 3400,
+  "costPrice": 2992,
+  "tags": [
+   "goat",
+   "boneless",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-lamb-chops",
+  "name": "Lamb Chops",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 3100,
+  "costPrice": 2728,
+  "tags": [
+   "lamb",
+   "chops",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-lamb-leg",
+  "name": "Lamb Leg",
+  "brand": "",
+  "category": "Mutton & Goat",
+  "unit": "kg",
+  "price": 2800,
+  "costPrice": 2464,
+  "tags": [
+   "lamb",
+   "leg",
+   "mutton & goat"
+  ]
+ },
+ {
+  "id": "meat-chicken-whole-with-skin",
+  "name": "Chicken Whole with Skin",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 620,
+  "costPrice": 546,
+  "tags": [
+   "chicken",
+   "whole",
+   "with",
+   "skin",
+   "murghi"
+  ]
+ },
+ {
+  "id": "meat-chicken-whole-skinless",
+  "name": "Chicken Whole Skinless",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 616,
+  "tags": [
+   "chicken",
+   "whole",
+   "skinless"
+  ]
+ },
+ {
+  "id": "meat-chicken-breast-boneless",
+  "name": "Chicken Breast Boneless",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1050,
+  "costPrice": 924,
+  "tags": [
+   "chicken",
+   "breast",
+   "boneless"
+  ]
+ },
+ {
+  "id": "meat-chicken-leg-piece",
+  "name": "Chicken Leg Piece",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 650,
+  "costPrice": 572,
+  "tags": [
+   "chicken",
+   "leg",
+   "piece"
+  ]
+ },
+ {
+  "id": "meat-chicken-thigh-boneless",
+  "name": "Chicken Thigh Boneless",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1000,
+  "costPrice": 880,
+  "tags": [
+   "chicken",
+   "thigh",
+   "boneless"
+  ]
+ },
+ {
+  "id": "meat-chicken-karahi-cut",
+  "name": "Chicken Karahi Cut",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 616,
+  "tags": [
+   "chicken",
+   "karahi",
+   "cut"
+  ]
+ },
+ {
+  "id": "meat-chicken-biryani-cut",
+  "name": "Chicken Biryani Cut",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 616,
+  "tags": [
+   "chicken",
+   "biryani",
+   "cut"
+  ]
+ },
+ {
+  "id": "meat-chicken-wings",
+  "name": "Chicken Wings",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 800,
+  "costPrice": 704,
+  "tags": [
+   "chicken",
+   "wings"
+  ]
+ },
+ {
+  "id": "meat-chicken-qeema",
+  "name": "Chicken Qeema",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1100,
+  "costPrice": 968,
+  "tags": [
+   "chicken",
+   "qeema"
+  ]
+ },
+ {
+  "id": "meat-chicken-boti",
+  "name": "Chicken Boti",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1100,
+  "costPrice": 968,
+  "tags": [
+   "chicken",
+   "boti"
+  ]
+ },
+ {
+  "id": "meat-chicken-fillet",
+  "name": "Chicken Fillet",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1150,
+  "costPrice": 1012,
+  "tags": [
+   "chicken",
+   "fillet"
+  ]
+ },
+ {
+  "id": "meat-chicken-liver",
+  "name": "Chicken Liver",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "chicken",
+   "liver"
+  ]
+ },
+ {
+  "id": "meat-chicken-gizzard",
+  "name": "Chicken Gizzard",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 500,
+  "costPrice": 440,
+  "tags": [
+   "chicken",
+   "gizzard"
+  ]
+ },
+ {
+  "id": "meat-chicken-feet-paya",
+  "name": "Chicken Feet (Paya)",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "chicken",
+   "feet",
+   "paya"
+  ]
+ },
+ {
+  "id": "meat-chicken-neck",
+  "name": "Chicken Neck",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 250,
+  "costPrice": 220,
+  "tags": [
+   "chicken",
+   "neck"
+  ]
+ },
+ {
+  "id": "meat-chicken-drumstick",
+  "name": "Chicken Drumstick",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 616,
+  "tags": [
+   "chicken",
+   "drumstick"
+  ]
+ },
+ {
+  "id": "meat-chicken-tikka-mix",
+  "name": "Chicken Tikka Mix",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1100,
+  "tags": [
+   "chicken",
+   "tikka",
+   "mix"
+  ]
+ },
+ {
+  "id": "meat-chicken-seekh-kebab-mix",
+  "name": "Chicken Seekh Kebab Mix",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "chicken",
+   "seekh",
+   "kebab",
+   "mix"
+  ]
+ },
+ {
+  "id": "meat-chicken-shami-mix",
+  "name": "Chicken Shami Mix",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "chicken",
+   "shami",
+   "mix"
+  ]
+ },
+ {
+  "id": "meat-chicken-nuggets-frozen",
+  "name": "Chicken Nuggets Frozen",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1100,
+  "tags": [
+   "chicken",
+   "nuggets",
+   "frozen"
+  ]
+ },
+ {
+  "id": "meat-chicken-patties-frozen",
+  "name": "Chicken Patties Frozen",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1350,
+  "costPrice": 1188,
+  "tags": [
+   "chicken",
+   "patties",
+   "frozen"
+  ]
+ },
+ {
+  "id": "meat-desi-murghi",
+  "name": "Desi Murghi",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1100,
+  "tags": [
+   "desi",
+   "murghi",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-broiler-live",
+  "name": "Broiler Live",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 380,
+  "costPrice": 334,
+  "tags": [
+   "broiler",
+   "live",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-cockerel",
+  "name": "Cockerel",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 900,
+  "costPrice": 792,
+  "tags": [
+   "cockerel",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-quail-batair-piece-1-piece",
+  "name": "Quail (Batair) piece 1 piece",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "quail",
+   "batair",
+   "piece",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-duck",
+  "name": "Duck",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "duck",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-turkey",
+  "name": "Turkey",
+  "brand": "",
+  "category": "Chicken",
+  "unit": "kg",
+  "price": 1850,
+  "costPrice": 1628,
+  "tags": [
+   "turkey",
+   "chicken"
+  ]
+ },
+ {
+  "id": "meat-rahu-fish",
+  "name": "Rahu Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 650,
+  "costPrice": 533,
+  "tags": [
+   "rahu",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-thaila-fish",
+  "name": "Thaila Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 574,
+  "tags": [
+   "thaila",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-singhara-fish",
+  "name": "Singhara Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1500,
+  "costPrice": 1230,
+  "tags": [
+   "singhara",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-mahseer-fish",
+  "name": "Mahseer Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1189,
+  "tags": [
+   "mahseer",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-dumra-fish",
+  "name": "Dumra Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1025,
+  "tags": [
+   "dumra",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-pomfret",
+  "name": "Pomfret",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1950,
+  "costPrice": 1599,
+  "tags": [
+   "pomfret",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-prawns-medium",
+  "name": "Prawns Medium",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 2200,
+  "costPrice": 1804,
+  "tags": [
+   "prawns",
+   "medium",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-prawns-jumbo",
+  "name": "Prawns Jumbo",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 3200,
+  "costPrice": 2624,
+  "tags": [
+   "prawns",
+   "jumbo",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-crab",
+  "name": "Crab",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1353,
+  "tags": [
+   "crab",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-sole-fish-fillet",
+  "name": "Sole Fish Fillet",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1750,
+  "costPrice": 1435,
+  "tags": [
+   "sole",
+   "fish",
+   "fillet",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-fish-fillet-basa",
+  "name": "Fish Fillet Basa",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1050,
+  "costPrice": 861,
+  "tags": [
+   "fish",
+   "fillet",
+   "basa",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-fish-fingers-frozen",
+  "name": "Fish Fingers Frozen",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1550,
+  "costPrice": 1271,
+  "tags": [
+   "fish",
+   "fingers",
+   "frozen",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-tuna-fish-fresh",
+  "name": "Tuna Fish Fresh",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 1500,
+  "costPrice": 1230,
+  "tags": [
+   "tuna",
+   "fish",
+   "fresh",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-surmai-fish",
+  "name": "Surmai Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 2200,
+  "costPrice": 1804,
+  "tags": [
+   "surmai",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-sardine-fish",
+  "name": "Sardine Fish",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 550,
+  "costPrice": 451,
+  "tags": [
+   "sardine",
+   "fish",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-lobster",
+  "name": "Lobster",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 3500,
+  "costPrice": 2870,
+  "tags": [
+   "lobster",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-fish-whole-cleaned",
+  "name": "Fish Whole Cleaned",
+  "brand": "",
+  "category": "Fish & Seafood",
+  "unit": "kg",
+  "price": 800,
+  "costPrice": 656,
+  "tags": [
+   "fish",
+   "whole",
+   "cleaned",
+   "fish & seafood"
+  ]
+ },
+ {
+  "id": "meat-sausage-chicken",
+  "name": "Sausage Chicken",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "sausage",
+   "chicken",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-sausage-beef",
+  "name": "Sausage Beef",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "sausage",
+   "beef",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-salami-chicken",
+  "name": "Salami Chicken",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "salami",
+   "chicken",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-hot-dog-sausage-pack",
+  "name": "Hot Dog Sausage Pack",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "hot",
+   "dog",
+   "sausage",
+   "pack",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-bacon-beef",
+  "name": "Bacon Beef",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 2200,
+  "costPrice": 1760,
+  "tags": [
+   "bacon",
+   "beef",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-frozen-samosa-pack",
+  "name": "Frozen Samosa Pack",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 750,
+  "costPrice": 600,
+  "tags": [
+   "frozen",
+   "samosa",
+   "pack",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-frozen-rolls",
+  "name": "Frozen Rolls",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "frozen",
+   "rolls",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-frozen-paratha-pack",
+  "name": "Frozen Paratha Pack",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 350,
+  "costPrice": 280,
+  "tags": [
+   "frozen",
+   "paratha",
+   "pack",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-frozen-kofta-balls",
+  "name": "Frozen Kofta Balls",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "frozen",
+   "kofta",
+   "balls",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-meatballs-beef",
+  "name": "Meatballs Beef",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1550,
+  "costPrice": 1240,
+  "tags": [
+   "meatballs",
+   "beef",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-chicken-ham",
+  "name": "Chicken Ham",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 1160,
+  "tags": [
+   "chicken",
+   "ham",
+   "frozen & processed"
+  ]
+ },
+ {
+  "id": "meat-chicken-spring-rolls",
+  "name": "Chicken Spring Rolls",
+  "brand": "",
+  "category": "Frozen & Processed",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 760,
+  "tags": [
+   "chicken",
+   "spring",
+   "rolls",
+   "frozen & processed"
+  ]
+ }
+]

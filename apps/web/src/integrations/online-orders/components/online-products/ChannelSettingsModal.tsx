@@ -1,7 +1,8 @@
 /**
- * Channel price rule and stock buffer: percent or fixed rupees up or down on
- * the Nafaa price, rounding, whether Nafaa sends the price at all, and how
- * many units to keep back from the channel. Shows a live example.
+ * Channel sync settings, price rule and stock buffer: where price, content,
+ * new products and hand-edited stock come from (the shared sync card), percent
+ * or fixed rupees up or down on the Nafaa price, rounding, and how many units
+ * to keep back from the channel. Shows a live example.
  */
 
 import { useState } from 'react';
@@ -13,19 +14,20 @@ import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../../api/online-orders.api';
 import { applyRule, onlineProductsApi, type OnlineChannel, type PriceRounding, type PriceRuleMode, type PushContent, type StockMode } from '../../api/online-products.api';
 import { ChannelMark, channelName, kindOf, refreshOnlineProducts, rs } from './meta';
+import { SyncSettingsFields, useSyncForm } from './SyncSettingsCard';
 import { t, Trans } from '@core/i18n';
 
 export function ChannelSettingsModal({ channel, onClose, section }: { channel: OnlineChannel; onClose: () => void; section?: 'content' }) {
   const qc = useQueryClient();
   const r = channel.priceRule;
-  const [pushPrice, setPushPrice] = useState(channel.pushPrice);
+  const sync = useSyncForm(channel);
+  // The channel as last saved here (the preset returns a fresh copy).
+  const [current, setCurrent] = useState(channel);
   const [mode, setMode] = useState<PriceRuleMode>(r.mode);
   const [dir, setDir] = useState<'up' | 'down'>(r.value < 0 ? 'down' : 'up');
   const [amount, setAmount] = useState(r.value ? String(Math.abs(r.value)) : '');
   const [rounding, setRounding] = useState<PriceRounding>(r.rounding);
   const [buffer, setBuffer] = useState(channel.stockBuffer ? String(channel.stockBuffer) : '');
-  const [pushStock, setPushStock] = useState(channel.pushStock);
-  const [autoLink, setAutoLink] = useState(channel.autoLink);
   const [stockMode, setStockMode] = useState<StockMode>(channel.stockMode ?? 'ALL');
   const [stockPercent, setStockPercent] = useState(String(channel.stockPercent ?? 100));
   const [stockFixed, setStockFixed] = useState(channel.stockFixed ? String(channel.stockFixed) : '');
@@ -39,7 +41,7 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
     // A custom website only takes the stock buffer; its price is the Nafaa price from the website API.
     mutationFn: () => onlineProductsApi.settings(channel.id, {
       ...(channel.canPush ? {
-        pushPrice, priceRule: rule, pushStock, autoLink, stockMode,
+        ...(sync.body ?? {}), priceRule: rule, stockMode,
         stockPercent: Math.min(100, Math.max(1, Math.floor(Number(stockPercent) || 100))),
         stockFixed: Math.max(0, Math.floor(Number(stockFixed) || 0)),
         ...(channel.canContent ? { pushContent: content } : {}),
@@ -48,7 +50,8 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
     }),
     onSuccess: () => {
       refreshOnlineProducts(qc);
-      toast.success(channel.canPush && pushPrice ? t('Save ho gaya — nayi Price aur Stock channel par ja rahe hain') : t('Save ho gaya'));
+      const sends = sync.form.priceFrom === 'NAFAA' || sync.form.priceFrom === 'LATEST';
+      toast.success(channel.canPush && sends ? t('Save ho gaya — nayi Price aur Stock channel par ja rahe hain') : t('Save ho gaya'));
       onClose();
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
@@ -67,20 +70,17 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
       </>}>
       <div className="space-y-5">
         {channel.canPush && (
-          <section className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
-            <Switch checked={pushStock} onChange={(e) => setPushStock(e.target.checked)}
-              label={t('Stock Nafaa se channel par bhejein')}
-              description={pushStock ? t('Har sale, return, purchase aur stock badalne par channel ka Stock khud barabar hota hai.') : t('Band hai — channel par Stock bilkul nahi jayega. Wahan haath se rakhein.')} />
-            <Switch checked={autoLink} onChange={(e) => setAutoLink(e.target.checked)}
-              label={t('Pakke match khud jorein')}
-              description={t('Channel par naya product aaye aur us ka SKU ya barcode Nafaa se bilkul mile to khud jur jata hai. Sirf naam milne wale kabhi khud nahi jurte.')} />
+          <section className="space-y-2">
+            <p className="text-[0.875rem] font-semibold text-slate-900">{t('Sync settings')}</p>
+            {!sync.chosen && <p className="rounded-xl bg-sky-50 px-3 py-2 text-[0.78125rem] text-sky-900 ring-1 ring-sky-100">{t('Ye settings abhi chuni nahi gayin. Dekh kar Save karein, ya "Sab kuch khud sync" chalu karein.')}</p>}
+            <SyncSettingsFields channel={current} sync={sync} canManage rule={rule} onPreset={(c) => { setCurrent(c); setContent(c.pushContent); }} />
           </section>
         )}
 
-        {channel.canPush && <section className="space-y-3">
-          <Switch checked={pushPrice} onChange={(e) => setPushPrice(e.target.checked)}
-            label={t('Price Nafaa se channel par bhejein')}
-            description={pushPrice ? t('Nafaa me Price badlein to yahan wali Price channel par khud lag jayegi.') : t('Band hai — Price channel par haath se badlein. Neeche wali Price sirf dikhane ke liye hai.')} />
+        {channel.canPush && <section className="space-y-3 border-t border-slate-100 pt-4">
+          {!(sync.form.priceFrom === 'NAFAA' || sync.form.priceFrom === 'LATEST') && (
+            <p className="text-[0.75rem] text-slate-500">{t('Nafaa abhi is channel par Price nahi bhejta — neeche wala rule tab lagega jab qeemat Nafaa se bhi badle.')}</p>
+          )}
 
           <div>
             <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Channel ki Price')}</p>

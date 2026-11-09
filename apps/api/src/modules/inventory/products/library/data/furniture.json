@@ -1,0 +1,1498 @@
+[
+ {
+  "id": "furniture-single-bed-wooden",
+  "name": "Single Bed Wooden",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21000,
+  "tags": [
+   "single",
+   "bed",
+   "wooden",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-double-bed-wooden",
+  "name": "Double Bed Wooden",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 41250,
+  "tags": [
+   "double",
+   "bed",
+   "wooden",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-king-bed-wooden",
+  "name": "King Bed Wooden",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 63750,
+  "tags": [
+   "king",
+   "bed",
+   "wooden",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-double-bed-iron",
+  "name": "Double Bed Iron",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "double",
+   "bed",
+   "iron",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-single-bed-iron",
+  "name": "Single Bed Iron",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 12000,
+  "costPrice": 9000,
+  "tags": [
+   "single",
+   "bed",
+   "iron",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-bunk-bed",
+  "name": "Bunk Bed",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "bunk",
+   "bed",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-bed-side-table",
+  "name": "Bed Side Table",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "bed",
+   "side",
+   "table",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-dressing-table-with-mirror",
+  "name": "Dressing Table with Mirror",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 18000,
+  "costPrice": 13500,
+  "tags": [
+   "dressing",
+   "table",
+   "with",
+   "mirror",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-bedroom-set-complete-5pcs-1-set",
+  "name": "Bedroom Set Complete 5pcs 1 set",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 108750,
+  "tags": [
+   "bedroom",
+   "set",
+   "complete",
+   "5pcs",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-wardrobe-2-door-wood",
+  "name": "Wardrobe 2 Door Wood",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "wardrobe",
+   "door",
+   "wood",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-wardrobe-3-door-wood",
+  "name": "Wardrobe 3 Door Wood",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 48750,
+  "tags": [
+   "wardrobe",
+   "door",
+   "wood",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-wardrobe-4-door",
+  "name": "Wardrobe 4 Door",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 71250,
+  "tags": [
+   "wardrobe",
+   "door",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-steel-almirah",
+  "name": "Steel Almirah",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "steel",
+   "almirah",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-chest-of-drawers",
+  "name": "Chest of Drawers",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "chest",
+   "of",
+   "drawers",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-divan-bed-storage",
+  "name": "Divan Bed Storage",
+  "brand": "",
+  "category": "Beds",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 48750,
+  "tags": [
+   "divan",
+   "bed",
+   "storage",
+   "beds"
+  ]
+ },
+ {
+  "id": "furniture-master-molty-foam-mattress-single-4-inch",
+  "name": "Master Molty Foam Mattress Single 4 inch",
+  "brand": "Master Molty",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14430,
+  "tags": [
+   "master",
+   "molty",
+   "foam",
+   "mattress",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-master-molty-foam-mattress-double-6-inch",
+  "name": "Master Molty Foam Mattress Double 6 inch",
+  "brand": "Master Molty",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 35100,
+  "tags": [
+   "master",
+   "molty",
+   "foam",
+   "mattress",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-master-molty-spring-mattress-king",
+  "name": "Master Molty Spring Mattress King",
+  "brand": "Master Molty",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 74100,
+  "tags": [
+   "master",
+   "molty",
+   "spring",
+   "mattress",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-diamond-foam-mattress-single-5-inch",
+  "name": "Diamond Foam Mattress Single 5 inch",
+  "brand": "Diamond",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "diamond",
+   "foam",
+   "mattress",
+   "single",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-diamond-foam-mattress-double-6-inch",
+  "name": "Diamond Foam Mattress Double 6 inch",
+  "brand": "Diamond",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 28080,
+  "tags": [
+   "diamond",
+   "foam",
+   "mattress",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-diamond-orthopedic-mattress-double",
+  "name": "Diamond Orthopedic Mattress Double",
+  "brand": "Diamond",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 52000,
+  "costPrice": 40560,
+  "tags": [
+   "diamond",
+   "orthopedic",
+   "mattress",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-dura-foam-mattress-single-4-inch",
+  "name": "Dura Foam Mattress Single 4 inch",
+  "brand": "Dura Foam",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 12000,
+  "costPrice": 9360,
+  "tags": [
+   "dura",
+   "foam",
+   "mattress",
+   "single",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-dura-foam-mattress-double-6-inch",
+  "name": "Dura Foam Mattress Double 6 inch",
+  "brand": "Dura Foam",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21840,
+  "tags": [
+   "dura",
+   "foam",
+   "mattress",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-interwood-mattress-double",
+  "name": "Interwood Mattress Double",
+  "brand": "Interwood",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 42900,
+  "tags": [
+   "interwood",
+   "mattress",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-mattress-single-economy",
+  "name": "Mattress Single Economy",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5850,
+  "tags": [
+   "mattress",
+   "single",
+   "economy",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-mattress-double-economy",
+  "name": "Mattress Double Economy",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "mattress",
+   "double",
+   "economy",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-mattress-rubberised-coir",
+  "name": "Mattress Rubberised Coir",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14430,
+  "tags": [
+   "mattress",
+   "rubberised",
+   "coir",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-pillow-fibre",
+  "name": "Pillow Fibre",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "pillow",
+   "fibre",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-pillow-memory-foam",
+  "name": "Pillow Memory Foam",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "pillow",
+   "memory",
+   "foam",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-bed-sheet-double-cotton",
+  "name": "Bed Sheet Double Cotton",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "bed",
+   "sheet",
+   "double",
+   "cotton",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-bed-sheet-single",
+  "name": "Bed Sheet Single",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1404,
+  "tags": [
+   "bed",
+   "sheet",
+   "single",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-comforter-double",
+  "name": "Comforter Double",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5850,
+  "tags": [
+   "comforter",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-quilt-razai-double",
+  "name": "Quilt (Razai) Double",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "quilt",
+   "razai",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-blanket-mink-double",
+  "name": "Blanket Mink Double",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "blanket",
+   "mink",
+   "double",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-mattress-protector",
+  "name": "Mattress Protector",
+  "brand": "",
+  "category": "Mattresses",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2184,
+  "tags": [
+   "mattress",
+   "protector",
+   "mattresses"
+  ]
+ },
+ {
+  "id": "furniture-sofa-set-5-seater-1-set",
+  "name": "Sofa Set 5 Seater 1 set",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 63750,
+  "tags": [
+   "sofa",
+   "set",
+   "seater",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-sofa-set-7-seater-1-set",
+  "name": "Sofa Set 7 Seater 1 set",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 125000,
+  "costPrice": 93750,
+  "tags": [
+   "sofa",
+   "set",
+   "seater",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-sofa-set-3-2-1-1-set",
+  "name": "Sofa Set 3+2+1 1 set",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 78750,
+  "tags": [
+   "sofa",
+   "set",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-l-shape-sofa",
+  "name": "L-Shape Sofa",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 71250,
+  "tags": [
+   "shape",
+   "sofa",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-sofa-cum-bed",
+  "name": "Sofa Cum Bed",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "sofa",
+   "cum",
+   "bed",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-single-sofa-chair",
+  "name": "Single Sofa Chair",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "single",
+   "sofa",
+   "chair",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-recliner-chair",
+  "name": "Recliner Chair",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "recliner",
+   "chair",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-rocking-chair",
+  "name": "Rocking Chair",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9375,
+  "tags": [
+   "rocking",
+   "chair",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-bean-bag-large",
+  "name": "Bean Bag Large",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "bean",
+   "bag",
+   "large",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-dining-chair-wooden",
+  "name": "Dining Chair Wooden",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "dining",
+   "chair",
+   "wooden",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-dining-chair-steel-padded",
+  "name": "Dining Chair Steel Padded",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3600,
+  "tags": [
+   "dining",
+   "chair",
+   "steel",
+   "padded",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-plastic-chair",
+  "name": "Plastic Chair",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 900,
+  "tags": [
+   "plastic",
+   "chair",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-folding-chair",
+  "name": "Folding Chair",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "folding",
+   "chair",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-stool-wooden",
+  "name": "Stool Wooden",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1125,
+  "tags": [
+   "stool",
+   "wooden",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-bar-stool",
+  "name": "Bar Stool",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "bar",
+   "stool",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-dewan",
+  "name": "Dewan",
+  "brand": "",
+  "category": "Sofas & Seating",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 26250,
+  "tags": [
+   "dewan",
+   "sofas & seating"
+  ]
+ },
+ {
+  "id": "furniture-dining-table-4-seater",
+  "name": "Dining Table 4 Seater",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 31500,
+  "tags": [
+   "dining",
+   "table",
+   "seater",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-dining-table-6-seater",
+  "name": "Dining Table 6 Seater",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 48750,
+  "tags": [
+   "dining",
+   "table",
+   "seater",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-dining-table-8-seater",
+  "name": "Dining Table 8 Seater",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 71250,
+  "tags": [
+   "dining",
+   "table",
+   "seater",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-dining-table-glass-top-6-seater",
+  "name": "Dining Table Glass Top 6 Seater",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 43500,
+  "tags": [
+   "dining",
+   "table",
+   "glass",
+   "top",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-center-table-glass",
+  "name": "Center Table Glass",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "center",
+   "table",
+   "glass",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-center-table-wooden",
+  "name": "Center Table Wooden",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 16500,
+  "costPrice": 12375,
+  "tags": [
+   "center",
+   "table",
+   "wooden",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-side-table",
+  "name": "Side Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "side",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-console-table",
+  "name": "Console Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "console",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-tv-table",
+  "name": "TV Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "tv",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-tv-trolley",
+  "name": "TV Trolley",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 15500,
+  "costPrice": 11625,
+  "tags": [
+   "tv",
+   "trolley",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-study-table",
+  "name": "Study Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "study",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-computer-table",
+  "name": "Computer Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "computer",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-kids-study-table-chair-1-set",
+  "name": "Kids Study Table Chair 1 set",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "kids",
+   "study",
+   "table",
+   "chair",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-folding-table",
+  "name": "Folding Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3600,
+  "tags": [
+   "folding",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-plastic-table",
+  "name": "Plastic Table",
+  "brand": "",
+  "category": "Tables",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "plastic",
+   "table",
+   "tables"
+  ]
+ },
+ {
+  "id": "furniture-office-table-5ft",
+  "name": "Office Table 5ft",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21000,
+  "tags": [
+   "office",
+   "table",
+   "5ft",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-office-table-6ft",
+  "name": "Office Table 6ft",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 28500,
+  "tags": [
+   "office",
+   "table",
+   "6ft",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-executive-table",
+  "name": "Executive Table",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 48750,
+  "tags": [
+   "executive",
+   "table",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-executive-chair-leather",
+  "name": "Executive Chair Leather",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "executive",
+   "chair",
+   "leather",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-office-chair-revolving",
+  "name": "Office Chair Revolving",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "office",
+   "chair",
+   "revolving",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-visitor-chair",
+  "name": "Visitor Chair",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "visitor",
+   "chair",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-mesh-chair-ergonomic",
+  "name": "Mesh Chair Ergonomic",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9375,
+  "tags": [
+   "mesh",
+   "chair",
+   "ergonomic",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-computer-chair",
+  "name": "Computer Chair",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "computer",
+   "chair",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-file-cabinet-4-drawer-steel",
+  "name": "File Cabinet 4 Drawer Steel",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "file",
+   "cabinet",
+   "drawer",
+   "steel",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-file-cabinet-2-drawer",
+  "name": "File Cabinet 2 Drawer",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "file",
+   "cabinet",
+   "drawer",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-reception-counter",
+  "name": "Reception Counter",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 41250,
+  "tags": [
+   "reception",
+   "counter",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-conference-table-8-seater",
+  "name": "Conference Table 8 Seater",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 85000,
+  "costPrice": 63750,
+  "tags": [
+   "conference",
+   "table",
+   "seater",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-workstation-single",
+  "name": "Workstation Single",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13875,
+  "tags": [
+   "workstation",
+   "single",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-cupboard-office-steel",
+  "name": "Cupboard Office Steel",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21000,
+  "tags": [
+   "cupboard",
+   "office",
+   "steel",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-locker-6-door",
+  "name": "Locker 6 Door",
+  "brand": "",
+  "category": "Office Furniture",
+  "unit": "pcs",
+  "price": 25000,
+  "costPrice": 18750,
+  "tags": [
+   "locker",
+   "door",
+   "office furniture"
+  ]
+ },
+ {
+  "id": "furniture-book-shelf-5-tier",
+  "name": "Book Shelf 5 Tier",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10440,
+  "tags": [
+   "book",
+   "shelf",
+   "tier",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-shoe-rack-wooden",
+  "name": "Shoe Rack Wooden",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4680,
+  "tags": [
+   "shoe",
+   "rack",
+   "wooden",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-shoe-rack-steel",
+  "name": "Shoe Rack Steel",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "shoe",
+   "rack",
+   "steel",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-wall-shelf-set-1-set",
+  "name": "Wall Shelf Set 1 set",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "wall",
+   "shelf",
+   "set",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-showcase-wooden",
+  "name": "Showcase Wooden",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 27360,
+  "tags": [
+   "showcase",
+   "wooden",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-crockery-cabinet",
+  "name": "Crockery Cabinet",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 32400,
+  "tags": [
+   "crockery",
+   "cabinet",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-kitchen-cabinet-per-foot",
+  "name": "Kitchen Cabinet Per Foot",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5400,
+  "tags": [
+   "kitchen",
+   "cabinet",
+   "per",
+   "foot",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-mirror-wall-large",
+  "name": "Mirror Wall Large",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "mirror",
+   "wall",
+   "large",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-mirror-full-length",
+  "name": "Mirror Full Length",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4680,
+  "tags": [
+   "mirror",
+   "full",
+   "length",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-wall-clock-large",
+  "name": "Wall Clock Large",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2016,
+  "tags": [
+   "wall",
+   "clock",
+   "large",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-photo-frame-large",
+  "name": "Photo Frame Large",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 864,
+  "tags": [
+   "photo",
+   "frame",
+   "large",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-curtain-rod-set-1-set",
+  "name": "Curtain Rod Set 1 set",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1800,
+  "tags": [
+   "curtain",
+   "rod",
+   "set",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-curtain-ready-made-pair-1-pair",
+  "name": "Curtain Ready Made Pair 1 pair",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "curtain",
+   "ready",
+   "made",
+   "pair",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-cushion-cover-set-1-set",
+  "name": "Cushion Cover Set 1 set",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1080,
+  "tags": [
+   "cushion",
+   "cover",
+   "set",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-cushion-filled",
+  "name": "Cushion Filled",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 612,
+  "tags": [
+   "cushion",
+   "filled",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-artificial-plant-large",
+  "name": "Artificial Plant Large",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2520,
+  "tags": [
+   "artificial",
+   "plant",
+   "large",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-showpiece-decorative",
+  "name": "Showpiece Decorative",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1296,
+  "tags": [
+   "showpiece",
+   "decorative",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-wooden-door",
+  "name": "Wooden Door",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 15840,
+  "tags": [
+   "wooden",
+   "door",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-wooden-window",
+  "name": "Wooden Window",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 15000,
+  "costPrice": 10800,
+  "tags": [
+   "wooden",
+   "window",
+   "storage & decor"
+  ]
+ },
+ {
+  "id": "furniture-wooden-shelf-floating",
+  "name": "Wooden Shelf Floating",
+  "brand": "",
+  "category": "Storage & Decor",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1800,
+  "tags": [
+   "wooden",
+   "shelf",
+   "floating",
+   "storage & decor"
+  ]
+ }
+]

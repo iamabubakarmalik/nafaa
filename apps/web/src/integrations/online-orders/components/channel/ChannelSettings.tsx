@@ -1,6 +1,6 @@
 /**
  * Channel Settings tab: every option the channel has in one place, grouped
- * by what it decides — orders, stock, price, product details, order status
+ * by what it decides — orders, two-way sync, stock, price, product details, order status
  * mapping, sync, delivery charges, safety, name, and turning the channel
  * off. Only options the channel's platform allows are shown; what it does
  * not allow is said in words, never as a dead button.
@@ -22,6 +22,9 @@ import { StatusMapSection } from './StatusMapSection';
 import { CHANNELS_KEY } from '../../hooks/useSalesChannels';
 import { ChannelSettingsModal } from '../online-products/ChannelSettingsModal';
 import { ruleText } from '../online-products/meta';
+import { SyncSettingsCard } from '../online-products/SyncSettingsCard';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
 import { panel } from './ChannelOverview';
 import type { ChannelFacts } from './meta';
 import { t } from '@core/i18n';
@@ -86,6 +89,7 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
     .filter((s) => s.isActive !== false);
   const channelsQ = useQuery({ queryKey: [ONLINE_PRODUCTS_KEY, 'channels'], queryFn: onlineProductsApi.channels, staleTime: 30_000, enabled: facts.productChannel });
   const productChannel = channelsQ.data?.channels.find((c) => c.id === id);
+  const canManage = usePermission(PERMISSIONS.ONLINE_PRODUCTS_MANAGE);
   const [priceOpen, setPriceOpen] = useState(false);
   const [displayName, setDisplayName] = useState(i.displayName);
   const [statusUrl, setStatusUrl] = useState(cfg.statusWebhookUrl ?? '');
@@ -139,6 +143,8 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
   const twoWay = facts.automatic && (facts.kind === 'shopify' || facts.kind === 'woocommerce');
   const signable = facts.kind === 'custom' || ((facts.kind === 'shopify' || facts.kind === 'woocommerce') && !facts.automatic);
   const buffer = productChannel?.stockBuffer ?? 0;
+  // Two-way sync (the shared card) holds stock sending and auto-link where Nafaa pushes.
+  const syncCard = !!(facts.productChannel && productChannel?.canPush && facts.kind !== 'custom');
 
   return (
     <div className="space-y-6">
@@ -150,6 +156,12 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
           control={<Switch size="sm" checked={cfg.autoPrint} disabled={save.isPending} onChange={(e) => save.mutate({ autoPrint: e.target.checked })} aria-label={t('Receipt kholein')} />} />
       </Section>
 
+      {syncCard && productChannel && (
+        <Section title={t('Sync settings')} help={t('Nafaa aur {{name}} ke beech kya khud badle: qeemat, naam aur tasveerein, naye products aur Stock.', { name: facts.name })}>
+          <SyncSettingsCard channel={productChannel} canManage={canManage} onSaved={() => qc.invalidateQueries({ queryKey: ['sales-channel', id] })} />
+        </Section>
+      )}
+
       <Section title={t('Stock')} help={t('Kis branch ka maal {{site}} par bikta hai, aur stock kaise jata hai.', { site })}>
         <Row title={t('Stock kis branch se')} help={t('Isi branch ka stock kam hoga{{value}}.', { value: facts.productChannel ? t(' aur {{name}} par isi ka dikhega', { name: facts.name }) : '' })}
           control={
@@ -159,7 +171,7 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
               {shopList.map((s) => <option key={s.id} value={s.id}>{s.name}{s.isMain ? t(' (main)') : ''}</option>)}
             </Select>
           } />
-        {facts.productChannel && (
+        {facts.productChannel && !syncCard && (
           <Row title={t('Stock {{name}} par bhejein', { name: facts.name })}
             help={!facts.automatic ? t('Pehle {{name}} ko Setup se automatic jorein.', { name: facts.name })
               : pc?.pushStock === false ? t('Band hai — {{name}} par Stock haath se rakhein.', { name: facts.name })
@@ -176,7 +188,7 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
               <Button size="sm" variant="secondary" disabled={!pc} onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Badlein')}</Button>
             </div>} />
         )}
-        {facts.productChannel && pc && facts.kind !== 'custom' && (
+        {facts.productChannel && pc && facts.kind !== 'custom' && !syncCard && (
           <Row title={t('Pakke match khud jorein')} help={t('{{name}} par naya product aaye aur SKU ya barcode Nafaa se bilkul mile to khud jur jata hai.', { name: facts.name })}
             control={<Switch size="sm" checked={pc.autoLink} disabled={catSave.isPending} onChange={(e) => catSave.mutate({ autoLink: e.target.checked })} aria-label={t('Pakke match khud jorein')} />} />
         )}
@@ -194,12 +206,9 @@ export function ChannelSettings({ id, data, facts, onChange }: { id: string; dat
             </Select>
           } />
         {facts.productChannel && pc && facts.kind !== 'custom' && (
-          <Row title={t('{{name}} par price bhejein', { name: facts.name })}
-            help={pc.pushPrice ? t('Nafaa bhejta hai: {{priceRule}}. Kisi product ki apni price Online products me.', { priceRule: ruleText(pc.priceRule) }) : t('Nafaa price nahi bhejta — {{name}} par jo hai wahi rehti hai.', { name: facts.name })}
-            control={<div className="flex items-center gap-2">
-              <Switch size="sm" checked={pc.pushPrice} disabled={catSave.isPending} onChange={(e) => catSave.mutate({ pushPrice: e.target.checked })} aria-label={t('Price bhejein')} />
-              <Button size="sm" variant="secondary" onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Price rule')}</Button>
-            </div>} />
+          <Row title={t('{{name}} par price ka rule', { name: facts.name })}
+            help={pc.pushPrice ? t('Nafaa bhejta hai: {{priceRule}}. Kisi product ki apni price Online products me.', { priceRule: ruleText(pc.priceRule) }) : t('Nafaa price nahi bhejta — {{name}} par jo hai wahi rehti hai. Ye "Sync settings" me badlein.', { name: facts.name })}
+            control={<Button size="sm" variant="secondary" onClick={() => setPriceOpen(true)} leftIcon={<SlidersHorizontal className="h-4 w-4" />}>{t('Price rule')}</Button>} />
         )}
       </Section>
 

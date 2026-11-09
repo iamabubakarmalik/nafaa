@@ -3,20 +3,21 @@
  * of Nafaa products linked, the problem count and the paused state. A click
  * focuses the grid on that channel (again for all); the ⋯ menu holds the
  * channel's work: bring in all, link sure matches, price and stock rules,
- * content settings, sync now, undo an import's stock damage, pause or resume,
+ * content settings, sync now, undo an import's stock damage, bring back
+ * channel prices Nafaa overwrote, pause or resume,
  * and its own page.
  */
 
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, ExternalLink, FileText, History, Link2, MoreHorizontal, Pause, Play, RefreshCw, Settings2 } from 'lucide-react';
+import { BadgeDollarSign, Download, ExternalLink, FileText, History, Link2, MoreHorizontal, Pause, Play, RefreshCw, Settings2 } from 'lucide-react';
 import { Menu, MenuItem, MenuLabel, MenuSeparator } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import type { OnlineChannel } from '../../api/online-products.api';
 import { ChannelMark, channelName, kindOf, priceText, stockText, WEBSITE_LINKS_NOTE } from './meta';
 
-export type ChannelAction = 'import' | 'link-all' | 'link' | 'rules' | 'content' | 'sync' | 'recover' | 'pause' | 'resume';
+export type ChannelAction = 'import' | 'link-all' | 'link' | 'rules' | 'content' | 'sync' | 'recover' | 'price-recover' | 'pause' | 'resume';
 
 export function ChannelsBar({ channels, sellable, active, onFocus, canManage, busy, onAction }: {
   channels: OnlineChannel[];
@@ -104,6 +105,9 @@ function Chip({ c, sellable, on, canManage, busy, onFocus, onAction }: {
         )}
         {canManage && c.canPush && c.tracksStock && (
           <MenuItem icon={<History />} onClick={pick('recover')}>{t('Import theek karein')}</MenuItem>
+        )}
+        {canManage && c.canPush && (
+          <MenuItem icon={<BadgeDollarSign />} onClick={pick('price-recover')}>{t('Qeemat wapas laayein')}</MenuItem>
         )}
         <MenuSeparator />
         {canManage && (c.paused

@@ -35,6 +35,9 @@ import { PortalService } from './portal/portal.service';
 import { OnlineProductsController } from './online-products.controller';
 import { OnlineProductsService } from './online-products.service';
 import { CatalogWatchService } from './catalog-watch.service';
+import { PriceSourceService } from './price-source.service';
+import { ProductEventsService } from './product-events.service';
+import { ChannelSyncService } from './channel-sync.service';
 import { CatalogJobsService } from './catalog-jobs.service';
 import { ChannelContentService } from './channel-content.service';
 import { OrderMoneyController } from './order-costs.controller';
@@ -116,7 +119,7 @@ import { StockHandoverService } from './stock-handover.service';
     CommerceAdminController, CommerceControlsController,
     ChannelOpsController,
   ],
-  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, InternationalService, RadarService, PortalService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
+  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, InternationalService, RadarService, PortalService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, PriceSourceService, ProductEventsService, ChannelSyncService, CatalogJobsService, ChannelContentService,
     OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
     OrderChannelSyncService, OrderEntryService, DispatchService, BackorderService,
     AbandonedCartsService, CommerceGrowthService, CommerceAdminService,

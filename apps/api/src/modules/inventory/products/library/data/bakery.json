@@ -1,0 +1,1786 @@
+[
+ {
+  "id": "bakery-bread-slice-large",
+  "name": "Bread Slice Large",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 124,
+  "tags": [
+   "bread",
+   "slice",
+   "large",
+   "double roti"
+  ]
+ },
+ {
+  "id": "bakery-bread-slice-small",
+  "name": "Bread Slice Small",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 72,
+  "tags": [
+   "bread",
+   "slice",
+   "small"
+  ]
+ },
+ {
+  "id": "bakery-bread-brown-large",
+  "name": "Bread Brown Large",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 156,
+  "tags": [
+   "bread",
+   "brown",
+   "large"
+  ]
+ },
+ {
+  "id": "bakery-bread-sandwich-pack",
+  "name": "Bread Sandwich Pack",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 130,
+  "tags": [
+   "bread",
+   "sandwich",
+   "pack"
+  ]
+ },
+ {
+  "id": "bakery-bun-burger-plain",
+  "name": "Bun Burger Plain",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 26,
+  "tags": [
+   "bun",
+   "burger",
+   "plain",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-bun-burger-sesame",
+  "name": "Bun Burger Sesame",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 50,
+  "costPrice": 32,
+  "tags": [
+   "bun",
+   "burger",
+   "sesame",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-hot-dog-bun",
+  "name": "Hot Dog Bun",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 35,
+  "costPrice": 23,
+  "tags": [
+   "hot",
+   "dog",
+   "bun",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-dinner-roll",
+  "name": "Dinner Roll",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 25,
+  "costPrice": 16,
+  "tags": [
+   "dinner",
+   "roll",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-pav-bhaji-bun",
+  "name": "Pav Bhaji Bun",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 20,
+  "tags": [
+   "pav",
+   "bhaji",
+   "bun",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-rusk-plain-pack",
+  "name": "Rusk Plain Pack",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 117,
+  "tags": [
+   "rusk",
+   "plain",
+   "pack",
+   "pao",
+   "toast",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-rusk-cake-pack",
+  "name": "Rusk Cake Pack",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 143,
+  "tags": [
+   "rusk",
+   "cake",
+   "pack",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-paratha-frozen-pack-of-5",
+  "name": "Paratha Frozen Pack of 5",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 162,
+  "tags": [
+   "paratha",
+   "frozen",
+   "pack",
+   "of",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-pita-bread-pack",
+  "name": "Pita Bread Pack",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 98,
+  "tags": [
+   "pita",
+   "bread",
+   "pack"
+  ]
+ },
+ {
+  "id": "bakery-naan-plain",
+  "name": "Naan Plain",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 26,
+  "tags": [
+   "naan",
+   "plain",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-sheermal",
+  "name": "Sheermal",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 46,
+  "tags": [
+   "sheermal",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-kulcha",
+  "name": "Kulcha",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 45,
+  "costPrice": 29,
+  "tags": [
+   "kulcha",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-garlic-bread",
+  "name": "Garlic Bread",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 162,
+  "tags": [
+   "garlic",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-french-loaf",
+  "name": "French Loaf",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 208,
+  "tags": [
+   "french",
+   "loaf",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-bagel",
+  "name": "Bagel",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 84,
+  "tags": [
+   "bagel",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-croissant",
+  "name": "Croissant",
+  "brand": "",
+  "category": "Bread",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 104,
+  "tags": [
+   "croissant",
+   "bread"
+  ]
+ },
+ {
+  "id": "bakery-plain-cake",
+  "name": "Plain Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 850,
+  "costPrice": 510,
+  "tags": [
+   "plain",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-chocolate-cake",
+  "name": "Chocolate Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "chocolate",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-black-forest-cake",
+  "name": "Black Forest Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 990,
+  "tags": [
+   "black",
+   "forest",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-vanilla-cake",
+  "name": "Vanilla Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1350,
+  "costPrice": 810,
+  "tags": [
+   "vanilla",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-pineapple-cake",
+  "name": "Pineapple Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "pineapple",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-red-velvet-cake",
+  "name": "Red Velvet Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1950,
+  "costPrice": 1170,
+  "tags": [
+   "red",
+   "velvet",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-fresh-fruit-cake",
+  "name": "Fresh Fruit Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1750,
+  "costPrice": 1050,
+  "tags": [
+   "fresh",
+   "fruit",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-coffee-cake",
+  "name": "Coffee Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 990,
+  "tags": [
+   "coffee",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-ferrero-rocher-cake",
+  "name": "Ferrero Rocher Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 2450,
+  "costPrice": 1470,
+  "tags": [
+   "ferrero",
+   "rocher",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-lotus-biscoff-cake",
+  "name": "Lotus Biscoff Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 2450,
+  "costPrice": 1470,
+  "tags": [
+   "lotus",
+   "biscoff",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-oreo-cake",
+  "name": "Oreo Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 1950,
+  "costPrice": 1170,
+  "tags": [
+   "oreo",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-cheese-cake",
+  "name": "Cheese Cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 2450,
+  "costPrice": 1470,
+  "tags": [
+   "cheese",
+   "cake",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-fondant-cake-custom",
+  "name": "Fondant Cake Custom",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 3500,
+  "costPrice": 2100,
+  "tags": [
+   "fondant",
+   "cake",
+   "custom",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-birthday-cake-2-pound-1-cake",
+  "name": "Birthday Cake 2 Pound 1 cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 2200,
+  "costPrice": 1320,
+  "tags": [
+   "birthday",
+   "cake",
+   "pound",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-birthday-cake-4-pound-1-cake",
+  "name": "Birthday Cake 4 Pound 1 cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 4200,
+  "costPrice": 2520,
+  "tags": [
+   "birthday",
+   "cake",
+   "pound",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-wedding-cake-3-tier-1-cake",
+  "name": "Wedding Cake 3 Tier 1 cake",
+  "brand": "",
+  "category": "Cakes",
+  "unit": "kg",
+  "price": 22000,
+  "costPrice": 13200,
+  "tags": [
+   "wedding",
+   "cake",
+   "tier",
+   "cakes"
+  ]
+ },
+ {
+  "id": "bakery-pastry-chocolate",
+  "name": "Pastry Chocolate",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 102,
+  "tags": [
+   "pastry",
+   "chocolate",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-pastry-pineapple",
+  "name": "Pastry Pineapple",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "pastry",
+   "pineapple",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-pastry-black-forest",
+  "name": "Pastry Black Forest",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 108,
+  "tags": [
+   "pastry",
+   "black",
+   "forest",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-pastry-fruit",
+  "name": "Pastry Fruit",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 114,
+  "tags": [
+   "pastry",
+   "fruit",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-pastry-cream-roll",
+  "name": "Pastry Cream Roll",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 60,
+  "tags": [
+   "pastry",
+   "cream",
+   "roll",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-cupcake-vanilla",
+  "name": "Cupcake Vanilla",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 72,
+  "tags": [
+   "cupcake",
+   "vanilla",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-cupcake-chocolate",
+  "name": "Cupcake Chocolate",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 78,
+  "tags": [
+   "cupcake",
+   "chocolate",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-muffin-chocolate-chip",
+  "name": "Muffin Chocolate Chip",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "muffin",
+   "chocolate",
+   "chip",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-muffin-blueberry",
+  "name": "Muffin Blueberry",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 102,
+  "tags": [
+   "muffin",
+   "blueberry",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-donut-plain",
+  "name": "Donut Plain",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 60,
+  "tags": [
+   "donut",
+   "plain",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-donut-chocolate",
+  "name": "Donut Chocolate",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 84,
+  "tags": [
+   "donut",
+   "chocolate",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-donut-filled",
+  "name": "Donut Filled",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 102,
+  "tags": [
+   "donut",
+   "filled",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-brownie",
+  "name": "Brownie",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 108,
+  "tags": [
+   "brownie",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-walnut-brownie",
+  "name": "Walnut Brownie",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 132,
+  "tags": [
+   "walnut",
+   "brownie",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-cheese-cake-slice",
+  "name": "Cheese Cake Slice",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 198,
+  "tags": [
+   "cheese",
+   "cake",
+   "slice",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-tiramisu-cup",
+  "name": "Tiramisu Cup",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "tiramisu",
+   "cup",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-eclair",
+  "name": "Eclair",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 102,
+  "tags": [
+   "eclair",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-cream-puff",
+  "name": "Cream Puff",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 72,
+  "tags": [
+   "cream",
+   "puff",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-swiss-roll-slice",
+  "name": "Swiss Roll Slice",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 60,
+  "tags": [
+   "swiss",
+   "roll",
+   "slice",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-cake-rusk-pack",
+  "name": "Cake Rusk Pack",
+  "brand": "",
+  "category": "Cake Slices & Pastries",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "cake",
+   "rusk",
+   "pack",
+   "cake slices & pastries"
+  ]
+ },
+ {
+  "id": "bakery-nankhatai",
+  "name": "Nankhatai",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "nankhatai",
+   "nankatai",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-butter-cookies",
+  "name": "Butter Cookies",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "butter",
+   "cookies",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-chocolate-chip-cookies",
+  "name": "Chocolate Chip Cookies",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1072,
+  "tags": [
+   "chocolate",
+   "chip",
+   "cookies",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-coconut-biscuits",
+  "name": "Coconut Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "coconut",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-jam-biscuits",
+  "name": "Jam Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "jam",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-melting-moments",
+  "name": "Melting Moments",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 942,
+  "tags": [
+   "melting",
+   "moments",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-peanut-biscuits",
+  "name": "Peanut Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "peanut",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-zeera-biscuits",
+  "name": "Zeera Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "zeera",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-atta-biscuits",
+  "name": "Atta Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "atta",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-cake-rusk",
+  "name": "Cake Rusk",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 700,
+  "costPrice": 455,
+  "tags": [
+   "cake",
+   "rusk",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-khatai",
+  "name": "Khatai",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 850,
+  "costPrice": 552,
+  "tags": [
+   "khatai",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-almond-biscotti",
+  "name": "Almond Biscotti",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1850,
+  "costPrice": 1202,
+  "tags": [
+   "almond",
+   "biscotti",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-gur-biscuits",
+  "name": "Gur Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1050,
+  "costPrice": 682,
+  "tags": [
+   "gur",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-palmier",
+  "name": "Palmier",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 942,
+  "tags": [
+   "palmier",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-date-biscuits",
+  "name": "Date Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1350,
+  "costPrice": 878,
+  "tags": [
+   "date",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-anda-biscuits",
+  "name": "Anda Biscuits",
+  "brand": "",
+  "category": "Biscuits & Cookies",
+  "unit": "kg",
+  "price": 1050,
+  "costPrice": 682,
+  "tags": [
+   "anda",
+   "biscuits",
+   "biscuits & cookies"
+  ]
+ },
+ {
+  "id": "bakery-chicken-patty",
+  "name": "Chicken Patty",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 84,
+  "tags": [
+   "chicken",
+   "patty",
+   "samosa",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-beef-patty",
+  "name": "Beef Patty",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "beef",
+   "patty",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-aloo-patty",
+  "name": "Aloo Patty",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 48,
+  "tags": [
+   "aloo",
+   "patty",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-roll",
+  "name": "Chicken Roll",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 96,
+  "tags": [
+   "chicken",
+   "roll",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-samosa",
+  "name": "Chicken Samosa",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 70,
+  "costPrice": 42,
+  "tags": [
+   "chicken",
+   "samosa",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-aloo-samosa",
+  "name": "Aloo Samosa",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 24,
+  "tags": [
+   "aloo",
+   "samosa",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-vegetable-roll",
+  "name": "Vegetable Roll",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 90,
+  "costPrice": 54,
+  "tags": [
+   "vegetable",
+   "roll",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-puff",
+  "name": "Chicken Puff",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 78,
+  "tags": [
+   "chicken",
+   "puff",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-pizza-slice",
+  "name": "Chicken Pizza Slice",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "chicken",
+   "pizza",
+   "slice",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-pizza-whole-medium",
+  "name": "Pizza Whole Medium",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 690,
+  "tags": [
+   "pizza",
+   "whole",
+   "medium",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-sandwich",
+  "name": "Chicken Sandwich",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "chicken",
+   "sandwich",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-club-sandwich",
+  "name": "Club Sandwich",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "club",
+   "sandwich",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-burger",
+  "name": "Chicken Burger",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "chicken",
+   "burger",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-zinger-burger",
+  "name": "Zinger Burger",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "zinger",
+   "burger",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-hot-dog",
+  "name": "Hot Dog",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 132,
+  "tags": [
+   "hot",
+   "dog",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-shawarma-roll",
+  "name": "Shawarma Roll",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "shawarma",
+   "roll",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-fried-chicken-piece",
+  "name": "Fried Chicken Piece",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "fried",
+   "chicken",
+   "piece",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-french-fries-portion",
+  "name": "French Fries Portion",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 120,
+  "tags": [
+   "french",
+   "fries",
+   "portion",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-chicken-nuggets-portion",
+  "name": "Chicken Nuggets Portion",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "chicken",
+   "nuggets",
+   "portion",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-cheese-rolls",
+  "name": "Cheese Rolls",
+  "brand": "",
+  "category": "Savoury Items",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 90,
+  "tags": [
+   "cheese",
+   "rolls",
+   "savoury items"
+  ]
+ },
+ {
+  "id": "bakery-gulab-jamun",
+  "name": "Gulab Jamun",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "gulab",
+   "jamun",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-rasmalai",
+  "name": "Rasmalai",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 942,
+  "tags": [
+   "rasmalai",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-barfi",
+  "name": "Barfi",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1350,
+  "costPrice": 878,
+  "tags": [
+   "barfi",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-ladoo-motichoor",
+  "name": "Ladoo Motichoor",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1250,
+  "costPrice": 812,
+  "tags": [
+   "ladoo",
+   "motichoor",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-jalebi",
+  "name": "Jalebi",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 650,
+  "costPrice": 422,
+  "tags": [
+   "jalebi",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-gajar-halwa",
+  "name": "Gajar Halwa",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 942,
+  "tags": [
+   "gajar",
+   "halwa",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-sooji-halwa",
+  "name": "Sooji Halwa",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "sooji",
+   "halwa",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-kheer",
+  "name": "Kheer",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 950,
+  "costPrice": 618,
+  "tags": [
+   "kheer",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-kulfi-stick-1-piece",
+  "name": "Kulfi Stick 1 piece",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 120,
+  "costPrice": 78,
+  "tags": [
+   "kulfi",
+   "stick",
+   "piece",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-mithai-mix-box",
+  "name": "Mithai Mix Box",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1450,
+  "costPrice": 942,
+  "tags": [
+   "mithai",
+   "mix",
+   "box",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-sohan-halwa",
+  "name": "Sohan Halwa",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1650,
+  "costPrice": 1072,
+  "tags": [
+   "sohan",
+   "halwa",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-patisa",
+  "name": "Patisa",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 1050,
+  "costPrice": 682,
+  "tags": [
+   "patisa",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-kaju-barfi",
+  "name": "Kaju Barfi",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 2450,
+  "costPrice": 1592,
+  "tags": [
+   "kaju",
+   "barfi",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-dry-fruit-mithai",
+  "name": "Dry Fruit Mithai",
+  "brand": "",
+  "category": "Sweets & Desserts",
+  "unit": "kg",
+  "price": 2450,
+  "costPrice": 1592,
+  "tags": [
+   "dry",
+   "fruit",
+   "mithai",
+   "sweets & desserts"
+  ]
+ },
+ {
+  "id": "bakery-pepsi-cold-drink-345ml",
+  "name": "Pepsi Cold Drink 345ml",
+  "brand": "Pepsi",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 64,
+  "tags": [
+   "pepsi",
+   "cold",
+   "drink",
+   "345ml",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-coca-cola-cold-drink-345ml",
+  "name": "Coca-Cola Cold Drink 345ml",
+  "brand": "Coca-Cola",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 64,
+  "tags": [
+   "coca",
+   "cola",
+   "cold",
+   "drink",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-7up-cold-drink-345ml",
+  "name": "7UP Cold Drink 345ml",
+  "brand": "7UP",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 64,
+  "tags": [
+   "7up",
+   "cold",
+   "drink",
+   "345ml",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-sprite-cold-drink-345ml",
+  "name": "Sprite Cold Drink 345ml",
+  "brand": "Sprite",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 64,
+  "tags": [
+   "sprite",
+   "cold",
+   "drink",
+   "345ml",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-pepsi-cold-drink-1-5-litre",
+  "name": "Pepsi Cold Drink 1.5 litre",
+  "brand": "Pepsi",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 168,
+  "tags": [
+   "pepsi",
+   "cold",
+   "drink",
+   "litre",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-coca-cola-cold-drink-1-5-litre",
+  "name": "Coca-Cola Cold Drink 1.5 litre",
+  "brand": "Coca-Cola",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 168,
+  "tags": [
+   "coca",
+   "cola",
+   "cold",
+   "drink",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-nestle-pure-life-water-500ml",
+  "name": "Nestle Pure Life Water 500ml",
+  "brand": "Nestle",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 48,
+  "tags": [
+   "nestle",
+   "pure",
+   "life",
+   "water",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-nestle-pure-life-water-1-5-litre",
+  "name": "Nestle Pure Life Water 1.5 litre",
+  "brand": "Nestle",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "nestle",
+   "pure",
+   "life",
+   "water",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-nestle-juice-fruita-vitals-1-litre",
+  "name": "Nestle Juice Fruita Vitals 1 litre",
+  "brand": "Nestle",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 360,
+  "costPrice": 288,
+  "tags": [
+   "nestle",
+   "juice",
+   "fruita",
+   "vitals",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-nestle-milkpak-small-250ml",
+  "name": "Nestle Milkpak Small 250ml",
+  "brand": "Nestle",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 95,
+  "costPrice": 76,
+  "tags": [
+   "nestle",
+   "milkpak",
+   "small",
+   "250ml",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-tea-cup",
+  "name": "Tea Cup",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 48,
+  "tags": [
+   "tea",
+   "cup",
+   "chai",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-coffee-cup",
+  "name": "Coffee Cup",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 144,
+  "tags": [
+   "coffee",
+   "cup",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-fresh-juice-glass",
+  "name": "Fresh Juice Glass",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 200,
+  "tags": [
+   "fresh",
+   "juice",
+   "glass",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-lassi-glass",
+  "name": "Lassi Glass",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 120,
+  "tags": [
+   "lassi",
+   "glass",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-cake-candles-pack",
+  "name": "Cake Candles Pack",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 96,
+  "tags": [
+   "cake",
+   "candles",
+   "pack",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-birthday-candles-number",
+  "name": "Birthday Candles Number",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 64,
+  "tags": [
+   "birthday",
+   "candles",
+   "number",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-cake-box-2-pound",
+  "name": "Cake Box 2 Pound",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 80,
+  "tags": [
+   "cake",
+   "box",
+   "pound",
+   "beverages & packaged"
+  ]
+ },
+ {
+  "id": "bakery-cake-box-4-pound",
+  "name": "Cake Box 4 Pound",
+  "brand": "",
+  "category": "Beverages & Packaged",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 120,
+  "tags": [
+   "cake",
+   "box",
+   "pound",
+   "beverages & packaged"
+  ]
+ }
+]

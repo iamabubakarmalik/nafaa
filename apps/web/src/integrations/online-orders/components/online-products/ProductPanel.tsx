@@ -6,7 +6,9 @@
  * stock share, the content Nafaa sends, publish when the product is not on
  * the channel yet, the last push with retry, and a link to it on the channel.
  * A held link (Nafaa and channel stock differ) shows both numbers and the
- * two ways to settle it.
+ * two ways to settle it; a held price (changed on the channel) the same.
+ * Below: the product's sync history, and "make it on the website too" where
+ * a channel makes only marked products.
  */
 
 import { useRef, useState, type ReactNode } from 'react';
@@ -27,6 +29,8 @@ import { Dot, Thumb, UntrackedTag, dotOf, notCounted } from './ProductsGrid';
 import { causeInfo, isNafaaText, syncCause } from './syncErrors';
 import { BackorderSettings } from './BackorderSettings';
 import { HoldActions, holdNumbers, holdReasonText } from './StockHold';
+import { PriceHoldActions, priceHoldNumbers } from './PriceHold';
+import { SyncHistory } from './SyncHistory';
 
 const CONTENT_KEYS: Array<{ key: keyof PushContent; label: () => string }> = [
   { key: 'title', label: () => t('Naam') },
@@ -66,6 +70,16 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
 
   const ordered = [...cols].sort((a, b) => (a.id === focusChannel ? -1 : b.id === focusChannel ? 1 : 0));
   const anyPushLinked = cols.some((c) => c.canPush && item.rows.some((r) => r.cells[c.id]?.linked));
+  // Channels that make only marked products, where this product is not yet.
+  const markable = cols.filter((c) => c.canPublish && c.autoPublish === 'MARKED' && !item.rows.some((r) => r.cells[c.id]?.linked) && !item.sizeLess[c.id]);
+  const mark = useMutation({
+    mutationFn: () => onlineProductsApi.publishMarks({ productIds: [item.productId], on: true }),
+    onSuccess: (r) => {
+      refreshOnlineProducts(qc);
+      toast.success(r.changed ? t('Nishan lag gaya — website par thori der me ban jayega') : t('Is par pehle se nishan laga hai'));
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   return (
     <Drawer open onClose={onClose} size="lg"
@@ -78,6 +92,10 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
       </span>}
       actions={<>
         <Link to={`/products/${item.productId}`} className="hidden h-8 items-center rounded-lg px-2.5 text-[0.75rem] font-semibold text-slate-600 hover:bg-slate-100 sm:inline-flex">{t('Nafaa me kholein')}</Link>
+        {canManage && markable.length > 0 && (
+          <Button size="sm" variant="secondary" loading={mark.isPending} onClick={() => mark.mutate()} leftIcon={<Upload className="h-3.5 w-3.5" />}
+            title={markable.map(channelName).join(', ')}>{t('Website par bhi banayein')}</Button>
+        )}
         {canManage && anyPushLinked && <Button size="sm" variant="secondary" loading={pushAll.isPending} onClick={() => pushAll.mutate()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>{t('Sab par bhejein')}</Button>}
       </>}>
       <div className="space-y-4 p-4 sm:p-5">
@@ -89,6 +107,7 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
         {ordered.map((c) => (
           <ChannelSection key={c.id} c={c} item={item} sized={sized} canManage={canManage} focused={c.id === focusChannel} onLink={onLink} onDone={done} />
         ))}
+        <SyncHistory productId={item.productId} channels={cols} />
       </div>
     </Drawer>
   );
@@ -181,6 +200,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
 
   const failedCell = linkedRows.map((r) => r.cells[c.id] as LinkedCell).find((x) => x.status === 'FAILED');
   const heldCount = linkedRows.filter((r) => (r.cells[c.id] as LinkedCell).hold).length;
+  const priceHeld = linkedRows.some((r) => (r.cells[c.id] as LinkedCell).priceHold);
   const last = linkedRows.map((r) => (r.cells[c.id] as LinkedCell).lastPush).filter(Boolean).sort((a, b) => String(b!.at).localeCompare(String(a!.at)))[0] ?? null;
 
   return (
@@ -191,7 +211,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{channelName(c)}</p>
           <p className="truncate text-[0.71875rem] text-slate-500">{priceText(c)} · {stockText(c)}</p>
         </div>
-        {linked && <Badge size="xs" variant={failedCell ? 'danger' : heldCount ? 'warning' : 'success'} dot>{failedCell ? t('Masla') : heldCount ? t('Stock milana baqi') : sized ? t('{{linked}}/{{count}} jure', { linked: linkedRows.length, count: item.rows.length }) : t('Jura hua')}</Badge>}
+        {linked && <Badge size="xs" variant={failedCell ? 'danger' : heldCount || priceHeld ? 'warning' : 'success'} dot>{failedCell ? t('Masla') : heldCount ? t('Stock milana baqi') : priceHeld ? t('Qeemat ka faisla baqi') : sized ? t('{{linked}}/{{count}} jure', { linked: linkedRows.length, count: item.rows.length }) : t('Jura hua')}</Badge>}
         {!linked && !sizeLess && <Badge size="xs" variant="default">{t('Jura nahi')}</Badge>}
         {url && <a href={url} target="_blank" rel="noreferrer" title={t('Channel par kholein')} aria-label={t('Channel par kholein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ExternalLink className="h-4 w-4" /></a>}
       </header>
@@ -360,6 +380,19 @@ function LinkedRow({ c, cell, canManage, item, row, onLink, onDone, sized }: {
           {canManage && (
             <span className="flex flex-wrap items-center gap-1.5">
               <HoldActions channelId={c.id} mappingIds={[cell.mappingId]} takeIds={cell.hold.channelStock === null ? [] : [cell.mappingId]} />
+            </span>
+          )}
+        </span>
+      )}
+      {cell.priceHold && (
+        <span className="order-last flex basis-full flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{t('Website par qeemat badli — kaunsi rakhein?')} · <span className="tabular-nums">{priceHoldNumbers(cell.priceHold)}</span></span>
+            <span className="block text-[0.75rem] opacity-90">{t('Jab tak aap na chunein, Nafaa is ki qeemat nahi bhejta.')} {timeAgo(cell.priceHold.channelPriceAt ?? cell.priceHold.since)}</span>
+          </span>
+          {canManage && (
+            <span className="flex flex-wrap items-center gap-1.5">
+              <PriceHoldActions channelId={c.id} mappingIds={[cell.mappingId]} />
             </span>
           )}
         </span>

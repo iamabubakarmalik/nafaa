@@ -1,0 +1,4699 @@
+[
+ {
+  "id": "cosmetics-ponds-facewash-50ml",
+  "name": "Ponds Facewash 50ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "ponds",
+   "facewash",
+   "50ml",
+   "face wash",
+   "chehra",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-facewash-100ml",
+  "name": "Ponds Facewash 100ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 250,
+  "tags": [
+   "ponds",
+   "facewash",
+   "100ml",
+   "face wash",
+   "chehra",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-facewash-150ml",
+  "name": "Ponds Facewash 150ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 335,
+  "tags": [
+   "ponds",
+   "facewash",
+   "150ml",
+   "face wash",
+   "chehra",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-cold-cream-50ml",
+  "name": "Ponds Cold Cream 50ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "ponds",
+   "cold",
+   "cream",
+   "50ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-cold-cream-100ml",
+  "name": "Ponds Cold Cream 100ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "ponds",
+   "cold",
+   "cream",
+   "100ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-cold-cream-200ml",
+  "name": "Ponds Cold Cream 200ml",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "ponds",
+   "cold",
+   "cream",
+   "200ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-super-light-gel-moisturiser-50g",
+  "name": "Ponds Super Light Gel Moisturiser 50g",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "ponds",
+   "super",
+   "light",
+   "gel",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-super-light-gel-moisturiser-100g",
+  "name": "Ponds Super Light Gel Moisturiser 100g",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 484,
+  "tags": [
+   "ponds",
+   "super",
+   "light",
+   "gel",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-age-miracle-day-cream-50g",
+  "name": "Ponds Age Miracle Day Cream 50g",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "ponds",
+   "age",
+   "miracle",
+   "day",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-bright-beauty-cream-50g",
+  "name": "Ponds Bright Beauty Cream 50g",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "ponds",
+   "bright",
+   "beauty",
+   "cream",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-ponds-bright-beauty-cream-100g",
+  "name": "Ponds Bright Beauty Cream 100g",
+  "brand": "Ponds",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 374,
+  "tags": [
+   "ponds",
+   "bright",
+   "beauty",
+   "cream",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-face-cream-25g",
+  "name": "Glow & Lovely Face Cream 25g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 101,
+  "tags": [
+   "glow",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-face-cream-50g",
+  "name": "Glow & Lovely Face Cream 50g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "glow",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-face-cream-80g",
+  "name": "Glow & Lovely Face Cream 80g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "glow",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-face-cream-100g",
+  "name": "Glow & Lovely Face Cream 100g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "glow",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-advanced-multivitamin-face-wash-50g",
+  "name": "Glow & Lovely Advanced Multivitamin Face Wash 50g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "glow",
+   "lovely",
+   "advanced",
+   "multivitamin",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-advanced-multivitamin-face-wash-100g",
+  "name": "Glow & Lovely Advanced Multivitamin Face Wash 100g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "glow",
+   "lovely",
+   "advanced",
+   "multivitamin",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-glow-and-lovely-bb-cream-40g",
+  "name": "Glow & Lovely BB Cream 40g",
+  "brand": "Glow & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "glow",
+   "lovely",
+   "bb",
+   "cream",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-fair-and-lovely-face-cream-25g",
+  "name": "Fair & Lovely Face Cream 25g",
+  "brand": "Fair & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 101,
+  "tags": [
+   "fair",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-fair-and-lovely-face-cream-50g",
+  "name": "Fair & Lovely Face Cream 50g",
+  "brand": "Fair & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "fair",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-fair-and-lovely-face-cream-80g",
+  "name": "Fair & Lovely Face Cream 80g",
+  "brand": "Fair & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "fair",
+   "lovely",
+   "face",
+   "cream",
+   "fair lovely",
+   "fairness",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-fair-and-lovely-face-wash-50g",
+  "name": "Fair & Lovely Face Wash 50g",
+  "brand": "Fair & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "fair",
+   "lovely",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-fair-and-lovely-face-wash-100g",
+  "name": "Fair & Lovely Face Wash 100g",
+  "brand": "Fair & Lovely",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 250,
+  "tags": [
+   "fair",
+   "lovely",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-light-complete-face-wash-50ml",
+  "name": "Garnier Light Complete Face Wash 50ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "garnier",
+   "light",
+   "complete",
+   "face",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-light-complete-face-wash-100ml",
+  "name": "Garnier Light Complete Face Wash 100ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 335,
+  "tags": [
+   "garnier",
+   "light",
+   "complete",
+   "face",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-light-complete-face-wash-150ml",
+  "name": "Garnier Light Complete Face Wash 150ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 580,
+  "costPrice": 452,
+  "tags": [
+   "garnier",
+   "light",
+   "complete",
+   "face",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-pure-active-neem-face-wash-100ml",
+  "name": "Garnier Pure Active Neem Face Wash 100ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "garnier",
+   "pure",
+   "active",
+   "neem",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-pure-active-neem-face-wash-150ml",
+  "name": "Garnier Pure Active Neem Face Wash 150ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "garnier",
+   "pure",
+   "active",
+   "neem",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-micellar-cleansing-water-125ml",
+  "name": "Garnier Micellar Cleansing Water 125ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 608,
+  "tags": [
+   "garnier",
+   "micellar",
+   "cleansing",
+   "water",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-micellar-cleansing-water-400ml",
+  "name": "Garnier Micellar Cleansing Water 400ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1365,
+  "tags": [
+   "garnier",
+   "micellar",
+   "cleansing",
+   "water",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-vitamin-c-serum-30ml",
+  "name": "Garnier Vitamin C Serum 30ml",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1287,
+  "tags": [
+   "garnier",
+   "vitamin",
+   "serum",
+   "30ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-bright-complete-day-cream-40g",
+  "name": "Garnier Bright Complete Day Cream 40g",
+  "brand": "Garnier",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "garnier",
+   "bright",
+   "complete",
+   "day",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-soft-cream-50ml",
+  "name": "Nivea Soft Cream 50ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "nivea",
+   "soft",
+   "cream",
+   "50ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-soft-cream-100ml",
+  "name": "Nivea Soft Cream 100ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "nivea",
+   "soft",
+   "cream",
+   "100ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-soft-cream-200ml",
+  "name": "Nivea Soft Cream 200ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 608,
+  "tags": [
+   "nivea",
+   "soft",
+   "cream",
+   "200ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-creme-tin-60ml",
+  "name": "Nivea Creme Tin 60ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "nivea",
+   "creme",
+   "tin",
+   "60ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-creme-tin-150ml",
+  "name": "Nivea Creme Tin 150ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 720,
+  "costPrice": 562,
+  "tags": [
+   "nivea",
+   "creme",
+   "tin",
+   "150ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-creme-tin-250ml",
+  "name": "Nivea Creme Tin 250ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "nivea",
+   "creme",
+   "tin",
+   "250ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-men-face-wash-100ml",
+  "name": "Nivea Men Face Wash 100ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "nivea",
+   "men",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-men-dark-spot-reduction-face-wash-100ml",
+  "name": "Nivea Men Dark Spot Reduction Face Wash 100ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "nivea",
+   "men",
+   "dark",
+   "spot",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-milk-delicate-face-wash-150ml",
+  "name": "Nivea Milk Delicate Face Wash 150ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 580,
+  "costPrice": 452,
+  "tags": [
+   "nivea",
+   "milk",
+   "delicate",
+   "face",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-q10-anti-wrinkle-day-cream-50ml",
+  "name": "Nivea Q10 Anti-Wrinkle Day Cream 50ml",
+  "brand": "Nivea",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1443,
+  "tags": [
+   "nivea",
+   "q10",
+   "anti",
+   "wrinkle",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-olay-total-effects-day-cream-50g",
+  "name": "Olay Total Effects Day Cream 50g",
+  "brand": "Olay",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1911,
+  "tags": [
+   "olay",
+   "total",
+   "effects",
+   "day",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-olay-regenerist-cream-50g",
+  "name": "Olay Regenerist Cream 50g",
+  "brand": "Olay",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 3650,
+  "costPrice": 2847,
+  "tags": [
+   "olay",
+   "regenerist",
+   "cream",
+   "50g",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-neutrogena-hydro-boost-water-gel-50g",
+  "name": "Neutrogena Hydro Boost Water Gel 50g",
+  "brand": "Neutrogena",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 2650,
+  "costPrice": 2067,
+  "tags": [
+   "neutrogena",
+   "hydro",
+   "boost",
+   "water",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-neutrogena-oil-free-acne-wash-175ml",
+  "name": "Neutrogena Oil-Free Acne Wash 175ml",
+  "brand": "Neutrogena",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "neutrogena",
+   "oil",
+   "free",
+   "acne",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-neem-face-wash-100ml",
+  "name": "Himalaya Neem Face Wash 100ml",
+  "brand": "Himalaya",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "himalaya",
+   "neem",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-neem-face-wash-150ml",
+  "name": "Himalaya Neem Face Wash 150ml",
+  "brand": "Himalaya",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "himalaya",
+   "neem",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-purifying-neem-mask-75ml",
+  "name": "Himalaya Purifying Neem Mask 75ml",
+  "brand": "Himalaya",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 374,
+  "tags": [
+   "himalaya",
+   "purifying",
+   "neem",
+   "mask",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-face-wash-neem-100ml",
+  "name": "Medora Face Wash Neem 100ml",
+  "brand": "Medora",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "medora",
+   "face",
+   "wash",
+   "neem",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-fairness-cream-50g",
+  "name": "Medora Fairness Cream 50g",
+  "brand": "Medora",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "medora",
+   "fairness",
+   "cream",
+   "50g",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-golden-pearl-facial-kit-gold-1kg",
+  "name": "Golden Pearl Facial Kit Gold 1kg",
+  "brand": "Golden Pearl",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 858,
+  "tags": [
+   "golden",
+   "pearl",
+   "facial",
+   "kit",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-golden-pearl-whitening-cream-30g",
+  "name": "Golden Pearl Whitening Cream 30g",
+  "brand": "Golden Pearl",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "golden",
+   "pearl",
+   "whitening",
+   "cream",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-golden-pearl-face-wash-neem-aloe-100ml",
+  "name": "Golden Pearl Face Wash Neem Aloe 100ml",
+  "brand": "Golden Pearl",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 260,
+  "costPrice": 203,
+  "tags": [
+   "golden",
+   "pearl",
+   "face",
+   "wash",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-golden-pearl-beauty-cream-50g",
+  "name": "Golden Pearl Beauty Cream 50g",
+  "brand": "Golden Pearl",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 218,
+  "tags": [
+   "golden",
+   "pearl",
+   "beauty",
+   "cream",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-golden-pearl-skin-whitening-scrub-200ml",
+  "name": "Golden Pearl Skin Whitening Scrub 200ml",
+  "brand": "Golden Pearl",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "golden",
+   "pearl",
+   "skin",
+   "whitening",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-rose-water-120ml",
+  "name": "Hemani Rose Water 120ml",
+  "brand": "Hemani",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "hemani",
+   "rose",
+   "water",
+   "120ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-rose-water-250ml",
+  "name": "Hemani Rose Water 250ml",
+  "brand": "Hemani",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "hemani",
+   "rose",
+   "water",
+   "250ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-aloe-vera-gel-100ml",
+  "name": "Hemani Aloe Vera Gel 100ml",
+  "brand": "Hemani",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "hemani",
+   "aloe",
+   "vera",
+   "gel",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-aloe-vera-gel-250ml",
+  "name": "Hemani Aloe Vera Gel 250ml",
+  "brand": "Hemani",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 760,
+  "costPrice": 593,
+  "tags": [
+   "hemani",
+   "aloe",
+   "vera",
+   "gel",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-aloe-vera-gel-100ml",
+  "name": "Himalaya Aloe Vera Gel 100ml",
+  "brand": "Himalaya",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 304,
+  "tags": [
+   "himalaya",
+   "aloe",
+   "vera",
+   "gel",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-st-ives-apricot-scrub-170g",
+  "name": "St. Ives Apricot Scrub 170g",
+  "brand": "St. Ives",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 890,
+  "costPrice": 694,
+  "tags": [
+   "st",
+   "ives",
+   "apricot",
+   "scrub",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-st-ives-apricot-scrub-283g",
+  "name": "St. Ives Apricot Scrub 283g",
+  "brand": "St. Ives",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "st",
+   "ives",
+   "apricot",
+   "scrub",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-cetaphil-gentle-skin-cleanser-125ml",
+  "name": "Cetaphil Gentle Skin Cleanser 125ml",
+  "brand": "Cetaphil",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1790,
+  "costPrice": 1396,
+  "tags": [
+   "cetaphil",
+   "gentle",
+   "skin",
+   "cleanser",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-cetaphil-gentle-skin-cleanser-250ml",
+  "name": "Cetaphil Gentle Skin Cleanser 250ml",
+  "brand": "Cetaphil",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 2950,
+  "costPrice": 2301,
+  "tags": [
+   "cetaphil",
+   "gentle",
+   "skin",
+   "cleanser",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-cetaphil-moisturizing-lotion-118ml",
+  "name": "Cetaphil Moisturizing Lotion 118ml",
+  "brand": "Cetaphil",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 1990,
+  "costPrice": 1552,
+  "tags": [
+   "cetaphil",
+   "moisturizing",
+   "lotion",
+   "118ml",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-bio-essence-rose-water-toner-100ml",
+  "name": "Bio Essence Rose Water Toner 100ml",
+  "brand": "Bio Essence",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "bio",
+   "essence",
+   "rose",
+   "water",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-the-ordinary-niacinamide-serum-30ml",
+  "name": "The Ordinary Niacinamide Serum 30ml",
+  "brand": "The Ordinary",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1911,
+  "tags": [
+   "the",
+   "ordinary",
+   "niacinamide",
+   "serum",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-cerave-moisturizing-cream-50g",
+  "name": "CeraVe Moisturizing Cream 50g",
+  "brand": "CeraVe",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 2750,
+  "costPrice": 2145,
+  "tags": [
+   "cerave",
+   "moisturizing",
+   "cream",
+   "50g",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-cerave-moisturizing-cream-340g",
+  "name": "CeraVe Moisturizing Cream 340g",
+  "brand": "CeraVe",
+  "category": "Face Care",
+  "unit": "pcs",
+  "price": 5950,
+  "costPrice": 4641,
+  "tags": [
+   "cerave",
+   "moisturizing",
+   "cream",
+   "340g",
+   "face care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-body-lotion-soft-200ml",
+  "name": "Nivea Body Lotion Soft 200ml",
+  "brand": "Nivea",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "nivea",
+   "body",
+   "lotion",
+   "soft",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-body-lotion-soft-400ml",
+  "name": "Nivea Body Lotion Soft 400ml",
+  "brand": "Nivea",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "nivea",
+   "body",
+   "lotion",
+   "soft",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-cocoa-nourish-body-lotion-200ml",
+  "name": "Nivea Cocoa Nourish Body Lotion 200ml",
+  "brand": "Nivea",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 484,
+  "tags": [
+   "nivea",
+   "cocoa",
+   "nourish",
+   "body",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-cocoa-nourish-body-lotion-400ml",
+  "name": "Nivea Cocoa Nourish Body Lotion 400ml",
+  "brand": "Nivea",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "nivea",
+   "cocoa",
+   "nourish",
+   "body",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-intensive-care-body-lotion-200ml",
+  "name": "Vaseline Intensive Care Body Lotion 200ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "vaseline",
+   "intensive",
+   "care",
+   "body",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-intensive-care-body-lotion-400ml",
+  "name": "Vaseline Intensive Care Body Lotion 400ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 880,
+  "costPrice": 686,
+  "tags": [
+   "vaseline",
+   "intensive",
+   "care",
+   "body",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-intensive-care-body-lotion-600ml",
+  "name": "Vaseline Intensive Care Body Lotion 600ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "vaseline",
+   "intensive",
+   "care",
+   "body",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-petroleum-jelly-40ml",
+  "name": "Vaseline Petroleum Jelly 40ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 148,
+  "tags": [
+   "vaseline",
+   "petroleum",
+   "jelly",
+   "40ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-petroleum-jelly-100ml",
+  "name": "Vaseline Petroleum Jelly 100ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "vaseline",
+   "petroleum",
+   "jelly",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-petroleum-jelly-250ml",
+  "name": "Vaseline Petroleum Jelly 250ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "vaseline",
+   "petroleum",
+   "jelly",
+   "250ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-cocoa-glow-lotion-400ml",
+  "name": "Vaseline Cocoa Glow Lotion 400ml",
+  "brand": "Vaseline",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "vaseline",
+   "cocoa",
+   "glow",
+   "lotion",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-body-lotion-intense-250ml",
+  "name": "Dove Body Lotion Intense 250ml",
+  "brand": "Dove",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 890,
+  "costPrice": 694,
+  "tags": [
+   "dove",
+   "body",
+   "lotion",
+   "intense",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-beauty-bar-100g",
+  "name": "Dove Beauty Bar 100g",
+  "brand": "Dove",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "dove",
+   "beauty",
+   "bar",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-beauty-bar-135g",
+  "name": "Dove Beauty Bar 135g",
+  "brand": "Dove",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "dove",
+   "beauty",
+   "bar",
+   "135g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-body-wash-250ml",
+  "name": "Dove Body Wash 250ml",
+  "brand": "Dove",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 608,
+  "tags": [
+   "dove",
+   "body",
+   "wash",
+   "250ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-body-wash-500ml",
+  "name": "Dove Body Wash 500ml",
+  "brand": "Dove",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1053,
+  "tags": [
+   "dove",
+   "body",
+   "wash",
+   "500ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lux-soap-rose-100g",
+  "name": "Lux Soap Rose 100g",
+  "brand": "Lux",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 86,
+  "tags": [
+   "lux",
+   "soap",
+   "rose",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lux-soap-rose-170g",
+  "name": "Lux Soap Rose 170g",
+  "brand": "Lux",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "lux",
+   "soap",
+   "rose",
+   "170g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lux-soap-velvet-100g",
+  "name": "Lux Soap Velvet 100g",
+  "brand": "Lux",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 86,
+  "tags": [
+   "lux",
+   "soap",
+   "velvet",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lux-soap-velvet-170g",
+  "name": "Lux Soap Velvet 170g",
+  "brand": "Lux",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "lux",
+   "soap",
+   "velvet",
+   "170g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lifebuoy-soap-total-100g",
+  "name": "Lifebuoy Soap Total 100g",
+  "brand": "Lifebuoy",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 78,
+  "tags": [
+   "lifebuoy",
+   "soap",
+   "total",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lifebuoy-soap-total-175g",
+  "name": "Lifebuoy Soap Total 175g",
+  "brand": "Lifebuoy",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 117,
+  "tags": [
+   "lifebuoy",
+   "soap",
+   "total",
+   "175g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lifebuoy-hand-wash-190ml",
+  "name": "Lifebuoy Hand Wash 190ml",
+  "brand": "Lifebuoy",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 270,
+  "costPrice": 211,
+  "tags": [
+   "lifebuoy",
+   "hand",
+   "wash",
+   "190ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-lifebuoy-hand-wash-500ml",
+  "name": "Lifebuoy Hand Wash 500ml",
+  "brand": "Lifebuoy",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "lifebuoy",
+   "hand",
+   "wash",
+   "500ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-safeguard-soap-pure-white-100g",
+  "name": "Safeguard Soap Pure White 100g",
+  "brand": "Safeguard",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 105,
+  "costPrice": 82,
+  "tags": [
+   "safeguard",
+   "soap",
+   "pure",
+   "white",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-safeguard-soap-pure-white-175g",
+  "name": "Safeguard Soap Pure White 175g",
+  "brand": "Safeguard",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 125,
+  "tags": [
+   "safeguard",
+   "soap",
+   "pure",
+   "white",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dettol-soap-original-100g",
+  "name": "Dettol Soap Original 100g",
+  "brand": "Dettol",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 86,
+  "tags": [
+   "dettol",
+   "soap",
+   "original",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dettol-soap-original-165g",
+  "name": "Dettol Soap Original 165g",
+  "brand": "Dettol",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 125,
+  "tags": [
+   "dettol",
+   "soap",
+   "original",
+   "165g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dettol-hand-wash-original-200ml",
+  "name": "Dettol Hand Wash Original 200ml",
+  "brand": "Dettol",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "dettol",
+   "hand",
+   "wash",
+   "original",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dettol-hand-wash-original-500ml",
+  "name": "Dettol Hand Wash Original 500ml",
+  "brand": "Dettol",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "dettol",
+   "hand",
+   "wash",
+   "original",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-capri-soap-100g",
+  "name": "Capri Soap 100g",
+  "brand": "Capri",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 100,
+  "costPrice": 78,
+  "tags": [
+   "capri",
+   "soap",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-capri-soap-150g",
+  "name": "Capri Soap 150g",
+  "brand": "Capri",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 109,
+  "tags": [
+   "capri",
+   "soap",
+   "150g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-palmolive-soap-naturals-110g",
+  "name": "Palmolive Soap Naturals 110g",
+  "brand": "Palmolive",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 115,
+  "costPrice": 90,
+  "tags": [
+   "palmolive",
+   "soap",
+   "naturals",
+   "110g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-palmolive-soap-naturals-175g",
+  "name": "Palmolive Soap Naturals 175g",
+  "brand": "Palmolive",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "palmolive",
+   "soap",
+   "naturals",
+   "175g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-palmolive-shower-gel-250ml",
+  "name": "Palmolive Shower Gel 250ml",
+  "brand": "Palmolive",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "palmolive",
+   "shower",
+   "gel",
+   "250ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-palmolive-shower-gel-500ml",
+  "name": "Palmolive Shower Gel 500ml",
+  "brand": "Palmolive",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 1090,
+  "costPrice": 850,
+  "tags": [
+   "palmolive",
+   "shower",
+   "gel",
+   "500ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-medimix-ayurvedic-soap-75g",
+  "name": "Medimix Ayurvedic Soap 75g",
+  "brand": "Medimix",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "medimix",
+   "ayurvedic",
+   "soap",
+   "75g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-medimix-ayurvedic-soap-125g",
+  "name": "Medimix Ayurvedic Soap 125g",
+  "brand": "Medimix",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "medimix",
+   "ayurvedic",
+   "soap",
+   "125g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-nourishing-body-lotion-200ml",
+  "name": "Himalaya Nourishing Body Lotion 200ml",
+  "brand": "Himalaya",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "himalaya",
+   "nourishing",
+   "body",
+   "lotion",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-nourishing-body-lotion-400ml",
+  "name": "Himalaya Nourishing Body Lotion 400ml",
+  "brand": "Himalaya",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 616,
+  "tags": [
+   "himalaya",
+   "nourishing",
+   "body",
+   "lotion",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-almond-oil-100ml",
+  "name": "Hemani Almond Oil 100ml",
+  "brand": "Hemani",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 304,
+  "tags": [
+   "hemani",
+   "almond",
+   "oil",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-parachute-coconut-oil-100ml",
+  "name": "Parachute Coconut Oil 100ml",
+  "brand": "Parachute",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 109,
+  "tags": [
+   "parachute",
+   "coconut",
+   "oil",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-parachute-coconut-oil-200ml",
+  "name": "Parachute Coconut Oil 200ml",
+  "brand": "Parachute",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 260,
+  "costPrice": 203,
+  "tags": [
+   "parachute",
+   "coconut",
+   "oil",
+   "200ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-parachute-coconut-oil-500ml",
+  "name": "Parachute Coconut Oil 500ml",
+  "brand": "Parachute",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "parachute",
+   "coconut",
+   "oil",
+   "500ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-amla-hair-oil-100ml",
+  "name": "Dabur Amla Hair Oil 100ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "dabur",
+   "amla",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-amla-hair-oil-200ml",
+  "name": "Dabur Amla Hair Oil 200ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 310,
+  "costPrice": 242,
+  "tags": [
+   "dabur",
+   "amla",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-amla-hair-oil-500ml",
+  "name": "Dabur Amla Hair Oil 500ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 640,
+  "costPrice": 499,
+  "tags": [
+   "dabur",
+   "amla",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-almond-hair-oil-100ml",
+  "name": "Dabur Almond Hair Oil 100ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "dabur",
+   "almond",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-almond-hair-oil-200ml",
+  "name": "Dabur Almond Hair Oil 200ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 374,
+  "tags": [
+   "dabur",
+   "almond",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-vatika-hair-oil-100ml",
+  "name": "Dabur Vatika Hair Oil 100ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "dabur",
+   "vatika",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-dabur-vatika-hair-oil-200ml",
+  "name": "Dabur Vatika Hair Oil 200ml",
+  "brand": "Dabur",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 304,
+  "tags": [
+   "dabur",
+   "vatika",
+   "hair",
+   "oil",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-lotion-100ml",
+  "name": "Johnson's Baby Lotion 100ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 310,
+  "costPrice": 242,
+  "tags": [
+   "johnson",
+   "baby",
+   "lotion",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-lotion-200ml",
+  "name": "Johnson's Baby Lotion 200ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "johnson",
+   "baby",
+   "lotion",
+   "200ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-powder-100g",
+  "name": "Johnson's Baby Powder 100g",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 218,
+  "tags": [
+   "johnson",
+   "baby",
+   "powder",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-powder-200g",
+  "name": "Johnson's Baby Powder 200g",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "johnson",
+   "baby",
+   "powder",
+   "200g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-shampoo-100ml",
+  "name": "Johnson's Baby Shampoo 100ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "johnson",
+   "baby",
+   "shampoo",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-shampoo-200ml",
+  "name": "Johnson's Baby Shampoo 200ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 580,
+  "costPrice": 452,
+  "tags": [
+   "johnson",
+   "baby",
+   "shampoo",
+   "200ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-oil-100ml",
+  "name": "Johnson's Baby Oil 100ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "johnson",
+   "baby",
+   "oil",
+   "100ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-oil-200ml",
+  "name": "Johnson's Baby Oil 200ml",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "johnson",
+   "baby",
+   "oil",
+   "200ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-soap-75g",
+  "name": "Johnson's Baby Soap 75g",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 170,
+  "costPrice": 133,
+  "tags": [
+   "johnson",
+   "baby",
+   "soap",
+   "75g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-johnsons-baby-soap-100g",
+  "name": "Johnson's Baby Soap 100g",
+  "brand": "Johnson's",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 164,
+  "tags": [
+   "johnson",
+   "baby",
+   "soap",
+   "100g",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-sebamed-baby-wash-200ml",
+  "name": "Sebamed Baby Wash 200ml",
+  "brand": "Sebamed",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1365,
+  "tags": [
+   "sebamed",
+   "baby",
+   "wash",
+   "200ml",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-veet-hair-removal-cream-60g",
+  "name": "Veet Hair Removal Cream 60g",
+  "brand": "Veet",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "veet",
+   "hair",
+   "removal",
+   "cream",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-veet-hair-removal-cream-100g",
+  "name": "Veet Hair Removal Cream 100g",
+  "brand": "Veet",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "veet",
+   "hair",
+   "removal",
+   "cream",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-veet-hair-removal-cream-sensitive-100g",
+  "name": "Veet Hair Removal Cream Sensitive 100g",
+  "brand": "Veet",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 720,
+  "costPrice": 562,
+  "tags": [
+   "veet",
+   "hair",
+   "removal",
+   "cream",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-nair-hair-removal-cream-80g",
+  "name": "Nair Hair Removal Cream 80g",
+  "brand": "Nair",
+  "category": "Body Care",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "nair",
+   "hair",
+   "removal",
+   "cream",
+   "body care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-thick-and-long-180ml",
+  "name": "Sunsilk Shampoo Thick & Long 180ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "thick",
+   "long",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-thick-and-long-360ml",
+  "name": "Sunsilk Shampoo Thick & Long 360ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "thick",
+   "long",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-thick-and-long-700ml",
+  "name": "Sunsilk Shampoo Thick & Long 700ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1000,
+  "costPrice": 780,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "thick",
+   "long",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-black-shine-180ml",
+  "name": "Sunsilk Shampoo Black Shine 180ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "black",
+   "shine",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-black-shine-360ml",
+  "name": "Sunsilk Shampoo Black Shine 360ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "black",
+   "shine",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-soft-and-smooth-180ml",
+  "name": "Sunsilk Shampoo Soft & Smooth 180ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 257,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "soft",
+   "smooth",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-sunsilk-shampoo-soft-and-smooth-360ml",
+  "name": "Sunsilk Shampoo Soft & Smooth 360ml",
+  "brand": "Sunsilk",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "soft",
+   "smooth",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-head-and-shoulders-shampoo-anti-dandruff-185ml",
+  "name": "Head & Shoulders Shampoo Anti Dandruff 185ml",
+  "brand": "Head & Shoulders",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "head",
+   "shoulders",
+   "shampoo",
+   "anti",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-head-and-shoulders-shampoo-anti-dandruff-360ml",
+  "name": "Head & Shoulders Shampoo Anti Dandruff 360ml",
+  "brand": "Head & Shoulders",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 720,
+  "costPrice": 562,
+  "tags": [
+   "head",
+   "shoulders",
+   "shampoo",
+   "anti",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-head-and-shoulders-shampoo-anti-dandruff-650ml",
+  "name": "Head & Shoulders Shampoo Anti Dandruff 650ml",
+  "brand": "Head & Shoulders",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1180,
+  "costPrice": 920,
+  "tags": [
+   "head",
+   "shoulders",
+   "shampoo",
+   "anti",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-head-and-shoulders-shampoo-menthol-185ml",
+  "name": "Head & Shoulders Shampoo Menthol 185ml",
+  "brand": "Head & Shoulders",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "head",
+   "shoulders",
+   "shampoo",
+   "menthol",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-head-and-shoulders-shampoo-menthol-360ml",
+  "name": "Head & Shoulders Shampoo Menthol 360ml",
+  "brand": "Head & Shoulders",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 720,
+  "costPrice": 562,
+  "tags": [
+   "head",
+   "shoulders",
+   "shampoo",
+   "menthol",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-shampoo-hair-fall-control-185ml",
+  "name": "Pantene Shampoo Hair Fall Control 185ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "pantene",
+   "shampoo",
+   "hair",
+   "fall",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-shampoo-hair-fall-control-360ml",
+  "name": "Pantene Shampoo Hair Fall Control 360ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 608,
+  "tags": [
+   "pantene",
+   "shampoo",
+   "hair",
+   "fall",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-shampoo-hair-fall-control-650ml",
+  "name": "Pantene Shampoo Hair Fall Control 650ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "pantene",
+   "shampoo",
+   "hair",
+   "fall",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-shampoo-smooth-and-silky-185ml",
+  "name": "Pantene Shampoo Smooth & Silky 185ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "pantene",
+   "shampoo",
+   "smooth",
+   "silky",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-shampoo-smooth-and-silky-360ml",
+  "name": "Pantene Shampoo Smooth & Silky 360ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 780,
+  "costPrice": 608,
+  "tags": [
+   "pantene",
+   "shampoo",
+   "smooth",
+   "silky",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-pantene-conditioner-180ml",
+  "name": "Pantene Conditioner 180ml",
+  "brand": "Pantene",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 374,
+  "tags": [
+   "pantene",
+   "conditioner",
+   "180ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-clear-shampoo-anti-dandruff-180ml",
+  "name": "Clear Shampoo Anti Dandruff 180ml",
+  "brand": "Clear",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 335,
+  "tags": [
+   "clear",
+   "shampoo",
+   "anti",
+   "dandruff",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-clear-shampoo-anti-dandruff-360ml",
+  "name": "Clear Shampoo Anti Dandruff 360ml",
+  "brand": "Clear",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 760,
+  "costPrice": 593,
+  "tags": [
+   "clear",
+   "shampoo",
+   "anti",
+   "dandruff",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-clear-men-shampoo-cool-sport-180ml",
+  "name": "Clear Men Shampoo Cool Sport 180ml",
+  "brand": "Clear",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 430,
+  "costPrice": 335,
+  "tags": [
+   "clear",
+   "men",
+   "shampoo",
+   "cool",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-clear-men-shampoo-cool-sport-360ml",
+  "name": "Clear Men Shampoo Cool Sport 360ml",
+  "brand": "Clear",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 760,
+  "costPrice": 593,
+  "tags": [
+   "clear",
+   "men",
+   "shampoo",
+   "cool",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-shampoo-intense-repair-175ml",
+  "name": "Dove Shampoo Intense Repair 175ml",
+  "brand": "Dove",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "dove",
+   "shampoo",
+   "intense",
+   "repair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-shampoo-intense-repair-355ml",
+  "name": "Dove Shampoo Intense Repair 355ml",
+  "brand": "Dove",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 616,
+  "tags": [
+   "dove",
+   "shampoo",
+   "intense",
+   "repair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-shampoo-intense-repair-650ml",
+  "name": "Dove Shampoo Intense Repair 650ml",
+  "brand": "Dove",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1290,
+  "costPrice": 1006,
+  "tags": [
+   "dove",
+   "shampoo",
+   "intense",
+   "repair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-dove-conditioner-intense-repair-175ml",
+  "name": "Dove Conditioner Intense Repair 175ml",
+  "brand": "Dove",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "dove",
+   "conditioner",
+   "intense",
+   "repair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-tresemme-shampoo-keratin-smooth-190ml",
+  "name": "TRESemme Shampoo Keratin Smooth 190ml",
+  "brand": "TRESemme",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "tresemme",
+   "shampoo",
+   "keratin",
+   "smooth",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-tresemme-shampoo-keratin-smooth-380ml",
+  "name": "TRESemme Shampoo Keratin Smooth 380ml",
+  "brand": "TRESemme",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1190,
+  "costPrice": 928,
+  "tags": [
+   "tresemme",
+   "shampoo",
+   "keratin",
+   "smooth",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-tresemme-conditioner-keratin-smooth-190ml",
+  "name": "TRESemme Conditioner Keratin Smooth 190ml",
+  "brand": "TRESemme",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "tresemme",
+   "conditioner",
+   "keratin",
+   "smooth",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-elvive-shampoo-total-repair-175ml",
+  "name": "L'Oreal Elvive Shampoo Total Repair 175ml",
+  "brand": "L'Oreal",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "oreal",
+   "elvive",
+   "shampoo",
+   "total",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-elvive-shampoo-total-repair-360ml",
+  "name": "L'Oreal Elvive Shampoo Total Repair 360ml",
+  "brand": "L'Oreal",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 840,
+  "costPrice": 655,
+  "tags": [
+   "oreal",
+   "elvive",
+   "shampoo",
+   "total",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-elvive-hair-oil-extraordinary-100ml",
+  "name": "L'Oreal Elvive Hair Oil Extraordinary 100ml",
+  "brand": "L'Oreal",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1053,
+  "tags": [
+   "oreal",
+   "elvive",
+   "hair",
+   "oil",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-casting-creme-gloss-hair-colour",
+  "name": "L'Oreal Casting Creme Gloss Hair Colour",
+  "brand": "L'Oreal",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1521,
+  "tags": [
+   "oreal",
+   "casting",
+   "creme",
+   "gloss",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-excellence-creme-hair-colour",
+  "name": "L'Oreal Excellence Creme Hair Colour",
+  "brand": "L'Oreal",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1755,
+  "tags": [
+   "oreal",
+   "excellence",
+   "creme",
+   "hair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-fructis-shampoo-180ml",
+  "name": "Garnier Fructis Shampoo 180ml",
+  "brand": "Garnier",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 370,
+  "costPrice": 289,
+  "tags": [
+   "garnier",
+   "fructis",
+   "shampoo",
+   "180ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-fructis-shampoo-360ml",
+  "name": "Garnier Fructis Shampoo 360ml",
+  "brand": "Garnier",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 680,
+  "costPrice": 530,
+  "tags": [
+   "garnier",
+   "fructis",
+   "shampoo",
+   "360ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-color-naturals-hair-colour",
+  "name": "Garnier Color Naturals Hair Colour",
+  "brand": "Garnier",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "garnier",
+   "color",
+   "naturals",
+   "hair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-color-naturals-hair-colour-1pc-burgundy",
+  "name": "Garnier Color Naturals Hair Colour 1pc Burgundy",
+  "brand": "Garnier",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 538,
+  "tags": [
+   "garnier",
+   "color",
+   "naturals",
+   "hair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-garnier-black-naturals-hair-colour",
+  "name": "Garnier Black Naturals Hair Colour",
+  "brand": "Garnier",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "garnier",
+   "black",
+   "naturals",
+   "hair",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-schwarzkopf-palette-hair-colour",
+  "name": "Schwarzkopf Palette Hair Colour",
+  "brand": "Schwarzkopf",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "schwarzkopf",
+   "palette",
+   "hair",
+   "colour",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-revlon-colorsilk-hair-colour",
+  "name": "Revlon Colorsilk Hair Colour",
+  "brand": "Revlon",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "revlon",
+   "colorsilk",
+   "hair",
+   "colour",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-hair-colour-black",
+  "name": "Medora Hair Colour Black",
+  "brand": "Medora",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "medora",
+   "hair",
+   "colour",
+   "black",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-hair-oil-100ml",
+  "name": "Medora Hair Oil 100ml",
+  "brand": "Medora",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 164,
+  "tags": [
+   "medora",
+   "hair",
+   "oil",
+   "100ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-hair-oil-200ml",
+  "name": "Medora Hair Oil 200ml",
+  "brand": "Medora",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 370,
+  "costPrice": 289,
+  "tags": [
+   "medora",
+   "hair",
+   "oil",
+   "200ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-hair-colour-black",
+  "name": "Rivaj Hair Colour Black",
+  "brand": "Rivaj",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "rivaj",
+   "hair",
+   "colour",
+   "black",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-hair-colour-brown",
+  "name": "Rivaj Hair Colour Brown",
+  "brand": "Rivaj",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "rivaj",
+   "hair",
+   "colour",
+   "brown",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-mehndi-100g",
+  "name": "Rivaj Mehndi 100g",
+  "brand": "Rivaj",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 86,
+  "tags": [
+   "rivaj",
+   "mehndi",
+   "100g",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-vatika-shampoo-black-seed-200ml",
+  "name": "Vatika Shampoo Black Seed 200ml",
+  "brand": "Vatika",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 360,
+  "costPrice": 281,
+  "tags": [
+   "vatika",
+   "shampoo",
+   "black",
+   "seed",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-vatika-shampoo-black-seed-400ml",
+  "name": "Vatika Shampoo Black Seed 400ml",
+  "brand": "Vatika",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 640,
+  "costPrice": 499,
+  "tags": [
+   "vatika",
+   "shampoo",
+   "black",
+   "seed",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-vatika-hair-oil-coconut-100ml",
+  "name": "Vatika Hair Oil Coconut 100ml",
+  "brand": "Vatika",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 172,
+  "tags": [
+   "vatika",
+   "hair",
+   "oil",
+   "coconut",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-vatika-hair-oil-coconut-200ml",
+  "name": "Vatika Hair Oil Coconut 200ml",
+  "brand": "Vatika",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 304,
+  "tags": [
+   "vatika",
+   "hair",
+   "oil",
+   "coconut",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-vatika-hair-mask-naturals-500ml",
+  "name": "Vatika Hair Mask Naturals 500ml",
+  "brand": "Vatika",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 980,
+  "costPrice": 764,
+  "tags": [
+   "vatika",
+   "hair",
+   "mask",
+   "naturals",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-hair-oil-black-seed-100ml",
+  "name": "Hemani Hair Oil Black Seed 100ml",
+  "brand": "Hemani",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "hemani",
+   "hair",
+   "oil",
+   "black",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-dr-rashel-hair-serum-100ml",
+  "name": "Dr. Rashel Hair Serum 100ml",
+  "brand": "Dr. Rashel",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "dr",
+   "rashel",
+   "hair",
+   "serum",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-streax-hair-serum-100ml",
+  "name": "Streax Hair Serum 100ml",
+  "brand": "Streax",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 616,
+  "tags": [
+   "streax",
+   "hair",
+   "serum",
+   "100ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-keune-hair-gel-250ml",
+  "name": "Keune Hair Gel 250ml",
+  "brand": "Keune",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "keune",
+   "hair",
+   "gel",
+   "250ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-brylcreem-hair-cream-75ml",
+  "name": "Brylcreem Hair Cream 75ml",
+  "brand": "Brylcreem",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "brylcreem",
+   "hair",
+   "cream",
+   "75ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-brylcreem-hair-cream-150ml",
+  "name": "Brylcreem Hair Cream 150ml",
+  "brand": "Brylcreem",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 304,
+  "tags": [
+   "brylcreem",
+   "hair",
+   "cream",
+   "150ml",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-gatsby-hair-wax-75g",
+  "name": "Gatsby Hair Wax 75g",
+  "brand": "Gatsby",
+  "category": "Hair Care",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "gatsby",
+   "hair",
+   "wax",
+   "75g",
+   "hair care"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-beard-oil-30ml",
+  "name": "Stillmen's Beard Oil 30ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 429,
+  "tags": [
+   "stillmen",
+   "beard",
+   "oil",
+   "30ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-beard-wash-100ml",
+  "name": "Stillmen's Beard Wash 100ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 640,
+  "costPrice": 499,
+  "tags": [
+   "stillmen",
+   "beard",
+   "wash",
+   "100ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-hair-wax-100g",
+  "name": "Stillmen's Hair Wax 100g",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 406,
+  "tags": [
+   "stillmen",
+   "hair",
+   "wax",
+   "100g",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-hair-gel-150ml",
+  "name": "Stillmen's Hair Gel 150ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 400,
+  "costPrice": 312,
+  "tags": [
+   "stillmen",
+   "hair",
+   "gel",
+   "150ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-face-wash-100ml",
+  "name": "Stillmen's Face Wash 100ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 296,
+  "tags": [
+   "stillmen",
+   "face",
+   "wash",
+   "100ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-aftershave-100ml",
+  "name": "Stillmen's Aftershave 100ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "stillmen",
+   "aftershave",
+   "100ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-stillmens-shaving-foam-200ml",
+  "name": "Stillmen's Shaving Foam 200ml",
+  "brand": "Stillmen's",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "stillmen",
+   "shaving",
+   "foam",
+   "200ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-mach3-razor",
+  "name": "Gillette Mach3 Razor",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 890,
+  "costPrice": 694,
+  "tags": [
+   "gillette",
+   "mach3",
+   "razor",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-mach3-blades-2pcs",
+  "name": "Gillette Mach3 Blades 2pcs",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "gillette",
+   "mach3",
+   "blades",
+   "2pcs",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-guard-razor",
+  "name": "Gillette Guard Razor",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 140,
+  "tags": [
+   "gillette",
+   "guard",
+   "razor",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-blue-2-razor",
+  "name": "Gillette Blue 2 Razor",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 125,
+  "tags": [
+   "gillette",
+   "blue",
+   "razor",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-shaving-foam-regular-200g",
+  "name": "Gillette Shaving Foam Regular 200g",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 540,
+  "costPrice": 421,
+  "tags": [
+   "gillette",
+   "shaving",
+   "foam",
+   "regular",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-shaving-foam-regular-418g",
+  "name": "Gillette Shaving Foam Regular 418g",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 980,
+  "costPrice": 764,
+  "tags": [
+   "gillette",
+   "shaving",
+   "foam",
+   "regular",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-shaving-gel-200ml",
+  "name": "Gillette Shaving Gel 200ml",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 680,
+  "costPrice": 530,
+  "tags": [
+   "gillette",
+   "shaving",
+   "gel",
+   "200ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-gillette-after-shave-lotion-100ml",
+  "name": "Gillette After Shave Lotion 100ml",
+  "brand": "Gillette",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 507,
+  "tags": [
+   "gillette",
+   "after",
+   "shave",
+   "lotion",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-treet-blades-platinum-5pcs",
+  "name": "Treet Blades Platinum 5pcs",
+  "brand": "Treet",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 117,
+  "tags": [
+   "treet",
+   "blades",
+   "platinum",
+   "5pcs",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-treet-blades-platinum-10pcs",
+  "name": "Treet Blades Platinum 10pcs",
+  "brand": "Treet",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 226,
+  "tags": [
+   "treet",
+   "blades",
+   "platinum",
+   "10pcs",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-treet-blades-carbon-10pcs",
+  "name": "Treet Blades Carbon 10pcs",
+  "brand": "Treet",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 240,
+  "costPrice": 187,
+  "tags": [
+   "treet",
+   "blades",
+   "carbon",
+   "10pcs",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-treet-razor-titanium",
+  "name": "Treet Razor Titanium",
+  "brand": "Treet",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 130,
+  "costPrice": 101,
+  "tags": [
+   "treet",
+   "razor",
+   "titanium",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-dettol-shaving-foam-200g",
+  "name": "Dettol Shaving Foam 200g",
+  "brand": "Dettol",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 351,
+  "tags": [
+   "dettol",
+   "shaving",
+   "foam",
+   "200g",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-park-avenue-deodorant-150ml",
+  "name": "Park Avenue Deodorant 150ml",
+  "brand": "Park Avenue",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 374,
+  "tags": [
+   "park",
+   "avenue",
+   "deodorant",
+   "150ml",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-men-deodorant-fresh-active-150ml",
+  "name": "Nivea Men Deodorant Fresh Active 150ml",
+  "brand": "Nivea",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "nivea",
+   "men",
+   "deodorant",
+   "fresh",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-men-after-shave-balm-100ml",
+  "name": "Nivea Men After Shave Balm 100ml",
+  "brand": "Nivea",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 819,
+  "tags": [
+   "nivea",
+   "men",
+   "after",
+   "shave",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-axe-deodorant-body-spray-dark-temptation-150ml",
+  "name": "Axe Deodorant Body Spray Dark Temptation 150ml",
+  "brand": "Axe",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 484,
+  "tags": [
+   "axe",
+   "deodorant",
+   "body",
+   "spray",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-axe-deodorant-body-spray-africa-150ml",
+  "name": "Axe Deodorant Body Spray Africa 150ml",
+  "brand": "Axe",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 620,
+  "costPrice": 484,
+  "tags": [
+   "axe",
+   "deodorant",
+   "body",
+   "spray",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-rexona-deodorant-spray-men-150ml",
+  "name": "Rexona Deodorant Spray Men 150ml",
+  "brand": "Rexona",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 560,
+  "costPrice": 437,
+  "tags": [
+   "rexona",
+   "deodorant",
+   "spray",
+   "men",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-rexona-roll-on-women-50ml",
+  "name": "Rexona Roll On Women 50ml",
+  "brand": "Rexona",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 328,
+  "tags": [
+   "rexona",
+   "roll",
+   "on",
+   "women",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-fogg-body-spray-men-120ml",
+  "name": "Fogg Body Spray Men 120ml",
+  "brand": "Fogg",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 382,
+  "tags": [
+   "fogg",
+   "body",
+   "spray",
+   "men",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-fogg-body-spray-men-150ml",
+  "name": "Fogg Body Spray Men 150ml",
+  "brand": "Fogg",
+  "category": "Men Grooming",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 460,
+  "tags": [
+   "fogg",
+   "body",
+   "spray",
+   "men",
+   "men grooming"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-fit-me-foundation-30ml",
+  "name": "Maybelline Fit Me Foundation 30ml",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1750,
+  "costPrice": 1312,
+  "tags": [
+   "maybelline",
+   "fit",
+   "me",
+   "foundation",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-lash-sensational-mascara",
+  "name": "Maybelline Lash Sensational Mascara",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "maybelline",
+   "lash",
+   "sensational",
+   "mascara",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-colossal-kajal",
+  "name": "Maybelline Colossal Kajal",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 518,
+  "tags": [
+   "maybelline",
+   "colossal",
+   "kajal",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-colossal-kajal-black",
+  "name": "Maybelline Colossal Kajal Black",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 518,
+  "tags": [
+   "maybelline",
+   "colossal",
+   "kajal",
+   "black",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-superstay-matte-ink-lipstick",
+  "name": "Maybelline SuperStay Matte Ink Lipstick",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "maybelline",
+   "superstay",
+   "matte",
+   "ink",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-color-sensational-lipstick",
+  "name": "Maybelline Color Sensational Lipstick",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 1012,
+  "tags": [
+   "maybelline",
+   "color",
+   "sensational",
+   "lipstick",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-eyeliner-hyper-easy",
+  "name": "Maybelline Eyeliner Hyper Easy",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 862,
+  "tags": [
+   "maybelline",
+   "eyeliner",
+   "hyper",
+   "easy",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-compact-powder-fit-me",
+  "name": "Maybelline Compact Powder Fit Me",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "maybelline",
+   "compact",
+   "powder",
+   "fit",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-infallible-foundation-30ml",
+  "name": "L'Oreal Infallible Foundation 30ml",
+  "brand": "L'Oreal",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 2950,
+  "costPrice": 2212,
+  "tags": [
+   "oreal",
+   "infallible",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-paris-lipstick-color-riche",
+  "name": "L'Oreal Paris Lipstick Color Riche",
+  "brand": "L'Oreal",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "oreal",
+   "paris",
+   "lipstick",
+   "color",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-voluminous-mascara",
+  "name": "L'Oreal Voluminous Mascara",
+  "brand": "L'Oreal",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1688,
+  "tags": [
+   "oreal",
+   "voluminous",
+   "mascara",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-loreal-true-match-compact",
+  "name": "L'Oreal True Match Compact",
+  "brand": "L'Oreal",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 2150,
+  "costPrice": 1612,
+  "tags": [
+   "oreal",
+   "true",
+   "match",
+   "compact",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-revlon-super-lustrous-lipstick",
+  "name": "Revlon Super Lustrous Lipstick",
+  "brand": "Revlon",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "revlon",
+   "super",
+   "lustrous",
+   "lipstick",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-revlon-colorstay-foundation-30ml",
+  "name": "Revlon ColorStay Foundation 30ml",
+  "brand": "Revlon",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 3250,
+  "costPrice": 2438,
+  "tags": [
+   "revlon",
+   "colorstay",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-revlon-nail-enamel",
+  "name": "Revlon Nail Enamel",
+  "brand": "Revlon",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 518,
+  "tags": [
+   "revlon",
+   "nail",
+   "enamel",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-lipstick",
+  "name": "Rivaj Lipstick",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 218,
+  "tags": [
+   "rivaj",
+   "lipstick",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-kajal",
+  "name": "Rivaj Kajal",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "rivaj",
+   "kajal",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-compact-powder",
+  "name": "Rivaj Compact Powder",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "rivaj",
+   "compact",
+   "powder",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-foundation-30ml",
+  "name": "Rivaj Foundation 30ml",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 315,
+  "tags": [
+   "rivaj",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-eyeliner",
+  "name": "Rivaj Eyeliner",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "rivaj",
+   "eyeliner",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-rivaj-nail-polish",
+  "name": "Rivaj Nail Polish",
+  "brand": "Rivaj",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 160,
+  "costPrice": 120,
+  "tags": [
+   "rivaj",
+   "nail",
+   "polish",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-lipstick-matte",
+  "name": "Medora Lipstick Matte",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 330,
+  "costPrice": 248,
+  "tags": [
+   "medora",
+   "lipstick",
+   "matte",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-lipstick-cream",
+  "name": "Medora Lipstick Cream",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 225,
+  "tags": [
+   "medora",
+   "lipstick",
+   "cream",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-kajal-black",
+  "name": "Medora Kajal Black",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 140,
+  "costPrice": 105,
+  "tags": [
+   "medora",
+   "kajal",
+   "black",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-eye-pencil",
+  "name": "Medora Eye Pencil",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 110,
+  "costPrice": 82,
+  "tags": [
+   "medora",
+   "eye",
+   "pencil",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-lip-liner",
+  "name": "Medora Lip Liner",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 90,
+  "tags": [
+   "medora",
+   "lip",
+   "liner",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-nail-polish",
+  "name": "Medora Nail Polish",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "medora",
+   "nail",
+   "polish",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-compact-powder",
+  "name": "Medora Compact Powder",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 292,
+  "tags": [
+   "medora",
+   "compact",
+   "powder",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-mascara",
+  "name": "Medora Mascara",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 380,
+  "costPrice": 285,
+  "tags": [
+   "medora",
+   "mascara",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-medora-foundation-30ml",
+  "name": "Medora Foundation 30ml",
+  "brand": "Medora",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 360,
+  "tags": [
+   "medora",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-lipstick-matte",
+  "name": "Luscious Lipstick Matte",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 368,
+  "tags": [
+   "luscious",
+   "lipstick",
+   "matte",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-kajal",
+  "name": "Luscious Kajal",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 210,
+  "costPrice": 158,
+  "tags": [
+   "luscious",
+   "kajal",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-eyeliner",
+  "name": "Luscious Eyeliner",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 360,
+  "costPrice": 270,
+  "tags": [
+   "luscious",
+   "eyeliner",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-mascara",
+  "name": "Luscious Mascara",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 390,
+  "tags": [
+   "luscious",
+   "mascara",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-highlighter",
+  "name": "Luscious Highlighter",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 518,
+  "tags": [
+   "luscious",
+   "highlighter",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-luscious-foundation-30ml",
+  "name": "Luscious Foundation 30ml",
+  "brand": "Luscious",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 592,
+  "tags": [
+   "luscious",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-huda-beauty-eyeshadow-palette",
+  "name": "Huda Beauty Eyeshadow Palette",
+  "brand": "Huda Beauty",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "huda",
+   "beauty",
+   "eyeshadow",
+   "palette",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-huda-beauty-lip-gloss",
+  "name": "Huda Beauty Lip Gloss",
+  "brand": "Huda Beauty",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 292,
+  "tags": [
+   "huda",
+   "beauty",
+   "lip",
+   "gloss",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-huda-beauty-setting-powder",
+  "name": "Huda Beauty Setting Powder",
+  "brand": "Huda Beauty",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 890,
+  "costPrice": 668,
+  "tags": [
+   "huda",
+   "beauty",
+   "setting",
+   "powder",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-glam21-lip-gloss",
+  "name": "Glam21 Lip Gloss",
+  "brand": "Glam21",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 310,
+  "costPrice": 232,
+  "tags": [
+   "glam21",
+   "lip",
+   "gloss",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-glam21-blush-on",
+  "name": "Glam21 Blush On",
+  "brand": "Glam21",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "glam21",
+   "blush",
+   "on",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-glam21-eyebrow-pencil",
+  "name": "Glam21 Eyebrow Pencil",
+  "brand": "Glam21",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "glam21",
+   "eyebrow",
+   "pencil",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-lakme-kajal-eyeconic",
+  "name": "Lakme Kajal Eyeconic",
+  "brand": "Lakme",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 390,
+  "costPrice": 292,
+  "tags": [
+   "lakme",
+   "kajal",
+   "eyeconic",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-lakme-compact-absolute",
+  "name": "Lakme Compact Absolute",
+  "brand": "Lakme",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1150,
+  "costPrice": 862,
+  "tags": [
+   "lakme",
+   "compact",
+   "absolute",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-lakme-lipstick-9to5",
+  "name": "Lakme Lipstick 9to5",
+  "brand": "Lakme",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 990,
+  "costPrice": 742,
+  "tags": [
+   "lakme",
+   "lipstick",
+   "9to5",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-lakme-foundation-primer-30ml",
+  "name": "Lakme Foundation Primer 30ml",
+  "brand": "Lakme",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "lakme",
+   "foundation",
+   "primer",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-makeup-revolution-eyeshadow-palette",
+  "name": "Makeup Revolution Eyeshadow Palette",
+  "brand": "Makeup Revolution",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "makeup",
+   "revolution",
+   "eyeshadow",
+   "palette"
+  ]
+ },
+ {
+  "id": "cosmetics-makeup-revolution-lipstick",
+  "name": "Makeup Revolution Lipstick",
+  "brand": "Makeup Revolution",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 592,
+  "tags": [
+   "makeup",
+   "revolution",
+   "lipstick"
+  ]
+ },
+ {
+  "id": "cosmetics-chambor-lipstick",
+  "name": "Chambor Lipstick",
+  "brand": "Chambor",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 218,
+  "tags": [
+   "chambor",
+   "lipstick",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-chambor-foundation-30ml",
+  "name": "Chambor Foundation 30ml",
+  "brand": "Chambor",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 368,
+  "tags": [
+   "chambor",
+   "foundation",
+   "30ml",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-makeup-remover-wipes-25pcs",
+  "name": "Himalaya Makeup Remover Wipes 25pcs",
+  "brand": "Himalaya",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "himalaya",
+   "makeup",
+   "remover",
+   "wipes"
+  ]
+ },
+ {
+  "id": "cosmetics-himalaya-lip-balm-10g",
+  "name": "Himalaya Lip Balm 10g",
+  "brand": "Himalaya",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 190,
+  "costPrice": 142,
+  "tags": [
+   "himalaya",
+   "lip",
+   "balm",
+   "10g",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-vaseline-lip-therapy-rosy-7g",
+  "name": "Vaseline Lip Therapy Rosy 7g",
+  "brand": "Vaseline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "vaseline",
+   "lip",
+   "therapy",
+   "rosy",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-nivea-lip-balm-original-4-8g",
+  "name": "Nivea Lip Balm Original 4.8g",
+  "brand": "Nivea",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 290,
+  "costPrice": 218,
+  "tags": [
+   "nivea",
+   "lip",
+   "balm",
+   "original",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-maybelline-baby-lips-balm",
+  "name": "Maybelline Baby Lips Balm",
+  "brand": "Maybelline",
+  "category": "Makeup",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 368,
+  "tags": [
+   "maybelline",
+   "baby",
+   "lips",
+   "balm",
+   "makeup"
+  ]
+ },
+ {
+  "id": "cosmetics-j-perfume-spray-men-100ml",
+  "name": "J. Perfume Spray Men 100ml",
+  "brand": "J.",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 2950,
+  "costPrice": 2124,
+  "tags": [
+   "perfume",
+   "spray",
+   "men",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-j-perfume-spray-women-100ml",
+  "name": "J. Perfume Spray Women 100ml",
+  "brand": "J.",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1764,
+  "tags": [
+   "perfume",
+   "spray",
+   "women",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-amir-zeb-attar-rose-6ml",
+  "name": "Amir Zeb Attar Rose 6ml",
+  "brand": "Amir Zeb",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "amir",
+   "zeb",
+   "attar",
+   "rose",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-amir-zeb-attar-oudh-6ml",
+  "name": "Amir Zeb Attar Oudh 6ml",
+  "brand": "Amir Zeb",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 540,
+  "tags": [
+   "amir",
+   "zeb",
+   "attar",
+   "oudh",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-rasasi-hawas-perfume-100ml",
+  "name": "Rasasi Hawas Perfume 100ml",
+  "brand": "Rasasi",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 7950,
+  "costPrice": 5724,
+  "tags": [
+   "rasasi",
+   "hawas",
+   "perfume",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-ajmal-aristocrat-perfume-100ml",
+  "name": "Ajmal Aristocrat Perfume 100ml",
+  "brand": "Ajmal",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 4950,
+  "costPrice": 3564,
+  "tags": [
+   "ajmal",
+   "aristocrat",
+   "perfume",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-ajmal-wisal-dhahab-50ml",
+  "name": "Ajmal Wisal Dhahab 50ml",
+  "brand": "Ajmal",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 4250,
+  "costPrice": 3060,
+  "tags": [
+   "ajmal",
+   "wisal",
+   "dhahab",
+   "50ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-al-haramain-amber-oud-60ml",
+  "name": "Al Haramain Amber Oud 60ml",
+  "brand": "Al Haramain",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 5250,
+  "costPrice": 3780,
+  "tags": [
+   "al",
+   "haramain",
+   "amber",
+   "oud",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-lattafa-yara-100ml",
+  "name": "Lattafa Yara 100ml",
+  "brand": "Lattafa",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 4250,
+  "costPrice": 3060,
+  "tags": [
+   "lattafa",
+   "yara",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-lattafa-khamrah-100ml",
+  "name": "Lattafa Khamrah 100ml",
+  "brand": "Lattafa",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 5950,
+  "costPrice": 4284,
+  "tags": [
+   "lattafa",
+   "khamrah",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-lattafa-fakhar-gold-100ml",
+  "name": "Lattafa Fakhar Gold 100ml",
+  "brand": "Lattafa",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 4850,
+  "costPrice": 3492,
+  "tags": [
+   "lattafa",
+   "fakhar",
+   "gold",
+   "100ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-armaf-club-de-nuit-intense-105ml",
+  "name": "Armaf Club De Nuit Intense 105ml",
+  "brand": "Armaf",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5400,
+  "tags": [
+   "armaf",
+   "club",
+   "de",
+   "nuit",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-surrati-musk-perfume-50ml",
+  "name": "Surrati Musk Perfume 50ml",
+  "brand": "Surrati",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1188,
+  "tags": [
+   "surrati",
+   "musk",
+   "perfume",
+   "50ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-surrati-attar-oudh-12ml",
+  "name": "Surrati Attar Oudh 12ml",
+  "brand": "Surrati",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "surrati",
+   "attar",
+   "oudh",
+   "12ml",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-hemani-body-spray-women-100ml",
+  "name": "Hemani Body Spray Women 100ml",
+  "brand": "Hemani",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "hemani",
+   "body",
+   "spray",
+   "women",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-engage-perfume-spray-men-120ml",
+  "name": "Engage Perfume Spray Men 120ml",
+  "brand": "Engage",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 353,
+  "tags": [
+   "engage",
+   "perfume",
+   "spray",
+   "men",
+   "perfume & fragrance"
+  ]
+ },
+ {
+  "id": "cosmetics-engage-perfume-spray-women-120ml",
+  "name": "Engage Perfume Spray Women 120ml",
+  "brand": "Engage",
+  "category": "Perfume & Fragrance",
+  "unit": "pcs",
+  "price": 490,
+  "costPrice": 353,
+  "tags": [
+   "engage",
+   "perfume",
+   "spray",
+   "women",
+   "perfume & fragrance"
+  ]
+ }
+]

@@ -20,6 +20,7 @@ import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
+import { openProductLibrary } from '@modules/inventory/products/library/libraryHost';
 import { freeVariantStock, productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import type { PaymentMethod, SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import type { VoiceCommand, VoiceFeedback } from '@core/components/voice/VoiceSaleButton';
@@ -734,8 +735,12 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (it) { void addItem(it, withQty); return; }
     } catch { /* not a product barcode */ }
     beep('error');
-    toast.error(tr('Barcode "{{code}}" nahi mila', { code }));
-  }, [config, bundles, addBundle, unitIndex, itemsById, items, addItem, beep]);
+    // Someone who can add products may pick the item from the library; it is created with this barcode.
+    const canCreate = navigator.onLine && hasPermission(user?.role, (user as { permissions?: string[] } | null)?.permissions, PERMISSIONS.PRODUCTS_CREATE);
+    toast.error(tr('Barcode "{{code}}" nahi mila', { code }), canCreate
+      ? { action: { label: tr('Library me dhoondo'), onClick: () => openProductLibrary({ pickBarcode: code }) } }
+      : undefined);
+  }, [config, bundles, addBundle, unitIndex, itemsById, items, addItem, beep, user]);
 
   /** Search box Enter: exact code scans; otherwise the first result goes on the bill. */
   /** True when the text is a barcode/SKU on this counter (product, pack or combo). */

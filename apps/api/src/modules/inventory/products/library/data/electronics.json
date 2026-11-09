@@ -1,0 +1,2538 @@
+[
+ {
+  "id": "electronics-samsung-led-tv-32-inch-hd",
+  "name": "Samsung LED TV 32 inch HD",
+  "brand": "Samsung",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 62000,
+  "costPrice": 54560,
+  "tags": [
+   "samsung",
+   "led",
+   "tv",
+   "32",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-samsung-smart-led-tv-43-inch",
+  "name": "Samsung Smart LED TV 43 inch",
+  "brand": "Samsung",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 98000,
+  "costPrice": 86240,
+  "tags": [
+   "samsung",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-samsung-smart-led-tv-50-inch-4k",
+  "name": "Samsung Smart LED TV 50 inch 4K",
+  "brand": "Samsung",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 118800,
+  "tags": [
+   "samsung",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-samsung-smart-led-tv-55-inch-4k",
+  "name": "Samsung Smart LED TV 55 inch 4K",
+  "brand": "Samsung",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 165000,
+  "costPrice": 145200,
+  "tags": [
+   "samsung",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-samsung-smart-led-tv-65-inch-4k",
+  "name": "Samsung Smart LED TV 65 inch 4K",
+  "brand": "Samsung",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 245000,
+  "costPrice": 215600,
+  "tags": [
+   "samsung",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tcl-led-tv-32-inch",
+  "name": "TCL LED TV 32 inch",
+  "brand": "TCL",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 31680,
+  "tags": [
+   "tcl",
+   "led",
+   "tv",
+   "32",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tcl-android-led-tv-43-inch",
+  "name": "TCL Android LED TV 43 inch",
+  "brand": "TCL",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 62000,
+  "costPrice": 54560,
+  "tags": [
+   "tcl",
+   "android",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tcl-android-led-tv-50-inch-4k",
+  "name": "TCL Android LED TV 50 inch 4K",
+  "brand": "TCL",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 88000,
+  "costPrice": 77440,
+  "tags": [
+   "tcl",
+   "android",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tcl-android-led-tv-55-inch-4k",
+  "name": "TCL Android LED TV 55 inch 4K",
+  "brand": "TCL",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 92400,
+  "tags": [
+   "tcl",
+   "android",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tcl-android-led-tv-65-inch-4k",
+  "name": "TCL Android LED TV 65 inch 4K",
+  "brand": "TCL",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 165000,
+  "costPrice": 145200,
+  "tags": [
+   "tcl",
+   "android",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-haier-led-tv-32-inch",
+  "name": "Haier LED TV 32 inch",
+  "brand": "Haier",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 40000,
+  "costPrice": 35200,
+  "tags": [
+   "haier",
+   "led",
+   "tv",
+   "32",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-haier-smart-led-tv-43-inch",
+  "name": "Haier Smart LED TV 43 inch",
+  "brand": "Haier",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 68000,
+  "costPrice": 59840,
+  "tags": [
+   "haier",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-haier-smart-led-tv-55-inch-4k",
+  "name": "Haier Smart LED TV 55 inch 4K",
+  "brand": "Haier",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 115000,
+  "costPrice": 101200,
+  "tags": [
+   "haier",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-orient-led-tv-32-inch",
+  "name": "Orient LED TV 32 inch",
+  "brand": "Orient",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 30800,
+  "tags": [
+   "orient",
+   "led",
+   "tv",
+   "32",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-orient-smart-led-tv-43-inch",
+  "name": "Orient Smart LED TV 43 inch",
+  "brand": "Orient",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 60000,
+  "costPrice": 52800,
+  "tags": [
+   "orient",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-eco-star-led-tv-32-inch",
+  "name": "Eco Star LED TV 32 inch",
+  "brand": "Eco Star",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 28160,
+  "tags": [
+   "eco",
+   "star",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-eco-star-smart-led-tv-43-inch",
+  "name": "Eco Star Smart LED TV 43 inch",
+  "brand": "Eco Star",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 48400,
+  "tags": [
+   "eco",
+   "star",
+   "smart",
+   "led",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-eco-star-smart-led-tv-55-inch",
+  "name": "Eco Star Smart LED TV 55 inch",
+  "brand": "Eco Star",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 88000,
+  "costPrice": 77440,
+  "tags": [
+   "eco",
+   "star",
+   "smart",
+   "led",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-sony-bravia-43-inch-4k",
+  "name": "Sony Bravia 43 inch 4K",
+  "brand": "Sony",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 127600,
+  "tags": [
+   "sony",
+   "bravia",
+   "43",
+   "inch",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-lg-smart-led-tv-43-inch",
+  "name": "LG Smart LED TV 43 inch",
+  "brand": "LG",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 83600,
+  "tags": [
+   "lg",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-lg-smart-led-tv-55-inch-4k",
+  "name": "LG Smart LED TV 55 inch 4K",
+  "brand": "LG",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 155000,
+  "costPrice": 136400,
+  "tags": [
+   "lg",
+   "smart",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-xiaomi-smart-tv-a-43-inch",
+  "name": "Xiaomi Smart TV A 43 inch",
+  "brand": "Xiaomi",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 62000,
+  "costPrice": 54560,
+  "tags": [
+   "xiaomi",
+   "smart",
+   "tv",
+   "43",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-dawlance-led-tv-43-inch-smart",
+  "name": "Dawlance LED TV 43 inch Smart",
+  "brand": "Dawlance",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 64000,
+  "costPrice": 56320,
+  "tags": [
+   "dawlance",
+   "led",
+   "tv",
+   "43",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-changhong-ruba-led-tv-32-inch",
+  "name": "Changhong Ruba LED TV 32 inch",
+  "brand": "Changhong Ruba",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 33000,
+  "costPrice": 29040,
+  "tags": [
+   "changhong",
+   "ruba",
+   "led",
+   "tv",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tv-wall-bracket-32-55-inch",
+  "name": "TV Wall Bracket 32-55 inch",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1276,
+  "tags": [
+   "tv",
+   "wall",
+   "bracket",
+   "32",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tv-trolley",
+  "name": "TV Trolley",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 8360,
+  "tags": [
+   "tv",
+   "trolley",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-hdmi-cable-1-5m",
+  "name": "HDMI Cable 1.5m",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "hdmi",
+   "cable",
+   "5m",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-hdmi-cable-5m",
+  "name": "HDMI Cable 5m",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 836,
+  "tags": [
+   "hdmi",
+   "cable",
+   "5m",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tv-remote-universal",
+  "name": "TV Remote Universal",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 396,
+  "tags": [
+   "tv",
+   "remote",
+   "universal",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tv-android-box",
+  "name": "TV Android Box",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6600,
+  "tags": [
+   "tv",
+   "android",
+   "box",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-tv-antenna-dish-digital",
+  "name": "TV Antenna Dish Digital",
+  "brand": "",
+  "category": "Televisions",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 3080,
+  "tags": [
+   "tv",
+   "antenna",
+   "dish",
+   "digital",
+   "televisions"
+  ]
+ },
+ {
+  "id": "electronics-audionic-home-theater-classic-5-1",
+  "name": "Audionic Home Theater Classic 5.1",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14430,
+  "tags": [
+   "audionic",
+   "home",
+   "theater",
+   "classic",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-audionic-speaker-blaze-2-1",
+  "name": "Audionic Speaker Blaze 2.1",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5070,
+  "tags": [
+   "audionic",
+   "speaker",
+   "blaze",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-audionic-soundbar",
+  "name": "Audionic Soundbar",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "audionic",
+   "soundbar",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-audionic-bluetooth-speaker-max",
+  "name": "Audionic Bluetooth Speaker Max",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "audionic",
+   "bluetooth",
+   "speaker",
+   "max",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-audionic-headphone-wired",
+  "name": "Audionic Headphone Wired",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "audionic",
+   "headphone",
+   "wired",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-audionic-airbuds",
+  "name": "Audionic Airbuds",
+  "brand": "Audionic",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "audionic",
+   "airbuds",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-sony-soundbar-ht-s100f",
+  "name": "Sony Soundbar HT-S100F",
+  "brand": "Sony",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 32760,
+  "tags": [
+   "sony",
+   "soundbar",
+   "ht",
+   "s100f",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-sony-bluetooth-speaker-srs-xb13",
+  "name": "Sony Bluetooth Speaker SRS-XB13",
+  "brand": "Sony",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "sony",
+   "bluetooth",
+   "speaker",
+   "srs",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-jbl-go-3-speaker",
+  "name": "JBL Go 3 Speaker",
+  "brand": "JBL",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6630,
+  "tags": [
+   "jbl",
+   "go",
+   "speaker",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-jbl-flip-6-speaker",
+  "name": "JBL Flip 6 Speaker",
+  "brand": "JBL",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24960,
+  "tags": [
+   "jbl",
+   "flip",
+   "speaker",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-jbl-tune-510bt-headphones",
+  "name": "JBL Tune 510BT Headphones",
+  "brand": "JBL",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "jbl",
+   "tune",
+   "510bt",
+   "headphones",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-jbl-partybox-110",
+  "name": "JBL Partybox 110",
+  "brand": "JBL",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 75000,
+  "costPrice": 58500,
+  "tags": [
+   "jbl",
+   "partybox",
+   "110",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-haylou-gt1-pro-earbuds",
+  "name": "Haylou GT1 Pro Earbuds",
+  "brand": "Haylou",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 2964,
+  "tags": [
+   "haylou",
+   "gt1",
+   "pro",
+   "earbuds",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-xiaomi-redmi-buds-5",
+  "name": "Xiaomi Redmi Buds 5",
+  "brand": "Xiaomi",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "buds",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-edifier-r1280db-speakers",
+  "name": "Edifier R1280DB Speakers",
+  "brand": "Edifier",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 24960,
+  "tags": [
+   "edifier",
+   "r1280db",
+   "speakers",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-edifier-w820nb-headphones",
+  "name": "Edifier W820NB Headphones",
+  "brand": "Edifier",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 11310,
+  "tags": [
+   "edifier",
+   "w820nb",
+   "headphones",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-logitech-z313-speakers",
+  "name": "Logitech Z313 Speakers",
+  "brand": "Logitech",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "logitech",
+   "z313",
+   "speakers",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-wireless-mic-karaoke",
+  "name": "Wireless Mic Karaoke",
+  "brand": "",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "wireless",
+   "mic",
+   "karaoke",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-amplifier-2-0-channel",
+  "name": "Amplifier 2.0 Channel",
+  "brand": "",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "amplifier",
+   "channel",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-aux-cable-3-5mm",
+  "name": "Aux Cable 3.5mm",
+  "brand": "",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "aux",
+   "cable",
+   "5mm",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-rca-cable-1-5m",
+  "name": "RCA Cable 1.5m",
+  "brand": "",
+  "category": "Audio",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "rca",
+   "cable",
+   "5m",
+   "audio"
+  ]
+ },
+ {
+  "id": "electronics-hp-laptop-15-core-i3-8gb-256gb",
+  "name": "HP Laptop 15 Core i3 8GB 256GB",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 95000,
+  "costPrice": 76000,
+  "tags": [
+   "hp",
+   "laptop",
+   "15",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-laptop-15-core-i5-8gb-512gb",
+  "name": "HP Laptop 15 Core i5 8GB 512GB",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 135000,
+  "costPrice": 108000,
+  "tags": [
+   "hp",
+   "laptop",
+   "15",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-dell-inspiron-15-core-i5-8gb-512gb",
+  "name": "Dell Inspiron 15 Core i5 8GB 512GB",
+  "brand": "Dell",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 116000,
+  "tags": [
+   "dell",
+   "inspiron",
+   "15",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-dell-latitude-5400-core-i5-used",
+  "name": "Dell Latitude 5400 Core i5 Used",
+  "brand": "Dell",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 46400,
+  "tags": [
+   "dell",
+   "latitude",
+   "5400",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-lenovo-ideapad-3-core-i3-8gb-256gb",
+  "name": "Lenovo IdeaPad 3 Core i3 8GB 256GB",
+  "brand": "Lenovo",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 92000,
+  "costPrice": 73600,
+  "tags": [
+   "lenovo",
+   "ideapad",
+   "core",
+   "i3",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-lenovo-ideapad-slim-3-core-i5-16gb-512gb",
+  "name": "Lenovo IdeaPad Slim 3 Core i5 16GB 512GB",
+  "brand": "Lenovo",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 116000,
+  "tags": [
+   "lenovo",
+   "ideapad",
+   "slim",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-asus-vivobook-15-core-i5-8gb-512gb",
+  "name": "Asus Vivobook 15 Core i5 8GB 512GB",
+  "brand": "Asus",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 138000,
+  "costPrice": 110400,
+  "tags": [
+   "asus",
+   "vivobook",
+   "15",
+   "core",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-acer-aspire-5-core-i5-8gb-512gb",
+  "name": "Acer Aspire 5 Core i5 8GB 512GB",
+  "brand": "Acer",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 128000,
+  "costPrice": 102400,
+  "tags": [
+   "acer",
+   "aspire",
+   "core",
+   "i5",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-apple-macbook-air-m2-8-256gb",
+  "name": "Apple MacBook Air M2 8/256GB",
+  "brand": "Apple",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 275000,
+  "costPrice": 220000,
+  "tags": [
+   "apple",
+   "macbook",
+   "air",
+   "m2",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-desktop-core-i5-mini-pc",
+  "name": "HP Desktop Core i5 Mini PC",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 65000,
+  "costPrice": 52000,
+  "tags": [
+   "hp",
+   "desktop",
+   "core",
+   "i5",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-laserjet-m111w-printer",
+  "name": "HP LaserJet M111w Printer",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 25600,
+  "tags": [
+   "hp",
+   "laserjet",
+   "m111w",
+   "printer",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-deskjet-2336-printer",
+  "name": "HP DeskJet 2336 Printer",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 15600,
+  "tags": [
+   "hp",
+   "deskjet",
+   "2336",
+   "printer",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-toner-85a-black",
+  "name": "HP Toner 85A Black",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "hp",
+   "toner",
+   "85a",
+   "black",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hp-toner-12a-black",
+  "name": "HP Toner 12A Black",
+  "brand": "HP",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6200,
+  "costPrice": 4960,
+  "tags": [
+   "hp",
+   "toner",
+   "12a",
+   "black",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-canon-lbp-6030-printer",
+  "name": "Canon LBP 6030 Printer",
+  "brand": "Canon",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 34000,
+  "costPrice": 27200,
+  "tags": [
+   "canon",
+   "lbp",
+   "6030",
+   "printer",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-canon-pixma-g2020-ink-tank",
+  "name": "Canon PIXMA G2020 Ink Tank",
+  "brand": "Canon",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 33600,
+  "tags": [
+   "canon",
+   "pixma",
+   "g2020",
+   "ink",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-epson-l3210-ink-tank-printer",
+  "name": "Epson L3210 Ink Tank Printer",
+  "brand": "Epson",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 38400,
+  "tags": [
+   "epson",
+   "l3210",
+   "ink",
+   "tank",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-epson-ink-bottle-003-black",
+  "name": "Epson Ink Bottle 003 Black",
+  "brand": "Epson",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 1000,
+  "tags": [
+   "epson",
+   "ink",
+   "bottle",
+   "003",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-logitech-m185-wireless-mouse",
+  "name": "Logitech M185 Wireless Mouse",
+  "brand": "Logitech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "logitech",
+   "m185",
+   "wireless",
+   "mouse",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-logitech-mk270-keyboard-mouse-combo",
+  "name": "Logitech MK270 Keyboard Mouse Combo",
+  "brand": "Logitech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3840,
+  "tags": [
+   "logitech",
+   "mk270",
+   "keyboard",
+   "mouse",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-logitech-c270-webcam",
+  "name": "Logitech C270 Webcam",
+  "brand": "Logitech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "logitech",
+   "c270",
+   "webcam",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-a4tech-wired-mouse",
+  "name": "A4Tech Wired Mouse",
+  "brand": "A4Tech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "a4tech",
+   "wired",
+   "mouse",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-a4tech-keyboard-wired",
+  "name": "A4Tech Keyboard Wired",
+  "brand": "A4Tech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 680,
+  "tags": [
+   "a4tech",
+   "keyboard",
+   "wired",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-a4tech-gaming-mouse-bloody",
+  "name": "A4Tech Gaming Mouse Bloody",
+  "brand": "A4Tech",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2240,
+  "tags": [
+   "a4tech",
+   "gaming",
+   "mouse",
+   "bloody",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-dell-wired-keyboard-kb216",
+  "name": "Dell Wired Keyboard KB216",
+  "brand": "Dell",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "dell",
+   "wired",
+   "keyboard",
+   "kb216",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-havit-gaming-headset",
+  "name": "Havit Gaming Headset",
+  "brand": "Havit",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "havit",
+   "gaming",
+   "headset",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-mouse-pad",
+  "name": "Mouse Pad",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 200,
+  "tags": [
+   "mouse",
+   "pad",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-bag-15-6-inch",
+  "name": "Laptop Bag 15.6 inch",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1760,
+  "tags": [
+   "laptop",
+   "bag",
+   "15",
+   "inch",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-cooling-pad",
+  "name": "Laptop Cooling Pad",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1320,
+  "tags": [
+   "laptop",
+   "cooling",
+   "pad",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-usb-hub-4-port",
+  "name": "USB Hub 4 Port",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 520,
+  "tags": [
+   "usb",
+   "hub",
+   "port",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-charger-universal",
+  "name": "Laptop Charger Universal",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 2000,
+  "tags": [
+   "laptop",
+   "charger",
+   "universal",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-battery-hp",
+  "name": "Laptop Battery HP",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "laptop",
+   "battery",
+   "hp",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-ram-ddr4-8gb",
+  "name": "Laptop RAM DDR4 8GB",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "laptop",
+   "ram",
+   "ddr4",
+   "8gb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-ssd-256gb",
+  "name": "Laptop SSD 256GB",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "laptop",
+   "ssd",
+   "256gb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-laptop-ssd-512gb",
+  "name": "Laptop SSD 512GB",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "laptop",
+   "ssd",
+   "512gb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-desktop-ram-ddr4-8gb",
+  "name": "Desktop RAM DDR4 8GB",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 7000,
+  "costPrice": 5600,
+  "tags": [
+   "desktop",
+   "ram",
+   "ddr4",
+   "8gb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-kingston-ssd-a400-480gb",
+  "name": "Kingston SSD A400 480GB",
+  "brand": "Kingston",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9200,
+  "tags": [
+   "kingston",
+   "ssd",
+   "a400",
+   "480gb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-wd-external-hdd-1tb",
+  "name": "WD External HDD 1TB",
+  "brand": "WD",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 14000,
+  "tags": [
+   "wd",
+   "external",
+   "hdd",
+   "1tb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-wd-external-hdd-2tb",
+  "name": "WD External HDD 2TB",
+  "brand": "WD",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 26500,
+  "costPrice": 21200,
+  "tags": [
+   "wd",
+   "external",
+   "hdd",
+   "2tb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-seagate-external-hdd-1tb",
+  "name": "Seagate External HDD 1TB",
+  "brand": "Seagate",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 16500,
+  "costPrice": 13200,
+  "tags": [
+   "seagate",
+   "external",
+   "hdd",
+   "1tb",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-tp-link-wifi-router-tl-wr840n",
+  "name": "TP-Link WiFi Router TL-WR840N",
+  "brand": "TP-Link",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4160,
+  "tags": [
+   "tp",
+   "link",
+   "wifi",
+   "router",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-tp-link-wifi-router-archer-c6",
+  "name": "TP-Link WiFi Router Archer C6",
+  "brand": "TP-Link",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 11500,
+  "costPrice": 9200,
+  "tags": [
+   "tp",
+   "link",
+   "wifi",
+   "router",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-tp-link-wifi-adapter-usb",
+  "name": "TP-Link WiFi Adapter USB",
+  "brand": "TP-Link",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "tp",
+   "link",
+   "wifi",
+   "adapter",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-d-link-wifi-router-dir-615",
+  "name": "D-Link WiFi Router DIR-615",
+  "brand": "D-Link",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3840,
+  "tags": [
+   "link",
+   "wifi",
+   "router",
+   "dir",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-huawei-4g-router-cloud",
+  "name": "Huawei 4G Router Cloud",
+  "brand": "Huawei",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7600,
+  "tags": [
+   "huawei",
+   "4g",
+   "router",
+   "cloud",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-ptcl-charji-cloud",
+  "name": "PTCL Charji Cloud",
+  "brand": "PTCL",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "ptcl",
+   "charji",
+   "cloud",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-lan-cable-cat6-per-meter",
+  "name": "LAN Cable Cat6 per meter",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 75,
+  "costPrice": 60,
+  "tags": [
+   "lan",
+   "cable",
+   "cat6",
+   "per",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-lan-cable-cat6-305m-box",
+  "name": "LAN Cable Cat6 305m Box",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 17600,
+  "tags": [
+   "lan",
+   "cable",
+   "cat6",
+   "305m",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-rj45-connector-pack",
+  "name": "RJ45 Connector Pack",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "rj45",
+   "connector",
+   "pack",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-network-switch-8-port",
+  "name": "Network Switch 8 Port",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2240,
+  "tags": [
+   "network",
+   "switch",
+   "port",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-network-switch-16-port",
+  "name": "Network Switch 16 Port",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5200,
+  "tags": [
+   "network",
+   "switch",
+   "16",
+   "port",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-vga-cable-1-5m",
+  "name": "VGA Cable 1.5m",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 360,
+  "tags": [
+   "vga",
+   "cable",
+   "5m",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-ups-650va",
+  "name": "UPS 650VA",
+  "brand": "",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6800,
+  "tags": [
+   "ups",
+   "650va",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-homage-ups-1000va",
+  "name": "Homage UPS 1000VA",
+  "brand": "Homage",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 14800,
+  "tags": [
+   "homage",
+   "ups",
+   "1000va",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-homage-ups-1500va",
+  "name": "Homage UPS 1500VA",
+  "brand": "Homage",
+  "category": "Computers & Accessories",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22800,
+  "tags": [
+   "homage",
+   "ups",
+   "1500va",
+   "computers & accessories"
+  ]
+ },
+ {
+  "id": "electronics-hikvision-dome-camera-2mp",
+  "name": "Hikvision Dome Camera 2MP",
+  "brand": "Hikvision",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 4056,
+  "tags": [
+   "hikvision",
+   "dome",
+   "camera",
+   "2mp",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-hikvision-bullet-camera-2mp",
+  "name": "Hikvision Bullet Camera 2MP",
+  "brand": "Hikvision",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4290,
+  "tags": [
+   "hikvision",
+   "bullet",
+   "camera",
+   "2mp",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-hikvision-dvr-4-channel",
+  "name": "Hikvision DVR 4 Channel",
+  "brand": "Hikvision",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "hikvision",
+   "dvr",
+   "channel",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-hikvision-dvr-8-channel",
+  "name": "Hikvision DVR 8 Channel",
+  "brand": "Hikvision",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 16500,
+  "costPrice": 12870,
+  "tags": [
+   "hikvision",
+   "dvr",
+   "channel",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-dahua-dome-camera-2mp",
+  "name": "Dahua Dome Camera 2MP",
+  "brand": "Dahua",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 5000,
+  "costPrice": 3900,
+  "tags": [
+   "dahua",
+   "dome",
+   "camera",
+   "2mp",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-dahua-dvr-4-channel",
+  "name": "Dahua DVR 4 Channel",
+  "brand": "Dahua",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 9000,
+  "costPrice": 7020,
+  "tags": [
+   "dahua",
+   "dvr",
+   "channel",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-cctv-kit-4-cameras-complete",
+  "name": "CCTV Kit 4 Cameras Complete",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 29640,
+  "tags": [
+   "cctv",
+   "kit",
+   "cameras",
+   "complete",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-cctv-kit-8-cameras-complete",
+  "name": "CCTV Kit 8 Cameras Complete",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 72000,
+  "costPrice": 56160,
+  "tags": [
+   "cctv",
+   "kit",
+   "cameras",
+   "complete",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-hard-drive-surveillance-1tb",
+  "name": "Hard Drive Surveillance 1TB",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 9750,
+  "tags": [
+   "hard",
+   "drive",
+   "surveillance",
+   "1tb",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-power-supply-cctv-12v-5a",
+  "name": "Power Supply CCTV 12V 5A",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "power",
+   "supply",
+   "cctv",
+   "12v",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-bnc-connector",
+  "name": "BNC Connector",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 31,
+  "tags": [
+   "bnc",
+   "connector",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-dc-pin-connector",
+  "name": "DC Pin Connector",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 31,
+  "tags": [
+   "dc",
+   "pin",
+   "connector",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-wi-fi-camera-indoor",
+  "name": "Wi-Fi Camera Indoor",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3510,
+  "tags": [
+   "wi",
+   "fi",
+   "camera",
+   "indoor",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-video-door-bell",
+  "name": "Video Door Bell",
+  "brand": "",
+  "category": "CCTV & Security",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7410,
+  "tags": [
+   "video",
+   "door",
+   "bell",
+   "cctv & security"
+  ]
+ },
+ {
+  "id": "electronics-casio-calculator-ms-80b",
+  "name": "Casio Calculator MS-80B",
+  "brand": "Casio",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1238,
+  "tags": [
+   "casio",
+   "calculator",
+   "ms",
+   "80b",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-casio-calculator-fx-991es-plus",
+  "name": "Casio Calculator FX-991ES Plus",
+  "brand": "Casio",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "casio",
+   "calculator",
+   "fx",
+   "991es",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-casio-calculator-dj-120d",
+  "name": "Casio Calculator DJ-120D",
+  "brand": "Casio",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "casio",
+   "calculator",
+   "dj",
+   "120d",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-casio-wall-clock",
+  "name": "Casio Wall Clock",
+  "brand": "Casio",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "casio",
+   "wall",
+   "clock",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-calculator-basic-12-digit",
+  "name": "Calculator Basic 12 Digit",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "calculator",
+   "basic",
+   "12",
+   "digit",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-alarm-clock",
+  "name": "Alarm Clock",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "alarm",
+   "clock",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-torch-led-rechargeable",
+  "name": "Torch LED Rechargeable",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "torch",
+   "led",
+   "rechargeable",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-emergency-light-rechargeable",
+  "name": "Emergency Light Rechargeable",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "emergency",
+   "light",
+   "rechargeable",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-digital-weighing-scale-40kg",
+  "name": "Digital Weighing Scale 40kg",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "digital",
+   "weighing",
+   "scale",
+   "40kg",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-kitchen-scale-5kg",
+  "name": "Kitchen Scale 5kg",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "kitchen",
+   "scale",
+   "5kg",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-electronic-weighing-scale-100kg",
+  "name": "Electronic Weighing Scale 100kg",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "electronic",
+   "weighing",
+   "scale",
+   "100kg",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-digital-thermometer",
+  "name": "Digital Thermometer",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "digital",
+   "thermometer",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-remote-control-car",
+  "name": "Remote Control Car",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "remote",
+   "control",
+   "car",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-walkie-talkie-pair-1-pair",
+  "name": "Walkie Talkie Pair 1 pair",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "walkie",
+   "talkie",
+   "pair",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-hair-dryer-1800w",
+  "name": "Hair Dryer 1800W",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "hair",
+   "dryer",
+   "1800w",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-hair-straightener",
+  "name": "Hair Straightener",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "hair",
+   "straightener",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-trimmer-rechargeable",
+  "name": "Trimmer Rechargeable",
+  "brand": "",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "trimmer",
+   "rechargeable",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-panasonic-trimmer-er-gb",
+  "name": "Panasonic Trimmer ER-GB",
+  "brand": "Panasonic",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "panasonic",
+   "trimmer",
+   "er",
+   "gb",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-philips-trimmer-series-3000",
+  "name": "Philips Trimmer Series 3000",
+  "brand": "Philips",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "philips",
+   "trimmer",
+   "series",
+   "3000",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-philips-shaver",
+  "name": "Philips Shaver",
+  "brand": "Philips",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "philips",
+   "shaver",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-geepas-trimmer",
+  "name": "Geepas Trimmer",
+  "brand": "Geepas",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "geepas",
+   "trimmer",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-kemei-trimmer",
+  "name": "Kemei Trimmer",
+  "brand": "Kemei",
+  "category": "Small Electronics",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "kemei",
+   "trimmer",
+   "small electronics"
+  ]
+ },
+ {
+  "id": "electronics-eveready-aa-cell-pack-4pcs",
+  "name": "Eveready AA Cell Pack 4pcs",
+  "brand": "Eveready",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 280,
+  "costPrice": 218,
+  "tags": [
+   "eveready",
+   "aa",
+   "cell",
+   "pack",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-eveready-aaa-cell-pack-4pcs",
+  "name": "Eveready AAA Cell Pack 4pcs",
+  "brand": "Eveready",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "eveready",
+   "aaa",
+   "cell",
+   "pack",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-eveready-d-size-cell-pack-2pcs",
+  "name": "Eveready D Size Cell Pack 2pcs",
+  "brand": "Eveready",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 250,
+  "tags": [
+   "eveready",
+   "size",
+   "cell",
+   "pack",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-panasonic-aa-cell-pack-4pcs",
+  "name": "Panasonic AA Cell Pack 4pcs",
+  "brand": "Panasonic",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 273,
+  "tags": [
+   "panasonic",
+   "aa",
+   "cell",
+   "pack",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-panasonic-aaa-cell-pack-4pcs",
+  "name": "Panasonic AAA Cell Pack 4pcs",
+  "brand": "Panasonic",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 250,
+  "tags": [
+   "panasonic",
+   "aaa",
+   "cell",
+   "pack",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-panasonic-9v-battery",
+  "name": "Panasonic 9V Battery",
+  "brand": "Panasonic",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "panasonic",
+   "9v",
+   "battery",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-energizer-aa-alkaline-4pcs",
+  "name": "Energizer AA Alkaline 4pcs",
+  "brand": "Energizer",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "energizer",
+   "aa",
+   "alkaline",
+   "4pcs",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-duracell-aa-alkaline-4pcs",
+  "name": "Duracell AA Alkaline 4pcs",
+  "brand": "Duracell",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 663,
+  "tags": [
+   "duracell",
+   "aa",
+   "alkaline",
+   "4pcs",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-coin-cell-cr2032",
+  "name": "Coin Cell CR2032",
+  "brand": "",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 80,
+  "costPrice": 62,
+  "tags": [
+   "coin",
+   "cell",
+   "cr2032",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-rechargeable-aa-2pcs",
+  "name": "Rechargeable AA 2pcs",
+  "brand": "",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 741,
+  "tags": [
+   "rechargeable",
+   "aa",
+   "2pcs",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-battery-charger-aa-aaa",
+  "name": "Battery Charger AA/AAA",
+  "brand": "",
+  "category": "Cells & Batteries",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "battery",
+   "charger",
+   "aa",
+   "aaa",
+   "cells & batteries"
+  ]
+ },
+ {
+  "id": "electronics-sony-playstation-5-console",
+  "name": "Sony PlayStation 5 Console",
+  "brand": "Sony",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 195000,
+  "costPrice": 156000,
+  "tags": [
+   "sony",
+   "playstation",
+   "console",
+   "gaming"
+  ]
+ },
+ {
+  "id": "electronics-sony-ps5-dualsense-controller",
+  "name": "Sony PS5 DualSense Controller",
+  "brand": "Sony",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 21500,
+  "costPrice": 17200,
+  "tags": [
+   "sony",
+   "ps5",
+   "dualsense",
+   "controller",
+   "gaming"
+  ]
+ },
+ {
+  "id": "electronics-sony-ps4-controller",
+  "name": "Sony PS4 Controller",
+  "brand": "Sony",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 12500,
+  "costPrice": 10000,
+  "tags": [
+   "sony",
+   "ps4",
+   "controller",
+   "gaming"
+  ]
+ },
+ {
+  "id": "electronics-microsoft-xbox-controller",
+  "name": "Microsoft Xbox Controller",
+  "brand": "Microsoft",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 17500,
+  "costPrice": 14000,
+  "tags": [
+   "microsoft",
+   "xbox",
+   "controller",
+   "gaming"
+  ]
+ },
+ {
+  "id": "electronics-gaming-joystick-pc",
+  "name": "Gaming Joystick PC",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 2000,
+  "tags": [
+   "gaming",
+   "joystick",
+   "pc"
+  ]
+ },
+ {
+  "id": "electronics-ps4-game-disc",
+  "name": "PS4 Game Disc",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 6000,
+  "tags": [
+   "ps4",
+   "game",
+   "disc",
+   "gaming"
+  ]
+ },
+ {
+  "id": "electronics-gaming-keyboard-rgb",
+  "name": "Gaming Keyboard RGB",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "gaming",
+   "keyboard",
+   "rgb"
+  ]
+ },
+ {
+  "id": "electronics-gaming-mouse-rgb",
+  "name": "Gaming Mouse RGB",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1480,
+  "tags": [
+   "gaming",
+   "mouse",
+   "rgb"
+  ]
+ },
+ {
+  "id": "electronics-gaming-chair",
+  "name": "Gaming Chair",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 28500,
+  "costPrice": 22800,
+  "tags": [
+   "gaming",
+   "chair"
+  ]
+ },
+ {
+  "id": "electronics-video-game-tv-stick",
+  "name": "Video Game TV Stick",
+  "brand": "",
+  "category": "Gaming",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2800,
+  "tags": [
+   "video",
+   "game",
+   "tv",
+   "stick",
+   "gaming"
+  ]
+ }
+]

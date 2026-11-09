@@ -17797,6 +17797,9 @@ model ProductChannelMapping {
   /// Does the channel count stock for this item? false = untracked there (Nafaa never pushes
   /// or turns tracking on unless the merchant opts in); null = not seen yet
   tracksStock       Boolean?
+  /// Price changed on the channel after Nafaa's last push while Nafaa owns the price:
+  /// nothing is sent until the merchant picks a side. { since, nafaaPrice, channelPrice, agreedPrice, channelPriceAt }
+  priceHold         Json?
 
   @@unique([integrationId, linkKey])
   @@index([integrationId, productId])
@@ -25753,4 +25756,50 @@ model CountryPrice {
   @@unique([integrationId, country, productId, variantKey])
   @@index([tenantId, integrationId, country])
   @@index([productId])
+}
+
+/// Sync history of channel links, per product: every price, content or stock change Nafaa
+/// took from a channel or sent to it, held for a decision, or set by a recovery. Rows are never edited.
+model ChannelSyncLog {
+  id            String   @id @default(cuid())
+  tenantId      String
+  integrationId String
+  mappingId     String?
+  productId     String
+  variantId     String?
+  /// price, title, description, images, stock, product
+  field         String
+  /// IN = channel → Nafaa, OUT = Nafaa → channel, NONE = a decision or a hold
+  direction     String
+  /// PULL, PUSH, HOLD, KEEP_NAFAA, KEEP_CHANNEL, RECOVER_CHANNEL, RECOVER_NAFAA, HAND_EDIT, IMPORT, PUBLISH
+  kind          String
+  /// What changed in Nafaa on a pull: PRODUCT, VARIANT, SHOP (branch price), CHANNEL (link price), STOCK
+  target        String?
+  oldValue      String?
+  newValue      String?
+  /// Why: source mode, latest-wins times, recovery choice
+  note          String?
+  userId        String?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, productId, createdAt])
+  @@index([integrationId, createdAt])
+  @@map("channel_sync_logs")
+}
+
+/// Nafaa products the merchant marked to be made on a channel ("Naye products Nafaa se khud website par").
+model ChannelPublishMark {
+  id            String    @id @default(cuid())
+  tenantId      String
+  integrationId String
+  productId     String
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  /// Set once the product exists on the channel (made or linked)
+  publishedAt   DateTime?
+  lastError     String?
+
+  @@unique([integrationId, productId])
+  @@index([tenantId, integrationId, publishedAt])
+  @@map("channel_publish_marks")
 }

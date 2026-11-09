@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { normStrength } from '../common/strength';
 
 @Injectable()
 export class SubstitutesService {
@@ -116,5 +117,5 @@ export class SubstitutesService {
   }
 }
 
-/** "500 mg" and "500MG" are the same strength. */
-const norm = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/\s+/g, '');
+/** "500 mg", "500MG" and "0.5g" are the same strength. */
+const norm = normStrength;

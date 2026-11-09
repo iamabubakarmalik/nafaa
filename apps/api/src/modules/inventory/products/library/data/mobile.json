@@ -1,0 +1,3101 @@
+[
+ {
+  "id": "mobile-samsung-galaxy-a06-4-64gb",
+  "name": "Samsung Galaxy A06 4/64GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 32400,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "a06",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-a16-6-128gb",
+  "name": "Samsung Galaxy A16 6/128GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 52000,
+  "costPrice": 46800,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "a16",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-a26-8-128gb",
+  "name": "Samsung Galaxy A26 8/128GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 79000,
+  "costPrice": 71100,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "a26",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-a36-8-256gb",
+  "name": "Samsung Galaxy A36 8/256GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 118000,
+  "costPrice": 106200,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "a36",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-s24-fe-8-256gb",
+  "name": "Samsung Galaxy S24 FE 8/256GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 195000,
+  "costPrice": 175500,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "s24",
+   "fe",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-s25-12-256gb",
+  "name": "Samsung Galaxy S25 12/256GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 310000,
+  "costPrice": 279000,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "s25",
+   "12",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-a05s-4-128gb",
+  "name": "Samsung Galaxy A05s 4/128GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 34200,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "a05s",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-m15-6-128gb",
+  "name": "Samsung Galaxy M15 6/128GB",
+  "brand": "Samsung",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 43200,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "m15",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-smart-8-4-64gb",
+  "name": "Infinix Smart 8 4/64GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 24000,
+  "costPrice": 21600,
+  "tags": [
+   "infinix",
+   "smart",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-smart-9-4-128gb",
+  "name": "Infinix Smart 9 4/128GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 29000,
+  "costPrice": 26100,
+  "tags": [
+   "infinix",
+   "smart",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-hot-50-8-128gb",
+  "name": "Infinix Hot 50 8/128GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 37800,
+  "tags": [
+   "infinix",
+   "hot",
+   "50",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-hot-50i-6-128gb",
+  "name": "Infinix Hot 50i 6/128GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 35000,
+  "costPrice": 31500,
+  "tags": [
+   "infinix",
+   "hot",
+   "50i",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-note-40-8-256gb",
+  "name": "Infinix Note 40 8/256GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 52200,
+  "tags": [
+   "infinix",
+   "note",
+   "40",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-note-50-8-256gb",
+  "name": "Infinix Note 50 8/256GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 62000,
+  "costPrice": 55800,
+  "tags": [
+   "infinix",
+   "note",
+   "50",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-infinix-zero-40-12-256gb",
+  "name": "Infinix Zero 40 12/256GB",
+  "brand": "Infinix",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 89000,
+  "costPrice": 80100,
+  "tags": [
+   "infinix",
+   "zero",
+   "40",
+   "12",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-spark-go-1-4-64gb",
+  "name": "Tecno Spark Go 1 4/64GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 19800,
+  "tags": [
+   "tecno",
+   "spark",
+   "go",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-spark-20-8-128gb",
+  "name": "Tecno Spark 20 8/128GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 32400,
+  "tags": [
+   "tecno",
+   "spark",
+   "20",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-spark-30-8-256gb",
+  "name": "Tecno Spark 30 8/256GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 44000,
+  "costPrice": 39600,
+  "tags": [
+   "tecno",
+   "spark",
+   "30",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-camon-30-8-256gb",
+  "name": "Tecno Camon 30 8/256GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 64000,
+  "costPrice": 57600,
+  "tags": [
+   "tecno",
+   "camon",
+   "30",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-pova-6-8-256gb",
+  "name": "Tecno Pova 6 8/256GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 52200,
+  "tags": [
+   "tecno",
+   "pova",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-tecno-pop-9-3-64gb",
+  "name": "Tecno Pop 9 3/64GB",
+  "brand": "Tecno",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 16650,
+  "tags": [
+   "tecno",
+   "pop",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-a18-4-64gb",
+  "name": "Oppo A18 4/64GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 28800,
+  "tags": [
+   "oppo",
+   "a18",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-a38-6-128gb",
+  "name": "Oppo A38 6/128GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 41000,
+  "costPrice": 36900,
+  "tags": [
+   "oppo",
+   "a38",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-a58-8-128gb",
+  "name": "Oppo A58 8/128GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 52000,
+  "costPrice": 46800,
+  "tags": [
+   "oppo",
+   "a58",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-a60-8-256gb",
+  "name": "Oppo A60 8/256GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 58000,
+  "costPrice": 52200,
+  "tags": [
+   "oppo",
+   "a60",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-reno-12-12-256gb",
+  "name": "Oppo Reno 12 12/256GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 125000,
+  "costPrice": 112500,
+  "tags": [
+   "oppo",
+   "reno",
+   "12",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-oppo-reno-13-12-256gb",
+  "name": "Oppo Reno 13 12/256GB",
+  "brand": "Oppo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 140000,
+  "costPrice": 126000,
+  "tags": [
+   "oppo",
+   "reno",
+   "13",
+   "12",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-vivo-y03-4-64gb",
+  "name": "Vivo Y03 4/64GB",
+  "brand": "Vivo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 25200,
+  "tags": [
+   "vivo",
+   "y03",
+   "64gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-vivo-y18-4-128gb",
+  "name": "Vivo Y18 4/128GB",
+  "brand": "Vivo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 34000,
+  "costPrice": 30600,
+  "tags": [
+   "vivo",
+   "y18",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-vivo-y28-8-128gb",
+  "name": "Vivo Y28 8/128GB",
+  "brand": "Vivo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 48000,
+  "costPrice": 43200,
+  "tags": [
+   "vivo",
+   "y28",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-vivo-v30-12-256gb",
+  "name": "Vivo V30 12/256GB",
+  "brand": "Vivo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 115000,
+  "costPrice": 103500,
+  "tags": [
+   "vivo",
+   "v30",
+   "12",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-vivo-v40-12-256gb",
+  "name": "Vivo V40 12/256GB",
+  "brand": "Vivo",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 130000,
+  "costPrice": 117000,
+  "tags": [
+   "vivo",
+   "v40",
+   "12",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-realme-c53-6-128gb",
+  "name": "Realme C53 6/128GB",
+  "brand": "Realme",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 38000,
+  "costPrice": 34200,
+  "tags": [
+   "realme",
+   "c53",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-realme-c63-8-128gb",
+  "name": "Realme C63 8/128GB",
+  "brand": "Realme",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 42000,
+  "costPrice": 37800,
+  "tags": [
+   "realme",
+   "c63",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-realme-note-60-4-128gb",
+  "name": "Realme Note 60 4/128GB",
+  "brand": "Realme",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 29000,
+  "costPrice": 26100,
+  "tags": [
+   "realme",
+   "note",
+   "60",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-realme-12-pro-8-256gb",
+  "name": "Realme 12 Pro 8/256GB",
+  "brand": "Realme",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 88000,
+  "costPrice": 79200,
+  "tags": [
+   "realme",
+   "12",
+   "pro",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-a3-4-128gb",
+  "name": "Xiaomi Redmi A3 4/128GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 26000,
+  "costPrice": 23400,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "a3",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-13c-6-128gb",
+  "name": "Xiaomi Redmi 13C 6/128GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 36000,
+  "costPrice": 32400,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "13c",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-14c-6-128gb",
+  "name": "Xiaomi Redmi 14C 6/128GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 39000,
+  "costPrice": 35100,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "14c",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-note-13-8-256gb",
+  "name": "Xiaomi Redmi Note 13 8/256GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 62000,
+  "costPrice": 55800,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "note",
+   "13",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-note-14-8-256gb",
+  "name": "Xiaomi Redmi Note 14 8/256GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 68000,
+  "costPrice": 61200,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "note",
+   "14",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-poco-x6-pro-12-512gb",
+  "name": "Xiaomi Poco X6 Pro 12/512GB",
+  "brand": "Xiaomi",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 105000,
+  "costPrice": 94500,
+  "tags": [
+   "xiaomi",
+   "poco",
+   "x6",
+   "pro",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-itel-a60s-4-128gb",
+  "name": "Itel A60s 4/128GB",
+  "brand": "Itel",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 19500,
+  "costPrice": 17550,
+  "tags": [
+   "itel",
+   "a60s",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-itel-p55-8-256gb",
+  "name": "Itel P55 8/256GB",
+  "brand": "Itel",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 28800,
+  "tags": [
+   "itel",
+   "p55",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-itel-s24-8-256gb",
+  "name": "Itel S24 8/256GB",
+  "brand": "Itel",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 34000,
+  "costPrice": 30600,
+  "tags": [
+   "itel",
+   "s24",
+   "256gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-nokia-105-keypad",
+  "name": "Nokia 105 Keypad",
+  "brand": "Nokia",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 5850,
+  "tags": [
+   "nokia",
+   "105",
+   "keypad",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-nokia-110-keypad",
+  "name": "Nokia 110 Keypad",
+  "brand": "Nokia",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 7650,
+  "tags": [
+   "nokia",
+   "110",
+   "keypad",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-nokia-g42-6-128gb",
+  "name": "Nokia G42 6/128GB",
+  "brand": "Nokia",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 52000,
+  "costPrice": 46800,
+  "tags": [
+   "nokia",
+   "g42",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-itel-keypad-2163",
+  "name": "Itel Keypad 2163",
+  "brand": "Itel",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 3800,
+  "costPrice": 3420,
+  "tags": [
+   "itel",
+   "keypad",
+   "2163",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-qmobile-keypad-basic",
+  "name": "QMobile Keypad Basic",
+  "brand": "QMobile",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2520,
+  "tags": [
+   "qmobile",
+   "keypad",
+   "basic",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-apple-iphone-13-128gb-pta",
+  "name": "Apple iPhone 13 128GB PTA",
+  "brand": "Apple",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 165000,
+  "costPrice": 148500,
+  "tags": [
+   "apple",
+   "iphone",
+   "13",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-apple-iphone-14-128gb-pta",
+  "name": "Apple iPhone 14 128GB PTA",
+  "brand": "Apple",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 205000,
+  "costPrice": 184500,
+  "tags": [
+   "apple",
+   "iphone",
+   "14",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-apple-iphone-15-128gb-pta",
+  "name": "Apple iPhone 15 128GB PTA",
+  "brand": "Apple",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 265000,
+  "costPrice": 238500,
+  "tags": [
+   "apple",
+   "iphone",
+   "15",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-apple-iphone-16-128gb-pta",
+  "name": "Apple iPhone 16 128GB PTA",
+  "brand": "Apple",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 340000,
+  "costPrice": 306000,
+  "tags": [
+   "apple",
+   "iphone",
+   "16",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-google-pixel-8a-8-128gb",
+  "name": "Google Pixel 8a 8/128GB",
+  "brand": "Google",
+  "category": "Mobile Phones",
+  "unit": "pcs",
+  "price": 145000,
+  "costPrice": 130500,
+  "tags": [
+   "google",
+   "pixel",
+   "8a",
+   "128gb",
+   "mobile phones"
+  ]
+ },
+ {
+  "id": "mobile-samsung-original-charger-25w-type-c",
+  "name": "Samsung Original Charger 25W Type-C",
+  "brand": "Samsung",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2016,
+  "tags": [
+   "samsung",
+   "original",
+   "charger",
+   "25w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-samsung-original-charger-45w",
+  "name": "Samsung Original Charger 45W",
+  "brand": "Samsung",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3240,
+  "tags": [
+   "samsung",
+   "original",
+   "charger",
+   "45w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-samsung-type-c-cable-original",
+  "name": "Samsung Type-C Cable Original",
+  "brand": "Samsung",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 792,
+  "tags": [
+   "samsung",
+   "type",
+   "cable",
+   "original",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-apple-20w-adapter",
+  "name": "Apple 20W Adapter",
+  "brand": "Apple",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3744,
+  "tags": [
+   "apple",
+   "20w",
+   "adapter",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-apple-lightning-cable-1m",
+  "name": "Apple Lightning Cable 1m",
+  "brand": "Apple",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3024,
+  "tags": [
+   "apple",
+   "lightning",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-anker-powerport-20w-charger",
+  "name": "Anker PowerPort 20W Charger",
+  "brand": "Anker",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2088,
+  "tags": [
+   "anker",
+   "powerport",
+   "20w",
+   "charger",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-anker-type-c-cable-1m",
+  "name": "Anker Type-C Cable 1m",
+  "brand": "Anker",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1080,
+  "tags": [
+   "anker",
+   "type",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-audionic-fast-charger-20w",
+  "name": "Audionic Fast Charger 20W",
+  "brand": "Audionic",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1350,
+  "costPrice": 972,
+  "tags": [
+   "audionic",
+   "fast",
+   "charger",
+   "20w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-audionic-type-c-cable",
+  "name": "Audionic Type-C Cable",
+  "brand": "Audionic",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "audionic",
+   "type",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-audionic-micro-usb-cable",
+  "name": "Audionic Micro USB Cable",
+  "brand": "Audionic",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "audionic",
+   "micro",
+   "usb",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-audionic-car-charger-dual-usb",
+  "name": "Audionic Car Charger Dual USB",
+  "brand": "Audionic",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 750,
+  "costPrice": 540,
+  "tags": [
+   "audionic",
+   "car",
+   "charger",
+   "dual",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-faster-fast-charger-25w",
+  "name": "Faster Fast Charger 25W",
+  "brand": "Faster",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 900,
+  "tags": [
+   "faster",
+   "fast",
+   "charger",
+   "25w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-faster-type-c-cable",
+  "name": "Faster Type-C Cable",
+  "brand": "Faster",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 420,
+  "costPrice": 302,
+  "tags": [
+   "faster",
+   "type",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-faster-micro-usb-cable",
+  "name": "Faster Micro USB Cable",
+  "brand": "Faster",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 230,
+  "tags": [
+   "faster",
+   "micro",
+   "usb",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-faster-lightning-cable",
+  "name": "Faster Lightning Cable",
+  "brand": "Faster",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 374,
+  "tags": [
+   "faster",
+   "lightning",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-ronin-fast-charger-33w",
+  "name": "Ronin Fast Charger 33W",
+  "brand": "Ronin",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1044,
+  "tags": [
+   "ronin",
+   "fast",
+   "charger",
+   "33w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-ronin-type-c-cable-1m",
+  "name": "Ronin Type-C Cable 1m",
+  "brand": "Ronin",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 480,
+  "costPrice": 346,
+  "tags": [
+   "ronin",
+   "type",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-ronin-micro-usb-cable",
+  "name": "Ronin Micro USB Cable",
+  "brand": "Ronin",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "ronin",
+   "micro",
+   "usb",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-ronin-lightning-cable",
+  "name": "Ronin Lightning Cable",
+  "brand": "Ronin",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "ronin",
+   "lightning",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-ronin-car-charger-3-1a",
+  "name": "Ronin Car Charger 3.1A",
+  "brand": "Ronin",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 690,
+  "costPrice": 497,
+  "tags": [
+   "ronin",
+   "car",
+   "charger",
+   "1a",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-realme-charger-33w-supervooc",
+  "name": "Realme Charger 33W SuperVOOC",
+  "brand": "Realme",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1900,
+  "costPrice": 1368,
+  "tags": [
+   "realme",
+   "charger",
+   "33w",
+   "supervooc",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-oppo-vooc-charger-65w",
+  "name": "Oppo VOOC Charger 65W",
+  "brand": "Oppo",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2016,
+  "tags": [
+   "oppo",
+   "vooc",
+   "charger",
+   "65w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-charger-33w",
+  "name": "Xiaomi Charger 33W",
+  "brand": "Xiaomi",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1700,
+  "costPrice": 1224,
+  "tags": [
+   "xiaomi",
+   "charger",
+   "33w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-infinix-charger-18w",
+  "name": "Infinix Charger 18W",
+  "brand": "Infinix",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 792,
+  "tags": [
+   "infinix",
+   "charger",
+   "18w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-tecno-charger-18w",
+  "name": "Tecno Charger 18W",
+  "brand": "Tecno",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1050,
+  "costPrice": 756,
+  "tags": [
+   "tecno",
+   "charger",
+   "18w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-type-c-cable-1m",
+  "name": "Type-C Cable 1m",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 180,
+  "tags": [
+   "type",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-micro-usb-cable-1m",
+  "name": "Micro USB Cable 1m",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 130,
+  "tags": [
+   "micro",
+   "usb",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-lightning-cable-1m",
+  "name": "Lightning Cable 1m",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 216,
+  "tags": [
+   "lightning",
+   "cable",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-wall-adapter-2-1a",
+  "name": "Wall Adapter 2.1A",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 252,
+  "tags": [
+   "wall",
+   "adapter",
+   "1a",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-3-in-1-cable",
+  "name": "3 in 1 Cable",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "in",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-wireless-charger-15w",
+  "name": "Wireless Charger 15W",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1650,
+  "costPrice": 1188,
+  "tags": [
+   "wireless",
+   "charger",
+   "15w",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-otg-adapter",
+  "name": "OTG Adapter",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 108,
+  "tags": [
+   "otg",
+   "adapter",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-type-c-to-type-c-cable",
+  "name": "Type-C to Type-C Cable",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "type",
+   "to",
+   "cable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-car-mobile-holder",
+  "name": "Car Mobile Holder",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 396,
+  "tags": [
+   "car",
+   "mobile",
+   "holder",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-mobile-stand-foldable",
+  "name": "Mobile Stand Foldable",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 324,
+  "tags": [
+   "mobile",
+   "stand",
+   "foldable",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-selfie-stick",
+  "name": "Selfie Stick",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 468,
+  "tags": [
+   "selfie",
+   "stick",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-tripod-stand-1m",
+  "name": "Tripod Stand 1m",
+  "brand": "",
+  "category": "Chargers & Cables",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 864,
+  "tags": [
+   "tripod",
+   "stand",
+   "1m",
+   "chargers & cables"
+  ]
+ },
+ {
+  "id": "mobile-anker-powercore-10000mah",
+  "name": "Anker PowerCore 10000mAh",
+  "brand": "Anker",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "anker",
+   "powercore",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-anker-powercore-20000mah",
+  "name": "Anker PowerCore 20000mAh",
+  "brand": "Anker",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "anker",
+   "powercore",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-audionic-power-bank-10000mah",
+  "name": "Audionic Power Bank 10000mAh",
+  "brand": "Audionic",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "audionic",
+   "power",
+   "bank",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-audionic-power-bank-20000mah",
+  "name": "Audionic Power Bank 20000mAh",
+  "brand": "Audionic",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "audionic",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-faster-power-bank-10000mah",
+  "name": "Faster Power Bank 10000mAh",
+  "brand": "Faster",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2175,
+  "tags": [
+   "faster",
+   "power",
+   "bank",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-faster-power-bank-20000mah",
+  "name": "Faster Power Bank 20000mAh",
+  "brand": "Faster",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 4800,
+  "costPrice": 3600,
+  "tags": [
+   "faster",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-ronin-power-bank-10000mah",
+  "name": "Ronin Power Bank 10000mAh",
+  "brand": "Ronin",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 3000,
+  "costPrice": 2250,
+  "tags": [
+   "ronin",
+   "power",
+   "bank",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-ronin-power-bank-20000mah",
+  "name": "Ronin Power Bank 20000mAh",
+  "brand": "Ronin",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 4900,
+  "costPrice": 3675,
+  "tags": [
+   "ronin",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-power-bank-3i-20000mah",
+  "name": "Xiaomi Power Bank 3i 20000mAh",
+  "brand": "Xiaomi",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 7900,
+  "costPrice": 5925,
+  "tags": [
+   "xiaomi",
+   "power",
+   "bank",
+   "3i",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-power-bank-10000mah",
+  "name": "Xiaomi Power Bank 10000mAh",
+  "brand": "Xiaomi",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "xiaomi",
+   "power",
+   "bank",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-oraimo-power-bank-10000mah",
+  "name": "Oraimo Power Bank 10000mAh",
+  "brand": "Oraimo",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 3600,
+  "costPrice": 2700,
+  "tags": [
+   "oraimo",
+   "power",
+   "bank",
+   "10000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-oraimo-power-bank-20000mah",
+  "name": "Oraimo Power Bank 20000mAh",
+  "brand": "Oraimo",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 5400,
+  "costPrice": 4050,
+  "tags": [
+   "oraimo",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-zero-power-bank-20000mah",
+  "name": "Zero Power Bank 20000mAh",
+  "brand": "Zero",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 5600,
+  "costPrice": 4200,
+  "tags": [
+   "zero",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-baseus-power-bank-20000mah-22-5w",
+  "name": "Baseus Power Bank 20000mAh 22.5W",
+  "brand": "Baseus",
+  "category": "Power Banks",
+  "unit": "pcs",
+  "price": 9900,
+  "costPrice": 7425,
+  "tags": [
+   "baseus",
+   "power",
+   "bank",
+   "20000mah",
+   "power banks"
+  ]
+ },
+ {
+  "id": "mobile-audionic-airbuds-a-9",
+  "name": "Audionic Airbuds A-9",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2555,
+  "tags": [
+   "audionic",
+   "airbuds",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-audionic-airbuds-blue-pro",
+  "name": "Audionic Airbuds Blue Pro",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3285,
+  "tags": [
+   "audionic",
+   "airbuds",
+   "blue",
+   "pro",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-audionic-handsfree-wired",
+  "name": "Audionic Handsfree Wired",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 474,
+  "tags": [
+   "audionic",
+   "handsfree",
+   "wired",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-audionic-bluetooth-neckband",
+  "name": "Audionic Bluetooth Neckband",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1314,
+  "tags": [
+   "audionic",
+   "bluetooth",
+   "neckband",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-audionic-headphone-wired",
+  "name": "Audionic Headphone Wired",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1095,
+  "tags": [
+   "audionic",
+   "headphone",
+   "wired",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-audionic-bluetooth-speaker",
+  "name": "Audionic Bluetooth Speaker",
+  "brand": "Audionic",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2336,
+  "tags": [
+   "audionic",
+   "bluetooth",
+   "speaker",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-faster-handsfree-wired",
+  "name": "Faster Handsfree Wired",
+  "brand": "Faster",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 328,
+  "tags": [
+   "faster",
+   "handsfree",
+   "wired",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-faster-airbuds-f-1",
+  "name": "Faster Airbuds F-1",
+  "brand": "Faster",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2044,
+  "tags": [
+   "faster",
+   "airbuds",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-faster-bluetooth-neckband",
+  "name": "Faster Bluetooth Neckband",
+  "brand": "Faster",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1095,
+  "tags": [
+   "faster",
+   "bluetooth",
+   "neckband",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-ronin-airbuds-r-860",
+  "name": "Ronin Airbuds R-860",
+  "brand": "Ronin",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2336,
+  "tags": [
+   "ronin",
+   "airbuds",
+   "860",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-ronin-handsfree-wired",
+  "name": "Ronin Handsfree Wired",
+  "brand": "Ronin",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 520,
+  "costPrice": 380,
+  "tags": [
+   "ronin",
+   "handsfree",
+   "wired",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-ronin-bluetooth-neckband",
+  "name": "Ronin Bluetooth Neckband",
+  "brand": "Ronin",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1700,
+  "costPrice": 1241,
+  "tags": [
+   "ronin",
+   "bluetooth",
+   "neckband",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-ronin-bluetooth-speaker",
+  "name": "Ronin Bluetooth Speaker",
+  "brand": "Ronin",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 2900,
+  "costPrice": 2117,
+  "tags": [
+   "ronin",
+   "bluetooth",
+   "speaker",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-samsung-galaxy-buds-fe",
+  "name": "Samsung Galaxy Buds FE",
+  "brand": "Samsung",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 18500,
+  "costPrice": 13505,
+  "tags": [
+   "samsung",
+   "galaxy",
+   "buds",
+   "fe",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-samsung-akg-handsfree-type-c",
+  "name": "Samsung AKG Handsfree Type-C",
+  "brand": "Samsung",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1314,
+  "tags": [
+   "samsung",
+   "akg",
+   "handsfree",
+   "type",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-apple-airpods-2nd-gen",
+  "name": "Apple AirPods 2nd Gen",
+  "brand": "Apple",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 24500,
+  "costPrice": 17885,
+  "tags": [
+   "apple",
+   "airpods",
+   "2nd",
+   "gen",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-apple-airpods-pro-2",
+  "name": "Apple AirPods Pro 2",
+  "brand": "Apple",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 52000,
+  "costPrice": 37960,
+  "tags": [
+   "apple",
+   "airpods",
+   "pro",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-apple-earpods-lightning",
+  "name": "Apple EarPods Lightning",
+  "brand": "Apple",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3285,
+  "tags": [
+   "apple",
+   "earpods",
+   "lightning",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-jbl-tune-110-handsfree",
+  "name": "JBL Tune 110 Handsfree",
+  "brand": "JBL",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 1752,
+  "tags": [
+   "jbl",
+   "tune",
+   "110",
+   "handsfree",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-jbl-go-3-speaker",
+  "name": "JBL Go 3 Speaker",
+  "brand": "JBL",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6205,
+  "tags": [
+   "jbl",
+   "go",
+   "speaker",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-jbl-flip-6-speaker",
+  "name": "JBL Flip 6 Speaker",
+  "brand": "JBL",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 32000,
+  "costPrice": 23360,
+  "tags": [
+   "jbl",
+   "flip",
+   "speaker",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-oraimo-freepods-3",
+  "name": "Oraimo FreePods 3",
+  "brand": "Oraimo",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3796,
+  "tags": [
+   "oraimo",
+   "freepods",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-oraimo-riff-speaker",
+  "name": "Oraimo Riff Speaker",
+  "brand": "Oraimo",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 2847,
+  "tags": [
+   "oraimo",
+   "riff",
+   "speaker",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-qcy-t13-earbuds",
+  "name": "QCY T13 Earbuds",
+  "brand": "QCY",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3066,
+  "tags": [
+   "qcy",
+   "t13",
+   "earbuds",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-realme-buds-t110",
+  "name": "Realme Buds T110",
+  "brand": "Realme",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3796,
+  "tags": [
+   "realme",
+   "buds",
+   "t110",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-buds-4-active",
+  "name": "Xiaomi Redmi Buds 4 Active",
+  "brand": "Xiaomi",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3066,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "buds",
+   "active",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-haylou-gt1-earbuds",
+  "name": "Haylou GT1 Earbuds",
+  "brand": "Haylou",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2555,
+  "tags": [
+   "haylou",
+   "gt1",
+   "earbuds",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-handsfree-universal",
+  "name": "Handsfree Universal",
+  "brand": "",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 220,
+  "costPrice": 161,
+  "tags": [
+   "handsfree",
+   "universal",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-bluetooth-earbuds-tws",
+  "name": "Bluetooth Earbuds TWS",
+  "brand": "",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1095,
+  "tags": [
+   "bluetooth",
+   "earbuds",
+   "tws",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-mobile-gaming-headset",
+  "name": "Mobile Gaming Headset",
+  "brand": "",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1314,
+  "tags": [
+   "mobile",
+   "gaming",
+   "headset",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-lavalier-mic-wired",
+  "name": "Lavalier Mic Wired",
+  "brand": "",
+  "category": "Earphones, Headphones & Speakers",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 474,
+  "tags": [
+   "lavalier",
+   "mic",
+   "wired",
+   "earphones, headphones & speakers"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-samsung-a-series",
+  "name": "Back Cover Silicone Samsung A-Series",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 210,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "samsung",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-infinix",
+  "name": "Back Cover Silicone Infinix",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 180,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "infinix",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-tecno",
+  "name": "Back Cover Silicone Tecno",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 180,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "tecno",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-oppo",
+  "name": "Back Cover Silicone Oppo",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 192,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "oppo",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-vivo",
+  "name": "Back Cover Silicone Vivo",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 192,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "vivo",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-realme",
+  "name": "Back Cover Silicone Realme",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 192,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "realme",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-silicone-xiaomi",
+  "name": "Back Cover Silicone Xiaomi",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 320,
+  "costPrice": 192,
+  "tags": [
+   "back",
+   "cover",
+   "silicone",
+   "xiaomi",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-back-cover-transparent-universal",
+  "name": "Back Cover Transparent Universal",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "back",
+   "cover",
+   "transparent",
+   "universal",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-iphone-case-silicone",
+  "name": "iPhone Case Silicone",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "iphone",
+   "case",
+   "silicone",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-iphone-case-magsafe",
+  "name": "iPhone Case MagSafe",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 870,
+  "tags": [
+   "iphone",
+   "case",
+   "magsafe",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-flip-cover-samsung",
+  "name": "Flip Cover Samsung",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 390,
+  "tags": [
+   "flip",
+   "cover",
+   "samsung",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-flip-cover-infinix",
+  "name": "Flip Cover Infinix",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 330,
+  "tags": [
+   "flip",
+   "cover",
+   "infinix",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-glass-protector-tempered",
+  "name": "Glass Protector Tempered",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 200,
+  "costPrice": 120,
+  "tags": [
+   "glass",
+   "protector",
+   "tempered",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-glass-protector-9d-full-cover",
+  "name": "Glass Protector 9D Full Cover",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 180,
+  "tags": [
+   "glass",
+   "protector",
+   "9d",
+   "full",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-privacy-glass-protector",
+  "name": "Privacy Glass Protector",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "privacy",
+   "glass",
+   "protector",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-iphone-glass-protector",
+  "name": "iPhone Glass Protector",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "iphone",
+   "glass",
+   "protector",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-camera-lens-protector",
+  "name": "Camera Lens Protector",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "camera",
+   "lens",
+   "protector",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-matte-gel-protector",
+  "name": "Matte Gel Protector",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 150,
+  "tags": [
+   "matte",
+   "gel",
+   "protector",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-spigen-case-iphone-15",
+  "name": "Spigen Case iPhone 15",
+  "brand": "Spigen",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 3900,
+  "costPrice": 2340,
+  "tags": [
+   "spigen",
+   "case",
+   "iphone",
+   "15",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-spigen-glass-protector-iphone",
+  "name": "Spigen Glass Protector iPhone",
+  "brand": "Spigen",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1500,
+  "tags": [
+   "spigen",
+   "glass",
+   "protector",
+   "iphone",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-waterproof-pouch",
+  "name": "Waterproof Pouch",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 270,
+  "tags": [
+   "waterproof",
+   "pouch",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-ring-holder",
+  "name": "Ring Holder",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 120,
+  "costPrice": 72,
+  "tags": [
+   "ring",
+   "holder",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-pop-socket",
+  "name": "Pop Socket",
+  "brand": "",
+  "category": "Covers & Protectors",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 108,
+  "tags": [
+   "pop",
+   "socket",
+   "covers & protectors"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-microsd-ultra-32gb",
+  "name": "SanDisk microSD Ultra 32GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1131,
+  "tags": [
+   "sandisk",
+   "microsd",
+   "ultra",
+   "32gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-microsd-ultra-64gb",
+  "name": "SanDisk microSD Ultra 64GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 2250,
+  "costPrice": 1755,
+  "tags": [
+   "sandisk",
+   "microsd",
+   "ultra",
+   "64gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-microsd-ultra-128gb",
+  "name": "SanDisk microSD Ultra 128GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2730,
+  "tags": [
+   "sandisk",
+   "microsd",
+   "ultra",
+   "128gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-microsd-ultra-256gb",
+  "name": "SanDisk microSD Ultra 256GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 6800,
+  "costPrice": 5304,
+  "tags": [
+   "sandisk",
+   "microsd",
+   "ultra",
+   "256gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-cruzer-blade-usb-32gb",
+  "name": "SanDisk Cruzer Blade USB 32GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 975,
+  "tags": [
+   "sandisk",
+   "cruzer",
+   "blade",
+   "usb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-ultra-flair-usb-64gb",
+  "name": "SanDisk Ultra Flair USB 64GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 1872,
+  "tags": [
+   "sandisk",
+   "ultra",
+   "flair",
+   "usb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sandisk-ultra-dual-drive-otg-64gb",
+  "name": "SanDisk Ultra Dual Drive OTG 64GB",
+  "brand": "SanDisk",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2496,
+  "tags": [
+   "sandisk",
+   "ultra",
+   "dual",
+   "drive",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-kingston-datatraveler-32gb",
+  "name": "Kingston DataTraveler 32GB",
+  "brand": "Kingston",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1200,
+  "costPrice": 936,
+  "tags": [
+   "kingston",
+   "datatraveler",
+   "32gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-kingston-datatraveler-64gb",
+  "name": "Kingston DataTraveler 64GB",
+  "brand": "Kingston",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1900,
+  "costPrice": 1482,
+  "tags": [
+   "kingston",
+   "datatraveler",
+   "64gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-kingston-microsd-canvas-64gb",
+  "name": "Kingston microSD Canvas 64GB",
+  "brand": "Kingston",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1716,
+  "tags": [
+   "kingston",
+   "microsd",
+   "canvas",
+   "64gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-kingston-microsd-canvas-128gb",
+  "name": "Kingston microSD Canvas 128GB",
+  "brand": "Kingston",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 3400,
+  "costPrice": 2652,
+  "tags": [
+   "kingston",
+   "microsd",
+   "canvas",
+   "128gb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-hp-usb-flash-drive-32gb",
+  "name": "HP USB Flash Drive 32GB",
+  "brand": "HP",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 858,
+  "tags": [
+   "hp",
+   "usb",
+   "flash",
+   "drive",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-hp-usb-flash-drive-64gb",
+  "name": "HP USB Flash Drive 64GB",
+  "brand": "HP",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1404,
+  "tags": [
+   "hp",
+   "usb",
+   "flash",
+   "drive",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-samsung-evo-plus-microsd-128gb",
+  "name": "Samsung EVO Plus microSD 128GB",
+  "brand": "Samsung",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 4200,
+  "costPrice": 3276,
+  "tags": [
+   "samsung",
+   "evo",
+   "plus",
+   "microsd",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-card-reader-usb",
+  "name": "Card Reader USB",
+  "brand": "",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 195,
+  "tags": [
+   "card",
+   "reader",
+   "usb",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-sim-ejector-pin",
+  "name": "SIM Ejector Pin",
+  "brand": "",
+  "category": "Memory & Storage",
+  "unit": "pcs",
+  "price": 30,
+  "costPrice": 23,
+  "tags": [
+   "sim",
+   "ejector",
+   "pin",
+   "memory & storage"
+  ]
+ },
+ {
+  "id": "mobile-jazz-sim-card-new",
+  "name": "Jazz SIM Card New",
+  "brand": "Jazz",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 291,
+  "tags": [
+   "jazz",
+   "sim",
+   "card",
+   "new",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-zong-sim-card-new",
+  "name": "Zong SIM Card New",
+  "brand": "Zong",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 291,
+  "tags": [
+   "zong",
+   "sim",
+   "card",
+   "new",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-telenor-sim-card-new",
+  "name": "Telenor SIM Card New",
+  "brand": "Telenor",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 291,
+  "tags": [
+   "telenor",
+   "sim",
+   "card",
+   "new",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-ufone-sim-card-new",
+  "name": "Ufone SIM Card New",
+  "brand": "Ufone",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 300,
+  "costPrice": 291,
+  "tags": [
+   "ufone",
+   "sim",
+   "card",
+   "new",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-jazz-easyload-rs-100",
+  "name": "Jazz Easyload Rs.100",
+  "brand": "Jazz",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 102,
+  "costPrice": 99,
+  "tags": [
+   "jazz",
+   "easyload",
+   "rs",
+   "100",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-jazz-easyload-rs-500",
+  "name": "Jazz Easyload Rs.500",
+  "brand": "Jazz",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 510,
+  "costPrice": 495,
+  "tags": [
+   "jazz",
+   "easyload",
+   "rs",
+   "500",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-zong-load-rs-100",
+  "name": "Zong Load Rs.100",
+  "brand": "Zong",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 102,
+  "costPrice": 99,
+  "tags": [
+   "zong",
+   "load",
+   "rs",
+   "100",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-telenor-load-rs-100",
+  "name": "Telenor Load Rs.100",
+  "brand": "Telenor",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 102,
+  "costPrice": 99,
+  "tags": [
+   "telenor",
+   "load",
+   "rs",
+   "100",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-ufone-load-rs-100",
+  "name": "Ufone Load Rs.100",
+  "brand": "Ufone",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 102,
+  "costPrice": 99,
+  "tags": [
+   "ufone",
+   "load",
+   "rs",
+   "100",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-mobile-repair-screen-replace",
+  "name": "Mobile Repair Screen Replace",
+  "brand": "",
+  "category": "Load, SIM & Services",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 3395,
+  "tags": [
+   "mobile",
+   "repair",
+   "screen",
+   "replace",
+   "load, sim & services"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-smart-band-8",
+  "name": "Xiaomi Smart Band 8",
+  "brand": "Xiaomi",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "xiaomi",
+   "smart",
+   "band",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-xiaomi-redmi-watch-4",
+  "name": "Xiaomi Redmi Watch 4",
+  "brand": "Xiaomi",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 14500,
+  "costPrice": 10875,
+  "tags": [
+   "xiaomi",
+   "redmi",
+   "watch",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-haylou-solar-smartwatch",
+  "name": "Haylou Solar Smartwatch",
+  "brand": "Haylou",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "haylou",
+   "solar",
+   "smartwatch",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-zero-smart-watch-ultra",
+  "name": "Zero Smart Watch Ultra",
+  "brand": "Zero",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "zero",
+   "smart",
+   "watch",
+   "ultra",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-ronin-smart-watch-r-09",
+  "name": "Ronin Smart Watch R-09",
+  "brand": "Ronin",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "ronin",
+   "smart",
+   "watch",
+   "09",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-audionic-smart-watch",
+  "name": "Audionic Smart Watch",
+  "brand": "Audionic",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "audionic",
+   "smart",
+   "watch",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-t800-ultra-smart-watch",
+  "name": "T800 Ultra Smart Watch",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "t800",
+   "ultra",
+   "smart",
+   "watch",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-smart-watch-kids-camera",
+  "name": "Smart Watch Kids Camera",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "smart",
+   "watch",
+   "kids",
+   "camera",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-ring-light-10-inch",
+  "name": "Ring Light 10 inch",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 1800,
+  "costPrice": 1350,
+  "tags": [
+   "ring",
+   "light",
+   "10",
+   "inch",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-led-ring-light-18-inch-with-stand",
+  "name": "LED Ring Light 18 inch with Stand",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 5200,
+  "costPrice": 3900,
+  "tags": [
+   "led",
+   "ring",
+   "light",
+   "18",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-mobile-cooling-fan",
+  "name": "Mobile Cooling Fan",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 1500,
+  "costPrice": 1125,
+  "tags": [
+   "mobile",
+   "cooling",
+   "fan",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-gaming-trigger-pair",
+  "name": "Gaming Trigger Pair",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 550,
+  "costPrice": 412,
+  "tags": [
+   "gaming",
+   "trigger",
+   "pair",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-phone-opening-tool-kit",
+  "name": "Phone Opening Tool Kit",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "phone",
+   "opening",
+   "tool",
+   "kit",
+   "smartwatches & gadgets"
+  ]
+ },
+ {
+  "id": "mobile-bluetooth-selfie-remote",
+  "name": "Bluetooth Selfie Remote",
+  "brand": "",
+  "category": "Smartwatches & Gadgets",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "bluetooth",
+   "selfie",
+   "remote",
+   "smartwatches & gadgets"
+  ]
+ }
+]

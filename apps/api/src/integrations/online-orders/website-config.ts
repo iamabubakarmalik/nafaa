@@ -38,8 +38,46 @@ export interface WebsiteConfig {
   priceSource: 'WEBSITE' | 'NAFAA';
   /** Delivery charge kis ke paas: SHOP = dukaan ki kamai (bill me), RIDER = bahar ka rider khud leta hai (sirf likha) */
   deliveryFeeMode: 'SHOP' | 'RIDER';
-  /** Nafaa me qeemat badle to website (Woo/Shopify) par bhi — jore hue products */
+  /**
+   * Nafaa sends prices to the channel. Derived from `priceFrom`: on for NAFAA
+   * and LATEST, off for WEBSITE and NONE. Kept for every reader that checks it.
+   */
   pushPrice: boolean;
+  /**
+   * Which side owns the price of linked items ("Qeemat kahan se badlegi?"):
+   *  - NAFAA: Nafaa sends its price; a price changed on the channel after the last push waits for the merchant.
+   *  - WEBSITE: a price changed on the channel is taken into Nafaa; Nafaa never sends prices.
+   *  - LATEST: whichever side changed last wins.
+   *  - NONE: prices are not synced either way.
+   * Channels saved before this setting existed read NAFAA when pushPrice was on, else NONE.
+   */
+  priceFrom: PriceFrom;
+  /** New channel: the price source question is still open (asked on the channel screen). */
+  priceFromAsk: boolean;
+  /**
+   * Where a channel price lands in Nafaa (WEBSITE and LATEST) when the channel has no price rule:
+   * PRODUCT = the Nafaa product price (branch price where set), CHANNEL = this channel's own link price.
+   * With a price rule the link price is always used.
+   */
+  websitePriceTo: 'PRODUCT' | 'CHANNEL';
+  /** New products on the channel are brought into Nafaa by themselves (with the stock handover rules). */
+  autoImport: boolean;
+  /** Name, description and pictures: which side owns them (same choices as the price; NONE = not synced automatically). */
+  contentFrom: PriceFrom;
+  /**
+   * New Nafaa products made on the channel by themselves: OFF; MARKED = only
+   * products the merchant marked for this channel; ALL = every new Nafaa product.
+   */
+  autoPublish: 'OFF' | 'MARKED' | 'ALL';
+  /** When autoPublish became ALL: only products made after it are published. */
+  autoPublishSince: string | null;
+  /**
+   * Stock changed by hand on the channel (not by Nafaa's push, not by an order)
+   * is taken into Nafaa as an adjustment ("Website par badla"). Nafaa stays the counter.
+   */
+  stockFromChannel: boolean;
+  /** The merchant has picked the sync settings (older channels show "Sync settings chunein" until then). */
+  syncChosen: boolean;
   /** Channel price = Nafaa retail price with this rule (a link's own price wins). */
   priceRule: PriceRule;
   /** Units kept back: the channel is told stock minus this. */
@@ -89,6 +127,15 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   priceSource: 'WEBSITE',
   deliveryFeeMode: 'SHOP',
   pushPrice: false,
+  priceFrom: 'NONE',
+  priceFromAsk: false,
+  websitePriceTo: 'PRODUCT',
+  autoImport: false,
+  contentFrom: 'NONE',
+  autoPublish: 'OFF',
+  autoPublishSince: null,
+  stockFromChannel: false,
+  syncChosen: false,
   priceRule: NO_PRICE_RULE,
   stockBuffer: 0,
   stockMode: 'ALL',
@@ -114,7 +161,16 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     ...c,
     priceSource: c.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE',
     deliveryFeeMode: c.deliveryFeeMode === 'RIDER' ? 'RIDER' : 'SHOP',
-    pushPrice: c.pushPrice === true,
+    pushPrice: pushesPrice(readPriceFrom(c)),
+    priceFrom: readPriceFrom(c),
+    priceFromAsk: c.priceFromAsk === true,
+    websitePriceTo: c.websitePriceTo === 'CHANNEL' ? 'CHANNEL' : 'PRODUCT',
+    autoImport: c.autoImport === true,
+    contentFrom: readFrom(c.contentFrom, 'NONE'),
+    autoPublish: c.autoPublish === 'MARKED' || c.autoPublish === 'ALL' ? c.autoPublish : 'OFF',
+    autoPublishSince: typeof c.autoPublishSince === 'string' ? c.autoPublishSince : null,
+    stockFromChannel: c.stockFromChannel === true,
+    syncChosen: c.syncChosen === true,
     priceRule: readPriceRule(c.priceRule),
     stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
     stockMode: readStockRule(c).mode,
@@ -128,6 +184,45 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     statusMap: c.statusMap && typeof c.statusMap === 'object' ? c.statusMap : null,
   };
 }
+
+export type PriceFrom = 'NAFAA' | 'WEBSITE' | 'LATEST' | 'NONE';
+const PRICE_FROM: readonly PriceFrom[] = ['NAFAA', 'WEBSITE', 'LATEST', 'NONE'];
+
+/** The stored price source, or the one older channels had: NAFAA with price push on, else NONE. */
+export function readPriceFrom(raw: { priceFrom?: unknown; pushPrice?: unknown } | null | undefined): PriceFrom {
+  const v = raw?.priceFrom;
+  if (typeof v === 'string' && (PRICE_FROM as readonly string[]).includes(v)) return v as PriceFrom;
+  return raw?.pushPrice === true ? 'NAFAA' : 'NONE';
+}
+
+const readFrom = (v: unknown, fallback: PriceFrom): PriceFrom =>
+  typeof v === 'string' && (PRICE_FROM as readonly string[]).includes(v) ? (v as PriceFrom) : fallback;
+
+/**
+ * "Sab kuch khud sync (recommended)": prices and content follow whichever side
+ * changed last, new products come in from the channel, products the merchant
+ * marks go out, and stock edited by hand on the channel is taken in.
+ */
+export const AUTO_SYNC_PRESET = {
+  priceFrom: 'LATEST' as PriceFrom,
+  pushPrice: true,
+  contentFrom: 'LATEST' as PriceFrom,
+  autoImport: true,
+  autoLink: true,
+  autoPublish: 'MARKED' as const,
+  stockFromChannel: true,
+  pushStock: true,
+  syncChosen: true,
+  priceFromAsk: false,
+};
+
+/** Does this config match the preset (for the "recommended" badge)? */
+export function isAutoSync(cfg: WebsiteConfig) {
+  return cfg.priceFrom === 'LATEST' && cfg.contentFrom === 'LATEST' && cfg.autoImport && cfg.autoPublish !== 'OFF' && cfg.stockFromChannel && cfg.pushStock;
+}
+
+export const pushesPrice = (from: PriceFrom) => from === 'NAFAA' || from === 'LATEST';
+export const pullsPrice = (from: PriceFrom) => from === 'WEBSITE' || from === 'LATEST';
 
 /** The channel's stock share rule (mode, percent, fixed, buffer). */
 export function stockRule(cfg: Pick<WebsiteConfig, 'stockMode' | 'stockPercent' | 'stockFixed' | 'stockBuffer'>): StockRule {

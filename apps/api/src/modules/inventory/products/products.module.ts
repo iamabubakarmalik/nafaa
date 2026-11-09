@@ -14,11 +14,13 @@ import { StockAdjustmentsModule } from '../stock-adjustments/stock-adjustments.m
 import { ImeiModule } from '../../../industries/mobile/imei/imei.module';
 import { ProductSuppliersController } from './suppliers/product-suppliers.controller';
 import { ProductSuppliersService } from './suppliers/product-suppliers.service';
+import { ProductLibraryController } from './library/product-library.controller';
+import { ProductLibraryService } from './library/product-library.service';
 
 @Module({
   imports: [ProductVariantsModule, ProductUnitsModule, StockAdjustmentsModule, ImeiModule],
-  controllers: [ProductSuppliersController, ProductsController, ProductImportController, ProductBulkEditController],
-  providers: [ProductSuppliersService, ProductsService, ProductCatalogService, ProductInsightsService, TenantTimezoneService, ProductImportService, ProductBulkEditService],
+  controllers: [ProductSuppliersController, ProductLibraryController, ProductsController, ProductImportController, ProductBulkEditController],
+  providers: [ProductSuppliersService, ProductLibraryService, ProductsService, ProductCatalogService, ProductInsightsService, TenantTimezoneService, ProductImportService, ProductBulkEditService],
   exports: [ProductImportService],
 })
 export class ProductsModule {}

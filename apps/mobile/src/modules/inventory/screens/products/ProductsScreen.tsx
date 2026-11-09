@@ -10,7 +10,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import {
-  AlertTriangle, ArrowRight, BarChart3, Boxes, CalendarClock, CheckSquare, CloudOff, Download, FileUp, GraduationCap, ListChecks, MoreHorizontal, Package,
+  AlertTriangle, ArrowRight, BarChart3, Boxes, CalendarClock, CheckSquare, CloudOff, Download, FileUp, GraduationCap, Library, ListChecks, MoreHorizontal, Package,
   Plus, Printer, ScanLine, SlidersHorizontal, Snowflake, Table2, X,
 } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
@@ -165,6 +165,7 @@ export function ProductsScreen({ tabBar }: { tabBar?: boolean }) {
 
   const moreActions: SheetAction[] = [
     { icon: CheckSquare, label: t('Chunein'), onPress: () => c.setSelected(new Set(c.items.slice(0, 1).map((i) => i.id))), hidden: !c.items.length },
+    { icon: Library, label: t('Library se products'), onPress: () => router.push('/products/library' as never), hidden: !can.create },
     { icon: FileUp, label: t('Excel import'), onPress: () => router.push('/products/bulk-import' as never), hidden: !can.create },
     { icon: Table2, label: t('Bulk banayein'), onPress: () => router.push({ pathname: '/products/bulk-import', params: { start: 'blank' } } as never), hidden: !can.create },
     { icon: ListChecks, label: t('Bulk edit — bohat se products ek saath (spreadsheet)'), onPress: () => router.push('/products/bulk-edit' as never), hidden: !can.edit },

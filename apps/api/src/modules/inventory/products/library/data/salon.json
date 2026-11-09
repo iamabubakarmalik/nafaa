@@ -1,0 +1,1744 @@
+[
+ {
+  "id": "salon-haircut-mens",
+  "name": "Haircut Mens",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 500,
+  "costPrice": 75,
+  "tags": [
+   "haircut",
+   "mens",
+   "cutting",
+   "hair cut",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-haircut-ladies",
+  "name": "Haircut Ladies",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 1500,
+  "costPrice": 225,
+  "tags": [
+   "haircut",
+   "ladies",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-haircut-kids",
+  "name": "Haircut Kids",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 400,
+  "costPrice": 60,
+  "tags": [
+   "haircut",
+   "kids",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-haircut-layers-ladies",
+  "name": "Haircut Layers Ladies",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 2000,
+  "costPrice": 300,
+  "tags": [
+   "haircut",
+   "layers",
+   "ladies",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-beard-trim",
+  "name": "Beard Trim",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 250,
+  "costPrice": 38,
+  "tags": [
+   "beard",
+   "trim",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-beard-shape-and-style",
+  "name": "Beard Shape and Style",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 400,
+  "costPrice": 60,
+  "tags": [
+   "beard",
+   "shape",
+   "and",
+   "style",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-shave",
+  "name": "Shave",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 200,
+  "costPrice": 30,
+  "tags": [
+   "shave",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-head-massage",
+  "name": "Head Massage",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 500,
+  "costPrice": 75,
+  "tags": [
+   "head",
+   "massage",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-wash-and-blow-dry",
+  "name": "Hair Wash and Blow Dry",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 800,
+  "costPrice": 120,
+  "tags": [
+   "hair",
+   "wash",
+   "and",
+   "blow",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-wash-ladies",
+  "name": "Hair Wash Ladies",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 600,
+  "costPrice": 90,
+  "tags": [
+   "hair",
+   "wash",
+   "ladies",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-blow-dry-ladies",
+  "name": "Hair Blow Dry Ladies",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 1000,
+  "costPrice": 150,
+  "tags": [
+   "hair",
+   "blow",
+   "dry",
+   "ladies",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-styling-party",
+  "name": "Hair Styling Party",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 2500,
+  "costPrice": 375,
+  "tags": [
+   "hair",
+   "styling",
+   "party",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-colour-mens",
+  "name": "Hair Colour Mens",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 1500,
+  "costPrice": 225,
+  "tags": [
+   "hair",
+   "colour",
+   "mens",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-colour-ladies-full",
+  "name": "Hair Colour Ladies Full",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 5500,
+  "costPrice": 825,
+  "tags": [
+   "hair",
+   "colour",
+   "ladies",
+   "full",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-highlights",
+  "name": "Hair Highlights",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 7500,
+  "costPrice": 1125,
+  "tags": [
+   "hair",
+   "highlights",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-rebonding",
+  "name": "Hair Rebonding",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 15000,
+  "costPrice": 2250,
+  "tags": [
+   "hair",
+   "rebonding",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-smoothing",
+  "name": "Hair Smoothing",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 12000,
+  "costPrice": 1800,
+  "tags": [
+   "hair",
+   "smoothing",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-keratin-treatment",
+  "name": "Keratin Treatment",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 18000,
+  "costPrice": 2700,
+  "tags": [
+   "keratin",
+   "treatment",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-spa",
+  "name": "Hair Spa",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 3500,
+  "costPrice": 525,
+  "tags": [
+   "hair",
+   "spa",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-protein-treatment",
+  "name": "Hair Protein Treatment",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 5500,
+  "costPrice": 825,
+  "tags": [
+   "hair",
+   "protein",
+   "treatment",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-straightening-iron",
+  "name": "Hair Straightening Iron",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 1500,
+  "costPrice": 225,
+  "tags": [
+   "hair",
+   "straightening",
+   "iron",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-hair-curls",
+  "name": "Hair Curls",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 1800,
+  "costPrice": 270,
+  "tags": [
+   "hair",
+   "curls",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-mehndi-application-hands",
+  "name": "Mehndi Application Hands",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 2500,
+  "costPrice": 375,
+  "tags": [
+   "mehndi",
+   "application",
+   "hands",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-mehndi-bridal",
+  "name": "Mehndi Bridal",
+  "brand": "",
+  "category": "Services - Hair",
+  "unit": "service",
+  "price": 15000,
+  "costPrice": 2250,
+  "tags": [
+   "mehndi",
+   "bridal",
+   "services - hair"
+  ]
+ },
+ {
+  "id": "salon-facial-basic",
+  "name": "Facial Basic",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 1800,
+  "costPrice": 360,
+  "tags": [
+   "facial",
+   "basic",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-facial-fruit",
+  "name": "Facial Fruit",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 2500,
+  "costPrice": 500,
+  "tags": [
+   "facial",
+   "fruit",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-facial-whitening",
+  "name": "Facial Whitening",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 3500,
+  "costPrice": 700,
+  "tags": [
+   "facial",
+   "whitening",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-facial-gold",
+  "name": "Facial Gold",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 4500,
+  "costPrice": 900,
+  "tags": [
+   "facial",
+   "gold",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-facial-hydra",
+  "name": "Facial Hydra",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 6500,
+  "costPrice": 1300,
+  "tags": [
+   "facial",
+   "hydra",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-face-clean-up",
+  "name": "Face Clean Up",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 1200,
+  "costPrice": 240,
+  "tags": [
+   "face",
+   "clean",
+   "up",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-bleach-face",
+  "name": "Bleach Face",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 800,
+  "costPrice": 160,
+  "tags": [
+   "bleach",
+   "face",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-bleach-full-body",
+  "name": "Bleach Full Body",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 3500,
+  "costPrice": 700,
+  "tags": [
+   "bleach",
+   "full",
+   "body",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-threading-eyebrows",
+  "name": "Threading Eyebrows",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 100,
+  "costPrice": 20,
+  "tags": [
+   "threading",
+   "eyebrows",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-threading-full-face",
+  "name": "Threading Full Face",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 400,
+  "costPrice": 80,
+  "tags": [
+   "threading",
+   "full",
+   "face",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-waxing-arms",
+  "name": "Waxing Arms",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 800,
+  "costPrice": 160,
+  "tags": [
+   "waxing",
+   "arms",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-waxing-legs",
+  "name": "Waxing Legs",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 1200,
+  "costPrice": 240,
+  "tags": [
+   "waxing",
+   "legs",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-waxing-full-body",
+  "name": "Waxing Full Body",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 4500,
+  "costPrice": 900,
+  "tags": [
+   "waxing",
+   "full",
+   "body",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-manicure",
+  "name": "Manicure",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 1500,
+  "costPrice": 300,
+  "tags": [
+   "manicure",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-pedicure",
+  "name": "Pedicure",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 2000,
+  "costPrice": 400,
+  "tags": [
+   "pedicure",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-manicure-and-pedicure",
+  "name": "Manicure and Pedicure",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 3200,
+  "costPrice": 640,
+  "tags": [
+   "manicure",
+   "and",
+   "pedicure",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-body-massage",
+  "name": "Body Massage",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 3500,
+  "costPrice": 700,
+  "tags": [
+   "body",
+   "massage",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-body-polishing",
+  "name": "Body Polishing",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 5500,
+  "costPrice": 1100,
+  "tags": [
+   "body",
+   "polishing",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-party-makeup",
+  "name": "Party Makeup",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 6500,
+  "costPrice": 1300,
+  "tags": [
+   "party",
+   "makeup",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-bridal-makeup",
+  "name": "Bridal Makeup",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 35000,
+  "costPrice": 7000,
+  "tags": [
+   "bridal",
+   "makeup",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-bridal-makeup-premium",
+  "name": "Bridal Makeup Premium",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 65000,
+  "costPrice": 13000,
+  "tags": [
+   "bridal",
+   "makeup",
+   "premium",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-engagement-makeup",
+  "name": "Engagement Makeup",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 18000,
+  "costPrice": 3600,
+  "tags": [
+   "engagement",
+   "makeup",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-nail-polish-gel",
+  "name": "Nail Polish Gel",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 2500,
+  "costPrice": 500,
+  "tags": [
+   "nail",
+   "polish",
+   "gel",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-nail-extension",
+  "name": "Nail Extension",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 4500,
+  "costPrice": 900,
+  "tags": [
+   "nail",
+   "extension",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-eye-makeup",
+  "name": "Eye Makeup",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 2500,
+  "costPrice": 500,
+  "tags": [
+   "eye",
+   "makeup",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-saree-draping",
+  "name": "Saree Draping",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 2000,
+  "costPrice": 400,
+  "tags": [
+   "saree",
+   "draping",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-mehndi-nail-art",
+  "name": "Mehndi Nail Art",
+  "brand": "",
+  "category": "Services - Skin & Beauty",
+  "unit": "service",
+  "price": 1200,
+  "costPrice": 240,
+  "tags": [
+   "mehndi",
+   "nail",
+   "art",
+   "services - skin & beauty"
+  ]
+ },
+ {
+  "id": "salon-loreal-shampoo-professional-250ml",
+  "name": "L'Oreal Shampoo Professional 250ml",
+  "brand": "L'Oreal",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "oreal",
+   "shampoo",
+   "professional",
+   "250ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-loreal-serie-expert-shampoo-300ml",
+  "name": "L'Oreal Serie Expert Shampoo 300ml",
+  "brand": "L'Oreal",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "oreal",
+   "serie",
+   "expert",
+   "shampoo",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-loreal-mask-professional-200ml",
+  "name": "L'Oreal Mask Professional 200ml",
+  "brand": "L'Oreal",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "oreal",
+   "mask",
+   "professional",
+   "200ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-loreal-hair-colour-majirel",
+  "name": "L'Oreal Hair Colour Majirel",
+  "brand": "L'Oreal",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "oreal",
+   "hair",
+   "colour",
+   "majirel",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-wella-shampoo-professional-250ml",
+  "name": "Wella Shampoo Professional 250ml",
+  "brand": "Wella",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "wella",
+   "shampoo",
+   "professional",
+   "250ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-wella-hair-mask-150ml",
+  "name": "Wella Hair Mask 150ml",
+  "brand": "Wella",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "wella",
+   "hair",
+   "mask",
+   "150ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-schwarzkopf-bonacure-shampoo-250ml",
+  "name": "Schwarzkopf Bonacure Shampoo 250ml",
+  "brand": "Schwarzkopf",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 3200,
+  "costPrice": 2400,
+  "tags": [
+   "schwarzkopf",
+   "bonacure",
+   "shampoo",
+   "250ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-schwarzkopf-hair-colour-igora",
+  "name": "Schwarzkopf Hair Colour Igora",
+  "brand": "Schwarzkopf",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 1800,
+  "tags": [
+   "schwarzkopf",
+   "hair",
+   "colour",
+   "igora",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-keune-hair-colour-tinta",
+  "name": "Keune Hair Colour Tinta",
+  "brand": "Keune",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2400,
+  "costPrice": 1800,
+  "tags": [
+   "keune",
+   "hair",
+   "colour",
+   "tinta",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-keune-hair-gel-strong",
+  "name": "Keune Hair Gel Strong",
+  "brand": "Keune",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "keune",
+   "hair",
+   "gel",
+   "strong",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-matrix-shampoo-250ml",
+  "name": "Matrix Shampoo 250ml",
+  "brand": "Matrix",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 1950,
+  "costPrice": 1462,
+  "tags": [
+   "matrix",
+   "shampoo",
+   "250ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-matrix-hair-mask",
+  "name": "Matrix Hair Mask",
+  "brand": "Matrix",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "matrix",
+   "hair",
+   "mask",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-kerastase-shampoo-250ml",
+  "name": "Kerastase Shampoo 250ml",
+  "brand": "Kerastase",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 7500,
+  "costPrice": 5625,
+  "tags": [
+   "kerastase",
+   "shampoo",
+   "250ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-kerastase-elixir-ultime-oil",
+  "name": "Kerastase Elixir Ultime Oil",
+  "brand": "Kerastase",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "kerastase",
+   "elixir",
+   "ultime",
+   "oil",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-streax-hair-serum-100ml",
+  "name": "Streax Hair Serum 100ml",
+  "brand": "Streax",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 790,
+  "costPrice": 592,
+  "tags": [
+   "streax",
+   "hair",
+   "serum",
+   "100ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-streax-hair-colour-black",
+  "name": "Streax Hair Colour Black",
+  "brand": "Streax",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "streax",
+   "hair",
+   "colour",
+   "black",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-keratin-hair-treatment-kit",
+  "name": "Keratin Hair Treatment Kit",
+  "brand": "Keratin",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "keratin",
+   "hair",
+   "treatment",
+   "kit",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-hair-oil-professional-100ml",
+  "name": "Hair Oil Professional 100ml",
+  "brand": "",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "hair",
+   "oil",
+   "professional",
+   "100ml",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-hair-spray-hold",
+  "name": "Hair Spray Hold",
+  "brand": "",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "hair",
+   "spray",
+   "hold",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-hair-dryer-professional-2000w",
+  "name": "Hair Dryer Professional 2000W",
+  "brand": "",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "hair",
+   "dryer",
+   "professional",
+   "2000w",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-hair-straightener-professional",
+  "name": "Hair Straightener Professional",
+  "brand": "",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 5500,
+  "costPrice": 4125,
+  "tags": [
+   "hair",
+   "straightener",
+   "professional",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-hair-curler",
+  "name": "Hair Curler",
+  "brand": "",
+  "category": "Hair Products",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "hair",
+   "curler",
+   "hair products"
+  ]
+ },
+ {
+  "id": "salon-sunsilk-shampoo-360ml",
+  "name": "Sunsilk Shampoo 360ml",
+  "brand": "Sunsilk",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 590,
+  "costPrice": 442,
+  "tags": [
+   "sunsilk",
+   "shampoo",
+   "360ml",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-nivea-body-lotion-400ml",
+  "name": "Nivea Body Lotion 400ml",
+  "brand": "Nivea",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "nivea",
+   "body",
+   "lotion",
+   "400ml",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-vaseline-body-lotion-400ml",
+  "name": "Vaseline Body Lotion 400ml",
+  "brand": "Vaseline",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 880,
+  "costPrice": 660,
+  "tags": [
+   "vaseline",
+   "body",
+   "lotion",
+   "400ml",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-olay-day-cream",
+  "name": "Olay Day Cream",
+  "brand": "Olay",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 2450,
+  "costPrice": 1838,
+  "tags": [
+   "olay",
+   "day",
+   "cream",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-golden-pearl-facial-kit",
+  "name": "Golden Pearl Facial Kit",
+  "brand": "Golden Pearl",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 1100,
+  "costPrice": 825,
+  "tags": [
+   "golden",
+   "pearl",
+   "facial",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-golden-pearl-bleach-cream",
+  "name": "Golden Pearl Bleach Cream",
+  "brand": "Golden Pearl",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "golden",
+   "pearl",
+   "bleach",
+   "cream",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-rivaj-bleach-cream",
+  "name": "Rivaj Bleach Cream",
+  "brand": "Rivaj",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 180,
+  "costPrice": 135,
+  "tags": [
+   "rivaj",
+   "bleach",
+   "cream",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-sosa-facial-kit-1kg",
+  "name": "Sosa Facial Kit 1kg",
+  "brand": "Sosa",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "sosa",
+   "facial",
+   "kit",
+   "1kg",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-oxyglow-facial-kit",
+  "name": "Oxyglow Facial Kit",
+  "brand": "Oxyglow",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 2800,
+  "costPrice": 2100,
+  "tags": [
+   "oxyglow",
+   "facial",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-cheryls-facial-kit",
+  "name": "Cheryl's Facial Kit",
+  "brand": "Cheryl's",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 3500,
+  "costPrice": 2625,
+  "tags": [
+   "cheryl",
+   "facial",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-vlcc-facial-kit",
+  "name": "VLCC Facial Kit",
+  "brand": "VLCC",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 2500,
+  "costPrice": 1875,
+  "tags": [
+   "vlcc",
+   "facial",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-lotus-herbal-facial-kit",
+  "name": "Lotus Herbal Facial Kit",
+  "brand": "Lotus",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 2200,
+  "costPrice": 1650,
+  "tags": [
+   "lotus",
+   "herbal",
+   "facial",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-veet-wax-strips",
+  "name": "Veet Wax Strips",
+  "brand": "Veet",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "veet",
+   "wax",
+   "strips",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-wax-hot-pack-500g",
+  "name": "Wax Hot Pack 500g",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 1250,
+  "costPrice": 938,
+  "tags": [
+   "wax",
+   "hot",
+   "pack",
+   "500g",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-wax-strips-roll",
+  "name": "Wax Strips Roll",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "wax",
+   "strips",
+   "roll",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-threading-thread-roll",
+  "name": "Threading Thread Roll",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 60,
+  "costPrice": 45,
+  "tags": [
+   "threading",
+   "thread",
+   "roll",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-nail-polish-remover-100ml",
+  "name": "Nail Polish Remover 100ml",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "nail",
+   "polish",
+   "remover",
+   "100ml",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-cotton-roll",
+  "name": "Cotton Roll",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "cotton",
+   "roll",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-facial-towel",
+  "name": "Facial Towel",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "facial",
+   "towel",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-face-steamer",
+  "name": "Face Steamer",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "face",
+   "steamer",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-makeup-brush-set-1-set",
+  "name": "Makeup Brush Set 1 set",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "makeup",
+   "brush",
+   "set",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-beauty-blender",
+  "name": "Beauty Blender",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "beauty",
+   "blender",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-lash-glue",
+  "name": "Lash Glue",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "lash",
+   "glue",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-false-eyelashes-pair-1-pair",
+  "name": "False Eyelashes Pair 1 pair",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "false",
+   "eyelashes",
+   "pair",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-nail-file-pack",
+  "name": "Nail File Pack",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 150,
+  "costPrice": 112,
+  "tags": [
+   "nail",
+   "file",
+   "pack",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-nail-art-kit",
+  "name": "Nail Art Kit",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 1850,
+  "costPrice": 1388,
+  "tags": [
+   "nail",
+   "art",
+   "kit",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-mehndi-cone",
+  "name": "Mehndi Cone",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 40,
+  "costPrice": 30,
+  "tags": [
+   "mehndi",
+   "cone",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-mehndi-cone-pack-of-12",
+  "name": "Mehndi Cone Pack of 12",
+  "brand": "",
+  "category": "Skin & Nail Products",
+  "unit": "pcs",
+  "price": 350,
+  "costPrice": 262,
+  "tags": [
+   "mehndi",
+   "cone",
+   "pack",
+   "of",
+   "skin & nail products"
+  ]
+ },
+ {
+  "id": "salon-salon-chair-hydraulic",
+  "name": "Salon Chair Hydraulic",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 22000,
+  "costPrice": 16500,
+  "tags": [
+   "salon",
+   "chair",
+   "hydraulic",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-wash-basin-salon",
+  "name": "Wash Basin Salon",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 45000,
+  "costPrice": 33750,
+  "tags": [
+   "wash",
+   "basin",
+   "salon",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-facial-bed",
+  "name": "Facial Bed",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 28000,
+  "costPrice": 21000,
+  "tags": [
+   "facial",
+   "bed",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-pedicure-chair",
+  "name": "Pedicure Chair",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 55000,
+  "costPrice": 41250,
+  "tags": [
+   "pedicure",
+   "chair",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-trolley-salon",
+  "name": "Trolley Salon",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 8500,
+  "costPrice": 6375,
+  "tags": [
+   "trolley",
+   "salon",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-hair-clipper-professional",
+  "name": "Hair Clipper Professional",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 6500,
+  "costPrice": 4875,
+  "tags": [
+   "hair",
+   "clipper",
+   "professional",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-hair-trimmer-wahl",
+  "name": "Hair Trimmer Wahl",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 9500,
+  "costPrice": 7125,
+  "tags": [
+   "hair",
+   "trimmer",
+   "wahl",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-salon-scissors-set-1-set",
+  "name": "Salon Scissors Set 1 set",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 4500,
+  "costPrice": 3375,
+  "tags": [
+   "salon",
+   "scissors",
+   "set",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-comb-set-professional-1-set",
+  "name": "Comb Set Professional 1 set",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "comb",
+   "set",
+   "professional",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-salon-towel-pack-of-6",
+  "name": "Salon Towel Pack of 6",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 1450,
+  "costPrice": 1088,
+  "tags": [
+   "salon",
+   "towel",
+   "pack",
+   "of",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-salon-apron",
+  "name": "Salon Apron",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 650,
+  "costPrice": 488,
+  "tags": [
+   "salon",
+   "apron",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-hair-cutting-cape",
+  "name": "Hair Cutting Cape",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 850,
+  "costPrice": 638,
+  "tags": [
+   "hair",
+   "cutting",
+   "cape",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-spray-bottle-salon",
+  "name": "Spray Bottle Salon",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 250,
+  "costPrice": 188,
+  "tags": [
+   "spray",
+   "bottle",
+   "salon",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-disposable-gloves-box",
+  "name": "Disposable Gloves Box",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "disposable",
+   "gloves",
+   "box",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-disposable-sheets-pack",
+  "name": "Disposable Sheets Pack",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 950,
+  "costPrice": 712,
+  "tags": [
+   "disposable",
+   "sheets",
+   "pack",
+   "salon equipment"
+  ]
+ },
+ {
+  "id": "salon-disposable-facial-bed-cover",
+  "name": "Disposable Facial Bed Cover",
+  "brand": "",
+  "category": "Salon Equipment",
+  "unit": "pcs",
+  "price": 450,
+  "costPrice": 338,
+  "tags": [
+   "disposable",
+   "facial",
+   "bed",
+   "cover",
+   "salon equipment"
+  ]
+ }
+]

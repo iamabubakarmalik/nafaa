@@ -53,34 +53,172 @@ export function channelPrice(base: number, rule: PriceRule, override?: number | 
 export const samePrice = (a: number | null | undefined, b: number | null | undefined) =>
   a !== null && a !== undefined && b !== null && b !== undefined && Math.abs(Number(a) - Number(b)) < 1;
 
-const DRIFT_FIRST_WAIT_MS = 30 * 60_000;
-const DRIFT_MAX_WAIT_MS = 24 * 3600_000;
+/** Price facts kept on a link (`externalData`). Every field is optional: older links carry only some. */
+export interface LinkPriceState {
+  /** Last price Nafaa sent, and when. */
+  pushedPrice?: unknown;
+  pushedPriceAt?: unknown;
+  /** Last price read from the channel, and when the read started. */
+  channelPrice?: unknown;
+  channelPriceAt?: unknown;
+  /** Last price both sides agreed on (after a push, a pull, or a match), and when. */
+  syncedPrice?: unknown;
+  syncedAt?: unknown;
+  /** Nafaa's price for this link as last seen by the sync, and when it was first seen at that value. */
+  nafaaPrice?: unknown;
+  nafaaPriceAt?: unknown;
+  /** Older drift re-send counters (no longer written). */
+  driftPushes?: unknown;
+  driftPushedAt?: unknown;
+  /** Channel price a push replaced, kept for recovery. */
+  channelPriceBefore?: unknown;
+  /** Recovery decision already taken on this link. */
+  priceRecovery?: unknown;
+}
+
+const num = (v: unknown): number | null => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+const time = (v: unknown): number | null => {
+  const t = Date.parse(String(v ?? ''));
+  return Number.isFinite(t) ? t : null;
+};
+
+/** The price both sides last agreed on: the last sync point, else the last push. */
+export function agreedPrice(d: LinkPriceState | null | undefined): number | null {
+  return num(d?.syncedPrice) ?? num(d?.pushedPrice);
+}
+function agreedAt(d: LinkPriceState): number | null {
+  return num(d.syncedPrice) !== null ? time(d.syncedAt) : time(d.pushedPriceAt);
+}
 
 /**
- * Should Nafaa send this price now?
- *  - 'push': Nafaa's price changed since it last sent one.
- *  - 'drift': Nafaa already sent this price but the channel list shows another
- *    (changed on the channel). Re-sent with backoff: 30 min, 1 h, 2 h … up to 24 h.
- *  - 'skip': the channel already has it, or the backoff has not run out.
+ * The channel shows a price other than the one both sides last agreed on, read
+ * after that agreement. A read that started before the last push (a slow list
+ * read racing a push) does not count.
  */
-export function priceAction(
-  data: { pushedPrice?: unknown; channelPrice?: unknown; driftPushes?: unknown; driftPushedAt?: unknown } | null | undefined,
-  price: number,
-  now: number,
-  force = false,
-): 'push' | 'drift' | 'skip' {
-  if (!(price > 0)) return 'skip';
-  if (force) return 'push';
-  const d = data ?? {};
-  const pushed = d.pushedPrice === undefined || d.pushedPrice === null ? null : Number(d.pushedPrice);
-  const seen = d.channelPrice === undefined || d.channelPrice === null ? null : Number(d.channelPrice);
-  if (!samePrice(pushed, price)) {
-    // Never sent, or Nafaa's price moved. If the channel already shows it, nothing to do.
-    return seen !== null && samePrice(seen, price) && pushed === null ? 'skip' : 'push';
+export function channelMoved(d: LinkPriceState | null | undefined): boolean {
+  if (!d) return false;
+  const seen = num(d.channelPrice);
+  const agreed = agreedPrice(d);
+  if (seen === null || seen <= 0 || agreed === null || samePrice(seen, agreed)) return false;
+  const seenAt = time(d.channelPriceAt);
+  const at = agreedAt(d);
+  return seenAt === null || at === null || seenAt > at;
+}
+
+/**
+ * When Nafaa's price for a link was first seen at its current value. The sync
+ * records it on the link: a recorded value that differs is a change seen now;
+ * a link with nothing recorded (older links) gives null, as the time is unknown.
+ */
+export function nafaaSeenAt(d: LinkPriceState | null | undefined, want: number, now: number): number | null {
+  const known = num(d?.nafaaPrice);
+  if (known === null) return null;
+  if (!samePrice(known, want)) return now;
+  return time(d?.nafaaPriceAt);
+}
+
+export type PriceFromMode = 'NAFAA' | 'WEBSITE' | 'LATEST' | 'NONE';
+
+/**
+ * What the price sync does with one link:
+ *  - push: send Nafaa's price to the channel;
+ *  - pull: take the channel price into Nafaa;
+ *  - hold: the channel changed the price after Nafaa's last push; wait for the merchant;
+ *  - agree: both sides already show the same price; only record it;
+ *  - skip: nothing to do.
+ */
+export type PriceStep = 'push' | 'pull' | 'hold' | 'agree' | 'skip';
+
+export interface PriceInput {
+  from: PriceFromMode;
+  /** Nafaa's price for this link on the channel (rule and link price applied). */
+  want: number;
+  data: LinkPriceState | null | undefined;
+  now: number;
+  /** "Sync now": send Nafaa's price even when it did not change (never over a channel change). */
+  force?: boolean;
+  /** The link is waiting for the merchant ("kaunsi rakhein?"). */
+  held?: boolean;
+}
+
+export function priceDecision(input: PriceInput): { step: PriceStep; why: string } {
+  const { from, want, now } = input;
+  const d = input.data ?? {};
+  if (!(want > 0) || from === 'NONE') return { step: 'skip', why: 'off' };
+  const seen = num(d.channelPrice);
+  const agreed = agreedPrice(d);
+  const moved = channelMoved(d);
+  const nafaaMoved = agreed === null || !samePrice(want, agreed);
+  const seenAt = time(d.channelPriceAt) ?? 0;
+  const nafaaAt = nafaaSeenAt(d, want, now);
+
+  // Both sides already show the same price: record the agreement, nothing to send.
+  if (seen !== null && samePrice(seen, want)) {
+    return agreed !== null && samePrice(agreed, want) && !input.held ? { step: 'skip', why: 'same' } : { step: 'agree', why: 'same' };
   }
-  if (seen === null || samePrice(seen, price)) return 'skip';
-  const n = Math.max(0, Number(d.driftPushes) || 0);
-  const at = Date.parse(String(d.driftPushedAt ?? ''));
-  const wait = Math.min(DRIFT_MAX_WAIT_MS, DRIFT_FIRST_WAIT_MS * 2 ** n);
-  return Number.isFinite(at) && now - at < wait ? 'skip' : 'drift';
+
+  if (from === 'NAFAA') {
+    if (moved) {
+      // Nafaa's price changed after the channel's change: Nafaa's newer decision goes out.
+      if (nafaaMoved && nafaaAt !== null && nafaaAt > seenAt) return { step: 'push', why: 'nafaa-newer' };
+      return { step: 'hold', why: 'channel-changed' };
+    }
+    if (input.held) {
+      // The channel went back to the agreed price: the question is gone.
+      return nafaaMoved || input.force ? { step: 'push', why: 'hold-cleared' } : { step: 'agree', why: 'hold-cleared' };
+    }
+    if (nafaaMoved) return { step: 'push', why: agreed === null ? 'first' : 'nafaa-changed' };
+    return input.force ? { step: 'push', why: 'force' } : { step: 'skip', why: 'unchanged' };
+  }
+
+  if (from === 'WEBSITE') {
+    if (seen === null || seen <= 0) return { step: 'skip', why: 'not-read' };
+    // The channel changed since the last agreement, or there never was one: take its price.
+    if (moved || agreed === null) return { step: 'pull', why: agreed === null ? 'first' : 'channel-changed' };
+    // Only Nafaa changed: the channel owns the price, so nothing is sent (shows as "Price farq").
+    return { step: 'skip', why: 'nafaa-only' };
+  }
+
+  // LATEST: whichever side changed last wins.
+  if (seen === null || seen <= 0) return nafaaMoved ? { step: 'push', why: 'first' } : { step: 'skip', why: 'not-read' };
+  if (moved && nafaaMoved) {
+    // Both changed and the order is unknown (link from before the times were kept): ask.
+    if (nafaaAt === null) return { step: 'hold', why: 'both-changed' };
+    return nafaaAt > seenAt ? { step: 'push', why: 'nafaa-newer' } : { step: 'pull', why: 'channel-newer' };
+  }
+  if (moved) return { step: 'pull', why: 'channel-changed' };
+  if (nafaaMoved) {
+    if (agreed !== null) return { step: 'push', why: 'nafaa-changed' };
+    if (nafaaAt === null) return { step: 'hold', why: 'never-agreed' };
+    return nafaaAt > seenAt ? { step: 'push', why: 'first-nafaa-newer' } : { step: 'pull', why: 'first-channel-newer' };
+  }
+  return input.force ? { step: 'push', why: 'force' } : { step: 'skip', why: 'unchanged' };
+}
+
+/**
+ * Recovery after the old drift re-send: a link Nafaa pushed back over a price
+ * the channel had set. The channel price to offer back is the one last read
+ * from the channel when it differs from what Nafaa sent, else the price a
+ * push replaced. A link already decided after its last drift push is left out.
+ */
+export function recoveryCandidate(d: LinkPriceState | null | undefined): { channelPrice: number; nafaaPrice: number; at: string | null } | null {
+  if (!d) return null;
+  const pushed = num(d.pushedPrice);
+  if (pushed === null || pushed <= 0) return null;
+  const driftAt = time(d.driftPushedAt);
+  const before = (d.channelPriceBefore && typeof d.channelPriceBefore === 'object' ? d.channelPriceBefore : null) as { price?: unknown; at?: unknown; by?: unknown } | null;
+  const drifted = (num(d.driftPushes) ?? 0) > 0 || driftAt !== null || !!before;
+  if (!drifted) return null;
+  const decided = time((d.priceRecovery as { at?: unknown } | null)?.at);
+  const lastDrift = Math.max(driftAt ?? 0, time(before?.by) ?? 0);
+  if (decided !== null && decided >= lastDrift) return null;
+  const seen = num(d.channelPrice);
+  if (seen !== null && seen > 0 && !samePrice(seen, pushed)) return { channelPrice: seen, nafaaPrice: pushed, at: typeof d.channelPriceAt === 'string' ? d.channelPriceAt : null };
+  const old = num(before?.price);
+  if (old !== null && old > 0 && !samePrice(old, pushed)) return { channelPrice: old, nafaaPrice: pushed, at: typeof before?.at === 'string' ? before.at : null };
+  return null;
 }
