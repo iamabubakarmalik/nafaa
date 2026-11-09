@@ -74,3 +74,24 @@ export function refreshOnlineProducts(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: [ONLINE_PRODUCTS_KEY] });
   qc.invalidateQueries({ queryKey: ['channel-catalog'] });
 }
+
+/** Link to the product in the channel's own admin, where one can be built. */
+export function channelProductUrl(c: OnlineChannel, externalProductId?: string | null): string | null {
+  if (!externalProductId || !c.siteUrl) return null;
+  const base = (c.siteUrl.startsWith('http') ? c.siteUrl : `https://${c.siteUrl}`).replace(/\/+$/, '');
+  const id = String(externalProductId).replace(/^gid:\/\/shopify\/Product\//, '');
+  if (c.type === 'SHOPIFY') return `${base}/admin/products/${id}`;
+  if (c.type === 'WOOCOMMERCE') return `${base}/wp-admin/post.php?post=${id}&action=edit`;
+  return null;
+}
+
+/** Stock split for one product or size: the channels Nafaa sends stock to and what each gets. */
+export function stockSplit(row: { nafaaStock: number | null; cells: Record<string, import('../../api/online-products.api').GridCell> }, cols: OnlineChannel[]) {
+  const parts = cols
+    .filter((c) => c.canPush && c.tracksStock && row.cells[c.id]?.linked)
+    .map((c) => {
+      const cell = row.cells[c.id] as import('../../api/online-products.api').LinkedCell;
+      return { channel: c, qty: cell.listed === false ? 0 : Math.max(0, Number(cell.stock ?? 0)), fixed: cell.allocQty !== null && cell.allocQty !== undefined, off: cell.listed === false };
+    });
+  return { total: Math.max(0, Number(row.nafaaStock ?? 0)), parts };
+}

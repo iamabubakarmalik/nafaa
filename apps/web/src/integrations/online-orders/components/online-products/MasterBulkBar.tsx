@@ -7,21 +7,22 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { BadgeDollarSign, Boxes, Eye, EyeOff, Send, Tag, Upload, X } from 'lucide-react';
+import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Link2, Percent, Send, Tag, Upload, X } from 'lucide-react';
 import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../../api/online-orders.api';
 import { onlineProductsApi, type BulkAction, type OnlineChannel, type Selection } from '../../api/online-products.api';
-import { JOBS_KEY } from './JobsPanel';
+import { JOBS_KEY } from './ActivityDrawer';
 import { ChannelMark, channelName, refreshOnlineProducts } from './meta';
 
 type Ask = { action: BulkAction; value?: unknown };
 
-const NEEDS_VALUE: BulkAction[] = ['alloc', 'price', 'compareAt'];
+const NEEDS_VALUE: BulkAction[] = ['alloc', 'price', 'pricePercent', 'compareAt'];
 
-export function MasterBulkBar({ count, selection, channels, onClear }: {
+export function MasterBulkBar({ count, selection, channels, onClear, onLinkSure, onExport, linking, exporting }: {
   count: number; selection: Selection; channels: OnlineChannel[]; onClear: () => void;
+  onLinkSure: () => void; onExport: () => void; linking?: boolean; exporting?: boolean;
 }) {
   const qc = useQueryClient();
   const push = channels.filter((c) => c.canPush);
@@ -32,15 +33,18 @@ export function MasterBulkBar({ count, selection, channels, onClear }: {
 
   return (
     <>
-      <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2.5 text-white shadow-xl">
+      <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-xl">
         <span className="me-1 text-[0.8125rem] font-semibold">{t('{{count}} products chune', { count: count.toLocaleString('en-PK') })}</span>
         <BarButton icon={Eye} onClick={() => open('listed', true)}>{t('Listed')}</BarButton>
         <BarButton icon={EyeOff} onClick={() => open('listed', false)}>{t('Band')}</BarButton>
         <BarButton icon={Boxes} onClick={() => open('alloc')}>{t('Stock')}</BarButton>
         <BarButton icon={BadgeDollarSign} onClick={() => open('price')}>{t('Price')}</BarButton>
+        <BarButton icon={Percent} onClick={() => open('pricePercent')}>{t('Price %')}</BarButton>
         <BarButton icon={Tag} onClick={() => open('compareAt')}>{t('Sale price')}</BarButton>
         <BarButton icon={Send} onClick={() => open('push')}>{t('Abhi bhejein')}</BarButton>
         {push.some((c) => c.canPublish) && <BarButton icon={Upload} onClick={() => open('publish')}>{t('Channel par banayein')}</BarButton>}
+        {channels.some((c) => c.canFetch) && <BarButton icon={Link2} onClick={onLinkSure} busy={linking}>{t('Pakke match jorein')}</BarButton>}
+        <BarButton icon={Download} onClick={onExport} busy={exporting}>{t('CSV')}</BarButton>
         <button type="button" onClick={onClear} aria-label={t('Chunna khatam')} className="ms-auto rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"><X className="h-4 w-4" /></button>
       </div>
       {ask && (
@@ -52,10 +56,10 @@ export function MasterBulkBar({ count, selection, channels, onClear }: {
   );
 }
 
-function BarButton({ icon: Icon, onClick, children }: { icon: typeof Eye; onClick: () => void; children: React.ReactNode }) {
+function BarButton({ icon: Icon, onClick, busy, children }: { icon: typeof Eye; onClick: () => void; busy?: boolean; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-[0.78125rem] font-semibold hover:bg-white/20">
-      <Icon className="h-3.5 w-3.5" />{children}
+    <button type="button" onClick={onClick} disabled={busy} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-[0.78125rem] font-semibold hover:bg-white/20 disabled:opacity-60">
+      <Icon className={cn('h-3.5 w-3.5', busy && 'animate-pulse')} />{children}
     </button>
   );
 }
@@ -87,6 +91,7 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
     listed: ask.value ? t('Channel par Listed karein') : t('Channel par band (draft) karein'),
     alloc: t('Channel ko kitna Stock'),
     price: t('Channel par apni Price'),
+    pricePercent: t('Price % se badlein'),
     compareAt: t('Sale se pehle ki Price'),
     push: t('Abhi channel par bhejein'),
     publish: t('Channel par naye products banayein'),
@@ -95,11 +100,13 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
     listed: ask.value ? t('Products channel par dikhenge aur bikenge.') : t('Shopify/WooCommerce par draft; Daraz par Stock 0 jata hai.'),
     alloc: t('Har chune product/size ke itne channel ko milenge. Khali chhorein to channel ka rule lagega.'),
     price: t('Har chune product ki is channel par yehi Price. Khali chhorein to channel ka Price rule lagega.'),
+    pricePercent: t('Rule wali Price par itne % upar ya neeche apni Price lag jayegi (maslan 10 ya -5).'),
     compareAt: t('Channel par kati hui Price dikhegi (Sale). Khali chhorein to Sale hat jayegi.'),
     push: t('Stock, Price, Listed aur channel settings me chune hue content (naam, tasveer …) dobara jayenge.'),
     publish: t('Jo products is channel par nahi, wo sizes ke saath ban jayenge aur khud jur jayenge. Pehle se jure skip.'),
   }[ask.action];
-  const valueOk = !needsValue || value === '' || Number(value) >= 0;
+  const percent = ask.action === 'pricePercent';
+  const valueOk = !needsValue || (percent ? value !== '' && Number(value) !== 0 && Number(value) > -90 && Number(value) <= 500 : value === '' || Number(value) >= 0);
 
   return (
     <Modal open onClose={onClose} size="md" title={title} description={t('{{count}} products', { count: count.toLocaleString('en-PK') })}
@@ -121,9 +128,9 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
           </div>
         </div>
         {needsValue && (
-          <Input inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ''))} autoFocus
-            placeholder={ask.action === 'alloc' ? t('Maslan 30 (khali = rule)') : t('Khali = hata dein')}
-            aria-label={title} rightIcon={<span className="text-[0.75rem] text-slate-500">{ask.action === 'alloc' ? t('pcs') : 'Rs'}</span>} />
+          <Input inputMode={percent ? 'text' : 'decimal'} value={value} onChange={(e) => setValue(e.target.value.replace(percent ? /[^\d.-]/g : /[^\d.]/g, ''))} autoFocus
+            placeholder={ask.action === 'alloc' ? t('Maslan 30 (khali = rule)') : percent ? t('Maslan 10 ya -5') : t('Khali = hata dein')}
+            aria-label={title} rightIcon={<span className="text-[0.75rem] text-slate-500">{ask.action === 'alloc' ? t('pcs') : percent ? '%' : 'Rs'}</span>} />
         )}
         {ask.action === 'publish' && (
           <label className="flex items-center gap-2 text-[0.8125rem] text-slate-700">

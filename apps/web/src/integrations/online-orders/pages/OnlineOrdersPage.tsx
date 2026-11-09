@@ -15,12 +15,13 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   AlertTriangle, BadgeCheck, BarChart3, Bell, CalendarClock, Download, Globe, GraduationCap, Inbox, ListChecks, MessageCircle, PackageCheck, Plus,
-  RefreshCw, Settings2, ShoppingBag, Timer, Truck, Wallet,
+  RefreshCw, Settings2, ShoppingBag, Timer, Truck, Wallet, X,
 } from 'lucide-react';
 import {
   Button, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, resolveRange,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { cn } from '@core/lib/cn';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
 import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
@@ -297,23 +298,19 @@ export default function OnlineOrdersPage() {
       {firstRun ? <FirstRun hasChannels={channels.length > 0} /> : (<>
         <StatusTiles counts={tileCounts} active={view === 'orders' ? board : ''} custom={custom} onPick={goBoard} />
 
-        {alerts && (alerts.stalePending.count > 0 || alerts.cancelRequests.count > 0) && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {alerts.stalePending.count > 0 && (
-              <Alert tone="rose" icon={Timer}
-                title={tr('{{count}} naya order {{staleMinutes}} minute se zyada ruka hai', { count: alerts.stalePending.count, staleMinutes: alerts.staleMinutes })}
-                text={tr('Der hone par customer cancel kar deta hai — jaldi confirm karein.')}
-                items={alerts.stalePending.oldest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${timeAgo(o.receivedAt)}` }))}
-                onPick={(id) => { goBoard('NEW'); open(id); }} />
-            )}
-            {alerts.cancelRequests.count > 0 && (
-              <Alert tone="amber" icon={AlertTriangle}
-                title={tr('{{count}} customer ne cancel maanga hai', { count: alerts.cancelRequests.count })}
-                text={tr('Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono.')}
-                items={alerts.cancelRequests.latest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${statusShort(o.orderStatus)}` }))}
-                onPick={(id) => { goBoard('ALL'); open(id); }} />
-            )}
-          </div>
+        {alerts && alerts.stalePending.count > 0 && (
+          <AlertStrip id="stale" tone="rose" icon={Timer}
+            title={tr('{{count}} naya order {{staleMinutes}} minute se zyada ruka hai', { count: alerts.stalePending.count, staleMinutes: alerts.staleMinutes })}
+            text={tr('Der hone par customer cancel kar deta hai — jaldi confirm karein.')}
+            items={alerts.stalePending.oldest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${timeAgo(o.receivedAt)}` }))}
+            onPick={(id) => { goBoard('NEW'); open(id); }} />
+        )}
+        {alerts && alerts.cancelRequests.count > 0 && (
+          <AlertStrip id="cancel" tone="amber" icon={AlertTriangle}
+            title={tr('{{count}} customer ne cancel maanga hai', { count: alerts.cancelRequests.count })}
+            text={tr('Parcel bhejne se pehle dekh lein — warna courier ka expense aur return dono.')}
+            items={alerts.cancelRequests.latest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${statusShort(o.orderStatus)}` }))}
+            onPick={(id) => { goBoard('ALL'); open(id); }} />
         )}
 
         <BoardFilters ref={searchRef} search={search} onSearch={(v) => { setSearch(v); setView('orders'); }} query={query}
@@ -396,23 +393,31 @@ export default function OnlineOrdersPage() {
   );
 }
 
-function Alert({ tone, icon: Icon, title, text, items, onPick }: {
-  tone: 'rose' | 'amber'; icon: typeof Timer; title: string; text: string; items: Array<{ id: string; label: string }>; onPick: (id: string) => void;
+/** One-line alert across the page with order chips; closing hides it for this browser session. */
+function AlertStrip({ id, tone, icon: Icon, title, text, items, onPick }: {
+  id: string; tone: 'rose' | 'amber'; icon: typeof Timer; title: string; text: string; items: Array<{ id: string; label: string }>; onPick: (id: string) => void;
 }) {
-  const box = tone === 'rose' ? 'bg-rose-50 ring-rose-100 text-rose-900' : 'bg-amber-50 ring-amber-100 text-amber-900';
-  const btn = tone === 'rose' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700';
+  const key = `nafaa-orders-alert-${id}`;
+  const [hidden, setHidden] = useState(() => { try { return sessionStorage.getItem(key) === '1'; } catch { return false; } });
+  if (hidden) return null;
+  const hide = () => { setHidden(true); try { sessionStorage.setItem(key, '1'); } catch { /* private mode */ } };
+  const box = tone === 'rose' ? 'bg-rose-50 ring-rose-200/70 text-rose-900' : 'bg-amber-50 ring-amber-200/70 text-amber-900';
+  const chip = tone === 'rose' ? 'bg-white text-rose-700 ring-rose-200 hover:bg-rose-100' : 'bg-white text-amber-800 ring-amber-200 hover:bg-amber-100';
   return (
-    <div className={`flex gap-3 rounded-2xl p-4 ring-1 ${box}`}>
-      <Icon className="mt-0.5 h-5 w-5 shrink-0" />
-      <div className="min-w-0">
-        <p className="text-[0.875rem] font-semibold">{title}</p>
-        <p className="mt-0.5 text-[0.8125rem] opacity-90">{text}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {items.map((it) => (
-            <button key={it.id} type="button" onClick={() => onPick(it.id)} className={`h-7 rounded-lg px-2.5 text-[0.75rem] font-semibold text-white ${btn}`}>{it.label}</button>
-          ))}
-        </div>
+    <div role="status" className={cn('flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl px-3 py-2 ring-1', box)}>
+      <Icon className="h-4 w-4 shrink-0" />
+      <p className="min-w-0 text-[0.8125rem]">
+        <span className="font-semibold">{title}</span>
+        <span className="opacity-80 max-lg:hidden"> · {text}</span>
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((it) => (
+          <button key={it.id} type="button" onClick={() => onPick(it.id)} className={cn('h-7 rounded-lg px-2.5 text-[0.75rem] font-semibold tabular-nums ring-1 transition', chip)}>{it.label}</button>
+        ))}
       </div>
+      <button type="button" onClick={hide} aria-label={tr('Band karein')} title={tr('Band karein')} className="ms-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-lg opacity-70 hover:bg-black/5 hover:opacity-100">
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }

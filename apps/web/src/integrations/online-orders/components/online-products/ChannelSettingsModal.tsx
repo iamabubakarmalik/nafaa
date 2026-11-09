@@ -15,7 +15,7 @@ import { applyRule, onlineProductsApi, type OnlineChannel, type PriceRounding, t
 import { ChannelMark, channelName, kindOf, refreshOnlineProducts, rs } from './meta';
 import { t, Trans } from '@core/i18n';
 
-export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChannel; onClose: () => void }) {
+export function ChannelSettingsModal({ channel, onClose, section }: { channel: OnlineChannel; onClose: () => void; section?: 'content' }) {
   const qc = useQueryClient();
   const r = channel.priceRule;
   const [pushPrice, setPushPrice] = useState(channel.pushPrice);
@@ -152,7 +152,7 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
         )}
 
         {channel.canContent && (
-          <section className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4" ref={(el) => { if (el && section === 'content') window.setTimeout(() => el.scrollIntoView({ block: 'start' }), 50); }}>
             <p className="text-[0.8125rem] font-semibold text-slate-800">{t('"Abhi bhejein" par kya jaye')}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {([

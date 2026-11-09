@@ -119,8 +119,8 @@ function cells(p: BoardRowProps) {
     ),
     customer: (
       <div className="min-w-0">
-        <p className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-[0.8125rem] font-medium text-slate-900">{o.customerName}</span>
+        <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 [&_span]:whitespace-nowrap">
+          <span className="max-w-full truncate text-[0.8125rem] font-medium text-slate-900">{o.customerName}</span>
           {!closed && <RiskBadge risk={o.risk} />}
         </p>
         <p className="flex min-w-0 items-center gap-1.5 text-[0.6875rem] text-slate-500">
