@@ -68,7 +68,7 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
       icon={<Thumb src={item.image} size="lg" />}
       title={item.name}
       description={<span className="flex flex-wrap items-center gap-x-2">
-        <span className="font-mono">{item.sku || t('SKU nahi')}</span>
+        {item.sku ? <span className="font-mono">{item.sku}</span> : <span>{t('SKU nahi')}</span>}
         <span>· {t('Nafaa {{price}}', { price: rs(item.rows[0]?.price ?? item.price) })}</span>
         {sized && <span>· {t('{{count}} sizes', { count: item.rows.length })}</span>}
       </span>}
@@ -89,7 +89,8 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
 /* ─── Stock split ─── */
 
 function StockSplit({ item, cols, sized }: { item: GridItem; cols: OnlineChannel[]; sized: boolean }) {
-  const rows = item.rows.filter((r) => r.nafaaStock !== null);
+  // Only rows whose stock goes somewhere; with nothing linked there is no split to show.
+  const rows = item.rows.filter((r) => r.nafaaStock !== null && stockSplit(r, cols).parts.length > 0);
   if (!rows.length) return null;
   return (
     <section className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-200/80">
@@ -239,7 +240,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+        {(last || (canManage && c.canPush && linked) || (canManage && !linked && !sizeLess && c.canPublish)) && <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {last && <p className={cn('me-auto text-[0.75rem]', last.ok ? 'text-slate-500' : 'font-medium text-rose-700')}>{lastPushText(last)}</p>}
           {canManage && c.canPush && linked && (
             <Button size="xs" variant={failedCell ? 'primary' : 'secondary'} loading={push.isPending} disabled={!c.live} onClick={() => push.mutate()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
@@ -250,7 +251,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
             <Button size="xs" loading={publish.isPending} disabled={!c.live} onClick={() => publish.mutate()} leftIcon={<Upload className="h-3.5 w-3.5" />}>{t('{{channel}} par banayein', { channel: channelName(c) })}</Button>
           )}
           {!c.live && c.canPush && <span className="text-[0.75rem] text-slate-500">{c.paused ? t('Channel ruka hua hai') : t('Channel jura nahi')}</span>}
-        </div>
+        </div>}
       </div>
     </section>
   );

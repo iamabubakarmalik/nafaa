@@ -201,7 +201,7 @@ const ProductRows = memo(function ProductRows({ item, cols, canManage, picked, o
               <p className="truncate text-[0.8125rem] font-semibold text-slate-900" title={item.name}>{item.name}</p>
               <p className="mt-0.5 flex min-w-0 items-center gap-1.5 truncate text-[0.71875rem] text-slate-500">
                 {sized ? <span>{t('{{count}} sizes', { count: item.rows.length })}</span>
-                  : <span className="truncate font-mono">{item.sku || t('SKU nahi')}</span>}
+                  : item.sku ? <span className="truncate font-mono">{item.sku}</span> : <span>{t('SKU nahi')}</span>}
                 <span aria-hidden>·</span>
                 <span className="tabular-nums">{rs(first?.price ?? item.price)}</span>
                 {nafaaStock !== null && <><span aria-hidden>·</span><span className={cn('tabular-nums', nafaaStock <= 0 && 'font-semibold text-rose-600')}>{t('Stock {{qty}}', { qty: nafaaStock })}</span></>}

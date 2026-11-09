@@ -76,7 +76,6 @@ export function useJobsActivity(channels: OnlineChannel[]) {
 
 /** "1 chal raha · 2 masle" chip that opens the drawer. */
 export function ActivityChip({ running, problems, onClick }: { running: number; problems: number; onClick: () => void }) {
-  const idle = !running && !problems;
   return (
     <button type="button" onClick={onClick} title={t('Activity')}
       className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold ring-1 transition',
@@ -84,7 +83,8 @@ export function ActivityChip({ running, problems, onClick }: { running: number; 
           : problems ? 'bg-amber-50 text-amber-800 ring-amber-200 hover:bg-amber-100'
             : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
       {running ? <Loader2 className="h-4 w-4 animate-spin" /> : problems ? <AlertTriangle className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
-      {idle ? t('Activity') : [running ? t('{{count}} chal raha', { count: running }) : null, problems ? t('{{count}} masle', { count: problems }) : null].filter(Boolean).join(' · ')}
+      {running ? t('{{count}} chal raha', { count: running }) : t('Activity')}
+      {problems > 0 && <span className="rounded-full bg-amber-500 px-1.5 text-[0.6875rem] font-bold tabular-nums text-white" title={t('Masle')}>{problems}</span>}
     </button>
   );
 }
