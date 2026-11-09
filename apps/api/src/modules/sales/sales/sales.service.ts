@@ -83,9 +83,11 @@ export class SalesService {
      * `stockFloor`: lowest the branch stock may reach for the item at the same
      * index (an accepted online order for a backorder product); -Infinity = no
      * limit, null/undefined = the shop's normal rule.
+     * `deferLoyalty`: earn no points on this bill now; the caller gives them
+     * later (online orders earn on delivery when online loyalty is on).
      * Server callers only; never read from the request body.
      */
-    opts: { counter?: boolean; tradeInChecked?: boolean; unitCosts?: Array<number | null | undefined>; stockFloor?: Array<number | null | undefined> } = {},
+    opts: { counter?: boolean; tradeInChecked?: boolean; unitCosts?: Array<number | null | undefined>; stockFloor?: Array<number | null | undefined>; deferLoyalty?: boolean } = {},
   ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
@@ -573,7 +575,7 @@ export class SalesService {
     }
 
     let loyaltyEarned = 0;
-    if (settings?.enableLoyalty && dto.customerId && total > 0) {
+    if (settings?.enableLoyalty && dto.customerId && total > 0 && !opts.deferLoyalty) {
       loyaltyEarned = Math.floor(total * settings.loyaltyPointsPerRupee);
     }
 

@@ -11,6 +11,8 @@ export const PLATFORM: Record<AdPlatform, { label: string; short: string; brand:
   META: { label: t('Facebook / Instagram'), short: t('FB / Insta'), brand: 'meta' },
   TIKTOK: { label: t('TikTok'), short: t('TikTok'), brand: 'tiktok' },
   GOOGLE: { label: t('Google'), short: t('Google'), brand: 'google' },
+  SNAPCHAT: { label: t('Snapchat'), short: t('Snapchat'), brand: 'other' },
+  INFLUENCER: { label: t('Influencer'), short: t('Influencer'), brand: 'other' },
   OTHER: { label: t('Doosra'), short: t('Doosra'), brand: 'other' },
 };
 

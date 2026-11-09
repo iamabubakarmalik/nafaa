@@ -5,6 +5,7 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import * as crypto from 'crypto';
 import { mappingKey } from '../online-orders/mapping-key';
 import { apiMessage } from '../../common/i18n/api-message';
+import { attributionColumns } from '../../modules/growth/marketing/attribution';
 
 type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
 
@@ -289,6 +290,8 @@ export class IntegrationService {
           orderStatus: orderData.orderStatus ?? 'PENDING',
           notes: orderData.notes,
           metadata: orderData.metadata,
+          // Marketing attribution (UTM, source, discount codes) from the metadata.
+          ...(attributionColumns(orderData.metadata) ?? {}),
         },
       });
 

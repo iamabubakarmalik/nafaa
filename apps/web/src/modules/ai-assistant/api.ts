@@ -10,7 +10,7 @@
 import { apiClient } from '@core/api/client';
 import { SHOP_HEADER } from '@core/lib/shopScope';
 import { useAuthStore } from '@core/stores/auth.store';
-import { t } from '@core/i18n';
+import { currentLocale, t } from '@core/i18n';
 
 export type AiMode = 'fast' | 'smart';
 
@@ -83,7 +83,7 @@ export interface AiActionLine {
 /** Something the assistant proposes to do; nothing is written until the user confirms. */
 export interface AiActionProposal {
   id: string;
-  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce';
+  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce' | 'move_order' | 'pause_rule';
   title: string;
   summary: string;
   fields: AiActionField[];
@@ -109,6 +109,8 @@ export interface AiChatRequest {
   regenerate?: boolean;
   editLast?: boolean;
   via?: 'text' | 'voice';
+  /** App language; the answer follows it. */
+  lang?: 'en' | 'ur' | 'roman';
 }
 
 export type AiErrorCode = 'NOT_CONFIGURED' | 'LIMIT' | 'RATE' | 'PROVIDER' | 'BAD_REQUEST' | 'NOT_FOUND' | 'EXPIRED' | 'FORBIDDEN';
@@ -256,7 +258,7 @@ export async function streamChat(body: AiChatRequest, onEvent: (e: AiStreamEvent
   if (currentShopId) headers[SHOP_HEADER] = currentShopId;
 
   const res = await fetch(`${apiClient.defaults.baseURL}/ai/chat`, {
-    method: 'POST', headers, body: JSON.stringify(body), signal, credentials: 'include',
+    method: 'POST', headers, body: JSON.stringify({ ...body, lang: body.lang ?? currentLocale() }), signal, credentials: 'include',
   });
   if (!res.ok || !res.body) {
     let message = '';

@@ -106,8 +106,8 @@ export const priceCalcApi = {
 
 /* ───────────────────────── ads ───────────────────────── */
 
-export type AdPlatform = 'META' | 'TIKTOK' | 'GOOGLE' | 'OTHER';
-export const AD_PLATFORMS: AdPlatform[] = ['META', 'TIKTOK', 'GOOGLE', 'OTHER'];
+export type AdPlatform = 'META' | 'TIKTOK' | 'GOOGLE' | 'SNAPCHAT' | 'INFLUENCER' | 'OTHER';
+export const AD_PLATFORMS: AdPlatform[] = ['META', 'TIKTOK', 'GOOGLE', 'SNAPCHAT', 'INFLUENCER', 'OTHER'];
 
 export interface AdEntry {
   id: string;
@@ -115,6 +115,7 @@ export interface AdEntry {
   platform: AdPlatform;
   amount: number;
   campaign: string | null;
+  adSet?: string | null;
   integrationId: string | null;
   productIds: string[];
   orders: number | null;
@@ -128,7 +129,7 @@ export interface AdEntry {
   channel?: { id: string; name: string; type: string; platform: string | null } | null;
 }
 export interface AdEntryPayload {
-  day: string; platform: AdPlatform; amount: number; campaign?: string | null; integrationId?: string | null;
+  day: string; platform: AdPlatform; amount: number; campaign?: string | null; adSet?: string | null; integrationId?: string | null;
   productIds?: string[]; orders?: number | null; note?: string | null; shopId?: string;
 }
 export interface AdsPage {
@@ -151,9 +152,9 @@ export interface AdsReport {
   byProduct: Array<RoasRow & { id: string; name: string; qty: number }>;
 }
 
-export type AdField = 'date' | 'spend' | 'campaign' | 'orders';
+export type AdField = 'date' | 'spend' | 'campaign' | 'adSet' | 'orders';
 export type AdColumnMap = Partial<Record<AdField, number>>;
-export interface AdImportRow { day: string; campaign: string | null; amount: number; orders: number | null; importKey: string; status?: 'new' | 'same' | 'changed' | 'future' | 'manual' }
+export interface AdImportRow { day: string; campaign: string | null; adSet?: string | null; amount: number; orders: number | null; importKey: string; status?: 'new' | 'same' | 'changed' | 'future' | 'manual' }
 export interface AdImportPreview {
   platform: AdPlatform; headers: string[]; map: AdColumnMap; needs: AdField[]; skipped: number; rows: AdImportRow[]; total: number;
 }

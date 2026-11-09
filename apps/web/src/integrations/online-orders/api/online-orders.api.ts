@@ -225,10 +225,16 @@ export interface FormCoupon { code: string; type: 'PERCENT' | 'FLAT'; value: num
 export interface OnlineCustomer {
   key: string; name: string; phone: string; city: string | null; orders: number; delivered: number; returned: number; cancelled: number;
   spent: number; avgOrder: number; firstAt: string; lastAt: string; daysSince: number; channels: string[]; blocked: boolean; segments: string[];
+  /** Recency, frequency and monetary on 1–5 with a plain label. */
+  rfm?: { r: number; f: number; m: number; score: string; label: RfmLabel };
+  /** Expected value of the next 12 months. */
+  clv?: number;
 }
+export type RfmLabel = 'CHAMPION' | 'LOYAL' | 'PROMISING' | 'NEW' | 'NEED_ATTENTION' | 'AT_RISK' | 'LOST' | 'NO_BUY';
 export interface CustomersResult {
   counts: Record<string, number>;
-  totals: { customers: number; spent: number; repeatRate: number };
+  labels?: Partial<Record<RfmLabel, number>>;
+  totals: { customers: number; spent: number; repeatRate: number; buyers?: number; avgClv?: number; avgOrder?: number };
   total: number;
   rows: OnlineCustomer[];
 }
@@ -610,7 +616,7 @@ export const onlineOrdersApi = {
     apiClient.post(`/online-orders/${id}/branch`, body).then((r) => unwrap<{ ok: true; shopId: string; shopName: string; remembered: boolean }>(r)),
   addNote: (id: string, text: string) => apiClient.post(`/online-orders/${id}/notes`, { text }).then((r) => unwrap<{ ok: true }>(r)),
   setTags: (id: string, tags: string[]) => apiClient.post(`/online-orders/${id}/tags`, { tags }).then((r) => unwrap<{ ok: true; tags: string[] }>(r)),
-  customers: (q: { segment?: string; search?: string; limit?: number; offset?: number }) =>
+  customers: (q: { segment?: string; rfm?: string; sort?: string; search?: string; limit?: number; offset?: number }) =>
     apiClient.get('/online-orders/customers', { params: q }).then((r) => unwrap<CustomersResult>(r)),
   blocklist: () => apiClient.get('/online-store/blocklist').then((r) => unwrap<BlockEntry[]>(r)),
   block: (body: { phone: string; name?: string; reason?: string }) => apiClient.post('/online-store/blocklist', body).then((r) => unwrap<{ ok: true }>(r)),

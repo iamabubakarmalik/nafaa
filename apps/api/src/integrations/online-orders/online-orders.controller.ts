@@ -50,18 +50,20 @@ export class OnlineOrdersController {
   }
 
   @Get('customers')
-  @ApiOperation({ summary: 'Online customers — repeat, VIP, gayab (30/60/90 din), naye, RTO, blocked' })
+  @ApiOperation({ summary: 'Online customers: segments (new, repeat, VIP, at risk, lost, high RTO), RFM score and 12-month value' })
   customers(
     @GetUser() user: AuthenticatedUser,
     @CurrentShop() scope: ShopScope,
     @Query('segment') segment?: string,
     @Query('search') search?: string,
+    @Query('rfm') rfm?: string,
+    @Query('sort') sort?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Ip() ip?: string,
   ) {
     this.piiLog.record(user, { kind: 'CUSTOMER_LIST', filters: { segment, search } }, ip);
-    return this.tools.customers(user, scope, { segment, search, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
+    return this.tools.customers(user, scope, { segment, search, rfm, sort, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
   }
 
   @Get('export')

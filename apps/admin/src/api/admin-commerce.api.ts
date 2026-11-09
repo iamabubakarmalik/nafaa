@@ -101,6 +101,8 @@ export interface CommerceControls {
   whatsappTemplates: Array<{ key: string; label: string; text: string }>;
   customStatuses: Array<{ key: string; label: string; color: string }>;
   comingSoon: Record<string, boolean>;
+  /** Tenant ids that see the live Facebook & Instagram connect before Meta app review. */
+  metaBetaShops: string[];
 }
 
 export interface CommerceControlsResponse {

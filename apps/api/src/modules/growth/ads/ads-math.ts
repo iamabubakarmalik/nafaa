@@ -13,10 +13,10 @@
  *   profit after ads  profit of the online orders (after selling costs) − ads spend
  */
 
-export const AD_PLATFORMS = ['META', 'TIKTOK', 'GOOGLE', 'OTHER'] as const;
+export const AD_PLATFORMS = ['META', 'TIKTOK', 'GOOGLE', 'SNAPCHAT', 'INFLUENCER', 'OTHER'] as const;
 export type AdPlatform = (typeof AD_PLATFORMS)[number];
 
-export const AD_FIELDS = ['date', 'spend', 'campaign', 'orders'] as const;
+export const AD_FIELDS = ['date', 'spend', 'campaign', 'adSet', 'orders'] as const;
 export type AdField = (typeof AD_FIELDS)[number];
 export type AdColumnMap = Partial<Record<AdField, number>>;
 
@@ -33,6 +33,7 @@ const HINTS: Record<AdField, RegExp[]> = {
   date: [/^day$/, /^date$/, /^by day$/, /^reporting starts$/, /^stat time day$/, /\bdate\b/, /\bday\b/],
   spend: [/^amount spent/, /^total cost$/, /^cost$/, /^spend$/, /^amount spent\b/, /\bspent\b/, /\bspend\b/, /\bcost\b(?!.*\bper\b)/],
   campaign: [/^campaign name$/, /^campaign$/, /\bcampaign name\b/, /\bcampaign\b(?!.*\bid\b)/, /^ad set name$/, /^ad name$/],
+  adSet: [/^ad set name$/, /^ad group name$/, /^ad group$/, /^adgroup name$/, /^ad squad name$/, /^ad set$/],
   orders: [/^purchases$/, /^website purchases$/, /^complete payment$/, /^conversions$/, /^results$/, /\bpurchases?\b(?!.*\b(value|cost)\b)/, /\bconversions?\b(?!.*\b(value|rate|cost)\b)/],
 };
 
@@ -54,6 +55,7 @@ export function detectColumns(headers: string[]): AdColumnMap {
 export function guessPlatform(headers: string[]): AdPlatform {
   const all = headers.map((h) => norm(String(h ?? ''))).join('|');
   if (/amount spent|reporting starts|ad set name|reach\b|impressions.*frequency/.test(all)) return 'META';
+  if (/swipe ups?|paid impressions|ad squad|snap/.test(all)) return 'SNAPCHAT';
   if (/complete payment|tiktok|by day|stat time|video views at/.test(all)) return 'TIKTOK';
   if (/avg cpc|interaction rate|search impr|conv value/.test(all)) return 'GOOGLE';
   return /campaign name/.test(all) ? 'META' : 'OTHER';
@@ -122,6 +124,7 @@ export function monthFirstDates(values: unknown[]): boolean {
 export interface AdImportRow {
   day: string;
   campaign: string | null;
+  adSet?: string | null;
   amount: number;
   orders: number | null;
   importKey: string;
@@ -135,8 +138,9 @@ export interface AdImportResult {
   skipped: number;
 }
 
-export const importKeyOf = (platform: AdPlatform, day: string, campaign: string | null) =>
-  `${platform}|${day}|${(campaign ?? '').trim().toLowerCase().slice(0, 120)}`;
+/** Rows with an ad set get a longer key; rows without one keep the original key, so old imports still match. */
+export const importKeyOf = (platform: AdPlatform, day: string, campaign: string | null, adSet?: string | null) =>
+  `${platform}|${day}|${(campaign ?? '').trim().toLowerCase().slice(0, 120)}${adSet && adSet.trim() ? `|${adSet.trim().toLowerCase().slice(0, 120)}` : ''}`;
 
 /** Reads the export into one row per day and campaign. Total lines and blank rows are skipped. */
 export function readAdsExport(headers: string[], rows: unknown[][], platform: AdPlatform, mapping?: AdColumnMap): AdImportResult {
@@ -153,8 +157,9 @@ export function readAdsExport(headers: string[], rows: unknown[][], platform: Ad
     if (!day || amount === null || amount < 0) { skipped++; continue; }
     const campaign = map.campaign !== undefined ? String(r[map.campaign] ?? '').trim().slice(0, 120) || null : null;
     const orders = map.orders !== undefined ? parseAmount(r[map.orders]) : null;
-    const key = importKeyOf(platform, day, campaign);
-    const cur = sums.get(key) ?? { day, campaign, amount: 0, orders: null, importKey: key };
+    const adSet = map.adSet !== undefined ? String(r[map.adSet] ?? '').trim().slice(0, 120) || null : null;
+    const key = importKeyOf(platform, day, campaign, adSet);
+    const cur = sums.get(key) ?? { day, campaign, ...(adSet && { adSet }), amount: 0, orders: null, importKey: key };
     cur.amount = r2(cur.amount + amount);
     if (orders !== null) cur.orders = (cur.orders ?? 0) + Math.round(orders);
     sums.set(key, cur);

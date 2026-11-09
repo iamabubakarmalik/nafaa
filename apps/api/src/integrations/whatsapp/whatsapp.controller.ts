@@ -1,47 +1,48 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
-import { Public } from '../../modules/auth/decorators/public.decorator';
-import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
+import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
+import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { WhatsappService } from './whatsapp.service';
 
+/**
+ * WhatsApp Cloud API for online orders. Reading needs `online_orders.view`,
+ * writes `online_orders.manage` (permission-routes); connecting, settings
+ * and templates are also limited to owners and managers in the service.
+ */
 @ApiTags('Integrations / WhatsApp Business')
+@ApiBearerAuth()
 @Controller('integrations/whatsapp')
 export class WhatsappController {
   constructor(private readonly svc: WhatsappService) {}
-  private tid(r: Request) { return (r as any).user?.tenantId as string; }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Post('configure')
-  configure(@Req() r: Request, @Body() dto: any) { return this.svc.configure(this.tid(r), dto); }
+  @Get('status')
+  status(@GetUser() user: AuthenticatedUser) { return this.svc.status(user); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Post('activate')
-  activate(@Req() r: Request) { return this.svc.activate(this.tid(r)); }
+  @Get('numbers')
+  numbers(@GetUser() user: AuthenticatedUser) { return this.svc.numbers(user); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Post('send')
-  send(@Req() r: Request, @Body() dto: any) { return this.svc.sendMessage(this.tid(r), dto); }
+  @Post('connect')
+  connect(@GetUser() user: AuthenticatedUser, @Body() body: { wabaId?: string; phoneNumberId?: string }) { return this.svc.connect(user, body ?? {}); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Post('templates')
-  createTpl(@Req() r: Request, @Body() dto: any) { return this.svc.createTemplate(this.tid(r), dto); }
+  @Post('disconnect')
+  disconnect(@GetUser() user: AuthenticatedUser) { return this.svc.disconnect(user); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Post('templates/:id/approve')
-  approve(@Req() r: Request, @Param('id') id: string, @Body() body: { metaTemplateId: string }) {
-    return this.svc.approveTemplate(this.tid(r), id, body.metaTemplateId);
-  }
+  @Put('settings')
+  settings(@GetUser() user: AuthenticatedUser, @Body() body: Parameters<WhatsappService['saveSettings']>[1]) { return this.svc.saveSettings(user, body ?? {}); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Get('templates')
-  tpls(@Req() r: Request) { return this.svc.listTemplates(this.tid(r)); }
+  @Post('templates/submit')
+  submit(@GetUser() user: AuthenticatedUser, @Body() body: { keys?: string[] }) { return this.svc.submitTemplates(user, body ?? {}); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth() @Get('messages')
-  msgs(@Req() r: Request, @Query('limit') l?: string) { return this.svc.listMessages(this.tid(r), +(l ?? 50)); }
+  @Post('templates/sync')
+  sync(@GetUser() user: AuthenticatedUser) { return this.svc.syncNow(user); }
 
-  @Public() @Post('webhook')
-  webhook(@Body() body: any) { return this.svc.handleWebhook(body); }
+  @Post('test')
+  test(@GetUser() user: AuthenticatedUser, @Body() body: { phone?: string }) { return this.svc.test(user, body ?? {}); }
 
-  @Public() @Get('webhook')
-  verify(@Query() q: any) {
-    if (q['hub.mode'] === 'subscribe' && q['hub.verify_token']) {
-      return q['hub.challenge'];
-    }
-    return { ok: false };
-  }
+  @Post('orders/:id/send')
+  send(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { key?: string }) { return this.svc.sendNow(user, id, body ?? {}); }
+
+  @Get('messages')
+  messages(@GetUser() user: AuthenticatedUser, @Query() q: { direction?: string; orderId?: string; limit?: string }) { return this.svc.messages(user, q); }
 }
+

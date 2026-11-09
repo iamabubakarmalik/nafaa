@@ -42,6 +42,7 @@ import { StockAdjustmentsModule } from './modules/inventory/stock-adjustments/st
 import { ManufacturingModule } from './modules/manufacturing/manufacturing.module';
 import { TransfersModule } from './modules/inventory/transfers/transfers.module';
 import { LowStockModule } from './modules/inventory/low-stock/low-stock.module';
+import { ForecastModule } from './modules/inventory/forecast/forecast.module';
 import { BarcodeLabelsModule } from './modules/inventory/barcode-labels/barcode-labels.module';
 
 import { CustomersModule } from './modules/customers/customers/customers.module';
@@ -146,6 +147,7 @@ import { AccountingModule } from './integrations/accounting/accounting.module';
 import { PublicApiModule } from './integrations/public-api/public-api.module';
 import { PayQrModule } from './integrations/pay-qr/pay-qr.controller';
 import { GoogleModule } from './integrations/google/google.controller';
+import { MetaModule } from './integrations/meta/meta.module';
 import { TaxAuthorityModule } from './integrations/tax-authority/tax-authority.controller';
 
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
@@ -216,6 +218,7 @@ import { SyncModule } from './modules/sync/sync.module';
     ManufacturingModule,
     TransfersModule,
     LowStockModule,
+    ForecastModule,
     BarcodeLabelsModule,
     ExpensesModule,
     IncomeModule,
@@ -291,6 +294,7 @@ import { SyncModule } from './modules/sync/sync.module';
     PublicApiModule,
     PayQrModule,
     GoogleModule,
+    MetaModule,
     TaxAuthorityModule,
     CustomWebsiteModule,
 

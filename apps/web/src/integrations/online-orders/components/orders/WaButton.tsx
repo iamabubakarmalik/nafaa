@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, MessageCircle, PhoneMissed, Settings2, XCircle } from 'lucide-react';
+import { CheckCircle2, Link2, MessageCircle, PhoneMissed, Settings2, XCircle } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { Menu } from '@/design-system/components';
 import { t } from '@core/i18n';
@@ -18,6 +18,7 @@ import { scanApi } from '../../api/order-money.api';
 import { waNumber } from '../../lib/labels';
 import { WA_TEMPLATES, fillTemplate, orderValues, suggestTemplate, templateText, useWaTemplates, usePlatformWaTemplates } from '../../lib/waTemplates';
 import { useBoardRefresh } from './useMoveOrder';
+import { usePortalLink } from '../../portal/usePortalLink';
 
 type Result = 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED';
 
@@ -30,6 +31,7 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   const refresh = useBoardRefresh();
+  const sendPortal = usePortalLink();
   const saved = useWaTemplates().data?.templates;
   const platformWa = usePlatformWaTemplates();
   const risk = useQuery({ queryKey: ['risk-settings'], queryFn: scanApi.riskSettings, staleTime: 10 * 60_000, enabled: open });
@@ -99,6 +101,14 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
               </div>
             </div>
           )}
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); void sendPortal(o.id, 'ORDER', shopName); }}
+            className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-start hover:bg-slate-50">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><Link2 className="h-3.5 w-3.5" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.8125rem] font-medium text-slate-900">{t('Customer page')}</span>
+              <span className="block truncate text-[0.6875rem] text-slate-500">{t('Order, bill, wapsi aur exchange ka link')}</span>
+            </span>
+          </button>
           <Link to="/online-store/whatsapp-templates" onClick={() => setOpen(false)}
             className="mt-1 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[0.75rem] font-medium text-brand-700 hover:bg-slate-50">
             <Settings2 className="h-3.5 w-3.5" />{t('Messages badlein')}

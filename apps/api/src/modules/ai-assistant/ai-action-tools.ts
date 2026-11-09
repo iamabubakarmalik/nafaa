@@ -36,6 +36,12 @@ export const PAGES: Record<string, { to: string; label: string }> = {
   suppliers: { to: '/suppliers', label: 'Suppliers' },
   cash_register: { to: '/cash-register', label: 'Cash register' },
   online_orders: { to: '/online-orders', label: 'Online orders' },
+  call_center: { to: '/online-orders/call-center', label: 'Call center' },
+  abandoned_carts: { to: '/online-orders/abandoned', label: 'Abandoned carts' },
+  website_conversion: { to: '/online-orders/conversion', label: 'Website conversion' },
+  automation: { to: '/online-store/automation', label: 'Automation rules' },
+  stock_forecast: { to: '/inventory/forecast', label: 'Stock forecast' },
+  ads: { to: '/online-store/marketing', label: 'Ads aur ROAS' },
   settings: { to: '/settings', label: 'Settings' },
   team: { to: '/staff?tab=roles', label: 'Roles aur permissions' },
   manufacturing: { to: '/manufacturing', label: 'Banayein (production)' },
@@ -106,6 +112,16 @@ export const ACTION_TOOLS = [
     name: 'propose_produce', status: 'Production ka card bana raha hoon…',
     description: 'Propose making a product from its recipe (manufacturing): raw materials leave stock, the made goods are added at the worked-out cost. Give quantity (units) or batches. Confirmation card; nothing changes until confirmed.',
     input_schema: { type: 'object' as const, properties: { product: { type: 'string' }, quantity: { type: 'number', description: 'Units to make, in the product\'s unit.' }, batches: { type: 'number', description: 'Recipe batches, when the user says batch.' } }, required: ['product'] },
+  },
+  {
+    name: 'propose_move_order', status: 'Order ka card bana raha hoon…',
+    description: 'Propose moving an online order to another status on the orders board (confirm, pack, dispatch, delivered, cancel, hold). Find the order by its number, or the customer phone or name. Moving forward from NEW makes the bill and takes stock; cancel needs a reason. Confirmation card; nothing changes until confirmed.',
+    input_schema: { type: 'object' as const, properties: { order: { type: 'string', description: 'Order number (e.g. 1052), or customer phone or name.' }, to: { type: 'string', enum: ['NEW', 'CONFIRMED', 'PACKED', 'DISPATCHED', 'DELIVERED', 'CANCELLED', 'ON_HOLD', 'PAY_PENDING', 'NO_STOCK', 'CUSTOMER_QUERY'] }, reason: { type: 'string' } }, required: ['order', 'to'] },
+  },
+  {
+    name: 'propose_pause_rule', status: 'Rule ka card bana raha hoon…',
+    description: 'Propose pausing (or turning back on with resume=true) an online store automation rule by its name. Confirmation card; only the owner or a manager can confirm.',
+    input_schema: { type: 'object' as const, properties: { rule: { type: 'string', description: 'Rule name as the user said it.' }, resume: { type: 'boolean' } }, required: ['rule'] },
   },
 ];
 

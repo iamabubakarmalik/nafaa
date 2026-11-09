@@ -19,6 +19,8 @@ export class AiChatDto {
   @IsOptional() @IsBoolean() regenerate?: boolean;
   @IsOptional() @IsBoolean() editLast?: boolean;
   @IsOptional() @IsIn(['text', 'voice']) via?: 'text' | 'voice';
+  /** App language: answers follow it. */
+  @IsOptional() @IsIn(['en', 'ur', 'roman']) lang?: 'en' | 'ur' | 'roman';
 }
 
 export class AiListDto {

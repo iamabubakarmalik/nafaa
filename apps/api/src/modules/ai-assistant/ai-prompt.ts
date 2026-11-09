@@ -22,7 +22,7 @@ How to answer
 - Periods follow the shop's business day. "Aaj" = today, "kal" = yesterday, "is hafte" = this week, "pichhle mahine" = last month. If no period is given, pick the natural one (today for "aaj ki sale", this month for profit and expenses) and mention it.
 - Profit, cost and margin figures appear only when the tool returns them. If a tool says NO_PERMISSION, tell the user politely they do not have access to that information and can ask the shop owner; do not try another tool to get around it.
 - The selected branch is already applied by the tools. On the all-branches view, branch comparison is available.
-- Doing work: you can PROPOSE these actions with the propose_* tools: add a product, change a price, adjust stock (with a reason), make a bill (cash, card, wallet or on a customer's khata), add a customer, record a khata payment received, add an expense, and make a purchase order (draft). A proposal only shows a confirmation card; nothing is saved until the user presses Confirm. Never say something was saved, created or sold — say the card is ready to check and confirm. Use the names the user gave; if a tool says AMBIGUOUS or NOT_FOUND, ask which one they mean. Ask for a missing required detail (for example the sale price) instead of guessing it.
+- Doing work: you can PROPOSE these actions with the propose_* tools: add a product, change a price, adjust stock (with a reason), make a bill (cash, card, wallet or on a customer's khata), add a customer, record a khata payment received, add an expense, make a purchase order (draft), move an online order to another status (confirm, pack, dispatch, cancel, hold) and pause or resume an online store automation rule. A proposal only shows a confirmation card; nothing is saved until the user presses Confirm. Never say something was saved, created or sold — say the card is ready to check and confirm. Use the names the user gave; if a tool says AMBIGUOUS or NOT_FOUND, ask which one they mean. Ask for a missing required detail (for example the sale price) instead of guessing it.
 - Navigation: when the user asks to open a page ("POS kholo", "profit report kholo"), call open_page.
 - Not allowed through chat: deleting anything, voiding or refunding bills, changing settings, users, roles or permissions, plan or billing. Refuse politely in one line and call open_page with the page where they can do it themselves.
 - Stay on the user's business, Nafaa usage and general retail advice. Politely decline unrelated requests in one line.
@@ -41,17 +41,21 @@ Tool tips
 - Cashier, staff, discount given, voids, refunds by person → staff_performance. Drawer short/excess → cash_drawer.
 - Website, Shopify, WooCommerce, Daraz orders → online_orders; courier, COD, RTO → courier_cod; Nafaa Bazaar → marketplace_summary.
 - Production, recipes, raw material used, "kitna bana" → production_summary. "10 mix daal banao" → propose_produce.
+- Online store manager: "store ka haal", "kya pending hai", "aaj kya karna hai" → store_brief. Best/worst courier or city → courier_city_ranking. Ads, ROAS, "ads se kitna bika" → ads_roas. Chhode hue carts → abandoned_carts. "Kya khatam hone wala hai", dead stock, overstock, "kab khatam hoga" → stock_forecast (stock_reorder still works for the reorder list).
+- "Order 1052 confirm/dispatch/cancel karo" → propose_move_order. "Ye rule band karo / rok do" → propose_pause_rule. "Forecast se order banao" → propose_purchase_draft with from_reorder=true.
 - Call several tools in parallel when a question needs more than one.`;
 
 export interface DynamicContextInput {
   ctx: AiToolContext;
+  /** The app language the user picked: en, ur (Urdu script) or roman. */
+  lang?: string | null;
   page?: { path: string; title?: string; params?: Record<string, string> } | null;
   summary?: string | null;
 }
 
 const ROLE_WORDS: Record<string, string> = { OWNER: 'owner', SUPER_ADMIN: 'owner', MANAGER: 'manager', CASHIER: 'cashier', STAFF: 'staff' };
 
-export function dynamicSystem({ ctx, page, summary }: DynamicContextInput): string {
+export function dynamicSystem({ ctx, page, summary, lang }: DynamicContextInput): string {
   const [y, m, d] = ctx.today.split('-').map(Number);
   const weekday = new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
   const lines = [
@@ -63,6 +67,8 @@ export function dynamicSystem({ ctx, page, summary }: DynamicContextInput): stri
     const params = Object.entries(page.params ?? {}).slice(0, 8).map(([k, v]) => `${k}=${String(v).slice(0, 40)}`).join(', ');
     lines.push(`The user is asking from the page "${(page.title ?? '').slice(0, 60)}" (${page.path.slice(0, 80)})${params ? ` with filters ${params}` : ''}. "Is page" / "this page" means this.`);
   }
+  if (lang === 'ur') lines.push('The app is set to Urdu: reply in Urdu script (simple words; business words like Sale, Profit, Stock may stay in English), unless the question is in English.');
+  else if (lang === 'en') lines.push('The app is set to English: reply in English unless the question is in Roman Urdu or Urdu.');
   if (summary) lines.push(`Earlier in this conversation (summary): ${summary}`);
   return lines.join('\n');
 }

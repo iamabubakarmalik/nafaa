@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Loader2, MessageCircle, Minus, Package, Plus, Search, ShoppingBag, Tag, Truck, X } from 'lucide-react';
+import { CheckCircle2, Globe, Loader2, MessageCircle, Minus, Package, Plus, Search, ShoppingBag, Tag, Truck, X } from 'lucide-react';
 import { Alert, Button, Card, controlClass, IconButton, Input, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { publicFetch } from './publicApi';
@@ -18,10 +18,16 @@ interface Option {
   availability?: 'in_stock' | 'out_of_stock' | 'backorder'; leadTime?: string | null;
 }
 const orderable = (o: Option) => o.inStock || o.availability === 'backorder';
-interface Product { id: string; name: string; category: string | null; description: string | null; image: string | null; options: Option[] }
+interface Product { id: string; name: string; category: string | null; description: string | null; image: string | null; options: Option[]; shipsAbroad?: boolean }
+interface Intl {
+  defaultCountry: string | null;
+  countries: Array<{ code: string; name: string; currency: string; shippingFee: number; freeAbove: number | null }>;
+  currencies: Array<{ code: string; rate: number; decimals: number }>;
+}
+interface IntlPrices { currency: string; decimals: number; rate: number; prices: Record<string, number> }
 export interface Catalog {
   shop: string; channel: string; deliveryFee: number; freeAbove: number | null; message: string | null; products: Product[];
-  accent: string | null; logoUrl: string | null; phone: string | null; hasCoupons: boolean; categories: string[];
+  accent: string | null; logoUrl: string | null; phone: string | null; hasCoupons: boolean; categories: string[]; international?: Intl | null;
 }
 type Line = { productId: string; variantId: string | null; quantity: number };
 
@@ -51,11 +57,16 @@ export default function PublicOrderPage() {
   const [coupon, setCoupon] = useState<{ code: string; discount: number; message: string } | null>(null);
   const [couponErr, setCouponErr] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  // International: a country other than Pakistan shows prices in its currency (the shop still books PKR).
+  const [country, setCountry] = useState('');
+  const [intlPrices, setIntlPrices] = useState<IntlPrices | null>(null);
+  const [doneShown, setDoneShown] = useState<string | null>(null);
 
   useEffect(() => {
     publicFetch<Catalog>(`/integrations/website/v1/form/${encodeURIComponent(key)}${focus ? `?product=${encodeURIComponent(focus)}` : ''}`)
       .then((c) => {
         setCat(c);
+        if (c.international?.defaultCountry) setCountry(c.international.defaultCountry);
         document.title = `${c.shop} — Order`;
         // Buy button se aaye: wahi cheez cart me, seedha checkout
         if (sku) {
@@ -72,15 +83,32 @@ export default function PublicOrderPage() {
       .catch((e) => setErr(e.message));
   }, [key, sku]);
 
+  useEffect(() => {
+    if (!country) { setIntlPrices(null); return; }
+    publicFetch<IntlPrices>(`/integrations/website/v1/form/${encodeURIComponent(key)}/prices?country=${encodeURIComponent(country)}`)
+      .then(setIntlPrices).catch(() => { setIntlPrices(null); setCountry(''); });
+  }, [country, key]);
+  const abroad = !!country && !!intlPrices;
+  const countryRule = abroad ? cat?.international?.countries.find((c) => c.code === country) ?? null : null;
+  const unit = (p: Product, o: Option) => {
+    if (!intlPrices) return o.price;
+    const f = 10 ** intlPrices.decimals;
+    const own = intlPrices.prices[`${p.id}|${o.variantId ?? ''}`];
+    return own > 0 ? own : Math.round((o.price / intlPrices.rate) * f) / f;
+  };
+  const money = (n: number) => (intlPrices ? `${intlPrices.currency} ${n.toLocaleString('en-US', { minimumFractionDigits: intlPrices.decimals, maximumFractionDigits: intlPrices.decimals })}` : rs(n));
+
   const find = (l: Line) => {
     const p = cat?.products.find((x) => x.id === l.productId);
     const o = p?.options.find((x) => x.variantId === l.variantId);
     return p && o ? { p, o } : null;
   };
   const lines = Object.values(cart).filter((l) => find(l));
-  const subtotal = lines.reduce((s, l) => s + find(l)!.o.price * l.quantity, 0);
-  const delivery = !cat ? 0 : cat.freeAbove && subtotal >= cat.freeAbove ? 0 : cat.deliveryFee;
-  const discount = coupon ? Math.min(coupon.discount, subtotal) : 0;
+  const subtotal = lines.reduce((s, l) => { const f = find(l)!; return s + unit(f.p, f.o) * l.quantity; }, 0);
+  const delivery = !cat ? 0
+    : countryRule && intlPrices ? (countryRule.freeAbove != null && subtotal * intlPrices.rate >= countryRule.freeAbove ? 0 : Math.round((countryRule.shippingFee / intlPrices.rate) * 100) / 100)
+    : cat.freeAbove && subtotal >= cat.freeAbove ? 0 : cat.deliveryFee;
+  const discount = coupon && !abroad ? Math.min(coupon.discount, subtotal) : 0;
   const payable = subtotal - discount + delivery;
   const accent = cat?.accent ?? '#059669';
 
@@ -112,15 +140,15 @@ export default function PublicOrderPage() {
 
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
-    const all = cat?.products ?? [];
+    const all = (cat?.products ?? []).filter((p) => !country || p.shipsAbroad !== false);
     if (focus && all.some((p) => p.id === focus)) return all.filter((p) => p.id === focus);
     return all.filter((p) => (!t || p.name.toLowerCase().includes(t)) && (!cat2 || p.category === cat2));
-  }, [cat, q, cat2, focus]);
+  }, [cat, q, cat2, focus, country]);
 
   const submit = async () => {
     setFormErr(null);
     if (form.name.trim().length < 2) return setFormErr(tr('Apna naam likhein'));
-    if (form.phone.replace(/\D/g, '').length < 10) return setFormErr(tr('Mobile number sahi likhein (03xxxxxxxxx)'));
+    if (form.phone.replace(/\D/g, '').length < (abroad ? 7 : 10)) return setFormErr(abroad ? tr('Phone number mulk ke code ke saath likhein') : tr('Mobile number sahi likhein (03xxxxxxxxx)'));
     if (form.city.trim().length < 2) return setFormErr(tr('Shehar likhein'));
     if (form.address.trim().length < 8) return setFormErr(tr('Poora address likhein — ghar #, gali, area'));
     setBusy(true);
@@ -131,10 +159,12 @@ export default function PublicOrderPage() {
           items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
           customer: { name: form.name, phone: form.phone, city: form.city, address: form.address },
           notes: form.notes || undefined,
-          coupon: coupon?.code,
+          coupon: abroad ? undefined : coupon?.code,
+          country: abroad ? country : undefined,
           website: form.website, // bots ke liye chhupa khana
         },
       });
+      setDoneShown(abroad ? money(payable) : null);
       setDone(r);
       setStep('done');
       setCart({});
@@ -159,7 +189,9 @@ export default function PublicOrderPage() {
         <div className="px-6 py-12 text-center">
           <CheckCircle2 className="mx-auto h-14 w-14 text-success-600" />
           <h2 className="mt-3 text-xl font-bold text-slate-900">{tr('Order ho gaya! 🎉')}</h2>
-          <p className="mt-1 text-slate-600"><Trans text="Order # {{number}} · {{total}} (Cash on delivery)" values={{ number: <b className="font-mono">{done.orderNumber}</b>, total: rs(done.total) }} /></p>
+          <p className="mt-1 text-slate-600">{doneShown
+            ? <Trans text="Order # {{number}} · {{total}}" values={{ number: <b className="font-mono">{done.orderNumber}</b>, total: doneShown }} />
+            : <Trans text="Order # {{number}} · {{total}} (Cash on delivery)" values={{ number: <b className="font-mono">{done.orderNumber}</b>, total: rs(done.total) }} />}</p>
           <p className="mt-3 text-sm text-slate-500">{done.message || tr('{{shop}} jald aap se confirm karne ke liye rabta karega. Shukriya!', { shop: cat.shop })}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Link to={`/order/${key}/track?no=${done.orderNumber}${embed ? '&embed=1' : ''}`} className="inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white shadow-sm" style={{ background: accent }}>{tr('Order ka haal dekhein')}</Link>
@@ -179,7 +211,7 @@ export default function PublicOrderPage() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-slate-900">{p.name}</div>
                     {o.name && <div className="text-xs text-slate-500">{o.name}</div>}
-                    <div className="text-sm font-bold text-slate-900">{rs(o.price * l.quantity)}</div>
+                    <div className="text-sm font-bold text-slate-900">{money(unit(p, o) * l.quantity)}</div>
                   </div>
                   <Qty value={l.quantity} max={o.maxQty} onChange={(n) => setQty(l, n, o.maxQty)} />
                 </div>
@@ -201,7 +233,7 @@ export default function PublicOrderPage() {
             </div>
           </Card>
 
-          {cat.hasCoupons && (
+          {cat.hasCoupons && !abroad && (
             <Card className="rounded-2xl">
               <div className="flex gap-2">
                 <Input size="lg" wrapperClassName="flex-1" leftIcon={<Tag className="h-4 w-4" />} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -214,18 +246,18 @@ export default function PublicOrderPage() {
           )}
 
           <div className="space-y-1 rounded-2xl bg-slate-50 p-4 text-sm">
-            <Row l={tr('Cheezein')} v={rs(subtotal)} />
-            {discount > 0 && <Row l={tr('Discount ({{code}})', { code: coupon!.code })} v={`− ${rs(discount)}`} />}
-            <Row l={tr('Delivery')} v={delivery ? rs(delivery) : tr('Free')} />
-            {cat.freeAbove && delivery > 0 && <p className="text-xs text-success-700">{tr('{{rs}} ki aur shopping par delivery free', { rs: rs(cat.freeAbove - subtotal) })}</p>}
-            <div className="flex justify-between pt-1 text-base font-bold text-slate-900"><span>{tr('Total')}</span><span className="tabular-nums">{rs(payable)}</span></div>
-            <p className="text-xs text-slate-500">{tr('💵 Cash on delivery — parcel milne par paisa dein')}</p>
+            <Row l={tr('Cheezein')} v={money(subtotal)} />
+            {discount > 0 && <Row l={tr('Discount ({{code}})', { code: coupon!.code })} v={`− ${money(discount)}`} />}
+            <Row l={tr('Delivery')} v={delivery ? money(delivery) : tr('Free')} />
+            {!abroad && cat.freeAbove && delivery > 0 && <p className="text-xs text-success-700">{tr('{{rs}} ki aur shopping par delivery free', { rs: rs(cat.freeAbove - subtotal) })}</p>}
+            <div className="flex justify-between pt-1 text-base font-bold text-slate-900"><span>{tr('Total')}</span><span className="tabular-nums">{money(payable)}</span></div>
+            <p className="text-xs text-slate-500">{abroad ? tr('Dukaan payment ka tareeqa aap ko batayegi') : tr('💵 Cash on delivery — parcel milne par paisa dein')}</p>
           </div>
           {formErr && <Alert tone="danger" title={formErr} />}
           <Sticky>
             <Button size="xl" fullWidth disabled={busy || !lines.length} onClick={submit} className="rounded-2xl text-white" style={{ background: accent }}
               leftIcon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}>
-              {tr('Order confirm karein · {{payable}}', { payable: rs(payable) })}
+              {tr('Order confirm karein · {{payable}}', { payable: money(payable) })}
             </Button>
           </Sticky>
         </div>
@@ -235,6 +267,16 @@ export default function PublicOrderPage() {
             <button type="button" onClick={() => setFocus(null)} className="mb-3 text-[0.8125rem] font-semibold underline" style={{ color: accent }}>
               {tr('← Sab products dekhein')}
             </button>
+          )}
+          {cat.international && (
+            <label className="mb-3 flex items-center gap-2 text-[0.8125rem] font-semibold text-slate-700">
+              <Globe className="h-4 w-4" />
+              <span className="shrink-0">{tr('Aap kahan hain?')}</span>
+              <select value={country} onChange={(e) => setCountry(e.target.value)} aria-label={tr('Mulk')} className={cn(controlClass(), 'h-9 flex-1 px-2 text-[0.8125rem]')}>
+                <option value="">{tr('Pakistan (Rs)')}</option>
+                {cat.international.countries.map((c) => <option key={c.code} value={c.code}>{c.name} ({c.currency})</option>)}
+              </select>
+            </label>
           )}
           {!focus && cat.products.length > 6 && (
             <div className="mb-3">
@@ -264,13 +306,13 @@ export default function PublicOrderPage() {
               const multi = p.options.length > 1;
               const chosen = p.options.find((o) => (o.variantId ?? '-') === (pick[p.id] ?? (multi ? '' : p.options[0].variantId ?? '-'))) ?? (multi ? null : p.options[0]);
               const inCart = chosen ? cart[lineKey({ productId: p.id, variantId: chosen.variantId })] : undefined;
-              const minPrice = Math.min(...p.options.map((o) => o.price));
+              const minPrice = Math.min(...p.options.map((o) => unit(p, o)));
               return (
                 <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div className="aspect-square bg-slate-100">{p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Package className="m-auto mt-[35%] h-8 w-8 text-slate-300" />}</div>
                   <div className="flex flex-1 flex-col p-2.5">
                     <div className="line-clamp-2 text-[0.8125rem] font-semibold leading-snug text-slate-900">{p.name}</div>
-                    <div className="mt-1 text-sm font-bold" style={{ color: accent }}>{chosen ? rs(chosen.price) : tr('{{minPrice}} se', { minPrice: rs(minPrice) })}</div>
+                    <div className="mt-1 text-sm font-bold" style={{ color: accent }}>{chosen ? money(unit(p, chosen)) : tr('{{minPrice}} se', { minPrice: money(minPrice) })}</div>
                     {multi && (
                       <select value={pick[p.id] ?? ''} onChange={(e) => setPick({ ...pick, [p.id]: e.target.value })}
                         aria-label={tr('Size')} className={cn(controlClass(), 'mt-1.5 h-9 px-2 text-[0.8125rem]')}>
@@ -300,7 +342,7 @@ export default function PublicOrderPage() {
             <Sticky>
               <Button size="xl" fullWidth onClick={() => setStep('checkout')} className="justify-between rounded-2xl text-white" style={{ background: accent }}>
                 <span className="inline-flex items-center gap-2"><ShoppingBag className="h-5 w-5" /> {' '}{tr('{{count}} cheez', { count })}</span>
-                <span className="tabular-nums">{tr('Aage · {{subtotal}}', { subtotal: rs(subtotal) })}</span>
+                <span className="tabular-nums">{tr('Aage · {{subtotal}}', { subtotal: money(subtotal) })}</span>
               </Button>
             </Sticky>
           )}

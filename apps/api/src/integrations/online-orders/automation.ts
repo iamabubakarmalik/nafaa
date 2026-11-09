@@ -11,7 +11,7 @@ import { sameCity } from './pk-cities';
 export const AUTOMATION_EVENTS = ['ORDER_RECEIVED', 'CONFIRMED', 'PACKED', 'DISPATCHED', 'DELIVERED', 'RETURNED', 'PAYMENT_RECEIVED', 'STOCK_LOW'] as const;
 export type AutomationEvent = (typeof AUTOMATION_EVENTS)[number];
 
-export const ORDER_ACTIONS = ['SET_STATUS', 'TAG', 'ASSIGN', 'BOOK_COURIER', 'ASK_ADVANCE', 'NOTE', 'NOTIFY'] as const;
+export const ORDER_ACTIONS = ['SET_STATUS', 'TAG', 'ASSIGN', 'BOOK_COURIER', 'ASK_ADVANCE', 'NOTE', 'NOTIFY', 'REVIEW_REQUEST'] as const;
 export const PRODUCT_ACTIONS = ['HIDE_PRODUCT', 'PUSH_STOCK', 'NOTIFY'] as const;
 export type ActionType = (typeof ORDER_ACTIONS)[number] | (typeof PRODUCT_ACTIONS)[number];
 
@@ -55,6 +55,8 @@ export type Action =
   | { type: 'ASK_ADVANCE'; pct: number }
   | { type: 'NOTE'; text: string }
   | { type: 'NOTIFY'; text: string }
+  /** Makes a review request (rating link) for a delivered order, to send over WhatsApp. */
+  | { type: 'REVIEW_REQUEST' }
   /** channelId null = every channel Nafaa sends stock to. */
   | { type: 'HIDE_PRODUCT'; channelId: string | null }
   | { type: 'PUSH_STOCK'; channelId: string | null };
@@ -118,6 +120,7 @@ export function normalizeAction(raw: unknown, event: AutomationEvent): Action | 
     case 'ASK_ADVANCE': { const p = num(a.pct, 1, 100); return { type: 'ASK_ADVANCE', pct: p ?? 30 }; }
     case 'NOTE': return text(a.text, 300) ? { type: 'NOTE', text: text(a.text, 300) } : null;
     case 'NOTIFY': return { type: 'NOTIFY', text: text(a.text, 200) };
+    case 'REVIEW_REQUEST': return event === 'DELIVERED' ? { type: 'REVIEW_REQUEST' } : null;
     case 'HIDE_PRODUCT': return { type: 'HIDE_PRODUCT', channelId: text(a.channelId, 64) || null };
     case 'PUSH_STOCK': return { type: 'PUSH_STOCK', channelId: text(a.channelId, 64) || null };
   }
@@ -248,7 +251,7 @@ export function eventOfStatus(status: string): AutomationEvent | null {
 
 // ─── Recipes ───────────────────────────────────────────────────
 
-export const RECIPE_KEYS = ['auto_confirm_prepaid', 'hold_big_cod_new', 'city_courier', 'rto_advance', 'low_stock_unlist'] as const;
+export const RECIPE_KEYS = ['auto_confirm_prepaid', 'hold_big_cod_new', 'city_courier', 'rto_advance', 'low_stock_unlist', 'review_after_delivery'] as const;
 export type RecipeKey = (typeof RECIPE_KEYS)[number];
 
 export interface RecipeParams { amount?: number; city?: string; courier?: string; returns?: number; pct?: number; stock?: number }
@@ -259,6 +262,7 @@ export const RECIPE_DEFAULTS: Record<RecipeKey, RecipeParams> = {
   city_courier: { city: 'Lahore', courier: '' },
   rto_advance: { returns: 2, pct: 30 },
   low_stock_unlist: { stock: 2 },
+  review_after_delivery: {},
 };
 
 /** The rule a recipe switches on, with the shop's numbers filled in. */
@@ -290,6 +294,8 @@ export function recipeRule(key: RecipeKey, p: RecipeParams = {}): AutomationRule
         name: `Stock ${v.stock} se kam → channel se hatayein`, event: 'STOCK_LOW', enabled: true,
         conditions: { ...c, stockBelow: Math.max(1, Number(v.stock) || 2) }, actions: [{ type: 'HIDE_PRODUCT', channelId: null }],
       };
+    case 'review_after_delivery':
+      return { name: 'Deliver hone par review request', event: 'DELIVERED', enabled: true, conditions: c, actions: [{ type: 'REVIEW_REQUEST' }] };
   }
 }
 

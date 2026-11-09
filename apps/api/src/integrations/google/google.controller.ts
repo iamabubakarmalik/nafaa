@@ -66,5 +66,5 @@ export class GoogleFeedController {
   }
 }
 
-@Module({ imports: [PrismaModule], controllers: [GoogleController, GoogleFeedController], providers: [GoogleService] })
+@Module({ imports: [PrismaModule], controllers: [GoogleController, GoogleFeedController], providers: [GoogleService], exports: [GoogleService] })
 export class GoogleModule {}

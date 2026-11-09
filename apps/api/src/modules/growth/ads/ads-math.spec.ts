@@ -80,4 +80,15 @@ describe('ads maths', () => {
     expect(weekOf('2026-10-26')).toBe('2026-10-26');
     expect(weekOf('2026-11-01')).toBe('2026-10-26');
   });
+
+  it('splits a Meta export by ad set and reads Snapchat exports', () => {
+    const headers = ['Reporting starts', 'Campaign name', 'Ad set name', 'Amount spent (PKR)'];
+    const r = readAdsExport(headers, [['2026-11-01', 'Eid', 'Lahore 25-34', '500'], ['2026-11-01', 'Eid', 'Karachi', '300']], 'META');
+    expect(r.map.adSet).toBe(2);
+    expect(r.rows.map((x) => [x.adSet, x.amount, x.importKey])).toEqual([
+      ['Lahore 25-34', 500, 'META|2026-11-01|eid|lahore 25-34'],
+      ['Karachi', 300, 'META|2026-11-01|eid|karachi'],
+    ]);
+    expect(guessPlatform(['Date', 'Campaign Name', 'Spend', 'Paid Impressions', 'Swipe Ups'])).toBe('SNAPCHAT');
+  });
 });

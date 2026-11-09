@@ -22,6 +22,7 @@ import { boardOf } from './order-board';
 import { phoneKey } from './customer-risk';
 import { advancePaid } from './payment-links.service';
 import { courierName } from './couriers';
+import { ReviewsService } from './retention/reviews.service';
 import { COURIER_APIS } from './courier-api/registry';
 import {
   AUTOMATION_EVENTS, Action, AutomationEvent, AutomationRuleInput, Conditions, Facts, GuardStop, OrderFacts, ProductFacts, RECIPE_DEFAULTS, RECIPE_KEYS,
@@ -73,6 +74,7 @@ export class AutomationService implements OnModuleInit, OnModuleDestroy {
     private readonly growth: CommerceGrowthService,
     private readonly notifications: NotificationsService,
     private readonly integrations: IntegrationService,
+    private readonly reviews: ReviewsService,
   ) {}
 
   private readonly onAccepted = (e: OrderAccepted) => this.fire(e.tenantId, e.orderId, 'CONFIRMED');
@@ -335,6 +337,10 @@ export class AutomationService implements OnModuleInit, OnModuleDestroy {
         });
         return { type: a.type, ok: true, text: 'Malik ko khabar' };
       }
+      case 'REVIEW_REQUEST': {
+        const r = await this.reviews.request(rule.tenantId, id, 'AUTOMATION');
+        return r ? { type: a.type, ok: true, text: 'Review request bani' } : { type: a.type, ok: false, text: 'Order deliver nahi hua — review request nahi bani' };
+      }
       default:
         return { type: a.type, ok: false, text: `${a.type}: order par nahi chalta` };
     }
@@ -406,6 +412,7 @@ export class AutomationService implements OnModuleInit, OnModuleDestroy {
         }
         case 'NOTE': out.push({ type: a.type, ok: true, text: `Note: ${a.text}` }); break;
         case 'NOTIFY': out.push({ type: a.type, ok: true, text: 'Malik ko khabar' }); break;
+        case 'REVIEW_REQUEST': out.push({ type: a.type, ok: true, text: 'Review link banega (WhatsApp par bhejne ke liye)' }); break;
         case 'HIDE_PRODUCT': out.push({ type: a.type, ok: true, text: 'Channel se hataya jayega' }); break;
         case 'PUSH_STOCK': out.push({ type: a.type, ok: true, text: 'Stock bheja jayega' }); break;
       }

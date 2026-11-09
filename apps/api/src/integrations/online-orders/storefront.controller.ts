@@ -33,10 +33,17 @@ export class StorefrontPublicController {
     return this.svc.publicOrder(key, body);
   }
 
+  @Get('form/:key/prices')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Order form: ek mulk ki qeemat (international)' })
+  prices(@Param('key') key: string, @Query('country') country?: string) {
+    return this.svc.publicIntlPrices(key, String(country ?? ''));
+  }
+
   @Post('form/:key/coupon')
   @HttpCode(200)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
-  coupon(@Param('key') key: string, @Body() body: { code?: string; subtotal?: number }) {
+  coupon(@Param('key') key: string, @Body() body: { code?: string; subtotal?: number; phone?: string }) {
     return this.svc.checkCoupon(key, body ?? {});
   }
 
@@ -130,6 +137,32 @@ function embedScript(web: string) {
     b.onclick=function(){open('');};
     (document.body?Promise.resolve():new Promise(function(r){document.addEventListener('DOMContentLoaded',r);})).then(function(){document.body.appendChild(b);});
   }
-  window.NafaaOrder={open:open,close:close};
+  // "Customers also bought": <div data-nafaa-together="SKU"></div> fills with up to 4 products bought with it.
+  var API=(s.src||'').split('/embed.js')[0];
+  function money(n){try{return 'Rs '+Math.round(n).toLocaleString('en-PK');}catch(e){return 'Rs '+Math.round(n);}}
+  function together(el){
+    if(!API||el.getAttribute('data-nafaa-done'))return;el.setAttribute('data-nafaa-done','1');
+    var sku=el.getAttribute('data-nafaa-together')||'';if(!sku)return;
+    fetch(API+'/form/'+encodeURIComponent(key)+'/together?sku='+encodeURIComponent(sku)+'&limit='+(el.getAttribute('data-limit')||'4'))
+      .then(function(r){return r.ok?r.json():null;}).then(function(j){
+        var items=j&&(j.data||j).items;if(!items||!items.length)return;
+        var h=document.createElement('div');h.textContent=el.getAttribute('data-title')||'Saath me ye bhi liya jata hai';
+        h.style.cssText='font:600 15px system-ui,sans-serif;margin:0 0 10px;color:#0f172a';el.appendChild(h);
+        var g=document.createElement('div');g.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px';
+        items.forEach(function(p){
+          var c=document.createElement('div');c.style.cssText='border:1px solid #e2e8f0;border-radius:12px;padding:8px;font:13px system-ui,sans-serif;background:#fff';
+          if(p.image){var im=document.createElement('img');im.src=p.image;im.alt='';im.loading='lazy';im.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px';c.appendChild(im);}
+          var n=document.createElement('div');n.textContent=p.name;n.style.cssText='margin-top:6px;color:#0f172a;line-height:1.3';c.appendChild(n);
+          var pr=document.createElement('div');pr.textContent=money(p.price);pr.style.cssText='font-weight:700;margin-top:2px;color:#0f172a';c.appendChild(pr);
+          var b=document.createElement('button');b.type='button';b.textContent=el.getAttribute('data-button')||'Order karein';
+          b.style.cssText='margin-top:6px;width:100%;background:#059669;color:#fff;border:0;border-radius:8px;padding:7px;font:600 13px system-ui,sans-serif;cursor:pointer';
+          b.onclick=function(){open(p.sku||'');};c.appendChild(b);g.appendChild(c);
+        });
+        el.appendChild(g);
+      }).catch(function(){});
+  }
+  function scan(){var l=document.querySelectorAll('[data-nafaa-together]');for(var i=0;i<l.length;i++)together(l[i]);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan);else scan();
+  window.NafaaOrder={open:open,close:close,together:scan};
 })();`;
 }

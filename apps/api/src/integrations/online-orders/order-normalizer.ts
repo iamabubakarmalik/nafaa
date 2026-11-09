@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { apiMessage } from '../../common/i18n/api-message';
+import { OrderAttribution, attributionOf } from '../../modules/growth/marketing/attribution';
 
 /**
  * Website se aane wala order teen shakal me aa sakta hai:
@@ -54,6 +55,8 @@ export interface NormalizedOrder {
   paymentTitle?: string;
   /** Multi-branch: kis Nafaa branch ka order (URL ?branch= ya payload ki branch se) */
   shopId?: string | null;
+  /** Where the buyer came from (UTM, referrer, landing page, discount codes); see marketing/attribution. */
+  attribution?: OrderAttribution;
 }
 
 const MAX_ITEMS = 300;
@@ -361,5 +364,7 @@ export function normalizeOrder(body: any, platform: OrderPlatform): NormalizedOr
   }
   if (order.total < 0) throw new BadRequestException('total ghalat hai');
 
+  const attribution = attributionOf(body, platform);
+  if (attribution) order.attribution = attribution;
   return order;
 }

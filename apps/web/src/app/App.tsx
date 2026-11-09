@@ -31,6 +31,10 @@ import {
   CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage, AddOrderPage, EditOrderPage,
 } from '@integrations/online-orders';
 import { AbandonedCartsPage, PaymentHealthPage, ProfitPage, WaTemplatesPage } from '@integrations/online-orders';
+import { CallCenterPage, ConversionPage } from '@integrations/online-orders';
+import { InternationalPage, ProductRadarPage } from '@integrations/online-orders';
+import { AffiliatesPage, CampaignQueuePage, CampaignsPage, OnlineLoyaltyPage, PublicRatePage, ReviewsPage } from '@integrations/online-orders';
+import { PublicPortalPage, ReturnRequestsPage } from '@integrations/online-orders/portal';
 import { DispatchPage, DispatchReportPage, DispatchScanPage, PostOfficePage, PrintLabelsPage } from '@integrations/online-orders';
 import { AutomationPage, CommerceSettingsPage, CommerceSetupPage, CourierScorePage, TrackingMapPage } from '@integrations/online-orders';
 
@@ -121,6 +125,7 @@ import IncomePage from '@modules/finance/income/pages/IncomePage';
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
 import StockAdjustmentsPage from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsPage';
 import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
+import ForecastPage from '@modules/inventory/forecast/pages/ForecastPage';
 import TransfersPage from '@modules/inventory/transfers/pages/TransfersPage';
 
 // ─── Reports ───────────────────────────────────────────────────
@@ -208,6 +213,10 @@ const MfgReportPage = lazy(() => import('@modules/manufacturing/pages/ReportPage
 // ─── Growth tools for online sellers ───
 const PriceCalculatorPage = lazy(() => import('@modules/growth/price-calculator/PriceCalculatorPage'));
 const AdsPage = lazy(() => import('@modules/growth/ads/AdsPage'));
+const SocialPage = lazy(() => import('@modules/growth/social/SocialPage'));
+const MetaSettingsPage = lazy(() => import('@integrations/meta/MetaSettingsPage'));
+const MetaInboxPage = lazy(() => import('@integrations/meta/InboxPage'));
+const WhatsAppBusinessPage = lazy(() => import('@integrations/whatsapp/WhatsAppBusinessPage'));
 // ─── Distribution setup (price lists, routes, schemes) ───
 const DistPriceListsPage = lazy(() => import('@modules/distribution/setup/price-lists/PriceListsPage'));
 const DistRoutesPage = lazy(() => import('@modules/distribution/setup/routes/RoutesPage'));
@@ -282,6 +291,10 @@ export default function App() {
             {/* ═══ BILKUL PUBLIC — login ho ya na ho (customer ka order form, developer link) ═══ */}
             <Route path="/order/:key" element={<PublicOrderPage />} />
             <Route path="/order/:key/track" element={<PublicTrackPage />} />
+            <Route path="/rate/:token" element={<PublicRatePage />} />
+            <Route path="/my/c/:token" element={<PublicPortalPage />} />
+            <Route path="/my/c/:token/:orderId" element={<PublicPortalPage />} />
+            <Route path="/my/:token" element={<PublicPortalPage />} />
             <Route path="/pay/:token" element={<PublicPayPage />} />
             <Route path="/connect/dev/:token" element={<DevInvitePage />} />
             <Route path="/docs/online-store" element={<OnlineStoreDocsPage />} />
@@ -377,6 +390,7 @@ export default function App() {
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                   <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                   <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
+                  <Route path="/inventory/forecast" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <ForecastPage />)} />
                   <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
 
                   {/* ── Manufacturing (all industries, switched on in Settings → Stock) ── */}
@@ -454,6 +468,7 @@ export default function App() {
                   <Route path="/online-orders/cod/reconcile" element={secure(PERMISSIONS.SALES_VIEW, <CodReconcilePage />)} />
                   <Route path="/online-orders/pack" element={secure(PERMISSIONS.SALES_VIEW, <PackPage />)} />
                   <Route path="/online-orders/returns-scan" element={secure(PERMISSIONS.SALES_VIEW, <ReturnScanPage />)} />
+                  <Route path="/online-orders/returns-requests" element={secure(PERMISSIONS.SALES_VIEW, <ReturnRequestsPage />)} />
                   <Route path="/online-orders/dispatch" element={secure(PERMISSIONS.SALES_VIEW, <DispatchPage />)} />
                   <Route path="/online-orders/dispatch-scan" element={secure(PERMISSIONS.SALES_VIEW, <DispatchScanPage />)} />
                   <Route path="/online-orders/dispatch-report" element={secure(PERMISSIONS.SALES_VIEW, <DispatchReportPage />)} />
@@ -467,14 +482,27 @@ export default function App() {
                   <Route path="/online-store/couriers/rules" element={secure(PERMISSIONS.SALES_VIEW, <CourierRulesPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
                   <Route path="/online-orders/customers" element={secure(PERMISSIONS.SALES_VIEW, <OnlineCustomersPage />)} />
+                  <Route path="/online-store/campaigns" element={secure(PERMISSIONS.SALES_VIEW, <CampaignsPage />)} />
+                  <Route path="/online-store/campaigns/:id" element={secure(PERMISSIONS.SALES_VIEW, <CampaignQueuePage />)} />
+                  <Route path="/online-store/reviews" element={secure(PERMISSIONS.SALES_VIEW, <ReviewsPage />)} />
+                  <Route path="/online-store/loyalty" element={secure(PERMISSIONS.SALES_VIEW, <OnlineLoyaltyPage />)} />
+                  <Route path="/online-store/affiliates" element={secure(PERMISSIONS.SALES_VIEW, <AffiliatesPage />)} />
                   <Route path="/online-store/payments" element={secure(PERMISSIONS.SALES_VIEW, <PaymentsPage />)} />
                   <Route path="/online-store/products" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <OnlineProductsPage />)} />
                   <Route path="/online-store/price-calculator" element={secure(PERMISSIONS.COST_VIEW, <PriceCalculatorPage />)} />
-                  <Route path="/online-store/ads" element={secure(PERMISSIONS.ADS_VIEW, <AdsPage />)} />
+                  <Route path="/online-store/marketing" element={secure(PERMISSIONS.ADS_VIEW, <AdsPage />)} />
+                  <Route path="/online-store/ads" element={<Navigate to="/online-store/marketing" replace />} />
+                  <Route path="/online-store/social" element={secure(PERMISSIONS.SALES_VIEW, <SocialPage />)} />
+                  <Route path="/online-store/inbox" element={secure(PERMISSIONS.SALES_VIEW, <MetaInboxPage />)} />
                   <Route path="/online-orders/abandoned" element={secure(PERMISSIONS.SALES_VIEW, <AbandonedCartsPage />)} />
                   <Route path="/online-orders/payment-health" element={secure(PERMISSIONS.SALES_VIEW, <PaymentHealthPage />)} />
+                  <Route path="/online-orders/call-center" element={secure(PERMISSIONS.ONLINE_ORDERS_VIEW, <CallCenterPage />)} />
+                  <Route path="/online-orders/conversion" element={secure(PERMISSIONS.ONLINE_ORDERS_VIEW, <ConversionPage />)} />
                   <Route path="/online-orders/profit" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, secure(PERMISSIONS.COST_VIEW, <ProfitPage />))} />
+                  <Route path="/online-orders/radar" element={secure(PERMISSIONS.SALES_VIEW, <ProductRadarPage />)} />
+                  <Route path="/online-orders/international" element={secure(PERMISSIONS.SALES_VIEW, <InternationalPage />)} />
                   <Route path="/online-store/whatsapp-templates" element={secure(PERMISSIONS.SALES_VIEW, <WaTemplatesPage />)} />
+                  <Route path="/online-store/whatsapp-business" element={secure(PERMISSIONS.ONLINE_ORDERS_VIEW, <WhatsAppBusinessPage />)} />
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
@@ -484,6 +512,7 @@ export default function App() {
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
                   <Route path="/settings/payment-qr" element={secure(PERMISSIONS.SETTINGS_VIEW, <PayQrPage />)} />
                   <Route path="/settings/google" element={secure(PERMISSIONS.SETTINGS_VIEW, <GooglePage />)} />
+                  <Route path="/settings/facebook" element={secure(PERMISSIONS.SETTINGS_VIEW, <MetaSettingsPage />)} />
                   <Route path="/settings/tax-authority" element={<Navigate to="/tax/settings" replace />} />
                   <Route path="/online-store/blocklist" element={secure(PERMISSIONS.SALES_VIEW, <BlocklistPage />)} />
                   <Route path="/online-store/couriers" element={secure(PERMISSIONS.SALES_VIEW, <CouriersPage />)} />

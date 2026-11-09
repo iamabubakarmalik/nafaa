@@ -3,8 +3,12 @@ import { TOOL_SPECS, toolDefinitions } from './ai-tools.service';
 describe('distribution AI tools', () => {
   it('sit at the end of the list, so the cached prompt prefix before them does not change', () => {
     const names = TOOL_SPECS.map((t) => t.name);
-    expect(names.slice(-5)).toEqual(['distribution_dsr', 'route_recovery', 'targets_status', 'van_stock', 'pending_claims']);
-    expect(names.indexOf('production_summary')).toBe(names.length - 6);
+    // The online store manager tools came later and sit after them.
+    expect(names.slice(-10)).toEqual([
+      'distribution_dsr', 'route_recovery', 'targets_status', 'van_stock', 'pending_claims',
+      'store_brief', 'courier_city_ranking', 'ads_roas', 'abandoned_carts', 'stock_forecast',
+    ]);
+    expect(names.indexOf('production_summary')).toBe(names.length - 11);
   });
 
   it('ask for the permissions of the data they read', () => {

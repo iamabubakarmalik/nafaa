@@ -171,6 +171,7 @@ export type AutomationAction =
   | { type: 'ASK_ADVANCE'; pct: number }
   | { type: 'NOTE'; text: string }
   | { type: 'NOTIFY'; text: string }
+  | { type: 'REVIEW_REQUEST' }
   | { type: 'HIDE_PRODUCT'; channelId: string | null }
   | { type: 'PUSH_STOCK'; channelId: string | null };
 export type ActionType = AutomationAction['type'];
@@ -189,7 +190,7 @@ export interface AutomationRule {
 
 export type RuleDraft = Pick<AutomationRule, 'name' | 'event' | 'conditions' | 'actions' | 'enabled'>;
 
-export type RecipeKey = 'auto_confirm_prepaid' | 'hold_big_cod_new' | 'city_courier' | 'rto_advance' | 'low_stock_unlist';
+export type RecipeKey = 'auto_confirm_prepaid' | 'hold_big_cod_new' | 'city_courier' | 'rto_advance' | 'low_stock_unlist' | 'review_after_delivery';
 export interface RecipeParams { amount?: number; city?: string; courier?: string; returns?: number; pct?: number; stock?: number }
 
 export interface ActionResult { type: ActionType; ok: boolean; text: string; link?: string | null }

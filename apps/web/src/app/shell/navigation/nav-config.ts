@@ -5,8 +5,9 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
-  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
-  Workflow, Settings2,
+  PhoneCall, Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
+  Workflow, Settings2, Share2, UsersRound, Radar,
+  MessagesSquare as InboxIcon, ThumbsUp as FacebookIcon,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -87,7 +88,9 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-orders/new', label: t('Add order'), icon: PackagePlus, permission: P.SALES_VIEW, keywords: 'manual whatsapp instagram phone paste excel import naya order replacement' },
       { to: '/online-orders/pack', label: t('Packing scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'pack scan barcode packing slip label ready parcel' },
       { to: '/online-orders/returns-scan', label: t('Return scan'), icon: PackageX, permission: P.SALES_VIEW, keywords: 'rto return wapas parcel scan damaged kharab restock' },
+      { to: '/online-orders/returns-requests', label: t('Returns & exchanges'), icon: Undo2, permission: P.SALES_VIEW, keywords: 'return exchange cancel address customer request wapsi badalna portal' },
       { to: '/online-orders/abandoned', label: t('Abandoned carts'), icon: ShoppingCart, permission: P.SALES_VIEW, keywords: 'abandoned cart checkout recover chhoda wapas shopify whatsapp' },
+      { to: '/online-orders/call-center', label: t('Call center'), icon: PhoneCall, permission: P.ONLINE_ORDERS_VIEW, keywords: 'call center phone confirm call queue follow up dobara call agent tel dial confirmation' },
     ],
   },
   {
@@ -115,9 +118,15 @@ export const commerceNavGroups: NavGroup[] = [
   {
     id: 'c-customers', label: t('Customers'), icon: Users, color: '#0d9488', defaultOpen: true, order: 5,
     items: [
-      { to: '/online-orders/customers', label: t('Customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
+      { to: '/online-orders/customers', label: t('Customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab at risk lost rfm clv segment remarketing' },
+      { to: '/online-store/inbox', label: t('Inbox'), icon: InboxIcon, permission: P.SALES_VIEW, keywords: 'inbox messenger instagram dm message comment jawab reply facebook social' },
+      { to: '/online-store/campaigns', label: t('WhatsApp campaigns'), icon: Send, permission: P.SALES_VIEW, keywords: 'campaign whatsapp broadcast win back wapas bulao new arrival restock birthday salgirah ek ek wa.me' },
+      { to: '/online-store/reviews', label: t('Reviews'), icon: Star, permission: P.SALES_VIEW, keywords: 'review rating star feedback google review delivered rai' },
+      { to: '/online-store/loyalty', label: t('Loyalty & referral'), icon: Award, permission: P.SALES_VIEW, keywords: 'loyalty points referral code dost refer inaam online' },
+      { to: '/online-store/affiliates', label: t('Influencers & affiliates'), icon: UsersRound, permission: P.SALES_VIEW, keywords: 'influencer affiliate commission code utm partner payout expense roi' },
       { to: '/online-store/blocklist', label: t('Report scammer'), icon: ShieldAlert, permission: P.SALES_VIEW, keywords: 'block list fake order scammer fraud rto number' },
       { to: '/online-store/whatsapp-templates', label: t('WhatsApp messages'), icon: MessageCircle, permission: P.SALES_VIEW, keywords: 'whatsapp template message confirm address advance dispatched tracking review wa.me' },
+      { to: '/online-store/whatsapp-business', label: t('WhatsApp Business'), icon: MessageCircle, permission: P.ONLINE_ORDERS_VIEW, keywords: 'whatsapp business cloud api bot auto confirm button haan cancel template approve number' },
     ],
   },
   {
@@ -125,9 +134,13 @@ export const commerceNavGroups: NavGroup[] = [
     items: [
       { to: '/online-store/costs', label: t('Selling costs'), icon: Calculator, permission: P.SALES_VIEW, keywords: 'courier charge rate card cod fee packaging gateway fee profit expense rto' },
       { to: '/online-orders/profit', label: t('Profit'), icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW, alsoNeeds: P.COST_VIEW, keywords: 'profit net munafa sale cost ads courier returns expense cash received cod' },
+      { to: '/online-orders/radar', label: t('Product Radar'), icon: Radar, permission: P.SALES_VIEW, keywords: 'radar trending rising falling product margin bundle together upsell demand bikri barh gir' },
+      { to: '/online-orders/international', label: t('International'), icon: Globe, permission: P.SALES_VIEW, keywords: 'international currency exchange rate usd aed gbp country price list shipping abroad overseas dollar' },
+      { to: '/online-orders/conversion', label: t('Website conversion'), icon: BadgePercent, permission: P.ONLINE_ORDERS_VIEW, keywords: 'bought together upsell cross sell saath free shipping delivery had coupon code discount win back abandoned snippet' },
       { to: '/online-orders/payment-health', label: t('Payment health'), icon: Activity, permission: P.SALES_VIEW, keywords: 'cod outstanding settlement courier paisa prepaid advance payment link failed refund rto loss' },
-      { to: '/online-store/ads', label: t('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
-      { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'whatsapp bot ai marketing social affiliate roadmap' },
+      { to: '/online-store/marketing', label: t('Marketing'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google snapchat influencer roas cac marketing campaign csv utm link qr pixel conversions api feed catalog ad copy' },
+      { to: '/online-store/social', label: t('Social media'), icon: Share2, permission: P.SALES_VIEW, keywords: 'social media post calendar facebook instagram tiktok youtube whatsapp status caption hashtag reel design creative content plan eid' },
+      { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'ai marketing social affiliate roadmap' },
     ],
   },
 ];
@@ -209,6 +222,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/products', label: t('Products'), icon: Package, permission: P.PRODUCTS_VIEW, keywords: 'items stock' },
       { to: '/catalog', label: t('Catalog'), icon: Eye, permission: P.PRODUCTS_VIEW },
       { to: '/low-stock', label: t('Low stock'), icon: AlertTriangle, permission: P.LOW_STOCK_VIEW, keywords: 'reorder khatam' },
+      { to: '/inventory/forecast', label: t('Stock forecast'), icon: TrendingUp, permission: P.LOW_STOCK_VIEW, keywords: 'forecast andaza kab khatam reorder dead stock overstock mangwana' },
       { to: '/combos', label: t('Combos'), icon: Gift, permission: P.PRODUCTS_VIEW, keywords: 'bundle deal offer package' },
       { to: '/product-units', label: t('Multi-units'), icon: Layers, permission: P.PRODUCTS_VIEW, keywords: 'pack box carton dozen unit' },
       { to: '/damage', label: t('Damaged stock'), icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'kharab maal damage wastage expiry toota report approve' },
@@ -303,6 +317,7 @@ export const allShopsNavGroups: NavGroup[] = [
     items: [
       { to: '/products', label: t('Products'), icon: Package, permission: P.PRODUCTS_VIEW },
       { to: '/low-stock', label: t('Low stock'), icon: AlertTriangle, permission: P.LOW_STOCK_VIEW },
+      { to: '/inventory/forecast', label: t('Stock forecast'), icon: TrendingUp, permission: P.LOW_STOCK_VIEW },
       { to: '/transfers', label: t('Transfers'), icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE },
       { to: '/purchases', label: t('Purchases'), icon: PackagePlus, permission: P.PURCHASES_VIEW },
       { to: '/suppliers', label: t('Suppliers'), icon: Truck, permission: P.SUPPLIERS_VIEW },
@@ -460,6 +475,7 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
       { to: '/online-store/foodpanda', label: t('Foodpanda'), icon: Bike, permission: VIEW, external: true, desc: t('Foodpanda orders seedha Nafaa me — accept, reject, ready'), keywords: 'foodpanda delivery hero food order restaurant rider' },
       { to: '/online-store/payments', label: t('Online payments'), icon: Wallet, permission: VIEW, external: true, desc: t('Safepay, JazzCash, Easypaisa — advance ya poori Amount ka link'), keywords: 'payment safepay jazzcash easypaisa card link advance' },
       { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: VIEW, external: true, desc: t('PostEx, Leopards — booking, label, tracking'), keywords: 'courier postex leopards booking' },
+      { to: '/settings/facebook', label: t('Facebook & Instagram'), icon: FacebookIcon, permission: VIEW, desc: t('Khud post, inbox, Facebook / Instagram shop catalog'), keywords: 'facebook instagram meta page connect auto post inbox catalog shop ads' },
       { to: '/settings/google', label: t('Google'), icon: Search, permission: VIEW, desc: t('Google Shopping, Maps par stock, reviews'), keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/accounting', label: t('Accounting'), icon: Wallet2, permission: VIEW, desc: t('Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab'), keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
       { to: '/settings/developer', label: t('API & webhooks'), icon: Code2, permission: VIEW, desc: t('Zapier, Make, Google Sheets, apna software'), keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },

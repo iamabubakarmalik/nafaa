@@ -1,21 +1,21 @@
 /**
- * Online customers for selling again: who buys again and again (VIP,
- * repeat), who has gone quiet (30/60/90 days), who is new, who returns
- * parcels and who is blocked. Each customer opens with their orders; the
- * broadcast tab sends a ready WhatsApp message to the whole segment.
+ * Online customers for selling again: segments (new, repeat, VIP, at risk,
+ * lost, high RTO), an RFM score and a 12-month value (CLV) per buyer, and the
+ * repeat-purchase rate. Each customer opens with their orders; "WhatsApp
+ * campaign" sends the segment a message one chat at a time.
  *
- * Keys: / search · 1 customers · 2 broadcast · G guide.
+ * Keys: / search · C campaign · G guide.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowRight, Copy, Crown, Download, GraduationCap, MessageCircle, Phone, Repeat, Send, ShieldBan, Sparkles, UserMinus, UserPlus, Users, X,
+  ArrowRight, Crown, Download, Gem, GraduationCap, Megaphone, MessageCircle, Phone, Repeat, Send, ShieldBan, Sparkles, UserMinus, UserPlus, UserX, Users, X,
 } from 'lucide-react';
-import { Badge, Button, Card, confirmDialog, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, IconButton, Input, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs } from '@/design-system/components';
+import { Badge, Button, confirmDialog, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, IconButton, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -23,43 +23,17 @@ import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { apiErrorMessage, onlineOrdersApi, type OnlineCustomer } from '../api/online-orders.api';
+import { apiErrorMessage, onlineOrdersApi, type OnlineCustomer, type RfmLabel } from '../api/online-orders.api';
 import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { STATUS_LABEL, waNumber, whenText } from '../lib/labels';
 import { downloadCsv, orderNo } from '../lib/orders';
 import { customersDoc } from '../lib/print';
+import { RFM_INFO, SEGMENTS } from '../lib/retention';
 import { t as tr } from '@core/i18n';
 
-type Tab = 'list' | 'broadcast';
+/** Greeting for a single customer's WhatsApp button. */
+const hello = (c: OnlineCustomer, shop: string) => tr('Assalam o Alaikum {{name}}! {{shop}} ki taraf se.', { name: c.name.split(' ')[0] || c.name, shop });
 
-const SEGMENTS: Array<{ value: string; label: string; hint: string }> = [
-  { value: 'all', label: tr('Sab'), hint: tr('Saare online customers (2 saal)') },
-  { value: 'vip', label: tr('VIP'), hint: tr('Sab se zyada kharchne wale 10%') },
-  { value: 'repeat', label: tr('Dobara lene wale'), hint: tr('2 ya zyada order deliver') },
-  { value: 'inactive30', label: tr('30 din se gayab'), hint: tr('Pehle le chuke, 30 din se koi order nahi') },
-  { value: 'inactive60', label: tr('60 din se gayab'), hint: tr('60 din se koi order nahi') },
-  { value: 'inactive90', label: tr('90 din se gayab'), hint: tr('90 din se koi order nahi') },
-  { value: 'new', label: tr('Naye'), hint: tr('Pehla order pichhle 30 din me') },
-  { value: 'risky', label: tr('RTO wale'), hint: tr('Kam az kam ek parcel wapas kiya') },
-  { value: 'blocked', label: tr('Blocked'), hint: tr('Block list me') },
-];
-
-/** Ready message per segment; {naam} {dukaan} {link} are filled in. */
-const TEMPLATES: Record<string, string> = {
-  all: 'Assalam o Alaikum {naam}! {dukaan} ki taraf se shukriya 🙏 Naya maal aa gaya hai — dekhne ke liye: {link}',
-  vip: 'Assalam o Alaikum {naam}! Aap hamare khaas customer hain ⭐ Sirf aap ke liye 10% discount — code: VIP10. Order: {link}',
-  repeat: 'Assalam o Alaikum {naam}! Hamesha {dukaan} par bharosa karne ka shukriya 🙏 Naya stock aa gaya: {link}',
-  inactive30: 'Assalam o Alaikum {naam}! Kafi din ho gaye 😊 {dukaan} me naya maal aaya hai — aap ke liye: {link}',
-  inactive60: 'Assalam o Alaikum {naam}! Hum aap ko yaad kar rahe hain 🙂 Wapas aane par khaas discount — code: WAPAS10. {link}',
-  inactive90: 'Assalam o Alaikum {naam}! {dukaan} ki taraf se aap ke liye 15% discount — code: WAPAS15. Order: {link}',
-  new: 'Assalam o Alaikum {naam}! {dukaan} se pehla order karne ka shukriya 🙏 Kaisa laga? Agli dafa ke liye: {link}',
-  risky: 'Assalam o Alaikum {naam}! {dukaan} se order ke liye shukriya. Agla order confirm karne ke liye isi number par reply karein.',
-  blocked: '',
-};
-
-const LS = 'nafaa:customers:templates';
-const LS_LINK = 'nafaa:customers:link';
-const readLs = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const LIMIT = 50;
 
 export default function OnlineCustomersPage() {
@@ -67,49 +41,44 @@ export default function OnlineCustomersPage() {
   const { sales: money } = useMasked();
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   const shop = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
-  const [tab, setTab] = useState<Tab>('list');
   const [segment, setSegment] = useState('all');
+  const [rfm, setRfm] = useState<RfmLabel | 'all'>('all');
+  const [sort, setSort] = useState<'spent' | 'clv'>('spent');
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
-  const [templates, setTemplates] = useState<Record<string, string>>(() => ({ ...TEMPLATES, ...readLs(LS, {}) }));
-  const [link, setLink] = useState<string>(() => readLs(LS_LINK, ''));
   const [openCustomer, setOpenCustomer] = useState<OnlineCustomer | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [sent, setSent] = useState<Set<string>>(new Set());
 
   useEffect(() => { const t = setTimeout(() => { setQuery(search.trim()); setPage(0); }, 300); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { try { localStorage.setItem(LS, JSON.stringify(templates)); localStorage.setItem(LS_LINK, JSON.stringify(link)); } catch { /* storage blocked */ } }, [templates, link]);
-  useEffect(() => { setSent(new Set()); }, [segment]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
-      if (e.key === '1') setTab('list');
-      if (e.key === '2') setTab('broadcast');
+      if (e.key === 'c' || e.key === 'C') { e.preventDefault(); startCampaign(); }
       if (e.key === '/') { e.preventDefault(); window.setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  });
 
   const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
-    queryKey: ['online-customers', segment, query, page],
-    queryFn: () => onlineOrdersApi.customers({ segment, search: query || undefined, limit: LIMIT, offset: page * LIMIT }),
+    queryKey: ['online-customers', segment, query, page, rfm, sort],
+    queryFn: () => onlineOrdersApi.customers({ segment, search: query || undefined, limit: LIMIT, offset: page * LIMIT, rfm: rfm === 'all' ? undefined : rfm, sort }),
     placeholderData: (prev) => prev,
   });
   const rows = data?.rows ?? [];
   const pages = Math.ceil((data?.total ?? 0) / LIMIT);
   const seg = SEGMENTS.find((s) => s.value === segment)!;
-  const tpl = templates[segment] ?? '';
   const counts = data?.counts ?? {};
   const pickSegment = (v: string) => { setSegment(v); setPage(0); };
 
-  const msgFor = (c: OnlineCustomer) => tpl.replace(/\{naam\}/g, c.name.split(' ')[0] || c.name).replace(/\{dukaan\}/g, shop).replace(/\{link\}/g, link || '').trim();
+  const startCampaign = () => navigate(`/online-store/campaigns?segment=${segment === 'blocked' ? 'all' : segment}`);
   const waHref = (c: OnlineCustomer) => {
     const wa = waNumber(c.phone);
     if (!wa || c.blocked) return null;
-    const text = msgFor(c);
+    const text = hello(c, shop);
     return `https://wa.me/${wa}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
   };
 
@@ -120,20 +89,14 @@ export default function OnlineCustomersPage() {
   });
   const askBlock = async (c: OnlineCustomer) => { if (c.blocked || (await confirmDialog({ title: tr('{{name}} ({{phone}}) block karein?', { name: c.name, phone: c.phone }), text: tr('Is number ka naya order khud accept nahi hoga.'), danger: true }))) block.mutate(c); };
 
-  /** Every customer in the segment (up to 500) for copy, CSV and print. */
-  const fetchAll = () => onlineOrdersApi.customers({ segment, search: query || undefined, limit: 500, offset: 0 });
-  const copyNumbers = async () => {
-    const all = (await fetchAll()).rows.filter((c) => !c.blocked);
-    const nums = all.map((c) => (waNumber(c.phone) ? `+${waNumber(c.phone)}` : c.phone)).join('\n');
-    await navigator.clipboard?.writeText(nums);
-    toast.success(tr('{{count}} number copy — WhatsApp broadcast list me paste karein', { count: all.length }));
-  };
+  /** Every customer in the segment (up to 500) for CSV and print. */
+  const fetchAll = () => onlineOrdersApi.customers({ segment, search: query || undefined, limit: 500, offset: 0, rfm: rfm === 'all' ? undefined : rfm, sort });
   const exportCsv = async () => {
     const all = (await fetchAll()).rows;
     if (!all.length) { toast.error(tr('Is list me koi customer nahi')); return; }
     downloadCsv(`customers-${segment}.csv`, [
-      [tr('Naam'), tr('Phone'), tr('Shehar'), tr('Orders'), tr('Deliver hue'), tr('Wapas'), tr('Cancel'), tr('Kharch (Rs)'), tr('Ausat order'), tr('Aakhri order (din pehle)'), tr('Channels'), tr('Blocked')],
-      ...all.map((c) => [c.name, c.phone, c.city ?? '', c.orders, c.delivered, c.returned, c.cancelled, c.spent, c.avgOrder, c.daysSince, c.channels.join(' / '), c.blocked ? tr('Haan') : '']),
+      [tr('Naam'), tr('Phone'), tr('Shehar'), tr('Orders'), tr('Deliver hue'), tr('Wapas'), tr('Cancel'), tr('Kharch (Rs)'), tr('Ausat order'), tr('Aakhri order (din pehle)'), tr('RFM'), tr('RFM group'), tr('CLV 12 mahine (Rs)'), tr('Channels'), tr('Blocked')],
+      ...all.map((c) => [c.name, c.phone, c.city ?? '', c.orders, c.delivered, c.returned, c.cancelled, c.spent, c.avgOrder, c.daysSince, c.rfm?.score ?? '', c.rfm ? RFM_INFO[c.rfm.label].label : '', c.clv ?? '', c.channels.join(' / '), c.blocked ? tr('Haan') : '']),
     ]);
   };
 
@@ -149,40 +112,43 @@ export default function OnlineCustomersPage() {
           <PrivacyToggle compact />
           <button type="button" onClick={() => void exportCsv()} className={heroButton}><Download className="h-4 w-4" /> {' '}{tr('CSV')}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={async () => customersDoc(await fetchAll(), seg.label)} disabled={!rows.length} /></span>
+          <button type="button" onClick={startCampaign} title={tr('WhatsApp campaign (C)')} className={heroButton}><Megaphone className="h-4 w-4" /> <span className="hidden sm:inline">{tr('WhatsApp campaign')}</span></button>
           <Link to="/online-store/blocklist" className={heroButton}><ShieldBan className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Block list')}</span></Link>
           <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={data ? [
           { label: tr('Customers'), value: String(data.totals.customers), hint: tr('pichhle 2 saal') },
           { label: tr('Kul kharch'), value: money(data.totals.spent), hint: tr('deliver hue orders') },
-          { label: tr('Dobara lene wale'), value: `${data.totals.repeatRate}%`, hint: `${counts.repeat ?? 0}` },
-          { label: tr('30 din se gayab'), value: String(counts.inactive30 ?? 0), hint: tr('wapas laane ka mauqa') },
-        ] : [{ label: tr('Customers'), value: '' }, { label: tr('Kul kharch'), value: '' }, { label: tr('Dobara'), value: '' }, { label: tr('Gayab'), value: '' }]}
+          { label: tr('Repeat rate'), value: `${data.totals.repeatRate}%`, hint: tr('{{count}} dobara lene wale', { count: counts.repeat ?? 0 }) },
+          { label: tr('CLV (ausat)'), value: money(data.totals.avgClv ?? 0), hint: tr('agle 12 mahine, har khareedar') },
+        ] : [{ label: tr('Customers'), value: '' }, { label: tr('Kul kharch'), value: '' }, { label: tr('Repeat rate'), value: '' }, { label: tr('CLV (ausat)'), value: '' }]}
       />
 
       <KpiRow>
         {!data ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
           <KpiCard icon={Crown} color="#d97706" label={tr('VIP')} value={counts.vip ?? 0} hint={tr('Sab se zyada kharchne wale')} onClick={() => pickSegment(segment === 'vip' ? 'all' : 'vip')} active={segment === 'vip'} />
           <KpiCard icon={Repeat} color="#0d9488" label={tr('Dobara lene wale')} value={counts.repeat ?? 0} hint={tr('2+ order deliver')} onClick={() => pickSegment(segment === 'repeat' ? 'all' : 'repeat')} active={segment === 'repeat'} />
-          <KpiCard icon={UserMinus} color="#7c3aed" label={tr('30 din se gayab')} value={counts.inactive30 ?? 0} hint={tr('{{value}} to 90 din se', { value: counts.inactive90 ?? 0 })} onClick={() => pickSegment(segment === 'inactive30' ? 'all' : 'inactive30')} active={segment === 'inactive30'} />
-          <KpiCard icon={UserPlus} color="#2563eb" label={tr('Naye')} value={counts.new ?? 0} hint={tr('Pehla order 30 din me')} onClick={() => pickSegment(segment === 'new' ? 'all' : 'new')} active={segment === 'new'} />
-          <KpiCard icon={ShieldBan} color="#e11d48" label={tr('RTO wale')} value={counts.risky ?? 0} hint={tr('{{value}} blocked', { value: counts.blocked ?? 0 })} onClick={() => pickSegment(segment === 'risky' ? 'all' : 'risky')} active={segment === 'risky'} />
+          <KpiCard icon={UserMinus} color="#ea580c" label={tr('Khatre me')} value={counts.at_risk ?? 0} hint={tr('60–119 din se koi order nahi')} onClick={() => pickSegment(segment === 'at_risk' ? 'all' : 'at_risk')} active={segment === 'at_risk'} />
+          <KpiCard icon={UserX} color="#7c3aed" label={tr('Chale gaye')} value={counts.lost ?? 0} hint={tr('120 din ya zyada se koi order nahi')} onClick={() => pickSegment(segment === 'lost' ? 'all' : 'lost')} active={segment === 'lost'} />
+          <KpiCard icon={ShieldBan} color="#e11d48" label={tr('Zyada RTO')} value={counts.high_rto ?? 0} hint={tr('{{value}} blocked', { value: counts.blocked ?? 0 })} onClick={() => pickSegment(segment === 'high_rto' ? 'all' : 'high_rto')} active={segment === 'high_rto'} />
         </>}
       </KpiRow>
 
       <FilterBar
         search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Naam, phone ya shehar…')} label={tr('Customer search')} />}
-        chips={segment !== 'all' || query ? <>
+        chips={segment !== 'all' || query || rfm !== 'all' ? <>
           {segment !== 'all' && <FilterChip onRemove={() => pickSegment('all')}>{seg.label}</FilterChip>}
+          {rfm !== 'all' && <FilterChip onRemove={() => { setRfm('all'); setPage(0); }}>{RFM_INFO[rfm].label}</FilterChip>}
           {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
         </> : undefined}
-        onClear={() => { pickSegment('all'); setSearch(''); }}>
+        onClear={() => { pickSegment('all'); setRfm('all'); setSearch(''); }}>
         <FilterMenu icon={Users} label={tr('Kaun se')} value={segment} active={segment !== 'all'} onChange={pickSegment} width="w-72" align="right"
           options={SEGMENTS.map((s) => ({ value: s.value, label: `${s.label}${data ? ` (${counts[s.value] ?? 0})` : ''}`, hint: s.hint }))} />
+        <FilterMenu icon={Gem} label={tr('RFM group')} value={rfm} active={rfm !== 'all'} onChange={(v) => { setRfm(v as RfmLabel | 'all'); setPage(0); }} width="w-72" align="right"
+          options={[{ value: 'all', label: tr('Sab') }, ...(Object.keys(RFM_INFO) as RfmLabel[]).map((k) => ({ value: k, label: `${RFM_INFO[k].label}${data?.labels ? ` (${data.labels[k] ?? 0})` : ''}`, hint: RFM_INFO[k].hint }))]} />
+        <FilterMenu icon={Sparkles} label={tr('Tarteeb')} value={sort} active={sort !== 'spent'} onChange={(v) => { setSort(v as 'spent' | 'clv'); setPage(0); }} align="right"
+          options={[{ value: 'spent', label: tr('Kul kharch') }, { value: 'clv', label: tr('CLV (agle 12 mahine)') }]} />
       </FilterBar>
-
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd> {' '}{tr('customers ·')}{' '} <Kbd>2</Kbd> {' '}{tr('broadcast')}</>}
-        tabs={[{ id: 'list', label: tr('Customers'), icon: Users, count: data?.total ?? null }, { id: 'broadcast', label: tr('WhatsApp broadcast'), icon: Send }]} />
 
       {isError && !data ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
@@ -190,58 +156,6 @@ export default function OnlineCustomersPage() {
           <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>
           <Button className="mt-3" variant="secondary" onClick={() => refetch()}>{tr('Dobara koshish')}</Button>
         </div>
-      ) : tab === 'broadcast' ? (
-        segment === 'blocked' ? (
-          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-            <p className="font-semibold text-slate-900">{tr('Blocked customers ko message nahi bhejte')}</p>
-            <Button className="mt-3" variant="secondary" onClick={() => pickSegment('all')}>{tr('Sab customers')}</Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-5">
-            <Card className="rounded-2xl lg:col-span-2" title={tr('Message')} description={`${seg.hint}. {naam}, {dukaan} aur {link} khud badal jate hain.`}>
-              <Textarea value={tpl} onChange={(e) => setTemplates({ ...templates, [segment]: e.target.value })} rows={5} maxLength={600} aria-label={tr('Message')} />
-              <Input wrapperClassName="mt-3" label={<>{tr('{{value}} — order form ya website ka link', { value: '{link}' })}</>} value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" />
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setTemplates({ ...templates, [segment]: TEMPLATES[segment] })}>{tr('Pehla wala message')}</Button>
-                <Button size="sm" variant="secondary" leftIcon={<Copy className="h-4 w-4" />} onClick={() => void copyNumbers()} disabled={!rows.length}>{tr('Sab numbers copy')}</Button>
-              </div>
-              {rows[0] && (
-                <div className="mt-4 rounded-2xl bg-brand-50 p-3 text-[0.8125rem] text-brand-950 ring-1 ring-brand-100">
-                  <p className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-brand-700">{tr('{{value}} ko aise jayega', { value: rows[0].name.split(' ')[0] })}</p>
-                  <p className="whitespace-pre-line">{msgFor(rows[0]) || '—'}</p>
-                </div>
-              )}
-            </Card>
-            <Card className="rounded-2xl lg:col-span-3" flush title={tr('Ek ek karke bhejein')}
-              description={tr('{{size}} / {{count}} bhej diye (is safhe ke). WhatsApp khulega — "Send" dabayein, phir agla.', { size: sent.size, count: rows.filter((c) => waHref(c)).length })}>
-              {isLoading ? <div className="p-4"><Skeleton className="h-40 rounded-xl" /></div> : !rows.length ? (
-                <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">{tr('Is list me koi customer nahi')}</p>
-              ) : (
-                <ul className="divide-y divide-slate-100">
-                  {rows.map((c) => {
-                    const href = waHref(c);
-                    const done = sent.has(c.key);
-                    return (
-                      <li key={c.key} className={cn('flex items-center gap-3 px-4 py-2.5 sm:px-5', done && 'bg-success-50/50')}>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.name}</span>
-                          <span className="block text-[0.75rem] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}</span>
-                        </span>
-                        {href ? (
-                          <a href={href} target="_blank" rel="noreferrer" onClick={() => setSent((s) => new Set(s).add(c.key))}
-                            className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold', done ? 'bg-white text-brand-700 ring-1 ring-brand-200' : 'bg-brand-600 text-white hover:bg-brand-700')}>
-                            <MessageCircle className="h-4 w-4" />{done ? tr('Bhej diya') : tr('Bhejein')}
-                          </a>
-                        ) : <span className="text-[0.75rem] text-slate-400">{tr('Number sahi nahi')}</span>}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <PagerRow page={page} pages={pages} total={data?.total ?? 0} setPage={setPage} />
-            </Card>
-          </div>
-        )
       ) : (
         <section className={cn('rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80', isFetching && !isLoading && 'opacity-80')}>
           {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div> : !rows.length ? (
@@ -254,7 +168,7 @@ export default function OnlineCustomersPage() {
             <div className="overflow-x-auto">
               <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
                 <THead className="text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                  <Tr><Th className="px-4 py-2 sm:px-5">{tr('Customer')}</Th><Th className="px-3 py-2 text-end">{tr('Deliver / orders')}</Th><Th className="px-3 py-2 text-end">{tr('Kul kharch')}</Th><Th className="px-3 py-2 text-end">{tr('Aakhri order')}</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
+                  <Tr><Th className="px-4 py-2 sm:px-5">{tr('Customer')}</Th><Th className="px-3 py-2">{tr('RFM')}</Th><Th className="px-3 py-2 text-end">{tr('Deliver / orders')}</Th><Th className="px-3 py-2 text-end">{tr('Kul kharch')}</Th><Th className="px-3 py-2 text-end">{tr('CLV')}</Th><Th className="px-3 py-2 text-end">{tr('Aakhri order')}</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
                 </THead>
                 <TBody className="divide-y divide-slate-100">
                   {rows.map((c) => {
@@ -273,11 +187,19 @@ export default function OnlineCustomersPage() {
                             <span className="block text-[0.75rem] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}{c.channels.length ? ` · ${c.channels.join(', ')}` : ''}</span>
                           </button>
                         </Td>
+                        <Td className="px-3 py-2.5">
+                          {c.rfm && (
+                            <span title={`${RFM_INFO[c.rfm.label].hint} · R${c.rfm.r} F${c.rfm.f} M${c.rfm.m}`} className={cn('inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1', RFM_INFO[c.rfm.label].tone)}>
+                              <span className="font-mono">{c.rfm.score}</span>{RFM_INFO[c.rfm.label].label}
+                            </span>
+                          )}
+                        </Td>
                         <Td className="px-3 py-2.5 text-end tabular-nums">{c.delivered}<span className="text-slate-400"> / {c.orders}</span></Td>
                         <Td className="px-3 py-2.5 text-end tabular-nums">
                           <div className="font-semibold text-slate-900">{money(c.spent)}</div>
                           {c.avgOrder > 0 && <div className="text-[0.6875rem] text-slate-400">{tr('ausat {{avgOrder}}', { avgOrder: money(c.avgOrder) })}</div>}
                         </Td>
+                        <Td className="px-3 py-2.5 text-end tabular-nums text-slate-700">{c.clv ? money(c.clv) : '—'}</Td>
                         <Td className="px-3 py-2.5 text-end text-slate-600">{c.daysSince === 0 ? tr('aaj') : tr('{{daysSince}} din pehle', { daysSince: c.daysSince })}</Td>
                         <Td className="px-4 py-2.5 sm:px-5">
                           <div className="flex justify-end gap-1">
@@ -311,18 +233,20 @@ export default function OnlineCustomersPage() {
           flow={[
             { label: tr('Customers'), icon: Users, color: '#2563eb' },
             { label: tr('VIP'), icon: Crown, color: '#d97706' },
-            { label: tr('Broadcast'), hint: 'WhatsApp', icon: Send, color: '#16a34a' },
+            { label: tr('Campaign'), hint: 'WhatsApp', icon: Send, color: '#16a34a' },
           ]}
           steps={[
             { icon: Crown, color: '#d97706', title: tr('VIP'), text: tr('Sab se zyada kharchne wale 10% (kam az kam 2 order deliver). Inhein khaas discount dein.') },
-            { icon: UserMinus, color: '#7c3aed', title: tr('Gayab customers'), text: tr('30, 60 ya 90 din se order nahi kiya. Ek WhatsApp message aksar wapas le aata hai.') },
-            { icon: Send, color: '#16a34a', title: tr('Broadcast'), text: tr('Message likhein, phir ek ek customer ko "Bhejein" — WhatsApp khulta hai, Send dabayein. Ya sab numbers copy karke WhatsApp broadcast list banayein.') },
+            { icon: UserMinus, color: '#ea580c', title: tr('Khatre me / chale gaye'), text: tr('60–119 din se order nahi: khatre me. 120+ din: chale gaye. Ek WhatsApp message aksar wapas le aata hai.') },
+            { icon: Gem, color: '#7c3aed', title: tr('RFM'), text: tr('R = kitna haal hi me, F = kitni dafa, M = kitna kharch (1–5). 555 sab se behtar. Group: Champion, Pakka, Khatre me…') },
+            { icon: Sparkles, color: '#0d9488', title: tr('CLV'), text: tr('Agle 12 mahine me ye customer kitne ka maal le sakta hai — us ki apni raftaar se, khamosh ho to kam.') },
+            { icon: Send, color: '#16a34a', title: tr('WhatsApp campaign'), text: tr('"WhatsApp campaign" is list ka campaign banata hai — har chat tayyar message ke saath, ek ek karke. 7 din me order aaye to ginti hoti hai.') },
             { icon: Users, color: '#2563eb', title: tr('Customer kholein'), text: tr('Naam par click karein — us ke saare orders, kharch aur RTO ek jagah. Order par click se poori details.') },
             { icon: ShieldBan, color: '#e11d48', title: tr('Block'), text: tr('Fake ya baar baar RTO wale number block karein — un ka naya order khud accept nahi hota.') },
             { icon: Download, color: '#0891b2', title: tr('CSV / print'), text: tr('Is list ke customers Excel ya PDF me — marketing ya record ke liye.') },
           ]}
-          tips={[tr('Customer phone number se pehchana jata hai — alag channels ke orders ek hi customer me jurte hain.'), tr('Test order kisi ginti me nahi aata.'), tr('Message is browser me yaad rehta hai.')]}
-          shortcuts={[['/', 'dhoondein'], ['1', 'customers'], ['2', 'broadcast'], ['G', 'guide']]}
+          tips={[tr('Customer phone number se pehchana jata hai — alag channels ke orders ek hi customer me jurte hain.'), tr('Test order kisi ginti me nahi aata.'), tr('Repeat rate: jin ka 1 order deliver hua un me se kitno ne dobara liya.')]}
+          shortcuts={[['/', tr('dhoondein')], ['C', tr('WhatsApp campaign')], ['G', tr('guide')]]}
         />
       )}
     </PageShell>

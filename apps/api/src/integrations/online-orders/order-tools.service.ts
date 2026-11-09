@@ -11,6 +11,7 @@ import { businessDayKey, hourInTz } from '../../common/helpers/business-time.hel
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 import { SYSTEM_STAGES, stageKey } from './order-board';
 import { commerceControls } from './commerce-controls';
+import { RFM_LABELS, RfmLabel, SEGMENT_KEYS, clvOf, daysSince, monetaryCuts, repeatRateOf, rfmOf, segmentsOf, vipCutOf } from './retention/segments';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const blockKey = (tenantId: string) => `online_orders_blocklist:${tenantId}`;
@@ -556,7 +557,7 @@ export class OrderToolsService {
   // CUSTOMERS — dobara bechna (repeat, VIP, gayab, naye, RTO)
   // ═══════════════════════════════════════════════════════════
 
-  async customers(user: AuthenticatedUser, scope: ShopScope, q: { segment?: string; search?: string; limit?: number; offset?: number }) {
+  async customers(user: AuthenticatedUser, scope: ShopScope, q: { segment?: string; rfm?: string; sort?: string; search?: string; limit?: number; offset?: number }) {
     const rows = await this.prisma.channelOrder.findMany({
       where: { tenantId: user.tenantId, ...(scope.whereLoose as any), receivedAt: { gte: new Date(Date.now() - 730 * 86_400_000) }, customerPhone: { not: null } },
       select: { customerName: true, customerPhone: true, customerCity: true, orderStatus: true, total: true, receivedAt: true, metadata: true, integration: { select: { displayName: true } } },
@@ -589,41 +590,51 @@ export class OrderToolsService {
     }
     const all = [...map.values()];
     const now = Date.now();
-    const days = (d: Date) => Math.floor((now - d.getTime()) / 86_400_000);
-    // VIP: sab se zyada kharchne wale 10% (kam az kam 2 deliver)
-    const spentSorted = all.filter((c) => c.delivered >= 2).map((c) => c.spent).sort((a, b) => b - a);
-    const vipCut = spentSorted.length ? spentSorted[Math.max(0, Math.ceil(spentSorted.length * 0.1) - 1)] : Infinity;
-
-    const segOf = (c: C) => ({
-      repeat: c.delivered >= 2,
-      vip: c.delivered >= 2 && c.spent >= vipCut,
-      inactive30: c.delivered > 0 && days(c.lastAt) >= 30,
-      inactive60: c.delivered > 0 && days(c.lastAt) >= 60,
-      inactive90: c.delivered > 0 && days(c.lastAt) >= 90,
-      // Naye: pehla order haal hi me, aur wapas / block nahi (dobara bechne layak)
-      new: c.orders === 1 && days(c.firstAt) <= 30 && c.returned === 0 && !c.blocked,
-      risky: c.returned > 0,
-      blocked: c.blocked,
-    });
-    const counts: Record<string, number> = { all: all.length, repeat: 0, vip: 0, inactive30: 0, inactive60: 0, inactive90: 0, new: 0, risky: 0, blocked: 0 };
-    for (const c of all) for (const [k, v] of Object.entries(segOf(c))) if (v) counts[k]++;
+    const days = (d: Date) => daysSince(d, now);
+    const vipCut = vipCutOf(all);
+    const cuts = monetaryCuts(all.map((c) => c.spent));
+    const segOf = (c: C) => segmentsOf(c, now, vipCut);
+    const counts: Record<string, number> = { all: all.length };
+    for (const k of SEGMENT_KEYS) counts[k] = 0;
+    const labels: Record<string, number> = {};
+    let clvSum = 0;
+    let clvBuyers = 0;
+    for (const c of all) {
+      for (const [k, v] of Object.entries(segOf(c))) if (v) counts[k]++;
+      const label = rfmOf(c, now, cuts).label;
+      labels[label] = (labels[label] ?? 0) + 1;
+      if (c.delivered > 0) { clvSum += clvOf(c, now); clvBuyers++; }
+    }
 
     const seg = q.segment && q.segment in counts ? q.segment : 'all';
+    const rfmFilter = q.rfm && RFM_LABELS.includes(q.rfm as RfmLabel) ? q.rfm : null;
     const term = q.search?.trim().toLowerCase();
     const digits = term?.replace(/\D/g, '');
-    let list = all.filter((c) => seg === 'all' || (segOf(c) as any)[seg]);
+    let list = all.filter((c) => seg === 'all' || (segOf(c) as Record<string, boolean>)[seg]);
+    if (rfmFilter) list = list.filter((c) => rfmOf(c, now, cuts).label === rfmFilter);
     if (term) list = list.filter((c) => c.name.toLowerCase().includes(term) || (!!digits && digits.length >= 3 && c.key.includes(digits)) || (c.city ?? '').toLowerCase().includes(term));
-    list.sort((a, b) => (seg === 'inactive30' || seg === 'inactive60' || seg === 'inactive90') ? a.lastAt.getTime() - b.lastAt.getTime() : b.spent - a.spent || b.orders - a.orders);
+    const quiet = ['inactive30', 'inactive60', 'inactive90', 'at_risk', 'lost'].includes(seg);
+    if (q.sort === 'clv') list.sort((a, b) => clvOf(b, now) - clvOf(a, now));
+    else list.sort((a, b) => (quiet ? a.lastAt.getTime() - b.lastAt.getTime() : b.spent - a.spent || b.orders - a.orders));
     const take = Math.min(Math.max(q.limit ?? 50, 1), 500);
     const skip = Math.max(q.offset ?? 0, 0);
     return {
       counts,
-      totals: { customers: all.length, spent: all.reduce((s, c) => s + c.spent, 0), repeatRate: pct(counts.repeat, all.filter((c) => c.delivered > 0).length) },
+      labels,
+      totals: {
+        customers: all.length,
+        spent: all.reduce((s, c) => s + c.spent, 0),
+        repeatRate: repeatRateOf(all),
+        buyers: clvBuyers,
+        avgClv: clvBuyers ? Math.round(clvSum / clvBuyers) : 0,
+        avgOrder: (() => { const d = all.reduce((s, c) => s + c.delivered, 0); return d ? Math.round(all.reduce((s, c) => s + c.spent, 0) / d) : 0; })(),
+      },
       total: list.length,
       rows: list.slice(skip, skip + take).map((c) => ({
         key: c.key, name: c.name, phone: c.phone, city: c.city, orders: c.orders, delivered: c.delivered, returned: c.returned, cancelled: c.cancelled,
         spent: Math.round(c.spent), avgOrder: c.delivered ? Math.round(c.spent / c.delivered) : 0, firstAt: c.firstAt, lastAt: c.lastAt,
         daysSince: days(c.lastAt), channels: [...c.channels], blocked: c.blocked, segments: Object.entries(segOf(c)).filter(([, v]) => v).map(([k]) => k),
+        rfm: rfmOf(c, now, cuts), clv: clvOf(c, now),
       })),
     };
   }

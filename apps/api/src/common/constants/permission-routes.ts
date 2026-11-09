@@ -197,6 +197,9 @@ export const ROUTE_RULES: RouteRule[] = [
 
   /* ── Gudaam ── */
   { match: /(^|\/)low-stock(\/|$)/, GET: P.LOW_STOCK_VIEW },
+  /* Stock forecast: reading is the low-stock view; grouping lines for an order is buying. */
+  { match: /^inventory\/forecast\/order-groups$/, write: P.PURCHASES_CREATE },
+  { match: /^inventory\/forecast(\/|$)/, GET: P.LOW_STOCK_VIEW },
   { match: /(^|\/)stock-adjustments(\/|$)/, GET: P.STOCK_ADJUSTMENTS_MANAGE, write: P.STOCK_ADJUSTMENTS_MANAGE },
   { match: /(^|\/)stock-movements(\/|$)/, GET: P.STOCK_MOVEMENTS_VIEW },
   { match: /(^|\/)transfers(\/|$)/, GET: P.STOCK_TRANSFERS_MANAGE, write: P.STOCK_TRANSFERS_MANAGE },
@@ -278,6 +281,14 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)(bookings|appointments)(\/|$)/, GET: P.SERVICE_BOOKINGS_VIEW, write: P.SERVICE_BOOKINGS_MANAGE },
 
   { match: /(^|\/)online-orders?(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
+  /* Social media studio: calendar, reminders, Nafaa AI content and social analytics read online orders data. */
+  { match: /^online-store\/social(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
+  /* WhatsApp Cloud API: order messages and replies. Connecting and templates are also limited to owners and managers in the service. */
+  { match: /^integrations\/whatsapp(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
+  /* Facebook & Instagram inbox: reading and replying to customers is online orders work. */
+  { match: /^online-store\/inbox(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
+  /* Facebook & Instagram connection is a settings change; MetaService also allows only the owner or a manager. */
+  { match: /^integrations\/meta(\/|$)/, GET: P.SETTINGS_VIEW, write: P.SETTINGS_EDIT },
   { match: /^online-products(\/|$)/, GET: P.ONLINE_PRODUCTS_VIEW, write: P.ONLINE_PRODUCTS_MANAGE },
   /* Ads spend and ROAS. The posting setting is a settings change; writing to expenses also needs expenses.create (checked in AdsService). */
   { match: /^ads\/settings(\/|$)/, GET: P.ADS_VIEW, write: P.SETTINGS_EDIT },

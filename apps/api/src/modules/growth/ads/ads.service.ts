@@ -37,13 +37,14 @@ const sameCampaign = (typed: string | null, imported: string | null) => !typed |
 export const AD_SPEND_SOURCE = 'AD_SPEND';
 const CATEGORY = 'Ads / marketing';
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
-const PLATFORM_LABEL: Record<AdPlatform, string> = { META: 'Facebook/Instagram', TIKTOK: 'TikTok', GOOGLE: 'Google', OTHER: 'Doosra' };
+const PLATFORM_LABEL: Record<AdPlatform, string> = { META: 'Facebook/Instagram', TIKTOK: 'TikTok', GOOGLE: 'Google', SNAPCHAT: 'Snapchat', INFLUENCER: 'Influencer', OTHER: 'Doosra' };
 
 export interface AdEntryInput {
   day?: string;
   platform?: string;
   amount?: number | string;
   campaign?: string | null;
+  adSet?: string | null;
   integrationId?: string | null;
   productIds?: string[];
   orders?: number | string | null;
@@ -116,6 +117,7 @@ export class AdsService {
       ...(productIds !== undefined && { productIds }),
       ...(orders !== undefined && { orders }),
       ...(b.campaign !== undefined && { campaign: String(b.campaign ?? '').trim().slice(0, 120) || null }),
+      ...(b.adSet !== undefined && { adSet: String(b.adSet ?? '').trim().slice(0, 120) || null }),
       ...(b.note !== undefined && { note: String(b.note ?? '').trim().slice(0, 500) || null }),
     };
   }
@@ -219,6 +221,7 @@ export class AdsService {
     const keys = read.rows.map((r) => r.importKey);
     const existing = keys.length ? await this.prisma.adSpend.findMany({ where: { tenantId: user.tenantId, importKey: { in: keys } }, select: { importKey: true, amount: true } }) : [];
     const seen = new Map(existing.map((e) => [e.importKey!, e.amount]));
+    const campaignKeys = await this.campaignLevelKeys(user.tenantId, platform, read.rows);
     const manual = await this.manualEntries(user.tenantId, platform, read.rows.map((r) => r.day));
     const today = await this.today(user.tenantId);
     return {
@@ -227,7 +230,8 @@ export class AdsService {
         ...r,
         status: r.day > today ? 'future'
           : seen.has(r.importKey) ? (Math.abs(seen.get(r.importKey)! - r.amount) < 0.005 ? 'same' : 'changed')
-            : manual.some((m) => m.day === r.day && sameCampaign(m.campaign, r.campaign)) ? 'manual' : 'new',
+            : campaignKeys.has(importKeyOf(platform, r.day, r.campaign)) ? 'changed'
+              : manual.some((m) => m.day === r.day && sameCampaign(m.campaign, r.campaign)) ? 'manual' : 'new',
       })),
       total: r2(read.rows.reduce((s, r) => s + r.amount, 0)),
     };
@@ -249,12 +253,24 @@ export class AdsService {
     const post = (await this.settings.get(user.tenantId)).ads.postExpenses;
     if (post) this.assertCanPost(user);
 
-    const keyed = rows.map((r) => ({ ...r, importKey: importKeyOf(platform as AdPlatform, r.day, r.campaign ?? null) }));
+    const keyed = rows.map((r) => {
+      const adSet = r.adSet ? String(r.adSet).trim().slice(0, 120) || null : null;
+      return { ...r, adSet, importKey: importKeyOf(platform as AdPlatform, r.day, r.campaign ?? null, adSet) };
+    });
+    const groups = new Map<string, { day: string; platform: string; shopId: string | null }>();
+    // An export split by ad set replaces the campaign totals imported before from the same campaign and day.
+    const replaced = await this.prisma.adSpend.findMany({
+      where: { tenantId: user.tenantId, importKey: { in: [...(await this.campaignLevelKeys(user.tenantId, platform, keyed))] } },
+      select: { id: true, day: true, platform: true, shopId: true, postExpense: true },
+    });
+    if (replaced.length) {
+      await this.prisma.adSpend.deleteMany({ where: { id: { in: replaced.map((x) => x.id) } } });
+      for (const x of replaced) if (x.postExpense) groups.set(groupKey(x.day, x.platform, x.shopId), { day: x.day, platform: x.platform, shopId: x.shopId });
+    }
     const existing = await this.prisma.adSpend.findMany({ where: { tenantId: user.tenantId, importKey: { in: keyed.map((r) => r.importKey) } } });
     const byKey = new Map(existing.map((e) => [e.importKey!, e]));
     const manual = await this.manualEntries(user.tenantId, platform, keyed.map((r) => r.day));
     const taken = new Set<string>();
-    const groups = new Map<string, { day: string; platform: string; shopId: string | null }>();
     let added = 0; let changed = 0; let same = 0;
     for (const r of keyed) {
       const amount = r2(Number(r.amount));
@@ -263,7 +279,7 @@ export class AdsService {
       const typed = !byKey.has(r.importKey) ? manual.find((m) => m.day === r.day && sameCampaign(m.campaign, r.campaign) && !taken.has(m.id)) : undefined;
       if (typed) {
         taken.add(typed.id);
-        await this.prisma.adSpend.update({ where: { id: typed.id }, data: { amount, orders, campaign: r.campaign?.trim().slice(0, 120) || null, source: 'CSV', importKey: r.importKey } });
+        await this.prisma.adSpend.update({ where: { id: typed.id }, data: { amount, orders, campaign: r.campaign?.trim().slice(0, 120) || null, adSet: r.adSet, source: 'CSV', importKey: r.importKey } });
         if (typed.postExpense) groups.set(groupKey(typed.day, typed.platform, typed.shopId), { day: typed.day, platform: typed.platform, shopId: typed.shopId });
         changed++;
         continue;
@@ -278,7 +294,7 @@ export class AdsService {
       }
       await this.prisma.adSpend.create({
         data: {
-          tenantId: user.tenantId, shopId, day: r.day, platform, amount, orders, campaign: r.campaign?.trim().slice(0, 120) || null,
+          tenantId: user.tenantId, shopId, day: r.day, platform, amount, orders, campaign: r.campaign?.trim().slice(0, 120) || null, adSet: r.adSet,
           integrationId, source: 'CSV', importKey: r.importKey, postExpense: post, createdById: user.id,
         },
       });
@@ -287,6 +303,73 @@ export class AdsService {
     }
     for (const g of groups.values()) await this.sync(user, g.day, g.platform, g.shopId);
     return { added, changed, same, expenses: groups.size };
+  }
+
+  /**
+   * Saves rows pulled from the Meta Marketing API (source META_API) for the
+   * days in `days`. On those days the pull is the truth for the campaigns it
+   * covers: CSV rows and hand entries for the same campaign (or with no
+   * campaign) are replaced, and API rows that Meta no longer reports are
+   * removed. `actor` is the shop owner (for the expense of each day).
+   */
+  async saveApiRows(actor: AuthenticatedUser, days: string[], rows: Array<{ day: string; campaign: string; adSet: string | null; amount: number; orders: number | null; importKey: string; note: string | null }>) {
+    const tenantId = actor.tenantId;
+    const dayList = [...new Set(days)].filter((d) => DAY_KEY.test(d));
+    if (!dayList.length) return { added: 0, changed: 0, removed: 0 };
+    const post = (await this.settings.get(tenantId)).ads.postExpenses;
+    const groups = new Map<string, { day: string; platform: string; shopId: string | null }>();
+    const touch = (x: { day: string; platform: string; shopId: string | null; postExpense: boolean }) => {
+      if (x.postExpense) groups.set(groupKey(x.day, x.platform, x.shopId), { day: x.day, platform: x.platform, shopId: x.shopId });
+    };
+    const existing = await this.prisma.adSpend.findMany({ where: { tenantId, platform: 'META', day: { in: dayList } } });
+    const pulledCampaigns = new Map<string, Set<string>>();
+    for (const r of rows) {
+      const set = pulledCampaigns.get(r.day) ?? new Set<string>();
+      set.add(r.campaign.trim().toLowerCase());
+      pulledCampaigns.set(r.day, set);
+    }
+    const keys = new Set(rows.map((r) => r.importKey));
+    // CSV and hand entries the pull covers, and API rows Meta no longer reports.
+    const stale = existing.filter((e) => {
+      if (e.source === 'META_API') return !keys.has(e.importKey ?? '');
+      const campaigns = pulledCampaigns.get(e.day);
+      if (!campaigns) return false;
+      return !e.campaign || campaigns.has(e.campaign.trim().toLowerCase());
+    });
+    if (stale.length) {
+      await this.prisma.adSpend.deleteMany({ where: { id: { in: stale.map((x) => x.id) } } });
+      stale.forEach(touch);
+    }
+    const byKey = new Map(existing.filter((e) => e.source === 'META_API').map((e) => [e.importKey!, e]));
+    let added = 0; let changed = 0;
+    for (const r of rows) {
+      const old = byKey.get(r.importKey);
+      if (old) {
+        if (Math.abs(old.amount - r.amount) < 0.005 && (old.orders ?? null) === r.orders && old.campaign === r.campaign) continue;
+        await this.prisma.adSpend.update({ where: { id: old.id }, data: { amount: r2(r.amount), orders: r.orders, campaign: r.campaign, adSet: r.adSet, note: r.note } });
+        touch(old);
+        changed++;
+        continue;
+      }
+      await this.prisma.adSpend.create({
+        data: {
+          tenantId, shopId: null, day: r.day, platform: 'META', amount: r2(r.amount), orders: r.orders, campaign: r.campaign, adSet: r.adSet,
+          source: 'META_API', importKey: r.importKey, postExpense: post, note: r.note, createdById: null,
+        },
+      });
+      if (post) groups.set(groupKey(r.day, 'META', null), { day: r.day, platform: 'META', shopId: null });
+      added++;
+    }
+    for (const g of groups.values()) await this.sync(actor, g.day, g.platform, g.shopId);
+    return { added, changed, removed: stale.length };
+  }
+
+  /** Import keys of earlier campaign-level rows that rows with an ad set now replace. */
+  private async campaignLevelKeys(tenantId: string, platform: string, rows: Array<{ day: string; campaign: string | null; adSet?: string | null }>) {
+    const keys = [...new Set(rows.filter((r) => r.adSet).map((r) => importKeyOf(platform as AdPlatform, r.day, r.campaign ?? null)))];
+    if (!keys.length) return new Set<string>();
+    const found = await this.prisma.adSpend.findMany({ where: { tenantId, importKey: { in: keys } }, select: { importKey: true } });
+    return new Set(found.map((f) => f.importKey!));
   }
 
   /** Entries typed by hand on these days for a platform (no import key). */

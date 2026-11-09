@@ -36,6 +36,7 @@ export function AdEntryForm({ entry, setup, onClose }: { entry: AdEntry | null; 
   const [platform, setPlatform] = useState<AdPlatform>(entry?.platform ?? 'META');
   const [amount, setAmount] = useState(entry ? String(entry.amount) : '');
   const [campaign, setCampaign] = useState(entry?.campaign ?? '');
+  const [adSet, setAdSet] = useState(entry?.adSet ?? '');
   const [channelId, setChannelId] = useState(entry?.integrationId ?? '');
   const [products, setProducts] = useState<Array<{ id: string; name: string }>>(entry?.products ?? []);
   const [orders, setOrders] = useState(entry?.orders != null ? String(entry.orders) : '');
@@ -60,7 +61,7 @@ export function AdEntryForm({ entry, setup, onClose }: { entry: AdEntry | null; 
     mutationFn: async () => {
       if (problems.length) throw new Error(problems[0]);
       const body = {
-        day, platform, amount: value, campaign: campaign.trim() || null, integrationId: channelId || null,
+        day, platform, amount: value, campaign: campaign.trim() || null, adSet: adSet.trim() || null, integrationId: channelId || null,
         productIds: products.map((p) => p.id), orders: orders.trim() === '' ? null : Number(orders),
       };
       return entry ? adsApi.update(entry.id, body) : adsApi.create({ ...body, ...(allShops && shopId && { shopId }) });
@@ -107,7 +108,7 @@ export function AdEntryForm({ entry, setup, onClose }: { entry: AdEntry | null; 
 
         <div>
           <p className={labelCls}>{tr('Platform')}</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {AD_PLATFORMS.map((p) => (
               <button key={p} type="button" onClick={() => setPlatform(p)} aria-pressed={platform === p}
                 className={cn('flex h-11 items-center gap-2 rounded-xl px-2.5 text-start text-[0.8125rem] font-semibold ring-1 transition',
@@ -131,6 +132,10 @@ export function AdEntryForm({ entry, setup, onClose }: { entry: AdEntry | null; 
           <div>
             <label htmlFor="ad-campaign" className={labelCls}>{tr('Campaign (agar ho)')}</label>
             <input id="ad-campaign" value={campaign} onChange={(e) => setCampaign(e.target.value)} maxLength={120} placeholder={tr('Maslan: Winter sale')} className={inputCls} />
+          </div>
+          <div>
+            <label htmlFor="ad-adset" className={labelCls}>{tr('Ad set (agar ho)')}</label>
+            <input id="ad-adset" value={adSet} onChange={(e) => setAdSet(e.target.value)} maxLength={120} placeholder={tr('Maslan: Lahore 18-34')} className={inputCls} />
           </div>
           <div>
             <label htmlFor="ad-orders" className={labelCls}>{tr('Ads manager ke orders (agar pata ho)')}</label>

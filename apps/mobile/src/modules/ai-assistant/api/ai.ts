@@ -83,7 +83,7 @@ export interface AiActionLine {
 /** Something the assistant proposes to do; nothing is written until the user confirms. */
 export interface AiActionProposal {
   id: string;
-  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce';
+  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce' | 'move_order' | 'pause_rule';
   title: string;
   summary: string;
   fields: AiActionField[];

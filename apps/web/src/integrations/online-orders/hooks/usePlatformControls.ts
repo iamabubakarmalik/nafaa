@@ -12,7 +12,9 @@ import { unwrap } from '../api/online-orders.api';
 
 export type CommerceModule =
   | 'orders' | 'catalog' | 'dispatch' | 'couriers' | 'cod' | 'returns'
-  | 'abandoned_carts' | 'growth' | 'whatsapp' | 'storefront' | 'payment_links';
+  | 'abandoned_carts' | 'growth' | 'whatsapp' | 'storefront' | 'payment_links' | 'social'
+  | 'marketing'
+  | 'retention' | 'affiliates';
 
 export interface PlatformControls {
   pausedChannelTypes: string[];
@@ -32,10 +34,14 @@ export const MODULE_PATHS: Record<CommerceModule, string[]> = {
   cod: ['/online-orders/cod', '/online-orders/cod/reconcile', '/online-orders/payment-health'],
   returns: ['/online-orders/returns-scan'],
   abandoned_carts: ['/online-orders/abandoned'],
-  growth: ['/online-store/ads', '/online-orders/profit'],
+  growth: ['/online-orders/profit'],
   whatsapp: ['/online-store/whatsapp-templates'],
   storefront: [],
   payment_links: ['/online-store/payments'],
+  social: ['/online-store/social'],
+  marketing: ['/online-store/marketing'],
+  retention: ['/online-store/campaigns', '/online-store/reviews', '/online-store/loyalty'],
+  affiliates: ['/online-store/affiliates'],
 };
 
 /** The module a page belongs to, if any. */

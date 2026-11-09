@@ -24,7 +24,7 @@ const HIDEABLE_NAV = [
   '/online-orders/new', '/online-orders/pack', '/online-orders/returns-scan', '/online-orders/abandoned', '/online-orders/tracking',
   '/online-store/couriers/rules', '/online-orders/cod/reconcile', '/online-orders/dispatch', '/online-orders/dispatch-scan', '/online-orders/dispatch-report',
   '/online-orders/couriers-score', '/online-orders/post-office', '/online-store/price-calculator', '/online-store/blocklist', '/online-store/whatsapp-templates',
-  '/online-orders/profit', '/online-orders/payment-health', '/online-store/ads', '/online-store/automation',
+  '/online-orders/profit', '/online-orders/payment-health', '/online-store/marketing', '/online-store/automation',
 ];
 const navLabel = (path: string) => commerceNavGroups.flatMap((g) => g.items).find((i) => i.to === path)?.label ?? path;
 

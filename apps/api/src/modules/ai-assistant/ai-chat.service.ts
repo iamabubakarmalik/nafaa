@@ -306,7 +306,7 @@ export class AiChatService {
         let streamed = false;
         const watch: Emit = (ev, data) => { if (ev === 'delta') streamed = true; emit(ev, data); };
         const loop = (provider: AiProvider, m: string) => this.agentLoop({
-          provider, model: m, mode, ctx, question, history, summary: chat.summary, page: body.context ?? null,
+          provider, model: m, mode, ctx, question, history, summary: chat.summary, page: body.context ?? null, lang: body.lang ?? null,
           emit: watch, onTool, toolLog, usage, signal,
         });
         let out: Awaited<ReturnType<AiChatService['agentLoop']>>;
@@ -386,12 +386,12 @@ export class AiChatService {
 
   private async agentLoop(a: {
     provider: AiProvider; model: string; mode: AiMode; ctx: AiToolContext; question: string; history: MessageRow[]; summary: string | null;
-    page: AiChatRequest['context'] | null; emit: Emit; onTool: (r: AiToolResult) => void;
+    page: AiChatRequest['context'] | null; lang?: string | null; emit: Emit; onTool: (r: AiToolResult) => void;
     toolLog: Array<{ name: string; input: unknown; ok: boolean }>; usage: AiTokenUsage; signal: AbortSignal;
   }): Promise<{ text: string; model?: string; suggestions: string[] }> {
     const provider = a.provider;
     const tools = toolDefinitions() as ToolDef[];
-    const dyn = dynamicSystem({ ctx: a.ctx, page: a.page, summary: a.summary });
+    const dyn = dynamicSystem({ ctx: a.ctx, page: a.page, summary: a.summary, lang: a.lang });
     const messages: MessageParam[] = [];
     for (const m of a.history) {
       if (!m.content.trim()) continue;

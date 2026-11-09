@@ -43,6 +43,9 @@ import { DistributionAccessService } from '../distribution/distribution-access';
 import { TargetsService } from '../distribution/services/targets.service';
 import { VansService } from '../distribution/services/vans.service';
 import { ClaimsService } from '../distribution/services/claims.service';
+import { AdsService } from '../growth/ads/ads.service';
+import { ForecastService } from '../inventory/forecast/forecast.service';
+import { STUCK_DAYS } from '../../integrations/online-orders/order-board';
 import type { AiActionProposal, AiChart, AiLink, AiReorder, AiReorderGroup } from './ai.types';
 import { ACTION_TOOLS } from './ai-action-tools';
 import { hourRange } from './ai-render';
@@ -383,6 +386,41 @@ export const TOOL_SPECS: ToolSpec[] = [
     needs: [P.DISTRIBUTION_CLAIMS_MANAGE],
     status: 'Claims dekh raha hoon…',
   },
+  {
+    name: 'store_brief',
+    description: 'Online store manager snapshot right now: new orders waiting (by age), orders not yet confirmed by call, the call queue and callbacks due, parcels stuck with the courier, returns on the way, today\'s online orders and value, today\'s abandoned carts, and today\'s whole-shop sale and profit when the user may see reports. Use for "aaj store ka kya haal hai", "kya pending hai", "kya karna chahiye".',
+    properties: {},
+    needs: [P.ONLINE_ORDERS_VIEW],
+    status: 'Store ka haal dekh raha hoon…',
+  },
+  {
+    name: 'courier_city_ranking',
+    description: 'Best and worst couriers and cities for online parcels in a period: dispatched, delivered, returned (RTO), delivery rate %, average delivery days. Only couriers/cities with enough parcels are ranked.',
+    properties: { ...periodProps },
+    needs: [P.ONLINE_ORDERS_VIEW],
+    status: 'Courier aur shehar ka muqabla kar raha hoon…',
+  },
+  {
+    name: 'ads_roas',
+    description: 'Ads spend and return for online orders in a period: spend, sales from online orders, ROAS (sales ÷ spend), cost per order, by platform (Facebook, Instagram, TikTok, Google), by channel and top products. Profit after ads only when the user may see profit.',
+    properties: { ...periodProps },
+    needs: [P.ADS_VIEW],
+    status: 'Ads ka hisaab dekh raha hoon…',
+  },
+  {
+    name: 'abandoned_carts',
+    description: 'Checkouts left without ordering (Shopify, own website) in a period: carts, value, contacted, recovered and recovered sale, and the biggest open carts.',
+    properties: { ...periodProps },
+    needs: [P.ONLINE_ORDERS_VIEW],
+    status: 'Chhode hue carts dekh raha hoon…',
+  },
+  {
+    name: 'stock_forecast',
+    description: 'Stock forecast from sales speed (online orders included), festivals and supplier lead days: items running out within 7 days with the expected date, what to reorder and how much, dead stock and overstock with the money tied up. view: stockout (default), reorder, dead, overstock, fast, slow.',
+    properties: { view: { type: 'string', enum: ['stockout', 'reorder', 'dead', 'overstock', 'fast', 'slow'] } },
+    needs: [P.LOW_STOCK_VIEW],
+    status: 'Stock ka andaza laga raha hoon…',
+  },
 ];
 
 /** Tool definitions for the Messages API, in the fixed order above. */
@@ -406,6 +444,7 @@ const PERMISSION_WORDS: Partial<Record<PermissionKey, string>> = {
   [P.LOYALTY_VIEW]: 'Loyalty', [P.STAFF_VIEW]: 'Staff', [P.CASH_REGISTER_VIEW]: 'Cash register',
   [P.RETURNS_VIEW]: 'Returns', [P.ONLINE_ORDERS_VIEW]: 'Online orders', [P.MANUFACTURING_VIEW]: 'Manufacturing',
   [P.DISTRIBUTION_ORDERS_VIEW]: 'Distribution orders', [P.DISTRIBUTION_CLAIMS_MANAGE]: 'Distribution claims',
+  [P.ADS_VIEW]: 'Ads',
 };
 
 /* ───────────────────────── service ───────────────────────── */
@@ -431,6 +470,8 @@ export class AiToolsService {
     private readonly distTargets?: TargetsService,
     private readonly distVans?: VansService,
     private readonly distClaims?: ClaimsService,
+    private readonly ads?: AdsService,
+    private readonly forecast?: ForecastService,
   ) {}
 
   /** Builds the per-request context: clock, names and what the user may see. */
@@ -564,6 +605,11 @@ export class AiToolsService {
       case 'targets_status': return this.targetsStatus(ctx, a);
       case 'van_stock': return this.vanStock(ctx, a);
       case 'pending_claims': return this.pendingClaims(ctx);
+      case 'store_brief': return this.storeBrief(ctx);
+      case 'courier_city_ranking': return this.courierCityRanking(ctx, a);
+      case 'ads_roas': return this.adsRoas(ctx, a);
+      case 'abandoned_carts': return this.abandonedCarts(ctx, a);
+      case 'stock_forecast': return this.stockForecast(ctx, a);
       default: return Promise.resolve({ data: { error: 'UNKNOWN_TOOL' }, refused: true });
     }
   }
@@ -1200,6 +1246,144 @@ export class AiToolsService {
         claimsNotPaid: r.openClaims.slice(0, 15).map((c) => ({ claim: c.number, principal: c.supplierName, status: c.status, period: `${c.fromKey} to ${c.toKey}`, total: c.total, received: c.receivedAmount, balance: c.balance })),
       },
       link: { label: 'Claims', to: '/distribution/claims' },
+    };
+  }
+
+  /* ───────────── online store manager ───────────── */
+
+  /** Start of a business day key as a UTC instant. */
+  private async dayRange(ctx: AiToolContext, from: string, to: string) {
+    return reportRange(this.tzService, ctx.user.tenantId, { from: from === 'all' ? 'all' : from, to });
+  }
+
+  async storeBrief(ctx: AiToolContext): Promise<AiToolResult> {
+    const tenantId = ctx.user.tenantId;
+    const loose = ctx.scope.whereLoose as Prisma.ChannelOrderWhereInput;
+    const base: Prisma.ChannelOrderWhereInput = { tenantId, deletedAt: null, ...loose };
+    const now = Date.now();
+    const H = 3_600_000;
+    const today = await this.dayRange(ctx, ctx.today, ctx.today);
+    const [pending, todayOrders, stuck, returning, callbacks, carts, calls] = await Promise.all([
+      this.prisma.channelOrder.findMany({ where: { ...base, orderStatus: 'PENDING' }, select: { receivedAt: true, metadata: true, total: true }, take: 2000 }),
+      this.prisma.channelOrder.aggregate({ where: { ...base, receivedAt: { gte: today.gte!, lt: today.lt } }, _count: { _all: true }, _sum: { total: true } }),
+      this.prisma.channelOrder.count({ where: { ...base, orderStatus: 'OUT_FOR_DELIVERY', dispatchedAt: { lt: new Date(now - STUCK_DAYS * 24 * H) } } }),
+      this.prisma.channelOrder.count({ where: { ...base, courierStatus: { in: ['RETURNING', 'RETURNED'] }, orderStatus: { notIn: ['CANCELLED', 'REJECTED', 'RETURNED'] } } }),
+      this.prisma.orderCall.count({ where: { tenantId, outcome: 'CALL_BACK', followUpDoneAt: null, callBackAt: { lte: new Date(now) } } }).catch(() => 0),
+      this.prisma.abandonedCheckout.aggregate({ where: { tenantId, abandonedAt: { gte: today.gte!, lt: today.lt } }, _count: { _all: true }, _sum: { total: true } }),
+      this.prisma.orderCall.groupBy({ by: ['outcome'], where: { tenantId, createdAt: { gte: today.gte!, lt: today.lt } }, _count: { _all: true } }).catch(() => [] as Array<{ outcome: string; _count: { _all: number } }>),
+    ]);
+    const age = (h1: number, h2: number) => pending.filter((o) => { const a = (now - o.receivedAt.getTime()) / H; return a >= h1 && a < h2; }).length;
+    const unconfirmed = pending.filter((o) => (o.metadata as any)?.confirmation?.result !== 'CONFIRMED').length;
+    let shopToday: unknown;
+    if (hasPermission(ctx.user.role, ctx.user.permissions, P.REPORTS_VIEW)) {
+      const sr = await this.salesSummary(ctx, { period: 'today' }).catch(() => null);
+      const t = (sr?.data as any)?.totals;
+      if (t) shopToday = { netSale: t.netSale, bills: t.bills, ...(t.profit !== undefined && { profit: t.profit, margin: t.margin }) };
+    }
+    return {
+      data: {
+        newOrdersWaiting: { total: pending.length, value: r2(pending.reduce((s, o) => s + n(o.total), 0)), under6h: age(0, 6), from6to24h: age(6, 24), over24h: age(24, 1e9) },
+        notConfirmedByCall: unconfirmed,
+        callbacksDue: callbacks,
+        callsToday: Object.fromEntries(calls.map((c) => [c.outcome, c._count._all])),
+        stuckParcels: { count: stuck, rule: `with the courier more than ${STUCK_DAYS} days` },
+        returnsOnTheWay: returning,
+        onlineToday: { orders: todayOrders._count._all, value: n(todayOrders._sum.total) },
+        abandonedCartsToday: { carts: carts._count._all, value: n(carts._sum.total) },
+        shopToday,
+      },
+      link: { label: 'Call center', to: '/online-orders/call-center' },
+    };
+  }
+
+  async courierCityRanking(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const p = this.resolvePeriod(ctx, a, 'last_30_days');
+    const rr = await this.dayRange(ctx, p.from, p.to);
+    const rows = await this.prisma.channelOrder.findMany({
+      where: { tenantId: ctx.user.tenantId, deletedAt: null, ...(ctx.scope.whereLoose as any), dispatchedAt: { ...(rr.gte && { gte: rr.gte }), lt: rr.lt } },
+      select: { courierName: true, courierCode: true, customerCity: true, orderStatus: true, dispatchedAt: true, deliveredAt: true },
+      take: 20_000,
+    });
+    type Acc = { name: string; dispatched: number; delivered: number; returned: number; days: number[] };
+    const fold = (key: (o: (typeof rows)[number]) => string | null) => {
+      const m = new Map<string, Acc>();
+      for (const o of rows) {
+        const k = key(o);
+        if (!k) continue;
+        const acc = m.get(k.toLowerCase()) ?? { name: k, dispatched: 0, delivered: 0, returned: 0, days: [] };
+        acc.dispatched += 1;
+        if (o.orderStatus === 'DELIVERED') { acc.delivered += 1; if (o.deliveredAt && o.dispatchedAt) acc.days.push((o.deliveredAt.getTime() - o.dispatchedAt.getTime()) / 86_400_000); }
+        if (o.orderStatus === 'RETURNED') acc.returned += 1;
+        m.set(k.toLowerCase(), acc);
+      }
+      const list = [...m.values()].map((x) => {
+        const done = x.delivered + x.returned;
+        return { name: x.name, dispatched: x.dispatched, delivered: x.delivered, returned: x.returned, deliveryRatePercent: done ? r2((x.delivered / done) * 100) : null, avgDeliveryDays: x.days.length ? r2(x.days.reduce((s, d) => s + d, 0) / x.days.length) : null };
+      });
+      const ranked = list.filter((x) => x.delivered + x.returned >= 5 && x.deliveryRatePercent !== null).sort((x, y) => y.deliveryRatePercent! - x.deliveryRatePercent! || y.dispatched - x.dispatched);
+      return { best: ranked.slice(0, 3), worst: ranked.length > 3 ? ranked.slice(-3).reverse() : [], tooFewToRank: list.length - ranked.length };
+    };
+    const couriers = fold((o) => o.courierName ?? o.courierCode);
+    const cities = fold((o) => (o.customerCity ? o.customerCity.trim().replace(/\s+/g, ' ') : null));
+    const chartRows = [...couriers.best, ...couriers.worst].filter((x, i, arr) => arr.findIndex((y) => y.name === x.name) === i);
+    return {
+      data: { period: p.label, parcels: rows.length, couriers, cities, note: 'Delivery rate = delivered ÷ (delivered + returned). Ranked only with 5+ finished parcels.' },
+      chart: chartRows.length ? { type: 'bar', title: 'Delivery rate %', unit: 'percent', series: [{ key: 'rate', label: 'Delivery %' }], data: chartRows.map((c) => ({ label: c.name, rate: c.deliveryRatePercent ?? 0 })) } : undefined,
+      link: { label: 'Courier score', to: '/online-orders/couriers-score' },
+    };
+  }
+
+  async adsRoas(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    if (!this.ads) return { refused: true, data: { error: 'DATA_ERROR', note: 'Ads data is not available.' } };
+    const p = this.resolvePeriod(ctx, a, 'this_month');
+    const r: any = await this.ads.report(this.serviceUser(ctx), ctx.scope, { from: p.from === 'all' ? undefined : p.from, to: p.to });
+    const data = this.guard(ctx, compact({
+      period: p.label, totals: r.totals, byPlatform: r.byPlatform, byChannel: (r.byChannel ?? []).slice(0, 6), topProducts: (r.byProduct ?? []).slice(0, 6),
+      note: !n(r.totals?.spend) ? 'No ad spend is recorded for this period. Spend is entered on the Ads page or comes from a connected ad account.' : undefined,
+    }, 8));
+    const pl = (r.byPlatform ?? []) as Array<{ platform: string; spend: number }>;
+    return {
+      data,
+      chart: pl.length ? { type: 'bar', title: 'Ads spend', unit: 'money', series: [{ key: 'spend', label: 'Spend' }], data: pl.slice(0, 6).map((x) => ({ label: x.platform, spend: n(x.spend) })) } : undefined,
+      link: { label: 'Ads aur ROAS', to: '/online-store/marketing' },
+    };
+  }
+
+  async abandonedCarts(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const p = this.resolvePeriod(ctx, a, 'last_7_days');
+    const rr = await this.dayRange(ctx, p.from, p.to);
+    const where: Prisma.AbandonedCheckoutWhereInput = { tenantId: ctx.user.tenantId, abandonedAt: { ...(rr.gte && { gte: rr.gte }), lt: rr.lt } };
+    const rows = await this.prisma.abandonedCheckout.findMany({
+      where, select: { customerName: true, customerCity: true, total: true, contactedAt: true, recoveredAt: true, recoveredValue: true, completedAt: true, abandonedAt: true },
+      orderBy: { total: 'desc' }, take: 3000,
+    });
+    const recovered = rows.filter((c) => c.recoveredAt || c.completedAt);
+    const open = rows.filter((c) => !c.recoveredAt && !c.completedAt);
+    return {
+      data: {
+        period: p.label, carts: rows.length, value: r2(rows.reduce((s, c) => s + c.total, 0)),
+        contacted: rows.filter((c) => c.contactedAt).length, notContacted: open.filter((c) => !c.contactedAt).length,
+        recovered: recovered.length, recoveredSale: r2(recovered.reduce((s, c) => s + n(c.recoveredValue ?? c.total), 0)),
+        recoveryRatePercent: rows.length ? r2((recovered.length / rows.length) * 100) : 0,
+        biggestOpen: open.slice(0, 5).map((c) => ({ customer: c.customerName ?? 'Unknown', city: c.customerCity, value: c.total, contacted: !!c.contactedAt, day: c.abandonedAt })),
+      },
+      link: { label: 'Abandoned carts', to: '/online-orders/abandoned' },
+    };
+  }
+
+  async stockForecast(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    if (!this.forecast) return { refused: true, data: { error: 'DATA_ERROR', note: 'Forecast is not available.' } };
+    const view = String(a.view ?? 'stockout');
+    const filter = ({ stockout: 'stockout7', reorder: 'reorder', dead: 'dead', overstock: 'overstock', fast: 'fast', slow: 'slow' } as Record<string, any>)[view] ?? 'stockout7';
+    const sort = view === 'dead' || view === 'overstock' ? 'tied' : view === 'reorder' ? 'value' : 'urgency';
+    const r: any = await this.forecast.list(this.serviceUser(ctx), ctx.scope, { filter, sort, limit: 15, page: 1 } as any);
+    const rows = (r.items ?? []).map((x: any) => ({
+      name: x.name, unit: x.unit, stock: x.stock, perDay: x.demand, daysOfCover: x.cover, runsOutOn: x.stockOut ?? null, orderWithinDays: x.orderInDays,
+      reorderQty: x.suggestQty, supplier: x.supplier?.name ?? null, class: x.cls, moneyTiedUp: x.tiedValue, orderValue: x.orderValue,
+    }));
+    return {
+      data: this.guard(ctx, compact({ view, today: r.today, summary: r.summary, matching: r.total, items: rows }, 15)),
+      link: { label: 'Stock forecast', to: '/inventory/forecast' },
     };
   }
 }

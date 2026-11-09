@@ -16,7 +16,9 @@ import { MODULE_PATHS, usePlatformControls, type CommerceModule } from '../hooks
 const MODULE_TITLE: Record<CommerceModule, string> = {
   orders: tr('Orders'), catalog: tr('Products & stock'), dispatch: tr('Dispatch & airway bills'), couriers: tr('Couriers'),
   cod: tr('COD & payments'), returns: tr('Return scan'), abandoned_carts: tr('Abandoned carts'), growth: tr('Ads & Profit'),
-  whatsapp: tr('WhatsApp messages'), storefront: tr('Online dukaan'), payment_links: tr('Online payments'),
+  whatsapp: tr('WhatsApp messages'), storefront: tr('Online dukaan'), payment_links: tr('Online payments'), social: tr('Social media'),
+  retention: tr('Campaigns, reviews aur loyalty'), affiliates: tr('Influencers & affiliates'),
+  marketing: tr('Marketing'),
 };
 
 type Soon = { title: string; icon: LucideIcon; color: string; intro: string; points: string[]; today?: { to: string; label: string } };
@@ -32,10 +34,8 @@ const SOON: Record<string, Soon> = {
     intro: tr('Nafaa Commerce me ye sab bhi aa raha hai — ek ek kar ke.'),
     points: [
       tr('WhatsApp AI bot — order khud confirm, Roman Urdu me jawab'),
-      tr('Marketing hub — Meta, Google, TikTok ads ek jagah'),
-      tr('Social media — post schedule, captions, inbox'),
-      tr('Loyalty, referral aur win-back'),
-      tr('Influencer / affiliate codes aur commission'),
+      tr('Ads Nafaa se banana, rokna aur kharcha khud aana — Meta / Google / TikTok ki manzoori ke baad'),
+      tr('Social inbox aur khud post — Meta / TikTok ki manzoori ke baad'),
       tr('Automation builder — agar ye ho to wo karo'),
       tr('Call center aur customer portal'),
       tr('AI store manager — bol kar poochein'),

@@ -79,6 +79,11 @@ export async function sendToNafaa(order) {
     discount: order.discount,
     total: order.total,
     paymentMethod: order.paymentMethod, // 'cod' | 'card' | 'jazzcash' ...
+    // Optional, for the Marketing page: where the buyer came from.
+    utm: order.utm, // { source, medium, campaign, content, term } from the landing page URL
+    landingPage: order.landingPage,
+    referrer: order.referrer,
+    discountCode: order.couponCode,
   });
 
   const signature = 'sha256=' + crypto.createHmac('sha256', process.env.NAFAA_SECRET).update(body).digest('hex');

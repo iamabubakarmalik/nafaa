@@ -31,7 +31,16 @@ export default function AddOrderPage() {
   const board = useBoardCounts();
   const replacementOf = params.get('replacementOf');
   const [tab, setTab] = useState<Tab>('form');
-  const [draft, setDraft] = useState<ManualDraft>(emptyDraft);
+  // ?phone, ?name and ?source (from the Facebook / Instagram inbox) fill the form.
+  const [draft, setDraft] = useState<ManualDraft>(() => {
+    const d = emptyDraft();
+    const source = params.get('source');
+    return {
+      ...d,
+      ...(source === 'INSTAGRAM' || source === 'FACEBOOK' ? { source } : {}),
+      customer: { ...d.customer, name: params.get('name') ?? '', phone: params.get('phone') ?? '' },
+    };
+  });
   const { data: channels = [] } = useSalesChannels();
   const shopify = channels.filter((c) => c.type === 'SHOPIFY');
 

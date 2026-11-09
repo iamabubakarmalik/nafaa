@@ -102,7 +102,7 @@ export interface AiActionLine {
  */
 export interface AiActionProposal {
   id: string;
-  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce';
+  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce' | 'move_order' | 'pause_rule';
   title: string;
   summary: string;
   fields: AiActionField[];
@@ -137,6 +137,8 @@ export interface AiChatRequest {
   editLast?: boolean;
   /** How the question was entered. */
   via?: 'text' | 'voice';
+  /** App language (en, ur, roman); answers follow it. */
+  lang?: 'en' | 'ur' | 'roman';
 }
 
 /** Server-sent events of POST /ai/chat, in order: conversation, meta, (status | delta | chart | link | reorder)*, done | error. */

@@ -40,6 +40,7 @@ const RECIPE_LABEL: Record<RecipeKey, string> = {
   city_courier: t('Shehar → courier'),
   rto_advance: t('RTO wale se advance'),
   low_stock_unlist: t('Stock kam → channel se hatao'),
+  review_after_delivery: t('Deliver hone par review request'),
 };
 
 type Step = 'places' | 'couriers' | 'cod' | 'team' | 'confirm' | 'pack' | 'summary';

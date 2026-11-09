@@ -10,13 +10,21 @@ import { JobKind } from './catalog-jobs';
 
 export const COMMERCE_CONTROLS_KEY = 'commerce.controls';
 
-/** Channel types the kill switch can pause. */
-export const KILL_SWITCH_TYPES = ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'FOODPANDA', 'MANUAL'] as const;
+/**
+ * Channel types the kill switch can pause; META_CAPI pauses the Meta Conversions API events,
+ * META pauses every other Meta call (publishing, inbox replies, catalog sync, ads, WhatsApp).
+ */
+export const KILL_SWITCH_TYPES = ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'FOODPANDA', 'MANUAL', 'META_CAPI', 'META'] as const;
 export type KillSwitchType = (typeof KILL_SWITCH_TYPES)[number];
 
 /** Merchant commerce modules that can show a "Coming soon" tile. */
 export const COMMERCE_MODULES = [
   'orders', 'catalog', 'dispatch', 'couriers', 'cod', 'returns', 'abandoned_carts', 'growth', 'whatsapp', 'storefront', 'payment_links',
+  'marketing',
+  'social',
+  'retention',
+  'affiliates',
+  'meta',
 ] as const;
 export type CommerceModule = (typeof COMMERCE_MODULES)[number];
 
@@ -42,6 +50,8 @@ export interface CommerceControls {
   customStatuses: Array<{ key: string; label: string; color: string }>;
   /** Module → true shows the "Coming soon" tile instead of the module. */
   comingSoon: Partial<Record<CommerceModule, boolean>>;
+  /** Tenant ids that see the live Facebook & Instagram connect while the Meta app is not reviewed yet. */
+  metaBetaShops: string[];
 }
 
 export const DEFAULT_COMMERCE_CONTROLS: CommerceControls = {
@@ -52,6 +62,7 @@ export const DEFAULT_COMMERCE_CONTROLS: CommerceControls = {
   whatsappTemplates: [],
   customStatuses: [],
   comingSoon: {},
+  metaBetaShops: [],
 };
 
 const clampInt = (v: unknown, min: number, max: number): number | null => {
@@ -92,6 +103,7 @@ export function parseCommerceControls(raw: unknown): CommerceControls {
       .filter((s: { key: string; label: string }) => s.key && s.label)
       .slice(0, 20),
     comingSoon,
+    metaBetaShops: [...new Set((Array.isArray(r.metaBetaShops) ? r.metaBetaShops : []).map((x: unknown) => str(x, 64)).filter(Boolean))].slice(0, 200) as string[],
   };
 }
 

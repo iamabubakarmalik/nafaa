@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   AlertTriangle, BellRing, Boxes, CheckCircle2, CircleDollarSign, Clock, CreditCard, FlaskConical, GraduationCap, MapPin, MessageCircle, PackageX, Pencil, Plus,
-  ShieldAlert, Tag, Trash2, Truck, UserCheck, Workflow, XCircle, Zap, type LucideIcon,
+  ShieldAlert, Star, Tag, Trash2, Truck, UserCheck, Workflow, XCircle, Zap, type LucideIcon,
 } from 'lucide-react';
 import {
   Badge, Button, Card, Checkbox, Input, Modal, PageHero, PageShell, Select, Skeleton, Switch, confirmDialog, heroButton, heroIconButton,
@@ -53,8 +53,9 @@ const ACTION_LABEL: Record<ActionType, string> = {
   NOTIFY: t('Malik ko khabar do'),
   HIDE_PRODUCT: t('Channel se product hatao'),
   PUSH_STOCK: t('Stock channel par bhejo'),
+  REVIEW_REQUEST: t('Review link banao (WhatsApp ke liye)'),
 };
-const ORDER_ACTIONS: ActionType[] = ['SET_STATUS', 'TAG', 'ASSIGN', 'BOOK_COURIER', 'ASK_ADVANCE', 'NOTE', 'NOTIFY'];
+const ORDER_ACTIONS: ActionType[] = ['SET_STATUS', 'TAG', 'ASSIGN', 'BOOK_COURIER', 'ASK_ADVANCE', 'NOTE', 'NOTIFY', 'REVIEW_REQUEST'];
 const PRODUCT_ACTIONS: ActionType[] = ['HIDE_PRODUCT', 'PUSH_STOCK', 'NOTIFY'];
 const SETTABLE = ['NEW', 'PAY_PENDING', 'ON_HOLD', 'NO_STOCK', 'CUSTOMER_QUERY', 'CONFIRMED', 'PACKED', 'PACKED_NOT_SENT', 'DISPATCHED', 'DELIVERED', 'CANCELLED', 'ISSUE', 'CLAIM'];
 const RISKS = ['NEW', 'OK', 'WATCH', 'HIGH', 'BLOCKED'];
@@ -67,6 +68,7 @@ const RECIPES: { key: RecipeKey; title: string; text: string; icon: LucideIcon; 
   { key: 'city_courier', title: t('Shehar → courier'), text: t('Is shehar ke orders confirm hote hi is courier par book'), icon: Truck, color: 'text-orange-600' },
   { key: 'rto_advance', title: t('RTO wale se advance'), text: t('Jis ke parcel pehle wapas aaye, us se advance maango'), icon: CircleDollarSign, color: 'text-violet-600' },
   { key: 'low_stock_unlist', title: t('Stock kam → channel se hatao'), text: t('Stock khatam hone se pehle product channel par band'), icon: PackageX, color: 'text-rose-600' },
+  { key: 'review_after_delivery', title: t('Deliver hone par review request'), text: t('Har deliver order ka rating link khud bane — Reviews page se WhatsApp karein'), icon: Star, color: 'text-amber-500' },
 ];
 
 const emptyConditions = (): Conditions => ({
@@ -320,7 +322,8 @@ function RuleEditor({ initial, staff, channels, onClose, onSave, onDry, dryBusy 
   const [products, setProducts] = useState<{ id: string; label: string }[]>(initial.conditions.productIds.map((id) => ({ id, label: id.slice(0, 8) })));
   const c = r.conditions;
   const productEvent = r.event === 'STOCK_LOW';
-  const allowed = productEvent ? PRODUCT_ACTIONS : ORDER_ACTIONS;
+  // A review link only makes sense once the order is delivered.
+  const allowed = productEvent ? PRODUCT_ACTIONS : ORDER_ACTIONS.filter((x) => x !== 'REVIEW_REQUEST' || r.event === 'DELIVERED');
   const setC = (patch: Partial<Conditions>) => setR((x) => ({ ...x, conditions: { ...x.conditions, ...patch } }));
   const setA = (i: number, a: AutomationAction) => setR((x) => ({ ...x, actions: x.actions.map((y, j) => (j === i ? a : y)) }));
   const draft = useMemo<RuleDraft>(() => ({
@@ -340,6 +343,7 @@ function RuleEditor({ initial, staff, channels, onClose, onSave, onDry, dryBusy 
       case 'NOTIFY': return { type, text: '' };
       case 'HIDE_PRODUCT': return { type, channelId: null };
       case 'PUSH_STOCK': return { type, channelId: null };
+      case 'REVIEW_REQUEST': return { type };
     }
   };
   const channelOptions = [{ value: '', label: t('Har channel') }, ...channels.map((x) => ({ value: x.id, label: x.displayName }))];

@@ -25,7 +25,13 @@ import { DarazService } from './daraz.service';
 import { PaymentLinksService } from './payment-links.service';
 import { PaymentLinksController, PaymentLinksPublicController } from './payment-links.controller';
 import { DarazController, DarazPublicController, DarazPushController } from './daraz.controller';
+import { InternationalController } from './international/international.controller';
+import { InternationalService } from './international/international.service';
+import { RadarController } from './radar/radar.controller';
+import { RadarService } from './radar/radar.service';
 import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
+import { PortalAdminController, PortalPublicController } from './portal/portal.controller';
+import { PortalService } from './portal/portal.service';
 import { OnlineProductsController } from './online-products.controller';
 import { OnlineProductsService } from './online-products.service';
 import { CatalogWatchService } from './catalog-watch.service';
@@ -53,6 +59,15 @@ import { TrackingMapService } from './tracking-map.service';
 import { CourierScoreService } from './courier-score.service';
 import { AutomationService } from './automation.service';
 import { CommerceSetupService } from './commerce-setup.service';
+import { RetentionController, ReviewsPublicController } from './retention/retention.controller';
+import { CampaignsService } from './retention/campaigns.service';
+import { ReviewsService } from './retention/reviews.service';
+import { OnlineLoyaltyService } from './retention/online-loyalty.service';
+import { AffiliatesService } from './retention/affiliates.service';
+import { CallCenterController } from './call-center/call-center.controller';
+import { CallCenterService } from './call-center/call-center.service';
+import { ConversionController, ConversionPublicController } from './conversion/conversion.controller';
+import { ConversionService } from './conversion/conversion.service';
 import {
   BlocklistController,
   ChannelsController,
@@ -75,7 +90,10 @@ import { StockHandoverService } from './stock-handover.service';
     OrderMoneyController,
     DispatchController,
     CommerceGrowthController,
+    RadarController, InternationalController,
+    RetentionController, ReviewsPublicController,
     TrackingMapController, CourierScoreController, AutomationController, CommerceSetupController,
+    CallCenterController, ConversionController, ConversionPublicController,
     OnlineOrdersController,
     LegacyChannelOrdersController,
     ChannelsController,
@@ -84,6 +102,8 @@ import { StockHandoverService } from './stock-handover.service';
     OrderCourierController,
     BlocklistController,
     StorefrontPublicController,
+    PortalPublicController,
+    PortalAdminController,
     StorefrontAdminController,
     DarazPublicController,
     DarazPushController,
@@ -96,12 +116,14 @@ import { StockHandoverService } from './stock-handover.service';
     CommerceAdminController, CommerceControlsController,
     ChannelOpsController,
   ],
-  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
+  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, InternationalService, RadarService, PortalService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
     OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
     OrderChannelSyncService, OrderEntryService, DispatchService, BackorderService,
     AbandonedCartsService, CommerceGrowthService, CommerceAdminService,
     ChannelOpsService,
-    TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService, StockHandoverService],
+    TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService, StockHandoverService,
+    CampaignsService, ReviewsService, OnlineLoyaltyService, AffiliatesService,
+    CallCenterService, ConversionService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

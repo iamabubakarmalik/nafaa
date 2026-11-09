@@ -991,49 +991,51 @@ model Category {
 }
 
 model Product {
-  id               String                  @id @default(uuid())
-  tenantId         String
-  categoryId       String?
-  brandId          String?
-  name             String
-  slug             String?
-  description      String?                 @db.Text
-  shortDescription String?
-  sku              String?
-  barcode          String?
-  unit             String                  @default("pcs")
-  price            Float                   @default(0)
-  costPrice        Float                   @default(0)
-  wholesalePrice   Float?
+  id                String                  @id @default(uuid())
+  tenantId          String
+  categoryId        String?
+  brandId           String?
+  name              String
+  slug              String?
+  description       String?                 @db.Text
+  shortDescription  String?
+  sku               String?
+  barcode           String?
+  unit              String                  @default("pcs")
+  price             Float                   @default(0)
+  costPrice         Float                   @default(0)
+  wholesalePrice    Float?
   /// Price for customers buying on credit (udhaar). Empty means the retail price.
-  creditPrice      Float?
-  taxRate          Float                   @default(0)
-  stock            Float                   @default(0)
-  lowStockAlert    Float                   @default(5)
-  weight           Float?
-  weightUnit       String?
-  dimensions       String?
-  hasVariants      Boolean                 @default(false)
-  productType      String?
+  creditPrice       Float?
+  taxRate           Float                   @default(0)
+  stock             Float                   @default(0)
+  lowStockAlert     Float                   @default(5)
+  weight            Float?
+  weightUnit        String?
+  dimensions        String?
+  hasVariants       Boolean                 @default(false)
+  productType       String?
   /// Bought and used in making things, not sold at the counter.
-  isRawMaterial    Boolean                 @default(false)
-  expiryTracked    Boolean                 @default(false)
-  isActive         Boolean                 @default(true)
-  isFeatured       Boolean                 @default(false)
-  metaTitle        String?
-  metaDescription  String?
+  isRawMaterial     Boolean                 @default(false)
+  expiryTracked     Boolean                 @default(false)
+  isActive          Boolean                 @default(true)
+  isFeatured        Boolean                 @default(false)
+  metaTitle         String?
+  metaDescription   String?
   /// Online: keep taking orders when out of stock (backorder). null = never set,
   /// so Nafaa leaves the channel's own setting alone; false = off, true = on.
-  backorder        Boolean?
+  backorder         Boolean?
   /// Most units that may be owed to customers at once; null = no limit
-  backorderMax     Int?
+  backorderMax      Int?
   /// Days until new stock is expected (feeds availability_date)
   backorderLeadDays Int?
   /// Delivery note shown to customers, e.g. "7 din me bhejenge"
-  backorderNote    String?
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  channelMappings  ProductChannelMapping[]
+  backorderNote     String?
+  /// Custom storefront: may be sold to customers outside Pakistan (international shipping flag).
+  shipsAbroad       Boolean                 @default(true)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  channelMappings   ProductChannelMapping[]
 
   tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1662,7 +1664,7 @@ model Supplier {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   ledgers   SupplierLedger[]
   incomes   OtherIncome[]
@@ -17016,21 +17018,41 @@ model CourierLoadsheet {
 // ▓▓▓  WHATSAPP BUSINESS  ▓▓▓
 // ═══════════════════════════════════════════════════════════════
 
+/// WhatsApp Cloud API settings of a shop. The WhatsApp Business Account and
+/// phone number ids live on MetaConnection (wabaId, waPhoneNumberId) and the
+/// access comes from the Facebook connection; this row keeps the number's
+/// details and which order events send a message. `accessToken` and
+/// `verifyToken` are from the old hand-typed setup and are no longer used.
 model WhatsappConfig {
-  id                String   @id @default(cuid())
-  tenantId          String   @unique
+  id                String    @id @default(cuid())
+  tenantId          String    @unique
   phoneNumberId     String
   businessId        String?
-  accessToken       String   @db.Text
-  verifyToken       String
+  accessToken       String?   @db.Text
+  verifyToken       String?
   webhookUrl        String?
-  isActive          Boolean  @default(false)
-  isVerified        Boolean  @default(false)
+  isActive          Boolean   @default(false)
+  isVerified        Boolean   @default(false)
   displayName       String?
-  totalMessagesSent Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  totalMessagesSent Int       @default(0)
+  /// Number as customers see it, e.g. "+92 300 1234567".
+  displayPhone      String?
+  /// GREEN | YELLOW | RED (Meta's quality rating of the number).
+  qualityRating     String?
+  /// Template language code sent to Meta ("en" for Roman Urdu / English, "ur" for Urdu).
+  language          String    @default("en")
+  /// Order received → confirmation with "Haan confirm" / "Cancel" buttons.
+  sendConfirm       Boolean   @default(true)
+  /// Confirmation only for cash-on-delivery orders.
+  confirmCodOnly    Boolean   @default(true)
+  sendDispatched    Boolean   @default(true)
+  sendDelivered     Boolean   @default(false)
+  lastError         String?
+  lastErrorAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
+  @@index([phoneNumberId])
   @@map("whatsapp_configs")
 }
 
@@ -17050,6 +17072,12 @@ model WhatsappTemplate {
   isApproved     Boolean   @default(false)
   approvedAt     DateTime?
   isActive       Boolean   @default(true)
+  /// Nafaa template key (confirm | dispatched | delivered | cart) for Cloud API templates.
+  templateKey    String?
+  /// DRAFT | PENDING | APPROVED | REJECTED | PAUSED | DISABLED (Meta review state).
+  status         String    @default("DRAFT")
+  rejectedReason String?
+  syncedAt       DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -17070,10 +17098,28 @@ model WhatsappMessage {
   errorMessage  String?
   deliveredAt   DateTime?
   readAt        DateTime?
+  /// OUT = sent by the shop, IN = the customer's reply.
+  direction     String    @default("OUT")
+  /// Online order the message is about.
+  orderId       String?
+  /// confirm | dispatched | delivered | cart | reply
+  event         String?
+  /// Customer's WhatsApp id (international digits).
+  waId          String?
+  customerName  String?
+  /// Meta pricing category from the status webhook (UTILITY, MARKETING, SERVICE …).
+  category      String?
+  /// Button payload of a reply.
+  payload       String?
+  /// Our message a reply answers.
+  contextId     String?
   createdAt     DateTime  @default(now())
 
   @@index([tenantId, createdAt])
   @@index([toPhone])
+  @@index([tenantId, orderId])
+  @@index([metaMessageId])
+  @@index([tenantId, direction, createdAt])
   @@map("whatsapp_messages")
 }
 
@@ -17595,6 +17641,19 @@ model ChannelOrder {
   // Combined orders: the order this one was merged into.
   mergedIntoId      String?
   weightKg          Float?
+  // Marketing attribution: where the buyer came from (UTM tags, referrer,
+  // landing page, discount codes). trafficSource is the normalised platform:
+  // META, GOOGLE, TIKTOK, SNAPCHAT, WHATSAPP, EMAIL, PHONE, REFERRAL,
+  // ORGANIC, DIRECT or OTHER. Filled when the order arrives.
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  utmContent        String?
+  utmTerm           String?
+  trafficSource     String?
+  referrer          String?
+  landingPage       String?
+  discountCodes     String[]  @default([])
 
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
@@ -17607,6 +17666,8 @@ model ChannelOrder {
   @@index([tenantId, assignedToId])
   @@index([tenantId, followUpAt])
   @@index([tenantId, deletedAt])
+  @@index([tenantId, utmCampaign])
+  @@index([tenantId, trafficSource])
   @@map("channel_orders")
 }
 
@@ -23865,6 +23926,8 @@ model AdSpend {
   platform      String
   amount        Float
   campaign      String?
+  /// Ad set (Meta) / ad group (Google, TikTok) inside the campaign, when the export has it.
+  adSet         String?
   /// Sales channel the ad promoted (Integration id).
   integrationId String?
   /// Products the ad promoted.
@@ -23885,6 +23948,157 @@ model AdSpend {
   @@unique([tenantId, importKey])
   @@index([tenantId, day])
   @@index([tenantId, platform, day])
+}
+
+/// A campaign the shop runs and how its orders are recognised: the
+/// utm_campaign value of its links and the discount codes it hands out.
+/// Spend rows match it by platform and name (AdSpend.campaign).
+model AdCampaign {
+  id            String   @id @default(cuid())
+  tenantId      String
+  /// META | GOOGLE | TIKTOK | SNAPCHAT | INFLUENCER | OTHER
+  platform      String
+  /// Campaign name as in the ads manager.
+  name          String
+  /// utm_campaign used on the campaign's links; null = the name.
+  utmCampaign   String?
+  discountCodes String[] @default([])
+  productIds    String[] @default([])
+  dailyBudget   Float?
+  /// ACTIVE | PAUSED | ENDED
+  status        String   @default("ACTIVE")
+  note          String?
+  /// Campaign id in the ads platform when it was read from there (Meta).
+  externalId    String?
+  /// Ad account the campaign belongs to (Meta "act_…").
+  adAccountId   String?
+  createdById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, platform, name])
+  @@index([tenantId, status])
+  @@index([tenantId, externalId])
+  @@map("ad_campaigns")
+}
+
+/// Meta ads settings of a shop: the daily insights pull and the limits of
+/// automatic rule changes. The ad account itself is MetaConnection.adAccountId.
+model MetaAdSettings {
+  id               String    @id @default(uuid())
+  tenantId         String    @unique
+  /// Pull spend and results from Meta every day (replaces the CSV import).
+  autoPull         Boolean   @default(true)
+  /// Rs per one unit of the ad account's currency when it is not the shop's (e.g. USD).
+  fxRate           Float?
+  /// Largest total budget change per campaign per day by automatic rules, %.
+  maxChangePct     Int       @default(30)
+  /// Largest number of automatic rule changes per day.
+  maxActionsPerDay Int       @default(10)
+  lastPullAt       DateTime?
+  lastPullError    String?
+  lastRulesRunAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("meta_ad_settings")
+}
+
+/// An ads rule: ROAS below X → pause, cost per order above X → lower the
+/// budget, ROAS above X → raise it, or a daily spend cap. SUGGEST mode only
+/// proposes; AUTO applies within MetaAdSettings' caps.
+model MetaAdRule {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  /// ROAS_PAUSE | CPA_LOWER | ROAS_RAISE | SPEND_CAP
+  kind        String
+  threshold   Float
+  days        Int      @default(3)
+  pct         Int      @default(0)
+  minSpend    Float    @default(0)
+  /// Meta campaign ids; empty = all campaigns.
+  campaignIds String[] @default([])
+  /// SUGGEST | AUTO
+  mode        String   @default("SUGGEST")
+  enabled     Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, enabled])
+  @@map("meta_ad_rules")
+}
+
+/// Every change Nafaa makes (or proposes) to a Meta campaign: from a rule,
+/// by hand, a duplicate or the Boost wizard. `before`/`after` let it be undone.
+model MetaAdAction {
+  id          String    @id @default(uuid())
+  tenantId    String
+  ruleId      String?
+  adAccountId String
+  /// CAMPAIGN | ADSET | AD
+  objectType  String    @default("CAMPAIGN")
+  objectId    String
+  objectName  String?
+  /// PAUSE | RESUME | BUDGET | DUPLICATE | CREATE
+  action      String
+  before      Json?
+  after       Json?
+  /// Signed % for budget changes.
+  changePct   Float?
+  /// RULE | MANUAL | BOOST
+  source      String    @default("MANUAL")
+  /// SUGGESTED | APPLIED | FAILED | UNDONE | DISMISSED | HELD
+  status      String    @default("SUGGESTED")
+  /// Why: { kind, value, threshold, days, spend, delivered } for rules.
+  reason      Json?
+  error       String?
+  /// Business day the action belongs to (caps are per day).
+  day         String
+  createdById String?
+  appliedAt   DateTime?
+  appliedById String?
+  undoneAt    DateTime?
+  undoneById  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status, day])
+  @@index([tenantId, objectId])
+  @@map("meta_ad_actions")
+}
+
+/// One server-side event sent to Meta (Conversions API) with the shop's own
+/// pixel: Purchase when an order is delivered, InitiateCheckout for an
+/// abandoned checkout, or a test event. Failed sends are retried.
+model MetaCapiEvent {
+  id            String    @id @default(cuid())
+  tenantId      String
+  /// Purchase | InitiateCheckout | Test
+  eventName     String
+  /// Sent as event_id so Meta drops a duplicate of the browser pixel event.
+  eventId       String
+  orderId       String?
+  checkoutId    String?
+  value         Float?
+  currency      String    @default("PKR")
+  /// PENDING | SENT | FAILED | SKIPPED
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime?
+  lastError     String?
+  testCode      String?
+  response      Json?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([tenantId, eventId])
+  @@index([tenantId, createdAt])
+  @@index([status, nextAttemptAt])
+  @@map("meta_capi_events")
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -24939,4 +25153,604 @@ model CommerceAutomationRun {
   @@index([ruleId, subjectId, event])
   @@index([tenantId, subjectId])
   @@map("commerce_automation_runs")
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Social media studio: the content calendar. Each row is one planned post
+// (idea, draft, ready or posted) for one or more platforms. The merchant
+// posts by hand from the reminder sheet; auto-publishing needs partner
+// approval and is not built. `code` tags product links (utm_content) so
+// orders that came through a post can be counted. Plain columns, no FKs.
+// ═══════════════════════════════════════════════════════════════════
+
+model SocialPost {
+  id             String    @id @default(cuid())
+  tenantId       String
+  shopId         String?
+  /// Short tag for links (utm_content=np-<code>); unique per business.
+  code           String
+  title          String?
+  /// POST | REEL | STORY | STATUS
+  kind           String    @default("POST")
+  /// When to post; null = an idea without a date.
+  scheduledAt    DateTime?
+  /// FACEBOOK | INSTAGRAM | TIKTOK | YOUTUBE | WHATSAPP_STATUS
+  platforms      String[]  @default([])
+  caption        String    @default("") @db.Text
+  hashtags       String[]  @default([])
+  /// [{ url, kind: image|video, source: product|upload|creative, productId? }]
+  media          Json?
+  productIds     String[]  @default([])
+  /// [{ productId?, label, url }] plain product links; tagged per platform on read.
+  links          Json?
+  /// IDEA | DRAFT | READY | POSTED
+  status         String    @default("DRAFT")
+  /// Reminder this many minutes before scheduledAt (0 = at the time).
+  remindMinutes  Int       @default(0)
+  reminderSentAt DateTime?
+  postedAt       DateTime?
+  /// { FACEBOOK: "https://…", … } pasted by the merchant after posting.
+  postUrls       Json?
+  festivalKey    String?
+  aiMade         Boolean   @default(false)
+  notes          String?
+  assignedToId   String?
+  createdById    String?
+  /// Publish to connected Facebook / Instagram at scheduledAt (Meta integration).
+  autoPublish    Boolean   @default(false)
+  /// { FACEBOOK: { status, postId, permalink, containerId, error, attempts, at, nextAt }, INSTAGRAM: … }
+  publishState   Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([tenantId, code])
+  @@index([tenantId, scheduledAt])
+  @@index([tenantId, status])
+  @@index([scheduledAt, reminderSentAt])
+  @@index([autoPublish, scheduledAt])
+  @@map("social_posts")
+}
+
+// ═══════════════════════════════════════════════════════════
+// Retention and affiliates (commerce growth round 2, agent C)
+// ═══════════════════════════════════════════════════════════
+
+/// A WhatsApp campaign to one online customer segment, sent one chat at a time (wa.me).
+model OnlineCampaign {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  /// Segment key from the online customers list (vip, at_risk, lost, birthday …).
+  segment     String
+  /// WIN_BACK | NEW_ARRIVAL | REVIEW | RESTOCK | BIRTHDAY | CUSTOM
+  template    String
+  message     String
+  code        String?
+  link        String?
+  /// OPEN | DONE
+  status      String   @default("OPEN")
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recipients OnlineCampaignRecipient[]
+
+  @@index([tenantId, createdAt])
+  @@map("online_campaigns")
+}
+
+/// One customer in a campaign queue. An order from the same phone within 7 days of sending counts as converted.
+model OnlineCampaignRecipient {
+  id         String    @id @default(uuid())
+  tenantId   String
+  campaignId String
+  phoneKey   String
+  phone      String
+  name       String
+  text       String
+  /// PENDING | SENT | SKIPPED
+  status     String    @default("PENDING")
+  sentAt     DateTime?
+  sentById   String?
+  replied    Boolean   @default(false)
+  position   Int       @default(0)
+
+  campaign OnlineCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, phoneKey])
+  @@index([campaignId, status])
+  @@index([tenantId, phoneKey])
+  @@map("online_campaign_recipients")
+}
+
+/// Review request for a delivered order; the customer rates it on a public tokenised page.
+model OnlineReview {
+  id             String    @id @default(uuid())
+  tenantId       String
+  channelOrderId String    @unique
+  token          String    @unique
+  customerName   String?
+  customerPhone  String?
+  orderNo        String?
+  /// AUTOMATION | MANUAL
+  source         String    @default("MANUAL")
+  sentAt         DateTime?
+  rating         Int?
+  comment        String?
+  ratedAt        DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, ratedAt])
+  @@map("online_reviews")
+}
+
+/// A customer's own referral code: the friend gets a discount, the customer gets points.
+model CustomerReferral {
+  id         String   @id @default(uuid())
+  tenantId   String
+  customerId String
+  code       String
+  createdAt  DateTime @default(now())
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, customerId])
+  @@map("customer_referrals")
+}
+
+/// Online loyalty bookkeeping, one row per order and kind so points are never given twice.
+model OnlineLoyaltyEntry {
+  id             String   @id @default(uuid())
+  tenantId       String
+  channelOrderId String
+  /// EARN (points for the buyer) | REFERRAL (points for the referrer)
+  kind           String
+  /// Customer who gets the points.
+  customerId     String
+  points         Int      @default(0)
+  referralId     String?
+  friendPhoneKey String?
+  /// Discount the friend got on this order (referral only).
+  discount       Float?
+  /// PENDING (waiting for delivery) | DONE | REVERSED | CANCELLED
+  status         String   @default("PENDING")
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([channelOrderId, kind])
+  @@index([tenantId, kind, createdAt])
+  @@index([referralId])
+  @@map("online_loyalty_entries")
+}
+
+/// Influencer or affiliate: discount codes and a link tag; earns commission on delivered orders.
+model Affiliate {
+  id              String   @id @default(uuid())
+  tenantId        String
+  name            String
+  phone           String?
+  /// INFLUENCER | AFFILIATE
+  kind            String   @default("INFLUENCER")
+  /// INSTAGRAM | TIKTOK | YOUTUBE | FACEBOOK | OTHER
+  platform        String?
+  handle          String?
+  /// Link tag used as utm_campaign; unique per business.
+  slug            String
+  /// Discount codes the merchant created on the store, stored upper-case.
+  codes           String[] @default([])
+  /// PERCENT | FIXED
+  commissionType  String   @default("PERCENT")
+  commissionValue Float    @default(10)
+  active          Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payouts AffiliatePayout[]
+  orders  AffiliateOrder[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, active])
+  @@map("affiliates")
+}
+
+/// Commission paid for a period; written to accounts as an Expense.
+model AffiliatePayout {
+  id            String   @id @default(uuid())
+  tenantId      String
+  affiliateId   String
+  periodFrom    DateTime
+  periodTo      DateTime
+  orders        Int      @default(0)
+  sales         Float    @default(0)
+  amount        Float    @default(0)
+  paymentMethod String
+  expenseId     String?
+  expenseNumber String?
+  note          String?
+  paidById      String?
+  paidAt        DateTime @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, affiliateId])
+  @@map("affiliate_payouts")
+}
+
+/// An order tied to an affiliate: linked by hand, or frozen when its commission is paid.
+model AffiliateOrder {
+  id             String   @id @default(uuid())
+  tenantId       String
+  affiliateId    String
+  channelOrderId String
+  /// CODE | UTM | MANUAL
+  source         String
+  orderTotal     Float?
+  commission     Float?
+  payoutId       String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, channelOrderId])
+  @@index([affiliateId])
+  @@index([payoutId])
+  @@map("affiliate_orders")
+}
+
+// ═══════════════════════════════════════════════════════════
+// Meta (Facebook / Instagram) foundation, inbox and catalog sync
+// ═══════════════════════════════════════════════════════════
+
+/// One Meta connection per business. Tokens are encrypted with core/lib/crypto.
+model MetaConnection {
+  id              String    @id @default(uuid())
+  tenantId        String    @unique
+  connectedById   String?
+  metaUserId      String?
+  metaUserName    String?
+  /// Encrypted long-lived user access token.
+  userToken       String?   @db.Text
+  /// null = the token does not expire.
+  tokenExpiresAt  DateTime?
+  scopes          String[]  @default([])
+  /// [{ id, name, token (encrypted), picture, igId, igUsername, igPicture, tasks }]
+  pages           Json?
+  /// [{ id, name, currency, status }]
+  adAccounts      Json?
+  /// [{ id, name }]
+  businesses      Json?
+  /// [{ id, name, businessId }]
+  catalogs        Json?
+  /// Assets the merchant picked.
+  pageId          String?
+  igUserId        String?
+  adAccountId     String?
+  businessId      String?
+  catalogId       String?
+  /// WhatsApp Business Account and phone number (WhatsApp Cloud API part).
+  wabaId          String?
+  waPhoneNumberId String?
+  autoPublish     Boolean   @default(true)
+  inboxEnabled    Boolean   @default(true)
+  catalogSync     Boolean   @default(false)
+  catalogSyncedAt DateTime?
+  webhooksAt      DateTime?
+  /// CONNECTED | EXPIRED | REVOKED | ERROR | DISCONNECTED
+  status          String    @default("CONNECTED")
+  lastError       String?
+  lastErrorAt     DateTime?
+  connectedAt     DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([metaUserId])
+  @@index([pageId])
+  @@index([igUserId])
+  @@map("meta_connections")
+}
+
+/// A Messenger or Instagram direct-message thread with one person.
+model MetaConversation {
+  id                  String    @id @default(uuid())
+  tenantId            String
+  /// MESSENGER | INSTAGRAM
+  platform            String
+  /// Page id (Messenger) or Instagram account id that received the messages.
+  accountId           String
+  /// The person's page-scoped id (PSID / IGSID).
+  participantId       String
+  participantName     String?
+  participantUsername String?
+  lastText            String?
+  lastMessageAt       DateTime?
+  /// Last message from the person; a normal reply is allowed for 24 hours after it.
+  lastInboundAt       DateTime?
+  unread              Int       @default(0)
+  /// OPEN | DONE
+  status              String    @default("OPEN")
+  phone               String?
+  customerId          String?
+  channelOrderId      String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  messages MetaMessage[]
+
+  @@unique([tenantId, platform, accountId, participantId])
+  @@index([tenantId, lastMessageAt])
+  @@index([tenantId, status])
+  @@map("meta_conversations")
+}
+
+model MetaMessage {
+  id             String   @id @default(uuid())
+  tenantId       String
+  conversationId String
+  /// Meta message id (mid); null for a failed outgoing message.
+  externalId     String?
+  /// IN | OUT
+  direction      String
+  text           String?  @db.Text
+  /// [{ type, url }]
+  attachments    Json?
+  sentAt         DateTime
+  sentById       String?
+  /// SENT | FAILED
+  status         String   @default("SENT")
+  error          String?
+  createdAt      DateTime @default(now())
+
+  conversation MetaConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, externalId])
+  @@index([conversationId, sentAt])
+  @@map("meta_messages")
+}
+
+/// A comment on a Facebook page post or an Instagram post.
+model MetaComment {
+  id           String    @id @default(uuid())
+  tenantId     String
+  /// FACEBOOK | INSTAGRAM
+  platform     String
+  accountId    String
+  externalId   String
+  /// Facebook post id or Instagram media id.
+  objectId     String?
+  parentId     String?
+  authorId     String?
+  authorName   String?
+  text         String?   @db.Text
+  permalink    String?
+  commentedAt  DateTime
+  hidden       Boolean   @default(false)
+  deletedAt    DateTime?
+  /// Written by the shop itself (a reply from Nafaa or from the page).
+  fromShop     Boolean   @default(false)
+  repliedAt    DateTime?
+  readAt       DateTime?
+  socialPostId String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([tenantId, externalId])
+  @@index([tenantId, commentedAt])
+  @@index([tenantId, objectId])
+  @@map("meta_comments")
+}
+
+/// What was last sent to the Meta catalog for one item, so only changes are sent.
+model MetaCatalogItem {
+  id         String   @id @default(uuid())
+  tenantId   String
+  catalogId  String
+  retailerId String
+  hash       String
+  syncedAt   DateTime @default(now())
+
+  @@unique([tenantId, catalogId, retailerId])
+  @@map("meta_catalog_items")
+}
+
+/// One catalog sync run (sync log).
+model MetaCatalogSync {
+  id         String    @id @default(uuid())
+  tenantId   String
+  catalogId  String
+  /// CHANGE | DAILY | MANUAL
+  trigger    String
+  /// RUNNING | SUCCESS | PARTIAL | FAILED | SKIPPED
+  status     String
+  sent       Int       @default(0)
+  removed    Int       @default(0)
+  failed     Int       @default(0)
+  unchanged  Int       @default(0)
+  handles    String[]  @default([])
+  /// [{ id, message }]
+  errors     Json?
+  message    String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([tenantId, startedAt])
+  @@map("meta_catalog_syncs")
+}
+
+/// A data deletion request sent by Meta when a person removes the app.
+model MetaDataDeletion {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  metaUserId  String
+  tenantIds   String[]  @default([])
+  /// RECEIVED | DONE
+  status      String    @default("RECEIVED")
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@map("meta_data_deletions")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Stock forecast and the customer portal (commerce batch A, Nov 2026)
+// ═══════════════════════════════════════════════════════════════
+
+/// Stock forecast saved by the nightly job (and when the page recomputes),
+/// one row per business and branch ("all" = whole business).
+model StockForecastSnapshot {
+  id         String   @id @default(uuid())
+  tenantId   String
+  scopeKey   String
+  /// { rows: ForecastRow[], today: "YYYY-MM-DD" }
+  rows       Json
+  summary    Json
+  computedAt DateTime @default(now())
+
+  @@unique([tenantId, scopeKey])
+  @@index([computedAt])
+}
+
+/// Customer portal link sent by the shop (wa.me or template): one order
+/// (ORDER), or every order of one phone number (CUSTOMER).
+model CustomerPortalLink {
+  id             String    @id @default(uuid())
+  tenantId       String
+  token          String    @unique
+  kind           String
+  channelOrderId String?
+  /// Digits only, last 10; a CUSTOMER link sees only orders with this phone.
+  phone          String?
+  createdById    String?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  openCount      Int       @default(0)
+  lastOpenedAt   DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([tenantId, channelOrderId])
+  @@index([tenantId, phone])
+}
+
+/// What a customer asks for on the portal. type: RETURN, EXCHANGE, CANCEL,
+/// ADDRESS, REORDER. status: REQUESTED → APPROVED → DONE, or REJECTED, or
+/// WITHDRAWN by the customer while still REQUESTED.
+model CustomerPortalRequest {
+  id             String    @id @default(uuid())
+  tenantId       String
+  shopId         String?
+  channelOrderId String
+  linkId         String?
+  type           String
+  status         String    @default("REQUESTED")
+  reason         String?
+  note           String?
+  /// [{ index, qty }] lines of the order the request is about.
+  items          Json?
+  /// Photo URLs the customer uploaded.
+  photos         Json?
+  /// { mode: "PICKUP" | "DROP_OFF", address, city, slot }
+  pickup         Json?
+  /// ADDRESS: { name, phone, address, city }
+  address        Json?
+  decisionNote   String?
+  refundNote     String?
+  refundAmount   Float?
+  /// Exchange or reorder: the new order made on approval.
+  resultOrderId  String?
+  pickupCourier  String?
+  pickupTracking String?
+  decidedById    String?
+  decidedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId, status, createdAt])
+  @@index([channelOrderId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Call center and coupon automation (commerce batch B). Standalone tables,
+// no foreign keys, so the migration is purely additive.
+// ═══════════════════════════════════════════════════════════════
+
+/// One phone call to a customer, dialled by hand (tel: link). Outcome
+/// CONFIRMED, NO_ANSWER, BUSY, WRONG_NUMBER, CALL_BACK or CANCELLED.
+model OrderCall {
+  id             String    @id @default(cuid())
+  tenantId       String
+  shopId         String?
+  channelOrderId String?
+  /// Last 10 digits of the phone (customer-risk phoneKey).
+  phoneKey       String?
+  customerName   String?
+  customerPhone  String?
+  agentId        String?
+  outcome        String
+  note           String?
+  /// CALL_BACK: when to call again (a follow-up).
+  callBackAt     DateTime?
+  followUpDoneAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, channelOrderId])
+  @@index([tenantId, phoneKey])
+  @@index([tenantId, callBackAt])
+}
+
+/// Discount code made by coupon automation (win-back, abandoned cart) or by
+/// hand, and the order that used it.
+model CommerceCoupon {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  code                String
+  /// WIN_BACK, ABANDONED_CART or MANUAL.
+  kind                String
+  /// PERCENT or FIXED.
+  type                String
+  value               Float
+  minSubtotal         Float     @default(0)
+  /// The code is shared (typed by the merchant in Shopify/WooCommerce), not unique to this customer.
+  shared              Boolean   @default(false)
+  phoneKey            String?
+  customerName        String?
+  customerPhone       String?
+  abandonedCheckoutId String?
+  expiresAt           DateTime?
+  sentAt              DateTime?
+  usedAt              DateTime?
+  usedOrderId         String?
+  usedOrderTotal      Float?
+  createdById         String?
+  createdAt           DateTime  @default(now())
+
+  @@index([tenantId, code])
+  @@index([tenantId, kind, createdAt])
+  @@index([tenantId, phoneKey])
+  @@index([abandonedCheckoutId])
+}
+
+/// Country price list of a custom storefront: the price of a product (or one
+/// variant) for customers in one country, in that country's currency.
+/// A missing row means the PKR price converted at the manual exchange rate.
+model CountryPrice {
+  id            String   @id @default(cuid())
+  tenantId      String
+  integrationId String
+  /// ISO 3166 alpha-2 code, upper case.
+  country       String
+  productId     String
+  /// Empty string for a product without variants (keeps the unique key simple).
+  variantKey    String   @default("")
+  /// Price in the country's display currency.
+  price         Float
+  updatedById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([integrationId, country, productId, variantKey])
+  @@index([tenantId, integrationId, country])
+  @@index([productId])
 }

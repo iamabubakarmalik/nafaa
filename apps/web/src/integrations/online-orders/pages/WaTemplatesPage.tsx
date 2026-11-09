@@ -2,10 +2,11 @@
  * WhatsApp messages: the shop's own text for each wa.me message the board
  * and the abandoned-carts list send (confirm order, address check, advance,
  * dispatched, delivered, cart recovery). An empty box uses Nafaa's text.
- * The WhatsApp bot is shown as coming soon.
+ * Sending from the shop's own number is on the WhatsApp Business page.
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Bot, CheckCircle2, GraduationCap, MessageCircle, RotateCcw, Save, Truck } from 'lucide-react';
@@ -92,14 +93,13 @@ export default function WaTemplatesPage() {
         {canEdit && <Button disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>{t('Save')}</Button>}
       </div>
 
-      <section className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/80">
+      <Link to="/online-store/whatsapp-business" className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/80 hover:bg-slate-100">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700"><Bot className="h-4 w-4" /></span>
         <div>
-          <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-slate-900">{t('WhatsApp bot')}
-            <span className="rounded-full bg-amber-100 px-1.5 py-px text-[0.625rem] font-semibold uppercase text-amber-800">{t('Soon')}</span></p>
-          <p className="text-[0.8125rem] text-slate-600">{t('Bot khud message bhejega aur "Haan / Nahi" ka jawab order par laga dega. Abhi message aap ke WhatsApp se jata hai.')}</p>
+          <p className="text-[0.875rem] font-semibold text-slate-900">{t('WhatsApp Business — khud bhejein')}</p>
+          <p className="text-[0.8125rem] text-slate-600">{t('Apne WhatsApp Business number se Nafaa khud message bheje, aur customer "Haan confirm" dabaye to order khud confirm ho jaye.')}</p>
         </div>
-      </section>
+      </Link>
 
       {guide.isOpen && (
         <PageGuide

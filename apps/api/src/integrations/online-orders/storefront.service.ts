@@ -12,6 +12,8 @@ import { readWebsiteConfig } from './website-config';
 import { pkPhone } from './courier-api/postex.adapter';
 import { courierLink, courierName } from './couriers';
 import { apiMessage } from '../../common/i18n/api-message';
+import { InternationalService } from './international/international.service';
+import { findAutoCoupon, markCouponUsed } from './conversion/auto-coupon';
 
 const courierLabel = (c?: string | null) => courierName(c) ?? 'Courier';
 
@@ -93,6 +95,7 @@ export class StorefrontService {
     private readonly prisma: PrismaService,
     private readonly orders: OnlineOrdersService,
     private readonly setup: WebsiteSetupService,
+    private readonly intl: InternationalService,
   ) {}
 
   webBase() {
@@ -188,7 +191,7 @@ export class StorefrontService {
     const products = await this.prisma.product.findMany({
       where: { tenantId: ch.tenantId, isActive: true, price: { gt: 0 }, ...(f.productIds ? { id: { in: f.productIds } } : {}) },
       select: {
-        id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, category: { select: { name: true } },
+        id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, shipsAbroad: true, category: { select: { name: true } },
         images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
         variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true, backorder: true } },
       },
@@ -199,7 +202,7 @@ export class StorefrontService {
       const extra = await this.prisma.product.findFirst({
         where: { id: focus, tenantId: ch.tenantId, isActive: true, price: { gt: 0 }, ...(f.productIds ? { id: { in: f.productIds.filter((x) => x === focus) } } : {}) },
         select: {
-          id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, category: { select: { name: true } },
+          id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, shipsAbroad: true, category: { select: { name: true } },
           images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
           variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true, backorder: true } },
         },
@@ -222,6 +225,7 @@ export class StorefrontService {
       return [{
         id: p.id,
         name: p.name,
+        shipsAbroad: p.shipsAbroad,
         category: p.category?.name ?? null,
         description: p.description ? p.description.slice(0, 300) : null,
         image: p.images[0]?.url ?? null,
@@ -242,9 +246,15 @@ export class StorefrontService {
       logoUrl: f.logoUrl,
       phone: f.showPhone ? (tenant as any)?.phone ?? null : null,
       hasCoupons: f.coupons.some((c) => c.active),
+      international: this.intl.publicInfo(ch),
       categories: [...new Set(list.map((p) => p.category).filter(Boolean))].sort(),
       products: list,
     };
+  }
+
+  /** Country prices for the order form (international selling). */
+  async publicIntlPrices(key: string, country: string) {
+    return this.intl.publicPrices(await this.channelByFormKey(key), country);
   }
 
   /** Form se order — qeemat DB se, customer ki bheji qeemat kabhi nahi */
@@ -260,7 +270,9 @@ export class StorefrontService {
     const address = String(c.address ?? '').trim().slice(0, 400);
     const city = String(c.city ?? '').trim().slice(0, 80);
     if (name.length < 2) throw new BadRequestException('Apna naam likhein');
-    if (!/^03\d{9}$/.test(phone)) throw new BadRequestException('Mobile number 03xxxxxxxxx jaisa likhein');
+    const abroad = !!body?.country && String(body.country).toUpperCase() !== 'PK';
+    if (!abroad && !/^03\d{9}$/.test(phone)) throw new BadRequestException('Mobile number 03xxxxxxxxx jaisa likhein');
+    if (abroad && String(c.phone ?? '').replace(/\D/g, '').length < 7) throw new BadRequestException('Poora phone number likhein (mulk ke code ke saath)');
     if (address.length < 8) throw new BadRequestException('Poora address likhein (ghar #, gali, area)');
     if (city.length < 2) throw new BadRequestException('Shehar likhein');
 
@@ -289,16 +301,33 @@ export class StorefrontService {
       };
     });
 
+    // International: the customer's country sets the prices, shipping and note; the order is still booked in PKR.
+    const intl = abroad
+      ? await this.intl.priceOrder(ch, String(body.country), items.map((i: any) => ({ productId: i.productId, variantId: i.variantId, price: i.price, quantity: i.quantity })))
+      : null;
+    if (intl) items.forEach((i: any, n: number) => { i.price = intl.prices[n]; });
     const subtotal = items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);
-    const deliveryFee = f.freeAbove && subtotal >= f.freeAbove ? 0 : f.deliveryFee;
+    const deliveryFee = intl ? intl.deliveryFee : f.freeAbove && subtotal >= f.freeAbove ? 0 : f.deliveryFee;
     let discount = 0;
     let usedCoupon: Coupon | null = null;
+    // A personal code from coupon automation (win-back, abandoned cart) when the form has no coupon by that code.
+    let autoCoupon: { id: string; code: string } | null = null;
     if (body?.coupon) {
       const r = couponDiscount(f.coupons, String(body.coupon), subtotal);
-      if ('error' in r) throw new BadRequestException(r.error);
-      discount = r.discount;
-      usedCoupon = r.coupon;
+      const auto = 'error' in r && !f.coupons.some((x) => x.code === cleanCode(body.coupon))
+        ? await findAutoCoupon(this.prisma, ch.tenantId, String(body.coupon), subtotal, phone)
+        : null;
+      if (auto) {
+        if ('error' in auto) throw new BadRequestException(auto.error);
+        discount = auto.discount;
+        autoCoupon = { id: auto.row.id, code: auto.row.code };
+      } else {
+        if ('error' in r) throw new BadRequestException(r.error);
+        discount = r.discount;
+        usedCoupon = r.coupon;
+      }
     }
+    const codeUsed = usedCoupon?.code ?? autoCoupon?.code ?? null;
     const ref = `NF${Date.now().toString(36).toUpperCase().slice(-6)}${crypto.randomBytes(1).toString('hex').toUpperCase()}`;
     const order: NormalizedOrder = {
       platform: 'custom',
@@ -317,11 +346,13 @@ export class StorefrontService {
       paymentMethod: 'cod',
       paymentStatus: 'PENDING',
       cancelled: false,
-      notes: body?.notes ? String(body.notes).trim().slice(0, 500) : undefined,
-      paymentTitle: 'Cash on delivery',
-      shippingMethod: usedCoupon ? `Nafaa order form · code ${usedCoupon.code}` : 'Nafaa order form',
+      notes: [intl?.note, body?.notes ? String(body.notes).trim().slice(0, 500) : ''].filter(Boolean).join(' · ') || undefined,
+      paymentTitle: intl ? 'International order' : 'Cash on delivery',
+      shippingMethod: intl ? `Nafaa order form · International ${intl.country.code}` : codeUsed ? `Nafaa order form · code ${codeUsed}` : 'Nafaa order form',
+      ...(codeUsed && { attribution: { discountCodes: [codeUsed] } }),
     };
     const saved = await this.orders.receive(ch, order, { signed: false });
+    if (autoCoupon) await markCouponUsed(this.prisma, autoCoupon.id, saved.id, order.total);
     if (usedCoupon) {
       // Coupon kitni dafa chala — maxUses ke liye
       const fresh = await this.prisma.integration.findUnique({ where: { id: ch.id }, select: { config: true } });
@@ -334,9 +365,18 @@ export class StorefrontService {
   }
 
   /** Checkout par code check — asal hisaab order ke waqt dobara hota hai */
-  async checkCoupon(key: string, body: { code?: string; subtotal?: number }) {
+  async checkCoupon(key: string, body: { code?: string; subtotal?: number; phone?: string }) {
     const ch = await this.channelByFormKey(key);
-    const r = couponDiscount(readForm(ch.config).coupons, String(body?.code ?? ''), Math.max(0, Number(body?.subtotal) || 0));
+    const coupons = readForm(ch.config).coupons;
+    const subtotal = Math.max(0, Number(body?.subtotal) || 0);
+    const r = couponDiscount(coupons, String(body?.code ?? ''), subtotal);
+    if ('error' in r && !coupons.some((x) => x.code === cleanCode(body?.code))) {
+      const auto = await findAutoCoupon(this.prisma, ch.tenantId, String(body?.code ?? ''), subtotal, body?.phone ?? null);
+      if (auto) {
+        if ('error' in auto) return { ok: false, message: auto.error };
+        return { ok: true, code: auto.row.code, discount: auto.discount, ...(auto.row.type === 'PERCENT' ? apiMessage('{{couponValue}}% discount laga', { couponValue: auto.row.value }) : apiMessage('Rs {{couponValue}} discount laga', { couponValue: auto.row.value })) };
+      }
+    }
     if ('error' in r) return { ok: false, message: r.error };
     return { ok: true, code: r.coupon.code, discount: r.discount, ...(r.coupon.type === 'PERCENT' ? apiMessage('{{couponValue}}% discount laga', { couponValue: r.coupon.value }) : apiMessage('Rs {{couponValue}} discount laga', { couponValue: r.coupon.value })) };
   }

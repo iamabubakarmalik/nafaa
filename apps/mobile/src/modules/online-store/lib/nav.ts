@@ -8,7 +8,7 @@
 import type { LucideIcon } from 'lucide-react-native';
 import {
   Activity, BadgePercent, BarChart3, Calculator, FileSpreadsheet, Globe, LayoutDashboard, Megaphone, MessageCircle, PackageCheck, PackagePlus, PackageX,
-  Printer, ScanLine, Send, ShieldAlert, ShoppingBag, ShoppingCart, TrendingUp, Truck, Users, Wallet, Zap,
+  Printer, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, TrendingUp, Truck, Users, Wallet, Zap, Award, Star, UsersRound,
 } from 'lucide-react-native';
 import { msg } from '@/core/i18n';
 import { PERMISSIONS as P } from '@/core/permissions';
@@ -58,6 +58,10 @@ export const COMMERCE_GROUPS: OnlineGroup[] = [
   {
     id: 'c-customers', label: msg('Customers'), color: '#0d9488', links: [
       { href: '/online/customers', label: msg('Customers'), icon: Users, permission: P.SALES_VIEW },
+      { href: '/online/campaigns', label: msg('WhatsApp campaigns'), icon: Send, permission: P.SALES_VIEW, hint: msg('Ek ek chat bhejein') },
+      { href: '/online/reviews', web: '/online-store/reviews', label: msg('Reviews'), icon: Star, permission: P.SALES_VIEW, hint: msg('Web par khulega') },
+      { href: '/online/loyalty', web: '/online-store/loyalty', label: msg('Loyalty & referral'), icon: Award, permission: P.SALES_VIEW, hint: msg('Web par khulega') },
+      { href: '/online/affiliates', label: msg('Influencers & affiliates'), icon: UsersRound, permission: P.SALES_VIEW, hint: msg('Commission aur payout') },
       { href: '/online/blocklist', label: msg('Report scammer'), icon: ShieldAlert, permission: P.SALES_VIEW },
       { href: '/online/whatsapp-templates', label: msg('WhatsApp messages'), icon: MessageCircle, permission: P.SALES_VIEW },
     ],
@@ -68,6 +72,7 @@ export const COMMERCE_GROUPS: OnlineGroup[] = [
       { href: '/online/profit', label: msg('Profit'), icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW, alsoNeeds: P.COST_VIEW },
       { href: '/online/payment-health', label: msg('Payment health'), icon: Activity, permission: P.SALES_VIEW },
       { href: '/online/ads', label: msg('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW },
+      { href: '/online/social', label: msg('Social media'), icon: Share2, permission: P.SALES_VIEW, hint: msg('Post karne ki yaad') },
     ],
   },
 ];

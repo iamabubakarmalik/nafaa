@@ -9,7 +9,7 @@ export { Card, Pill, Toggle, inputCls, labelCls, SERIES } from '@/features/mobil
 
 export const KIND_LABEL: Record<string, string> = {
   SHOPIFY: 'Shopify', DARAZ: 'Daraz', WOOCOMMERCE: 'WooCommerce', CUSTOM_WEBSITE: 'Custom website', FOODPANDA: 'Foodpanda',
-  INDOLJ: 'Indolj', MANUAL: 'Manual orders',
+  INDOLJ: 'Indolj', MANUAL: 'Manual orders', META_CAPI: 'Meta Conversions API', META: 'Meta (Facebook & Instagram)',
 };
 export const KINDS = ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'INDOLJ', 'FOODPANDA', 'MANUAL'];
 export const kindLabel = (k: string | null | undefined) => (k ? KIND_LABEL[k] ?? k : '—');

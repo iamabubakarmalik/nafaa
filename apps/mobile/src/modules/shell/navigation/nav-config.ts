@@ -157,6 +157,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/products', href: '/products', label: msg('Products'), icon: Package, permission: P.PRODUCTS_VIEW, module: 'products', keywords: 'items stock maal' },
       { to: '/catalog', href: '/catalog', label: msg('Catalog'), icon: Eye, permission: P.PRODUCTS_VIEW, module: 'products' },
       { to: '/low-stock', href: '/low-stock', label: msg('Low stock'), icon: AlertTriangle, permission: P.LOW_STOCK_VIEW, module: 'products', keywords: 'reorder khatam' },
+      { to: '/stock-forecast', href: '/stock-forecast', label: msg('Stock forecast'), icon: TrendingUp, permission: P.LOW_STOCK_VIEW, module: 'products', keywords: 'forecast andaza kab khatam reorder dead stock overstock' },
       { to: '/combos', href: '/combos', label: msg('Combos'), icon: Gift, permission: P.PRODUCTS_VIEW, module: 'products', keywords: 'bundle deal offer package gift set' },
       { to: '/product-units', href: '/product-units', label: msg('Multi-units'), icon: Layers, permission: P.PRODUCTS_VIEW, module: 'products', keywords: 'pack box carton dozen unit' },
       { to: '/damage', href: '/damage', label: msg('Damaged stock'), icon: PackageX, permission: P.PRODUCTS_VIEW, module: 'inventory', keywords: 'kharab maal damage wastage expiry toota report approve' },

@@ -1,6 +1,7 @@
 import {
   BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, OnModuleInit,
 } from '@nestjs/common';
+import { deferOnlineLoyalty } from './retention/retention-settings';
 import { backorderFloors } from './backorder-stock';
 import { supportsBackorder } from './backorder';
 import { ChannelOrder, Integration, Prisma, SaleSource, UserRole } from '@prisma/client';
@@ -162,6 +163,7 @@ export class OnlineOrdersService implements OnModuleInit {
         cod: isCashOnDelivery(order.paymentMethod) && order.paymentStatus !== 'PAID',
         signed: meta.signed,
         ...(meta.test && { test: true }),
+        ...(order.attribution && { attribution: order.attribution }),
       },
     });
   }
@@ -862,7 +864,7 @@ export class OnlineOrdersService implements OnModuleInit {
           : undefined,
       } as any,
       { source, sourceRef },
-      { stockFloor: bo.floors },
+      { stockFloor: bo.floors, deferLoyalty: await deferOnlineLoyalty(this.prisma, user.tenantId) },
     );
     return { sale: { id: sale.id, saleNumber: sale.saleNumber, total: sale.total }, shopId, riderKeepsDelivery, deliveryFee, backorder: bo.lines };
   }

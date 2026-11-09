@@ -17,7 +17,10 @@ import { Card, CommerceHero, dateTime, Empty, enumLabel, inputCls, kindLabel, la
 const BUILT_IN_CHUNK: Record<string, string> = { IMPORT_ALL: '25', LINK_ALL: '200', PUSH: '25–100 by channel', PUBLISH: '10–20 by channel' };
 const MODULE_LABEL: Record<string, string> = {
   orders: 'Orders board', catalog: 'Master catalog', dispatch: 'Dispatch', couriers: 'Courier booking', cod: 'COD reconcile', returns: 'Returns (RTO)',
-  abandoned_carts: 'Abandoned carts', growth: 'Growth', whatsapp: 'WhatsApp messages', storefront: 'Storefront', payment_links: 'Payment links',
+  abandoned_carts: 'Abandoned carts', growth: 'Growth', whatsapp: 'WhatsApp messages', storefront: 'Storefront', payment_links: 'Payment links', marketing: 'Marketing hub',
+  social: 'Social media studio',
+  retention: 'Retention (campaigns, reviews, loyalty)', affiliates: 'Influencers & affiliates',
+  meta: 'Facebook & Instagram (Meta)',
 };
 const errMsg = (e: any) => e?.response?.data?.message ?? e?.message ?? 'Could not save';
 
@@ -57,7 +60,7 @@ export default function CommerceControlsPage() {
         )}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {data.options.channelTypes.map((t) => (
-            <Row key={t} label={kindLabel(t)} hint={['SHOPIFY', 'DARAZ', 'WOOCOMMERCE'].includes(t) ? 'Stock, price and content pushes' : 'Stored; Nafaa does not push to this type today'}>
+            <Row key={t} label={kindLabel(t)} hint={t === 'META_CAPI' ? 'Meta Conversions API events (delivered orders); queued events wait' : t === 'META' ? 'Facebook & Instagram publishing, inbox replies, catalog sync, ads and WhatsApp calls' : ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE'].includes(t) ? 'Stock, price and content pushes' : 'Stored; Nafaa does not push to this type today'}>
               <Toggle label={`Pause ${kindLabel(t)}`} checked={!!c.killSwitch[t]} onChange={(v) => patch({ killSwitch: { ...c.killSwitch, [t]: v } })} />
             </Row>
           ))}
@@ -113,6 +116,11 @@ export default function CommerceControlsPage() {
             </Row>
           ))}
         </div>
+      </Card>
+
+      <Card title="Meta beta shops" subtitle="While the Meta app is in development mode, only these shops see the live Facebook & Instagram connect; others see Coming soon. Each person who connects also needs a role (tester) on the Meta app. One shop (tenant) ID per line.">
+        <IdList value={c.metaBetaShops ?? []} onChange={(ids) => patch({ metaBetaShops: ids })} />
+        <p className="mt-1 text-xs text-slate-500">{(c.metaBetaShops ?? []).length} shop(s). After Meta App Review, set META_APP_LIVE=1 on the API to open it for every shop (the Coming soon tile above still wins).</p>
       </Card>
 
       <section className="grid gap-6 lg:grid-cols-2">
@@ -175,5 +183,17 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
       </div>
       {children}
     </div>
+  );
+}
+
+/** One id per line; the text is kept as typed and parsed into ids on every change. */
+function IdList({ value, onChange }: { value: string[]; onChange: (ids: string[]) => void }) {
+  const [text, setText] = useState(value.join('\n'));
+  useEffect(() => {
+    if (text.split(/[\s,]+/).filter(Boolean).join() !== value.join()) setText(value.join('\n'));
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <textarea rows={4} value={text} placeholder="tenant id" aria-label="Meta beta shop IDs" className={`${inputCls} font-mono text-xs`}
+      onChange={(e) => { setText(e.target.value); onChange(e.target.value.split(/[\s,]+/).map((x) => x.trim()).filter(Boolean)); }} />
   );
 }

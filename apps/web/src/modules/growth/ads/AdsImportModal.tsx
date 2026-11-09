@@ -21,7 +21,7 @@ import {
 import { PLATFORM, dayLabel, rs } from './meta';
 import { t } from '@core/i18n';
 
-const FIELD: Record<AdField, string> = { date: t('Date / Day'), spend: t('Kharcha (Amount spent / Cost)'), campaign: t('Campaign'), orders: t('Orders (Purchases / Conversions)') };
+const FIELD: Record<AdField, string> = { date: t('Date / Day'), spend: t('Kharcha (Amount spent / Cost)'), campaign: t('Campaign'), adSet: t('Ad set / Ad group'), orders: t('Orders (Purchases / Conversions)') };
 const STATUS = {
   new: { label: t('Naya'), cls: 'bg-success-50 text-success-800' },
   changed: { label: t('Badla'), cls: 'bg-amber-50 text-amber-800' },
@@ -114,7 +114,7 @@ export function AdsImportModal({ setup, onClose }: { setup: AdsSetup | undefined
         {preview && (<>
           <div>
             <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Platform')}</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {AD_PLATFORMS.map((p) => (
                 <button key={p} type="button" onClick={() => { setPlatform(p); again(p, mapping); }} aria-pressed={preview.platform === p}
                   className={cn('flex h-10 items-center gap-2 rounded-xl px-2.5 text-[0.8125rem] font-semibold ring-1',
@@ -178,7 +178,7 @@ export function AdsImportModal({ setup, onClose }: { setup: AdsSetup | undefined
                     {preview.rows.slice(0, 300).map((r) => (
                       <tr key={r.importKey}>
                         <td className="whitespace-nowrap px-3 py-1.5 text-slate-700">{dayLabel(r.day)}</td>
-                        <td className="max-w-[14rem] truncate px-2 py-1.5 text-slate-600">{r.campaign ?? '—'}</td>
+                        <td className="max-w-[14rem] truncate px-2 py-1.5 text-slate-600">{r.campaign ?? '—'}{r.adSet ? <span className="text-slate-400"> · {r.adSet}</span> : null}</td>
                         <td className="px-2 py-1.5 text-end tabular-nums text-slate-900">{rs(r.amount)}</td>
                         <td className="px-2 py-1.5 text-end tabular-nums text-slate-600">{r.orders ?? '—'}</td>
                         <td className="px-3 py-1.5 text-end"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', STATUS[r.status ?? 'new'].cls)}>{STATUS[r.status ?? 'new'].label}</span></td>

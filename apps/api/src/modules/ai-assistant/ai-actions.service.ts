@@ -49,6 +49,8 @@ import { PurchasesService } from '../purchasing/purchases/purchases.service';
 import type { CreatePurchaseDto } from '../purchasing/purchases/dto/create-purchase.dto';
 import { AiToolsService, type AiToolContext, type AiToolResult } from './ai-tools.service';
 import { ManufacturingService } from '../manufacturing/manufacturing.service';
+import { OnlineOrdersService } from '../../integrations/online-orders/online-orders.service';
+import { boardOf, isBoardStatus, isCustomStage } from '../../integrations/online-orders/order-board';
 import { PAGES } from './ai-action-tools';
 import type { AiActionField, AiActionLine, AiActionProposal, AiActionResult, AiLink } from './ai.types';
 import { apiMessage, type ApiMessage } from '../../common/i18n/api-message';
@@ -88,7 +90,18 @@ const NEEDS: Record<Kind, PermissionKey[]> = {
   create_income: [PERMISSIONS.INCOME_MANAGE],
   create_purchase_draft: [PERMISSIONS.PURCHASES_CREATE],
   produce: [PERMISSIONS.MANUFACTURING_PRODUCE],
+  move_order: [PERMISSIONS.ONLINE_ORDERS_MANAGE],
+  pause_rule: [PERMISSIONS.ONLINE_ORDERS_MANAGE],
 };
+
+/** Board statuses in the words the orders page uses. */
+const BOARD_LABEL: Record<string, string> = {
+  NEW: 'New', CONFIRMED: 'Confirmed', PACKED: 'Packed', PACKED_NOT_SENT: 'Packed (not sent)', DISPATCHED: 'Dispatched', DELIVERED: 'Delivered',
+  RETURNED: 'Returned', CANCELLED: 'Cancelled', ON_HOLD: 'On hold', PAY_PENDING: 'Payment pending', NO_STOCK: 'No stock', CUSTOMER_QUERY: 'Customer query',
+  CLAIM: 'Claim', ISSUE: 'Issue',
+};
+const MANAGER_ROLES = ['OWNER', 'MANAGER', 'SUPER_ADMIN'];
+const orderNoOf = (o: { externalOrderNumber: string | null; externalOrderId: string }) => String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#+/, '');
 
 /* ───────────────────────── matching ───────────────────────── */
 
@@ -151,6 +164,7 @@ export class AiActionsService {
     private readonly tools: AiToolsService,
     private readonly manufacturing?: ManufacturingService,
     private readonly income?: IncomeService,
+    private readonly onlineOrders?: OnlineOrdersService,
   ) {}
 
   /* ───────────────────────── lookups ───────────────────────── */
@@ -532,6 +546,67 @@ export class AiActionsService {
         };
       }
 
+      case 'move_order': {
+        if (!this.onlineOrders) return { error: { error: 'DATA_ERROR', note: 'Online orders are not available.' } };
+        const q = String(a.order ?? '').trim().replace(/^#+/, '').slice(0, 80);
+        const to = String(a.to ?? '').toUpperCase();
+        if (!q || !isBoardStatus(to) || isCustomStage(to)) return { error: { error: 'MISSING', need: [...(!q ? ['order'] : []), ...(!isBoardStatus(to) ? ['to'] : [])] } };
+        const digits = q.replace(/\D/g, '');
+        const hits = await this.prisma.channelOrder.findMany({
+          where: {
+            tenantId, deletedAt: null, ...(ctx.scope.whereLoose as Prisma.ChannelOrderWhereInput),
+            OR: [
+              { externalOrderNumber: { in: [q, `#${q}`] } }, { externalOrderId: q },
+              ...(digits.length >= 10 ? [{ customerPhone: { contains: digits.slice(-10) } }] : []),
+              ...(!/^\d+$/.test(q) && q.length >= 3 ? [{ customerName: { contains: q, mode: 'insensitive' as const } }] : []),
+            ],
+          },
+          orderBy: { receivedAt: 'desc' }, take: 6,
+          select: { id: true, externalOrderId: true, externalOrderNumber: true, customerName: true, customerCity: true, total: true, orderStatus: true, stage: true, nafaaSaleId: true },
+        });
+        if (!hits.length) return { error: { error: 'NOT_FOUND', note: 'No online order matches. Ask for the order number.' } };
+        const open = hits.filter((h) => !['DELIVERED', 'CANCELLED', 'REJECTED', 'RETURNED'].includes(h.orderStatus));
+        const o = hits.length === 1 ? hits[0] : open.length === 1 ? open[0] : null;
+        if (!o) return { error: { error: 'AMBIGUOUS', choices: hits.map((h) => ({ order: orderNoOf(h), customer: h.customerName, total: Number(h.total), status: BOARD_LABEL[boardOf(h)] ?? boardOf(h) })), note: 'Ask which order they mean.' } };
+        const from = boardOf(o);
+        const no = orderNoOf(o);
+        if (from === to) return { error: { error: 'ALREADY', note: `Order ${no} is already ${BOARD_LABEL[to] ?? to}.` } };
+        const warnings: string[] = [];
+        if (!o.nafaaSaleId && ['CONFIRMED', 'PACKED', 'PACKED_NOT_SENT', 'DISPATCHED', 'DELIVERED'].includes(to)) warnings.push('Bill banega aur stock kam hoga.');
+        if (o.nafaaSaleId && ['NEW', 'CANCELLED', 'ON_HOLD', 'PAY_PENDING', 'NO_STOCK', 'CUSTOMER_QUERY'].includes(to)) warnings.push('Bill void hoga aur stock wapas aayega.');
+        return {
+          shopId: null, payload: { orderId: o.id, no, to },
+          proposal: {
+            title: 'Order status badlein',
+            summary: `#${no} · ${o.customerName}${o.customerCity ? `, ${o.customerCity}` : ''} · ${rs(Number(o.total))} · ${BOARD_LABEL[from] ?? from} → ${BOARD_LABEL[to] ?? to}`,
+            fields: [{ key: 'reason', label: to === 'CANCELLED' ? 'Cancel ki wajah' : 'Note', type: 'text', value: String(a.reason ?? '').slice(0, 200) || null, required: to === 'CANCELLED' }],
+            warnings, confirmLabel: `${BOARD_LABEL[to] ?? to} karein`,
+            alt: { label: 'Order kholein', to: `/online-orders?search=${encodeURIComponent(no)}` },
+          },
+        };
+      }
+
+      case 'pause_rule': {
+        if (!MANAGER_ROLES.includes(String(ctx.user.role))) return { error: { error: 'NO_PERMISSION', note: 'Only the owner or a manager can pause or resume automation rules.' } };
+        const resume = a.resume === true;
+        const rules = await this.prisma.commerceAutomationRule.findMany({ where: { tenantId, enabled: !resume }, select: { id: true, name: true, runCount: true, lastRunAt: true }, take: 100 });
+        if (!rules.length) return { error: { error: 'NOT_FOUND', note: resume ? 'No paused rules.' : 'No active automation rules.' } };
+        const ranked = rules.map((r) => ({ ...r, sc: similarity(String(a.rule ?? ''), r.name) })).sort((x, y) => y.sc - x.sc);
+        const top = ranked[0];
+        if (top.sc < 0.45) return { error: { error: 'NOT_FOUND', rules: rules.slice(0, 15).map((r) => r.name), note: 'Ask which rule.' } };
+        if (ranked[1] && top.sc < 0.95 && ranked[1].sc > top.sc - 0.05) return { error: { error: 'AMBIGUOUS', choices: ranked.slice(0, 4).map((r) => r.name), note: 'Ask which rule.' } };
+        return {
+          shopId: null, payload: { ruleId: top.id, name: top.name, enabled: resume },
+          proposal: {
+            title: resume ? 'Automation rule dobara on' : 'Automation rule rokein',
+            summary: `${top.name} · ${top.runCount} dafa chala`,
+            fields: [], warnings: resume ? [] : ['Rokne ke baad ye rule naye orders par nahi chalega, jab tak dobara on na karein.'],
+            confirmLabel: resume ? 'On karein' : 'Rokein',
+            alt: { label: 'Automation kholein', to: '/online-store/automation' },
+          },
+        };
+      }
+
       case 'create_purchase_draft': {
         const shop = await this.writeShop(ctx);
         if (!shop) return { error: { error: 'NO_SHOP' } };
@@ -758,6 +833,26 @@ export class AiActionsService {
         const out = await this.manufacturing.produce(user, write, { shopId: p.shopId ?? undefined, items: [{ productId: p.payload.productId, quantity: qty }], notes: 'Nafaa AI se' }, 'AI');
         const run = out.runs[0];
         return { ...apiMessage('{{payloadName}}: {{qty}} {{unit}} ban gaya ({{runNumber}})', { payloadName: p.payload.name, qty, unit: p.payload.unit, runNumber: run.runNumber }), links: [{ label: 'Production dekhein', to: `/manufacturing/history?run=${run.id}` }], entityType: 'ProductionRun', entityId: run.id };
+      }
+      case 'move_order': {
+        if (!this.onlineOrders) throw new BadRequestException('Online orders abhi nahi chal sakte');
+        const reason = this.str(p, f, 'reason', 200);
+        if (p.payload.to === 'CANCELLED' && !reason) throw new BadRequestException('Cancel ki wajah likhein');
+        await this.onlineOrders.move(user, new ShopScope(p.viewShopId, !p.viewShopId), p.payload.orderId, { to: p.payload.to, reason: reason || 'Nafaa AI' });
+        return {
+          ...apiMessage('Order #{{no}} ab {{status}} hai', { no: p.payload.no, status: BOARD_LABEL[p.payload.to] ?? p.payload.to }),
+          links: [{ label: 'Order dekhein', to: `/online-orders?search=${encodeURIComponent(p.payload.no)}` }], entityType: 'ChannelOrder', entityId: p.payload.orderId,
+        };
+      }
+      case 'pause_rule': {
+        if (!MANAGER_ROLES.includes(String(user.role))) throw new HttpException({ code: 'FORBIDDEN', message: 'Sirf malik ya manager rule rok sakta hai.' }, 403);
+        const r = await this.prisma.commerceAutomationRule.updateMany({ where: { id: p.payload.ruleId, tenantId: user.tenantId }, data: { enabled: p.payload.enabled } });
+        if (!r.count) throw new BadRequestException('Rule nahi mila');
+        // The automation engine reads rules again within a minute.
+        return {
+          ...(p.payload.enabled ? apiMessage('Rule "{{name}}" dobara on ho gaya', { name: p.payload.name }) : apiMessage('Rule "{{name}}" rok diya', { name: p.payload.name })),
+          links: [{ label: 'Automation dekhein', to: '/online-store/automation' }], entityType: 'CommerceAutomationRule', entityId: p.payload.ruleId,
+        };
       }
       case 'create_purchase_draft': {
         const supplierId = this.str(p, f, 'supplierId', 60);

@@ -37,6 +37,7 @@ import { OnlineProfit } from '../components/analytics/OnlineProfit';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { t as tr } from '@core/i18n';
+import { RatingSummary } from '../components/retention/RatingSummary';
 
 type Tab = 'summary' | 'profit' | 'channels' | 'couriers' | 'products' | 'aging';
 
@@ -133,6 +134,8 @@ export default function OnlineReportsPage() {
             hint={t.pending ? tr('{{pending}} naye abhi accept baqi', { pending: t.pending }) : tr('Courier ko dene se deliver tak')} />
         </>}
       </KpiRow>
+
+      <RatingSummary from={period.from} />
 
       <FilterBar
         search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">
