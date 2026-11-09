@@ -56,6 +56,8 @@ export interface MedicineFacts {
   /** "Paracetamol 500mg + Caffeine 65mg" */
   generic: string;
   saltIds: string[];
+  /** Salts and strengths as one comparable key; same key = same formula. */
+  formulaKey?: string | null;
 }
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;

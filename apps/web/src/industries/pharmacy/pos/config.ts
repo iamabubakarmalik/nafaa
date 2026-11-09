@@ -17,6 +17,8 @@ import { MEDICINE_FACTS_KEY, useMedicineFacts } from '../hooks/useMedicineFacts'
 import { REGISTER_CLASSES, parseRxNote, rxNote } from '../lib/meta';
 import { RxDetailsModal } from './RxDetailsModal';
 import { SubstituteModal } from './SubstituteModal';
+import { SameFormulaChip } from './SameFormulaChip';
+import { substitutesFor } from './substitutes';
 import { t } from '@core/i18n';
 
 /** The counter's current catalog, for the substitute picker (beforeAdd only sees one item). */
@@ -40,7 +42,7 @@ function usePharmacyCatalog() {
       searchText: [it.searchText, m.generic, m.manufacturer, m.dosageForm].filter(Boolean).join(' '),
       meta: {
         ...it.meta, rx: m.requiresPrescription, register, cold: m.requiresColdChain || m.isRefrigerated,
-        generic: m.generic, salts: [...m.saltIds].sort().join('|'), manufacturer: m.manufacturer, dosageForm: m.dosageForm,
+        generic: m.generic, salts: m.formulaKey || (m.saltIds.length ? [...m.saltIds].sort().join('|') : undefined), manufacturer: m.manufacturer, dosageForm: m.dosageForm,
       },
     };
   }, [facts]);
@@ -62,6 +64,7 @@ export const pharmacyPos: PosIndustryConfig = {
   quickKeys: true,
   filters,
   searchHint: t('Dawai ka naam, formula (salt) ya barcode…'),
+  lineExtra: (line, ctx) => createElement(SameFormulaChip, { line, ctx }),
   beforeAdd: (item, opts, api) => {
     const confirmed = opts.confirmed ?? [];
 
@@ -109,9 +112,4 @@ export const pharmacyPos: PosIndustryConfig = {
   },
 };
 
-/** Shelf items with exactly the same salts as `item`, cheapest first. */
-export function substitutesFor(item: PosItem, all: PosItem[]): PosItem[] {
-  const key = item.meta?.salts;
-  if (!key) return [];
-  return all.filter((o) => o.id !== item.id && o.meta?.salts === key && o.stock > 0).sort((a, b) => a.price - b.price);
-}
+export { substitutesFor } from './substitutes';

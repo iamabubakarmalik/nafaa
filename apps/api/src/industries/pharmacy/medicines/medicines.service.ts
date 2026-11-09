@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { REGISTER_CLASSES } from '../controlled-log/controlled-log.service';
 import { UpsertMedicineDto } from './dto/upsert-medicine.dto';
+import { formulaKey } from '../common/strength';
 
 /** Generic name of a product from its salts, main salt first: "Paracetamol 500mg + Caffeine 65mg". */
 export function genericLabel(salts: Array<{ strength: string | null; isMainSalt: boolean; salt: { name: string } }>): string {
@@ -95,6 +96,8 @@ export class MedicinesService {
       medicineId: m.id,
       generic: genericLabel(product.productSalts),
       saltIds: product.productSalts.map((s) => s.saltId),
+      /** Salts + strengths in one comparable key ("1g" = "1000mg"); null when no salt is linked. */
+      formulaKey: formulaKey(product.productSalts.map((s) => ({ name: s.salt.name, strength: s.strength }))),
     }));
   }
 

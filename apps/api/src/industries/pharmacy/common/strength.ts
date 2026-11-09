@@ -38,9 +38,24 @@ export function normStrength(raw: string | null | undefined): string {
 /** Salt names compare without case or extra spaces. */
 export const normSaltName = (name: string | null | undefined) => (name ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
 
+/**
+ * Some registers write the strength inside the salt name ("Azithromycin
+ * 500mgUSP", "Azithromycin 200") with no strength of its own. Move it out and
+ * drop pharmacopoeia tags, so those rows group with the clean ones. A bare
+ * number is read as mg.
+ */
+function splitNameStrength(s: { name: string; strength?: string | null }): { name: string; strength?: string | null } {
+  const name = (s.name ?? '').replace(/\b(usp|bp|ph\.?\s*eur\.?)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+  if (s.strength && String(s.strength).trim()) return { name, strength: s.strength };
+  const m = /^(.*?[a-z)])\s+(\d+(?:\.\d+)?)\s*(mg|mcg|g|gm|ml|iu|%)?[a-z]*$/i.exec(name);
+  if (!m) return { name, strength: s.strength };
+  return { name: m[1], strength: `${m[2]}${m[3] ?? 'mg'}` };
+}
+
 /** One key for a set of salts with strengths; medicines with the same key are substitutes. */
 export function formulaKey(salts: Array<{ name: string; strength?: string | null }>): string | null {
   const parts = salts
+    .map(splitNameStrength)
     .filter((s) => normSaltName(s.name))
     .map((s) => `${normSaltName(s.name)}@${normStrength(s.strength)}`)
     .sort();

@@ -330,12 +330,14 @@ export class ProductLibraryService {
       shopId: body.shopId,
       generateBarcodes: !!body.generateBarcodes,
       stockNote: 'Library opening stock',
+      onProgress: (n) => { job.done = Math.min(job.total, job.done + n); },
       afterCreate: pharmacy ? (tx, productId, row) => this.linkMedicine(tx, user.tenantId, productId, byKey.get(row.key)!, salts) : undefined,
     });
 
     for (let i = 0; i < picked.length; i += CHUNK) {
       const chunk = picked.slice(i, i + CHUNK);
       const rows: CatalogImportRow[] = [];
+      const doneBefore = i;
       for (const it of chunk) {
         if (pharmacy && it.regNo && regs.has(`${it.regNo}|${lower(it.pack)}`)) { job.skipped++; continue; }
         const typed = prices[it.id] ?? {};
@@ -370,6 +372,8 @@ export class ProductLibraryService {
         else fresh.push(r);
       }
       if (pharmacy) job.saltsCreated += await this.ensureSalts(user.tenantId, fresh.map((r) => byKey.get(r.key)!), salts);
+      // Rows skipped before writing count as done at once.
+      job.done = Math.min(job.total, doneBefore + chunk.length - fresh.length);
       const t = await importer.run(fresh);
       job.created += t.created;
       job.skipped += t.skipped;
@@ -378,7 +382,7 @@ export class ProductLibraryService {
       job.brandsCreated += t.brandsCreated;
       job.categoriesCreated += t.categoriesCreated;
       if (t.errors.length && job.errors.length < 20) job.errors.push(...t.errors.slice(0, 20 - job.errors.length));
-      job.done = Math.min(job.total, i + chunk.length);
+      job.done = Math.min(job.total, doneBefore + chunk.length);
     }
     job.status = 'done';
     job.finishedAt = new Date().toISOString();

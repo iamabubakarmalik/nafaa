@@ -160,6 +160,8 @@ export interface PosIndustryConfig {
   receiptFooter?: string;
   /** Optional extra block under the customer picker; gets the customer on the bill. */
   CartExtra?: ComponentType<{ customerId?: string | null }>;
+  /** Optional block under one cart line (e.g. same-formula alternatives); null hides it. */
+  lineExtra?: (line: PosCartLine, ctx: PosLineExtraContext) => ReactNode;
   /** Rate for a product line after its quantity changes (bulk rates); undefined keeps the current rate. */
   repriceLine?: (line: PosCartLine, item: PosItem) => number | undefined;
   /** Show voice billing. */
@@ -171,3 +173,14 @@ export interface PosIndustryConfig {
   /** Runs after the server saves a bill; not for bills queued offline. */
   onSale?: (sale: PosSavedSale) => void;
 }
+
+/** What an industry's `lineExtra` can read and do for one cart line. */
+export interface PosLineExtraContext {
+  item?: PosItem;
+  items: PosItem[];
+  hidePrices: boolean;
+  addItem: (item: PosItem, opts?: AddOptions) => void;
+  /** Replace the line with another item, keeping its quantity. */
+  swap: (item: PosItem) => void;
+}
+

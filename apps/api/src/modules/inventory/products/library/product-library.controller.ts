@@ -10,6 +10,7 @@ import { GetUser } from '../../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
 import { PERMISSIONS } from '../../../../common/constants/permissions.constants';
+import { ShopIdParam } from '../../../../common/shop-scope';
 import { ProductLibraryService, type LibraryFilters, type LibraryImportBody } from './product-library.service';
 
 @ApiTags('Product library')
@@ -35,8 +36,9 @@ export class ProductLibraryController {
   }
 
   @Post('import')
-  startImport(@GetUser() user: AuthenticatedUser, @Body() body: LibraryImportBody) {
-    return this.library.startImport(user, body ?? {});
+  startImport(@GetUser() user: AuthenticatedUser, @Body() body: LibraryImportBody, @ShopIdParam() currentShopId?: string) {
+    // Opening stock goes to the branch picked in the dialog, else the branch being viewed.
+    return this.library.startImport(user, { ...(body ?? {}), shopId: body?.shopId || currentShopId });
   }
 
   @Get('import/:jobId')

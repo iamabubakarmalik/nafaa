@@ -47,6 +47,8 @@ export interface CatalogImportOptions {
   afterCreate?: (tx: Prisma.TransactionClient, productId: string, row: CatalogImportRow) => Promise<void>;
   /** Note on the opening stock movement. */
   stockNote?: string;
+  /** Called after each written batch with the number of rows it held, for progress. */
+  onProgress?: (rows: number) => void;
 }
 
 export interface CatalogImportTally {
@@ -119,7 +121,11 @@ export class CatalogImporter {
     }
     if (fresh.length) {
       await this.ensureLookups(fresh);
-      for (let i = 0; i < fresh.length; i += TX_BATCH) await this.writeBatch(fresh.slice(i, i + TX_BATCH));
+      for (let i = 0; i < fresh.length; i += TX_BATCH) {
+        const batch = fresh.slice(i, i + TX_BATCH);
+        await this.writeBatch(batch);
+        this.opts.onProgress?.(batch.length);
+      }
     }
     return {
       created: this.tally.created - before.created,

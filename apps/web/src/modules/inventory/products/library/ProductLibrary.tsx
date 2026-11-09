@@ -263,7 +263,7 @@ export function ProductLibrary({ onClose, onImported, initial, pickBarcode }: Pr
                     <th className="hidden px-2 py-2.5 text-start sm:table-cell">{pharmacy ? t('Pack') : t('Unit')}</th>
                     <th className="px-2 py-2.5 text-end">{pharmacy ? t('MRP') : t('Price')}</th>
                     <th className="hidden px-2 py-2.5 text-end sm:table-cell">{t('Cost')}</th>
-                    <th className="w-28 px-3 py-2.5 text-end" />
+                    <th className="w-40 px-3 py-2.5 text-end" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -298,16 +298,16 @@ export function ProductLibrary({ onClose, onImported, initial, pickBarcode }: Pr
                         </td>
                         <td className="hidden px-2 py-2.5 text-end tabular-nums text-slate-600 sm:table-cell">{price > 0 ? formatPKR(costOf(it, price)) : '—'}</td>
                         <td className="px-3 py-2.5 text-end">
-                          {it.alreadyAdded ? (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-emerald-700 ring-1 ring-emerald-100"><Check className="h-3 w-3" />{t('Added')}</span>
-                          ) : pharmacy && (it.sameFormula ?? 0) > 1 && it.formulaKey && formula?.key !== it.formulaKey ? (
-                            <button type="button" onClick={() => setFormula({ key: it.formulaKey!, label: (it.salts ?? []).map((s) => [s.name, s.strength].filter(Boolean).join(' ')).join(' + ') })}
-                              className="inline-flex items-center gap-1 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-cyan-800 ring-1 ring-cyan-100 hover:bg-cyan-100">
-                              <Beaker className="h-3 w-3" />{t('Same formula ({{count}})', { count: it.sameFormula })}
-                            </button>
-                          ) : it.needsPrice && !(Number(prices[it.id]) > 0) ? (
-                            <span className="text-[0.6875rem] font-semibold text-amber-700">{t('Price likhein')}</span>
-                          ) : null}
+                          <span className="inline-flex flex-wrap items-center justify-end gap-1">
+                            {it.alreadyAdded && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-emerald-700 ring-1 ring-emerald-100"><Check className="h-3 w-3" />{t('Added')}</span>}
+                            {pharmacy && (it.sameFormula ?? 0) > 1 && it.formulaKey && formula?.key !== it.formulaKey && (
+                              <button type="button" onClick={() => setFormula({ key: it.formulaKey!, label: (it.salts ?? []).map((s) => [s.name, s.strength].filter(Boolean).join(' ')).join(' + ') })}
+                                className="inline-flex items-center gap-1 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-cyan-800 ring-1 ring-cyan-100 hover:bg-cyan-100">
+                                <Beaker className="h-3 w-3" />{t('Same formula ({{count}})', { count: it.sameFormula })}
+                              </button>
+                            )}
+                            {!it.alreadyAdded && it.needsPrice && !(Number(prices[it.id]) > 0) && <span className="text-[0.6875rem] font-semibold text-amber-700">{t('Price likhein')}</span>}
+                          </span>
                         </td>
                       </tr>
                     );

@@ -102,18 +102,21 @@ export interface LibraryJob {
   error?: string;
 }
 
+/** The API wraps every body in `{ success, data }`. */
+const body = <T>(r: { data: { data: T } }) => r.data.data;
+
 /** Drops empty filters so the query string stays short. */
 const clean = (f: object) => Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined && v !== ''));
 
 export const libraryApi = {
   meta: (library?: string) =>
-    apiClient.get<LibraryMeta>('/products/library/meta', { params: clean({ library }) }).then((r) => r.data),
+    apiClient.get<{ data: LibraryMeta }>('/products/library/meta', { params: clean({ library }) }).then(body),
   items: (f: LibraryFilters, page: number, pageSize = 50) =>
-    apiClient.get<LibraryPage>('/products/library/items', { params: clean({ ...f, page, pageSize }) }).then((r) => r.data),
+    apiClient.get<{ data: LibraryPage }>('/products/library/items', { params: clean({ ...f, page, pageSize }) }).then(body),
   byBarcode: (code: string) =>
-    apiClient.get<{ items: Array<LibraryItem & { library: string }> }>(`/products/library/barcode/${encodeURIComponent(code)}`).then((r) => r.data.items),
-  startImport: (body: LibraryImportBody) =>
-    apiClient.post<LibraryJob>('/products/library/import', body).then((r) => r.data),
+    apiClient.get<{ data: { items: Array<LibraryItem & { library: string }> } }>(`/products/library/barcode/${encodeURIComponent(code)}`).then((r) => body(r).items),
+  startImport: (input: LibraryImportBody) =>
+    apiClient.post<{ data: LibraryJob }>('/products/library/import', input).then(body),
   job: (id: string) =>
-    apiClient.get<LibraryJob>(`/products/library/import/${id}`).then((r) => r.data),
+    apiClient.get<{ data: LibraryJob }>(`/products/library/import/${id}`).then(body),
 };

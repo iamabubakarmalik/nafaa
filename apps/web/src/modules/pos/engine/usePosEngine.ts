@@ -1077,7 +1077,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     tiersOn, billTier, activeTier, defaultTier, tierChoices, canPickTier, pickTier, cycleTier, setLineTier, udhaarCredit, udhaarTier, udhaarExtra, shownPrice,
     lineTierOverride: tiersOn && counter.tierLineOverride,
     // catalog
-    items, loading, filtered, visible, setVisible, categories, filterCounts, bundles, filteredBundles, quickKeys, groupedQuickKeys,
+    items, itemsById, loading, filtered, visible, setVisible, categories, filterCounts, bundles, filteredBundles, quickKeys, groupedQuickKeys,
     search, setSearch, submitSearch, isCode, recentItems, categoryId, setCategoryId, filterId, setFilterId, view, setView, inCartBy,
     // bill
     distPricing,

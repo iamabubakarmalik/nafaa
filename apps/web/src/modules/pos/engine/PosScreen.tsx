@@ -647,7 +647,12 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           <PosLineTier line={l} billTier={e.activeTier} choices={e.tierChoices} canPick={e.canPickTier} onPick={(t) => e.setLineTier(l.id, t)}
             editable={e.lineTierOverride && !l.fixedPrice} hidePrices={hidePrices} />
         );
-        return batch || tier ? <div className="flex flex-wrap items-center gap-1.5">{batch}{tier}</div> : null;
+        const industry = config.lineExtra && l.type === 'product' && l.productId ? config.lineExtra(l, {
+          item: e.itemsById.get(l.productId), items: e.items, hidePrices,
+          addItem: (it, o) => e.addItem(it, o),
+          swap: (it) => { e.removeLine(l.id); e.addItem(it, { qty: l.quantity }); },
+        }) : null;
+        return batch || tier || industry ? <div className="flex flex-wrap items-center gap-1.5">{batch}{tier}{industry}</div> : null;
       }} />
   );
 

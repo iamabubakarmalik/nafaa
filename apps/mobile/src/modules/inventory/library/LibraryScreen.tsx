@@ -180,7 +180,7 @@ export function LibraryScreen() {
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                   {it.needsPrice ? <Text size="xs" tone="warning" weight="semibold">{prices[it.id] ? formatPKR(prices[it.id]) : t('Price likhein')}</Text> : <Text size="sm" weight="semibold" ltr>{formatPKR(it.price)}</Text>}
                   {pharmacy && (it.sameFormula ?? 0) > 1 && it.formulaKey && formula?.key !== it.formulaKey
-                    ? <Button size="xs" variant="ghost" icon={Beaker} onPress={() => setFormula({ key: it.formulaKey!, label: saltLine(it) })}>{t('Same formula ({{count}})', { count: it.sameFormula })}</Button>
+                    ? <Button size="sm" variant="ghost" icon={Beaker} onPress={() => setFormula({ key: it.formulaKey!, label: saltLine(it) })}>{t('Same formula ({{count}})', { count: it.sameFormula })}</Button>
                     : on ? <CheckCircle2 size={20} color={th.colors.brand.solid} /> : null}
                 </View>
               )}

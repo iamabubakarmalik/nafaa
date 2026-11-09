@@ -169,12 +169,16 @@ function loadPharmacy(dir: string): LibraryBook | null {
   const rows = readJson<DrapRow[]>(dir, 'pharmacy-drap.json.gz');
   if (!rows?.length) return null;
   const clean = (s: string) => s.replace(/^\*+/, '').replace(/\s+/g, ' ').trim();
-  // Brand names repeat across pack sizes; those get the pack in the name.
-  const seen = new Map<string, number>();
-  for (const r of rows) {
-    const k = clean(r.brand ?? '').toLowerCase();
-    seen.set(k, (seen.get(k) ?? 0) + 1);
-  }
+  // Brand names repeat across pack sizes and companies; each row needs its own
+  // product name: the pack first, then the company, then the DRAP number.
+  const count = (keys: string[]) => keys.reduce((m, k) => m.set(k, (m.get(k) ?? 0) + 1), new Map<string, number>());
+  const brandOf = (r: DrapRow) => clean(r.brand ?? '');
+  const byBrand = count(rows.map((r) => brandOf(r).toLowerCase()));
+  const withPack = (r: DrapRow) => (byBrand.get(brandOf(r).toLowerCase())! > 1 && r.pack ? `${brandOf(r)} (${r.pack.trim()})` : brandOf(r));
+  const byPack = count(rows.map((r) => withPack(r).toLowerCase()));
+  const withCompany = (r: DrapRow) => (byPack.get(withPack(r).toLowerCase())! > 1 && r.manufacturer ? `${withPack(r)} - ${r.manufacturer.trim()}` : withPack(r));
+  const byCompany = count(rows.map((r) => withCompany(r).toLowerCase()));
+  const nameOf = (r: DrapRow) => (byCompany.get(withCompany(r).toLowerCase())! > 1 && r.regNo ? `${withCompany(r)} #${r.regNo.trim()}` : withCompany(r));
   let updated: string | null = null;
   const items: LibraryItem[] = [];
   for (const r of rows) {
@@ -182,10 +186,9 @@ function loadPharmacy(dir: string): LibraryBook | null {
     if (!brand) continue;
     if (r.effective && (!updated || r.effective > updated)) updated = r.effective;
     const salts = (r.salts ?? []).filter((s) => s?.name?.trim()).map((s) => ({ name: s.name.trim(), strength: s.strength?.trim() || null }));
-    const repeated = (seen.get(brand.toLowerCase()) ?? 0) > 1 && r.pack;
     items.push({
       id: r.id,
-      name: repeated ? `${brand} (${r.pack!.trim()})` : brand,
+      name: nameOf(r),
       company: r.manufacturer?.trim() || null,
       category: r.form?.trim() || 'Other',
       unit: pharmacyUnit(r.form, r.packQty),
