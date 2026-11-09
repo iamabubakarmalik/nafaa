@@ -80,10 +80,15 @@ export function courierBrand(nameOrCode?: string | null): CourierBrand {
 }
 
 /** Couriers the dispatch form offers (code + brand name; "Apna rider" and "Doosra" are labels the app translates). */
-export const COURIER_CODES = ['RIDER', 'TCS', 'LEOPARDS', 'POSTEX', 'TRAX', 'MNP', 'BLUE_EX', 'CALL_COURIER', 'DAEWOO', 'TPL_RIDER', 'OTHER'] as const;
+export const COURIER_CODES = [
+  'RIDER', 'TCS', 'LEOPARDS', 'POSTEX', 'TRAX', 'MNP', 'BLUE_EX', 'CALL_COURIER', 'DAEWOO', 'TPL_RIDER',
+  'INSTAWORLD', 'SHIPNOC', 'TRANZO', 'SWYFT', 'BARQRAFTAR', 'ZOOM', 'MOVEX', 'FORRUN', 'BYKEA', 'PAKPOST', 'OTHER',
+] as const;
 export const COURIER_NAMES: Record<(typeof COURIER_CODES)[number], string> = {
   RIDER: 'Rider', TCS: 'TCS', LEOPARDS: 'Leopards', POSTEX: 'PostEx', TRAX: 'Trax', MNP: 'M&P', BLUE_EX: 'BlueEx',
-  CALL_COURIER: 'Call Courier', DAEWOO: 'Daewoo FastEx', TPL_RIDER: 'Rider (TPL)', OTHER: 'Other',
+  CALL_COURIER: 'Call Courier', DAEWOO: 'Daewoo FastEx', TPL_RIDER: 'Rider (TPL)',
+  INSTAWORLD: 'InstaWorld', SHIPNOC: 'ShipNOC', TRANZO: 'Tranzo', SWYFT: 'Swyft', BARQRAFTAR: 'BarqRaftar', ZOOM: 'Zoom COD',
+  MOVEX: 'MoveX', FORRUN: 'Forrun', BYKEA: 'Bykea', PAKPOST: 'Pakistan Post', OTHER: 'Other',
 };
 
 export type CourierStateTone = 'neutral' | 'info' | 'brand' | 'warning' | 'success' | 'danger';
