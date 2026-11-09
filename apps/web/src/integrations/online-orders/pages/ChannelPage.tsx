@@ -15,17 +15,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Activity, BookOpen, ExternalLink, LayoutDashboard, MoreHorizontal, Package, Pause, Play, RefreshCw, Send,
-  Settings2, ShoppingBag, Trash2, TriangleAlert, Wrench,
+  GraduationCap, Settings2, ShoppingBag, Trash2, TriangleAlert, Wrench,
 } from 'lucide-react';
 import {
   Alert, Button, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { useAuthStore } from '@core/stores/auth.store';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../api/online-orders.api';
 import { CHANNELS_KEY, useSalesChannels } from '../hooks/useSalesChannels';
+import { usePlatformControls } from '../hooks/usePlatformControls';
 import { timeAgo } from '../lib/labels';
 import { HttpsNotice } from '../components/website/ManualKeysForm';
 import { ChannelOverview, panel } from '../components/channel/ChannelOverview';
@@ -107,8 +109,12 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
   id: string; data: WebsiteOverview; onChange: (d: WebsiteOverview) => void; tab: ChannelTab; setTab: (t: ChannelTab) => void; busy: boolean;
 }) {
   const navigate = useNavigate();
+  const guide = usePageGuide();
+  const platform = usePlatformControls().data;
   const [params, setParams] = useSearchParams();
   const i = data.integration!;
+  // The Nafaa admin can pause pushes (stock, price, content) for a whole channel type.
+  const platformPaused = !!platform?.pausedChannelTypes.includes(i.type);
   const stats = data.stats!;
   const viaParam = params.get('via');
   const via: 'indolj' | 'custom' = viaParam === 'indolj' || (!viaParam && i.indolj?.connected) ? 'indolj' : 'custom';
@@ -165,6 +171,7 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
           </button>
           <Link to={ordersLink} className={heroPrimaryButton} aria-label={tr('Orders')}><ShoppingBag className="h-4 w-4" /><span className="hidden sm:inline">{tr('Orders')}</span>{stats.pendingOrders ? <span className="tabular-nums">({stats.pendingOrders})</span> : null}</Link>
           <MoreMenu id={id} data={data} siteUrl={siteUrl} onChange={onChange} setTab={setTab} />
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={[
           { label: tr('Aaj ke orders'), value: stats.todayOrders ?? 0 },
@@ -178,6 +185,11 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
         <Alert tone="warning" icon={<Pause className="h-4 w-4 text-amber-600" />} title={tr('Channel band hai')}
           action={<ResumeButton id={id} onChange={onChange} />}>
           {tr('{{name}} par order ho to bhi Nafaa me nahi aayega.', { name: facts.name })}
+        </Alert>
+      )}
+      {platformPaused && (
+        <Alert tone="info" icon={<Pause className="h-4 w-4" />} title={tr('{{name}} par bhejna kuch der ke liye ruka hai', { name: facts.name })}>
+          {tr('Nafaa ne sab dukaanon ke liye stock, price aur product bhejna abhi roka hua hai. Orders aate rahenge — chalu hote hi sab khud bhej diya jayega.')}
         </Alert>
       )}
       {planNeeded && !paused && !needsReinstall && <ShopifyPlanAlert id={id} onChange={onChange} />}
@@ -205,6 +217,21 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
       {tab === 'settings' && <ChannelSettings key={i.id} id={id} data={data} facts={facts} onChange={onChange} />}
       {tab === 'setup' && <ChannelSetup id={id} data={data} facts={facts} onChange={onChange} setTab={setTab} via={via} setVia={setVia} />}
       {tab === 'activity' && <ChannelActivity id={id} name={facts.name} />}
+      {guide.isOpen && (
+        <PageGuide title={facts.name} onClose={guide.close}
+          flow={[
+            { label: tr('Order aaya'), icon: ShoppingBag, color: '#0891b2' },
+            { label: tr('Accept'), hint: tr('Stock kam'), icon: Package, color: '#7c3aed' },
+            { label: tr('Courier'), hint: tr('Dispatch'), icon: Send, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: LayoutDashboard, color: '#0891b2', title: tr('Overview'), text: tr('Is channel ke aaj ke orders, naye orders aur jure items ek nazar me.') },
+            { icon: Package, color: '#7c3aed', title: tr('Products'), text: tr('Nafaa ke products channel ke items se jorein — stock aur price sab ka ek rehta hai.') },
+            { icon: Settings2, color: '#d97706', title: tr('Setup aur Settings'), text: tr('Jurne ki maloomat aur channel ke rules yahan hain. Masla ho to Activity dekhein.') },
+          ]}
+          shortcuts={[['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

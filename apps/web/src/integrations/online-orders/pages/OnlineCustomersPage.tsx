@@ -308,6 +308,11 @@ export default function OnlineCustomersPage() {
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
       {guide.isOpen && (
         <PageGuide title={tr('Online customers — aasaan tareeqa')} onClose={guide.close}
+          flow={[
+            { label: tr('Customers'), icon: Users, color: '#2563eb' },
+            { label: tr('VIP'), icon: Crown, color: '#d97706' },
+            { label: tr('Broadcast'), hint: 'WhatsApp', icon: Send, color: '#16a34a' },
+          ]}
           steps={[
             { icon: Crown, color: '#d97706', title: tr('VIP'), text: tr('Sab se zyada kharchne wale 10% (kam az kam 2 order deliver). Inhein khaas discount dein.') },
             { icon: UserMinus, color: '#7c3aed', title: tr('Gayab customers'), text: tr('30, 60 ya 90 din se order nahi kiya. Ek WhatsApp message aksar wapas le aata hai.') },

@@ -9,10 +9,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, CreditCard, ExternalLink, Link2, Lock, MessageCircle, ShieldCheck, Unplug, Wallet, Zap } from 'lucide-react';
+import { CheckCircle2, CreditCard, ExternalLink, GraduationCap, Link2, Lock, MessageCircle, ShieldCheck, Unplug, Wallet, Zap } from 'lucide-react';
 import {
-  Badge, Button, confirmDialog, Input, PageHero, PageShell, Segmented, Skeleton, Switch, heroButton,
+  Badge, Button, confirmDialog, Input, PageHero, PageShell, Segmented, Skeleton, Switch, heroButton, heroIconButton,
 } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo, brandForPayment } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, paymentsApi, type PayGatewayAccount } from '../api/online-orders.api';
@@ -30,6 +31,7 @@ const HOW = [
 ];
 
 export default function PaymentsPage() {
+  const guide = usePageGuide();
   const { data, isLoading, error, refetch } = useQuery({ queryKey: PAY_KEY, queryFn: paymentsApi.accounts });
   const list = data ?? [];
   const connected = list.filter((g) => g.connected);
@@ -43,7 +45,10 @@ export default function PaymentsPage() {
         chip={<><CreditCard />{t('{{count}} jure hue', { count: connected.length })}</>}
         meta={t('Customer se advance ya poori amount online lein — COD ka RTO khatra kam')}
         loading={isLoading}
-        actions={<Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">{t('COD hisaab')}</span></Link>}
+        actions={<>
+          <Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /><span className="hidden sm:inline">{t('COD hisaab')}</span></Link>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
         stats={data ? [
           { label: t('Jure gateways'), value: String(connected.length), hint: t('{{count}} me se', { count: list.length }) },
           { label: t('Live (asli paisa)'), value: String(live.length) },
@@ -75,6 +80,21 @@ export default function PaymentsPage() {
         <div className="grid items-start gap-4 lg:grid-cols-2">
           {data.map((g) => <GatewayCard key={g.code} g={g} />)}
         </div>
+      )}
+      {guide.isOpen && (
+        <PageGuide title={t('Online payments')} onClose={guide.close}
+          flow={[
+            { label: t('Gateway jorein'), icon: Link2, color: '#0891b2' },
+            { label: t('Payment link'), hint: t('Customer ko'), icon: MessageCircle, color: '#7c3aed' },
+            { label: t('Paisa'), hint: t('Advance / poora'), icon: CheckCircle2, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Link2, color: '#0891b2', title: t('Gateway jorein'), text: t('Safepay, JazzCash ya Easypaisa ki keys daalein. Pehle test mode me check karein.') },
+            { icon: ShieldCheck, color: '#d97706', title: t('RTO khatra kam'), text: t('Risky COD order par advance maangein — paise aane par order khud confirm ho jata hai.') },
+            { icon: Zap, color: '#16a34a', title: t('Live'), text: t('Test theek chale to Live karein, tab asli paisa aayega.') },
+          ]}
+          shortcuts={[['G', t('guide')]]}
+        />
       )}
     </PageShell>
   );

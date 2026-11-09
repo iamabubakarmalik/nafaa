@@ -12,9 +12,13 @@ import { courierName } from './couriers';
 import { cnKey } from './cod-reconcile';
 import { checkPack } from './order-scan';
 import { apiMessage, apiText } from '../../common/i18n/api-message';
+import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const PACKABLE = ['CONFIRMED', 'PREPARING', 'READY'];
+/** How far back the desks look for parcels still to be scanned in. */
+const DESK_LOOKBACK_DAYS = 90;
 const code = (v: unknown) => String(v ?? '').toUpperCase().replace(/\s+/g, '');
 
 /**
@@ -39,7 +43,89 @@ export class OrderScanService {
     private readonly orders: OnlineOrdersService,
     private readonly costs: OrderCostsService,
     private readonly adjustments: StockAdjustmentsService,
+    private readonly tz: TenantTimezoneService,
   ) {}
+
+  /**
+   * Numbers and lists for the packing table and the returns desk, for the
+   * shop's business day.
+   *   pack  orders waiting to be packed, packed today, wrong scans today
+   *   rto   parcels the courier is bringing back (or has marked returned)
+   *         that are not scanned in yet, and parcels received today with
+   *         their damaged quantities
+   */
+  async desk(user: AuthenticatedUser, scope: ShopScope, mode: string) {
+    const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
+    const start = startOfBusinessDayTz(new Date(), tz, dayStartHour);
+    const since = new Date(start.getTime() - DESK_LOOKBACK_DAYS * 86_400_000);
+    const startIso = start.toISOString();
+    const base = { tenantId: user.tenantId, deletedAt: null, ...(scope.whereLoose as any) } as Prisma.ChannelOrderWhereInput;
+    const meta = (o: { metadata: unknown }) => ((o.metadata ?? {}) as any);
+    const atToday = (v: any) => typeof v?.at === 'string' && v.at >= startIso;
+
+    if (mode === 'pack') {
+      const [toPack, recent] = await Promise.all([
+        this.prisma.channelOrder.count({ where: { ...base, orderStatus: { in: ['CONFIRMED', 'PREPARING'] } } }),
+        this.prisma.channelOrder.findMany({
+          where: { ...base, receivedAt: { gte: since }, orderStatus: { notIn: ['PENDING', 'CANCELLED', 'REJECTED'] } },
+          select: { metadata: true },
+        }),
+      ]);
+      const today = recent.filter((o) => atToday(meta(o).packed));
+      return {
+        toPack,
+        packedToday: today.length,
+        mistakesToday: today.reduce((t, o) => t + (Number(meta(o).packed?.mistakes) || 0), 0),
+      };
+    }
+
+    const select = {
+      id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, customerCity: true, total: true,
+      orderStatus: true, courierStatus: true, courierStatusAt: true, courierCode: true, trackingNumber: true, returnedAt: true, rtoCost: true, metadata: true,
+    } as const;
+    const rows = await this.prisma.channelOrder.findMany({
+      where: {
+        ...base,
+        OR: [
+          { orderStatus: 'RETURNED', returnedAt: { gte: since } },
+          { courierStatus: { in: ['RETURNING', 'RETURNED'] }, orderStatus: { notIn: [...CLOSED, 'DELIVERED'] } },
+        ],
+      },
+      select,
+      orderBy: [{ courierStatusAt: 'desc' }, { returnedAt: 'desc' }],
+      take: 500,
+    });
+    const view = (o: (typeof rows)[number]) => {
+      const m = meta(o);
+      const damaged = Array.isArray(m.rtoReceived?.damaged) ? m.rtoReceived.damaged.reduce((t: number, d: any) => t + (Number(d?.qty) || 0), 0) : 0;
+      return {
+        id: o.id,
+        number: String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#/, ''),
+        customerName: o.customerName,
+        city: o.customerCity,
+        total: Number(o.total),
+        orderStatus: o.orderStatus,
+        courierStatus: o.courierStatus,
+        courierCode: o.courierCode,
+        courierName: o.courierCode ? courierName(o.courierCode) : null,
+        trackingNumber: o.trackingNumber,
+        at: (m.rtoReceived?.at as string | undefined) ?? (o.returnedAt ?? o.courierStatusAt)?.toISOString() ?? null,
+        damaged,
+        rtoCost: o.rtoCost ?? 0,
+      };
+    };
+    const live = rows.filter((o) => !meta(o).test);
+    const pending = live.filter((o) => !meta(o).rtoReceived).map(view);
+    const received = live.filter((o) => atToday(meta(o).rtoReceived)).map(view)
+      .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    return {
+      returning: pending.length,
+      receivedToday: received.length,
+      damagedToday: received.reduce((t, r) => t + r.damaged, 0),
+      pending: pending.slice(0, 100),
+      received: received.slice(0, 100),
+    };
+  }
 
   async lookup(user: AuthenticatedUser, scope: ShopScope, raw: string) {
     const term = String(raw ?? '').trim().replace(/^#+/, '');
@@ -112,7 +198,7 @@ export class OrderScanService {
   }
 
   /** Everything scanned and nothing extra: the order is packed (READY). */
-  async packed(user: AuthenticatedUser, scope: ShopScope, id: string, body: { counts?: Record<string, number>; manual?: number[] }) {
+  async packed(user: AuthenticatedUser, scope: ShopScope, id: string, body: { counts?: Record<string, number>; manual?: number[]; mistakes?: number }) {
     const order = await this.prisma.channelOrder.findFirst({ where: { id, tenantId: user.tenantId, ...(scope.whereLoose as any) } });
     if (!order) throw new NotFoundException('Order nahi mila');
     const v = await this.view(order);
@@ -123,7 +209,7 @@ export class OrderScanService {
     const fresh = await this.prisma.channelOrder.findUniqueOrThrow({ where: { id }, select: { metadata: true } });
     await this.prisma.channelOrder.update({
       where: { id },
-      data: { metadata: { ...((fresh.metadata as any) ?? {}), packed: { at: new Date().toISOString(), by: user.id, scanned: true, manual: body?.manual ?? [] } } },
+      data: { metadata: { ...((fresh.metadata as any) ?? {}), packed: { at: new Date().toISOString(), by: user.id, scanned: true, manual: body?.manual ?? [], mistakes: Math.max(0, Math.min(999, Math.floor(Number(body?.mistakes) || 0))) } } },
     });
     return { ok: true, order: await this.view(await this.prisma.channelOrder.findUniqueOrThrow({ where: { id } })) };
   }

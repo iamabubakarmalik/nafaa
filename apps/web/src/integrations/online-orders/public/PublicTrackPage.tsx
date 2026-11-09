@@ -6,6 +6,8 @@ import { cn } from '@core/lib/cn';
 import { publicFetch } from './publicApi';
 import { Shell, type Catalog } from './PublicOrderPage';
 import { t } from '@core/i18n';
+import type { Journey } from '../api/insights.api';
+import { JourneyView } from '../components/tracking/OrderJourney';
 
 /* ═════════════════════════════════════════════════════════════
    CUSTOMER: "mera order kahan hai" — order # + phone ke aakhri 4.
@@ -17,6 +19,8 @@ interface Track {
   steps: { key: string; label: string; at: string | null }[];
   closed: { label: string; at: string | null } | null;
   courier: { name: string; trackingNumber: string; site: string | null } | null;
+  /** Courier steps by city, once the parcel is with a courier. */
+  journey?: Journey | null;
 }
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
@@ -89,6 +93,13 @@ export default function PublicTrackPage() {
                   </li>
                 ))}
               </ol>
+            )}
+
+            {data.journey && data.journey.steps.some((st) => st.reached && st.key !== 'BOOKED') && (
+              <div className="mt-5">
+                <div className="mb-2 text-xs font-semibold text-slate-500">{t('Courier ke saath safar')}</div>
+                <JourneyView journey={data.journey} />
+              </div>
             )}
 
             {data.courier && (

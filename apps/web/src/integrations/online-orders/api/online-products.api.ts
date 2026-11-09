@@ -57,6 +57,9 @@ export interface OnlineChannel {
 export interface LinkedCell {
   linked: true;
   mappingId: string;
+  /** Older API builds leave these out. */
+  externalProductId?: string | null;
+  externalVariantId?: string | null;
   externalTitle: string | null;
   externalSku: string | null;
   /** Price Nafaa sets on the channel (link price, else the rule). */
@@ -98,7 +101,8 @@ export interface GridItem {
 }
 
 export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted';
-export interface GridQuery { page: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string }
+export interface GridScope { categoryId?: string; brandId?: string }
+export interface GridQuery extends GridScope { page: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string; productId?: string }
 export interface GridPage { channels: OnlineChannel[]; items: GridItem[]; total: number; page: number; pages: number; limit: number }
 export type GridSummary = Record<GridFilter, number>;
 
@@ -131,6 +135,8 @@ export interface Issue {
   text: string;
   detail?: string | null;
   count?: number;
+  /** Failed links per stored error text (kind "errors"). */
+  reasons?: Array<{ error: string | null; count: number }>;
 }
 
 export type JobKind = 'IMPORT_ALL' | 'LINK_ALL' | 'PUSH' | 'PUBLISH';
@@ -141,8 +147,8 @@ export interface CatalogJob {
 }
 export interface JobStart { job: CatalogJob; existing: boolean }
 
-export interface Selection { productIds?: string[]; all?: boolean; search?: string; filter?: GridFilter; channelId?: string }
-export type BulkAction = 'listed' | 'alloc' | 'price' | 'compareAt' | 'push' | 'publish';
+export interface Selection { productIds?: string[]; all?: boolean; search?: string; filter?: GridFilter; channelId?: string; categoryId?: string; brandId?: string }
+export type BulkAction = 'listed' | 'alloc' | 'price' | 'pricePercent' | 'compareAt' | 'push' | 'publish';
 
 export interface LinkPatch { listed?: boolean; allocQty?: number | null; priceOverride?: number | null; compareAtPrice?: number | null }
 
@@ -151,7 +157,12 @@ export const ONLINE_PRODUCTS_KEY = 'online-products';
 export const onlineProductsApi = {
   channels: () => apiClient.get('/online-products/channels').then((r) => unwrap<{ channels: OnlineChannel[]; sellable: number }>(r)),
   grid: (q: GridQuery) => apiClient.get('/online-products/grid', { params: q }).then((r) => unwrap<GridPage>(r)),
-  summary: (channelId?: string) => apiClient.get('/online-products/summary', { params: channelId ? { channelId } : {} }).then((r) => unwrap<GridSummary>(r)),
+  summary: (channelId?: string, scope: GridScope = {}) =>
+    apiClient.get('/online-products/summary', { params: { ...(channelId ? { channelId } : {}), ...scope } }).then((r) => unwrap<GridSummary>(r)),
+  /** One product across every channel (the product panel). */
+  item: (productId: string) =>
+    apiClient.get('/online-products/grid', { params: { page: 1, limit: 5, productId } }).then((r) => unwrap<GridPage>(r))
+      .then((g) => ({ channels: g.channels, item: g.items.find((i) => i.productId === productId) ?? null })),
   suggestions: (channelId: string, refresh = false) =>
     apiClient.get(`/online-products/channels/${channelId}/suggestions`, { params: refresh ? { refresh: 1 } : {}, timeout: 180_000 }).then((r) => unwrap<Suggestions>(r)),
   link: (channelId: string, links: LinkInput[]) =>

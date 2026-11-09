@@ -15,7 +15,7 @@ import { onlineOrdersApi } from '../api/online-orders.api';
 import type { SyncResult } from '../api/order-board.api';
 import { EditOrderForm } from '../components/orders/EditOrderForm';
 import { canEdit } from '../components/orders/RowActions';
-import { sourceOf } from '../lib/labels';
+import { STATUS_LABEL, sourceOf } from '../lib/labels';
 import { orderNo } from '../lib/orders';
 import { t } from '@core/i18n';
 
@@ -38,6 +38,12 @@ export default function EditOrderPage() {
         meta={t('Cheezein, price, charges aur address badlein — bill aur stock khud theek ho jate hain')}
         loading={q.isLoading}
         actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        stats={o ? [
+          { label: t('Amount'), value: money(Number(o.total)) },
+          { label: t('Cheezein'), value: String((o.items ?? []).reduce((n, it) => n + (Number(it.quantity) || 0), 0)), hint: t('{{count}} lines', { count: (o.items ?? []).length }) },
+          { label: t('Payment'), value: o.isCod ? 'COD' : t('Advance / paid') },
+          { label: t('Status'), value: STATUS_LABEL[o.orderStatus]?.label ?? o.orderStatus },
+        ] : undefined}
       />
 
       {q.isLoading ? (

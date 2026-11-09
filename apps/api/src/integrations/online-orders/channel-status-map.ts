@@ -14,6 +14,8 @@
  * pull an order backwards. Pure functions only, unit tested.
  */
 
+import { courierTrackUrl } from './couriers';
+
 export type StatusChannel = 'SHOPIFY' | 'WOOCOMMERCE' | 'DARAZ' | 'CUSTOM_WEBSITE';
 export const STATUS_CHANNELS: StatusChannel[] = ['SHOPIFY', 'WOOCOMMERCE', 'DARAZ', 'CUSTOM_WEBSITE'];
 
@@ -292,13 +294,13 @@ export function inboundSteps(map: StatusMap, keys: string[], o: InboundOrder): I
 const COURIER_LABEL: Record<string, string> = {
   TCS: 'TCS', LEOPARDS: 'Leopards Courier', POSTEX: 'PostEx', TRAX: 'Trax', MNP: 'M&P', BLUE_EX: 'BlueEx',
   CALL_COURIER: 'Call Courier', DAEWOO: 'Daewoo FastEx', TPL_RIDER: 'Rider', PAKPOST: 'Pakistan Post',
+  TRANZO: 'Tranzo', SWYFT: 'Swyft Logistics', BARQRAFTAR: 'BarqRaftar', ZOOM: 'Zoom COD', INSTAWORLD: 'InstaWorld',
+  SHIPNOC: 'ShipNOC', BYKEA: 'Bykea', MOVEX: 'MoveX', FORRUN: 'Forrun',
 };
 
 /** Public tracking page for couriers whose page takes the number in the link. */
 export function trackingUrl(courierCode: string | null | undefined, number: string | null | undefined): string | null {
-  if (!number) return null;
-  if (courierCode === 'PAKPOST') return `https://ep.gov.pk/emtts/EPTrack_Live.aspx?ArticleIDz=${encodeURIComponent(number)}`;
-  return null;
+  return courierTrackUrl(courierCode, number);
 }
 
 /** Tracking company, number and link for a channel, or null when the order has none. */

@@ -16862,6 +16862,8 @@ enum CourierProvider {
   TRAX
   CALL_COURIER
   SWYFT
+  INSTAWORLD
+  SHIPNOC
 }
 
 enum CourierShipmentStatus {
@@ -24823,4 +24825,54 @@ model PushTicket {
 
   @@index([status, createdAt])
   @@index([createdAt])
+}
+
+/// Commerce automation: "when this happens and these conditions hold, do that" (online store).
+model CommerceAutomationRule {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  /// ORDER_RECEIVED | CONFIRMED | PACKED | DISPATCHED | DELIVERED | RETURNED | PAYMENT_RECEIVED | STOCK_LOW
+  event       String
+  conditions  Json      @default("{}")
+  actions     Json      @default("[]")
+  enabled     Boolean   @default(true)
+  /// Ready-made recipe key; one rule per recipe per shop.
+  recipe      String?
+  position    Int       @default(0)
+  runCount    Int       @default(0)
+  lastRunAt   DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  runs CommerceAutomationRun[]
+
+  @@unique([tenantId, recipe])
+  @@index([tenantId, event, enabled])
+  @@map("commerce_automation_rules")
+}
+
+/// One run of an automation rule on an order or a product (also dry runs).
+model CommerceAutomationRun {
+  id          String   @id @default(cuid())
+  tenantId    String
+  ruleId      String
+  event       String
+  /// ORDER | PRODUCT
+  subjectType String
+  subjectId   String
+  dryRun      Boolean  @default(false)
+  /// DONE | PARTIAL | FAILED | SKIPPED
+  status      String
+  depth       Int      @default(0)
+  results     Json?
+  createdAt   DateTime @default(now())
+
+  rule CommerceAutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([ruleId, subjectId, event])
+  @@index([tenantId, subjectId])
+  @@map("commerce_automation_runs")
 }

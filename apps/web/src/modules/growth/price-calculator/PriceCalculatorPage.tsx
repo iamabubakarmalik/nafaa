@@ -9,9 +9,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Calculator, Layers, Package, PieChart, Search, Store, X } from 'lucide-react';
+import { Calculator, GraduationCap, Layers, Package, PieChart, Search, Store, TrendingUp, X } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import {
-  Alert, Button, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Skeleton, ViewTabs, confirmDialog,
+  Alert, Button, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Skeleton, ViewTabs, confirmDialog, heroIconButton
 } from '@/design-system/components';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
@@ -34,6 +35,7 @@ type Tab = 'single' | 'bulk';
 
 export default function PriceCalculatorPage() {
   const [params, setParams] = useSearchParams();
+  const guide = usePageGuide();
   const [tab, setTab] = useState<Tab>(params.get('tab') === 'bulk' ? 'bulk' : 'single');
   const [productId, setProductId] = useState(params.get('productId') ?? '');
   const { costHidden } = useMasked();
@@ -70,6 +72,7 @@ export default function PriceCalculatorPage() {
         meta={tr('Cost, courier, COD, channel fees, ads aur RTO — sab ke baad har channel par kitne me bechein ke Profit bache')}
         busy={quote.isFetching || ctxQ.isFetching}
         loading={ctxQ.isLoading}
+        actions={<button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
         stats={ctx ? [
           { label: tr('Channels'), value: String(ctx.channels.length || '—') },
           { label: tr('RTO (90 din)'), value: ctx.rto.ALL.pct != null ? `${ctx.rto.ALL.pct}%` : '—', hint: tr('{{parcels}} parcel', { parcels: ctx.rto.ALL.parcels }) },
@@ -100,6 +103,22 @@ export default function PriceCalculatorPage() {
           <BulkView ctx={ctx} state={state} set={set} />
         )}
       </>)}
+      {guide.isOpen && (
+        <PageGuide title={tr('Price calculator')} onClose={guide.close}
+          flow={[
+            { label: 'Cost', hint: tr('Maal ki qeemat'), icon: Package, color: '#64748b' },
+            { label: tr('Kharche'), hint: tr('Courier, COD, fee, ads, RTO'), icon: Layers, color: '#ea580c' },
+            { label: 'Profit', hint: tr('Jo bachna chahiye'), icon: TrendingUp, color: '#16a34a' },
+            { label: tr('Sahi price'), hint: tr('Har channel ki'), icon: Store, color: '#0284c7' },
+          ]}
+          steps={[
+            { icon: Search, color: '#0284c7', title: tr('Product chunein'), text: tr('Product dhoondein — cost aur channel ki fees khud aa jati hain.') },
+            { icon: PieChart, color: '#ea580c', title: tr('Kharche dekhein'), text: tr('Courier, COD fee, channel commission, ads aur RTO ka hissa — sab price me shamil hota hai.') },
+            { icon: TrendingUp, color: '#16a34a', title: tr('Profit rakhein'), text: tr('Jitna Profit chahiye likhein — har channel ki sahi price nikal aati hai. Bulk tab me poori list ek saath.') },
+          ]}
+          shortcuts={[['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

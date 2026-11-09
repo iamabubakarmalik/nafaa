@@ -411,6 +411,11 @@ export default function CodPage() {
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
       {guide.isOpen && (
         <PageGuide title={t('COD & courier — aasaan tareeqa')} onClose={guide.close}
+          flow={[
+            { label: t('Raste me'), icon: Truck, color: '#0284c7' },
+            { label: t('Courier ke paas'), hint: t('Deliver ho gaya'), icon: Wallet, color: '#ea580c' },
+            { label: t('Settlement'), hint: t('Paisa mil gaya'), icon: ReceiptText, color: '#16a34a' },
+          ]}
           steps={[
             { icon: Truck, color: '#0284c7', title: t('Raste me'), text: t('Courier ko diye COD parcels jo abhi deliver nahi hue. Bahut din ho jayein to courier se poochein.') },
             { icon: Wallet, color: '#ea580c', title: t('Courier ke paas'), text: t('Parcel deliver ho gaya, customer ne courier ko paisa de diya — magar courier ne abhi aap ko jama nahi karwaya.') },

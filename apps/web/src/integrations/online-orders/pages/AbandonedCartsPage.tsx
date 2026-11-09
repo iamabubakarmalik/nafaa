@@ -27,7 +27,7 @@ import { t } from '@core/i18n';
 import { apiErrorMessage } from '../api/online-orders.api';
 import { growthApi, type AbandonedCart, type CartStatus } from '../api/growth.api';
 import { timeAgo, waNumber } from '../lib/labels';
-import { fillTemplate, templateText, useWaTemplates } from '../lib/waTemplates';
+import { fillTemplate, templateText, useWaTemplates, usePlatformWaTemplates } from '../lib/waTemplates';
 
 export default function AbandonedCartsPage() {
   const guide = usePageGuide();
@@ -45,6 +45,7 @@ export default function AbandonedCartsPage() {
     placeholderData: (p) => p,
   });
   const saved = useWaTemplates().data?.templates;
+  const platformWa = usePlatformWaTemplates();
   const refresh = () => qc.invalidateQueries({ queryKey: ['abandoned-carts'] });
   const sync = useMutation({
     mutationFn: growthApi.syncAbandoned,
@@ -78,7 +79,7 @@ export default function AbandonedCartsPage() {
   const sendWa = (c: AbandonedCart) => {
     const wa = waNumber(c.customerPhone);
     if (!wa) return;
-    const text = fillTemplate(templateText('cart', saved), {
+    const text = fillTemplate(templateText('cart', saved, platformWa), {
       name: c.customerName ?? '', shop: shopName ?? '', cartUrl: c.recoveryUrl ?? '',
       items: c.items.slice(0, 3).map((i) => `${i.quantity} × ${i.name}`).join(', '), total: money(c.total),
     });

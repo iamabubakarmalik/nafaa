@@ -10,6 +10,7 @@ import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.serv
 import { businessDayKey, hourInTz } from '../../common/helpers/business-time.helper';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 import { SYSTEM_STAGES, stageKey } from './order-board';
+import { commerceControls } from './commerce-controls';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const blockKey = (tenantId: string) => `online_orders_blocklist:${tenantId}`;
@@ -138,6 +139,8 @@ export class OrderToolsService {
 
   async customStages(tenantId: string): Promise<CustomStage[]> {
     const row = await this.prisma.systemSetting.findUnique({ where: { key: stagesKey(tenantId) } });
+    // A shop that never saved its own statuses gets the platform defaults set by the Nafaa admin.
+    if (!row) return (await commerceControls(this.prisma)).customStatuses.map((c) => ({ key: c.key, label: c.label, color: c.color.startsWith('#') ? c.color : '#64748b' }));
     try {
       const list = row?.value ? JSON.parse(row.value) : [];
       return Array.isArray(list) ? list.filter((x) => x && typeof x.key === 'string') : [];

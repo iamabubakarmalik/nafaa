@@ -14,10 +14,11 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, HelpCircle, Hourglass, ListChecks, RefreshCw, Upload, Wallet } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileSpreadsheet, GraduationCap, HelpCircle, Hourglass, ListChecks, RefreshCw, Upload, Wallet } from 'lucide-react';
 import {
-  Alert, Button, Card, Checkbox, KpiCard, KpiRow, PageHero, PageShell, Select, Table, TBody, Td, Th, THead, Tr, ViewTabs,
+  Alert, Button, Card, Checkbox, KpiCard, KpiRow, PageHero, PageShell, Select, Table, TBody, Td, Th, THead, Tr, ViewTabs, heroIconButton,
 } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
@@ -51,6 +52,7 @@ export default function CodReconcilePage() {
   const qc = useQueryClient();
   const { sales: money } = useMasked();
   const fileRef = useRef<HTMLInputElement>(null);
+  const guide = usePageGuide();
   const [file, setFile] = useState<{ name: string; headers: string[]; rows: string[][] } | null>(null);
   const [courier, setCourier] = useState('');
   const [mapping, setMapping] = useState<ColumnMap | undefined>();
@@ -132,9 +134,18 @@ export default function CodReconcilePage() {
 
   return (
     <PageShell>
-      <PageHero back="/online-orders/cod" backLabel={tr('COD & courier')} title={tr('Statement milayein')}
+      <PageHero back="/online-orders/cod" backLabel={tr('COD & courier')} title={tr('Statement milayein')} chip={<><FileSpreadsheet />{courierName ?? tr('COD statement')}</>}
+        meta={file ? file.name : tr('Courier ki payment statement')} busy={match.isPending}
         subtitle={tr('Courier ki payment statement upload karein — har CN order se milta hai.')}
-        actions={file && <Button size="sm" variant="secondary" leftIcon={<Upload className="h-4 w-4" />} onClick={() => fileRef.current?.click()}>{tr('File')}</Button>} />
+        actions={<>
+          {file && <Button size="sm" variant="secondary" leftIcon={<Upload className="h-4 w-4" />} onClick={() => fileRef.current?.click()}>{tr('File')}</Button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={result && t && !columnsOpen ? [
+          { label: tr('Mil gaye'), value: String(matched.length), hint: tr('{{count}} me farq', { count: diffs.length }) },
+          { label: tr('Nafaa me nahi'), value: String(result.unknown?.length ?? 0), hint: money(t.unknownValue) },
+          { label: tr('Statement me nahi'), value: String(result.missing?.length ?? 0), hint: money(t.missingValue) },
+        ] : undefined} />
       <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.target.value = ''; }} />
 
       <Card>
@@ -287,6 +298,21 @@ export default function CodReconcilePage() {
       </>)}
 
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
+      {guide.isOpen && (
+        <PageGuide title={tr('Statement milayein')} onClose={guide.close}
+          flow={[
+            { label: tr('Statement file'), hint: 'Excel / CSV', icon: Upload, color: '#2563eb' },
+            { label: tr('CN se match'), icon: ListChecks, color: '#7c3aed' },
+            { label: tr('Paisa mil gaya'), hint: tr('Orders settle'), icon: CheckCircle2, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Upload, color: '#2563eb', title: tr('File chunein'), text: tr('Courier ki payment statement (Excel ya CSV) daalein. File kahin save nahi hoti.') },
+            { icon: HelpCircle, color: '#d97706', title: tr('Farq dekhein'), text: tr('Jo Nafaa me nahi ya statement me nahi woh alag tab me aate hain — courier se poochein.') },
+            { icon: Wallet, color: '#16a34a', title: tr('Paisa mil gaya'), text: tr('Tick kiye orders settle ho jate hain aur courier ke asli charges order par likhe jate hain.') },
+          ]}
+          shortcuts={[['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

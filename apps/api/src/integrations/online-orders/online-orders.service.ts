@@ -12,7 +12,7 @@ import { IntegrationService } from '../core/integration.service';
 import { NormalizedOrder, isCashOnDelivery, mapPaymentMethod } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
-import { COURIERS, courierHoldsCash, courierName } from './couriers';
+import { COURIERS, courierHoldsCash, courierLink, courierName } from './couriers';
 import { mappingKey } from './mapping-key';
 import { CustomerRisk, OrderSignals, blockedRisk, emptyHistory, phoneKey, riskOf, withSignals } from './customer-risk';
 import { OrderToolsService } from './order-tools.service';
@@ -2062,7 +2062,7 @@ export class OnlineOrdersService implements OnModuleInit {
       // Orders board column (NEW, ON_HOLD, PACKED, custom:<key> ...).
       board: boardOf(o),
       courierLabel: courierName(o.courierCode) ?? o.courierName ?? null,
-      courierSite: COURIERS.find((c) => c.code === o.courierCode)?.site ?? null,
+      courierSite: courierLink(o.courierCode, o.trackingNumber),
       // Nafaa se courier API par book hua (PostEx/Leopards) — label/refresh/cancel yahin se
       courierBooked: !!o.courierBookedAt && !!o.trackingNumber && o.courierStatus !== 'CANCELLED' && o.courierStatus !== 'BOOKING',
       courierTrail: meta.courierTrail ?? null,

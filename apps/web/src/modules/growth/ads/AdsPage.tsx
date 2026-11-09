@@ -12,12 +12,13 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  BarChart3, CalendarDays, CalendarRange, Megaphone, Package, Pencil, Plus, Receipt, ShoppingBag, Store, Target, Trash2, TrendingUp, Upload, Wallet,
+  BarChart3, CalendarDays, GraduationCap, CalendarRange, Megaphone, Package, Pencil, Plus, Receipt, ShoppingBag, Store, Target, Trash2, TrendingUp, Upload, Wallet,
 } from 'lucide-react';
 import {
   Button, DateRangeMenu, FilterBar, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, Switch, ViewTabs,
-  heroButton, heroPrimaryButton, resolveRange, type DateRangeValue, confirmDialog,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue, confirmDialog,
 } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo, brandForChannel } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { useBusinessDayStart } from '@core/lib/business-day';
@@ -38,6 +39,7 @@ export default function AdsPage() {
   const qc = useQueryClient();
   const startHour = useBusinessDayStart();
   const canWrite = usePermission(PERMISSIONS.ADS_MANAGE);
+  const guide = usePageGuide();
   const canSetting = usePermission(PERMISSIONS.SETTINGS_EDIT);
   const { salesHidden, costHidden } = useMasked();
   const showSales = (n: number | null | undefined) => (salesHidden ? MASK : rs(n));
@@ -91,10 +93,13 @@ export default function AdsPage() {
         meta={tr('Facebook, Instagram, TikTok ya Google par kitna lagaya aur kitni online sale aayi — ROAS, har order ka Ads kharcha aur Ads ke baad Profit')}
         busy={reportQ.isFetching && !reportQ.isLoading}
         loading={reportQ.isLoading}
-        actions={canWrite ? <>
-          <button type="button" onClick={() => setImporting(true)} className={heroButton}><Upload className="h-4 w-4" /> {' '}{tr('CSV import')}</button>
-          <button type="button" onClick={() => setForm('new')} title={tr('Naya kharcha (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Aaj ka kharcha')}</button>
-        </> : undefined}
+        actions={<>
+          {canWrite && <>
+            <button type="button" onClick={() => setImporting(true)} className={heroButton}><Upload className="h-4 w-4" /> {' '}{tr('CSV import')}</button>
+            <button type="button" onClick={() => setForm('new')} title={tr('Naya kharcha (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Aaj ka kharcha')}</button>
+          </>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
         stats={t ? [
           { label: tr('Ads kharcha'), value: rs(t.spend) },
           { label: tr('Online sale'), value: showSales(t.sales), hint: tr('{{orders}} orders', { orders: t.orders }) },
@@ -150,6 +155,22 @@ export default function AdsPage() {
 
       {form && <AdEntryForm entry={form === 'new' ? null : form} setup={setupQ.data} onClose={() => setForm(null)} />}
       {importing && <AdsImportModal setup={setupQ.data} onClose={() => setImporting(false)} />}
+      {guide.isOpen && (
+        <PageGuide title={tr('Ads & ROAS')} onClose={guide.close}
+          flow={[
+            { label: tr('Ads kharcha'), hint: 'Meta, TikTok, Google', icon: Megaphone, color: '#db2777' },
+            { label: tr('Online sale'), hint: tr('Orders se khud'), icon: ShoppingBag, color: '#2563eb' },
+            { label: 'ROAS', hint: tr('Sale ÷ kharcha'), icon: BarChart3, color: '#7c3aed' },
+            { label: 'Profit', hint: tr('Ads ke baad'), icon: TrendingUp, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Plus, color: '#db2777', title: tr('Kharcha likhein'), text: tr('Roz ka Ads kharcha likhein ya platform ki CSV import karein.') },
+            { icon: BarChart3, color: '#7c3aed', title: tr('ROAS dekhein'), text: tr('Har 1 rupay ke Ads par kitni sale aayi — 3 se upar achha hai.') },
+            { icon: TrendingUp, color: '#16a34a', title: tr('Asli Profit'), text: tr('Ads ka kharcha har order par baant kar Profit me ghata diya jata hai.') },
+          ]}
+          shortcuts={[['N', tr('naya kharcha')], ['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

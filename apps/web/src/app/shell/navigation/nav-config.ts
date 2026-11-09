@@ -6,6 +6,7 @@ import {
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
   Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
+  Workflow, Settings2,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -75,6 +76,8 @@ export const commerceNavGroups: NavGroup[] = [
     items: [
       { to: COMMERCE_HOME, label: t('Dashboard'), icon: LayoutDashboard, permission: P.SALES_VIEW, keywords: 'home commerce summary aaj' },
       { to: '/online-orders/reports', label: t('Reports'), icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel dispatch report' },
+      { to: '/online-store/automation', label: t('Automation'), icon: Workflow, permission: P.SALES_VIEW, keywords: 'automation rule agar to recipe auto confirm hold advance khud' },
+      { to: '/online-store/settings', label: t('Online store settings'), icon: Settings2, permission: P.SALES_VIEW, keywords: 'setup wizard settings dashboard tiles menu hide pin tareeqa' },
     ],
   },
   {
@@ -97,6 +100,8 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-orders/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking rate compare cancel booking cpr cod audit' },
       { to: '/online-orders/dispatch-scan', label: t('Dispatch scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'dispatch scan rider handover cn barcode bhej diya dispatched' },
       { to: '/online-orders/dispatch-report', label: t('Dispatch report'), icon: BarChart3, permission: P.SALES_VIEW, keywords: 'dispatch report delivered returned rto stuck claims redispatch courier success rate' },
+      { to: '/online-orders/tracking', label: t('Parcel map'), icon: Navigation, permission: P.SALES_VIEW, keywords: 'map naqsha tracking live parcel city shehar stuck rider journey safar' },
+      { to: '/online-orders/couriers-score', label: t('Courier scorecard'), icon: Trophy, permission: P.SALES_VIEW, keywords: 'courier scorecard compare best courier city delivery rto first attempt cod' },
       { to: '/online-orders/post-office', label: t('Post office'), icon: Send, permission: P.SALES_VIEW, keywords: 'pakistan post post office vpp article number ep.gov.pk' },
     ],
   },
@@ -122,7 +127,7 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-orders/profit', label: t('Profit'), icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW, alsoNeeds: P.COST_VIEW, keywords: 'profit net munafa sale cost ads courier returns expense cash received cod' },
       { to: '/online-orders/payment-health', label: t('Payment health'), icon: Activity, permission: P.SALES_VIEW, keywords: 'cod outstanding settlement courier paisa prepaid advance payment link failed refund rto loss' },
       { to: '/online-store/ads', label: t('Ads & ROAS'), icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
-      { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'whatsapp bot ai marketing social affiliate automation roadmap' },
+      { to: '/online-store/soon/more', label: t('More coming'), icon: Sparkles, permission: P.SALES_VIEW, badge: t('Soon'), keywords: 'whatsapp bot ai marketing social affiliate roadmap' },
     ],
   },
 ];
@@ -451,10 +456,10 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
     id: 'integrations', title: t('Integrations'), icon: Plug, desc: t('Jore hue apps, sales channels, payments aur couriers'),
     items: [
       { to: '/integrations', label: t('Connected apps'), icon: Plug, permission: VIEW, desc: t('Foodpanda, Daraz, couriers, payments — sab ek jagah'), keywords: 'apps integrations foodpanda daraz tcs jazzcash connect' },
-      { to: '/online-store/channels', label: t('Sales channels'), icon: Globe, permission: VIEW, desc: t('WooCommerce, Shopify, apni website'), match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
-      { to: '/online-store/foodpanda', label: t('Foodpanda'), icon: Bike, permission: VIEW, desc: t('Foodpanda orders seedha Nafaa me — accept, reject, ready'), keywords: 'foodpanda delivery hero food order restaurant rider' },
-      { to: '/online-store/payments', label: t('Online payments'), icon: Wallet, permission: VIEW, desc: t('Safepay, JazzCash, Easypaisa — advance ya poori Amount ka link'), keywords: 'payment safepay jazzcash easypaisa card link advance' },
-      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: VIEW, desc: t('PostEx, Leopards — booking, label, tracking'), keywords: 'courier postex leopards booking' },
+      { to: '/online-store/channels', label: t('Sales channels'), icon: Globe, permission: VIEW, external: true, desc: t('WooCommerce, Shopify, apni website'), match: ['/online-store/channels', '/online-store/website'], keywords: 'woocommerce shopify online store website' },
+      { to: '/online-store/foodpanda', label: t('Foodpanda'), icon: Bike, permission: VIEW, external: true, desc: t('Foodpanda orders seedha Nafaa me — accept, reject, ready'), keywords: 'foodpanda delivery hero food order restaurant rider' },
+      { to: '/online-store/payments', label: t('Online payments'), icon: Wallet, permission: VIEW, external: true, desc: t('Safepay, JazzCash, Easypaisa — advance ya poori Amount ka link'), keywords: 'payment safepay jazzcash easypaisa card link advance' },
+      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: VIEW, external: true, desc: t('PostEx, Leopards — booking, label, tracking'), keywords: 'courier postex leopards booking' },
       { to: '/settings/google', label: t('Google'), icon: Search, permission: VIEW, desc: t('Google Shopping, Maps par stock, reviews'), keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/accounting', label: t('Accounting'), icon: Wallet2, permission: VIEW, desc: t('Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab'), keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
       { to: '/settings/developer', label: t('API & webhooks'), icon: Code2, permission: VIEW, desc: t('Zapier, Make, Google Sheets, apna software'), keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },

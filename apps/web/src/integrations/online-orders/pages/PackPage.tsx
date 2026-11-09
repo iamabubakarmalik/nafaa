@@ -5,7 +5,8 @@
  * when every line is complete, "Pack ho gaya" marks the order ready. Works
  * with a USB scanner (it types and presses Enter) and on a phone. Below,
  * the orders waiting to be packed, with packing slips and courier labels
- * printed for the ticked ones.
+ * printed for the ticked ones. Wrong scans are counted per order and saved
+ * with the packing, so the hero shows today's mistakes.
  *
  * Keys: Enter scan · Esc clear a warning · F2 next order.
  */
@@ -14,8 +15,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertOctagon, CheckCircle2, Hand, Package, PackageCheck, Printer, RotateCcw, ScanLine, Tag, Truck } from 'lucide-react';
-import { Button, Checkbox, PageHero, PageShell, Skeleton, heroButton } from '@/design-system/components';
+import { AlertOctagon, GraduationCap, Hand, Package, PackageCheck, Printer, RotateCcw, ScanLine, Send, Tag } from 'lucide-react';
+import { Button, Card, EmptyState, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { ParcelList, type ParcelRow } from '../components/dispatch/ParcelList';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, couriersApi, onlineOrdersApi } from '../api/online-orders.api';
@@ -26,8 +29,13 @@ import { t as tr } from '@core/i18n';
 
 type Alarm = { title: string; text: string } | null;
 
+const DESK_KEY = ['online-orders', 'pack-desk'] as const;
+
 export default function PackPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const desk = useQuery({ queryKey: DESK_KEY, queryFn: scanApi.packDesk, refetchInterval: 60_000 });
+  const [mistakes, setMistakes] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState('');
   const [order, setOrder] = useState<ScanOrder | null>(null);
@@ -47,12 +55,12 @@ export default function PackPage() {
   });
   const waiting = (queue.data?.items ?? []).filter((o) => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.orderStatus));
 
-  const reset = () => { setOrder(null); setCounts({}); setManual([]); setAlarm(null); setValue(''); focus(); };
+  const reset = () => { setOrder(null); setCounts({}); setManual([]); setAlarm(null); setValue(''); setMistakes(0); focus(); };
 
   const lookup = useMutation({
     mutationFn: (code: string) => scanApi.lookup(code),
     onSuccess: (o) => {
-      setOrder(o); setCounts({}); setManual([]); setValue('');
+      setOrder(o); setCounts({}); setManual([]); setValue(''); setMistakes(0);
       if (!o.canPack) { beep(false); setAlarm({ title: tr('Order #{{number}}', { number: o.number }), text: o.packProblem ?? tr('Ye order pack nahi ho sakta') }); }
       else beep(true);
       focus();
@@ -61,13 +69,14 @@ export default function PackPage() {
   });
 
   const pack = useMutation({
-    mutationFn: () => scanApi.packed(order!.id, counts, manual),
+    mutationFn: () => scanApi.packed(order!.id, counts, manual, mistakes),
     onSuccess: (r) => {
       beep(true);
       toast.success(tr('#{{number}} pack ho gaya — Ready', { number: r.order.number }), {
         action: { label: tr('Slip print'), onClick: () => window.open(`/online-orders/print?auto=1&ids=${r.order.id}`, '_blank') },
       });
       qc.invalidateQueries({ queryKey: ['online-orders'] });
+      qc.invalidateQueries({ queryKey: DESK_KEY });
       reset();
     },
     onError: (e) => { beep(false); setAlarm({ title: tr('Pack nahi hua'), text: apiErrorMessage(e) }); },
@@ -88,11 +97,13 @@ export default function PackPage() {
     setValue('');
     if (r.kind === 'WRONG') {
       beep(false);
+      setMistakes((n) => n + 1);
       setAlarm({ title: tr('Ghalat cheez!'), text: tr('"{{code}}" is order me nahi hai — ye parcel me mat daalein.', { code }) });
       return;
     }
     if (r.kind === 'EXTRA') {
       beep(false);
+      setMistakes((n) => n + 1);
       const l = lines[r.index];
       setAlarm({ title: tr('Zyada ho gaya!'), text: tr('{{name}}{{value}} sirf {{quantity}} chahiye — ek wapas nikal dein.', { name: l.name, value: l.variant ? ` (${l.variant})` : '', quantity: l.quantity }) });
       return;
@@ -126,13 +137,31 @@ export default function PackPage() {
     onError: (e) => toast.error(apiErrorMessage(e, (e as Error).message)),
   });
 
+  const d = desk.data;
+  const rows: ParcelRow[] = waiting.map((o) => ({
+    id: o.id, number: String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#/, ''), customerName: o.customerName, city: o.customerCity ?? null,
+    total: Number(o.total) || 0, courierCode: o.courierCode ?? null, courierLabel: o.courierLabel ?? null, trackingNumber: o.trackingNumber ?? null,
+    at: o.acceptedAt ?? o.receivedAt,
+    status: (o.metadata as any)?.packed || o.orderStatus === 'READY' ? { label: 'Ready', variant: 'success' } : { label: tr('Pack baqi'), variant: 'warning' },
+  }));
   return (
     <PageShell>
       <PageHero title={tr('Packing')} chip={<><ScanLine />{tr('Scan karke pack')}</>}
         meta={tr('Order ya CN scan karein, phir har cheez — ghalat ya zyada cheez par screen ruk jayegi')}
-        actions={<Link to="/online-orders/returns-scan" className={heroButton}><RotateCcw className="h-4 w-4" /> {' '}{tr('RTO returns')}</Link>} />
+        busy={desk.isFetching && !desk.isLoading} loading={desk.isLoading}
+        actions={<>
+          <Link to="/online-orders/dispatch-scan" className={heroButton}><Send className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Dispatch scan')}</span></Link>
+          <Link to="/online-orders/returns-scan" className={heroButton}><RotateCcw className="h-4 w-4" /> <span className="hidden sm:inline">{tr('RTO returns')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: tr('Pack karne hain'), value: String(d?.toPack ?? waiting.filter((o) => o.orderStatus !== 'READY').length) },
+          { label: tr('Aaj pack hue'), value: String(d?.packedToday ?? 0) },
+          { label: tr('Aaj ghalat scan'), value: String(d?.mistakesToday ?? 0), hint: tr('ghalat ya zyada cheez') },
+        ]} />
 
-      <section className={cn('rounded-3xl bg-white p-4 shadow-sm ring-1 sm:p-5', alarm ? 'ring-rose-300' : 'ring-slate-200/80')}>
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <Card title={tr('Scan karke pack karein')} description={tr('Pehle order # ya CN, phir har cheez ka barcode / SKU')} className={cn(alarm && 'border-rose-300')}>
         <form onSubmit={(e) => { e.preventDefault(); onScan(value); }} className="flex gap-2">
           <div className="relative min-w-0 flex-1">
             <ScanLine className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -219,52 +248,41 @@ export default function PackPage() {
         )}
 
         {!order && !lookup.isPending && !alarm && (
-          <div className="mt-6 flex flex-col items-center py-6 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-50 text-brand-600"><ScanLine className="h-8 w-8" /></span>
-            <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{tr('Order ka number ya courier CN scan karein')}</p>
-            <p className="mt-1 max-w-md text-[0.8125rem] text-slate-500">{tr('Scanner type karke Enter dabata hai — yahan bas scan karte jayein. Phone par number likh kar Scan dabayein.')}</p>
-          </div>
+          <EmptyState icon={<ScanLine className="h-6 w-6" />} title={tr('Order ka number ya courier CN scan karein')}
+            description={tr('Scanner type karke Enter dabata hai — yahan bas scan karte jayein. Phone par number likh kar Scan dabayein.')} className="py-8" />
         )}
-      </section>
+      </Card>
 
-      <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-        <header className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Pack hone wale orders')}</h2>
-            <p className="text-[0.75rem] text-slate-500">{tr('Accept ho chuke, abhi courier ko nahi diye — chun kar slips ya labels ek saath print karein')}</p>
-          </div>
+      <ParcelList title={tr('Pack hone wale orders ({{count}})', { count: waiting.length })}
+        description={tr('Accept ho chuke, abhi courier ko nahi diye — row dabayein to scan khulega, chun kar slips ya labels print karein')}
+        actions={<>
           <Button size="sm" variant="secondary" disabled={!pickedOrders.length} onClick={printSlips} leftIcon={<Printer className="h-4 w-4" />}>{tr('Slips ({{count}})', { count: pickedOrders.length })}</Button>
           <Button size="sm" variant="secondary" disabled={!pickedOrders.some((o) => o.courierBooked)} loading={labels.isPending} onClick={() => labels.mutate()} leftIcon={<Tag className="h-4 w-4" />}>{tr('Labels')}</Button>
-        </header>
-        {queue.isLoading ? <div className="p-4"><Skeleton className="h-24 rounded-xl" /></div> : !waiting.length ? (
-          <p className="px-6 py-10 text-center text-[0.8125rem] text-slate-500">{tr('Koi order pack hone ka intezar nahi kar raha.')}</p>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            <li className="flex items-center gap-3 px-4 py-2 sm:px-5">
-              <Checkbox aria-label={tr('Sab chunein')} checked={waiting.every((o) => picked.has(o.id))} onChange={(e) => setPicked(e.target.checked ? new Set(waiting.map((o) => o.id)) : new Set())} />
-              <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Order · customer · courier')}</span>
-            </li>
-            {waiting.map((o) => {
-              const num = String(o.externalOrderNumber ?? o.externalOrderId);
-              const packed = !!(o.metadata as any)?.packed;
-              return (
-                <li key={o.id} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
-                  <Checkbox aria-label={`#${num}`} checked={picked.has(o.id)} onChange={() => setPicked((p) => { const n = new Set(p); if (n.has(o.id)) n.delete(o.id); else n.add(o.id); return n; })} />
-                  <button type="button" onClick={() => lookup.mutate(num)} className="min-w-0 flex-1 text-start">
-                    <span className="block truncate text-[0.875rem] font-semibold text-slate-900">#{num} <span className="font-normal text-slate-600">· {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''}</span></span>
-                    <span className="flex items-center gap-1.5 text-[0.75rem] text-slate-500">
-                      {o.courierCode ? <><BrandLogo name={courierBrand(o.courierCode)} size={14} />{o.courierLabel}{o.trackingNumber ? ` · ${o.trackingNumber}` : ''}</> : <><Truck className="h-3.5 w-3.5" />{tr('Courier abhi nahi')}</>}
-                    </span>
-                  </button>
-                  {packed || o.orderStatus === 'READY'
-                    ? <span className="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-success-700"><CheckCircle2 className="h-3 w-3" />{tr('Ready')}</span>
-                    : <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800">{tr('Pack baqi')}</span>}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+        </>}
+        rows={rows} loading={queue.isLoading}
+        picked={picked}
+        onToggle={(id) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; })}
+        onToggleAll={(on) => setPicked(on ? new Set(waiting.map((o) => o.id)) : new Set())}
+        onOpen={(r) => lookup.mutate(r.number)}
+        empty={{ icon: <PackageCheck className="h-6 w-6" />, title: tr('Koi order pack hone ka intezar nahi kar raha.'), text: tr('Naye orders accept karein — woh yahan aa jayenge.'), action: <Link to="/online-orders?board=NEW" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('New orders dekhein')}</Link> }} />
+      </div>
+
+      {guide.isOpen && (
+        <PageGuide title={tr('Packing')} onClose={guide.close}
+          flow={[
+            { label: 'Confirmed', hint: tr('Pack karna hai'), icon: PackageCheck, color: '#0284c7' },
+            { label: tr('Order scan'), hint: tr('Order # ya CN'), icon: ScanLine, color: '#7c3aed' },
+            { label: tr('Har cheez scan'), hint: tr('Ghalat par screen rukti hai'), icon: Package, color: '#ea580c' },
+            { label: 'Ready', hint: tr('Slip, label, courier'), icon: Send, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: ScanLine, color: '#7c3aed', title: tr('Order kholein'), text: tr('Slip ka order number ya courier CN scan karein, ya neeche list me order dabayein.') },
+            { icon: Package, color: '#ea580c', title: tr('Har cheez scan karein'), text: tr('Har piece ka barcode ya SKU scan karein. Ghalat ya zyada cheez par lal screen aati hai — Esc se band karein aur cheez nikal dein.') },
+            { icon: Printer, color: '#16a34a', title: tr('Pack ho gaya'), text: tr('Sab poora hone par Enter ya "Pack ho gaya" — order Ready ho jata hai. Slip aur label yahin se print karein.') },
+          ]}
+          shortcuts={[['Enter', tr('scan / pack')], ['Esc', tr('warning band')], ['F2', tr('agla order')], ['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

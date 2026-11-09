@@ -113,10 +113,20 @@ export interface ScanOrder {
 }
 export interface RiskSettings { askAdvance: boolean; advancePct: number }
 
+/** A parcel on the returns desk. */
+export interface DeskParcel {
+  id: string; number: string; customerName: string; city: string | null; total: number; orderStatus: string; courierStatus: string | null;
+  courierCode: string | null; courierName: string | null; trackingNumber: string | null; at: string | null; damaged: number; rtoCost: number;
+}
+export interface PackDesk { toPack: number; packedToday: number; mistakesToday: number }
+export interface RtoDesk { returning: number; receivedToday: number; damagedToday: number; pending: DeskParcel[]; received: DeskParcel[] }
+
 export const scanApi = {
+  packDesk: () => apiClient.get('/online-orders/scan-desk', { params: { mode: 'pack' } }).then((r) => unwrap<PackDesk>(r)),
+  rtoDesk: () => apiClient.get('/online-orders/scan-desk', { params: { mode: 'rto' } }).then((r) => unwrap<RtoDesk>(r)),
   lookup: (code: string) => apiClient.get('/online-orders/scan', { params: { code } }).then((r) => unwrap<ScanOrder>(r)),
-  packed: (id: string, counts: Record<number, number>, manual: number[]) =>
-    apiClient.post(`/online-orders/${id}/packed`, { counts, manual }).then((r) => unwrap<{ ok: true; order: ScanOrder }>(r)),
+  packed: (id: string, counts: Record<number, number>, manual: number[], mistakes = 0) =>
+    apiClient.post(`/online-orders/${id}/packed`, { counts, manual, mistakes }).then((r) => unwrap<{ ok: true; order: ScanOrder }>(r)),
   rtoReceive: (id: string, damaged: Record<number, number>, reason?: string) =>
     apiClient.post(`/online-orders/${id}/rto-receive`, { damaged, reason }).then((r) => unwrap<{ ok: true; restocked: number; damaged: number; failed: string[]; rtoCost: number; order: ScanOrder }>(r)),
   riskSettings: () => apiClient.get('/online-orders/risk/settings').then((r) => unwrap<RiskSettings>(r)),

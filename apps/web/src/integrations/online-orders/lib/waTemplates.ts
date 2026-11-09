@@ -4,6 +4,7 @@
  * or an abandoned cart, and which template fits an order right now.
  */
 
+import { usePlatformControls } from '../hooks/usePlatformControls';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import { CheckCircle2, CreditCard, Heart, MapPin, ShoppingCart, Truck } from 'lucide-react';
@@ -90,7 +91,17 @@ export function suggestTemplate(o: OnlineOrder): WaTemplateKey {
   return 'confirm';
 }
 
-/** The text of a template: the shop's own, else the default. */
-export function templateText(key: WaTemplateKey, saved?: Partial<Record<WaTemplateKey, string>>) {
-  return saved?.[key]?.trim() || waInfo(key).text();
+/** The text of a template: the shop's own, else the Nafaa admin's default, else the app default. */
+export function templateText(key: WaTemplateKey, saved?: Partial<Record<WaTemplateKey, string>>, platform?: Array<{ key: string; text: string }>) {
+  return saved?.[key]?.trim() || defaultTemplateText(key, platform);
+}
+
+/** The default text when the shop has none: the Nafaa admin's, else the app's. */
+export function defaultTemplateText(key: WaTemplateKey, platform?: Array<{ key: string; text: string }>) {
+  return platform?.find((x) => x.key === key)?.text.trim() || waInfo(key).text();
+}
+
+/** The admin's default WhatsApp texts (empty when none are set). */
+export function usePlatformWaTemplates() {
+  return usePlatformControls().data?.whatsappTemplates;
 }

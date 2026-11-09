@@ -11,7 +11,7 @@ import type { CourierAccount } from '../../api/online-orders.api';
 import type { GuideData, GuideFix, GuideStep } from './Guide';
 import { t, Trans } from '@core/i18n';
 
-type Courier = Pick<CourierAccount, 'code' | 'name' | 'mode' | 'connected' | 'missingSettings' | 'connect'>;
+type Courier = Pick<CourierAccount, 'code' | 'name' | 'mode' | 'connected' | 'missingSettings' | 'connect'> & Partial<Pick<CourierAccount, 'apiSoon'>>;
 
 const BOOK_STEPS = (name: string): GuideStep[] => [
   {
@@ -118,6 +118,30 @@ const API: Record<string, { intro: string; steps: GuideStep[]; errors: GuideFix[
       { q: t('Cancel ya label'), a: <>{t('Dono Call Courier portal se karein — CN Nafaa me copy ho jata hai.')}</> },
     ],
   },
+  INSTAWORLD: {
+    intro: t('Beta — pehli booking check karein. InstaWorld ki v2 API key portal par khud banti hai. Label PDF, COD settlement aur portal ke saare parcels Nafaa me aate hain.'),
+    steps: [
+      { title: t('InstaWorld portal kholein'), path: ['one.instaworld.pk', 'API Access'], body: <>{t('Apne merchant account se login karein aur API Access kholein.')}</> },
+      { title: t('Nayi v2 key banayein'), path: ['InstaWorld portal', 'API Access', 'Create key'], body: <Trans text="Portal password maangta hai. Key {{once}} dikhti hai — foran copy karein. Purani location key (Shopify app wali) yahan nahi chalti." values={{ once: <b>{t('sirf ek dafa')}</b> }} /> },
+      { title: t('Nafaa me paste karein'), path: ['Couriers', 'InstaWorld', 'Jorein'], body: <Trans text="{{key}} daal kar {{button}}. Pickup location Nafaa khud le aata hai." values={{ key: <b>API key (v2)</b>, button: <b>{t('Check karke jorein')}</b> }} /> },
+    ],
+    errors: [
+      { q: t('"InstaWorld ne API key nahi maani"'), a: <>{t('Portal → API Access se nayi v2 key banayein. Key ke shuru me iw_ hona chahiye.')}</> },
+      { q: t('"Kisi courier ne parcel qabool nahi kiya"'), a: <>{t('Order book nahi hua — thori der baad dobara book karein, double booking nahi hogi.')}</> },
+      { q: t('"InstaWorld is shehar me deliver nahi karta"'), a: <>{t('Booking window me InstaWorld ki list se qareeb wala shehar chunein ya kisi aur courier se bhejein.')}</> },
+    ],
+  },
+  SHIPNOC: {
+    intro: t('Beta — pehli booking check karein. ShipNOC username, password aur signature se jurta hai. Label link booking ke saath aata hai.'),
+    steps: [
+      { title: t('ShipNOC se API access maangein'), path: ['ShipNOC'], body: <Trans text="Woh {{user}}, {{pass}} aur kabhi {{sig}} dete hain." values={{ user: <b>username</b>, pass: <b>password</b>, sig: <b>signature</b> }} /> },
+      { title: t('Nafaa me paste karein'), path: ['Couriers', 'ShipNOC', 'Jorein'], body: <Trans text="Signature na mila ho to khali chhor dein → {{button}}. Nafaa ShipNOC se shehron ki list mangwa kar check karta hai." values={{ button: <b>{t('Check karke jorein')}</b> }} /> },
+    ],
+    errors: [
+      { q: t('"ShipNOC ne username / password / signature nahi maana"'), a: <>{t('Teeno cheezein ShipNOC se dobara confirm karein. Signature diya hai to wohi likhein.')}</> },
+      { q: t('Order number label par'), a: <>{t('ShipNOC me order number ka khana nahi — Nafaa use note (Special instruction) me likhta hai.')}</> },
+    ],
+  },
 };
 
 const MANUAL: Record<string, string> = {
@@ -129,7 +153,13 @@ function manualGuide(c: Courier): GuideData {
   return {
     brand: brandForCourier(c.code),
     title: own ? t('Apne rider se delivery') : t('{{name}} — manual tareeqa', { name: c.name }),
-    intro: own ? MANUAL.RIDER : t('{{name}} ka API abhi Nafaa me nahi, is liye booking un ke portal par hoti hai. Tracking link, COD hisaab aur RTO phir bhi Nafaa me chalta hai.', { name: c.name }),
+    intro: own ? MANUAL.RIDER : (
+      <>
+        {t('{{name}} ka API abhi Nafaa me nahi, is liye booking un ke portal par hoti hai. Tracking link, COD hisaab aur RTO phir bhi Nafaa me chalta hai.', { name: c.name })}
+        {/* No public API: a direct connection needs the courier's own API details. */}
+        {c.apiSoon && <> {t('Direct API jald (Coming soon) — {{name}} se apna API key aur API docs maang kar Nafaa support ko bhejein. Pehli booking hum aap ke saath check karenge.', { name: c.name })}</>}
+      </>
+    ),
     steps: [
       ...(own ? [] : [{ title: t('{{name}} par parcel book karein', { name: c.name }), path: [`${c.name} portal`], body: <>{t('Parcel book karke CN (tracking number) lein.')}</> }]),
       {

@@ -10,18 +10,20 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, PackageX, Search, ShieldAlert, ShieldBan, ShoppingBag, Trash2 } from 'lucide-react';
+import { AlertTriangle, Ban, GraduationCap, PackageX, Search, ShieldAlert, ShieldBan, ShoppingBag, Trash2 } from 'lucide-react';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { growthApi, type PhoneHistory } from '../api/growth.api';
 import { timeAgo, whenText } from '../lib/labels';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { Button, Card, controlClass, EmptyState, Input, KpiCard, KpiRow, PageHero, PageShell, Skeleton, Switch } from '@/design-system/components';
+import { Button, Card, controlClass, EmptyState, Input, PageHero, PageShell, Switch, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { scanApi } from '../api/order-money.api';
 import { t } from '@core/i18n';
 
 export default function BlocklistPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const { sales: money } = useMasked();
   const { data, isLoading, error } = useQuery({ queryKey: ['scam-report'], queryFn: growthApi.scamOverview });
   const [phone, setPhone] = useState('');
@@ -48,33 +50,20 @@ export default function BlocklistPage() {
   const tot = data?.totals;
 
   return (
-    <PageShell className="max-w-4xl">
-      <PageHero back="/online-store" backLabel={t('Online store')} title={t('Report scammer')}
-        subtitle={t('Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — \'Blocked\' ke nishan ke saath \'Naye\' me rukte hain.')} />
+    <PageShell>
+      <PageHero back="/online-store" backLabel={t('Online store')} title={t('Report scammer')} chip={<><ShieldBan />{t('Blocklist')}</>}
+        loading={isLoading}
+        subtitle={t('Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — \'Blocked\' ke nishan ke saath \'Naye\' me rukte hain.')}
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        stats={tot ? [
+          { label: t('Block kiye'), value: String(tot.blocked) },
+          { label: t('Order se report'), value: String(tot.reportedFromOrders) },
+          { label: t('Dekhne layak'), value: String(tot.suggestions), hint: t('Parcel wapas kiye') },
+          { label: t('Courier nuqsan'), value: money(tot.knownLoss) },
+        ] : undefined} />
 
-      <KpiRow cols={4}>
-        {!tot ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={ShieldBan} color="#e11d48" label={t('Block kiye')} value={String(tot.blocked)} />
-          <KpiCard icon={ShoppingBag} color="#2563eb" label={t('Order se report')} value={String(tot.reportedFromOrders)} />
-          <KpiCard icon={AlertTriangle} color="#d97706" label={t('Dekhne layak')} value={String(tot.suggestions)} hint={t('Parcel wapas kiye')} />
-          <KpiCard icon={PackageX} color="#c026d3" label={t('Courier nuqsan')} value={money(tot.knownLoss)} hint={t('Block numbers ke RTO par')} />
-        </>}
-      </KpiRow>
-
-      <RiskRuleCard />
-
-      <Card title={t('Number block karein')} description={t('Order ke "⋯" menu me "Scammer report karein" se wajah aur saboot ke saath bhi report kar sakte hain.')}>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Input size="sm" label={t('Phone')} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('03xxxxxxxxx')} />
-          <Input size="sm" label={t('Naam (optional)')} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
-          <Input size="sm" label={t('Wajah (optional)')} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Fake order')} maxLength={200} />
-        </div>
-        <div className="mt-3 flex justify-end">
-          <Button size="sm" variant="critical" disabled={phone.replace(/\D/g, '').length < 10} loading={add.isPending && add.variables?.phone === phone.trim()}
-            onClick={() => add.mutate({ phone: phone.trim(), name: name.trim() || undefined, reason: reason.trim() || undefined })} leftIcon={<ShieldBan className="h-4 w-4" />}>{t('Block')}</Button>
-        </div>
-      </Card>
-
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="space-y-4">
       {!!data?.suggestions.length && (
         <Card flush title={t('Dekhne layak numbers ({{value}})', { value: data.suggestions.length })}
           description={t('In numbers ke parcel aap ki dukaan se wapas aaye. Khud block nahi hote — dekh kar faisla karein.')}>
@@ -127,6 +116,38 @@ export default function BlocklistPage() {
             )}
         </div>
       </Card>
+      </div>
+      <div className="space-y-4">
+      <RiskRuleCard />
+
+      <Card title={t('Number block karein')} description={t('Order ke "⋯" menu me "Scammer report karein" se wajah aur saboot ke saath bhi report kar sakte hain.')}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Input size="sm" label={t('Phone')} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('03xxxxxxxxx')} />
+          <Input size="sm" label={t('Naam (optional)')} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+          <Input size="sm" label={t('Wajah (optional)')} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('Fake order')} maxLength={200} />
+        </div>
+        <div className="mt-3 flex justify-end">
+          <Button size="sm" variant="critical" disabled={phone.replace(/\D/g, '').length < 10} loading={add.isPending && add.variables?.phone === phone.trim()}
+            onClick={() => add.mutate({ phone: phone.trim(), name: name.trim() || undefined, reason: reason.trim() || undefined })} leftIcon={<ShieldBan className="h-4 w-4" />}>{t('Block')}</Button>
+        </div>
+      </Card>
+      </div>
+      </div>
+      {guide.isOpen && (
+        <PageGuide title={t('Report scammer')} onClose={guide.close}
+          flow={[
+            { label: t('RTO / fake order'), icon: PackageX, color: '#c026d3' },
+            { label: t('Dekhne layak'), hint: t('Aap faisla karein'), icon: AlertTriangle, color: '#d97706' },
+            { label: t('Block'), hint: t('Order Naye me rukega'), icon: Ban, color: '#e11d48' },
+          ]}
+          steps={[
+            { icon: Search, color: '#2563eb', title: t('Number dhoondein'), text: t('Kisi bhi number ka order history yahan dikhta hai — kitne liye, kitne wapas.') },
+            { icon: ShieldBan, color: '#e11d48', title: t('Block karein'), text: t('Block number ka order khud accept nahi hota, \'Blocked\' ke nishan ke saath Naye me rukta hai.') },
+            { icon: ShieldAlert, color: '#d97706', title: t('Advance maangein'), text: t('Risky COD order par advance ka rule yahin se chalu karein.') },
+          ]}
+          shortcuts={[['G', t('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

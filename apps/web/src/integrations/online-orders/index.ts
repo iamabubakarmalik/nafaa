@@ -39,3 +39,8 @@ export { default as DispatchScanPage } from './pages/DispatchScanPage';
 export { default as DispatchReportPage } from './pages/DispatchReportPage';
 export { default as PostOfficePage } from './pages/PostOfficePage';
 export { default as PrintLabelsPage } from './pages/PrintLabelsPage';
+export { default as TrackingMapPage } from './pages/TrackingMapPage';
+export { default as CourierScorePage } from './pages/CourierScorePage';
+export { default as AutomationPage } from './pages/AutomationPage';
+export { default as CommerceSetupPage } from './pages/CommerceSetupPage';
+export { default as CommerceSettingsPage } from './pages/CommerceSettingsPage';

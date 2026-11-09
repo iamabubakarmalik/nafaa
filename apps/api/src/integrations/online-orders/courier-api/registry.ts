@@ -1,7 +1,9 @@
 import { callCourierAdapter } from './callcourier.adapter';
+import { instaworldAdapter } from './instaworld.adapter';
 import { leopardsAdapter } from './leopards.adapter';
 import { mnpAdapter } from './mnp.adapter';
 import { postexAdapter } from './postex.adapter';
+import { shipnocAdapter } from './shipnoc.adapter';
 import { tcsAdapter } from './tcs.adapter';
 import { traxAdapter } from './trax.adapter';
 import { CourierAdapter } from './types';
@@ -44,6 +46,11 @@ export interface CourierApiDef {
   features: { cancel: boolean; label: boolean; settlement: boolean; portal?: boolean };
   /** Dashboard par rang */
   color: string;
+  /**
+   * Built from the courier's published docs but not yet run against a live
+   * account: the page asks the shop to check the first booking.
+   */
+  beta?: boolean;
 }
 
 const TRAX_PRODUCT_TYPES = [
@@ -220,6 +227,43 @@ export const COURIER_APIS: Record<string, CourierApiDef> = {
     labelKind: 'none',
     features: { cancel: false, label: false, settlement: false },
     color: '#ea580c',
+  },
+  INSTAWORLD: {
+    adapter: instaworldAdapter,
+    credentials: [{ key: 'apiKey', label: 'API key (v2)', placeholder: 'iw_… (portal → API Access)', secret: true }],
+    settings: [
+      { key: 'pickupAddressCode', label: 'Pickup location', help: 'InstaWorld parcel is location se uthayega', type: 'pickup', placeholder: 'Pehli wali' },
+      ...COMMON_SETTINGS,
+    ],
+    portalUrl: 'https://one.instaworld.pk',
+    steps: [
+      'InstaWorld portal par login karein → API Access',
+      'Nayi key banayein (portal password maangta hai) — key sirf ek dafa dikhti hai, foran copy karein',
+      'Key yahan paste karein — pickup location Nafaa khud InstaWorld se le aata hai',
+    ],
+    labelKind: 'pdf',
+    features: { cancel: true, label: true, settlement: true, portal: true },
+    color: '#7c3aed',
+    beta: true,
+  },
+  SHIPNOC: {
+    adapter: shipnocAdapter,
+    credentials: [
+      { key: 'apiKey', label: 'Username', placeholder: 'ShipNOC login' },
+      { key: 'password', label: 'Password', secret: true },
+      { key: 'signature', label: 'Signature', secret: true, optional: true, help: 'ShipNOC ne diya ho to — warna khali chhor dein' },
+    ],
+    settings: [...COMMON_SETTINGS],
+    portalUrl: 'https://shipnoc.com',
+    steps: [
+      'ShipNOC se API access maangein — woh username, password (aur kabhi signature) dete hain',
+      'Teeno cheezein yahan daal kar jorein — Nafaa ShipNOC se shehron ki list mangwa kar check karta hai',
+      'Pickup ShipNOC account wale address se hota hai',
+    ],
+    labelKind: 'link',
+    features: { cancel: true, label: true, settlement: false },
+    color: '#0369a1',
+    beta: true,
   },
 };
 

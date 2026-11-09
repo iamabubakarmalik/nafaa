@@ -52,9 +52,15 @@ export class OrderMoneyController {
     return this.tools.saveRiskSettings(user, body ?? {});
   }
 
+  @Get('scan-desk')
+  @ApiOperation({ summary: 'Packing table and returns desk: today\'s numbers and the parcels still to scan' })
+  desk(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query('mode') mode: string) {
+    return this.scan.desk(user, scope, mode === 'pack' ? 'pack' : 'rto');
+  }
+
   @Post(':id/packed')
   @ApiOperation({ summary: 'Every item scanned: the order is packed (READY)' })
-  packed(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { counts?: Record<string, number>; manual?: number[] }) {
+  packed(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Body() body: { counts?: Record<string, number>; manual?: number[]; mistakes?: number }) {
     return this.scan.packed(user, scope, id, body ?? {});
   }
 

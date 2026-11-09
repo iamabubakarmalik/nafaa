@@ -11,12 +11,12 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CheckCircle2, MessageCircle, PhoneMissed, Settings2, XCircle } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { useDismissible } from '@core/print/useDismissible';
+import { Menu } from '@/design-system/components';
 import { t } from '@core/i18n';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrder } from '../../api/online-orders.api';
 import { scanApi } from '../../api/order-money.api';
 import { waNumber } from '../../lib/labels';
-import { WA_TEMPLATES, fillTemplate, orderValues, suggestTemplate, templateText, useWaTemplates } from '../../lib/waTemplates';
+import { WA_TEMPLATES, fillTemplate, orderValues, suggestTemplate, templateText, useWaTemplates, usePlatformWaTemplates } from '../../lib/waTemplates';
 import { useBoardRefresh } from './useMoveOrder';
 
 type Result = 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED';
@@ -28,10 +28,10 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
   onTexted: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useDismissible(ref, open, () => setOpen(false));
+  const ref = useRef<HTMLButtonElement>(null);
   const refresh = useBoardRefresh();
   const saved = useWaTemplates().data?.templates;
+  const platformWa = usePlatformWaTemplates();
   const risk = useQuery({ queryKey: ['risk-settings'], queryFn: scanApi.riskSettings, staleTime: 10 * 60_000, enabled: open });
   const set = useMutation({
     mutationFn: (r: Result) => onlineOrdersApi.setConfirmation(o.id, r),
@@ -50,7 +50,7 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
   const list = [...WA_TEMPLATES.filter((x) => x.key !== 'cart')].sort((a, b) => (a.key === best ? -1 : b.key === best ? 1 : 0));
   const askResult = o.isCod && !o.dispatchedAt && !['CANCELLED', 'REJECTED', 'RETURNED', 'DELIVERED'].includes(o.orderStatus);
   const send = (key: (typeof list)[number]['key']) => {
-    const text = fillTemplate(templateText(key, saved), values);
+    const text = fillTemplate(templateText(key, saved, platformWa), values);
     window.open(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
     onTexted();
     if (!askResult) setOpen(false);
@@ -59,13 +59,13 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
   const btn = 'flex flex-col items-center gap-0.5 rounded-lg px-1.5 py-1.5 text-[0.6875rem] font-semibold ring-1 transition disabled:opacity-60';
 
   return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}
+    <div>
+      <button ref={ref} type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}
         title={t('WhatsApp message')} className="flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-white hover:brightness-95">
         <MessageCircle className="h-3.5 w-3.5" />
       </button>
-      {open && (
-        <div role="menu" className="absolute start-0 top-full z-40 mt-1 w-64 rounded-xl border border-slate-200 bg-white p-1.5 text-start shadow-xl">
+      <Menu open={open} onClose={() => setOpen(false)} anchorRef={ref} align="start" width="w-64" label={t('WhatsApp par bhejein')} className="p-1.5 text-start">
+        <div>
           <p className="px-2 pb-1 pt-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{t('WhatsApp par bhejein')}</p>
           {list.map((x) => (
             <button key={x.key} type="button" role="menuitem" onClick={() => send(x.key)}
@@ -104,7 +104,7 @@ export function WaButton({ order: o, shopName, money, onTexted }: {
             <Settings2 className="h-3.5 w-3.5" />{t('Messages badlein')}
           </Link>
         </div>
-      )}
+      </Menu>
     </div>
   );
 }

@@ -33,14 +33,20 @@ export class OnlineProductsController {
     @Query('search') search?: string,
     @Query('filter') filter?: GridFilter,
     @Query('channelId') channelId?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('brandId') brandId?: string,
+    @Query('productId') productId?: string,
   ) {
-    return this.svc.grid(user, { page: Number(page) || 1, limit: Number(limit) || 30, search, filter, channelId: channelId || undefined });
+    return this.svc.grid(user, {
+      page: Number(page) || 1, limit: Number(limit) || 30, search, filter, channelId: channelId || undefined,
+      categoryId: categoryId || undefined, brandId: brandId || undefined, productId: productId || undefined,
+    });
   }
 
   @Get('summary')
   @ApiOperation({ summary: 'Counts for the filters (not linked, errors, price differs, out of stock)' })
-  summary(@GetUser() user: AuthenticatedUser, @Query('channelId') channelId?: string) {
-    return this.svc.summary(user, channelId || undefined);
+  summary(@GetUser() user: AuthenticatedUser, @Query('channelId') channelId?: string, @Query('categoryId') categoryId?: string, @Query('brandId') brandId?: string) {
+    return this.svc.summary(user, channelId || undefined, { categoryId: categoryId || undefined, brandId: brandId || undefined });
   }
 
   @Get('issues')

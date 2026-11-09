@@ -31,3 +31,5 @@ export { MoreFilters, type FilterGroup } from './MoreFilters';
 export { DateRangeMenu, resolveRange, type DateRangeValue } from './DateRangeMenu';
 export { PageShell, PAGE_WIDTH_CLASS, KpiRow, KpiCard, FilterBar, FilterChip, SearchField, ViewTabs, type ViewTab } from './PageLayout';
 export { confirmDialog, ConfirmHost, type ConfirmOptions } from './ConfirmDialog';
+export { Popover, Menu, MenuItem, MenuLabel, MenuSeparator, type PopoverProps } from './Popover';
+export { Drawer } from './Drawer';

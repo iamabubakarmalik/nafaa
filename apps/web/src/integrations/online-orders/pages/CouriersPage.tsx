@@ -193,6 +193,11 @@ export default function CouriersPage() {
 
       {guide.isOpen && (
         <PageGuide title={t('Couriers — aasaan tareeqa')} onClose={guide.close}
+          flow={[
+            { label: t('Courier jorein'), icon: KeyRound, color: '#2563eb' },
+            { label: t('Booking'), hint: t('CN khud'), icon: Zap, color: '#16a34a' },
+            { label: t('Tracking'), hint: t('Delivered / RTO'), icon: Truck, color: '#0284c7' },
+          ]}
           steps={[
             { icon: KeyRound, color: '#2563eb', title: t('Courier jorein'), text: t('Ek-click wale courier par click karein, portal se API key copy karke paste karein. Nafaa key usi waqt check karta hai.') },
             { icon: Zap, color: '#16a34a', title: t('Booking'), text: t('Courier ke safhe par "Book karein" — accept hue orders chunein aur ek saath book karein. CN khud aata hai.') },
@@ -218,7 +223,9 @@ function CourierTile({ c, money }: { c: CourierAccount; money: (n: number) => st
         : <Badge variant={c.active ? 'success' : 'default'} dot>{c.active ? t('Jura hua') : t('Band')}</Badge>;
   } else {
     status = c.mode === 'api' ? <Badge variant="info"><Zap className="h-3 w-3" />{t('Ek click')}</Badge> : <Badge><PenLine className="h-3 w-3" />{t('Manual')}</Badge>;
+    if (c.apiSoon) status = <>{status}<Badge variant="warning" title={t('Apna API key/docs bhejein')}>{t('Coming soon')}</Badge></>;
   }
+  if (c.beta) status = <>{status}<Badge variant="warning" title={t('Beta — pehli booking check karein')}>{t('Beta')}</Badge></>;
   const activity = s.active > 0 || s.dispatched30 > 0 || s.codPending > 0;
   return (
     <Link to={`/online-store/couriers/${c.code.toLowerCase()}`}

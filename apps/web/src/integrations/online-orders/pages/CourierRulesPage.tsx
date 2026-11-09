@@ -10,8 +10,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, Hand, Plus, Save, Trash2, Zap } from 'lucide-react';
-import { Alert, Button, Card, Input, PageHero, PageShell, Segmented, Select, Skeleton, Switch } from '@/design-system/components';
+import { ArrowDown, ArrowUp, Hand, GraduationCap, ListOrdered, Plus, Save, Trash2, Truck, Zap } from 'lucide-react';
+import { Alert, Button, Card, Input, PageHero, PageShell, Segmented, Select, Skeleton, Switch, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../api/online-orders.api';
@@ -32,6 +33,7 @@ const newRule = (i: number): CourierRule => ({ id: `r${Date.now().toString(36)}$
 
 export default function CourierRulesPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: orderMoneyApi.courierRules });
   const { data: channels } = useSalesChannels();
   const [draft, setDraft] = useState<CourierRules | null>(null);
@@ -60,11 +62,19 @@ export default function CourierRulesPage() {
   const connectedCount = couriers.filter((c) => c.connected).length;
 
   return (
-    <PageShell className="max-w-4xl">
+    <PageShell>
       <PageHero back="/online-store/couriers" backLabel={tr('Couriers')} title={tr('Auto booking')} chip={<><Zap />{tr('Auto booking')}</>}
-        meta={tr('Shehar, COD, risk aur channel ke rules')}
         subtitle={tr('Kaun sa order kis courier par khud book ho — shehar, COD, customer ka risk aur channel ke hisaab se.')}
-        actions={<Button variant="primary" size="sm" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>{tr('Save')}</Button>} />
+        loading={isLoading}
+        actions={<>
+          <Button variant="primary" size="sm" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>{tr('Save')}</Button>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={draft ? [
+          { label: tr('Rules'), value: String(draft.rules.length) },
+          { label: tr('Auto booking'), value: draft.trigger === 'OFF' ? tr('Band') : tr('Chalu'), hint: TRIGGERS.find((x) => x.value === draft.trigger)?.label },
+          { label: tr('Couriers jure'), value: String(connectedCount), hint: tr('{{count}} me se', { count: couriers.length }) },
+        ] : undefined} />
 
       {isLoading || !draft ? (
         error ? <Alert tone="danger">{apiErrorMessage(error)}</Alert> : <Skeleton className="h-64 rounded-2xl" />
@@ -76,16 +86,8 @@ export default function CourierRulesPage() {
           <Alert tone="warning">{tr('Koi courier API se jura nahi — khud booking ke liye pehle Couriers me PostEx, Leopards ya TCS jorein.')}</Alert>
         )}
 
-        <Card title={tr('Kab book ho')} description={tr('Book karne se pehle Nafaa dobara dekhta hai ke order pehle se book to nahi — do CN kabhi nahi bante.')}>
-          <Segmented label={tr('Kab')} value={draft.trigger} onChange={(t) => setDraft({ ...draft, trigger: t })}
-            items={TRIGGERS.map((t) => ({ value: t.value, label: t.label }))} />
-          <div className="mt-4">
-            <Switch checked={draft.holdRisky} onChange={(e) => setDraft({ ...draft, holdRisky: e.target.checked })}
-              label={tr('RTO khatre wale customer par ruk jao')}
-              description={tr('Customer ka risk zyada ho ya number block ho to khud book nahi hoga — order par likha aayega, aap dekh kar book karein.')} />
-          </div>
-        </Card>
-
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+          <div className="space-y-4">
         <Card flush title={tr('Rules')} description={tr('Upar se neeche — jo pehla rule fit ho wahi chalega.')}
           actions={<Button size="sm" variant="secondary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setDraft({ ...draft, rules: [...draft.rules, newRule(draft.rules.length)] })}>{tr('Rule')}</Button>}>
           {!draft.rules.length ? (
@@ -132,6 +134,17 @@ export default function CourierRulesPage() {
             </ol>
           )}
         </Card>
+          </div>
+          <div className="space-y-4">
+        <Card title={tr('Kab book ho')} description={tr('Book karne se pehle Nafaa dobara dekhta hai ke order pehle se book to nahi — do CN kabhi nahi bante.')}>
+          <Segmented label={tr('Kab')} value={draft.trigger} onChange={(t) => setDraft({ ...draft, trigger: t })}
+            items={TRIGGERS.map((t) => ({ value: t.value, label: t.label }))} />
+          <div className="mt-4">
+            <Switch checked={draft.holdRisky} onChange={(e) => setDraft({ ...draft, holdRisky: e.target.checked })}
+              label={tr('RTO khatre wale customer par ruk jao')}
+              description={tr('Customer ka risk zyada ho ya number block ho to khud book nahi hoga — order par likha aayega, aap dekh kar book karein.')} />
+          </div>
+        </Card>
 
         <Card title={tr('Baqi sab orders')} description={tr('Jab koi rule fit na ho.')}>
           <div className="flex flex-wrap items-center gap-2">
@@ -140,7 +153,24 @@ export default function CourierRulesPage() {
               options={[{ value: '', label: tr('Mujh se poocho (khud book na karo)') }, ...courierOptions.slice(1)]} wrapperClassName="w-72" />
           </div>
         </Card>
+          </div>
+        </div>
       </>)}
+      {guide.isOpen && (
+        <PageGuide title={tr('Auto booking')} onClose={guide.close}
+          flow={[
+            { label: tr('Order aaya'), icon: Zap, color: '#0891b2' },
+            { label: tr('Rules'), hint: tr('Upar se neeche'), icon: ListOrdered, color: '#7c3aed' },
+            { label: tr('Courier'), hint: tr('Khud book'), icon: Truck, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Zap, color: '#0891b2', title: tr('Kab book ho'), text: tr('Accept hote hi ya "Ready" par — ya band rakhein aur khud book karein.') },
+            { icon: ListOrdered, color: '#7c3aed', title: tr('Rules'), text: tr('Shehar, COD, risk aur channel se rule banayein — jo pehla fit ho wahi chalta hai.') },
+            { icon: Hand, color: '#d97706', title: tr('Risky customer'), text: tr('RTO khatre wale order khud book nahi hote, aap dekh kar book karein.') },
+          ]}
+          shortcuts={[['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

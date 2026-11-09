@@ -10,16 +10,17 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  BookOpen, CheckCircle2, ExternalLink, KeyRound, ListFilter, PackageCheck, PenLine, Power, Printer, RefreshCw, Truck, Undo2, Unplug, UserX,
+  BookOpen, CheckCircle2, ExternalLink, GraduationCap, KeyRound, ListFilter, PackageCheck, PenLine, Power, Printer, RefreshCw, Truck, Undo2, Unplug, UserX,
   Wallet, Zap,
 } from 'lucide-react';
-import { Alert, Badge, Button, Card, confirmDialog, FilterBar, FilterMenu, heroButton, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr, type BadgeVariant, ViewTabs } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, FilterBar, FilterMenu, heroButton, heroIconButton, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr, type BadgeVariant, ViewTabs } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierShipment } from '../api/online-orders.api';
 import { COURIERS_KEY, ConnectForm, CourierLogo, CourierSettingsForm } from '../components/couriers/CourierForms';
 import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { STATUS_LABEL, timeAgo, whenText } from '../lib/labels';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { GuideBody, GuideCard } from '../components/guides/Guide';
 import { courierGuide } from '../components/guides/courierGuides';
 import { t as tr } from '@core/i18n';
@@ -67,6 +68,7 @@ export default function CourierDetailPage() {
   const code = raw.toUpperCase();
   const [params, setParams] = useSearchParams();
   const { sales: money } = useMasked();
+  const guide = usePageGuide();
   const [parcelFilter, setParcelFilter] = useState('active');
   const [orderId, setOrderId] = useState<string | null>(null);
   const { data, isLoading, error, isFetching } = useQuery({ queryKey: COURIERS_KEY, queryFn: couriersApi.list, refetchInterval: 60_000 });
@@ -120,7 +122,7 @@ export default function CourierDetailPage() {
           ? tr('Key {{value}}{{value2}}', { value: c.maskedKey ?? '', value2: c.lastSyncAt ? tr(' · aakhri sync {{lastSyncAt}}', { lastSyncAt: timeAgo(c.lastSyncAt) }) : '' })
           : isApi ? tr('{{name}} ki details paste karein — booking, label, tracking aur RTO sab khud', { name: c.name }) : c.code === 'RIDER' ? tr('Order ka safar aur COD ka paisa Nafaa sambhalta hai') : tr('CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai')}
         busy={isFetching}
-        actions={<HeaderActions c={c} />}
+        actions={<HeaderActions c={c} onGuide={guide.open} />}
         stats={[
           { label: tr('Raste me'), value: String(s.active), hint: s.awaitingPickup ? tr('{{awaitingPickup}} pickup baqi', { awaitingPickup: s.awaitingPickup }) : undefined },
           { label: tr('Deliver (30 din)'), value: String(s.delivered30), hint: tr('{{dispatched30}} bheje', { dispatched30: s.dispatched30 }) },
@@ -164,11 +166,26 @@ export default function CourierDetailPage() {
       {tab === 'connection' && <ConnectionTab c={c} onConnected={() => setTab('overview')} />}
 
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
+      {guide.isOpen && (
+        <PageGuide title={c.name} onClose={guide.close}
+          flow={[
+            { label: tr('Book karein'), hint: tr('CN khud'), icon: Zap, color: '#16a34a' },
+            { label: tr('Raste me'), icon: Truck, color: '#0284c7' },
+            { label: 'Delivered', hint: tr('COD courier ke paas'), icon: CheckCircle2, color: '#7c3aed' },
+          ]}
+          steps={[
+            { icon: KeyRound, color: '#2563eb', title: tr('Connection'), text: tr('Courier ki key yahan jorein — Nafaa usi waqt check karta hai.') },
+            { icon: Zap, color: '#16a34a', title: tr('Book karein'), text: tr('Accept hue orders chunein aur ek saath book karein, label print karein.') },
+            { icon: Wallet, color: '#ea580c', title: tr('COD'), text: tr('Deliver hone ke baad paisa courier ke paas rehta hai — COD hisaab me "Paisa mil gaya" karein.') },
+          ]}
+          shortcuts={[['G', tr('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }
 
-function HeaderActions({ c }: { c: CourierAccount }) {
+function HeaderActions({ c, onGuide }: { c: CourierAccount; onGuide: () => void }) {
   const qc = useQueryClient();
   const sync = useMutation({
     mutationFn: () => couriersApi.sync(c.code),
@@ -200,6 +217,7 @@ function HeaderActions({ c }: { c: CourierAccount }) {
           </button>
         </>
       )}
+      <button type="button" onClick={onGuide} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
     </>
   );
 }

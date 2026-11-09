@@ -15,6 +15,7 @@ import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
 import { COURIER_OPTIONS, NEXT_ACTION, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
 import { MatchItemsModal, type Matches } from './MatchItemsModal';
 import { CourierSection } from './CourierSection';
+import { OrderJourneyCard } from './tracking/OrderJourney';
 import { CourierHint } from './couriers/CourierHint';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
@@ -340,6 +341,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
         {o.integration?.type === 'DARAZ'
           ? <DarazOrderSection order={o} onChanged={refresh} />
           : <CourierSection order={o} onChanged={refresh} />}
+        {o.integration?.type !== 'DARAZ' && o.courierCode !== 'RIDER' && <OrderJourneyCard orderId={o.id} trackingNumber={o.trackingNumber} />}
         {o.trackingNumber && !o.courierBooked && (
           <section className="flex items-center gap-3 rounded-2xl bg-white ring-1 ring-slate-200/80 p-4">
             <Truck className="h-5 w-5 text-slate-400" />

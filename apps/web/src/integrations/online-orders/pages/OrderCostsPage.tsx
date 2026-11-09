@@ -10,8 +10,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronDown, Package, Plus, Receipt, Save, Trash2, Truck, Wallet } from 'lucide-react';
-import { Alert, Button, Card, Input, PageHero, PageShell, Skeleton, Switch } from '@/design-system/components';
+import { ChevronDown, GraduationCap, Package, Plus, Receipt, Save, Trash2, Truck, Wallet } from 'lucide-react';
+import { Alert, Button, Card, Input, PageHero, PageShell, Skeleton, Switch, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo, brandForChannel, brandForPayment } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../api/online-orders.api';
@@ -26,6 +27,7 @@ const numOr = (v: string, d = 0) => (v.trim() === '' || !Number.isFinite(Number(
 
 export default function OrderCostsPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: orderMoneyApi.costSettings });
   const [draft, setDraft] = useState<CostSettings | null>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -47,25 +49,25 @@ export default function OrderCostsPage() {
     setDraft((d) => d && ({ ...d, couriers: { ...d.couriers, [code]: { ...(d.couriers[code] ?? blankRate()), ...patch } } }));
 
   return (
-    <PageShell className="max-w-4xl">
-      <PageHero back="/online-store/couriers" backLabel={t('Couriers')} title={t('Selling costs')}
+    <PageShell>
+      <PageHero back="/online-store/couriers" backLabel={t('Couriers')} title={t('Selling costs')} chip={<><Wallet />{t('Selling costs')}</>}
+        loading={isLoading}
         subtitle={t('Courier, COD fee, packaging aur gateway fee — har online order ka asli profit inhi se banta hai.')}
-        actions={<Button variant="primary" size="sm" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>{t('Save')}</Button>} />
+        actions={<>
+          <Button variant="primary" size="sm" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>{t('Save')}</Button>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={draft && data ? [
+          { label: t('Courier rate'), value: String(data.couriers.filter((c) => { const r = draft.couriers[c.code]; return r && (r.base > 0 || r.perKg > 0); }).length), hint: t('{{count}} me se', { count: data.couriers.length }) },
+          { label: t('Packaging'), value: rs(draft.packaging.default), hint: t('Har order') },
+          { label: t('P&L'), value: draft.postExpenses ? t('Khud likhe') : t('Band') },
+        ] : undefined} />
 
       {isLoading || !draft || !data ? (
         error ? <Alert tone="danger">{apiErrorMessage(error)}</Alert> : <div className="space-y-4"><Skeleton className="h-28 rounded-2xl" /><Skeleton className="h-64 rounded-2xl" /></div>
       ) : (<>
-        <Card title={t('P&L me kaise jaye')} description={t('Ek hi jagah se — warna kharcha do dafa ginta hai.')}>
-          <Switch checked={draft.postExpenses} onChange={(e) => setDraft({ ...draft, postExpenses: e.target.checked })}
-            label={t('Courier charges Nafaa khud kharche me likhe')}
-            description={draft.postExpenses
-              ? t('Chalu: order deliver ya wapas hote hi us ke courier, COD fee, packaging aur gateway fee "Online selling costs" naam se Expenses me khud likhe jayenge. Statement aane par amount asli ho jata hai.')
-              : t('Band: Nafaa sirf order par asli profit dikhata hai. Expenses aur P&L me wohi jaata hai jo aap khud likhte hain.')} />
-          <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">
-            <Trans text="Agar aap courier ka mahine ka bill pehle se Expenses me khud likhte hain to isay {{off}} rakhein. Chalu karne par sirf aage ke orders likhe jate hain; pichhle nahi." values={{ off: <b>{t('band')}</b> }} />
-          </p>
-        </Card>
-
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
+          <div className="space-y-4">
         <Card flush title={t('Courier rates')} description={t('Courier ka apna charge na mile to yahi rate lagta hai. Pehla wazan tak base, phir har agle kilo ka extra.')}>
           <ul className="divide-y divide-slate-100 border-t border-slate-100">
             {data.couriers.map((c) => {
@@ -92,8 +94,20 @@ export default function OrderCostsPage() {
             })}
           </ul>
         </Card>
+          </div>
+          <div className="space-y-4">
+        <Card title={t('P&L me kaise jaye')} description={t('Ek hi jagah se — warna kharcha do dafa ginta hai.')}>
+          <Switch checked={draft.postExpenses} onChange={(e) => setDraft({ ...draft, postExpenses: e.target.checked })}
+            label={t('Courier charges Nafaa khud kharche me likhe')}
+            description={draft.postExpenses
+              ? t('Chalu: order deliver ya wapas hote hi us ke courier, COD fee, packaging aur gateway fee "Online selling costs" naam se Expenses me khud likhe jayenge. Statement aane par amount asli ho jata hai.')
+              : t('Band: Nafaa sirf order par asli profit dikhata hai. Expenses aur P&L me wohi jaata hai jo aap khud likhte hain.')} />
+          <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">
+            <Trans text="Agar aap courier ka mahine ka bill pehle se Expenses me khud likhte hain to isay {{off}} rakhein. Chalu karne par sirf aage ke orders likhe jate hain; pichhle nahi." values={{ off: <b>{t('band')}</b> }} />
+          </p>
+        </Card>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
           <Card title={<span className="inline-flex items-center gap-2"><Package className="h-4 w-4 text-slate-400" />{t('Packaging')}</span>} description={t('Har parcel ka dabba, tape, flyer.')}>
             <div className="space-y-3">
               <Input size="sm" type="number" min={0} label={t('Har order (Rs)')} value={String(draft.packaging.default || '')} placeholder="0"
@@ -136,6 +150,8 @@ export default function OrderCostsPage() {
             </div>
           </Card>
         </div>
+          </div>
+        </div>
 
         <Card>
           <div className="flex flex-wrap items-center gap-3 text-[0.8125rem] text-slate-600">
@@ -153,6 +169,21 @@ export default function OrderCostsPage() {
           </div>
         )}
       </>)}
+      {guide.isOpen && (
+        <PageGuide title={t('Selling costs')} onClose={guide.close}
+          flow={[
+            { label: t('Courier rate'), icon: Truck, color: '#0891b2' },
+            { label: t('Packaging + fee'), icon: Package, color: '#7c3aed' },
+            { label: t('Asli Profit'), hint: t('Order par'), icon: Wallet, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Truck, color: '#0891b2', title: t('Courier rates'), text: t('Har courier ka base, wazan aur COD fee likhein. Courier ka apna charge aaye to wahi lagta hai.') },
+            { icon: Package, color: '#7c3aed', title: t('Packaging aur gateway'), text: t('Dabba, tape aur payment gateway ki fee yahan likhein.') },
+            { icon: Receipt, color: '#16a34a', title: t('P&L'), text: t('Switch chalu ho to deliver ya wapas hote hi kharcha Expenses me khud likha jata hai.') },
+          ]}
+          shortcuts={[['G', t('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

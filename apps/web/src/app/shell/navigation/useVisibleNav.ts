@@ -21,6 +21,8 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
 import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
+import { useCommerceSetup } from '@integrations/online-orders/hooks/useCommerceSetup';
+import { moduleForPath, usePlatformControls, type CommerceModule } from '@integrations/online-orders/hooks/usePlatformControls';
 import { BrandLogo, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
 import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { useDistributionState } from '@modules/distribution/hooks/useDistribution';
@@ -37,6 +39,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const isMarketplace = activeWorkspace === 'marketplace';
   const isAllShops = useIsAllShops();
   const { data: channels } = useSalesChannels();
+  const comingSoon = usePlatformControls().data?.comingSoon;
   const manufacturing = useManufacturingEnabled();
   const dist = useDistributionState();
   const distribution = dist.state === 'on';
@@ -44,6 +47,9 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const { sellsOnline, sellsToShops } = useBusinessModels();
   const { pathname } = useLocation();
   const commerce = !isMarketplace && isCommercePath(pathname);
+  // Sidebar items the seller hid in Online store settings (still found by search).
+  const { data: commerceSetup } = useCommerceSetup(commerce || sellsOnline);
+  const hiddenNav = commerceSetup?.hiddenNav;
   // A wholesaler whose plan lacks distribution (or who switched it off) keeps one entry that explains the next step.
   const distributionTeaser = (sellsToShops || industry?.id === 'distribution') && (dist.state === 'plan' || dist.state === 'off');
 
@@ -54,7 +60,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
       return g;
     });
     const commerceGroups: NavGroup[] = [
-      ...commerceNavGroups,
+      ...withComingSoon(commerceNavGroups, comingSoon),
       { id: 'c-channels', label: t('Sales channels'), icon: Globe, color: '#0284c7', defaultOpen: true, order: 7, items: channelItems(channels) },
     ];
     const main = isMarketplace
@@ -94,8 +100,12 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
     const all = [...(commerce ? shownCommerce : shownMain), ...(commerce ? shownMain : shownCommerce)]
       .map((g) => ({ ...g, items: g.items.filter((it) => !seen.has(it.to) && seen.add(it.to)) }))
       .filter((g) => g.items.length > 0);
-    return { groups: commerce ? shownCommerce : shownMain, searchGroups: all };
-  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops, commerce]);
+    const hidden = new Set(hiddenNav ?? []);
+    const commerceMenu = hidden.size
+      ? shownCommerce.map((g) => ({ ...g, items: g.items.filter((it) => !hidden.has(it.to)) })).filter((g) => g.items.length > 0)
+      : shownCommerce;
+    return { groups: commerce ? commerceMenu : shownMain, searchGroups: all };
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels, comingSoon, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops, commerce, hiddenNav]);
 
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 
@@ -103,6 +113,26 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems.find((i) => !i.external)?.to ?? '/profile';
 
   return { groups, searchGroups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, commerce, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
+}
+
+/**
+ * Modules the Nafaa admin has switched to "Coming soon": the module keeps one
+ * menu entry with a Soon badge that opens the Coming soon page; its other
+ * pages leave the menu.
+ */
+function withComingSoon(groups: NavGroup[], soon?: Partial<Record<CommerceModule, boolean>>): NavGroup[] {
+  if (!soon || !Object.values(soon).some(Boolean)) return groups;
+  const shown = new Set<CommerceModule>();
+  return groups.map((g) => ({
+    ...g,
+    items: g.items.flatMap((it) => {
+      const m = moduleForPath(it.to);
+      if (!m || !soon[m]) return [it];
+      if (shown.has(m)) return [];
+      shown.add(m);
+      return [{ ...it, to: `/online-store/soon/${m}`, badge: t('Soon'), liveCount: undefined }];
+    }),
+  }));
 }
 
 /** One nav item per connected sales channel, with its pending-order count. */

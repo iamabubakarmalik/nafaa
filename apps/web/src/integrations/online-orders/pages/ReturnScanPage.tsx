@@ -4,33 +4,50 @@
  * puts every item back in the order's branch). Items that came back broken
  * are marked damaged and written off as a stock loss instead. The parcel's
  * courier and return charges are kept on the order.
+ *
+ * Below the scanner: parcels the courier is bringing back (or has marked
+ * returned) that are not scanned in yet, and parcels received today.
  */
 
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertOctagon, CheckCircle2, Minus, Package, PackageX, Plus, RotateCcw, ScanLine } from 'lucide-react';
-import { Button, PageHero, PageShell, Skeleton, heroButton } from '@/design-system/components';
+import { AlertOctagon, BarChart3, CheckCircle2, GraduationCap, Minus, Package, PackageCheck, PackageX, Plus, RotateCcw, ScanLine, Truck, Warehouse } from 'lucide-react';
+import { Button, Card, EmptyState, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../api/online-orders.api';
-import { scanApi, type ScanOrder } from '../api/order-money.api';
+import { scanApi, type DeskParcel, type ScanOrder } from '../api/order-money.api';
+import { ParcelList, type ParcelRow } from '../components/dispatch/ParcelList';
 import { beep } from '../lib/pack';
 import { courierBrand, rs } from '../lib/labels';
 import { t as tr } from '@core/i18n';
+
+const DESK_KEY = ['online-orders', 'rto-desk'] as const;
+
+const parcelRow = (p: DeskParcel, received: boolean): ParcelRow => ({
+  id: p.id, number: p.number, customerName: p.customerName, city: p.city, total: p.total,
+  courierCode: p.courierCode, courierLabel: p.courierName, trackingNumber: p.trackingNumber, at: p.at,
+  status: received
+    ? (p.damaged ? { label: tr('{{count}} kharab', { count: p.damaged }), variant: 'danger' } : { label: tr('Shelf par'), variant: 'success' })
+    : p.orderStatus === 'RETURNED' ? { label: 'Returned', variant: 'warning' } : { label: 'Returning', variant: 'info' },
+  note: received && p.rtoCost > 0 ? <span className="shrink-0 tabular-nums text-rose-600">· RTO {rs(p.rtoCost)}</span> : undefined,
+});
 
 const REASONS = [tr('Customer ne parcel nahi liya'), tr('Phone band / nahi utha'), tr('Address ghalat'), tr('Customer ne mana kar diya'), tr('Fake order')];
 
 export default function ReturnScanPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
+  const desk = useQuery({ queryKey: DESK_KEY, queryFn: scanApi.rtoDesk, refetchInterval: 60_000 });
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState('');
   const [order, setOrder] = useState<ScanOrder | null>(null);
   const [damaged, setDamaged] = useState<Record<number, number>>({});
   const [reason, setReason] = useState(REASONS[0]);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<Array<{ number: string; restocked: number; damaged: number; rtoCost: number; courierCode: string | null }>>([]);
   const focus = () => window.setTimeout(() => inputRef.current?.focus(), 0);
 
   const lookup = useMutation({
@@ -47,9 +64,9 @@ export default function ReturnScanPage() {
     mutationFn: () => scanApi.rtoReceive(order!.id, damaged, order!.orderStatus === 'RETURNED' ? undefined : reason),
     onSuccess: (r) => {
       beep(true);
-      setDone((d) => [{ number: r.order.number, restocked: r.restocked, damaged: r.damaged, rtoCost: r.rtoCost, courierCode: r.order.courierCode }, ...d].slice(0, 20));
       if (r.failed.length) toast.error(tr('Kuch kharab maal nahi likha gaya: {{value}}', { value: r.failed.join(', ') }));
       else toast.success(tr('#{{number}} wapas — {{restocked}} shelf par{{value}}', { number: r.order.number, restocked: r.restocked, value: r.damaged ? tr(', {{damaged}} kharab likhe', { damaged: r.damaged }) : '' }));
+      qc.invalidateQueries({ queryKey: DESK_KEY });
       ['online-orders', 'cod-summary', 'cod-history', 'online-profit'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       setOrder(null); setDamaged({}); setValue(''); focus();
     },
@@ -60,13 +77,25 @@ export default function ReturnScanPage() {
   const damagedQty = Object.values(damaged).reduce((t, n) => t + n, 0);
   const totalQty = order?.lines.reduce((t, l) => t + l.quantity, 0) ?? 0;
 
+  const d = desk.data;
   return (
-    <PageShell className="max-w-4xl">
+    <PageShell>
       <PageHero title={tr('RTO returns')} chip={<><RotateCcw />{tr('Wapas aaye parcel')}</>}
         meta={tr('CN ya order # scan karein — maal shelf par wapas, kharab ho to alag likhein')}
-        actions={<Link to="/online-orders/pack" className={heroButton}><ScanLine className="h-4 w-4" /> {' '}{tr('Packing')}</Link>} />
+        busy={desk.isFetching && !desk.isLoading} loading={desk.isLoading}
+        actions={<>
+          <Link to="/online-orders/pack" className={heroButton}><ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Packing')}</span></Link>
+          <Link to="/online-orders/dispatch-report" className={heroButton}><BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">{tr('Dispatch report')}</span></Link>
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: tr('Wapas aa rahe'), value: String(d?.returning ?? 0), hint: tr('scan baqi') },
+          { label: tr('Aaj receive'), value: String(d?.receivedToday ?? 0) },
+          { label: tr('Aaj kharab'), value: String(d?.damagedToday ?? 0), hint: tr('pieces') },
+        ]} />
 
-      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <Card title={tr('Parcel scan karein')} description={tr('Scanner se CN ya order # — ya likh kar Enter')}>
         <form onSubmit={(e) => { e.preventDefault(); if (value.trim()) lookup.mutate(value.trim()); }} className="flex gap-2">
           <div className="relative min-w-0 flex-1">
             <ScanLine className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -144,28 +173,37 @@ export default function ReturnScanPage() {
         )}
 
         {!order && !lookup.isPending && !error && (
-          <div className="mt-6 flex flex-col items-center py-6 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-rose-50 text-rose-600"><PackageX className="h-8 w-8" /></span>
-            <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{tr('Courier se wapas aaya parcel scan karein')}</p>
-            <p className="mt-1 max-w-md text-[0.8125rem] text-slate-500">{tr('Label ka CN ya order number — Nafaa order dhoond kar maal ki list dikhayega.')}</p>
-          </div>
+          <EmptyState icon={<PackageX className="h-6 w-6" />} title={tr('Courier se wapas aaya parcel scan karein')}
+            description={tr('Label ka CN ya order number — Nafaa order dhoond kar maal ki list dikhayega.')} className="py-8" />
         )}
-      </section>
+      </Card>
 
-      {done.length > 0 && (
-        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <header className="border-b border-slate-100 px-4 py-3 text-[0.9375rem] font-semibold text-slate-900 sm:px-5">{tr('Abhi receive kiye ({{count}})', { count: done.length })}</header>
-          <ul className="divide-y divide-slate-100">
-            {done.map((d) => (
-              <li key={d.number} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
-                {d.courierCode && <BrandLogo name={courierBrand(d.courierCode)} size={18} />}
-                <span className="font-semibold text-slate-900">#{d.number}</span>
-                <span className="min-w-0 flex-1 text-slate-600">{tr('{{restocked}} shelf par{{value}}', { restocked: d.restocked, value: d.damaged ? tr(' · {{damaged}} kharab', { damaged: d.damaged }) : '' })}</span>
-                {d.rtoCost > 0 && <span className="tabular-nums text-rose-600">{tr('RTO {{rtoCost}}', { rtoCost: rs(d.rtoCost) })}</span>}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ParcelList title={tr('Aaj receive kiye ({{count}})', { count: d?.receivedToday ?? 0 })} description={tr('Aaj shelf par wapas aaye parcel')}
+          rows={(d?.received ?? []).map((p) => parcelRow(p, true))} loading={desk.isLoading}
+          empty={{ icon: <PackageCheck className="h-6 w-6" />, title: tr('Aaj abhi koi parcel receive nahi hua'), text: tr('Parcel scan karein — yahan list banti jayegi.') }} />
+      </div>
+
+      <ParcelList title={tr('RTO aana baqi ({{count}})', { count: d?.returning ?? 0 })}
+        description={tr('Courier ne wapas likha ya wapas aa raha hai, abhi dukaan par scan nahi hua — row dabayein to scan khul jayega')}
+        rows={(d?.pending ?? []).map((p) => parcelRow(p, false))} loading={desk.isLoading}
+        onOpen={(r) => lookup.mutate(r.number)}
+        empty={{ icon: <Truck className="h-6 w-6" />, title: tr('Koi parcel wapas nahi aa raha'), text: tr('Jab courier parcel wapas bhejega, woh yahan dikhega.'), action: <Link to="/online-orders?board=RETURNING" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Returning orders dekhein')}</Link> }} />
+
+      {guide.isOpen && (
+        <PageGuide title={tr('RTO returns')} onClose={guide.close}
+          flow={[
+            { label: 'Returning', hint: tr('Courier wapas la raha'), icon: Truck, color: '#c026d3' },
+            { label: tr('Scan'), hint: tr('CN ya order #'), icon: ScanLine, color: '#0284c7' },
+            { label: tr('Kharab check'), hint: tr('Kharab alag likhein'), icon: AlertOctagon, color: '#dc2626' },
+            { label: tr('Shelf par'), hint: tr('Stock wapas'), icon: Warehouse, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: ScanLine, color: '#0284c7', title: tr('Parcel scan karein'), text: tr('Label ka CN ya order number scan karein. Nafaa order aur us ka maal dikhata hai.') },
+            { icon: AlertOctagon, color: '#dc2626', title: tr('Kharab maal alag'), text: tr('Jo cheez toot ya kharab aayi, us ki ginti "Kharab" me likhein. Woh stock me wapas nahi jayegi, nuksan me likhi jayegi.') },
+            { icon: Truck, color: '#c026d3', title: tr('RTO aana baqi'), text: tr('Neeche woh parcel hain jo courier ne wapas likhe par dukaan par scan nahi hue. Courier se poochein ya pahunchne par scan karein.') },
+          ]}
+          shortcuts={[['Enter', tr('scan')], ['G', tr('guide')]]}
+        />
       )}
     </PageShell>
   );

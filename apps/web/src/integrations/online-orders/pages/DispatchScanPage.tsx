@@ -9,7 +9,8 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { AlertOctagon, CheckCircle2, ClipboardList, GraduationCap, PackageCheck, ScanLine, Send, Truck } from 'lucide-react';
-import { Button, PageHero, PageShell, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, Card, EmptyState, PageHero, PageShell, heroButton, heroIconButton } from '@/design-system/components';
+import { useBoardCounts } from '../hooks/useBoardCounts';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { apiErrorMessage } from '../api/online-orders.api';
@@ -34,6 +35,7 @@ interface Line { at: number; ok: boolean; number: string; text: string; courierC
 
 export default function DispatchScanPage() {
   const guide = usePageGuide();
+  const board = useBoardCounts();
   const refresh = useBoardRefresh();
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState('');
@@ -65,17 +67,22 @@ export default function DispatchScanPage() {
   const submit = (code: string) => { if (!code.trim()) return; setLastCode(code.trim()); scan.mutate({ code: code.trim() }); };
 
   return (
-    <PageShell className="max-w-4xl">
+    <PageShell>
       <PageHero title={t('Dispatch scan')} chip={<><Send />{t('Rider ko parcel dete waqt')}</>}
         meta={t('Har parcel ka CN ya order # scan karein — order DISPATCHED ho jayega, ghalti foran dikhegi')}
-        stats={[{ label: t('Bhej diye'), value: String(sent) }, { label: t('Ghaltiyan'), value: String(mistakes) }]}
+        stats={[
+          { label: t('Pack hain, gaye nahi'), value: String(board.count('PACKED', 'PACKED_NOT_SENT')), hint: t('rider ko dene hain') },
+          { label: t('Is session me bheje'), value: String(sent) },
+          { label: t('Ghaltiyan'), value: String(mistakes), hint: t('is session me') },
+        ]}
         actions={<>
           <Link to="/online-orders/dispatch" className={heroButton}><Truck className="h-4 w-4" /> {t('Dispatch')}</Link>
           <Link to="/online-orders/pack" className={heroButton}><PackageCheck className="h-4 w-4" /> <span className="hidden sm:inline">{t('Packing')}</span></Link>
           <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>} />
 
-      <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <Card title={t('Parcel scan karein')} description={t('Scanner se CN ya order # — ya likh kar Enter')}>
         <form onSubmit={(e) => { e.preventDefault(); submit(value); }} className="flex gap-2">
           <div className="relative min-w-0 flex-1">
             <ScanLine className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -110,15 +117,12 @@ export default function DispatchScanPage() {
             {last.order.courierCode && <BrandLogo name={courierBrand(last.order.courierCode)} size={36} />}
           </div>
         )}
-      </section>
+      </Card>
 
-      {lines.length > 0 && (
-        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <header className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 text-[0.9375rem] font-semibold text-slate-900 sm:px-5">
-            <span className="flex-1">{t('Is session me ({{sent}} bheje · {{mistakes}} ghalti)', { sent, mistakes })}</span>
-            <Link to="/online-orders/dispatch" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><ClipboardList className="h-4 w-4" />{t('Loadsheet')}</Link>
-          </header>
-          <ul className="divide-y divide-slate-100">
+      <Card flush title={t('Is session me ({{sent}} bheje · {{mistakes}} ghalti)', { sent, mistakes })}
+        actions={<Link to="/online-orders/dispatch" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline"><ClipboardList className="h-4 w-4" />{t('Loadsheet')}</Link>}>
+        {lines.length ? (
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">
             {lines.map((l) => (
               <li key={l.at} className={`flex items-center gap-3 px-4 py-2 text-[0.8125rem] sm:px-5 ${l.ok ? '' : 'bg-rose-50'}`}>
                 {l.ok ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : <AlertOctagon className="h-4 w-4 text-rose-600" />}
@@ -129,8 +133,11 @@ export default function DispatchScanPage() {
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <EmptyState icon={<Send className="h-6 w-6" />} title={t('Abhi koi parcel scan nahi hua')} description={t('Rider ko dete waqt har parcel scan karein — yahan list banti jayegi.')} className="py-8" />
+        )}
+      </Card>
+      </div>
       {guide.isOpen && (
         <PageGuide title={t('Dispatch scan')} onClose={guide.close}
           flow={[

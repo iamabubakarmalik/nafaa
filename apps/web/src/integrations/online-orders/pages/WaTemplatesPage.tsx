@@ -15,7 +15,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../api/online-orders.api';
 import { growthApi, type WaTemplateKey } from '../api/growth.api';
-import { WA_TEMPLATES, fillTemplate, useWaTemplates } from '../lib/waTemplates';
+import { WA_TEMPLATES, defaultTemplateText, fillTemplate, usePlatformWaTemplates, useWaTemplates } from '../lib/waTemplates';
 
 const SAMPLE = {
   name: 'Ayesha', shop: '', no: '1042', items: '2 × Lawn suit', total: 'Rs 6,500', cod: 'Rs 4,500', address: 'House 12, Street 4, Gulberg',
@@ -32,6 +32,8 @@ export default function WaTemplatesPage() {
   const shopName = useAuthStore((s) => s.tenant?.name) ?? '';
   const canEdit = MANAGERS.includes(String(role));
   const q = useWaTemplates();
+  const platformWa = usePlatformWaTemplates();
+  const ownCount = WA_TEMPLATES.filter((x) => q.data?.templates?.[x.key]?.trim()).length;
   const [draft, setDraft] = useState<Partial<Record<WaTemplateKey, string>>>({});
   useEffect(() => { if (q.data) setDraft(q.data.templates); }, [q.data]);
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(q.data?.templates ?? {}), [draft, q.data]);
@@ -42,10 +44,16 @@ export default function WaTemplatesPage() {
   });
 
   return (
-    <PageShell className="max-w-4xl">
+    <PageShell>
       <PageHero back="/online-store" backLabel={t('Online store')} title={t('WhatsApp messages')}
         meta={t('Orders board aur abandoned carts ka WhatsApp button yahi message bhejta hai')}
-        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>} />
+        actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        loading={q.isLoading}
+        stats={[
+          { label: t('Messages'), value: String(WA_TEMPLATES.length) },
+          { label: t('Aap ke apne'), value: String(ownCount) },
+          { label: t('Nafaa ke default'), value: String(WA_TEMPLATES.length - ownCount) },
+        ]} />
 
       <Card title={t('Message me ye cheezein khud bharti hain')}>
         <div className="flex flex-wrap gap-1.5">
@@ -54,10 +62,10 @@ export default function WaTemplatesPage() {
       </Card>
 
       {q.isLoading ? <Skeleton className="h-96 rounded-2xl" /> : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {WA_TEMPLATES.map((x) => {
             const own = draft[x.key] ?? '';
-            const text = own.trim() || x.text();
+            const text = own.trim() || defaultTemplateText(x.key, platformWa);
             return (
               <section key={x.key} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
                 <div className="mb-2 flex items-center gap-2.5">
@@ -71,7 +79,7 @@ export default function WaTemplatesPage() {
                   )}
                 </div>
                 <Textarea value={own} onChange={(e) => setDraft((d) => ({ ...d, [x.key]: e.target.value }))} rows={4} maxLength={1000}
-                  disabled={!canEdit} placeholder={x.text()} aria-label={x.label} />
+                  disabled={!canEdit} placeholder={defaultTemplateText(x.key, platformWa)} aria-label={x.label} />
                 <p className="mt-2 whitespace-pre-wrap rounded-xl bg-[#e7fbe9] px-3 py-2 text-[0.75rem] text-slate-800">{fillTemplate(text, { ...SAMPLE, shop: shopName })}</p>
               </section>
             );

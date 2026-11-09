@@ -111,6 +111,15 @@ export const COURIER_OPTIONS = [
   { code: 'CALL_COURIER', name: 'Call Courier' },
   { code: 'DAEWOO', name: 'Daewoo FastEx' },
   { code: 'TPL_RIDER', name: 'Rider (TPL)' },
+  { code: 'TRANZO', name: 'Tranzo' },
+  { code: 'SWYFT', name: 'Swyft' },
+  { code: 'BARQRAFTAR', name: 'BarqRaftar' },
+  { code: 'ZOOM', name: 'Zoom COD' },
+  { code: 'INSTAWORLD', name: 'InstaWorld' },
+  { code: 'SHIPNOC', name: 'ShipNOC' },
+  { code: 'BYKEA', name: 'Bykea' },
+  { code: 'MOVEX', name: 'MoveX' },
+  { code: 'FORRUN', name: 'Forrun' },
   { code: 'PAKPOST', name: 'Pakistan Post' },
   { code: 'OTHER', name: 'Doosra' },
 ];
@@ -130,6 +139,15 @@ export function courierBrand(nameOrCode?: string | null): BrandName {
   if (k.includes('BLUEEX') || k === 'BLUEX') return 'blueex';
   if (k.includes('DAEWOO')) return 'daewoo';
   if (k.includes('TPL')) return 'tpl';
+  if (k.includes('TRANZO')) return 'tranzo';
+  if (k.includes('SWYFT')) return 'swyft';
+  if (k.includes('BARQ')) return 'barqraftar';
+  if (k.includes('ZOOM')) return 'zoom';
+  if (k.includes('INSTAWORLD')) return 'instaworld';
+  if (k.includes('SHIPNOC')) return 'shipnoc';
+  if (k.includes('BYKEA')) return 'bykea';
+  if (k.includes('MOVEX')) return 'movex';
+  if (k.includes('FORRUN')) return 'forrun';
   if (k.includes('RIDER')) return 'rider';
   return 'other';
 }

@@ -8,13 +8,14 @@
  * Keys: N add order · O orders · G guide.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Activity, AlarmClock, AlertTriangle, BadgePercent, BarChart3, Bot, Calculator, CheckCircle2, CircleDollarSign, Clock, CreditCard, FileSpreadsheet,
   Globe, GraduationCap, Headphones, Hourglass, Languages, Megaphone, MessageCircle, PackageCheck, PackagePlus, PackageX, PauseCircle, Plus,
   Printer, Repeat, RotateCcw, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, Sparkles, TrendingUp, Truck, Users, Wallet, Workflow,
+  Navigation, Settings2, SlidersHorizontal, Trophy, Wand2, X,
   type LucideIcon,
 } from 'lucide-react';
 import { KpiCard, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
@@ -29,6 +30,10 @@ import { onlineOrdersApi } from '../api/online-orders.api';
 import { useSalesChannels } from '../hooks/useSalesChannels';
 import { timeAgo } from '../lib/labels';
 import { TeamQueue } from '../components/TeamQueue';
+import { useCommerceSetup } from '../hooks/useCommerceSetup';
+import { HomeTilesModal, tileEntry } from '../components/setup/HomeTilesEditor';
+import { insightsApi } from '../api/insights.api';
+import { useModuleSoon } from '../hooks/usePlatformControls';
 import { t as tr } from '@core/i18n';
 
 type Work = { key: string; label: string; hint: string; icon: LucideIcon; color: string };
@@ -71,6 +76,10 @@ const LIVE: Module[] = [
   { to: '/online-orders/dispatch-scan', label: tr('Dispatch scan'), text: tr('Rider ko dete waqt scan — ghalti foran'), icon: ScanLine, color: '#dc2626' },
   { to: '/online-orders/dispatch-report', label: tr('Dispatch report'), text: tr('Delivered, returns, stuck, claims'), icon: BarChart3, color: '#4f46e5' },
   { to: '/online-orders/post-office', label: tr('Post office'), text: tr('Pakistan Post booking list, VPP, article no.'), icon: Send, color: '#b91c1c' },
+  { to: '/online-orders/tracking', label: tr('Parcel map'), text: tr('Har parcel naqshe par — stuck aur fail foran'), icon: Navigation, color: '#0284c7' },
+  { to: '/online-orders/couriers-score', label: tr('Courier scorecard'), text: tr('Har shehar ka best courier, saath saath compare'), icon: Trophy, color: '#ca8a04' },
+  { to: '/online-store/automation', label: tr('Automation'), text: tr('Agar ye ho to wo karo — recipes ek tap se'), icon: Workflow, color: '#0d9488' },
+  { to: '/online-store/settings', label: tr('Online store settings'), text: tr('Dashboard, board aur menu aap ke hisaab se'), icon: Settings2, color: '#475569' },
 ];
 
 const SOON: Module[] = [
@@ -79,7 +88,6 @@ const SOON: Module[] = [
   { label: tr('Social media'), text: tr('Post schedule, captions, inbox'), icon: Share2, color: '#0ea5e9' },
   { label: tr('Loyalty & retention'), text: tr('Points, referral, win-back'), icon: Repeat, color: '#f59e0b' },
   { label: tr('Affiliates'), text: tr('Influencer codes aur commission'), icon: Users, color: '#7c3aed' },
-  { label: tr('Automation builder'), text: tr('Agar ye ho to wo karo'), icon: Workflow, color: '#0d9488' },
   { label: tr('Call center'), text: tr('Click-to-call aur agent dashboard'), icon: Headphones, color: '#475569' },
   { label: tr('International'), text: tr('Doosri currency aur mulk'), icon: Languages, color: '#0284c7' },
   { label: tr('AI store manager'), text: tr('Bol kar poochein, AI kaam kare'), icon: Bot, color: '#9333ea' },
@@ -88,6 +96,10 @@ const SOON: Module[] = [
 export default function CommerceHomePage() {
   const navigate = useNavigate();
   const guide = usePageGuide();
+  // Modules the Nafaa admin has switched to "Coming soon" move to the Soon tiles.
+  const isSoon = useModuleSoon();
+  const live = LIVE.filter((m) => !m.to || !isSoon(m.to));
+  const soon = [...LIVE.filter((m) => m.to && isSoon(m.to)).map((m) => ({ ...m, to: undefined })), ...SOON];
   const startHour = useBusinessDayStart();
   const { sales: money } = useMasked();
   const today = businessDayKey(new Date(), startHour);
@@ -123,6 +135,17 @@ export default function CommerceHomePage() {
   const stats = list?.stats;
   const r = reportQ.data?.totals;
   const salesChannels = (channels ?? []).filter((c) => c.type !== 'MANUAL');
+  // Work tiles in the seller's own order (Online store settings), else the default set.
+  const setup = useCommerceSetup();
+  const [tilesOpen, setTilesOpen] = useState(false);
+  const [setupHidden, setSetupHidden] = useState(false);
+  const work: Work[] = setup.data?.homeTiles?.length
+    ? setup.data.homeTiles.map((k) => WORK.find((w) => w.key === k) ?? (() => {
+      const e = tileEntry(k);
+      return e ? { key: k, label: e.label, hint: e.hint, icon: e.icon, color: e.color } : null;
+    })()).filter((w): w is Work => !!w)
+    : WORK;
+  const askSetup = !!setup.data && !setup.data.doneAt && !setup.data.skippedAt && !setupHidden;
 
   return (
     <PageShell>
@@ -148,11 +171,28 @@ export default function CommerceHomePage() {
         ] : [{ label: tr('Aaj ke orders'), value: '' }, { label: tr('Aaj ki sale'), value: '' }, { label: tr('Confirm karne hain'), value: '' }, { label: tr('COD baqi'), value: '' }]}
       />
 
+      {askSetup && (
+        <section className="flex flex-wrap items-center gap-3 rounded-2xl bg-brand-50 p-4 ring-1 ring-brand-200">
+          <Wand2 className="h-5 w-5 text-brand-700" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[0.875rem] font-semibold text-slate-900">{tr('Online store ko apne tareeqe par set karein')}</div>
+            <div className="text-[0.8125rem] text-slate-600">{tr('6 chhote sawal — dashboard, menu, auto booking aur automation aap ke kaam ke hisaab se.')}</div>
+          </div>
+          <Link to="/online-store/setup" className="rounded-xl bg-brand-600 px-3 py-2 text-[0.8125rem] font-semibold text-white hover:bg-brand-700">{tr('Shuru karein')}</Link>
+          <button type="button" aria-label={tr('Abhi nahi')} onClick={() => { setSetupHidden(true); insightsApi.skipSetup().catch(() => null); }} className="rounded-lg p-1.5 text-slate-500 hover:bg-white/60"><X className="h-4 w-4" /></button>
+        </section>
+      )}
+
       {/* Work waiting in each status */}
       <section aria-labelledby="work-title">
-        <h2 id="work-title" className="mb-2 flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Clock className="h-4 w-4 text-slate-400" /> {tr('Aaj ka kaam')}</h2>
+        <div className="mb-2 flex items-center gap-2">
+          <h2 id="work-title" className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Clock className="h-4 w-4 text-slate-400" /> {tr('Aaj ka kaam')}</h2>
+          <button type="button" onClick={() => setTilesOpen(true)} className="ms-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[0.75rem] font-medium text-slate-600 hover:bg-slate-100">
+            <SlidersHorizontal className="h-3.5 w-3.5" />{tr('Dabbe chunein')}
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-          {WORK.map((w) => {
+          {work.map((w) => {
             const n = board[w.key];
             return (
               <Link
@@ -174,6 +214,8 @@ export default function CommerceHomePage() {
           })}
         </div>
       </section>
+
+      {tilesOpen && <HomeTilesModal initial={work.map((w) => w.key)} onClose={() => setTilesOpen(false)} />}
 
       <TeamQueue />
 
@@ -243,11 +285,11 @@ export default function CommerceHomePage() {
       <section aria-labelledby="modules-title">
         <h2 id="modules-title" className="mb-2 text-[0.9375rem] font-semibold text-slate-900">{tr('Nafaa Commerce — sab kuch ek jagah')}</h2>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-          {LIVE.map((m) => <ModuleCard key={m.label} m={m} />)}
+          {live.map((m) => <ModuleCard key={m.label} m={m} />)}
         </div>
         <h3 className="mb-2 mt-5 flex items-center gap-2 text-[0.875rem] font-semibold text-slate-700"><Sparkles className="h-4 w-4 text-amber-500" /> {tr('Jaldi aa raha hai')}</h3>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-          {SOON.map((m) => <ModuleCard key={m.label} m={m} soon />)}
+          {soon.map((m) => <ModuleCard key={m.label} m={m} soon />)}
         </div>
       </section>
 

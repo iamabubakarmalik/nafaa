@@ -17,6 +17,7 @@ import { ExcelTab } from '../components/orders/AddOrder/ExcelTab';
 import { ManualOrderForm, emptyDraft, type ManualDraft, type ReplacementInfo } from '../components/orders/AddOrder/ManualOrderForm';
 import { PasteTab, draftFromParsed } from '../components/orders/AddOrder/PasteTab';
 import { useSalesChannels } from '../hooks/useSalesChannels';
+import { useBoardCounts } from '../hooks/useBoardCounts';
 import { orderNo } from '../lib/orders';
 import { t } from '@core/i18n';
 
@@ -27,6 +28,7 @@ export default function AddOrderPage() {
   const navigate = useNavigate();
   const guide = usePageGuide();
   const { sales: money } = useMasked();
+  const board = useBoardCounts();
   const replacementOf = params.get('replacementOf');
   const [tab, setTab] = useState<Tab>('form');
   const [draft, setDraft] = useState<ManualDraft>(emptyDraft);
@@ -58,6 +60,12 @@ export default function AddOrderPage() {
         chip={<><ShoppingBag />{replacement ? t('#{{no}} ke badle', { no: replacement.number }) : t('WhatsApp, Instagram, phone')}</>}
         meta={t('Haath se likhein, message paste karein ya Excel se laayein — order board par aa jata hai')}
         actions={<button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+        busy={board.isFetching && !board.isLoading} loading={board.isLoading}
+        stats={[
+          { label: t('Aaj aaye orders'), value: String(board.count('TODAY')) },
+          { label: t('Confirm karne hain'), value: String(board.count('NEW')), hint: 'New' },
+          { label: t('Advance ka intezar'), value: String(board.count('PAY_PENDING')), hint: 'Pay pending' },
+        ]}
       />
 
       <div className="rounded-3xl bg-white px-4 pt-2 shadow-sm ring-1 ring-slate-200/80 sm:px-5">

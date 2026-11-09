@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { journeyOf, publicJourney } from './tracking-map';
 import * as crypto from 'crypto';
 import { Integration } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -8,11 +9,10 @@ import { WebsiteSetupService } from './website-setup.service';
 import { NormalizedOrder } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { pkPhone } from './courier-api/postex.adapter';
-import { COURIERS, courierName } from './couriers';
+import { courierLink, courierName } from './couriers';
 import { apiMessage } from '../../common/i18n/api-message';
 
 const courierLabel = (c?: string | null) => courierName(c) ?? 'Courier';
-const courierSite = (c?: string | null) => COURIERS.find((x) => x.code === c)?.site ?? null;
 
 export interface Coupon {
   code: string;
@@ -348,6 +348,7 @@ export class StorefrontService {
       select: {
         orderStatus: true, paymentStatus: true, customerPhone: true, receivedAt: true, acceptedAt: true, dispatchedAt: true,
         deliveredAt: true, cancelledAt: true, returnedAt: true, total: true, courierCode: true, courierName: true, trackingNumber: true,
+        customerCity: true, courierBookedAt: true, metadata: true,
       },
     });
     const phoneOk = !!o && String(o.customerPhone ?? '').replace(/\D/g, '').endsWith(last4);
@@ -369,7 +370,13 @@ export class StorefrontService {
         { key: 'delivered', label: 'Deliver', at: o.deliveredAt },
       ],
       closed: o.cancelledAt || o.returnedAt ? { label: label[o.orderStatus], at: o.cancelledAt ?? o.returnedAt } : null,
-      courier: o.trackingNumber ? { name: o.courierName ?? courierLabel(o.courierCode), trackingNumber: o.trackingNumber, site: courierSite(o.courierCode) } : null,
+      courier: o.trackingNumber ? { name: o.courierName ?? courierLabel(o.courierCode), trackingNumber: o.trackingNumber, site: courierLink(o.courierCode, o.trackingNumber) } : null,
+      // Courier steps by city (no address); only once the parcel is with a courier.
+      journey: o.trackingNumber ? publicJourney(journeyOf({
+        events: Array.isArray((o.metadata as any)?.courierTrail?.events) ? (o.metadata as any).courierTrail.events : [],
+        orderStatus: o.orderStatus, bookedAt: o.courierBookedAt, dispatchedAt: o.dispatchedAt, deliveredAt: o.deliveredAt, returnedAt: o.returnedAt,
+        originCity: null, destinationCity: o.customerCity,
+      })) : null,
     };
   }
 

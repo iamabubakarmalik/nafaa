@@ -15,7 +15,7 @@ import { phoneKey } from './customer-risk';
 import { chargeFromBooking } from './order-costs';
 import { advancePaid } from './payment-links.service';
 import { shopDue } from './shop-due';
-import { COURIERS, courierName } from './couriers';
+import { API_SOON, COURIERS, courierName } from './couriers';
 import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
 import { eventsFromHistory, mergeEvents } from './courier-api/tracking-events';
@@ -148,6 +148,10 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
         name: c.name,
         site: c.site,
         mode: api ? 'api' : 'manual',
+        // No public API yet: manual for now, the shop can send its API key/docs.
+        apiSoon: !api && API_SOON.has(c.code),
+        // Built from published docs, not yet run on a live account.
+        beta: !!api?.beta,
         color: api?.color ?? '#64748b',
         connected: !!(api && cfg),
         active: !!cfg?.isActive,

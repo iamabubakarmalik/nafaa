@@ -47,6 +47,11 @@ import { StockAdjustmentsService } from '../../modules/inventory/stock-adjustmen
 import { CommerceAdminController, CommerceAdminService, CommerceControlsController } from './commerce-admin.controller';
 import { ChannelOpsController } from './channel-ops.controller';
 import { ChannelOpsService } from './channel-ops.service';
+import { AutomationController, CommerceSetupController, CourierScoreController, TrackingMapController } from './commerce-insights.controller';
+import { TrackingMapService } from './tracking-map.service';
+import { CourierScoreService } from './courier-score.service';
+import { AutomationService } from './automation.service';
+import { CommerceSetupService } from './commerce-setup.service';
 import {
   BlocklistController,
   ChannelsController,
@@ -68,6 +73,7 @@ import {
     OrderMoneyController,
     DispatchController,
     CommerceGrowthController,
+    TrackingMapController, CourierScoreController, AutomationController, CommerceSetupController,
     OnlineOrdersController,
     LegacyChannelOrdersController,
     ChannelsController,
@@ -92,7 +98,8 @@ import {
     OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
     OrderChannelSyncService, OrderEntryService, DispatchService,
     AbandonedCartsService, CommerceGrowthService, CommerceAdminService,
-    ChannelOpsService],
+    ChannelOpsService,
+    TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

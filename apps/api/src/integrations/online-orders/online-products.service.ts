@@ -45,9 +45,14 @@ export interface Selection {
   search?: string;
   filter?: GridFilter;
   channelId?: string;
+  categoryId?: string;
+  brandId?: string;
 }
 
-export type BulkAction = 'listed' | 'alloc' | 'price' | 'compareAt' | 'push' | 'publish';
+/** Narrowing of the grid by the product's own fields. */
+export interface GridScope { categoryId?: string; brandId?: string; productId?: string }
+
+export type BulkAction = 'listed' | 'alloc' | 'price' | 'pricePercent' | 'compareAt' | 'push' | 'publish';
 
 export interface SettingsBody {
   priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
@@ -338,13 +343,21 @@ export class OnlineProductsService implements OnModuleInit {
     return map;
   }
 
-  private async gridWhere(tenantId: string, cols: Col[], search: string | undefined, filter: GridFilter): Promise<Prisma.ProductWhereInput> {
-    const where: Prisma.ProductWhereInput = { AND: [{ tenantId, isActive: true }, this.searchWhere(search), this.filterWhere(filter, cols)] };
+  private scopeWhere(scope: GridScope = {}): Prisma.ProductWhereInput {
+    return {
+      ...(scope.categoryId ? { categoryId: scope.categoryId } : {}),
+      ...(scope.brandId ? { brandId: scope.brandId } : {}),
+      ...(scope.productId ? { id: scope.productId } : {}),
+    };
+  }
+
+  private async gridWhere(tenantId: string, cols: Col[], search: string | undefined, filter: GridFilter, scope?: GridScope): Promise<Prisma.ProductWhereInput> {
+    const where: Prisma.ProductWhereInput = { AND: [{ tenantId, isActive: true }, this.searchWhere(search), this.filterWhere(filter, cols), this.scopeWhere(scope)] };
     if (filter === 'price') (where.AND as Prisma.ProductWhereInput[]).push({ id: { in: [...(await this.priceDiffIds(cols))] } });
     return where;
   }
 
-  async grid(user: AuthenticatedUser, q: { page?: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string }) {
+  async grid(user: AuthenticatedUser, q: { page?: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string } & GridScope) {
     const all = await this.cols(user.tenantId);
     const cols = q.channelId ? all.filter((c) => c.integration.id === q.channelId) : all;
     const page = Math.max(1, Number(q.page) || 1);
@@ -353,7 +366,7 @@ export class OnlineProductsService implements OnModuleInit {
     const shops = await this.shopNames(user.tenantId);
     if (!cols.length) return { channels: [], items: [], total: 0, page, pages: 0, limit };
 
-    const where = await this.gridWhere(user.tenantId, cols, q.search, filter);
+    const where = await this.gridWhere(user.tenantId, cols, q.search, filter, q);
 
     const ids = cols.map((c) => c.integration.id);
     const shopIds = [...new Set(cols.map((c) => c.shopId).filter(Boolean))] as string[];
@@ -413,6 +426,8 @@ export class OnlineProductsService implements OnModuleInit {
           cells[c.integration.id] = {
             linked: true,
             mappingId: m.id,
+            externalProductId: m.externalProductId,
+            externalVariantId: m.externalVariantId,
             externalTitle: m.externalTitle,
             externalSku: m.externalSku,
             price: want,
@@ -450,11 +465,11 @@ export class OnlineProductsService implements OnModuleInit {
     return { channels: cols.map((c) => this.info(c, shops)), items, total, page, pages: Math.ceil(total / limit), limit };
   }
 
-  async summary(user: AuthenticatedUser, channelId?: string) {
+  async summary(user: AuthenticatedUser, channelId?: string, scope?: GridScope) {
     const all = await this.cols(user.tenantId);
     const cols = channelId ? all.filter((c) => c.integration.id === channelId) : all;
     if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0 };
-    const base: Prisma.ProductWhereInput = { tenantId: user.tenantId, isActive: true };
+    const base: Prisma.ProductWhereInput = { tenantId: user.tenantId, isActive: true, ...this.scopeWhere(scope) };
     const count = (f: GridFilter) => this.prisma.product.count({ where: { AND: [base, this.filterWhere(f, cols)] } });
     const [allN, linked, unlinked, errors, out, unlisted, price] = await Promise.all([
       count('all'), count('linked'), count('unlinked'), count('errors'), count('out'), count('unlisted'),
@@ -641,12 +656,18 @@ export class OnlineProductsService implements OnModuleInit {
     const cols = await this.cols(user.tenantId);
     if (!cols.length) return { issues: [] };
     const ids = cols.map((c) => c.integration.id);
-    const [sizeLess, failed] = await Promise.all([
+    const [sizeLess, failed, why] = await Promise.all([
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, variantId: null, product: { hasVariants: true } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId', 'syncError'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
     ]);
+    // Failed links per stored error text, so the screen can group them by cause.
+    const reasonsOf = (id: string) => why.filter((r) => r.integrationId === id).map((r) => ({ error: r.syncError ?? null, count: r._count._all })).sort((a, b) => b.count - a.count);
     const n = (rows: Array<{ integrationId: string; _count: { _all: number } }>, id: string) => rows.find((r) => r.integrationId === id)?._count._all ?? 0;
-    const issues: Array<{ id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link'; text: string; detail?: string | null; count?: number }> = [];
+    const issues: Array<{
+      id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link'; text: string; detail?: string | null; count?: number;
+      reasons?: Array<{ error: string | null; count: number }>;
+    }> = [];
     for (const c of cols) {
       const i = c.integration;
       if (!i.isActive) continue;
@@ -658,7 +679,7 @@ export class OnlineProductsService implements OnModuleInit {
       const bad = n(sizeLess, i.id);
       if (bad) issues.push({ id: `${i.id}:size`, channelId: i.id, tone: 'danger', kind: 'fix-size-less', count: bad, text: `${name}: ${bad} size wale ${bad === 1 ? 'product' : 'products'} bina size jure — theek karein` });
       const f = isPush(c.mode) ? n(failed, i.id) : 0;
-      if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
+      if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, reasons: reasonsOf(i.id), text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
       const sure = Number(watch.scan?.sure ?? 0);
       if (sure && c.mode !== 'website') issues.push({ id: `${i.id}:sure`, channelId: i.id, tone: 'info', kind: 'link-sure', count: sure, text: `${name}: ${sure} products jorna baqi — sab pakke jod dein` });
       const fresh = Number(watch.scan?.newUnlinked ?? 0);
@@ -833,7 +854,8 @@ export class OnlineProductsService implements OnModuleInit {
       const cols = sel.channelId ? all.filter((c) => c.integration.id === sel.channelId) : all;
       if (!cols.length) return [];
       const filter: GridFilter = GRID_FILTERS.includes(sel.filter as GridFilter) ? (sel.filter as GridFilter) : 'all';
-      const rows = await this.prisma.product.findMany({ where: await this.gridWhere(user.tenantId, cols, sel.search, filter), select: { id: true }, orderBy: { id: 'asc' } });
+      const scope = { categoryId: sel.categoryId || undefined, brandId: sel.brandId || undefined };
+      const rows = await this.prisma.product.findMany({ where: await this.gridWhere(user.tenantId, cols, sel.search, filter, scope), select: { id: true }, orderBy: { id: 'asc' } });
       return rows.map((r) => r.id);
     }
     const ids = [...new Set((sel?.productIds ?? []).map(String))];
@@ -849,7 +871,7 @@ export class OnlineProductsService implements OnModuleInit {
    */
   async bulk(user: AuthenticatedUser, body: { selection?: Selection; action?: BulkAction; channelId?: string | null; value?: unknown }) {
     const action = body?.action;
-    if (!action || !['listed', 'alloc', 'price', 'compareAt', 'push', 'publish'].includes(action)) throw new BadRequestException('Kaam chunein');
+    if (!action || !['listed', 'alloc', 'price', 'pricePercent', 'compareAt', 'push', 'publish'].includes(action)) throw new BadRequestException('Kaam chunein');
     const ids = await this.selectionIds(user, body.selection);
     if (!ids.length) throw new BadRequestException('Koi product nahi chuna');
     const all = (await this.cols(user.tenantId)).filter((c) => isPush(c.mode));
@@ -875,13 +897,14 @@ export class OnlineProductsService implements OnModuleInit {
     }
 
     let updated = 0;
+    if (action === 'pricePercent') updated = await this.priceByPercent(targets, ids, Number(body.value));
     const data: Prisma.ProductChannelMappingUpdateManyMutationInput =
       action === 'listed' ? { listed: body.value !== false }
         : action === 'alloc' ? { allocQty: cleanQty(body.value as any) }
           : action === 'price' ? { priceOverride: cleanPrice(body.value as any) }
             : action === 'compareAt' ? { compareAtPrice: cleanPrice(body.value as any) }
               : {};
-    if (action !== 'push') {
+    if (action !== 'push' && action !== 'pricePercent') {
       for (let k = 0; k < ids.length; k += 5000) {
         const r = await this.prisma.productChannelMapping.updateMany({ where: { integrationId: { in: targetIds }, productId: { in: ids.slice(k, k + 5000) } }, data });
         updated += r.count;
@@ -894,11 +917,46 @@ export class OnlineProductsService implements OnModuleInit {
       channelType: everywhere ? null : single?.integration.type ?? null,
       content: action === 'push' && body.value !== 'stock',
       status: action === 'listed' || action === 'push',
-      price: action === 'price' || action === 'compareAt' || action === 'push',
+      price: action === 'price' || action === 'pricePercent' || action === 'compareAt' || action === 'push',
       action,
     };
     const res = await this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'PUSH', integrationId: everywhere ? null : single?.integration.id ?? null, items: ids, params });
     return { updated, ...res };
+  }
+
+  /**
+   * Own price on each picked link = the channel's rule price moved by a
+   * percent (+10 = 10% more, -5 = 5% less). Links with the same new price
+   * are written together.
+   */
+  private async priceByPercent(targets: Col[], ids: string[], pct: number): Promise<number> {
+    if (!Number.isFinite(pct) || pct <= -90 || pct > 500 || pct === 0) throw new BadRequestException('Percent -90 se 500 ke darmiyan likhein');
+    let updated = 0;
+    for (const c of targets) {
+      for (let k = 0; k < ids.length; k += 2000) {
+        const chunk = ids.slice(k, k + 2000);
+        const [maps, shopPrices] = await Promise.all([
+          this.prisma.productChannelMapping.findMany({
+            where: { integrationId: c.integration.id, productId: { in: chunk } },
+            select: { id: true, productId: true, variantId: true, product: { select: { price: true } }, variant: { select: { price: true } } },
+          }),
+          this.branchPrices(c.shopId, chunk),
+        ]);
+        const byPrice = new Map<number, string[]>();
+        for (const m of maps) {
+          const base = shopPrices.get(mappingKey(m.productId, m.variantId)) ?? Number(m.variant?.price ?? m.product.price ?? 0);
+          const rule = this.wantPrice(c, base, null);
+          if (!(rule > 0)) continue;
+          const next = Math.max(1, Math.round(rule * (1 + pct / 100)));
+          byPrice.set(next, [...(byPrice.get(next) ?? []), m.id]);
+        }
+        for (const [price, mids] of byPrice) {
+          const r = await this.prisma.productChannelMapping.updateMany({ where: { id: { in: mids } }, data: { priceOverride: price } });
+          updated += r.count;
+        }
+      }
+    }
+    return updated;
   }
 
   /** "Sab le aayein": every channel item with no Nafaa match is made in Nafaa (with sizes) and linked. */

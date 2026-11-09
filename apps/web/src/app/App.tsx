@@ -32,6 +32,7 @@ import {
 } from '@integrations/online-orders';
 import { AbandonedCartsPage, PaymentHealthPage, ProfitPage, WaTemplatesPage } from '@integrations/online-orders';
 import { DispatchPage, DispatchReportPage, DispatchScanPage, PostOfficePage, PrintLabelsPage } from '@integrations/online-orders';
+import { AutomationPage, CommerceSettingsPage, CommerceSetupPage, CourierScorePage, TrackingMapPage } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
 
@@ -457,6 +458,11 @@ export default function App() {
                   <Route path="/online-orders/dispatch-scan" element={secure(PERMISSIONS.SALES_VIEW, <DispatchScanPage />)} />
                   <Route path="/online-orders/dispatch-report" element={secure(PERMISSIONS.SALES_VIEW, <DispatchReportPage />)} />
                   <Route path="/online-orders/post-office" element={secure(PERMISSIONS.SALES_VIEW, <PostOfficePage />)} />
+                  <Route path="/online-orders/tracking" element={secure(PERMISSIONS.SALES_VIEW, <TrackingMapPage />)} />
+                  <Route path="/online-orders/couriers-score" element={secure(PERMISSIONS.SALES_VIEW, <CourierScorePage />)} />
+                  <Route path="/online-store/automation" element={secure(PERMISSIONS.SALES_VIEW, <AutomationPage />)} />
+                  <Route path="/online-store/setup" element={secure(PERMISSIONS.SALES_VIEW, <CommerceSetupPage />)} />
+                  <Route path="/online-store/settings" element={secure(PERMISSIONS.SALES_VIEW, <CommerceSettingsPage />)} />
                   <Route path="/online-store/costs" element={secure(PERMISSIONS.SALES_VIEW, <OrderCostsPage />)} />
                   <Route path="/online-store/couriers/rules" element={secure(PERMISSIONS.SALES_VIEW, <CourierRulesPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />

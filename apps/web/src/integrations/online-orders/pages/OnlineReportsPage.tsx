@@ -173,6 +173,11 @@ export default function OnlineReportsPage() {
 
       {guide.isOpen && (
         <PageGuide title={tr('Online reports — aasaan tareeqa')} onClose={guide.close}
+          flow={[
+            { label: tr('Orders'), icon: ShoppingBag, color: '#2563eb' },
+            { label: tr('Courier'), hint: tr('Delivered / RTO'), icon: Truck, color: '#0284c7' },
+            { label: tr('Asli Profit'), icon: TrendingUp, color: '#16a34a' },
+          ]}
           steps={[
             { icon: BarChart3, color: '#2563eb', title: tr('Period chunein'), text: tr('Aaj, 7 din, 30 din, mahina ya apni date. Upar ke number pichli itni hi period se milaye jate hain.') },
             { icon: ShoppingBag, color: '#16a34a', title: tr('Sale ka hisaab'), text: tr('Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.') },

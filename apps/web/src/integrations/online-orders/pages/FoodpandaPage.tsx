@@ -10,10 +10,12 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Clock, Copy, Plus, Save, ShoppingBag, Store, Trash2 } from 'lucide-react';
+import { Clock, Copy, GraduationCap, Plus, Save, ShoppingBag, Store, Trash2 } from 'lucide-react';
 import {
-  Alert, Badge, Button, Input, PageHero, PageShell, Select, Skeleton, Switch, heroButton,
+  Alert, Badge, Button, Input, PageHero, PageShell, Select, Skeleton, Switch, heroButton, heroIconButton,
 } from '@/design-system/components';
+import { usePlatformControls } from '../hooks/usePlatformControls';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { apiErrorMessage } from '../api/online-orders.api';
 import { foodpandaApi, type FoodpandaChannel, type FoodpandaOverview, type FoodpandaVendor } from '../api/foodpanda.api';
@@ -27,6 +29,8 @@ const KEY = ['foodpanda'];
 const copy = (s: string) => navigator.clipboard.writeText(s).then(() => toast.success(t('Copy ho gaya')), () => toast.error(t('Copy nahi hua')));
 
 export default function FoodpandaPage() {
+  const guide = usePageGuide();
+  const platformPaused = !!usePlatformControls().data?.pausedChannelTypes.includes('FOODPANDA');
   const { data, isLoading, error, refetch } = useQuery({ queryKey: KEY, queryFn: foodpandaApi.overview });
   const { data: channels } = useSalesChannels();
   const first = data?.channels[0];
@@ -46,9 +50,10 @@ export default function FoodpandaPage() {
         title={<span className="inline-flex min-w-0 items-center gap-2.5"><BrandLogo name="foodpanda" size={30} /><span className="truncate">{'Foodpanda'}</span></span>}
         chip={status ? <>{status.text}</> : undefined}
         meta={t('Foodpanda ke orders seedha Nafaa me — accept, reject, ready sab yahin se')}
-        actions={first ? (
-          <Link to={`/online-orders?channel=${first.id}`} className={heroButton}><ShoppingBag className="h-4 w-4" /> {' '}{t('Orders')}</Link>
-        ) : undefined}
+        actions={<>
+          {first && <Link to={`/online-orders?channel=${first.id}`} className={heroButton}><ShoppingBag className="h-4 w-4" /> {' '}{t('Orders')}</Link>}
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
         loading={isLoading}
         stats={first ? [
           { label: t('Branches'), value: String(remoteIds), hint: remoteIds ? t('Remote ID bani') : t('abhi koi nahi') },
@@ -56,6 +61,12 @@ export default function FoodpandaPage() {
           { label: t('Order khud accept'), value: first.autoAccept ? t('Chalu') : t('Band') },
         ] : undefined}
       />
+
+      {platformPaused && (
+        <Alert tone="info" title={t('Foodpanda par bhejna kuch der ke liye ruka hai')}>
+          {t('Nafaa ne sab dukaanon ke liye Foodpanda par menu aur stock bhejna abhi roka hua hai. Orders aate rahenge — chalu hote hi sab khud bhej diya jayega.')}
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]"><Skeleton className="h-96 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>
@@ -85,6 +96,21 @@ export default function FoodpandaPage() {
           </div>
           <GuideCard guide={foodpandaGuide({ remoteIds, ordersSeen })} className="lg:sticky lg:top-4" />
         </div>
+      )}
+      {guide.isOpen && (
+        <PageGuide title={'Foodpanda'} onClose={guide.close}
+          flow={[
+            { label: t('Foodpanda order'), icon: ShoppingBag, color: '#e11d48' },
+            { label: t('Accept'), hint: t('Prep time'), icon: Clock, color: '#d97706' },
+            { label: t('Ready'), hint: t('Rider le jata hai'), icon: Store, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Store, color: '#e11d48', title: t('Branches'), text: t('Har branch ki Foodpanda Remote ID yahan likhein.') },
+            { icon: Clock, color: '#d97706', title: t('Tayyari ka waqt'), text: t('Order accept karte waqt jitne minute likhe hon woh Foodpanda ko jate hain.') },
+            { icon: ShoppingBag, color: '#16a34a', title: t('Orders'), text: t('Foodpanda ke orders seedha Nafaa me aate hain — accept, reject aur ready yahin se.') },
+          ]}
+          shortcuts={[['G', t('guide')]]}
+        />
       )}
     </PageShell>
   );

@@ -181,6 +181,32 @@ export const TRACKING_MAPPERS: Record<string, (raw: any) => TrackEvent[]> = {
     const text = `${str(h?.ProcessDescForPortal ?? h?.OperationDesc)}${h?.ReasonDesc ? ` (${str(h.ReasonDesc)})` : ''}`;
     return ev(text, parseCourierTime(h?.TransactionDate), h?.StationName ?? h?.CityName ?? h?.Location, h);
   })),
+
+  /**
+   * InstaWorld v2 /shipments/{cn}/events: data[] ordered by recorded_at, each
+   * with a frozen public status code; the courier's own words when present.
+   */
+  INSTAWORLD: (b) => finalizeEvents(arr(b?.data).map((h) => {
+    const text = str(h?.courier_status_raw) || str(h?.status_label) || str(h?.status);
+    const e = ev(text, parseCourierTime(h?.occurred_at ?? h?.recorded_at), undefined, h);
+    const status = INSTAWORLD_STEP[str(h?.status).toUpperCase()];
+    return status ? { ...e, status, hub: undefined } : e;
+  })),
+
+  /** ShipNOC GetParcelTracking: detail[] of { PacelStatus, Remarks, DateTime }. */
+  SHIPNOC: (b) => finalizeEvents(arr(b?.detail).map((h) => {
+    const status = str(h?.PacelStatus ?? h?.ParcelStatus);
+    const text = `${status}${h?.Remarks && str(h.Remarks) !== status ? ` — ${str(h.Remarks)}` : ''}`;
+    return ev(text, parseCourierTime(h?.DateTime), undefined, h);
+  })),
+};
+
+/** InstaWorld public status code → event step (its vocabulary is frozen, additive only). */
+const INSTAWORLD_STEP: Record<string, TrackEventStatus> = {
+  BOOKING_IN_PROCESS: 'BOOKED', BOOKED: 'BOOKED', PICKED_UP: 'PICKED_UP', IN_TRANSIT: 'IN_TRANSIT',
+  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY', DELIVERY_ATTEMPT_FAILED: 'ATTEMPT_FAILED', ACTION_REQUIRED: 'ATTEMPT_FAILED',
+  ON_HOLD: 'ATTEMPT_FAILED', DELIVERED: 'DELIVERED', RTO_INITIATED: 'RETURNING', RTO_IN_TRANSIT: 'RETURNING',
+  RTO_RECEIVED_AT_HUB: 'RETURNING', RTO_RETURNED_TO_SHIPPER: 'RETURNED', CANCELLED: 'CANCELLED',
 };
 
 /** Events from the label/time pairs every adapter already returns (fallback for couriers without a mapper). */

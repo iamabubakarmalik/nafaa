@@ -39,6 +39,11 @@ export default function DispatchPage() {
   const guide = usePageGuide();
   const [tab, setTab] = useState<Tab>('ready');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const ready = useQuery(READY_QUERY);
+  const readyList = ready.data ?? [];
+  const toBook = readyList.filter((o) => !o.trackingNumber);
+  const bookedNotSent = readyList.length - toBook.length;
+  const codToSend = readyList.reduce((sum, o) => sum + (o.isCod ? Number(o.total) || 0 : 0), 0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -60,7 +65,13 @@ export default function DispatchPage() {
           <Link to="/online-orders/post-office" title={t('Post office')} className={heroIconButton}><Mailbox className="h-4 w-4" /></Link>
           <button type="button" onClick={() => setSettingsOpen(true)} title={t('Settings')} className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
           <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-        </>} />
+        </>}
+        busy={ready.isFetching && !ready.isLoading} loading={ready.isLoading}
+        stats={[
+          { label: t('Book karne hain'), value: String(toBook.length) },
+          { label: t('Booked, gaye nahi'), value: String(bookedNotSent) },
+          { label: t('COD jana hai'), value: rs(codToSend), hint: t('{{count}} parcels', { count: readyList.length }) },
+        ]} />
       <div className="rounded-3xl bg-white px-4 pt-2 shadow-sm ring-1 ring-slate-200/80 sm:px-5">
         <Tabs value={tab} onChange={setTab} label={t('Dispatch')}
           items={[
@@ -97,6 +108,15 @@ export default function DispatchPage() {
   );
 }
 
+/** Accepted orders not yet sent; shared by the hero numbers and the booking list. */
+const READY_QUERY = {
+  queryKey: ['online-orders', 'dispatch-ready'],
+  queryFn: async () => {
+    const lists = await Promise.all(['CONFIRMED', 'PACKED', 'PACKED_NOT_SENT'].map((board) => onlineOrdersApi.list({ board, limit: 200 })));
+    return lists.flatMap((l) => l.items);
+  },
+};
+
 /** Accepted orders not yet sent: pick, book, print labels, cancel bookings. */
 function ReadyPanel() {
   const refresh = useBoardRefresh();
@@ -105,13 +125,7 @@ function ReadyPanel() {
   const [booking, setBooking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [filter, setFilter] = useState<'todo' | 'booked'>('todo');
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['online-orders', 'dispatch-ready'],
-    queryFn: async () => {
-      const lists = await Promise.all(['CONFIRMED', 'PACKED', 'PACKED_NOT_SENT'].map((board) => onlineOrdersApi.list({ board, limit: 200 })));
-      return lists.flatMap((l) => l.items);
-    },
-  });
+  const { data, isLoading, error } = useQuery(READY_QUERY);
   const all = data ?? [];
   const isBooked = (o: OnlineOrder) => !!o.trackingNumber;
   const rows = all.filter((o) => (filter === 'todo' ? !isBooked(o) : isBooked(o)));

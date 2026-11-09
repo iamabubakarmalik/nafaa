@@ -13,6 +13,8 @@
  * average charge.
  */
 
+import { sameCity } from './pk-cities';
+
 export const RULE_TRIGGERS = ['OFF', 'ACCEPT', 'READY'] as const;
 export type RuleTrigger = (typeof RULE_TRIGGERS)[number];
 const RISKS = ['NEW', 'TRUSTED', 'OK', 'WATCH', 'HIGH', 'BLOCKED'] as const;
@@ -85,7 +87,8 @@ export type RuleDecision =
   | { action: 'ASK'; ruleId: string | null; reason: string };
 
 export function ruleFits(rule: CourierRule, o: RuleOrder): boolean {
-  if (rule.cities.length && !rule.cities.some((c) => cityKey(c) === cityKey(o.city))) return false;
+  // Same city also when written differently ("Lhr", "Lahore Cantt").
+  if (rule.cities.length && !rule.cities.some((c) => cityKey(c) === cityKey(o.city) || sameCity(c, o.city))) return false;
   if (rule.codMin !== null && o.cod < rule.codMin) return false;
   if (rule.codMax !== null && o.cod > rule.codMax) return false;
   if (rule.risks.length && !rule.risks.includes((o.risk ?? '') as Risk)) return false;

@@ -4,8 +4,9 @@
  */
 
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronRight, Globe, Plus } from 'lucide-react';
-import { Badge, Button, PageHero, PageShell, Skeleton, heroPrimaryButton } from '@/design-system/components';
+import { ArrowRight, ChevronRight, Globe, GraduationCap, Package, Plus, ShoppingBag } from 'lucide-react';
+import { Badge, Button, PageHero, PageShell, Skeleton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo, brandForChannel, brandLabel, type BrandName } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import { channelMeta, channelPath, useSalesChannels } from '../hooks/useSalesChannels';
@@ -22,6 +23,7 @@ const ADD: Array<{ brand: BrandName; name: string; desc: string; to: string; tag
 ];
 
 export default function ChannelsListPage() {
+  const guide = usePageGuide();
   const { data, isLoading, isFetching } = useSalesChannels();
   const channels = data ?? [];
   const live = channels.filter((c) => c.live).length;
@@ -35,7 +37,10 @@ export default function ChannelsListPage() {
         meta={t('Jahan jahan aap bechte hain — har channel ke orders Online orders me, aur stock sab ka ek')}
         busy={isFetching && !isLoading}
         loading={isLoading}
-        actions={<Link to="/online-store/connect" className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Channel jorein')}</Link>}
+        actions={<>
+          <Link to="/online-store/connect" className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{t('Channel jorein')}</Link>
+          <button type="button" onClick={guide.open} title={t('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
         stats={channels.length ? [
           { label: t('Live'), value: live, hint: channels.length - live ? t('{{value}} band', { value: channels.length - live }) : undefined },
           { label: t('Naye orders'), value: pending, hint: pending ? t('accept karne') : undefined },
@@ -103,6 +108,21 @@ export default function ChannelsListPage() {
           ))}
         </div>
       </section>
+      {guide.isOpen && (
+        <PageGuide title={t('Sales channels')} onClose={guide.close}
+          flow={[
+            { label: t('Channel jorein'), icon: Plus, color: '#0891b2' },
+            { label: t('Orders'), hint: t('Ek jagah'), icon: ShoppingBag, color: '#7c3aed' },
+            { label: t('Stock'), hint: t('Sab ka ek'), icon: Package, color: '#16a34a' },
+          ]}
+          steps={[
+            { icon: Plus, color: '#0891b2', title: t('Channel jorein'), text: t('Shopify, WooCommerce, Daraz ya apni website jorein — kuch minute ka kaam.') },
+            { icon: ShoppingBag, color: '#7c3aed', title: t('Orders'), text: t('Har channel ke order Online orders me aate hain, wahan se accept aur dispatch karein.') },
+            { icon: Globe, color: '#16a34a', title: t('Live / band'), text: t('Channel par click karke uski setting, products aur activity dekhein.') },
+          ]}
+          shortcuts={[['G', t('guide')]]}
+        />
+      )}
     </PageShell>
   );
 }

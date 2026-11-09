@@ -171,6 +171,10 @@ export interface CourierAccount {
   name: string;
   site: string | null;
   mode: 'api' | 'manual';
+  /** No public API yet: manual for now, the shop can send its API key/docs. */
+  apiSoon?: boolean;
+  /** Direct API built from the courier's docs, not yet checked on a live account. */
+  beta?: boolean;
   color: string;
   connected: boolean;
   active: boolean;
