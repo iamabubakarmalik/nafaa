@@ -29,6 +29,8 @@ import {
 } from './dto/create-purchase.dto';
 import { LANDED_METHODS, LandedCostRow, LandedMethod, allocate, cleanLandedCost, perUnit, recostRemaining } from './landed-cost';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { packCostFromAverage, syncBaseUnits } from '../../../industries/retail/product-units/unit-math';
+import { touchSupplierLink } from '../../inventory/products/suppliers/product-suppliers.helper';
 import { StaffAlertsService } from '../../notifications/alerts/staff-alerts.service';
 
 type Tx = Prisma.TransactionClient;
@@ -59,7 +61,7 @@ interface Line {
 interface Receipt {
   item: {
     id: string; productId: string | null; variantId: string | null; ingredientId: string | null; itemName: string;
-    batchNo?: string | null; expiryDate?: Date | null;
+    batchNo?: string | null; expiryDate?: Date | null; unitId?: string | null;
   };
   baseQty: number;
   /** Supplier cost of one base unit (bill value, returns, khata). */
@@ -176,7 +178,7 @@ export class PurchasesService {
   }
 
   /** Puts received goods into stock and moves costs to the new weighted average. */
-  private async stockIn(tx: Tx, user: AuthenticatedUser, ctx: { shopId: string; reference: string; supplierName: string }, rows: Receipt[], salePrices = new Map<string, number>()) {
+  private async stockIn(tx: Tx, user: AuthenticatedUser, ctx: { shopId: string; reference: string; supplierName: string; supplierId: string }, rows: Receipt[], salePrices = new Map<string, number>()) {
     for (const { item, baseQty, baseCost: supplierCost, landed } of rows) {
       if (baseQty <= 0) continue;
       const baseCost = r4(supplierCost + (landed ?? 0));
@@ -207,15 +209,20 @@ export class PurchasesService {
       const avg = r4(old > 0 ? (old * Number(product.costPrice) + baseQty * baseCost) / (old + baseQty) : baseCost);
       const sale = salePrices.get(item.id);
       await tx.product.update({ where: { id: item.productId }, data: { costPrice: avg, ...(sale != null && !item.variantId && { price: sale }) } });
+      let packAvg = avg;
       if (item.variantId) {
         const v = await tx.productVariant.findUniqueOrThrow({ where: { id: item.variantId }, select: { stock: true, costPrice: true } });
         const vOld = Math.max(Number(v.stock), 0);
         const vAvg = r4(vOld > 0 ? (vOld * Number(v.costPrice) + baseQty * baseCost) / (vOld + baseQty) : baseCost);
         await tx.productVariant.update({ where: { id: item.variantId }, data: { costPrice: vAvg, ...(sale != null && { price: sale }) } });
+        // A variant's own packs follow the variant's cost, not the product average.
+        packAvg = vAvg;
       }
       // Pack units follow the base cost (a carton of 24 costs 24 pieces).
       const units = await tx.productUnit.findMany({ where: { productId: item.productId, variantId: item.variantId }, select: { id: true, conversionRate: true } });
-      for (const u of units) await tx.productUnit.update({ where: { id: u.id }, data: { costPrice: r2(avg * (Number(u.conversionRate) || 1)) } });
+      for (const u of units) await tx.productUnit.update({ where: { id: u.id }, data: { costPrice: packCostFromAverage(packAvg, u.conversionRate) } });
+      if (sale != null && !item.variantId) await syncBaseUnits(tx, item.productId, { followPacks: true });
+      await touchSupplierLink(tx, { tenantId: user.tenantId, productId: item.productId, supplierId: ctx.supplierId, baseCost: supplierCost, unitId: item.unitId ?? null });
 
       await applyStockDelta({
         tx, tenantId: user.tenantId, shopId: ctx.shopId, productId: item.productId, variantId: item.variantId,
@@ -319,7 +326,7 @@ export class PurchasesService {
 
       if (!receive) return { ...purchase, createdRollsByItem: {} };
 
-      const ctx = { shopId, reference: purchase.purchaseNumber, supplierName: supplier.name };
+      const ctx = { shopId, reference: purchase.purchaseNumber, supplierName: supplier.name, supplierId: supplier.id };
       const sale = new Map<string, number>();
       purchase.items.forEach((it, i) => { if (lines[i].dto.salePrice != null) sale.set(it.id, lines[i].dto.salePrice!); });
       await this.stockIn(tx, user, ctx, purchase.items.map((it) => ({ item: it, baseQty: it.baseQuantity, baseCost: this.baseCost(purchase, it), landed: landedUnit(it) })), sale);
@@ -416,7 +423,7 @@ export class PurchasesService {
     const paid = r2(Math.min(Math.max(dto.paidAmount ?? 0, 0), value));
 
     const res = await this.prisma.$transaction(async (tx) => {
-      await this.stockIn(tx, user, { shopId: p.shopId!, reference: p.purchaseNumber, supplierName: p.supplier.name }, rows);
+      await this.stockIn(tx, user, { shopId: p.shopId!, reference: p.purchaseNumber, supplierName: p.supplier.name, supplierId: p.supplierId }, rows);
       for (const r of rows) await tx.purchaseItem.update({ where: { id: r.item.id }, data: { receivedQty: { increment: r.baseQty } } });
       const items = await tx.purchaseItem.findMany({ where: { purchaseId: p.id }, select: { baseQuantity: true, receivedQty: true } });
       const complete = items.every((i) => i.receivedQty >= i.baseQuantity - 0.0001);

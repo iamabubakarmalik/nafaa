@@ -1,6 +1,6 @@
 /** Product editor draft: the shared core and the industry's own part. */
 
-import type { PackKind } from '@nafaa/core/inventory';
+import type { PackKind, PackManual } from '@nafaa/core/inventory';
 import type { ImageDraft } from '../../components/PhotoField';
 
 export type { ImageDraft };
@@ -11,6 +11,8 @@ export interface UnitDraft {
   conversionType: PackKind;
   conversionRate: number;
   isBase: boolean;
+  /** The pack the counter picks first; kept as loaded so it is never reset from here. */
+  isDefault: boolean;
   price: number;
   costPrice: number;
   wholesalePrice: number | null;
@@ -20,6 +22,10 @@ export interface UnitDraft {
   sku: string;
   /** Saved packs are switched off, never deleted. */
   isActive: boolean;
+  /** Price tiers typed by hand; the others follow the piece price x size. Editor only, not saved. */
+  manual?: PackManual;
+  /** Discount on the automatic sale tiers of this pack, in percent. Editor only, not saved. */
+  discountPct?: number;
 }
 
 export interface VariantDraft {
@@ -45,6 +51,24 @@ export interface BatchDraft {
   quantity: number;
   costPrice: number;
   notes: string;
+}
+
+/** One supplier of the product. Costs are per base unit. */
+export interface SupplierLinkDraft {
+  supplierId: string;
+  supplierName: string;
+  supplierSku: string;
+  /** Usual cost of one base unit; null when not set (or hidden without cost.view). */
+  costPrice: number | null;
+  /** In base units. */
+  minOrderQty: number | null;
+  leadDays: number | null;
+  unitId: string | null;
+  isPreferred: boolean;
+  notes: string;
+  /** Shown only. */
+  lastPurchasePrice: number | null;
+  lastPurchasedAt: string | null;
 }
 
 export interface CoreDraft {
@@ -74,6 +98,7 @@ export interface CoreDraft {
   units: UnitDraft[];
   variants: VariantDraft[];
   batches: BatchDraft[];
+  suppliers: SupplierLinkDraft[];
 }
 
 export interface EditorDraft<X = Record<string, unknown>> {

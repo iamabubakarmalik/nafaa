@@ -18,7 +18,7 @@ describe('auto-link picks only sure matches', () => {
       { item: b, match: { productId: 'pKurta', variantId: 'vM', kind: 'name', score: 0.92 } },
       { item: c, match: { productId: 'pSoap', variantId: null, kind: 'fuzzy', score: 0.7 } },
     ] as any);
-    expect(links).toEqual([{ externalProductId: '1', externalVariantId: null, productId: 'pTea', variantId: null, externalTitle: 'Tea', externalImage: null, externalSku: 'TEA' }]);
+    expect(links).toEqual([{ externalProductId: '1', externalVariantId: null, productId: 'pTea', variantId: null, externalTitle: 'Tea', externalImage: null, externalSku: 'TEA', externalStock: 1 }]);
   });
 });
 

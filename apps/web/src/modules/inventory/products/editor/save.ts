@@ -12,8 +12,10 @@ import { productImagesApi } from '@modules/inventory/products/api/product-images
 import { productVariantsApi, type UpsertVariantPayload } from '@modules/inventory/products/api/product-variants.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
-import type { BatchDraft, CoreDraft, EditorConfig, EditorDraft, UnitDraft, VariantDraft } from './types';
+import { productSuppliersApi } from '@modules/inventory/products/api/product-suppliers.api';
+import type { BatchDraft, CoreDraft, EditorConfig, EditorDraft, SupplierLinkDraft, UnitDraft, VariantDraft } from './types';
 import { t } from '@core/i18n';
+import { applyAutoPrices } from '@nafaa/core/inventory';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const blank = (v: string) => (v.trim() ? v.trim() : undefined);
@@ -60,11 +62,30 @@ const variantPayload = (v: VariantDraft, core: CoreDraft, i: number, withStock: 
   lowStockAlert: core.lowStockAlert, ...(withStock ? { stock: Number(v.stock) || 0 } : {}),
 });
 
-const unitPayload = (u: UnitDraft, productId: string, i: number) => ({
-  productId, unitName: u.unitName.trim(), conversionType: u.conversionType, conversionRate: Number(u.conversionRate) || 1,
-  isBase: u.isBase, isDefault: u.isBase, price: Number(u.price) || 0, costPrice: Number(u.costPrice) || 0,
+/**
+ * The base row is the product in pack form, so its name and prices always come
+ * from the product. Other packs get their automatic price tiers from the piece
+ * (piece x size, less the pack discount); tiers typed by hand are kept. A
+ * switched-off pack stays off. The default POS pack is kept as loaded; the base
+ * row is the default only when no pack is.
+ */
+export const syncBaseRow = (units: UnitDraft[], core: CoreDraft): UnitDraft[] => units.map((u) => (u.isBase ? {
+  ...u, unitName: core.unit, conversionType: 'BASE', conversionRate: 1, price: Number(core.price) || 0, costPrice: Number(core.costPrice) || 0,
+  wholesalePrice: core.wholesalePrice, creditPrice: core.creditPrice, isActive: true,
+} : applyAutoPrices(core, u, u.manual, u.discountPct)));
+
+const unitPayload = (u: UnitDraft, productId: string, i: number, units: UnitDraft[]) => ({
+  productId, unitName: u.unitName.trim(), conversionType: u.conversionType, conversionRate: u.isBase ? 1 : Number(u.conversionRate) || 1,
+  isBase: u.isBase, isDefault: u.isDefault ?? (u.isBase && !units.some((x) => x.isDefault)),
+  price: Number(u.price) || 0, costPrice: Math.round((Number(u.costPrice) || 0) * 100) / 100,
   wholesalePrice: u.wholesalePrice || null, creditPrice: u.creditPrice || null, mrpPrice: u.mrpPrice ?? undefined, barcode: blank(u.barcode), sku: blank(u.sku),
-  isActive: true, sortOrder: i,
+  isActive: u.isBase ? true : u.isActive, sortOrder: i,
+});
+
+const supplierPayload = (l: SupplierLinkDraft) => ({
+  supplierId: l.supplierId, supplierSku: l.supplierSku.trim() || null,
+  ...(l.costPrice !== undefined && { costPrice: l.costPrice }),
+  minOrderQty: l.minOrderQty, leadDays: l.leadDays, unitId: l.unitId, isPreferred: l.isPreferred, notes: l.notes.trim() || null,
 });
 
 /** A saved batch's quantity follows sales and purchases, so updates never send it. */
@@ -128,10 +149,18 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
     }
     if (core.units.length || prev?.units.length) {
       step(t('Packing'));
-      await sync(core.units, prev?.units ?? [], {
-        create: async (items) => { for (const { item, index } of items) await productUnitsApi.create(unitPayload(item, id, index) as never); },
-        update: (u, i) => productUnitsApi.update(u.id, unitPayload(u, id, i) as never),
+      const units = syncBaseRow(core.units, core);
+      await sync(units, prev ? syncBaseRow(prev.units, prev) : [], {
+        create: async (items) => { for (const { item, index } of items) await productUnitsApi.create(unitPayload(item, id, index, units) as never); },
+        update: (u, i) => productUnitsApi.update(u.id, unitPayload(u, id, i, units) as never),
       });
+    }
+    if (core.suppliers.length || prev?.suppliers.length) {
+      const next = core.suppliers.map(supplierPayload);
+      if (!same(next, (prev?.suppliers ?? []).map(supplierPayload))) {
+        step(t('Suppliers'));
+        await productSuppliersApi.replace(id, next);
+      }
     }
     if (core.batches.length || prev?.batches.length) {
       step(t('Batches'));

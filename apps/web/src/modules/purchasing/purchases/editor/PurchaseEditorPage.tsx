@@ -33,6 +33,7 @@ import { LandedCostEditor, landedTotal, newLanded } from '../components/LandedCo
 import { usePurchaseDraft, type DraftLine } from './draft';
 import { searchSources, usePurchaseSources, type Source, type UnitChoice } from './sources';
 import { t } from '@core/i18n';
+import { useLinkedSupplierCosts, useSupplierLinks } from './useSupplierLinks';
 
 export interface PurchaseEditorConfig {
   /** Small badge next to a product line, e.g. electronics "Serial". */
@@ -47,7 +48,6 @@ export interface PurchaseEditorConfig {
   useSupplierCosts?: (supplierId: string) => { costs: ReadonlyMap<string, number>; note?: string } | undefined;
 }
 
-const noSupplierCosts = () => undefined;
 
 /** Lines handed over by another page (low stock "Order banayein") through navigation state. */
 export interface PurchasePrefill {
@@ -84,7 +84,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const suppliersQ = useQuery({ queryKey: ['suppliers', 'picker'], queryFn: () => suppliersApi.list({ status: 'active', sort: 'recent', limit: 500 }), staleTime: 60_000 });
   const suppliers = suppliersQ.data?.items ?? [];
   const supplier = suppliers.find((s) => s.id === bill.supplierId);
-  const useSupplierCosts = config.useSupplierCosts ?? noSupplierCosts;
+  const useSupplierCosts = config.useSupplierCosts ?? useLinkedSupplierCosts;
+  const links = useSupplierLinks();
   const supplierCosts = useSupplierCosts(bill.supplierId);
   const withSupplierCost = (s: Source): Source => {
     const c = s.kind === 'product' ? supplierCosts?.costs.get(s.id) : undefined;
@@ -136,9 +137,21 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const results = useMemo(() => searchSources(sources, query), [sources, query]);
   const low = useMemo(() => sources.filter((s) => s.lowAt > 0 && s.stock <= s.lowAt).sort((a, b) => a.stock - b.stock).slice(0, 14), [sources]);
 
-  const addSource = (s: Source, unit: UnitChoice = s.units[0]) => {
-    if (s.kind === 'product' && s.hasVariants) { setVariantFor({ source: s, unit }); return; }
-    d.add(withSupplierCost(s), unit);
+  const addSource = (s: Source, picked?: UnitChoice) => {
+    // First line on a bill with no supplier: start with the product's preferred supplier.
+    const pref = s.kind === 'product' ? links.preferred.get(s.id) : undefined;
+    const supplierId = bill.supplierId || (pref && !lines.length ? pref.supplierId : '');
+    if (!bill.supplierId && supplierId) {
+      const hit = suppliers.find((x) => x.id === supplierId);
+      if (hit) { setBill((b) => ({ ...b, supplierId: hit.id, supplierName: hit.name })); toast.info(t('Supplier: {{name}} (Preferred)', { name: hit.name }), { duration: 1500 }); }
+    }
+    // The pack usually bought from this supplier, unless a pack barcode chose one.
+    const link = s.kind === 'product' && supplierId ? links.link(s.id, supplierId) : undefined;
+    const unit = picked ?? (link?.unitId ? s.units.find((u) => u.id === link.unitId) : undefined) ?? s.units[0];
+    const linkCost = link ? (Number(link.costPrice) > 0 ? Number(link.costPrice) : Number(link.lastPurchasePrice) > 0 ? Number(link.lastPurchasePrice) : 0) : 0;
+    const source = !bill.supplierId && linkCost > 0 ? { ...s, cost: linkCost } : withSupplierCost(s);
+    if (s.kind === 'product' && s.hasVariants) { setVariantFor({ source, unit }); return; }
+    d.add(source, unit);
     setQuery('');
     setOpen(false);
     searchRef.current?.focus();
@@ -526,7 +539,18 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] text-slate-500">
-        {l.unit.rate !== 1 && <span className="font-medium text-brand-700">= {qtyText(base)} {l.source.baseUnit} · {money(perBase)}/{l.source.baseUnit}</span>}
+        {l.unit.rate !== 1 && (
+          <span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-brand-700">
+            = {qtyText(base)} {l.source.baseUnit} ·
+            {/* Per-piece cost, editable: typing it sets the pack cost (piece x size), so either side can be entered. */}
+            <label className="inline-flex items-center gap-1" title={t('Ek {{baseUnit}} ki qeemat likhein — {{name}} ki qeemat khud ban jayegi', { baseUnit: l.source.baseUnit, name: l.unit.name })}>
+              <span>{t('Ek {{baseUnit}}:', { baseUnit: l.source.baseUnit })} Rs</span>
+              <input type="number" min={0} step="any" inputMode="decimal" value={perBase ? Number(perBase.toFixed(2)) : ''} placeholder="0"
+                onChange={(e) => d.patch(l.key, { cost: Math.round(Math.max(Number(e.target.value) || 0, 0) * l.unit.rate * 100) / 100 })}
+                className={cn(field, 'h-7 w-24 px-2 text-end text-[0.75rem] tabular-nums')} />
+            </label>
+          </span>
+        )}
         <button type="button" onClick={() => setMore((m) => !m)} className="inline-flex items-center gap-0.5 text-slate-600 hover:text-slate-900">
           {l.source.kind === 'product' ? t('Bechne ka rate, batch, expiry') : t('Batch, expiry')} <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
         </button>

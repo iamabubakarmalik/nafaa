@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { applyStockDelta } from '../../common/shop-scope';
 import { readWebsiteConfig, stockRule } from './website-config';
 import { allocate, channelShare, Claim, StockRule } from './stock-allocation';
 import { mappingKey } from './mapping-key';
+import { countOptedIn, pushedBefore, readHold } from './stock-handover';
+import { availability, availabilityDate, backorderRule, BackorderRule, leadTimeText } from './backorder';
 
 export interface CatalogExportOptions {
   page?: number;
@@ -62,6 +64,19 @@ const toStr = (v: any): string | undefined => {
  * jata hai (applyStockDelta), warna product POS par "shop me available
  * nahi" dikhata hai.
  */
+/** Handover state of one link, keyed by channel variant/product id. */
+export interface LinkState {
+  id: string;
+  held: boolean;
+  pushedBefore: boolean;
+  /** Does the channel count stock for this item (null = not seen yet). */
+  tracks: boolean | null;
+  /** The merchant asked Nafaa to start counting it on the channel. */
+  optIn: boolean;
+  /** Last channel stock seen (scan or link). */
+  channelStock: number | null;
+}
+
 @Injectable()
 export class WebsiteCatalogService {
   private readonly logger = new Logger(WebsiteCatalogService.name);
@@ -108,7 +123,7 @@ export class WebsiteCatalogService {
           variants: {
             where: { isActive: true },
             orderBy: { sortOrder: 'asc' },
-            select: { id: true, name: true, sku: true, barcode: true, price: true, stock: true, size: true, color: true, imageUrl: true },
+            select: { id: true, name: true, sku: true, barcode: true, price: true, stock: true, size: true, color: true, imageUrl: true, backorder: true },
           },
           ...(shopId && {
             shopStocks: {
@@ -123,12 +138,20 @@ export class WebsiteCatalogService {
 
     const buffer = Math.max(0, Math.floor(opts.stockBuffer ?? 0));
     const share = (n: number) => (opts.stockRule ? channelShare(n, opts.stockRule) : n - buffer);
+    const today = new Date();
     const products = items.map((p: any) => {
       const rows: any[] = p.shopStocks ?? [];
       const baseRow = rows.find((r) => r.variantId === null);
+      const productRule = backorderRule(p);
+      // Sell when out of stock: what the customer should see, plus the delivery note and date for a backorder.
+      const offer = (shown: number, real: number, rule: BackorderRule) => {
+        const a = availability(Math.max(shown, 0), rule, real);
+        return { availability: a, backorder: rule.enabled === true, ...(a === 'backorder' && { leadTime: leadTimeText(rule), availableFrom: availabilityDate(rule.leadDays, today) }) };
+      };
       const variants = (p.variants ?? []).map((v: any) => {
         const row = rows.find((r) => r.variantId === v.id);
-        const stock = share(shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0));
+        const real = shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0);
+        const stock = share(real);
         return {
           id: v.id,
           name: v.name,
@@ -140,13 +163,19 @@ export class WebsiteCatalogService {
           price: Number(row?.shopPrice ?? v.price),
           stock: Math.max(stock, 0),
           inStock: stock > 0,
+          ...offer(stock, real, backorderRule(p, v)),
         };
       });
 
-      const baseStock = share(shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0));
+      const baseReal = shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0);
+      const baseStock = share(baseReal);
       const stock = variants.length
         ? variants.reduce((s: number, v: any) => s + v.stock, 0)
         : Math.max(baseStock, 0);
+      const pick = (a: string) => variants.find((v: any) => v.availability === a);
+      const own = variants.length
+        ? (pick('in_stock') ?? pick('backorder') ?? { availability: 'out_of_stock', backorder: productRule.enabled === true })
+        : offer(baseStock, baseReal, productRule);
 
       return {
         id: p.id,
@@ -161,6 +190,9 @@ export class WebsiteCatalogService {
         images: p.images.map((i: any) => i.url),
         stock,
         inStock: stock > 0,
+        availability: own.availability,
+        backorder: productRule.enabled === true || variants.some((v: any) => v.backorder),
+        ...(own.availability === 'backorder' && { leadTime: leadTimeText(productRule), availableFrom: availabilityDate(productRule.leadDays, today) }),
         variants,
         updatedAt: p.updatedAt,
       };
@@ -176,14 +208,27 @@ export class WebsiteCatalogService {
    */
   async stockBySku(tenantId: string, shopId: string | null, integrationId: string, skus: string[], rule: StockRule | number = 0) {
     const stock: Record<string, number> = {};
+    const owner = new Map<string, string>();
     for (let i = 0; i < skus.length; i += 500) {
       const res = await this.exportProducts(tenantId, shopId, { skus: skus.slice(i, i + 500), limit: 500 });
       for (const p of res.products) {
-        if (p.sku) stock[p.sku] = p.stock;
-        if (p.barcode) stock[p.barcode] = p.stock;
-        for (const v of p.variants) if (v.sku) stock[v.sku] = v.stock;
+        if (p.sku) { stock[p.sku] = p.stock; owner.set(p.sku, mappingKey(p.id, null)); }
+        if (p.barcode) { stock[p.barcode] = p.stock; owner.set(p.barcode, mappingKey(p.id, null)); }
+        for (const v of p.variants) if (v.sku) { stock[v.sku] = v.stock; owner.set(v.sku, mappingKey(p.id, v.id)); }
       }
     }
+    // An item Nafaa has never held stock for has no real number yet: it is not
+    // sent (an empty 0 would wipe the channel's own stock).
+    const ids = [...new Set([...owner.values()].map((k) => k.split(':')[0]))];
+    const known = new Set<string>();
+    for (let k = 0; k < ids.length; k += 5000) {
+      const rows = await this.prisma.shopStock.findMany({
+        where: { productId: { in: ids.slice(k, k + 5000) }, ...(shopId ? { shopId } : {}) },
+        select: { productId: true, variantId: true },
+      });
+      for (const r of rows) known.add(mappingKey(r.productId, r.variantId));
+    }
+    for (const [sku, key] of owner) if (!known.has(key)) delete stock[sku];
     const pending = await this.prisma.channelOrder.findMany({
       where: { integrationId, orderStatus: { in: ['PENDING', 'ACCEPTING'] } },
       select: { items: true },
@@ -213,15 +258,31 @@ export class WebsiteCatalogService {
    * against the fixed shares of the other channels on the same branch.
    */
   async stockByLink(integration: { id: string; tenantId: string; shopId: string | null; config: any }): Promise<Map<string, number>> {
+    return (await this.stockAndPolicyByLink(integration)).stock;
+  }
+
+  /**
+   * Same as stockByLink, plus the backorder rule and true branch stock per
+   * channel key, so a push can set the channel's "sell when out of stock".
+   */
+  async stockAndPolicyByLink(integration: { id: string; tenantId: string; shopId: string | null; config: any; type?: string }): Promise<{
+    stock: Map<string, number>; policy: Map<string, { rule: BackorderRule; stock: number }>; links: Map<string, LinkState>;
+  }> {
     const cfg = readWebsiteConfig(integration.config);
     const shopId = cfg.shopId ?? integration.shopId;
     const out = new Map<string, number>();
-    if (!shopId) return out;
+    const policy = new Map<string, { rule: BackorderRule; stock: number }>();
+    const links = new Map<string, LinkState>();
+    if (!shopId) return { stock: out, policy, links };
     const mappings = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: integration.id },
-      select: { productId: true, variantId: true, externalProductId: true, externalVariantId: true, allocQty: true, listed: true },
+      select: {
+        id: true, productId: true, variantId: true, externalProductId: true, externalVariantId: true, allocQty: true, listed: true, backorder: true,
+        stockHold: true, tracksStock: true, lastPush: true, externalData: true,
+        product: { select: { backorder: true, backorderMax: true } }, variant: { select: { backorder: true } },
+      },
     });
-    if (!mappings.length) return out;
+    if (!mappings.length) return { stock: out, policy, links };
     const productIds = [...new Set(mappings.map((m) => m.productId))];
     const [rows, others] = await Promise.all([
       this.findInChunks(productIds, (ids) => this.prisma.shopStock.findMany({
@@ -236,12 +297,21 @@ export class WebsiteCatalogService {
     for (const m of mappings) {
       const key = m.externalVariantId ?? m.externalProductId;
       if (!key) continue;
+      const d = (m.externalData ?? {}) as any;
+      const held = !!readHold(m.stockHold);
+      links.set(String(key), {
+        id: m.id, held, pushedBefore: pushedBefore(m), tracks: m.tracksStock, optIn: countOptedIn(m.externalData),
+        channelStock: d.channelStock === undefined || d.channelStock === null ? null : Number(d.channelStock),
+      });
+      // Held links get nothing until the merchant picks Nafaa or channel stock.
+      if (held) continue;
       const k = mappingKey(m.productId, m.variantId);
       const free = Math.max(0, (stockOf.get(k) ?? 0) - (pending.get(String(key)) ?? 0));
       const claims: Claim[] = [{ channelId: integration.id, rule: mine, allocQty: m.allocQty, listed: m.listed }, ...(others.get(k) ?? [])];
       out.set(String(key), allocate(free, claims).qty[integration.id]);
+      policy.set(String(key), { rule: backorderRule(m.product, m.variant, m, integration.type), stock: (stockOf.get(k) ?? 0) - (pending.get(String(key)) ?? 0) });
     }
-    return out;
+    return { stock: out, policy, links };
   }
 
   /** Units held by not-yet-accepted orders, keyed by channel variant/product id. */
@@ -313,6 +383,12 @@ export class WebsiteCatalogService {
 
   async importProducts(integration: { id: string; tenantId: string; displayName: string }, raw: any[], opts: ImportOptions): Promise<ImportResult> {
     const list = (Array.isArray(raw) ? raw : []).slice(0, MAX_IMPORT);
+    // Stock needs a branch: the channel's, else the main branch. Without one nothing is imported (no silent 0 stock).
+    if (!opts.shopId) {
+      const main = await this.prisma.shop.findFirst({ where: { tenantId: integration.tenantId, isActive: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }], select: { id: true } });
+      if (!main) throw new BadRequestException('Koi branch nahi mili — pehle Shops me branch banayein, phir channel ki branch chunein. Bina branch ke Stock nahi aa sakta.');
+      opts = { ...opts, shopId: main.id };
+    }
     let imported = 0;
     let updated = 0;
     let failed = 0;

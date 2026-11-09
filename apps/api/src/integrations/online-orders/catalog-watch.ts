@@ -27,6 +27,7 @@ export function pickSureLinks(results: ScanResult['results']): LinkInput[] {
       externalTitle: p.hasVariants ? `${p.title} — ${v.title}` : p.title,
       externalImage: v.image ?? p.image,
       externalSku: v.sku,
+      externalStock: v.tracked === false ? null : v.stock,
     }));
 }
 

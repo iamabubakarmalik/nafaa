@@ -4,7 +4,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { readForm } from '../online-orders/storefront.service';
 import { readWebsiteConfig } from '../online-orders/website-config';
-import { FeedItem, LocalRow, localInventoryTsv, productFeedXml, validGtin } from './feed';
+import { FeedItem, LocalRow, localInventoryTsv, metaCatalogCsv, productFeedXml, validGtin } from './feed';
+import { availability, availabilityDate, backorderRule } from '../online-orders/backorder';
 
 /* ═════════════════════════════════════════════════════════════
    GOOGLE — Merchant Center (Shopping + "dukaan me maujood") aur
@@ -103,6 +104,7 @@ export class GoogleService {
       settings: { ...s, feedToken: undefined },
       enabled: !!s.feedToken,
       productFeedUrl: base ? `${base}/products.xml` : null,
+      metaCatalogUrl: base ? `${base}/meta-catalog.csv` : null,
       localInventoryUrl: base ? `${base}/local-inventory.txt` : null,
       reviewUrl: s.placeId ? reviewLink(s.placeId) : null,
       channels: channels.map((c) => ({ id: c.id, name: c.name, type: c.type, hasForm: !!c.form, siteUrl: c.siteUrl })),
@@ -169,9 +171,10 @@ export class GoogleService {
       where: { tenantId, isActive: true, price: { gt: 0 }, ...(form?.productIds ? { id: { in: form.productIds } } : {}) },
       select: {
         id: true, name: true, sku: true, barcode: true, price: true, description: true, shortDescription: true, hasVariants: true, stock: true,
+        backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true,
         category: { select: { name: true } }, brand: { select: { name: true } },
         images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 6, select: { url: true } },
-        variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, barcode: true, price: true, stock: true, color: true, size: true, imageUrl: true } },
+        variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, barcode: true, price: true, stock: true, color: true, size: true, imageUrl: true, backorder: true } },
       },
       orderBy: { name: 'asc' },
       take: MAX_ITEMS,
@@ -179,28 +182,35 @@ export class GoogleService {
     const ids = products.map((p) => p.id);
     const [stocks, maps] = await Promise.all([
       this.prisma.shopStock.findMany({ where: { tenantId, productId: { in: ids }, ...(ch.shopId && { shopId: ch.shopId }) }, select: { productId: true, variantId: true, stock: true } }),
-      form ? Promise.resolve([]) : this.prisma.productChannelMapping.findMany({ where: { integrationId: ch.id, productId: { in: ids } }, select: { productId: true, variantId: true, externalUrl: true } }),
+      form ? Promise.resolve([]) : this.prisma.productChannelMapping.findMany({ where: { integrationId: ch.id, productId: { in: ids } }, select: { productId: true, variantId: true, externalUrl: true, compareAtPrice: true, backorder: true } }),
     ]);
     const stockOf = (pid: string, vid: string | null, fallback: number) => {
       const rows = stocks.filter((x) => x.productId === pid && (x.variantId ?? null) === vid);
       return rows.length ? rows.reduce((t, r) => t + Number(r.stock), 0) : Number(fallback || 0);
     };
+    const linkOf = (pid: string, vid: string | null) => maps.find((x) => x.productId === pid && (x.variantId ?? null) === vid) ?? maps.find((x) => x.productId === pid);
     const urlOf = (pid: string, vid: string | null) => {
       if (form) return `${webBase()}/order/${form.key}?product=${encodeURIComponent(pid)}`;
-      const m = maps.find((x) => x.productId === pid && (x.variantId ?? null) === vid) ?? maps.find((x) => x.productId === pid);
-      return m?.externalUrl ?? null;
+      return linkOf(pid, vid)?.externalUrl ?? null;
     };
+    const now = new Date();
 
     const items: FeedItem[] = [];
-    let noImage = 0, noLink = 0, outOfStock = 0;
+    let noImage = 0, noLink = 0, outOfStock = 0, backorders = 0;
     for (const p of products) {
       const images = p.images.map((i) => absUrl(i.url)).filter(Boolean);
       const opts = p.hasVariants && p.variants.length
-        ? p.variants.map((v) => ({ id: `${p.id}_${v.id}`, vid: v.id as string | null, title: `${p.name} - ${v.name}`, sku: v.sku ?? p.sku, barcode: v.barcode ?? p.barcode, price: Number(v.price || p.price), stock: stockOf(p.id, v.id, v.stock), color: v.color, size: v.size, image: absUrl(v.imageUrl) }))
-        : [{ id: p.id, vid: null as string | null, title: p.name, sku: p.sku, barcode: p.barcode, price: Number(p.price), stock: stockOf(p.id, null, p.stock), color: null as string | null, size: null as string | null, image: '' }];
+        ? p.variants.map((v) => ({ id: `${p.id}_${v.id}`, vid: v.id as string | null, title: `${p.name} - ${v.name}`, sku: v.sku ?? p.sku, barcode: v.barcode ?? p.barcode, price: Number(v.price || p.price), stock: stockOf(p.id, v.id, v.stock), color: v.color, size: v.size, image: absUrl(v.imageUrl), vBackorder: v.backorder }))
+        : [{ id: p.id, vid: null as string | null, title: p.name, sku: p.sku, barcode: p.barcode, price: Number(p.price), stock: stockOf(p.id, null, p.stock), color: null as string | null, size: null as string | null, image: '', vBackorder: null as boolean | null }];
       for (const o of opts) {
         const inStock = o.stock > 0;
-        if (!inStock && (!s.includeOutOfStock || form?.onlyInStock)) { outOfStock++; continue; }
+        // Sell when out of stock (the landing channel's link setting wins): shown as backorder,
+        // not out of stock, so Google keeps the ad running. Others at zero are out of stock.
+        const chLink = form ? null : linkOf(p.id, o.vid);
+        const rule = backorderRule(p, { backorder: o.vBackorder }, chLink, ch.type);
+        const avail = availability(Math.max(0, o.stock), rule, o.stock);
+        if (avail === 'backorder') backorders++;
+        if (avail === 'out_of_stock' && (!s.includeOutOfStock || form?.onlyInStock)) { outOfStock++; continue; }
         const link = urlOf(p.id, o.vid);
         if (!link) { noLink++; continue; }
         const image = o.image || images[0];
@@ -211,7 +221,10 @@ export class GoogleService {
           title: o.title,
           description: stripHtml(p.description) || stripHtml(p.shortDescription) || o.title,
           link, image, extraImages: images.filter((u) => u !== image),
-          price: o.price, inStock,
+          // A channel sale price: the struck-out price goes in price, the selling price in sale_price.
+          ...(chLink?.compareAtPrice && chLink.compareAtPrice > o.price ? { price: chLink.compareAtPrice, salePrice: o.price } : { price: o.price }),
+          inStock, availability: avail,
+          availabilityDate: avail === 'backorder' ? availabilityDate(rule.leadDays, now) : null,
           brand: p.brand?.name || s.defaultBrand || shopName,
           gtin: validGtin(o.barcode),
           mpn: o.sku, productType: p.category?.name ?? null, color: o.color, size: o.size,
@@ -222,6 +235,7 @@ export class GoogleService {
     if (noImage) warnings.push({ code: 'no_image', count: noImage, message: `${noImage} product ki tasveer nahi — Google tasveer ke baghair nahi leta` });
     if (noLink) warnings.push({ code: 'no_link', count: noLink, message: `${noLink} product website se jure nahi (link nahi) — Online store → Products link karein` });
     if (outOfStock) warnings.push({ code: 'out_of_stock', count: outOfStock, message: `${outOfStock} khatam stock wale shamil nahi` });
+    if (backorders) warnings.push({ code: 'backorder', count: backorders, message: `${backorders} stock khatam magar order chalu (backorder) — Google par "backorder" dikhenge` });
     if (products.length >= MAX_ITEMS) warnings.push({ code: 'limit', count: MAX_ITEMS, message: `Pehle ${MAX_ITEMS} products hi feed me` });
     return { items, warnings, title: shopName, link: form ? `${webBase()}/order/${form.key}` : ch.siteUrl ?? webBase() };
   }
@@ -230,6 +244,13 @@ export class GoogleService {
     const { tenantId, s } = await this.tenantByToken(token);
     const b = await this.buildItems(tenantId, s);
     return productFeedXml({ title: b.title, link: b.link, items: b.items });
+  }
+
+  /** Same items as the Google feed, as a Meta (Facebook / Instagram) catalog CSV. */
+  async metaCatalog(token: string) {
+    const { tenantId, s } = await this.tenantByToken(token);
+    const b = await this.buildItems(tenantId, s);
+    return metaCatalogCsv(b.items);
   }
 
   async localInventory(token: string) {

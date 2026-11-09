@@ -5,12 +5,15 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { decrypt, encrypt } from '../../core/lib/crypto';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
+import { wooBackorders, wooStockPatch } from './backorder';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { assertSafeWebhookUrl, readWebsiteConfig, stockRule } from './website-config';
 import type { WebsiteCatalogService as CatalogType } from './website-catalog.service';
 import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
+import { handoverBlock, trackDecision } from './stock-handover';
+import { GuardHold, holdLinks, markTracking, recordStockPushes, StockPushRecord } from './handover-store';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { apiMessage } from '../../common/i18n/api-message';
 import { outboundAction, readStatusMap, trackingInfo } from './channel-status-map';
@@ -308,7 +311,7 @@ export class WooCommerceService {
     const shopId = cfg.shopId ?? integration.shopId;
 
     // Website ke products + variations (id, sku, stock)
-    type Row = { id: number; parentId?: number; sku: string; stock: number | null; manage: boolean };
+    type Row = { id: number; parentId?: number; sku: string; stock: number | null; manage: boolean; backorders?: string | null };
     const rows: Row[] = [];
     if (opts.onlySkus?.length || opts.onlyLinks?.length) {
       const seen = new Set<number>();
@@ -317,14 +320,14 @@ export class WooCommerceService {
       const links = opts.onlyLinks ?? [];
       const simpleIds = [...new Set(links.filter((l) => !l.externalVariantId).map((l) => l.externalProductId))];
       for (let i = 0; i < simpleIds.length; i += 50) {
-        const found = await client.request<any[]>('GET', '/products', { query: { include: simpleIds.slice(i, i + 50).join(','), per_page: '50', _fields: 'id,sku,type,manage_stock,stock_quantity' } }).catch(() => []);
-        for (const p of found ?? []) if (p.type !== 'variable') add({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock });
+        const found = await client.request<any[]>('GET', '/products', { query: { include: simpleIds.slice(i, i + 50).join(','), per_page: '50', _fields: 'id,sku,type,manage_stock,stock_quantity,backorders' } }).catch(() => []);
+        for (const p of found ?? []) if (p.type !== 'variable') add({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock, backorders: p.backorders });
       }
       const byParent = new Map<string, string[]>();
       for (const l of links.filter((x) => x.externalVariantId)) byParent.set(l.externalProductId, [...(byParent.get(l.externalProductId) ?? []), l.externalVariantId!]);
       for (const [parent, vids] of [...byParent].slice(0, 100)) {
-        const found = await client.request<any[]>('GET', `/products/${parent}/variations`, { query: { include: vids.slice(0, 100).join(','), per_page: '100', _fields: 'id,sku,manage_stock,stock_quantity' } }).catch(() => []);
-        for (const v of found ?? []) add({ id: v.id, parentId: Number(parent), sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
+        const found = await client.request<any[]>('GET', `/products/${parent}/variations`, { query: { include: vids.slice(0, 100).join(','), per_page: '100', _fields: 'id,sku,manage_stock,stock_quantity,backorders' } }).catch(() => []);
+        for (const v of found ?? []) add({ id: v.id, parentId: Number(parent), sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock, backorders: v.backorders });
       }
       for (const sku of [...new Set(opts.onlySkus ?? [])].slice(0, 30)) {
         const found = await client.request<any[]>('GET', '/products', { query: { sku, _fields: 'id,sku,type,parent_id,manage_stock,stock_quantity' } }).catch(() => []);
@@ -333,20 +336,21 @@ export class WooCommerceService {
         }
       }
     } else {
-      const products = await client.all<any>('/products', { _fields: 'id,sku,type,manage_stock,stock_quantity', status: 'any' });
+      const products = await client.all<any>('/products', { _fields: 'id,sku,type,manage_stock,stock_quantity,backorders', status: 'any' });
       for (const p of products) {
         if (p.type === 'variable') {
-          const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,sku,manage_stock,stock_quantity' }, 10).catch(() => []);
-          for (const v of vars) rows.push({ id: v.id, parentId: p.id, sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
+          const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,sku,manage_stock,stock_quantity,backorders' }, 10).catch(() => []);
+          for (const v of vars) rows.push({ id: v.id, parentId: p.id, sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock, backorders: v.backorders });
         } else {
-          rows.push({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock });
+          rows.push({ id: p.id, sku: p.sku ?? '', stock: p.stock_quantity, manage: !!p.manage_stock, backorders: p.backorders });
         }
       }
     }
 
     // Pehle jore hue links (variant tak), phir SKU — stock ka malik Nafaa
-    const linkStock = await this.catalog.stockByLink(integration);
-    const skus = [...new Set(rows.filter((r) => !linkStock.has(String(r.id))).map((r) => r.sku).filter(Boolean))];
+    const { stock: linkStock, policy, links } = await this.catalog.stockAndPolicyByLink(integration);
+    // Linked items (held ones included) are never matched again by SKU.
+    const skus = [...new Set(rows.filter((r) => !links.has(String(r.id))).map((r) => r.sku).filter(Boolean))];
     if (!skus.length && !linkStock.size) {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi product jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
@@ -355,16 +359,41 @@ export class WooCommerceService {
 
     const simple: any[] = [];
     const byParent = new Map<number, any[]>();
+    const pushed: StockPushRecord[] = [];
+    const holds: GuardHold[] = [];
+    const untracked: string[] = [];
+    const counted: string[] = [];
     let missing = 0;
+    let skipped = 0;
     for (const r of rows) {
-      const want = linkStock.get(String(r.id)) ?? (r.sku ? stock[r.sku] : undefined);
+      const link = links.get(String(r.id));
+      const want = linkStock.get(String(r.id)) ?? (r.sku && !link ? stock[r.sku] : undefined);
       if (want === undefined) { missing++; continue; }
+      // "Manage stock" off on the website: Nafaa never turns it on, unless the merchant opted in for this link.
+      const decision = trackDecision(r.manage, !!link?.optIn);
+      if (decision === 'skip') {
+        if (link && link.tracks !== false) untracked.push(link.id);
+        skipped++;
+        continue;
+      }
+      if (link && r.manage && link.tracks !== true) counted.push(link.id);
       const qty = Math.max(0, Math.floor(want));
-      if (r.manage && r.stock === qty) continue;
-      const patch = { id: r.id, manage_stock: true, stock_quantity: qty };
+      if (link && r.manage && r.stock !== qty && handoverBlock({ want: qty, channelQty: r.stock, pushedBefore: link.pushedBefore })) {
+        holds.push({ id: link.id, channelStock: r.stock ?? null, nafaaStock: qty });
+        continue;
+      }
+      // Sell when out of stock: `backorders` goes with the stock when Nafaa manages it for this link.
+      const p = policy.get(String(r.id));
+      const patch = wooStockPatch(r, want, p ? wooBackorders(p.rule, p.stock) : undefined);
+      if (!patch) continue;
+      if (decision === 'start-count' && link) counted.push(link.id);
+      if (link) pushed.push({ id: link.id, from: r.manage ? r.stock ?? null : null, to: qty });
       if (r.parentId) byParent.set(r.parentId, [...(byParent.get(r.parentId) ?? []), patch]);
       else simple.push(patch);
     }
+    await holdLinks(this.prisma, integration, holds);
+    if (untracked.length) await markTracking(this.prisma, integration.id, untracked, false);
+    if (counted.length) await markTracking(this.prisma, integration.id, [...new Set(counted)], true);
 
     let updated = 0;
     for (let i = 0; i < simple.length; i += 100) {
@@ -376,9 +405,13 @@ export class WooCommerceService {
       updated += list.length;
     }
 
+    await recordStockPushes(this.prisma, pushed);
     await this.prisma.integration.update({ where: { id: integration.id }, data: { lastSyncAt: new Date(), lastSyncStatus: 'SUCCESS' } });
-    await this.log(integration, 'STOCK_SYNC', true, undefined, { updated, checked: rows.length, missing });
-    return { updated, checked: rows.length, missing };
+    await this.log(integration, 'STOCK_SYNC', true, undefined, {
+      updated, checked: rows.length, missing, ...(holds.length && { held: holds.length }), ...(skipped && { untracked: skipped }),
+      changes: pushed.slice(0, 300).map((x) => ({ id: x.id, from: x.from, to: x.to })),
+    });
+    return { updated, checked: rows.length, missing, held: holds.length, untracked: skipped };
   }
 
   // ═══════════════════════════════════════════════════════════

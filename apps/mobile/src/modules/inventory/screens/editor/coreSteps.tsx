@@ -10,8 +10,8 @@ import { Boxes, CalendarClock, ClipboardList, Layers, Lock, Plus, ScanLine, Tag,
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import {
-  autoSku, belowCost, DEFAULT_MARKUPS, duplicateCodes, expiryState, inStoreEan13, marginPct, openingStock, PACK_PRESETS, packPricesFromBase,
-  packSavingPct, perBaseUnit, priceForMarkup, type PackKind,
+  autoPackPrices, autoPackValue, autoSku, belowCost, DEFAULT_MARKUPS, duplicateCodes, expiryState, inStoreEan13, marginPct, openingStock, PACK_PRESETS,
+  packSummary, pieceFromPack, priceForMarkup, type PackKind, type PackPriceField,
 } from '@nafaa/core/inventory';
 import { formatPKR, formatDate } from '@/core/format';
 import { msg, t } from '@/core/i18n';
@@ -25,6 +25,8 @@ import { MarginCard, NumberInput, Tiles } from '../../components/fields';
 import { PhotoField } from '../../components/PhotoField';
 import type { CoreOptions, StepContext, StepDef } from '../../industry/types';
 import { qty, useCostMask } from '../../lib/shared';
+import { withBaseFromProduct } from './draft';
+import { SuppliersEditor } from './SuppliersEditor';
 import type { BatchDraft, Errors, UnitDraft, VariantDraft } from './types';
 
 type Slot<X> = (ctx: StepContext<X>) => ReactNode;
@@ -114,20 +116,52 @@ function MarginPill({ price, cost }: { price: number | null | undefined; cost: n
   return <Badge tone={m < 0 ? 'danger' : m < 10 ? 'warning' : 'success'}>{t('Margin {{value}}%', { value: m.toFixed(1) })}</Badge>;
 }
 
+/**
+ * One pack price box. It follows the piece (piece x size) until the user types
+ * a rate; then it shows "Apna rate" with a link back to automatic, and an
+ * optional link that turns this pack value into the piece value.
+ */
+function PackPriceField({ label, value, manual, auto, placeholder, optional, onType, onAuto, reverse }: {
+  label: string; value: number | null; manual: boolean; auto: number | null; placeholder?: string; optional?: boolean;
+  onType: (v: number | null) => void; onAuto: () => void; reverse?: { label: string; onPress: () => void } | null;
+}) {
+  return (
+    <MoneyInput containerStyle={{ flex: 1 }} label={label} value={value} placeholder={placeholder}
+      labelAction={<Badge tone={manual ? 'warning' : 'neutral'}>{manual ? t('Apna rate') : t('Auto')}</Badge>}
+      onChangeValue={(v) => onType(optional ? (v && v > 0 ? v : null) : v ?? 0)}
+      hint={manual ? (
+        <View style={{ alignItems: 'flex-start' }}>
+          <Button size="sm" variant="link" onPress={onAuto}>{auto != null ? t('Auto karein ({{value}})', { value: formatPKR(auto) }) : t('Auto karein')}</Button>
+          {reverse && <Button size="sm" variant="link" onPress={reverse.onPress}>{reverse.label}</Button>}
+        </View>
+      ) : undefined} />
+  );
+}
+
 function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
   const th = useTheme();
+  const { costHidden } = useCostMask();
   const c = ctx.draft.core;
-  const units = c.units;
+  // The base row is the product itself; other packs carry their automatic prices from the piece.
+  const units = withBaseFromProduct(c);
   const set = (next: UnitDraft[]) => ctx.setCore({ units: next });
-  const base = (): UnitDraft => ({ unitName: c.unit, conversionType: 'BASE', conversionRate: 1, isBase: true, price: c.price, costPrice: c.costPrice, wholesalePrice: c.wholesalePrice, creditPrice: c.creditPrice, mrpPrice: null, barcode: '', sku: '', isActive: true });
+  const base = (): UnitDraft => ({ unitName: c.unit, conversionType: 'BASE', conversionRate: 1, isBase: true, isDefault: false, price: c.price, costPrice: c.costPrice, wholesalePrice: c.wholesalePrice, creditPrice: c.creditPrice, mrpPrice: null, barcode: '', sku: '', isActive: true });
   const add = (name: string, rate: number, type: PackKind) => {
     const list = units.length ? units : [base()];
-    set([...list, { unitName: name, conversionType: type, conversionRate: rate, isBase: false, ...packPricesFromBase(c, rate), mrpPrice: null, barcode: '', sku: '', isActive: true }]);
+    set([...list, { unitName: name, conversionType: type, conversionRate: rate, isBase: false, isDefault: false, ...autoPackPrices(c, rate), mrpPrice: null, barcode: '', sku: '', isActive: true, manual: {}, discountPct: 0 }]);
   };
   const update = (i: number, patch: Partial<UnitDraft>) => set(units.map((u, x) => (x === i ? { ...u, ...patch } : u)));
+  const setManual = (i: number, field: PackPriceField, on: boolean, value?: number | null) =>
+    update(i, { ...(value !== undefined && { [field]: value }), manual: { ...units[i].manual, [field]: on } });
+  /** Makes this pack value the piece value; the pack tier then follows the piece again. */
+  const toPiece = (i: number, field: 'price' | 'costPrice', packValue: number) => {
+    const one = pieceFromPack(packValue, units[i].conversionRate);
+    const next = units.map((x, k) => (k === i ? { ...x, [field]: packValue, manual: { ...x.manual, [field]: false }, ...(field === 'price' && { discountPct: 0 }) } : x));
+    ctx.setCore(field === 'price' ? { price: one, units: next } : { costPrice: one, units: next });
+  };
   return (
     <Section title={t('Packing (darjan, dabba, carton)')} icon={Boxes}
-      hint={t('Ek cheez kai tarah bikti ho to — POS par har packing ka apna rate aur barcode. Save hui packing band hoti hai, mitti nahi.')}
+      hint={t('Ek {{unit}} ka rate likhein — har packing ka rate khud ban jata hai. Apna rate likhna ho to box mein likh dein.', { unit: c.unit })}
       action={units.length > 0 && units.every((u) => !u.id) ? <Button size="sm" variant="ghost" onPress={() => set([])}>{t('Sab hatayein')}</Button> : undefined}>
       <Row gap={1.5} wrap>
         {PACK_PRESETS.filter((p) => !units.some((u) => u.unitName === p.name || u.unitName === t(p.name))).map((p) => (
@@ -136,7 +170,10 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
         <Chip icon={Plus} label={t('Apni')} onPress={() => add(t('Nayi packing'), 2, 'CUSTOM')} />
       </Row>
       {units.map((u, i) => {
-        const saving = u.isBase ? 0 : packSavingPct(c.price, u.price, u.conversionRate);
+        const m = u.manual ?? {};
+        const disc = u.discountPct ?? 0;
+        const auto = (f: PackPriceField) => autoPackValue(f, c, u.conversionRate, disc);
+        const sum = packSummary(c, u);
         return (
           <Card key={u.id ?? i} tone={u.isBase ? 'brand' : 'default'} style={{ opacity: u.isActive ? 1 : 0.6 }}>
             <View style={{ gap: th.space(2) }}>
@@ -148,28 +185,52 @@ function PacksEditor<X>({ ctx }: { ctx: StepContext<X> }) {
                   ? <Switch value={u.isActive} onChange={(isActive) => update(i, { isActive })} />
                   : <IconButton icon={Trash2} label={t('Hatayein')} variant="danger" onPress={() => set(units.filter((_, x) => x !== i))} />}
               </Row>
-              <Row gap={2}>
-                <MoneyInput containerStyle={{ flex: 1 }} label={t('Rate')} value={u.price || null} onChangeValue={(v) => update(i, { price: v ?? 0 })} />
-                <MoneyInput containerStyle={{ flex: 1 }} label={t('Cost')} value={u.costPrice || null} onChangeValue={(v) => update(i, { costPrice: v ?? 0 })} />
-              </Row>
-              <Row gap={2}>
-                <MoneyInput containerStyle={{ flex: 1 }} label={t('Wholesale')} value={u.wholesalePrice} placeholder={u.price ? String(u.price) : t('Retail')}
-                  onChangeValue={(v) => update(i, { wholesalePrice: v && v > 0 ? v : null })} />
-                <MoneyInput containerStyle={{ flex: 1 }} label={t('Credit (udhaar)')} value={u.creditPrice} placeholder={u.price ? String(u.price) : t('Retail')}
-                  onChangeValue={(v) => update(i, { creditPrice: v && v > 0 ? v : null })} />
-              </Row>
+              {u.isBase ? (
+                <Text size="xs" tone="muted">
+                  {costHidden
+                    ? t('1 {{unit}} · {{price}} — upar wali qeemat, wahan badlein', { unit: c.unit, price: formatPKR(u.price) })
+                    : t('1 {{unit}} · {{price}} · Cost {{cost}} — upar wali qeemat, wahan badlein', { unit: c.unit, price: formatPKR(u.price), cost: formatPKR(u.costPrice) })}
+                </Text>
+              ) : (
+                <>
+                  <Row gap={2} style={{ alignItems: 'flex-start' }}>
+                    <PackPriceField label={t('Sale price')} value={u.price || null} manual={!!m.price} auto={auto('price')}
+                      onType={(v) => setManual(i, 'price', true, v ?? 0)} onAuto={() => setManual(i, 'price', false)}
+                      reverse={u.price > 0 && u.conversionRate > 0 ? { label: t('1 {{unit}} ka rate is se banayein', { unit: c.unit }), onPress: () => toPiece(i, 'price', u.price) } : null} />
+                    {!costHidden && (
+                      <PackPriceField label={t('Cost')} value={u.costPrice || null} manual={!!m.costPrice} auto={auto('costPrice')}
+                        onType={(v) => setManual(i, 'costPrice', true, v ?? 0)} onAuto={() => setManual(i, 'costPrice', false)}
+                        reverse={u.costPrice > 0 && u.conversionRate > 0 ? { label: t('Is se 1 {{unit}} ki cost nikalein', { unit: c.unit }), onPress: () => toPiece(i, 'costPrice', u.costPrice) } : null} />
+                    )}
+                  </Row>
+                  <Row gap={2} style={{ alignItems: 'flex-start' }}>
+                    <PackPriceField label={t('Wholesale')} optional value={u.wholesalePrice} manual={!!m.wholesalePrice} auto={auto('wholesalePrice')} placeholder={u.price ? String(u.price) : t('Retail')}
+                      onType={(v) => setManual(i, 'wholesalePrice', true, v)} onAuto={() => setManual(i, 'wholesalePrice', false)} />
+                    <PackPriceField label={t('Credit (udhaar)')} optional value={u.creditPrice} manual={!!m.creditPrice} auto={auto('creditPrice')} placeholder={u.price ? String(u.price) : t('Retail')}
+                      onType={(v) => setManual(i, 'creditPrice', true, v)} onAuto={() => setManual(i, 'creditPrice', false)} />
+                  </Row>
+                </>
+              )}
               <Input label={t('Barcode')} value={u.barcode} onChangeText={(barcode) => update(i, { barcode })} ltr keyboardType="number-pad" />
-              {(belowCost(u.wholesalePrice, u.costPrice) || belowCost(u.creditPrice, u.costPrice)) && (
+              {!u.isBase && !costHidden && (belowCost(u.wholesalePrice, u.costPrice) || belowCost(u.creditPrice, u.costPrice)) && (
                 <Text size="xs" tone="warning">{t('{{value}} price Cost se kam hai — is rate par loss hoga', { value: [belowCost(u.wholesalePrice, u.costPrice) && 'Wholesale', belowCost(u.creditPrice, u.costPrice) && 'Credit'].filter(Boolean).join(' / ') })}</Text>
               )}
               {!u.isBase && (
-                <Row gap={1.5} wrap>
-                  <Text size="xs" tone="muted">{t('Fi {{unit}}:', { unit: c.unit })}</Text>
-                  <Text size="xs" weight="bold" ltr>{formatPKR(perBaseUnit(u.price, u.conversionRate))}</Text>
-                  {saving > 0.5 && <Badge tone="success">{t('{{value}}% sasta', { value: saving.toFixed(0) })}</Badge>}
-                  <Text size="xs" tone="muted">{t('Discount:')}</Text>
-                  {[0, 3, 5, 8, 10].map((d) => <Chip key={d} label={`${d}%`} onPress={() => update(i, { price: Math.round(c.price * u.conversionRate * (1 - d / 100)) })} />)}
-                </Row>
+                <View style={{ gap: th.space(1.5) }}>
+                  <Text size="xs" tone="muted">
+                    <Text size="xs" weight="bold">{t('1 {{pack}} = {{qty}} {{unit}}', { pack: u.unitName || t('Packing'), qty: qty(u.conversionRate), unit: c.unit })}</Text>
+                    {` · ${formatPKR(u.price)} (${t('{{value}}/{{unit}}', { value: formatPKR(sum.perPiece), unit: c.unit })})`}
+                    {!costHidden && u.costPrice > 0 ? ` · ${t('Cost {{value}}', { value: formatPKR(u.costPrice) })}` : ''}
+                    {!costHidden && sum.profit !== null ? ` · ${t('Profit {{value}} ({{pct}}%)', { value: formatPKR(sum.profit), pct: qty(Math.round(sum.profitPct ?? 0)) })}` : ''}
+                  </Text>
+                  <Row gap={1.5} wrap>
+                    {sum.savingPerPiece > 0 && <Badge tone="success">{t('{{value}}/{{unit}} sasta', { value: formatPKR(sum.savingPerPiece), unit: c.unit })}</Badge>}
+                    <Text size="xs" tone="muted">{t('Pack discount:')}</Text>
+                    {[0, 3, 5, 8, 10].map((d) => (
+                      <Chip key={d} label={`${d}%`} selected={!m.price && disc === d} onPress={() => update(i, { discountPct: d, manual: { ...m, price: false } })} />
+                    ))}
+                  </Row>
+                </View>
               )}
             </View>
           </Card>
@@ -187,9 +248,18 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
       const e: Errors = {};
       if (!opts.allowZeroPrice && !(d.core.price > 0)) e.price = t('Bechne ki qeemat likhein');
       if (d.core.costPrice < 0) e.costPrice = t('Cost ulti nahi ho sakti');
-      d.core.units.forEach((u, i) => {
-        if (!u.unitName.trim()) e[`unit${i}`] = t('Packing ka naam likhein');
-        if (!(u.conversionRate > 0)) e[`unit${i}`] = t('{{value}}: kitne aate hain likhein', { value: u.unitName || 'Packing' });
+      const rows = withBaseFromProduct(d.core);
+      const baseName = d.core.unit.trim().toLowerCase();
+      const seen = new Set<string>();
+      rows.forEach((u, i) => {
+        const name = u.unitName.trim();
+        const key = name.toLowerCase();
+        if (!name) e[`unit${i}`] = t('Packing ka naam likhein');
+        else if (seen.has(key)) e[`unit${i}`] = t('{{value}}: yeh naam pehle se hai', { value: name });
+        else if (!u.isBase && key === baseName) e[`unit${i}`] = t('{{value}}: yeh product ki apni unit hai', { value: name });
+        seen.add(key);
+        if (!(u.conversionRate > 0)) e[`unit${i}`] = t('{{value}}: kitne aate hain likhein', { value: name || 'Packing' });
+        else if (!u.isBase && u.conversionRate === 1 && key === baseName) e[`unit${i}`] = t('{{value}}: yeh product ki apni unit hai', { value: name });
       });
       if (duplicateCodes(d.core.units.map((u) => u.barcode)).length) e.units = t('Do packing ka barcode ek jaisa hai');
       return e;
@@ -232,6 +302,9 @@ function PriceStepBody<X>({ ctx, core, markups, extra }: { ctx: StepContext<X>; 
         <NumberInput label={t('Tax')} value={c.taxRate || null} onChangeValue={(v) => ctx.setCore({ taxRate: v ?? 0 })} hint={t('Agar bill par tax lagta hai')} trailing={<Text tone="muted">%</Text>} />
         {extra?.(ctx)}
         <MarginCard cost={c.costPrice} price={c.price} hidden={costHidden} />
+      </Section>
+      <Section title={t('Suppliers')} hint={t('Yeh cheez kis se aati hai — Preferred supplier list me nazar aata hai')}>
+        <SuppliersEditor core={c} onChange={(suppliers) => ctx.setCore({ suppliers })} />
       </Section>
       {core.packs && <PacksEditor ctx={ctx} />}
       {ctx.errors.units && <Text size="sm" tone="danger">{ctx.errors.units}</Text>}

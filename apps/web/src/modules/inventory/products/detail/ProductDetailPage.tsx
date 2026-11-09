@@ -12,7 +12,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowLeft, Boxes, CalendarClock, Coins, Eye, EyeOff, Factory, GraduationCap, Hourglass, Layers, LineChart, Package,
+  AlertTriangle, ArrowLeft, Users, Boxes, CalendarClock, Coins, Eye, EyeOff, Factory, GraduationCap, Hourglass, Layers, LineChart, Package,
   Pencil, Plus, Receipt, ShoppingBag, Star, Tag, TrendingUp, Truck, Wallet,
 } from 'lucide-react';
 import { Badge, Button, Kbd, KpiCard, KpiRow, Modal, PageShell, Skeleton, ViewTabs } from '@/design-system/components';
@@ -35,7 +35,7 @@ import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { StockModal } from '../list/components/StockModal';
 import { CATALOG_KEY } from '../list/useCatalog';
 import { productInsightsApi, type ProductInsights } from './api';
-import { BatchesTab, MOVE, OverviewTab, PurchasesTab, SalesTab, StockTab, UnitsTab, fmt, when } from './tabs';
+import { BatchesTab, MOVE, OverviewTab, PurchasesTab, SalesTab, StockTab, SuppliersTab, UnitsTab, fmt, when } from './tabs';
 import { t as tr } from '@core/i18n';
 
 export interface DetailContext<X> {
@@ -119,6 +119,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
       { id: 'sales', label: tr('Sale'), icon: Receipt },
     ];
     if (can.purchases) list.push({ id: 'purchases', label: tr('Purchase'), icon: Truck });
+    if (can.suppliers) list.push({ id: 'suppliers', label: tr('Suppliers'), icon: Users });
     const batches = ctx.product.batches?.length ?? 0;
     if (batches || ctx.product.expiryTracked) list.push({ id: 'batches', label: tr('Batches'), icon: CalendarClock, count: batches || undefined });
     const nUnits = ctx.units.length;
@@ -129,7 +130,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     if (manufacturing && can.recipe && !ctx.product.hasVariants) list.push({ id: 'recipe', label: tr('Recipe'), icon: Factory });
     for (const t of config.tabs ?? []) if (!t.when || t.when(ctx)) list.push({ id: t.id, label: t.label, icon: t.icon, render: () => t.render(ctx) });
     return list;
-  }, [ctx, config.tabs, can.purchases, can.recipe, manufacturing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ctx, config.tabs, can.purchases, can.suppliers, can.recipe, manufacturing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -315,6 +316,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
       )}
       {active.id === 'stock' && <StockTab product={p} insights={ins} stock={stock} shopId={shopId} canAdjust={can.stock} canBuy={can.buy} onAdjust={() => setStockOpen(true)} />}
       {active.id === 'sales' && <SalesTab insights={ins} money={money} />}
+      {active.id === 'suppliers' && <SuppliersTab product={p} cost={cost} costHidden={costHidden} canEdit={can.edit} editPath={config.paths.edit(p.id)} canBuy={can.buy} />}
       {active.id === 'purchases' && <PurchasesTab product={p} cost={cost} canBuy={can.buy} canSuppliers={can.suppliers} />}
       {active.id === 'batches' && <BatchesTab product={p} />}
       {active.id === 'units' && <UnitsTab product={p} units={ctx.units} stock={stock} money={money} cost={cost} costHidden={costHidden} />}

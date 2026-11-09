@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { GuideStep } from '@core/components/PageGuide';
+import type { PackManual } from '@nafaa/core/inventory';
 
 export interface ImageDraft { id?: string; url: string }
 
@@ -12,6 +13,8 @@ export interface UnitDraft {
   conversionType: 'BASE' | 'PACK' | 'BOX' | 'DOZEN' | 'CARTON' | 'CUSTOM';
   conversionRate: number;
   isBase: boolean;
+  /** Picked first at the POS; kept as loaded unless changed. */
+  isDefault?: boolean;
   price: number;
   costPrice: number;
   wholesalePrice: number | null;
@@ -21,6 +24,27 @@ export interface UnitDraft {
   sku: string;
   /** Saved packs are switched off, never deleted. */
   isActive: boolean;
+  /** Price tiers typed by hand; the others follow the piece price x size. Editor only, not saved. */
+  manual?: PackManual;
+  /** Discount on the automatic sale tiers of this pack, in percent. Editor only, not saved. */
+  discountPct?: number;
+}
+
+/** One supplier the product can be bought from. Costs and quantities are per base unit. */
+export interface SupplierLinkDraft {
+  supplierId: string;
+  supplierName: string;
+  supplierSku: string;
+  /** Usual cost; undefined when the user cannot see costs (the saved cost is then kept). */
+  costPrice?: number | null;
+  minOrderQty: number | null;
+  leadDays: number | null;
+  unitId: string | null;
+  isPreferred: boolean;
+  notes: string;
+  /** Read only, from real purchases. */
+  lastPurchasePrice?: number | null;
+  lastPurchasedAt?: string | null;
 }
 
 export interface VariantDraft {
@@ -78,6 +102,7 @@ export interface CoreDraft {
   units: UnitDraft[];
   variants: VariantDraft[];
   batches: BatchDraft[];
+  suppliers: SupplierLinkDraft[];
 }
 
 export interface EditorDraft<X = Record<string, unknown>> {

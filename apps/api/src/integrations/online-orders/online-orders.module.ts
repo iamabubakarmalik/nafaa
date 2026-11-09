@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BackorderService } from './backorder-stock';
 import { FoodpandaController, FoodpandaPluginController } from './foodpanda.controller';
 import { FoodpandaService } from './foodpanda.service';
 import { PrismaModule } from '../../prisma/prisma.module';
@@ -65,6 +66,7 @@ import {
  * Online orders: website/Daraz/Foodpanda ke orders → bill → stock.
  * Custom website ka poora connection (public API + setup) bhi yahin hai.
  */
+import { StockHandoverService } from './stock-handover.service';
 @Module({
   imports: [PrismaModule, IntegrationCoreModule, SalesModule],
   controllers: [
@@ -96,10 +98,10 @@ import {
   ],
   providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService, CatalogWatchService, CatalogJobsService, ChannelContentService,
     OrderCostsService, CodReconcileService, CourierRulesService, ExpensesService, OrderScanService, StockAdjustmentsService,
-    OrderChannelSyncService, OrderEntryService, DispatchService,
+    OrderChannelSyncService, OrderEntryService, DispatchService, BackorderService,
     AbandonedCartsService, CommerceGrowthService, CommerceAdminService,
     ChannelOpsService,
-    TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService],
+    TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService, StockHandoverService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

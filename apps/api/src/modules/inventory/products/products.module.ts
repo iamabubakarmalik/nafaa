@@ -12,11 +12,13 @@ import { ProductBulkEditController } from './bulk-edit/product-bulk-edit.control
 import { ProductBulkEditService } from './bulk-edit/product-bulk-edit.service';
 import { StockAdjustmentsModule } from '../stock-adjustments/stock-adjustments.module';
 import { ImeiModule } from '../../../industries/mobile/imei/imei.module';
+import { ProductSuppliersController } from './suppliers/product-suppliers.controller';
+import { ProductSuppliersService } from './suppliers/product-suppliers.service';
 
 @Module({
   imports: [ProductVariantsModule, ProductUnitsModule, StockAdjustmentsModule, ImeiModule],
-  controllers: [ProductsController, ProductImportController, ProductBulkEditController],
-  providers: [ProductsService, ProductCatalogService, ProductInsightsService, TenantTimezoneService, ProductImportService, ProductBulkEditService],
+  controllers: [ProductSuppliersController, ProductsController, ProductImportController, ProductBulkEditController],
+  providers: [ProductSuppliersService, ProductsService, ProductCatalogService, ProductInsightsService, TenantTimezoneService, ProductImportService, ProductBulkEditService],
   exports: [ProductImportService],
 })
 export class ProductsModule {}

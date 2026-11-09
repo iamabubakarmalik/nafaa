@@ -121,6 +121,20 @@ export interface TenantCommerce {
   jobs: CatalogJobRow[];
 }
 
+/** Import fix per link: 'untrack' turns channel "Track quantity" off again; 'restore' sets Nafaa stock to the old channel number. */
+export interface StockRecoveryRow {
+  mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null;
+  action: 'untrack' | 'restore';
+  nafaaStock: number; channelTracked: boolean | null; channelAvailable: number | null;
+  importQty: number | null; importedAt: string | null; found: number | null;
+  source: 'import-zero' | 'untracked-link' | 'first-push'; confidence: 'high' | 'low' | null;
+  channelChangedAt: string | null; at: string | null; lastPushAt: string | null;
+}
+export interface StockRecoveryPreview { rows: StockRecoveryRow[]; checked: number; missing: number; note: string | null; readError: string | null }
+export interface TenantStockRecovery { channels: Array<{ id: string; name: string; type: string; preview: StockRecoveryPreview }> }
+export interface StockRecoveryApply { untracked: number; adjusted: number; skipped: number; errors: string[]; pushed: boolean }
+
 export interface ChannelFilters { search?: string; kind?: string; status?: string; tenantId?: string; problems?: boolean; page?: number; limit?: number }
 
 export const adminCommerceApi = {
@@ -140,4 +154,7 @@ export const adminCommerceApi = {
   controls: () => get<CommerceControlsResponse>('/admin/commerce/controls'),
   saveControls: (c: CommerceControls) => apiClient.put<{ data: CommerceControlsResponse }>('/admin/commerce/controls', c).then(unwrap),
   tenant: (tenantId: string) => get<TenantCommerce>(`/admin/commerce/tenants/${tenantId}`),
+  stockRecovery: (tenantId: string) => get<TenantStockRecovery>(`/admin/commerce/tenants/${tenantId}/stock-recovery`),
+  applyStockRecovery: (tenantId: string, channelId: string, mappingIds: string[]) =>
+    post<StockRecoveryApply>(`/admin/commerce/tenants/${tenantId}/stock-recovery/apply`, { channelId, mappingIds }),
 };

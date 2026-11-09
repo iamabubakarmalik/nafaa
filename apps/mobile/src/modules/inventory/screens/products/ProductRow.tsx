@@ -83,10 +83,11 @@ export const ProductListRow = memo(function ProductListRow({ item, extras, tagNa
             {item.pending && <Icon icon={CloudUpload} size={14} tone="muted" />}
           </Row>
           {extras.line ? <Text size="xs" tone="muted" numberOfLines={1}>{extras.line}</Text> : null}
+          {item.supplier ? <Text size="2xs" tone="subtle" numberOfLines={1}>{item.supplier.name}</Text> : null}
           <Row gap={1} wrap>
             {!item.isActive && <Badge tone="neutral">{t('Band')}</Badge>}
             {extras.badges?.map((b) => <Badge key={b.label} tone={b.tone ?? 'info'}>{b.label}</Badge>)}
-            {item.category && <Badge tone="accent">{item.category.name}</Badge>}
+            {item.category && <Badge tone="accent">{item.category.path ?? item.category.name}</Badge>}
             {extras.chips?.map((c) => <Badge key={c} tone="neutral">{c}</Badge>)}
             {tags.map((g) => <Badge key={g} tone="neutral">{`#${g}`}</Badge>)}
             {expiryDays !== null && expiryDays <= 30 && (

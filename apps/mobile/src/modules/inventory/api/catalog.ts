@@ -30,6 +30,9 @@ export interface CatalogFilters {
   kind?: 'made' | 'bought';
   kindOf?: 'raw' | 'sale';
   noCost?: boolean;
+  /** A supplier id, or 'none' for products without one. */
+  supplierId?: string;
+  online?: 'listed' | 'unlisted';
 }
 
 export interface ElectronicsFacts {
@@ -46,7 +49,11 @@ export interface CatalogItem {
   price: number; costPrice: number; wholesalePrice: number | null; creditPrice: number | null; taxRate: number;
   stock: number; lowStockAlert: number; isActive: boolean; isFeatured: boolean;
   hasVariants: boolean; expiryTracked: boolean; createdAt: string;
-  category: { id: string; name: string; color: string } | null;
+  category: { id: string; name: string; color: string; path?: string } | null;
+  /** Preferred supplier. */
+  supplier?: { id: string; name: string } | null;
+  supplierCount?: number;
+  online?: boolean;
   brand: { id: string; name: string } | null;
   image: string | null;
   variants: Array<{ id: string; name: string; price: number; stock: number; colorHex: string | null }>;
@@ -78,7 +85,8 @@ export interface CatalogPage {
   page: number; limit: number; count: number; hasMore: boolean;
   items: CatalogItem[];
   tabs: Record<CatalogStock, number>;
-  categories: Array<{ id: string; name: string; color: string; count: number }>;
+  categories: Array<{ id: string; name: string; color: string; count: number; parentId?: string | null; path?: string; own?: number }>;
+  suppliers?: Array<{ id: string; name: string; count: number }>;
   brands: Array<{ id: string; name: string; count: number }>;
   tags: Array<{ id: string; name: string; color: string; count: number }>;
   tagNames: Record<string, { name: string; color: string }>;
@@ -111,7 +119,7 @@ export interface CatalogAnalytics {
 const params = (f: CatalogFilters, page: number, limit: number) => ({
   search: f.search?.trim() || undefined, categoryId: f.categoryId, brandId: f.brandId, stock: f.stock,
   active: f.active, featured: f.featured ? 'true' : undefined, kindOf: f.kindOf, noCost: f.noCost ? 'true' : undefined, sort: f.sort, page, limit,
-  tagId: f.tagId, condition: f.condition, etype: f.etype, serial: f.serial, kind: f.kind,
+  tagId: f.tagId, condition: f.condition, etype: f.etype, serial: f.serial, kind: f.kind, supplierId: f.supplierId, online: f.online,
 });
 
 /** A mirror row in the catalog shape. */

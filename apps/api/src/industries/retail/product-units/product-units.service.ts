@@ -19,6 +19,7 @@ import { assertCodeFree, findCodeClash } from './code-clash.helper';
 import { BulkAddUnitDto, CreateProductUnitDto, UnitsAnalyticsDto, UnitsOverviewDto } from './dto/create-product-unit.dto';
 import { UpdateProductUnitDto } from './dto/update-product-unit.dto';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { packFromBase, wholePacks } from './unit-math';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const DAY = 86_400_000;
@@ -77,6 +78,11 @@ export class ProductUnitsService {
     // would take over the piece scan at the counter (packs are matched first).
     await assertCodeFree(this.prisma, user.tenantId, dto.barcode, dto.isBase ? { productId: p.id } : {});
     const rate = dto.isBase ? 1 : dto.conversionRate;
+    // A product-level base row is the product itself: its unit name and prices.
+    const productBase = dto.isBase && !variantId;
+    if (!dto.isBase && rate === 1 && dto.unitName.trim().toLowerCase() === (p.unit || '').trim().toLowerCase()) {
+      throw new BadRequestException(apiMessage('"{{unitName}}" product ka asal unit hai — pack ke liye doosra naam likhein', { unitName: dto.unitName.trim() }));
+    }
 
     return this.prisma.$transaction(async (tx) => {
       if (dto.isBase) await tx.productUnit.updateMany({ where: { tenantId: user.tenantId, productId: p.id, variantId, isBase: true }, data: { isBase: false } });
@@ -89,8 +95,9 @@ export class ProductUnitsService {
           variantId,
           conversionRate: rate,
           conversionType: dto.isBase ? 'BASE' : dto.conversionType,
-          price: dto.price && dto.price > 0 ? dto.price : r2(p.basePrice * rate),
-          costPrice: dto.costPrice && dto.costPrice > 0 ? dto.costPrice : r2(p.baseCost * rate),
+          price: productBase ? p.basePrice : dto.price && dto.price > 0 ? dto.price : packFromBase(p.basePrice, rate),
+          costPrice: productBase ? p.baseCost : dto.costPrice && dto.costPrice > 0 ? dto.costPrice : packFromBase(p.baseCost, rate),
+          ...(productBase && { unitName: p.unit || dto.unitName }),
         },
         select: UNIT_SELECT,
       });
@@ -316,7 +323,7 @@ export class ProductUnitsService {
             ...u,
             variantName: variant?.name ?? null,
             ...check(u, Number(variant?.price ?? p.price) || 0),
-            inStock: u.conversionRate > 0 ? Math.floor(stock / u.conversionRate + 1e-9) : 0,
+            inStock: wholePacks(stock, u.conversionRate),
           }));
         return { ...p, image: p.images[0]?.url ?? null, images: undefined, stock: r2(stock), units };
       }),

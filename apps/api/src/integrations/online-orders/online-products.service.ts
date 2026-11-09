@@ -19,6 +19,8 @@ import { MatchIndex, MatchProduct, suggestAll } from './product-matcher';
 import { friendlySyncError, markLinks } from './link-sync';
 import { mappingKey } from './mapping-key';
 import { pausedMessage, pushPaused } from './commerce-controls';
+import { backorderRule, owedUnits } from './backorder';
+import { countOptedIn, readHold } from './stock-handover';
 
 /** Channels whose products Nafaa links, prices and keeps in stock. */
 export const PRODUCT_CHANNEL_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'CUSTOM_WEBSITE'] as const;
@@ -35,8 +37,8 @@ const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
  */
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
-export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted';
-const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted'];
+export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted' | 'backorder' | 'hold' | 'untracked';
+const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted', 'backorder', 'hold', 'untracked'];
 
 /** Products picked on the grid: a list, or every product matching the grid's search and filter. */
 export interface Selection {
@@ -282,6 +284,20 @@ export class OnlineProductsService implements OnModuleInit {
         };
       case 'unlisted':
         return { channelMappings: { some: { integrationId: { in: ids }, listed: false } } };
+      case 'hold':
+        return { channelMappings: { some: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } } } };
+      case 'untracked':
+        return { channelMappings: { some: { integrationId: { in: ids }, tracksStock: false } } };
+      case 'backorder':
+        // Sell when out of stock is on (product, size or link), or customers are owed units.
+        return {
+          OR: [
+            { backorder: true },
+            { variants: { some: { isActive: true, backorder: true } } },
+            { channelMappings: { some: { integrationId: { in: ids }, backorder: true } } },
+            ...(shops.length ? [{ shopStocks: { some: { shopId: { in: shops }, stock: { lt: 0 } } } }] : []),
+          ],
+        };
       case 'out':
         if (!shops.length) return { id: { in: [] } };
         return {
@@ -378,15 +394,15 @@ export class OnlineProductsService implements OnModuleInit {
         skip: (page - 1) * limit,
         take: limit,
         select: {
-          id: true, name: true, sku: true, barcode: true, price: true, hasVariants: true,
+          id: true, name: true, sku: true, barcode: true, price: true, hasVariants: true, backorder: true, backorderMax: true,
           images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { url: true } },
-          variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, price: true, imageUrl: true } },
+          variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, price: true, imageUrl: true, backorder: true } },
           channelMappings: {
             where: { integrationId: { in: ids } },
             select: {
               id: true, integrationId: true, variantId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalTitle: true,
               priceOverride: true, externalData: true, syncStatus: true, syncError: true, lastSyncedAt: true,
-              listed: true, allocQty: true, compareAtPrice: true, lastPush: true,
+              listed: true, allocQty: true, compareAtPrice: true, lastPush: true, backorder: true, stockHold: true, tracksStock: true,
             },
           },
           shopStocks: shopIds.length ? { where: { shopId: { in: shopIds } }, select: { shopId: true, variantId: true, stock: true, shopPrice: true } } : false,
@@ -396,7 +412,7 @@ export class OnlineProductsService implements OnModuleInit {
 
     const items = products.map((p) => {
       const stocks = (p as any).shopStocks as Array<{ shopId: string; variantId: string | null; stock: number; shopPrice: number | null }> | undefined ?? [];
-      const rowOf = (variantId: string | null, label: string | null, sku: string | null, price: number) => {
+      const rowOf = (variantId: string | null, label: string | null, sku: string | null, price: number, variantBackorder: boolean | null = null) => {
         const cells: Record<string, unknown> = {};
         const linkOf = (c: Col) => p.channelMappings.find((x) => x.integrationId === c.integration.id && (x.variantId ?? null) === variantId);
         // Stock split per branch: the pushed channels drawing from it share its stock.
@@ -437,9 +453,17 @@ export class OnlineProductsService implements OnModuleInit {
             stock,
             nafaaStock: Number(ss?.stock ?? 0),
             listed: m.listed,
+            // Sell when out of stock on this channel: own setting (null = product) and what is in force there.
+            backorder: m.backorder,
+            backorderOn: backorderRule(p, { backorder: variantBackorder }, m, c.integration.type).enabled === true,
             allocQty: isPush(c.mode) ? m.allocQty : null,
             compareAtPrice: isPush(c.mode) ? m.compareAtPrice : null,
             lastPush: isPush(c.mode) ? m.lastPush : null,
+            // Waiting for the merchant to pick Nafaa or channel stock; nothing is pushed meanwhile.
+            hold: isPush(c.mode) ? readHold(m.stockHold) : null,
+            // false = the channel does not count this item's stock ("Channel ginti nahi karta").
+            tracksStock: m.tracksStock,
+            countOptIn: countOptedIn(m.externalData),
             // Nothing is pushed to a custom website or Indolj, so there is no sync status to show.
             status: isPush(c.mode) ? m.syncStatus : null,
             error: isPush(c.mode) && m.syncStatus === 'FAILED' ? m.syncError ?? 'Sync nahi hua' : null,
@@ -448,16 +472,21 @@ export class OnlineProductsService implements OnModuleInit {
         }
         const mainShop = cols.find((c) => c.shopId)?.shopId ?? null;
         const nafaaStock = mainShop ? Number(stocks.find((s) => s.shopId === mainShop && (s.variantId ?? null) === variantId)?.stock ?? 0) : null;
-        return { variantId, label, sku, price, cells, nafaaStock, scaled };
+        // Units owed to customers across the channels' branches (stock below zero).
+        const owed = [...new Set(cols.map((c) => c.shopId).filter(Boolean) as string[])]
+          .reduce((t, shopId) => t + owedUnits(Number(stocks.find((s) => s.shopId === shopId && (s.variantId ?? null) === variantId)?.stock ?? 0)), 0);
+        const backorder = backorderRule(p, { backorder: variantBackorder }).enabled === true;
+        return { variantId, label, sku, price, cells, nafaaStock, scaled, backorder, owed };
       };
       const rows = p.hasVariants && p.variants.length
-        ? p.variants.map((v) => rowOf(v.id, v.name, v.sku, Number(v.price ?? p.price)))
+        ? p.variants.map((v) => rowOf(v.id, v.name, v.sku, Number(v.price ?? p.price), v.backorder))
         : [rowOf(null, null, p.sku, Number(p.price))];
       // A product with sizes linked without a size: shown as a problem to fix.
       const sizeLess: Record<string, string> = {};
       if (p.hasVariants) for (const m of p.channelMappings) if (!m.variantId) sizeLess[m.integrationId] = m.id;
       return {
         productId: p.id, name: p.name, sku: p.sku, image: p.images[0]?.url ?? null, hasVariants: p.hasVariants, price: Number(p.price),
+        backorder: p.backorder, backorderMax: p.backorderMax,
         rows, sizeLess,
       };
     });
@@ -468,14 +497,16 @@ export class OnlineProductsService implements OnModuleInit {
   async summary(user: AuthenticatedUser, channelId?: string, scope?: GridScope) {
     const all = await this.cols(user.tenantId);
     const cols = channelId ? all.filter((c) => c.integration.id === channelId) : all;
-    if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0 };
+    if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0, backorder: 0, hold: 0, untracked: 0 };
     const base: Prisma.ProductWhereInput = { tenantId: user.tenantId, isActive: true, ...this.scopeWhere(scope) };
     const count = (f: GridFilter) => this.prisma.product.count({ where: { AND: [base, this.filterWhere(f, cols)] } });
-    const [allN, linked, unlinked, errors, out, unlisted, price] = await Promise.all([
+    const [allN, linked, unlinked, errors, out, unlisted, price, backorder] = await Promise.all([
       count('all'), count('linked'), count('unlinked'), count('errors'), count('out'), count('unlisted'),
       this.priceDiffIds(cols).then(async (ids) => (ids.size ? this.prisma.product.count({ where: { ...base, id: { in: [...ids] } } }) : 0)),
+      count('backorder'),
     ]);
-    return { all: allN, linked, unlinked, errors, price, out, unlisted };
+    const [hold, untracked] = await Promise.all([count('hold'), count('untracked')]);
+    return { all: allN, linked, unlinked, errors, price, out, unlisted, backorder, hold, untracked };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -501,7 +532,7 @@ export class OnlineProductsService implements OnModuleInit {
 
     const mappings = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: i.id },
-      select: { id: true, linkKey: true, externalProductId: true, externalVariantId: true, externalData: true },
+      select: { id: true, linkKey: true, externalProductId: true, externalVariantId: true, externalData: true, tracksStock: true },
     });
     const byVariant = new Map(mappings.filter((m) => m.externalVariantId).map((m) => [String(m.externalVariantId), m]));
     const byProduct = new Map(mappings.filter((m) => !m.externalVariantId && m.externalProductId).map((m) => [String(m.externalProductId), m]));
@@ -510,7 +541,7 @@ export class OnlineProductsService implements OnModuleInit {
 
     // Remember what the channel shows as price, for "price differs".
     const now = new Date().toISOString();
-    const priceUpdates: Array<{ id: string; data: any }> = [];
+    const priceUpdates: Array<{ id: string; data: any; tracks?: boolean }> = [];
     const open: Array<{ p: RemoteProduct; v: RemoteVariant }> = [];
     let linked = 0;
     for (const p of remote) {
@@ -518,13 +549,26 @@ export class OnlineProductsService implements OnModuleInit {
         const m = isLinked(p, v);
         if (!m) { open.push({ p, v }); continue; }
         linked++;
-        if (v.price > 0 && Number((m.externalData as any)?.channelPrice) !== v.price) {
-          priceUpdates.push({ id: m.id, data: { ...((m.externalData as any) ?? {}), channelPrice: v.price, channelPriceAt: now } });
+        // Remember the channel price and stock (and whether the channel counts it) for "price differs", the push guard and recovery.
+        const d = ((m.externalData as any) ?? {}) as Record<string, any>;
+        const priceMoved = v.price > 0 && Number(d.channelPrice) !== v.price;
+        const stockMoved = v.stock !== null && v.stock !== undefined && Number(d.channelStock) !== Number(v.stock);
+        const tracksMoved = v.tracked !== undefined && v.tracked !== null && m.tracksStock !== v.tracked;
+        if (priceMoved || stockMoved || tracksMoved) {
+          priceUpdates.push({
+            id: m.id,
+            data: {
+              ...d,
+              ...(priceMoved && { channelPrice: v.price, channelPriceAt: now }),
+              ...(stockMoved && { channelStock: Number(v.stock), channelStockAt: now, ...(!d.firstChannelStock && { firstChannelStock: { qty: Number(v.stock), at: now } }) }),
+            },
+            ...(tracksMoved && { tracks: v.tracked as boolean }),
+          });
         }
       }
     }
-    for (const u of priceUpdates.slice(0, 2000)) {
-      await this.prisma.productChannelMapping.update({ where: { id: u.id }, data: { externalData: u.data } }).catch(() => null);
+    for (const u of priceUpdates.slice(0, 5000)) {
+      await this.prisma.productChannelMapping.update({ where: { id: u.id }, data: { externalData: u.data, ...(u.tracks !== undefined && { tracksStock: u.tracks }) } }).catch(() => null);
     }
 
     const products = open.length
@@ -558,7 +602,7 @@ export class OnlineProductsService implements OnModuleInit {
     const view = (p: RemoteProduct, v: RemoteVariant) => ({
       externalProductId: p.externalProductId, externalVariantId: v.externalVariantId,
       title: p.title, variantTitle: p.hasVariants ? v.title : null, hasVariants: p.hasVariants,
-      sku: v.sku, price: v.price, stock: v.stock, image: v.image ?? p.image,
+      sku: v.sku, price: v.price, stock: v.stock, tracked: v.tracked ?? null, image: v.image ?? p.image,
     });
     const sure: any[] = [];
     const maybe: any[] = [];
@@ -656,16 +700,17 @@ export class OnlineProductsService implements OnModuleInit {
     const cols = await this.cols(user.tenantId);
     if (!cols.length) return { issues: [] };
     const ids = cols.map((c) => c.integration.id);
-    const [sizeLess, failed, why] = await Promise.all([
+    const [sizeLess, failed, why, held] = await Promise.all([
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, variantId: null, product: { hasVariants: true } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId', 'syncError'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } }, _count: { _all: true } }),
     ]);
     // Failed links per stored error text, so the screen can group them by cause.
     const reasonsOf = (id: string) => why.filter((r) => r.integrationId === id).map((r) => ({ error: r.syncError ?? null, count: r._count._all })).sort((a, b) => b.count - a.count);
     const n = (rows: Array<{ integrationId: string; _count: { _all: number } }>, id: string) => rows.find((r) => r.integrationId === id)?._count._all ?? 0;
     const issues: Array<{
-      id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link'; text: string; detail?: string | null; count?: number;
+      id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link' | 'stock-hold'; text: string; detail?: string | null; count?: number;
       reasons?: Array<{ error: string | null; count: number }>;
     }> = [];
     for (const c of cols) {
@@ -680,6 +725,8 @@ export class OnlineProductsService implements OnModuleInit {
       if (bad) issues.push({ id: `${i.id}:size`, channelId: i.id, tone: 'danger', kind: 'fix-size-less', count: bad, text: `${name}: ${bad} size wale ${bad === 1 ? 'product' : 'products'} bina size jure — theek karein` });
       const f = isPush(c.mode) ? n(failed, i.id) : 0;
       if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, reasons: reasonsOf(i.id), text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
+      const h = isPush(c.mode) ? n(held, i.id) : 0;
+      if (h) issues.push({ id: `${i.id}:hold`, channelId: i.id, tone: 'warning', kind: 'stock-hold', count: h, text: `${name}: ${h} links par Stock milana baqi — Nafaa ya channel ka Stock chunein` });
       const sure = Number(watch.scan?.sure ?? 0);
       if (sure && c.mode !== 'website') issues.push({ id: `${i.id}:sure`, channelId: i.id, tone: 'info', kind: 'link-sure', count: sure, text: `${name}: ${sure} products jorna baqi — sab pakke jod dein` });
       const fresh = Number(watch.scan?.newUnlinked ?? 0);
@@ -696,10 +743,11 @@ export class OnlineProductsService implements OnModuleInit {
     const c = await this.requireCol(user.tenantId, channelId);
     if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
     // saveLinksFor takes 500 at a time; every link is saved.
-    const res = { saved: 0, errors: [] as string[] };
+    const res = { saved: 0, held: 0, errors: [] as string[] };
     for (let k = 0; k < (links ?? []).length; k += 500) {
       const r = await this.catalog.saveLinksFor(c.integration, user.tenantId, links.slice(k, k + 500));
       res.saved += r.saved;
+      res.held += r.held;
       res.errors.push(...r.errors);
     }
     if (res.saved) {
@@ -717,6 +765,27 @@ export class OnlineProductsService implements OnModuleInit {
     // Big picks run as a background job with progress.
     if (ids.length > 25) return this.jobs.start({ tenantId: user.tenantId, userId: user.id, kind: 'IMPORT_ALL', integrationId: c.integration.id, items: ids, params: { channelType: c.integration.type } });
     return this.catalog.importFor(c.integration, user.tenantId, ids);
+  }
+
+  /** Which Nafaa size each channel SKU of one product would link to. */
+  async linkPlan(user: AuthenticatedUser, channelId: string, externalProductId: string, productId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    if (!externalProductId || !productId) throw new BadRequestException('Product chunein');
+    return this.catalog.linkPlan(c.integration, user.tenantId, String(externalProductId), String(productId));
+  }
+
+  /** A channel product (every SKU, or the picked ones) into an existing Nafaa product; missing sizes are made. */
+  async linkInto(user: AuthenticatedUser, channelId: string, body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }> }) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    if (!body?.externalProductId || !body?.productId) throw new BadRequestException('Product chunein');
+    const plan = Array.isArray(body.variants)
+      ? body.variants.map((v) => ({ externalVariantId: v?.externalVariantId ? String(v.externalVariantId) : null, variantId: v?.variantId ? String(v.variantId) : null }))
+      : null;
+    const res = await this.catalog.importIntoFor(c.integration, user.tenantId, String(body.externalProductId), String(body.productId), plan);
+    this.background(() => this.syncProducts(c.integration, [String(body.productId)]), `link into ${c.integration.displayName}`);
+    return res;
   }
 
   private async mapping(tenantId: string, mappingId: string) {

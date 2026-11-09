@@ -65,7 +65,8 @@ export function usePurchaseSources(withIngredients: boolean) {
   const sources = useMemo<Source[]>(() => {
     const unitsBy = new Map<string, ProductUnit[]>();
     for (const u of (Array.isArray(unitsQ.data) ? unitsQ.data : []) as ProductUnit[]) {
-      if (!u.isActive || u.variantId) continue;
+      // The base row is the product's own unit (added below), never a second "pcs = 1".
+      if (!u.isActive || u.variantId || u.isBase) continue;
       const list = unitsBy.get(u.productId) ?? [];
       list.push(u);
       unitsBy.set(u.productId, list);

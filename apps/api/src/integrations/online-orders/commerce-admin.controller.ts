@@ -125,6 +125,16 @@ export class CommerceAdminController {
   tenant(@Param('tenantId') tenantId: string) {
     return this.svc.tenant(tenantId);
   }
+
+  @Get('tenants/:tenantId/stock-recovery')
+  stockRecovery(@Param('tenantId') tenantId: string) {
+    return this.svc.stockRecovery(tenantId);
+  }
+
+  @Post('tenants/:tenantId/stock-recovery/apply')
+  applyStockRecovery(@GetUser() user: AuthenticatedUser, @Param('tenantId') tenantId: string, @Body() body: { channelId?: string; mappingIds?: string[] }) {
+    return this.svc.applyStockRecovery(user.id, tenantId, String(body?.channelId ?? ''), body?.mappingIds ?? []);
+  }
 }
 
 @ApiTags('Online store')

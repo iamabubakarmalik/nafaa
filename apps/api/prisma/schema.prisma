@@ -430,6 +430,7 @@ model Tenant {
   sales               Sale[]
   supplierLedgers     SupplierLedger[]
   suppliers           Supplier[]
+  productSuppliers    ProductSupplier[]
   purchases           Purchase[]
   stockMovements      StockMovement[]
   categories          Category[]
@@ -971,15 +972,22 @@ model Category {
   color     String   @default("#2c9466")
   icon      String?
   isActive  Boolean  @default(true)
+  /// Parent category; null = top level. Any depth; names stay unique per tenant.
+  parentId  String?
+  /// Order among siblings (drag to reorder on the categories page).
+  sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent        Category?      @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children      Category[]     @relation("CategoryTree")
   products      Product[]
   productCombos ProductCombo[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
+  @@index([tenantId, parentId])
 }
 
 model Product {
@@ -1014,6 +1022,15 @@ model Product {
   isFeatured       Boolean                 @default(false)
   metaTitle        String?
   metaDescription  String?
+  /// Online: keep taking orders when out of stock (backorder). null = never set,
+  /// so Nafaa leaves the channel's own setting alone; false = off, true = on.
+  backorder        Boolean?
+  /// Most units that may be owed to customers at once; null = no limit
+  backorderMax     Int?
+  /// Days until new stock is expected (feeds availability_date)
+  backorderLeadDays Int?
+  /// Delivery note shown to customers, e.g. "7 din me bhejenge"
+  backorderNote    String?
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
   channelMappings  ProductChannelMapping[]
@@ -1037,6 +1054,7 @@ model Product {
   carpetCutPieces      CarpetCutPiece[]
   repairParts          RepairPart[]          @relation("RepairPartProduct")
   units                ProductUnit[]
+  suppliers            ProductSupplier[]
   comboItems           ProductComboItem[]
   damageLogs           DamageLog[]
   menuItem             RestaurantMenuItem?
@@ -1169,6 +1187,8 @@ model ProductVariant {
   stock          Float    @default(0)
   lowStockAlert  Float    @default(5)
   imageUrl       String?
+  /// Sell when out of stock (backorder); null = the product setting
+  backorder      Boolean?
   isActive       Boolean  @default(true)
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
@@ -1646,9 +1666,45 @@ model Supplier {
   purchases Purchase[]
   ledgers   SupplierLedger[]
   incomes   OtherIncome[]
+  products  ProductSupplier[]
 
   @@index([tenantId])
   @@index([tenantId, name])
+}
+
+/// Where a product can be bought: one row per product and supplier. Costs and
+/// quantities are per BASE unit of the product. `unitId` is the pack usually
+/// bought from this supplier (carton, box); purchase orders start in it.
+/// `lastPurchasePrice`/`lastPurchasedAt` follow real purchases.
+model ProductSupplier {
+  id                String    @id @default(uuid())
+  tenantId          String
+  productId         String
+  supplierId        String
+  /// The supplier's own code for this item.
+  supplierSku       String?
+  /// Usual (agreed) cost of one base unit.
+  costPrice         Float?
+  /// Cost of one base unit on the latest purchase from this supplier.
+  lastPurchasePrice Float?
+  lastPurchasedAt   DateTime?
+  /// Smallest order the supplier takes, in base units.
+  minOrderQty       Float?
+  /// Days from order to delivery.
+  leadDays          Int?
+  unitId            String?
+  isPreferred       Boolean   @default(false)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, supplierId])
+  @@index([tenantId])
+  @@index([tenantId, supplierId])
 }
 
 /**
@@ -17672,6 +17728,14 @@ model ProductChannelMapping {
   compareAtPrice    Float?
   // Last push to the channel: { at, what[], ok, error }
   lastPush          Json?
+  /// Sell when out of stock on this channel; null = the product/variant setting
+  backorder         Boolean?
+  /// Stock handover pending: Nafaa and channel stock differed when the link was made,
+  /// so no stock is pushed until the merchant picks a side. { since, channelStock, nafaaStock, reason }
+  stockHold         Json?
+  /// Does the channel count stock for this item? false = untracked there (Nafaa never pushes
+  /// or turns tracking on unless the merchant opts in); null = not seen yet
+  tracksStock       Boolean?
 
   @@unique([integrationId, linkKey])
   @@index([integrationId, productId])

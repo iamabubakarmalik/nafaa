@@ -5,6 +5,8 @@
  * link to another item, Listed, own price and sale price against the rule,
  * stock share, the content Nafaa sends, publish when the product is not on
  * the channel yet, the last push with retry, and a link to it on the channel.
+ * A held link (Nafaa and channel stock differ) shows both numbers and the
+ * two ways to settle it.
  */
 
 import { useRef, useState, type ReactNode } from 'react';
@@ -21,8 +23,10 @@ import { timeAgo } from '../../lib/labels';
 import { JOBS_KEY } from './ActivityDrawer';
 import { InlineEdit } from './InlineEdit';
 import { ChannelMark, channelName, channelProductUrl, kindOf, lastPushText, priceText, refreshOnlineProducts, rs, stockSplit, stockText, WEBSITE_LINKS_NOTE } from './meta';
-import { Dot, Thumb, dotOf } from './ProductsGrid';
+import { Dot, Thumb, UntrackedTag, dotOf, notCounted } from './ProductsGrid';
 import { causeInfo, isNafaaText, syncCause } from './syncErrors';
+import { BackorderSettings } from './BackorderSettings';
+import { HoldActions, holdNumbers, holdReasonText } from './StockHold';
 
 const CONTENT_KEYS: Array<{ key: keyof PushContent; label: () => string }> = [
   { key: 'title', label: () => t('Naam') },
@@ -78,6 +82,10 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
       </>}>
       <div className="space-y-4 p-4 sm:p-5">
         <StockSplit item={item} cols={cols} sized={sized} />
+        <section>
+          <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Stock khatam hone par')}</p>
+          <BackorderSettings productId={item.productId} canManage={canManage} compact />
+        </section>
         {ordered.map((c) => (
           <ChannelSection key={c.id} c={c} item={item} sized={sized} canManage={canManage} focused={c.id === focusChannel} onLink={onLink} onDone={done} />
         ))}
@@ -172,6 +180,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
   });
 
   const failedCell = linkedRows.map((r) => r.cells[c.id] as LinkedCell).find((x) => x.status === 'FAILED');
+  const heldCount = linkedRows.filter((r) => (r.cells[c.id] as LinkedCell).hold).length;
   const last = linkedRows.map((r) => (r.cells[c.id] as LinkedCell).lastPush).filter(Boolean).sort((a, b) => String(b!.at).localeCompare(String(a!.at)))[0] ?? null;
 
   return (
@@ -182,7 +191,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{channelName(c)}</p>
           <p className="truncate text-[0.71875rem] text-slate-500">{priceText(c)} · {stockText(c)}</p>
         </div>
-        {linked && <Badge size="xs" variant={failedCell ? 'danger' : 'success'} dot>{failedCell ? t('Masla') : sized ? t('{{linked}}/{{count}} jure', { linked: linkedRows.length, count: item.rows.length }) : t('Jura hua')}</Badge>}
+        {linked && <Badge size="xs" variant={failedCell ? 'danger' : heldCount ? 'warning' : 'success'} dot>{failedCell ? t('Masla') : heldCount ? t('Stock milana baqi') : sized ? t('{{linked}}/{{count}} jure', { linked: linkedRows.length, count: item.rows.length }) : t('Jura hua')}</Badge>}
         {!linked && !sizeLess && <Badge size="xs" variant="default">{t('Jura nahi')}</Badge>}
         {url && <a href={url} target="_blank" rel="noreferrer" title={t('Channel par kholein')} aria-label={t('Channel par kholein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ExternalLink className="h-4 w-4" /></a>}
       </header>
@@ -274,6 +283,22 @@ function LinkedRow({ c, cell, canManage, item, row, onLink, onDone, sized }: {
     onSuccess: () => onDone(t('Link hata diya')),
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
+  const counting = useMutation({
+    mutationFn: (on: boolean) => onlineProductsApi.setCounting([cell.mappingId], on),
+    onSuccess: (_r, on) => onDone(on ? t('Ginti shuru — Nafaa ka Stock channel par ja raha hai') : t('Channel par ginti band kar di')),
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const startCounting = async () => {
+    if (await confirmDialog({
+      title: t('Nafaa se ginti shuru karein?'),
+      text: t('{{channel}} is item ka Stock ginna shuru karega aur Nafaa ka Stock (aaj {{n}}) wahan chala jayega. Nafaa me Stock 0 ho to channel par ye item "Out of stock" dikh sakta hai.', { channel: channelName(c), n: cell.nafaaStock }),
+      yes: t('Ginti shuru karein'),
+    })) counting.mutate(true);
+  };
+  const stopCounting = async () => {
+    if (await confirmDialog({ title: t('Channel par ginti band karein?'), text: t('Channel is item ka Stock ginna band kar dega aur Nafaa Stock nahi bhejega. Item bina ginti ke bikta rahega.') })) counting.mutate(false);
+  };
+  const untracked = notCounted(cell);
   const push = c.canPush;
   const off = cell.listed === false;
   const dot = dotOf(c, cell);
@@ -302,12 +327,43 @@ function LinkedRow({ c, cell, canManage, item, row, onLink, onDone, sized }: {
           {cell.compareAtPrice ? <s>{rs(cell.compareAtPrice)}</s> : <span className="font-normal text-slate-400">{t('Koi nahi')}</span>}
         </InlineEdit>
       ))}
-      {c.tracksStock && field(cell.allocQty !== null && cell.allocQty !== undefined ? t('Stock (fixed)') : t('Stock'), (
+      {c.tracksStock && untracked && field(t('Stock'), <span className="text-sky-800">{t('Ginti nahi')}</span>)}
+      {c.tracksStock && !untracked && field(cell.allocQty !== null && cell.allocQty !== undefined ? t('Stock (fixed)') : t('Stock'), (
         <InlineEdit mappingId={cell.mappingId} field="allocQty" value={cell.allocQty} disabled={!(canManage && push)}
           label={t('{{channel}} ko kitna Stock', { channel: channelName(c) })} ruleHint={t('Rule: {{qty}}', { qty: cell.stock ?? 0 })}
           className={cn((cell.stock ?? 0) <= 0 && 'text-rose-600')}>{cell.stock ?? '—'}</InlineEdit>
       ))}
       {cell.priceDiffers && cell.channelPrice !== null && <span className="text-[0.6875rem] font-medium text-amber-700">{t('Channel par abhi {{price}}', { price: rs(cell.channelPrice) })}</span>}
+      {c.tracksStock && untracked && (
+        <span className="order-last flex basis-full flex-wrap items-center gap-2 rounded-xl bg-sky-50 px-3 py-2 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
+          <span className="min-w-0 flex-1">
+            <UntrackedTag long />
+            <span className="mt-0.5 block text-[0.75rem] opacity-90">{t('Ye item channel par bina ginti ke bikta hai — ye Out of stock nahi. Nafaa yahan Stock nahi bhejta.')}</span>
+          </span>
+          {canManage && push && (
+            <Button size="xs" variant="secondary" loading={counting.isPending} onClick={() => void startCounting()}>{t('Nafaa se ginti shuru karein')}</Button>
+          )}
+        </span>
+      )}
+      {c.tracksStock && cell.countOptIn && canManage && push && (
+        <button type="button" disabled={counting.isPending} onClick={() => void stopCounting()}
+          className="order-last basis-full text-start text-[0.71875rem] font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline">
+          {t('Nafaa ne ginti shuru ki thi — band karein')}
+        </button>
+      )}
+      {cell.hold && (
+        <span className="order-last flex basis-full flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{t('Stock milana baqi')} · <span className="tabular-nums">{holdNumbers(cell.hold)}</span></span>
+            <span className="block text-[0.75rem] opacity-90">{t('Nafaa aur channel ka Stock alag hai, is liye Nafaa kuch nahi bhej raha. Ek chunein.')} {holdReasonText(cell.hold.reason)} {timeAgo(cell.hold.since)}</span>
+          </span>
+          {canManage && (
+            <span className="flex flex-wrap items-center gap-1.5">
+              <HoldActions channelId={c.id} mappingIds={[cell.mappingId]} takeIds={cell.hold.channelStock === null ? [] : [cell.mappingId]} />
+            </span>
+          )}
+        </span>
+      )}
       <span className="ms-auto flex items-center gap-1.5">
         {push && <Switch size="sm" checked={!off} disabled={!canManage || listed.isPending} onChange={(e) => listed.mutate(e.target.checked)} aria-label={t('Listed')} label={<span className="text-[0.75rem] text-slate-600">{t('Listed')}</span>} className="gap-2" />}
         {canManage && (

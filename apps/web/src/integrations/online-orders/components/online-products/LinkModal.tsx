@@ -3,14 +3,15 @@
  * suggestions: "Pakka match" (same SKU or barcode) can be linked all at once,
  * "Shayad" (same or similar name, with a score) one by one, and items Nafaa
  * does not have can be created in Nafaa. A product with sizes always links
- * per size. Opened from a grid cell, it lists channel items for that one
- * Nafaa product or size.
+ * per size; a channel product with many SKUs can be linked into one Nafaa
+ * product SKU by SKU (VariantMapModal). Opened from a grid cell, it lists
+ * channel items for that one Nafaa product or size.
  */
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowRight, Check, CloudDownload, Link2, Package, RefreshCw, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Check, CloudDownload, Layers, Link2, Package, RefreshCw, Sparkles, X } from 'lucide-react';
 import { Button, EmptyState, Modal, SearchField, Segmented, Skeleton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, type LinkInput } from '../../api/online-orders.api';
@@ -18,6 +19,7 @@ import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type OnlineChannel, type Remote
 import { timeAgo } from '../../lib/labels';
 import { ProductPicker } from '../products/ProductPicker';
 import { ChannelMark, channelName, refreshOnlineProducts, rs } from './meta';
+import { VariantMapModal } from './VariantMapModal';
 import { t as tr } from '@core/i18n';
 
 type Tab = 'sure' | 'maybe' | 'missing';
@@ -33,6 +35,7 @@ const toLink = (r: RemoteView, productId: string, variantId: string | null): Lin
   externalTitle: r.hasVariants && r.variantTitle ? `${r.title} — ${r.variantTitle}` : r.title,
   externalImage: r.image,
   externalSku: r.sku,
+  externalStock: r.stock,
 });
 
 const words = (s: string) => s.toLowerCase().split(/[^a-z0-9؀-ۿ]+/).filter((w) => w.length > 1);
@@ -52,6 +55,8 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [shown, setShown] = useState(PAGE);
+  /** Channel product with many SKUs being linked into one Nafaa product. */
+  const [mapFor, setMapFor] = useState<{ externalProductId: string; productId: string } | null>(null);
   const name = channelName(channel);
 
   const refresh = useMutation({
@@ -66,7 +71,11 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
   };
   const link = useMutation({
     mutationFn: (links: LinkInput[]) => onlineProductsApi.link(channel.id, links),
-    onSuccess: (r) => { after(r.saved === 1 ? tr('Jor diya') : tr('{{saved}} jor diye', { saved: r.saved }), r.errors); if (focus && r.saved) onClose(); },
+    onSuccess: (r) => {
+      after(r.saved === 1 ? tr('Jor diya') : tr('{{saved}} jor diye', { saved: r.saved }), r.errors);
+      if (r.held) toast.warning(tr('{{held}} par Stock milana baqi — Masle me dekhein', { held: r.held }));
+      if (focus && r.saved) onClose();
+    },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   const create = useMutation({
@@ -76,6 +85,8 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
       // A big pick runs in the background; its progress shows on the products page.
       if ('job' in r) { after(tr('{{count}} products Nafaa me ban rahe hain — progress oopar dekhein', { count: r.job.total }), []); return; }
       after(tr('{{created}} naye products Nafaa me bane{{value}}', { created: r.created, value: r.linkedExisting ? tr(', {{linkedExisting}} pehle walon se jure', { linkedExisting: r.linkedExisting }) : '' }), r.errors);
+      if (r.held) toast.warning(tr('{{held}} par Stock milana baqi — Masle me dekhein', { held: r.held }));
+      if (r.untracked) toast.info(tr('{{untracked}} items ki channel par ginti nahi hoti', { untracked: r.untracked }));
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -140,6 +151,10 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
                     <Button size="sm" variant={mine ? 'primary' : 'secondary'} loading={link.isPending && link.variables?.[0]?.externalVariantId === r.externalVariantId && link.variables?.[0]?.externalProductId === r.externalProductId}
                       onClick={() => link.mutate([toLink(r, focus.productId, focus.variantId)])} leftIcon={<Link2 className="h-4 w-4" />}>{tr('Is se jorein')}</Button>
                   )}
+                  {canManage && r.hasVariants && (
+                    <Button size="sm" variant="ghost" onClick={() => setMapFor({ externalProductId: r.externalProductId, productId: focus.productId })}
+                      leftIcon={<Layers className="h-4 w-4" />} title={tr('Channel product ke sab SKU is Nafaa product ke variants se jorein')}>{tr('Har SKU jorein')}</Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -195,7 +210,8 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
                     onPick={() => setPicked((s) => { const n = new Set(s); n.has(g.externalProductId) ? n.delete(g.externalProductId) : n.add(g.externalProductId); return n; })}
                     creating={create.isPending && create.variables?.length === 1 && create.variables[0] === g.externalProductId}
                     onCreate={() => create.mutate([g.externalProductId])}
-                    onLink={(r, productId, variantId) => link.mutate([toLink(r, productId, variantId)])} />
+                    onLink={(r, productId, variantId) => link.mutate([toLink(r, productId, variantId)])}
+                    onMap={(productId) => setMapFor({ externalProductId: g.externalProductId, productId })} />
                 ))}
               </ul>
             )}
@@ -207,6 +223,10 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
           </>
         )}
       </div>
+      {mapFor && (
+        <VariantMapModal channelId={channel.id} externalProductId={mapFor.externalProductId} productId={mapFor.productId}
+          onClose={() => setMapFor(null)} onDone={() => { qc.invalidateQueries({ queryKey: key }); if (focus) onClose(); }} />
+      )}
     </Modal>
   );
 }
@@ -231,7 +251,7 @@ function Remote({ r, className }: { r: RemoteView; className?: string }) {
         <p className="truncate text-[0.84375rem] font-semibold text-slate-900" title={r.title}>{r.title}</p>
         <p className="flex min-w-0 items-center gap-1.5 text-[0.75rem] text-slate-500">
           {r.variantTitle && <SizeChip>{r.variantTitle}</SizeChip>}
-          <span className="truncate">{r.sku ? <span className="font-mono">{r.sku}</span> : tr('SKU nahi')} · {rs(r.price)}{r.stock !== null ? tr(' · Stock {{stock}}', { stock: r.stock }) : ''}</span>
+          <span className="truncate">{r.sku ? <span className="font-mono">{r.sku}</span> : tr('SKU nahi')} · {rs(r.price)}{r.tracked === false ? ` · ${tr('Ginti nahi')}` : r.stock !== null ? tr(' · Stock {{stock}}', { stock: r.stock }) : ''}</span>
         </p>
       </div>
     </div>
@@ -271,9 +291,11 @@ function SuggestionItem({ r, sure, canManage, busy, onLink, onHide }: {
   );
 }
 
-function MissingItem({ g, canManage, picked, onPick, creating, onCreate, onLink }: {
+function MissingItem({ g, canManage, picked, onPick, creating, onCreate, onLink, onMap }: {
   g: UnmatchedGroup; canManage: boolean; picked: boolean; onPick: () => void; creating: boolean; onCreate: () => void;
   onLink: (r: RemoteView, productId: string, variantId: string | null) => void;
+  /** Link every SKU of this channel product into one Nafaa product. */
+  onMap: (productId: string) => void;
 }) {
   return (
     <li className="bg-white px-3 py-2.5">
@@ -291,6 +313,9 @@ function MissingItem({ g, canManage, picked, onPick, creating, onCreate, onLink 
         {canManage && g.canImport && (
           <Button size="xs" variant="success" loading={creating} onClick={onCreate} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>{tr('Nafaa me banayein')}</Button>
         )}
+        {canManage && g.hasVariants && (
+          <span className="w-52"><ProductPicker compact wholeProduct initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Poora product jorein')} onPick={(p) => onMap(p.productId)} /></span>
+        )}
         {canManage && !g.hasVariants && (
           <span className="w-48"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa product chunein')} onPick={(p) => onLink(g.variants[0], p.productId, p.variantId)} /></span>
         )}
@@ -300,7 +325,7 @@ function MissingItem({ g, canManage, picked, onPick, creating, onCreate, onLink 
           {g.variants.map((v) => (
             <li key={v.externalVariantId ?? v.title} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-2.5 py-1.5 ring-1 ring-slate-100">
               <SizeChip>{v.variantTitle ?? tr('Default')}</SizeChip>
-              <span className="min-w-0 flex-1 truncate text-[0.75rem] text-slate-500">{v.sku ? <span className="font-mono">{v.sku}</span> : tr('SKU nahi')} · {rs(v.price)}{v.stock !== null ? tr(' · Stock {{stock}}', { stock: v.stock }) : ''}</span>
+              <span className="min-w-0 flex-1 truncate text-[0.75rem] text-slate-500">{v.sku ? <span className="font-mono">{v.sku}</span> : tr('SKU nahi')} · {rs(v.price)}{v.tracked === false ? ` · ${tr('Ginti nahi')}` : v.stock !== null ? tr(' · Stock {{stock}}', { stock: v.stock }) : ''}</span>
               {canManage && <span className="w-44"><ProductPicker compact initialSearch={g.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa size chunein')} onPick={(p) => onLink(v, p.productId, p.variantId)} /></span>}
             </li>
           ))}

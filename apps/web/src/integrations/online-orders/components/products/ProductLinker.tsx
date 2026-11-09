@@ -11,6 +11,7 @@ import {
 } from '../../api/online-orders.api';
 import { rs, timeAgo } from '../../lib/labels';
 import { ProductPicker, type PickedProduct } from './ProductPicker';
+import { VariantMapModal } from '../online-products/VariantMapModal';
 import { cn } from '@core/lib/cn';
 import { t as tr } from '@core/i18n';
 
@@ -139,11 +140,8 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
-  const intoMut = useMutation({
-    mutationFn: (a: { ext: string; productId: string }) => onlineOrdersApi.importInto(channelId, a.ext, a.productId),
-    onSuccess: (r) => { onDone(); toast.success(tr('{{product}} se jor diya{{value}}', { product: r.product, value: r.variantsCreated ? tr(' — {{variantsCreated}} naye variants bane', { variantsCreated: r.variantsCreated }) : '' })); },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
+  // A product with many SKUs joins one Nafaa product SKU by SKU, in VariantMapModal.
+  const [mapFor, setMapFor] = useState<{ ext: string; productId: string } | null>(null);
 
   const counts = useMemo(() => {
     let todo = 0; let linked = 0;
@@ -249,8 +247,8 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                                 onClick={() => importMut.mutate([p.externalProductId])} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>{tr('Naya banao')}</Button>
                             )}
                             <span className="min-w-[11.25rem] flex-1">
-                              <ProductPicker compact initialSearch={p.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa product me variants jorein')}
-                                onPick={(x) => intoMut.mutate({ ext: p.externalProductId, productId: x.productId })} />
+                              <ProductPicker compact wholeProduct initialSearch={p.title.split(/\s+/).slice(0, 2).join(' ')} placeholder={tr('Nafaa product me variants jorein')}
+                                onPick={(x) => setMapFor({ ext: p.externalProductId, productId: x.productId })} />
                             </span>
                           </>
                         )}
@@ -271,6 +269,10 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
           </ul>
         )}
       </div>
+      {mapFor && (
+        <VariantMapModal channelId={channelId} externalProductId={mapFor.ext} productId={mapFor.productId}
+          onClose={() => setMapFor(null)} onDone={onDone} />
+      )}
     </Card>
   );
 }
@@ -374,6 +376,7 @@ function toLink(p: CatalogProduct, v: CatalogVariant, picked: { productId: strin
     externalTitle: p.hasVariants ? `${p.title} — ${v.title}` : p.title,
     externalImage: v.image ?? p.image,
     externalSku: v.sku,
+    externalStock: v.stock,
   };
 }
 

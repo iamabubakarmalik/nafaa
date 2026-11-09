@@ -9,7 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  AlertTriangle, ArrowRight, Boxes, CalendarClock, Eye, EyeOff, Hourglass, Layers, LineChart, MoreHorizontal, Pencil, Plus, Printer, Receipt, ShoppingCart, Star, Tag, Truck,
+  AlertTriangle, ArrowRight, Boxes, CalendarClock, Eye, EyeOff, Hourglass, Layers, LineChart, MoreHorizontal, Pencil, Plus, Printer, Receipt, ShoppingCart, Star, Store, Tag, Truck,
 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -29,7 +29,7 @@ import { useInventoryConfig, useProductRoutes } from '../../industry/registry';
 import type { DetailContext } from '../../industry/types';
 import { INV, qty, useCostMask, useOnline, useRefreshInventory } from '../../lib/shared';
 import { printTable } from '../../stock/components/parts';
-import { BatchesTab, OverviewTab, PurchasesTab, SalesTab, StockTab, UnitsTab } from './tabs';
+import { BatchesTab, OverviewTab, PurchasesTab, SalesTab, StockTab, SuppliersTab, UnitsTab } from './tabs';
 
 /** Mirror copy in the server's shape, for offline viewing. */
 function fromMirror(p: NonNullable<ReturnType<typeof useProduct>['data']>): Product {
@@ -87,6 +87,7 @@ export function ProductDetailScreen() {
       { value: 'sales', label: t('Sale'), icon: Receipt },
     ];
     if (can.purchases) list.push({ value: 'purchases', label: t('Purchase'), icon: Truck });
+    list.push({ value: 'suppliers', label: t('Suppliers'), icon: Store });
     if ((ctx.product.batches?.length ?? 0) || ctx.product.expiryTracked) list.push({ value: 'batches', label: t('Batches'), icon: CalendarClock });
     const nU = ctx.units.length;
     const nV = ctx.product.variants?.length ?? 0;
@@ -231,6 +232,7 @@ export function ProductDetailScreen() {
         {active.value === 'stock' && <StockTab product={p} insights={ins} stock={stock} shopId={shopId} canAdjust={can.stock} onAdjust={() => setStockOpen(true)} />}
         {active.value === 'sales' && <SalesTab insights={ins} />}
         {active.value === 'purchases' && <PurchasesTab product={p} costHidden={costHidden} canBuy={can.buy} />}
+        {active.value === 'suppliers' && <SuppliersTab product={p} costHidden={costHidden} />}
         {active.value === 'batches' && <BatchesTab product={p} />}
         {active.value === 'units' && <UnitsTab product={p} units={ctx.units} stock={stock} costHidden={costHidden} />}
         {active.render?.()}

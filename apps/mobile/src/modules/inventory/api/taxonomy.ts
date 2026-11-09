@@ -8,7 +8,12 @@ import { apiClient } from '@/core/api/client';
 
 export type TaxonomyKind = 'category' | 'brand' | 'tag';
 
-export interface Category { id: string; name: string; color: string; icon?: string | null; isActive: boolean; _count?: { products: number } }
+export interface Category {
+  id: string; name: string; color: string; icon?: string | null; isActive: boolean;
+  /** Null for a top-level category. */
+  parentId?: string | null; sortOrder?: number;
+  _count?: { products: number; children?: number };
+}
 export interface Brand { id: string; name: string; logoUrl?: string | null; isActive: boolean; _count?: { products: number } }
 export interface Tag { id: string; name: string; color?: string | null; _count?: { products: number } }
 

@@ -167,6 +167,7 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
       ) : (
         <div className="space-y-4">
           <UrlBox label={t('Product feed link')} url={data.productFeedUrl!} hint={t('Merchant Center → Products → Add products → File → Add file from link')} />
+          {data.metaCatalogUrl && <UrlBox label={t('Facebook / Instagram catalog link')} url={data.metaCatalogUrl} hint={t('Meta Commerce Manager → Catalog → Data sources → Data feed → Scheduled feed')} />}
           <p className="text-[0.8125rem] text-slate-700"><Trans text="{{count}} product Google ko ja rahe hain." values={{ count: <b className="tabular-nums">{items}</b> }} /></p>
           {data.stats && data.stats.warnings.length > 0 && (
             <ul className="space-y-1.5 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200">
@@ -192,6 +193,10 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
           <div className="divide-y divide-slate-100 border-t border-slate-100">
             <Switch size="sm" checked={s.includeOutOfStock} onChange={(e) => save.mutate({ includeOutOfStock: e.target.checked })}
               label={t('Khatam stock wale bhi dikhayein')} description={t('\'Out of stock\' likh kar. Order form par stock na ho to customer order nahi kar sakta.')} className="py-3" />
+            <p className="py-3 text-[0.8125rem] text-slate-600">
+              <Trans text={'Jin products par "Stock khatam ho to bhi order lein" chalu hai, woh khatam hone par bhi "backorder" ke saath jate hain — Google ad chalta rehta hai. Baqi khatam products "out of stock" (ya feed se bahar). Ye setting har product me hai: {{link}}. Shopify ka apna Google channel Shopify ki setting maanta hai — Nafaa wahan bhi yehi laga deta hai.'}
+                values={{ link: <Link to="/online-store/products?filter=backorder" className="font-semibold text-brand-700 underline">{t('Products & stock')}</Link> }} />
+            </p>
           </div>
           <Button size="xs" variant="ghost" leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
             onClick={async () => { if (await confirmDialog({ title: t('Naya link banayein?'), text: t('Purana link band ho jayega — Merchant Center me naya daalna hoga.'), danger: true })) save.mutate({ rotate: true }); }}>

@@ -1,6 +1,6 @@
 /**
- * Dark sticky bar for the selected products: on/off, featured, labels, export,
- * delete. Delete is safe first: products with sales are only switched off.
+ * Dark sticky bar for the selected products: on/off, featured, category,
+ * supplier, price percent, packing, labels, export, delete. Delete is safe first: products with sales are only switched off.
  * For demo or test data the owner can then wipe those too, sales included,
  * after typing a confirmation word.
  */
@@ -8,10 +8,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Download, Eye, EyeOff, Star, StarOff, Tag, Trash2, X } from 'lucide-react';
+import { Boxes, Download, Eye, EyeOff, Layers, Percent, Star, StarOff, Tag, Trash2, Truck, X } from 'lucide-react';
 import { Button, Input, Modal } from '@/design-system/components';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { t, Trans } from '@core/i18n';
+import { BulkChangeModal, type BulkChange } from './BulkChangeModal';
 
 type Action = 'activate' | 'deactivate' | 'feature' | 'unfeature';
 
@@ -27,6 +28,7 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
   const [confirm, setConfirm] = useState(false);
   const [withSales, setWithSales] = useState<string[]>([]);
   const [word, setWord] = useState('');
+  const [change, setChange] = useState<BulkChange | null>(null);
 
   const run = async (action: Action, done: string) => {
     setBusy(action);
@@ -69,6 +71,11 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
             <button type="button" className={btn} disabled={!!busy} onClick={() => void run('deactivate', t('{{count}} products band kar diye', { count: ids.length }))}><EyeOff className="h-4 w-4" />{t('Band')}</button>
             <button type="button" className={btn} disabled={!!busy} onClick={() => void run('feature', t('{{count}} products khaas bana diye', { count: ids.length }))}><Star className="h-4 w-4" />{t('Khaas')}</button>
             <button type="button" className={btn} disabled={!!busy} onClick={() => void run('unfeature', t('{{count}} products aam kar diye', { count: ids.length }))}><StarOff className="h-4 w-4" /><span className="hidden sm:inline">{t('Aam')}</span></button>
+            <span className="mx-1 h-5 w-px bg-white/20" />
+            <button type="button" className={btn} onClick={() => setChange('category')}><Layers className="h-4 w-4" />{t('Category')}</button>
+            <button type="button" className={btn} onClick={() => setChange('supplier')}><Truck className="h-4 w-4" />{t('Supplier')}</button>
+            <button type="button" className={btn} onClick={() => setChange('price')}><Percent className="h-4 w-4" />{t('Qeemat %')}</button>
+            <button type="button" className={btn} onClick={() => setChange('pack')}><Boxes className="h-4 w-4" />{t('Packing')}</button>
           </>
         )}
         <button type="button" className={btn} onClick={() => navigate('/retail/barcode-labels', { state: { productIds: ids } })}><Tag className="h-4 w-4" />{t('Labels')}</button>
@@ -76,6 +83,7 @@ export function BulkBar({ ids, onDone, onClear, onExport, can }: {
         {can.delete && <button type="button" className={`${btn} text-rose-300 hover:bg-rose-500/20`} disabled={!!busy} onClick={() => setConfirm(true)}><Trash2 className="h-4 w-4" />{t('Mitayein')}</button>}
         <button type="button" onClick={onClear} aria-label={t('Chunna khatam')} className="ms-auto flex h-9 w-9 items-center justify-center rounded-xl hover:bg-white/10"><X className="h-4 w-4" /></button>
       </div>
+      {change && <BulkChangeModal kind={change} ids={ids} onClose={() => setChange(null)} onDone={() => { setChange(null); onDone(); }} />}
       {confirm && (
         <Modal open onClose={() => setConfirm(false)} size="sm" title={t('{{count}} cheezein mitayein?', { count: ids.length })}
           description={t('Jin ki kabhi sale nahi hui woh mit jayengi. Jin ki sale ho chuki hai woh sirf band hongi, taake purane bill aur hisaab salamat rahein.')}

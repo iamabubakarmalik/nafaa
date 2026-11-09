@@ -13,8 +13,12 @@ export type CatalogSort =
 
 export interface CatalogFilters {
   search?: string;
+  /** Also matches products in its sub-categories. */
   categoryId?: string;
   brandId?: string;
+  /** A supplier id, or 'none' for products with no supplier. */
+  supplierId?: string;
+  online?: 'listed' | 'unlisted';
   stock: CatalogStock;
   active: 'all' | 'active' | 'inactive';
   featured?: boolean;
@@ -45,8 +49,13 @@ export interface CatalogItem {
   price: number; costPrice: number; wholesalePrice: number | null; creditPrice: number | null; taxRate: number;
   stock: number; lowStockAlert: number; isActive: boolean; isFeatured: boolean;
   hasVariants: boolean; expiryTracked: boolean; createdAt: string;
-  category: { id: string; name: string; color: string } | null;
+  category: { id: string; name: string; color: string; path?: string } | null;
   brand: { id: string; name: string } | null;
+  /** Preferred supplier (else any linked one). */
+  supplier?: { id: string; name: string } | null;
+  supplierCount?: number;
+  /** Listed on at least one online channel. */
+  online?: boolean;
   image: string | null;
   variants: Array<{ id: string; name: string; price: number; stock: number; colorHex: string | null }>;
   counts: { variants: number; batches: number; imeis: number };
@@ -68,6 +77,7 @@ export interface CatalogStats {
   products: number; inactive: number; inStock: number; low: number; out: number; dead: number; expiring: number;
   units: number; costValue: number; saleValue: number; sold30: number; revenue30: number; deadValue: number;
   noCost: number; noShelfLife: number;
+  online?: number; noSupplier?: number;
   windowDays: number; expiryDays: number;
 }
 
@@ -77,7 +87,9 @@ export interface CatalogPage {
   page: number; limit: number; count: number; hasMore: boolean;
   items: CatalogItem[];
   tabs: Record<CatalogStock, number>;
-  categories: Array<{ id: string; name: string; color: string; count: number }>;
+  /** `count` includes sub-categories; `own` is the category's own products. */
+  categories: Array<{ id: string; name: string; color: string; count: number; parentId?: string | null; sortOrder?: number; path?: string; own?: number }>;
+  suppliers?: Array<{ id: string; name: string; count: number }>;
   brands: Array<{ id: string; name: string; count: number }>;
   tags: Array<{ id: string; name: string; color: string; count: number }>;
   tagNames: Record<string, { name: string; color: string }>;
@@ -93,7 +105,7 @@ export interface CatalogPage {
 }
 
 const params = (f: CatalogFilters, page: number, limit: number) => ({
-  search: f.search?.trim() || undefined, categoryId: f.categoryId, brandId: f.brandId, stock: f.stock,
+  search: f.search?.trim() || undefined, categoryId: f.categoryId, brandId: f.brandId, supplierId: f.supplierId, online: f.online, stock: f.stock,
   active: f.active, featured: f.featured ? 'true' : undefined, kindOf: f.kindOf, noCost: f.noCost ? 'true' : undefined, sort: f.sort, page, limit,
   tagId: f.tagId, condition: f.condition, etype: f.etype, serial: f.serial, kind: f.kind,
 });

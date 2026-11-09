@@ -23,8 +23,10 @@ export interface PickedProduct {
  * Nafaa product (ya us ka variant) chunne ka dropdown — search ke saath.
  * Variants wala product khulta hai aur us ka size/color chunna hota hai.
  */
-export function ProductPicker({ onPick, initialSearch, placeholder = tr('Nafaa product chunein'), compact }: {
+export function ProductPicker({ onPick, initialSearch, placeholder = tr('Nafaa product chunein'), compact, wholeProduct }: {
   onPick: (p: PickedProduct) => void; initialSearch?: string; placeholder?: string; compact?: boolean;
+  /** Pick the product itself (variantId null), also when it has variants. */
+  wholeProduct?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(initialSearch ?? '');
@@ -106,7 +108,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = tr('Nafaa p
                   {!p.hasVariants && <span className="text-[0.78125rem] font-semibold text-slate-700 dark:text-ink-200">{rs(p.price)}</span>}
                 </div>
               );
-              if (p.hasVariants && p.variants?.length) {
+              if (p.hasVariants && p.variants?.length && !wholeProduct) {
                 return (
                   <div key={p.id} className="rounded-lg px-2 py-1.5">
                     {head}

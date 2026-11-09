@@ -27,6 +27,26 @@ const COST_SORTS: Array<Option<CatalogSort>> = [{ value: 'value', label: 'Stock 
 const KIND_DEFAULT: Record<string, string> = { made: 'Khud banaya', bought: 'Khareed kar' };
 const FACET_LABEL = { condition: 'Condition', etype: 'Product type', kind: 'Banaya ya khareeda' } as const;
 
+/** Facet categories in tree order (parent, then its children), each with its depth. */
+function categoryTree(list: CatalogPage['categories']) {
+  const ids = new Set(list.map((c) => c.id));
+  const kids = new Map<string | null, CatalogPage['categories']>();
+  for (const c of list) {
+    const parent = c.parentId && ids.has(c.parentId) ? c.parentId : null;
+    kids.set(parent, [...(kids.get(parent) ?? []), c]);
+  }
+  const out: Array<CatalogPage['categories'][number] & { depth: number }> = [];
+  const walk = (parent: string | null, depth: number) => {
+    for (const c of kids.get(parent) ?? []) {
+      if (out.length > list.length) return;
+      out.push({ ...c, depth });
+      walk(c.id, depth + 1);
+    }
+  };
+  walk(null, 0);
+  return out;
+}
+
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   const th = useTheme();
   return <View style={{ gap: th.space(2) }}><Text size="sm" weight="semibold" tone="muted">{title}</Text>{children}</View>;
@@ -50,9 +70,21 @@ export function FilterSheet({ open, onClose, data, f, set, sort, setSort, config
         {(data?.categories.length ?? 0) > 0 && (
           <Group title={t('Category')}>
             <ChipGroup wrap value={f.categoryId ?? 'all'} onChange={(v) => set('categoryId', v === 'all' ? undefined : v)}
-              options={[{ value: 'all', label: t('Sab') }, ...data!.categories.map((x) => ({ value: x.id, label: x.name, count: x.count }))]} />
+              options={[{ value: 'all', label: t('Sab') }, ...categoryTree(data!.categories).map((x) => ({
+                value: x.id, label: `${x.depth ? `${'  '.repeat(x.depth)}└ ` : ''}${x.name}`, count: x.count,
+              }))]} />
           </Group>
         )}
+        {(data?.suppliers?.length ?? 0) > 0 && (
+          <Group title={t('Supplier')}>
+            <ChipGroup wrap value={f.supplierId ?? 'all'} onChange={(v) => set('supplierId', v === 'all' ? undefined : v)}
+              options={[{ value: 'all', label: t('Sab') }, ...data!.suppliers!.map((x) => ({ value: x.id, label: x.id === 'none' ? t('Baghair supplier') : x.name, count: x.count }))]} />
+          </Group>
+        )}
+        <Group title={t('Online')}>
+          <ChipGroup wrap value={f.online ?? 'all'} onChange={(v) => set('online', v === 'all' ? undefined : (v as 'listed' | 'unlisted'))}
+            options={[{ value: 'all', label: t('Sab') }, { value: 'listed', label: t('Online listed') }, { value: 'unlisted', label: t('Online nahi') }]} />
+        </Group>
         {(data?.brands.length ?? 0) > 0 && (
           <Group title={t('Brand')}>
             <ChipGroup wrap value={f.brandId ?? 'all'} onChange={(v) => set('brandId', v === 'all' ? undefined : v)}

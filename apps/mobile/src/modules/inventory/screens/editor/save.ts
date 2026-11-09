@@ -11,9 +11,11 @@
 import { openingStock } from '@nafaa/core/inventory';
 import { t } from '@/core/i18n';
 import { enqueueProductCreate, enqueueProductUpdate, offline, OfflineRuleError } from '@/core/offline';
+import { productSuppliersApi, type SupplierLinkPayload } from '../../api/suppliers';
 import { batchesApi, imagesApi, productsApi, unitsApi, variantsApi, type VariantPayload } from '../../api/products';
 import type { EditorConfig } from '../../industry/types';
-import type { BatchDraft, CoreDraft, EditorDraft, UnitDraft, VariantDraft } from './types';
+import { withBaseFromProduct } from './draft';
+import type { BatchDraft, CoreDraft, EditorDraft, SupplierLinkDraft, UnitDraft, VariantDraft } from './types';
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 const blank = (v: string) => (v.trim() ? v.trim() : undefined);
@@ -51,9 +53,17 @@ const variantPayload = (v: VariantDraft, core: CoreDraft, i: number, withStock: 
   lowStockAlert: core.lowStockAlert, ...(withStock ? { stock: Number(v.stock) || 0, ...(shopId ? { shopId } : {}) } : {}),
 });
 
-const unitPayload = (u: UnitDraft, productId: string, i: number) => ({
+const supplierPayload = (l: SupplierLinkDraft): SupplierLinkPayload => ({
+  supplierId: l.supplierId, supplierSku: blank(l.supplierSku),
+  ...(l.costPrice != null && l.costPrice >= 0 ? { costPrice: l.costPrice } : {}),
+  ...(l.minOrderQty ? { minOrderQty: l.minOrderQty } : {}), ...(l.leadDays ? { leadDays: l.leadDays } : {}),
+  ...(l.unitId ? { unitId: l.unitId } : {}), isPreferred: l.isPreferred, notes: blank(l.notes),
+});
+
+/** The base pack is default only when no other pack was chosen as default (elsewhere or here). */
+const unitPayload = (u: UnitDraft, productId: string, i: number, otherDefault: boolean) => ({
   productId, unitName: u.unitName.trim(), conversionType: u.conversionType, conversionRate: Number(u.conversionRate) || 1,
-  isBase: u.isBase, isDefault: u.isBase, price: Number(u.price) || 0, costPrice: Number(u.costPrice) || 0,
+  isBase: u.isBase, isDefault: u.isBase ? !otherDefault : u.isDefault, price: Number(u.price) || 0, costPrice: Number(u.costPrice) || 0,
   wholesalePrice: u.wholesalePrice || null, creditPrice: u.creditPrice || null, mrpPrice: u.mrpPrice ?? undefined,
   barcode: blank(u.barcode), sku: blank(u.sku), isActive: u.isActive, sortOrder: i,
 });
@@ -76,14 +86,17 @@ async function sync<T extends { id?: string }>(next: T[], prev: T[], ops: {
   }
 }
 
-/** Parts that changed and need the server (photos, packs, variants, batches, industry data). */
+/** Parts that changed and need the server (photos, packs, variants, batches, suppliers, industry data). */
 export function pendingParts<X>(config: EditorConfig<X>, core: CoreDraft, prev?: CoreDraft): string[] {
   const out: string[] = [];
   const changed = <K extends keyof CoreDraft>(k: K) => !same(core[k], prev?.[k] ?? []);
   if (prev && changed('images')) out.push(t('Tasveerein'));
-  if (changed('units')) out.push(t('Packing'));
+  // Packs compare with their automatic prices filled, so a piece price change counts.
+  const packs = (d?: CoreDraft) => (d ? withBaseFromProduct(d).filter((u) => !u.isBase) : []);
+  if (changed('units') || !same(packs(core), packs(prev))) out.push(t('Packing'));
   if (changed('variants')) out.push(t('Variants'));
   if (changed('batches')) out.push(t('Batches'));
+  if (changed('suppliers')) out.push(t('Suppliers'));
   if (config.extra.save) out.push(t('Baqi details'));
   return out;
 }
@@ -161,9 +174,11 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
     }
     if (core.units.length || prev?.units.length) {
       step(t('Packing'));
-      await sync(core.units, prev?.units ?? [], {
-        create: async (items) => { for (const { item, index } of items) await unitsApi.create(unitPayload(item, id, index) as never); },
-        update: (u, i) => unitsApi.update(u.id, unitPayload(u, id, i) as never),
+      const units = withBaseFromProduct(core);
+      const otherDefault = units.some((u) => !u.isBase && u.isDefault);
+      await sync(units, prev?.units ?? [], {
+        create: async (items) => { for (const { item, index } of items) await unitsApi.create(unitPayload(item, id, index, otherDefault) as never); },
+        update: (u, i) => unitsApi.update(u.id, unitPayload(u, id, i, otherDefault) as never),
       });
     }
     if (core.batches.length || prev?.batches.length) {
@@ -172,6 +187,10 @@ export async function saveProduct<X>(config: EditorConfig<X>, draft: EditorDraft
         create: async (items) => { for (const { item } of items) await batchesApi.create(id, batchPayload(item, true)); },
         update: (b) => batchesApi.update(id, b.id, batchPayload(b, false)),
       });
+    }
+    if (core.suppliers.length ? !same(core.suppliers, prev?.suppliers ?? []) : !!prev?.suppliers.length) {
+      step(t('Suppliers'));
+      await productSuppliersApi.save(id, core.suppliers.map(supplierPayload));
     }
     if (config.extra.save) {
       step(t('Baqi details'));

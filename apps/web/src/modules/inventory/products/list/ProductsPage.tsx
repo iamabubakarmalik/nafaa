@@ -13,11 +13,11 @@ import { toast } from 'sonner';
 import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, CalendarClock, Check, CloudOff, Download, FileUp, Filter, GraduationCap,
   LayoutGrid, Layers, ListChecks, MousePointerClick, Package, Plus, RefreshCw, ScanLine, Search, Snowflake, Sparkles, Star,
-  Columns3, Square, SquareCheck, Table2, Tag, ToggleRight, Wallet, X, type LucideIcon,
+  Columns3, Globe, Rows3, Square, SquareCheck, Table2, Tag, ToggleRight, Truck, Wallet, X, type LucideIcon,
   Wheat,
 } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Kbd, Modal, MoreFilters, PageHero, SearchField, Segmented, Skeleton, heroButton, heroIconButton, heroPrimaryButton,
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, Modal, MoreFilters, PageHero, PageShell, SearchField, Segmented, Skeleton, heroButton, heroIconButton, heroPrimaryButton,
   type FilterGroup, type FilterOption,
 } from '@/design-system/components';
 import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
@@ -30,7 +30,8 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
-import { catalogApi, type CatalogFilters, type CatalogItem, type CatalogSort, type CatalogStock } from './api';
+import { catalogApi, type CatalogFilters, type CatalogItem, type CatalogPage, type CatalogSort, type CatalogStock } from './api';
+import { treeOrder } from '@modules/inventory/categories/lib/tree';
 import { useCatalog, useCatalogAnalytics, type OptionalColumn } from './useCatalog';
 import { fetchAllProducts, productsCsv, productsDoc } from './exportProducts';
 import { BulkBar } from './components/BulkBar';
@@ -60,6 +61,12 @@ const STATUS: Array<FilterOption<CatalogFilters['active']>> = [
   { value: 'inactive', label: tr('Band'), hint: tr('Chhupi hui') },
   { value: 'all', label: tr('Sab') },
 ];
+/** Category facet in tree order (parents first, children indented); "none" last. */
+function categoryOptions(list: CatalogPage['categories']) {
+  const none = list.filter((x) => x.id === 'none');
+  return [...treeOrder(list.filter((x) => x.id !== 'none')), ...none.map((x) => ({ ...x, depth: 0 }))];
+}
+
 const KIND_DEFAULT: Record<string, string> = { made: tr('Khud banaya'), bought: tr('Khareed kar') };
 
 
@@ -69,6 +76,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     categoryId: params.get('categoryId') ?? undefined,
     brandId: params.get('brandId') ?? undefined,
     tagId: params.get('tagId') ?? undefined,
+    supplierId: params.get('supplierId') ?? undefined,
     noCost: params.get('noCost') === '1' || undefined,
   });
   const navigate = useNavigate();
@@ -174,14 +182,21 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
 
   // Tier price columns exist only once the owner turns price tiers on; until then they stay hidden.
   const tierCols = usePriceTierSettings().on;
-  const shownCols = { wholesale: tierCols && c.cols.includes('wholesale'), credit: tierCols && c.cols.includes('credit') };
-  const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([['wholesale', tr('Wholesale price')], ['credit', tr('Credit price')]] as const)
+  const shownCols = {
+    wholesale: tierCols && c.cols.includes('wholesale'), credit: tierCols && c.cols.includes('credit'),
+    supplier: c.cols.includes('supplier'), online: c.cols.includes('online'),
+  };
+  const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([
+    ...(tierCols ? [['wholesale', tr('Wholesale price')], ['credit', tr('Credit price')]] as const : []),
+    ['supplier', tr('Supplier')], ['online', tr('Online')],
+  ] as Array<readonly [OptionalColumn, string]>)
     .map(([value, label]) => ({ value, label, icon: c.cols.includes(value) ? SquareCheck : Square, hint: c.cols.includes(value) ? tr('Dikh raha hai') : tr('Chhupa hai') }));
+  const extraCols = Object.values(shownCols).filter(Boolean).length;
   const cardProps = (i: CatalogItem) => ({
     item: i, config, extras: extrasFor(i), tagNames: d?.tagNames ?? {}, money, cost, costHidden, days: st?.windowDays ?? 30,
     selected: c.selected.has(i.id), selecting: c.selected.size > 0, onToggle: () => c.toggle(i.id),
     onStock: () => setStockItem(i), onDeleted: () => void c.refresh(), can: config.stockLocked?.(i) ? { ...can, stock: false } : can,
-    cols: shownCols,
+    cols: shownCols, compact: c.density === 'compact',
   });
 
   // Less used filters, each with its own clear label so no two read the same.
@@ -205,6 +220,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         options: [{ value: 'all', label: tr('Sab') }, ...facet.map((x) => ({ value: x.id, label: `${labelOf(key as keyof typeof FACET_LABEL, x.id)} (${x.count})` }))],
         onChange: (v) => c.set(key as keyof typeof FACET_LABEL, v === 'all' ? undefined : v) }];
     }),
+    { id: 'online', label: tr('Online'), icon: Globe, value: c.f.online ?? 'all', empty: 'all',
+      options: [{ value: 'all', label: tr('Sab') }, { value: 'listed', label: tr('Online lagi hui'), hint: st?.online != null ? `${st.online}` : undefined }, { value: 'unlisted', label: tr('Online nahi') }],
+      onChange: (v) => c.set('online', v === 'all' ? undefined : (v as 'listed' | 'unlisted')) },
     { id: 'kindOf', label: tr('Raw material'), icon: Wheat, value: c.f.kindOf ?? 'all', empty: 'all',
       options: [{ value: 'all', label: tr('Sab') }, { value: 'sale', label: tr('Sirf bechne wale') }, { value: 'raw', label: tr('Sirf raw material') }],
       onChange: (v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale')) },
@@ -217,7 +235,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   ];
 
   const filterChips: Array<[string, () => void]> = [];
-  if (c.f.categoryId) filterChips.push([d?.categories.find((x) => x.id === c.f.categoryId)?.name ?? tr('Category'), () => c.set('categoryId', undefined)]);
+  if (c.f.categoryId) filterChips.push([d?.categories.find((x) => x.id === c.f.categoryId)?.path ?? d?.categories.find((x) => x.id === c.f.categoryId)?.name ?? tr('Category'), () => c.set('categoryId', undefined)]);
+  if (c.f.supplierId) filterChips.push([d?.suppliers?.find((x) => x.id === c.f.supplierId)?.name ?? tr('Supplier'), () => c.set('supplierId', undefined)]);
+  if (c.f.online) filterChips.push([c.f.online === 'listed' ? tr('Online lagi hui') : tr('Online nahi'), () => c.set('online', undefined)]);
   if (c.f.brandId) filterChips.push([d?.brands.find((x) => x.id === c.f.brandId)?.name ?? tr('Brand'), () => c.set('brandId', undefined)]);
   if (c.f.tagId) filterChips.push([`#${d?.tagNames[c.f.tagId]?.name ?? tr('Tag')}`, () => c.set('tagId', undefined)]);
   if (c.f.kind) filterChips.push([labelOf('kind', c.f.kind), () => c.set('kind', undefined)]);
@@ -237,7 +257,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   const HeroExtra = config.HeroExtra;
 
   return (
-    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
+    <PageShell className="pb-12">
       {scanner && <BarcodeScanner onDetected={(code: string) => void onScan(code)} onClose={() => setScanner(false)} />}
       {stockItem && <StockModal item={stockItem} chips={config.stockChips?.(stockItem)} money={money} onClose={() => setStockItemRaw(null)} onSaved={() => void c.refresh()} />}
       {guide && <ProductsGuide extra={config.guide} onClose={() => setGuide(false)} />}
@@ -262,10 +282,10 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
           {can.create && <Link to={config.paths.create} className={heroPrimaryButton}><Plus className="h-4 w-4" />{tr('Naya')}</Link>}
         </>}
         stats={[
-          { label: tr('Stock ki cost'), value: st ? cost(st.costValue) : '', hint: st ? tr('{{units}} units', { units: qty(st.units) }) : '' },
-          { label: tr('Bechne par milega'), value: st ? money(st.saleValue) : '', hint: costHidden || !st ? undefined : tr('profit {{cost}}', { cost: cost(st.saleValue - st.costValue) }) },
-          { label: tr('{{value}} din ki sale', { value: st?.windowDays ?? 30 }), value: st ? money(st.revenue30) : '', hint: st ? tr('{{sold30}} units biki', { sold30: qty(st.sold30) }) : '' },
-          { label: tr('Pada hua maal'), value: st ? cost(st.deadValue) : '', hint: st ? tr('{{dead}} nahi bik rahi', { dead: st.dead }) : '' },
+          { label: tr('Products'), value: st ? st.products.toLocaleString('en-PK') : '', hint: st ? tr('{{inStock}} stock me · {{inactive}} band', { inStock: st.inStock, inactive: st.inactive }) : '' },
+          { label: tr('Stock ki cost'), value: st ? cost(st.costValue) : '', hint: st ? (costHidden ? tr('{{units}} units', { units: qty(st.units) }) : tr('Bechne par {{value}}', { value: money(st.saleValue) })) : '' },
+          { label: tr('Kam stock'), value: st ? st.low.toLocaleString('en-PK') : '', hint: tr('mangwana hai') },
+          { label: tr('Khatam'), value: st ? st.out.toLocaleString('en-PK') : '', hint: st ? tr('{{dead}} nahi bik rahi', { dead: st.dead }) : '' },
         ]}
       />
 
@@ -327,9 +347,18 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         chips={filterChips.length > 0 ? <>{filterChips.map(([label, remove]) => <FilterChip key={label} onRemove={remove}>{label}</FilterChip>)}</> : undefined}
         onClear={c.clear}>
         {(d?.categories.length ?? 0) > 0 && (
-          <FilterMenu icon={Layers} label={tr('Category')} value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
-            options={[{ value: 'all', label: tr('Sab') }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${tr(noun)}`, color: x.color }))]}
+          <FilterMenu icon={Layers} label={tr('Category')} value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-80"
+            valueLabel={c.f.categoryId ? d!.categories.find((x) => x.id === c.f.categoryId)?.name : undefined}
+            options={[{ value: 'all', label: tr('Sab') }, ...categoryOptions(d!.categories).map((x) => ({
+              value: x.id, label: `${'\u2003'.repeat(x.depth)}${x.depth ? '↳ ' : ''}${x.id === 'none' ? tr('Baghair category') : x.name}`,
+              hint: `${x.count} ${tr(noun)}`, color: x.color,
+            }))]}
             onChange={(v) => c.set('categoryId', v === 'all' ? undefined : v)} />
+        )}
+        {(d?.suppliers?.length ?? 0) > 0 && (
+          <FilterMenu icon={Truck} label={tr('Supplier')} value={c.f.supplierId ?? 'all'} active={!!c.f.supplierId} width="w-72"
+            options={[{ value: 'all', label: tr('Sab') }, ...d!.suppliers!.map((x) => ({ value: x.id, label: x.id === 'none' ? tr('Supplier nahi') : x.name, hint: `${x.count} ${tr(noun)}` }))]}
+            onChange={(v) => c.set('supplierId', v === 'all' ? undefined : v)} />
         )}
         {(d?.brands.length ?? 0) > 0 && (
           <FilterMenu icon={Sparkles} label={tr('Brand')} value={c.f.brandId ?? 'all'} active={!!c.f.brandId} width="w-72"
@@ -339,10 +368,17 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         <MoreFilters groups={moreGroups} />
         <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={c.sort} align="right" width="w-64"
           options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />
-        {c.view === 'table' && tierCols && (
-          <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label={tr('Columns')} value="none" align="right" active={c.cols.length > 0}
-            valueLabel={c.cols.length ? tr('+{{count}} price', { count: c.cols.length }) : tr('Basic')}
+        {c.view === 'table' && (
+          <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label={tr('Columns')} value="none" align="right" active={extraCols > 0}
+            valueLabel={extraCols ? tr('+{{count}}', { count: extraCols }) : tr('Basic')}
             options={colOptions} onChange={(v) => { if (v !== 'none') c.toggleCol(v); }} />
+        )}
+        {c.view === 'table' && (
+          <button type="button" onClick={() => c.setDensity(c.density === 'compact' ? 'comfortable' : 'compact')} aria-pressed={c.density === 'compact'}
+            title={c.density === 'compact' ? tr('Khuli rows') : tr('Ghani rows — zyada cheezein ek nazar me')}
+            className={cn('inline-flex h-11 items-center gap-1.5 rounded-2xl px-3 text-[0.8125rem] font-semibold ring-1 transition max-sm:hidden', c.density === 'compact' ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+            <Rows3 className="h-4 w-4" />{c.density === 'compact' ? tr('Ghani') : tr('Khuli')}
+          </button>
         )}
         <Segmented<'grid' | 'table'> label={tr('Dikhane ka tareeqa')} value={c.view} onChange={c.setView} className="h-11 items-center rounded-2xl p-1 max-sm:hidden [&>button]:h-9 [&>button]:rounded-xl [&>button]:px-2.5"
           items={[
@@ -413,7 +449,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <table className={cn('w-full', shownCols.wholesale && shownCols.credit ? 'min-w-[72rem]' : shownCols.wholesale || shownCols.credit ? 'min-w-[66rem]' : 'min-w-[60rem]')}>
+          <table className={cn('w-full', ['min-w-[60rem]', 'min-w-[66rem]', 'min-w-[72rem]', 'min-w-[78rem]', 'min-w-[84rem]'][Math.min(extraCols, 4)])}>
             <thead>
               <tr className="whitespace-nowrap border-b border-slate-100 bg-slate-50/70 text-start text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                 <th className="w-10 py-2.5 ps-4">
@@ -425,6 +461,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
                 <th className="px-3 py-2.5 text-end">{tr('Rate')}</th>
                 {shownCols.wholesale && <th className="px-3 py-2.5 text-end">{tr('Wholesale')}</th>}
                 {shownCols.credit && <th className="px-3 py-2.5 text-end">{tr('Credit')}</th>}
+                {shownCols.supplier && <th className="px-3 py-2.5">{tr('Supplier')}</th>}
+                {shownCols.online && <th className="px-3 py-2.5">{tr('Online')}</th>}
                 <th className="px-3 py-2.5 text-end">{tr('Stock')}</th>
                 <th className="px-3 py-2.5">{tr('{{value}} din', { value: st?.windowDays ?? 30 })}</th>
                 {!costHidden && <th className="px-3 py-2.5 text-end">{tr('Qeemat')}</th>}
@@ -446,7 +484,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
           </button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 

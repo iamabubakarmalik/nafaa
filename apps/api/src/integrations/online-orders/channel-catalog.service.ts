@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Integration } from '@prisma/client';
+import { Integration, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { applyStockDelta } from '../../common/shop-scope';
@@ -12,6 +12,8 @@ import { mappingKey } from './mapping-key';
 import { numericId } from './shopify.client';
 import { decrypt, encrypt } from '../../core/lib/crypto';
 import { fetchIndoljMenu, IndoljCreds } from './indolj.client';
+import { convertWeight, htmlToText, RemoteOption, sizeColor, variantName, weightUnit, planVariants } from './channel-import';
+import { holdOnLink, HoldReason, StockHold } from './stock-handover';
 
 /**
  * Channel ka "Products" safha:
@@ -30,8 +32,19 @@ export interface RemoteVariant {
   sku: string | null;
   barcode: string | null;
   price: number;
+  /** Channel stock; null when the channel does not count it or it is unknown. */
   stock: number | null;
   image: string | null;
+  /** Does the channel count stock for this item? false = untracked there; undefined = not read. */
+  tracked?: boolean | null;
+  /** Price customers pay now when a sale is running (Woo sale price, Daraz special price). */
+  sellPrice?: number | null;
+  /** Struck-out (regular) price while on sale. */
+  compareAt?: number | null;
+  /** Option values ("Size: M", "Color: Red"). */
+  options?: RemoteOption[];
+  /** Shopify inventory item id (recovery and tracking). */
+  inventoryItemId?: string | null;
 }
 
 export interface RemoteProduct {
@@ -41,13 +54,42 @@ export interface RemoteProduct {
   status: string;
   hasVariants: boolean;
   variants: RemoteVariant[];
+  /** Option names in order ("Size", "Color"). */
+  optionNames?: string[];
 }
+
+/** Product details read only when an item is brought into Nafaa. */
+export interface RemoteDetail {
+  description: string | null;
+  images: string[];
+  brand: string | null;
+  /** Category from the channel, top level first. */
+  categoryPath: string[];
+  tags: string[];
+  weight: number | null;
+  weightUnit: string | null;
+  /** Per channel variant id (or '-' for a simple item). */
+  variants: Record<string, { cost?: number | null; weight?: number | null; barcode?: string | null }>;
+}
+
+const emptyDetail = (): RemoteDetail => ({ description: null, images: [], brand: null, categoryPath: [], tags: [], weight: null, weightUnit: null, variants: {} });
 
 const CACHE_MS = 2 * 60_000;
 
 export interface LinkInput {
   externalProductId: string; externalVariantId?: string | null; productId: string; variantId?: string | null;
   externalTitle?: string | null; externalImage?: string | null; externalSku?: string | null;
+  /** Channel stock the screen showed for this item (for the stock handover check). */
+  externalStock?: number | null;
+}
+
+interface ImportCtx {
+  tenantId: string;
+  shopId: string;
+  integration: Integration;
+  categories: Map<string, string>;
+  brands: Map<string, string>;
+  tags: Map<string, string>;
 }
 
 @Injectable()
@@ -144,34 +186,37 @@ export class ChannelCatalogService {
     if (!client) return [];
     const products = await client.all<any>('/products', {
       status: 'any',
-      _fields: 'id,name,type,status,sku,price,regular_price,stock_quantity,manage_stock,images',
+      _fields: 'id,name,type,status,sku,price,regular_price,sale_price,stock_quantity,manage_stock,images,attributes,global_unique_id',
     });
     const out: RemoteProduct[] = [];
     for (const p of products) {
       const image = p.images?.[0]?.src ?? null;
+      const optionNames = ((p.attributes ?? []) as any[]).filter((a) => a?.variation).map((a) => String(a.name));
       if (p.type === 'variable') {
         const vars = await client.all<any>(`/products/${p.id}/variations`, {
-          _fields: 'id,sku,price,regular_price,stock_quantity,manage_stock,attributes,image',
+          _fields: 'id,sku,price,regular_price,sale_price,stock_quantity,manage_stock,attributes,image,global_unique_id',
         }, 10).catch(() => []);
         out.push({
-          externalProductId: String(p.id), title: p.name, image, status: p.status, hasVariants: true,
+          externalProductId: String(p.id), title: p.name, image, status: p.status, hasVariants: true, optionNames,
           variants: vars.map((v: any) => ({
             externalVariantId: String(v.id),
             title: (v.attributes ?? []).map((a: any) => a.option).filter(Boolean).join(' / ') || `#${v.id}`,
             sku: v.sku || null,
-            barcode: null,
-            price: Number(v.regular_price || v.price || 0),
+            barcode: v.global_unique_id || null,
+            ...wooPrices(v),
             stock: v.manage_stock ? Number(v.stock_quantity ?? 0) : null,
+            tracked: !!v.manage_stock,
             image: v.image?.src ?? image,
+            options: (v.attributes ?? []).filter((a: any) => a?.option).map((a: any) => ({ name: String(a.name), value: String(a.option) })),
           })),
         });
       } else {
         out.push({
           externalProductId: String(p.id), title: p.name, image, status: p.status, hasVariants: false,
           variants: [{
-            externalVariantId: null, title: 'Default', sku: p.sku || null, barcode: null,
-            price: Number(p.regular_price || p.price || 0),
-            stock: p.manage_stock ? Number(p.stock_quantity ?? 0) : null, image,
+            externalVariantId: null, title: 'Default', sku: p.sku || null, barcode: p.global_unique_id || null,
+            ...wooPrices(p),
+            stock: p.manage_stock ? Number(p.stock_quantity ?? 0) : null, tracked: !!p.manage_stock, image,
           }],
         });
       }
@@ -182,12 +227,14 @@ export class ChannelCatalogService {
   private async shopifyProducts(integration: Integration): Promise<RemoteProduct[]> {
     const client = await this.shopify.client(integration);
     if (!client) return [];
+    // 25 per page: the inventory item per variant keeps each page inside Shopify's query cost.
     const products = await client.paginate<any>(`query($after: String) {
-      products(first: 50, after: $after) {
+      products(first: 25, after: $after) {
         nodes {
           id title status
+          options { name }
           featuredMedia { preview { image { url } } }
-          variants(first: 100) { nodes { id title sku barcode price inventoryQuantity image { url } } }
+          variants(first: 100) { nodes { id title sku barcode price compareAtPrice inventoryQuantity selectedOptions { name value } image { url } inventoryItem { id tracked } } }
         }
         pageInfo { hasNextPage endCursor }
       }
@@ -202,17 +249,123 @@ export class ChannelCatalogService {
         image,
         status: String(p.status ?? '').toLowerCase(),
         hasVariants: !single,
-        variants: vars.map((v) => ({
-          externalVariantId: numericId(v.id),
-          title: v.title === 'Default Title' ? 'Default' : v.title,
-          sku: v.sku || null,
-          barcode: v.barcode || null,
-          price: Number(v.price ?? 0),
-          stock: v.inventoryQuantity ?? null,
-          image: v.image?.url ?? image,
-        })),
+        optionNames: single ? [] : ((p.options ?? []) as any[]).map((o) => String(o.name)),
+        variants: vars.map((v) => {
+          const tracked = v.inventoryItem ? v.inventoryItem.tracked !== false : null;
+          const price = Number(v.price ?? 0);
+          const compare = Number(v.compareAtPrice ?? 0);
+          return {
+            externalVariantId: numericId(v.id),
+            title: v.title === 'Default Title' ? 'Default' : v.title,
+            sku: v.sku || null,
+            barcode: v.barcode || null,
+            price,
+            compareAt: compare > price ? compare : null,
+            // An item Shopify does not count has no stock: never read its 0 as real.
+            stock: tracked === false ? null : v.inventoryQuantity ?? null,
+            tracked,
+            inventoryItemId: v.inventoryItem?.id ? numericId(v.inventoryItem.id) : null,
+            image: v.image?.url ?? image,
+            options: single ? [] : ((v.selectedOptions ?? []) as any[]).map((o) => ({ name: String(o.name), value: String(o.value) })),
+          };
+        }),
       };
     });
+  }
+
+  /**
+   * Full details (description, every image, brand, category, tags, weight,
+   * cost) for the products being brought into Nafaa. A failed read leaves
+   * the item with what the list gave; it never stops the import.
+   */
+  async remoteDetails(integration: Integration, ids: string[]): Promise<Map<string, RemoteDetail>> {
+    const out = new Map<string, RemoteDetail>();
+    if (!ids.length) return out;
+    const kind = this.kind(integration);
+    try {
+      if (kind === 'shopify') await this.shopifyDetails(integration, ids, out);
+      else if (kind === 'woocommerce') await this.wooDetails(integration, ids, out);
+      else if (kind === 'daraz') {
+        for (const [id, d] of await this.daraz.productDetails(integration, ids)) out.set(id, d);
+      }
+    } catch (e: any) {
+      this.logger.warn(`Details ${integration.displayName}: ${e?.message}`);
+    }
+    return out;
+  }
+
+  private async shopifyDetails(integration: Integration, ids: string[], out: Map<string, RemoteDetail>) {
+    const client = await this.shopify.client(integration);
+    if (!client) return;
+    const body = (cost: boolean) => `query($ids: [ID!]!) { nodes(ids: $ids) { ... on Product {
+      id descriptionHtml vendor productType tags category { fullName }
+      media(first: 20) { nodes { ... on MediaImage { image { url } } } }
+      variants(first: 100) { nodes { id barcode inventoryItem { measurement { weight { unit value } } ${cost ? 'unitCost { amount }' : ''} } } }
+    } } }`;
+    let withCost = true;
+    for (let k = 0; k < ids.length; k += 5) {
+      const gids = ids.slice(k, k + 5).map((id) => `gid://shopify/Product/${id}`);
+      // Cost needs the inventory permission on cost; without it the same read runs without cost.
+      let data: any = withCost ? await client.graphql<any>(body(true), { ids: gids }).catch(() => null) : null;
+      if (!data) { withCost = false; data = await client.graphql<any>(body(false), { ids: gids }).catch(() => null); }
+      for (const n of data?.nodes ?? []) {
+        if (!n?.id) continue;
+        const d = emptyDetail();
+        d.description = htmlToText(n.descriptionHtml);
+        d.images = ((n.media?.nodes ?? []) as any[]).map((m) => m?.image?.url).filter(Boolean);
+        d.brand = n.vendor ? String(n.vendor).trim() || null : null;
+        const type = String(n.productType ?? '').trim();
+        d.categoryPath = type ? [type] : n.category?.fullName ? [String(n.category.fullName).split('>').pop()!.trim()] : [];
+        d.tags = ((n.tags ?? []) as string[]).map((x) => String(x).trim()).filter(Boolean);
+        for (const v of (n.variants?.nodes ?? []) as any[]) {
+          const w = v.inventoryItem?.measurement?.weight;
+          const unit = weightUnit(w?.unit);
+          const value = Number(w?.value ?? 0);
+          if (unit && value > 0 && !d.weightUnit) d.weightUnit = unit;
+          const cost = Number(v.inventoryItem?.unitCost?.amount ?? 0);
+          d.variants[numericId(v.id)] = {
+            cost: cost > 0 ? cost : null,
+            weight: unit && value > 0 ? convertWeight(value, unit, d.weightUnit ?? unit) : null,
+            barcode: v.barcode || null,
+          };
+        }
+        const first = Object.values(d.variants)[0];
+        d.weight = first?.weight ?? null;
+        out.set(numericId(n.id), d);
+      }
+    }
+  }
+
+  private async wooDetails(integration: Integration, ids: string[], out: Map<string, RemoteDetail>) {
+    const client = this.woo.client(integration);
+    if (!client) return;
+    for (let k = 0; k < ids.length; k += 50) {
+      const rows = await client.request<any[]>('GET', '/products', { query: { include: ids.slice(k, k + 50).join(','), per_page: '50' } }).catch(() => []);
+      for (const p of rows ?? []) {
+        const d = emptyDetail();
+        d.description = htmlToText(p.description) ?? htmlToText(p.short_description);
+        d.images = ((p.images ?? []) as any[]).map((i) => i?.src).filter(Boolean);
+        const brand = ((p.brands ?? []) as any[])[0]?.name
+          ?? ((p.attributes ?? []) as any[]).find((a) => /brand/i.test(String(a?.name)))?.options?.[0];
+        d.brand = brand ? String(brand).trim() || null : null;
+        const cat = ((p.categories ?? []) as any[]).find((c) => !/^uncategori[sz]ed$/i.test(String(c?.name)));
+        d.categoryPath = cat?.name ? [htmlToText(String(cat.name)) ?? String(cat.name)] : [];
+        d.tags = ((p.tags ?? []) as any[]).map((x) => String(x?.name ?? '').trim()).filter(Boolean);
+        const w = Number(p.weight ?? 0);
+        if (w > 0) { d.weight = w; d.weightUnit = 'kg'; }
+        const cogs = Number(p.cost_of_goods_sold?.values?.[0]?.defined_value ?? p.cost_of_goods_sold?.total_value ?? 0);
+        d.variants['-'] = { cost: cogs > 0 ? cogs : null, weight: w > 0 ? w : null, barcode: p.global_unique_id || null };
+        if (p.type === 'variable') {
+          const vars = await client.all<any>(`/products/${p.id}/variations`, { _fields: 'id,weight,global_unique_id,cost_of_goods_sold' }, 10).catch(() => []);
+          for (const v of vars) {
+            const vw = Number(v.weight ?? 0);
+            const vc = Number(v.cost_of_goods_sold?.values?.[0]?.defined_value ?? v.cost_of_goods_sold?.total_value ?? 0);
+            d.variants[String(v.id)] = { cost: vc > 0 ? vc : null, weight: vw > 0 ? vw : null, barcode: v.global_unique_id || null };
+          }
+        }
+        out.set(String(p.id), d);
+      }
+    }
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -415,7 +568,54 @@ export class ChannelCatalogService {
     return this.saveLinksFor(integration, user.tenantId, links);
   }
 
-  /** Link channel items to Nafaa products/sizes. Callers check permission and channel ownership. */
+  /** Branch whose stock the channel uses: the channel's own, else the main branch; null when the business has none. */
+  async stockShop(integration: Integration): Promise<string | null> {
+    const cfg = readWebsiteConfig(integration.config);
+    const own = cfg.shopId ?? integration.shopId;
+    if (own) return own;
+    const main = await this.prisma.shop.findFirst({
+      where: { tenantId: integration.tenantId, isActive: true },
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    });
+    return main?.id ?? null;
+  }
+
+  /** Same as stockShop, but an import cannot go on without a branch for the opening stock. */
+  async importShop(integration: Integration): Promise<string> {
+    const id = await this.stockShop(integration);
+    if (!id) throw new BadRequestException('Koi branch nahi mili — pehle Shops me branch banayein, phir channel ki branch chunein. Bina branch ke Stock nahi aa sakta.');
+    return id;
+  }
+
+  /** Nafaa branch stock per product/size key. */
+  private async branchStock(db: any, shopId: string | null, productIds: string[]): Promise<Map<string, number>> {
+    const out = new Map<string, number>();
+    if (!shopId || !productIds.length) return out;
+    for (let k = 0; k < productIds.length; k += 5000) {
+      const rows: Array<{ productId: string; variantId: string | null; stock: number }> = await db.shopStock.findMany({
+        where: { shopId, productId: { in: productIds.slice(k, k + 5000) } },
+        select: { productId: true, variantId: true, stock: true },
+      });
+      for (const r of rows) out.set(mappingKey(r.productId, r.variantId), Number(r.stock ?? 0));
+    }
+    return out;
+  }
+
+  /** Channel item from the cached list (no channel read). */
+  private cachedVariant(integrationId: string, externalProductId: string, externalVariantId: string | null) {
+    const hit = this.cache.get(integrationId);
+    const p = hit?.data.find((x) => x.externalProductId === String(externalProductId));
+    if (!p) return null;
+    const v = externalVariantId ? p.variants.find((x) => x.externalVariantId === String(externalVariantId)) : p.variants[0];
+    return v ? { p, v } : null;
+  }
+
+  /**
+   * Link channel items to Nafaa products/sizes. Callers check permission and
+   * channel ownership. A new link whose Nafaa and channel stock differ starts
+   * on hold ("Stock milana baqi"): nothing is pushed until the merchant picks a side.
+   */
   async saveLinksFor(integration: Integration, tenantId: string, links: LinkInput[]) {
     if (!Array.isArray(links) || !links.length) throw new BadRequestException('Kuch chuna nahi');
     const user = { tenantId };
@@ -429,8 +629,11 @@ export class ChannelCatalogService {
         ? this.prisma.productVariant.findMany({ where: { id: { in: variantIds }, product: { tenantId: user.tenantId } }, select: { id: true, productId: true } })
         : [],
     ]);
+    const shopId = await this.stockShop(integration);
+    const stock = await this.branchStock(this.prisma, shopId, okProducts.map((p) => p.id));
 
     let saved = 0;
+    let held = 0;
     const errors: string[] = [];
     for (const l of links.slice(0, 500)) {
       const p = okProducts.find((x) => x.id === l.productId);
@@ -443,6 +646,7 @@ export class ChannelCatalogService {
         errors.push(`${l.externalTitle ?? l.externalProductId}: is product ke sizes hain — size chunein`); continue;
       }
       const externalVariantId = l.externalVariantId || null;
+      const key = mappingKey(l.productId, l.variantId);
       // Ek website variant ek hi Nafaa cheez se — purana link (agar kisi aur se tha) hatao
       await this.prisma.productChannelMapping.deleteMany({
         where: {
@@ -450,28 +654,40 @@ export class ChannelCatalogService {
           ...(externalVariantId
             ? { externalVariantId }
             : { externalProductId: String(l.externalProductId), externalVariantId: null }),
-          NOT: { linkKey: mappingKey(l.productId, l.variantId) },
+          NOT: { linkKey: key },
         },
       });
+      const prev = await this.prisma.productChannelMapping.findUnique({
+        where: { integrationId_linkKey: { integrationId: integration.id, linkKey: key } },
+        select: { externalProductId: true, externalVariantId: true, externalData: true, stockHold: true, tracksStock: true },
+      });
+      const same = !!prev && prev.externalProductId === String(l.externalProductId) && (prev.externalVariantId ?? null) === externalVariantId;
+      const seen = this.cachedVariant(integration.id, String(l.externalProductId), externalVariantId);
+      const tracks = seen?.v.tracked ?? (same ? prev!.tracksStock : null) ?? null;
+      const given = l.externalStock === undefined || l.externalStock === null ? null : Number(l.externalStock);
+      const channelStock = tracks === false ? null : Number.isFinite(given as number) ? given : seen?.v.stock ?? null;
+      // A link that already pointed here keeps its state; a new one is checked.
+      const hold = same ? undefined : holdOnLink({ nafaaStock: stock.get(key) ?? 0, channelStock, tracks, reason: 'link' });
+      const externalData = linkData(prev?.externalData, channelStock, seen?.v);
+      const common = {
+        externalProductId: String(l.externalProductId), externalVariantId,
+        externalSku: l.externalSku ?? null, externalTitle: l.externalTitle?.slice(0, 250) ?? null, externalImage: l.externalImage ?? null,
+        syncStatus: 'SUCCESS' as const, lastSyncedAt: new Date(), externalData,
+        ...(tracks !== null && { tracksStock: tracks }),
+        ...(hold !== undefined && { stockHold: hold ? (hold as any) : Prisma.DbNull }),
+        // A new target has not been pushed yet: the first push is checked again.
+        ...(!same && prev && { lastPush: Prisma.DbNull }),
+      };
       await this.prisma.productChannelMapping.upsert({
-        where: { integrationId_linkKey: { integrationId: integration.id, linkKey: mappingKey(l.productId, l.variantId) } },
-        create: {
-          integrationId: integration.id, linkKey: mappingKey(l.productId, l.variantId),
-          productId: l.productId, variantId: l.variantId || null,
-          externalProductId: String(l.externalProductId), externalVariantId,
-          externalSku: l.externalSku ?? null, externalTitle: l.externalTitle?.slice(0, 250) ?? null, externalImage: l.externalImage ?? null,
-          syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
-        },
-        update: {
-          externalProductId: String(l.externalProductId), externalVariantId,
-          externalSku: l.externalSku ?? null, externalTitle: l.externalTitle?.slice(0, 250) ?? null, externalImage: l.externalImage ?? null,
-          syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
-        },
+        where: { integrationId_linkKey: { integrationId: integration.id, linkKey: key } },
+        create: { integrationId: integration.id, linkKey: key, productId: l.productId, variantId: l.variantId || null, ...common },
+        update: common,
       });
+      if (hold) held++;
       saved++;
     }
     this.cache.delete(integration.id);
-    return { saved, errors };
+    return { saved, held, errors };
   }
 
   async removeLink(user: AuthenticatedUser, channelId: string, mappingId: string) {
@@ -491,148 +707,346 @@ export class ChannelCatalogService {
     return this.importFor(integration, user.tenantId, externalProductIds);
   }
 
-  /** Channel items → new Nafaa products (with sizes), linked. Negative channel stock starts at 0. */
+  /**
+   * Channel items → Nafaa products with everything the channel gives (text,
+   * images, prices, cost, SKU, barcode, weight, brand, category, tags,
+   * variants with options) and opening stock = channel stock, linked. An item
+   * already in Nafaa is linked; its stock is never overwritten (the link waits
+   * for the merchant when the two differ). One path for "Bring in all" and
+   * single imports. Without a branch for the stock, nothing is imported.
+   */
   async importFor(integration: Integration, tenantId: string, externalProductIds: string[]) {
-    const user = { tenantId };
-    const cfg = readWebsiteConfig(integration.config);
-    const shopId = cfg.shopId ?? integration.shopId;
+    const shopId = await this.importShop(integration);
     const remote = await this.remoteProducts(integration);
     const pick = remote.filter((p) => externalProductIds.includes(p.externalProductId)).slice(0, 200);
     if (!pick.length) throw new BadRequestException('Koi product nahi chuna');
+    const details = await this.remoteDetails(integration, pick.map((p) => p.externalProductId));
+    const ctx: ImportCtx = { tenantId, shopId, integration, categories: new Map(), brands: new Map(), tags: new Map() };
 
     let created = 0;
     let linkedExisting = 0;
+    let held = 0;
+    let untracked = 0;
     const errors: string[] = [];
 
     for (const p of pick) {
+      const detail = details.get(p.externalProductId) ?? null;
       try {
         await this.prisma.$transaction(async (tx) => {
-          const firstSku = p.variants[0]?.sku ?? null;
-          // Pehle se Nafaa me ho (SKU / barcode, ya bilkul wahi naam) to naya mat banao — usi se jor do
-          const existing = (!p.hasVariants && firstSku
-            ? await tx.product.findFirst({ where: { tenantId: user.tenantId, OR: [{ sku: firstSku }, { barcode: firstSku }] }, select: { id: true } })
-            : null)
-            ?? await tx.product.findFirst({ where: { tenantId: user.tenantId, isActive: true, name: { equals: p.title.trim(), mode: 'insensitive' } }, select: { id: true } });
-
+          const existing = await this.findExisting(tx, tenantId, p);
           if (existing) {
-            if (p.hasVariants) await this.addVariantsTx(tx, integration.id, existing.id, p, user.tenantId, shopId);
-            else await this.linkTx(tx, integration.id, existing.id, null, p, p.variants[0]);
+            const r = await this.intoExistingTx(tx, ctx, existing.id, p, detail, null);
+            held += r.held;
             linkedExisting++;
-            return;
-          }
-
-          const product = await tx.product.create({
-            data: {
-              tenantId: user.tenantId,
-              name: p.title.slice(0, 250),
-              sku: p.hasVariants ? null : firstSku,
-              barcode: p.hasVariants ? null : p.variants[0]?.barcode ?? null,
-              // Variants ho to sab se kam qeemat product ki "se shuru" qeemat
-              price: p.hasVariants ? Math.min(...p.variants.map((v) => Number(v.price ?? 0)).filter((n) => n > 0), Number(p.variants[0]?.price ?? 0)) : Number(p.variants[0]?.price ?? 0),
-              costPrice: 0,
-              hasVariants: p.hasVariants,
-              isActive: true,
-              description: `${integration.displayName} se aaya`,
-            },
-            select: { id: true },
-          });
-          if (p.image) {
-            await tx.productImage.create({ data: { productId: product.id, url: p.image, sortOrder: 0, isPrimary: true } }).catch(() => null);
-          }
-
-          if (!p.hasVariants) {
-            const v = p.variants[0];
-            if (shopId) {
-              await applyStockDelta({
-                tx, tenantId: user.tenantId, shopId, productId: product.id, delta: Math.max(0, Number(v?.stock ?? 0)),
-                movementType: 'OPENING_BALANCE', reference: 'WEBSITE-IMPORT', note: `${integration.displayName} se import`,
-              });
-            }
-            await this.linkTx(tx, integration.id, product.id, null, p, v);
           } else {
-            let order = 0;
-            for (const v of p.variants) {
-              const variant = await tx.productVariant.create({
-                data: {
-                  productId: product.id, name: v.title.slice(0, 120), sku: v.sku, barcode: v.barcode,
-                  price: v.price, costPrice: 0, sortOrder: order++, imageUrl: v.image, isActive: true,
-                },
-                select: { id: true },
-              });
-              if (shopId) {
-                await applyStockDelta({
-                  tx, tenantId: user.tenantId, shopId, productId: product.id, variantId: variant.id,
-                  delta: Math.max(0, Number(v.stock ?? 0)), movementType: 'OPENING_BALANCE',
-                  reference: 'WEBSITE-IMPORT', note: `${integration.displayName} se import`,
-                });
-              }
-              await this.linkTx(tx, integration.id, product.id, variant.id, p, v);
-            }
+            await this.createProductTx(tx, ctx, p, detail);
+            created++;
           }
-          created++;
-        });
+          untracked += p.variants.filter((v) => v.tracked === false).length;
+        }, { timeout: 60_000 });
       } catch (e: any) {
         if (errors.length < 20) errors.push(`${p.title}: ${e?.message ?? 'Error'}`);
       }
     }
     this.cache.delete(integration.id);
-    return { created, linkedExisting, failed: errors.length, errors };
+    return { created, linkedExisting, held, untracked, failed: errors.length, errors };
+  }
+
+  /** An item already in Nafaa: by a size SKU, the product SKU/barcode, or exactly the same name. */
+  private async findExisting(tx: any, tenantId: string, p: RemoteProduct): Promise<{ id: string } | null> {
+    const codes = [...new Set(p.variants.flatMap((v) => [v.sku, v.barcode]).filter(Boolean))] as string[];
+    if (p.hasVariants && codes.length) {
+      const v = await tx.productVariant.findFirst({ where: { isActive: true, product: { tenantId, isActive: true }, OR: [{ sku: { in: codes } }, { barcode: { in: codes } }] }, select: { productId: true } });
+      if (v) return { id: v.productId };
+    }
+    if (!p.hasVariants && codes.length) {
+      const hit = await tx.product.findFirst({ where: { tenantId, isActive: true, OR: [{ sku: { in: codes } }, { barcode: { in: codes } }] }, select: { id: true } });
+      if (hit) return hit;
+    }
+    return tx.product.findFirst({ where: { tenantId, isActive: true, name: { equals: p.title.trim(), mode: 'insensitive' } }, select: { id: true } });
+  }
+
+  /** New Nafaa product (and sizes) from a channel item, with opening stock = channel stock. */
+  private async createProductTx(tx: any, ctx: ImportCtx, p: RemoteProduct, detail: RemoteDetail | null) {
+    const d = detail ?? emptyDetail();
+    const sell = (v: RemoteVariant) => Number(v.sellPrice ?? v.price ?? 0) || 0;
+    const v0 = p.variants[0];
+    const prices = p.variants.map(sell).filter((n) => n > 0);
+    const [categoryId, brandId] = await Promise.all([
+      this.ensureCategory(tx, ctx, d.categoryPath),
+      this.ensureBrand(tx, ctx, d.brand),
+    ]);
+    const vd = (v: RemoteVariant) => d.variants[v.externalVariantId ?? '-'] ?? d.variants['-'] ?? {};
+    const product = await tx.product.create({
+      data: {
+        tenantId: ctx.tenantId,
+        name: p.title.slice(0, 250),
+        sku: p.hasVariants ? null : v0?.sku ?? null,
+        barcode: p.hasVariants ? null : v0?.barcode ?? vd(v0).barcode ?? null,
+        // With sizes: the lowest size price is the product's "from" price.
+        price: p.hasVariants ? (prices.length ? Math.min(...prices) : 0) : sell(v0),
+        costPrice: p.hasVariants ? 0 : Number(vd(v0).cost ?? 0) || 0,
+        hasVariants: p.hasVariants,
+        isActive: true,
+        description: d.description,
+        categoryId,
+        brandId,
+        weight: d.weight,
+        weightUnit: d.weight ? d.weightUnit : null,
+      },
+      select: { id: true },
+    });
+    const images = [...new Set([...d.images, ...(p.image ? [p.image] : [])].filter((u) => /^https?:\/\//i.test(u)))].slice(0, 20);
+    if (images.length) {
+      await tx.productImage.createMany({ data: images.map((url, i) => ({ productId: product.id, url, sortOrder: i, isPrimary: i === 0 })) });
+    }
+    await this.addTags(tx, ctx, product.id, d.tags);
+
+    const note = `${ctx.integration.displayName} se import`;
+    const opening = async (variantId: string | null, v: RemoteVariant) => {
+      // Not counted on the channel: no stock to bring; the link is marked untracked.
+      if (v.tracked === false || v.stock === null || v.stock === undefined) return;
+      await applyStockDelta({
+        tx, tenantId: ctx.tenantId, shopId: ctx.shopId, productId: product.id, variantId, delta: Math.max(0, Number(v.stock) || 0),
+        movementType: 'OPENING_BALANCE', reference: 'WEBSITE-IMPORT', note,
+      });
+    };
+    if (!p.hasVariants) {
+      await opening(null, v0);
+      await this.linkTx(tx, ctx.integration.id, product.id, null, p, v0, { channelStock: v0?.stock ?? null, hold: null });
+      return product.id;
+    }
+    let order = 0;
+    for (const v of p.variants) {
+      const { size, color } = sizeColor(v.options);
+      const x = vd(v);
+      const variant = await tx.productVariant.create({
+        data: {
+          productId: product.id, name: variantName(v.title, v.options), sku: v.sku, barcode: v.barcode ?? x.barcode ?? null,
+          size, color, price: sell(v), costPrice: Number(x.cost ?? 0) || 0, weight: x.weight ?? null,
+          sortOrder: order++, imageUrl: v.image, isActive: true,
+        },
+        select: { id: true },
+      });
+      await opening(variant.id, v);
+      await this.linkTx(tx, ctx.integration.id, product.id, variant.id, p, v, { channelStock: v.stock, hold: null });
+    }
+    return product.id;
   }
 
   /**
-   * Website ke product ke variants maujooda Nafaa product me: jo variant (naam / SKU) pehle se hai us se jor do,
-   * jo nahi hai wo ban jaye. Simple Nafaa product variants wala ban jata hai.
+   * Channel item into an existing Nafaa product. Each channel SKU goes to the
+   * size picked in `plan` (null = make a new size) or, without a plan, to the
+   * size found by SKU, options or name; missing sizes are made with opening
+   * stock = channel stock. Existing sizes keep their stock: if it differs from
+   * the channel, the link waits ("Stock milana baqi").
    */
-  private async addVariantsTx(tx: any, integrationId: string, productId: string, p: RemoteProduct, tenantId: string, shopId: string | null) {
-    const existing: Array<{ id: string; name: string; sku: string | null }> = await tx.productVariant.findMany({ where: { productId }, select: { id: true, name: true, sku: true } });
-    let order = existing.length;
-    let created = 0;
-    for (const v of p.variants) {
-      const name = (v.title === 'Default' ? p.title : v.title).slice(0, 120);
-      let match: { id: string; name: string; sku: string | null } | undefined = existing.find((e) => (v.sku && e.sku === v.sku) || e.name.trim().toLowerCase() === name.trim().toLowerCase());
-      if (!match) {
-        const nv = await tx.productVariant.create({
-          data: { productId, name, sku: v.sku, barcode: v.barcode, price: v.price, costPrice: 0, sortOrder: order++, imageUrl: v.image, isActive: true },
-          select: { id: true, name: true, sku: true },
-        });
-        if (shopId && Number(v.stock ?? 0) > 0) {
-          await applyStockDelta({
-            tx, tenantId, shopId, productId, variantId: nv.id, delta: Number(v.stock), movementType: 'OPENING_BALANCE',
-            reference: 'WEBSITE-IMPORT', note: 'Website se variant',
-          });
-        }
-        existing.push(nv); match = nv; created++;
+  private async intoExistingTx(tx: any, ctx: ImportCtx, productId: string, p: RemoteProduct, detail: RemoteDetail | null,
+    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null) {
+    const product = await tx.product.findFirst({ where: { id: productId, tenantId: ctx.tenantId }, select: { id: true, name: true, hasVariants: true } });
+    if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    const stock = await this.branchStock(tx, ctx.shopId, [productId]);
+    let held = 0;
+    let createdVariants = 0;
+    let linked = 0;
+    const link = async (variantId: string | null, v: RemoteVariant) => {
+      const hold = holdOnLink({ nafaaStock: stock.get(mappingKey(productId, variantId)) ?? 0, channelStock: v.stock, tracks: v.tracked, reason: 'import' });
+      await this.linkTx(tx, ctx.integration.id, productId, variantId, p, v, { channelStock: v.stock, hold });
+      if (hold) held++;
+      linked++;
+    };
+
+    // One channel item on a product without sizes: a plain link.
+    if (!p.hasVariants && !product.hasVariants) {
+      await link(null, p.variants[0]);
+      return { held, createdVariants, linked };
+    }
+
+    const existing: Array<{ id: string; name: string; sku: string | null; barcode: string | null; size: string | null; color: string | null }> =
+      await tx.productVariant.findMany({ where: { productId, isActive: true }, select: { id: true, name: true, sku: true, barcode: true, size: true, color: true } });
+    if (!product.hasVariants) await this.assertCanConvert(tx, ctx.integration.id, productId, product.name);
+
+    const keyOf = (v: RemoteVariant) => v.externalVariantId ?? '-';
+    let wanted: Array<{ v: RemoteVariant; variantId: string | null }>;
+    if (plan) {
+      const byKey = new Map(plan.map((x) => [x.externalVariantId ?? '-', x.variantId]));
+      wanted = p.variants.filter((v) => byKey.has(keyOf(v))).map((v) => ({ v, variantId: byKey.get(keyOf(v)) ?? null }));
+      for (const w of wanted) {
+        if (w.variantId && !existing.some((e) => e.id === w.variantId)) throw new BadRequestException(`${w.v.title}: variant is product ka nahi`);
       }
-      await this.linkTx(tx, integrationId, productId, match!.id, p, v);
+      const ids = wanted.map((w) => w.variantId).filter(Boolean);
+      if (new Set(ids).size !== ids.length) throw new BadRequestException('Do SKU ek hi variant se nahi jur sakte');
+    } else {
+      const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), existing);
+      wanted = p.variants.map((v) => ({ v, variantId: found.get(keyOf(v))?.variantId ?? null }));
     }
-    await tx.product.update({ where: { id: productId }, data: { hasVariants: true } });
+
+    const d = detail ?? emptyDetail();
+    let order = existing.length;
+    for (const { v, variantId } of wanted) {
+      if (variantId) { await link(variantId, v); continue; }
+      const { size, color } = sizeColor(v.options);
+      const x = d.variants[keyOf(v)] ?? {};
+      const nv = await tx.productVariant.create({
+        data: {
+          productId, name: variantName(v.title === 'Default' ? p.title : v.title, v.options), sku: v.sku, barcode: v.barcode ?? x.barcode ?? null,
+          size, color, price: Number(v.sellPrice ?? v.price ?? 0) || 0, costPrice: Number(x.cost ?? 0) || 0, weight: x.weight ?? null,
+          sortOrder: order++, imageUrl: v.image, isActive: true,
+        },
+        select: { id: true },
+      });
+      createdVariants++;
+      if (v.tracked !== false && v.stock !== null && v.stock !== undefined) {
+        await applyStockDelta({
+          tx, tenantId: ctx.tenantId, shopId: ctx.shopId, productId, variantId: nv.id, delta: Math.max(0, Number(v.stock) || 0),
+          movementType: 'OPENING_BALANCE', reference: 'WEBSITE-IMPORT', note: `${ctx.integration.displayName} se variant`,
+        });
+      }
+      await this.linkTx(tx, ctx.integration.id, productId, nv.id, p, v, { channelStock: v.stock, hold: null });
+      linked++;
+    }
+    if (!product.hasVariants) await tx.product.update({ where: { id: productId }, data: { hasVariants: true } });
     // Tasveer na ho to website wali laga do
-    if (p.image && !(await tx.productImage.findFirst({ where: { productId }, select: { id: true } }))) {
-      await tx.productImage.create({ data: { productId, url: p.image, sortOrder: 0, isPrimary: true } }).catch(() => null);
+    const img = d.images[0] ?? p.image;
+    if (img && !(await tx.productImage.findFirst({ where: { productId }, select: { id: true } }))) {
+      await tx.productImage.create({ data: { productId, url: img, sortOrder: 0, isPrimary: true } }).catch(() => null);
     }
-    return created;
+    return { held, createdVariants, linked };
   }
 
-  /** "Is Nafaa product me jorein" — website product (aur us ke variants) chune hue Nafaa product me */
-  async importInto(user: AuthenticatedUser, channelId: string, externalProductId: string, productId: string) {
+  /** Why a product without sizes cannot get sizes from a channel item, or null when it can. */
+  private async convertBlock(db: any, integrationId: string, productId: string): Promise<string | null> {
+    const [stocked, links] = await Promise.all([
+      db.shopStock.count({ where: { productId, variantId: null, stock: { not: 0 } } }),
+      db.productChannelMapping.count({ where: { productId, variantId: null, NOT: { integrationId } } }),
+    ]);
+    if (stocked) return 'Is product ka Stock bina variant ke rakha hai — pehle Nafaa me is ke variants banayein, phir har SKU jorein';
+    if (links) return 'Ye product kisi aur channel se bina variant jura hai — pehle wahan variant ke hisaab se jorein';
+    return null;
+  }
+
+  private async assertCanConvert(db: any, integrationId: string, productId: string, name: string) {
+    const why = await this.convertBlock(db, integrationId, productId);
+    if (why) throw new BadRequestException(`${name}: ${why}`);
+  }
+
+  /** "Is Nafaa product me jorein" — channel product (and its SKUs) into the picked Nafaa product. */
+  async importInto(user: AuthenticatedUser, channelId: string, externalProductId: string, productId: string,
+    plan?: Array<{ externalVariantId: string | null; variantId: string | null }>) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
-    const cfg = readWebsiteConfig(integration.config);
-    const shopId = cfg.shopId ?? integration.shopId;
-    const p = (await this.remoteProducts(integration)).find((x) => x.externalProductId === externalProductId);
-    if (!p) throw new BadRequestException('Website product nahi mila — "Website se taaza" dabayein');
-    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId: user.tenantId }, select: { id: true, name: true } });
-    if (!product) throw new BadRequestException('Nafaa product nahi mila');
-    const created = await this.prisma.$transaction(async (tx) => {
-      if (!p.hasVariants) { await this.linkTx(tx, integration.id, product.id, null, p, p.variants[0]); return 0; }
-      return this.addVariantsTx(tx, integration.id, product.id, p, user.tenantId, shopId);
-    });
-    this.cache.delete(integration.id);
-    return { ok: true, product: product.name, variantsCreated: created, linked: p.variants.length };
+    return this.importIntoFor(integration, user.tenantId, externalProductId, productId, plan ?? null);
   }
 
-  private async linkTx(tx: any, integrationId: string, productId: string, variantId: string | null, p: RemoteProduct, v?: RemoteVariant) {
+  async importIntoFor(integration: Integration, tenantId: string, externalProductId: string, productId: string,
+    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null) {
+    const shopId = await this.importShop(integration);
+    const p = (await this.remoteProducts(integration)).find((x) => x.externalProductId === externalProductId);
+    if (!p) throw new BadRequestException('Channel ka product nahi mila — "Channel se taaza" dabayein');
+    const product = await this.prisma.product.findFirst({ where: { id: productId, tenantId }, select: { id: true, name: true } });
+    if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    if (plan && !plan.length) throw new BadRequestException('Koi SKU nahi chuna');
+    const details = await this.remoteDetails(integration, [externalProductId]);
+    const ctx: ImportCtx = { tenantId, shopId, integration, categories: new Map(), brands: new Map(), tags: new Map() };
+    const r = await this.prisma.$transaction((tx) => this.intoExistingTx(tx, ctx, product.id, p, details.get(externalProductId) ?? null, plan), { timeout: 60_000 });
+    this.cache.delete(integration.id);
+    return { ok: true, product: product.name, variantsCreated: r.createdVariants, linked: r.linked, held: r.held };
+  }
+
+  /**
+   * Which Nafaa size each channel SKU would go to (SKU, then options, then
+   * name), for the per-SKU linking screen.
+   */
+  async linkPlan(integration: Integration, tenantId: string, externalProductId: string, productId: string) {
+    const p = (await this.remoteProducts(integration)).find((x) => x.externalProductId === externalProductId);
+    if (!p) throw new BadRequestException('Channel ka product nahi mila — "Channel se taaza" dabayein');
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, tenantId },
+      select: { id: true, name: true, hasVariants: true, variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, barcode: true, size: true, color: true } } },
+    });
+    if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    const shopId = await this.stockShop(integration);
+    const [stock, maps, block] = await Promise.all([
+      this.branchStock(this.prisma, shopId, [product.id]),
+      this.prisma.productChannelMapping.findMany({ where: { integrationId: integration.id, externalProductId }, select: { id: true, productId: true, variantId: true, externalVariantId: true } }),
+      product.hasVariants ? Promise.resolve(null) : this.convertBlock(this.prisma, integration.id, product.id),
+    ]);
+    const keyOf = (v: RemoteVariant) => v.externalVariantId ?? '-';
+    const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), product.variants);
+    return {
+      product: { id: product.id, name: product.name, hasVariants: product.hasVariants },
+      remote: { externalProductId: p.externalProductId, title: p.title, hasVariants: p.hasVariants, optionNames: p.optionNames ?? [] },
+      rows: p.variants.map((v) => {
+        const m = maps.find((x) => (v.externalVariantId ? x.externalVariantId === v.externalVariantId : !x.externalVariantId));
+        return {
+          externalVariantId: v.externalVariantId, title: v.title, sku: v.sku, price: Number(v.sellPrice ?? v.price ?? 0), stock: v.tracked === false ? null : v.stock,
+          tracked: v.tracked ?? null, options: v.options ?? [],
+          linked: m ? { mappingId: m.id, productId: m.productId, variantId: m.variantId } : null,
+          match: found.get(keyOf(v)) ?? null,
+        };
+      }),
+      variants: product.variants.map((v) => ({ id: v.id, name: v.name, sku: v.sku, size: v.size, color: v.color, stock: stock.get(mappingKey(product.id, v.id)) ?? 0 })),
+      canConvert: !product.hasVariants && !block,
+      convertBlock: block,
+    };
+  }
+
+  private async ensureCategory(tx: any, ctx: ImportCtx, path: string[]): Promise<string | null> {
+    const names = path.map((x) => String(x ?? '').trim().slice(0, 100)).filter(Boolean);
+    if (!names.length) return null;
+    const cacheKey = names.join('>').toLowerCase();
+    if (ctx.categories.has(cacheKey)) return ctx.categories.get(cacheKey)!;
+    // Names are unique per business: an existing name is used wherever it sits in the tree.
+    let parentId: string | null = null;
+    for (const name of names) {
+      const hit: { id: string } | null = await tx.category.findFirst({ where: { tenantId: ctx.tenantId, name: { equals: name, mode: 'insensitive' } }, select: { id: true } });
+      parentId = hit?.id ?? (await tx.category.create({ data: { tenantId: ctx.tenantId, name, parentId }, select: { id: true } })).id;
+    }
+    ctx.categories.set(cacheKey, parentId!);
+    return parentId;
+  }
+
+  private async ensureBrand(tx: any, ctx: ImportCtx, name: string | null): Promise<string | null> {
+    const n = String(name ?? '').trim().slice(0, 100);
+    if (!n) return null;
+    const k = n.toLowerCase();
+    if (ctx.brands.has(k)) return ctx.brands.get(k)!;
+    const hit = await tx.brand.findFirst({ where: { tenantId: ctx.tenantId, name: { equals: n, mode: 'insensitive' } }, select: { id: true } });
+    let id = hit?.id as string | undefined;
+    if (!id) {
+      const base = n.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '') || 'brand';
+      const taken = new Set(((await tx.brand.findMany({ where: { tenantId: ctx.tenantId, slug: { startsWith: base } }, select: { slug: true } })) as Array<{ slug: string }>).map((b) => b.slug));
+      let slug = base;
+      for (let i = 2; taken.has(slug); i++) slug = `${base}-${i}`;
+      id = (await tx.brand.create({ data: { tenantId: ctx.tenantId, name: n, slug }, select: { id: true } })).id as string;
+    }
+    ctx.brands.set(k, id);
+    return id;
+  }
+
+  private async addTags(tx: any, ctx: ImportCtx, productId: string, tags: string[]) {
+    const names = [...new Set(tags.map((t) => t.trim().slice(0, 60)).filter(Boolean))].slice(0, 30);
+    for (const name of names) {
+      const k = name.toLowerCase();
+      let id = ctx.tags.get(k);
+      if (!id) {
+        const hit = await tx.tag.findFirst({ where: { tenantId: ctx.tenantId, name: { equals: name, mode: 'insensitive' } }, select: { id: true } });
+        id = hit?.id ?? (await tx.tag.create({ data: { tenantId: ctx.tenantId, name }, select: { id: true } })).id;
+        ctx.tags.set(k, id!);
+      }
+      await tx.productTag.create({ data: { productId, tagId: id! } }).catch(() => null);
+    }
+  }
+
+  private async linkTx(tx: any, integrationId: string, productId: string, variantId: string | null, p: RemoteProduct, v: RemoteVariant | undefined,
+    opts: { channelStock: number | null; hold: StockHold | null }) {
     const key = mappingKey(productId, variantId);
+    const prev = await tx.productChannelMapping.findUnique({ where: { integrationId_linkKey: { integrationId, linkKey: key } }, select: { externalData: true, externalProductId: true, externalVariantId: true } });
+    const same = !!prev && prev.externalProductId === p.externalProductId && (prev.externalVariantId ?? null) === (v?.externalVariantId ?? null);
+    const tracks = v?.tracked === undefined ? undefined : v.tracked;
+    const channelStock = tracks === false ? null : opts.channelStock;
+    const externalData = linkData(prev?.externalData, channelStock, v);
+    const sale = v?.compareAt && v.compareAt > Number(v.sellPrice ?? v.price ?? 0) ? v.compareAt : null;
     await tx.productChannelMapping.upsert({
       where: { integrationId_linkKey: { integrationId, linkKey: key } },
       create: {
@@ -640,10 +1054,15 @@ export class ChannelCatalogService {
         externalProductId: p.externalProductId, externalVariantId: v?.externalVariantId ?? null,
         externalSku: v?.sku ?? null, externalTitle: v && p.hasVariants ? `${p.title} — ${v.title}` : p.title,
         externalImage: v?.image ?? p.image, syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
+        externalData, compareAtPrice: sale, stockHold: opts.hold ? (opts.hold as any) : Prisma.DbNull,
+        ...(tracks !== undefined && { tracksStock: tracks }),
       },
       update: {
         externalProductId: p.externalProductId, externalVariantId: v?.externalVariantId ?? null,
-        externalSku: v?.sku ?? null, syncStatus: 'SUCCESS', lastSyncedAt: new Date(),
+        externalSku: v?.sku ?? null, syncStatus: 'SUCCESS', lastSyncedAt: new Date(), externalData,
+        ...(tracks !== undefined && { tracksStock: tracks }),
+        // Same channel item again: its state stays; a new one is checked like any new link.
+        ...(!same && { stockHold: opts.hold ? (opts.hold as any) : Prisma.DbNull, lastPush: Prisma.DbNull }),
       },
     });
   }
@@ -665,4 +1084,31 @@ export class ChannelCatalogService {
     this.cache.delete(integration.id);
     return res;
   }
+}
+
+/** WooCommerce regular price, the sale price customers pay now, and the struck-out price. */
+function wooPrices(p: any): { price: number; sellPrice: number | null; compareAt: number | null } {
+  const regular = Number(p.regular_price || 0);
+  const now = Number(p.price || 0);
+  const sale = Number(p.sale_price || 0);
+  const price = regular || now;
+  const onSale = sale > 0 && regular > 0 && sale < regular;
+  return { price, sellPrice: onSale ? sale : null, compareAt: onSale ? regular : null };
+}
+
+/**
+ * Link data with the channel stock seen now. The first stock seen is kept
+ * (recovery reads it); the latest is updated.
+ */
+export function linkData(prev: unknown, channelStock: number | null | undefined, v?: RemoteVariant | null) {
+  const d = { ...((prev as Record<string, unknown>) ?? {}) };
+  const at = new Date().toISOString();
+  if (channelStock !== null && channelStock !== undefined && Number.isFinite(Number(channelStock))) {
+    d.channelStock = Number(channelStock);
+    d.channelStockAt = at;
+    if (!d.firstChannelStock) d.firstChannelStock = { qty: Number(channelStock), at };
+  }
+  if (v?.inventoryItemId) d.inventoryItemId = v.inventoryItemId;
+  if (v && v.price > 0 && d.channelPrice === undefined) { d.channelPrice = v.price; d.channelPriceAt = at; }
+  return d as Prisma.InputJsonValue;
 }

@@ -8,6 +8,7 @@ import { expiryState, packSavingPct, perBaseUnit } from '@nafaa/core/inventory';
 import { formatDate, formatDateTime, formatPKR } from '@/core/format';
 import { t } from '@/core/i18n';
 import { Amount, Badge, Button, DetailRow, DetailSection, EmptyState, ListRow, Row, Segmented, SkeletonRows, Text, useTheme } from '@/design';
+import { productSuppliersApi } from '../../api/suppliers';
 import { insightsApi, type Product, type ProductInsights, type ProductUnit } from '../../api/products';
 import { INV, qty, useOnline } from '../../lib/shared';
 import { movementOf } from '../../stock/meta';
@@ -205,6 +206,37 @@ export function UnitsTab({ product: p, units, stock, costHidden }: { product: Pr
           ))}
         </DetailSection>
       )}
+    </>
+  );
+}
+
+/** Who supplies the product: preferred first, usual and last cost per base unit, and the last purchases from each. */
+export function SuppliersTab({ product: p, costHidden }: { product: Product; costHidden: boolean }) {
+  const online = useOnline();
+  const q = useQuery({ queryKey: [INV, 'product-suppliers', p.id], queryFn: () => productSuppliersApi.list(p.id), enabled: online });
+  if (!q.data) return q.isLoading ? <SkeletonRows count={4} /> : <EmptyState compact title={t('Internet aane par dikhega')} tone="neutral" />;
+  const items = [...q.data.items].sort((a, b) => Number(b.isPreferred) - Number(a.isPreferred));
+  if (!items.length) return <EmptyState compact title={t('Abhi koi supplier nahi')} message={t('Edit me ja kar Suppliers jorein.')} />;
+  const unit = q.data.baseUnit || p.unit;
+  return (
+    <>
+      {items.map((l) => (
+        <DetailSection key={l.id} title={l.supplier.name} action={l.isPreferred ? <Badge tone="brand">{t('Preferred')}</Badge> : undefined}>
+          {l.supplierSku ? <DetailRow label={t('Supplier SKU')} value={<Text ltr>{l.supplierSku}</Text>} /> : null}
+          {!costHidden && l.costPrice != null ? <DetailRow label={t('Usual cost')} value={<Text ltr weight="semibold">{`${formatPKR(l.costPrice)} / ${unit}`}</Text>} /> : null}
+          {!costHidden && l.lastPurchasePrice != null ? (
+            <DetailRow label={t('Last purchase')} value={<Text ltr>{`${formatPKR(l.lastPurchasePrice)}${l.lastPurchasedAt ? ` · ${formatDate(l.lastPurchasedAt)}` : ''}`}</Text>} />
+          ) : null}
+          {l.minOrderQty ? <DetailRow label={t('Min order')} value={<Text ltr>{`${qty(l.minOrderQty)} ${unit}`}</Text>} /> : null}
+          {l.leadDays ? <DetailRow label={t('Lead days')} value={<Text ltr>{t('{{n}} din', { n: l.leadDays })}</Text>} /> : null}
+          {l.notes ? <DetailRow label={t('Notes')} value={l.notes} /> : null}
+          {l.purchases.map((r) => (
+            <ListRow key={`${r.purchaseId}-${r.unitName}`} dense title={r.purchaseNumber}
+              subtitle={[formatDate(r.purchasedAt), `${qty(r.quantity)} ${r.unitName}`].join(' · ')}
+              trailing={costHidden ? undefined : <Amount value={r.costPrice} size="sm" />} chevron onPress={() => router.push(`/purchases/${r.purchaseId}` as never)} />
+          ))}
+        </DetailSection>
+      ))}
     </>
   );
 }

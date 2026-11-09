@@ -49,6 +49,14 @@ export class GoogleFeedController {
     res.send(body);
   }
 
+  @Get(':token/meta-catalog.csv')
+  async meta(@Param('token') token: string, @Res() res: Response) {
+    const body = await this.svc.metaCatalog(token);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=900');
+    res.send(body);
+  }
+
   @Get(':token/local-inventory.txt')
   async local(@Param('token') token: string, @Res() res: Response) {
     const body = await this.svc.localInventory(token);

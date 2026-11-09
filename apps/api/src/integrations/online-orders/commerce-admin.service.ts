@@ -22,6 +22,7 @@ import {
   KILL_SWITCH_TYPES, parseCommerceControls,
 } from './commerce-controls';
 import { STUCK_DAYS } from './order-board';
+import { StockHandoverService } from './stock-handover.service';
 
 /** Integration types that belong to the online store. */
 const COMMERCE_TYPES: IntegrationType[] = ['SHOPIFY', 'DARAZ', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'FOODPANDA', 'MANUAL'];
@@ -75,6 +76,7 @@ export class CommerceAdminService {
     private readonly jobs: CatalogJobsService,
     private readonly watch: CatalogWatchService,
     private readonly products: OnlineProductsService,
+    private readonly handover: StockHandoverService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -642,6 +644,21 @@ export class CommerceAdminService {
       courierErrors: couriers.recentErrors.slice(0, 10),
       jobs: jobs.jobs,
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // IMPORT FIX (stock recovery) — read-only preview, apply on an explicit click
+  // ═══════════════════════════════════════════════════════════
+
+  stockRecovery(tenantId: string) {
+    return this.handover.tenantPreview(tenantId);
+  }
+
+  async applyStockRecovery(adminId: string, tenantId: string, channelId: string, mappingIds: string[]) {
+    if (!channelId) throw new BadRequestException('Pick a channel');
+    const res = await this.handover.tenantApply(tenantId, channelId, mappingIds, adminId);
+    await this.log(tenantId, adminId, 'COMMERCE_IMPORT_FIX', channelId, `Import fix applied: ${res.untracked} untracked, ${res.adjusted} stock restored`, { ...res, picked: mappingIds.length });
+    return res;
   }
 
   // ═══════════════════════════════════════════════════════════

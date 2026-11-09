@@ -1,3 +1,4 @@
+import { darazOptions } from './channel-import';
 import * as crypto from 'crypto';
 
 /**
@@ -110,8 +111,7 @@ export function priceXml(rows: { itemId: string; skuId: string; sellerSku: strin
   return `<?xml version="1.0" encoding="UTF-8" ?><Request><Product><Skus>${skus}</Skus></Product></Request>`;
 }
 
-/** Daraz SKU option title from its variation attributes ("Black / M"). */
-export function darazOptionTitle(s: any): string {
-  const parts = [s?.color_family, s?.size, s?.Variation, s?.variation].map((x) => (x == null ? '' : String(x).trim())).filter((x) => x && x.toLowerCase() !== 'not specified');
-  return [...new Set(parts)].join(' / ');
+/** Daraz SKU option title from its variation attributes ("Black / M"), from `saleProp` or the older top-level fields. */
+export function darazOptionTitle(s: any, defs: Record<string, string> = {}): string {
+  return [...new Set(darazOptions(s, defs).map((o) => o.value))].join(' / ');
 }

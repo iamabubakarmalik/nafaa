@@ -12,7 +12,12 @@ import { t as tr, Trans } from '@core/i18n';
    lagati hai. Qeemat Nafaa se; order seedha Online orders me.
    ═════════════════════════════════════════════════════════════ */
 
-interface Option { variantId: string | null; name: string | null; sku: string | null; price: number; inStock: boolean; maxQty: number }
+interface Option {
+  variantId: string | null; name: string | null; sku: string | null; price: number; inStock: boolean; maxQty: number;
+  /** backorder = out of stock but still taken, sent later (leadTime says when) */
+  availability?: 'in_stock' | 'out_of_stock' | 'backorder'; leadTime?: string | null;
+}
+const orderable = (o: Option) => o.inStock || o.availability === 'backorder';
 interface Product { id: string; name: string; category: string | null; description: string | null; image: string | null; options: Option[] }
 export interface Catalog {
   shop: string; channel: string; deliveryFee: number; freeAbove: number | null; message: string | null; products: Product[];
@@ -270,16 +275,19 @@ export default function PublicOrderPage() {
                       <select value={pick[p.id] ?? ''} onChange={(e) => setPick({ ...pick, [p.id]: e.target.value })}
                         aria-label={tr('Size')} className={cn(controlClass(), 'mt-1.5 h-9 px-2 text-[0.8125rem]')}>
                         <option value="">{tr('Chunein…')}</option>
-                        {p.options.map((o) => <option key={o.variantId ?? '-'} value={o.variantId ?? '-'} disabled={!o.inStock}>{o.name}{o.inStock ? '' : tr(' (khatam)')}</option>)}
+                        {p.options.map((o) => <option key={o.variantId ?? '-'} value={o.variantId ?? '-'} disabled={!orderable(o)}>{o.name}{o.inStock ? '' : o.availability === 'backorder' ? tr(' (baad me bhejenge)') : tr(' (khatam)')}</option>)}
                       </select>
+                    )}
+                    {chosen && !chosen.inStock && chosen.availability === 'backorder' && (
+                      <p className="mt-1 text-[0.75rem] font-medium text-amber-700">{chosen.leadTime || tr('Order lein — stock aane par bhejenge')}</p>
                     )}
                     <div className="mt-auto pt-2">
                       {inCart ? (
                         <Qty value={inCart.quantity} max={chosen!.maxQty} onChange={(n) => setQty(inCart, n, chosen!.maxQty)} full />
                       ) : (
-                        <Button variant="inverse" size="sm" fullWidth disabled={!chosen || !chosen.inStock}
+                        <Button variant="inverse" size="sm" fullWidth disabled={!chosen || !orderable(chosen)}
                           onClick={() => chosen && setQty({ productId: p.id, variantId: chosen.variantId, quantity: 0 }, 1, chosen.maxQty)}>
-                          {chosen && !chosen.inStock ? tr('Khatam') : multi && !chosen ? tr('Size chunein') : tr('+ Cart')}
+                          {chosen && !orderable(chosen) ? tr('Khatam') : multi && !chosen ? tr('Size chunein') : tr('+ Cart')}
                         </Button>
                       )}
                     </div>

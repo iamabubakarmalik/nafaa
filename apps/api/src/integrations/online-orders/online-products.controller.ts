@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { BulkAction, GridFilter, OnlineProductsService, Selection, SettingsBody } from './online-products.service';
 import type { LinkInput } from './channel-catalog.service';
+import { BackorderSaveBody, BackorderService } from './backorder-stock';
+import { StockHandoverService } from './stock-handover.service';
 
 /**
  * Online products: one place for linking, channel prices and stock across
@@ -16,7 +18,7 @@ import type { LinkInput } from './channel-catalog.service';
 @UseGuards(JwtAuthGuard)
 @Controller('online-products')
 export class OnlineProductsController {
-  constructor(private readonly svc: OnlineProductsService) {}
+  constructor(private readonly svc: OnlineProductsService, private readonly backorders: BackorderService, private readonly handover: StockHandoverService) {}
 
   @Get('channels')
   @ApiOperation({ summary: 'Connected product channels with price rule, stock buffer and link counts' })
@@ -85,6 +87,48 @@ export class OnlineProductsController {
     return this.svc.importItems(user, id, body?.externalProductIds ?? []);
   }
 
+  @Get('channels/:id/link-plan')
+  @ApiOperation({ summary: 'Which Nafaa size each channel SKU of one product would link to (SKU, options, name)' })
+  linkPlan(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('externalProductId') externalProductId: string, @Query('productId') productId: string) {
+    return this.svc.linkPlan(user, id, externalProductId, productId);
+  }
+
+  @Post('channels/:id/link-into')
+  @ApiOperation({ summary: 'Link a channel product per SKU into an existing Nafaa product; missing sizes are made' })
+  linkInto(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }> }) {
+    return this.svc.linkInto(user, id, body ?? {});
+  }
+
+  @Get('channels/:id/stock-holds')
+  @ApiOperation({ summary: 'Links waiting for the merchant to pick Nafaa or channel stock' })
+  stockHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.handover.holds(user, id, { page: Number(page) || 1, limit: Number(limit) || 50 });
+  }
+
+  @Post('channels/:id/stock-holds/resolve')
+  @ApiOperation({ summary: 'Take the channel stock into Nafaa, or send Nafaa stock, for held links (owner/manager)' })
+  resolveHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { action?: string; mappingIds?: string[]; all?: boolean }) {
+    return this.handover.resolve(user, id, body ?? {});
+  }
+
+  @Post('links/counting')
+  @ApiOperation({ summary: 'Start (or stop) Nafaa counting stock on the channel for items the channel does not count (owner/manager)' })
+  counting(@GetUser() user: AuthenticatedUser, @Body() body: { mappingIds?: string[]; on?: boolean }) {
+    return this.handover.setCounting(user, body ?? {});
+  }
+
+  @Get('channels/:id/stock-recovery')
+  @ApiOperation({ summary: 'Import fix preview: items the import left at 0 that were switched to counted, and wiped stock found (read only)' })
+  stockRecovery(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.handover.recoveryPreview(user, id);
+  }
+
+  @Post('channels/:id/stock-recovery/apply')
+  @ApiOperation({ summary: 'Import fix: tracking off again on Shopify for picked items, old stock back in Nafaa (owner/manager)' })
+  applyRecovery(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { mappingIds?: string[] }) {
+    return this.handover.recoveryApply(user, id, body?.mappingIds ?? []);
+  }
+
   @Put('channels/:id/settings')
   @ApiOperation({ summary: 'Channel price rule, price push and stock buffer' })
   settings(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: SettingsBody) {
@@ -111,8 +155,32 @@ export class OnlineProductsController {
 
   @Post('bulk')
   @ApiOperation({ summary: 'One action on picked products (or all matching): listed, stock share, price, sale price, push, publish' })
-  bulk(@GetUser() user: AuthenticatedUser, @Body() body: { selection?: Selection; action?: BulkAction; channelId?: string | null; value?: unknown }) {
-    return this.svc.bulk(user, body ?? {});
+  async bulk(@GetUser() user: AuthenticatedUser, @Body() body: { selection?: Selection; action?: BulkAction | 'backorder'; channelId?: string | null; value?: unknown }) {
+    // Sell when out of stock is a product setting, so it is set here for every channel at once.
+    if (body?.action === 'backorder') {
+      const ids = await this.svc.selectionIds(user, body.selection);
+      if (!ids.length) throw new BadRequestException('Koi product nahi chuna');
+      return { updated: await this.backorders.bulk(user, ids, body.value === null ? null : body.value !== false) };
+    }
+    return this.svc.bulk(user, (body ?? {}) as { selection?: Selection; action?: BulkAction; channelId?: string | null; value?: unknown });
+  }
+
+  @Get('items/:productId/backorder')
+  @ApiOperation({ summary: 'Sell when out of stock: product, size and channel settings, owed units and waiting orders' })
+  backorder(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string) {
+    return this.backorders.get(user, productId);
+  }
+
+  @Put('items/:productId/backorder')
+  @ApiOperation({ summary: 'Save sell-when-out-of-stock settings and send them to the channels' })
+  saveBackorder(@GetUser() user: AuthenticatedUser, @Param('productId') productId: string, @Body() body: BackorderSaveBody) {
+    return this.backorders.save(user, productId, body ?? {});
+  }
+
+  @Get('backorders')
+  @ApiOperation({ summary: 'Accepted orders waiting for stock (backorder lines), oldest first' })
+  waiting(@GetUser() user: AuthenticatedUser, @Query('productId') productId?: string) {
+    return this.backorders.waiting(user.tenantId, productId ? productId.split(',').slice(0, 200) : undefined);
   }
 
   @Post('channels/:id/import-all')

@@ -24,7 +24,8 @@
       "@industries/*": ["./src/industries/*"],
       "@integrations/*": ["./src/integrations/*"],
       "@nafaa/shared-types": ["../../packages/shared-types/src"],
-      "@nafaa/shared-utils": ["../../packages/shared-utils/src"]
+      "@nafaa/shared-utils": ["../../packages/shared-utils/src"],
+      "@nafaa/core/*": ["../../packages/core/src/*"]
     }
   },
   "include": ["src"]

@@ -11,6 +11,8 @@ export interface GoogleOverview {
   settings: GoogleSettings;
   enabled: boolean;
   productFeedUrl: string | null;
+  /** Same items for Meta (Facebook / Instagram) Commerce Manager. Older API builds leave it out. */
+  metaCatalogUrl?: string | null;
   localInventoryUrl: string | null;
   reviewUrl: string | null;
   channels: { id: string; name: string; type: string; hasForm: boolean; siteUrl: string | null }[];

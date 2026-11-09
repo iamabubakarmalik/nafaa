@@ -359,6 +359,9 @@ export class AutomationService implements OnModuleInit, OnModuleDestroy {
     for (const a of (rule.actions as unknown as Action[]) ?? []) {
       try {
         if (a.type === 'HIDE_PRODUCT') {
+          // Sell when out of stock is on: the owner wants orders at zero, so the product stays on the channel.
+          const p = await this.prisma.product.findUnique({ where: { id: productId }, select: { backorder: true } });
+          if (p?.backorder === true) { out.push({ type: a.type, ok: true, text: 'Backorder chalu — channel par rehne diya' }); continue; }
           const r: any = await this.products.bulk(actor, { selection: { productIds: [productId] }, action: 'listed', channelId: a.channelId, value: false });
           out.push({ type: a.type, ok: true, text: `Channel se hataya (${r?.updated ?? 0})` });
         } else if (a.type === 'PUSH_STOCK') {

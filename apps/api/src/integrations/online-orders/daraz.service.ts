@@ -13,8 +13,11 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { NormalizedOrder } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { DARAZ_AUTHORIZE, DarazClient, DarazError, priceXml, readTokenResponse, stockXml, darazOptionTitle } from './daraz.client';
+import { handoverBlock } from './stock-handover';
+import { GuardHold, holdLinks, recordStockPushes, StockPushRecord } from './handover-store';
 import { PAGE_DELAY_MS, trackLinks } from './link-sync';
-import type { RemoteProduct } from './channel-catalog.service';
+import type { RemoteDetail, RemoteProduct } from './channel-catalog.service';
+import { darazOptionDefs, darazOptions, darazPrices, darazStock, htmlToText } from './channel-import';
 import { apiMessage } from '../../common/i18n/api-message';
 import { darazStatusKey, inboundSteps, outboundAction, readStatusMap } from './channel-status-map';
 import { ChannelPush, channelPushEvents } from './order-events';
@@ -391,25 +394,26 @@ export class DarazService implements OnModuleInit, OnModuleDestroy {
       for (const p of page) {
         const skus = ((p.skus ?? []) as any[]).filter((s) => s?.SellerSku);
         if (!skus.length) continue;
-        const image = p.images?.[0] ?? skus[0]?.Images?.[0] ?? null;
-        out.push({
-          externalProductId: String(p.item_id),
-          title: String(p.attributes?.name ?? skus[0].SellerSku),
-          image,
-          status: String(p.status ?? '').toLowerCase(),
-          hasVariants: skus.length > 1,
-          variants: skus.map((s) => ({
-            externalVariantId: String(s.SkuId ?? ''),
-            title: darazOptionTitle(s) || (skus.length > 1 ? String(s.SellerSku) : 'Default'),
-            sku: String(s.SellerSku),
-            barcode: null,
-            price: Number(s.price ?? 0) || 0,
-            stock: s.quantity === undefined || s.quantity === null ? null : Number(s.quantity),
-            image: s.Images?.[0] ?? image,
-          })),
-        });
+        out.push(darazRemoteProduct(p, skus));
       }
       if (page.length < 50) break;
+    }
+    return out;
+  }
+
+  /**
+   * Description, all images, brand and weights of Daraz items being brought
+   * into Nafaa (one read per item, with the Daraz pause between reads).
+   */
+  async productDetails(i: Integration, itemIds: string[]): Promise<Map<string, RemoteDetail>> {
+    const out = new Map<string, RemoteDetail>();
+    const client = await this.client(i);
+    for (const [k, id] of itemIds.entries()) {
+      if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS.DARAZ));
+      const r = await client.call('/product/item/get', { item_id: id }).catch(() => null);
+      const p = r?.data;
+      if (!p) continue;
+      out.set(String(id), darazDetail(p));
     }
     return out;
   }
@@ -492,10 +496,25 @@ export class DarazService implements OnModuleInit, OnModuleDestroy {
       select: { externalProductId: true, externalVariantId: true, externalSku: true },
     });
     if (!maps.length) return { updated: 0 };
-    const stock = await this.catalog.stockByLink(i);
+    const { stock, links } = await this.catalog.stockAndPolicyByLink(i);
+    const holds: GuardHold[] = [];
+    const pushed: StockPushRecord[] = [];
     const rows = maps
       .map((m) => ({ itemId: m.externalProductId!, skuId: m.externalVariantId!, sellerSku: m.externalSku ?? '', quantity: stock.get(String(m.externalVariantId)) ?? stock.get(String(m.externalProductId)) }))
-      .filter((r): r is { itemId: string; skuId: string; sellerSku: string; quantity: number } => r.quantity !== undefined && !!r.sellerSku);
+      .filter((r): r is { itemId: string; skuId: string; sellerSku: string; quantity: number } => r.quantity !== undefined && !!r.sellerSku)
+      .filter((r) => {
+        const link = links.get(String(r.skuId));
+        if (!link) return true;
+        const qty = Math.max(0, Math.floor(r.quantity));
+        // Daraz stock is not read on a push: the last stock seen on Daraz guards a link never pushed before.
+        if (handoverBlock({ want: qty, channelQty: link.channelStock, pushedBefore: link.pushedBefore })) {
+          holds.push({ id: link.id, channelStock: link.channelStock, nafaaStock: qty });
+          return false;
+        }
+        if (link.channelStock !== qty || !link.pushedBefore) pushed.push({ id: link.id, from: link.channelStock, to: qty });
+        return true;
+      });
+    await holdLinks(this.prisma, i, holds);
     let updated = 0;
     for (let k = 0; k < rows.length; k += 20) {
       const chunk = rows.slice(k, k + 20);
@@ -503,8 +522,9 @@ export class DarazService implements OnModuleInit, OnModuleDestroy {
       await client.call('/product/price_quantity/update', { payload: stockXml(chunk) }, 'POST');
       updated += chunk.length;
     }
-    await this.log(i, 'STOCK_SYNC', true, undefined, { updated });
-    return { updated };
+    await recordStockPushes(this.prisma, pushed);
+    await this.log(i, 'STOCK_SYNC', true, undefined, { updated, ...(holds.length && { held: holds.length }), changes: pushed.slice(0, 300) });
+    return { updated, held: holds.length };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -685,4 +705,57 @@ function collect(o: any, key: string, out: any[] = []): any[] {
   if (key in o) out.push(o);
   for (const v of Object.values(o)) if (v && typeof v === 'object') collect(v, key, out);
   return out;
+}
+
+/** One Daraz listing (from /products/get or /product/item/get) in the shape the linking screens use. */
+export function darazRemoteProduct(p: any, skus: any[] = ((p?.skus ?? []) as any[]).filter((s) => s?.SellerSku), now = Date.now()): RemoteProduct {
+  const defs = darazOptionDefs(p);
+  const image = p.images?.[0] ?? skus[0]?.Images?.[0] ?? null;
+  const many = skus.length > 1;
+  const optionNames = [...new Set(skus.flatMap((s) => darazOptions(s, defs).map((o) => o.name)))];
+  return {
+    externalProductId: String(p.item_id),
+    title: String(p.attributes?.name ?? skus[0]?.SellerSku ?? p.item_id),
+    image,
+    status: String(p.status ?? '').toLowerCase(),
+    hasVariants: many,
+    optionNames: many ? optionNames : [],
+    variants: skus.map((s) => {
+      const options = many ? darazOptions(s, defs) : [];
+      return {
+        externalVariantId: String(s.SkuId ?? ''),
+        title: options.map((o) => o.value).join(' / ') || darazOptionTitle(s, defs) || (many ? String(s.SellerSku) : 'Default'),
+        sku: String(s.SellerSku),
+        barcode: null,
+        ...darazPrices(s, now),
+        stock: darazStock(s),
+        tracked: true,
+        image: s.Images?.[0] ?? image,
+        options,
+      };
+    }),
+  };
+}
+
+/** Product details from a Daraz item read. Daraz gives the category as an id only, so none is taken. */
+export function darazDetail(p: any): RemoteDetail {
+  const brand = String(p?.attributes?.brand ?? '').trim();
+  const skus: any[] = ((p?.skus ?? []) as any[]).filter((s) => s?.SellerSku);
+  const images = [...new Set([...(p?.images ?? []), ...skus.flatMap((s) => s?.Images ?? [])].filter((u: any) => typeof u === 'string' && /^https?:\/\//.test(u)))] as string[];
+  const variants: RemoteDetail['variants'] = {};
+  for (const s of skus) {
+    const w = Number(s.package_weight ?? s.product_weight ?? 0);
+    variants[String(s.SkuId ?? '')] = { weight: w > 0 ? w : null };
+  }
+  const first = Object.values(variants)[0];
+  return {
+    description: htmlToText(p?.attributes?.description) ?? htmlToText(p?.attributes?.short_description),
+    images,
+    brand: brand && !/^no brand$/i.test(brand) ? brand : null,
+    categoryPath: [],
+    tags: [],
+    weight: first?.weight ?? null,
+    weightUnit: first?.weight ? 'kg' : null,
+    variants,
+  };
 }

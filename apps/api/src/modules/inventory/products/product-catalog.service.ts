@@ -10,6 +10,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { isServiceProduct } from '../../../common/shop-scope';
 import { extensionFacets, itemExtensions, loadExtensions, loadSearchWords, matchesExtensions, type ExtensionQuery } from './catalog-extensions';
+import { descendantIds, pathNames } from '../categories/category-tree';
 
 export type CatalogStock = 'all' | 'in' | 'low' | 'out' | 'dead' | 'expiring';
 export type CatalogSort =
@@ -18,8 +19,13 @@ export type CatalogSort =
 
 export interface CatalogQuery extends ExtensionQuery {
   search?: string;
+  /** A category also matches every product in its sub-categories. */
   categoryId?: string;
   brandId?: string;
+  /** Products this supplier sells ('none' = products with no supplier). */
+  supplierId?: string;
+  /** 'listed' = on at least one online channel, 'unlisted' = on none. */
+  online?: 'listed' | 'unlisted';
   stock?: CatalogStock;
   active?: 'all' | 'active' | 'inactive';
   featured?: string;
@@ -99,6 +105,17 @@ export class ProductCatalogService {
       }),
       loadExtensions(this.prisma, tenantId, shopId),
     ]);
+    const [links, listed] = await Promise.all([
+      this.prisma.productSupplier.findMany({ where: { tenantId }, select: { productId: true, supplierId: true, isPreferred: true } }),
+      this.prisma.productChannelMapping.findMany({ where: { product: { tenantId } }, select: { productId: true }, distinct: ['productId'] }),
+    ]);
+    const suppliersOf = new Map<string, string[]>();
+    const preferredOf = new Map<string, string>();
+    for (const l of links) {
+      suppliersOf.set(l.productId, [...(suppliersOf.get(l.productId) ?? []), l.supplierId]);
+      if (l.isPreferred) preferredOf.set(l.productId, l.supplierId);
+    }
+    const onlineIds = new Set(listed.map((m) => m.productId));
 
     // On a branch, stock and prices are that shelf's own numbers. Variant rows add
     // up to the product's stock; the alert and branch prices come from the base row.
@@ -151,7 +168,7 @@ export class ProductCatalogService {
       if (b && (r.productType === 'MADE' || r.productType === 'BOUGHT')) b.kind = r.productType === 'MADE' ? 'made' : 'bought';
     }
     const reserved = shopId ? new Map([...branch].map(([id, b]) => [id, b.reserved])) : null;
-    return { rows, ext, variantStock: shopId ? variantStock : null, variantReserved: shopId ? variantReserved : null, reserved };
+    return { rows, ext, variantStock: shopId ? variantStock : null, variantReserved: shopId ? variantReserved : null, reserved, suppliersOf, preferredOf, onlineIds };
 
   }
 
@@ -163,7 +180,9 @@ export class ProductCatalogService {
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(q.limit) || 40));
     const tenantId = user.tenantId;
-    const { rows, ext, variantStock, variantReserved, reserved } = await this.load(tenantId, shopId);
+    const { rows, ext, variantStock, variantReserved, reserved, suppliersOf, preferredOf, onlineIds } = await this.load(tenantId, shopId);
+    const categoryRows = await this.prisma.category.findMany({ where: { tenantId }, select: { id: true, name: true, color: true, parentId: true, sortOrder: true, isActive: true } });
+    const inCategory = q.categoryId && q.categoryId !== 'none' ? descendantIds(categoryRows, q.categoryId) : null;
 
     // Search also matches variant barcodes and SKUs.
     const term = q.search?.trim().toLowerCase();
@@ -186,8 +205,10 @@ export class ProductCatalogService {
 
     // Everything except the stock filter, so the stock tabs can show their counts.
     const base = rows.filter((r) => matchesText(r)
-      && (!q.categoryId || (q.categoryId === 'none' ? !r.categoryId : r.categoryId === q.categoryId))
-      && (!q.brandId || r.brandId === q.brandId)
+      && (!q.categoryId || (q.categoryId === 'none' ? !r.categoryId : !!r.categoryId && !!inCategory?.has(r.categoryId)))
+      && (!q.brandId || (q.brandId === 'none' ? !r.brandId : r.brandId === q.brandId))
+      && (!q.supplierId || (q.supplierId === 'none' ? !suppliersOf.has(r.id) : !!suppliersOf.get(r.id)?.includes(q.supplierId)))
+      && (!q.online || (q.online === 'listed' ? onlineIds.has(r.id) : !onlineIds.has(r.id)))
       && matchesActive(r)
       && (q.featured !== 'true' || r.isFeatured)
       && (q.kindOf !== 'raw' || r.isRawMaterial) && (q.kindOf !== 'sale' || !r.isRawMaterial)
@@ -218,7 +239,7 @@ export class ProductCatalogService {
 
     const pageRows = filtered.slice((page - 1) * limit, page * limit);
     const ids = pageRows.map((r) => r.id);
-    const [details, categories, brands, tagRows] = await Promise.all([
+    const [details, brands, tagRows, supplierRows] = await Promise.all([
       this.prisma.product.findMany({
         where: { id: { in: ids } },
         select: {
@@ -230,10 +251,12 @@ export class ProductCatalogService {
           _count: { select: { variants: true, batches: true, productImeis: true } },
         },
       }),
-      this.prisma.category.findMany({ where: { tenantId }, select: { id: true, name: true, color: true } }),
       this.prisma.brand.findMany({ where: { tenantId }, select: { id: true, name: true } }),
       this.prisma.tag.findMany({ where: { tenantId }, select: { id: true, name: true, color: true } }),
+      this.prisma.supplier.findMany({ where: { tenantId }, select: { id: true, name: true, phone: true } }),
     ]);
+    const supplierName = new Map(supplierRows.map((x) => [x.id, x]));
+    const paths = pathNames(categoryRows);
     const detail = new Map(details.map((d) => [d.id, d]));
 
     const items = pageRows.map((r) => {
@@ -244,7 +267,10 @@ export class ProductCatalogService {
         price: r.price, costPrice: r.costPrice, wholesalePrice: d?.wholesalePrice ?? null, creditPrice: d?.creditPrice ?? null, taxRate: d?.taxRate ?? 0,
         stock: r.stock, lowStockAlert: r.lowStockAlert, isActive: r.isActive, isFeatured: r.isFeatured,
         hasVariants: r.hasVariants, expiryTracked: r.expiryTracked, createdAt: r.createdAt,
-        category: d?.category ?? null, brand: d?.brand ?? null, image: d?.images[0]?.url ?? null,
+        category: d?.category ? { ...d.category, path: paths.get(d.category.id) ?? d.category.name } : null, brand: d?.brand ?? null, image: d?.images[0]?.url ?? null,
+        supplier: (() => { const sid = preferredOf.get(r.id) ?? suppliersOf.get(r.id)?.[0]; const x = sid ? supplierName.get(sid) : undefined; return x ? { id: x.id, name: x.name } : null; })(),
+        supplierCount: suppliersOf.get(r.id)?.length ?? 0,
+        online: onlineIds.has(r.id),
         // On a branch each size shows that shelf's stock, not the all-branch total.
         variants: (d?.variants ?? []).map((v) => (variantStock ? { ...v, stock: variantStock.get(v.id) ?? 0, reserved: variantReserved?.get(v.id) ?? 0 } : v)),
         ...(reserved && { reserved: reserved.get(r.id) ?? 0 }),
@@ -268,6 +294,15 @@ export class ProductCatalogService {
     };
     const catCounts = count((r) => r.categoryId);
     const brandCounts = count((r) => r.brandId);
+    const supplierCounts = new Map<string, number>();
+    let noSupplier = 0;
+    for (const r of rows.filter((x) => matchesText(x) && matchesActive(x))) {
+      const list = suppliersOf.get(r.id);
+      if (!list?.length) noSupplier++;
+      for (const sid of list ?? []) supplierCounts.set(sid, (supplierCounts.get(sid) ?? 0) + 1);
+    }
+    // A parent's count includes its sub-categories, matching what its filter returns.
+    const treeCount = (id: string) => [...descendantIds(categoryRows, id)].reduce((sum, cid) => sum + (catCounts.get(cid) ?? 0), 0);
     const facets = extensionFacets(ext, rows.filter((x) => matchesText(x) && matchesActive(x)));
     const tagName = new Map(tagRows.map((t) => [t.id, t]));
 
@@ -280,11 +315,16 @@ export class ProductCatalogService {
         all: base.length, in: base.filter(byStock.in).length, low: base.filter(isLow).length, out: base.filter(isOut).length,
         dead: base.filter(isDead).length, expiring: base.filter(isExpiring).length,
       },
-      categories: categories
-        .map((c) => ({ ...c, count: catCounts.get(c.id) ?? 0 }))
-        .concat(catCounts.get(null) ? [{ id: 'none', name: 'Baghair category', color: '#94a3b8', count: catCounts.get(null)! }] : [])
+      categories: categoryRows
+        .map((c) => ({ id: c.id, name: c.name, color: c.color, parentId: c.parentId, sortOrder: c.sortOrder, path: paths.get(c.id) ?? c.name, own: catCounts.get(c.id) ?? 0, count: treeCount(c.id) }))
         .filter((c) => c.count > 0)
-        .sort((a, b) => b.count - a.count),
+        .sort((a, b) => b.count - a.count)
+        .concat(catCounts.get(null) ? [{ id: 'none', name: 'Baghair category', color: '#94a3b8', parentId: null, sortOrder: 0, path: 'Baghair category', own: catCounts.get(null)!, count: catCounts.get(null)! }] : []),
+      suppliers: supplierRows
+        .map((x) => ({ id: x.id, name: x.name, count: supplierCounts.get(x.id) ?? 0 }))
+        .filter((x) => x.count > 0)
+        .sort((a, b) => b.count - a.count)
+        .concat(noSupplier ? [{ id: 'none', name: 'Supplier nahi', count: noSupplier }] : []),
       brands: brands.map((b) => ({ ...b, count: brandCounts.get(b.id) ?? 0 })).filter((b) => b.count > 0).sort((a, b) => b.count - a.count),
       tags: facets.tags.filter((t) => tagName.has(t.id)).map((t) => ({ ...tagName.get(t.id)!, count: t.count })),
       tagNames: Object.fromEntries(tagRows.map((t) => [t.id, { name: t.name, color: t.color }])),
@@ -312,6 +352,8 @@ export class ProductCatalogService {
         /** Cost of stock that has not sold in the window — money sitting idle. */
         deadValue: live.filter(isDead).reduce((s, r) => s + positive(r) * r.costPrice, 0),
         noCost: live.filter((r) => r.costPrice <= 0).length,
+        online: live.filter((r) => onlineIds.has(r.id)).length,
+        noSupplier: live.filter((r) => !suppliersOf.has(r.id) && !isSvc(r)).length,
         noShelfLife: live.filter((r) => { const b = ext.bakery.get(r.id); return b?.kind === 'made' && !b.shelfLifeDays && !b.shelfLifeHours; }).length,
         windowDays: WINDOW_DAYS,
         expiryDays: EXPIRY_DAYS,

@@ -9,6 +9,7 @@ import { cn } from '@core/lib/cn';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { UploadDropzone } from '@core/components/uploads/UploadDropzone';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { chainOf, childrenMap, pathOf } from '@modules/inventory/categories/lib/tree';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { autoSku } from './draft';
@@ -134,23 +135,41 @@ export function Toggle({ on, onChange, title, hint, icon: Icon }: { on: boolean;
 
 const CATEGORY_COLORS = ['#2563eb', '#16a34a', '#d97706', '#db2777', '#7c3aed', '#0891b2', '#ea580c', '#65a30d'];
 
-/** Category chips with search and create-in-place. */
+/**
+ * Category, then sub-category (any depth): each picked level opens a row with
+ * its children and an inline "+ sub-category". The product keeps the deepest
+ * pick. Search matches every level and shows the full path.
+ */
 export function CategoryField({ value, onChange, suggestions, error, hint }: {
   value: string | null; onChange: (id: string | null, name?: string) => void; suggestions?: string[]; error?: string; hint?: ReactNode;
 }) {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
   const [q, setQ] = useState('');
+  const [subFor, setSubFor] = useState<string | null>(null);
+  const [subName, setSubName] = useState('');
   const create = useMutation({
-    mutationFn: (name: string) => categoriesApi.create({ name, color: CATEGORY_COLORS[data.length % CATEGORY_COLORS.length] }),
-    onSuccess: (c) => { qc.invalidateQueries({ queryKey: ['categories'] }); onChange(c.id, c.name); setQ(''); toast.success(tr('Category "{{name}}" ban gayi', { name: c.name })); },
+    mutationFn: (v: { name: string; parentId?: string | null }) =>
+      categoriesApi.create({ name: v.name, parentId: v.parentId ?? null, color: CATEGORY_COLORS[data.length % CATEGORY_COLORS.length] }),
+    onSuccess: (c) => {
+      qc.invalidateQueries({ queryKey: ['categories'] });
+      onChange(c.id, c.name); setQ(''); setSubFor(null); setSubName('');
+      toast.success(c.parentId ? tr('Sub-category "{{name}}" ban gayi', { name: c.name }) : tr('Category "{{name}}" ban gayi', { name: c.name }));
+    },
     onError: (e: Error) => toast.error(e.message || tr('Category nahi bani')),
   });
   const term = q.trim().toLowerCase();
   // Switched-off categories are not offered, unless this product already has one.
-  const shown = data.filter((c) => (c.isActive !== false || c.id === value) && (!term || c.name.toLowerCase().includes(term)));
+  const usable = data.filter((c) => c.isActive !== false || chainOf(data, value).includes(c.id));
+  const kids = childrenMap(usable);
+  const chain = chainOf(data, value);
   const exact = data.some((c) => c.name.toLowerCase() === term);
   const missing = (suggestions ?? []).filter((s) => !data.some((c) => c.name.toLowerCase() === s.toLowerCase())).slice(0, 6);
+  const hits = term ? usable.filter((c) => c.name.toLowerCase().includes(term)).slice(0, 30) : [];
+  // Levels to show: top level, then the children of each picked level.
+  const levels: Array<{ parentId: string | null; picked: string | null }> = [{ parentId: null, picked: chain[0] ?? null }];
+  chain.forEach((id, i) => { if ((kids.get(id) ?? []).length || subFor === id) levels.push({ parentId: id, picked: chain[i + 1] ?? null }); });
+  const addSub = (parentId: string) => { const n = subName.trim(); if (n) create.mutate({ name: n, parentId }); };
   return (
     <Field label={tr('Category')} error={error} hint={hint}>
       {() => (
@@ -158,23 +177,62 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
           <div className="relative">
             <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search ya nayi likhein…')}
-              onKeyDown={(e) => { if (e.key === 'Enter' && term && !exact) { e.preventDefault(); create.mutate(q.trim()); } }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && term && !exact) { e.preventDefault(); create.mutate({ name: q.trim() }); } }}
               className={cn(inputCls, 'h-10 ps-9 text-[0.875rem]')} />
           </div>
-          <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
-            <Chip on={!value} onClick={() => onChange(null)}>{tr('Koi nahi')}</Chip>
-            {shown.map((c) => <Chip key={c.id} on={value === c.id} color={c.color} onClick={() => onChange(c.id, c.name)}>{c.name}</Chip>)}
-            {term && !exact && (
-              <button type="button" disabled={create.isPending} onClick={() => create.mutate(q.trim())}
-                className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
-                <Plus className="h-3.5 w-3.5" />{tr('"{{value}}" banayein', { value: q.trim() })}
-              </button>
-            )}
-          </div>
+          {term ? (
+            <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+              {hits.map((c) => <Chip key={c.id} on={value === c.id} color={c.color} onClick={() => { onChange(c.id, c.name); setQ(''); }}>{pathOf(data, c.id)}</Chip>)}
+              {!exact && (
+                <button type="button" disabled={create.isPending} onClick={() => create.mutate({ name: q.trim() })}
+                  className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
+                  <Plus className="h-3.5 w-3.5" />{tr('"{{value}}" banayein', { value: q.trim() })}
+                </button>
+              )}
+            </div>
+          ) : levels.map((lv, depth) => {
+            const list = kids.get(lv.parentId ?? '') ?? [];
+            const parent = lv.parentId ? data.find((c) => c.id === lv.parentId) : null;
+            return (
+              <div key={lv.parentId ?? 'top'} className={cn(depth > 0 && 'rounded-xl bg-slate-50 p-2 ring-1 ring-slate-100')}>
+                {parent && <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-600">{tr('{{name}} ki sub-category', { name: parent.name })}</p>}
+                <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+                  {depth === 0
+                    ? <Chip on={!value} onClick={() => onChange(null)}>{tr('Koi nahi')}</Chip>
+                    : <Chip on={!lv.picked} onClick={() => onChange(lv.parentId, parent?.name)}>{tr('Sirf {{name}}', { name: parent?.name ?? '' })}</Chip>}
+                  {list.map((c) => (
+                    <Chip key={c.id} on={lv.picked === c.id} color={c.color} onClick={() => onChange(c.id, c.name)}>
+                      {c.name}{(kids.get(c.id) ?? []).length ? ' ›' : ''}
+                    </Chip>
+                  ))}
+                  {depth > 0 && subFor !== lv.parentId && (
+                    <button type="button" onClick={() => { setSubFor(lv.parentId); setSubName(''); }}
+                      className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
+                      <Plus className="h-3.5 w-3.5" />{tr('Sub-category')}
+                    </button>
+                  )}
+                </div>
+                {depth > 0 && subFor === lv.parentId && (
+                  <div className="mt-2 flex gap-1.5">
+                    <input autoFocus value={subName} onChange={(e) => setSubName(e.target.value)} placeholder={tr('Sub-category ka naam')}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSub(lv.parentId!); } if (e.key === 'Escape') setSubFor(null); }}
+                      className={cn(inputCls, 'h-9 text-[0.875rem]')} />
+                    <button type="button" disabled={!subName.trim() || create.isPending} onClick={() => addSub(lv.parentId!)}
+                      className="h-9 shrink-0 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg disabled:opacity-50">{tr('Banayein')}</button>
+                    <button type="button" onClick={() => setSubFor(null)} aria-label={tr('Rehne dein')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!term && chain.length > 0 && !(kids.get(chain[chain.length - 1]) ?? []).length && subFor !== chain[chain.length - 1] && (
+            <button type="button" onClick={() => { setSubFor(chain[chain.length - 1]); setSubName(''); }}
+              className="text-[0.75rem] font-semibold text-brand-700 hover:underline">{tr('+ "{{name}}" me sub-category banayein', { name: data.find((c) => c.id === chain[chain.length - 1])?.name ?? '' })}</button>
+          )}
           {missing.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />{tr('Ek click mein:')}
-              {missing.map((s) => <button key={s} type="button" onClick={() => create.mutate(s)} className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800 hover:bg-amber-100">+ {s}</button>)}
+              {missing.map((s) => <button key={s} type="button" onClick={() => create.mutate({ name: s })} className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800 hover:bg-amber-100">+ {s}</button>)}
             </div>
           )}
         </div>

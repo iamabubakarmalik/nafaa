@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   type LucideIcon, AlertTriangle, ArrowDownUp, ArrowRight, Check, CheckSquare, Download, Eye, EyeOff, Filter, GitMerge,
-  GraduationCap, Inbox, LayoutGrid, List, MoreHorizontal, Package, Pencil, Plus, Sparkles, Trash2,
+  CornerDownRight, FolderTree, GraduationCap, GripVertical, Inbox, LayoutGrid, List, MoreHorizontal, Package, Pencil, Plus, Sparkles, Trash2,
 } from 'lucide-react';
 import {
   Button, Checkbox, DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
@@ -24,6 +24,8 @@ import { useBusinessDayStart } from '@core/lib/business-day';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { taxonomyApi, type TaxonomyItem, type TaxonomyKind } from './api';
+import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { childrenMap, descendants, treeOrder } from '@modules/inventory/categories/lib/tree';
 import { t } from '@core/i18n';
 
 export type Draft = Record<string, any>;
@@ -54,18 +56,23 @@ export interface TaxonomyConfig {
   toPayload?: (draft: Draft) => Draft;
   guide: Array<{ title: string; body: string }>;
   industry: { name: string; emoji: string };
+  /** Items nest under a parent (categories): tree view with drag to reorder and a parent picker. */
+  tree?: boolean;
 }
 
 type Sort = 'sales' | 'products' | 'stock' | 'name' | 'new';
 const GUIDE_COLORS = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#e11d48'];
 type Show = 'all' | 'used' | 'unused' | 'off' | 'low';
-type View = 'grid' | 'list';
+type View = 'grid' | 'list' | 'tree';
 
 export const COLORS = ['#2c9466', '#16a34a', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#14b8a6', '#06b6d4', '#78350f', '#64748b'];
 const EMOJIS = ['🛒', '🥤', '🍞', '🍰', '🥛', '🧀', '🍫', '🍪', '🥩', '🐟', '🍎', '🥬', '🧂', '🧴', '🧼', '💊', '👕', '👟', '👜', '💄', '📱', '💻', '🎧', '🔌', '🔧', '🪑', '📚', '✏️', '🧸', '🎁', '🌿', '⭐'];
 
 const hashColor = (s: string) => COLORS[[...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % COLORS.length];
-const readView = (kind: string): View => { try { return localStorage.getItem(`taxonomy-view-${kind}`) === 'list' ? 'list' : 'grid'; } catch { return 'grid'; } };
+const readView = (kind: string, tree?: boolean): View => {
+  try { const v = localStorage.getItem(`taxonomy-view-${kind}`); return v === 'list' ? 'list' : v === 'tree' && tree ? 'tree' : v === 'grid' ? 'grid' : tree ? 'tree' : 'grid'; } catch { return tree ? 'tree' : 'grid'; }
+};
+const parentOf = (i: TaxonomyItem) => (i.parentId as string | null | undefined) ?? null;
 
 function Avatar({ item, size = 'md' }: { item: Pick<TaxonomyItem, 'name' | 'color' | 'icon' | 'logoUrl'>; size?: 'md' | 'lg' }) {
   const color = item.color || hashColor(item.name);
@@ -89,7 +96,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<Sort>('sales');
   const [show, setShow] = useState<Show>('all');
-  const [view, setView] = useState<View>(() => readView(config.kind));
+  const [view, setView] = useState<View>(() => readView(config.kind, config.tree));
   const [editing, setEditing] = useState<TaxonomyItem | 'new' | null>(null);
   const [merging, setMerging] = useState<TaxonomyItem | null>(null);
   const [deleting, setDeleting] = useState<TaxonomyItem[] | null>(null);
@@ -279,7 +286,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
             { value: 'stock', label: t('Stock ki qeemat') }, { value: 'name', label: t('Naam (A–Z)') }, { value: 'new', label: t('Naye pehle') },
           ]} />
         <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label={t('Shakal')}>
-          {([['grid', LayoutGrid, t('Cards')], ['list', List, t('List')]] as const).map(([v, Icon, label]) => (
+          {([...(config.tree ? [['tree', FolderTree, t('Tree (sub-categories)')]] as const : []), ['grid', LayoutGrid, t('Cards')], ['list', List, t('List')]] as Array<readonly [View, typeof List, string]>).map(([v, Icon, label]) => (
             <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)} title={label} aria-label={label}
               className={cn('flex h-9 w-9 items-center justify-center rounded-xl transition', view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
               <Icon className="h-4 w-4" />
@@ -302,6 +309,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           <p className="mt-1 text-sm text-slate-500">{items.length ? t('Filter ya search badlein') : t('Upar mashware se ya "Nayi" dabakar banayein')}</p>
           {!items.length && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>{t('Nayi {{one}}', { one: config.one })}</Button>}
         </div>
+      ) : view === 'tree' && config.tree ? (
+        <TreeView items={items} shown={new Set(list.map((i) => i.id))} money={money} onEdit={(i) => setEditing(i)} onAddChild={(i) => setEditing({ __parent: i.id } as unknown as TaxonomyItem)}
+          onMoved={refresh} productsLink={productsLink} />
       ) : view === 'grid' ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((i) => {
@@ -386,7 +396,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       )}
 
       {editing && (
-        <EditorModal config={config} item={editing === 'new' ? null : editing} busy={save.isPending}
+        <EditorModal config={config} items={items} item={editing === 'new' || (editing as Draft).__parent ? null : editing} parentId={editing !== 'new' ? ((editing as Draft).__parent as string | undefined) : undefined} busy={save.isPending}
           onClose={() => setEditing(null)} onSave={(draft) => save.mutate({ id: editing === 'new' ? undefined : editing.id, draft })} />
       )}
       {merging && <MergeModal config={config} from={merging} items={items} onClose={() => setMerging(null)} onDone={() => { setMerging(null); refresh(); }} />}
@@ -448,10 +458,13 @@ function RowMenu({ item, config, productsLink, onEdit, onMerge, onDelete, onTogg
   );
 }
 
-function EditorModal({ config, item, busy, onClose, onSave }: {
-  config: TaxonomyConfig; item: TaxonomyItem | null; busy: boolean; onClose: () => void; onSave: (d: Draft) => void;
+function EditorModal({ config, items, item, parentId, busy, onClose, onSave }: {
+  config: TaxonomyConfig; items: TaxonomyItem[]; item: TaxonomyItem | null; parentId?: string; busy: boolean; onClose: () => void; onSave: (d: Draft) => void;
 }) {
-  const [d, setD] = useState<Draft>(() => item ? { ...item } : { name: '', color: COLORS[0], icon: '', isActive: true });
+  const [d, setD] = useState<Draft>(() => item ? { ...item } : { name: '', color: COLORS[0], icon: '', isActive: true, parentId: parentId ?? null });
+  // A category cannot go inside itself or its own sub-categories.
+  const blocked = useMemo(() => (item ? descendants(items.map((i) => ({ id: i.id, name: i.name, parentId: parentOf(i) })), item.id) : new Set<string>()), [items, item]);
+  const parents = useMemo(() => treeOrder(items.map((i) => ({ id: i.id, name: i.name, parentId: parentOf(i), sortOrder: Number(i.sortOrder ?? 0) }))).filter((i) => !blocked.has(i.id)), [items, blocked]);
   const set = (k: string, v: unknown) => setD((x) => ({ ...x, [k]: v }));
   const name = String(d.name ?? '').trim();
   const submit = () => { if (name) onSave({ ...d, name }); };
@@ -467,6 +480,17 @@ function EditorModal({ config, item, busy, onClose, onSave }: {
               className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
           </label>
         </div>
+        {config.tree && (
+          <label className="block">
+            <span className="mb-1 block text-[0.8125rem] font-semibold text-slate-800">{t('Kis ke andar (upar wali category)')}</span>
+            <select value={(d.parentId as string | null) ?? ''} onChange={(e) => set('parentId', e.target.value || null)}
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-brand-500">
+              <option value="">{t('Koi nahi — sab se upar')}</option>
+              {parents.map((p) => <option key={p.id} value={p.id}>{`${'\u00a0\u00a0'.repeat(p.depth)}${p.depth ? '↳ ' : ''}${p.name}`}</option>)}
+            </select>
+            <span className="mt-1 block text-[0.75rem] text-slate-500">{t('Sub-category banane ke liye upar wali category chunein — jaise Mashroobat › Cold drinks')}</span>
+          </label>
+        )}
         {config.color && (
           <div>
             <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Rang')}</p>
@@ -558,5 +582,98 @@ function DeleteModal({ config, list, onClose, onDone }: { config: TaxonomyConfig
         <p className="mt-2 text-[0.8125rem] text-slate-500">{t('Behtar: mitane ki bajaye "Doosri me milayein" se products kisi aur {{one}} me le jayein.', { one: config.one })}</p>
       )}
     </Modal>
+  );
+}
+
+type DropAt = { id: string; zone: 'before' | 'inside' | 'after' } | { id: '__top'; zone: 'after' };
+
+/**
+ * Categories as a tree. Drag a row: drop on its top or bottom edge to place it
+ * before or after that row, or on its middle to put it inside as a
+ * sub-category. "Sab se upar" at the end makes it top level again.
+ */
+function TreeView({ items, shown, money, onEdit, onAddChild, onMoved, productsLink }: {
+  items: TaxonomyItem[]; shown: Set<string>; money: (n: number) => string;
+  onEdit: (i: TaxonomyItem) => void; onAddChild: (i: TaxonomyItem) => void; onMoved: () => void; productsLink: (i: TaxonomyItem) => string;
+}) {
+  const nodes = useMemo(() => items.map((i) => ({ id: i.id, name: i.name, parentId: parentOf(i), sortOrder: Number(i.sortOrder ?? 0) })), [items]);
+  const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+  const rows = useMemo(() => treeOrder(nodes), [nodes]);
+  const kids = useMemo(() => childrenMap(nodes), [nodes]);
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<DropAt | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const save = useMutation({
+    mutationFn: (list: Array<{ id: string; parentId: string | null; sortOrder: number }>) => categoriesApi.reorder(list),
+    onSuccess: () => { toast.success(t('Tarteeb save ho gayi')); onMoved(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Nahi hua')),
+  });
+  // A row is visible when every parent above it is open and it (or a child) matches the filter.
+  const hidden = (id: string) => { let p = nodes.find((n) => n.id === id)?.parentId; while (p) { if (collapsed.has(p)) return true; p = nodes.find((n) => n.id === p)?.parentId ?? null; } return false; };
+  const matches = (id: string) => [...descendants(nodes, id)].some((x) => shown.has(x));
+
+  const drop = (target: DropAt) => {
+    const id = drag;
+    setDrag(null); setOver(null);
+    if (!id || id === target.id) return;
+    if (target.id !== '__top' && descendants(nodes, id).has(target.id)) { toast.error(t('Category apni hi sub-category ke andar nahi ja sakti')); return; }
+    const parentId = target.id === '__top' ? null : target.zone === 'inside' ? target.id : nodes.find((n) => n.id === target.id)?.parentId ?? null;
+    const siblings = (kids.get(parentId ?? '') ?? []).map((n) => n.id).filter((x) => x !== id);
+    let at = siblings.length;
+    if (target.id !== '__top' && target.zone !== 'inside') at = siblings.indexOf(target.id) + (target.zone === 'after' ? 1 : 0);
+    siblings.splice(Math.max(0, at), 0, id);
+    const oldParent = nodes.find((n) => n.id === id)?.parentId ?? null;
+    const list = siblings.map((x, i) => ({ id: x, parentId, sortOrder: i }));
+    if (oldParent !== parentId) (kids.get(oldParent ?? '') ?? []).filter((n) => n.id !== id).forEach((n, i) => list.push({ id: n.id, parentId: oldParent, sortOrder: i }));
+    save.mutate(list);
+  };
+
+  const zoneOf = (e: React.DragEvent<HTMLElement>): 'before' | 'inside' | 'after' => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const y = (e.clientY - r.top) / r.height;
+    return y < 0.28 ? 'before' : y > 0.72 ? 'after' : 'inside';
+  };
+
+  return (
+    <div className="rounded-3xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
+      <p className="px-3 pb-2 pt-1 text-[0.75rem] text-slate-500">{t('Kheench kar tarteeb badlein. Kisi category ke beech me chhorein to uski sub-category ban jayegi.')}</p>
+      <ul>
+        {rows.filter((r) => !hidden(r.id) && matches(r.id)).map((r) => {
+          const i = byId.get(r.id)!;
+          const childCount = (kids.get(r.id) ?? []).length;
+          const o = over && over.id === r.id ? over.zone : null;
+          return (
+            <li key={r.id} draggable onDragStart={(e) => { setDrag(r.id); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => { setDrag(null); setOver(null); }}
+              onDragOver={(e) => { if (!drag) return; e.preventDefault(); const z = zoneOf(e); if (!over || over.id !== r.id || over.zone !== z) setOver({ id: r.id, zone: z }); }}
+              onDrop={(e) => { e.preventDefault(); drop({ id: r.id, zone: zoneOf(e) }); }}
+              style={{ paddingInlineStart: `${0.5 + r.depth * 1.5}rem` }}
+              className={cn('group relative flex items-center gap-2 rounded-xl py-1.5 pe-2 transition', drag === r.id && 'opacity-40',
+                o === 'inside' ? 'bg-brand-50 ring-2 ring-brand-400' : 'hover:bg-slate-50', !i.isActive && 'opacity-70')}>
+              {o === 'before' && <span className="pointer-events-none absolute inset-x-2 top-0 h-0.5 rounded bg-brand-500" />}
+              {o === 'after' && <span className="pointer-events-none absolute inset-x-2 bottom-0 h-0.5 rounded bg-brand-500" />}
+              <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-slate-300 group-hover:text-slate-500" aria-hidden />
+              {childCount ? (
+                <button type="button" onClick={() => setCollapsed((c) => { const n = new Set(c); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })}
+                  aria-label={collapsed.has(r.id) ? t('Kholein') : t('Band karein')} className="flex h-6 w-6 items-center justify-center rounded-md text-slate-500 hover:bg-slate-200">
+                  <ArrowRight className={cn('h-3.5 w-3.5 transition rtl-flip', !collapsed.has(r.id) && 'rotate-90')} />
+                </button>
+              ) : r.depth ? <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-slate-300" /> : <span className="w-6" />}
+              <Avatar item={i} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-900">{i.name}{!i.isActive && <span className="ms-1.5 rounded-full bg-slate-100 px-1.5 text-[0.6875rem] text-slate-600">{t('Band')}</span>}</p>
+                <p className="text-[0.75rem] text-slate-500">{t('{{value}} products', { value: i.stats?.products ?? 0 })}{childCount ? ` · ${t('{{count}} sub-category', { count: childCount })}` : ''} · {money(i.stats?.revenue ?? 0)}</p>
+              </div>
+              <button type="button" onClick={() => onAddChild(i)} title={t('Is me sub-category banayein')} className="hidden h-8 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50 group-hover:inline-flex"><Plus className="h-3.5 w-3.5" />{t('Sub')}</button>
+              <Link to={productsLink(i)} title={t('Products dekhein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Package className="h-4 w-4" /></Link>
+              <button type="button" onClick={() => onEdit(i)} title={t('Badlein')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
+            </li>
+          );
+        })}
+      </ul>
+      <div onDragOver={(e) => { if (drag) { e.preventDefault(); setOver({ id: '__top', zone: 'after' }); } }} onDrop={(e) => { e.preventDefault(); drop({ id: '__top', zone: 'after' }); }}
+        className={cn('mt-1 rounded-xl border-2 border-dashed px-3 py-2 text-center text-[0.75rem] text-slate-500 transition', drag ? 'block' : 'hidden', over?.id === '__top' ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-slate-200')}>
+        {t('Yahan chhorein — sab se upar (top level)')}
+      </div>
+    </div>
   );
 }

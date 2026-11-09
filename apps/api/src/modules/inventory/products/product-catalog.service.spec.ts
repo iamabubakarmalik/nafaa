@@ -28,8 +28,11 @@ function setup() {
     saleItem: { groupBy },
     productBatch: { findMany: jest.fn().mockResolvedValue([{ productId: 'Bread', expiryDate: new Date(Date.now() + 2 * day), quantity: 3 }]) },
     productVariant: { findMany: jest.fn((args: unknown) => Promise.resolve(JSON.stringify(args).includes('8964') ? [{ productId: 'Cake' }] : [])) },
-    category: { findMany: jest.fn().mockResolvedValue([{ id: 'c1', name: 'Grocery', color: '#000' }]) },
+    category: { findMany: jest.fn().mockResolvedValue([{ id: 'c0', name: 'Food', color: '#111', parentId: null, sortOrder: 0 }, { id: 'c1', name: 'Grocery', color: '#000', parentId: 'c0', sortOrder: 0 }]) },
     brand: { findMany: jest.fn().mockResolvedValue([]) },
+    productSupplier: { findMany: jest.fn().mockResolvedValue([{ productId: 'Atta', supplierId: 's1', isPreferred: true }]) },
+    productChannelMapping: { findMany: jest.fn().mockResolvedValue([{ productId: 'Bread' }]) },
+    supplier: { findMany: jest.fn().mockResolvedValue([{ id: 's1', name: 'Ali Traders', phone: null }]) },
     tag: { findMany: jest.fn().mockResolvedValue([{ id: 'g1', name: 'Fresh', color: '#0f0' }]) },
     productTag: { findMany: jest.fn().mockResolvedValue([{ productId: 'Bread', tagId: 'g1' }]) },
     electronicsProductProfile: { findMany: jest.fn().mockResolvedValue([
@@ -51,7 +54,20 @@ describe('ProductCatalogService.list', () => {
     const res = await setup().list(user, {});
     expect(res.tabs).toMatchObject({ all: 4, in: 3, low: 1, out: 1, dead: 1, expiring: 1 });
     expect(res.stats).toMatchObject({ products: 4, units: 31, costValue: 31 * 60, saleValue: 31 * 100, sold30: 35 });
-    expect(res.categories.map((c) => c.id)).toEqual(['c1', 'none']);
+    expect(res.categories.map((c) => c.id)).toEqual(['c0', 'c1', 'none']);
+    expect(res.categories.find((c) => c.id === 'c1')?.path).toBe('Food › Grocery');
+  });
+
+  it('a parent category also lists its sub-categories; supplier and online filters', async () => {
+    const svc = setup();
+    const parent = await svc.list(user, { categoryId: 'c0' });
+    expect(parent.items.map((i) => i.id).sort()).toEqual((await svc.list(user, { categoryId: 'c1' })).items.map((i) => i.id).sort());
+    expect(parent.count).toBe(3);
+    const bySupplier = await svc.list(user, { supplierId: 's1' });
+    expect(bySupplier.items.map((i) => i.id)).toEqual(['Atta']);
+    expect(bySupplier.items[0].supplier).toEqual({ id: 's1', name: 'Ali Traders' });
+    expect((await svc.list(user, { supplierId: 'none' })).count).toBe(3);
+    expect((await svc.list(user, { online: 'listed' })).items.map((i) => i.id)).toEqual(['Bread']);
   });
 
   it('sorts by 30-day sales and reports days of stock left', async () => {

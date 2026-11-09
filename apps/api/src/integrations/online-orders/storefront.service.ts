@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { availability, backorderRoom, backorderRule, leadTimeText } from './backorder';
 import { journeyOf, publicJourney } from './tracking-map';
 import * as crypto from 'crypto';
 import { Integration } from '@prisma/client';
@@ -187,9 +188,9 @@ export class StorefrontService {
     const products = await this.prisma.product.findMany({
       where: { tenantId: ch.tenantId, isActive: true, price: { gt: 0 }, ...(f.productIds ? { id: { in: f.productIds } } : {}) },
       select: {
-        id: true, name: true, sku: true, price: true, description: true, hasVariants: true, category: { select: { name: true } },
+        id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, category: { select: { name: true } },
         images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
-        variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true } },
+        variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true, backorder: true } },
       },
       orderBy: { name: 'asc' },
       take: 400,
@@ -198,9 +199,9 @@ export class StorefrontService {
       const extra = await this.prisma.product.findFirst({
         where: { id: focus, tenantId: ch.tenantId, isActive: true, price: { gt: 0 }, ...(f.productIds ? { id: { in: f.productIds.filter((x) => x === focus) } } : {}) },
         select: {
-          id: true, name: true, sku: true, price: true, description: true, hasVariants: true, category: { select: { name: true } },
+          id: true, name: true, sku: true, price: true, description: true, hasVariants: true, backorder: true, backorderMax: true, backorderLeadDays: true, backorderNote: true, category: { select: { name: true } },
           images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
-          variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true } },
+          variants: { where: { isActive: true }, select: { id: true, name: true, sku: true, price: true, backorder: true } },
         },
       });
       if (extra) products.unshift(extra);
@@ -212,9 +213,11 @@ export class StorefrontService {
 
     const list = products.flatMap((p) => {
       const opts = p.hasVariants && p.variants.length
-        ? p.variants.map((v) => ({ variantId: v.id, name: v.name, sku: v.sku ?? p.sku, price: Number(v.price || p.price), stock: stockOf(p.id, v.id) }))
-        : [{ variantId: null as string | null, name: null as string | null, sku: p.sku, price: Number(p.price), stock: stockOf(p.id, null) }];
-      const shown = f.onlyInStock ? opts.filter((o) => o.stock > 0) : opts;
+        ? p.variants.map((v) => ({ variantId: v.id, name: v.name, sku: v.sku ?? p.sku, price: Number(v.price || p.price), stock: stockOf(p.id, v.id), rule: backorderRule(p, v) }))
+        : [{ variantId: null as string | null, name: null as string | null, sku: p.sku, price: Number(p.price), stock: stockOf(p.id, null), rule: backorderRule(p) }];
+      // Sell when out of stock: a backorder item stays on the form at zero stock, with its delivery note.
+      const withAvail = opts.map((o) => ({ ...o, availability: availability(Math.max(0, o.stock), o.rule, o.stock) }));
+      const shown = f.onlyInStock ? withAvail.filter((o) => o.availability !== 'out_of_stock') : withAvail;
       if (!shown.length) return [];
       return [{
         id: p.id,
@@ -222,7 +225,11 @@ export class StorefrontService {
         category: p.category?.name ?? null,
         description: p.description ? p.description.slice(0, 300) : null,
         image: p.images[0]?.url ?? null,
-        options: shown.map((o) => ({ variantId: o.variantId, name: o.name, sku: o.sku, price: o.price, inStock: o.stock > 0, maxQty: Math.max(1, Math.min(50, Math.floor(o.stock) || 50)) })),
+        options: shown.map((o) => ({
+          variantId: o.variantId, name: o.name, sku: o.sku, price: o.price, inStock: o.stock > 0,
+          availability: o.availability, ...(o.availability === 'backorder' && { leadTime: leadTimeText(o.rule) }),
+          maxQty: o.availability === 'backorder' ? Math.max(1, Math.min(50, backorderRoom(o.stock, o.rule))) : Math.max(1, Math.min(50, Math.floor(o.stock) || 50)),
+        })),
       }];
     });
     return {

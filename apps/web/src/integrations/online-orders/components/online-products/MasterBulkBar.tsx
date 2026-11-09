@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Link2, Percent, Send, Tag, Upload, X } from 'lucide-react';
+import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Link2, PackageOpen, Percent, Send, Tag, Upload, X } from 'lucide-react';
 import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
@@ -42,6 +42,8 @@ export function MasterBulkBar({ count, selection, channels, onClear, onLinkSure,
         <BarButton icon={Percent} onClick={() => open('pricePercent')}>{t('Price %')}</BarButton>
         <BarButton icon={Tag} onClick={() => open('compareAt')}>{t('Sale price')}</BarButton>
         <BarButton icon={Send} onClick={() => open('push')}>{t('Abhi bhejein')}</BarButton>
+        <BarButton icon={PackageOpen} onClick={() => open('backorder', true)}>{t('Backorder chalu')}</BarButton>
+        <BarButton icon={PackageOpen} onClick={() => open('backorder', false)}>{t('Backorder band')}</BarButton>
         {push.some((c) => c.canPublish) && <BarButton icon={Upload} onClick={() => open('publish')}>{t('Channel par banayein')}</BarButton>}
         {channels.some((c) => c.canFetch) && <BarButton icon={Link2} onClick={onLinkSure} busy={linking}>{t('Pakke match jorein')}</BarButton>}
         <BarButton icon={Download} onClick={onExport} busy={exporting}>{t('CSV')}</BarButton>
@@ -80,6 +82,7 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
     }),
     onSuccess: (r) => {
       if (r.existing) toast.info(t('Aisa kaam pehle se chal raha hai — us ke khatam hone ka intezar karein'));
+      else if (ask.action === 'backorder') toast.success(t('{{updated}} products — channels par thori der me lag jayega', { updated: r.updated }));
       else if (ask.action === 'publish' && r.skipped) toast.success(t('{{count}} products ban rahe hain — {{skipped}} pehle se jure the', { count: r.job.total, skipped: r.skipped }));
       else toast.success(r.updated ? t('{{updated}} links badle — channel par ja rahe hain', { updated: r.updated }) : t('Kaam shuru — progress oopar dekhein'));
       onDone();
@@ -95,6 +98,7 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
     compareAt: t('Sale se pehle ki Price'),
     push: t('Abhi channel par bhejein'),
     publish: t('Channel par naye products banayein'),
+    backorder: ask.value ? t('Stock khatam ho to bhi order lein') : t('Stock khatam ho to order band'),
   }[ask.action];
   const help = {
     listed: ask.value ? t('Products channel par dikhenge aur bikenge.') : t('Shopify/WooCommerce par draft; Daraz par Stock 0 jata hai.'),
@@ -104,6 +108,9 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
     compareAt: t('Channel par kati hui Price dikhegi (Sale). Khali chhorein to Sale hat jayegi.'),
     push: t('Stock, Price, Listed aur channel settings me chune hue content (naam, tasveer …) dobara jayenge.'),
     publish: t('Jo products is channel par nahi, wo sizes ke saath ban jayenge aur khud jur jayenge. Pehle se jure skip.'),
+    backorder: ask.value
+      ? t('0 stock par bhi Shopify, WooCommerce aur website order lete rahenge. Nafaa ka asli stock minus me jayega (customers ko dena baqi). Daraz par nahi chalta.')
+      : t('Stock khatam hote hi channels par "out of stock" ho jayega aur Google/Facebook feed me bhi.'),
   }[ask.action];
   const percent = ask.action === 'pricePercent';
   const valueOk = !needsValue || (percent ? value !== '' && Number(value) !== 0 && Number(value) > -90 && Number(value) <= 500 : value === '' || Number(value) >= 0);
@@ -116,7 +123,7 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
       </>}>
       <div className="space-y-4">
         <p className="text-[0.8125rem] text-slate-600">{help}</p>
-        <div>
+        {ask.action !== 'backorder' && <div>
           <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Kis channel par')}</p>
           <div className="flex flex-wrap gap-2">
             {!single && <ChannelChip on={!channelId} onClick={() => setChannelId('')}>{t('Sab channels')}</ChannelChip>}
@@ -126,7 +133,7 @@ function BulkDialog({ ask, count, selection, channels, onClose, onDone }: {
               </ChannelChip>
             ))}
           </div>
-        </div>
+        </div>}
         {needsValue && (
           <Input inputMode={percent ? 'text' : 'decimal'} value={value} onChange={(e) => setValue(e.target.value.replace(percent ? /[^\d.-]/g : /[^\d.]/g, ''))} autoFocus
             placeholder={ask.action === 'alloc' ? t('Maslan 30 (khali = rule)') : percent ? t('Maslan 10 ya -5') : t('Khali = hata dein')}

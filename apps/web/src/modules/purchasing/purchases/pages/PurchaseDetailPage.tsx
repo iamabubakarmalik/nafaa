@@ -24,6 +24,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { purchasesApi, type Purchase, type PurchaseItem } from '../api/purchases.api';
 import { STATUS } from './PurchasesListPage';
 import { t } from '@core/i18n';
+import { BackorderArrivedNotice } from '@integrations/online-orders/components/online-products/BackorderSettings';
 
 export interface PurchaseDetailConfig {
   /** Extra under a line, e.g. electronics serial entry. */
@@ -35,6 +36,9 @@ const q3 = (n: number) => Number((n ?? 0).toFixed(3)).toLocaleString('en-PK');
 const rate = (i: PurchaseItem) => i.conversionRate || 1;
 const left = (i: PurchaseItem) => Math.max((i.baseQuantity ?? i.quantity) - (i.receivedQty ?? 0), 0);
 const canReturn = (i: PurchaseItem) => Math.max((i.receivedQty ?? 0) - (i.returnedQty ?? 0), 0);
+/** The same limits in the line's own unit (cartons), which is what the receive and return boxes take. */
+const leftInUnit = (i: PurchaseItem) => Number((left(i) / rate(i)).toFixed(4));
+const returnableInUnit = (i: PurchaseItem) => Number((canReturn(i) / rate(i)).toFixed(4));
 const nameOf = (i: PurchaseItem) => i.itemName || i.product?.name || i.ingredient?.name || t('Cheez');
 const baseUnit = (i: PurchaseItem) => i.product?.unit ?? i.ingredient?.unit ?? 'pcs';
 const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
@@ -90,6 +94,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
         </>}
       />
 
+      {(p.status === 'RECEIVED' || p.status === 'PARTIAL') && <BackorderArrivedNotice productIds={p.items.map((i) => i.productId)} />}
       {p.status === 'CANCELLED' && <p className="rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700">{t('Cancel {{cancelledAt}}{{value}}', { cancelledAt: day(p.cancelledAt), value: p.cancelReason ? ` — ${p.cancelReason}` : '' })}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -257,7 +262,7 @@ function ReceiveModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void
   return (
     <Modal open onClose={onClose} size="lg" title={t('Maal aaya')} description={t('Jitna aaya utna likhein; baqi order khula rahega')}
       footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={mut.isPending} onClick={() => mut.mutate()} disabled={value <= 0 && !close}>{t('Stock me daalein')}</Button></>}>
-      <QtyLines p={p} max={left} qty={qty} setQty={setQty} />
+      <QtyLines p={p} max={leftInUnit} qty={qty} setQty={setQty} />
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl bg-slate-50 p-3 text-sm"><p className="text-slate-500">{t('Is maal ki qeemat')}</p><p className="text-xl font-bold tabular-nums">{money(value)}</p></div>
         <div>
@@ -293,7 +298,7 @@ function ReturnModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void;
   return (
     <Modal open onClose={onClose} size="lg" title={t('Supplier ko maal wapas')} description={t('Stock kam hoga aur supplier ko dena (khata) utna ghat jayega')}
       footer={<><Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button><Button loading={mut.isPending} disabled={value <= 0} onClick={() => mut.mutate()} leftIcon={<RotateCcw className="h-4 w-4" />}>{t('Wapas karein · {{value}}', { value: money(value) })}</Button></>}>
-      <QtyLines p={p} max={canReturn} qty={qty} setQty={setQty} />
+      <QtyLines p={p} max={returnableInUnit} qty={qty} setQty={setQty} />
       <div className="mt-3 flex flex-wrap gap-1.5">
         {[t('Kharab maal'), t('Ghalat maal aaya'), t('Expiry qareeb'), t('Zyada aa gaya')].map((r) => (
           <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-brand-50 font-semibold text-brand-700 ring-brand-300' : 'text-slate-600 ring-slate-200 hover:bg-slate-50')}>{r}</button>

@@ -11,6 +11,9 @@ import { readWebsiteConfig, ShopifyPlanState, stockRule } from './website-config
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { outboundAction, readStatusMap, trackingInfo as shopifyTracking } from './channel-status-map';
 import { mappingKey } from './mapping-key';
+import { shopifyPolicy, shopifyPolicyUpdates } from './backorder';
+import { handoverBlock, trackDecision } from './stock-handover';
+import { GuardHold, holdLinks, markTracking, recordStockPushes, StockPushRecord } from './handover-store';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError, shopAddressMessage } from './shopify-shop';
 import { apiMessage, apiText, messageText, MessageText } from '../../common/i18n/api-message';
@@ -673,7 +676,7 @@ export class ShopifyService {
     const q = opts.onlySkus?.length
       ? [...new Set(opts.onlySkus)].slice(0, 50).map((s) => `sku:${JSON.stringify(s)}`).join(' OR ')
       : null;
-    const VARIANT = `id sku inventoryItem { id tracked inventoryLevel(locationId: $loc) { quantities(names: ["available"]) { quantity } } }`;
+    const VARIANT = `id sku inventoryPolicy product { id } inventoryItem { id tracked inventoryLevel(locationId: $loc) { quantities(names: ["available"]) { quantity } } }`;
     let variants: any[] = [];
     if (!partial || q) {
       variants = await client.paginate<any>(`query($after: String, $q: String, $loc: ID!) {
@@ -699,9 +702,10 @@ export class ShopifyService {
     variants = [...new Map(variants.map((v) => [v.id, v])).values()];
 
     // Pehle jore hue variants (link), phir SKU — stock ka malik Nafaa
-    const linkStock = await this.catalog.stockByLink(integration);
-    const rows = variants.filter((v) => v.inventoryItem?.id && (v.sku || linkStock.has(numericId(v.id))));
-    const skus = [...new Set(rows.filter((r) => !linkStock.has(numericId(r.id))).map((r) => String(r.sku)).filter(Boolean))];
+    const { stock: linkStock, policy, links: linkState } = await this.catalog.stockAndPolicyByLink(integration);
+    // Held links are left out of linkStock and are not matched by SKU either.
+    const rows = variants.filter((v) => v.inventoryItem?.id && (linkStock.has(numericId(v.id)) || (v.sku && !linkState.has(numericId(v.id)))));
+    const skus = [...new Set(rows.filter((r) => !linkState.has(numericId(r.id))).map((r) => String(r.sku)).filter(Boolean))];
     if (!rows.length) {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi variant jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
@@ -709,19 +713,44 @@ export class ShopifyService {
     const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus, stockRule(cfg)) : {};
 
     const changes: { inventoryItemId: string; locationId: string; quantity: number; changeFromQuantity: number | null }[] = [];
+    const pushed: StockPushRecord[] = [];
+    const holds: GuardHold[] = [];
+    const untracked: string[] = [];
+    const counted: string[] = [];
     let missing = 0;
+    let skipped = 0;
     for (const r of rows) {
-      const want = linkStock.get(numericId(r.id)) ?? (r.sku ? stock[String(r.sku)] : undefined);
+      const link = linkState.get(numericId(r.id));
+      const want = linkStock.get(numericId(r.id)) ?? (r.sku && !link ? stock[String(r.sku)] : undefined);
       if (want === undefined) { missing++; continue; }
       const qty = Math.max(0, Math.floor(want));
+      const tracked = r.inventoryItem.tracked !== false;
+      // An item Shopify does not count is never switched to counted, unless the merchant opted in for this link.
+      const decision = trackDecision(tracked, !!link?.optIn);
+      if (decision === 'skip') {
+        if (link && link.tracks !== false) untracked.push(link.id);
+        skipped++;
+        continue;
+      }
+      if (link && tracked && link.tracks !== true) counted.push(link.id);
       const current = r.inventoryItem.inventoryLevel?.quantities?.[0]?.quantity;
-      if (current === qty && r.inventoryItem.tracked) continue;
-      if (!r.inventoryItem.tracked) {
+      if (current === qty && tracked) continue;
+      // Never pushed before: no 0 or big drop over the stock Shopify shows; the link waits for the merchant.
+      if (link && tracked && handoverBlock({ want: qty, channelQty: current, pushedBefore: link.pushedBefore })) {
+        holds.push({ id: link.id, channelStock: current ?? null, nafaaStock: qty });
+        continue;
+      }
+      if (decision === 'start-count') {
         await client.mutate(`mutation($id: ID!) { inventoryItemUpdate(id: $id, input: { tracked: true }) { inventoryItem { id } userErrors { field message } } }`,
           { id: r.inventoryItem.id }, 'inventoryItemUpdate').catch(() => null);
+        if (link) counted.push(link.id);
       }
       changes.push({ inventoryItemId: r.inventoryItem.id, locationId, quantity: qty, changeFromQuantity: current ?? null });
+      if (link) pushed.push({ id: link.id, from: tracked ? current ?? null : null, to: qty });
     }
+    await holdLinks(this.prisma, integration, holds);
+    if (untracked.length) await markTracking(this.prisma, integration.id, untracked, false);
+    if (counted.length) await markTracking(this.prisma, integration.id, [...new Set(counted)], true);
 
     let updated = 0;
     for (let i = 0; i < changes.length; i += 100) {
@@ -736,9 +765,30 @@ export class ShopifyService {
       updated += chunk.length;
     }
 
+    // Sell when out of stock: inventoryPolicy CONTINUE/DENY on linked variants whose
+    // setting Nafaa manages and that differ (write_products, no new scope).
+    const policyChanges = shopifyPolicyUpdates(
+      rows.map((r) => ({ id: r.id, productId: r.product?.id ?? null, inventoryPolicy: r.inventoryPolicy })),
+      (gid) => {
+        const p = policy.get(numericId(gid)) ?? policy.get(numericId(rows.find((r) => r.id === gid)?.product?.id ?? ''));
+        return p ? shopifyPolicy(p.rule, p.stock) : undefined;
+      },
+    );
+    let policies = 0;
+    for (const [pid, list] of policyChanges) {
+      await client.mutate(`mutation($pid: ID!, $v: [ProductVariantsBulkInput!]!) {
+        productVariantsBulkUpdate(productId: $pid, variants: $v) { productVariants { id } userErrors { field message } }
+      }`, { pid, v: list }, 'productVariantsBulkUpdate');
+      policies += list.length;
+    }
+
+    await recordStockPushes(this.prisma, pushed);
     await this.prisma.integration.update({ where: { id: integration.id }, data: { lastSyncAt: new Date(), lastSyncStatus: 'SUCCESS' } });
-    await this.log(integration, 'STOCK_SYNC', true, undefined, { updated, checked: rows.length, missing });
-    return { updated, checked: rows.length, missing };
+    await this.log(integration, 'STOCK_SYNC', true, undefined, {
+      updated, checked: rows.length, missing, ...(policies && { policies }), ...(holds.length && { held: holds.length }), ...(skipped && { untracked: skipped }),
+      changes: pushed.slice(0, 300).map((x) => ({ id: x.id, from: x.from, to: x.to })),
+    });
+    return { updated, checked: rows.length, missing, held: holds.length, untracked: skipped };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -756,7 +806,7 @@ export class ShopifyService {
         nodes {
           id title description productType
           media(first: 5) { nodes { ... on MediaImage { image { url } } } }
-          variants(first: 100) { nodes { id sku barcode price title inventoryQuantity } }
+          variants(first: 100) { nodes { id sku barcode price title inventoryQuantity inventoryItem { tracked } } }
         }
         pageInfo { hasNextPage endCursor }
       }
@@ -774,7 +824,8 @@ export class ShopifyService {
           sku: v.sku || undefined,
           barcode: v.barcode || undefined,
           price: v.price,
-          stock: v.inventoryQuantity,
+          // Not counted on Shopify: no stock to bring (its 0 is not real).
+          stock: v.inventoryItem?.tracked === false ? undefined : v.inventoryQuantity,
           description: p.description || undefined,
           category: p.productType || undefined,
           images,

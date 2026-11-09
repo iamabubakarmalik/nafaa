@@ -357,6 +357,12 @@ function LineCard({ line: l, d, onCustomUnit }: { line: DraftLine; d: ReturnType
           <NumberInput containerStyle={{ flex: 1 }} label={t('Kitne {{name}}', { name: l.unit.name })} value={l.qty || null} onChangeValue={(v) => d.patch(l.key, { qty: Math.max(v ?? 0, 0) })} />
           <MoneyInput containerStyle={{ flex: 1 }} label={t('Ek {{name}} ki qeemat', { name: l.unit.name })} value={l.cost || null} onChangeValue={(v) => d.patch(l.key, { cost: Math.max(v ?? 0, 0) })} />
         </Row>
+        {l.unit.rate !== 1 && (
+          // Per-piece cost, editable: typing it sets the pack cost (piece x size), so either side can be entered.
+          <MoneyInput label={t('Ek {{baseUnit}} ki qeemat', { baseUnit: l.baseUnit })} value={perBase ? Math.round(perBase * 100) / 100 : null}
+            hint={t('Ek {{baseUnit}} ki qeemat likhein — {{name}} ki qeemat khud ban jayegi', { baseUnit: l.baseUnit, name: l.unit.name })}
+            onChangeValue={(v) => d.patch(l.key, { cost: Math.round(Math.max(v ?? 0, 0) * l.unit.rate * 100) / 100 })} />
+        )}
         <Row justify="between" wrap gap={2}>
           <Text size="xs" weight="medium" tone="brand" ltr>{l.unit.rate !== 1 ? `= ${q3(base)} ${l.baseUnit} · ${formatPKR(perBase)}/${l.baseUnit}` : ''}</Text>
           <Text weight="bold" ltr>{formatPKR(l.qty * l.cost)}</Text>

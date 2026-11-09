@@ -10,6 +10,7 @@ import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PAKISTAN_CATALOG, CATEGORY_META, type SeedProduct } from './seed-catalog/pakistan-grocery-catalog';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { syncBaseUnits } from '../../../industries/retail/product-units/unit-math';
 
 function toSlug(name: string) {
   return name.toLowerCase().trim()
@@ -353,9 +354,20 @@ export class ProductsService {
     // stock number on an edit form may be stale, so it is never written here.
     delete productData.stock;
 
-    await this.prisma.product.update({
-      where: { id },
-      data: productData,
+    if (dto.categoryId && dto.categoryId !== existing.categoryId) {
+      const cat = await this.prisma.category.findFirst({ where: { id: dto.categoryId, tenantId: user.tenantId }, select: { id: true } });
+      if (!cat) throw new NotFoundException('Category not found');
+    }
+    if (dto.brandId && dto.brandId !== existing.brandId) {
+      const brand = await this.prisma.brand.findFirst({ where: { id: dto.brandId, tenantId: user.tenantId }, select: { id: true } });
+      if (!brand) throw new NotFoundException('Brand not found');
+    }
+
+    // The base pack row mirrors the product, so it changes with the unit and prices.
+    const touchesBase = ['unit', 'price', 'costPrice', 'wholesalePrice', 'creditPrice'].some((k) => (dto as Record<string, unknown>)[k] !== undefined);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.product.update({ where: { id }, data: productData });
+      if (touchesBase) await syncBaseUnits(tx, id, { followPacks: true });
     });
 
     // The one exception: a product that has never held stock and has no stock

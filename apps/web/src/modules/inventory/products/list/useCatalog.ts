@@ -13,12 +13,13 @@ const PREF_KEY = 'nafaa-products';
 
 type View = 'grid' | 'table';
 /** Table columns that are hidden until the owner turns them on. */
-export type OptionalColumn = 'wholesale' | 'credit';
-export const OPTIONAL_COLUMNS: OptionalColumn[] = ['wholesale', 'credit'];
-interface Prefs { view: View; sort: CatalogSort; cols: OptionalColumn[] }
+export type OptionalColumn = 'wholesale' | 'credit' | 'supplier' | 'online';
+export const OPTIONAL_COLUMNS: OptionalColumn[] = ['wholesale', 'credit', 'supplier', 'online'];
+export type Density = 'comfortable' | 'compact';
+interface Prefs { view: View; sort: CatalogSort; cols: OptionalColumn[]; density: Density }
 
 function readPrefs(): Prefs {
-  const base: Prefs = { view: 'grid', sort: 'name', cols: [] };
+  const base: Prefs = { view: 'grid', sort: 'name', cols: [], density: 'comfortable' };
   try {
     const saved = { ...base, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') };
     return { ...saved, cols: Array.isArray(saved.cols) ? saved.cols.filter((c: string) => OPTIONAL_COLUMNS.includes(c as OptionalColumn)) : [] };
@@ -28,18 +29,19 @@ function readPrefs(): Prefs {
 const EMPTY: Omit<CatalogFilters, 'sort'> = { stock: 'all', active: 'active' };
 
 /** `initial` sets the first filters, e.g. from a link like /products?categoryId=… */
-export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandId' | 'tagId' | 'noCost'>) {
+export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandId' | 'tagId' | 'noCost' | 'supplierId'>) {
   const qc = useQueryClient();
   const saved = useMemo(readPrefs, []);
   const [view, setView] = useState<View>(saved.view);
   const [sort, setSort] = useState<CatalogSort>(saved.sort);
   const [cols, setCols] = useState<OptionalColumn[]>(saved.cols);
+  const [density, setDensity] = useState<Density>(saved.density === 'compact' ? 'compact' : 'comfortable');
   const [f, setF] = useState<Omit<CatalogFilters, 'sort' | 'search'>>(() => ({ ...EMPTY, ...initial }));
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   useEffect(() => { const t = setTimeout(() => setQuery(search), 250); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ view, sort, cols })); } catch { /* storage blocked */ } }, [view, sort, cols]);
+  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ view, sort, cols, density })); } catch { /* storage blocked */ } }, [view, sort, cols, density]);
 
   const filters: CatalogFilters = { ...f, search: query, sort };
   const list = useInfiniteQuery({
@@ -54,10 +56,10 @@ export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandI
 
   const set = <K extends keyof typeof f>(key: K, value: (typeof f)[K]) => { setF((cur) => ({ ...cur, [key]: value })); setSelected(new Set()); };
   const hasFilters = !!query || f.stock !== 'all' || f.active !== 'active' || !!f.categoryId || !!f.brandId || !!f.featured
-    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf || !!f.noCost;
+    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf || !!f.noCost || !!f.supplierId || !!f.online;
 
   return {
-    filters, f, set, search, setSearch, sort, setSort, view, setView,
+    filters, f, set, search, setSearch, sort, setSort, view, setView, density, setDensity,
     cols, toggleCol: (col: OptionalColumn) => setCols((cur) => (cur.includes(col) ? cur.filter((x) => x !== col) : [...cur, col])),
     setStock: (s: CatalogStock) => set('stock', s),
     clear: () => { setF(EMPTY); setSearch(''); setSelected(new Set()); },

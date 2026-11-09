@@ -6,30 +6,49 @@
 
 import { isNetworkError } from '@/core/api/errors';
 import { offline } from '@/core/offline';
+import { productSuppliersApi } from '../../api/suppliers';
 import { batchesApi, imagesApi, productsApi, unitsApi, variantsApi } from '../../api/products';
-import type { CoreDraft, EditorDraft, UnitDraft } from './types';
+import { applyAutoPrices, inferPackAuto } from '@nafaa/core/inventory';
+import type { CoreDraft, EditorDraft, SupplierLinkDraft, UnitDraft } from './types';
 
 export const emptyCore = (unit = 'pcs'): CoreDraft => ({
   name: '', description: '', categoryId: null, brandId: null, sku: '', barcode: '', unit,
   price: 0, costPrice: 0, wholesalePrice: null, creditPrice: null, taxRate: 0, stock: 0, lowStockAlert: 5,
   isActive: true, isFeatured: false, isRawMaterial: false, expiryTracked: false, weight: null, productType: null,
-  tagIds: [], images: [], units: [], variants: [], batches: [],
+  tagIds: [], images: [], units: [], variants: [], batches: [], suppliers: [],
 });
 
 export const freshDraft = <X,>(initial: X, unit?: string): EditorDraft<X> => ({ core: emptyCore(unit), extra: JSON.parse(JSON.stringify(initial ?? {})) as X });
 
+/**
+ * The base pack row is the product itself: it always carries the product's
+ * current unit name and prices (the server keeps its copy in step on every save).
+ * Other packs get their automatic price tiers from the piece (piece x size,
+ * less the pack discount); tiers typed by hand are kept.
+ */
+export function withBaseFromProduct(core: CoreDraft): UnitDraft[] {
+  return core.units.map((u) => (u.isBase
+    ? { ...u, unitName: core.unit, conversionRate: 1, price: core.price, costPrice: core.costPrice, wholesalePrice: core.wholesalePrice, creditPrice: core.creditPrice }
+    : applyAutoPrices(core, u, u.manual, u.discountPct)));
+}
+
+/** Reads saved packs back into the automatic model: a tier is automatic when it still matches piece x size. */
+const withPackAuto = (core: CoreDraft): CoreDraft => ({ ...core, units: core.units.map((u) => (u.isBase ? u : { ...u, ...inferPackAuto(core, u) })) });
+
 const day = (v?: string | null) => (v ? v.slice(0, 10) : '');
 const num = (v: unknown) => Number(v ?? 0) || 0;
+const numOrNull = (v: unknown) => (v == null || v === '' ? null : Number(v));
 
 /** Server copy; `fromPhone` is true when it came from the mirror (offline). */
 export async function loadCore(id: string): Promise<{ core: CoreDraft; fromPhone: boolean }> {
   try {
-    const [p, images, variants, units, batches] = await Promise.all([
+    const [p, images, variants, units, batches, supplierData] = await Promise.all([
       productsApi.getOne(id),
       imagesApi.list(id).catch(() => []),
       variantsApi.list(id).catch(() => []),
       unitsApi.byProduct(id).catch(() => []),
       batchesApi.list(id).catch(() => []),
+      productSuppliersApi.list(id).catch(() => null),
     ]);
     const core: CoreDraft = {
       name: p.name ?? '', description: p.description ?? '', categoryId: p.categoryId ?? p.category?.id ?? null, brandId: p.brandId ?? p.brand?.id ?? null,
@@ -40,7 +59,7 @@ export async function loadCore(id: string): Promise<{ core: CoreDraft; fromPhone
       tagIds: (p.tags ?? []).map((g) => g.tag?.id).filter(Boolean) as string[],
       images: [...images].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.sortOrder - b.sortOrder).map((i) => ({ id: i.id, url: i.url })),
       units: units.map((u): UnitDraft => ({
-        id: u.id, unitName: u.unitName, conversionType: u.conversionType ?? 'CUSTOM', conversionRate: num(u.conversionRate), isBase: u.isBase,
+        id: u.id, unitName: u.unitName, conversionType: u.conversionType ?? 'CUSTOM', conversionRate: num(u.conversionRate), isBase: u.isBase, isDefault: !!u.isDefault,
         price: num(u.price), costPrice: num(u.costPrice), wholesalePrice: u.wholesalePrice ?? null, creditPrice: u.creditPrice ?? null, mrpPrice: u.mrpPrice ?? null,
         barcode: u.barcode ?? '', sku: u.sku ?? '', isActive: u.isActive !== false,
       })),
@@ -52,8 +71,13 @@ export async function loadCore(id: string): Promise<{ core: CoreDraft; fromPhone
         id: b.id, batchNumber: b.batchNumber ?? '', manufactureDate: day(b.manufactureDate), expiryDate: day(b.expiryDate),
         quantity: num(b.quantity), costPrice: num(b.costPrice), notes: b.notes ?? '',
       })),
+      suppliers: (supplierData?.items ?? []).map((l): SupplierLinkDraft => ({
+        supplierId: l.supplierId, supplierName: l.supplier?.name ?? '', supplierSku: l.supplierSku ?? '', costPrice: numOrNull(l.costPrice),
+        minOrderQty: numOrNull(l.minOrderQty), leadDays: numOrNull(l.leadDays), unitId: l.unitId ?? null, isPreferred: !!l.isPreferred, notes: l.notes ?? '',
+        lastPurchasePrice: numOrNull(l.lastPurchasePrice), lastPurchasedAt: l.lastPurchasedAt ?? null,
+      })),
     };
-    return { core, fromPhone: false };
+    return { core: withPackAuto(core), fromPhone: false };
   } catch (e) {
     if (!isNetworkError(e)) throw e;
     const p = await offline.products.get(id);
@@ -64,7 +88,7 @@ export async function loadCore(id: string): Promise<{ core: CoreDraft; fromPhone
       stock: num(p.stock), lowStockAlert: num(p.lowStockAlert), isActive: p.isActive, isFeatured: p.isFeatured, isRawMaterial: p.isRawMaterial,
       expiryTracked: p.expiryTracked, productType: p.productType, images: p.imageUrl ? [{ id: 'mirror', url: p.imageUrl }] : [],
       units: p.packs.map((u) => ({
-        id: u.id, unitName: u.unitName, conversionType: u.isBase ? 'BASE' : 'CUSTOM', conversionRate: num(u.conversionRate), isBase: u.isBase,
+        id: u.id, unitName: u.unitName, conversionType: u.isBase ? 'BASE' : 'CUSTOM', conversionRate: num(u.conversionRate), isBase: u.isBase, isDefault: false,
         price: num(u.price), costPrice: num(u.costPrice), wholesalePrice: u.wholesalePrice, creditPrice: u.creditPrice, mrpPrice: u.mrpPrice,
         barcode: u.barcode ?? '', sku: u.sku ?? '', isActive: true,
       })),
@@ -73,6 +97,6 @@ export async function loadCore(id: string): Promise<{ core: CoreDraft; fromPhone
         costPrice: v.costPrice, stock: num(v.stock), isActive: true,
       })),
     };
-    return { core, fromPhone: true };
+    return { core: withPackAuto(core), fromPhone: true };
   }
 }

@@ -80,6 +80,8 @@ export default defineConfig({
       '@modules': path.resolve(__dirname, './src/modules'),
       '@industries': path.resolve(__dirname, './src/industries'),
       '@integrations': path.resolve(__dirname, './src/integrations'),
+      // Pure business logic shared with the mobile app.
+      '@nafaa/core': path.resolve(__dirname, '../../packages/core/src'),
     },
   },
   server: { port: 5173, host: true, strictPort: false },

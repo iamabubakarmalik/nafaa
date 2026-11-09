@@ -18,6 +18,7 @@ import { timeAgo } from '../../lib/labels';
 import { ChannelMark, channelName, lastPushText, rs } from './meta';
 import { InlineEdit } from './InlineEdit';
 import { causeInfo, causeShort, syncCause } from './syncErrors';
+import { HoldTag } from './StockHold';
 
 export interface GridHandlers {
   onPick: (productId: string) => void;
@@ -53,13 +54,28 @@ export function Thumb({ src, size = 'md' }: { src: string | null; size?: 'sm' | 
   );
 }
 
-/** Sync state of a linked cell: green synced, amber waiting, red failed, grey off or not pushed. */
+/** Sync state of a linked cell: green synced, amber waiting or held, red failed, grey off or not pushed. */
 export function dotOf(c: OnlineChannel, cell: LinkedCell): { cls: string; label: string } {
+  // A held link sends nothing, whatever its last push said.
+  if (cell.hold) return { cls: 'bg-amber-500', label: t('Stock milana baqi') };
   if (cell.listed === false) return { cls: 'bg-slate-300', label: t('Band (unlisted)') };
   if (!c.canPush || cell.status === null) return { cls: 'bg-slate-300', label: c.mode === 'website' ? t('Website khud leti hai') : t('Kuch nahi bheja jata') };
   if (cell.status === 'FAILED') return { cls: 'bg-rose-500', label: causeInfo(syncCause(cell.error)).title };
   if (cell.status === 'SUCCESS') return { cls: 'bg-success-500', label: t('Channel par barabar') };
   return { cls: 'bg-amber-400', label: t('Bhejna baqi') };
+}
+
+/** The channel does not count stock for this item (Shopify "Track quantity" off) and the user has not asked Nafaa to start. */
+export const notCounted = (cell: LinkedCell) => cell.tracksStock === false && !cell.countOptIn;
+
+/** Blue tag for an item the channel does not count: it sells without a number, so it is not out of stock. */
+export function UntrackedTag({ long }: { long?: boolean }) {
+  return (
+    <span title={t('Channel ginti nahi karta')}
+      className="inline-flex shrink-0 items-center rounded bg-sky-50 px-1 text-[0.65625rem] font-semibold leading-4 text-sky-800 ring-1 ring-sky-200">
+      {long ? t('Channel ginti nahi karta') : t('Ginti nahi')}
+    </span>
+  );
 }
 
 export function Dot({ cls, label }: { cls: string; label: string }) {
@@ -91,7 +107,9 @@ function CellBody({ c, cell, canManage, compact }: { c: OnlineChannel; cell: Lin
         </span>
         <span className="mt-0.5 flex items-center gap-1 text-[0.71875rem] text-slate-500">
           {failed ? <span className="inline-flex items-center gap-1 font-semibold text-rose-700"><AlertTriangle className="h-3 w-3" />{causeShort(syncCause(cell.error))}</span>
+            : cell.hold ? <HoldTag hold={cell.hold} compact />
             : off ? <span className="font-semibold text-slate-400">{t('Band')}</span>
+            : c.tracksStock && notCounted(cell) ? <UntrackedTag />
               : !c.tracksStock ? <span>{t('Stock track nahi')}</span>
                 : <>
                   <InlineEdit mappingId={cell.mappingId} field="allocQty" value={cell.allocQty} disabled={!stockEdit}
@@ -156,13 +174,16 @@ function SizedSummary({ item, c, canManage, onSizeLess }: { item: GridItem; c: O
   const linked = item.rows.filter((r) => r.cells[c.id]?.linked);
   if (!linked.length) return <span className="text-[0.75rem] text-slate-300">—</span>;
   const failed = linked.some((r) => (r.cells[c.id] as LinkedCell).status === 'FAILED');
+  const held = linked.filter((r) => (r.cells[c.id] as LinkedCell).hold).length;
   const sent = linked.reduce((n, r) => n + Number((r.cells[c.id] as LinkedCell).stock ?? 0), 0);
   const all = linked.length === item.rows.length;
   return (
     <span className="flex items-center gap-2 text-[0.75rem]">
-      <Dot cls={failed ? 'bg-rose-500' : all ? 'bg-success-500' : 'bg-amber-400'} label={failed ? t('Kuch sizes nahi gaye') : all ? t('Sab sizes jure') : t('Kuch sizes jorna baqi')} />
+      <Dot cls={failed ? 'bg-rose-500' : held ? 'bg-amber-500' : all ? 'bg-success-500' : 'bg-amber-400'}
+        label={failed ? t('Kuch sizes nahi gaye') : held ? t('Stock milana baqi') : all ? t('Sab sizes jure') : t('Kuch sizes jorna baqi')} />
       <span className={cn('font-semibold tabular-nums', all ? 'text-slate-700' : 'text-slate-500')}>{t('{{linked}}/{{count}} sizes', { linked: linked.length, count: item.rows.length })}</span>
-      {c.tracksStock && <span className="tabular-nums text-slate-500">{t('Stock {{sent}}', { sent })}</span>}
+      {held > 0 ? <span className="truncate font-semibold text-amber-800" title={t('Stock milana baqi')}>{t('{{held}} ruke', { held })}</span>
+        : c.tracksStock && <span className="tabular-nums text-slate-500">{t('Stock {{sent}}', { sent })}</span>}
     </span>
   );
 }
@@ -171,12 +192,29 @@ function SizedSummary({ item, c, canManage, onSizeLess }: { item: GridItem; c: O
 
 const td = 'border-b border-slate-100 bg-white transition-colors group-hover/row:bg-slate-50 group-focus-visible/row:bg-brand-50';
 
+/**
+ * Sell when out of stock: "Backorder" when it is on, "Backorder: N" when N
+ * units are owed to customers (Nafaa stock below zero).
+ */
+export function BackorderTag({ on, owed }: { on?: boolean; owed?: number }) {
+  if (!on && !owed) return null;
+  return (
+    <span title={owed ? t('{{owed}} customers ko dena baqi — stock aane par pehle inhe bhejein', { owed }) : t('Stock khatam ho to bhi order chalu')}
+      className={cn('inline-flex shrink-0 items-center rounded px-1 text-[0.65625rem] font-semibold leading-4 ring-1',
+        owed ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-sky-50 text-sky-800 ring-sky-200')}>
+      {owed ? t('Backorder: {{owed}}', { owed }) : t('Backorder')}
+    </span>
+  );
+}
+
 const ProductRows = memo(function ProductRows({ item, cols, canManage, picked, open, h }: {
   item: GridItem; cols: OnlineChannel[]; canManage: boolean; picked: boolean; open: boolean; h: GridHandlers;
 }) {
   const sized = isSized(item);
   const first = item.rows[0];
   const nafaaStock = sized ? item.rows.reduce((n, r) => n + Number(r.nafaaStock ?? 0), 0) : first?.nafaaStock ?? null;
+  const owed = item.rows.reduce((n, r) => n + Number(r.owed ?? 0), 0);
+  const backorderOn = item.rows.some((r) => r.backorder);
   const pickedBg = picked ? '!bg-brand-50' : '';
   const openPanel = () => h.onOpen(item);
   return (
@@ -204,7 +242,8 @@ const ProductRows = memo(function ProductRows({ item, cols, canManage, picked, o
                   : item.sku ? <span className="truncate font-mono">{item.sku}</span> : <span>{t('SKU nahi')}</span>}
                 <span aria-hidden>·</span>
                 <span className="tabular-nums">{rs(first?.price ?? item.price)}</span>
-                {nafaaStock !== null && <><span aria-hidden>·</span><span className={cn('tabular-nums', nafaaStock <= 0 && 'font-semibold text-rose-600')}>{t('Stock {{qty}}', { qty: nafaaStock })}</span></>}
+                {nafaaStock !== null && <><span aria-hidden>·</span><span className={cn('tabular-nums', nafaaStock <= 0 && !backorderOn && 'font-semibold text-rose-600')}>{t('Stock {{qty}}', { qty: nafaaStock })}</span></>}
+                <BackorderTag on={backorderOn} owed={owed} />
               </p>
             </div>
           </div>
@@ -225,8 +264,9 @@ const ProductRows = memo(function ProductRows({ item, cols, canManage, picked, o
               <span className="rounded-md bg-white px-1.5 py-0.5 font-semibold text-slate-800 ring-1 ring-slate-200">{row.label}</span>
               <span className="min-w-0 truncate text-slate-500">
                 {row.sku ? <span className="font-mono">{row.sku} · </span> : null}<span className="tabular-nums">{rs(row.price)}</span>
-                {row.nafaaStock !== null && <span className={cn('tabular-nums', row.nafaaStock <= 0 && 'font-semibold text-rose-600')}> · {t('Stock {{qty}}', { qty: row.nafaaStock })}</span>}
+                {row.nafaaStock !== null && <span className={cn('tabular-nums', row.nafaaStock <= 0 && !row.backorder && 'font-semibold text-rose-600')}> · {t('Stock {{qty}}', { qty: row.nafaaStock })}</span>}
               </span>
+              <BackorderTag on={row.backorder} owed={row.owed} />
             </p>
           </td>
           {cols.map((c) => (
@@ -300,6 +340,7 @@ const ProductCard = memo(function ProductCard({ item, cols, canManage, picked, h
             {sized ? t('{{count}} sizes', { count: item.rows.length }) : item.sku || t('SKU nahi')} · <span className="tabular-nums">{rs(first?.price ?? item.price)}</span>
             {!sized && first?.nafaaStock !== null && first?.nafaaStock !== undefined ? <> · {t('Stock {{qty}}', { qty: first.nafaaStock })}</> : null}
           </p>
+          <BackorderTag on={item.rows.some((r) => r.backorder)} owed={item.rows.reduce((n, r) => n + Number(r.owed ?? 0), 0)} />
         </div>
         <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 rtl:rotate-180" />
       </div>

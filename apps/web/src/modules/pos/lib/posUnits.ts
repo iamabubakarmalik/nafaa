@@ -106,14 +106,18 @@ export function derivePosUnits(
   }];
 
   for (const u of apiUnits) {
-    if (!u?.unitName || u.unitName.toLowerCase() === base) continue;
+    // The base row is the product itself (already first); an old base row whose
+    // name no longer matches the product's unit must not show as a pack of 1.
+    if (!u?.unitName || u.isBase || u.isActive === false || u.unitName.toLowerCase() === base) continue;
+    const rate = Number(u.conversionRate) > 0 ? Number(u.conversionRate) : 1;
     out.push({
       id: u.id,
       unitName: u.unitName,
       label: (u.unitLabel || u.unitName).toUpperCase(),
       emoji: unitEmoji(u.unitName),
-      conversionRate: Number(u.conversionRate) || 1,
-      price: Number(u.price) || product.price,
+      conversionRate: rate,
+      // A pack with no price of its own costs its pieces at the loose rate, not one piece.
+      price: Number(u.price) > 0 ? Number(u.price) : Math.round(product.price * rate * 100) / 100,
       wholesalePrice: u.wholesalePrice ?? null,
       creditPrice: u.creditPrice ?? null,
       barcode: u.barcode ?? null,

@@ -439,16 +439,18 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info(tr('Ye phone pehle se bill mein hai')); return prev; }
       const existing = !single && prev.find((l) =>
         l.productId === item.id && l.unitName === unit.unitName && !l.dist?.free && (l.dist ? !l.priceEdited : l.unitPrice === price && (l.priceTier ?? 'RETAIL') === tier) && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
+      // Stock is shared by every unit of the product: a carton line and a piece line draw from the same shelf.
+      const otherBase = prev.reduce((s, l) => (l.productId === item.id && (l.variantId ?? '') === (opts.variant?.id ?? '') && l.id !== (existing ? existing.id : '') && l.type === 'product' ? s + (Number(l.baseQuantity) || 0) : s), 0);
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
-        if (nb > existing.baseStock) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(item.stock.toFixed(2)), unit: item.unit })); return prev; }
+        if (nb + otherBase > existing.baseStock + 1e-9) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(item.stock.toFixed(2)), unit: item.unit })); return prev; }
         toast.success(`${item.name} +${qty}`, { duration: 800 });
         beep('ok');
         setLastLineId(existing.id);
         return prev.map((l) => (l.id === existing.id ? { ...l, quantity: nq, baseQuantity: nb, lineTotal: nq * l.unitPrice } : l));
       }
-      if (baseQty > limit) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(Math.max(limit, 0).toFixed(2)), unit: item.unit })); return prev; }
+      if (baseQty + otherBase > limit + 1e-9) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(Math.max(limit - otherBase, 0).toFixed(2)), unit: item.unit })); return prev; }
       toast.success(`${item.name}${opts.variant ? ` · ${opts.variant.name}` : ''} — ${qty} ${unit.unitName}`, { duration: 800 });
       beep('ok');
       const newId = posLineId();
@@ -491,11 +493,12 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, []);
 
   const unitsFor = useCallback(async (item: PosItem): Promise<PosUnitOption[]> => {
-    let api: any[] = unitIndex.byProduct.get(item.id) ?? [];
+    // Product-level packs only; a variant's own packs never mix into the plain list.
+    let api: any[] = (unitIndex.byProduct.get(item.id) ?? []).filter((u: any) => !u.variantId);
     if (api.length === 0 && navigator.onLine) {
       try {
         const res = await productUnitsApi.byProduct(item.id);
-        api = Array.isArray(res) ? res : ((res as any)?.items ?? []);
+        api = (Array.isArray(res) ? res : ((res as any)?.items ?? [])).filter((u: any) => !u.variantId && u.isActive !== false);
       } catch { /* offline or no units */ }
     }
     const base = derivePosUnits({ ...item.product, price: item.price, unit: item.unit } as any, api);

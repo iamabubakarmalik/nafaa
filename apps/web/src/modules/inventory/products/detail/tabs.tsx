@@ -17,6 +17,7 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { ProductUnit } from '@modules/inventory/products/api/product-units.api';
 import { productInsightsApi, type ProductInsights } from './api';
+import { productSuppliersApi } from '@modules/inventory/products/api/product-suppliers.api';
 import { t as tr } from '@core/i18n';
 
 export const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
@@ -342,6 +343,52 @@ export function PurchasesTab({ product: p, cost, canBuy, canSuppliers }: { produ
 }
 
 /* ─────────────────────────── Batches ─────────────────────────── */
+
+/** Where the product is bought: each supplier with code, usual and last cost, minimum order, delivery days and the last real purchases. */
+export function SuppliersTab({ product: p, cost, costHidden, canEdit, editPath, canBuy }: {
+  product: Product; cost: Money; costHidden: boolean; canEdit: boolean; editPath: string; canBuy: boolean;
+}) {
+  const q = useQuery({ queryKey: ['product-suppliers', p.id], queryFn: () => productSuppliersApi.list(p.id) });
+  if (q.isLoading) return <Skeleton className="h-60 rounded-2xl" />;
+  const items = q.data?.items ?? [];
+  const linkCls = 'text-[0.8125rem] font-semibold text-brand-700 hover:underline';
+  return (
+    <Card className="rounded-2xl" flush title={tr('Suppliers')} description={tr('Kis se aur kitne me aata hai — cost fi {{unit}}', { unit: p.unit })}
+      actions={canEdit ? <Link to={editPath} className={linkCls}>{tr('Badlein →')}</Link> : undefined}>
+      {!items.length ? <Empty text={tr('Abhi koi supplier nahi — product badlein ya purchase karein, supplier khud jur jayega')} /> : (
+        <ul className="divide-y divide-slate-100">
+          {items.map((l) => (
+            <li key={l.id} className="px-5 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link to={`/suppliers/${l.supplierId}`} className="font-semibold text-slate-900 hover:text-brand-700">{l.supplier.name}</Link>
+                {l.isPreferred && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-700 ring-1 ring-brand-200">{tr('Preferred')}</span>}
+                {l.supplierSku && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-600">{l.supplierSku}</span>}
+                {l.supplier.phone && <span className="text-[0.75rem] text-slate-500">{l.supplier.phone}</span>}
+                {canBuy && <Link to={`/purchases/new?supplier=${l.supplierId}`} className={cn(linkCls, 'ms-auto')}>{tr('Order banayein →')}</Link>}
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[0.75rem] text-slate-600">
+                {!costHidden && <span>{tr('Aam cost:')} <b className="tabular-nums">{l.costPrice ? cost(l.costPrice) : '—'}</b></span>}
+                {!costHidden && <span>{tr('Pichhli:')} <b className="tabular-nums">{l.lastPurchasePrice ? cost(l.lastPurchasePrice) : '—'}</b>{l.lastPurchasedAt ? ` · ${day(l.lastPurchasedAt)}` : ''}</span>}
+                {l.minOrderQty ? <span>{tr('Kam se kam: {{qty}} {{unit}}', { qty: fmt(l.minOrderQty), unit: p.unit })}</span> : null}
+                {l.leadDays != null ? <span>{tr('{{days}} din me aata hai', { days: l.leadDays })}</span> : null}
+                {l.unit && <span>{tr('Aksar {{unit}} me', { unit: l.unit.unitName })}</span>}
+              </div>
+              {l.purchases.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {l.purchases.map((b) => (
+                    <Link key={b.purchaseId + b.unitName + b.quantity} to={`/purchases/${b.purchaseId}`} className="rounded-lg bg-slate-50 px-2 py-1 text-[0.6875rem] text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100">
+                      <span className="font-mono font-semibold text-slate-800">{b.purchaseNumber}</span> · {day(b.purchasedAt)} · {fmt(b.quantity)} {b.unitName}{!costHidden && b.costPrice != null ? ` @ ${cost(b.costPrice)}` : ''}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
 
 export function BatchesTab({ product: p }: { product: Product }) {
   const today = todayKey();

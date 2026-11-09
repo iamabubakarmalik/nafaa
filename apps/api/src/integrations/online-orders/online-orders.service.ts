@@ -1,6 +1,8 @@
 import {
   BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, OnModuleInit,
 } from '@nestjs/common';
+import { backorderFloors } from './backorder-stock';
+import { supportsBackorder } from './backorder';
 import { ChannelOrder, Integration, Prisma, SaleSource, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
@@ -564,7 +566,7 @@ export class OnlineOrdersService implements OnModuleInit {
       productIds.length
         ? this.prisma.product.findMany({
             where: { id: { in: productIds } },
-            select: { id: true, name: true, sku: true, price: true, images: { take: 1, select: { url: true } } },
+            select: { id: true, name: true, sku: true, price: true, backorder: true, images: { take: 1, select: { url: true } } },
           })
         : [],
       productIds.length && shopId
@@ -621,7 +623,9 @@ export class OnlineOrdersService implements OnModuleInit {
                 productId: p.id, variantId: r.variantId ?? null, name: p.name, sku: p.sku,
                 nafaaPrice: Number(p.price), image: p.images[0]?.url ?? null,
                 stock: st ? Number(st.stock) : 0,
-                enough: st ? Number(st.stock) >= it.quantity : false,
+                // Sell when out of stock: accepting takes the stock below zero (owed), so it is not "short".
+                enough: (st ? Number(st.stock) >= it.quantity : false) || (p.backorder === true && supportsBackorder(order.integration.type)),
+                backorder: p.backorder === true && supportsBackorder(order.integration.type),
                 via: r.via,
               }
             : null,
@@ -717,7 +721,7 @@ export class OnlineOrdersService implements OnModuleInit {
     let saleId: string | null = null;
     try {
       const meta = (order.metadata ?? {}) as any;
-      const { sale, shopId, riderKeepsDelivery, deliveryFee } = await this.makeBill(user, scope, order, items, matched, {
+      const { sale, shopId, riderKeepsDelivery, deliveryFee, backorder } = await this.makeBill(user, scope, order, items, matched, {
         shopId: body.shopId,
         priceOverride: config.priceSource === 'WEBSITE',
         reuseOrphan: true,
@@ -738,7 +742,11 @@ export class OnlineOrdersService implements OnModuleInit {
           processedAt: now,
           items: items.map((it, i) => ({ ...it, productId: matched[i].productId, variantId: matched[i].variantId ?? null })) as any,
           // Rider apni delivery khud rakhta hai — dukaan ko itna kam milna hai (COD / reports)
-          metadata: { ...meta, autoAcceptError: undefined, ...(riderKeepsDelivery && deliveryFee > 0 && { riderDelivery: deliveryFee }) },
+          metadata: {
+            ...meta, autoAcceptError: undefined, ...(riderKeepsDelivery && deliveryFee > 0 && { riderDelivery: deliveryFee }),
+            // Lines sold beyond the stock on hand (backorder): shown as waiting until stock arrives.
+            ...(backorder.length && { backorder }),
+          },
         },
       });
       if (done.count === 0) {
@@ -825,6 +833,9 @@ export class OnlineOrdersService implements OnModuleInit {
         })
       : null;
 
+    // Backorder products may take the branch below zero (only for this accepted order).
+    const bo = orphan ? { floors: [], lines: [] } : await backorderFloors(this.prisma, order.integration, shopId, items, matched);
+
     const sale = orphan ?? await this.sales.create(
       user,
       new ShopScope(shopId, false),
@@ -851,8 +862,9 @@ export class OnlineOrdersService implements OnModuleInit {
           : undefined,
       } as any,
       { source, sourceRef },
+      { stockFloor: bo.floors },
     );
-    return { sale: { id: sale.id, saleNumber: sale.saleNumber, total: sale.total }, shopId, riderKeepsDelivery, deliveryFee };
+    return { sale: { id: sale.id, saleNumber: sale.saleNumber, total: sale.total }, shopId, riderKeepsDelivery, deliveryFee, backorder: bo.lines };
   }
 
   private isStaleLock(at: Date | null) {

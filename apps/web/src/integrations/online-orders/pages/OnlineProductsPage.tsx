@@ -47,6 +47,8 @@ import { ProductsGuide } from '../components/online-products/ProductsGuide';
 import { LinkModal, type LinkFocus } from '../components/online-products/LinkModal';
 import { ChannelSettingsModal } from '../components/online-products/ChannelSettingsModal';
 import { causeInfo, syncCause } from '../components/online-products/syncErrors';
+import { BackorderWaitingCard } from '../components/online-products/BackorderSettings';
+import { StockRecoveryDrawer } from '../components/online-products/StockRecoveryDrawer';
 import { t as tr } from '@core/i18n';
 
 const PAGE_SIZES = [25, 50, 100];
@@ -54,16 +56,20 @@ const FILTERS: Array<{ id: GridFilter; label: () => string; tone?: 'danger' | 'w
   { id: 'all', label: () => tr('Sab') },
   { id: 'unlinked', label: () => tr('Jorna baqi') },
   { id: 'errors', label: () => tr('Masle'), tone: 'danger' },
+  { id: 'hold', label: () => tr('Stock milana baqi'), tone: 'warning' },
+  { id: 'untracked', label: () => tr('Ginti nahi') },
   { id: 'price', label: () => tr('Price farq'), tone: 'warning' },
   { id: 'out', label: () => tr('Stock khatam'), tone: 'danger' },
   { id: 'linked', label: () => tr('Jure hue') },
   { id: 'unlisted', label: () => tr('Band (unlisted)') },
+  { id: 'backorder', label: () => tr('Backorder') },
 ];
 const HIDDEN_COLS_KEY = 'nafaa-op-hidden-channels';
 
 type Open =
   | { kind: 'link'; channel: OnlineChannel; focus?: LinkFocus }
-  | { kind: 'settings'; channel: OnlineChannel; section?: 'content' };
+  | { kind: 'settings'; channel: OnlineChannel; section?: 'content' }
+  | { kind: 'recover'; channel: OnlineChannel };
 
 const readHidden = (): string[] => { try { return JSON.parse(localStorage.getItem(HIDDEN_COLS_KEY) ?? '[]'); } catch { return []; } };
 
@@ -163,6 +169,7 @@ export default function OnlineProductsPage() {
     if (action === 'link') { setOpen({ kind: 'link', channel: c }); return; }
     if (action === 'rules') { setOpen({ kind: 'settings', channel: c }); return; }
     if (action === 'content') { setOpen({ kind: 'settings', channel: c, section: 'content' }); return; }
+    if (action === 'recover') { setOpen({ kind: 'recover', channel: c }); return; }
     if (action === 'pause' && !(await confirmDialog({ title: tr('{{name}} rok dein?', { name: channelName(c) }), text: tr('Naye orders aur Stock/Price ka aana-jana ruk jayega. Baad me "Dobara chalayein" se shuru karein.'), danger: true }))) return;
     setBusyChannel({ id: c.id, action });
     try {
@@ -248,18 +255,24 @@ export default function OnlineProductsPage() {
     mutationFn: async () => {
       const fetchable = channels.filter((c) => c.canFetch && (!channelId || c.id === channelId));
       let saved = 0;
+      let held = 0;
       for (const c of fetchable) {
         if (allMatching) { saved += (await onlineProductsApi.linkSure(c.id)).saved; continue; }
         const sg = await onlineProductsApi.suggestions(c.id);
         const links = sg.sure.filter((r) => picked.has(r.match.productId)).map((r) => ({
           externalProductId: r.externalProductId, externalVariantId: r.externalVariantId, productId: r.match.productId, variantId: r.match.variantId,
           externalTitle: r.hasVariants && r.variantTitle ? `${r.title} — ${r.variantTitle}` : r.title, externalImage: r.image, externalSku: r.sku,
+          externalStock: r.stock,
         }));
-        if (links.length) saved += (await onlineProductsApi.link(c.id, links)).saved;
+        if (links.length) { const r = await onlineProductsApi.link(c.id, links); saved += r.saved; held += r.held ?? 0; }
       }
-      return saved;
+      return { saved, held };
     },
-    onSuccess: (saved) => { refresh(); toast.success(saved ? tr('{{saved}} pakke match jor diye', { saved }) : tr('Koi pakka match baqi nahi')); },
+    onSuccess: ({ saved, held }) => {
+      refresh();
+      toast.success(saved ? tr('{{saved}} pakke match jor diye', { saved }) : tr('Koi pakka match baqi nahi'));
+      if (held) toast.warning(tr('{{held}} par Stock milana baqi — Masle me dekhein', { held }));
+    },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
@@ -281,7 +294,7 @@ export default function OnlineProductsPage() {
           const cell = r.cells[c.id];
           if (!cell?.linked) return ['', '', tr('Jura nahi')];
           const lc = cell as LinkedCell;
-          return [lc.price, lc.stock ?? '', lc.listed === false ? tr('Band') : lc.status === 'FAILED' ? causeInfo(syncCause(lc.error)).title : tr('Jura hua')];
+          return [lc.price, lc.stock ?? '', lc.listed === false ? tr('Band') : lc.hold ? tr('Stock milana baqi') : lc.tracksStock === false && !lc.countOptIn ? tr('Ginti nahi') : lc.status === 'FAILED' ? causeInfo(syncCause(lc.error)).title : tr('Jura hua')];
         }),
       ]));
       downloadCsv(`nafaa-online-products-${new Date().toISOString().slice(0, 10)}.csv`, [head, ...rows]);
@@ -351,6 +364,7 @@ export default function OnlineProductsPage() {
           { label: tr('Jure hue'), value: fmt(s?.linked), hint: s ? tr('{{all}} me se · {{pct}}%', { all: fmt(s.all), pct: s.all ? Math.round((s.linked / s.all) * 100) : 0 }) : undefined },
           { label: tr('Masle'), value: fmt(s?.errors), hint: s ? (s.errors ? tr('products') : tr('sab theek')) : undefined },
           { label: tr('Kisi channel par Stock khatam'), value: fmt(s?.out), hint: tr('products') },
+          { label: tr('Backorder'), value: fmt(s?.backorder), hint: tr('khatam par bhi order chalu') },
         ]}
       />
 
@@ -434,6 +448,8 @@ export default function OnlineProductsPage() {
           </div>
         )}
 
+        {filter === 'backorder' && <BackorderWaitingCard />}
+
         {gridQ.isLoading ? (
           <div className="space-y-1.5 rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
         ) : gridQ.isError && !g ? (
@@ -445,7 +461,7 @@ export default function OnlineProductsPage() {
           <div className="rounded-2xl bg-white py-12 ring-1 ring-slate-200/80">
             <EmptyState icon={<Package className="h-5 w-5" />}
               title={filtered ? tr('Is filter me koi product nahi') : tr('Nafaa me abhi koi product nahi')}
-              description={filter === 'errors' ? tr('Koi masla nahi — sab channels par Stock aur Price ja rahe hain.') : filter === 'price' ? tr('Har channel par Price wohi hai jo Nafaa rakhta hai.') : tr('Filter badal kar dekhein.')}
+              description={filter === 'errors' ? tr('Koi masla nahi — sab channels par Stock aur Price ja rahe hain.') : filter === 'hold' ? tr('Koi link ruka hua nahi — Nafaa aur channel ka Stock barabar hai.') : filter === 'untracked' ? tr('Har jura hua item channel par gina ja raha hai.') : filter === 'price' ? tr('Har channel par Price wohi hai jo Nafaa rakhta hai.') : tr('Filter badal kar dekhein.')}
               action={filtered ? <Button size="sm" variant="ghost" onClick={clearFilters}>{tr('Filter saaf karein')}</Button> : undefined} />
           </div>
         ) : (<>
@@ -485,6 +501,7 @@ export default function OnlineProductsPage() {
           canManage={canManage} onClose={() => setPanel(null)} onLink={h.onLink} />
       )}
       {open?.kind === 'link' && <LinkModal channel={open.channel} focus={open.focus} canManage={canManage} onClose={() => setOpen(null)} />}
+      {open?.kind === 'recover' && <StockRecoveryDrawer channel={open.channel} onClose={() => setOpen(null)} />}
       {open?.kind === 'settings' && <ChannelSettingsModal channel={open.channel} section={open.section} onClose={() => setOpen(null)} />}
     </PageShell>
   );

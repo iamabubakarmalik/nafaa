@@ -35,8 +35,8 @@ export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandI
 
   const set = <K extends keyof typeof f>(key: K, value: (typeof f)[K]) => { setF((cur) => ({ ...cur, [key]: value })); setSelected(new Set()); };
   const hasFilters = !!query || f.stock !== 'all' || f.active !== 'active' || !!f.categoryId || !!f.brandId || !!f.featured
-    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf || !!f.noCost;
-  const moreFilters = [f.active !== 'active', !!f.categoryId, !!f.brandId, !!f.featured, !!f.tagId, !!f.condition, !!f.etype, !!f.serial, !!f.kind, !!f.kindOf, !!f.noCost].filter(Boolean).length;
+    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf || !!f.noCost || !!f.supplierId || !!f.online;
+  const moreFilters = [f.active !== 'active', !!f.categoryId, !!f.brandId, !!f.featured, !!f.tagId, !!f.condition, !!f.etype, !!f.serial, !!f.kind, !!f.kindOf, !!f.noCost, !!f.supplierId, !!f.online].filter(Boolean).length;
 
   return {
     filters, f, set, search, setSearch, sort,

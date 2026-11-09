@@ -4,7 +4,7 @@ import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { MergeTaxonomyDto } from '../taxonomy/merge.dto';
 import { CategoriesService } from './categories.service';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto/create-category.dto';
+import { CreateCategoryDto, ReorderCategoriesDto, UpdateCategoryDto } from './dto/create-category.dto';
 
 @ApiTags('Categories')
 @ApiBearerAuth()
@@ -25,6 +25,12 @@ export class CategoriesController {
   @Get('insights')
   insights(@GetUser() user: AuthenticatedUser, @Query('from') from?: string, @Query('to') to?: string) {
     return this.categoriesService.insights(user, from, to);
+  }
+
+  /** Drag on the categories page: new parent and sibling order. */
+  @Post('reorder')
+  reorder(@GetUser() user: AuthenticatedUser, @Body() dto: ReorderCategoriesDto) {
+    return this.categoriesService.reorder(user, dto);
   }
 
   @Patch(':id')

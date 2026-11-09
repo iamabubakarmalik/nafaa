@@ -31,10 +31,12 @@ export function addCartNeed(
  * jate aur stock minus me chala jata. Ye shart us race ko band karti hai.
  * Naya stock wapas deta hai.
  */
-export async function claimShopStock(tx: any, shopStockId: string, quantity: number, shopName: string, allowNegative = false): Promise<number> {
+export async function claimShopStock(tx: any, shopStockId: string, quantity: number, shopName: string, allowNegative: boolean | number = false): Promise<number> {
   // With "sell below zero" switched on in settings the stock may go negative.
+  // A number is the lowest the stock may reach (a backorder limit); -Infinity = no limit.
+  const floor = allowNegative === true ? -Infinity : allowNegative === false ? 0 : allowNegative;
   const claimed = await tx.shopStock.updateMany({
-    where: { id: shopStockId, ...(!allowNegative && { stock: { gte: quantity } }) },
+    where: { id: shopStockId, ...(Number.isFinite(floor) && { stock: { gte: quantity + floor } }) },
     data: { stock: { decrement: quantity } },
   });
   const now = await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } });

@@ -4,6 +4,7 @@ import {
   allocateLanded, autoSku, belowCost, countLine, countSummary, daysLeft, duplicateCodes, ean13CheckDigit, effectOf, expiryBuckets,
   expiryState, fefo, fromBaseQty, groupBySupplier, inStoreEan13, isEan13, isEan8, isWeighedUnit, landedPayload, landedRs, landedTotal,
   landedUnitCost, lowFlags, marginLevel, marginPct, markupPct, movingAverageCost, openingStock, orderMessage, packPrice, packPricesFromBase,
+  autoPackPrices, autoPackValue, isAutoValue, inferPackAuto, applyAutoPrices, pieceFromPack, packSummary,
   packSavingPct, perBaseUnit, pickBatches, priceForMargin, priceForMarkup, quickQuantities, reorderTarget, resolveStockChange, splitIntoPacks,
   STOCK_CHOICES, stockStatus, stockValue, suggestQty, toBaseQty, whatsappLink, CORRECTION_CHOICE,
 } from './index';
@@ -18,6 +19,48 @@ test('packs convert to and from base units', () => {
   assert.equal(packSavingPct(100, 1300, 12), 0);
   assert.equal(packPrice(100, 12, 5), 1140);
   assert.deepEqual(packPricesFromBase({ price: 100, costPrice: 80, wholesalePrice: 90, creditPrice: null }, 12), { price: 1200, costPrice: 960, wholesalePrice: 1080, creditPrice: null });
+  assert.equal(packPricesFromBase({ price: 10, costPrice: 8.37, wholesalePrice: null, creditPrice: null }, 12).costPrice, 100.44);
+});
+
+test('pack prices follow the piece until typed by hand', () => {
+  const base = { price: 50, costPrice: 40, wholesalePrice: 45, creditPrice: null };
+  assert.deepEqual(autoPackPrices(base, 24), { price: 1200, costPrice: 960, wholesalePrice: 1080, creditPrice: null });
+  // The discount comes off sale tiers only; cost is never discounted.
+  assert.deepEqual(autoPackPrices(base, 24, 5), { price: 1140, costPrice: 960, wholesalePrice: 1026, creditPrice: null });
+  assert.equal(autoPackValue('costPrice', { ...base, costPrice: 8.37 }, 12), 100.44);
+  assert.equal(autoPackValue('price', base, 0), 0);
+
+  assert.equal(isAutoValue('price', 1200, 1200), true);
+  assert.equal(isAutoValue('price', 1200.4, 1200), true);
+  assert.equal(isAutoValue('price', 1150, 1200), false);
+  assert.equal(isAutoValue('wholesalePrice', null, 1080), true);
+  assert.equal(isAutoValue('wholesalePrice', 1000, null), false);
+  // Carton cost 1000 over 24 pieces is 41.67 each, which multiplies back to 1000.08.
+  assert.equal(isAutoValue('costPrice', 1000, 1000.08, 24), true);
+  assert.equal(isAutoValue('costPrice', 1000, 1000.5, 24), false);
+
+  const pack = { conversionRate: 24, price: 1140, costPrice: 960, wholesalePrice: 1100, creditPrice: null };
+  assert.deepEqual(inferPackAuto(base, pack), { discountPct: 5, manual: { wholesalePrice: true } });
+  assert.deepEqual(inferPackAuto(base, { ...pack, price: 1150, wholesalePrice: 1080 }), { discountPct: 0, manual: { price: true } });
+
+  // A piece price change moves every automatic tier and leaves typed ones alone.
+  const next = { ...base, price: 60, costPrice: 45 };
+  assert.deepEqual(applyAutoPrices(next, { ...pack, wholesalePrice: 1100 }, { wholesalePrice: true }, 5),
+    { conversionRate: 24, price: 1368, costPrice: 1080, wholesalePrice: 1100, creditPrice: null });
+  assert.equal(applyAutoPrices({ ...base, costPrice: 41.67 }, { ...pack, costPrice: 1000 }).costPrice, 1000);
+  assert.equal(applyAutoPrices({ ...base, costPrice: 42 }, { ...pack, costPrice: 1000 }).costPrice, 1008);
+});
+
+test('a pack value gives back one piece, and the pack summary line', () => {
+  assert.equal(pieceFromPack(960, 24), 40);
+  assert.equal(pieceFromPack(1000, 24), 41.67);
+  assert.equal(pieceFromPack(1150, 24), 47.92);
+  assert.equal(autoPackValue('price', { price: 47.92, costPrice: 0, wholesalePrice: null, creditPrice: null }, 24), 1150);
+  assert.equal(pieceFromPack(100, 0), 0);
+  assert.deepEqual(packSummary({ price: 50, costPrice: 40, wholesalePrice: null, creditPrice: null }, { conversionRate: 24, price: 1200, costPrice: 960, wholesalePrice: null, creditPrice: null }),
+    { perPiece: 50, profit: 240, profitPct: 20, savingPerPiece: 0 });
+  assert.deepEqual(packSummary({ price: 50, costPrice: 40, wholesalePrice: null, creditPrice: null }, { conversionRate: 24, price: 1140, costPrice: 0, wholesalePrice: null, creditPrice: null }),
+    { perPiece: 47.5, profit: null, profitPct: null, savingPerPiece: 2.5 });
 });
 
 test('base quantity splits into the biggest packs first', () => {

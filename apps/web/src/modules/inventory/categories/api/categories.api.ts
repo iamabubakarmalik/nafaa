@@ -6,14 +6,18 @@ export interface Category {
   color: string;
   icon?: string | null;
   isActive: boolean;
+  /** Parent category; null = top level. */
+  parentId?: string | null;
+  sortOrder?: number;
   createdAt: string;
-  _count?: { products: number };
+  _count?: { products: number; children?: number };
 }
 
 export interface CreateCategoryPayload {
   name: string;
   color?: string;
   icon?: string;
+  parentId?: string | null;
 }
 
 export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;
@@ -28,6 +32,10 @@ export const categoriesApi = {
 
   update: (id: string, payload: UpdateCategoryPayload) =>
     apiClient.patch<{ data: Category }>(`/categories/${id}`, payload).then(unwrap),
+
+  /** New parent and sibling order after a drag. */
+  reorder: (items: Array<{ id: string; parentId?: string | null; sortOrder: number }>) =>
+    apiClient.post<{ data: { updated: number } }>('/categories/reorder', { items }).then(unwrap),
 
   remove: (id: string) =>
     apiClient.delete<{ data: { message: string } }>(`/categories/${id}`).then(unwrap),

@@ -552,6 +552,8 @@ export interface UnlistedProduct {
 export interface LinkInput {
   externalProductId: string; externalVariantId?: string | null; productId: string; variantId?: string | null;
   externalTitle?: string | null; externalImage?: string | null; externalSku?: string | null;
+  /** Channel stock the screen showed for this item; a different Nafaa stock holds the link until the user picks a side. */
+  externalStock?: number | null;
 }
 
 export interface ImportResult {

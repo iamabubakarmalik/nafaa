@@ -55,7 +55,8 @@ function Expiry({ item }: { item: CatalogItem }) {
 export function CategoryChip({ item }: { item: CatalogItem }) {
   if (!item.category) return null;
   const c = item.category.color || '#64748b';
-  return <span className="max-w-[9rem] truncate rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold" style={{ backgroundColor: `${c}18`, color: c }}>{item.category.name}</span>;
+  // A sub-category shows its own name; the full path is in the tooltip.
+  return <span title={item.category.path ?? item.category.name} className="max-w-[9rem] truncate rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold" style={{ backgroundColor: `${c}18`, color: c }}>{item.category.name}</span>;
 }
 
 export function TagChips({ item, names, max = 2 }: { item: CatalogItem; names: CatalogPage['tagNames']; max?: number }) {
@@ -85,7 +86,9 @@ interface CardProps {
   onDeleted: () => void;
   can: { edit: boolean; delete: boolean; stock: boolean };
   /** Optional table columns the owner turned on. */
-  cols?: { wholesale: boolean; credit: boolean };
+  cols?: { wholesale: boolean; credit: boolean; supplier?: boolean; online?: boolean };
+  /** Tighter table rows. */
+  compact?: boolean;
 }
 
 function Select({ selected, onToggle, className }: { selected: boolean; onToggle: () => void; className?: string }) {
@@ -165,11 +168,11 @@ export function ProductCard({ item, config, extras, tagNames, money, cost, costH
   );
 }
 
-export function ProductRow({ item, config, extras, tagNames, money, cost, costHidden, days, selected, onToggle, onStock, onDeleted, can, cols }: CardProps) {
+export function ProductRow({ item, config, extras, tagNames, money, cost, costHidden, days, selected, onToggle, onStock, onDeleted, can, cols, compact }: CardProps) {
   const value = Math.max(0, item.stock) * item.costPrice;
   const ribbon = stockRibbon(item, extras);
   return (
-    <tr data-nav-row className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !item.isActive && 'opacity-70')}>
+    <tr data-nav-row className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !item.isActive && 'opacity-70', compact && '[&>td]:!py-1 [&_img]:!h-7 [&_img]:!w-7')}>
       <td className="w-10 py-2.5 ps-4"><Select selected={selected} onToggle={onToggle} /></td>
       <td className="max-w-[18rem] py-2.5 pe-3">
         <Link to={config.paths.detail(item.id)} className="flex min-w-0 items-center gap-3">
@@ -189,6 +192,12 @@ export function ProductRow({ item, config, extras, tagNames, money, cost, costHi
       <td className="whitespace-nowrap px-3 py-2.5 text-end text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(item.price)}</td>
       {cols?.wholesale && <td className="whitespace-nowrap px-3 py-2.5 text-end text-[0.8125rem] tabular-nums text-slate-700">{Number(item.wholesalePrice) > 0 ? money(Number(item.wholesalePrice)) : <span className="text-slate-400" title={tr('Retail price lagegi')}>—</span>}</td>}
       {cols?.credit && <td className="whitespace-nowrap px-3 py-2.5 text-end text-[0.8125rem] tabular-nums text-slate-700">{Number(item.creditPrice) > 0 ? money(Number(item.creditPrice)) : <span className="text-slate-400" title={tr('Retail price lagegi')}>—</span>}</td>}
+      {cols?.supplier && (
+        <td className="max-w-[10rem] px-3 py-2.5 text-[0.8125rem] text-slate-700">
+          {item.supplier ? <span className="block truncate" title={item.supplier.name}>{item.supplier.name}{(item.supplierCount ?? 0) > 1 && <span className="ms-1 text-[0.6875rem] text-slate-400">+{(item.supplierCount ?? 1) - 1}</span>}</span> : <span className="text-slate-400">—</span>}
+        </td>
+      )}
+      {cols?.online && <td className="px-3 py-2.5 text-[0.75rem]">{item.online ? <span className="rounded-full bg-sky-50 px-2 py-0.5 font-semibold text-sky-700">{tr('Online')}</span> : <span className="text-slate-400">—</span>}</td>}
       <td className="whitespace-nowrap px-3 py-2.5 text-end">
         <button type="button" onClick={can.stock ? onStock : undefined} disabled={!can.stock} title={can.stock ? tr('Stock badlein') : undefined}
           className={cn('rounded-lg px-2 py-1 text-[0.8125rem] font-bold tabular-nums transition enabled:hover:ring-2 enabled:hover:ring-brand-200',

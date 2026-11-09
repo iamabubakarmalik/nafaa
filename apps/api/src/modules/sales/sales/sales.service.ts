@@ -80,9 +80,12 @@ export class SalesService {
      * (jewelry old gold), so they need no used phone behind them.
      * `unitCosts`: cost per base unit for the item at the same index, used
      * instead of the product's cost (a dish plus its add-on ingredients).
+     * `stockFloor`: lowest the branch stock may reach for the item at the same
+     * index (an accepted online order for a backorder product); -Infinity = no
+     * limit, null/undefined = the shop's normal rule.
      * Server callers only; never read from the request body.
      */
-    opts: { counter?: boolean; tradeInChecked?: boolean; unitCosts?: Array<number | null | undefined> } = {},
+    opts: { counter?: boolean; tradeInChecked?: boolean; unitCosts?: Array<number | null | undefined>; stockFloor?: Array<number | null | undefined> } = {},
   ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
@@ -406,7 +409,10 @@ export class SalesService {
 
         // Pieces held for customers (garment hold / layaway) are not free to sell.
         const free = Number(shopStock.stock) - Math.max(Number(shopStock.reserved) || 0, 0);
-        addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : free, { item: itemName, shop: shop.name });
+        // A backorder line may go below zero down to its floor, even when the shop does not allow minus stock.
+        const floor = opts.stockFloor?.[idx];
+        const room = floor != null ? free - floor : free;
+        addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : room, { item: itemName, shop: shop.name });
       }
 
       // Money is kept to paisa: a strip at 260 sold as 6 x 43.333 must total 260, not 259.9999998.
@@ -433,6 +439,7 @@ export class SalesService {
         serialId: item.serialId ?? null,
         batchId: item.batchId ?? null,
         shopStockId: shopStock?.id ?? null,
+        stockFloor: opts.stockFloor?.[idx] ?? null,
         madeOnSale: !!made,
         isCarpetItem,
         isServiceItem,
@@ -797,7 +804,7 @@ export class SalesService {
 
         // ─── Standard items: decrement ShopStock + global stock ──
         // Atomic: sirf tab ghatao jab abhi bhi kaafi ho (race / offline sync se minus nahi)
-        const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name, allowNegativeStock) };
+        const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name, allowNegativeStock ? true : item.stockFloor ?? false) };
         // The same quantity leaves the item's batches: the chosen one, else earliest expiry.
         await recordSaleBatches(tx, saleItem.id, await takeFromBatches(tx, {
           shopId: sellingShopId, productId: item.productId!, variantId: item.variantId ?? null,

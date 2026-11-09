@@ -345,7 +345,7 @@ export class LowStockService {
   private async enrich(tenantId: string, rows: LowStockRow[], mainId: string, scope: ShopScope) {
     const ids = [...new Set(rows.map((r) => r.productId))];
     if (!ids.length) return;
-    const [bought, open, variants] = await Promise.all([
+    const [bought, open, variants, links] = await Promise.all([
       this.prisma.purchaseItem.findMany({
         where: { productId: { in: ids }, purchase: { tenantId, status: { not: 'CANCELLED' } } },
         orderBy: { createdAt: 'desc' },
@@ -362,12 +362,27 @@ export class LowStockService {
         where: { productId: { in: rows.filter((r) => r.devices?.variants.length).map((r) => r.productId) } },
         select: { id: true, name: true },
       }),
+      this.prisma.productSupplier.findMany({
+        where: { tenantId, productId: { in: ids }, isPreferred: true },
+        select: { productId: true, supplierId: true, costPrice: true, lastPurchasePrice: true, lastPurchasedAt: true },
+      }),
     ]);
 
-    const last = new Map<string, { cost: number; supplierId: string; at: Date }>();
+    const last = new Map<string, { cost: number; supplierId: string; at: Date | null }>();
+    // The preferred supplier set on the product wins over whoever sold it last.
+    for (const l of links) {
+      const cost = n(l.costPrice) || n(l.lastPurchasePrice);
+      last.set(l.productId, { cost, supplierId: l.supplierId, at: l.lastPurchasedAt });
+    }
     for (const b of bought) {
-      if (b.productId && !last.has(b.productId)) {
+      if (!b.productId) continue;
+      const known = last.get(b.productId);
+      if (!known) {
         last.set(b.productId, { cost: n(b.costPrice) / (b.conversionRate || 1), supplierId: b.purchase.supplierId, at: b.purchase.purchasedAt });
+      } else if (!known.at) {
+        // Preferred supplier with no purchase date on the link: fill from the bills.
+        if (b.purchase.supplierId === known.supplierId) known.at = b.purchase.purchasedAt;
+        if (!(known.cost > 0) && b.purchase.supplierId === known.supplierId) known.cost = n(b.costPrice) / (b.conversionRate || 1);
       }
     }
     const onOrder = new Map<string, number>();
